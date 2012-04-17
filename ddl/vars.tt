@@ -1,0 +1,26 @@
+[% USE PasswordGenerator -%]
+[%-
+     admin_role = "${dbname}_admin"
+     ro_role    = "${dbname}_ro"
+     rw_role    = "${dbname}_rw"
+
+     webapp_role      = "${dbname}_webapp"
+     webapp_passwd    = PasswordGenerator.generate_password
+     webapp_ro_role   = "${dbname}_webapp_ro"
+     webapp_ro_passwd = PasswordGenerator.generate_password
+     test_role        = "${dbname}_test"
+     test_passwd      = PasswordGenerator.generate_password
+     task_role        = "${dbname}_task"
+     task_passwd      = PasswordGenerator.generate_password
+
+     webapp_users = [
+       "rm7@sanger.ac.uk",
+       "sp12@sanger.ac.uk"
+     ]
+
+     system_users = [
+       "rm7", "sp12"
+     ]
+-%]
+
+        
