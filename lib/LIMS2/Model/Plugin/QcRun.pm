@@ -1,4 +1,4 @@
-package LIMS2::Model::Plugin::QcRuns;
+package LIMS2::Model::Plugin::QcRun;
 
 use strict;
 use warnings FATAL => 'all';

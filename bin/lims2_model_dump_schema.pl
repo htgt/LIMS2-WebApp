@@ -14,6 +14,7 @@ my %MONIKER_MAP = (
     bac_clone_loci    => 'BacCloneLocus',
     design_oligo_loci => 'DesignOligoLocus',
     qc_seq_reads      => 'QcSeqRead',
+    qc_runs           => 'QcRun',
 );
 
 my %REL_NAME_MAP = (
