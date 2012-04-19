@@ -104,7 +104,7 @@ sub throw {
     my ( $self, $error_class, $args ) = @_;
 
     if ( $error_class !~ /::/ ) {
-        $error_class = 'LIMS2::Model::Error::' . $error_class;
+        $error_class = 'LIMS2::Error::' . $error_class;
     }
 
     eval "require $error_class"
