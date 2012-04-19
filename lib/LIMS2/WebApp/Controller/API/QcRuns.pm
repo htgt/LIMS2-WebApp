@@ -47,7 +47,7 @@ sub qc_runs_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-    my $golgi - $c->model( 'Golgi' );
+    my $golgi = $c->model( 'Golgi' );
 
     my $qc_run;
     $golgi->txn_do(
