@@ -28,7 +28,7 @@ sub qc_runs_GET {
     my ( $self, $c ) = @_;
 
     my $qc_runs = $c->model('Golgi')->retrieve_list(
-        QcRuns => { }, { columns => [ qw( id ) ] } );
+        QcRun => { }, { columns => [ qw( id ) ] } );
 
     $self->status_ok(
         $c,
@@ -76,7 +76,7 @@ sub qc_run_GET {
 
     $c->assert_user_roles( 'read' );
 
-    my $qc_run = $c->model('Golgi')->retrieve( QcRuns => { id => $qc_run_id } );
+    my $qc_run = $c->model('Golgi')->retrieve( QcRun => { id => $qc_run_id } );
 
     return $self->status_ok(
         $c,

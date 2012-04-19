@@ -80,13 +80,13 @@ __PACKAGE__->set_primary_key("qc_run_id", "qc_sequencing_project");
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::QcRuns>
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "qc_run",
-  "LIMS2::Model::Schema::Result::QcRuns",
+  "LIMS2::Model::Schema::Result::QcRun",
   { id => "qc_run_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
@@ -107,8 +107,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LsMp+lMBuFfCvJsAZFpBww
+# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-19 14:00:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e17mW2uhDd9c1QVcQwoeSQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

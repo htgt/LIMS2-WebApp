@@ -95,7 +95,7 @@ sub retrieve_qc_run {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_run );
 
-    my $qc_run = $self->retrieve( QcRuns => $validated_params );
+    my $qc_run = $self->retrieve( QcRun => $validated_params );
 
     return $qc_run;
 }

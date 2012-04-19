@@ -137,13 +137,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::QcRuns>
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "qc_run",
-  "LIMS2::Model::Schema::Result::QcRuns",
+  "LIMS2::Model::Schema::Result::QcRun",
   { id => "qc_run_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
@@ -164,8 +164,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cB+EtEsbSB5Cy5Zrd/2BCA
+# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-19 14:00:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4nb2H46X4HNf4tZzuhGf8g
 
 sub as_hash {
     my $self = shift;

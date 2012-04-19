@@ -130,20 +130,20 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::QcRuns>
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
 
 =cut
 
 __PACKAGE__->has_many(
   "qcs_runs",
-  "LIMS2::Model::Schema::Result::QcRuns",
+  "LIMS2::Model::Schema::Result::QcRun",
   { "foreign.qc_template_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Rko6x+dUQWdT5RH2FbotKg
+# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-19 14:00:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UQVJzBaOzwq15dBpHp+ekg
 
 sub as_hash {
     my $self = shift;
