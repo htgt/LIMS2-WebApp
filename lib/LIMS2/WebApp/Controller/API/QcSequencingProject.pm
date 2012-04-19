@@ -47,12 +47,21 @@ sub qc_sequencing_projects_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    my $golgi = $c->model( 'Golgi' );
 
-    my $qc_sequencing_project = $c->model( 'Golgi' )->create_qc_sequencing_project( $c->request->data );
+    my $qc_sequencing_project;
+    $golgi->txn_do(
+        sub {
+            $qc_sequencing_project = $golgi->create_qc_sequencing_project(
+                $c->request->data );
+        }
+    );
+
 
     $self->status_created(
         $c,
-        location => $c->uri_for( '/api/qc_sequencing_project/', $qc_sequencing_project->name ),
+        location => $c->uri_for( '/api/qc_sequencing_project/'
+                                 , $qc_sequencing_project->name ),
         entity   => $qc_sequencing_project,
     );
 }
@@ -66,12 +75,12 @@ Retrieve a specific QcSequencingProject, by qc_sequencing_project
 =cut
 
 sub qc_sequencing_project_GET {
-    my ( $self, $c, $qc_sequencing_project ) = @_;
+    my ( $self, $c, $qc_sequencing_project_name ) = @_;
 
     $c->assert_user_roles( 'read' );
 
     my $qc_sequencing_project = $c->model('Golgi')->retrieve(
-        QcSequencingProject => { name => $qc_sequencing_project }
+        QcSequencingProject => { name => $qc_sequencing_project_name }
     );
 
     return $self->status_ok(
