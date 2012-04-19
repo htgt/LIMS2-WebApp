@@ -7,10 +7,6 @@ use base 'Catalyst::View::TT';
 
 __PACKAGE__->config(
     TEMPLATE_EXTENSION => '.tt',
-    INCLUDE_PATH       => [
-        LIMS2::WebApp->path_to( 'root', 'lib' ),
-        LIMS2::WebApp->path_to( 'root', 'site' )
-    ],
     WRAPPER            => 'wrapper.tt',
     render_die         => 1,
 );
