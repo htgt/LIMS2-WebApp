@@ -12,7 +12,7 @@ override prepare_arguments => sub {
     if ( $c->user ) {
         return {
             user       => 'webapp',
-            audit_user => $c->user->user_name
+            audit_user => $c->user->name
         }
     }
     else {

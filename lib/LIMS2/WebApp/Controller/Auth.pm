@@ -39,7 +39,7 @@ sub login : Global {
 
     return unless defined $username and defined $password;
     
-    if ( $c->authenticate( { user_name => $username, password => $password } ) ) {
+    if ( $c->authenticate( { name => $username, password => $password } ) ) {
         $c->flash( status_msg => 'Login successful' );
         return $c->res->redirect( $c->uri_for( $goto ) );
     }
