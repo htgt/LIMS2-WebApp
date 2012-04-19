@@ -15,9 +15,9 @@ ok my $model = LIMS2::Model->new( schema => $schema ), 'instantiate model';
 
 $model->txn_do(
     sub {
-        can_ok $model, 'create_qc_sequencing_project';
+        can_ok $model, 'find_or_create_qc_sequencing_project';
 
-        ok my $qc_sequencing_project = $model->create_qc_sequencing_project( {
+        ok my $qc_sequencing_project = $model->find_or_create_qc_sequencing_project( {
                 name => 'PG00259_Z'
             }
         ), 'create_qc_sequencing_project should succeed';

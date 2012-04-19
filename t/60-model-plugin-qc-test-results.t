@@ -20,17 +20,15 @@ $model->txn_do(
     sub {
         can_ok $model, 'create_qc_run';
 
-        ok my $qc_sequencing_project = $model->create_qc_sequencing_project(
-            $params->{qc_sequencing_project} ), 'create_qc_sequencing_project should succeed';
-
         ok my $qc_template = $model->create_qc_template( $params->{qc_template} )
             , 'create_qc_template should succeed';
+
+        ok my $qc_seq_read = $model->create_qc_seq_read( $params->{qc_seq_read} )
+            ,'create_qc_seq_read should succeed';
 
         ok my $qc_run = $model->create_qc_run( $params->{qc_run} )
             ,'create_qc_run should succeed';
 
-        ok my $qc_seq_read = $model->create_qc_seq_read( $params->{qc_seq_read} )
-            ,'create_qc_seq_read should succeed';
 
         ok $params->{qc_test_result}{qc_eng_seq_id} =
             $qc_template->qc_template_wells->first->qc_eng_seq_id
@@ -123,9 +121,6 @@ qc_seq_read:
     description: bases 28 to 738 (QL to QR)
     seq: CTATGAAAAAATTTTTTTCCCCCCCCGGGGGGGCGTAAGTCC
     length: 42
-
-qc_sequencing_project:
-    name: PG00259_Z
 
 qc_run:
     id: 47291142-5BA3-11E1-8E63-B870F3CB94C8

@@ -16,19 +16,22 @@ ok my $model = LIMS2::Model->new( schema => $schema ),
 
 can_ok $model, 'check_params';
 
-ok my $pspec = $model->pspec_create_bac_clone,
-    'parameter specification for create_bac_clone';
+ok my $pspec = $model->pspec_create_qc_seq_read,
+    'parameter specification for create_qc_seq_read';
 
 ok my $dfv_profile = $model->form_validator->dfv_profile( $pspec ),
     'create Data::FormValidater profile from parameter spec';
 
-{   
+{
     my $res = Data::FormValidator->check(
         {
-            library => 'black6',
-            name    => 'foo'
+            id                    => 'VTP0000_A01.Plkr',
+            qc_sequencing_project => 'FOO11111',
+            description           => 'foo',
+            seq                   => 'ATCG',
+            length                => 10,
         }, $dfv_profile
-    );    
+    );
 
     isa_ok $res, 'Data::FormValidator::Results';
 
@@ -38,7 +41,10 @@ ok my $dfv_profile = $model->form_validator->dfv_profile( $pspec ),
 {
     my $res = Data::FormValidator->check(
         {
-            library => '128'
+            id                    => '0',
+            qc_sequencing_project => 'FOO11111',
+            description           => 'foo',
+            seq                   => 'ATCG',
         }, $dfv_profile
     );
 
@@ -48,11 +54,11 @@ ok my $dfv_profile = $model->form_validator->dfv_profile( $pspec ),
 
     ok $res->has_invalid, 'result has_invalid';
 
-    is_deeply [ $res->invalid ], [ 'library' ], 'library is invalid';
+    is_deeply [ $res->invalid ], [ 'id' ], 'id is invalid';
 
     ok $res->has_missing, 'result has missing';
 
-    is_deeply [ $res->missing ], [ 'name' ], 'name is missing';
+    is_deeply [ $res->missing ], [ 'length' ], 'length is missing';
 }
 
 {
@@ -65,8 +71,8 @@ ok my $dfv_profile = $model->form_validator->dfv_profile( $pspec ),
 }
 
 {
-    my %pspec = ( foo => { validate => 'comma_separated_list' } );    
-    
+    my %pspec = ( foo => { validate => 'comma_separated_list' } );
+
     lives_ok {
         $model->check_params( { foo => 'abc' }, \%pspec )
     } 'comma_separated_list validates single-element list';
