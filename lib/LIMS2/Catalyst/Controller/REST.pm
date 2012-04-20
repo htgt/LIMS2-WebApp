@@ -51,7 +51,7 @@ sub handle_error :Private {
     # Assume the first error in the list is the most interesting one
     my $error = $errors[0];
 
-    if ( blessed( $error ) and $error->isa( 'LIMS2::Error' ) ) {
+    if ( blessed( $error ) and $error->isa( 'LIMS2::Exception' ) ) {
         $self->handle_lims2_model_error( $c, $error );
     }
     else {
@@ -71,11 +71,11 @@ sub handle_lims2_model_error {
 
     my %entity = ( error => $error->message, class => blessed $error );
     
-    if ( $error->isa( 'LIMS2::Error::Authorization' ) ) {
+    if ( $error->isa( 'LIMS2::Exception::Authorization' ) ) {
         return $self->error_status( $c, HTTP_FORBIDDEN, \%entity );
     }
     
-    if ( $error->isa( 'LIMS2::Error::Validation' ) ) {
+    if ( $error->isa( 'LIMS2::Exception::Validation' ) ) {
         if ( my $results = $error->results ) {            
             $entity{missing} = [ $results->missing ]
                 if $results->has_missing;
@@ -87,11 +87,11 @@ sub handle_lims2_model_error {
         return $self->error_status( $c, HTTP_BAD_REQUEST, \%entity );
     }
     
-    if ( $error->isa( 'LIMS2::Error::InvalidState' ) ) {
+    if ( $error->isa( 'LIMS2::Exception::InvalidState' ) ) {
         return $self->error_status( $c, HTTP_CONFLICT, \%entity );
     }
 
-    if ( $error->isa( 'LIMS2::Error::NotFound' ) ) {
+    if ( $error->isa( 'LIMS2::Exception::NotFound' ) ) {
         $entity{entity_class}  = $error->entity_class;
         $entity{search_params} = $error->search_params;
         return $self->error_status( $c, HTTP_NOT_FOUND, \%entity );
