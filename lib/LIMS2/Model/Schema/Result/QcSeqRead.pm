@@ -131,13 +131,7 @@ __PACKAGE__->has_many(
 sub as_hash {
     my $self = shift;
 
-    return {
-        id                    => $self->id,
-        seq                   => $self->seq,
-        length                => $self->length,
-        description           => $self->description,
-        qc_sequencing_project => $self->qc_sequencing_project,
-    };
+    return map { $_ => $self->$_ } __PACKAGE__->columns;
 }
 
 __PACKAGE__->meta->make_immutable;

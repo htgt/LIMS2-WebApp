@@ -170,14 +170,7 @@ __PACKAGE__->has_many(
 sub as_hash {
     my $self = shift;
 
-    return {
-        id         => $self->id,
-        qc_run_id  => $self->qc_run_id,
-        well_name  => $self->well_name,
-        plate_name => $self->plate_name,
-        score      => $self->score,
-        pass       => $self->pass,
-    };
+    return { map { $_ => $self->$_ } $self->columns };
 }
 
 __PACKAGE__->meta->make_immutable;

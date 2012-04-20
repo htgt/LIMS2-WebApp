@@ -109,7 +109,11 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tIP1Oi08ng/+Y/V10kTRKQ
 
+sub as_hash {
+    my $self = shift;
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+    return { map { $_ => $self->$_ } $self->columns };
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
