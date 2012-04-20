@@ -47,8 +47,15 @@ sub qc_test_results_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    my $golgi = $c->model( 'Golgi' );
 
-    my $qc_test_result = $c->model( 'Golgi' )->create_qc_test_result( $c->request->data );
+    my $qc_test_result;
+    $golgi->txn_do(
+        sub {
+            $qc_test_result = $c->model( 'Golgi' )->create_qc_test_result( $c->request->data );
+        }
+    );
+
 
     $self->status_created(
         $c,

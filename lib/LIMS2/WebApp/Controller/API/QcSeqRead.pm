@@ -48,8 +48,14 @@ sub qc_seq_reads_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    my $golgi = $c->model( 'Golgi' );
 
-    my $qc_seq_read = $c->model( 'Golgi' )->create_qc_seq_read( $c->request->data );
+    my $qc_seq_read;
+    $golgi->txn_do(
+        sub {
+            $qc_seq_read = $c->model( 'Golgi' )->create_qc_seq_read( $c->request->data );
+        }
+    );
 
     $self->status_created(
         $c,

@@ -47,8 +47,15 @@ sub qc_templates_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    my $golgi = $c->model( 'Golgi' );
 
-    my $qc_template = $c->model( 'Golgi' )->create_qc_template( $c->request->data );
+    my $qc_template;
+    $golgi->txn_do(
+        sub {
+            $qc_template = $c->model( 'Golgi' )->create_qc_template( $c->request->data );
+        }
+    );
+
 
     $self->status_created(
         $c,
