@@ -80,7 +80,7 @@ sub _build_eng_seq_builder {
 
     require EngSeqBuilder;
     return EngSeqBuilder->new(
-        configfile            => $ENV{ENG_SEQ_BUILDER_CONFIG},
+        configfile            => $ENV{ENG_SEQ_BUILDER_CONF},
         max_vector_seq_length => 250000
     );
 }
