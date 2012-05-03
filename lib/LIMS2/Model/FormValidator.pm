@@ -17,7 +17,7 @@ has model => (
 
 has cached_constraint_methods => (
     isa     => 'HashRef',
-    traits  => [ 'Hash' ],
+    traits  => ['Hash'],
     default => sub { {} },
     handles => {
         has_cached_constraint_method => 'exists',
@@ -33,41 +33,39 @@ sub init_constraint_method {
 
     return sub {
         my $dfv = shift;
-        $dfv->name_this( $constraint_name );
+        $dfv->name_this($constraint_name);
         my $val = $dfv->get_current_constraint_value();
-        return $constraint->( $val );
+        return $constraint->($val);
     };
 }
 
 sub constraint_method {
     my ( $self, $constraint_name ) = @_;
 
-    unless ( $self->has_cached_constraint_method( $constraint_name ) ) {
-        $self->set_cached_constraint_method(
-            $constraint_name => $self->init_constraint_method( $constraint_name )
-        );
+    unless ( $self->has_cached_constraint_method($constraint_name) ) {
+        $self->set_cached_constraint_method( $constraint_name => $self->init_constraint_method($constraint_name) );
     }
 
-    return $self->get_cached_constraint_method( $constraint_name );
+    return $self->get_cached_constraint_method($constraint_name);
 }
 
 sub post_filter {
     my ( $self, $method, $value ) = @_;
 
     if ( defined $value ) {
-        return $self->model->$method( $value );
+        return $self->model->$method($value);
     }
     else {
-        return undef;
+        return;
     }
 }
 
 sub check_params {
     my ( $self, $params, $spec ) = @_;
 
-    my $results = Data::FormValidator->check( $params, $self->dfv_profile( $spec ) );
+    my $results = Data::FormValidator->check( $params, $self->dfv_profile($spec) );
 
-    if ( ! $results->success ) {
+    if ( !$results->success ) {
         $self->throw( Validation => { params => $params, results => $results } );
     }
 
@@ -75,11 +73,10 @@ sub check_params {
 
     while ( my ( $field, $f_spec ) = each %{$spec} ) {
         if ( $f_spec->{post_filter} ) {
-            $validated_params->{$field} =
-                $self->post_filter( $f_spec->{post_filter}, $validated_params->{$field} );
+            $validated_params->{$field} = $self->post_filter( $f_spec->{post_filter}, $validated_params->{$field} );
         }
         if ( $f_spec->{rename} ) {
-            $validated_params->{ $f_spec->{rename} } = delete $validated_params->{ $field };
+            $validated_params->{ $f_spec->{rename} } = delete $validated_params->{$field};
         }
     }
 
@@ -89,7 +86,7 @@ sub check_params {
 sub dfv_profile {
     my ( $self, $spec ) = @_;
 
-    my ( @filters, @required, @optional, @defaults, %constraint_methods,  %field_filters, %defaults );
+    my ( @filters, @required, @optional, %constraint_methods, %field_filters, %defaults );
 
     # Add the 'trim' filter for every profile
     push @filters, 'trim';

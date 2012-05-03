@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API::QcTemplate;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
 
@@ -16,7 +16,8 @@ Catalyst Controller.
 
 =cut
 
-sub qc_templates :Path( '/api/qc_templates' ) :Args(0) :ActionClass( 'REST' ) { }
+sub qc_templates : Path( '/api/qc_templates' ) : Args(0) : ActionClass( 'REST' ) {
+}
 
 =head2 GET /api/qc_templates
 
@@ -27,13 +28,13 @@ Retrieve list of QcTemplate plates
 sub qc_templates_GET {
     my ( $self, $c ) = @_;
 
-    my $qc_templates = $c->model('Golgi')->retrieve_list(
-        QcTemplate => { }, { columns => [ qw( id name ) ] } );
+    my $qc_templates = $c->model('Golgi')->retrieve_list( QcTemplate => {}, { columns => [qw( id name )] } );
 
-    $self->status_ok(
+    return $self->status_ok(
         $c,
-        entity => { map { $_->name => $c->uri_for( '/api/qc_template/'
-                        . $_->id )->as_string } @{ $qc_templates } },
+        entity => {
+            map { $_->name => $c->uri_for( '/api/qc_template/' . $_->id )->as_string } @{$qc_templates}
+        }
     );
 }
 
@@ -46,25 +47,25 @@ Create a QcTemplate plate along with its wells
 sub qc_templates_POST {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles( 'edit' );
-    my $golgi = $c->model( 'Golgi' );
+    $c->assert_user_roles('edit');
+    my $golgi = $c->model('Golgi');
 
     my $qc_template;
     $golgi->txn_do(
         sub {
-            $qc_template = $c->model( 'Golgi' )->create_qc_template( $c->request->data );
+            $qc_template = $c->model('Golgi')->create_qc_template( $c->request->data );
         }
     );
 
-
-    $self->status_created(
+    return $self->status_created(
         $c,
         location => $c->uri_for( '/api/qc_template/', $qc_template->id ),
         entity   => $qc_template
     );
 }
 
-sub qc_template :Path( '/api/qc_template' ) :Args(1) :ActionClass( 'REST' ) { }
+sub qc_template : Path( '/api/qc_template' ) : Args(1) : ActionClass( 'REST' ) {
+}
 
 =head2 GET /api/qc_template
 
@@ -75,17 +76,16 @@ Retrieve a specific qc_template, by qc_template_id or qc_template_name
 sub qc_template_GET {
     my ( $self, $c, $qc_template ) = @_;
 
-    $c->assert_user_roles( 'read' );
+    $c->assert_user_roles('read');
 
-    my $qc_template_params = $qc_template =~ /^\d+$/ ? { id => $qc_template }
-                                                     : { name => $qc_template };
+    my $qc_template_params
+        = $qc_template =~ /^\d+$/
+        ? { id => $qc_template }
+        : { name => $qc_template };
 
-    my $qc_template_obj = $c->model('Golgi')->retrieve_qc_template( $qc_template_params );
+    my $qc_template_obj = $c->model('Golgi')->retrieve_qc_template($qc_template_params);
 
-    return $self->status_ok(
-        $c,
-        entity => $qc_template_obj,
-    );
+    return $self->status_ok( $c, entity => $qc_template_obj, );
 }
 
 #TODO: qc template created before certain date

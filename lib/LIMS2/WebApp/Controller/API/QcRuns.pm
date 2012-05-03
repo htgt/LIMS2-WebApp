@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API::QcRuns;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
 
@@ -16,7 +16,8 @@ Catalyst Controller.
 
 =cut
 
-sub qc_runs :Path( '/api/qc_runs' ) :Args(0) :ActionClass( 'REST' ) { }
+sub qc_runs : Path( '/api/qc_runs' ) : Args(0) : ActionClass( 'REST' ) {
+}
 
 =head2 GET /api/qc_runs
 
@@ -27,13 +28,13 @@ Retrieve list of QcRuns
 sub qc_runs_GET {
     my ( $self, $c ) = @_;
 
-    my $qc_runs = $c->model('Golgi')->retrieve_list(
-        QcRun => { }, { columns => [ qw( id ) ] } );
+    my $qc_runs = $c->model('Golgi')->retrieve_list( QcRun => {}, { columns => [qw( id )] } );
 
-    $self->status_ok(
+    return $self->status_ok(
         $c,
-        entity => { map { $_->id => $c->uri_for( '/api/qc_run/'
-                        . $_->id )->as_string } @{ $qc_runs } },
+        entity => {
+            map { $_->id => $c->uri_for( '/api/qc_run/' . $_->id )->as_string } @{$qc_runs}
+        },
     );
 }
 
@@ -46,8 +47,8 @@ Create a QcRun
 sub qc_runs_POST {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles( 'edit' );
-    my $golgi = $c->model( 'Golgi' );
+    $c->assert_user_roles('edit');
+    my $golgi = $c->model('Golgi');
 
     my $qc_run;
     $golgi->txn_do(
@@ -56,14 +57,15 @@ sub qc_runs_POST {
         }
     );
 
-    $self->status_created(
+    return $self->status_created(
         $c,
         location => $c->uri_for( '/api/qc_run/', $qc_run->id ),
         entity   => $qc_run,
     );
 }
 
-sub qc_run :Path( '/api/qc_run' ) :Args(1) :ActionClass( 'REST' ) { }
+sub qc_run : Path( '/api/qc_run' ) : Args(1) : ActionClass( 'REST' ) {
+}
 
 =head2 GET /api/qc_run
 
@@ -74,14 +76,11 @@ Retrieve a specific qc_run, by qc_run_id
 sub qc_run_GET {
     my ( $self, $c, $qc_run_id ) = @_;
 
-    $c->assert_user_roles( 'read' );
+    $c->assert_user_roles('read');
 
     my $qc_run = $c->model('Golgi')->retrieve( QcRun => { id => $qc_run_id } );
 
-    return $self->status_ok(
-        $c,
-        entity => $qc_run,
-    );
+    return $self->status_ok( $c, entity => $qc_run, );
 }
 
 =head1 AUTHOR

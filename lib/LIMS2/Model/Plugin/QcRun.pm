@@ -32,42 +32,30 @@ sub create_qc_run {
     my $qc_template;
     if ( $validated_params->{created_before} ) {
         $qc_template = $self->retrieve_newest_qc_template_created_after(
-            { slice( $validated_params
-                    , qw( created_before name ) ) }
-        );
+            { slice( $validated_params, qw( created_before name ) ) } );
     }
     else {
-        $qc_template = $self->retrieve_qc_template(
-            { slice( $validated_params, qw( name ) ) }
-        );
+        $qc_template = $self->retrieve_qc_template( { slice( $validated_params, qw( name ) ) } );
     }
 
     $qc_run = $qc_template->create_related(
-        qcs_runs => {
-            slice_def( $validated_params,
-                       qw( id date profile software_version) )
-        }
-    );
+        qcs_runs => { slice_def( $validated_params, qw( id date profile software_version) ) } );
 
-    my @qc_sequencing_projects = grep { !/^\s*$/ } split ','
-        ,$validated_params->{qc_sequencing_projects};
-    map { $self->create_qc_run_sequencing_project( { qc_sequencing_project => $_ }, $qc_run ) }
-        @qc_sequencing_projects;
+    my @qc_sequencing_projects = grep { !/^\s*$/ } split ',', $validated_params->{qc_sequencing_projects};
+    map { $self->create_qc_run_sequencing_project( { qc_sequencing_project => $_ }, $qc_run ) } @qc_sequencing_projects;
 
     $self->log->debug( 'created qc run : ' . $qc_run->id );
 
     for my $test_result_params ( @{ $validated_params->{qc_test_results} } ) {
         $test_result_params->{qc_run_id} = $qc_run->id;
-        $self->create_qc_test_result( $test_result_params );
+        $self->create_qc_test_result($test_result_params);
     }
 
     return $qc_run;
 }
 
 sub pspec_create_qc_run_sequencing_project {
-    return {
-        qc_sequencing_project => { validate => 'plate_name' }
-    };
+    return { qc_sequencing_project => { validate => 'plate_name' } };
 }
 
 sub create_qc_run_sequencing_project {
@@ -76,18 +64,13 @@ sub create_qc_run_sequencing_project {
     my $validated_params = $self->check_params( $params, $self->pspec_create_qc_run_sequencing_project );
 
     my $qc_run_sequencing_project = $qc_run->create_related(
-       qc_run_sequencing_projects => {
-           qc_sequencing_project => $validated_params->{qc_sequencing_project},
-       }
-    );
+        qc_run_sequencing_projects => { qc_sequencing_project => $validated_params->{qc_sequencing_project}, } );
 
     return $qc_run_sequencing_project;
 }
 
 sub pspec_retrieve_qc_run {
-    return {
-        id => { validate => 'uuid' }
-    };
+    return { id => { validate => 'uuid' } };
 }
 
 sub retrieve_qc_run {

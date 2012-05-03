@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API::QcSequencingProject;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
 
@@ -16,7 +16,8 @@ Catalyst Controller.
 
 =cut
 
-sub qc_sequencing_projects :Path( '/api/qc_sequencing_projects' ) :Args(0) :ActionClass('REST') { }
+sub qc_sequencing_projects : Path( '/api/qc_sequencing_projects' ) : Args(0) : ActionClass('REST') {
+}
 
 =head2 GET /api/qc_sequencing_projects
 
@@ -27,13 +28,15 @@ Retrieve list of QcSeqReads
 sub qc_sequencing_projects_GET {
     my ( $self, $c ) = @_;
 
-    my $qc_sequencing_projects = $c->model('Golgi')->retrieve_list(
-        QcSequencingProject => { }, { columns => [ qw( name ) ] } );
+    my $qc_sequencing_projects
+        = $c->model('Golgi')->retrieve_list( QcSequencingProject => {}, { columns => [qw( name )] } );
 
-    $self->status_ok(
+    return $self->status_ok(
         $c,
-        entity => { map { $_->name => $c->uri_for( '/api/qc_sequencing_project/'
-                        . $_->name )->as_string } @{ $qc_sequencing_projects } },
+        entity => {
+            map { $_->name => $c->uri_for( '/api/qc_sequencing_project/' . $_->name )->as_string }
+                @{$qc_sequencing_projects}
+        },
     );
 }
 
@@ -46,27 +49,25 @@ Create a QcSequencingProject
 sub qc_sequencing_projects_POST {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles( 'edit' );
-    my $golgi = $c->model( 'Golgi' );
+    $c->assert_user_roles('edit');
+    my $golgi = $c->model('Golgi');
 
     my $qc_sequencing_project;
     $golgi->txn_do(
         sub {
-            $qc_sequencing_project = $golgi->create_qc_sequencing_project(
-                $c->request->data );
+            $qc_sequencing_project = $golgi->create_qc_sequencing_project( $c->request->data );
         }
     );
 
-
-    $self->status_created(
+    return $self->status_created(
         $c,
-        location => $c->uri_for( '/api/qc_sequencing_project/'
-                                 , $qc_sequencing_project->name ),
+        location => $c->uri_for( '/api/qc_sequencing_project/', $qc_sequencing_project->name ),
         entity   => $qc_sequencing_project,
     );
 }
 
-sub qc_sequencing_project :Path( '/api/qc_sequencing_project' ) :Args(1) :ActionClass( 'REST' ) { }
+sub qc_sequencing_project : Path( '/api/qc_sequencing_project' ) : Args(1) : ActionClass( 'REST' ) {
+}
 
 =head2 GET /api/qc_sequencing_project
 
@@ -77,16 +78,12 @@ Retrieve a specific QcSequencingProject, by qc_sequencing_project
 sub qc_sequencing_project_GET {
     my ( $self, $c, $qc_sequencing_project_name ) = @_;
 
-    $c->assert_user_roles( 'read' );
+    $c->assert_user_roles('read');
 
-    my $qc_sequencing_project = $c->model('Golgi')->retrieve(
-        QcSequencingProject => { name => $qc_sequencing_project_name }
-    );
+    my $qc_sequencing_project
+        = $c->model('Golgi')->retrieve( QcSequencingProject => { name => $qc_sequencing_project_name } );
 
-    return $self->status_ok(
-        $c,
-        entity => $qc_sequencing_project
-    );
+    return $self->status_ok( $c, entity => $qc_sequencing_project );
 }
 
 =head1 AUTHOR

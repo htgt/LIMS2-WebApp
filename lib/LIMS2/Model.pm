@@ -33,6 +33,8 @@ sub _audit_user_set {
             $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier( $user ) );
         }
     );
+
+    return;
 }
 
 has user => (
@@ -100,6 +102,7 @@ sub _build_ensembl_util {
     return LIMS2::Util::EnsEMBL->new;
 }
 
+## no critic(RequireFinalReturn)
 sub throw {
     my ( $self, $error_class, $args ) = @_;
 
@@ -116,6 +119,7 @@ sub throw {
 
     $err->throw;
 }
+## use critic
 
 sub parse_date_time {
     my ( $self, $date_time ) = @_;
@@ -127,7 +131,7 @@ sub parse_date_time {
         return $date_time;
     }
     else {
-        DateTime::Format::ISO8601->parse_datetime( $date_time );
+        return DateTime::Format::ISO8601->parse_datetime( $date_time );
     }
 
 }
@@ -135,9 +139,10 @@ sub parse_date_time {
 sub plugins {
     my $class = shift;
 
-    Module::Pluggable::Object->new( search_path => [ $class . '::Plugin' ] )->plugins;
+    return Module::Pluggable::Object->new( search_path => [ $class . '::Plugin' ] )->plugins;
 }
 
+## no critic(RequireFinalReturn)
 sub retrieve {
     my ( $self, $entity_class, $search_params, $search_opts ) = @_;
 
@@ -155,7 +160,9 @@ sub retrieve {
         $self->throw( Implementation => "Retrieval of $entity_class returned " . @objects . " objects" );
     }
 }
+## use critic
 
+## no critic(RequireFinalReturn)
 sub retrieve_list {
     my ( $self, $entity_class, $search_params, $search_opts ) = @_;
 
@@ -170,6 +177,7 @@ sub retrieve_list {
         return \@objects;
     }
 }
+## use critic
 
 with ( qw( MooseX::Log::Log4perl ), __PACKAGE__->plugins );
 

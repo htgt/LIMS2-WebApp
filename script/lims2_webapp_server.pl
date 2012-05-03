@@ -1,7 +1,12 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
+
 BEGIN {
+    ## no critic(RequireLocalizedPunctuationVars)
     $ENV{CATALYST_SCRIPT_GEN} = 40;
+    ## use critic
 }
 
 use Catalyst::ScriptRunner;

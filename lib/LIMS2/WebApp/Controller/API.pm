@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
 
@@ -20,14 +20,14 @@ Catalyst Controller.
 
 =cut
 
-sub auto :Private {
+sub auto : Private {
     my ( $self, $c ) = @_;
 
     # This allows a logged-in user to access the REST API without
     # further authentication, and provides an HTTP basic auth fallback
     # for programmatic access
     unless ( $c->user_exists ) {
-        return $c->authenticate( { realm => 'LIMS2 API' }, 'basic' );        
+        return $c->authenticate( { realm => 'LIMS2 API' }, 'basic' );
     }
 }
 

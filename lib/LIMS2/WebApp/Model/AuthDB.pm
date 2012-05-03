@@ -1,6 +1,8 @@
 package LIMS2::WebApp::Model::AuthDB;
 
 use strict;
+use warnings;
+
 use base 'Catalyst::Model::DBIC::Schema';
 
 require LIMS2::Model::DBConnect;

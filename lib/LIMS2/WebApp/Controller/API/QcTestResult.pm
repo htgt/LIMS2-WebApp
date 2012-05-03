@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API::QcTestResult;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
 
@@ -16,7 +16,8 @@ Catalyst Controller.
 
 =cut
 
-sub qc_test_results :Path( '/api/qc_test_results' ) :Args(0) :ActionClass( 'REST' ) { }
+sub qc_test_results : Path( '/api/qc_test_results' ) : Args(0) : ActionClass( 'REST' ) {
+}
 
 =head2 GET /api/qc_test_results
 
@@ -27,13 +28,13 @@ Retrieve list of QcTestResults
 sub qc_test_results_GET {
     my ( $self, $c ) = @_;
 
-    my $qc_test_result = $c->model('Golgi')->retrieve_list(
-        QcTestResult => { }, { columns => [ qw( id ) ] } );
+    my $qc_test_result = $c->model('Golgi')->retrieve_list( QcTestResult => {}, { columns => [qw( id )] } );
 
-    $self->status_ok(
+    return $self->status_ok(
         $c,
-        entity => { map { $_->id => $c->uri_for( '/api/qc_test_result/'
-                        . $_->id )->as_string } @{ $qc_test_result } },
+        entity => {
+            map { $_->id => $c->uri_for( '/api/qc_test_result/' . $_->id )->as_string } @{$qc_test_result}
+        }
     );
 }
 
@@ -46,25 +47,25 @@ Create a QcTestResult
 sub qc_test_results_POST {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles( 'edit' );
-    my $golgi = $c->model( 'Golgi' );
+    $c->assert_user_roles('edit');
+    my $golgi = $c->model('Golgi');
 
     my $qc_test_result;
     $golgi->txn_do(
         sub {
-            $qc_test_result = $c->model( 'Golgi' )->create_qc_test_result( $c->request->data );
+            $qc_test_result = $c->model('Golgi')->create_qc_test_result( $c->request->data );
         }
     );
 
-
-    $self->status_created(
+    return $self->status_created(
         $c,
         location => $c->uri_for( '/api/qc_test_result/', $qc_test_result->id ),
         entity   => $qc_test_result,
     );
 }
 
-sub qc_test_result :Path( '/api/qc_test_result' ) :Args(1) :ActionClass( 'REST' ) { }
+sub qc_test_result : Path( '/api/qc_test_result' ) : Args(1) : ActionClass( 'REST' ) {
+}
 
 =head2 GET /api/qc_test_result
 
@@ -75,14 +76,11 @@ Retrieve a specific QcTestResult, by qc_test_result_id
 sub qc_test_result_GET {
     my ( $self, $c, $qc_test_result_id ) = @_;
 
-    $c->assert_user_roles( 'read' );
+    $c->assert_user_roles('read');
 
     my $qc_test_result = $c->model('Golgi')->retrieve( QcTestResult => { id => $qc_test_result_id } );
 
-    return $self->status_ok(
-        $c,
-        entity => $qc_test_result,
-    );
+    return $self->status_ok( $c, entity => $qc_test_result, );
 }
 
 =head1 AUTHOR

@@ -259,6 +259,6 @@ sub as_hash {
         roles => [ map { $_->name } $self->roles ]
     };
 }
-    
+
 __PACKAGE__->meta->make_immutable;
 1;

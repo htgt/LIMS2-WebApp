@@ -8,7 +8,6 @@ use base 'Exporter';
 use Const::Fast;
 
 BEGIN {
-    our @EXPORT      = ();
     our @EXPORT_OK   = qw( $DEFAULT_ASSEMBLY );
     our %EXPORT_TAGS = ();
 }
