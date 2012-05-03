@@ -46,7 +46,7 @@ has schema => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema',
     lazy_build => 1,
-    handles    => [ 'txn_do', 'txn_rollback' ]
+    handles    => [ 'txn_rollback' ]
 );
 
 sub _build_schema {
@@ -56,6 +56,12 @@ sub _build_schema {
         or confess "user must be specified for database login";
 
     return LIMS2::Model::DBConnect->connect( 'LIMS2_DB', $user );
+}
+
+sub txn_do {
+    my ( $self, $code_ref, @args ) = @_;
+    
+    return $self->schema->txn_do( $code_ref, $self, @args );
 }
 
 has form_validator => (
