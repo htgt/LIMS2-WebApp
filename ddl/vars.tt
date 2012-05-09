@@ -10,6 +10,7 @@
      webapp_ro_passwd = PasswordGenerator.generate_password
      test_role        = "${dbname}_test"
      test_passwd      = PasswordGenerator.generate_password
+     test_admin_role  = "${dbname}_test_admin"
      task_role        = "${dbname}_task"
      task_passwd      = PasswordGenerator.generate_password
 
