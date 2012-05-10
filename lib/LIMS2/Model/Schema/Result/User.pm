@@ -99,22 +99,7 @@ __PACKAGE__->add_unique_constraint("users_name_key", ["name"]);
 
 =head1 RELATIONS
 
-=head2 qc_templates
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::QcTemplate>
-
-=cut
-
-__PACKAGE__->has_many(
-  "qc_templates",
-  "LIMS2::Model::Schema::Result::QcTemplate",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 qcs_runs
+=head2 qc_runs
 
 Type: has_many
 
@@ -123,9 +108,9 @@ Related object: L<LIMS2::Model::Schema::Result::QcRun>
 =cut
 
 __PACKAGE__->has_many(
-  "qcs_runs",
+  "qc_runs",
   "LIMS2::Model::Schema::Result::QcRun",
-  { "foreign.created_by" => "self.id" },
+  { "foreign.created_by_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -155,8 +140,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/YHvr5OhKuSs5RWfJ+o86Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CD80bym3cCiBYGAQHR8dhA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

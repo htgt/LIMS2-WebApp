@@ -45,7 +45,7 @@ __PACKAGE__->table("qc_run_seq_project");
   is_nullable: 0
   size: 36
 
-=head2 qc_seq_project_name
+=head2 qc_seq_project_id
 
   data_type: 'text'
   is_foreign_key: 1
@@ -56,7 +56,7 @@ __PACKAGE__->table("qc_run_seq_project");
 __PACKAGE__->add_columns(
   "qc_run_id",
   { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
-  "qc_seq_project_name",
+  "qc_seq_project_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
@@ -66,13 +66,13 @@ __PACKAGE__->add_columns(
 
 =item * L</qc_run_id>
 
-=item * L</qc_seq_project_name>
+=item * L</qc_seq_project_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("qc_run_id", "qc_seq_project_name");
+__PACKAGE__->set_primary_key("qc_run_id", "qc_seq_project_id");
 
 =head1 RELATIONS
 
@@ -91,7 +91,7 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 qc_seq_project_name
+=head2 qc_seq_project
 
 Type: belongs_to
 
@@ -100,15 +100,15 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqProject>
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_seq_project_name",
+  "qc_seq_project",
   "LIMS2::Model::Schema::Result::QcSeqProject",
-  { name => "qc_seq_project_name" },
+  { id => "qc_seq_project_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:glDj5JOdmREtq8qQTsKDKA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BFJUMYYYR/0ccpPqImY+vg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

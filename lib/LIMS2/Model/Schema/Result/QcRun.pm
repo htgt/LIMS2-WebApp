@@ -51,7 +51,7 @@ __PACKAGE__->table("qc_runs");
   is_nullable: 0
   original: {default_value => \"now()"}
 
-=head2 created_by
+=head2 created_by_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -85,7 +85,7 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
-  "created_by",
+  "created_by_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "profile",
   { data_type => "text", is_nullable => 0 },
@@ -120,7 +120,7 @@ Related object: L<LIMS2::Model::Schema::Result::User>
 __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
-  { id => "created_by" },
+  { id => "created_by_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -169,23 +169,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_seq_project_names
+=head2 qc_seq_projects
 
 Type: many_to_many
 
-Composing rels: L</qc_run_seq_projects> -> qc_seq_project_name
+Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 
 =cut
 
-__PACKAGE__->many_to_many(
-  "qc_seq_project_names",
-  "qc_run_seq_projects",
-  "qc_seq_project_name",
-);
+__PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48J7cAg80dDqcngk3p+aAA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:50:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:R6QcXdrA/dzmhfb7TfxvQw
 
 sub as_hash {
     my $self = shift;

@@ -45,7 +45,7 @@ __PACKAGE__->table("qc_seq_project_wells");
   is_nullable: 0
   sequence: 'qc_seq_project_wells_id_seq'
 
-=head2 qc_seq_project_name
+=head2 qc_seq_project_id
 
   data_type: 'text'
   is_foreign_key: 1
@@ -71,7 +71,7 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "qc_seq_project_wells_id_seq",
   },
-  "qc_seq_project_name",
+  "qc_seq_project_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "plate_name",
   { data_type => "text", is_nullable => 0 },
@@ -93,11 +93,11 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<qc_seq_project_wells_qc_seq_project_name_plate_name_well_na_key>
+=head2 C<qc_seq_project_wells_qc_seq_project_id_plate_name_well_name_key>
 
 =over 4
 
-=item * L</qc_seq_project_name>
+=item * L</qc_seq_project_id>
 
 =item * L</plate_name>
 
@@ -108,13 +108,13 @@ __PACKAGE__->set_primary_key("id");
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "qc_seq_project_wells_qc_seq_project_name_plate_name_well_na_key",
-  ["qc_seq_project_name", "plate_name", "well_name"],
+  "qc_seq_project_wells_qc_seq_project_id_plate_name_well_name_key",
+  ["qc_seq_project_id", "plate_name", "well_name"],
 );
 
 =head1 RELATIONS
 
-=head2 qc_seq_project_name
+=head2 qc_seq_project
 
 Type: belongs_to
 
@@ -123,9 +123,9 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqProject>
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_seq_project_name",
+  "qc_seq_project",
   "LIMS2::Model::Schema::Result::QcSeqProject",
-  { name => "qc_seq_project_name" },
+  { id => "qc_seq_project_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -160,8 +160,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cljQWUS9E/IlZPHFYwvNuA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gAL2wU67gOdHql4HrWDE2A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

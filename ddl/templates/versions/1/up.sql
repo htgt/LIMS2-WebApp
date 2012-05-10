@@ -54,10 +54,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON qc_eng_seqs TO "[% rw_role %]";
 GRANT USAGE ON SEQUENCE qc_eng_seqs_id_seq TO "[% rw_role %]";
 
 CREATE TABLE qc_templates (
-       id         SERIAL PRIMARY KEY,
-       name       TEXT NOT NULL,
-       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-       created_by INTEGER NOT NULL REFERENCES users(id),
+       id            SERIAL PRIMARY KEY,
+       name          TEXT NOT NULL,
+       created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
        UNIQUE (name, created_at)
 );
 GRANT SELECT ON qc_templates TO "[% ro_role %]";
@@ -78,7 +77,7 @@ GRANT USAGE ON SEQUENCE qc_template_wells_id_seq TO "[% rw_role %]";
 CREATE TABLE qc_runs (
        id                     CHAR(36) PRIMARY KEY,
        created_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-       created_by             INTEGER NOT NULL REFERENCES users(id),
+       created_by_id          INTEGER NOT NULL REFERENCES users(id),
        profile                TEXT NOT NULL,
        qc_template_id         INTEGER NOT NULL REFERENCES qc_templates(id),
        software_version       TEXT NOT NULL
@@ -87,17 +86,17 @@ GRANT SELECT ON qc_runs TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON qc_runs TO "[% rw_role %]";
 
 CREATE TABLE qc_seq_projects (
-    name TEXT PRIMARY KEY
+       id TEXT PRIMARY KEY
 );
 GRANT SELECT ON qc_seq_projects TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON qc_seq_projects TO "[% rw_role %]";
 
 CREATE TABLE qc_seq_project_wells (
        id                  SERIAL PRIMARY KEY,
-       qc_seq_project_name TEXT NOT NULL REFERENCES qc_seq_projects(name),
+       qc_seq_project_id   TEXT NOT NULL REFERENCES qc_seq_projects(id),
        plate_name          TEXT NOT NULL,
        well_name           TEXT NOT NULL,
-       UNIQUE(qc_seq_project_name,plate_name,well_name)
+       UNIQUE(qc_seq_project_id,plate_name,well_name)
 );
 GRANT SELECT ON qc_seq_project_wells TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON qc_seq_project_wells TO "[% rw_role %]";
@@ -118,8 +117,8 @@ CREATE INDEX ON qc_seq_reads(qc_seq_project_well_id);
 
 CREATE TABLE qc_run_seq_project (
        qc_run_id               CHAR(36) NOT NULL REFERENCES qc_runs(id),
-       qc_seq_project_name     TEXT NOT NULL REFERENCES qc_seq_projects(name),
-       PRIMARY KEY(qc_run_id, qc_seq_project_name)
+       qc_seq_project_id       TEXT NOT NULL REFERENCES qc_seq_projects(id),
+       PRIMARY KEY(qc_run_id, qc_seq_project_id)
 );
 GRANT SELECT ON qc_run_seq_project TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON qc_run_seq_project TO "[% rw_role %]";

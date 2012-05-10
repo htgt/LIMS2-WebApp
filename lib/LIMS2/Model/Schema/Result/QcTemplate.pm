@@ -57,12 +57,6 @@ __PACKAGE__->table("qc_templates");
   is_nullable: 0
   original: {default_value => \"now()"}
 
-=head2 created_by
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -82,8 +76,6 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
-  "created_by",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -116,19 +108,19 @@ __PACKAGE__->add_unique_constraint("qc_templates_name_created_at_key", ["name", 
 
 =head1 RELATIONS
 
-=head2 created_by
+=head2 qc_runs
 
-Type: belongs_to
+Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::User>
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "created_by",
-  "LIMS2::Model::Schema::Result::User",
-  { id => "created_by" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+__PACKAGE__->has_many(
+  "qc_runs",
+  "LIMS2::Model::Schema::Result::QcRun",
+  { "foreign.qc_template_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_template_wells
@@ -146,24 +138,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qcs_runs
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::QcRun>
-
-=cut
-
-__PACKAGE__->has_many(
-  "qcs_runs",
-  "LIMS2::Model::Schema::Result::QcRun",
-  { "foreign.qc_template_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rcOi0XDbKaSKZhJK5g7Feg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:614akQzo3EqBo8+OuWU9yQ
 
 sub as_hash {
     my $self = shift;

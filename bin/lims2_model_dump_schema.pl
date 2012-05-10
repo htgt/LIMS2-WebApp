@@ -11,36 +11,41 @@ use Term::ReadPassword qw( read_password );
 
 my %MONIKER_MAP = (
     # Singular problems
-    bac_clone_loci    => 'BacCloneLocus',
-    design_oligo_loci => 'DesignOligoLocus',
+    # bac_clone_loci    => 'BacCloneLocus',
+    # design_oligo_loci => 'DesignOligoLocus',
     qc_seq_reads      => 'QcSeqRead',
     qc_runs           => 'QcRun',
 );
 
 my %REL_NAME_MAP = (
     # Bad plurals, prefer shorter method name
-    BacClone => {
-        bac_clone_locis => 'loci'
-    },
-    DesignOligo => {
-        design_oligo_locis => 'loci'
-    },
+    # BacClone => {
+    #     bac_clone_locis => 'loci'
+    # },
+    # DesignOligo => {
+    #     design_oligo_locis => 'loci'
+    # },
     QcSequencingProject => {
         qc_seqs_reads => 'qc_seq_reads'
+    },    
+    QcTemplate => {
+        qcs_runs => 'qc_runs'
+    },
+    User => {
+        qcs_runs => 'qc_runs'
     },
     # Bad plurals
-    bac_clone_locis        => 'bac_clone_loci',
-    design_oligo_locis     => 'design_oligo_loci',
+    #bac_clone_locis        => 'bac_clone_loci',
+    #design_oligo_locis     => 'design_oligo_loci',
     # Clashes with column names
-    assembly               => 'assembly_rel',
-    design_type            => 'design_type_rel',
-    chr_name               => 'chromosome',
-    library                => 'bac_library_rel',
-    design_oligo_type      => 'design_oligo_type_rel',
-    type                   => 'genotyping_primer_type_rel',
-    plate_type             => 'plate_type_rel',
-    process_type           => 'process_type_rel',
-    qc_sequencing_project  => 'qc_sequencing_project_rel',
+    # assembly               => 'assembly_rel',
+    # design_type            => 'design_type_rel',
+    # chr_name               => 'chromosome',
+    # library                => 'bac_library_rel',
+    # design_oligo_type      => 'design_oligo_type_rel',
+    # type                   => 'genotyping_primer_type_rel',
+    # plate_type             => 'plate_type_rel',
+    # process_type           => 'process_type_rel',
 );
 
 my $pg_host      = $ENV{PGHOST};

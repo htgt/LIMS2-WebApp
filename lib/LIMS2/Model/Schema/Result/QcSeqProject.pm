@@ -38,26 +38,26 @@ __PACKAGE__->table("qc_seq_projects");
 
 =head1 ACCESSORS
 
-=head2 name
+=head2 id
 
   data_type: 'text'
   is_nullable: 0
 
 =cut
 
-__PACKAGE__->add_columns("name", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</name>
+=item * L</id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("name");
+__PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
@@ -72,7 +72,7 @@ Related object: L<LIMS2::Model::Schema::Result::QcRunSeqProject>
 __PACKAGE__->has_many(
   "qc_run_seq_projects",
   "LIMS2::Model::Schema::Result::QcRunSeqProject",
-  { "foreign.qc_seq_project_name" => "self.name" },
+  { "foreign.qc_seq_project_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -87,7 +87,7 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
 __PACKAGE__->has_many(
   "qc_seq_project_wells",
   "LIMS2::Model::Schema::Result::QcSeqProjectWell",
-  { "foreign.qc_seq_project_name" => "self.name" },
+  { "foreign.qc_seq_project_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -102,8 +102,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_run
 __PACKAGE__->many_to_many("qc_runs", "qc_run_seq_projects", "qc_run");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+ERv+WeZQx9hMlHKaoL6GA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DaAQ+WC0f3nqxUng+wxNPA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
