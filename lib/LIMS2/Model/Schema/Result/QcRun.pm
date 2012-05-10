@@ -44,12 +44,18 @@ __PACKAGE__->table("qc_runs");
   is_nullable: 0
   size: 36
 
-=head2 date
+=head2 created_at
 
   data_type: 'timestamp'
   default_value: current_timestamp
   is_nullable: 0
   original: {default_value => \"now()"}
+
+=head2 created_by
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
 
 =head2 profile
 
@@ -72,13 +78,15 @@ __PACKAGE__->table("qc_runs");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "char", is_nullable => 0, size => 36 },
-  "date",
+  "created_at",
   {
     data_type     => "timestamp",
     default_value => \"current_timestamp",
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+  "created_by",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "profile",
   { data_type => "text", is_nullable => 0 },
   "qc_template_id",
@@ -101,17 +109,32 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 qc_run_sequencing_projects
+=head2 created_by
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "created_by",
+  "LIMS2::Model::Schema::Result::User",
+  { id => "created_by" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 qc_run_seq_projects
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::QcRunSequencingProject>
+Related object: L<LIMS2::Model::Schema::Result::QcRunSeqProject>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_run_sequencing_projects",
-  "LIMS2::Model::Schema::Result::QcRunSequencingProject",
+  "qc_run_seq_projects",
+  "LIMS2::Model::Schema::Result::QcRunSeqProject",
   { "foreign.qc_run_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -146,9 +169,23 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_seq_project_names
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-19 14:00:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3pv4k6XA4UXgm/EnAVCArw
+Type: many_to_many
+
+Composing rels: L</qc_run_seq_projects> -> qc_seq_project_name
+
+=cut
+
+__PACKAGE__->many_to_many(
+  "qc_seq_project_names",
+  "qc_run_seq_projects",
+  "qc_seq_project_name",
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48J7cAg80dDqcngk3p+aAA
 
 sub as_hash {
     my $self = shift;

@@ -49,6 +49,17 @@ __PACKAGE__->table("qc_seq_reads");
   default_value: (empty string)
   is_nullable: 0
 
+=head2 qc_seq_project_well_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 primer_name
+
+  data_type: 'text'
+  is_nullable: 0
+
 =head2 seq
 
   data_type: 'text'
@@ -59,12 +70,6 @@ __PACKAGE__->table("qc_seq_reads");
   data_type: 'integer'
   is_nullable: 0
 
-=head2 qc_sequencing_project
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -72,12 +77,14 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "description",
   { data_type => "text", default_value => "", is_nullable => 0 },
+  "qc_seq_project_well_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "primer_name",
+  { data_type => "text", is_nullable => 0 },
   "seq",
   { data_type => "text", is_nullable => 0 },
   "length",
   { data_type => "integer", is_nullable => 0 },
-  "qc_sequencing_project",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -94,39 +101,39 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 qc_sequencing_project_rel
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::QcSequencingProject>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "qc_sequencing_project_rel",
-  "LIMS2::Model::Schema::Result::QcSequencingProject",
-  { name => "qc_sequencing_project" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 qc_test_result_alignments
+=head2 qc_alignments
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::QcTestResultAlignment>
+Related object: L<LIMS2::Model::Schema::Result::QcAlignment>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_test_result_alignments",
-  "LIMS2::Model::Schema::Result::QcTestResultAlignment",
+  "qc_alignments",
+  "LIMS2::Model::Schema::Result::QcAlignment",
   { "foreign.qc_seq_read_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_seq_project_well
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/q2pVbuJVtw27YT0a4rqIA
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "qc_seq_project_well",
+  "LIMS2::Model::Schema::Result::QcSeqProjectWell",
+  { id => "qc_seq_project_well_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cmvz45Ta/XPkHzLD7cYyHw
 
 sub as_hash {
     my $self = shift;

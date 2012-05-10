@@ -52,9 +52,16 @@ __PACKAGE__->table("qc_test_results");
   is_nullable: 0
   size: 36
 
-=head2 well_name
+=head2 qc_eng_seq_id
 
-  data_type: 'text'
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 qc_seq_project_well_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
 
 =head2 score
@@ -69,17 +76,6 @@ __PACKAGE__->table("qc_test_results");
   default_value: false
   is_nullable: 0
 
-=head2 plate_name
-
-  data_type: 'text'
-  is_nullable: 0
-
-=head2 qc_eng_seq_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -92,16 +88,14 @@ __PACKAGE__->add_columns(
   },
   "qc_run_id",
   { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
-  "well_name",
-  { data_type => "text", is_nullable => 0 },
+  "qc_eng_seq_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "qc_seq_project_well_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "score",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
   "pass",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
-  "plate_name",
-  { data_type => "text", is_nullable => 0 },
-  "qc_eng_seq_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -115,6 +109,27 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<qc_test_results_qc_run_id_qc_eng_seq_id_qc_seq_project_well_key>
+
+=over 4
+
+=item * L</qc_run_id>
+
+=item * L</qc_eng_seq_id>
+
+=item * L</qc_seq_project_well_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "qc_test_results_qc_run_id_qc_eng_seq_id_qc_seq_project_well_key",
+  ["qc_run_id", "qc_eng_seq_id", "qc_seq_project_well_id"],
+);
 
 =head1 RELATIONS
 
@@ -148,24 +163,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 qc_test_result_alignment_maps
+=head2 qc_seq_project_well
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::QcTestResultAlignmentMap>
+Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
 
 =cut
 
-__PACKAGE__->has_many(
-  "qc_test_result_alignment_maps",
-  "LIMS2::Model::Schema::Result::QcTestResultAlignmentMap",
-  { "foreign.qc_test_result_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "qc_seq_project_well",
+  "LIMS2::Model::Schema::Result::QcSeqProjectWell",
+  { id => "qc_seq_project_well_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-19 14:00:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4nb2H46X4HNf4tZzuhGf8g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fIP42BVf8PGl37y6q05gQw
 
 sub as_hash {
     my $self = shift;

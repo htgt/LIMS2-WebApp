@@ -94,7 +94,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<qc_template_wells_qc_template_id_qc_template_well_name_key>
+=head2 C<qc_template_wells_qc_template_id_name_key>
 
 =over 4
 
@@ -107,7 +107,7 @@ __PACKAGE__->set_primary_key("id");
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "qc_template_wells_qc_template_id_qc_template_well_name_key",
+  "qc_template_wells_qc_template_id_name_key",
   ["qc_template_id", "name"],
 );
 
@@ -144,8 +144,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8B7wQUbrtUX3VfL3V/EkWA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D4Ifl7gQpTU8g9vtA9KSgw
 
 sub as_hash {
     my $self = shift;

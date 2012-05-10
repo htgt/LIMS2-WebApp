@@ -78,7 +78,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<roles_role_name_key>
+=head2 C<roles_name_key>
 
 =over 4
 
@@ -88,7 +88,7 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("roles_role_name_key", ["name"]);
+__PACKAGE__->add_unique_constraint("roles_name_key", ["name"]);
 
 =head1 RELATIONS
 
@@ -107,9 +107,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 users
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uvkR0I5HUfXV0ygzmLbG5A
+Type: many_to_many
+
+Composing rels: L</user_roles> -> user
+
+=cut
+
+__PACKAGE__->many_to_many("users", "user_roles", "user");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uumBlrhfH+BMqB+tge67iw
 
 sub as_hash {
     my $self = shift;

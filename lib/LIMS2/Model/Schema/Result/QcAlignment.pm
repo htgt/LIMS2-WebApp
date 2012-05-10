@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::QcTestResultAlignment;
+package LIMS2::Model::Schema::Result::QcAlignment;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::QcTestResultAlignment
+LIMS2::Model::Schema::Result::QcAlignment
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<qc_test_result_alignments>
+=head1 TABLE: C<qc_alignments>
 
 =cut
 
-__PACKAGE__->table("qc_test_result_alignments");
+__PACKAGE__->table("qc_alignments");
 
 =head1 ACCESSORS
 
@@ -43,11 +43,17 @@ __PACKAGE__->table("qc_test_result_alignments");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'qc_test_result_alignments_id_seq'
+  sequence: 'qc_alignments_id_seq'
 
 =head2 qc_seq_read_id
 
   data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 qc_eng_seq_id
+
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -120,10 +126,12 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "qc_test_result_alignments_id_seq",
+    sequence          => "qc_alignments_id_seq",
   },
   "qc_seq_read_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "qc_eng_seq_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "primer_name",
   { data_type => "text", is_nullable => 0 },
   "query_start",
@@ -164,6 +172,36 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 qc_alignment_regions
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcAlignmentRegion>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_alignment_regions",
+  "LIMS2::Model::Schema::Result::QcAlignmentRegion",
+  { "foreign.qc_alignment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_eng_seq
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::QcEngSeq>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "qc_eng_seq",
+  "LIMS2::Model::Schema::Result::QcEngSeq",
+  { id => "qc_eng_seq_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
 =head2 qc_seq_read
 
 Type: belongs_to
@@ -179,45 +217,11 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 qc_test_result_align_regions
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::QcTestResultAlignRegion>
-
-=cut
-
-__PACKAGE__->has_many(
-  "qc_test_result_align_regions",
-  "LIMS2::Model::Schema::Result::QcTestResultAlignRegion",
-  { "foreign.id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 qc_test_result_alignment_maps
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::QcTestResultAlignmentMap>
-
-=cut
-
-__PACKAGE__->has_many(
-  "qc_test_result_alignment_maps",
-  "LIMS2::Model::Schema::Result::QcTestResultAlignmentMap",
-  { "foreign.qc_test_result_alignment_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kglbx1WhuzQXFpgwGn4K0g
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:F3OxP2I3S3+BVp+ZJZsYwA
-
-sub as_hash {
-    my $self = shift;
-
-    return { map { $_ => $self->$_ } $self->columns };
-}
-
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

@@ -57,6 +57,12 @@ __PACKAGE__->table("qc_templates");
   is_nullable: 0
   original: {default_value => \"now()"}
 
+=head2 created_by
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -76,6 +82,8 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+  "created_by",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -92,7 +100,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<qc_templates_qc_template_name_qc_template_created_at_key>
+=head2 C<qc_templates_name_created_at_key>
 
 =over 4
 
@@ -104,12 +112,24 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint(
-  "qc_templates_qc_template_name_qc_template_created_at_key",
-  ["name", "created_at"],
-);
+__PACKAGE__->add_unique_constraint("qc_templates_name_created_at_key", ["name", "created_at"]);
 
 =head1 RELATIONS
+
+=head2 created_by
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "created_by",
+  "LIMS2::Model::Schema::Result::User",
+  { id => "created_by" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
 
 =head2 qc_template_wells
 
@@ -142,8 +162,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-19 14:00:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UQVJzBaOzwq15dBpHp+ekg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rcOi0XDbKaSKZhJK5g7Feg
 
 sub as_hash {
     my $self = shift;

@@ -85,7 +85,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<users_user_name_key>
+=head2 C<users_name_key>
 
 =over 4
 
@@ -95,81 +95,36 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("users_user_name_key", ["name"]);
+__PACKAGE__->add_unique_constraint("users_name_key", ["name"]);
 
 =head1 RELATIONS
 
-=head2 design_comments
+=head2 qc_templates
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::DesignComment>
+Related object: L<LIMS2::Model::Schema::Result::QcTemplate>
 
 =cut
 
 __PACKAGE__->has_many(
-  "design_comments",
-  "LIMS2::Model::Schema::Result::DesignComment",
+  "qc_templates",
+  "LIMS2::Model::Schema::Result::QcTemplate",
   { "foreign.created_by" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 designs
+=head2 qcs_runs
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::Design>
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
 
 =cut
 
 __PACKAGE__->has_many(
-  "designs",
-  "LIMS2::Model::Schema::Result::Design",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 gene_comments
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::GeneComment>
-
-=cut
-
-__PACKAGE__->has_many(
-  "gene_comments",
-  "LIMS2::Model::Schema::Result::GeneComment",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 plate_comments
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::PlateComment>
-
-=cut
-
-__PACKAGE__->has_many(
-  "plate_comments",
-  "LIMS2::Model::Schema::Result::PlateComment",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 plates
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::Plate>
-
-=cut
-
-__PACKAGE__->has_many(
-  "plates",
-  "LIMS2::Model::Schema::Result::Plate",
+  "qcs_runs",
+  "LIMS2::Model::Schema::Result::QcRun",
   { "foreign.created_by" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -189,67 +144,22 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 well_accepted_overrides
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::WellAcceptedOverride>
-
-=cut
-
-__PACKAGE__->has_many(
-  "well_accepted_overrides",
-  "LIMS2::Model::Schema::Result::WellAcceptedOverride",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 well_assay_results
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::WellAssayResult>
-
-=cut
-
-__PACKAGE__->has_many(
-  "well_assay_results",
-  "LIMS2::Model::Schema::Result::WellAssayResult",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 wells
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::Well>
-
-=cut
-
-__PACKAGE__->has_many(
-  "wells",
-  "LIMS2::Model::Schema::Result::Well",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tXQi/BouEjjkSmsIh3U97w
-
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
-
 =head2 roles
 
 Type: many_to_many
 
-Related object: L<LIMS2::Model::Schema::Result::Role>
+Composing rels: L</user_roles> -> role
 
 =cut
 
-__PACKAGE__->many_to_many( 'roles' => 'user_roles' => 'role' );
+__PACKAGE__->many_to_many("roles", "user_roles", "role");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/YHvr5OhKuSs5RWfJ+o86Q
+
+
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 sub as_hash {
     my $self = shift;

@@ -45,12 +45,12 @@ __PACKAGE__->table("qc_eng_seqs");
   is_nullable: 0
   sequence: 'qc_eng_seqs_id_seq'
 
-=head2 eng_seq_method
+=head2 method
 
   data_type: 'text'
   is_nullable: 0
 
-=head2 eng_seq_params
+=head2 params
 
   data_type: 'text'
   is_nullable: 0
@@ -65,9 +65,9 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "qc_eng_seqs_id_seq",
   },
-  "eng_seq_method",
+  "method",
   { data_type => "text", is_nullable => 0 },
-  "eng_seq_params",
+  "params",
   { data_type => "text", is_nullable => 0 },
 );
 
@@ -85,24 +85,36 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<qc_eng_seqs_eng_seq_method_eng_seq_params_key>
+=head2 C<qc_eng_seqs_method_params_key>
 
 =over 4
 
-=item * L</eng_seq_method>
+=item * L</method>
 
-=item * L</eng_seq_params>
+=item * L</params>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint(
-  "qc_eng_seqs_eng_seq_method_eng_seq_params_key",
-  ["eng_seq_method", "eng_seq_params"],
-);
+__PACKAGE__->add_unique_constraint("qc_eng_seqs_method_params_key", ["method", "params"]);
 
 =head1 RELATIONS
+
+=head2 qc_alignments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcAlignment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_alignments",
+  "LIMS2::Model::Schema::Result::QcAlignment",
+  { "foreign.qc_eng_seq_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 qc_template_wells
 
@@ -135,8 +147,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AaQJf0ykLf1GuCDso/BjRg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:C3llDsDk6jCb6LWrOC+3Xw
 
 sub as_hash {
     my $self = shift;
