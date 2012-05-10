@@ -319,6 +319,18 @@ sub json {
     };
 }
 
+sub hashref {
+    return sub {
+        ref $_[0] eq ref {};
+    }
+}
+
+sub arrayref {
+    return sub {
+        ref $_[0] eq ref [];
+    }
+}
+
 1;
 
 __END__
