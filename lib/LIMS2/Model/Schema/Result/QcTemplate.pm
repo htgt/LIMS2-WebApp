@@ -146,10 +146,10 @@ sub as_hash {
     my $self = shift;
 
     return {
-        name      => $self->name,
-        create_at => $self->created_at ? $self->created_at->iso8601 : '-',
-        id        => $self->id,
-        wells     => [ map { $_->as_hash } $self->qc_template_wells->all ],
+        name       => $self->name,
+        created_at => $self->created_at ? $self->created_at->iso8601 : '-',
+        id         => $self->id,
+        wells      => [ map { $_->as_hash } $self->qc_template_wells->all ],
     };
 }
 

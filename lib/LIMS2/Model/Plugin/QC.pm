@@ -12,42 +12,21 @@ use namespace::autoclean;
 
 requires qw( schema check_params throw );
 
-sub _retrieve_latest_qc_template_by_name {
-    my ( $self, $template_name ) = @_;
-
-    return $self->schema->resultset('QcTemplate')->find(
-        {
-            name       => $template_name,
-            created_at => \[ 'select max(created_at) from qc_templates where name = ?', $template_name ]
-        }
-    );
-}
-
-sub _canonicalise_eng_seq_params {
+sub _encode_eng_seq_params {
     my ( $self, $eng_seq_params ) = @_;
-
-    my $params = decode_json($eng_seq_params);
-    my $json   = JSON->new->utf8->canonical->encode($params);
-
-    return $json;
-}
-
-sub pspec__create_or_retrieve_qc_eng_seq {
-    return {
-        eng_seq_method => { validate => 'non_empty_string' },
-        eng_seq_params => { validate => 'json' }
-    }
+    return JSON->new->utf8->canonical->encode($eng_seq_params);
 }
 
 sub _create_or_retrieve_eng_seq {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec__create_or_retrieve_qc_eng_seq );    
+    # Take a copy of the params so we can delete the method name
+    my %copy_params = %{$params};
 
     return $self->schema->resultset('QcEngSeq')->find_or_create(
         {
-            method => $validated_params->{eng_seq_method},
-            params => $self->_canonicalise_eng_seq_params( $validated_params->{eng_seq_params} )
+            method => delete $copy_params{method},
+            params => $self->_encode_eng_seq_params(\%copy_params)
         },
         {
             key => 'qc_eng_seqs_method_params_key'
@@ -68,7 +47,7 @@ sub _find_qc_template_with_layout {
 
     my $template_rs = $self->schema->resultset('QcTemplate')->search(
         {
-            name => $template_name
+            'me.name' => $template_name
         },
         {
             prefetch => { qc_template_wells => 'qc_eng_seq' }
@@ -87,8 +66,9 @@ sub _find_qc_template_with_layout {
 
 sub pspec_find_or_create_qc_template {
     return {
-        name  => { validate => 'plate_name' },
-        wells => { validate => 'hashref' }
+        name       => { validate => 'plate_name' },
+        created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        wells      => { validate => 'hashref' }
     };
 }
 
@@ -112,11 +92,11 @@ sub find_or_create_qc_template {
     }
 
     # Otherwise, create a new template
-    my $qc_template = $self->schema->resultset('QcTemplate')->create( { name => $validated_params->{name} } );
+    my $qc_template = $self->schema->resultset('QcTemplate')->create( { slice_def $validated_params, qw( name created_at ) } );
     $self->log->debug( 'created qc template plate ' . $qc_template->name . ' with id ' . $qc_template->id );
     while ( my ( $well_name, $eng_seq_id ) = each %template_layout ) {
         $qc_template->create_related(
-            wells => {
+            qc_template_wells => {
                 name          => $well_name,
                 qc_eng_seq_id => $eng_seq_id
             }
@@ -125,6 +105,96 @@ sub find_or_create_qc_template {
     
     return $qc_template;
 }
+
+sub _build_qc_template_search_params {
+    my ( $self, $params ) = @_;
+    
+    if ( defined $params->{id} ) {
+        return { 'me.id' => $params->{id} };
+    }
+
+    my %search;
+
+    if ( $params->{name} ) {
+        $search{'me.name'} = $params->{name};
+    }
+    
+    if ( $params->{created_before} ) {
+        $search{'me.created_at'} = { '<=', $params->{created_before} };
+    }
+
+    if ( $params->{latest} ) {
+        if ( $params->{created_before} ) {
+            $search{'me.created_at'} = { '=' => \[ '( select max(created_at) from qc_templates where name = me.name and created_at <= ? )',
+                                                 [ created_at => $params->{created_before} ] ] }        
+        }
+        else {
+            $search{'me.created_at'} = { '=' => \[ '( select max(created_at) from qc_templates where name = me.name )' ] }    
+        }
+    }
+
+    return \%search;
+}
+
+sub pspec_retrieve_qc_templates {
+    return {
+        id             => { validate => 'integer', optional => 1 },
+        name           => { validate => 'non_empty_string', optional => 1 },
+        latest         => { validate => 'boolean', default => 1 },
+        created_before => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
+    }
+}
+
+sub retrieve_qc_templates {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_templates );
+
+    my $search_params = $self->_build_qc_template_search_params( $validated_params );
+        
+    my @templates = $self->schema->resultset('QcTemplate')->search(
+        $search_params,
+        {
+            prefetch => { qc_template_wells => 'qc_eng_seq' }
+        }
+    );
+
+    return \@templates;
+}
+
+sub pspec_delete_qc_template {
+    return {
+        id => { validate => 'integer' }
+    }
+}
+
+sub delete_qc_template {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_delete_qc_template );
+
+    my $template = $self->retrieve(
+        'QcTemplate' => {
+            'me.id' => $validated_params->{id}
+        },
+        {
+            prefetch => 'qc_template_wells'
+        }
+    );
+
+    if ( $template->qc_runs_rs->count > 0 ) {
+        $self->throw( InvalidState => { 'Template ' . $template->id . ' has been used in one or more QC runs, so cannot be deleted' } );
+    }    
+    
+    for my $well ( $template->qc_template_wells ) {
+        $well->delete;        
+    }
+
+    $template->delete;
+
+    return 1;
+}
+
 
 # sub pspec_retrieve_qc_template {
 #     return {
