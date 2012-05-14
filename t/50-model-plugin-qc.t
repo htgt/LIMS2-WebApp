@@ -3,25 +3,18 @@
 use strict;
 use warnings FATAL => 'all';
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $DEBUG );
+}
+
 use Test::Most;
-use LIMS2::Model;
+use LIMS2::Model::Test;
 use Try::Tiny;
 use FindBin;
 use YAML::Any;
 use Path::Class;
 use DateTime;
-use Log::Log4perl qw( :easy );
-
-Log::Log4perl->easy_init( $FATAL );
-
-ok my $model = LIMS2::Model->new( user => 'tests' ), 'instantiate model';
-
-try {
-    ok $model->schema, 'connect to database';
-}
-catch {
-    BAIL_OUT( "Database connect failed: $_" );
-};
 
 my $data_dir = dir( $FindBin::Bin )->subdir( 'data' );
 my $template_data = YAML::Any::LoadFile( $data_dir->file( 'qc_template.yaml' ) );
@@ -30,7 +23,7 @@ my $template_name = $template_data->{name};
 my %created_template_ids;
 
 {        
-    ok my $res = $model->retrieve_qc_templates( { name => $template_name } ),
+    ok my $res = model->retrieve_qc_templates( { name => $template_name } ),
         'retrieve_qc_templates should succeed';
     isa_ok $res, ref [],
         'retrieve_qc_templates return';
@@ -41,7 +34,7 @@ my %created_template_ids;
 my $created_template;
 
 lives_ok {        
-    $created_template = $model->find_or_create_qc_template( $template_data );
+    $created_template = model->find_or_create_qc_template( $template_data );
     $created_template_ids{ $created_template->id }++;
 } 'find_or_create_qc_template should live';
 
@@ -49,7 +42,7 @@ isa_ok $created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
     'find_or_create_qc_template return';
 
 {
-    ok my $res = $model->retrieve_qc_templates( { id => $created_template->id } ),
+    ok my $res = model->retrieve_qc_templates( { id => $created_template->id } ),
         'retrieve_qc_templates by id should succeed';
     is @{$res}, 1,
         'retrieve_qc_templates by id should return a 1-element array';
@@ -58,7 +51,7 @@ isa_ok $created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
 }
 
 lives_ok {
-    ok my $template = $model->find_or_create_qc_template( $template_data ),
+    ok my $template = model->find_or_create_qc_template( $template_data ),
         'find_or_create_qc_template should succeed';
     $created_template_ids{ $template->id }++;
     isa_ok $template, 'LIMS2::Model::Schema::Result::QcTemplate',
@@ -73,7 +66,7 @@ $template_data->{wells}{A02}{five_arm_end}++;
 my $modified_created_template;
     
 lives_ok {
-    ok $modified_created_template = $model->find_or_create_qc_template( $template_data ),
+    ok $modified_created_template = model->find_or_create_qc_template( $template_data ),
         'find_or_create_qc_tempalte with modified parameters should succeed';
     $created_template_ids{ $modified_created_template->id }++;
     isa_ok $modified_created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
@@ -83,7 +76,7 @@ lives_ok {
 };
 
 {
-    ok my $res = $model->retrieve_qc_templates( { name => $template_name, latest => 0 } ),
+    ok my $res = model->retrieve_qc_templates( { name => $template_name, latest => 0 } ),
         'retrieve_qc_templates, latest=0, should succeed';
     is @{$res}, 2,
         'it should return 2 templates';
@@ -92,7 +85,7 @@ lives_ok {
 }
 
 {
-    ok my $res = $model->retrieve_qc_templates( { name => $template_name } ),
+    ok my $res = model->retrieve_qc_templates( { name => $template_name } ),
         'retrieve_qc_templates, implicit latest=1, should succeed';
     is @{$res}, 1,
         'it should return 1 template';
@@ -101,13 +94,13 @@ lives_ok {
 }
 
 {
-    ok my $templates = $model->retrieve_qc_templates( { id => $created_template->id } ),
+    ok my $templates = model->retrieve_qc_templates( { id => $created_template->id } ),
         'retrieve_qc_templates by id should succeed';
     is @{$templates}, 1,
         'retrieve_qc_templates by id should return 1 template';
     is $templates->[0]->id, $created_template->id,
         'the returned template has the expected id';    
-    ok my $res = $model->retrieve_qc_templates( { name => $template_name, created_before => $templates->[0]->created_at->iso8601 } ),
+    ok my $res = model->retrieve_qc_templates( { name => $template_name, created_before => $templates->[0]->created_at->iso8601 } ),
         'retrieve_qc_templates, created_before, should succeed';
     is @{$res}, 1,
         'it should return 1 template';
@@ -117,7 +110,7 @@ lives_ok {
 
 lives_ok {
     for my $id ( keys %created_template_ids ) {
-        ok $model->delete_qc_template( { id => $id } ), 'delete template ' . $id . ' should succeed';
+        ok model->delete_qc_template( { id => $id } ), 'delete template ' . $id . ' should succeed';
     }
 };
 

@@ -1,0 +1,14 @@
+DELETE FROM qc_alignment_regions;
+DELETE FROM qc_alignments;
+DELETE FROM qc_test_results;
+DELETE FROM qc_run_seq_project;
+DELETE FROM qc_seq_reads;
+DELETE FROM qc_seq_project_wells;
+DELETE FROM qc_seq_projects;
+DELETE FROM qc_runs;
+DELETE FROM qc_template_wells;
+DELETE FROM qc_templates;
+DELETE FROM qc_eng_seqs;
+DELETE FROM user_role;
+DELETE FROM roles;
+DELETE FROM users;

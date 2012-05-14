@@ -12,9 +12,14 @@ use Sub::Exporter -setup => {
 
 use FindBin;
 use LIMS2::Model;
+use Log::Log4perl qw( :easy );
+use DBIx::RunSQL;
+use Const::Fast;
 use Path::Class;
 use Test::More;
 use Try::Tiny;
+
+const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
 sub _build_model {
     my ( $class, $name, $args  ) = @_;
@@ -56,11 +61,23 @@ sub _load_fixtures {
         $fixtures_dir = dir( $FindBin::Bin )->subdir( 'fixtures' );
     }
     
-    warn "Loading fixtures from $fixtures_dir\n";
+    for my $fixture ( sort { $a cmp $b } grep { _is_fixture( $_ ) }  $fixtures_dir->children ) {
+        DEBUG( "Loading fixtures from $fixture" );
+        DBIx::RunSQL->run_sql_file(
+            verbose         => 1,
+            verbose_handler => \&DEBUG,
+            dbh             => $dbh,
+            sql             => $fixture
+        );
+    }
+}
 
-    # XXX TODO: Load the fixtures...
-    
-    
+sub _is_fixture {
+    my $obj = shift;
+
+    return if $obj->is_dir;
+
+    return $obj->basename =~ m/$FIXTURE_RX/;
 }
 
 1;
