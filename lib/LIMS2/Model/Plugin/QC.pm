@@ -21,13 +21,10 @@ sub _encode_eng_seq_params {
 sub _create_or_retrieve_eng_seq {
     my ( $self, $params ) = @_;
 
-    # Take a copy of the params so we can delete the method name
-    my %copy_params = %{$params};
-
     return $self->schema->resultset('QcEngSeq')->find_or_create(
         {
-            method => delete $copy_params{method},
-            params => $self->_encode_eng_seq_params(\%copy_params)
+            method => $params->{eng_seq_method},
+            params => $self->_encode_eng_seq_params( $params->{eng_seq_params} )
         },
         {
             key => 'qc_eng_seqs_method_params_key'
@@ -80,9 +77,9 @@ sub find_or_create_qc_template {
 
     # Build a new data structure mapping each well to a qc_eng_seq.id
     my %template_layout;
-    while ( my ( $well_name, $eng_seq_params ) = each %{ $validated_params->{wells} } ) {
-        next unless defined $eng_seq_params and keys %{$eng_seq_params};
-        $template_layout{$well_name} = $self->_create_or_retrieve_eng_seq( $eng_seq_params )->id;
+    while ( my ( $well_name, $well_params ) = each %{ $validated_params->{wells} } ) {
+        next unless defined $well_params and keys %{$well_params};
+        $template_layout{$well_name} = $self->_create_or_retrieve_eng_seq( $well_params )->id;
     }
 
     # If a template already exists with this name and layout, return it

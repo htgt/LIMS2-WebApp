@@ -17,7 +17,12 @@ use Path::Class;
 use DateTime;
 
 my $data_dir = dir( $FindBin::Bin )->subdir( 'data' );
+
+note( "Testing QC template storage and retrieval" );
+
 my $template_data = YAML::Any::LoadFile( $data_dir->file( 'qc_template.yaml' ) );
+#my $all_template_data = YAML::Any::LoadFile( $data_dir->file( 'qc_template_TPG00267_Y.yaml' ) );
+#my $template_data = $all_template_data->[0];
 my $template_name = $template_data->{name};
 
 my %created_template_ids;
@@ -61,7 +66,7 @@ lives_ok {
 } 'find_or_create_template a second time should live';
 
 delete $template_data->{created_at};
-$template_data->{wells}{A02}{five_arm_end}++;
+$template_data->{wells}{A02}{eng_seq_params}{five_arm_end}++;
 
 my $modified_created_template;
     
@@ -113,5 +118,19 @@ lives_ok {
         ok model->delete_qc_template( { id => $id } ), 'delete template ' . $id . ' should succeed';
     }
 };
+
+note( "Tesing QC seq read storage and retrieval" );
+
+my @seq_reads_data = YAML::Any::LoadFile( $data_dir->file( 'qc_seq_reads.yaml' ) );
+
+for my $datum ( @seq_reads_data ) {
+    ok my $qc_seq_read = model->find_or_create_qc_seq_read( $datum ), "find_or_create_seq_read $datum->{id}";
+    is $qc_seq_read->id, $datum->{id}, '...the read has the expected id';
+    ok my $ret = model->retrieve_qc_seq_read( { id => $datum->{id} } ), 'retrieve_qc_seq_read should succeed';
+    is $ret->id, $datum->{id}, '...the retrieved read has the expected id';
+}
+
+
+
 
 done_testing();
