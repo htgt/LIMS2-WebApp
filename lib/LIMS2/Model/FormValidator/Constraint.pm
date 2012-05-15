@@ -32,6 +32,15 @@ sub in_resultset {
     return in_set( [ map { $_->$column_name } $model->schema->resultset($resultset_name)->all ] );
 }
 
+sub existing_row {
+    my ( $model, $resultset_name, $column_name ) = @_;
+
+    return sub {
+        my $value = shift;
+        $model->schema->resultset($resultset_name)->search_rs( { $column_name => $value } )->count > 0;
+    };
+}
+
 sub eng_seq_of_type {
     my ( $model, $type ) = @_;
     my $eng_seqs = $model->eng_seq_builder->list_seqs( type => $type );
@@ -75,7 +84,7 @@ sub assay_result {
 }
 
 sub dna_seq {
-    return regexp_matches(qr/^[ATGC]+$/);
+    return regexp_matches(qr/^[ATGCN]+$/);
 }
 
 sub user_name {
@@ -194,19 +203,37 @@ sub existing_role {
 sub existing_plate_name {
     my ( $class, $model ) = @_;
 
-    return sub {
-        my $plate_name = shift;
-        $model->schema->resultset('Plate')->search_rs( { name => $plate_name } )->count;
-        }
+    return existing_row( $model, 'Plate', 'name' );
+}
+
+sub existing_qc_seq_project_id {    
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'QcSeqProject' , 'id' );
+}
+
+sub existing_qc_template_id {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'QcTemplate', 'id' );
 }
 
 sub existing_qc_template_name {
     my ( $class, $model ) = @_;
 
-    return sub {
-        my $qc_template_name = shift;
-        $model->schema->resultset('QcTemplate')->search_rs( { name => $qc_template_name } )->count;
-        }
+    return existing_row( $model, 'QcTemplate', 'name' );
+}
+
+sub existing_qc_seq_read_id {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'QcSeqRead', 'id' );
+}
+
+sub existing_qc_eng_seq_id {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'QcEngSeq', 'id' );
 }
 
 sub existing_assay {
@@ -331,6 +358,12 @@ sub arrayref {
     }
 }
 
+sub non_empty_array {
+    return sub {
+        return arrayref($_[0]) && @{$_[0]} > 0;
+    }
+}
+        
 1;
 
 __END__
