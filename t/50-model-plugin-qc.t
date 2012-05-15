@@ -119,7 +119,7 @@ lives_ok {
     }
 };
 
-note( "Tesing QC seq read storage and retrieval" );
+note( "Testing QC seq read storage and retrieval" );
 
 my @seq_reads_data = YAML::Any::LoadFile( $data_dir->file( 'qc_seq_reads.yaml' ) );
 
