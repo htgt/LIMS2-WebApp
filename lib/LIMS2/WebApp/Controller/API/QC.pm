@@ -60,9 +60,9 @@ sub qc_template_GET {
 
     $c->assert_user_roles('read');
 
-    my $templates = $self->model('Golgi')->txn_do(
+    my $templates = $c->model('Golgi')->txn_do(
         sub {
-            shift->retrieve_qc_template( $c->request->params );
+            shift->retrieve_qc_templates( $c->request->params );
         }
     );    
 
