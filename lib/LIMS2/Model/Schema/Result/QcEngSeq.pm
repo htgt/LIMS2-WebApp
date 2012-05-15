@@ -150,10 +150,16 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:C3llDsDk6jCb6LWrOC+3Xw
 
+use JSON qw( decode_json );
+
 sub as_hash {
     my $self = shift;
 
-    return map { $_ => $self->$_ } __PACKAGE__->columns;
+    return {
+        eng_seq_id     => $self->eng_seq_id,
+        eng_seq_method => $self->method,
+        eng_seq_params => decode_json( $self->eng_seq_params )
+    };
 }
 
 __PACKAGE__->meta->make_immutable;
