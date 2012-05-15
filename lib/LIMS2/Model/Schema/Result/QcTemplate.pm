@@ -149,7 +149,7 @@ sub as_hash {
         name       => $self->name,
         created_at => $self->created_at ? $self->created_at->iso8601 : '-',
         id         => $self->id,
-        wells      => [ map { $_->as_hash } $self->qc_template_wells->all ],
+        wells      => { map { $_->name => $_->as_hash } $self->qc_template_wells->all }
     };
 }
 

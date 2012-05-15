@@ -147,14 +147,16 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D4Ifl7gQpTU8g9vtA9KSgw
 
+use JSON qw( decode_json );
+
 sub as_hash {
     my $self = shift;
 
     return {
-        name              => $self->name,
-        qc_eng_seq_id     => $self->qc_eng_seq->id,
-        qc_eng_seq_method => $self->qc_eng_seq->method,
-        qc_eng_seq_params => $self->qc_eng_seq->params,
+        name           => $self->name,
+        eng_seq_id     => $self->qc_eng_seq->id,
+        eng_seq_method => $self->qc_eng_seq->method,
+        eng_seq_params => decode_json( $self->qc_eng_seq->params ),
     };
 }
 
