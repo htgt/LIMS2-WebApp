@@ -29,8 +29,6 @@ The root page (/)
 sub site_index : Path : Args(0) {
     my ( $self, $c ) = @_;
 
-    # Hello World
-    $c->response->body( $c->welcome_message );
     return;
 }
 
