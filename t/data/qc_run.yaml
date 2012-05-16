@@ -1,0 +1,114 @@
+---
+created_by: test_user@example.org
+id: 687EE35E-9DBF-11E1-8EF3-9484F3CB94C8
+profile: eucomm-post-cre
+qc_sequencing_projects:
+- PCS04026_A
+qc_template_name: 'XXX'
+software_version: '0.001'
+test_results:
+- alignments:
+  - alignment_regions:
+    - length: 1064
+      match_count: 518
+      match_str: '||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  '
+      name: target-region-rev-72-80
+      pass: 1
+      query_str: AAGCCTTTTGGTGGGAATGGGATGTGGAAGGTGCGGCAGAGGGGTAATAAGATGGCGATGCTGCCAAGGACACTGTGGAAGGTGGCACCTCTTAGCAACACTTAGGCAATAAAGGCCCCATAGTGGAGCAAATGCTTAGCATGCACAATCCTCTGGGCTCGTGCACACACGCACATGGGCACATGTGCACACACACACACACACCAAGAGCCCATTATTACATCATTTTCTAAAGTAAAAATGAGAATTGTCTTGTAAAATTCCAACACTAATGGATCCATAAGGTTTACAGAATTATAAACAGACAGACCAACCCCCAGAGTGACAGACCAAACCCCCAGAGTGTCATTTAGGAGACATGTGACACAGGCTCTACCCTGTTCTCCGGCAACAGGATATGGCTTTGGGCTCACCTTGAACTTCCACGTATATGGGATCAGATACAATCTCTCTATTGTTCACCTTCATCTTACAGAAGTACGACCCATTGTCTGAGCGCTGCACACTGGCTATGCTTC------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      target_str: AAGCCTTTTGGTGGGAATGGGATGTGGAAGGTGCGGCAGAGGGGTAATAAGATGGCGATGCTGCCAAGGACACTGTGGAAGGTGGCACCTCTTAGCAACACTTAGGCAATAAAGGCCCCATAGTGGAGCAAATGCTTAGCATGCACAATCCTCTGGGCTCGTGCACACACGCACATGGGCACATGTGCACACACACACACACACCAAGAGCCCATTATTACATCATTTTCTAAAGTAAAAATGAGAATTGTCTTGTAAAATTCCAACACTAATGGATCCATAAGGTTTACAGAATTATAAACAGACAGACCAACCCCCAGAGTGACAGACCAAACCCCCAGAGTGTCATTTAGGAGACATGTGACACAGGCTCTACCCTGTTCTCCGGCAACAGGATATGGCTTTGGGCTCACCTTGAACTTCCACGTATATGGGATCAGATACAATCTCTCTATTGTTCACCTTCATCTTACAGAAGTACGACCCATTGTCTGAGCGCTGCACACTGGCTATGCTTCAAAGAGAACACAAAAAGAAATTTGCAGTGACTATCTTTTGAGTCCCCATTATAGAAATAGAAGATCCTTCAACACACTTATCATGTGGTTAACTTTTTGTGTCAACATGGCCAGGCTGTAGTACTTGGTGGTCTACATGCTGCTGTAAGAATATGTTCCAAATGCTGTGAACATTTAACTTGGCAACCTTTGAGTAAAGCAGTTGACCCTCCCCAGCATGCGTGGGTCTCCTCTAATCAGCTGCAGACTGAGGTCCCCTGAGGAAGGTCAGCAGCAGTCTGCCAGGGTCTCCAACCAACACCCGGCTGGCCTCAGATTCGTTAATGTTTACTATAGTATGAATTCACTGACCCTTTCCCTCTCTTTCTCTAGTGTGTGCTCGAGAGTACATACGCATGCGGGGGCGCGCGCGCGCGCGCGCACACACACACACACACACACACACACACACGGTTGCTCTTGCACTCACATCTCTTGCTTTCATCCATCTTTGAATCTCTAATACACGTACTATCAGGTGTCTTGCTTACCATGGCGGCTTCTAAA
+    cigar: 'cigar: PCS04026_A_1a01.p1kcLR 0 521 + 372239#pR6K_R1R2_ZP#R3R4_pBR_amp
+      11191 10670 - 2605  M 521'
+    features: synthetic loxP region,Critical Region
+    op_str: M 521
+    pass: 1
+    primer_name: LR
+    qc_eng_seq_id: 372239#pR6K_R1R2_ZP#R3R4_pBR_amp
+    qc_seq_read_id: PCS04026_A_1b02.p1kLR
+    query_end: 521
+    query_start: 0
+    query_strand: 1
+    score: 2605
+    target_end: 10670
+    target_start: 11191
+    target_strand: -1
+  pass: 0
+  qc_eng_seq_id: 372239#pR6K_R1R2_ZP#R3R4_pBR_amp
+  score: 2605
+- alignments:
+  - alignment_regions:
+    - length: 992
+      match_count: 560
+      match_str: '||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+        ||||||||||||||||||||||                                                                                                                                                                                                                                                                                                                                                                                                                                               '
+      name: target-region-rev-72-80
+      pass: 1
+      query_str: TCTGTGACAGGAACCTACTATTATCACTCACGACGGGGCAAAACATGTTAAATTCCTGTGCAAACTGATTATCCCCGGATGAGTCAACACTGTCATGAAGAACTTCCAAAAGGGATGCCTCTGCATCCCATAGGCGACTGTGACAAATTCCGTCTAGAAGCCATTTAGGGATGCTTAAAAAGAGAGAGAAAAAAGACAGTAGCAAATTTCCCCTTAACTTTTAAATAACACCCTCAAAAAGGAAACATCTACTCCTATGCTGACTTTGCCTTCCTTTTCCTGCGTCAGTTAACCCTGAGAGTTCAAATATAAACAAACGCAATTCCCAATGGTACATCTGAACCAGAAGAAATCTGGAATTAATTGCCAAGTATTTTGGGTCCTATTGCAGCTGTTACAAGTGTTTGATTTGGCGAGGGAAGAGAAAAGGCGTTGCATACCAATTTCATGAGCCACAGTGAAGGCTGCATGGAGGCCATCATCTTCAATCACTGCACAGCTGCGCTCCGGAGAACATATGGTCCCAACGTCTGCCATTTCCAGGGTGTCACATGAATGATG-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      target_str: TCTGTGACAGGAACCTACTATTATCACTCACGACGGGGCAAAACATGTTAAATTCCTGTGCAAACTGATTATCCCCGGATGAGTCAACACTGTCATGAAGAACTTCCAAAAGGGATGCCTCTGCATCCCATAGGCGACTGTGACAAATTCCGTCTAGAAGCCATTTAGGGATGCTTAAAAAGAGAGAGAAAAAAGACAGTAGCAAATTTCCCCTTAACTTTTAAATAACACCCTCAAAAAGGAAACATCTACTCCTATGCTGACTTTGCCTTCCTTTTCCTGCGTCAGTTAACCCTGAGAGTTCAAATATAAACAAACGCAATTCCCAATGGTACATCTGAACCAGAAGAAATCTGGAATTAATTGCCAAGTATTTTGGGTCCTATTGCAGCTGTTACAAGTGTTTGATTTGGCGAGGGAAGAGAAAAGGCGTTGCATACCAATTTCATGAGCCACAGTGAAGGCTGCATGGAGGCCATCATCTTCAATCACTGCACAGCTGCGCTCCGGAGAACATATGGTCCCAACGTCTGCCATTCCCAGGGTGTCACATGAATGATGCCCACATAAATCCTGCCCGGGAGAAAGAAAGAAATCATTAAAATCAATTTACATCCAGAAGGAGCCACCATGGACAGCCACTTGTTCACCCCAAATGGCAAGACTGAGATATGTTTATGGTGTCACCTGCTCAGCGCTGGAGGCCTTCCAAAGACAAATTCAAAGCAGGAACTCTTCTGAGCTACTTTGTAACCCAGAAGCACAGAAGGATAAAGACATTCAATGACATTTTAAAAGAAGCCACGGTTATAGCCTGTTCATTACACTCCAAGCTCTACAGCCCGAACAAAGATTAAGTGCCTACACAAATGTCAAAGGTTACATGTGTTCAATACAGAAGTGCCTAATATTCTGAGCTAAATTCAGACTGAACTTCTTGGAAGAGAGGTCTAATAATTTGTTTTCTGTTAGAGTCAAACTACAATCACACT
+    cigar: 'cigar: PCS04026_A_1a03.p1kcLR 0 569 + 372471#pR6K_R1R2_ZP#R3R4_pBR_amp
+      11049 10480 - 2836  M 569'
+    features: synthetic loxP region,Critical Region
+    op_str: M 569
+    pass: 1
+    primer_name: LR
+    qc_eng_seq_id: 372471#pR6K_R1R2_ZP#R3R4_pBR_amp
+    qc_seq_read_id: PCS04026_A_1g12.p1kLR
+    query_end: 569
+    query_start: 0
+    query_strand: 1
+    score: '2836'
+    target_end: 10480
+    target_start: 11049
+    target_strand: -1
+  pass: 0
+  qc_eng_seq_id: 372471#pR6K_R1R2_ZP#R3R4_pBR_amp
+  score: 2836
+- alignments:
+  - alignment_regions:
+    - length: 70
+      match_count: 70
+      match_str: '||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||'
+      name: 5p-cassette-genomic50-80pct
+      pass: 1
+      query_str: GTGGTATCGTTATGCGCCTTAGTATGACAATATGATGTAGTATCCTGGCTGATGGTCTACCAGGTAGGTA
+      target_str: GTGGTATCGTTATGCGCCTTAGTATGACAATATGATGTAGTATCCTGGCTGATGGTCTACCAGGTAGGTA
+    cigar: 'cigar: PCS04026_A_1a04.p1kaZ1 0 395 + 372501#pR6K_R1R2_ZP#R3R4_pBR_amp
+      8462 8066 - 1927  M 28 D 1 M 367'
+    features: EM7 promoter,R1 gateway site,Synthetic Cassette,5 arm
+    op_str: M 28 D 1 M 367
+    pass: 1
+    primer_name: Z1
+    qc_eng_seq_id: 372501#pR6K_R1R2_ZP#R3R4_pBR_amp
+    qc_seq_read_id: PCS04026_A_1b07.p1kLR
+    query_end: 395
+    query_start: 0
+    query_strand: 1
+    score: '1927'
+    target_end: 8066
+    target_start: 8462
+    target_strand: -1
+  - alignment_regions:
+    - length: 870
+      match_count: 413
+      match_str: '|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||                                                                                                                                                                                                                                                                                                                                                                                                                                                                         '
+      name: target-region-rev-72-80
+      pass: 1
+      query_str: TTATATTAAAAAAGGGTCAGTGTAGCTGCTATAAAATACATATGTACATATATAATATATAACACACACATATATGTGTGTGTTGTAAACAAATTGTTTTCAACCTGATGGTGCACACATATTTTGCAAATCTCTTAAAATATGATAGACGAATAACCAATGCCAAGCTACTCAAAAGATCTTATCATAGGCATATAGTAGACATACTATTTTGGAGAGTAAAGAAATTTCTGTGTTATGCAACACCCTTCCGCCATAACTTCGCGAAGAAACATGAAAGGACATGGTCTTGCCTCATATTCAAAGTCATCTGCTCTGTCTGCATCAGCGGGCAAGCTGGAGACGTACTCATGGTCTTCATAAAACCCATGCTCCATCGGATGAAGGGAGTGGCAGCTGTGGGGGATACAGCA-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      target_str: TTATATTAAAAAAGGGTCAGTGTAGCTGCTATAAAATACATATGTACATATATAATATATAACACACACATATATGTGTGTGTTGTAAACAAATTGTTTTCAACCTGATGGTGCACACATATTTTGCAAATCTCTTAAAATATGATAGACGAATAACCAATGCCAAGCTACTCAAAAGATCTTATCATAGGCATATAGTAGACATACTATTTTGGAGAGTAAAGAAATTTCTGTGTTATGCAACACCCTTCCGCCATAACTTCGCGAAGAAACATGAAAGGACATGGTCTTGCCTCATATTCAAAGTCATCTGCTCTGTCTGCATCAGCGGGCAAGCTGGAGACGTACTCATGGTCTTCATAAAACCCATGCTCCATCGGATGAAGGGAGTGGCAGCTGTGGGGGATACAGCAACAGGCAACAATGGGTCACAAGGACTGCTTCCATGATTAAAGTGGAGTTTAGAATTTCATCTCGCGCCTTTCTACTTTGGAGTAAGTTTGCTAGCTAAGGGATCCTGCCTTCAACCGACGCACTTGCTTTCCTTTCTCTTCATGGGTGAAGCCCCTCAATTCTGAAGGCTAAGGGGGAGGCTCTGGCTTCTAGTTCCATTGTGTGATGAGACCTTCTTCCCCTTTGATAAAGGGCATCCACCTAAATAGCAAAAAGCATTCCAGGTGGCAGCCCGCTGGCAGTGTGGACATAATAAGTTCAGTTAGTATACTAAGACTAGTTCTCCTCTCCTAAGAGGTGAGGTCTATGCTGATGTCCTCTCACAAGGTAAGAGGTAAGTGCCTGCCTGCATTTAAAAAAAAAAAAAAACTATTACTGCTATGGCTGCTGGTCTGCTAAAGTCAAGCAATAGGAGCC
+    cigar: 'cigar: PCS04026_A_1a04.p1kcLR 0 418 + 372501#pR6K_R1R2_ZP#R3R4_pBR_amp
+      11033 10615 - 2090  M 418'
+    features: synthetic loxP region,Critical Region
+    op_str: M 418
+    pass: 1
+    primer_name: LR
+    qc_eng_seq_id: 372501#pR6K_R1R2_ZP#R3R4_pBR_amp
+    qc_seq_read_id: PCS04026_A_1b07.p1kLR
+    query_end: 418
+    query_start: 0
+    query_strand: 1
+    score: 2090
+    target_end: 10615
+    target_start: 11033
+    target_strand: -1
+  pass: 1
+  qc_eng_seq_id: 372501#pR6K_R1R2_ZP#R3R4_pBR_amp
+  score: 4017
