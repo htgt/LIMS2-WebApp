@@ -138,7 +138,7 @@ __PACKAGE__->belongs_to(
 sub as_hash {
     my $self = shift;
 
-    return map { $_ => $self->$_ } __PACKAGE__->columns;
+    return { map { $_ => $self->$_ } __PACKAGE__->columns };
 }
 
 __PACKAGE__->meta->make_immutable;

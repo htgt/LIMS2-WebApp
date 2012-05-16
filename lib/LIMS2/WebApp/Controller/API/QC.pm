@@ -109,7 +109,7 @@ sub qc_template_POST {
     );    
 }
 
-sub qc_seq_read : Path( '/api/qc_seq_read' ) : Args(0) :ActionClass( 'REST' ) {
+sub qc_seq_read : Path( '/api/qc_seq_read' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
 sub qc_seq_read_GET {
