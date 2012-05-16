@@ -1,6 +1,6 @@
 [% META title = "Login" %]
 <div class="login_form">
-  <form method="POST" action="[% c.uri_for( '/login' ) %]">
+  <form method="POST" action="[% c.uri_for( '/login' ) %]" name="login_form">
     <fieldset>
       <legend>Login</legend>
       <input name="goto_on_success" type="hidden" value="[% c.req.param('goto_on_success') %]" />
