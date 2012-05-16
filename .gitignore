@@ -1,2 +1,4 @@
 .build
 LIMS2-WebApp-*
+ddl/lims2_devel
+ddl/lims2_test
