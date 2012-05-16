@@ -313,7 +313,7 @@ sub uuid {
 }
 
 sub software_version {
-    return regexp_matches(qr/^\d+\.\d+\.\d+(?:_\d+)?$/);
+    return regexp_matches(qr/^\d+(\.\d+)*(?:_\d+)?$/);
 }
 
 sub qc_seq_read_id {
@@ -352,18 +352,6 @@ sub hashref {
     }
 }
 
-sub arrayref {
-    return sub {
-        ref $_[0] eq ref [];
-    }
-}
-
-sub non_empty_array {
-    return sub {
-        return arrayref($_[0]) && @{$_[0]} > 0;
-    }
-}
-        
 1;
 
 __END__
