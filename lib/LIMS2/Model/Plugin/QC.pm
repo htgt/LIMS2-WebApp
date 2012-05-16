@@ -181,7 +181,7 @@ sub delete_qc_template {
     );
 
     if ( $template->qc_runs_rs->count > 0 ) {
-        $self->throw( InvalidState => { 'Template ' . $template->id . ' has been used in one or more QC runs, so cannot be deleted' } );
+        $self->throw( InvalidState => { message => 'Template ' . $template->id . ' has been used in one or more QC runs, so cannot be deleted' } );
     }    
     
     for my $well ( $template->qc_template_wells ) {
@@ -281,8 +281,8 @@ sub pspec__create_qc_test_result_alignment {
         pass              => { validate => 'boolean' },
         features          => { validate => 'non_empty_string' },
         cigar             => { validate => 'cigar_string' },
-        op_str            => { validate => 'op_string' },
-        alignment_regions => { validate => 'arrayref' }
+        op_str            => { validate => 'op_str' },
+        alignment_regions => {}
     };
 }
 
@@ -310,7 +310,7 @@ sub _create_qc_test_result_alignment {
 sub _get_seq_project_well_from_alignments {
     my ( $self, $alignments ) = @_;
 
-    my @qc_seq_read_ids = uniq map { $_->qc_seq_read_id } @{ $alignments };
+    my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{ $alignments };
 
     my @wells = map { $_->qc_seq_project_well }
         $self->schema->resultset('QcSeqRead')->search(
@@ -334,7 +334,7 @@ sub pspec__create_qc_run_test_result {
         qc_eng_seq_id  => { validate => 'existing_qc_eng_seq_id' },
         pass           => { validate => 'boolean' },
         score          => { validate => 'integer' },
-        alignments     => { validate => 'non_empty_array' }
+        alignments     => {}
     };
 }
 
@@ -372,8 +372,7 @@ sub _create_qc_run_seq_proj {
     my ( $self, $params, $qc_run ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_run_seq_proj );
-
-    return $qc_run->create_related( qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_proj_id} } );
+    return $qc_run->create_related( qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_project_id} } );
 }
 
 sub pspec_create_qc_run {
@@ -385,8 +384,8 @@ sub pspec_create_qc_run {
         software_version       => { validate => 'software_version' },
         qc_template_id         => { validate => 'existing_qc_template_id', optional => 1 },
         qc_template_name       => { validate => 'existing_qc_template_name', optional => 1 },
-        qc_sequencing_projects => { validate => 'non_empty_array' },
-        test_results           => { validate => 'non_empty_array' },
+        qc_sequencing_projects => { validate => 'non_empty_string' }, # Data::FormValidator will call this for each element of the array ref
+        test_results           => {},
         REQUIRE_SOME           => { qc_template_id_or_name => [ 1, qw( qc_template_id qc_template_name ) ] }
     };
 }
@@ -396,6 +395,11 @@ sub create_qc_run {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_qc_run );
 
+    if ( ! defined $validated_params->{qc_template_id} ) {
+        my $template = $self->retrieve_qc_templates( { qc_template_name => $validated_params->{qc_template_name}, latest => 1 } )->[0];        
+        $validated_params->{qc_template_id} = $template->id;
+    }
+
     my $qc_run = $self->schema->resultset( 'QcRun' )->create(
         {
             slice_def( $validated_params, qw( id created_at created_by_id profile qc_template_id software_version ) )
@@ -403,7 +407,7 @@ sub create_qc_run {
     );
 
     for my $seq_proj_id ( @{ $validated_params->{qc_sequencing_projects} } ) {
-        $self->_create_qc_run_seq_project( { qc_seq_project_id => $seq_proj_id }, $qc_run );
+        $self->_create_qc_run_seq_proj( { qc_seq_project_id => $seq_proj_id }, $qc_run );
     }
 
     for my $test_result ( @{ $validated_params->{test_results} } ) {

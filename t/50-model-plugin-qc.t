@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 
 BEGIN {
     use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $DEBUG );
+    Log::Log4perl->easy_init( $FATAL );
 }
 
 use Test::Most;
@@ -21,11 +21,7 @@ my $data_dir = dir( $FindBin::Bin )->subdir( 'data' );
 note( "Testing QC template storage and retrieval" );
 
 my $template_data = YAML::Any::LoadFile( $data_dir->file( 'qc_template.yaml' ) );
-#my $all_template_data = YAML::Any::LoadFile( $data_dir->file( 'qc_template_TPG00267_Y.yaml' ) );
-#my $template_data = $all_template_data->[0];
 my $template_name = $template_data->{name};
-
-my %created_template_ids;
 
 {        
     ok my $res = model->retrieve_qc_templates( { name => $template_name } ),
@@ -40,7 +36,6 @@ my $created_template;
 
 lives_ok {        
     $created_template = model->find_or_create_qc_template( $template_data );
-    $created_template_ids{ $created_template->id }++;
 } 'find_or_create_qc_template should live';
 
 isa_ok $created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
@@ -58,7 +53,6 @@ isa_ok $created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
 lives_ok {
     ok my $template = model->find_or_create_qc_template( $template_data ),
         'find_or_create_qc_template should succeed';
-    $created_template_ids{ $template->id }++;
     isa_ok $template, 'LIMS2::Model::Schema::Result::QcTemplate',
         'the object it returns';
     is $template->id, $created_template->id,
@@ -73,7 +67,6 @@ my $modified_created_template;
 lives_ok {
     ok $modified_created_template = model->find_or_create_qc_template( $template_data ),
         'find_or_create_qc_tempalte with modified parameters should succeed';
-    $created_template_ids{ $modified_created_template->id }++;
     isa_ok $modified_created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
         'the object it returns';
     isnt $modified_created_template->id, $created_template->id,
@@ -113,12 +106,6 @@ lives_ok {
         'the returned template is the original';
 }
 
-lives_ok {
-    for my $id ( keys %created_template_ids ) {
-        ok model->delete_qc_template( { id => $id } ), 'delete template ' . $id . ' should succeed';
-    }
-};
-
 note( "Testing QC seq read storage and retrieval" );
 
 my @seq_reads_data = YAML::Any::LoadFile( $data_dir->file( 'qc_seq_reads.yaml' ) );
@@ -129,6 +116,37 @@ for my $datum ( @seq_reads_data ) {
     ok my $ret = model->retrieve_qc_seq_read( { id => $datum->{id} } ), 'retrieve_qc_seq_read should succeed';
     is $ret->id, $datum->{id}, '...the retrieved read has the expected id';
 }
+
+note( "Testing QC run storage" );
+
+my $qc_run_data = YAML::Any::LoadFile( $data_dir->file( 'qc_run.yaml' ) );
+
+# Make sure the template_name is a valid template name
+$qc_run_data->{qc_template_name} = $template_name;
+
+# Make sure the eng_seq_id's match those we just created in the database
+for my $test_result ( @{ $qc_run_data->{test_results} } ) {
+    my $eng_seq_id = model->schema->resultset( 'QcEngSeq' )->search( {}, { order_by => \'RANDOM()', limit => 1 } )->first->id;
+    $test_result->{qc_eng_seq_id} = $eng_seq_id;
+    for my $alignment ( @{ $test_result->{alignments} } ) {
+        $alignment->{qc_eng_seq_id} = $eng_seq_id;
+    }
+}
+
+ok my $qc_run = model->create_qc_run( $qc_run_data ), 'create_qc_run';
+
+note "Testing QC template deletion";
+
+lives_ok {
+    my $id = $created_template->id;
+    ok model->delete_qc_template( { id => $id } ), 'delete template ' . $id . ' should succeed';
+};
+
+throws_ok {
+    my $id = $modified_created_template->id;
+    model->delete_qc_template( { id => $id } )
+} qr/Template \d+ has been used in one or more QC runs, so cannot be deleted/;
+
 
 
 
