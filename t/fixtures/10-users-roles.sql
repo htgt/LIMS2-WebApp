@@ -7,7 +7,7 @@ INSERT INTO users (name,password) VALUES ('test_user@example.org','{SSHA}yXvorbc
 INSERT INTO user_role (user_id,role_id)
 SELECT users.id, roles.id
 FROM users, roles
-WHERE users.name = 'test_user@example.org' AND roles.name = 'edit';
+WHERE users.name = 'test_user@example.org' AND roles.name IN ('read', 'edit');
 
 SET ROLE lims2_test_admin;
 DROP ROLE IF EXISTS "test_user@example.org";
