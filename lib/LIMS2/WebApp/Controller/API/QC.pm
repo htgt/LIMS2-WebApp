@@ -286,7 +286,7 @@ The QC test result id.
 sub qc_test_result_GET {
     my ( $self, $c ) = @_;
 
-    $self->assert_user_roles('read');
+    $c->assert_user_roles('read');
     
     my $res = $c->model('Golgi')->txn_do(
         sub {
