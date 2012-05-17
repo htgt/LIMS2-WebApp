@@ -339,7 +339,7 @@ sub qc_match_str {
 }
 
 sub qc_alignment_seq {
-    return regexp_matches(qr/^[ATGC-]*$/);
+    return regexp_matches(qr/^[ATGCN-]*$/);
 }
 
 sub json {
