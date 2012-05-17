@@ -37,7 +37,7 @@ sub _qc_template_has_identical_layout {
 
     my %template_layout = map { $_->name => $_->qc_eng_seq_id } $template->qc_template_wells;
 
-    Compare( \%template_layout, $wanted_layout );
+    return Compare( \%template_layout, $wanted_layout );
 }
 
 sub _find_qc_template_with_layout {
@@ -225,10 +225,10 @@ sub find_or_create_qc_seq_read {
     );
 
     my $qc_seq_read = $self->schema->resultset( 'QcSeqRead' )->find_or_create(
-        {
+        +{
             slice_def( $validated_params, qw( id description primer_name seq length ) ),
             qc_seq_project_well_id => $seq_proj_well->id
-        },
+        }
     );
 
     return $qc_seq_read;

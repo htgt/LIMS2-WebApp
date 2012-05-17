@@ -70,11 +70,13 @@ sub qc_template_GET {
 
     if ( @{$templates} > 1 ) {
         $entity = [
-            map +{
-                id   => $_->{id},
-                name => $_->{name},
-                url  => $c->uri_for( '/api/qc/template', { id => $_->{id} } )
-            }, @{$templates}
+            map {
+                +{
+                    id   => $_->{id},
+                    name => $_->{name},
+                    url  => $c->uri_for( '/api/qc/template', { id => $_->{id} } )
+                }
+            } @{$templates}
         ];
     }
     else {
