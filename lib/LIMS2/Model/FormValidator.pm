@@ -63,6 +63,8 @@ sub post_filter {
 sub check_params {
     my ( $self, $params, $spec ) = @_;
 
+    $params ||= {};
+    
     my $results = Data::FormValidator->check( $params, $self->dfv_profile($spec) );
 
     if ( !$results->success ) {
