@@ -73,6 +73,12 @@ __PACKAGE__->table("qc_runs");
   data_type: 'text'
   is_nullable: 0
 
+=head2 upload_complete
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -93,6 +99,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "software_version",
   { data_type => "text", is_nullable => 0 },
+  "upload_complete",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -180,8 +188,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 __PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:50:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:R6QcXdrA/dzmhfb7TfxvQw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-17 12:23:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nuhTCPQoBH33QAot2qf+Sg
 
 sub as_hash {
     my $self = shift;

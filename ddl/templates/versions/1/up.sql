@@ -80,7 +80,8 @@ CREATE TABLE qc_runs (
        created_by_id          INTEGER NOT NULL REFERENCES users(id),
        profile                TEXT NOT NULL,
        qc_template_id         INTEGER NOT NULL REFERENCES qc_templates(id),
-       software_version       TEXT NOT NULL
+       software_version       TEXT NOT NULL,
+       upload_complete        BOOLEAN NOT NULL DEFAULT FALSE                              
 );
 GRANT SELECT ON qc_runs TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON qc_runs TO "[% rw_role %]";
