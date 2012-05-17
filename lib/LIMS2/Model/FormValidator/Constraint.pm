@@ -206,6 +206,12 @@ sub existing_plate_name {
     return existing_row( $model, 'Plate', 'name' );
 }
 
+sub existing_qc_run_id {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'QcRun', 'id' );
+}
+
 sub existing_qc_seq_project_id {    
     my ( $class, $model ) = @_;
 

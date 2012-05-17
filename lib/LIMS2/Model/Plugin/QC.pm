@@ -329,8 +329,9 @@ sub _get_seq_project_well_from_alignments {
     return shift @wells;
 }
 
-sub pspec__create_qc_run_test_result {
+sub pspec_create_qc_test_result {
     return {
+        qc_run_id      => { validate => 'existing_qc_run_id' },
         qc_eng_seq_id  => { validate => 'existing_qc_eng_seq_id' },
         pass           => { validate => 'boolean' },
         score          => { validate => 'integer' },
@@ -338,16 +339,16 @@ sub pspec__create_qc_run_test_result {
     };
 }
 
-sub _create_qc_run_test_result {
-    my ( $self, $params, $qc_run ) = @_;
+sub create_qc_test_result {
+    my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec__create_qc_run_test_result );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_qc_test_result );
 
     my $qc_seq_project_well = $self->_get_seq_project_well_from_alignments( $validated_params->{alignments} );
 
     my $qc_test_result = $self->schema->resultset( 'QcTestResult' )->create(
         {
-            qc_run_id              => $qc_run->id,
+            qc_run_id              => $validated_params->{qc_run_id},
             qc_seq_project_well_id => $qc_seq_project_well->id,
             qc_eng_seq_id          => $validated_params->{qc_eng_seq_id},
             score                  => $validated_params->{score},
@@ -360,6 +361,22 @@ sub _create_qc_run_test_result {
     }
 
     return $qc_test_result;    
+}
+
+sub pspec_retrieve_qc_test_result {
+    return {
+        id => { validate => 'integer' }
+    };    
+}
+
+sub retrieve_qc_test_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_test_result );
+
+    my $test_result = $self->retrieve( 'QcTestResult', { id => $validated_params->{id} } );
+
+    return [ $test_result ];
 }
 
 sub pspec__create_qc_run_seq_proj {
@@ -385,7 +402,6 @@ sub pspec_create_qc_run {
         qc_template_id         => { validate => 'existing_qc_template_id', optional => 1 },
         qc_template_name       => { validate => 'existing_qc_template_name', optional => 1 },
         qc_sequencing_projects => { validate => 'non_empty_string' }, # Data::FormValidator will call this for each element of the array ref
-        test_results           => {},
         REQUIRE_SOME           => { qc_template_id_or_name => [ 1, qw( qc_template_id qc_template_name ) ] }
     };
 }
@@ -408,10 +424,6 @@ sub create_qc_run {
 
     for my $seq_proj_id ( @{ $validated_params->{qc_sequencing_projects} } ) {
         $self->_create_qc_run_seq_proj( { qc_seq_project_id => $seq_proj_id }, $qc_run );
-    }
-
-    for my $test_result ( @{ $validated_params->{test_results} } ) {
-        $self->_create_qc_run_test_result( $test_result, $qc_run );
     }
 
     return $qc_run;

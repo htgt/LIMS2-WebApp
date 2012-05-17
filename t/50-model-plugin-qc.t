@@ -124,16 +124,24 @@ my $qc_run_data = YAML::Any::LoadFile( $data_dir->file( 'qc_run.yaml' ) );
 # Make sure the template_name is a valid template name
 $qc_run_data->{qc_template_name} = $template_name;
 
-# Make sure the eng_seq_id's match those we just created in the database
-for my $test_result ( @{ $qc_run_data->{test_results} } ) {
+# Test results are persisted separately
+my $test_results = delete $qc_run_data->{test_results};
+
+ok my $qc_run = model->create_qc_run( $qc_run_data ), 'create_qc_run';
+
+note( "Testing QC test result storage" );
+
+for my $test_result ( @{ $test_results } ) {
+    # Make sure the eng_seq_id exists in the database
     my $eng_seq_id = model->schema->resultset( 'QcEngSeq' )->search( {}, { order_by => \'RANDOM()', limit => 1 } )->first->id;
     $test_result->{qc_eng_seq_id} = $eng_seq_id;
     for my $alignment ( @{ $test_result->{alignments} } ) {
         $alignment->{qc_eng_seq_id} = $eng_seq_id;
     }
+    $test_result->{qc_run_id} = $qc_run_data->{id};
+    ok my $res = model->create_qc_test_result( $test_result ), 'create QC test result';
+    isa_ok $res, 'LIMS2::Model::Schema::Result::QcTestResult';
 }
-
-ok my $qc_run = model->create_qc_run( $qc_run_data ), 'create_qc_run';
 
 note "Testing QC template deletion";
 

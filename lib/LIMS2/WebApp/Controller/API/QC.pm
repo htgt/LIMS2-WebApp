@@ -176,6 +176,44 @@ sub qc_run_POST {
     );
 }
 
+sub qc_test_result : Path( '/api/qc_test_result' ) :Args(0) :ActionClass('REST') {
+}
+
+sub qc_test_result_POST {
+    my ( $self, $c ) = @_;
+
+    $self->assert_user_roles('edit');
+    
+    my $data = $c->request->data;
+    $data->{qc_run_id} = $c->request->param( 'qc_run_id' );
+
+    my $test_result = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_qc_test_result( $data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/qc_test_result', { id => $test_result->id } ),
+        entity   => {}
+    );
+}
+
+sub qc_test_result_GET {
+    my ( $self, $c ) = @_;
+
+    $self->assert_user_roles('read');
+    
+    my $res = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_qc_test_result( $c->request->params )
+        }
+    );
+
+    return $self->status_ok( $c, entity => $res );
+}
+
 =head1 AUTHOR
 
 Sajith Perera
