@@ -112,6 +112,22 @@ sub qc_template_POST {
 sub qc_seq_read : Path( '/api/qc_seq_read' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
+=head2 GET /api/qc_seq_read
+
+Retrieve a QC sequencing read.
+
+=head3 Parameters
+
+=over 4
+
+=item id
+
+The QC seq read id
+
+=back
+
+=cut
+
 sub qc_seq_read_GET {
     my ( $self, $c ) = @_;
 
@@ -128,6 +144,12 @@ sub qc_seq_read_GET {
         entity => $qc_seq_read
     );
 }
+
+=head2 POST /api/qc_seq_read
+
+Create a QC sequencing read.
+
+=cut
 
 sub qc_seq_read_POST {
     my ( $self, $c ) = @_;
@@ -158,6 +180,12 @@ sub qc_run_GET {
     die "Not implemented";
 }
 
+=head2 POST /api/qc_run
+
+Create a QC run.
+
+=cut
+
 sub qc_run_POST {
     my ( $self, $c ) = @_;
 
@@ -175,6 +203,22 @@ sub qc_run_POST {
         entity   => {}
     );
 }
+
+=head2 POST /api/qc_run
+
+Update a QC run. Currently only update of C<upload_complete> is supported.
+
+=head3 Parameters
+
+=over 4
+
+=item id
+
+The QC run id
+
+=back
+
+=cut
 
 sub qc_run_PUT {
     my ( $self, $c ) = @_;
@@ -199,6 +243,12 @@ sub qc_run_PUT {
 sub qc_test_result : Path( '/api/qc_test_result' ) :Args(0) :ActionClass('REST') {
 }
 
+=head2 POST /api/qc_test_result
+
+Create a QC test result
+
+=cut
+
 sub qc_test_result_POST {
     my ( $self, $c ) = @_;
 
@@ -216,6 +266,22 @@ sub qc_test_result_POST {
         entity   => {}
     );
 }
+
+=head2 GET /api/qc_test_result
+
+Retrieve a QC test result
+
+=head3 Parameters
+
+=over 4
+
+=item id
+
+The QC test result id.
+
+=back
+
+=cut
 
 sub qc_test_result_GET {
     my ( $self, $c ) = @_;
