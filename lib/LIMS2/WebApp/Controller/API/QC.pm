@@ -202,7 +202,7 @@ sub qc_test_result : Path( '/api/qc_test_result' ) :Args(0) :ActionClass('REST')
 sub qc_test_result_POST {
     my ( $self, $c ) = @_;
 
-    $self->assert_user_roles('edit');
+    $c->assert_user_roles('edit');
     
     my $data = $c->request->data;
     $data->{qc_run_id} = $c->request->param( 'qc_run_id' );
