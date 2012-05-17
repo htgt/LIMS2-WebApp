@@ -251,9 +251,9 @@ sub pspec__create_qc_test_result_alignment_region {
         name        => { validate => 'non_empty_string' },
         length      => { validate => 'integer' },
         match_count => { validate => 'integer' },
-        query_str   => { validate => 'non_empty_string' },
-        target_str  => { validate => 'non_empty_string' },
-        match_str   => { validate => 'non_empty_string' },
+        query_str   => { validate => 'qc_alignment_seq' },
+        target_str  => { validate => 'qc_alignment_seq' },
+        match_str   => { validate => 'qc_match_str' },
         pass        => { validate => 'boolean' }
     };
 }
