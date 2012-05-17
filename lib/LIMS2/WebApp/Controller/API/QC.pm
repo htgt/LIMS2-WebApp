@@ -204,12 +204,9 @@ sub qc_test_result_POST {
 
     $c->assert_user_roles('edit');
     
-    my $data = $c->request->data;
-    $data->{qc_run_id} = $c->request->param( 'qc_run_id' );
-
     my $test_result = $c->model('Golgi')->txn_do(
         sub {
-            shift->create_qc_test_result( $data );
+            shift->create_qc_test_result( $c->request->data );
         }
     );
 
