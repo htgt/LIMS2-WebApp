@@ -1,12 +1,12 @@
-package LIMS2::Model::Test;
+package LIMS2::Test;
 
 use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports    => [ model => \'_build_model' ],
+    exports    => [ model => \'_build_model', test_data => \'_build_test_data', 'mech', 'unauthenticated_mech' ],
     groups     => {
-        default => [ qw( model ) ]
+        default => [ qw( model mech unauthenticated_mech test_data ) ]
     }
 };
 
@@ -15,11 +15,52 @@ use LIMS2::Model;
 use Log::Log4perl qw( :easy );
 use DBIx::RunSQL;
 use Const::Fast;
+use FindBin;
+use YAML::Any;
 use Path::Class;
 use Test::More;
+use Test::WWW::Mechanize::Catalyst;
 use Try::Tiny;
 
-const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
+const my $FIXTURE_RX  => qr/^\d\d\-[\w-]+\.sql$/;
+
+# These must match the user/password created in t/fixtures/10-users-roles.t
+const my $TEST_USER   => 'test_user@example.org';
+const my $TEST_PASSWD => 'ahdooS1e';
+
+sub unauthenticated_mech {
+    return Test::WWW::Mechanize::Catalyst->new( catalyst_app => 'LIMS2::WebApp' );
+}
+
+sub mech {
+    my $mech = unauthenticated_mech();
+    $mech->credentials($TEST_USER, $TEST_PASSWD);
+    return $mech;
+}
+
+sub _build_test_data {
+    my ( $class, $name, $args ) = @_;
+
+    my $data_dir;
+    if ( $args->{dir} ) {
+        $data_dir = dir( $args->{dir} );
+    }
+    else {
+        $data_dir = dir( $FindBin::Bin )->subdir( 'data' );
+    }
+
+    return sub {
+        my ( $filename, %opts ) = @_;
+
+        my $file = $data_dir->file( $filename );
+
+        if ( $filename =~ m/\.yaml$/ and not $opts{raw} ) {
+            return YAML::Any::LoadFile( $file );
+        }
+
+        return $file;
+    };    
+}
 
 sub _build_model {
     my ( $class, $name, $args  ) = @_;

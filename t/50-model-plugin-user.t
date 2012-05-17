@@ -3,21 +3,14 @@
 use strict;
 use warnings FATAL => 'all';
 
+use LIMS2::Test;
 use Test::Most;
-use LIMS2::Model::DBConnect;
 use Hash::MoreUtils qw( slice );
-use Const::Fast;
 
-use_ok 'LIMS2::Model';
-
-ok my $schema = LIMS2::Model::DBConnect->connect( 'LIMS2_PROCESS_TEST', 'tests' ),
-    'connect to LIMS2_TEST';
-
-ok my $model = LIMS2::Model->new( schema => $schema ), 'instantiate model';
-
-$model->txn_do(
+model->txn_do(
     sub {
-
+        my $model = shift;
+        
         can_ok $model, 'create_user';
 
         ok my $u1 = $model->create_user( { name => 'TEST_foo' } ),

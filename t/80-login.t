@@ -3,13 +3,12 @@
 use strict;
 use warnings FATAL => 'all';
 
-use LIMS2::Model::Test;
+use LIMS2::Test;
 use Test::Most;
-use Test::WWW::Mechanize::Catalyst;
 
-my $mech = Test::WWW::Mechanize::Catalyst->new( catalyst_app => 'LIMS2::WebApp' );
+my $mech = unauthenticated_mech();
 
-{    
+{
     $mech->get_ok( '/login' );
     ok my $res = $mech->submit_form(
         form_name => 'login_form',

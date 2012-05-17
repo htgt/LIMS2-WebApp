@@ -8,19 +8,14 @@ BEGIN {
     Log::Log4perl->easy_init( $FATAL );
 }
 
+use LIMS2::Test;
 use Test::Most;
-use LIMS2::Model::Test;
 use Try::Tiny;
-use FindBin;
-use YAML::Any;
-use Path::Class;
 use DateTime;
-
-my $data_dir = dir( $FindBin::Bin )->subdir( 'data' );
 
 note( "Testing QC template storage and retrieval" );
 
-my $template_data = YAML::Any::LoadFile( $data_dir->file( 'qc_template.yaml' ) );
+my $template_data = test_data( 'qc_template.yaml' );
 my $template_name = $template_data->{name};
 
 {        
@@ -108,7 +103,7 @@ lives_ok {
 
 note( "Testing QC seq read storage and retrieval" );
 
-my @seq_reads_data = YAML::Any::LoadFile( $data_dir->file( 'qc_seq_reads.yaml' ) );
+my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
 
 for my $datum ( @seq_reads_data ) {
     ok my $qc_seq_read = model->find_or_create_qc_seq_read( $datum ), "find_or_create_seq_read $datum->{id}";
@@ -119,7 +114,7 @@ for my $datum ( @seq_reads_data ) {
 
 note( "Testing QC run storage" );
 
-my $qc_run_data = YAML::Any::LoadFile( $data_dir->file( 'qc_run.yaml' ) );
+my $qc_run_data = test_data( 'qc_run.yaml' );
 
 # Make sure the template_name is a valid template name
 $qc_run_data->{qc_template_name} = $template_name;
