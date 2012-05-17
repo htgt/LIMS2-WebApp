@@ -18,7 +18,7 @@ my $mech = unauthenticated_mech();
 
     ok $res->is_success, '...response is_success';
     is $res->base->path, '/login', '...stays on the login page';
-    like $res->content, qr/Incorrect username or password/, '...incorrect username/password error displayed';    
+    like $res->content, qr/Incorrect username or password/, '...incorrect username/password error displayed';
 }
 
 {

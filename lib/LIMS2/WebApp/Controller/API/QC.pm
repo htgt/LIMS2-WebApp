@@ -64,10 +64,10 @@ sub qc_template_GET {
         sub {
             shift->retrieve_qc_templates( $c->request->params );
         }
-    );    
+    );
 
     my $entity;
-    
+
     if ( @{$templates} > 1 ) {
         $entity = [
             map +{
@@ -75,12 +75,12 @@ sub qc_template_GET {
                 name => $_->{name},
                 url  => $c->uri_for( '/api/qc/template', { id => $_->{id} } )
             }, @{$templates}
-        ];        
+        ];
     }
     else {
         $entity = $templates;
     }
-    
+
     return $self->status_ok( $c, entity => $entity );
 }
 
@@ -100,13 +100,13 @@ sub qc_template_POST {
         sub {
             shift->find_or_create_qc_template( $c->request->data );
         }
-    );    
+    );
 
     return $self->status_created(
         $c,
         location => $c->uri_for( '/api/qc_template', { id => $qc_template->id } ),
         entity   => $qc_template
-    );    
+    );
 }
 
 sub qc_seq_read : Path( '/api/qc_seq_read' ) : Args(0) : ActionClass( 'REST' ) {
@@ -176,7 +176,7 @@ sub qc_run_GET {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
-    
+
     die "Not implemented";
 }
 
@@ -226,11 +226,11 @@ sub qc_run_PUT {
     $c->assert_user_roles('edit');
 
     my $data = $c->request->data;
-    $data->{id} = $c->request->param( 'id' );    
+    $data->{id} = $c->request->param( 'id' );
 
     my $qc_run = $c->model('Golgi')->txn_do(
         sub {
-            shift->update_qc_run( $data );            
+            shift->update_qc_run( $data );
         }
     );
 
@@ -253,7 +253,7 @@ sub qc_test_result_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
-    
+
     my $test_result = $c->model('Golgi')->txn_do(
         sub {
             shift->create_qc_test_result( $c->request->data );
@@ -287,7 +287,7 @@ sub qc_test_result_GET {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
-    
+
     my $res = $c->model('Golgi')->txn_do(
         sub {
             shift->retrieve_qc_test_result( $c->request->params )

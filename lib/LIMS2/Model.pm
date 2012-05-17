@@ -60,7 +60,7 @@ sub _build_schema {
 
 sub txn_do {
     my ( $self, $code_ref, @args ) = @_;
-    
+
     return $self->schema->txn_do( $code_ref, $self, @args );
 }
 

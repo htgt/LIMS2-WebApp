@@ -36,7 +36,7 @@ sub _qc_template_has_identical_layout {
     my ( $self, $template, $wanted_layout ) = @_;
 
     my %template_layout = map { $_->name => $_->qc_eng_seq_id } $template->qc_template_wells;
-    
+
     Compare( \%template_layout, $wanted_layout );
 }
 
@@ -83,7 +83,7 @@ sub find_or_create_qc_template {
     }
 
     # If a template already exists with this name and layout, return it
-    my $existing_template = $self->_find_qc_template_with_layout( $validated_params->{name}, \%template_layout );    
+    my $existing_template = $self->_find_qc_template_with_layout( $validated_params->{name}, \%template_layout );
     if ( $existing_template ) {
         $self->log->debug( 'Returning matching template with id ' . $existing_template->id );
         return $existing_template;
@@ -100,13 +100,13 @@ sub find_or_create_qc_template {
             }
         );
     }
-    
+
     return $qc_template;
 }
 
 sub _build_qc_template_search_params {
     my ( $self, $params ) = @_;
-    
+
     if ( defined $params->{id} ) {
         return { 'me.id' => $params->{id} };
     }
@@ -116,7 +116,7 @@ sub _build_qc_template_search_params {
     if ( $params->{name} ) {
         $search{'me.name'} = $params->{name};
     }
-    
+
     if ( $params->{created_before} ) {
         $search{'me.created_at'} = { '<=', $params->{created_before} };
     }
@@ -124,10 +124,10 @@ sub _build_qc_template_search_params {
     if ( $params->{latest} ) {
         if ( $params->{created_before} ) {
             $search{'me.created_at'} = { '=' => \[ '( select max(created_at) from qc_templates where name = me.name and created_at <= ? )',
-                                                 [ created_at => $params->{created_before} ] ] }        
+                                                 [ created_at => $params->{created_before} ] ] }
         }
         else {
-            $search{'me.created_at'} = { '=' => \[ '( select max(created_at) from qc_templates where name = me.name )' ] }    
+            $search{'me.created_at'} = { '=' => \[ '( select max(created_at) from qc_templates where name = me.name )' ] }
         }
     }
 
@@ -149,7 +149,7 @@ sub retrieve_qc_templates {
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_templates );
 
     my $search_params = $self->_build_qc_template_search_params( $validated_params );
-        
+
     my @templates = $self->schema->resultset('QcTemplate')->search(
         $search_params,
         {
@@ -182,10 +182,10 @@ sub delete_qc_template {
 
     if ( $template->qc_runs_rs->count > 0 ) {
         $self->throw( InvalidState => { message => 'Template ' . $template->id . ' has been used in one or more QC runs, so cannot be deleted' } );
-    }    
-    
+    }
+
     for my $well ( $template->qc_template_wells ) {
-        $well->delete;        
+        $well->delete;
     }
 
     $template->delete;
@@ -212,7 +212,7 @@ sub find_or_create_qc_seq_read {
     my $validated_params = $self->check_params( $params, $self->pspec_find_or_create_qc_seq_read );
 
     my $seq_proj = $self->schema->resultset( 'QcSeqProject' )->find_or_create( { id => $validated_params->{qc_seq_project_id} } );
-    
+
     my $seq_proj_well = $self->schema->resultset( 'QcSeqProjectWell' )->find_or_create(
         {
             qc_seq_project_id => $seq_proj->id,
@@ -263,7 +263,7 @@ sub _create_qc_test_result_alignment_region {
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_test_result_alignment_region );
 
-    return $alignment->create_related( qc_alignment_regions => $validated_params );    
+    return $alignment->create_related( qc_alignment_regions => $validated_params );
 }
 
 sub pspec__create_qc_test_result_alignment {
@@ -303,7 +303,7 @@ sub _create_qc_test_result_alignment {
     for my $region ( @{ $validated_params->{alignment_regions} || [] } ) {
         $self->_create_qc_test_result_alignment_region( $region, $alignment );
     }
-        
+
     return $alignment;
 }
 
@@ -325,7 +325,7 @@ sub _get_seq_project_well_from_alignments {
 
     $self->throw( Validation => { message => 'Alignments must belong to exactly one well', params => $alignments } )
         unless @wells == 1;
-            
+
     return shift @wells;
 }
 
@@ -360,13 +360,13 @@ sub create_qc_test_result {
         $self->_create_qc_test_result_alignment( $alignment, $qc_test_result );
     }
 
-    return $qc_test_result;    
+    return $qc_test_result;
 }
 
 sub pspec_retrieve_qc_test_result {
     return {
         id => { validate => 'integer' }
-    };    
+    };
 }
 
 sub retrieve_qc_test_result {
@@ -412,7 +412,7 @@ sub create_qc_run {
     my $validated_params = $self->check_params( $params, $self->pspec_create_qc_run );
 
     if ( ! defined $validated_params->{qc_template_id} ) {
-        my $template = $self->retrieve_qc_templates( { qc_template_name => $validated_params->{qc_template_name}, latest => 1 } )->[0];        
+        my $template = $self->retrieve_qc_templates( { qc_template_name => $validated_params->{qc_template_name}, latest => 1 } )->[0];
         $validated_params->{qc_template_id} = $template->id;
     }
 

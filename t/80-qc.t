@@ -13,14 +13,14 @@ my $mech = mech();
 
 note "Testing creation and retrieval of QC sequencing reads";
 
-{    
+{
     my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
 
-    for my $s ( @seq_reads_data ) {    
+    for my $s ( @seq_reads_data ) {
         ok my $res = $mech->request( POST '/api/qc_seq_read', 'Content-Type' => 'application/json', Content => encode_json( $s ) ), "POST qc_seq_read $s->{id}";
         ok $res->is_success, '...request should succeed';
         is $res->code, HTTP_CREATED, '...status is "created"';
-        like $res->header('location'), qr(\Q/api/qc_seq_read?id=$s->{id}\E$), '...location header is correct';    
+        like $res->header('location'), qr(\Q/api/qc_seq_read?id=$s->{id}\E$), '...location header is correct';
     }
 }
 
@@ -31,11 +31,11 @@ my $template;
 {
     my $template_data = test_data( 'qc_template.yaml' );
     my $template_name = $template_data->{name};
-    
+
     ok my $res = $mech->request( POST '/api/qc_template', 'Content-Type' => 'application/json', Content => encode_json( $template_data ) ), "POST qc_template $template_name";
     ok $res->is_success, '...request should succeed';
     is $res->code, HTTP_CREATED, '...status is created';
-    
+
     lives_ok {
         $template = decode_json( $res->content )
     } '...decoding JSON lives';
@@ -94,9 +94,9 @@ for my $test_result ( @{ $test_results } ) {
         is $res->code, HTTP_OK, '...status is ok';
         my $entity;
         lives_ok {
-            $entity = decode_json( $res->content );            
+            $entity = decode_json( $res->content );
         } '...decoding JSON lives';
-        is $entity->{id}, $test_result_id, '...it has the expected id';        
+        is $entity->{id}, $test_result_id, '...it has the expected id';
     }
 }
 

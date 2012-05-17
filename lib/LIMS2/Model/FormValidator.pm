@@ -64,7 +64,7 @@ sub check_params {
     my ( $self, $params, $spec ) = @_;
 
     $params ||= {};
-    
+
     my $results = Data::FormValidator->check( $params, $self->dfv_profile($spec) );
 
     if ( !$results->success ) {
@@ -112,7 +112,7 @@ sub dfv_profile {
         }
         if ( not( defined $f_spec->{trim} ) or $f_spec->{trim} ) {
             push @{ $field_filters{$field} }, 'trim';
-        }        
+        }
     }
 
     return {

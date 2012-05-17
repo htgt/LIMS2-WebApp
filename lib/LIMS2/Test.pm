@@ -59,14 +59,14 @@ sub _build_test_data {
         }
 
         return $file;
-    };    
+    };
 }
 
 sub _build_model {
     my ( $class, $name, $args  ) = @_;
 
     my $user = $args->{user} || 'tests';
-    
+
     my $model = LIMS2::Model->new( { user => $user } );
 
     try {
@@ -84,9 +84,9 @@ sub _build_model {
             }
         );
     }
-    catch {            
+    catch {
         BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
-    };        
+    };
 
     return sub { $model };
 }
@@ -101,7 +101,7 @@ sub _load_fixtures {
     else {
         $fixtures_dir = dir( $FindBin::Bin )->subdir( 'fixtures' );
     }
-    
+
     for my $fixture ( sort { $a cmp $b } grep { _is_fixture( $_ ) }  $fixtures_dir->children ) {
         DEBUG( "Loading fixtures from $fixture" );
         DBIx::RunSQL->run_sql_file(

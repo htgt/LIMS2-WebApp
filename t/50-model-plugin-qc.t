@@ -18,7 +18,7 @@ note( "Testing QC template storage and retrieval" );
 my $template_data = test_data( 'qc_template.yaml' );
 my $template_name = $template_data->{name};
 
-{        
+{
     ok my $res = model->retrieve_qc_templates( { name => $template_name } ),
         'retrieve_qc_templates should succeed';
     isa_ok $res, ref [],
@@ -29,7 +29,7 @@ my $template_name = $template_data->{name};
 
 my $created_template;
 
-lives_ok {        
+lives_ok {
     $created_template = model->find_or_create_qc_template( $template_data );
 } 'find_or_create_qc_template should live';
 
@@ -42,7 +42,7 @@ isa_ok $created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
     is @{$res}, 1,
         'retrieve_qc_templates by id should return a 1-element array';
     is $res->[0]->id, $created_template->id,
-        'the returned template has the expected id';        
+        'the returned template has the expected id';
 }
 
 lives_ok {
@@ -58,7 +58,7 @@ delete $template_data->{created_at};
 $template_data->{wells}{A02}{eng_seq_params}{five_arm_end}++;
 
 my $modified_created_template;
-    
+
 lives_ok {
     ok $modified_created_template = model->find_or_create_qc_template( $template_data ),
         'find_or_create_qc_tempalte with modified parameters should succeed';
@@ -92,7 +92,7 @@ lives_ok {
     is @{$templates}, 1,
         'retrieve_qc_templates by id should return 1 template';
     is $templates->[0]->id, $created_template->id,
-        'the returned template has the expected id';    
+        'the returned template has the expected id';
     ok my $res = model->retrieve_qc_templates( { name => $template_name, created_before => $templates->[0]->created_at->iso8601 } ),
         'retrieve_qc_templates, created_before, should succeed';
     is @{$res}, 1,
@@ -140,7 +140,7 @@ for my $test_result ( @{ $test_results } ) {
 
 note( "Testing set QC run upload complete" );
 
-{   
+{
     ok my $qc_run = model->update_qc_run( { id => $qc_run_data->{id}, upload_complete => 1 } ), 'update_qc_run';
     is $qc_run->upload_complete, 1, 'the returned object has been updated';
 }

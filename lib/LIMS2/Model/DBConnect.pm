@@ -20,7 +20,7 @@ BEGIN {
 # XXX Incomplete, add further parameters as needed
 const my @DBI_ATTRS => qw( AutoCommit PrintError RaiseError );
 
-{    
+{
     my %connector_for;
 
     sub _clear_connectors {
@@ -36,13 +36,13 @@ const my @DBI_ATTRS => qw( AutoCommit PrintError RaiseError );
         my $pass = delete $params->{password};
         my %attr = slice_def( $params, @DBI_ATTRS );
         delete $params->{$_} for @DBI_ATTRS;
-        
+
         unless ( $connector_for{ $dbname }{ $role } ) {
-            $connector_for{$dbname}{$role} = DBIx::Connector->new( $dsn, $user, $pass, \%attr ); 
+            $connector_for{$dbname}{$role} = DBIx::Connector->new( $dsn, $user, $pass, \%attr );
         }
 
         return $connector_for{$dbname}{$role};
-    }    
+    }
 }
 
 sub config_is_fresh {
@@ -75,7 +75,7 @@ sub read_config {
     );
 
     $class->_clear_connectors();
-    
+
     return $config->{$filename};
 }
 
@@ -83,7 +83,7 @@ sub config {
     my ( $class, $dbname ) = @_;
 
     my $config = $class->config_is_fresh ? $class->CachedConfig->{data} : $class->read_config;
-    
+
     return $config->{$dbname} || confess "Database '$dbname' not configured";
 }
 
@@ -116,7 +116,7 @@ sub connect {
         or confess("Failed to load $schema_class: $@");
 
     my $conn = $class->_connector_for( $dbname, $role, $params );
-    
+
     return $schema_class->connect( sub { $conn->dbh }, $params );
 }
 ## use critic

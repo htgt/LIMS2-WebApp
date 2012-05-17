@@ -10,7 +10,7 @@ use Hash::MoreUtils qw( slice );
 model->txn_do(
     sub {
         my $model = shift;
-        
+
         can_ok $model, 'create_user';
 
         ok my $u1 = $model->create_user( { name => 'TEST_foo' } ),
@@ -20,7 +20,7 @@ model->txn_do(
             'create a user with two roles';
 
         can_ok $model, 'delete_user';
-        
+
         ok $model->delete_user( { slice( $u1->as_hash, 'name' ) } ),
             'delete user 1';
 

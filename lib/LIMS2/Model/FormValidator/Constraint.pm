@@ -212,7 +212,7 @@ sub existing_qc_run_id {
     return existing_row( $model, 'QcRun', 'id' );
 }
 
-sub existing_qc_seq_project_id {    
+sub existing_qc_seq_project_id {
     my ( $class, $model ) = @_;
 
     return existing_row( $model, 'QcSeqProject' , 'id' );

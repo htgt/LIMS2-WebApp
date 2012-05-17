@@ -14,7 +14,7 @@ const my %DB_CONNECT_PARAMS => (
         roles        => {
             test => { user => 'test_one', password => 'eno_tset' }
         }
-    },    
+    },
     lims2_test_two => {
         schema_class => 'LIMS2::Model::Schema',
         dsn          => 'dbi:SQLite:dbname=:memory:',
@@ -46,7 +46,7 @@ can_ok 'LIMS2::Model::DBConnect', 'connect';
         user         => 'test_one',
         password     => 'eno_tset'
     );
-    
+
     is_deeply LIMS2::Model::DBConnect->params_for( 'lims2_test_one', 'test' ), \%expected,
         'params for lims2_test_one/test';
 
@@ -54,7 +54,7 @@ can_ok 'LIMS2::Model::DBConnect', 'connect';
 
     is_deeply LIMS2::Model::DBConnect->params_for( 'LIMS2_DB', 'test' ), \%expected,
         'params for lims2_test_one/test via %ENV';
-    
+
     ok my $s = LIMS2::Model::DBConnect->connect( 'LIMS2_DB', 'test' ), "Connect to lims2_test_one/test";
 }
 
@@ -65,7 +65,7 @@ can_ok 'LIMS2::Model::DBConnect', 'connect';
         user         => 'test_two_web',
         password     => 'bew_owt_tset'
     );
-    
+
     is_deeply LIMS2::Model::DBConnect->params_for( 'lims2_test_two', 'web' ), \%expected,
         'params for lims2_test_two/web';
 
@@ -73,7 +73,7 @@ can_ok 'LIMS2::Model::DBConnect', 'connect';
 
     is_deeply LIMS2::Model::DBConnect->params_for( 'LIMS2_DB', 'web' ), \%expected,
         'params for lims2_test_two/web via %ENV';
-    
+
     ok my $s = LIMS2::Model::DBConnect->connect( 'LIMS2_DB', 'web' ), "Connect to lims2_test_two/web";
 }
 
