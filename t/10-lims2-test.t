@@ -9,8 +9,10 @@ BEGIN {
 }
 
 use Test::Most;
-use LIMS2::Model::Test;
+use LIMS2::Test;
 
-can_ok __PACKAGE__, 'model';
+for my $method ( qw( model mech unauthenticated_mech test_data ) ) {    
+    can_ok __PACKAGE__, $method;
+}
 
 done_testing;

@@ -111,6 +111,8 @@ sub _load_fixtures {
             sql             => $fixture
         );
     }
+
+    return;
 }
 
 sub _is_fixture {
