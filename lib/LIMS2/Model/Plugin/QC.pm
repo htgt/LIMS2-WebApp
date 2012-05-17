@@ -282,7 +282,7 @@ sub pspec__create_qc_test_result_alignment {
         features          => { validate => 'non_empty_string' },
         cigar             => { validate => 'cigar_string' },
         op_str            => { validate => 'op_str' },
-        alignment_regions => {}
+        alignment_regions => { optional => 1 }
     };
 }
 
@@ -300,8 +300,8 @@ sub _create_qc_test_result_alignment {
         }
     );
 
-    for my $region ( @{ $alignment->{alignment_regions} } ) {
-        $self->create_qc_test_result_alignment_region( $region, $alignment );
+    for my $region ( @{ $validated_params->{alignment_regions} || [] } ) {
+        $self->_create_qc_test_result_alignment_region( $region, $alignment );
     }
         
     return $alignment;
