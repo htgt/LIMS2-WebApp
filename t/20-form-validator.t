@@ -5,8 +5,7 @@ use warnings FATAL => 'all';
 
 use Test::Most;
 use Data::FormValidator;
-use LIMS2::Model::Test;
-use LIMS2::Model::DBConnect;
+use LIMS2::Test;
 
 can_ok model(), 'check_params';
 
