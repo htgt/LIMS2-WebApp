@@ -8,10 +8,41 @@ use base 'Class::Data::Inheritable';
 use Carp qw( confess );
 use File::stat;
 use Config::Any;
+use Const::Fast;
+use DBIx::Connector;
+use Hash::MoreUtils qw( slice_def );
 
 BEGIN {
     __PACKAGE__->mk_classdata( 'ConfigFile' => $ENV{LIMS2_DBCONNECT_CONFIG} );
     __PACKAGE__->mk_classdata('CachedConfig');
+}
+
+# XXX Incomplete, add further parameters as needed
+const my @DBI_ATTRS => qw( AutoCommit PrintError RaiseError );
+
+{    
+    my %connector_for;
+
+    sub _clear_connectors {
+        %connector_for = ();
+        return;
+    }
+
+    sub _connector_for {
+        my ( $class, $dbname, $role, $params ) = @_;
+
+        my $dsn  = delete $params->{dsn};
+        my $user = delete $params->{user};
+        my $pass = delete $params->{password};
+        my %attr = slice_def( $params, @DBI_ATTRS );
+        delete $params->{$_} for @DBI_ATTRS;
+        
+        unless ( $connector_for{ $dbname }{ $role } ) {
+            $connector_for{$dbname}{$role} = DBIx::Connector->new( $dsn, $user, $pass, \%attr ); 
+        }
+
+        return $connector_for{$dbname}{$role};
+    }    
 }
 
 sub config_is_fresh {
@@ -43,6 +74,8 @@ sub read_config {
         }
     );
 
+    $class->_clear_connectors();
+    
     return $config->{$filename};
 }
 
@@ -50,12 +83,12 @@ sub config {
     my ( $class, $dbname ) = @_;
 
     my $config = $class->config_is_fresh ? $class->CachedConfig->{data} : $class->read_config;
-
+    
     return $config->{$dbname} || confess "Database '$dbname' not configured";
 }
 
 sub params_for {
-    my ( $class, $dbname, $role, $override_attrs ) = @_;
+    my ( $class, $dbname, $role ) = @_;
 
     $dbname = $ENV{$dbname} if defined $ENV{$dbname};
 
@@ -65,24 +98,26 @@ sub params_for {
     my $role_params = $roles->{$role}
         or confess "Role '$role' for database '$dbname' not configured";
 
-    return { %params, %{$role_params}, %{ $override_attrs || {} } };
+    return { %params, %{$role_params} };
 }
 
 ## no critic(ProhibitBuiltinHomonyms)
 sub connect {
-    my ( $class, $dbname, $role, $override_attrs ) = @_;
+    my ( $class, $dbname, $role ) = @_;
 
     confess 'connect() requires dbname and role'
         unless defined $dbname and defined $role;
 
-    my $params = $class->params_for( $dbname, $role, $override_attrs );
-    my $schema_class = $params->{schema_class}
+    my $params = $class->params_for( $dbname, $role );
+    my $schema_class = delete $params->{schema_class}
         or confess "No schema_class defined for '$dbname'";
 
     eval "require $schema_class"
         or confess("Failed to load $schema_class: $@");
 
-    return $schema_class->connect($params);
+    my $conn = $class->_connector_for( $dbname, $role, $params );
+    
+    return $schema_class->connect( sub { $conn->dbh }, $params );
 }
 ## use critic
 

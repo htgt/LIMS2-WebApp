@@ -37,6 +37,8 @@ ok my $config = LIMS2::Model::DBConnect->read_config, 'parse config file';
 
 is_deeply $config, \%DB_CONNECT_PARAMS, 'config has expected values';
 
+can_ok 'LIMS2::Model::DBConnect', 'connect';
+
 {
     my %expected = (
         schema_class => 'LIMS2::Model::Schema',
@@ -53,11 +55,6 @@ is_deeply $config, \%DB_CONNECT_PARAMS, 'config has expected values';
     is_deeply LIMS2::Model::DBConnect->params_for( 'LIMS2_DB', 'test' ), \%expected,
         'params for lims2_test_one/test via %ENV';
     
-    $expected{AutoCommit} = 1;
-    
-    is_deeply LIMS2::Model::DBConnect->params_for( 'lims2_test_one', 'test', {AutoCommit => 1} ), \%expected, 
-        'params_for lims2_test_one/test with override';
-
     ok my $s = LIMS2::Model::DBConnect->connect( 'LIMS2_DB', 'test' ), "Connect to lims2_test_one/test";
 }
 
