@@ -253,7 +253,7 @@ sub pspec__create_qc_test_result_alignment_region {
         match_count => { validate => 'integer' },
         query_str   => { validate => 'qc_alignment_seq' },
         target_str  => { validate => 'qc_alignment_seq' },
-        match_str   => { validate => 'qc_match_str' },
+        match_str   => { validate => 'qc_match_str', trim => 0 },
         pass        => { validate => 'boolean' }
     };
 }

@@ -88,10 +88,7 @@ sub check_params {
 sub dfv_profile {
     my ( $self, $spec ) = @_;
 
-    my ( @filters, @required, @optional, %constraint_methods, %field_filters, %defaults );
-
-    # Add the 'trim' filter for every profile
-    push @filters, 'trim';
+    my ( @required, @optional, %constraint_methods, %field_filters, %defaults );
 
     my $dependencies      = delete $spec->{DEPENDENCIES};
     my $dependency_groups = delete $spec->{DEPENDENCY_GROUPS};
@@ -108,15 +105,17 @@ sub dfv_profile {
             $constraint_methods{$field} = $self->constraint_method( $f_spec->{validate} );
         }
         if ( $f_spec->{filter} ) {
-            $field_filters{$field} = $f_spec->{filter};
+            $field_filters{$field} = $f_spec->{filter} || [];
         }
         if ( defined $f_spec->{default} ) {
             $defaults{$field} = $f_spec->{default};
         }
+        if ( not( defined $f_spec->{trim} ) or $f_spec->{trim} ) {
+            push @{ $field_filters{$field} }, 'trim';
+        }        
     }
 
     return {
-        filters            => \@filters,
         required           => \@required,
         optional           => \@optional,
         defaults           => \%defaults,
