@@ -176,6 +176,26 @@ sub qc_run_POST {
     );
 }
 
+sub qc_run_PUT {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $data = $c->request->data;
+    $data->{id} = $c->request->param( 'id' );    
+
+    my $qc_run = $c->model('Golgi')->txn_do(
+        sub {
+            shift->update_qc_run( $data );            
+        }
+    );
+
+    return $self->status_ok(
+        $c,
+        entity => $qc_run
+    );
+}
+
 sub qc_test_result : Path( '/api/qc_test_result' ) :Args(0) :ActionClass('REST') {
 }
 

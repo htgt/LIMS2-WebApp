@@ -143,6 +143,13 @@ for my $test_result ( @{ $test_results } ) {
     isa_ok $res, 'LIMS2::Model::Schema::Result::QcTestResult';
 }
 
+note( "Testing set QC run upload complete" );
+
+{   
+    ok my $qc_run = model->update_qc_run( { id => $qc_run_data->{id}, upload_complete => 1 } ), 'update_qc_run';
+    is $qc_run->upload_complete, 1, 'the returned object has been updated';
+}
+
 note "Testing QC template deletion";
 
 lives_ok {

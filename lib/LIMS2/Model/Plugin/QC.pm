@@ -376,7 +376,7 @@ sub retrieve_qc_test_result {
 
     my $test_result = $self->retrieve( 'QcTestResult', { id => $validated_params->{id} } );
 
-    return [ $test_result ];
+    return $test_result;
 }
 
 sub pspec__create_qc_run_seq_proj {
@@ -425,6 +425,25 @@ sub create_qc_run {
     for my $seq_proj_id ( @{ $validated_params->{qc_sequencing_projects} } ) {
         $self->_create_qc_run_seq_proj( { qc_seq_project_id => $seq_proj_id }, $qc_run );
     }
+
+    return $qc_run;
+}
+
+sub pspec_update_qc_run {
+    return {
+        id              => { validate => 'uuid' },
+        upload_complete => { validate => 'boolean' }
+    };
+}
+
+sub update_qc_run {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_qc_run );
+
+    my $qc_run = $self->retrieve( QcRun => { id => $validated_params->{id} } );
+
+    $qc_run->update( { upload_complete => $validated_params->{upload_complete} } );
 
     return $qc_run;
 }
