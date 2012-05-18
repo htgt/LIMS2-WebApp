@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use Catalyst::Runtime 5.80;
+use Log::Log4perl::Catalyst;
 
 # Set flags and add plugins for the application.
 #
@@ -54,6 +55,9 @@ __PACKAGE__->config(
         storage => $ENV{LIMS2_SESSION_STORE}
     }
 );
+
+# Configure Log4perl
+__PACKAGE__->log( Log::Log4perl::Catalyst->new( $ENV{LIMS2_LOG4PERL_CONFIG} ) );
 
 # Start the application
 __PACKAGE__->setup();
