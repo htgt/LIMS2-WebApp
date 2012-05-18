@@ -196,7 +196,8 @@ sub as_hash {
 
     return {
         id               => $self->id,
-        date             => $self->date->iso8601,
+        created_at       => $self->created_at->iso8601,
+        created_by       => $self->created_by->name,
         profile          => $self->profile,
         software_version => $self->software_version,
         qc_template      => $self->qc_template->name,
