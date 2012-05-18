@@ -48,6 +48,10 @@ __PACKAGE__->config(
             __PACKAGE__->path_to( 'root', 'lib' ),
             __PACKAGE__->path_to( 'root', 'site' )
         ],
+    },
+    'Plugin::Session' => {
+        expires => 28800, # 8 hours
+        storage => $ENV{LIMS2_SESSION_STORE}
     }
 );
 
