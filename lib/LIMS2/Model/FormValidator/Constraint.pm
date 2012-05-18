@@ -129,7 +129,7 @@ sub cre_bac_recom_backbone {
 }
 
 sub plate_name {
-    return regexp_matches(qr/^[A-Z0-9_]+$/);
+    return regexp_matches(qr/^[A-Za-z0-9_]+$/);
 }
 
 sub well_name {
