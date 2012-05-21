@@ -326,7 +326,8 @@ created_at timestamp without time zone,
 created_by_id integer,
 profile text,
 qc_template_id integer,
-software_version text
+software_version text,
+upload_complete boolean
 );
 GRANT SELECT ON audit.qc_runs TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.qc_runs TO "[% rw_role %]";
