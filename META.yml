@@ -1,0 +1,81 @@
+---
+abstract: 'Catalyst based application'
+author:
+  - 'Wellcome Trust Sanger Institute'
+build_requires:
+  DateTime: 0
+  English: 0
+  File::Find: 0
+  File::Temp: 0
+  HTTP::Request::Common: 0
+  Test::More: 0.88
+  Test::Most: 0
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.300014, CPAN::Meta::Converter version 2.120921'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: LIMS2-WebApp
+requires:
+  Carp: 0
+  Catalyst: 0
+  Catalyst::Controller: 0
+  Catalyst::Controller::REST: 0
+  Catalyst::Devel: 0
+  Catalyst::Model::Adaptor: 0
+  Catalyst::Model::DBIC::Schema: 0
+  Catalyst::Model::Factory::PerRequest: 0
+  Catalyst::Plugin::Authorization::Roles: 0
+  Catalyst::Plugin::Session::State::Cookie: 0
+  Catalyst::Plugin::Session::Store::FastMmap: 0
+  Catalyst::Plugin::Static::Simple: 0
+  Catalyst::Runtime: 5.80
+  Catalyst::Script::FastCGI: 0
+  Catalyst::View::TT: 0
+  Class::Data::Inheritable: 0
+  Config::Any: 0
+  Const::Fast: 0
+  DBIx::Class::Core: 0
+  DBIx::Class::Schema: 0
+  DBIx::Class::Schema::Loader: 0
+  DBIx::Connector: 0
+  DBIx::RunSQL: 0
+  Data::Compare: 0
+  Data::FormValidator: 0
+  DateTime::Format::ISO8601: 0
+  DateTime::Format::Pg: 0
+  EngSeqBuilder: 0
+  Exporter: 0
+  File::stat: 0
+  FindBin: 0
+  Getopt::Long: 0
+  HTTP::Status: 0
+  Hash::MoreUtils: 0
+  JSON: 0
+  LIMS2::Exception: 0
+  LIMS2::Util: 0
+  LIMS2::Util::EnsEMBL: 0
+  List::MoreUtils: 0
+  Log::Log4perl: 0
+  Log::Log4perl::Catalyst: 0
+  Module::Pluggable::Object: 0
+  Moose: 0
+  Moose::Role: 0
+  MooseX::MarkAsMethods: 0
+  MooseX::NonMoose: 0
+  Path::Class: 0
+  Regexp::Common: 0
+  Scalar::Util: 0
+  Sub::Exporter: 0
+  Term::ReadPassword: 0
+  Test::More: 0
+  Test::WWW::Mechanize::Catalyst: 0
+  Try::Tiny: 0
+  YAML::Any: 0
+  base: 0
+  namespace::autoclean: 0
+  strict: 0
+  utf8: 0
+  warnings: 0
+version: 0.001
