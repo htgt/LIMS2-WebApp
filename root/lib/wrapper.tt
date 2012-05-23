@@ -35,7 +35,7 @@
           </ul>
           <p class="nav pull-right">
             [% IF c.user %]
-            Logged in as [% c.user %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
+            Logged in as [% c.user.name %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
             [% ELSE %]
             <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
             [% END %]
