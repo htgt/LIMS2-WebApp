@@ -12,16 +12,16 @@
     <div id="content">
     [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
       <div class="errors">
-        <p>[% error | html %]</p>
+        <p>[% error %]</p>
       </div>
     [% END %]
     [% SET status = status_msg || c.flash.status_msg; IF status.length > 0; %]
       <div class="messages">
-        <p>[% status | html %]</p>
+        <p>[% status %]</p>
       </div>
     [% END %]
       <div id="inner-content">
-      [% content %]
+      [% content | none %]
       </div>
     </div>
   </body>
