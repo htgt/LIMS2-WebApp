@@ -323,7 +323,7 @@ sub _get_seq_project_well_from_alignments {
             }
         );
 
-    $self->throw( Validation => { message => 'Alignments must belong to exactly one well', params => $alignments } )
+    $self->throw( Validation => { message => 'Alignments must belong to exactly one well', params => { alignments => $alignments } } )
         unless @wells == 1;
 
     return shift @wells;
@@ -446,6 +446,75 @@ sub update_qc_run {
     $qc_run->update( { upload_complete => $validated_params->{upload_complete} } );
 
     return $qc_run;
+}
+
+sub pspec_retrieve_qc_runs {
+    return {
+        sequencing_project => { validate => '', optional        => 1 },
+        template_plate     => { validate => '', optional        => 1 },
+        profile            => { validate => '', optional        => 1 },
+    };
+}
+
+sub retrieve_qc_runs {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_runs );
+
+    my $search_params = $self->_build_qc_runs_search_params( $validated_params );
+
+    my @qc_runs = $self->schema->resultset('QcRun')->search(
+        $search_params,
+        {
+            join     => 'template_plate',
+            order_by => { -desc => 'created_at' },
+        }
+    );
+
+    return \@qc_runs;
+}
+
+sub _build_qc_runs_search_params {
+    my ( $self, $params ) = @_;
+
+    my %search = ( 'me.upload_complete' => 't');
+
+    if ( defined $params->{id} ) {
+       $search{'me.id'} = $params->{id};
+    }
+    if ( $params->{sequencing_project} ) {
+        $search{ 'me.sequencing_project' } = $params->{sequencing_project};
+    }
+    if ( $params->{template_plate} ) {
+        $search{ 'template_plate.name' } = $params->{template_plate};
+    }
+    if ( $params->{profile} and $params->{profile} ne '-' ) {
+        $search{ 'me.profile' } = $params->{profile};
+    }
+
+    return \%search;
+}
+
+sub pspec_retrieve_qc_run {
+    return {
+        id => { validate => 'integer' },
+    };
+}
+
+sub retrieve_qc_run {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_run );
+
+    my $qc_runs = $self->schema->resultset('QcRun')->find(
+        {
+            'me.id' => $params->{id},
+
+        },
+        {
+            join => 'template_plate',
+        }
+    );
 }
 
 1;
