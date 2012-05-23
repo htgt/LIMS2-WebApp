@@ -1,28 +1,75 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta http-equiv="Content-Language" content="en-us" />
-    
+    <meta charset="utf-8">
     <title>[% title || "HTGT LIMS2" %]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Le styles -->
+    <link href="[% c.uri_for( '/static/bootstrap/css/bootstrap.css' ) %]" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="[% c.uri_for( '/static/bootstrap/css/bootstrap-responsive.css' ) %]" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="[% c.uri_for( '/favicon.ico' ) %]">
   </head>
 
   <body>
-    <div id="content">
-    [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
-      <div class="errors">
-        <p>[% error %]</p>
-      </div>
-    [% END %]
-    [% SET status = status_msg || c.flash.status_msg; IF status.length > 0; %]
-      <div class="messages">
-        <p>[% status %]</p>
-      </div>
-    [% END %]
-      <div id="inner-content">
-      [% content | none %]
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+          <ul class="nav">
+            <li class="active"><a href="[% c.uri_for( '/' ) %]">Home</a></li>              
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+          <p class="nav pull-right">
+            [% IF c.user %]
+            Logged in as [% c.user %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
+            [% ELSE %]
+            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
+            [% END %]
+          </p>
+        </div>
       </div>
     </div>
+
+    <div class="container">
+      [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
+      <div class="alert alert-error">
+        <button class="close" data-dismiss="alert" href="#">&times;</button>
+        <p>[% error %]</p>
+      </div>
+      [% END %]
+      [% SET info = info_msg || c.flash.info_msg; IF info.length > 0 %]
+      <div class="alert alert-info">
+        <button class="close" data-dismiss="alert" href="#">&times;</button>
+        <p>[% info %]</p>
+      </div>
+      [% END %]
+      [% SET success = success_msg || c.flash.success_msg; IF success.length > 0 %]
+      <div class="alert alert-success">
+        <button class="close" data-dismiss="alert" href="#">&times;</button>
+        <p>[% success %]</p>
+      </div>
+      [% END %]      
+      [% content | none %]
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="[% c.uri_for( '/static/js/jquery-1.7.2.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
   </body>
 </html>
