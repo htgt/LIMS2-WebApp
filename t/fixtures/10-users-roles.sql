@@ -16,10 +16,10 @@ GRANT "test_user@example.org" TO lims2_test_webapp;
 RESET ROLE;
 
 -- admin_user has password 'Quegohs0'
-INSERT INTO users( name, password ) VALUES ( 'admin_user@example', '{SSHA}xtpaBEcAxXFwWSJAQ3hN/gAMfIXP5jS9' );
+INSERT INTO users( name, password ) VALUES ( 'admin_user@example.org', '{SSHA}sYQhKb2yT+Ay72AlFWc1glrQifY2GLMN' );
 
 INSERT INTO user_role (user_id, role_id)
-SELECT users.id, roles.id FROM users, roles WHERE users.name='admin_user@sanger.ac.uk';
+SELECT users.id, roles.id FROM users, roles WHERE users.name='admin_user@example.org';
 
 SET ROLE lims2_test_admin;
 DROP ROLE IF EXISTS "admin_user@example.org";
