@@ -33,7 +33,7 @@
             </li>
             [% IF c.check_user_roles( 'admin' ) %]
             <li[% IF template.tab_name == "Admin" %] class="active"[% END %]>
-              <a href="[% c.uri_for( '/ui/admin' ) %]">Admin</a>
+              <a href="[% c.uri_for( '/admin' ) %]">Admin</a>
             </li>
             [% END %]
           </ul>

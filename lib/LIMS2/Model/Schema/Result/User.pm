@@ -150,8 +150,9 @@ sub as_hash {
     my $self = shift;
 
     return {
+        id    => $self->id,
         name  => $self->name,
-        roles => [ map { $_->name } $self->roles ]
+        roles => [ sort map { $_->name } $self->roles ]
     };
 }
 

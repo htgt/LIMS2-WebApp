@@ -25,7 +25,7 @@ sub login : Global {
 
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
-    my $goto     = $c->req->param('goto_on_success') || '/';
+    my $goto     = $c->req->param('goto_on_success') || $c->uri_for( '/' );
 
     return unless $c->req->param( 'login' );
 
@@ -36,7 +36,7 @@ sub login : Global {
 
     if ( $c->authenticate( { name => $username, password => $password } ) ) {
         $c->flash( success_msg => 'Login successful' );
-        return $c->res->redirect( $c->uri_for($goto) );
+        return $c->res->redirect( $goto );
     }
     else {
         $c->stash( error_msg => 'Incorrect username or password' );

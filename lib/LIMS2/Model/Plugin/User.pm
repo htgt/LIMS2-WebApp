@@ -51,6 +51,14 @@ sub user_id_for {
     return $user->id;
 }
 
+sub list_users {
+    my ( $self ) = @_;
+
+    my @users = $self->schema->resultset( 'User' )->search( {}, { prefetch => { user_roles => 'role' }, order_by => { -asc => 'me.name' } } );
+
+    return \@users;
+}
+
 sub pspec_create_user {
     return {
         name     => { validate => 'user_name' },
@@ -88,6 +96,59 @@ sub create_user {
     return $user;
 }
 
+sub pspec_set_user_roles {
+    return {
+        name     => { validate => 'existing_user' },
+        roles    => { validate => 'existing_role' }
+    };
+}
+
+sub set_user_roles {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_roles );
+
+    my $user = $self->retrieve( User => { name => $validated_params->{name} } );
+
+    my @role_ids = map { $self->role_id_for( $_ ) } @{ $validated_params->{roles} };
+    
+    $user->user_roles_rs->delete;
+    for my $role_id ( @role_ids ) {
+        $user->create_related( user_roles => { role_id => $role_id } );
+    }
+
+    $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            LIMS2::Model::Util::set_pg_roles( $dbh, $user->name, $validated_params->{roles} );            
+        }
+    );
+
+    return $user;
+}
+
+sub pspec_set_user_password {
+    return {
+        name     => { validate => 'existing_user' },
+        password => { validate => 'non_empty_string' }
+    };
+}
+
+sub set_user_password {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_password );
+
+    my $user = $self->retrieve( User => { name => $validated_params->{name} } );
+
+    my $csh = Crypt::SaltedHash->new(algorithm=>"SHA-1");
+    $csh->add( $validated_params->{password} );
+
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
 sub pspec_delete_user {
     return { name => { validate => 'user_name' } };
 }
@@ -107,6 +168,13 @@ sub delete_user {
 
     $user->user_roles->delete;
     $user->delete;
+
+    $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            LIMS2::Model::Util::set_pg_roles( $dbh, $user->name, [] );
+        }
+    );    
 
     return 1;
 }
