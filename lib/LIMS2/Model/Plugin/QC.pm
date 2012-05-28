@@ -450,9 +450,9 @@ sub update_qc_run {
 
 sub pspec_retrieve_qc_runs {
     return {
-        sequencing_project => { validate => '', optional        => 1 },
-        template_plate     => { validate => '', optional        => 1 },
-        profile            => { validate => '', optional        => 1 },
+        sequencing_project => { validate => 'existing_qc_seq_project_id', optional => 1 },
+        template_plate     => { validate => 'existing_qc_template_name', optional => 1 },
+        profile            => { validate => 'non_empty_string', optional => 1 },
     };
 }
 
@@ -477,11 +477,8 @@ sub retrieve_qc_runs {
 sub _build_qc_runs_search_params {
     my ( $self, $params ) = @_;
 
-    my %search = ( 'me.upload_complete' => 't');
+    my %search = ( 'me.upload_complete' => 't' );
 
-    if ( defined $params->{id} ) {
-       $search{'me.id'} = $params->{id};
-    }
     if ( $params->{sequencing_project} ) {
         $search{ 'me.sequencing_project' } = $params->{sequencing_project};
     }
@@ -506,7 +503,7 @@ sub retrieve_qc_run {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_run );
 
-    my $qc_runs = $self->schema->resultset('QcRun')->find(
+    my $qc_run = $self->schema->resultset('QcRun')->find(
         {
             'me.id' => $params->{id},
 
@@ -515,6 +512,8 @@ sub retrieve_qc_run {
             join => 'template_plate',
         }
     );
+
+    return $qc_run;
 }
 
 1;
