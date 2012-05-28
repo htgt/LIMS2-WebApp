@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>[% title || "HTGT LIMS2" %]</title>
+    <title>[% template.title || "HTGT LIMS2" %]</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Le styles -->
@@ -26,17 +26,22 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+          <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>          
           <ul class="nav">
-            <li class="active"><a href="[% c.uri_for( '/' ) %]">Home</a></li>              
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li[% IF template.tab_name == "Home" %] class="active"[% END %]>
+              <a href="[% c.uri_for( '/' ) %]">Home</a>
+            </li>
+            [% IF c.check_user_roles( 'admin' ) %]
+            <li[% IF template.tab_name == "Admin" %] class="active"[% END %]>
+              <a href="[% c.uri_for( '/ui/admin' ) %]">Admin</a>
+            </li>
+            [% END %]
           </ul>
           <p class="nav pull-right">
             [% IF c.user %]
             Logged in as [% c.user.name %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
             [% ELSE %]
-            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
+              [% IF template.title != 'Login' %]<a class="btn" href="[% c.uri_for('/login') %]">Login</a>[% END %]              
             [% END %]
           </p>
         </div>
