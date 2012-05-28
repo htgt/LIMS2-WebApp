@@ -215,15 +215,22 @@ sub find_or_create_qc_seq_read {
 
     my $seq_proj_well = $self->schema->resultset( 'QcSeqProjectWell' )->find_or_create(
         {
-            qc_seq_project_id => $seq_proj->id,
             plate_name        => $validated_params->{plate_name},
             well_name         => $validated_params->{well_name}
         },
         {
-            key => 'qc_seq_project_wells_qc_seq_project_id_plate_name_well_name_key'
+            key => 'qc_seq_project_wells_plate_name_well_name_key'
         }
     );
 
+    # Create row in many-to-many linking table
+    $self->schema->resultset( 'QcSeqProjectQcSeqProjectWell' )->find_or_create(
+        {
+            qc_seq_project_id      => $seq_proj->id,
+            qc_seq_project_well_id => $seq_proj_well->id
+        }
+    );
+    
     my $qc_seq_read = $self->schema->resultset( 'QcSeqRead' )->find_or_create(
         +{
             slice_def( $validated_params, qw( id description primer_name seq length ) ),

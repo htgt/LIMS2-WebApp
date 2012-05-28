@@ -76,17 +76,17 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_seq_project_wells
+=head2 qc_seq_project_qc_seq_projects_well
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
+Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectQcSeqProjectWell>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_seq_project_wells",
-  "LIMS2::Model::Schema::Result::QcSeqProjectWell",
+  "qc_seq_project_qc_seq_projects_well",
+  "LIMS2::Model::Schema::Result::QcSeqProjectQcSeqProjectWell",
   { "foreign.qc_seq_project_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -101,9 +101,23 @@ Composing rels: L</qc_run_seq_projects> -> qc_run
 
 __PACKAGE__->many_to_many("qc_runs", "qc_run_seq_projects", "qc_run");
 
+=head2 qc_seq_project_wells
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DaAQ+WC0f3nqxUng+wxNPA
+Type: many_to_many
+
+Composing rels: L</qc_seq_project_qc_seq_projects_well> -> qc_seq_project_well
+
+=cut
+
+__PACKAGE__->many_to_many(
+  "qc_seq_project_wells",
+  "qc_seq_project_qc_seq_projects_well",
+  "qc_seq_project_well",
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-23 12:52:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PXRQtXmxQ4/KxyCJL8pY3w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

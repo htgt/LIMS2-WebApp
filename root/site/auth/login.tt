@@ -5,10 +5,10 @@
       <legend>Login</legend>
       <input name="goto_on_success" type="hidden" value="[% c.req.param('goto_on_success') %]" />
       <label for="username_field">Username</label>
-      <input name="username" id="username_field" type="text" value="[% c.req.param('username') | html %]"/>
+      <input name="username" id="username_field" type="text" value="[% c.req.param('username') %]"/>
       <label for="password_field">Password</label>
       <input name="password" id="password_field" type="password" />
-      <input name="login" id="login_button" type="submit" value="Login" />
-    </fieldset>  
+    </fieldset>
+    <input class="btn btn-primary" name="login" id="login_button" type="submit" value="Login" />
   </form>
 </div>
