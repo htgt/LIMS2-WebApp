@@ -27,10 +27,15 @@ sub login : Global {
     my $password = $c->req->param('password');
     my $goto     = $c->req->param('goto_on_success') || '/';
 
-    return unless defined $username and defined $password;
+    return unless $c->req->param( 'login' );
+
+    unless ( $username && $password ) {
+        $c->stash( error_msg => "Please enter your username and password" );
+        return;
+    }
 
     if ( $c->authenticate( { name => $username, password => $password } ) ) {
-        $c->flash( status_msg => 'Login successful' );
+        $c->flash( success_msg => 'Login successful' );
         return $c->res->redirect( $c->uri_for($goto) );
     }
     else {
@@ -49,7 +54,7 @@ sub logout : Global {
 
     $c->logout;
 
-    $c->flash( status_msg => 'You have been logged out' );
+    $c->flash( info_msg => 'You have been logged out' );
     return $c->res->redirect( $c->uri_for('/login') );
 }
 
