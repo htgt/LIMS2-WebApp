@@ -11,20 +11,20 @@ use Term::ReadPassword qw( read_password );
 
 my %MONIKER_MAP = (
     # Singular problems
-    # bac_clone_loci    => 'BacCloneLocus',
-    # design_oligo_loci => 'DesignOligoLocus',
+    bac_clone_loci    => 'BacCloneLocus',
+    design_oligo_loci => 'DesignOligoLocus',
     qc_seq_reads      => 'QcSeqRead',
     qc_runs           => 'QcRun',
 );
 
 my %REL_NAME_MAP = (
     # Bad plurals, prefer shorter method name
-    # BacClone => {
-    #     bac_clone_locis => 'loci'
-    # },
-    # DesignOligo => {
-    #     design_oligo_locis => 'loci'
-    # },
+    BacClone => {
+        bac_clone_locis => 'loci'
+    },
+    DesignOligo => {
+        design_oligo_locis => 'loci'
+    },
     QcSeqProject => {
         qc_seqs_reads        => 'qc_seq_reads',
         qc_seq_projects_well => 'qc_seq_project_wells'
