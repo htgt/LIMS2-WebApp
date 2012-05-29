@@ -36,6 +36,7 @@ requires:
   Class::Data::Inheritable: 0
   Config::Any: 0
   Const::Fast: 0
+  Crypt::SaltedHash: 0
   DBIx::Class::Core: 0
   DBIx::Class::Schema: 0
   DBIx::Class::Schema::Loader: 0
@@ -54,6 +55,7 @@ requires:
   Hash::MoreUtils: 0
   JSON: 0
   LIMS2::Exception: 0
+  LIMS2::Exception::Database: 0
   LIMS2::Util: 0
   LIMS2::Util::EnsEMBL: 0
   List::MoreUtils: 0
@@ -62,20 +64,23 @@ requires:
   Module::Pluggable::Object: 0
   Moose: 0
   Moose::Role: 0
+  MooseX::Log::Log4perl: 0
   MooseX::MarkAsMethods: 0
   MooseX::NonMoose: 0
   Path::Class: 0
   Regexp::Common: 0
   Scalar::Util: 0
   Sub::Exporter: 0
+  Template::AutoFilter: 0
   Term::ReadPassword: 0
   Test::More: 0
   Test::WWW::Mechanize::Catalyst: 0
   Try::Tiny: 0
+  TryCatch: 0
   YAML::Any: 0
   base: 0
   namespace::autoclean: 0
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.001
+version: 0.002

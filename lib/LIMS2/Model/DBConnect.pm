@@ -1,7 +1,7 @@
 package LIMS2::Model::DBConnect;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::DBConnect::VERSION = '0.001';
+    $LIMS2::Model::DBConnect::VERSION = '0.002';
 }
 ## use critic
 
@@ -43,7 +43,7 @@ const my @DBI_ATTRS => qw( AutoCommit PrintError RaiseError );
         my %attr = slice_def( $params, @DBI_ATTRS );
         delete $params->{$_} for @DBI_ATTRS;
 
-        unless ( $connector_for{ $dbname }{ $role } ) {
+        unless ( $connector_for{$dbname}{$role} ) {
             $connector_for{$dbname}{$role} = DBIx::Connector->new( $dsn, $user, $pass, \%attr );
         }
 

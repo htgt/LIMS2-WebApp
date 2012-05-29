@@ -25,7 +25,11 @@ my %REL_NAME_MAP = (
     # DesignOligo => {
     #     design_oligo_locis => 'loci'
     # },
-    QcSequencingProject => {
+    QcSeqProject => {
+        qc_seqs_reads        => 'qc_seq_reads',
+        qc_seq_projects_well => 'qc_seq_project_wells'
+    },
+    QcSeqProjectWell => {
         qc_seqs_reads => 'qc_seq_reads'
     },
     QcTemplate => {

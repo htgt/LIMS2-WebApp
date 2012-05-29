@@ -1,0 +1,40 @@
+[% META title = 'LIMS2 User Admin'; META tab_name = 'Admin' -%]
+<h1>User Administration</h1>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>User name</th>
+      <th>Roles</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    [%- FOR u IN users %]
+    <tr>
+      <td>
+        [% u.name %]
+      </td>
+      <td>
+        [% u.roles.join(", ") %]
+      </td>
+      <td>        
+        <a href="[% c.uri_for( '/admin/update_user', { user_id => u.id } ) %]" class="btn btn-primary">
+          Update
+        </a>
+        [%- IF u.active %]
+        <a href="[% c.uri_for( '/admin/disable_user', { user_id => u.id } ) %]" class="btn btn-warning">
+          Disable
+        </a>
+        [%- ELSE %]
+        <a href="[% c.uri_for( '/admin/enable_user', { user_id => u.id } ) %]" class="btn btn-success">
+          Enable
+        </a>
+        [%- END %]
+      </td>
+    </tr>
+    [%- END %]
+  </tbody>
+</table>
+
+<a href="[% c.uri_for( '/admin/create_user' ) %]" class="btn btn-primary">Create new user</a>

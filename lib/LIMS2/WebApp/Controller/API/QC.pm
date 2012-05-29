@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::QC::VERSION = '0.001';
+    $LIMS2::WebApp::Controller::API::QC::VERSION = '0.002';
 }
 ## use critic
 
@@ -77,12 +77,11 @@ sub qc_template_GET {
     if ( @{$templates} > 1 ) {
         $entity = [
             map {
-                +{
-                    id   => $_->{id},
+                +{  id   => $_->{id},
                     name => $_->{name},
                     url  => $c->uri_for( '/api/qc/template', { id => $_->{id} } )
-                }
-            } @{$templates}
+                    }
+                } @{$templates}
         ];
     }
     else {
@@ -147,10 +146,7 @@ sub qc_seq_read_GET {
         }
     );
 
-    return $self->status_ok(
-        $c,
-        entity => $qc_seq_read
-    );
+    return $self->status_ok( $c, entity => $qc_seq_read );
 }
 
 =head2 POST /api/qc_seq_read
@@ -177,7 +173,7 @@ sub qc_seq_read_POST {
     );
 }
 
-sub qc_run : Path( '/api/qc_run' ) : Args(0) :ActionClass( 'REST' ) {
+sub qc_run : Path( '/api/qc_run' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
 sub qc_run_GET {
@@ -234,21 +230,18 @@ sub qc_run_PUT {
     $c->assert_user_roles('edit');
 
     my $data = $c->request->data;
-    $data->{id} = $c->request->param( 'id' );
+    $data->{id} = $c->request->param('id');
 
     my $qc_run = $c->model('Golgi')->txn_do(
         sub {
-            shift->update_qc_run( $data );
+            shift->update_qc_run($data);
         }
     );
 
-    return $self->status_ok(
-        $c,
-        entity => $qc_run
-    );
+    return $self->status_ok( $c, entity => $qc_run );
 }
 
-sub qc_test_result : Path( '/api/qc_test_result' ) :Args(0) :ActionClass('REST') {
+sub qc_test_result : Path( '/api/qc_test_result' ) : Args(0) : ActionClass('REST') {
 }
 
 =head2 POST /api/qc_test_result
@@ -298,7 +291,7 @@ sub qc_test_result_GET {
 
     my $res = $c->model('Golgi')->txn_do(
         sub {
-            shift->retrieve_qc_test_result( $c->request->params )
+            shift->retrieve_qc_test_result( $c->request->params );
         }
     );
 

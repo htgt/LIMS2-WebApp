@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::User::VERSION = '0.001';
+    $LIMS2::Model::Plugin::User::VERSION = '0.002';
 }
 ## use critic
 
@@ -11,9 +11,23 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice );
+use Const::Fast;
+use Crypt::SaltedHash;
+use LIMS2::Model::Util;
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
+
+{
+
+    const my $PW_LEN => 10;
+    const my @PW_CHARS => ( 'A' .. 'Z', 'a' .. 'z', '0' .. '9' );
+
+    sub pwgen {
+        my ($class) = @_;
+        return join( '', map { $PW_CHARS[ int rand @PW_CHARS ] } 1 .. $PW_LEN );
+    }
+}
 
 has _role_id_for => (
     isa        => 'HashRef',
@@ -43,10 +57,28 @@ sub user_id_for {
     return $user->id;
 }
 
+sub list_users {
+    my ($self) = @_;
+
+    my @users = $self->schema->resultset('User')
+        ->search( {}, { prefetch => { user_roles => 'role' }, order_by => { -asc => 'me.name' } } );
+
+    return \@users;
+}
+
+sub list_roles {
+    my ($self) = @_;
+
+    my @roles = $self->schema->resultset('Role')->search( {}, { order_by => { -asc => 'me.name' } } );
+
+    return \@roles;
+}
+
 sub pspec_create_user {
     return {
-        name  => { validate => 'user_name' },
-        roles => { validate => 'existing_role', optional => 1 }
+        name     => { validate => 'user_name' },
+        password => { validate => 'non_empty_string' },
+        roles    => { validate => 'existing_role', optional => 1 }
     };
 }
 
@@ -55,25 +87,93 @@ sub create_user {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_user );
 
-    my $user = $self->schema->resultset('User')->create( { slice $validated_params, 'name' } );
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+    $csh->add( $validated_params->{password} );
 
-    if ( $validated_params->{roles} ) {
-        for my $r ( @{ $validated_params->{roles} } ) {
-            $user->create_related( user_roles => { role_id => $self->role_id_for($r) } );
+    my $user = $self->schema->resultset('User')->create(
+        {   name     => $validated_params->{name},
+            password => $csh->generate
         }
+    );
+
+    for my $role_name ( @{ $validated_params->{roles} || [] } ) {
+        $user->create_related( user_roles => { role_id => $self->role_id_for($role_name) } );
     }
+
+    $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            LIMS2::Model::Util::create_pg_user( $dbh, @{$validated_params}{qw(name roles)} );
+        }
+    );
 
     return $user;
 }
 
-sub pspec_delete_user {
-    return { name => { validate => 'user_name' } };
+sub pspec_set_user_roles {
+    return {
+        name  => { validate => 'existing_user' },
+        roles => { validate => 'existing_role' }
+    };
 }
 
-sub delete_user {
+sub set_user_roles {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_delete_user );
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_roles );
+
+    my $user = $self->retrieve( User => { name => $validated_params->{name} } );
+
+    my @role_ids = map { $self->role_id_for($_) } @{ $validated_params->{roles} };
+
+    $user->user_roles_rs->delete;
+    for my $role_id (@role_ids) {
+        $user->create_related( user_roles => { role_id => $role_id } );
+    }
+
+    $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            LIMS2::Model::Util::set_pg_roles( $dbh, $user->name, $validated_params->{roles} );
+        }
+    );
+
+    return $user;
+}
+
+sub pspec_set_user_password {
+    return {
+        name     => { validate => 'existing_user' },
+        password => { validate => 'non_empty_string' }
+    };
+}
+
+sub set_user_password {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_password );
+
+    my $user = $self->retrieve( User => { name => $validated_params->{name} } );
+
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+    $csh->add( $validated_params->{password} );
+
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
+sub pspec_set_user_active_status {
+    return {
+        name   => { validate => 'user_name' },
+        active => { validate => 'boolean' }
+    };
+}
+
+sub set_user_active_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_active_status );
 
     my $user = $self->schema->resultset('User')->find($validated_params)
         or $self->throw(
@@ -83,10 +183,25 @@ sub delete_user {
         }
         );
 
-    $user->user_roles->delete;
-    $user->delete;
+    $user->update( { active => $validated_params->{active} } );
 
-    return 1;
+    return $user;
+}
+
+sub enable_user {
+    my ( $self, $params ) = @_;
+
+    $params->{active} = 1;
+
+    return $self->set_user_active_status($params);
+}
+
+sub disable_user {
+    my ( $self, $params ) = @_;
+
+    $params->{active} = 0;
+
+    return $self->set_user_active_status($params);
 }
 
 1;

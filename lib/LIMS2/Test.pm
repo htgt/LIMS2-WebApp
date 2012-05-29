@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.001';
+    $LIMS2::Test::VERSION = '0.002';
 }
 ## use critic
 
@@ -10,10 +10,8 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports    => [ model => \'_build_model', test_data => \'_build_test_data', 'mech', 'unauthenticated_mech' ],
-    groups     => {
-        default => [ qw( model mech unauthenticated_mech test_data ) ]
-    }
+    exports => [ model => \'_build_model', test_data => \'_build_test_data', 'mech', 'unauthenticated_mech' ],
+    groups => { default => [qw( model mech unauthenticated_mech test_data )] }
 };
 
 use FindBin;
@@ -28,7 +26,7 @@ use Test::More;
 use Test::WWW::Mechanize::Catalyst;
 use Try::Tiny;
 
-const my $FIXTURE_RX  => qr/^\d\d\-[\w-]+\.sql$/;
+const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
 # These must match the user/password created in t/fixtures/10-users-roles.t
 const my $TEST_USER   => 'test_user@example.org';
@@ -40,7 +38,7 @@ sub unauthenticated_mech {
 
 sub mech {
     my $mech = unauthenticated_mech();
-    $mech->credentials($TEST_USER, $TEST_PASSWD);
+    $mech->credentials( $TEST_USER, $TEST_PASSWD );
     return $mech;
 }
 
@@ -52,16 +50,16 @@ sub _build_test_data {
         $data_dir = dir( $args->{dir} );
     }
     else {
-        $data_dir = dir( $FindBin::Bin )->subdir( 'data' );
+        $data_dir = dir($FindBin::Bin)->subdir('data');
     }
 
     return sub {
         my ( $filename, %opts ) = @_;
 
-        my $file = $data_dir->file( $filename );
+        my $file = $data_dir->file($filename);
 
         if ( $filename =~ m/\.yaml$/ and not $opts{raw} ) {
-            return YAML::Any::LoadFile( $file );
+            return YAML::Any::LoadFile($file);
         }
 
         return $file;
@@ -69,7 +67,7 @@ sub _build_test_data {
 }
 
 sub _build_model {
-    my ( $class, $name, $args  ) = @_;
+    my ( $class, $name, $args ) = @_;
 
     my $user = $args->{user} || 'tests';
 
@@ -94,7 +92,7 @@ sub _build_model {
         BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
     };
 
-    return sub { $model };
+    return sub {$model};
 }
 
 sub _load_fixtures {
@@ -105,11 +103,11 @@ sub _load_fixtures {
         $fixtures_dir = dir( $args->{fixtures_dir} );
     }
     else {
-        $fixtures_dir = dir( $FindBin::Bin )->subdir( 'fixtures' );
+        $fixtures_dir = dir($FindBin::Bin)->subdir('fixtures');
     }
 
-    for my $fixture ( sort { $a cmp $b } grep { _is_fixture( $_ ) }  $fixtures_dir->children ) {
-        DEBUG( "Loading fixtures from $fixture" );
+    for my $fixture ( sort { $a cmp $b } grep { _is_fixture($_) } $fixtures_dir->children ) {
+        DEBUG("Loading fixtures from $fixture");
         DBIx::RunSQL->run_sql_file(
             verbose         => 1,
             verbose_handler => \&DEBUG,

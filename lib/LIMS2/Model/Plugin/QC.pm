@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.001';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.002';
 }
 ## use critic
 
@@ -28,13 +28,10 @@ sub _create_or_retrieve_eng_seq {
     my ( $self, $params ) = @_;
 
     return $self->schema->resultset('QcEngSeq')->find_or_create(
-        {
-            method => $params->{eng_seq_method},
+        {   method => $params->{eng_seq_method},
             params => $self->_encode_eng_seq_params( $params->{eng_seq_params} )
         },
-        {
-            key => 'qc_eng_seqs_method_params_key'
-        }
+        { key => 'qc_eng_seqs_method_params_key' }
     );
 }
 
@@ -49,18 +46,12 @@ sub _qc_template_has_identical_layout {
 sub _find_qc_template_with_layout {
     my ( $self, $template_name, $template_layout ) = @_;
 
-    my $template_rs = $self->schema->resultset('QcTemplate')->search(
-        {
-            'me.name' => $template_name
-        },
-        {
-            prefetch => { qc_template_wells => 'qc_eng_seq' }
-        }
-    );
+    my $template_rs = $self->schema->resultset('QcTemplate')
+        ->search( { 'me.name' => $template_name }, { prefetch => { qc_template_wells => 'qc_eng_seq' } } );
 
     while ( my $template = $template_rs->next ) {
         if ( $self->_qc_template_has_identical_layout( $template, $template_layout ) ) {
-            $self->log->debug( "Found existing template with identical layout" );
+            $self->log->debug("Found existing template with identical layout");
             return $template;
         }
     }
@@ -85,18 +76,19 @@ sub find_or_create_qc_template {
     my %template_layout;
     while ( my ( $well_name, $well_params ) = each %{ $validated_params->{wells} } ) {
         next unless defined $well_params and keys %{$well_params};
-        $template_layout{$well_name} = $self->_create_or_retrieve_eng_seq( $well_params )->id;
+        $template_layout{$well_name} = $self->_create_or_retrieve_eng_seq($well_params)->id;
     }
 
     # If a template already exists with this name and layout, return it
     my $existing_template = $self->_find_qc_template_with_layout( $validated_params->{name}, \%template_layout );
-    if ( $existing_template ) {
+    if ($existing_template) {
         $self->log->debug( 'Returning matching template with id ' . $existing_template->id );
         return $existing_template;
     }
 
     # Otherwise, create a new template
-    my $qc_template = $self->schema->resultset('QcTemplate')->create( { slice_def $validated_params, qw( name created_at ) } );
+    my $qc_template
+        = $self->schema->resultset('QcTemplate')->create( { slice_def $validated_params, qw( name created_at ) } );
     $self->log->debug( 'created qc template plate ' . $qc_template->name . ' with id ' . $qc_template->id );
     while ( my ( $well_name, $eng_seq_id ) = each %template_layout ) {
         $qc_template->create_related(
@@ -129,11 +121,16 @@ sub _build_qc_template_search_params {
 
     if ( $params->{latest} ) {
         if ( $params->{created_before} ) {
-            $search{'me.created_at'} = { '=' => \[ '( select max(created_at) from qc_templates where name = me.name and created_at <= ? )',
-                                                 [ created_at => $params->{created_before} ] ] }
+            $search{'me.created_at'} = {
+                '=' => \[
+                    '( select max(created_at) from qc_templates where name = me.name and created_at <= ? )',
+                    [ created_at => $params->{created_before} ]
+                ]
+            };
         }
         else {
-            $search{'me.created_at'} = { '=' => \[ '( select max(created_at) from qc_templates where name = me.name )' ] }
+            $search{'me.created_at'}
+                = { '=' => \['( select max(created_at) from qc_templates where name = me.name )'] };
         }
     }
 
@@ -142,11 +139,11 @@ sub _build_qc_template_search_params {
 
 sub pspec_retrieve_qc_templates {
     return {
-        id             => { validate => 'integer', optional => 1 },
+        id             => { validate => 'integer',          optional => 1 },
         name           => { validate => 'non_empty_string', optional => 1 },
-        latest         => { validate => 'boolean', default => 1 },
-        created_before => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
-    }
+        latest         => { validate => 'boolean',          default  => 1 },
+        created_before => { validate => 'date_time',        optional => 1, post_filter => 'parse_date_time' }
+    };
 }
 
 sub retrieve_qc_templates {
@@ -154,22 +151,16 @@ sub retrieve_qc_templates {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_templates );
 
-    my $search_params = $self->_build_qc_template_search_params( $validated_params );
+    my $search_params = $self->_build_qc_template_search_params($validated_params);
 
-    my @templates = $self->schema->resultset('QcTemplate')->search(
-        $search_params,
-        {
-            prefetch => { qc_template_wells => 'qc_eng_seq' }
-        }
-    );
+    my @templates = $self->schema->resultset('QcTemplate')
+        ->search( $search_params, { prefetch => { qc_template_wells => 'qc_eng_seq' } } );
 
     return \@templates;
 }
 
 sub pspec_delete_qc_template {
-    return {
-        id => { validate => 'integer' }
-    }
+    return { id => { validate => 'integer' } };
 }
 
 sub delete_qc_template {
@@ -178,16 +169,16 @@ sub delete_qc_template {
     my $validated_params = $self->check_params( $params, $self->pspec_delete_qc_template );
 
     my $template = $self->retrieve(
-        'QcTemplate' => {
-            'me.id' => $validated_params->{id}
-        },
-        {
-            prefetch => 'qc_template_wells'
-        }
+        'QcTemplate' => { 'me.id' => $validated_params->{id} },
+        { prefetch => 'qc_template_wells' }
     );
 
     if ( $template->qc_runs_rs->count > 0 ) {
-        $self->throw( InvalidState => { message => 'Template ' . $template->id . ' has been used in one or more QC runs, so cannot be deleted' } );
+        $self->throw(
+            InvalidState => {
+                message => 'Template ' . $template->id . ' has been used in one or more QC runs, so cannot be deleted'
+            }
+        );
     }
 
     for my $well ( $template->qc_template_wells ) {
@@ -217,22 +208,25 @@ sub find_or_create_qc_seq_read {
 
     my $validated_params = $self->check_params( $params, $self->pspec_find_or_create_qc_seq_read );
 
-    my $seq_proj = $self->schema->resultset( 'QcSeqProject' )->find_or_create( { id => $validated_params->{qc_seq_project_id} } );
+    my $seq_proj
+        = $self->schema->resultset('QcSeqProject')->find_or_create( { id => $validated_params->{qc_seq_project_id} } );
 
-    my $seq_proj_well = $self->schema->resultset( 'QcSeqProjectWell' )->find_or_create(
-        {
-            qc_seq_project_id => $seq_proj->id,
-            plate_name        => $validated_params->{plate_name},
-            well_name         => $validated_params->{well_name}
+    my $seq_proj_well = $self->schema->resultset('QcSeqProjectWell')->find_or_create(
+        {   plate_name => $validated_params->{plate_name},
+            well_name  => $validated_params->{well_name}
         },
-        {
-            key => 'qc_seq_project_wells_qc_seq_project_id_plate_name_well_name_key'
+        { key => 'qc_seq_project_wells_plate_name_well_name_key' }
+    );
+
+    # Create row in many-to-many linking table
+    $self->schema->resultset('QcSeqProjectQcSeqProjectWell')->find_or_create(
+        {   qc_seq_project_id      => $seq_proj->id,
+            qc_seq_project_well_id => $seq_proj_well->id
         }
     );
 
-    my $qc_seq_read = $self->schema->resultset( 'QcSeqRead' )->find_or_create(
-        +{
-            slice_def( $validated_params, qw( id description primer_name seq length ) ),
+    my $qc_seq_read = $self->schema->resultset('QcSeqRead')->find_or_create(
+        +{  slice_def( $validated_params, qw( id description primer_name seq length ) ),
             qc_seq_project_well_id => $seq_proj_well->id
         }
     );
@@ -285,7 +279,7 @@ sub pspec__create_qc_test_result_alignment {
         target_strand     => { validate => 'strand' },
         score             => { validate => 'integer' },
         pass              => { validate => 'boolean' },
-        features          => { validate => 'non_empty_string' },
+        features          => { optional => 1 },
         cigar             => { validate => 'cigar_string' },
         op_str            => { validate => 'op_str' },
         alignment_regions => { optional => 1 }
@@ -297,12 +291,15 @@ sub _create_qc_test_result_alignment {
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_test_result_alignment );
 
-    my $alignment = $self->schema->resultset( 'QcAlignment' )->create(
-        {
-            slice( $validated_params, qw( qc_seq_read_id qc_eng_seq_id primer_name
-                                          query_start query_end query_strand
-                                          target_start target_end target_strand
-                                          score pass features cigar op_str ) )
+    $validated_params->{features} ||= '';
+
+    my $alignment = $self->schema->resultset('QcAlignment')->create(
+        {   slice(
+                $validated_params, qw( qc_seq_read_id qc_eng_seq_id primer_name
+                    query_start query_end query_strand
+                    target_start target_end target_strand
+                    score pass features cigar op_str )
+            )
         }
     );
 
@@ -316,20 +313,17 @@ sub _create_qc_test_result_alignment {
 sub _get_seq_project_well_from_alignments {
     my ( $self, $alignments ) = @_;
 
-    my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{ $alignments };
+    my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{$alignments};
 
-    my @wells = map { $_->qc_seq_project_well }
-        $self->schema->resultset('QcSeqRead')->search(
-            {
-                id => { -in => \@qc_seq_read_ids }
-            },
-            {
-                columns  => [ 'qc_seq_project_well_id' ],
-                distinct => 1
-            }
-        );
+    my @wells = map { $_->qc_seq_project_well } $self->schema->resultset('QcSeqRead')->search(
+        { id => { -in => \@qc_seq_read_ids } },
+        {   columns  => ['qc_seq_project_well_id'],
+            distinct => 1
+        }
+    );
 
-    $self->throw( Validation => { message => 'Alignments must belong to exactly one well', params => $alignments } )
+    $self->throw( Validation =>
+            { message => 'Alignments must belong to exactly one well', params => { alignments => $alignments } } )
         unless @wells == 1;
 
     return shift @wells;
@@ -337,11 +331,11 @@ sub _get_seq_project_well_from_alignments {
 
 sub pspec_create_qc_test_result {
     return {
-        qc_run_id      => { validate => 'existing_qc_run_id' },
-        qc_eng_seq_id  => { validate => 'existing_qc_eng_seq_id' },
-        pass           => { validate => 'boolean' },
-        score          => { validate => 'integer' },
-        alignments     => {}
+        qc_run_id     => { validate => 'existing_qc_run_id' },
+        qc_eng_seq_id => { validate => 'existing_qc_eng_seq_id' },
+        pass          => { validate => 'boolean' },
+        score         => { validate => 'integer' },
+        alignments    => {}
     };
 }
 
@@ -352,9 +346,8 @@ sub create_qc_test_result {
 
     my $qc_seq_project_well = $self->_get_seq_project_well_from_alignments( $validated_params->{alignments} );
 
-    my $qc_test_result = $self->schema->resultset( 'QcTestResult' )->create(
-        {
-            qc_run_id              => $validated_params->{qc_run_id},
+    my $qc_test_result = $self->schema->resultset('QcTestResult')->create(
+        {   qc_run_id              => $validated_params->{qc_run_id},
             qc_seq_project_well_id => $qc_seq_project_well->id,
             qc_eng_seq_id          => $validated_params->{qc_eng_seq_id},
             score                  => $validated_params->{score},
@@ -370,9 +363,7 @@ sub create_qc_test_result {
 }
 
 sub pspec_retrieve_qc_test_result {
-    return {
-        id => { validate => 'integer' }
-    };
+    return { id => { validate => 'integer' } };
 }
 
 sub retrieve_qc_test_result {
@@ -386,29 +377,29 @@ sub retrieve_qc_test_result {
 }
 
 sub pspec__create_qc_run_seq_proj {
-    return {
-        qc_seq_project_id => { validate => 'existing_qc_seq_project_id' }
-    };
+    return { qc_seq_project_id => { validate => 'existing_qc_seq_project_id' } };
 }
 
 sub _create_qc_run_seq_proj {
     my ( $self, $params, $qc_run ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_run_seq_proj );
-    return $qc_run->create_related( qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_project_id} } );
+    return $qc_run->create_related(
+        qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_project_id} } );
 }
 
 sub pspec_create_qc_run {
     return {
-        id                     => { validate => 'uuid' },
-        created_at             => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
-        created_by             => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
-        profile                => { validate => 'non_empty_string' },
-        software_version       => { validate => 'software_version' },
-        qc_template_id         => { validate => 'existing_qc_template_id', optional => 1 },
+        id               => { validate => 'uuid' },
+        created_at       => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
+        created_by       => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        profile          => { validate => 'non_empty_string' },
+        software_version => { validate => 'software_version' },
+        qc_template_id         => { validate => 'existing_qc_template_id',   optional => 1 },
         qc_template_name       => { validate => 'existing_qc_template_name', optional => 1 },
-        qc_sequencing_projects => { validate => 'non_empty_string' }, # Data::FormValidator will call this for each element of the array ref
-        REQUIRE_SOME           => { qc_template_id_or_name => [ 1, qw( qc_template_id qc_template_name ) ] }
+        qc_sequencing_projects => { validate => 'non_empty_string' }
+        ,    # Data::FormValidator will call this for each element of the array ref
+        REQUIRE_SOME => { qc_template_id_or_name => [ 1, qw( qc_template_id qc_template_name ) ] }
     };
 }
 
@@ -417,16 +408,17 @@ sub create_qc_run {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_qc_run );
 
-    if ( ! defined $validated_params->{qc_template_id} ) {
-        my $template = $self->retrieve_qc_templates( { qc_template_name => $validated_params->{qc_template_name}, latest => 1 } )->[0];
+    if ( !defined $validated_params->{qc_template_id} ) {
+        my $template
+            = $self->retrieve_qc_templates( { qc_template_name => $validated_params->{qc_template_name}, latest => 1 } )
+            ->[0];
         $validated_params->{qc_template_id} = $template->id;
     }
 
-    my $qc_run = $self->schema->resultset( 'QcRun' )->create(
-        {
-            slice_def( $validated_params, qw( id created_at created_by_id profile qc_template_id software_version ) )
-        }
-    );
+    my $qc_run
+        = $self->schema->resultset('QcRun')
+        ->create(
+        { slice_def( $validated_params, qw( id created_at created_by_id profile qc_template_id software_version ) ) } );
 
     for my $seq_proj_id ( @{ $validated_params->{qc_sequencing_projects} } ) {
         $self->_create_qc_run_seq_proj( { qc_seq_project_id => $seq_proj_id }, $qc_run );

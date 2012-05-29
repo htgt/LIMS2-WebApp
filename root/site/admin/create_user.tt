@@ -1,0 +1,16 @@
+[% META title = 'LIMS2 - Create User'; META tab_name = "Admin" -%]
+<div>
+  <form method="POST" action="[% c.uri_for( '/admin/create_user' ) %]" name="create_user_form" class="well">
+    <fieldset>
+      <legend>Create User</legend>
+      <label for="username_field">Username</label>
+      <input name="user_name" id="username_field" type="text" value="[% user_name %]"/>
+      <label for="roles_field">Roles</label>
+      [% FOR r IN roles %]
+      <input type="checkbox" name="user_roles" value="[% r.name %]" [%- IF checked_role.${r.name} %] checked="checked"[% END %]>[% r.name %]</input>
+      [% END %]
+    </fieldset>        
+    <a href="[% c.uri_for( '/admin' ) %]" class="btn btn-info">Cancel</a>
+    <input class="btn btn-primary" name="create_user" id="create_user_button" type="submit" value="Create User" />
+  </form>
+</div>

@@ -1,7 +1,7 @@
 package LIMS2::WebApp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::VERSION = '0.001';
+    $LIMS2::WebApp::VERSION = '0.002';
 }
 ## use critic
 
@@ -32,7 +32,7 @@ use Catalyst qw/
     Session::State::Cookie
     Authentication
     Authorization::Roles
-/;
+    /;
 
 extends 'Catalyst';
 
@@ -47,17 +47,14 @@ extends 'Catalyst';
 
 __PACKAGE__->config(
     name => 'LIMS2::WebApp',
+
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
-    enable_catalyst_header => 1, # Send X-Catalyst header
-    'View::HTML' => {
-        INCLUDE_PATH => [
-            __PACKAGE__->path_to( 'root', 'lib' ),
-            __PACKAGE__->path_to( 'root', 'site' )
-        ],
-    },
+    enable_catalyst_header                      => 1,    # Send X-Catalyst header
+    'View::HTML' =>
+        { INCLUDE_PATH => [ __PACKAGE__->path_to( 'root', 'lib' ), __PACKAGE__->path_to( 'root', 'site' ) ], },
     'Plugin::Session' => {
-        expires => 28800, # 8 hours
+        expires => 28800,                                # 8 hours
         storage => $ENV{LIMS2_SESSION_STORE}
     }
 );
@@ -67,7 +64,6 @@ __PACKAGE__->log( Log::Log4perl::Catalyst->new( $ENV{LIMS2_LOG4PERL_CONFIG} ) );
 
 # Start the application
 __PACKAGE__->setup();
-
 
 =head1 NAME
 

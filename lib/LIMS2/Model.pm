@@ -1,7 +1,7 @@
 package LIMS2::Model;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::VERSION = '0.001';
+    $LIMS2::Model::VERSION = '0.002';
 }
 ## use critic
 
@@ -36,7 +36,7 @@ sub _audit_user_set {
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
-            $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier( $user ) );
+            $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($user) );
         }
     );
 
@@ -52,7 +52,7 @@ has schema => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema',
     lazy_build => 1,
-    handles    => [ 'txn_rollback' ]
+    handles    => ['txn_rollback']
 );
 
 sub _build_schema {
@@ -74,7 +74,7 @@ has form_validator => (
     is         => 'ro',
     isa        => 'LIMS2::Model::FormValidator',
     lazy_build => 1,
-    handles    => [ 'check_params' ]
+    handles    => ['check_params']
 );
 
 sub _build_form_validator {
@@ -102,7 +102,7 @@ sub _build_eng_seq_builder {
 has ensembl_util => (
     isa        => 'LIMS2::Util::EnsEMBL',
     lazy_build => 1,
-    handles => {
+    handles    => {
         map { 'ensembl_' . $_ => $_ }
             qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor constrained_element_adaptor repeat_feature_adaptor )
     }
@@ -110,6 +110,7 @@ has ensembl_util => (
 
 sub _build_ensembl_util {
     require LIMS2::Util::EnsEMBL;
+
     # Could specify species in constructor, default species => 'mouse'
     return LIMS2::Util::EnsEMBL->new;
 }
@@ -125,7 +126,7 @@ sub throw {
     eval "require $error_class"
         or confess "Load $error_class: $!";
 
-    my $err = $error_class->new( $args );
+    my $err = $error_class->new($args);
 
     $self->log->error( $err->as_string );
 
@@ -139,11 +140,11 @@ sub parse_date_time {
     if ( not defined $date_time ) {
         return;
     }
-    elsif ( blessed( $date_time ) and $date_time->isa( 'DateTime' ) ) {
+    elsif ( blessed($date_time) and $date_time->isa('DateTime') ) {
         return $date_time;
     }
     else {
-        return DateTime::Format::ISO8601->parse_datetime( $date_time );
+        return DateTime::Format::ISO8601->parse_datetime($date_time);
     }
 
 }
@@ -160,7 +161,7 @@ sub retrieve {
 
     $search_opts ||= {};
 
-    my @objects = $self->schema->resultset( $entity_class )->search( $search_params, $search_opts );
+    my @objects = $self->schema->resultset($entity_class)->search( $search_params, $search_opts );
 
     if ( @objects == 1 ) {
         return $objects[0];
@@ -180,7 +181,7 @@ sub retrieve_list {
 
     $search_opts ||= {};
 
-    my @objects = $self->schema->resultset( $entity_class )->search( $search_params, $search_opts );
+    my @objects = $self->schema->resultset($entity_class)->search( $search_params, $search_opts );
 
     if ( @objects == 0 ) {
         $self->throw( NotFound => { entity_class => $entity_class, search_params => $search_params } );
@@ -191,6 +192,6 @@ sub retrieve_list {
 }
 ## use critic
 
-with ( qw( MooseX::Log::Log4perl ), __PACKAGE__->plugins );
+with( qw( MooseX::Log::Log4perl ), __PACKAGE__->plugins );
 
 1;

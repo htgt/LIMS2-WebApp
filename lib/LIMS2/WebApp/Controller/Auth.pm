@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Auth;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Auth::VERSION = '0.001';
+    $LIMS2::WebApp::Controller::Auth::VERSION = '0.002';
 }
 ## use critic
 
@@ -31,13 +31,18 @@ sub login : Global {
 
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
-    my $goto     = $c->req->param('goto_on_success') || '/';
+    my $goto     = $c->req->param('goto_on_success') || $c->uri_for('/');
 
-    return unless defined $username and defined $password;
+    return unless $c->req->param('login');
 
-    if ( $c->authenticate( { name => $username, password => $password } ) ) {
-        $c->flash( status_msg => 'Login successful' );
-        return $c->res->redirect( $c->uri_for($goto) );
+    unless ( $username && $password ) {
+        $c->stash( error_msg => "Please enter your username and password" );
+        return;
+    }
+
+    if ( $c->authenticate( { name => $username, password => $password, active => 1 } ) ) {
+        $c->flash( success_msg => 'Login successful' );
+        return $c->res->redirect($goto);
     }
     else {
         $c->stash( error_msg => 'Incorrect username or password' );
@@ -55,7 +60,7 @@ sub logout : Global {
 
     $c->logout;
 
-    $c->flash( status_msg => 'You have been logged out' );
+    $c->flash( info_msg => 'You have been logged out' );
     return $c->res->redirect( $c->uri_for('/login') );
 }
 

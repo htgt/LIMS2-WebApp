@@ -1,8 +1,9 @@
 use utf8;
+
 package LIMS2::Model::Schema::Result::QcSeqProjectWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcSeqProjectWell::VERSION = '0.001';
+    $LIMS2::Model::Schema::Result::QcSeqProjectWell::VERSION = '0.002';
 }
 ## use critic
 
@@ -51,12 +52,6 @@ __PACKAGE__->table("qc_seq_project_wells");
   is_nullable: 0
   sequence: 'qc_seq_project_wells_id_seq'
 
-=head2 qc_seq_project_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 plate_name
 
   data_type: 'text'
@@ -70,19 +65,16 @@ __PACKAGE__->table("qc_seq_project_wells");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "qc_seq_project_wells_id_seq",
-  },
-  "qc_seq_project_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "plate_name",
-  { data_type => "text", is_nullable => 0 },
-  "well_name",
-  { data_type => "text", is_nullable => 0 },
+    "id",
+    {   data_type         => "integer",
+        is_auto_increment => 1,
+        is_nullable       => 0,
+        sequence          => "qc_seq_project_wells_id_seq",
+    },
+    "plate_name",
+    { data_type => "text", is_nullable => 0 },
+    "well_name",
+    { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -99,11 +91,9 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<qc_seq_project_wells_qc_seq_project_id_plate_name_well_name_key>
+=head2 C<qc_seq_project_wells_plate_name_well_name_key>
 
 =over 4
-
-=item * L</qc_seq_project_id>
 
 =item * L</plate_name>
 
@@ -113,29 +103,24 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint(
-  "qc_seq_project_wells_qc_seq_project_id_plate_name_well_name_key",
-  ["qc_seq_project_id", "plate_name", "well_name"],
-);
+__PACKAGE__->add_unique_constraint( "qc_seq_project_wells_plate_name_well_name_key", [ "plate_name", "well_name" ], );
 
 =head1 RELATIONS
 
-=head2 qc_seq_project
+=head2 qc_seq_project_qc_seq_projects_well
 
-Type: belongs_to
+Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::QcSeqProject>
+Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectQcSeqProjectWell>
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "qc_seq_project",
-  "LIMS2::Model::Schema::Result::QcSeqProject",
-  { id => "qc_seq_project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+__PACKAGE__->has_many(
+    "qc_seq_project_qc_seq_projects_well", "LIMS2::Model::Schema::Result::QcSeqProjectQcSeqProjectWell",
+    { "foreign.qc_seq_project_well_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_seqs_reads
+=head2 qc_seq_reads
 
 Type: has_many
 
@@ -144,10 +129,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqRead>
 =cut
 
 __PACKAGE__->has_many(
-  "qc_seqs_reads",
-  "LIMS2::Model::Schema::Result::QcSeqRead",
-  { "foreign.qc_seq_project_well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "qc_seq_reads",
+    "LIMS2::Model::Schema::Result::QcSeqRead",
+    { "foreign.qc_seq_project_well_id" => "self.id" },
+    { cascade_copy                     => 0, cascade_delete => 0 },
 );
 
 =head2 qc_test_results
@@ -159,16 +144,24 @@ Related object: L<LIMS2::Model::Schema::Result::QcTestResult>
 =cut
 
 __PACKAGE__->has_many(
-  "qc_test_results",
-  "LIMS2::Model::Schema::Result::QcTestResult",
-  { "foreign.qc_seq_project_well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "qc_test_results",
+    "LIMS2::Model::Schema::Result::QcTestResult",
+    { "foreign.qc_seq_project_well_id" => "self.id" },
+    { cascade_copy                     => 0, cascade_delete => 0 },
 );
 
+=head2 qc_seq_projects
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gAL2wU67gOdHql4HrWDE2A
+Type: many_to_many
 
+Composing rels: L</qc_seq_project_qc_seq_projects_well> -> qc_seq_project
+
+=cut
+
+__PACKAGE__->many_to_many( "qc_seq_projects", "qc_seq_project_qc_seq_projects_well", "qc_seq_project", );
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-23 12:52:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xEeinXZFV80aj97RvC2sXw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Script::FastCGI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Script::FastCGI::VERSION = '0.001';
+    $LIMS2::WebApp::Script::FastCGI::VERSION = '0.002';
 }
 ## use critic
 
@@ -14,9 +14,7 @@ use namespace::autoclean;
 
 extends qw( Catalyst::Script::FastCGI );
 
-has '+manager' => (
-    default => 'FCGI::ProcManager::Constrained'
-);
+has '+manager' => ( default => 'FCGI::ProcManager::Constrained' );
 
 __PACKAGE__->meta->make_immutable;
 
