@@ -128,21 +128,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 design_oligo_locis
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::DesignOligoLoci>
-
-=cut
-
-__PACKAGE__->has_many(
-  "design_oligo_locis",
-  "LIMS2::Model::Schema::Result::DesignOligoLoci",
-  { "foreign.design_oligo_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 design_oligo_type
 
 Type: belongs_to
@@ -158,9 +143,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 loci
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:35:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UPizsI9OSnVQUR1iGspd4w
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignOligoLocus>
+
+=cut
+
+__PACKAGE__->has_many(
+  "loci",
+  "LIMS2::Model::Schema::Result::DesignOligoLocus",
+  { "foreign.design_oligo_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BcoU+JeEP+fDldzsmHdDoA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

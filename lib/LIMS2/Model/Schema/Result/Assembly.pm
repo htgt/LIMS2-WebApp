@@ -65,13 +65,13 @@ __PACKAGE__->set_primary_key("id");
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::BacCloneLoci>
+Related object: L<LIMS2::Model::Schema::Result::BacCloneLocus>
 
 =cut
 
 __PACKAGE__->has_many(
   "bac_clone_locis",
-  "LIMS2::Model::Schema::Result::BacCloneLoci",
+  "LIMS2::Model::Schema::Result::BacCloneLocus",
   { "foreign.assembly_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -80,20 +80,20 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::DesignOligoLoci>
+Related object: L<LIMS2::Model::Schema::Result::DesignOligoLocus>
 
 =cut
 
 __PACKAGE__->has_many(
   "design_oligo_locis",
-  "LIMS2::Model::Schema::Result::DesignOligoLoci",
+  "LIMS2::Model::Schema::Result::DesignOligoLocus",
   { "foreign.assembly_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:35:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MigtxCtbcxl82SZ2QEpEoQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TJlrAuoIRKs4IGrvw90aUA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

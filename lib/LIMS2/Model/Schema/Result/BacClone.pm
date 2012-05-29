@@ -105,21 +105,6 @@ __PACKAGE__->add_unique_constraint(
 
 =head1 RELATIONS
 
-=head2 bac_clone_locis
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::BacCloneLoci>
-
-=cut
-
-__PACKAGE__->has_many(
-  "bac_clone_locis",
-  "LIMS2::Model::Schema::Result::BacCloneLoci",
-  { "foreign.bac_clone_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 bac_library
 
 Type: belongs_to
@@ -135,9 +120,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 loci
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:35:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lyuun1BoA8LY7mD0mRhmaA
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BacCloneLocus>
+
+=cut
+
+__PACKAGE__->has_many(
+  "loci",
+  "LIMS2::Model::Schema::Result::BacCloneLocus",
+  { "foreign.bac_clone_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:22XHs1NzNesQQTsFu73aPg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
