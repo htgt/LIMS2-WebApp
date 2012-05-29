@@ -45,7 +45,7 @@ sub index :Path :Args(0) {
 
     my $users = $c->model( 'Golgi' )->list_users();
 
-    $c->stash( users => [ map { $_->as_hash } @{$users} ] );    
+    $c->stash( users => [ map { $_->as_hash } @{$users} ] );
 }
 
 =head2 create_user
@@ -55,8 +55,7 @@ sub index :Path :Args(0) {
 sub create_user :Path( '/admin/create_user' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my @roles = $c->model( 'AuthDB::Role' )->search( {}, { order_by => 'name' } );
-    $c->stash( roles => \@roles );
+    $c->stash( roles => $c->model( 'Golgi' )->list_roles );
 
     return unless $c->request->method eq 'POST';
 
@@ -98,24 +97,12 @@ sub create_user :Path( '/admin/create_user' ) :Args(0) {
 
 sub update_user :Path( '/admin/update_user' ) :Args(0) {
     my ( $self, $c ) = @_;
-    
-    my $user_id = $c->request->param( 'user_id' );
-    unless ( defined $user_id ) {
-        $c->stash( error_msg => 'No user specified for update' );
-        return $c->go( 'index' );
-    }
 
-    my $user = $c->model( 'AuthDB::User' )->find( { id => $user_id }, { prefetch => { user_roles => 'role' } } );
-    unless ( defined $user ) {
-        $c->stash( error_msg => "No such user" );
-        return $c->go( 'index' );
-    }
-
-    my @roles = $c->model( 'AuthDB::Role' )->search( {}, { order_by => 'name' } );
+    my $user = $self->_retrieve_user_by_id($c);
 
     $c->stash(
         user         => $user,
-        roles        => \@roles,
+        roles        => $c->model('Golgi')->list_roles,
         checked_role => { map { $_->name => 1 } $user->roles }
     );
 
@@ -184,38 +171,63 @@ sub reset_user_password :Private {
     return $c->response->redirect( $c->uri_for( '/admin' ) );        
 }
 
-=head2 delete_user
+=head2 disable_user
 
 =cut
 
-sub delete_user :Path( '/admin/delete_user' ) :Args(0) {
+sub disable_user :Path( '/admin/disable_user' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my $user_id = $c->request->param( 'user_id' );
-    unless ( $user_id ) {
-        $c->stash( error_msg => 'No user specified for deletion' );
-        return $c->go( 'index' );
-    }
-
-    my $user = $c->model( 'AuthDB::User' )->find( { id => $user_id } );
-    unless ( defined $user ) {
-        $c->stash( error_msg => "Failed to retrieve user with id $user_id" );
-        return $c->go( 'index' );
-    }
-
-    unless ( $c->request->param( 'confirm' ) ) {
-        $c->stash( user => $user );
-        return;        
-    }
+    my $user = $self->_retrieve_user_by_id( $c );
 
     $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->delete_user( { name => $user->name } );
+            shift->disable_user( { name => $user->name } );
         }
     );
 
-    $c->flash( success_msg => "Deleted user " . $user->name );
-    return $c->response->redirect( $c->uri_for( '/admin' ) );
+    $c->stash( success_msg => "Disabled user " . $user->name );
+    $c->go( 'index' );
+}
+
+=head2 enable_user
+
+=cut
+
+sub enable_user :Path( '/admin/enable_user' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $user = $self->_retrieve_user_by_id($c);
+
+    $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->enable_user( { name => $user->name } );
+        }
+    );
+
+    $c->stash( success_msg => "Enabled user " . $user->name );
+    return $c->go( 'index' );    
+}
+
+sub _retrieve_user_by_id {
+    my ( $self, $c) = @_;
+
+    my $user_id = $c->request->param( 'user_id' );    
+
+    unless ( defined $user_id ) {
+        $c->stash( error_msg => "Given no user to act on" );
+        $c->go( 'index' );
+    }
+
+    my $user = try {
+        return $c->model( 'Golgi' )->retrieve( User => { 'me.id' => $user_id }, { prefetch => { user_roles => 'role' } } );
+    }
+    catch (LIMS2::Exception::NotFound $e) {
+        $c->stash( error_msg => "Failed to retrieve user with id $user_id" );
+        $c->go( 'index' );
+    };
+
+    return $user;
 }
 
 =head1 AUTHOR

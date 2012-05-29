@@ -27,7 +27,9 @@ has _role_id_for => (
     isa        => 'HashRef',
     traits     => ['Hash'],
     lazy_build => 1,
-    handles    => { role_id_for => 'get' }
+    handles    => {
+        role_id_for => 'get'
+    }
 );
 
 sub _build__role_id_for {
@@ -57,6 +59,14 @@ sub list_users {
     my @users = $self->schema->resultset( 'User' )->search( {}, { prefetch => { user_roles => 'role' }, order_by => { -asc => 'me.name' } } );
 
     return \@users;
+}
+
+sub list_roles {
+    my ( $self ) = @_;
+
+    my @roles = $self->schema->resultset( 'Role' )->search( {}, { order_by => { -asc => 'me.name' } } );
+
+    return \@roles;
 }
 
 sub pspec_create_user {
@@ -149,14 +159,17 @@ sub set_user_password {
     return $user;
 }
 
-sub pspec_delete_user {
-    return { name => { validate => 'user_name' } };
+sub pspec_set_user_active_status {
+    return {
+        name   => { validate => 'user_name' },
+        active => { validate => 'boolean' }
+    };
 }
 
-sub delete_user {
+sub set_user_active_status {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_delete_user );
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_active_status );
 
     my $user = $self->schema->resultset('User')->find($validated_params)
         or $self->throw(
@@ -166,17 +179,25 @@ sub delete_user {
         }
         );
 
-    $user->user_roles->delete;
-    $user->delete;
+    $user->update( { active => $validated_params->{active} } );
 
-    $self->schema->storage->dbh_do(
-        sub {
-            my ( $storage, $dbh ) = @_;
-            LIMS2::Model::Util::set_pg_roles( $dbh, $user->name, [] );
-        }
-    );    
+    return $user;
+}
 
-    return 1;
+sub enable_user {
+    my ( $self, $params ) = @_;
+
+    $params->{active} = 1;
+
+    return $self->set_user_active_status( $params );
+}
+
+sub disable_user {
+    my ( $self, $params ) = @_;
+
+    $params->{active} = 0;
+
+    return $self->set_user_active_status( $params );
 }
 
 1;
