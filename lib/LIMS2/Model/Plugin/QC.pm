@@ -286,7 +286,7 @@ sub pspec__create_qc_test_result_alignment {
         target_strand     => { validate => 'strand' },
         score             => { validate => 'integer' },
         pass              => { validate => 'boolean' },
-        features          => { validate => 'non_empty_string' },
+        features          => { optional => 1 },
         cigar             => { validate => 'cigar_string' },
         op_str            => { validate => 'op_str' },
         alignment_regions => { optional => 1 }
@@ -297,6 +297,8 @@ sub _create_qc_test_result_alignment {
     my ( $self, $params, $qc_test_result ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_test_result_alignment );
+
+    $validated_params->{features} ||= '';
 
     my $alignment = $self->schema->resultset( 'QcAlignment' )->create(
         {

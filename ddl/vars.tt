@@ -3,6 +3,7 @@
      admin_role = "${dbname}_admin"
      ro_role    = "${dbname}_ro"
      rw_role    = "${dbname}_rw"
+     inter_role = "${dbname}_inter_admin";
 
      webapp_role      = "${dbname}_webapp"
      webapp_passwd    = PasswordGenerator.generate_password
