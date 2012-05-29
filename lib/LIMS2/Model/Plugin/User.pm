@@ -72,7 +72,7 @@ sub pspec_create_user {
     return {
         name     => { validate => 'user_name' },
         password => { validate => 'non_empty_string' },
-        roles    => { validate => 'existing_role' }
+        roles    => { validate => 'existing_role', optional => 1 }
     };
 }
 
@@ -90,7 +90,7 @@ sub create_user {
         }
     );
 
-    for my $role_name ( @{ $validated_params->{roles} } ) {
+    for my $role_name ( @{ $validated_params->{roles} || [] } ) {
         $user->create_related( user_roles => { role_id => $self->role_id_for($role_name) } );
     }
 

@@ -40,13 +40,17 @@ sub auto : Private {
 
 =cut
 
+## no critic(ProhibitBuiltinHomonyms)    
 sub index : Path : Args(0) {
     my ( $self, $c ) = @_;
 
     my $users = $c->model('Golgi')->list_users();
 
     $c->stash( users => [ map { $_->as_hash } @{$users} ] );
+
+    return;
 }
+## use critic
 
 =head2 create_user
 
@@ -116,6 +120,8 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
     }
 
     $c->stash( error_msg => 'No action selected' );
+
+    return;
 }
 
 =head2 update_user_roles
@@ -186,7 +192,7 @@ sub disable_user : Path( '/admin/disable_user' ) : Args(0) {
     );
 
     $c->stash( success_msg => "Disabled user " . $user->name );
-    $c->go('index');
+    return $c->go('index');
 }
 
 =head2 enable_user
