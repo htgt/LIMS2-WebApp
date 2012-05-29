@@ -10,7 +10,7 @@ use Crypt::SaltedHash;
 use LIMS2::Model::Util;
 use namespace::autoclean;
 
-requires qw( schema check_params throw );
+requires qw( schema check_params throw retrieve );
 
 {
 
