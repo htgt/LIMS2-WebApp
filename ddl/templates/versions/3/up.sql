@@ -31,6 +31,7 @@ CREATE TABLE bac_clones (
 );
 GRANT SELECT ON bac_clones TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON bac_clones TO "[% rw_role %]";
+GRANT USAGE ON SEQUENCE bac_clones_id_seq TO "[% rw_role %]";
 
 CREATE TABLE bac_clone_loci (
        bac_clone_id     INTEGER NOT NULL REFERENCES bac_clones(id),
