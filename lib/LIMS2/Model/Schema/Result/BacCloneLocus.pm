@@ -148,5 +148,17 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+        assembly  => $self->assembly_id,
+        chr_name  => $self->chr_id,
+        chr_start => $self->chr_start,
+        chr_end   => $self->chr_end
+    };
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

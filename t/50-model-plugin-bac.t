@@ -12,27 +12,37 @@ note "Testing create_bac_clone";
 
 can_ok $model, 'create_bac_clone';
 
-ok my $bac1 = $model->create_bac_clone(
-    {
-        bac_library => 'black6',
-        bac_name    => 'CT7-148D8'
-    }
-), 'create bac with no locus';
+my %bac1_data = (
+    bac_library => 'black6',
+    bac_name    => 'CT7-148D8'
+);
 
-ok my $bac2 = $model->create_bac_clone(
-    {
-        bac_library =>  'black6',
-        bac_name    =>  'CT7-156D8',
-        loci        => [
-            {
-                assembly  => 'NCBIM37',
-                chr_end   => 194680061,
-                chr_start => 194454015,
-                chr_name  => '1'
-            }
-        ]        
-    }
-), 'create bac with NCBIM37 locus';
+ok my $bac1 = $model->create_bac_clone( \%bac1_data ),
+    'create bac with no locus';
+
+$bac1_data{id} = $bac1->id;
+
+is_deeply $bac1->as_hash, \%bac1_data, 'as_hash() returns expected data structure';
+
+my %bac2_data = (
+    bac_library =>  'black6',
+    bac_name    =>  'CT7-156D8',
+    loci        => [
+        {
+            assembly  => 'NCBIM37',
+            chr_end   => 194680061,
+            chr_start => 194454015,
+            chr_name  => '1'
+        }
+    ]        
+);
+
+ok my $bac2 = $model->create_bac_clone( \%bac2_data ),
+    'create bac with NCBIM37 locus';
+
+$bac2_data{id} = $bac2->id;
+
+is_deeply $bac2->as_hash, \%bac2_data, 'as_hash() returns expected data structure';
 
 note "Testing delete_bac_clone";
 

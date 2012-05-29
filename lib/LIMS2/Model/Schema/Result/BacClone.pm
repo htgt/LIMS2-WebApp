@@ -141,5 +141,22 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub as_hash {
+    my $self = shift;
+
+    my %h = (
+        id          => $self->id,
+        bac_name    => $self->name,
+        bac_library => $self->bac_library_id,
+    );
+
+    if ( my @loci = $self->loci ) {
+        $h{loci} = [ map { $_->as_hash } @loci ]
+    }
+
+    return \%h;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
