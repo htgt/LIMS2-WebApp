@@ -1,5 +1,4 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::QcTemplateWell;
 
 # Created by DBIx::Class::Schema::Loader
@@ -66,18 +65,19 @@ __PACKAGE__->table("qc_template_wells");
 =cut
 
 __PACKAGE__->add_columns(
-    "id",
-    {   data_type         => "integer",
-        is_auto_increment => 1,
-        is_nullable       => 0,
-        sequence          => "qc_template_wells_id_seq",
-    },
-    "qc_template_id",
-    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "name",
-    { data_type => "text", is_nullable => 0 },
-    "qc_eng_seq_id",
-    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "qc_template_wells_id_seq",
+  },
+  "qc_template_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "name",
+  { data_type => "text", is_nullable => 0 },
+  "qc_eng_seq_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -106,7 +106,10 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint( "qc_template_wells_qc_template_id_name_key", [ "qc_template_id", "name" ], );
+__PACKAGE__->add_unique_constraint(
+  "qc_template_wells_qc_template_id_name_key",
+  ["qc_template_id", "name"],
+);
 
 =head1 RELATIONS
 
@@ -119,10 +122,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcEngSeq>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_eng_seq",
-    "LIMS2::Model::Schema::Result::QcEngSeq",
-    { id            => "qc_eng_seq_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_eng_seq",
+  "LIMS2::Model::Schema::Result::QcEngSeq",
+  { id => "qc_eng_seq_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 qc_template
@@ -134,11 +137,12 @@ Related object: L<LIMS2::Model::Schema::Result::QcTemplate>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_template",
-    "LIMS2::Model::Schema::Result::QcTemplate",
-    { id            => "qc_template_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_template",
+  "LIMS2::Model::Schema::Result::QcTemplate",
+  { id => "qc_template_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D4Ifl7gQpTU8g9vtA9KSgw

@@ -1,5 +1,4 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::QcSeqRead;
 
 # Created by DBIx::Class::Schema::Loader
@@ -74,12 +73,18 @@ __PACKAGE__->table("qc_seq_reads");
 =cut
 
 __PACKAGE__->add_columns(
-    "id",                     { data_type => "text",    is_nullable    => 0 },
-    "description",            { data_type => "text",    default_value  => "", is_nullable => 0 },
-    "qc_seq_project_well_id", { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "primer_name",            { data_type => "text",    is_nullable    => 0 },
-    "seq",                    { data_type => "text",    is_nullable    => 0 },
-    "length",                 { data_type => "integer", is_nullable    => 0 },
+  "id",
+  { data_type => "text", is_nullable => 0 },
+  "description",
+  { data_type => "text", default_value => "", is_nullable => 0 },
+  "qc_seq_project_well_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "primer_name",
+  { data_type => "text", is_nullable => 0 },
+  "seq",
+  { data_type => "text", is_nullable => 0 },
+  "length",
+  { data_type => "integer", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -105,8 +110,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcAlignment>
 =cut
 
 __PACKAGE__->has_many(
-    "qc_alignments", "LIMS2::Model::Schema::Result::QcAlignment",
-    { "foreign.qc_seq_read_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
+  "qc_alignments",
+  "LIMS2::Model::Schema::Result::QcAlignment",
+  { "foreign.qc_seq_read_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_seq_project_well
@@ -118,11 +125,12 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_seq_project_well",
-    "LIMS2::Model::Schema::Result::QcSeqProjectWell",
-    { id            => "qc_seq_project_well_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_seq_project_well",
+  "LIMS2::Model::Schema::Result::QcSeqProjectWell",
+  { id => "qc_seq_project_well_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cmvz45Ta/XPkHzLD7cYyHw

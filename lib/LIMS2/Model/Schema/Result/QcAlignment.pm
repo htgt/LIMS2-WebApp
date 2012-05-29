@@ -1,5 +1,4 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::QcAlignment;
 
 # Created by DBIx::Class::Schema::Loader
@@ -122,40 +121,41 @@ __PACKAGE__->table("qc_alignments");
 =cut
 
 __PACKAGE__->add_columns(
-    "id",
-    {   data_type         => "integer",
-        is_auto_increment => 1,
-        is_nullable       => 0,
-        sequence          => "qc_alignments_id_seq",
-    },
-    "qc_seq_read_id",
-    { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-    "qc_eng_seq_id",
-    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "primer_name",
-    { data_type => "text", is_nullable => 0 },
-    "query_start",
-    { data_type => "integer", is_nullable => 0 },
-    "query_end",
-    { data_type => "integer", is_nullable => 0 },
-    "query_strand",
-    { data_type => "integer", is_nullable => 0 },
-    "target_start",
-    { data_type => "integer", is_nullable => 0 },
-    "target_end",
-    { data_type => "integer", is_nullable => 0 },
-    "target_strand",
-    { data_type => "integer", is_nullable => 0 },
-    "score",
-    { data_type => "integer", is_nullable => 0 },
-    "pass",
-    { data_type => "boolean", default_value => \"false", is_nullable => 0 },
-    "features",
-    { data_type => "text", is_nullable => 0 },
-    "cigar",
-    { data_type => "text", is_nullable => 0 },
-    "op_str",
-    { data_type => "text", is_nullable => 0 },
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "qc_alignments_id_seq",
+  },
+  "qc_seq_read_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "qc_eng_seq_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "primer_name",
+  { data_type => "text", is_nullable => 0 },
+  "query_start",
+  { data_type => "integer", is_nullable => 0 },
+  "query_end",
+  { data_type => "integer", is_nullable => 0 },
+  "query_strand",
+  { data_type => "integer", is_nullable => 0 },
+  "target_start",
+  { data_type => "integer", is_nullable => 0 },
+  "target_end",
+  { data_type => "integer", is_nullable => 0 },
+  "target_strand",
+  { data_type => "integer", is_nullable => 0 },
+  "score",
+  { data_type => "integer", is_nullable => 0 },
+  "pass",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "features",
+  { data_type => "text", is_nullable => 0 },
+  "cigar",
+  { data_type => "text", is_nullable => 0 },
+  "op_str",
+  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -181,8 +181,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcAlignmentRegion>
 =cut
 
 __PACKAGE__->has_many(
-    "qc_alignment_regions", "LIMS2::Model::Schema::Result::QcAlignmentRegion",
-    { "foreign.qc_alignment_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
+  "qc_alignment_regions",
+  "LIMS2::Model::Schema::Result::QcAlignmentRegion",
+  { "foreign.qc_alignment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_eng_seq
@@ -194,10 +196,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcEngSeq>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_eng_seq",
-    "LIMS2::Model::Schema::Result::QcEngSeq",
-    { id            => "qc_eng_seq_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_eng_seq",
+  "LIMS2::Model::Schema::Result::QcEngSeq",
+  { id => "qc_eng_seq_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 qc_seq_read
@@ -209,14 +211,16 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqRead>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_seq_read",
-    "LIMS2::Model::Schema::Result::QcSeqRead",
-    { id            => "qc_seq_read_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_seq_read",
+  "LIMS2::Model::Schema::Result::QcSeqRead",
+  { id => "qc_seq_read_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kglbx1WhuzQXFpgwGn4K0g
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

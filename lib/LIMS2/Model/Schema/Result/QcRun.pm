@@ -1,5 +1,4 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::QcRun;
 
 # Created by DBIx::Class::Schema::Loader
@@ -83,24 +82,25 @@ __PACKAGE__->table("qc_runs");
 =cut
 
 __PACKAGE__->add_columns(
-    "id",
-    { data_type => "char", is_nullable => 0, size => 36 },
-    "created_at",
-    {   data_type     => "timestamp",
-        default_value => \"current_timestamp",
-        is_nullable   => 0,
-        original      => { default_value => \"now()" },
-    },
-    "created_by_id",
-    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "profile",
-    { data_type => "text", is_nullable => 0 },
-    "qc_template_id",
-    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "software_version",
-    { data_type => "text", is_nullable => 0 },
-    "upload_complete",
-    { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "id",
+  { data_type => "char", is_nullable => 0, size => 36 },
+  "created_at",
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+    original      => { default_value => \"now()" },
+  },
+  "created_by_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "profile",
+  { data_type => "text", is_nullable => 0 },
+  "qc_template_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "software_version",
+  { data_type => "text", is_nullable => 0 },
+  "upload_complete",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -126,10 +126,10 @@ Related object: L<LIMS2::Model::Schema::Result::User>
 =cut
 
 __PACKAGE__->belongs_to(
-    "created_by",
-    "LIMS2::Model::Schema::Result::User",
-    { id            => "created_by_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "created_by",
+  "LIMS2::Model::Schema::Result::User",
+  { id => "created_by_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 qc_run_seq_projects
@@ -141,8 +141,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcRunSeqProject>
 =cut
 
 __PACKAGE__->has_many(
-    "qc_run_seq_projects", "LIMS2::Model::Schema::Result::QcRunSeqProject",
-    { "foreign.qc_run_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
+  "qc_run_seq_projects",
+  "LIMS2::Model::Schema::Result::QcRunSeqProject",
+  { "foreign.qc_run_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_template
@@ -154,10 +156,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcTemplate>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_template",
-    "LIMS2::Model::Schema::Result::QcTemplate",
-    { id            => "qc_template_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_template",
+  "LIMS2::Model::Schema::Result::QcTemplate",
+  { id => "qc_template_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 qc_test_results
@@ -169,8 +171,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcTestResult>
 =cut
 
 __PACKAGE__->has_many(
-    "qc_test_results", "LIMS2::Model::Schema::Result::QcTestResult",
-    { "foreign.qc_run_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
+  "qc_test_results",
+  "LIMS2::Model::Schema::Result::QcTestResult",
+  { "foreign.qc_run_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_seq_projects
@@ -181,7 +185,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 
 =cut
 
-__PACKAGE__->many_to_many( "qc_seq_projects", "qc_run_seq_projects", "qc_seq_project" );
+__PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
+
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-17 12:23:44
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nuhTCPQoBH33QAot2qf+Sg
