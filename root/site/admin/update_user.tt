@@ -1,0 +1,16 @@
+[% META title = 'LIMS2 - Update User'; META tab_name = "Admin" -%]
+<div>
+  <form method="POST" action="[% c.uri_for( '/admin/update_user' ) %]" name="update_user_form" class="well">
+    <fieldset>
+      <legend>Update user [% user.name %]</legend>
+      <label for="roles_field">Roles</label>
+      [%- FOR r IN roles %]
+      <input type="checkbox" name="user_roles" value="[% r.name %]" [%- IF checked_role.${r.name} %] checked="checked"[% END %]>[% r.name %]</input>
+      [%- END %]
+    </fieldset>
+    <input type="hidden" name="user_id" value="[% user.id %]" />
+    <a href="[% c.uri_for( '/admin' ) %]" class="btn btn-info">Cancel</a>
+    <input class="btn btn-primary" name="update_roles" id="update_user_button"  type="submit" value="Update Roles" />
+    <input class="btn btn-warning" name="reset_password" id="reset_passwd_button" type="submit" value="Reset Password" />
+  </form>
+</div>

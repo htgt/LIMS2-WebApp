@@ -332,7 +332,7 @@ sub _get_seq_project_well_from_alignments {
             }
         );
 
-    $self->throw( Validation => { message => 'Alignments must belong to exactly one well', params => $alignments } )
+    $self->throw( Validation => { message => 'Alignments must belong to exactly one well', params => { alignments => $alignments } } )
         unless @wells == 1;
 
     return shift @wells;

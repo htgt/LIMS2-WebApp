@@ -3,11 +3,9 @@ package LIMS2::WebApp::View::HTML;
 use strict;
 use warnings;
 
-use Moose;
-use Template::AutoFilter;
-use namespace::autoclean;
+use base 'Catalyst::View::TT';
 
-extends 'Catalyst::View::TT';
+use Template::AutoFilter;
 
 __PACKAGE__->config(
     CLASS              => 'Template::AutoFilter',
@@ -15,8 +13,6 @@ __PACKAGE__->config(
     WRAPPER            => 'wrapper.tt',
     render_die         => 1,
 );
-
-__PACKAGE__->meta->make_immutable;
 
 1;
 
