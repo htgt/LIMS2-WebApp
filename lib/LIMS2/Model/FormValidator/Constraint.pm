@@ -125,7 +125,8 @@ sub cre_bac_recom_cassette {
 }
 
 sub cre_bac_recom_backbone {
-    return in_set( 'pBACe3.6 (RP23) with HPRT3-9 without PUC Linker', 'pTARBAC1(RP24) with HPRT3-9 without PUC Linker' );
+    return in_set( 'pBACe3.6 (RP23) with HPRT3-9 without PUC Linker',
+        'pTARBAC1(RP24) with HPRT3-9 without PUC Linker' );
 }
 
 sub plate_name {
@@ -215,7 +216,7 @@ sub existing_qc_run_id {
 sub existing_qc_seq_project_id {
     my ( $class, $model ) = @_;
 
-    return existing_row( $model, 'QcSeqProject' , 'id' );
+    return existing_row( $model, 'QcSeqProject', 'id' );
 }
 
 sub existing_qc_template_id {
@@ -355,7 +356,7 @@ sub json {
 sub hashref {
     return sub {
         ref $_[0] eq ref {};
-    }
+        }
 }
 
 1;

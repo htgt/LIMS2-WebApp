@@ -13,13 +13,13 @@ use namespace::autoclean;
 requires qw( schema check_params throw );
 
 {
-    
+
     const my $PW_LEN => 10;
-    const my @PW_CHARS => ( 'A'..'Z', 'a'..'z', '0'..'9' );
+    const my @PW_CHARS => ( 'A' .. 'Z', 'a' .. 'z', '0' .. '9' );
 
     sub pwgen {
-        my ( $class ) = @_;
-        return join( '', map { $PW_CHARS[int rand @PW_CHARS] } 1..$PW_LEN );
+        my ($class) = @_;
+        return join( '', map { $PW_CHARS[ int rand @PW_CHARS ] } 1 .. $PW_LEN );
     }
 }
 
@@ -27,9 +27,7 @@ has _role_id_for => (
     isa        => 'HashRef',
     traits     => ['Hash'],
     lazy_build => 1,
-    handles    => {
-        role_id_for => 'get'
-    }
+    handles    => { role_id_for => 'get' }
 );
 
 sub _build__role_id_for {
@@ -44,27 +42,28 @@ sub user_id_for {
     my %search = ( name => $user_name );
     my $user = $self->schema->resultset('User')->find( \%search )
         or $self->throw(
-            NotFound => {
-                entity_class  => 'User',
-                search_params => \%search
-            }
+        NotFound => {
+            entity_class  => 'User',
+            search_params => \%search
+        }
         );
 
     return $user->id;
 }
 
 sub list_users {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
-    my @users = $self->schema->resultset( 'User' )->search( {}, { prefetch => { user_roles => 'role' }, order_by => { -asc => 'me.name' } } );
+    my @users = $self->schema->resultset('User')
+        ->search( {}, { prefetch => { user_roles => 'role' }, order_by => { -asc => 'me.name' } } );
 
     return \@users;
 }
 
 sub list_roles {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
-    my @roles = $self->schema->resultset( 'Role' )->search( {}, { order_by => { -asc => 'me.name' } } );
+    my @roles = $self->schema->resultset('Role')->search( {}, { order_by => { -asc => 'me.name' } } );
 
     return \@roles;
 }
@@ -81,13 +80,12 @@ sub create_user {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_user );
-    
-    my $csh = Crypt::SaltedHash->new(algorithm=>"SHA-1");
+
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
     $csh->add( $validated_params->{password} );
-    
+
     my $user = $self->schema->resultset('User')->create(
-        {
-            name     => $validated_params->{name},
+        {   name     => $validated_params->{name},
             password => $csh->generate
         }
     );
@@ -99,7 +97,7 @@ sub create_user {
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
-            LIMS2::Model::Util::create_pg_user( $dbh, @{$validated_params}{ qw(name roles) } );            
+            LIMS2::Model::Util::create_pg_user( $dbh, @{$validated_params}{qw(name roles)} );
         }
     );
 
@@ -108,8 +106,8 @@ sub create_user {
 
 sub pspec_set_user_roles {
     return {
-        name     => { validate => 'existing_user' },
-        roles    => { validate => 'existing_role' }
+        name  => { validate => 'existing_user' },
+        roles => { validate => 'existing_role' }
     };
 }
 
@@ -120,17 +118,17 @@ sub set_user_roles {
 
     my $user = $self->retrieve( User => { name => $validated_params->{name} } );
 
-    my @role_ids = map { $self->role_id_for( $_ ) } @{ $validated_params->{roles} };
-    
+    my @role_ids = map { $self->role_id_for($_) } @{ $validated_params->{roles} };
+
     $user->user_roles_rs->delete;
-    for my $role_id ( @role_ids ) {
+    for my $role_id (@role_ids) {
         $user->create_related( user_roles => { role_id => $role_id } );
     }
 
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
-            LIMS2::Model::Util::set_pg_roles( $dbh, $user->name, $validated_params->{roles} );            
+            LIMS2::Model::Util::set_pg_roles( $dbh, $user->name, $validated_params->{roles} );
         }
     );
 
@@ -151,7 +149,7 @@ sub set_user_password {
 
     my $user = $self->retrieve( User => { name => $validated_params->{name} } );
 
-    my $csh = Crypt::SaltedHash->new(algorithm=>"SHA-1");
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
     $csh->add( $validated_params->{password} );
 
     $user->update( { password => $csh->generate } );
@@ -189,7 +187,7 @@ sub enable_user {
 
     $params->{active} = 1;
 
-    return $self->set_user_active_status( $params );
+    return $self->set_user_active_status($params);
 }
 
 sub disable_user {
@@ -197,7 +195,7 @@ sub disable_user {
 
     $params->{active} = 0;
 
-    return $self->set_user_active_status( $params );
+    return $self->set_user_active_status($params);
 }
 
 1;

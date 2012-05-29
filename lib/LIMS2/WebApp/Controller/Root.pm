@@ -29,7 +29,7 @@ The root page (/)
 sub site_index : Path : Args(0) {
     my ( $self, $c ) = @_;
 
-    unless ( $c->check_user_roles( 'read' ) ) {
+    unless ( $c->check_user_roles('read') ) {
         $c->stash( error_msg => 'Please login to access this system' );
         $c->go( 'Controller::Auth', 'login' );
     }

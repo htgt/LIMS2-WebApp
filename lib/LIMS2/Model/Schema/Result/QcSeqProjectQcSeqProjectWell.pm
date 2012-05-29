@@ -1,4 +1,5 @@
 use utf8;
+
 package LIMS2::Model::Schema::Result::QcSeqProjectQcSeqProjectWell;
 
 # Created by DBIx::Class::Schema::Loader
@@ -53,10 +54,8 @@ __PACKAGE__->table("qc_seq_project_qc_seq_project_well");
 =cut
 
 __PACKAGE__->add_columns(
-  "qc_seq_project_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "qc_seq_project_well_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "qc_seq_project_id",      { data_type => "text",    is_foreign_key => 1, is_nullable => 0 },
+    "qc_seq_project_well_id", { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -71,7 +70,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("qc_seq_project_id", "qc_seq_project_well_id");
+__PACKAGE__->set_primary_key( "qc_seq_project_id", "qc_seq_project_well_id" );
 
 =head1 RELATIONS
 
@@ -84,10 +83,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqProject>
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_seq_project",
-  "LIMS2::Model::Schema::Result::QcSeqProject",
-  { id => "qc_seq_project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+    "qc_seq_project",
+    "LIMS2::Model::Schema::Result::QcSeqProject",
+    { id            => "qc_seq_project_id" },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 qc_seq_project_well
@@ -99,16 +98,14 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_seq_project_well",
-  "LIMS2::Model::Schema::Result::QcSeqProjectWell",
-  { id => "qc_seq_project_well_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+    "qc_seq_project_well",
+    "LIMS2::Model::Schema::Result::QcSeqProjectWell",
+    { id            => "qc_seq_project_well_id" },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-23 12:23:19
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PEr3NmifvNYUH700xvlKEw
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -1,4 +1,5 @@
 use utf8;
+
 package LIMS2::Model::Schema::Result::QcRunSeqProject;
 
 # Created by DBIx::Class::Schema::Loader
@@ -54,10 +55,8 @@ __PACKAGE__->table("qc_run_seq_project");
 =cut
 
 __PACKAGE__->add_columns(
-  "qc_run_id",
-  { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
-  "qc_seq_project_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+    "qc_run_id", { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
+    "qc_seq_project_id", { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -72,7 +71,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("qc_run_id", "qc_seq_project_id");
+__PACKAGE__->set_primary_key( "qc_run_id", "qc_seq_project_id" );
 
 =head1 RELATIONS
 
@@ -85,10 +84,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcRun>
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_run",
-  "LIMS2::Model::Schema::Result::QcRun",
-  { id => "qc_run_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+    "qc_run",
+    "LIMS2::Model::Schema::Result::QcRun",
+    { id            => "qc_run_id" },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 qc_seq_project
@@ -100,16 +99,14 @@ Related object: L<LIMS2::Model::Schema::Result::QcSeqProject>
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_seq_project",
-  "LIMS2::Model::Schema::Result::QcSeqProject",
-  { id => "qc_seq_project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+    "qc_seq_project",
+    "LIMS2::Model::Schema::Result::QcSeqProject",
+    { id            => "qc_seq_project_id" },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BFJUMYYYR/0ccpPqImY+vg
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -1,4 +1,5 @@
 use utf8;
+
 package LIMS2::Model::Schema::Result::QcEngSeq;
 
 # Created by DBIx::Class::Schema::Loader
@@ -58,17 +59,16 @@ __PACKAGE__->table("qc_eng_seqs");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "qc_eng_seqs_id_seq",
-  },
-  "method",
-  { data_type => "text", is_nullable => 0 },
-  "params",
-  { data_type => "text", is_nullable => 0 },
+    "id",
+    {   data_type         => "integer",
+        is_auto_increment => 1,
+        is_nullable       => 0,
+        sequence          => "qc_eng_seqs_id_seq",
+    },
+    "method",
+    { data_type => "text", is_nullable => 0 },
+    "params",
+    { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -97,7 +97,7 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("qc_eng_seqs_method_params_key", ["method", "params"]);
+__PACKAGE__->add_unique_constraint( "qc_eng_seqs_method_params_key", [ "method", "params" ] );
 
 =head1 RELATIONS
 
@@ -110,10 +110,8 @@ Related object: L<LIMS2::Model::Schema::Result::QcAlignment>
 =cut
 
 __PACKAGE__->has_many(
-  "qc_alignments",
-  "LIMS2::Model::Schema::Result::QcAlignment",
-  { "foreign.qc_eng_seq_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "qc_alignments", "LIMS2::Model::Schema::Result::QcAlignment",
+    { "foreign.qc_eng_seq_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_template_wells
@@ -125,10 +123,8 @@ Related object: L<LIMS2::Model::Schema::Result::QcTemplateWell>
 =cut
 
 __PACKAGE__->has_many(
-  "qc_template_wells",
-  "LIMS2::Model::Schema::Result::QcTemplateWell",
-  { "foreign.qc_eng_seq_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "qc_template_wells", "LIMS2::Model::Schema::Result::QcTemplateWell",
+    { "foreign.qc_eng_seq_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_test_results
@@ -140,12 +136,9 @@ Related object: L<LIMS2::Model::Schema::Result::QcTestResult>
 =cut
 
 __PACKAGE__->has_many(
-  "qc_test_results",
-  "LIMS2::Model::Schema::Result::QcTestResult",
-  { "foreign.qc_eng_seq_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "qc_test_results", "LIMS2::Model::Schema::Result::QcTestResult",
+    { "foreign.qc_eng_seq_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:C3llDsDk6jCb6LWrOC+3Xw

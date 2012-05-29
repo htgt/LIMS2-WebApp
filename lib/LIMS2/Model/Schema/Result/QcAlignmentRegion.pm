@@ -1,4 +1,5 @@
 use utf8;
+
 package LIMS2::Model::Schema::Result::QcAlignmentRegion;
 
 # Created by DBIx::Class::Schema::Loader
@@ -83,22 +84,14 @@ __PACKAGE__->table("qc_alignment_regions");
 =cut
 
 __PACKAGE__->add_columns(
-  "qc_alignment_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "name",
-  { data_type => "text", is_nullable => 0 },
-  "length",
-  { data_type => "integer", is_nullable => 0 },
-  "match_count",
-  { data_type => "integer", is_nullable => 0 },
-  "query_str",
-  { data_type => "text", is_nullable => 0 },
-  "target_str",
-  { data_type => "text", is_nullable => 0 },
-  "match_str",
-  { data_type => "text", is_nullable => 0 },
-  "pass",
-  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+    "qc_alignment_id", { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "name",            { data_type => "text",    is_nullable    => 0 },
+    "length",          { data_type => "integer", is_nullable    => 0 },
+    "match_count",     { data_type => "integer", is_nullable    => 0 },
+    "query_str",       { data_type => "text",    is_nullable    => 0 },
+    "target_str",      { data_type => "text",    is_nullable    => 0 },
+    "match_str",       { data_type => "text",    is_nullable    => 0 },
+    "pass", { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -113,7 +106,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("qc_alignment_id", "name");
+__PACKAGE__->set_primary_key( "qc_alignment_id", "name" );
 
 =head1 RELATIONS
 
@@ -126,16 +119,14 @@ Related object: L<LIMS2::Model::Schema::Result::QcAlignment>
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_alignment",
-  "LIMS2::Model::Schema::Result::QcAlignment",
-  { id => "qc_alignment_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+    "qc_alignment",
+    "LIMS2::Model::Schema::Result::QcAlignment",
+    { id            => "qc_alignment_id" },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Urjoqnrt6rmdAKqhawUwhg
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
