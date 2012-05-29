@@ -143,32 +143,32 @@ sub bac_plate {
 
 sub existing_assembly {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Assembly', 'assembly' );
+    return in_resultset( $model, 'Assembly', 'id' );
 }
 
 sub existing_bac_library {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'BacLibrary', 'library' );
+    return in_resultset( $model, 'BacLibrary', 'id' );
 }
 
 sub existing_chromosome {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Chromosome', 'chromosome' );
+    return in_resultset( $model, 'Chromosome', 'id' );
 }
 
 sub existing_design_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignType', 'type' );
+    return in_resultset( $model, 'DesignType', 'id' );
 }
 
 sub existing_design_comment_category {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignCommentCategory', 'category' );
+    return in_resultset( $model, 'DesignCommentCategory', 'id' );
 }
 
 sub existing_design_oligo_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignOligoType', 'type' );
+    return in_resultset( $model, 'DesignOligoType', 'id' );
 }
 
 sub existing_pipeline {
