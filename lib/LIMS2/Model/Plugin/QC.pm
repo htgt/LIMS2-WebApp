@@ -187,6 +187,7 @@ sub delete_qc_template {
 sub pspec_find_or_create_qc_seq_read {
     return {
         id                => { validate => 'qc_seq_read_id' },
+        qc_run_id         => { validate => 'existing_qc_run_id' },
         plate_name        => { validate => 'plate_name' },
         well_name         => { validate => 'well_name' },
         primer_name       => { validate => 'non_empty_string' },
@@ -205,23 +206,27 @@ sub find_or_create_qc_seq_read {
     my $seq_proj
         = $self->schema->resultset('QcSeqProject')->find_or_create( { id => $validated_params->{qc_seq_project_id} } );
 
-    my $seq_proj_well = $self->schema->resultset('QcSeqProjectWell')->find_or_create(
-        {   plate_name => $validated_params->{plate_name},
-            well_name  => $validated_params->{well_name}
-        },
-        { key => 'qc_seq_project_wells_plate_name_well_name_key' }
-    );
-
-    # Create row in many-to-many linking table
-    $self->schema->resultset('QcSeqProjectQcSeqProjectWell')->find_or_create(
-        {   qc_seq_project_id      => $seq_proj->id,
-            qc_seq_project_well_id => $seq_proj_well->id
+    my $qc_seq_read = $self->schema->resultset('QcSeqRead')->find_or_create(
+        +{  slice_def( $validated_params, qw( id description primer_name seq length ) ),
+            qc_seq_project_id => $seq_proj->id
         }
     );
 
-    my $qc_seq_read = $self->schema->resultset('QcSeqRead')->find_or_create(
-        +{  slice_def( $validated_params, qw( id description primer_name seq length ) ),
-            qc_seq_project_well_id => $seq_proj_well->id
+    my $qc_run_seq_well = $self->schema->resultset( 'QcRunSeqWell' )->find_or_create(
+        {
+            qc_run_id  => $validated_params->{qc_run_id},
+            plate_name => $validated_params->{plate_name},
+            well_name  => $validated_params->{well_name}
+        },
+        {
+            key => 'qc_run_seq_well_qc_run_id_plate_name_well_name_key'
+        }
+    );
+
+    $self->schema->resultset( 'QcRunSeqWellQcSeqRead' )->create(
+        {
+            qc_run_seq_well_id => $qc_run_seq_well->id,
+            qc_seq_read_id     => $qc_seq_read->id
         }
     );
 
@@ -371,15 +376,19 @@ sub retrieve_qc_test_result {
 }
 
 sub pspec__create_qc_run_seq_proj {
-    return { qc_seq_project_id => { validate => 'existing_qc_seq_project_id' } };
+    return { qc_seq_project_id => { validate => 'non_empty_string' } };
 }
 
 sub _create_qc_run_seq_proj {
     my ( $self, $params, $qc_run ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_run_seq_proj );
+
+    $self->schema->resultset( 'QcSeqProject' )->find_or_create( { id => $validated_params->{seq_project_id} } );
+
     return $qc_run->create_related(
-        qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_project_id} } );
+        qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_project_id} }
+    );
 }
 
 sub pspec_create_qc_run {
@@ -391,8 +400,7 @@ sub pspec_create_qc_run {
         software_version => { validate => 'software_version' },
         qc_template_id         => { validate => 'existing_qc_template_id',   optional => 1 },
         qc_template_name       => { validate => 'existing_qc_template_name', optional => 1 },
-        qc_sequencing_projects => { validate => 'non_empty_string' }
-        ,    # Data::FormValidator will call this for each element of the array ref
+        qc_sequencing_projects => { validate => 'non_empty_string' },    # Data::FormValidator will call this for each element of the array ref
         REQUIRE_SOME => { qc_template_id_or_name => [ 1, qw( qc_template_id qc_template_name ) ] }
     };
 }
@@ -403,16 +411,15 @@ sub create_qc_run {
     my $validated_params = $self->check_params( $params, $self->pspec_create_qc_run );
 
     if ( !defined $validated_params->{qc_template_id} ) {
-        my $template
-            = $self->retrieve_qc_templates( { qc_template_name => $validated_params->{qc_template_name}, latest => 1 } )
-            ->[0];
+        my $template = $self->retrieve_qc_templates(
+            { qc_template_name => $validated_params->{qc_template_name}, latest => 1 }
+        )->[0];
         $validated_params->{qc_template_id} = $template->id;
     }
 
-    my $qc_run
-        = $self->schema->resultset('QcRun')
-        ->create(
-        { slice_def( $validated_params, qw( id created_at created_by_id profile qc_template_id software_version ) ) } );
+    my $qc_run = $self->schema->resultset('QcRun')->create(
+        { slice_def( $validated_params, qw( id created_at created_by_id profile qc_template_id software_version ) ) }
+    );
 
     for my $seq_proj_id ( @{ $validated_params->{qc_sequencing_projects} } ) {
         $self->_create_qc_run_seq_proj( { qc_seq_project_id => $seq_proj_id }, $qc_run );
