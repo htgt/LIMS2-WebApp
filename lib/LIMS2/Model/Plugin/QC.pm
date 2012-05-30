@@ -219,7 +219,7 @@ sub find_or_create_qc_seq_read {
             well_name  => $validated_params->{well_name}
         },
         {
-            key => 'qc_run_seq_well_qc_run_id_plate_name_well_name_key'
+            key => 'qc_run_seq_wells_qc_run_id_plate_name_well_name_key' 
         }
     );
 
@@ -309,14 +309,19 @@ sub _create_qc_test_result_alignment {
     return $alignment;
 }
 
-sub _get_seq_project_well_from_alignments {
-    my ( $self, $alignments ) = @_;
+sub _get_qc_run_seq_well_from_alignments {
+    my ( $self, $qc_run_id, $alignments ) = @_;
 
     my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{$alignments};
 
-    my @wells = map { $_->qc_seq_project_well } $self->schema->resultset('QcSeqRead')->search(
-        { id => { -in => \@qc_seq_read_ids } },
-        {   columns  => ['qc_seq_project_well_id'],
+    my @wells = $self->schema->resultset( 'QcRunSeqWell' )->search(
+        {
+            'me.qc_run_id'                                => $qc_run_id,
+            'qc_run_seq_well_qc_seq_reads.qc_seq_read_id' => { -in => \@qc_seq_read_ids }
+        },
+        {
+            join     => 'qc_run_seq_well_qc_seq_reads',
+            columns  => [ 'me.id' ],
             distinct => 1
         }
     );
@@ -343,11 +348,11 @@ sub create_qc_test_result {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_qc_test_result );
 
-    my $qc_seq_project_well = $self->_get_seq_project_well_from_alignments( $validated_params->{alignments} );
+    my $qc_run_seq_well = $self->_get_qc_run_seq_well_from_alignments( $validated_params->{qc_run_id}, $validated_params->{alignments} );
 
     my $qc_test_result = $self->schema->resultset('QcTestResult')->create(
         {   qc_run_id              => $validated_params->{qc_run_id},
-            qc_seq_project_well_id => $qc_seq_project_well->id,
+            qc_run_seq_well_id     => $qc_run_seq_well->id,
             qc_eng_seq_id          => $validated_params->{qc_eng_seq_id},
             score                  => $validated_params->{score},
             pass                   => $validated_params->{pass} || 0
@@ -384,7 +389,7 @@ sub _create_qc_run_seq_proj {
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_run_seq_proj );
 
-    $self->schema->resultset( 'QcSeqProject' )->find_or_create( { id => $validated_params->{seq_project_id} } );
+    $self->schema->resultset( 'QcSeqProject' )->find_or_create( { id => $validated_params->{qc_seq_project_id} } );
 
     return $qc_run->create_related(
         qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_project_id} }
