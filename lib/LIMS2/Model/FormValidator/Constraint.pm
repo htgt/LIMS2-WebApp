@@ -163,7 +163,7 @@ sub existing_design_type {
 
 sub existing_design_comment_category {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignCommentCategory', 'id' );
+    return in_resultset( $model, 'DesignCommentCategory', 'name' );
 }
 
 sub existing_design_oligo_type {
@@ -188,7 +188,7 @@ sub existing_design_well_recombineering_assay {
 
 sub existing_genotyping_primer_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'GenotypingPrimerType', 'type' );
+    return in_resultset( $model, 'GenotypingPrimerType', 'id' );
 }
 
 sub existing_user {
