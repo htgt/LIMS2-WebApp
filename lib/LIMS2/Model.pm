@@ -8,6 +8,7 @@ require LIMS2::Model::DBConnect;
 require LIMS2::Model::FormValidator;
 require DateTime::Format::ISO8601;
 require Module::Pluggable::Object;
+use Data::Dump qw( pp );
 use Scalar::Util qw( blessed );
 use namespace::autoclean;
 
@@ -185,6 +186,15 @@ sub retrieve_list {
     }
 }
 ## use critic
+
+sub trace {
+    my ( $self, @args ) = @_;
+
+    return unless $self->log->is_trace;
+
+    my $mesg = join "\n", map { ref $_ ? pp( $_ ) : $_ } @args;
+    $self->log->trace( $mesg );
+}
 
 with( qw( MooseX::Log::Log4perl ), __PACKAGE__->plugins );
 
