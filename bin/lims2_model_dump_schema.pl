@@ -22,6 +22,11 @@ my %REL_NAME_MAP = (
     BacClone => {
         bac_clone_locis => 'loci'
     },
+    Design => {
+        design_oligos   => 'oligos',
+        design_comments => 'comments',
+        design_type     => 'type'
+    },
     DesignOligo => {
         design_oligo_locis => 'loci'
     },

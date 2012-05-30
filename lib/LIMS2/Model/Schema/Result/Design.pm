@@ -122,6 +122,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 comments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignComment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "comments",
+  "LIMS2::Model::Schema::Result::DesignComment",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 created_by
 
 Type: belongs_to
@@ -134,51 +149,6 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 design_comments
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::DesignComment>
-
-=cut
-
-__PACKAGE__->has_many(
-  "design_comments",
-  "LIMS2::Model::Schema::Result::DesignComment",
-  { "foreign.design_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 design_oligos
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::DesignOligo>
-
-=cut
-
-__PACKAGE__->has_many(
-  "design_oligos",
-  "LIMS2::Model::Schema::Result::DesignOligo",
-  { "foreign.design_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 design_type
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::DesignType>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "design_type",
-  "LIMS2::Model::Schema::Result::DesignType",
-  { id => "design_type_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -212,9 +182,39 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 oligos
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:35:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Eu5WPo14ZqnTzj7rg3SKyQ
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignOligo>
+
+=cut
+
+__PACKAGE__->has_many(
+  "oligos",
+  "LIMS2::Model::Schema::Result::DesignOligo",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 type
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::DesignType>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "type",
+  "LIMS2::Model::Schema::Result::DesignType",
+  { id => "design_type_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 12:50:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ifg5LwIq535eiKB0Lg0QiQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
