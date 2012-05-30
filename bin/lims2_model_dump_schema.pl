@@ -29,8 +29,8 @@ my %REL_NAME_MAP = (
         qc_seqs_reads        => 'qc_seq_reads',
         qc_seq_projects_well => 'qc_seq_project_wells'
     },
-    QcSeqProjectWell => {
-        qc_seqs_reads => 'qc_seq_reads'
+    QcRunSeqWell => {
+        qc_run_seq_well_qc_seqs_read => 'qc_run_seq_well_qc_seq_reads'
     },
     QcTemplate => {
         qcs_runs => 'qc_runs'

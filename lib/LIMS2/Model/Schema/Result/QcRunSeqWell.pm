@@ -129,7 +129,7 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 qc_run_seq_well_qc_seqs_read
+=head2 qc_run_seq_well_qc_seq_reads
 
 Type: has_many
 
@@ -138,7 +138,7 @@ Related object: L<LIMS2::Model::Schema::Result::QcRunSeqWellQcSeqRead>
 =cut
 
 __PACKAGE__->has_many(
-  "qc_run_seq_well_qc_seqs_read",
+  "qc_run_seq_well_qc_seq_reads",
   "LIMS2::Model::Schema::Result::QcRunSeqWellQcSeqRead",
   { "foreign.qc_run_seq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -160,8 +160,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nHrp/oQ9hinKAlPelFKCmw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:38:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gqB+KF8Sf6p1LvblnArAbg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
