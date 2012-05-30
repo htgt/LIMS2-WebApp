@@ -57,7 +57,7 @@ __PACKAGE__->table("design_oligos");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 design_oligo_seq
+=head2 seq
 
   data_type: 'text'
   is_nullable: 0
@@ -76,7 +76,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "design_oligo_type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "design_oligo_seq",
+  "seq",
   { data_type => "text", is_nullable => 0 },
 );
 
@@ -159,8 +159,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BcoU+JeEP+fDldzsmHdDoA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 12:46:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yQ588C3CzDsvMAkIKT+NKg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

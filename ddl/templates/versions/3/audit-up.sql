@@ -165,7 +165,7 @@ audit_txid INTEGER NOT NULL,
 id integer,
 design_id integer,
 design_oligo_type_id text,
-design_oligo_seq text
+seq text
 );
 GRANT SELECT ON audit.design_oligos TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.design_oligos TO "[% rw_role %]";
@@ -387,7 +387,7 @@ audit_txid INTEGER NOT NULL,
 id integer,
 genotyping_primer_type_id text,
 design_id integer,
-genotyping_primer_seq text
+seq text
 );
 GRANT SELECT ON audit.genotyping_primers TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.genotyping_primers TO "[% rw_role %]";

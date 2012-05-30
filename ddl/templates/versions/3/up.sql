@@ -94,7 +94,7 @@ CREATE TABLE design_oligos (
        id                   SERIAL PRIMARY KEY,
        design_id            INTEGER NOT NULL REFERENCES designs(id),
        design_oligo_type_id TEXT NOT NULL REFERENCES design_oligo_types(id),
-       design_oligo_seq     TEXT NOT NULL,
+       seq                  TEXT NOT NULL,
        UNIQUE(design_id, design_oligo_type_id)
 );
 
@@ -146,7 +146,7 @@ CREATE TABLE genotyping_primers (
        id                        SERIAL PRIMARY KEY,
        genotyping_primer_type_id TEXT NOT NULL REFERENCES genotyping_primer_types(id),
        design_id                 INTEGER NOT NULL REFERENCES designs(id),
-       genotyping_primer_seq     TEXT NOT NULL
+       seq                       TEXT NOT NULL
 );
 GRANT SELECT ON genotyping_primers TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON genotyping_primers TO "[% rw_role %]";
