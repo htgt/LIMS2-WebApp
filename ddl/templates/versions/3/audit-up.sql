@@ -331,7 +331,7 @@ audit_txid INTEGER NOT NULL,
 id integer,
 design_comment_category_id integer,
 design_id integer,
-design_comment text,
+comment_text text,
 is_public boolean,
 created_by integer,
 created_at timestamp without time zone

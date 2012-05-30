@@ -57,7 +57,7 @@ __PACKAGE__->table("design_comments");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 design_comment
+=head2 comment_text
 
   data_type: 'text'
   default_value: (empty string)
@@ -96,7 +96,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "design_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "design_comment",
+  "comment_text",
   { data_type => "text", default_value => "", is_nullable => 0 },
   "is_public",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
@@ -171,8 +171,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:35:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jqLMzdxM8XyLCTJzJOdo7g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 12:41:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oNa8qPaWaQpYsjNY/QUrKA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

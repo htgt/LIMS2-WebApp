@@ -127,7 +127,7 @@ CREATE TABLE design_comments (
        id                         SERIAL PRIMARY KEY,
        design_comment_category_id INTEGER NOT NULL REFERENCES design_comment_categories(id),
        design_id                  INTEGER NOT NULL REFERENCES designs(id),
-       design_comment             TEXT NOT NULL DEFAULT '',
+       comment_text               TEXT NOT NULL DEFAULT '',
        is_public                  BOOLEAN NOT NULL DEFAULT FALSE,
        created_by                 INTEGER NOT NULL REFERENCES users(id),
        created_at                 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
