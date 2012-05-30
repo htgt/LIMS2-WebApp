@@ -24,10 +24,10 @@ sub begin :Private {
 
 sub index :Path( '/ui/qc_run' ) :Args(0) {
     my ( $self, $c ) = @_;
-    my $qc_run;
+    my $qc_run_results;
 
     try {
-        $qc_run = $c->model('Golgi')->retrieve_qc_run( $c->request->params );
+        $qc_run_results = $c->model('Golgi')->retrieve_qc_run_results( $c->request->params );
     }
     catch {
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -41,13 +41,13 @@ sub index :Path( '/ui/qc_run' ) :Args(0) {
     };
 
     $c->stash(
-        qc_run   => $qc_run->as_hash,
+        qc_run   => $qc_run_results,
         template => 'ui/qc/qc_run.tt'
     );
 }
 
-sub index :Path( '/ui/qc_runs' ) :Args(0) {
-    my ( $self, $c ) = @_;
+#sub index :Path( '/ui/qc_runs' ) :Args(0) {
+    #my ( $self, $c ) = @_;
 
     #my $qc_run = $c->model('Golgi')->txn_do(
         #sub {
@@ -78,7 +78,7 @@ sub index :Path( '/ui/qc_runs' ) :Args(0) {
         #plate    => $plate->as_hash,
         #template => 'ui/view_plate/index.tt'
     #);
-}
+#}
 
 =head1 AUTHOR
 
