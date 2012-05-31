@@ -110,6 +110,19 @@ sub _build_ensembl_util {
     return LIMS2::Util::EnsEMBL->new;
 }
 
+has solr_util => (
+    isa        => 'LIMS2::Util::Solr',
+    lazy_build => 1,
+    handles    => {
+        solr_query => 'query'
+    }
+);
+
+sub _build_solr_util {
+    require LIMS2::Util::Solr;
+    return LIMS2::Util::Solr->new;
+}
+
 ## no critic(RequireFinalReturn)
 sub throw {
     my ( $self, $error_class, $args ) = @_;
