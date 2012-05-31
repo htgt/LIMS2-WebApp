@@ -25,7 +25,8 @@ my %REL_NAME_MAP = (
     Design => {
         design_oligos   => 'oligos',
         design_comments => 'comments',
-        design_type     => 'type'
+        design_type     => 'type',
+        gene_designs    => 'designs'
     },
     DesignOligo => {
         design_oligo_locis => 'loci'
