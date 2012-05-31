@@ -7,7 +7,7 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use namespace::autoclean;
 
-requires qw( schema check_params throw retrieve log );
+requires qw( schema check_params throw retrieve log trace );
 
 has _design_comment_category_ids => (
     isa         => 'HashRef',
@@ -40,6 +40,7 @@ sub pspec_create_design {
         oligos                  => { optional => 1 },
         comments                => { optional => 1 },
         genotyping_primers      => { optional => 1 },
+        gene_ids                => { validate => 'mgi_accession_id', optional => 1 }
     };
 }
 
@@ -85,7 +86,7 @@ sub create_design {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_design );
 
-    $self->log->debug( "Create design" );
+    $self->log->debug( "Create design $validated_params->{id}" );
     my $design = $self->schema->resultset( 'Design' )->create(
         {
             slice_def( $validated_params,
@@ -94,6 +95,11 @@ sub create_design {
         }
     );
 
+    for my $g ( @{ $validated_params->{gene_ids} } ) {
+        $self->trace( "Create gene_design $g" );
+        $design->create_related( genes => { gene_id => $g, created_by => $self->user_id_for( 'unknown' ) } );
+    }
+    
     for my $c ( @{ $validated_params->{comments} || [] } ) {
         $self->trace( "Create design comment", $c );
         my $validated = $self->check_params( $c, $self->pspec_create_design_comment );
@@ -123,8 +129,8 @@ sub create_design {
 
 sub pspec_delete_design {
     return {
-        design_id => { validate => 'integer' },
-        cascade   => { validate => 'boolean', optional => 1 }
+        id      => { validate => 'integer' },
+        cascade => { validate => 'boolean', optional => 1 }
     }
 }
 
@@ -133,7 +139,7 @@ sub delete_design {
 
     my $validated_params = $self->check_params( $params, $self->pspec_delete_design );
 
-    my %search = slice( $validated_params, 'design_id' );
+    my %search = slice( $validated_params, 'id' );
     my $design = $self->schema->resultset( 'Design' )->find( \%search )
         or $self->throw(
             NotFound => {
@@ -164,7 +170,7 @@ sub delete_design {
 
 sub pspec_retrieve_design {
     return {
-        design_id => { validate => 'integer' }
+        id => { validate => 'integer' }
     }
 }
 
@@ -178,40 +184,52 @@ sub retrieve_design {
     return $design;
 }
 
-# sub _list_designs_for_gene {
-#     my ( $self, $gene_name ) = @_;
+sub pspec_list_designs_for_gene {
+    return {
+        gene => { validate => 'non_empty_string' },
+        type => { validate => 'existing_design_type', optional => 1 }
+    }
+}
 
-#     my %search_params = ( name => $gene_name, raw => 1 );
+sub list_designs_for_gene {
+    my ( $self, $params ) = @_;
 
-#     my $genes = $self->get_genes_by_name( \%search_params );
+    my $validated_params = $self->check_params( $params, $self->pspec_list_designs_for_gene );
 
-#     unless ( @{$genes} ) {
-#         $self->throw( 'NotFound' => { entity_class => 'Gene', search_params => \%search_params } );
-#     }
+    my $genes = $self->search_genes( { slice $validated_params, 'gene' } );
 
-#     my @transcripts = map { $_->stable_id } map { @{ $_->ensembl_gene->get_all_Transcripts } } @{$genes};
+    my $design_rs = $self->schema->resultset('Design')->search(
+        {
+            'genes.gene_id' => { '-in' => [ map { $_->{mgi_accession_id} } @{$genes} ] }
+        },
+        {
+            join => 'genes'
+        }
+    );
 
-#     my @design_ids = map { $_->design_id }
-#         $self->schema->resultset( 'Design' )->search( { target_transcript => { -in => \@transcripts } } );
+    if ( $validated_params->{type} ) {
+        $design_rs->search( { 'me.type' => $validated_params->{type} } );
+    }
 
-#     return \@design_ids;
-# }
+    return [ $design_rs->all ];
+}
 
-# # XXX Should we support other search criteria?
+sub pspec_list_candidate_designs_for_gene {
+    return {
+        gene => { validate => 'non_empty_string' },
+        type => { validate => 'existing_design_type', optional => 1 }
+    }
+}
 
-# sub pspec_list_designs {
-#     return {
-#         gene => { validate => 'non_empty_string' }
-#     }
-# }
+sub list_candidate_designs_for_gene {
+    my ( $self, $params ) = @_;
 
-# sub list_designs {
-#     my ( $self, $params ) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_list_candidate_designs_for_gene );
 
-#     my $validated_params = $self->check_params( $params, $self->pspec_list_designs );
+    my $genes = $self->search_genes( $validated_params );
 
-#     return $self->_list_designs_for_gene( $validated_params->{gene} );
-# }
+    # XXX TODO: retrieve gene from EnsEMBL, search for overlapping designs
+}
 
 1;
 
