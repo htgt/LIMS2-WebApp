@@ -152,7 +152,7 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 designs
+=head2 genes
 
 Type: has_many
 
@@ -161,7 +161,7 @@ Related object: L<LIMS2::Model::Schema::Result::GeneDesign>
 =cut
 
 __PACKAGE__->has_many(
-  "designs",
+  "genes",
   "LIMS2::Model::Schema::Result::GeneDesign",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -213,8 +213,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-31 10:44:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+YsH2m4r+jed9YQ9vdNYgw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-31 11:10:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pHH+xa16NjY04p3jFIhJlw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
