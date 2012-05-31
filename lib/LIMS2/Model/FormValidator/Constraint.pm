@@ -111,6 +111,10 @@ sub bac_name {
     return regexp_matches(qr/^[\w()-]+$/);
 }
 
+sub mgi_accession_id {
+    return regexp_matches(qr/^MGI:\d+$/);
+}
+
 # More restrictive values  for Cre Bac recombineering
 sub cre_bac_recom_bac_library {
     return in_set('black6');
