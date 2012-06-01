@@ -5,6 +5,8 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
+use List::Util qw( max min );
+use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -198,37 +200,91 @@ sub list_designs_for_gene {
 
     my $genes = $self->search_genes( { slice $validated_params, 'gene' } );
 
-    my $design_rs = $self->schema->resultset('Design')->search(
-        {
-            'genes.gene_id' => { '-in' => [ map { $_->{mgi_accession_id} } @{$genes} ] }
-        },
-        {
-            join => 'genes'
-        }
+    my %search = (
+        'genes.gene_id' => { '-in' => [ map { $_->{mgi_accession_id} } @{$genes} ] }
     );
 
-    if ( $validated_params->{type} ) {
-        $design_rs->search( { 'me.type' => $validated_params->{type} } );
+    if ( defined $validated_params->{type} ) {
+        $search{'me.design_type_id'} = $validated_params->{type};
     }
+        
+    my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'genes' } );
 
     return [ $design_rs->all ];
 }
 
-sub pspec_list_candidate_designs_for_gene {
+sub pspec_list_candidate_designs_for_mgi_accession {
     return {
-        gene => { validate => 'non_empty_string' },
-        type => { validate => 'existing_design_type', optional => 1 }
+        mgi_accession_id => { validate => 'mgi_accession_id' },
+        type             => { validate => 'existing_design_type', optional => 1 }
     }
 }
 
-sub list_candidate_designs_for_gene {
+sub list_candidate_designs_for_mgi_accession {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_list_candidate_designs_for_gene );
+    my $validated_params = $self->check_params( $params, $self->pspec_list_candidate_designs_for_mgi_accession );
 
-    my $genes = $self->search_genes( $validated_params );
+    my ( $chr, $start, $end, $strand ) = $self->_get_gene_chr_start_end_strand( $validated_params->{mgi_accession_id} );
 
-    # XXX TODO: retrieve gene from EnsEMBL, search for overlapping designs
+    my %search = (
+        'ncbim37_locus.chr_name'   => $chr,
+        'ncbim37_locus.chr_strand' => $strand,
+    );
+
+    if ( $strand == 1 ) {
+        $search{'ncbim37_locus.u5_end'}   = { '<', $end };
+        $search{'ncbim37_locus.d3_start'} = { '>', $start };
+    }
+    else {
+        $search{'ncbim37_locus.d3_end'}   = { '<', $end };
+        $search{'ncbim37_locus.u5_start'} = { '>', $start };
+    }
+
+    if ( defined $validated_params->{type} ) {
+        $search{'me.design_type_id'} = $validated_params->{type};
+    }
+    
+    my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'ncbim37_locus' } );
+
+    return [ $design_rs->all ];
+}
+
+sub _get_gene_chr_start_end_strand {
+    my ( $self, $mgi_accession_id ) = @_;    
+    
+    my @ensembl_genes = @{ $self->ensembl_gene_adaptor->fetch_all_by_external_name( $mgi_accession_id ) };
+
+    if ( @ensembl_genes == 0 ) {
+        $self->throw(
+            NotFound => {
+                message       => 'Found no matching EnsEMBL genes',
+                entity        => 'EnsEMBL Gene',
+                search_params => { external_id => $mgi_accession_id }
+            }
+        );
+    }
+
+    my @gene_chr = uniq( map { $_->seq_region_name } @ensembl_genes );
+    if ( @gene_chr != 1 ) {
+        $self->throw(
+            InvalidState => sprintf( 'EnsEMBL genes (%s) have different chromosomes',
+                                     join( q{, }, map { $_->stable_id } @ensembl_genes ) )
+        );
+    }    
+    
+    my @gene_strand = uniq( map { $_->seq_region_strand } @ensembl_genes );
+    if ( @gene_strand != 1 ) {
+        $self->throw(
+            InvalidState => sprintf( 'EnsEMBL genes (%s) have different strands',
+                                     join( q{, }, map { $_->stable_id } @ensembl_genes ) )
+        );
+    }
+
+    my $gene_start  = min( map { $_->seq_region_start } @ensembl_genes );
+    my $gene_end    = max( map { $_->seq_region_end   } @ensembl_genes );
+
+    return ( $gene_chr[0], $gene_start, $gene_end, $gene_strand[0] );    
 }
 
 1;
