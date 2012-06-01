@@ -29,6 +29,8 @@ Retrieve a design by id.
 sub design_GET {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles('read');
+
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->retrieve_design( { id => $c->request->param( 'id' ) } );
@@ -46,6 +48,8 @@ Create a design.
 
 sub design_POST {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
 
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -66,6 +70,8 @@ sub designs_for_gene : Path( '/api/designs_for_gene' ) :Args(0) :ActionClass( 'R
 sub designs_for_gene_GET {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles('read');
+
     my $designs = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->list_designs_for_gene( { slice_def $c->request->params, qw( gene type ) } );
@@ -75,13 +81,15 @@ sub designs_for_gene_GET {
     return $c->forward( 'list_designs', [$designs] );
 }
 
-sub candidate_designs_for_mgi_accession : Path( '/api/candidate_designs_for_gene' ) :Args(0) :ActionClass('REST') {
+sub candidate_designs_for_mgi_accession : Path( '/api/candidate_designs_for_mgi_accession' ) :Args(0) :ActionClass('REST') {
 }
 
 sub candidate_designs_for_mgi_accession_GET {
     my ( $self, $c ) = @_;
 
-    my $desgins = $c->model('Golgi')->txn_do(
+    $c->assert_user_roles('read');
+
+    my $designs = $c->model('Golgi')->txn_do(
         sub {
             shift->list_candidate_designs_for_mgi_accession( { slice_def $c->request->params, qw( mgi_accession_id type ) } );
         }
@@ -97,7 +105,7 @@ sub list_designs : Private {
 
     for my $d ( @{$designs} ) {
         my $r = $d->as_hash(1);
-        $r->{uri} = $c->uri_for( '/api/design', { id => $d->id } );
+        $r->{uri} = $c->uri_for( '/api/design', { id => $d->id } )->as_string;
         push @result, $r;
     }
 
