@@ -29,6 +29,14 @@ sub _build__design_comment_category_ids {
     return \%category_id_for;
 }
 
+sub list_design_types {
+    my $self = shift;
+
+    my $rs = $self->schema->resultset( 'DesignType' )->search( {}, { order_by => { -asc => 'id' } } );
+
+    return [ map { $_->id } $rs->all ];
+}
+
 sub pspec_create_design {
     return {
         id                      => { validate => 'integer' },
@@ -186,22 +194,20 @@ sub retrieve_design {
     return $design;
 }
 
-sub pspec_list_designs_for_gene {
+sub pspec_list_assigned_designs_for_gene {
     return {
-        gene => { validate => 'non_empty_string' },
-        type => { validate => 'existing_design_type', optional => 1 }
+        gene_id => { validate => 'mgi_accession_id' },
+        type    => { validate => 'existing_design_type', optional => 1 }
     }
 }
 
-sub list_designs_for_gene {
+sub list_assigned_designs_for_gene {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_list_designs_for_gene );
-
-    my $genes = $self->search_genes( { slice $validated_params, 'gene' } );
+    my $validated_params = $self->check_params( $params, $self->pspec_list_assigned_designs_for_gene );
 
     my %search = (
-        'genes.gene_id' => { '-in' => [ map { $_->{mgi_accession_id} } @{$genes} ] }
+        'genes.gene_id' => $validated_params->{gene_id}
     );
 
     if ( defined $validated_params->{type} ) {
@@ -213,19 +219,19 @@ sub list_designs_for_gene {
     return [ $design_rs->all ];
 }
 
-sub pspec_list_candidate_designs_for_mgi_accession {
+sub pspec_list_candidate_designs_for_gene {
     return {
-        mgi_accession_id => { validate => 'mgi_accession_id' },
-        type             => { validate => 'existing_design_type', optional => 1 }
+        gene_id => { validate => 'mgi_accession_id' },
+        type    => { validate => 'existing_design_type', optional => 1 }
     }
 }
 
-sub list_candidate_designs_for_mgi_accession {
+sub list_candidate_designs_for_gene {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_list_candidate_designs_for_mgi_accession );
+    my $validated_params = $self->check_params( $params, $self->pspec_list_candidate_designs_for_gene );
 
-    my ( $chr, $start, $end, $strand ) = $self->_get_gene_chr_start_end_strand( $validated_params->{mgi_accession_id} );
+    my ( $chr, $start, $end, $strand ) = $self->_get_gene_chr_start_end_strand( $validated_params->{gene_id} );
 
     my %search = (
         'ncbim37_locus.chr_name'   => $chr,
