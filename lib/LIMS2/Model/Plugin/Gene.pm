@@ -21,7 +21,7 @@ sub search_genes {
 
     my $genes = $self->solr_query( $validated_params->{gene} );
 
-    $self->throw( NotFound => { entity => 'Gene', search_params => $validated_params } )
+    $self->throw( NotFound => { entity_class => 'Gene', search_params => $validated_params } )
         unless @{$genes} > 0;
 
     return $genes;        
