@@ -242,11 +242,27 @@ sub as_hash {
 
     if ( ! $suppress_relations ) {
         $h{comments}           = [ map { $_->as_hash } $self->comments ];
-        $h{oligos}             = [ map { $_->as_hash } $self->oligos ];
-        $h{genotyping_primers} = [ map { $_->as_hash } $self->genotyping_primers ];
+        $h{oligos}             = $self->_sort_oligos;
+        $h{genotyping_primers} = [ sort { $a->{type} cmp $b->{type} } map { $_->as_hash } $self->genotyping_primers ];
     }
 
     return \%h;
+}
+
+sub _sort_oligos {
+    my $self = shift;
+
+    my @oligos = map { $_->[0] }
+        sort { $a->[1] <=> $b->[1] }
+            map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }
+                map { $_->as_hash } $self->oligos;
+
+    if ( $oligos[0]{locus} and $oligos[0]{locus}{chr_strand} == -1 ) {
+        return [ reverse @oligos ];
+    }
+    else {
+        return \@oligos;
+    }
 }
 
 __PACKAGE__->meta->make_immutable;
