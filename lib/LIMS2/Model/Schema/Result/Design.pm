@@ -218,5 +218,18 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+__PACKAGE__->might_have(
+    "ncbim37_locus",
+    "LIMS2::Model::Schema::Result::DesignOligoLocusNCBIM37",
+    { "foreign.design_id" => "self.id" }
+);
+
+sub as_hash {
+    my $self = shift;
+
+    die "XXX not implemented";
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
