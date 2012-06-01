@@ -20,22 +20,19 @@ LIMS2::WebApp::Controller::Root - Root Controller for LIMS2::WebApp
 
 =head1 METHODS
 
-=head2 site_index
+=head2 index
 
 The root page (/)
 
 =cut
 
-sub site_index : Path : Args(0) {
+## no critic(ProhibitBuiltinHomonyms)
+sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
-    unless ( $c->check_user_roles('read') ) {
-        $c->stash( error_msg => 'Please login to access this system' );
-        $c->go( 'Controller::Auth', 'login' );
-    }
-
-    return;
+    return $c->go( 'User', 'index' );
 }
+## use critic
 
 =head2 default
 

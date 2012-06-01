@@ -1,0 +1,9 @@
+[% META title = "HTGT LIMS2"; META tab_name = "Home" -%]
+<h1>Welcome to LIMS2</h1>
+
+<ul class="nav nav-pills nav-stacked">
+  <li>
+    <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
+  </li>
+</ul>
+

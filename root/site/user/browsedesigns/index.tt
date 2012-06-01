@@ -1,0 +1,27 @@
+[% META title = "Browse Designs" %]
+<form method="POST" action="[% c.uri_for( '/user/view_design' ) %]" class="well">
+  <fieldset>
+    <legend>View Design</legend>
+    <input type="text" name="design_id" placeholder="Design id" value="[% design_id %]" />    
+    <input type="submit" name="action" class="btn btn-primary" value="View Design" />
+  </fieldset>
+</form>
+
+<hr />
+
+<form method="POST" action="[% c.uri_for( '/user/list_designs' ) %]" class="well">
+  <fieldset>
+    <legend>List Designs</legend>
+    <input type="text" name="gene_id" placeholder="Gene id" value="[% gene_id %]" />
+    <label for="design_type_field">Design Type</label>
+    <select name="design_type" id="design_type_field">
+      <option value="-">-</option>
+      [%- FOR t IN design_types %]
+      <option value="[% t %]">[% t %]</option>
+      [%- END %]
+    </select>
+    <br />
+    <input type="submit" name="list_assigned_designs" class="btn btn-primary" value="List Designs Assigned to Gene" />
+    <input type="submit" name="list_candidate_designs" class="btn btn-primary" value="List Candidate Designs for Gene" />
+  </fieldset>
+</form>
