@@ -8,7 +8,13 @@ use Test::Most;
 
 {
     ok my $design = model->retrieve_design( { id => 95 } ), 'retrieve design id=95';
-    isa_ok $design, 'LIMS2::Model::Schema::Result::Design';    
+    isa_ok $design, 'LIMS2::Model::Schema::Result::Design';
+    can_ok $design, 'as_hash';
+    ok my $h1 = $design->as_hash(), 'as hash, with relations';
+    isa_ok $h1, ref {};
+    ok $h1->{genotyping_primers}, '...has genotyping primers';    
+    ok my $h2 = $design->as_hash(1), 'as_hash, suppress relations';
+    ok !$h2->{genotyping_primers}, '...no genotyping primers'; 
 }
 
 {
@@ -45,13 +51,4 @@ use Test::Most;
     ok grep( { $_->id == 95 } @{$designs} ), '...returns the expected design';
 }
 
-    
-
-
-
-    
-    
-
 done_testing;
-
-                               
