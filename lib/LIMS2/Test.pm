@@ -74,17 +74,19 @@ sub _build_model {
         BAIL_OUT( "database connect failed: " . ( $_ || '(unknown failure)' ) );
     };
 
-    try {
-        $model->schema->storage->dbh_do(
-            sub {
-                my ( $storage, $dbh ) = @_;
-                _load_fixtures( $dbh, $args );
-            }
-        );
+    unless ( $ENV{SKIP_LOAD_FIXTURES} ) {
+        try {
+            $model->schema->storage->dbh_do(
+                sub {
+                    my ( $storage, $dbh ) = @_;
+                    _load_fixtures( $dbh, $args );
+                }
+            );
+        }
+        catch {
+            BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
+        };
     }
-    catch {
-        BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
-    };
 
     return sub {$model};
 }
