@@ -10,7 +10,7 @@ requires qw( schema check_params throw retrieve log trace );
 
 sub pspec_search_genes {
     return {
-        gene => { validate => 'non_empty_string' }
+        gene => { validate => 'string_min_length_3' }
     };    
 }
 

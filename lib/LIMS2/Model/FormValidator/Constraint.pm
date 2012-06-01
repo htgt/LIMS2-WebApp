@@ -103,6 +103,10 @@ sub non_empty_string {
     return regexp_matches(qr/\S+/);
 }
 
+sub string_min_length_3 {
+    return regexp_matches(qr/\S{3}/);
+}
+
 sub bac_library {
     return regexp_matches(qr/^\w+$/);
 }
