@@ -164,5 +164,19 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub as_hash {
+    my $self = shift;
+
+    my $locus = $self->search_related( 'loci', { assembly_id => 'NCBIM37' } )->first;
+
+    return {
+        id    => $self->id,
+        type  => $self->design_oligo_type_id,
+        seq   => $self->seq,
+        locus => $locus ? $locus->as_hash : undef
+    };
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

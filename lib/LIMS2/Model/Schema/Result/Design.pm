@@ -226,9 +226,27 @@ __PACKAGE__->might_have(
 );
 
 sub as_hash {
-    my $self = shift;
+    my ( $self, $suppress_relations ) = @_;
 
-    die "XXX not implemented";
+    my %h = (
+        id                      => $self->id,
+        name                    => $self->name,
+        type                    => $self->design_type_id,
+        created_at              => $self->created_at->iso8601,
+        created_by              => $self->created_by->name,
+        phase                   => $self->phase,
+        validated_by_annotation => $self->validated_by_annotation,
+        target_transcript       => $self->target_transcript,
+        assigned_genes          => [ map { $_->gene_id } $self->genes ]
+    );
+
+    if ( ! $suppress_relations ) {
+        $h{comments}           = [ map { $_->as_hash } $self->comments ];
+        $h{oligos}             = [ map { $_->as_hash } $self->oligos ];
+        $h{genotyping_primers} = [ map { $_->as_hash } $self->genotyping_primers ];
+    }
+
+    return \%h;
 }
 
 __PACKAGE__->meta->make_immutable;

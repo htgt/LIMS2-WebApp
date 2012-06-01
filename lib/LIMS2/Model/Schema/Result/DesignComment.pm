@@ -176,5 +176,19 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+        id           => $self->id,
+        category     => $self->design_comment_category->name,
+        comment_text => $self->comment_text,
+        is_public    => $self->is_public,
+        created_at   => $self->created_at->iso8601,
+        created_by   => $self->created_by->name
+    }
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
