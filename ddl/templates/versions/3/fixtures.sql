@@ -1,3 +1,5 @@
+INSERT INTO schema_versions(version) VALUES (3);
+
 INSERT INTO assemblies(id)
 VALUES ('NCBIM34'), ('NCBIM36'), ('NCBIM37');
 
