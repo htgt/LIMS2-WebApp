@@ -109,7 +109,7 @@ sub create_design {
         $self->trace( "Create gene_design $g" );
         $design->create_related( genes => { gene_id => $g, created_by => $self->user_id_for( 'unknown' ) } );
     }
-    
+
     for my $c ( @{ $validated_params->{comments} || [] } ) {
         $self->trace( "Create design comment", $c );
         my $validated = $self->check_params( $c, $self->pspec_create_design_comment );
@@ -118,18 +118,18 @@ sub create_design {
 
     for my $o ( @{ $validated_params->{oligos} || [] } ) {
         $self->trace( "Create design oligo", $o );
-        my $validated = $self->check_params( $o, $self->pspec_create_design_oligo );
-        my $loci = delete $validated->{loci};
-        my $oligo = $design->create_related( oligos => $validated );
+        my $validated_oligo = $self->check_params( $o, $self->pspec_create_design_oligo );
+        my $loci = delete $validated_oligo->{loci};
+        my $oligo = $design->create_related( oligos => $validated_oligo );
         for my $l ( @{ $loci || [] } ) {
             $self->trace( "Create oligo locus", $l );
-            my $validated = $self->check_params( $l, $self->pspec_create_design_oligo_locus );
-            $oligo->create_related( loci => $validated );
+            my $validated_locus = $self->check_params( $l, $self->pspec_create_design_oligo_locus );
+            $oligo->create_related( loci => $validated_locus );
         }
     }
 
     for my $p ( @{ $validated_params->{genotyping_primers} || [] } ) {
-        $self->trace( "Create genotyping primer", $p );        
+        $self->trace( "Create genotyping primer", $p );
         my $validated = $self->check_params( $p, $self->pspec_create_genotyping_primer );
         $design->create_related( genotyping_primers => $validated );
     }
@@ -213,7 +213,7 @@ sub list_assigned_designs_for_gene {
     if ( defined $validated_params->{type} ) {
         $search{'me.design_type_id'} = $validated_params->{type};
     }
-        
+
     my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'genes' } );
 
     return [ $design_rs->all ];
@@ -250,15 +250,15 @@ sub list_candidate_designs_for_gene {
     if ( defined $validated_params->{type} ) {
         $search{'me.design_type_id'} = $validated_params->{type};
     }
-    
+
     my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'ncbim37_locus' } );
 
     return [ $design_rs->all ];
 }
 
 sub _get_gene_chr_start_end_strand {
-    my ( $self, $mgi_accession_id ) = @_;    
-    
+    my ( $self, $mgi_accession_id ) = @_;
+
     my @ensembl_genes = @{ $self->ensembl_gene_adaptor->fetch_all_by_external_name( $mgi_accession_id ) };
 
     if ( @ensembl_genes == 0 ) {
@@ -277,8 +277,8 @@ sub _get_gene_chr_start_end_strand {
             InvalidState => sprintf( 'EnsEMBL genes (%s) have different chromosomes',
                                      join( q{, }, map { $_->stable_id } @ensembl_genes ) )
         );
-    }    
-    
+    }
+
     my @gene_strand = uniq( map { $_->seq_region_strand } @ensembl_genes );
     if ( @gene_strand != 1 ) {
         $self->throw(
@@ -290,7 +290,7 @@ sub _get_gene_chr_start_end_strand {
     my $gene_start  = min( map { $_->seq_region_start } @ensembl_genes );
     my $gene_end    = max( map { $_->seq_region_end   } @ensembl_genes );
 
-    return ( $gene_chr[0], $gene_start, $gene_end, $gene_strand[0] );    
+    return ( $gene_chr[0], $gene_start, $gene_end, $gene_strand[0] );
 }
 
 1;

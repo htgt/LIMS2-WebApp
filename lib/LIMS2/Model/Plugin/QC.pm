@@ -219,7 +219,7 @@ sub find_or_create_qc_seq_read {
             well_name  => $validated_params->{well_name}
         },
         {
-            key => 'qc_run_seq_wells_qc_run_id_plate_name_well_name_key' 
+            key => 'qc_run_seq_wells_qc_run_id_plate_name_well_name_key'
         }
     );
 

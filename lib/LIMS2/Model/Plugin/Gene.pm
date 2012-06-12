@@ -11,7 +11,7 @@ requires qw( schema check_params throw retrieve log trace );
 sub pspec_search_genes {
     return {
         gene => { validate => 'string_min_length_3' }
-    };    
+    };
 }
 
 sub search_genes {
@@ -24,7 +24,7 @@ sub search_genes {
     $self->throw( NotFound => { entity_class => 'Gene', search_params => $validated_params } )
         unless @{$genes} > 0;
 
-    return $genes;        
+    return $genes;
 }
 
 1;

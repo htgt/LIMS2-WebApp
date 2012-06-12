@@ -203,10 +203,12 @@ sub retrieve_list {
 sub trace {
     my ( $self, @args ) = @_;
 
-    return unless $self->log->is_trace;
+    if ( $self->log->is_trace ) {
+        my $mesg = join "\n", map { ref $_ ? pp( $_ ) : $_ } @args;
+        $self->log->trace( $mesg );
+    }
 
-    my $mesg = join "\n", map { ref $_ ? pp( $_ ) : $_ } @args;
-    $self->log->trace( $mesg );
+    return;
 }
 
 with( qw( MooseX::Log::Log4perl ), __PACKAGE__->plugins );

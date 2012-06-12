@@ -26,13 +26,11 @@ The root page (/)
 
 =cut
 
-## no critic(ProhibitBuiltinHomonyms)
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     return $c->go( 'User', 'index' );
 }
-## use critic
 
 =head2 default
 
@@ -40,14 +38,12 @@ Standard 404 error page
 
 =cut
 
-## no critic(ProhibitBuiltinHomonyms)
 sub default : Path {
     my ( $self, $c ) = @_;
     $c->response->body('Page not found');
     $c->response->status(404);
     return;
 }
-## use critic
 
 =head2 end
 

@@ -18,7 +18,7 @@ Catalyst Controller.
 
 sub auto : Private {
     my ( $self, $c ) = @_;
-    
+
     unless ( $c->user ) {
         $c->stash( error_msg => 'Please login to access this system' );
         $c->go( 'Controller::Auth', 'login' );
@@ -33,6 +33,7 @@ sub auto : Private {
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
+    return;
 }
 
 =head1 AUTHOR

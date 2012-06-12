@@ -10,7 +10,7 @@ requires qw( schema check_params throw retrieve );
 sub list_bac_libraries {
     my ( $self ) = @_;
 
-    [ map { $_->id } $self->schema->resultset( 'BacLibrary' )->all ];
+    return [ map { $_->id } $self->schema->resultset( 'BacLibrary' )->all ];
 }
 
 sub pspec_create_bac_clone {
@@ -36,7 +36,7 @@ sub create_bac_clone {
     my $validated_params = $self->check_params( $params, $self->pspec_create_bac_clone );
 
     my $loci = delete $validated_params->{loci} || [];
-    
+
     my $bac_clone = $self->schema->resultset( 'BacClone' )->create( $validated_params );
 
     for my $locus ( @{$loci} ) {

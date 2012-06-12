@@ -95,12 +95,12 @@ sub candidate_designs_for_mgi_accession_GET {
         }
     );
 
-    $c->forward( 'list_designs', [$designs] );
+    return $c->forward( 'list_designs', [$designs] );
 }
 
 sub list_designs : Private {
     my ( $self, $c, $designs ) = @_;
-    
+
     my @result;
 
     for my $d ( @{$designs} ) {
