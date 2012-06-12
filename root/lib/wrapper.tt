@@ -7,12 +7,15 @@
 
     <!-- Le styles -->
     <link href="[% c.uri_for( '/static/bootstrap/css/bootstrap.min.css' ) %]" rel="stylesheet">
-    <style>
+    <style type="text/css"> 
       body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+        padding-top: 60px;
+        padding-bottom: 40px;        
+      }
+      div#main {
+        padding-top: 20px;
       }
     </style>
-
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -58,7 +61,7 @@
       </div>
     </div>
 
-    <div class="container">
+    <div id="main" class="container">
       [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
       <div class="alert alert-error">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
