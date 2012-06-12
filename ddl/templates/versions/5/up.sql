@@ -44,7 +44,8 @@ GRANT SELECT ON well_accepted_override TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON well_accepted_override TO "[% rw_role %]";
 
 CREATE TABLE process_types (
-       id        TEXT PRIMARY KEY
+       id          TEXT PRIMARY KEY,
+       description TEXT NOT NULL DEFAULT ''
 );
 GRANT SELECT ON process_types TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_types TO "[% rw_role %]";
