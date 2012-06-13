@@ -152,6 +152,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Plate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "plates",
+  "LIMS2::Model::Schema::Result::Plate",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 qc_runs
 
 Type: has_many
@@ -182,6 +197,36 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_accepted_overrides
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellAcceptedOverride>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_accepted_overrides",
+  "LIMS2::Model::Schema::Result::WellAcceptedOverride",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Well>
+
+=cut
+
+__PACKAGE__->has_many(
+  "wells",
+  "LIMS2::Model::Schema::Result::Well",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 roles
 
 Type: many_to_many
@@ -193,8 +238,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:48:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ybYfORtX6Hh1mKDsaxt98Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 10:23:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j0NSSwy42xuMCqDc900Tkw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

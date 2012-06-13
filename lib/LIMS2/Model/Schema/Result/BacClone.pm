@@ -135,9 +135,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_bacs
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:22XHs1NzNesQQTsFu73aPg
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessBac>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_bacs",
+  "LIMS2::Model::Schema::Result::ProcessBac",
+  { "foreign.bac_clone_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 10:23:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V9cybAGjMi8DidtICxurYg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
