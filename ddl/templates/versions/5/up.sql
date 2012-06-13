@@ -11,6 +11,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON plate_types TO "[% rw_role %]";
 CREATE TABLE plates (
        id               SERIAL PRIMARY KEY,
        name             TEXT NOT NULL UNIQUE,
+       description      TEXT NOT NULL DEFAULT '',
        type_id          TEXT NOT NULL REFERENCES plate_types(id),
        created_by_id    INTEGER NOT NULL REFERENCES users(id),
        created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -56,8 +57,9 @@ GRANT SELECT ON well_accepted_override TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON well_accepted_override TO "[% rw_role %]";
 
 CREATE TABLE process_types (
-       id          TEXT PRIMARY KEY,
-       description TEXT NOT NULL DEFAULT ''
+       id            TEXT PRIMARY KEY,
+       description   TEXT NOT NULL DEFAULT '',
+       plate_type_id TEXT NOT NULL REFERENCES plate_types(id)
 );
 GRANT SELECT ON process_types TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_types TO "[% rw_role %]";

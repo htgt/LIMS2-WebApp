@@ -69,6 +69,12 @@ __PACKAGE__->table("plates");
   is_nullable: 0
   original: {default_value => \"now()"}
 
+=head2 description
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -92,6 +98,8 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+  "description",
+  { data_type => "text", default_value => "", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -183,8 +191,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 15:36:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A37UyuTWsc6fYBdNSPodXA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 16:37:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4mEX/syuMqb9p5Mk6DFfOA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

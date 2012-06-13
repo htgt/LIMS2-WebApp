@@ -110,6 +110,7 @@ audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
 id integer,
 name text,
+description text,
 type_id text,
 created_by_id integer,
 created_at timestamp without time zone
