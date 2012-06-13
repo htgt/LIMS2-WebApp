@@ -34,7 +34,7 @@ sub login : Global {
         return;
     }
 
-    if ( $c->authenticate( { name => $username, password => $password, active => 1 } ) ) {
+    if ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
         $c->flash( success_msg => 'Login successful' );
         return $c->res->redirect($goto);
     }
