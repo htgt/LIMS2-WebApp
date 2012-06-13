@@ -19,6 +19,18 @@ GRANT SELECT ON plates TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON plates TO "[% rw_role %]";
 GRANT USAGE ON SEQUENCE plates_id_seq TO "[% rw_role %]";
 
+CREATE TABLE plate_comments (
+       id                   SERIAL PRIMARY KEY,
+       plate_id             INTEGER NOT NULL REFERENCES plates(id),
+       comment_text         TEXT NOT NULL CHECK (comment_text <> ''),
+       created_by           INTEGER NOT NULL REFERENCES users(user_id),
+       created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+GRANT SELECT ON plate_comments TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON plate_comments TO "[% rw_role %]";
+GRANT USAGE ON SEQUENCE plate_comments_plate_comment_id_seq TO "[% rw_role %]";       
+
 CREATE TABLE wells (
        id               SERIAL PRIMARY KEY,
        plate_id         INTEGER NOT NULL REFERENCES plates(id),
