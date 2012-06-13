@@ -152,6 +152,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 plate_comments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::PlateComment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "plate_comments",
+  "LIMS2::Model::Schema::Result::PlateComment",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plates
 
 Type: has_many
@@ -208,7 +223,7 @@ Related object: L<LIMS2::Model::Schema::Result::WellAcceptedOverride>
 __PACKAGE__->has_many(
   "well_accepted_overrides",
   "LIMS2::Model::Schema::Result::WellAcceptedOverride",
-  { "foreign.created_by" => "self.id" },
+  { "foreign.created_by_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -238,8 +253,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 10:23:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j0NSSwy42xuMCqDc900Tkw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 15:44:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v6++n4Wp8/M5vy04bbNfjQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

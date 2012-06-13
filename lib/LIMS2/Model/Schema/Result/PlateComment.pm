@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Plate;
+package LIMS2::Model::Schema::Result::PlateComment;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Plate
+LIMS2::Model::Schema::Result::PlateComment
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<plates>
+=head1 TABLE: C<plate_comments>
 
 =cut
 
-__PACKAGE__->table("plates");
+__PACKAGE__->table("plate_comments");
 
 =head1 ACCESSORS
 
@@ -43,17 +43,17 @@ __PACKAGE__->table("plates");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'plates_id_seq'
+  sequence: 'plate_comments_id_seq'
 
-=head2 name
+=head2 plate_id
 
-  data_type: 'text'
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
 
-=head2 type_id
+=head2 comment_text
 
   data_type: 'text'
-  is_foreign_key: 1
   is_nullable: 0
 
 =head2 created_by_id
@@ -77,12 +77,12 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "plates_id_seq",
+    sequence          => "plate_comments_id_seq",
   },
-  "name",
+  "plate_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "comment_text",
   { data_type => "text", is_nullable => 0 },
-  "type_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "created_by_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -106,20 +106,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<plates_name_key>
-
-=over 4
-
-=item * L</name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("plates_name_key", ["name"]);
-
 =head1 RELATIONS
 
 =head2 created_by
@@ -137,54 +123,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 plate_comments
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::PlateComment>
-
-=cut
-
-__PACKAGE__->has_many(
-  "plate_comments",
-  "LIMS2::Model::Schema::Result::PlateComment",
-  { "foreign.plate_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 type
+=head2 plate
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::PlateType>
+Related object: L<LIMS2::Model::Schema::Result::Plate>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "type",
-  "LIMS2::Model::Schema::Result::PlateType",
-  { id => "type_id" },
+  "plate",
+  "LIMS2::Model::Schema::Result::Plate",
+  { id => "plate_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 wells
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::Well>
-
-=cut
-
-__PACKAGE__->has_many(
-  "wells",
-  "LIMS2::Model::Schema::Result::Well",
-  { "foreign.plate_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 15:36:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A37UyuTWsc6fYBdNSPodXA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 15:44:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:58T4M2scXYqdqRA0bmJ3lg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

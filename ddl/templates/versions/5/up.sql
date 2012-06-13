@@ -23,7 +23,7 @@ CREATE TABLE plate_comments (
        id                   SERIAL PRIMARY KEY,
        plate_id             INTEGER NOT NULL REFERENCES plates(id),
        comment_text         TEXT NOT NULL CHECK (comment_text <> ''),
-       created_by           INTEGER NOT NULL REFERENCES users(user_id),
+       created_by_id        INTEGER NOT NULL REFERENCES users(user_id),
        created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -49,7 +49,7 @@ GRANT USAGE ON SEQUENCE wells_id_seq TO "[% rw_role %]";
 CREATE TABLE well_accepted_override (
        well_id             INTEGER PRIMARY KEY REFERENCES wells(id),
        accepted            BOOLEAN NOT NULL,
-       created_by          INTEGER NOT NULL REFERENCES users(id),
+       created_by_id       INTEGER NOT NULL REFERENCES users(id),
        created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 GRANT SELECT ON well_accepted_override TO "[% ro_role %]";

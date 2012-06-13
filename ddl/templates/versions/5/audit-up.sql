@@ -82,7 +82,7 @@ audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
 well_id integer,
 accepted boolean,
-created_by integer,
+created_by_id integer,
 created_at timestamp without time zone
 );
 GRANT SELECT ON audit.well_accepted_override TO "[% ro_role %]";
@@ -328,7 +328,7 @@ audit_txid INTEGER NOT NULL,
 id integer,
 plate_id integer,
 comment_text text,
-created_by integer,
+created_by_id integer,
 created_at timestamp without time zone
 );
 GRANT SELECT ON audit.plate_comments TO "[% ro_role %]";
