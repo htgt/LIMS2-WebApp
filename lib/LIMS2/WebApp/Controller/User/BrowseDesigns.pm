@@ -61,16 +61,14 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
         $design = $c->model('Golgi')->retrieve_design( { id => $design_id } )->as_hash;
     }
     catch( LIMS2::Exception::Validation $e ) {
-        $c->log->error("$e");
-            $c->stash( error_msg => "Please enter a valid design id" );
-            return $c->go('index');
-        } catch( LIMS2::Exception::NotFound $e ) {
-        $c->log->error("$e");
-            $c->stash( error_msg => "Design $design_id not found" );
-            return $c->go('index');
-        }
+        $c->stash( error_msg => "Please enter a valid design id" );
+        return $c->go('index');
+    } catch( LIMS2::Exception::NotFound $e ) {
+        $c->stash( error_msg => "Design $design_id not found" );
+        return $c->go('index');
+    }
 
-        $design->{assigned_genes} = join q{, }, @{ $design->{assigned_genes} || [] };
+    $design->{assigned_genes} = join q{, }, @{ $design->{assigned_genes} || [] };
 
     $c->log->debug( "Design: " . pp $design );
 
@@ -97,16 +95,14 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
         $genes = $c->model('Golgi')->search_genes( { gene => $gene_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
-        $c->log->error("$e");
-            $c->stash( error_msg => "Please enter a valid gene identifier" );
-            return $c->go('index');
-        } catch( LIMS2::Exception::NotFound $e ) {
-        $c->log->error("$e");
-            $c->stash( error_msg => "Found no genes matching '$gene_id'" );
-            return $c->go('index');
-        }
+        $c->stash( error_msg => "Please enter a valid gene identifier" );
+        return $c->go('index');
+    } catch( LIMS2::Exception::NotFound $e ) {
+        $c->stash( error_msg => "Found no genes matching '$gene_id'" );
+        return $c->go('index');
+    }
 
-        my ( $method, %search_params );
+    my ( $method, %search_params );
 
     if ( $c->request->param('list_candidate_designs') ) {
         $method = 'list_candidate_designs_for_gene';
