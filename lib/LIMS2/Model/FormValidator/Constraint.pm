@@ -179,20 +179,25 @@ sub existing_design_oligo_type {
     return in_resultset( $model, 'DesignOligoType', 'id' );
 }
 
-sub existing_pipeline {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Pipeline', 'name' );
-}
+#sub existing_pipeline {
+#    my ( $class, $model ) = @_;
+#    return in_resultset( $model, 'Pipeline', 'name' );
+#}
 
 sub existing_plate_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'PlateType', 'type' );
+    return in_resultset( $model, 'PlateType', 'id' );
 }
 
-sub existing_design_well_recombineering_assay {
+sub existing_process_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignWellRecombineeringAssay', 'assay' );
+    return in_resultset( $model, 'ProcessType', 'id' );
 }
+
+#sub existing_design_well_recombineering_assay {
+#    my ( $class, $model ) = @_;
+#    return in_resultset( $model, 'DesignWellRecombineeringAssay', 'assay' );
+#}
 
 sub existing_genotyping_primer_type {
     my ( $class, $model ) = @_;
@@ -281,39 +286,39 @@ sub existing_final_backbone {
     return eng_seq_of_type( $model, 'final-backbone' );
 }
 
-sub design_parent_plate_type {
-    return in_set();
-}
+# sub design_parent_plate_type {
+#     return in_set();
+# }
 
-sub pcs_parent_plate_type {
-    return in_set(qw( design pcs ));
-}
+# sub pcs_parent_plate_type {
+#     return in_set(qw( design pcs ));
+# }
 
-sub pgs_parent_plate_type {
-    return in_set(qw( design pcs pgs ));
-}
+# sub pgs_parent_plate_type {
+#     return in_set(qw( design pcs pgs ));
+# }
 
-sub vtp_parent_plate_type {
+# sub vtp_parent_plate_type {
 
-    # probably more plates types to add here
-    return in_set(qw( design pcs pgs ));
-}
+#     # probably more plates types to add here
+#     return in_set(qw( design pcs pgs ));
+# }
 
-sub dna_parent_plate_type {
-    return in_set(qw( design pcs pgs dna ));
-}
+# sub dna_parent_plate_type {
+#     return in_set(qw( design pcs pgs dna ));
+# }
 
-sub ep_parent_plate_type {
-    return in_set(qw( design pcs pgs dna ep ));
-}
+# sub ep_parent_plate_type {
+#     return in_set(qw( design pcs pgs dna ep ));
+# }
 
-sub epd_parent_plate_type {
-    return in_set(qw( design pcs pgs ep epd ));
-}
+# sub epd_parent_plate_type {
+#     return in_set(qw( design pcs pgs ep epd ));
+# }
 
-sub fp_parent_plate_type {
-    return in_set(qw( design pcs pgs ep epd fp ));
-}
+# sub fp_parent_plate_type {
+#     return in_set(qw( design pcs pgs ep epd fp ));
+# }
 
 sub comma_separated_list {
     return regexp_matches(qr/^[^,]+(?:,[^,+])*$/);
