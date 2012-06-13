@@ -78,6 +78,18 @@
     [%- END %]
     </tbody>
   </table>
+  [% IF design.oligos_fasta %]
+  <form id="UCSC_BLAT" enctype="multipart/form-data" method="post" action="http://genome.ucsc.edu/cgi-bin/hgBlat" name="UCSC_BLAT" target="_blank">
+    <input type="hidden" name="org" value="Mouse" />
+    <input type="hidden" name="db" value="mm9" />
+    <input type="hidden" name="type" value="DNA" />
+    <input type="hidden" name="sort" value="query,score" />
+    <input type="hidden" name="output" value="hyperlink" />
+    <input type="hidden" name="userSeq" value="[% design.oligos_fasta %]"/>
+    <input type="hidden" name="Lucky" value="I'm feeling lucky" />
+    <input type="submit" class="btn btn-primary" value="UCSC BLAT" name="Lucky"/>
+   </form>
+   [% END %]
 [% ELSE %]
   <p><em>No oligos for this design</em></p>
 [% END %]
