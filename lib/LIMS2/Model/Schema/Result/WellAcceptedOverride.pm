@@ -49,7 +49,7 @@ __PACKAGE__->table("well_accepted_override");
   data_type: 'boolean'
   is_nullable: 0
 
-=head2 created_by
+=head2 created_by_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -69,7 +69,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "accepted",
   { data_type => "boolean", is_nullable => 0 },
-  "created_by",
+  "created_by_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
   {
@@ -105,7 +105,7 @@ Related object: L<LIMS2::Model::Schema::Result::User>
 __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
-  { id => "created_by" },
+  { id => "created_by_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -125,8 +125,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 10:23:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QkP0jQ93e8aSmyeTqlmOag
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 15:44:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OCxobrzlxhsqv2xzF+RB1g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
