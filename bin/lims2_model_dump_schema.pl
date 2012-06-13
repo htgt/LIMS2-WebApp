@@ -116,7 +116,7 @@ my %make_schema_opts = (
 );
 
 if ( $overwrite ) {
-    $make_schema_opts{overwrite_changes} = 1;
+    $make_schema_opts{overwrite_modifications} = 1;
 }
 
 make_schema_at(
