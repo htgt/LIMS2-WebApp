@@ -241,8 +241,10 @@ sub as_hash {
     );
 
     if ( ! $suppress_relations ) {
+        my $oligos = $self->_sort_oligos;
         $h{comments}           = [ map { $_->as_hash } $self->comments ];
-        $h{oligos}             = $self->_sort_oligos;
+        $h{oligos}             = $oligos;
+        $h{oligos_fasta}       = $self->_oligos_fasta( $oligos );
         $h{genotyping_primers} = [ sort { $a->{type} cmp $b->{type} } map { $_->as_hash } $self->genotyping_primers ];
     }
 
@@ -263,6 +265,29 @@ sub _sort_oligos {
     else {
         return \@oligos;
     }
+}
+
+sub _oligos_fasta {
+    my ( $self, $oligos ) = @_;
+
+    return unless @{$oligos};
+
+    my $strand = $oligos->[0]{locus}{chr_strand};
+
+    require Bio::Seq;
+    require Bio::SeqIO;
+    require IO::String;    
+
+    my $fasta;
+    my $seq_io = Bio::SeqIO->new( -format => 'fasta', -fh => IO::String->new( $fasta ) );
+
+    my $seq = Bio::Seq->new( -display_id => 'design_' . $self->id,
+                             -alphabet   => 'dna',
+                             -seq        => join '', map { $_->{seq} } @{ $oligos } );
+
+    $seq_io->write_seq( $strand == 1 ? $seq : $seq->revcom );
+
+    return $fasta;
 }
 
 __PACKAGE__->meta->make_immutable;
