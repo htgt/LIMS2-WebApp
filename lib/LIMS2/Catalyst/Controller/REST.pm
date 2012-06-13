@@ -3,7 +3,6 @@ package LIMS2::Catalyst::Controller::REST;
 use Moose;
 use Scalar::Util qw( blessed );
 use HTTP::Status qw( :constants );
-use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller::REST'; }
