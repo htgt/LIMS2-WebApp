@@ -87,7 +87,7 @@
     <input type="hidden" name="output" value="hyperlink" />
     <input type="hidden" name="userSeq" value="[% design.oligos_fasta %]"/>
     <input type="hidden" name="Lucky" value="I'm feeling lucky" />
-    <input type="submit" class="button btn-primary" value="UCSC BLAT" name="Lucky"/>
+    <input type="submit" class="btn btn-primary" value="UCSC BLAT" name="Lucky"/>
    </form>
    [% END %]
 [% ELSE %]
