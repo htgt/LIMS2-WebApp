@@ -66,6 +66,7 @@ my $pg_user      = $ENV{USER};
 my $pg_role      = undef;
 my $schema_class = 'LIMS2::Model::Schema';
 my $lib_dir      = dir( $FindBin::Bin )->parent->subdir( 'lib' );
+my $overwrite    = 0;
 my @components   = qw( InflateColumn::DateTime );
 
 GetOptions(
@@ -78,6 +79,7 @@ GetOptions(
     'schema-class=s' => \$schema_class,
     'lib-dir=s'      => \$lib_dir,
     'component=s@'   => \@components,
+    'overwrite!'     => \$overwrite,
 ) or die "$0 [OPTIONS]\n";
 
 my $dsn = 'dbi:Pg:dbname=' . $pg_database;
@@ -103,16 +105,22 @@ if ( $pg_role ) {
     $opts{on_connect_do} = [ sprintf( 'SET ROLE "%s"', $pg_role ) ];
 }
 
-make_schema_at(
-    $schema_class,
-    {   debug          => 0,
-        dump_directory => $lib_dir->stringify,
-        db_schema      => $pg_schema,
-        components     => \@components,
-        use_moose      => 1,
-        moniker_map    => \%MONIKER_MAP,
-        rel_name_map   => \%REL_NAME_MAP
-    },
-    [ $dsn, $pg_user, $pg_password, {}, \%opts ]
+my %make_schema_opts = (
+    debug          => 0,
+    dump_directory => $lib_dir->stringify,
+    db_schema      => $pg_schema,
+    components     => \@components,
+    use_moose      => 1,
+    moniker_map    => \%MONIKER_MAP,
+    rel_name_map   => \%REL_NAME_MAP
 );
 
+if ( $overwrite ) {
+    $make_schema_opts{overwrite_changes} = 1;
+}
+
+make_schema_at(
+    $schema_class,
+    \%make_schema_opts,
+    [ $dsn, $pg_user, $pg_password, {}, \%opts ]
+);
