@@ -2,6 +2,10 @@
 
 0.003     2012-06-15 12:51:09 Europe/London
 
+   Implement schema to store designs and BACs.
+   Implement minimal API for managing designs.
+   Implement browse interface for designs.
+
 0.002     2012-05-29 11:57:39 Europe/London
 
    Implement user admin functions.
