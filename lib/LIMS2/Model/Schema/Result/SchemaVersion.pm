@@ -1,9 +1,8 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::SchemaVersion;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::SchemaVersion::VERSION = '0.002';
+    $LIMS2::Model::Schema::Result::SchemaVersion::VERSION = '0.003';
 }
 ## use critic
 
@@ -60,14 +59,15 @@ __PACKAGE__->table("schema_versions");
 =cut
 
 __PACKAGE__->add_columns(
-    "version",
-    { data_type => "integer", is_nullable => 0 },
-    "deployed_at",
-    {   data_type     => "timestamp",
-        default_value => \"current_timestamp",
-        is_nullable   => 0,
-        original      => { default_value => \"now()" },
-    },
+  "version",
+  { data_type => "integer", is_nullable => 0 },
+  "deployed_at",
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+    original      => { default_value => \"now()" },
+  },
 );
 
 =head1 PRIMARY KEY
@@ -82,10 +82,12 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key( "version", "deployed_at" );
+__PACKAGE__->set_primary_key("version", "deployed_at");
+
 
 # Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-01-05 09:46:51
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hk7mLYaMY/NvPkZJWFHZPw
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

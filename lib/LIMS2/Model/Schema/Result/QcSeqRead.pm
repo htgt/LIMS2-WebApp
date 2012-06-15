@@ -1,9 +1,8 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::QcSeqRead;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcSeqRead::VERSION = '0.002';
+    $LIMS2::Model::Schema::Result::QcSeqRead::VERSION = '0.003';
 }
 ## use critic
 
@@ -56,12 +55,6 @@ __PACKAGE__->table("qc_seq_reads");
   default_value: (empty string)
   is_nullable: 0
 
-=head2 qc_seq_project_well_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 primer_name
 
   data_type: 'text'
@@ -77,15 +70,27 @@ __PACKAGE__->table("qc_seq_reads");
   data_type: 'integer'
   is_nullable: 0
 
+=head2 qc_seq_project_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
-    "id",                     { data_type => "text",    is_nullable    => 0 },
-    "description",            { data_type => "text",    default_value  => "", is_nullable => 0 },
-    "qc_seq_project_well_id", { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "primer_name",            { data_type => "text",    is_nullable    => 0 },
-    "seq",                    { data_type => "text",    is_nullable    => 0 },
-    "length",                 { data_type => "integer", is_nullable    => 0 },
+  "id",
+  { data_type => "text", is_nullable => 0 },
+  "description",
+  { data_type => "text", default_value => "", is_nullable => 0 },
+  "primer_name",
+  { data_type => "text", is_nullable => 0 },
+  "seq",
+  { data_type => "text", is_nullable => 0 },
+  "length",
+  { data_type => "integer", is_nullable => 0 },
+  "qc_seq_project_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -111,27 +116,45 @@ Related object: L<LIMS2::Model::Schema::Result::QcAlignment>
 =cut
 
 __PACKAGE__->has_many(
-    "qc_alignments", "LIMS2::Model::Schema::Result::QcAlignment",
-    { "foreign.qc_seq_read_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
+  "qc_alignments",
+  "LIMS2::Model::Schema::Result::QcAlignment",
+  { "foreign.qc_seq_read_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_seq_project_well
+=head2 qc_run_seq_well_qc_seqs_read
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcRunSeqWellQcSeqRead>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_run_seq_well_qc_seqs_read",
+  "LIMS2::Model::Schema::Result::QcRunSeqWellQcSeqRead",
+  { "foreign.qc_seq_read_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_seq_project
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
+Related object: L<LIMS2::Model::Schema::Result::QcSeqProject>
 
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_seq_project_well",
-    "LIMS2::Model::Schema::Result::QcSeqProjectWell",
-    { id            => "qc_seq_project_well_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_seq_project",
+  "LIMS2::Model::Schema::Result::QcSeqProject",
+  { id => "qc_seq_project_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cmvz45Ta/XPkHzLD7cYyHw
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fvXPh/4FKOffzsuvGJZxLg
 
 sub as_hash {
     my $self = shift;

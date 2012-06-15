@@ -18,6 +18,8 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
+  Bio::Seq: 0
+  Bio::SeqIO: 0
   Carp: 0
   Catalyst: 0
   Catalyst::Controller: 0
@@ -43,6 +45,7 @@ requires:
   DBIx::Connector: 0
   DBIx::RunSQL: 0
   Data::Compare: 0
+  Data::Dump: 0
   Data::FormValidator: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
@@ -53,12 +56,15 @@ requires:
   Getopt::Long: 0
   HTTP::Status: 0
   Hash::MoreUtils: 0
+  IO::String: 0
   JSON: 0
   LIMS2::Exception: 0
   LIMS2::Exception::Database: 0
   LIMS2::Util: 0
   LIMS2::Util::EnsEMBL: 0
+  LIMS2::Util::Solr: 0
   List::MoreUtils: 0
+  List::Util: 0
   Log::Log4perl: 0
   Log::Log4perl::Catalyst: 0
   Module::Pluggable::Object: 0
@@ -83,4 +89,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.002
+version: 0.003

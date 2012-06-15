@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 
 BEGIN {
     use Log::Log4perl qw( :levels );
-    Log::Log4perl->easy_init( $DEBUG );
+    Log::Log4perl->easy_init( $ERROR );
 }
 
 use Test::Most;

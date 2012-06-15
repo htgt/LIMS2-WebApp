@@ -1,9 +1,8 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::QcTestResult;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTestResult::VERSION = '0.002';
+    $LIMS2::Model::Schema::Result::QcTestResult::VERSION = '0.003';
 }
 ## use critic
 
@@ -65,12 +64,6 @@ __PACKAGE__->table("qc_test_results");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 qc_seq_project_well_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 score
 
   data_type: 'integer'
@@ -83,25 +76,32 @@ __PACKAGE__->table("qc_test_results");
   default_value: false
   is_nullable: 0
 
+=head2 qc_run_seq_well_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
-    "id",
-    {   data_type         => "integer",
-        is_auto_increment => 1,
-        is_nullable       => 0,
-        sequence          => "qc_test_results_id_seq",
-    },
-    "qc_run_id",
-    { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
-    "qc_eng_seq_id",
-    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "qc_seq_project_well_id",
-    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "score",
-    { data_type => "integer", default_value => 0, is_nullable => 0 },
-    "pass",
-    { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "qc_test_results_id_seq",
+  },
+  "qc_run_id",
+  { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
+  "qc_eng_seq_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "score",
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "pass",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "qc_run_seq_well_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -116,27 +116,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<qc_test_results_qc_run_id_qc_eng_seq_id_qc_seq_project_well_key>
-
-=over 4
-
-=item * L</qc_run_id>
-
-=item * L</qc_eng_seq_id>
-
-=item * L</qc_seq_project_well_id>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-    "qc_test_results_qc_run_id_qc_eng_seq_id_qc_seq_project_well_key",
-    [ "qc_run_id", "qc_eng_seq_id", "qc_seq_project_well_id" ],
-);
-
 =head1 RELATIONS
 
 =head2 qc_eng_seq
@@ -148,10 +127,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcEngSeq>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_eng_seq",
-    "LIMS2::Model::Schema::Result::QcEngSeq",
-    { id            => "qc_eng_seq_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_eng_seq",
+  "LIMS2::Model::Schema::Result::QcEngSeq",
+  { id => "qc_eng_seq_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 qc_run
@@ -163,29 +142,30 @@ Related object: L<LIMS2::Model::Schema::Result::QcRun>
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_run",
-    "LIMS2::Model::Schema::Result::QcRun",
-    { id            => "qc_run_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_run",
+  "LIMS2::Model::Schema::Result::QcRun",
+  { id => "qc_run_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 qc_seq_project_well
+=head2 qc_run_seq_well
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectWell>
+Related object: L<LIMS2::Model::Schema::Result::QcRunSeqWell>
 
 =cut
 
 __PACKAGE__->belongs_to(
-    "qc_seq_project_well",
-    "LIMS2::Model::Schema::Result::QcSeqProjectWell",
-    { id            => "qc_seq_project_well_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "qc_run_seq_well",
+  "LIMS2::Model::Schema::Result::QcRunSeqWell",
+  { id => "qc_run_seq_well_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:noSmkdxa8UfUgvxCH9fQhw
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n1p3IZIgLYyiX1Hr6KIAqw
 
 sub as_hash {
     my $self = shift;

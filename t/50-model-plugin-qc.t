@@ -101,17 +101,6 @@ lives_ok {
         'the returned template is the original';
 }
 
-note( "Testing QC seq read storage and retrieval" );
-
-my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
-
-for my $datum ( @seq_reads_data ) {
-    ok my $qc_seq_read = model->find_or_create_qc_seq_read( $datum ), "find_or_create_seq_read $datum->{id}";
-    is $qc_seq_read->id, $datum->{id}, '...the read has the expected id';
-    ok my $ret = model->retrieve_qc_seq_read( { id => $datum->{id} } ), 'retrieve_qc_seq_read should succeed';
-    is $ret->id, $datum->{id}, '...the retrieved read has the expected id';
-}
-
 note( "Testing QC run storage" );
 
 my $qc_run_data = test_data( 'qc_run.yaml' );
@@ -123,6 +112,18 @@ $qc_run_data->{qc_template_name} = $template_name;
 my $test_results = delete $qc_run_data->{test_results};
 
 ok my $qc_run = model->create_qc_run( $qc_run_data ), 'create_qc_run';
+
+note( "Testing QC seq read storage and retrieval" );
+
+my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
+
+for my $datum ( @seq_reads_data ) {
+    $datum->{qc_run_id} = $qc_run->id;
+    ok my $qc_seq_read = model->find_or_create_qc_seq_read( $datum ), "find_or_create_seq_read $datum->{id}";
+    is $qc_seq_read->id, $datum->{id}, '...the read has the expected id';
+    ok my $ret = model->retrieve_qc_seq_read( { id => $datum->{id} } ), 'retrieve_qc_seq_read should succeed';
+    is $ret->id, $datum->{id}, '...the retrieved read has the expected id';
+}
 
 note( "Testing QC test result storage" );
 
@@ -156,9 +157,5 @@ throws_ok {
     my $id = $modified_created_template->id;
     model->delete_qc_template( { id => $id } )
 } qr/Template \d+ has been used in one or more QC runs, so cannot be deleted/;
-
-
-
-
 
 done_testing();

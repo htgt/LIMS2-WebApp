@@ -1,9 +1,8 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::Role;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Role::VERSION = '0.002';
+    $LIMS2::Model::Schema::Result::Role::VERSION = '0.003';
 }
 ## use critic
 
@@ -60,14 +59,15 @@ __PACKAGE__->table("roles");
 =cut
 
 __PACKAGE__->add_columns(
-    "id",
-    {   data_type         => "integer",
-        is_auto_increment => 1,
-        is_nullable       => 0,
-        sequence          => "roles_id_seq",
-    },
-    "name",
-    { data_type => "text", is_nullable => 0 },
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "roles_id_seq",
+  },
+  "name",
+  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -94,7 +94,7 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint( "roles_name_key", ["name"] );
+__PACKAGE__->add_unique_constraint("roles_name_key", ["name"]);
 
 =head1 RELATIONS
 
@@ -107,8 +107,10 @@ Related object: L<LIMS2::Model::Schema::Result::UserRole>
 =cut
 
 __PACKAGE__->has_many(
-    "user_roles", "LIMS2::Model::Schema::Result::UserRole",
-    { "foreign.role_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
+  "user_roles",
+  "LIMS2::Model::Schema::Result::UserRole",
+  { "foreign.role_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 users
@@ -119,7 +121,8 @@ Composing rels: L</user_roles> -> user
 
 =cut
 
-__PACKAGE__->many_to_many( "users", "user_roles", "user" );
+__PACKAGE__->many_to_many("users", "user_roles", "user");
+
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uumBlrhfH+BMqB+tge67iw

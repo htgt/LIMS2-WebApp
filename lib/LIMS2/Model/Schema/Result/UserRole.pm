@@ -1,9 +1,8 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::UserRole;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::UserRole::VERSION = '0.002';
+    $LIMS2::Model::Schema::Result::UserRole::VERSION = '0.003';
 }
 ## use critic
 
@@ -60,8 +59,10 @@ __PACKAGE__->table("user_role");
 =cut
 
 __PACKAGE__->add_columns(
-    "user_id", { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "role_id", { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "user_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "role_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -76,7 +77,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key( "user_id", "role_id" );
+__PACKAGE__->set_primary_key("user_id", "role_id");
 
 =head1 RELATIONS
 
@@ -89,10 +90,10 @@ Related object: L<LIMS2::Model::Schema::Result::Role>
 =cut
 
 __PACKAGE__->belongs_to(
-    "role",
-    "LIMS2::Model::Schema::Result::Role",
-    { id            => "role_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "role",
+  "LIMS2::Model::Schema::Result::Role",
+  { id => "role_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 user
@@ -104,11 +105,12 @@ Related object: L<LIMS2::Model::Schema::Result::User>
 =cut
 
 __PACKAGE__->belongs_to(
-    "user",
-    "LIMS2::Model::Schema::Result::User",
-    { id            => "user_id" },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "user",
+  "LIMS2::Model::Schema::Result::User",
+  { id => "user_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
 
 # Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-04-13 11:34:49
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4/2HXvCbKevwqgIAK9dWlg

@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.002';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.003';
 }
 ## use critic
 
@@ -109,12 +109,20 @@ sub non_empty_string {
     return regexp_matches(qr/\S+/);
 }
 
+sub string_min_length_3 {
+    return regexp_matches(qr/\S{3}/);
+}
+
 sub bac_library {
     return regexp_matches(qr/^\w+$/);
 }
 
 sub bac_name {
     return regexp_matches(qr/^[\w()-]+$/);
+}
+
+sub mgi_accession_id {
+    return regexp_matches(qr/^MGI:\d+$/);
 }
 
 # More restrictive values  for Cre Bac recombineering
@@ -149,32 +157,32 @@ sub bac_plate {
 
 sub existing_assembly {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Assembly', 'assembly' );
+    return in_resultset( $model, 'Assembly', 'id' );
 }
 
 sub existing_bac_library {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'BacLibrary', 'library' );
+    return in_resultset( $model, 'BacLibrary', 'id' );
 }
 
 sub existing_chromosome {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Chromosome', 'chromosome' );
+    return in_resultset( $model, 'Chromosome', 'id' );
 }
 
 sub existing_design_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignType', 'type' );
+    return in_resultset( $model, 'DesignType', 'id' );
 }
 
 sub existing_design_comment_category {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignCommentCategory', 'category' );
+    return in_resultset( $model, 'DesignCommentCategory', 'name' );
 }
 
 sub existing_design_oligo_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignOligoType', 'type' );
+    return in_resultset( $model, 'DesignOligoType', 'id' );
 }
 
 sub existing_pipeline {
@@ -194,7 +202,7 @@ sub existing_design_well_recombineering_assay {
 
 sub existing_genotyping_primer_type {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'GenotypingPrimerType', 'type' );
+    return in_resultset( $model, 'GenotypingPrimerType', 'id' );
 }
 
 sub existing_user {

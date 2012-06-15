@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::User::VERSION = '0.002';
+    $LIMS2::Model::Plugin::User::VERSION = '0.003';
 }
 ## use critic
 
@@ -16,16 +16,20 @@ use Crypt::SaltedHash;
 use LIMS2::Model::Util;
 use namespace::autoclean;
 
-requires qw( schema check_params throw );
+requires qw( schema check_params throw retrieve );
 
 {
 
+    const my $MIN_PW_LEN => 8;
     const my $PW_LEN => 10;
     const my @PW_CHARS => ( 'A' .. 'Z', 'a' .. 'z', '0' .. '9' );
 
     sub pwgen {
-        my ($class) = @_;
-        return join( '', map { $PW_CHARS[ int rand @PW_CHARS ] } 1 .. $PW_LEN );
+        my ($class, $len) = @_;
+        if ( !$len || $len < $MIN_PW_LEN ) {
+            $len = $PW_LEN;
+        }
+        return join( '', map { $PW_CHARS[ int rand @PW_CHARS ] } 1 .. $len );
     }
 }
 
@@ -134,7 +138,7 @@ sub set_user_roles {
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
-            LIMS2::Model::Util::set_pg_roles( $dbh, $user->name, $validated_params->{roles} );
+            LIMS2::Model::Util::create_pg_user( $dbh, $user->name, $validated_params->{roles} );
         }
     );
 

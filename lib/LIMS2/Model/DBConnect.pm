@@ -1,7 +1,7 @@
 package LIMS2::Model::DBConnect;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::DBConnect::VERSION = '0.002';
+    $LIMS2::Model::DBConnect::VERSION = '0.003';
 }
 ## use critic
 
@@ -107,7 +107,6 @@ sub params_for {
     return { %params, %{$role_params} };
 }
 
-## no critic(ProhibitBuiltinHomonyms)
 sub connect {
     my ( $class, $dbname, $role ) = @_;
 
@@ -125,7 +124,6 @@ sub connect {
 
     return $schema_class->connect( sub { $conn->dbh }, $params );
 }
-## use critic
 
 1;
 

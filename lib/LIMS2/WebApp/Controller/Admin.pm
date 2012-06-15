@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.002';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.003';
 }
 ## use critic
 
@@ -46,7 +46,6 @@ sub auto : Private {
 
 =cut
 
-## no critic(ProhibitBuiltinHomonyms)    
 sub index : Path : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -56,7 +55,6 @@ sub index : Path : Args(0) {
 
     return;
 }
-## use critic
 
 =head2 create_user
 

@@ -1,7 +1,7 @@
 package LIMS2::Model;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::VERSION = '0.002';
+    $LIMS2::Model::VERSION = '0.003';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ require LIMS2::Model::DBConnect;
 require LIMS2::Model::FormValidator;
 require DateTime::Format::ISO8601;
 require Module::Pluggable::Object;
+use Data::Dump qw( pp );
 use Scalar::Util qw( blessed );
 use namespace::autoclean;
 
@@ -115,6 +116,19 @@ sub _build_ensembl_util {
     return LIMS2::Util::EnsEMBL->new;
 }
 
+has solr_util => (
+    isa        => 'LIMS2::Util::Solr',
+    lazy_build => 1,
+    handles    => {
+        solr_query => 'query'
+    }
+);
+
+sub _build_solr_util {
+    require LIMS2::Util::Solr;
+    return LIMS2::Util::Solr->new;
+}
+
 ## no critic(RequireFinalReturn)
 sub throw {
     my ( $self, $error_class, $args ) = @_;
@@ -191,6 +205,17 @@ sub retrieve_list {
     }
 }
 ## use critic
+
+sub trace {
+    my ( $self, @args ) = @_;
+
+    if ( $self->log->is_trace ) {
+        my $mesg = join "\n", map { ref $_ ? pp( $_ ) : $_ } @args;
+        $self->log->trace( $mesg );
+    }
+
+    return;
+}
 
 with( qw( MooseX::Log::Log4perl ), __PACKAGE__->plugins );
 

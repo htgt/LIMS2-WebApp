@@ -1,9 +1,8 @@
 use utf8;
-
 package LIMS2::Model::Schema::Result::QcTemplate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplate::VERSION = '0.002';
+    $LIMS2::Model::Schema::Result::QcTemplate::VERSION = '0.003';
 }
 ## use critic
 
@@ -67,20 +66,22 @@ __PACKAGE__->table("qc_templates");
 =cut
 
 __PACKAGE__->add_columns(
-    "id",
-    {   data_type         => "integer",
-        is_auto_increment => 1,
-        is_nullable       => 0,
-        sequence          => "qc_templates_id_seq",
-    },
-    "name",
-    { data_type => "text", is_nullable => 0 },
-    "created_at",
-    {   data_type     => "timestamp",
-        default_value => \"current_timestamp",
-        is_nullable   => 0,
-        original      => { default_value => \"now()" },
-    },
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "qc_templates_id_seq",
+  },
+  "name",
+  { data_type => "text", is_nullable => 0 },
+  "created_at",
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+    original      => { default_value => \"now()" },
+  },
 );
 
 =head1 PRIMARY KEY
@@ -109,7 +110,7 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint( "qc_templates_name_created_at_key", [ "name", "created_at" ] );
+__PACKAGE__->add_unique_constraint("qc_templates_name_created_at_key", ["name", "created_at"]);
 
 =head1 RELATIONS
 
@@ -122,10 +123,10 @@ Related object: L<LIMS2::Model::Schema::Result::QcRun>
 =cut
 
 __PACKAGE__->has_many(
-    "qc_runs",
-    "LIMS2::Model::Schema::Result::QcRun",
-    { "foreign.qc_template_id" => "self.id" },
-    { cascade_copy             => 0, cascade_delete => 0 },
+  "qc_runs",
+  "LIMS2::Model::Schema::Result::QcRun",
+  { "foreign.qc_template_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 qc_template_wells
@@ -137,9 +138,12 @@ Related object: L<LIMS2::Model::Schema::Result::QcTemplateWell>
 =cut
 
 __PACKAGE__->has_many(
-    "qc_template_wells", "LIMS2::Model::Schema::Result::QcTemplateWell",
-    { "foreign.qc_template_id" => "self.id" }, { cascade_copy => 0, cascade_delete => 0 },
+  "qc_template_wells",
+  "LIMS2::Model::Schema::Result::QcTemplateWell",
+  { "foreign.qc_template_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
+
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:614akQzo3EqBo8+OuWU9yQ
