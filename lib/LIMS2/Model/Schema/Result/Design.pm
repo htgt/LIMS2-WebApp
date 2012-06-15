@@ -276,7 +276,7 @@ sub _oligos_fasta {
 
     require Bio::Seq;
     require Bio::SeqIO;
-    require IO::String;    
+    require IO::String;
 
     my $fasta;
     my $seq_io = Bio::SeqIO->new( -format => 'fasta', -fh => IO::String->new( $fasta ) );
