@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Moose;
 use Data::FormValidator;
 use LIMS2::Model::FormValidator::Constraint;
+use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 
 has model => (
@@ -61,9 +62,13 @@ sub post_filter {
 }
 
 sub check_params {
-    my ( $self, $params, $spec ) = @_;
+    my ( $self, $params, $spec, %opts ) = @_;
 
     $params ||= {};
+
+    if ( $opts{ignore_unknown} ) {
+        $params = { slice_def $params, keys %{$spec} };
+    }
 
     my $results = Data::FormValidator->check( $params, $self->dfv_profile($spec) );
 
