@@ -100,7 +100,7 @@ CREATE TABLE design_oligos (
 
 GRANT SELECT ON design_oligos TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON design_oligos TO "[% rw_role %]";
-GRANT USAGE ON desgin_oligos_id_seq TO "[% rw_role %]";
+GRANT USAGE ON design_oligos_id_seq TO "[% rw_role %]";
 
 CREATE TABLE design_oligo_loci (
        design_oligo_id      INTEGER NOT NULL REFERENCES design_oligos(id),
