@@ -221,6 +221,36 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_comments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellComment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_comments",
+  "LIMS2::Model::Schema::Result::WellComment",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_recombineering_result
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellRecombineeringResult>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_recombineering_result",
+  "LIMS2::Model::Schema::Result::WellRecombineeringResult",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 input_processes
 
 Type: many_to_many

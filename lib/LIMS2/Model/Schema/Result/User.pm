@@ -227,6 +227,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_comments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellComment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_comments",
+  "LIMS2::Model::Schema::Result::WellComment",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 wells
 
 Type: has_many
@@ -253,8 +268,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 15:44:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v6++n4Wp8/M5vy04bbNfjQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-18 11:19:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hLcQVw7mz4XN13VqDiKzAw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
