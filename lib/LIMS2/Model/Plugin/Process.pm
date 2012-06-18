@@ -12,18 +12,7 @@ requires qw( schema check_params throw retrieve log trace );
 sub _well_id_for {
     my ( $self, $data ) = @_;
 
-    my %search;
-    if ( $data->{id} ) {
-        $search{ 'me.id' } = $data->{id};
-    }
-    if ( $data->{well_name} ) {
-        $search{ 'me.name' } = $data->{well_name};
-    }
-    if ( $data->{plate_name} ) {
-        $search{ 'plate.name' } = $data->{plate_name};
-    }
-
-    return $self->retrieve( Well => \%search, { join => 'plate' } )->id;
+    $self->retrieve_well( $data )->id;
 }
 
 sub pspec_create_process {
@@ -67,7 +56,7 @@ sub create_process {
     return $process;
 }
 
-sub _pspec_create_process_aux_data_create_di {
+sub pspec__create_process_aux_data_create_di {
     return {
         design_id => { validate => 'existing_design_id' },
         bacs      => { validate => 'hashref', optional => 1 }
@@ -77,8 +66,28 @@ sub _pspec_create_process_aux_data_create_di {
 sub _create_process_aux_data_create_di {
     my ( $self, $params, $process ) = @_;
 
-    my $validated_params = $self->check_params(
-    
+    my $validated_params = $self->check_params( $params, $self->_pspec_create_process_aux_data_create_di );
+
+    $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
+
+    for my $bac_params ( @{ $validated_params->{bacs} || [] } ) {
+        my $validated_bac_params = $self->check_params( $bac_params, { bac_plate   => { validate => 'bac_plate' },
+                                                                       bac_library => { validate => 'bac_library' },
+                                                                       bac_name    => { validate => 'bac_name' }
+                                                                   } );
+        my $bac_clone = $self->retrieve( BacClone => {
+            name           => $validated_bac_params->{bac_name},
+            bac_library_id => $validated_bac_params->{bac_library}
+        } );
+        
+        $process->create_related( process_bacs => {
+            bac_plate    => $validated_bac_params->{bac_plate},
+            bac_clone_id => $bac_clone->id
+        } );
+    }
+
+    return;
 }
+
 
 
