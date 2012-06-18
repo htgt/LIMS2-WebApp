@@ -350,3 +350,67 @@ $plate_comments_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER plate_comments_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.plate_comments
     FOR EACH ROW EXECUTE PROCEDURE public.process_plate_comments_audit();
+
+CREATE TABLE audit.well_recombineering_results (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+well_id integer,
+pcr_u text,
+pcr_d text,
+pcr_g text,
+rec_u text,
+rec_d text,
+rec_g text,
+rec_ns text,
+rec_result text
+);
+GRANT SELECT ON audit.well_recombineering_results TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.well_recombineering_results TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_well_recombineering_results_audit()
+RETURNS TRIGGER AS $well_recombineering_results_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.well_recombineering_results SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.well_recombineering_results SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.well_recombineering_results SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$well_recombineering_results_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER well_recombineering_results_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.well_recombineering_results
+    FOR EACH ROW EXECUTE PROCEDURE public.process_well_recombineering_results_audit();
+
+CREATE TABLE audit.well_comments (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+id integer,
+well_id integer,
+comment_text text,
+created_by_id integer,
+created_at timestamp without time zone
+);
+GRANT SELECT ON audit.well_comments TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.well_comments TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_well_comments_audit()
+RETURNS TRIGGER AS $well_comments_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.well_comments SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.well_comments SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.well_comments SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$well_comments_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER well_comments_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.well_comments
+    FOR EACH ROW EXECUTE PROCEDURE public.process_well_comments_audit();

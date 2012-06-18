@@ -56,6 +56,31 @@ CREATE TABLE well_accepted_override (
 GRANT SELECT ON well_accepted_override TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON well_accepted_override TO "[% rw_role %]";
 
+CREATE TABLE well_comments (
+       id                  SERIAL PRIMARY KEY,
+       well_id             INTEGER NOT NULL REFERENCES wells(id),
+       comment_text        TEXT NOT NULL,
+       created_by_id       INTEGER NOT NULL REFERENCES users(id),
+       created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+GRANT SELECT ON well_comments TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON well_comments TO "[% rw_role %]";
+GRANT USAGE ON well_comments_id_seq TO "[% rw_role %]";
+
+CREATE TABLE well_recombineering_results (
+       well_id             INTEGER PRIMARY KEY REFERENCES wells(id),
+       pcr_u               TEXT NOT NULL CHECK (pcr_u      IN ( 'pass', 'fail', 'weak' )),
+       pcr_d               TEXT NOT NULL CHECK (pcr_d      IN ( 'pass', 'fail', 'weak' )),               
+       pcr_g               TEXT NOT NULL CHECK (pcr_g      IN ( 'pass', 'fail', 'weak' )),
+       rec_u               TEXT NOT NULL CHECK (rec_u      IN ( 'pass', 'fail', 'weak' )),
+       rec_d               TEXT NOT NULL CHECK (rec_d      IN ( 'pass', 'fail', 'weak' )),
+       rec_g               TEXT NOT NULL CHECK (rec_g      IN ( 'pass', 'fail', 'weak' )),
+       rec_ns              TEXT NOT NULL CHECK (rec_ns     IN ( 'pass', 'fail', 'weak' )),
+       rec_result          TEXT NOT NULL CHECK (rec_result IN ( 'pass', 'fail' ))
+);
+GRANT SELECT ON well_recombineering_results TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON well_recombineering_results TO "[% rw_role %]";
+
 CREATE TABLE process_types (
        id            TEXT PRIMARY KEY,
        description   TEXT NOT NULL DEFAULT '',
