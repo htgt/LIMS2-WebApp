@@ -7,7 +7,7 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice );
 use Const::Fast;
 use Crypt::SaltedHash;
-use LIMS2::Model::Util;
+use LIMS2::Model::Util::PgUserRole qw( create_pg_user );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve );
@@ -101,7 +101,7 @@ sub create_user {
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
-            LIMS2::Model::Util::create_pg_user( $dbh, @{$validated_params}{qw(name roles)} );
+            create_pg_user( $dbh, @{$validated_params}{qw(name roles)} );
         }
     );
 
@@ -132,7 +132,7 @@ sub set_user_roles {
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
-            LIMS2::Model::Util::create_pg_user( $dbh, $user->name, $validated_params->{roles} );
+            create_pg_user( $dbh, $user->name, $validated_params->{roles} );
         }
     );
 

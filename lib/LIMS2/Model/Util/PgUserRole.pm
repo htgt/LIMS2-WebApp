@@ -1,7 +1,11 @@
-package LIMS2::Model::Util;
+package LIMS2::Model::Util::PgUserRole;
 
 use strict;
 use warnings FATAL => 'all';
+
+use Sub::Exporter -setup => {
+    exports => [ qw( db_name create_pg_user set_pg_roles ) ]
+};
 
 use LIMS2::Exception::Database;
 use Log::Log4perl qw( :easy );
