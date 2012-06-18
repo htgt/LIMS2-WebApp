@@ -37,7 +37,7 @@ const my @DBI_ATTRS => qw( AutoCommit PrintError RaiseError );
         my %attr = slice_def( $params, @DBI_ATTRS );
         delete $params->{$_} for @DBI_ATTRS;
 
-        unless ( $connector_for{ $dbname }{ $role } ) {
+        unless ( $connector_for{$dbname}{$role} ) {
             $connector_for{$dbname}{$role} = DBIx::Connector->new( $dsn, $user, $pass, \%attr );
         }
 
@@ -101,7 +101,6 @@ sub params_for {
     return { %params, %{$role_params} };
 }
 
-## no critic(ProhibitBuiltinHomonyms)
 sub connect {
     my ( $class, $dbname, $role ) = @_;
 
@@ -119,7 +118,6 @@ sub connect {
 
     return $schema_class->connect( sub { $conn->dbh }, $params );
 }
-## use critic
 
 1;
 

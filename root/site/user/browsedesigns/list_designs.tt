@@ -1,0 +1,45 @@
+[% META title = "List Designs" %]
+
+<p>
+  <a href="[% c.uri_for( '/user/browse_designs' ) %]" class="btn btn-primary">
+    <i class="icon-hand-left icon-white"></i>
+    Back to search
+  </a>
+</p>
+
+[% FOR g IN designs_by_gene %]
+<h2>[% g.mgi_accession_id %][% IF g.marker_symbol.length > 0 %] ([% g.marker_symbol %])[% END %]</h2>
+[% IF g.designs.size > 0 %]
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Design ID</th>
+        <th>Type</th>
+        <th>Target Transcript</th>
+        <th>Assigned to Gene(s)</th>
+        <th>Created by</th>
+        <th>Created at</th>
+        <th>Validated by annotation</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR d IN g.designs %]
+      <tr>
+        <td>
+          <a href="[% c.uri_for( '/user/view_design', { design_id => d.id } ) %]">[% d.id %]</a>
+        </td>
+        <td>[% d.type                        %]</td>
+        <td>[% d.target_transcript           %]</td>
+        <td>[% d.assigned_genes.join( ', ' ) %]</td>
+        <td>[% d.created_by                  %]</td>
+        <td>[% d.created_at                  %]</td>
+        <td>[% d.validated_by_annotation     %]</td>
+      </tr>
+      [%- END %]
+  </table>
+[% ELSE %]
+  <p>
+    <em>Found no designs for this gene</em>
+  </p>
+[% END %]
+[% END %]

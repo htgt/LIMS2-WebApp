@@ -26,3 +26,6 @@ $qc_seq_project_qc_seq_project_well_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER qc_seq_project_qc_seq_project_well_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.qc_seq_project_qc_seq_project_well
     FOR EACH ROW EXECUTE PROCEDURE public.process_qc_seq_project_qc_seq_project_well_audit();
+
+ALTER TABLE audit.users
+ADD COLUMN active BOOLEAN;

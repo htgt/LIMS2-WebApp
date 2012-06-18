@@ -8,9 +8,7 @@ use namespace::autoclean;
 
 extends qw( Catalyst::Script::FastCGI );
 
-has '+manager' => (
-    default => 'FCGI::ProcManager::Constrained'
-);
+has '+manager' => ( default => 'FCGI::ProcManager::Constrained' );
 
 __PACKAGE__->meta->make_immutable;
 

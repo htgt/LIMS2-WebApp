@@ -55,6 +55,12 @@ __PACKAGE__->table("users");
   data_type: 'text'
   is_nullable: 1
 
+=head2 active
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -69,6 +75,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "password",
   { data_type => "text", is_nullable => 1 },
+  "active",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -98,6 +106,51 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint("users_name_key", ["name"]);
 
 =head1 RELATIONS
+
+=head2 design_comments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignComment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_comments",
+  "LIMS2::Model::Schema::Result::DesignComment",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Design>
+
+=cut
+
+__PACKAGE__->has_many(
+  "designs",
+  "LIMS2::Model::Schema::Result::Design",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 gene_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::GeneDesign>
+
+=cut
+
+__PACKAGE__->has_many(
+  "gene_designs",
+  "LIMS2::Model::Schema::Result::GeneDesign",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 qc_runs
 
@@ -140,8 +193,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CD80bym3cCiBYGAQHR8dhA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:48:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ybYfORtX6Hh1mKDsaxt98Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -150,9 +203,10 @@ sub as_hash {
     my $self = shift;
 
     return {
-        id    => $self->id,
-        name  => $self->name,
-        roles => [ sort map { $_->name } $self->roles ]
+        id     => $self->id,
+        name   => $self->name,
+        active => $self->active,
+        roles  => [ sort map { $_->name } $self->roles ]
     };
 }
 

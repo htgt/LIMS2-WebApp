@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::QcSeqProjectWell;
+package LIMS2::Model::Schema::Result::QcRunSeqWell;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::QcSeqProjectWell
+LIMS2::Model::Schema::Result::QcRunSeqWell
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<qc_seq_project_wells>
+=head1 TABLE: C<qc_run_seq_wells>
 
 =cut
 
-__PACKAGE__->table("qc_seq_project_wells");
+__PACKAGE__->table("qc_run_seq_wells");
 
 =head1 ACCESSORS
 
@@ -43,7 +43,13 @@ __PACKAGE__->table("qc_seq_project_wells");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'qc_seq_project_wells_id_seq'
+  sequence: 'qc_run_seq_wells_id_seq'
+
+=head2 qc_run_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
 
 =head2 plate_name
 
@@ -63,8 +69,10 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "qc_seq_project_wells_id_seq",
+    sequence          => "qc_run_seq_wells_id_seq",
   },
+  "qc_run_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "plate_name",
   { data_type => "text", is_nullable => 0 },
   "well_name",
@@ -85,9 +93,11 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<qc_seq_project_wells_plate_name_well_name_key>
+=head2 C<qc_run_seq_wells_qc_run_id_plate_name_well_name_key>
 
 =over 4
+
+=item * L</qc_run_id>
 
 =item * L</plate_name>
 
@@ -98,39 +108,39 @@ __PACKAGE__->set_primary_key("id");
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "qc_seq_project_wells_plate_name_well_name_key",
-  ["plate_name", "well_name"],
+  "qc_run_seq_wells_qc_run_id_plate_name_well_name_key",
+  ["qc_run_id", "plate_name", "well_name"],
 );
 
 =head1 RELATIONS
 
-=head2 qc_seq_project_qc_seq_projects_well
+=head2 qc_run
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::QcSeqProjectQcSeqProjectWell>
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
 
 =cut
 
-__PACKAGE__->has_many(
-  "qc_seq_project_qc_seq_projects_well",
-  "LIMS2::Model::Schema::Result::QcSeqProjectQcSeqProjectWell",
-  { "foreign.qc_seq_project_well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "qc_run",
+  "LIMS2::Model::Schema::Result::QcRun",
+  { id => "qc_run_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 qc_seq_reads
+=head2 qc_run_seq_well_qc_seq_reads
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::QcSeqRead>
+Related object: L<LIMS2::Model::Schema::Result::QcRunSeqWellQcSeqRead>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_seq_reads",
-  "LIMS2::Model::Schema::Result::QcSeqRead",
-  { "foreign.qc_seq_project_well_id" => "self.id" },
+  "qc_run_seq_well_qc_seq_reads",
+  "LIMS2::Model::Schema::Result::QcRunSeqWellQcSeqRead",
+  { "foreign.qc_run_seq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -145,27 +155,13 @@ Related object: L<LIMS2::Model::Schema::Result::QcTestResult>
 __PACKAGE__->has_many(
   "qc_test_results",
   "LIMS2::Model::Schema::Result::QcTestResult",
-  { "foreign.qc_seq_project_well_id" => "self.id" },
+  { "foreign.qc_run_seq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_seq_projects
 
-Type: many_to_many
-
-Composing rels: L</qc_seq_project_qc_seq_projects_well> -> qc_seq_project
-
-=cut
-
-__PACKAGE__->many_to_many(
-  "qc_seq_projects",
-  "qc_seq_project_qc_seq_projects_well",
-  "qc_seq_project",
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-23 12:52:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xEeinXZFV80aj97RvC2sXw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:38:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gqB+KF8Sf6p1LvblnArAbg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

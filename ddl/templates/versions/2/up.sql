@@ -26,3 +26,6 @@ FOREIGN KEY (qc_seq_project_well_id) REFERENCES qc_seq_project_wells(id);
 ALTER TABLE qc_seq_reads
 ADD CONSTRAINT "qc_seq_reads_qc_seq_project_well_id_fkey"
 FOREIGN KEY (qc_seq_project_well_id) REFERENCES qc_seq_project_wells(id);
+
+ALTER TABLE users
+ADD COLUMN active BOOLEAN NOT NULL DEFAULT TRUE;

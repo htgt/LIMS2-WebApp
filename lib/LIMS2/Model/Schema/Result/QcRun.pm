@@ -147,6 +147,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_run_seq_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcRunSeqWell>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_run_seq_wells",
+  "LIMS2::Model::Schema::Result::QcRunSeqWell",
+  { "foreign.qc_run_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 qc_template
 
 Type: belongs_to
@@ -188,8 +203,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 __PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-17 12:23:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nuhTCPQoBH33QAot2qf+Sg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IMY7Aa2uchYCH450y3+aOg
 
 sub as_hash {
     my $self = shift;

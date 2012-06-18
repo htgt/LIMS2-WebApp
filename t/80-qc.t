@@ -11,19 +11,6 @@ use HTTP::Status qw( :constants );
 
 my $mech = mech();
 
-note "Testing creation and retrieval of QC sequencing reads";
-
-{
-    my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
-
-    for my $s ( @seq_reads_data ) {
-        ok my $res = $mech->request( POST '/api/qc_seq_read', 'Content-Type' => 'application/json', Content => encode_json( $s ) ), "POST qc_seq_read $s->{id}";
-        ok $res->is_success, '...request should succeed';
-        is $res->code, HTTP_CREATED, '...status is "created"';
-        like $res->header('location'), qr(\Q/api/qc_seq_read?id=$s->{id}\E$), '...location header is correct';
-    }
-}
-
 note "Testing creation and retrieval of QC template";
 
 my $template;
@@ -54,6 +41,19 @@ my $test_results = delete $run_data->{test_results};
     ok $res->is_success, '...request should succeed';
     is $res->code, HTTP_CREATED, '..status is created';
     like $res->header('location'), qr(\Q/api/qc_run?id=$run_data->{id}\E$), '...location header is correct';
+}
+
+note "Testing creation and retrieval of QC sequencing reads";
+
+{
+    my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
+
+    for my $s ( @seq_reads_data ) {
+        ok my $res = $mech->request( POST '/api/qc_seq_read', 'Content-Type' => 'application/json', Content => encode_json( $s ) ), "POST qc_seq_read $s->{id}";
+        ok $res->is_success, '...request should succeed';
+        is $res->code, HTTP_CREATED, '...status is "created"';
+        like $res->header('location'), qr(\Q/api/qc_seq_read?id=$s->{id}\E$), '...location header is correct';
+    }
 }
 
 # XXX Retrieve QC run not yet implemented

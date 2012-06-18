@@ -13,19 +13,19 @@ model->txn_do(
 
         can_ok $model, 'create_user';
 
-        ok my $u1 = $model->create_user( { name => 'TEST_foo' } ),
+        ok my $u1 = $model->create_user( { name => 'TEST_foo', password => 'XXX' } ),
             'create a user with no roles';
 
-        ok my $u2 = $model->create_user( { name => 'TEST_bar', roles => [ 'read', 'edit' ] } ),
+        ok my $u2 = $model->create_user( { name => 'TEST_bar', roles => [ 'read', 'edit' ], password => 'YYY' } ),
             'create a user with two roles';
 
-        can_ok $model, 'delete_user';
+        can_ok $model, 'disable_user';
 
-        ok $model->delete_user( { slice( $u1->as_hash, 'name' ) } ),
-            'delete user 1';
+        ok $model->disable_user( { name => $u1->name } );
+        
+        can_ok $model, 'enable_user';
 
-        ok $model->delete_user( { slice( $u2->as_hash, 'name' ) } ),
-            'delete_user 2';
+        ok $model->enable_user( { name => $u1->name } );
     }
 );
 

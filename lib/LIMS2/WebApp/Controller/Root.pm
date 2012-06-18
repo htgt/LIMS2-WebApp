@@ -20,21 +20,16 @@ LIMS2::WebApp::Controller::Root - Root Controller for LIMS2::WebApp
 
 =head1 METHODS
 
-=head2 site_index
+=head2 index
 
 The root page (/)
 
 =cut
 
-sub site_index : Path : Args(0) {
+sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
-    unless ( $c->check_user_roles( 'read' ) ) {
-        $c->stash( error_msg => 'Please login to access this system' );
-        $c->go( 'Controller::Auth', 'login' );
-    }
-
-    return;
+    return $c->go( 'User', 'index' );
 }
 
 =head2 default
@@ -43,14 +38,12 @@ Standard 404 error page
 
 =cut
 
-## no critic(ProhibitBuiltinHomonyms)
 sub default : Path {
     my ( $self, $c ) = @_;
     $c->response->body('Page not found');
     $c->response->status(404);
     return;
 }
-## use critic
 
 =head2 end
 

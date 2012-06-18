@@ -13,12 +13,10 @@ override prepare_arguments => sub {
         return {
             user       => 'webapp',
             audit_user => $c->user->name
-        }
+        };
     }
     else {
-        return {
-            user => 'webapp_ro'
-        }
+        return { user => 'webapp_ro' };
     }
 };
 
