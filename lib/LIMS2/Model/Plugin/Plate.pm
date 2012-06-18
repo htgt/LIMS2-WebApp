@@ -9,22 +9,10 @@ use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
 
-# Internal function, returns a LIMS2::Model::Schema::Result::Plate object
-# sub _instantiate_plate {
-#     my ( $self, $params ) = @_;
-
-#     if ( blessed( $params ) and $params->isa( 'LIMS2::Model::Schema::Result::Plate' ) ) {
-#         return $params;
-#     }
-    
-#     my $validated_params = $self->check_params( { slice( $params, qw( plate_name ) ) }, { plate_name => {} } );
-    
-#     $self->retrieve( Plate => $validated_params );
-# }
-
 sub pspec_create_plate {
     return {
         name         => { validate => 'plate_name' },
+        type         => { validate => 'existing_plate_type', rename => 'type_id' },
         process_type => { validate => 'existing_process_type' },
         process_data => { validate => 'hashref', optional => 1, default => {} },
         description  => { validate => 'non_empty_string', optional => 1 },
@@ -61,8 +49,7 @@ sub create_plate {
     
     my $plate = $self->schema->resultset( 'Plate' )->create(
         {
-            slice_def( $validated_params, qw( name description created_by_id created_at ) ),
-            type_id => $process_type->plate_type_id
+            slice_def( $validated_params, qw( name type_id description created_by_id created_at ) ),
         }
     );
 
