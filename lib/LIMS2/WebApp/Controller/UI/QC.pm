@@ -22,12 +22,12 @@ sub begin :Private {
     #$c->assert_user_roles( 'read' );
 }
 
-sub index :Path( '/ui/qc_run' ) :Args(0) {
+sub index :Path( '/ui/qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
-    my $qc_run_results;
+    my $qc_runs;
 
     try {
-        $qc_run_results = $c->model('Golgi')->retrieve_qc_run_results( $c->request->params );
+        $qc_runs = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
     }
     catch {
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -41,44 +41,39 @@ sub index :Path( '/ui/qc_run' ) :Args(0) {
     };
 
     $c->stash(
-        qc_run   => $qc_run_results,
-        template => 'ui/qc/qc_run.tt'
+        qc_runs => $qc_runs,
+        profiles => $c->model('Golgi')->list_profiles,
     );
 }
 
-#sub index :Path( '/ui/qc_runs' ) :Args(0) {
-    #my ( $self, $c ) = @_;
+#TODO use chained actions
+sub qc_run :Path( '/ui/qc_run' ) :Args(1) {
+    my ( $self, $c, $qc_run_id ) = @_;
+    my $qc_run;
 
-    #my $qc_run = $c->model('Golgi')->txn_do(
-        #sub {
-            #shift->retrieve_qc_runs( $c->request->params );
-        #}
-    #);
+    try {
+        $qc_run = $c->model('Golgi')->retrieve_qc_run_results( { id => $qc_run_id } );
+    }
+    catch {
+        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
+            $_->show_params( 0 );
+            $c->stash( error_msg => $_->as_string );
+            $c->detach( 'index' );
+        }
+        else {
+            die $_;
+        }
+    };
 
-    #my $entity;
+    unless ( $qc_run ) {
+        $c->stash( error_msg => "QC run $qc_run_id not found" );
+        return $c->go( 'index' );
+    }
 
-    #if ( @{$templates} > 1 ) {
-        #$entity = [
-            #map {
-                #+{
-                    #id   => $_->{id},
-                    #name => $_->{name},
-                    #url  => $c->uri_for( '/api/qc/template', { id => $_->{id} } )
-                #}
-            #} @{$templates}
-        #];
-    #}
-    #else {
-        #$entity = $templates;
-    #}
-
-    #return $self->status_ok( $c, entity => $entity );
-
-    #$c->stash(
-        #plate    => $plate->as_hash,
-        #template => 'ui/view_plate/index.tt'
-    #);
-#}
+    $c->stash(
+        qc_run => $qc_run,
+    );
+}
 
 =head1 AUTHOR
 

@@ -1,0 +1,8 @@
+[% META title = "View Qc Run" %]
+<h2>Qc Run Details</h2>
+<strong>ID:</strong> [% qc_run.id %]<br>
+<strong>Profile:</strong> [% qc_run.profile %]<br>
+<strong>Software VersionID:</strong> [% qc_run.software_version %]<br>
+<strong>Created At:</strong> [% qc_run.created_at %]<br>
+<strong>Created By:</strong> [% qc_run.created_by %]<br>
+<strong>Qc Template:</strong> [% qc_run.qc_template %]<br>
