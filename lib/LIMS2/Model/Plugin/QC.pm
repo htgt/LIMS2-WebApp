@@ -470,12 +470,37 @@ sub retrieve_qc_runs {
     my @qc_runs = $self->schema->resultset('QcRun')->search(
         $search_params,
         {
-            join     => 'template_plate',
+            join     => [ qw( qc_template qc_run_seq_projects ) ],
             order_by => { -desc => 'created_at' },
+            distinct => 1,
         }
     );
 
-    return \@qc_runs;
+    my @qc_runs_data;
+    foreach my $qc_run ( @qc_runs ) {
+        my $qc_run_data = $qc_run->as_hash;
+        $qc_run_data->{expected_designs} = $qc_run->count_designs;
+        $qc_run_data->{observed_designs} = $qc_run->count_observed_designs;
+        $qc_run_data->{valid_designs} = $qc_run->count_valid_designs;
+        push @qc_runs_data, $qc_run_data;
+    }
+
+    return \@qc_runs_data;
+}
+
+sub list_profiles {
+    my ( $self ) = @_;
+
+    my @profiles = $self->schema->resultset( 'QcRun' )->search(
+        {},
+        {
+            columns  => [ 'profile' ],
+            distinct => 1,
+            order_by => [ 'profile' ]
+        }
+    )->all;
+
+    return [ map $_->profile, @profiles ];
 }
 
 sub _build_qc_runs_search_params {
@@ -483,14 +508,16 @@ sub _build_qc_runs_search_params {
 
     my %search = ( 'me.upload_complete' => 't' );
 
-    if ( $params->{sequencing_project} ) {
-        $search{ 'me.sequencing_project' } = $params->{sequencing_project};
-    }
-    if ( $params->{template_plate} ) {
-        $search{ 'template_plate.name' } = $params->{template_plate};
-    }
-    if ( $params->{profile} and $params->{profile} ne '-' ) {
-        $search{ 'me.profile' } = $params->{profile};
+    unless ( $params->{show_all} ) {
+        if ( $params->{sequencing_project} ) {
+            $search{ 'qc_run_seq_projects.qc_seq_project_id' } = $params->{sequencing_project};
+        }
+        if ( $params->{template_plate} ) {
+            $search{ 'qc_template.name' } = $params->{template_plate};
+        }
+        if ( $params->{profile} and $params->{profile} ne '-' ) {
+            $search{ 'me.profile' } = $params->{profile};
+        }
     }
 
     return \%search;
@@ -510,10 +537,6 @@ sub retrieve_qc_run {
     my $qc_run = $self->schema->resultset('QcRun')->find(
         {
             'me.id' => $params->{id},
-
-        },
-        {
-            join => 'template_plate',
         }
     );
 
@@ -528,7 +551,8 @@ sub retrieve_qc_run_results {
 
     # see HTGT::Utils::QCTestResults ( in htgt )
 
-    return $qc_run_results;
+    return $qc_run->as_hash;
+    #return $qc_run_results;
 }
 
 1;
