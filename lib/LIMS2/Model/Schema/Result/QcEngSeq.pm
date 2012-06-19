@@ -156,9 +156,9 @@ sub as_hash {
     my $self = shift;
 
     return {
-        eng_seq_id     => $self->eng_seq_id,
+        eng_seq_id     => $self->id,
         eng_seq_method => $self->method,
-        eng_seq_params => decode_json( $self->eng_seq_params )
+        eng_seq_params => decode_json( $self->params )
     };
 }
 
