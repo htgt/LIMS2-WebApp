@@ -169,6 +169,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_recombinases
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessRecombinase>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_recombinases",
+  "LIMS2::Model::Schema::Result::ProcessRecombinase",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 type
 
 Type: belongs_to
