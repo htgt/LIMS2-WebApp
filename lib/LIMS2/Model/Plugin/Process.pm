@@ -8,10 +8,6 @@ use Hash::MoreUtils qw( slice slice_def );
 use namespace::autoclean;
 use Const::Fast;
 
-const my %EXPECTED_WELL_COUNTS => (
-    create_di => { input => { count => 0 }, output => { count => 1 } },
-);
-
 requires qw( schema check_params throw retrieve log trace );
 
 sub _well_id_for {
@@ -20,14 +16,32 @@ sub _well_id_for {
     $self->retrieve_well( $data )->id;
 }
 
-sub check_io_wells {
-    my ( $self, $params ) = @_;
+sub _check_input_wells_create_di {
+    my ( $self, $process ) = @_;
 
-    my $expected = $EXPECTED_WELL_COUNTS( $params->{type} );
+    my $count = $process->process_input_wells_rs->count;
+    
+    $self->throw( Validation => "create_di process should have 0 input wells (got $count)" )
+        unless $count == 0;
 
-    my $in = @{ $params->{input_wells} };
-    my $out = @{ $params->{output_wells} };
+    return;
+}
 
+sub _check_input_wells_int_recom {
+    my ( $self, $process ) = @_;
+
+    my @input_wells = $process->input_wells;
+    my $count = scalar @input_wells;
+    
+    $self->throw( Validation => "int_recom process should have 1 input well (got $count)" )
+        unless $count == 1;
+
+    my $type = $input_wells[0]->plate->type_id;
+
+    $self->throw( Validation => "int_recom process input well should be type 'DESIGN' (got $type)" )
+        unless $type eq 'DESIGN';
+
+    return;
 }
 
 sub pspec_create_process {
@@ -41,23 +55,25 @@ sub pspec_create_process {
 sub create_process {
     my ( $self, $params ) = @_;
 
-
     my $validated_params = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
 
-    $self->check_io_wells( $validated_params );
-    
     my $process = $self->schema->resultset( 'Process' )->create(
         type_id => $validated_params->{type}
     );
-
 
     for my $input_well ( @{ $process->{input_wells} || [] } ) {
         $process->create_related(
             process_input_wells => { well_id => $self->_well_id_for( $input_well ) }
         );
     }
-                         
-    #TODO check for output well?
+
+    my $check_input_wells = '_check_input_wells_' . $validated_params->{type};
+    $self->throw( Implementation => "Don't know how to validate input/output wells for process type $validated_params->{type}" )
+        unless $self->can( $check_input_wells );
+
+    $self->$check_input_wells( $process );                               
+    
+    #TODO check for output well? No need, as this is only called by create_well.
     for my $output_well ( @{ $process->{output_wells} || [] } ) {
         $process->create_related(
             process_output_wells => { well_id => $self->_well_id_for( $output_well ) }
@@ -66,12 +82,11 @@ sub create_process {
 
     delete @{$params}{ qw( type input_wells output_wells ) };
 
-    my $method = '_create_process_aux_data_ ' . $validated_params->{type};
-
+    my $create_aux_data = '_create_process_aux_data_ ' . $validated_params->{type};
     $self->throw( Implementation => "Don't know how to create auxiliary data for process type $validated_params->{type}" )
-        unless $self->can( $method );
+        unless $self->can( $create_aux_data );
 
-    $self->$method( $params, $process );
+    $self->$create_aux_data( $params, $process );
 
     return $process;
 }
