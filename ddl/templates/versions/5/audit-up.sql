@@ -248,7 +248,8 @@ audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
 audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
-id text
+id text,
+description text
 );
 GRANT SELECT ON audit.process_types TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.process_types TO "[% rw_role %]";
@@ -414,3 +415,55 @@ $well_comments_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER well_comments_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.well_comments
     FOR EACH ROW EXECUTE PROCEDURE public.process_well_comments_audit();
+CREATE TABLE audit.process_recombinase (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+process_id integer,
+recombinase text,
+rank integer
+);
+GRANT SELECT ON audit.process_recombinase TO lims2_devel_ro;
+GRANT SELECT,INSERT ON audit.process_recombinase TO lims2_devel_rw;
+CREATE OR REPLACE FUNCTION public.process_process_recombinase_audit()
+RETURNS TRIGGER AS $process_recombinase_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.process_recombinase SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.process_recombinase SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.process_recombinase SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$process_recombinase_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER process_recombinase_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.process_recombinase
+    FOR EACH ROW EXECUTE PROCEDURE public.process_process_recombinase_audit();
+CREATE TABLE audit.recombinases (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+id text
+);
+GRANT SELECT ON audit.recombinases TO lims2_devel_ro;
+GRANT SELECT,INSERT ON audit.recombinases TO lims2_devel_rw;
+CREATE OR REPLACE FUNCTION public.process_recombinases_audit()
+RETURNS TRIGGER AS $recombinases_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.recombinases SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.recombinases SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.recombinases SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$recombinases_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER recombinases_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.recombinases
+    FOR EACH ROW EXECUTE PROCEDURE public.process_recombinases_audit();

@@ -84,7 +84,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON well_recombineering_results TO "[% rw_ro
 CREATE TABLE process_types (
        id            TEXT PRIMARY KEY,
        description   TEXT NOT NULL DEFAULT '',
-       plate_type_id TEXT NOT NULL REFERENCES plate_types(id)
 );
 GRANT SELECT ON process_types TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_types TO "[% rw_role %]";
@@ -143,3 +142,18 @@ CREATE TABLE process_bac (
 GRANT SELECT ON process_bac TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_bac TO "[% rw_role %]";
 
+CREATE TABLE recombinases (
+       id               TEXT PRIMARY KEY
+);
+GRANT SELECT ON recombinases TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON recombinases TO "[% rw_role %]";
+
+CREATE TABLE process_recombinase (
+       process_id        INTEGER NOT NULL REFERENCES processes(id),
+       recombinase       TEXT NOT NULL REFERENCES recombinases(id),
+       rank              INTEGER NOT NULL,
+       PRIMARY KEY(process_id,rank),
+       UNIQUE(process_id, recombinase)
+);
+GRANT SELECT ON process_recombinase TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON process_recombinase TO "[% rw_role %]";
