@@ -80,6 +80,24 @@ sub create_plate {
     return $plate;
 }
 
+sub pspec_retrieve_plate {
+    return {
+        name => { validate => 'plate_name', optional => 1 },
+        id   => { validate => 'integer', optional => 1 },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
+    }
+}
+
+sub retrieve_plate {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->psepc_retrieve_plate );
+
+    my $plate = $self->retrieve( Plate => $validated_params );
+
+    return $plate;
+}
+
 1;
 
 __END__
