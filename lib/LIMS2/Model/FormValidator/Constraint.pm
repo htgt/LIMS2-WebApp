@@ -194,6 +194,11 @@ sub existing_process_type {
     return in_resultset( $model, 'ProcessType', 'id' );
 }
 
+sub existing_recombinase {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'Recombinase', 'id');
+}
+
 #sub existing_design_well_recombineering_assay {
 #    my ( $class, $model ) = @_;
 #    return in_resultset( $model, 'DesignWellRecombineeringAssay', 'assay' );
