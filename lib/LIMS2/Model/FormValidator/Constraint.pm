@@ -174,6 +174,11 @@ sub existing_design_comment_category {
     return in_resultset( $model, 'DesignCommentCategory', 'name' );
 }
 
+sub existing_design_id {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'Design', 'id' );
+}
+
 sub existing_design_oligo_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'DesignOligoType', 'id' );
