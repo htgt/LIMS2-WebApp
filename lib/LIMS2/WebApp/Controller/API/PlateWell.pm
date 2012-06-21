@@ -38,8 +38,17 @@ sub plate_POST {
 
     $c->assert_user_roles('edit');
 
-    # XXX placeholder only
-    return $self->status_created( $c, entity => $c->request->data );
+    my $plate = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_plate( $c->request->params )
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/plate', { id => $plate->id } ),
+        entity => $plate
+    );
 }
 
 sub well :Path '/api/well' :Args(0) :ActionClass('REST') {
@@ -64,8 +73,17 @@ sub well_POST {
 
     $c->assert_user_roles('edit');
 
-    # XXX placeholder only
-    return $self->status_created( $c, entity => $c->request->data );
+    my $well = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_well( $c->request->params )
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/well', { id => $well->id } ),
+        entity => $well
+    );
 }
 
 =head1 AUTHOR
