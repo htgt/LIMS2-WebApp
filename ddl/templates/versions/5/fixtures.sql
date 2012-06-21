@@ -4,7 +4,7 @@ VALUES (5);
 INSERT INTO plate_types(id,description)
 VALUES ('DESIGN', 'Design Instances'),
        ('INT', 'Intermediate Vectors' ),
-       ('POSTINT', 'Post-intermediate vectors' ),
+       ('POSTINT', 'Post-intermediate Vectors' ),
        ('FINAL', 'Final Vectors' ),
        ('CREBAC', 'Cre/BAC Vectors' );
 
