@@ -3,7 +3,8 @@
 --
 
 CREATE TABLE plate_types (
-       id        TEXT PRIMARY KEY
+       id          TEXT PRIMARY KEY,
+       description TEXT NOT NULL DEFAULT ''
 );
 GRANT SELECT ON plate_types TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON plate_types TO "[% rw_role %]";

@@ -1,8 +1,12 @@
 INSERT INTO schema_versions(version)
 VALUES (5);
 
-INSERT INTO plate_types(id)
-VALUES ('DESIGN'),('PCS'),('PGS'),('DNA'),('EP'),('EPD'),('FP'),('CREBAC');
+INSERT INTO plate_types(id,description)
+VALUES ('DESIGN', 'Design Instances'),
+       ('INT', 'Intermediate Vectors' ),
+       ('POSTINT', 'Post-intermediate vectors' ),
+       ('FINAL', 'Final Vectors' ),
+       ('CREBAC', 'Cre/BAC Vectors' );
 
 INSERT INTO process_types(id,description)
 VALUES ('create_di', 'Create design instance'),
