@@ -43,9 +43,20 @@ __PACKAGE__->table("plate_types");
   data_type: 'text'
   is_nullable: 0
 
+=head2 description
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
 =cut
 
-__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "id",
+  { data_type => "text", is_nullable => 0 },
+  "description",
+  { data_type => "text", default_value => "", is_nullable => 0 },
+);
 
 =head1 PRIMARY KEY
 
@@ -76,24 +87,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 process_types
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ProcessType>
-
-=cut
-
-__PACKAGE__->has_many(
-  "process_types",
-  "LIMS2::Model::Schema::Result::ProcessType",
-  { "foreign.plate_type_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 16:37:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:98Qip5VQDqBN2Xx/IpKJ1w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-21 14:10:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wNn4m5AVEpxFFlmqvBk3sA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
