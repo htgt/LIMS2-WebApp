@@ -25,13 +25,13 @@ CREATE TABLE plate_comments (
        id                   SERIAL PRIMARY KEY,
        plate_id             INTEGER NOT NULL REFERENCES plates(id),
        comment_text         TEXT NOT NULL CHECK (comment_text <> ''),
-       created_by_id        INTEGER NOT NULL REFERENCES users(user_id),
+       created_by_id        INTEGER NOT NULL REFERENCES users(id),
        created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 GRANT SELECT ON plate_comments TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON plate_comments TO "[% rw_role %]";
-GRANT USAGE ON SEQUENCE plate_comments_plate_comment_id_seq TO "[% rw_role %]";       
+GRANT USAGE ON SEQUENCE plate_comments_id_seq TO "[% rw_role %]";
 
 CREATE TABLE wells (
        id               SERIAL PRIMARY KEY,
@@ -42,7 +42,7 @@ CREATE TABLE wells (
        assay_pending    TIMESTAMP,
        assay_complete   TIMESTAMP,
        accepted         BOOLEAN NOT NULL DEFAULT FALSE,
-       UNIQUE( plate_id, name )                        
+       UNIQUE( plate_id, name )
 );
 GRANT SELECT ON wells TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON wells TO "[% rw_role %]";
@@ -71,7 +71,7 @@ GRANT USAGE ON well_comments_id_seq TO "[% rw_role %]";
 CREATE TABLE well_recombineering_results (
        well_id             INTEGER PRIMARY KEY REFERENCES wells(id),
        pcr_u               TEXT NOT NULL CHECK (pcr_u      IN ( 'pass', 'fail', 'weak' )),
-       pcr_d               TEXT NOT NULL CHECK (pcr_d      IN ( 'pass', 'fail', 'weak' )),               
+       pcr_d               TEXT NOT NULL CHECK (pcr_d      IN ( 'pass', 'fail', 'weak' )),
        pcr_g               TEXT NOT NULL CHECK (pcr_g      IN ( 'pass', 'fail', 'weak' )),
        rec_u               TEXT NOT NULL CHECK (rec_u      IN ( 'pass', 'fail', 'weak' )),
        rec_d               TEXT NOT NULL CHECK (rec_d      IN ( 'pass', 'fail', 'weak' )),
@@ -84,7 +84,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON well_recombineering_results TO "[% rw_ro
 
 CREATE TABLE process_types (
        id            TEXT PRIMARY KEY,
-       description   TEXT NOT NULL DEFAULT '',
+       description   TEXT NOT NULL DEFAULT ''
 );
 GRANT SELECT ON process_types TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_types TO "[% rw_role %]";
