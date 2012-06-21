@@ -34,7 +34,32 @@ sub retrieve_well {
         $search{ 'plate.name' } = $data->{plate_name};
     }
 
-    return $self->retrieve( Well => \%search, { join => 'plate', prefetch => 'plate' } );    
+    return $self->retrieve( Well => \%search, { join => 'plate', prefetch => 'plate' } );
+}
+
+sub pspec_create_well {
+    return {
+        plate_name   => { validate => 'existing_plate_name' },
+        well_name    => { validate => 'well_name' },
+        process_data => { validate => 'hashref', optional => 1, default => {} },
+        created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id', optional => 1 },
+        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    }
+}
+
+sub create_well {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well );
+
+    my $plate = $self->retrieve_plate( { name => $validated_params->{plate_name} } );
+
+    my $validated_well_params
+        = { slice_def $validated_params, qw( well_name created_at created_by_id ) };
+
+    my $well = $plate->create_related( wells => \$validated_well_params );
+
+    $self->create_process( slice_def $validated_params, qw( process_data ), output_wells => [ { id => $well->id  } ]);
 }
 
 1;
