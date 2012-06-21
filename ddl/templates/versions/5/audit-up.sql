@@ -3,7 +3,8 @@ audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
 audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
-id text
+id text,
+description text
 );
 GRANT SELECT ON audit.plate_types TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.plate_types TO "[% rw_role %]";
