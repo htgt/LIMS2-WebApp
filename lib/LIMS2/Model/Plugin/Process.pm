@@ -24,7 +24,8 @@ sub _check_input_wells_create_di {
 
     my $count = $process->process_input_wells_rs->count;
 
-    $self->throw( Validation => "create_di process should have 0 input wells (got $count)" )
+    #TODO: this throw is not doing the right thing, fix it
+    $self->throw( Validation => { message => "create_di process should have 0 input wells (got $count)" } )
         unless $count == 0;
 
     return;
@@ -137,14 +138,14 @@ sub pspec_create_process {
 sub create_process {
     my ( $self, $params ) = @_;
 
+    ### $params
     my $validated_params = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
-    ### $validated_params
 
     my $process = $self->schema->resultset( 'Process' )->create(
         { type_id => $validated_params->{type} }
     );
 
-    for my $input_well ( @{ $process->{input_wells} || [] } ) {
+    for my $input_well ( @{ $validated_params->{input_wells} || [] } ) {
         $process->create_related(
             process_input_wells => { well_id => $self->_well_id_for( $input_well ) }
         );
@@ -156,7 +157,7 @@ sub create_process {
 
     $self->$check_input_wells( $process );
 
-    for my $output_well ( @{ $process->{output_wells} || [] } ) {
+    for my $output_well ( @{ $validated_params->{output_wells} || [] } ) {
         $process->create_related(
             process_output_wells => { well_id => $self->_well_id_for( $output_well ) }
         );
@@ -164,10 +165,10 @@ sub create_process {
 
     delete @{$params}{ qw( type input_wells output_wells ) };
 
-    my $create_aux_data = '_create_process_aux_data_ ' . $validated_params->{type};
+    my $create_aux_data = '_create_process_aux_data_' . $validated_params->{type};
+
     $self->throw( Implementation => "Don't know how to create auxiliary data for process type $validated_params->{type}" )
         unless $self->can( $create_aux_data );
-    ### $params
 
     $self->$create_aux_data( $params, $process );
 
@@ -184,7 +185,7 @@ sub pspec__create_process_aux_data_create_di {
 sub _create_process_aux_data_create_di {
     my ( $self, $params, $process ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->_pspec_create_process_aux_data_create_di );
+    my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_create_di );
 
     $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
 
@@ -217,7 +218,7 @@ sub pspec__create_process_aux_data_int_recom {
 sub _create_process_aux_data_int_recom {
     my ( $self, $params, $process ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->_pspec_create_process_aux_data_int_recom );
+    my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_int_recom );
 
     $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } );
     $process->create_related( process_backbone => { backbone => $validated_params->{backbone} } );
@@ -229,7 +230,7 @@ sub pspec__create_process_aux_data_2w_gateway {
     return {
         cassette     => { validate => 'existing_final_cassette', optional => 1 },
         backbone     => { validate => 'existing_final_backbone', optional => 1 },
-        recombinases => { optional => 1},
+        recombinase  => { optional => 1 },
         REQUIRE_SOME => {
             cassette_or_backbone => [ 1, qw( cassette backbone ) ],
         },
@@ -239,76 +240,67 @@ sub pspec__create_process_aux_data_2w_gateway {
 sub _create_process_aux_data_int_2w_gateway {
     my ( $self, $params, $process ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->_pspec_create_process_aux_data_2w_gateway );
+    my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_2w_gateway );
 
     $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } )
         if $validated_params->{cassette};
     $process->create_related( process_backbone => { backbone => $validated_params->{backbone} } )
         if $validated_params->{backbone};
 
-    map{ $self->_create_process_recombinase( $process, $_ ) }
-        @{ $validated_params->{recombinases} }
-            if $validated_params->{recombinases};
+    if ( $validated_params->{recombinase} ) {
+        $self->_create_process_aux_data_recombinase(
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
 
     return;
 }
 
 sub pspec__create_process_aux_data_3w_gateway {
     return {
-        cassette     => { validate => 'existing_final_cassette' },
-        backbone     => { validate => 'existing_final_backbone' },
-        recombinases => { optional => 1 },
+        cassette    => { validate => 'existing_final_cassette' },
+        backbone    => { validate => 'existing_final_backbone' },
+        recombinase => { optional => 1 },
     };
 }
 
 sub _create_process_aux_data_int_3w_gateway {
     my ( $self, $params, $process ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->_pspec_create_process_aux_data_3w_gateway );
+    my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_3w_gateway );
 
     $process->create_related( process_cassette   => { cassette => $validated_params->{cassette} } );
     $process->create_related( process_backbone   => { backbone => $validated_params->{backbone} } );
 
-    map{ $self->_create_process_recombinase( $process, $_ ) }
-        @{ $validated_params->{recombinases} }
-            if $validated_params->{recombinases};
+    if ( $validated_params->{recombinase} ) {
+        $self->_create_process_aux_data_recombinase(
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
 
     return;
 }
 
 sub pspec__create_process_aux_data_recombinase {
     return {
-        recombinases => { },
+        recombinase => { validate => 'existing_recombinase' },
     };
 }
 
 sub _create_process_aux_data_recombinase {
     my ( $self, $params, $process ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->_pspec_create_process_aux_data_recombinase );
+    my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_recombinase );
 
     $self->throw( Validation => "recombinase process should have 1 or more recombinases" )
-        unless @{ $validated_params->{recombinases} };
+        unless @{ $validated_params->{recombinase} };
 
-    map{ $self->_create_process_recombinase( $process, $_ ) }
-        @{ $validated_params->{recombinases} };
-
-    return;
-}
-
-sub _create_process_recombinase {
-    my ( $self, $process, $params ) = @_;
-
-    my $validated_params = $self->check_params(
-        $params, { recombinase => { validate => 'existing_recombinase' },
-                   rank        => { validate => 'integer' } }
-    );
-
-    $process->create_related( process_recombinase => {
-            recombinase => $validated_params->{recombinase},
-            rank        => $validated_params->{rank},
-        }
-    );
+    my $rank = 1;
+    foreach my $recombinase ( @{ $validated_params->{recombinase} } ) {
+        $process->create_related( process_recombinase => {
+                recombinase => $recombinase,
+                rank        => ++$rank,
+            }
+        );
+    }
 
     return;
 }
@@ -323,7 +315,7 @@ sub pspec__create_process_aux_data_cre_bac_recom {
 sub _create_process_aux_data_cre_bac_recom {
     my ( $self, $params, $process ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->_pspec_create_process_aux_data_cre_bac_recom );
+    my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_cre_bac_recom );
 
     $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } );
     $process->create_related( process_backbone => { backbone => $validated_params->{backbone} } );
