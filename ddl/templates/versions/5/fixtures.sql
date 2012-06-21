@@ -6,7 +6,8 @@ VALUES ('DESIGN', 'Design Instances'),
        ('INT', 'Intermediate Vectors' ),
        ('POSTINT', 'Post-intermediate Vectors' ),
        ('FINAL', 'Final Vectors' ),
-       ('CREBAC', 'Cre/BAC Vectors' );
+       ('CREBAC', 'Cre/BAC Vectors' ),
+       ('DNA', 'DNA QC' );
 
 INSERT INTO process_types(id,description)
 VALUES ('create_di', 'Create design instance'),
