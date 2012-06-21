@@ -425,8 +425,8 @@ process_id integer,
 recombinase text,
 rank integer
 );
-GRANT SELECT ON audit.process_recombinase TO lims2_devel_ro;
-GRANT SELECT,INSERT ON audit.process_recombinase TO lims2_devel_rw;
+GRANT SELECT ON audit.process_recombinase TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.process_recombinase TO "[% rw_role %]";
 CREATE OR REPLACE FUNCTION public.process_process_recombinase_audit()
 RETURNS TRIGGER AS $process_recombinase_audit$
     BEGIN
@@ -450,8 +450,8 @@ audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
 id text
 );
-GRANT SELECT ON audit.recombinases TO lims2_devel_ro;
-GRANT SELECT,INSERT ON audit.recombinases TO lims2_devel_rw;
+GRANT SELECT ON audit.recombinases TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.recombinases TO "[% rw_role %]";
 CREATE OR REPLACE FUNCTION public.process_recombinases_audit()
 RETURNS TRIGGER AS $recombinases_audit$
     BEGIN
