@@ -42,7 +42,7 @@ sub pspec_create_well {
         plate_name   => { validate => 'existing_plate_name' },
         well_name    => { validate => 'well_name' },
         process_data => { validate => 'hashref', optional => 1, default => {} },
-        created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id', optional => 1 },
+        created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
 }
@@ -60,6 +60,54 @@ sub create_well {
     my $well = $plate->create_related( wells => \$validated_well_params );
 
     $self->create_process( slice_def $validated_params, qw( process_data ), output_wells => [ { id => $well->id  } ]);
+}
+
+sub pspec_create_well_accepted_override {
+    return {
+        plate_name => { validate => 'existing_plate_name', optional => 1 },
+        well_name  => { validate => 'well_name', optional => 1 },
+        well_id    => { validate => 'integer', optional => 1 },
+        created_by => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        accepted   => { validate => 'boolean' }
+    }
+}
+
+sub create_well_accepted_override {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_accepted_override );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( plate_name well_name well_id ) } );
+
+    my $override = $well->create_related(
+        well_accepted_override => { slice_def $validated_params, qw( created_by_id created_at accepted ) }
+    );
+
+    return $override;
+}
+
+sub pspec_update_well_accepted_override {
+    return shift->pspec_create_well_accepted_override;
+}
+
+sub update_well_accepted_override {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_well_accepted_override );
+
+    my $override = $self->retrieve(
+        WellAcceptedOverride => { 'plate.name' => $validated_params->{plate_name},
+                                  'well.name'  => $validated_params->{well_name}
+                              },
+        { join => { well => 'plate' } }
+    );
+
+    $self->throw( InvalidState => "Well already has accepted override with value "
+                      . ( $validated_params->{accepted} ? 'TRUE' : 'FALSE' ) )
+        unless $override->accepted xor $validated_params->{accepted};
+
+    $override->update( { slice_def $validated_params, qw( created_by_id created_at accepted ) } );
 }
 
 1;
