@@ -16,7 +16,7 @@ Catalyst Controller.
 
 =cut
 
-sub plate :Path '/api/plate' :Args(0) :ActionClass('REST') {
+sub plate :Path('/api/plate') :Args(0) :ActionClass('REST') {
 }
 
 sub plate_GET {
@@ -51,7 +51,7 @@ sub plate_POST {
     );
 }
 
-sub well :Path '/api/well' :Args(0) :ActionClass('REST') {
+sub well :Path('/api/well') :Args(0) :ActionClass('REST') {
 }
 
 sub well_GET {
@@ -86,7 +86,7 @@ sub well_POST {
     );
 }
 
-sub well_accepted_override :Path( '/api/well/accepted' ) :Args(0) :ActionClass('REST') {
+sub well_accepted_override :Path('/api/well/accepted') :Args(0) :ActionClass('REST') {
 }
 
 sub well_accepted_override_POST {
