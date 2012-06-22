@@ -41,7 +41,9 @@ sub create_plate {
 
     for my $c ( @{ $validated_params->{comments} || [] } ) {
         my $validated_c = $self->check_params( $c, $self->pspec_create_plate_comment );
-        $plate->create_related( plate_comments => $validated_c );
+        $plate->create_related( plate_comments =>
+            { slice_def( $validated_c, qw( comment_text created_by_id created_at ) ) }
+        );
     }
 
     # XXX Should this return profile-specific data?
@@ -59,7 +61,7 @@ sub pspec_retrieve_plate {
 sub retrieve_plate {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->psepc_retrieve_plate );
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate );
 
     my $plate = $self->retrieve( Plate => $validated_params );
 
