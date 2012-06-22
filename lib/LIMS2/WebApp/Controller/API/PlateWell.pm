@@ -86,6 +86,43 @@ sub well_POST {
     );
 }
 
+sub well_accepted_override :Path( '/api/well/accepted' ) :Args(0) :ActionClass('REST') {
+}
+
+sub well_accepted_override_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $override = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_well_accepted_override( $c->request->data )
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        entity => $override
+    );    
+}
+
+sub well_accepted_override_PUT {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $override = $c->model('Golgi')->txn_do(
+        sub {
+            shift->update_well_accepted_override( $c->request->data )
+        }
+    );
+
+    return $self->status_ok(
+        $c,
+        entity => $override
+    );    
+}
+
 =head1 AUTHOR
 
 Ray Miller
