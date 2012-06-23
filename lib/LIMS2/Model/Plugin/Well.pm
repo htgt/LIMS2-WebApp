@@ -4,6 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Moose::Role;
+use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -40,8 +41,8 @@ sub retrieve_well {
 sub pspec_create_well {
     return {
         plate_name   => { validate => 'existing_plate_name' },
-        well_name    => { validate => 'well_name' },
-        process_data => { validate => 'hashref', optional => 1, default => {} },
+        well_name    => { validate => 'well_name', rename => 'name' },
+        process_data => { validate => 'hashref' },
         created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
@@ -55,11 +56,14 @@ sub create_well {
     my $plate = $self->retrieve_plate( { name => $validated_params->{plate_name} } );
 
     my $validated_well_params
-        = { slice_def $validated_params, qw( well_name created_at created_by_id ) };
+        = { slice_def $validated_params, qw( name created_at created_by_id ) };
 
-    my $well = $plate->create_related( wells => \$validated_well_params );
+    my $well = $plate->create_related( wells => $validated_well_params );
 
-    $self->create_process( slice_def $validated_params, qw( process_data ), output_wells => [ { id => $well->id  } ]);
+    my $process_params = $validated_params->{process_data};
+    $process_params->{output_well} = [ { id => $well->id } ];
+
+    $self->create_process( $process_params );
 }
 
 sub pspec_create_well_accepted_override {
