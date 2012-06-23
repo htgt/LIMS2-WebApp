@@ -44,6 +44,18 @@ my %REL_NAME_MAP = (
     User => {
         qcs_runs => 'qc_runs'
     },
+    Process => {
+        process_inputs_well => 'process_input_wells',
+        process_outputs_well => 'process_output_wells',
+        wells => 'input_wells',
+        input_wells_2s => 'output_wells',
+    },
+    Well => {
+        process_inputs_well => 'process_input_wells',
+        process_outputs_well => 'process_output_wells',
+        processes => 'input_processes',
+        input_processes_2s => 'output_processes',
+    }
     # Bad plurals
     #bac_clone_locis        => 'bac_clone_loci',
     #design_oligo_locis     => 'design_oligo_loci',
