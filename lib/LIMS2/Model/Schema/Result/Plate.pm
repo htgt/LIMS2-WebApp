@@ -50,6 +50,12 @@ __PACKAGE__->table("plates");
   data_type: 'text'
   is_nullable: 0
 
+=head2 description
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
 =head2 type_id
 
   data_type: 'text'
@@ -69,12 +75,6 @@ __PACKAGE__->table("plates");
   is_nullable: 0
   original: {default_value => \"now()"}
 
-=head2 description
-
-  data_type: 'text'
-  default_value: (empty string)
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -87,6 +87,8 @@ __PACKAGE__->add_columns(
   },
   "name",
   { data_type => "text", is_nullable => 0 },
+  "description",
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "created_by_id",
@@ -98,8 +100,6 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
-  "description",
-  { data_type => "text", default_value => "", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -191,8 +191,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 16:37:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4mEX/syuMqb9p5Mk6DFfOA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-23 11:01:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3u9I6L7F/6IxfqYbn8PhxA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
