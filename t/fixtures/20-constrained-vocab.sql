@@ -21,6 +21,7 @@ VALUES ('create_di', 'Create design instance'),
        ('2w_gateway', 'Two-way gateway'),
        ('3w_gateway', 'Three-way gateway'),
        ('rearray', 'rearray wells'),
+       ('dna_prep', 'dna prep'),
        ('recombinase', 'apply recombinase');
 
 INSERT INTO recombinases(id)
