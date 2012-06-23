@@ -24,9 +24,9 @@ sub _check_input_wells_create_di {
 
     my $count = $process->process_input_wells_rs->count;
 
-    #TODO: this throw is not doing the right thing, fix it
-    $self->throw( Validation => { message => "create_di process should have 0 input wells (got $count)" } )
-        unless $count == 0;
+    $self->throw( Validation =>
+        { message => "create_di process should have 0 input wells (got $count)" } )
+            unless $count == 0;
 
     return;
 }
@@ -37,13 +37,15 @@ sub _check_input_wells_int_recom {
     my @input_wells = $process->input_wells;
     my $count = scalar @input_wells;
 
-    $self->throw( Validation => "int_recom process should have 1 input well (got $count)" )
-        unless $count == 1;
+    $self->throw( Validation =>
+        { message => "int_recom process should have 1 input well (got $count)"} )
+            unless $count == 1;
 
     my $type = $input_wells[0]->plate->type_id;
 
-    $self->throw( Validation => "int_recom process input well should be type 'DESIGN' (got $type)" )
-        unless $type eq 'DESIGN';
+    $self->throw( Validation =>
+        { message => "int_recom process input well should be type 'DESIGN' (got $type)" } )
+            unless $type eq 'DESIGN';
 
     return;
 }
@@ -54,14 +56,15 @@ sub _check_input_wells_2w_gateway {
     my @input_wells = $process->input_wells;
     my $count = scalar @input_wells;
 
-    $self->throw( Validation => "2w_gateway process should have 1 input well (got $count)" )
-        unless $count == 1;
+    $self->throw( Validation =>
+        { message => "2w_gateway process should have 1 input well (got $count)" } )
+            unless $count == 1;
 
     my $type = $input_wells[0]->plate->type_id;
 
-    #TODO check its both INT and POSTINT
-    $self->throw( Validation => "2w_gateway process input well should be type 'INT' or 'POSTINT' (got $type)" )
-        unless any { $type eq  $_ } qw( INT POSTINT );
+    $self->throw( Validation =>
+        { message => "2w_gateway process input well should be type 'INT' (got $type)" } )
+            unless $type eq 'INT';
 
     return;
 }
@@ -77,9 +80,9 @@ sub _check_input_wells_3w_gateway {
 
     my $type = $input_wells[0]->plate->type_id;
 
-    #TODO check its both INT and POSTINT
-    $self->throw( Validation => "3w_gateway process input well should be type 'INT' or 'POSTINT' (got $type)" )
-        unless any { $type eq  $_ } qw( INT POSTINT );
+    $self->throw( Validation =>
+        { message => "3w_gateway process input well should be type 'INT' (got $type)" } )
+            unless $type eq 'INT';
 
     return;
 }
@@ -92,8 +95,6 @@ sub _check_input_wells_recombinase {
 
     $self->throw( Validation => "recombinase process should have 1 input well (got $count)" )
         unless $count == 1;
-
-    #TODO can input well be of any type?
 
     return;
 }
@@ -109,8 +110,9 @@ sub _check_input_wells_cre_bac_recom {
 
     my $type = $input_wells[0]->plate->type_id;
 
-    $self->throw( Validation => "cre_bac_recom process input well should be type 'DESIGN' (got $type)" )
-        unless $type eq 'DESIGN';
+    $self->throw( Validation =>
+        { message => "cre_bac_recom process input well should be type 'DESIGN' (got $type)" } )
+            unless $type eq 'DESIGN';
 
     return;
 }
@@ -123,6 +125,26 @@ sub _check_input_wells_rearray {
 
     $self->throw( Validation => "rearray process should have 1 input well (got $count)" )
         unless $count == 1;
+
+    my $type = $input_wells[0]->plate->type_id;
+
+    $self->throw( Validation =>
+        { message => "rearray process input well should be type 'INT' (got $type)" } )
+            unless $type eq 'INT';
+    #TODO: check if only INT plate types can be re-arrayed? seems wrong
+
+    return;
+}
+
+sub _check_input_wells_dna_prep {
+    my ( $self, $process ) = @_;
+
+    my @input_wells = $process->input_wells;
+    my $count = scalar @input_wells;
+
+    $self->throw( Validation => "rearray process should have 1 input well (got $count)" )
+        unless $count == 1;
+    #TODO type check?
 
     return;
 }
@@ -237,9 +259,10 @@ sub pspec__create_process_aux_data_2w_gateway {
     };
 }
 
-sub _create_process_aux_data_int_2w_gateway {
+sub _create_process_aux_data_2w_gateway {
     my ( $self, $params, $process ) = @_;
 
+    #TODO: throw error it both cassette and backbone supplied?
     my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_2w_gateway );
 
     $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } )
@@ -263,7 +286,7 @@ sub pspec__create_process_aux_data_3w_gateway {
     };
 }
 
-sub _create_process_aux_data_int_3w_gateway {
+sub _create_process_aux_data_3w_gateway {
     my ( $self, $params, $process ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_process_aux_data_3w_gateway );
@@ -295,7 +318,7 @@ sub _create_process_aux_data_recombinase {
 
     my $rank = 1;
     foreach my $recombinase ( @{ $validated_params->{recombinase} } ) {
-        $process->create_related( process_recombinase => {
+        $process->create_related( process_recombinases => {
                 recombinase => $recombinase,
                 rank        => ++$rank,
             }
