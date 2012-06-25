@@ -89,6 +89,20 @@ sub well_POST {
 sub well_accepted_override :Path('/api/well/accepted') :Args(0) :ActionClass('REST') {
 }
 
+sub well_accepted_override_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $override = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_well_accepted_override( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $override );    
+}
+
 sub well_accepted_override_POST {
     my ( $self, $c ) = @_;
 
@@ -102,7 +116,8 @@ sub well_accepted_override_POST {
 
     return $self->status_created(
         $c,
-        entity => $override
+        location => $c->uri_for( '/api/well/accepted', { well_id => $override->well_id } ),
+        entity   => $override
     );    
 }
 
