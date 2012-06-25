@@ -196,5 +196,27 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+use overload '""' => \&as_string;
+
+sub as_string {
+    my $self = shift;
+
+    return $self->name;
+}
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+        name        => $self->name,
+        description => $self->description,
+        type        => $self->type_id,
+        created_by  => $self->created_by->name,
+        created_at  => $self->created_at->iso8601,
+        wells       => [ sort map { $_->name } $self->wells ]
+    };
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

@@ -277,5 +277,29 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+use overload '""' => \&as_string;
+
+sub as_string {
+    my $self = shift;
+
+    return sprintf( '%s_%s', $self->plate->name, $self->name );    
+}
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+        plate_name     => $self->plate->name,
+        plate_type     => $self->plate->type_id,
+        well_name      => $self->name,
+        created_by     => $self->created_by->name,
+        created_at     => $self->created_at->iso8601,
+        assay_pending  => $self->assay_pending ? $self->assay_pending->iso8601 : undef,
+        assay_complete => $self->assay_complete ? $self->assay_complete->iso8601 : undef,
+        accepted       => $self->well_accepted_override ? $self->well_accepted_override->accepted : $self->accepted
+    };
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
