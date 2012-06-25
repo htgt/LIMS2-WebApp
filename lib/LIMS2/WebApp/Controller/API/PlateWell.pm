@@ -40,7 +40,7 @@ sub plate_POST {
 
     my $plate = $c->model('Golgi')->txn_do(
         sub {
-            shift->create_plate( $c->request->params )
+            shift->create_plate( $c->request->data )
         }
     );
 
@@ -75,7 +75,7 @@ sub well_POST {
 
     my $well = $c->model('Golgi')->txn_do(
         sub {
-            shift->create_well( $c->request->params )
+            shift->create_well( $c->request->data )
         }
     );
 
