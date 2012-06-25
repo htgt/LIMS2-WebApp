@@ -9,8 +9,6 @@ use List::MoreUtils qw( any );
 use namespace::autoclean;
 use Const::Fast;
 
-use Smart::Comments;
-
 requires qw( schema check_params throw retrieve log trace );
 
 sub _well_id_for {
@@ -160,7 +158,6 @@ sub pspec_create_process {
 sub create_process {
     my ( $self, $params ) = @_;
 
-    ### $params
     my $validated_params = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
 
     my $process = $self->schema->resultset( 'Process' )->create(
