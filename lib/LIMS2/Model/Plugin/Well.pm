@@ -16,7 +16,7 @@ sub pspec_retrieve_well {
         well_name         => { validate => 'well_name',  optional => 1 },
         DEPENDENCY_GROUPS => { name_group => [ qw( plate_name well_name ) ] },
         REQUIRE_SOME      => { id_or_name => [ 1, qw( id plate_name well_name ) ] }
-    }
+    };
 }
 
 sub retrieve_well {
@@ -45,7 +45,7 @@ sub pspec_create_well {
         process_data => { validate => 'hashref' },
         created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
-    }
+    };
 }
 
 sub create_well {
@@ -64,6 +64,8 @@ sub create_well {
     $process_params->{output_well} = [ { id => $well->id } ];
 
     $self->create_process( $process_params );
+
+    return $well;
 }
 
 sub pspec_create_well_accepted_override {
