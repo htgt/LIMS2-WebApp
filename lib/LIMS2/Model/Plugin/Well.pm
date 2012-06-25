@@ -65,11 +65,25 @@ sub create_well {
     my $well = $plate->create_related( wells => $validated_well_params );
 
     my $process_params = $validated_params->{process_data};
-    $process_params->{output_well} = [ { id => $well->id } ];
+    $process_params->{output_wells} = [ { id => $well->id } ];
 
     $self->create_process($process_params);
 
     return $well;
+}
+
+sub pspec_retrieve_well_accepted_override {
+    return {
+        well_id => { validate => 'integer' }
+    }
+}
+
+sub retrieve_well_accepted_override {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_accepted_override );
+
+    return $self->retrieve( WellAcceptedOverride => $validated_params );
 }
 
 sub pspec_create_well_accepted_override {
@@ -99,6 +113,10 @@ sub create_well_accepted_override {
     my $override = $well->create_related( well_accepted_override =>
             { slice_def $validated_params, qw( created_by_id created_at accepted ) } );
 
+    if ( ! $well->assay_complete ) {
+        $well->update( { assay_complete => $override->created_at } );
+    }
+    
     return $override;
 }
 
