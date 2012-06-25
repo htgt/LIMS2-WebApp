@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
-use List::MoreUtils qw( any );
+use List::MoreUtils qw( any uniq );
 use namespace::autoclean;
 use Const::Fast;
 
@@ -22,8 +22,7 @@ sub _check_input_wells_create_di {
 
     my $count = $process->process_input_wells_rs->count;
 
-    $self->throw(
-        Validation => { message => "create_di process should have 0 input wells (got $count)" } )
+    $self->throw( Validation => "create_di process should have 0 input wells (got $count)" )
         unless $count == 0;
 
     return;
@@ -35,14 +34,12 @@ sub _check_input_wells_int_recom {
     my @input_wells = $process->input_wells;
     my $count       = scalar @input_wells;
 
-    $self->throw(
-        Validation => { message => "int_recom process should have 1 input well (got $count)" } )
+    $self->throw( Validation => "int_recom process should have 1 input well (got $count)" )
         unless $count == 1;
 
     my $type = $input_wells[0]->plate->type_id;
 
-    $self->throw( Validation =>
-            { message => "int_recom process input well should be type 'DESIGN' (got $type)" } )
+    $self->throw( Validation => "int_recom process input well should be type DESIGN (got $type)" )
         unless $type eq 'DESIGN';
 
     return;
@@ -54,15 +51,13 @@ sub _check_input_wells_2w_gateway {
     my @input_wells = $process->input_wells;
     my $count       = scalar @input_wells;
 
-    $self->throw(
-        Validation => { message => "2w_gateway process should have 1 input well (got $count)" } )
+    $self->throw( Validation => "2w_gateway process should have 1 input well (got $count)" )
         unless $count == 1;
 
     my $type = $input_wells[0]->plate->type_id;
 
-    $self->throw( Validation =>
-            { message => "2w_gateway process input well should be type 'INT' (got $type)" } )
-        unless $type eq 'INT';
+    $self->throw( Validation => "2w_gateway process input well should be type INT or POSTINT (got $type)" )
+        unless $type eq 'INT' or $type eq 'POSTINT';
 
     return;
 }
@@ -79,7 +74,7 @@ sub _check_input_wells_3w_gateway {
     my $type = $input_wells[0]->plate->type_id;
 
     $self->throw( Validation =>
-            { message => "3w_gateway process input well should be type 'INT' (got $type)" } )
+            { message => "3w_gateway process input well should be type INT (got $type)" } )
         unless $type eq 'INT';
 
     return;
@@ -108,8 +103,7 @@ sub _check_input_wells_cre_bac_recom {
 
     my $type = $input_wells[0]->plate->type_id;
 
-    $self->throw( Validation =>
-            { message => "cre_bac_recom process input well should be type 'DESIGN' (got $type)" } )
+    $self->throw( Validation => "cre_bac_recom process input well should be type DESIGN (got $type)" )
         unless $type eq 'DESIGN';
 
     return;
@@ -118,19 +112,24 @@ sub _check_input_wells_cre_bac_recom {
 sub _check_input_wells_rearray {
     my ( $self, $process ) = @_;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
+    my @input_wells  = $process->input_wells;
+    my $in_count     = @input_wells;
 
-    $self->throw( Validation => "rearray process should have 1 input well (got $count)" )
-        unless $count == 1;
+    # XXX Does not allow for pooled rearray
+    $self->throw( Validation => "rearray process should have 1 input well (got $in_count)" )
+        unless $in_count == 1;
 
-    my $type = $input_wells[0]->plate->type_id;
+    # Output well type must be the same as the input well type
+    my $in_type = $input_wells[0]->plate->type_id;
+    my @output_types = uniq map { $_->plate->type_id } $process->output_wells;
 
-    $self->throw(
-        Validation => { message => "rearray process input well should be type 'INT' (got $type)" } )
-        unless $type eq 'INT';
+    my @invalid_types = grep { $_ ne $in_type } @output_types;
 
-    #TODO: check if only INT plate types can be re-arrayed? seems wrong
+    if ( @invalid_types > 0 ) {
+        my $mesg = sprintf 'rearray process should have input and output wells of the same type (expected %s, got %s)',
+            $in_type, join( q/,/, @invalid_types );
+        $self->throw( Validation => $mesg );
+    }
 
     return;
 }
@@ -141,10 +140,13 @@ sub _check_input_wells_dna_prep {
     my @input_wells = $process->input_wells;
     my $count       = scalar @input_wells;
 
-    $self->throw( Validation => "rearray process should have 1 input well (got $count)" )
+    $self->throw( Validation => "dna_prep process should have 1 input well (got $count)" )
         unless $count == 1;
-
-    #TODO type check?
+    
+    my $type = $input_wells[0]->plate->type_id;
+    
+    $self->throw( Validation => "dna_prep process input well should be type 'FINAL' (got $type)" )
+        unless $type eq 'FINAL';
 
     return;
 }
@@ -171,18 +173,22 @@ sub create_process {
             process_input_wells => { well_id => $self->_well_id_for($input_well) } );
     }
 
-    my $check_input_wells = '_check_input_wells_' . $validated_params->{type};
-    $self->throw( Implementation =>
-            "Don't know how to validate input wells for process type $validated_params->{type}" )
-        unless $self->can($check_input_wells);
-
-    $self->$check_input_wells($process);
-
     for my $output_well ( @{ $validated_params->{output_wells} || [] } ) {
         $process->create_related(
             process_output_wells => { well_id => $self->_well_id_for($output_well) } );
     }
 
+    my $check_input_wells = '_check_input_wells_' . $validated_params->{type};
+    $self->throw(
+        Implementation => "Don't know how to validate input wells for process type $validated_params->{type}"
+    ) unless $self->can($check_input_wells);
+
+    $self->$check_input_wells($process);
+
+    # XXX We have checked the types of the input wells; should we
+    # check that (at the very least) all of the output wells are of
+    # the same type?
+    
     delete @{$params}{qw( type input_wells output_wells )};
 
     my $create_aux_data = '_create_process_aux_data_' . $validated_params->{type};
