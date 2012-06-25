@@ -32,7 +32,7 @@ sub create_plate {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
-    
+
     my $plate = $self->schema->resultset( 'Plate' )->create(
         {
             slice_def( $validated_params, qw( name type_id description created_by_id created_at ) ),
