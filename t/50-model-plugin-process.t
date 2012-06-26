@@ -39,7 +39,7 @@ my $create_di_process_data= test_data( 'create_di_process.yaml' );
 
 throws_ok {
     my $process = model->create_process( $create_di_process_data->{invalid_input_wells} );
-} qr/create_di process should have 0 input wells \(got 1\)/;
+} qr/create_di process should have 0 input well\(s\) \(got 1\)/;
 
 throws_ok {
     my $process = model->create_process( $create_di_process_data->{invalid_design_id} );
@@ -76,7 +76,7 @@ my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
 
 throws_ok {
     my $process = model->create_process( $int_recom_process_data->{missing_input_well} );
-} qr/int_recom process should have 1 input well \(got 0\)/;
+} qr/int_recom process should have 1 input well\(s\) \(got 0\)/;
 
 throws_ok {
     my $process = model->create_process( $int_recom_process_data->{invalid_input_well} );
@@ -119,11 +119,11 @@ throws_ok {
 
 throws_ok {
     my $process = model->create_process( $process_data_2w_gateway->{missing_input_well} );
-} qr/2w_gateway process should have 1 input well \(got 0\)/;
+} qr/2w_gateway process should have 1 input well\(s\) \(got 0\)/;
 
 throws_ok {
     my $process = model->create_process( $process_data_2w_gateway->{invalid_input_well} );
-} qr/2w_gateway process input well should be type INT or POSTINT \(got DESIGN\)/;
+} qr/2w_gateway process input well should be type (INT|,|POSTINT)+ \(got DESIGN\)/;
 
 note( "Testing 3w_gateway process creation" );
 my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
@@ -160,7 +160,7 @@ my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
 
 throws_ok {
     my $process = model->create_process( $process_data_3w_gateway->{missing_input_well} );
-} qr/3w_gateway process should have 1 input well \(got 0\)/;
+} qr/3w_gateway process should have 1 input well\(s\) \(got 0\)/;
 
 throws_ok {
     my $process = model->create_process( $process_data_3w_gateway->{invalid_input_well} );

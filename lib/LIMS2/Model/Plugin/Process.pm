@@ -5,11 +5,43 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
-use List::MoreUtils qw( any uniq );
+use List::MoreUtils qw( uniq notall );
 use namespace::autoclean;
 use Const::Fast;
 
 requires qw( schema check_params throw retrieve log trace );
+
+const my %PROCESS_INPUT_WELL_CHECK => (
+    create_di => {
+        number => 0,
+    },
+    int_recom => {
+        number => 1,
+        type => [ qw( DESIGN ) ],
+    },
+    '2w_gateway' => {
+        number => 1,
+        type => [ qw( INT POSTINT ) ],
+    },
+    '3w_gateway' => {
+        number => 1,
+        type => [ qw( INT ) ],
+    },
+    recombinase => {
+        number => 1,
+    },
+    cre_bac_recom => {
+        number => 1,
+        type => [ qw( DESIGN ) ],
+    },
+    rearray => {
+        number => 1,
+    },
+    dna_prep => {
+        number => 1,
+        type => [ qw( FINAL ) ],
+    },
+);
 
 sub _well_id_for {
     my ( $self, $data ) = @_;
@@ -17,109 +49,80 @@ sub _well_id_for {
     $self->retrieve_well($data)->id;
 }
 
+sub check_input_wells {
+    my ( $self, $process ) = @_;
+
+    my $process_type = $process->type_id;
+
+    my @input_wells = $process->input_wells;
+    my $count       = scalar @input_wells;
+    my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
+    $self->throw( Validation =>
+        "$process_type process should have $expected_input_well_count input well(s) (got $count)" )
+             unless $count == $expected_input_well_count;
+
+    return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
+
+    my @types = uniq map{ $_->plate->type_id } @input_wells;
+    my %expected_input_process_types = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
+
+    $self->throw( Validation => "$process_type process input well should be type "
+                  . join(',', keys %expected_input_process_types)
+                  . ' (got ' . join(',', @types)  .')' )
+        if notall { exists $expected_input_process_types{$_} } @types;
+
+    return;
+}
+
 sub _check_input_wells_create_di {
     my ( $self, $process ) = @_;
 
-    my $count = $process->process_input_wells_rs->count;
-
-    $self->throw( Validation => "create_di process should have 0 input wells (got $count)" )
-        unless $count == 0;
-
+    $self->check_input_wells($process);
     return;
 }
 
 sub _check_input_wells_int_recom {
     my ( $self, $process ) = @_;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
-
-    $self->throw( Validation => "int_recom process should have 1 input well (got $count)" )
-
-        unless $count == 1;
-
-    my $type = $input_wells[0]->plate->type_id;
-
-    $self->throw( Validation => "int_recom process input well should be type DESIGN (got $type)" )
-        unless $type eq 'DESIGN';
-
+    $self->check_input_wells($process);
     return;
 }
 
 sub _check_input_wells_2w_gateway {
     my ( $self, $process ) = @_;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
-
-    $self->throw( Validation => "2w_gateway process should have 1 input well (got $count)" )
-        unless $count == 1;
-
-    my $type = $input_wells[0]->plate->type_id;
-
-    $self->throw( Validation => "2w_gateway process input well should be type INT or POSTINT (got $type)" )
-        unless $type eq 'INT' or $type eq 'POSTINT';
-
+    $self->check_input_wells($process);
     return;
 }
 
 sub _check_input_wells_3w_gateway {
     my ( $self, $process ) = @_;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
-
-    $self->throw( Validation => "3w_gateway process should have 1 input well (got $count)" )
-        unless $count == 1;
-
-    my $type = $input_wells[0]->plate->type_id;
-
-    $self->throw( Validation =>
-            { message => "3w_gateway process input well should be type INT (got $type)" } )
-        unless $type eq 'INT';
-
+    $self->check_input_wells($process);
     return;
 }
 
 sub _check_input_wells_recombinase {
     my ( $self, $process ) = @_;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
-
-    $self->throw( Validation => "recombinase process should have 1 input well (got $count)" )
-        unless $count == 1;
-
+    $self->check_input_wells($process);
     return;
 }
 
 sub _check_input_wells_cre_bac_recom {
     my ( $self, $process ) = @_;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
-
-    $self->throw( Validation => "cre_bac_recom process should have 1 input well (got $count)" )
-        unless $count == 1;
-
-    my $type = $input_wells[0]->plate->type_id;
-
-    $self->throw( Validation => "cre_bac_recom process input well should be type DESIGN (got $type)" )
-        unless $type eq 'DESIGN';
-
+    $self->check_input_wells($process);
     return;
 }
 
 sub _check_input_wells_rearray {
     my ( $self, $process ) = @_;
 
-    my @input_wells  = $process->input_wells;
-    my $in_count     = @input_wells;
-
     # XXX Does not allow for pooled rearray
-    $self->throw( Validation => "rearray process should have 1 input well (got $in_count)" )
-        unless $in_count == 1;
+    $self->check_input_wells($process);
 
+    my @input_wells  = $process->input_wells;
     # Output well type must be the same as the input well type
     my $in_type = $input_wells[0]->plate->type_id;
     my @output_types = uniq map { $_->plate->type_id } $process->output_wells;
@@ -138,17 +141,7 @@ sub _check_input_wells_rearray {
 sub _check_input_wells_dna_prep {
     my ( $self, $process ) = @_;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
-
-    $self->throw( Validation => "dna_prep process should have 1 input well (got $count)" )
-        unless $count == 1;
-    
-    my $type = $input_wells[0]->plate->type_id;
-    
-    $self->throw( Validation => "dna_prep process input well should be type FINAL (got $type)" )
-        unless $type eq 'FINAL';
-
+    $self->check_input_wells($process);
     return;
 }
 
@@ -189,7 +182,7 @@ sub create_process {
     # XXX We have checked the types of the input wells; should we
     # check that (at the very least) all of the output wells are of
     # the same type?
-    
+
     delete @{$params}{qw( type input_wells output_wells )};
 
     my $create_aux_data = '_create_process_aux_data_' . $validated_params->{type};
