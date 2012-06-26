@@ -547,6 +547,10 @@ sub retrieve_qc_run_results {
     my ( $self, $params ) = @_;
 
     my $qc_run = $self->retrieve_qc_run( $params );
+
+    unless ( $qc_run ) {
+        $self->throw( NotFound => { entity_class => 'QcRun', search_params => $params } );
+    }
     my $qc_run_results;
 
     # see HTGT::Utils::QCTestResults ( in htgt )
