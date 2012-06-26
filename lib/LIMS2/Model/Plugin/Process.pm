@@ -12,34 +12,28 @@ use Const::Fast;
 requires qw( schema check_params throw retrieve log trace );
 
 const my %PROCESS_INPUT_WELL_CHECK => (
-    create_di => {
-        number => 0,
-    },
+    create_di => { number => 0, },
     int_recom => {
         number => 1,
-        type => [ qw( DESIGN ) ],
+        type   => [qw( DESIGN )],
     },
     '2w_gateway' => {
         number => 1,
-        type => [ qw( INT POSTINT ) ],
+        type   => [qw( INT POSTINT )],
     },
     '3w_gateway' => {
         number => 1,
-        type => [ qw( INT ) ],
+        type   => [qw( INT )],
     },
-    recombinase => {
-        number => 1,
-    },
+    recombinase   => { number => 1, },
     cre_bac_recom => {
         number => 1,
-        type => [ qw( DESIGN ) ],
+        type   => [qw( DESIGN )],
     },
-    rearray => {
-        number => 1,
-    },
+    rearray  => { number => 1, },
     dna_prep => {
         number => 1,
-        type => [ qw( FINAL ) ],
+        type   => [qw( FINAL )],
     },
 );
 
@@ -54,21 +48,24 @@ sub check_input_wells {
 
     my $process_type = $process->type_id;
 
-    my @input_wells = $process->input_wells;
-    my $count       = scalar @input_wells;
+    my @input_wells               = $process->input_wells;
+    my $count                     = scalar @input_wells;
     my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
     $self->throw( Validation =>
-        "$process_type process should have $expected_input_well_count input well(s) (got $count)" )
-             unless $count == $expected_input_well_count;
+            "$process_type process should have $expected_input_well_count input well(s) (got $count)"
+    ) unless $count == $expected_input_well_count;
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
-    my @types = uniq map{ $_->plate->type_id } @input_wells;
-    my %expected_input_process_types = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
+    my @types = uniq map { $_->plate->type_id } @input_wells;
+    my %expected_input_process_types
+        = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
 
     $self->throw( Validation => "$process_type process input well should be type "
-                  . join(',', keys %expected_input_process_types)
-                  . ' (got ' . join(',', @types)  .')' )
+            . join( ',', keys %expected_input_process_types )
+            . ' (got '
+            . join( ',', @types )
+            . ')' )
         if notall { exists $expected_input_process_types{$_} } @types;
 
     return;
@@ -122,7 +119,8 @@ sub _check_input_wells_rearray {
     # XXX Does not allow for pooled rearray
     $self->check_input_wells($process);
 
-    my @input_wells  = $process->input_wells;
+    my @input_wells = $process->input_wells;
+
     # Output well type must be the same as the input well type
     my $in_type = $input_wells[0]->plate->type_id;
     my @output_types = uniq map { $_->plate->type_id } $process->output_wells;
@@ -130,7 +128,9 @@ sub _check_input_wells_rearray {
     my @invalid_types = grep { $_ ne $in_type } @output_types;
 
     if ( @invalid_types > 0 ) {
-        my $mesg = sprintf 'rearray process should have input and output wells of the same type (expected %s, got %s)',
+        my $mesg
+            = sprintf
+            'rearray process should have input and output wells of the same type (expected %s, got %s)',
             $in_type, join( q/,/, @invalid_types );
         $self->throw( Validation => $mesg );
     }
@@ -173,9 +173,9 @@ sub create_process {
     }
 
     my $check_input_wells = '_check_input_wells_' . $validated_params->{type};
-    $self->throw(
-        Implementation => "Don't know how to validate input wells for process type $validated_params->{type}"
-    ) unless $self->can($check_input_wells);
+    $self->throw( Implementation =>
+            "Don't know how to validate input wells for process type $validated_params->{type}" )
+        unless $self->can($check_input_wells);
 
     $self->$check_input_wells($process);
 
