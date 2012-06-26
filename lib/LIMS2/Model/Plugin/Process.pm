@@ -35,6 +35,7 @@ sub _check_input_wells_int_recom {
     my $count       = scalar @input_wells;
 
     $self->throw( Validation => "int_recom process should have 1 input well (got $count)" )
+
         unless $count == 1;
 
     my $type = $input_wells[0]->plate->type_id;
@@ -145,7 +146,7 @@ sub _check_input_wells_dna_prep {
     
     my $type = $input_wells[0]->plate->type_id;
     
-    $self->throw( Validation => "dna_prep process input well should be type 'FINAL' (got $type)" )
+    $self->throw( Validation => "dna_prep process input well should be type FINAL (got $type)" )
         unless $type eq 'FINAL';
 
     return;

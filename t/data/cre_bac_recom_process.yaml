@@ -9,40 +9,13 @@ valid_input:
           well_name: A01
     cassette: pR6K_R1R2_ZP
     backbone: R3R4_pBR_amp
-missing_input_wells:
+invalid_input_well:
     type: cre_bac_recom
     output_wells:
-        - plate_name: PCS100
-          well_name: A01
-    cassette: pR6K_R1R2_ZP
-    backbone: R3R4_pBR_amp
-invalid_input_wells:
-    type: cre_bac_recom
-    output_wells:
-        - plate_name: PCS100
-          well_name: A01
-    input_wells:
         - plate_name: PGS100
           well_name: A01
-    cassette: pR6K_R1R2_ZP
-    backbone: R3R4_pBR_amp
-invalid_cassette:
-    type: cre_bac_recom
-    output_wells:
+    input_wells:
         - plate_name: PCS100
           well_name: A01
-    input_wells: 
-        - plate_name: 100
-          well_name: A01
-    cassette: test
-    backbone: R3R4_pBR_amp
-invalid_backbone:
-    type: cre_bac_recom
-    output_wells:
-        - plate_name: PCS100
-          well_name: A01
-    input_wells: 
-        - plate_name: 100
-          well_name: A01
     cassette: pR6K_R1R2_ZP
-    backbone: test
+    backbone: R3R4_pBR_amp

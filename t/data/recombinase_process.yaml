@@ -10,29 +10,3 @@ valid_input:
           well_name: A01
     recombinase:
         - Cre
-invalid_recombinase:
-    type: recombinase
-    cassette: L1L2_Bact_P
-    output_wells:
-        - plate_name: PGS100
-          well_name: A01
-    input_wells: 
-        - plate_name: PCS100
-          well_name: A01
-    recombinase:
-        - Test
-missing_recombinase:
-    type: recombinase
-    cassette: L1L2_Bact_P
-    output_wells:
-        - plate_name: PGS100
-          well_name: A01
-    input_wells: 
-        - plate_name: PCS100
-          well_name: A01
-missing_input_wells:
-    type: recombinase
-    cassette: L1L2_Bact_P
-    output_wells:
-        - plate_name: PCS100
-          well_name: A01
