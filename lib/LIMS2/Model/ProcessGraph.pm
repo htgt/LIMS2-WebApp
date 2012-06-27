@@ -3,20 +3,22 @@ package LIMS2::Model::ProcessGraph;
 use Moose;
 use Const::Fast;
 use List::MoreUtils qw( uniq );
+use LIMS2::Exception::Implementation;
+use Iterator::Simple qw( iter );
 use namespace::autoclean;
 
 const my $PROCESS_GRAPH_QUERY => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
     SELECT pr.id, pr_in.well_id, pr_out.well_id
     FROM processes pr
-    JOIN processes_output_wells pr_out ON pr_out.process_id = pr.id
-    LEFT OUTER JOIN processes_input_wells pr_in ON pr_in.process_id = pr.id
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id = ?
     UNION ALL
     SELECT pr.id, pr_in.well_id, pr_out.well_id
     FROM processes pr
-    JOIN processes_output_wells pr_out ON pr_out.process_id = pr.id
-    LEFT OUTER JOIN processes_input_wells pr_in ON pr_in.process_id = pr.id
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
 )
 SELECT process_id, input_well_id, output_well_id
@@ -40,6 +42,14 @@ has start_with => (
     is       => 'ro',
     isa      => 'LIMS2::Model::Schema::Result::Well',
     required => 1
+);
+
+has prefetch_process_data => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    default  => sub {
+        [ qw( process_design process_cassette process_backbone process_recombinases ) ]
+    }
 );
 
 sub schema {
@@ -84,6 +94,9 @@ sub _build__processes {
     my $rs = $self->schema->resultset( 'Process' )->search(
         {
             'me.id' => { '-in' => \@process_ids }
+        },
+        {
+            prefetch => $self->prefetch_process_data
         }
     );
 
@@ -174,6 +187,113 @@ sub output_wells {
     } $self->edges_out( $node );
 }
 
+sub breadth_first_traversal {
+    my ( $self, $node, $direction ) = @_;
+
+    my $neighbours;
+    if ( $direction eq 'in' ) {
+        $neighbours = 'input_wells';
+    }
+    elsif ( $direction eq 'out' ) {
+        $neighbours = 'output_wells';
+    }
+    else {    
+        LIMS2::Exception::Implementation->throw( "direction must be 'in' or 'out'" );
+    }    
+    
+    my ( %seen, @queue );
+
+    push @queue, $node;
+
+    return iter sub {
+        my $this_node = shift @queue;
+        while ( $this_node and $seen{$this_node->as_string}++ ) {
+            $this_node = shift @queue;
+        }
+        return unless $this_node;
+        push @queue, $self->$neighbours( $this_node );
+        return $this_node;
+    }    
+}
+
+sub process_data_for {
+    my ( $self, $well ) = @_;
+
+    # XXX This will return the WRONG DATA for double-targeted cells.
+    # We need to know whether we are retrieving data for the first
+    # allele or the second allele.
+    
+    return map { $self->$_($well) } qw( design_id_for cassette_for backbone_for recombinases_for ); 
+}
+
+# Breadth-first search for a process with a value in the related table
+# $relation.  Returns the related record. $relation should be
+# something like 'process_design', 'process_cassette', etc.
+sub find_process {
+    my ( $self, $start_well, $relation ) = @_;
+
+    my $it = $self->breadth_first_traversal( $start_well, 'in' );
+
+    while( my $well = $it->next ) {
+        for my $process ( $self->input_processes( $well ) ) {
+            if ( my $related = $process->$relation() ) {
+                return $related;
+            }
+        }
+    }
+
+    return;
+}
+
+sub design_id_for {
+    my ( $self, $well ) = @_;
+
+    my $process_design = $self->find_process( $well, 'process_design' );
+    
+    return $process_design ? $process_design->design_id : '';
+}
+
+sub cassette_for {
+    my ( $self, $well ) = @_;
+
+    my $process_cassette = $self->find_process( $well, 'process_cassette' );
+
+    return $process_cassette ? $process_cassette->cassette : '';    
+}
+
+sub backbone_for {
+    my ( $self, $well ) = @_;
+
+    my $process_backbone = $self->find_process( $well, 'process_backbone' );
+
+    return $process_backbone ? $process_backbone->backbone : '';
+}
+
+sub recombinases_for {
+    my ( $self, $well ) = @_;
+
+    # XXX This has a similar problem to process_data_for re. data for
+    # first vs second allele. There could also be a problem with data
+    # brought in from HTGT where apply_cre has been stamped at more
+    # than one point in the hierarchy, even though Cre was only
+    # applied once.
+
+    my $it = $self->breadth_first_traversal( $well, 'in' );
+
+    my @recombinases;
+    
+    while( my $this_well = $it->next ) {
+        for my $process ( $self->input_processes( $this_well ) ) {
+            my @this_recombinase = sort { $a->rank <=> $b->rank } $process->process_recombinases;
+            if ( @this_recombinase > 0 ) {
+                unshift @recombinases, @this_recombinase;
+            }
+        }
+    }
+
+    return join q{, }, map { $_->recombinase->id } @recombinases;
+}
+
 sub render {
     my ( $self, %opts ) = @_;
 
@@ -188,16 +308,16 @@ sub render {
 
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
-        $graph->add_node( name => $well->full_name );
+        $graph->add_node( name => $well->as_string, label => [ $well->as_string, $self->process_data_for( $well ) ] );
     }
 
     for my $edge ( @{ $self->edges } ) {
         my ( $process_id, $input_well_id, $output_well_id ) = @{ $edge };
         $self->log->debug( "Adding edge $process_id to GraphVis" );
         $graph->add_edge(
-            from  => defined $input_well_id ? $self->well( $input_well_id )->full_name : 'ROOT',
-            to    => $self->well( $output_well_id )->full_name,
-            label => $self->process( $process_id )->type
+            from  => defined $input_well_id ? $self->well( $input_well_id )->as_string : 'ROOT',
+            to    => $self->well( $output_well_id )->as_string,
+            label => $self->process( $process_id )->as_string
         );
     }
 
