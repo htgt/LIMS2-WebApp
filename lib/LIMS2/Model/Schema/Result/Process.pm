@@ -225,5 +225,12 @@ __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub as_string {
+    my $self = shift;
+
+    $self->type->description || $self->type_id;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
