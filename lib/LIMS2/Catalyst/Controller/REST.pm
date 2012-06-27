@@ -78,7 +78,8 @@ sub handle_lims2_model_error {
     }
 
     if ( $error->isa('LIMS2::Exception::Validation') ) {
-        if ( my $results = $error->results ) {
+        my $results = $error->results;
+        if ( defined $results ) {
             $entity{missing} = [ $results->missing ]
                 if $results->has_missing;
             $entity{invalid} = { map { $_ => $results->invalid($_) } $results->invalid }
