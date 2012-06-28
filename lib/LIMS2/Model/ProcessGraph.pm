@@ -99,7 +99,7 @@ sub _build_edges {
         $query = $QUERY_ANCESTORS;
     }
     else {
-        LIMS2::Model::Exception::Implementation->throw( "Invalid graph type '" . $self->type . "'" );
+        LIMS2::Exception::Implementation->throw( "Invalid graph type '" . $self->type . "'" );
     }    
     
     $self->schema->storage->dbh_do(
