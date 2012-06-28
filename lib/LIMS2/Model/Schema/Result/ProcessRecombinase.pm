@@ -44,7 +44,7 @@ __PACKAGE__->table("process_recombinase");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 recombinase
+=head2 recombinase_id
 
   data_type: 'text'
   is_foreign_key: 1
@@ -60,7 +60,7 @@ __PACKAGE__->table("process_recombinase");
 __PACKAGE__->add_columns(
   "process_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "recombinase",
+  "recombinase_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "rank",
   { data_type => "integer", is_nullable => 0 },
@@ -88,7 +88,7 @@ __PACKAGE__->set_primary_key("process_id", "rank");
 
 =item * L</process_id>
 
-=item * L</recombinase>
+=item * L</recombinase_id>
 
 =back
 
@@ -96,7 +96,7 @@ __PACKAGE__->set_primary_key("process_id", "rank");
 
 __PACKAGE__->add_unique_constraint(
   "process_recombinase_process_id_recombinase_key",
-  ["process_id", "recombinase"],
+  ["process_id", "recombinase_id"],
 );
 
 =head1 RELATIONS
@@ -127,13 +127,13 @@ Related object: L<LIMS2::Model::Schema::Result::Recombinase>
 __PACKAGE__->belongs_to(
   "recombinase",
   "LIMS2::Model::Schema::Result::Recombinase",
-  { id => "recombinase" },
+  { id => "recombinase_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-20 08:04:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fuU7qR+jXbSCsgB1y/4b0g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-28 12:54:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BL6EYPEtTYshh0XQ4JC7EQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

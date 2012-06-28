@@ -151,7 +151,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON recombinases TO "[% rw_role %]";
 
 CREATE TABLE process_recombinase (
        process_id        INTEGER NOT NULL REFERENCES processes(id),
-       recombinase       TEXT NOT NULL REFERENCES recombinases(id),
+       recombinase_id    TEXT NOT NULL REFERENCES recombinases(id),
        rank              INTEGER NOT NULL,
        PRIMARY KEY(process_id,rank),
        UNIQUE(process_id, recombinase)

@@ -422,7 +422,7 @@ audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
 process_id integer,
-recombinase text,
+recombinase_id text,
 rank integer
 );
 GRANT SELECT ON audit.process_recombinase TO "[% ro_role %]";

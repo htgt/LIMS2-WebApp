@@ -72,13 +72,13 @@ Related object: L<LIMS2::Model::Schema::Result::ProcessRecombinase>
 __PACKAGE__->has_many(
   "process_recombinases",
   "LIMS2::Model::Schema::Result::ProcessRecombinase",
-  { "foreign.recombinase" => "self.id" },
+  { "foreign.recombinase_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-20 08:04:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rr0zYe3CYD8/XsIHcW1U6A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-28 12:54:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c9oYHDSKOfcfcJoB9aeoyg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
