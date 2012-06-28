@@ -258,8 +258,12 @@ sub process_data_for {
     # XXX This will return the WRONG DATA for double-targeted cells.
     # We need to know whether we are retrieving data for the first
     # allele or the second allele.
-    
-    return map { $self->$_($well) } qw( design_id_for cassette_for backbone_for recombinases_for ); 
+
+    return ( $well->design->id,
+             $well->cassette,
+             $well->backbone,
+             join( q{,}, @{$well->recombinases} )
+         );
 }
 
 # Breadth-first search for a process with a value in the related table
@@ -279,55 +283,6 @@ sub find_process {
     }
 
     return;
-}
-
-sub design_id_for {
-    my ( $self, $well ) = @_;
-
-    my $process_design = $self->find_process( $well, 'process_design' );
-    
-    return $process_design ? $process_design->design_id : '';
-}
-
-sub cassette_for {
-    my ( $self, $well ) = @_;
-
-    my $process_cassette = $self->find_process( $well, 'process_cassette' );
-
-    return $process_cassette ? $process_cassette->cassette : '';    
-}
-
-sub backbone_for {
-    my ( $self, $well ) = @_;
-
-    my $process_backbone = $self->find_process( $well, 'process_backbone' );
-
-    return $process_backbone ? $process_backbone->backbone : '';
-}
-
-sub recombinases_for {
-    my ( $self, $well ) = @_;
-
-    # XXX This has a similar problem to process_data_for re. data for
-    # first vs second allele. There could also be a problem with data
-    # brought in from HTGT where apply_cre has been stamped at more
-    # than one point in the hierarchy, even though Cre was only
-    # applied once.
-
-    my $it = $self->breadth_first_traversal( $well, 'in' );
-
-    my @recombinases;
-    
-    while( my $this_well = $it->next ) {
-        for my $process ( $self->input_processes( $this_well ) ) {
-            my @this_recombinase = sort { $a->rank <=> $b->rank } $process->process_recombinases;
-            if ( @this_recombinase > 0 ) {
-                unshift @recombinases, @this_recombinase;
-            }
-        }
-    }
-
-    return join q{, }, map { $_->recombinase->id } @recombinases;
 }
 
 sub render {

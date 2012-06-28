@@ -278,6 +278,22 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
+use List::MoreUtils qw( any );
+use LIMS2::Exception::Implementation;
+
+sub is_accepted {
+    my $self = shift;
+
+    my $override = $self->well_accepted_override;
+
+    if ( defined $override ) {
+        return $override->accepted;
+    }
+    else {
+        return $self->accepted;
+    }    
+}
+
 use overload '""' => \&as_string;
 
 sub as_string {
@@ -297,8 +313,119 @@ sub as_hash {
         created_at     => $self->created_at->iso8601,
         assay_pending  => $self->assay_pending ? $self->assay_pending->iso8601 : undef,
         assay_complete => $self->assay_complete ? $self->assay_complete->iso8601 : undef,
-        accepted       => $self->well_accepted_override ? $self->well_accepted_override->accepted : $self->accepted
+        accepted       => $self->is_accepted
     };
+}
+
+has ancestors => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::ProcessGraph',
+    init_arg   => undef,
+    lazy_build => 1
+);
+
+sub _build_ancestors {
+    my $self = shift;
+
+    require LIMS2::Model::ProcessGraph;
+
+    return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );    
+}
+
+has descendants => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::ProcessGraph',
+    init_arg   => undef,
+    lazy_build => 1
+);
+
+sub _build_descendants {
+    my $self = shift;
+
+    require LIMS2::Model::ProcessGraph;
+
+    return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'descendants' );    
+}
+
+sub is_double_targeted {
+    my $self = shift;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );    
+    while ( my $well = $it->next ) {
+        if ( $well->plate->type_id eq 'SEP' ) {            
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+sub assert_not_double_targeted {
+    my $self = shift;
+
+    if ( $self->is_double_targeted ) {
+        LIMS2::Exception::Implementation->throw(
+            "Must specify first or second allele when querying double-targeted construct"
+        );
+    }
+
+    return;    
+}
+
+sub cassette {
+    my $self = shift;
+
+    $self->assert_not_double_targeted;
+    
+    my $process_cassette = $self->ancestors->find_process( $self, 'process_cassette' );
+
+    return $process_cassette ? $process_cassette->cassette : '';
+}
+
+sub backbone {
+    my $self = shift;
+
+    $self->assert_not_double_targeted;
+    
+    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
+
+    return $process_backbone ? $process_backbone->backbone : '';
+}
+
+sub recombinases {
+    my $self = shift;
+
+    # XXX This assumes no recombinase applied to a cell after 2nd
+    # electroporation; we may have to query recombinase application
+    # that happened after the 2nd electroporation, in which case we
+    # must cut short the traversal at the SEP step rather than
+    # throwing an assertion error
+    $self->assert_not_double_targeted;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
+
+    my @recombinases;
+    
+    while( my $this_well = $it->next ) {
+        for my $process ( $self->ancestors->input_processes( $this_well ) ) {
+            my @this_recombinase = sort { $a->rank <=> $b->rank } $process->process_recombinases;
+            if ( @this_recombinase > 0 ) {
+                unshift @recombinases, @this_recombinase;
+            }
+        }
+    }
+
+    return [ map { $_->recombinase_id } @recombinases ];
+}
+
+sub design {
+    my $self = shift;
+
+    $self->assert_not_double_targeted;
+
+    my $process_design = $self->ancestors->find_process( $self, 'process_design' );
+
+    return $process_design ? $process_design->design : undef;
 }
 
 __PACKAGE__->meta->make_immutable;

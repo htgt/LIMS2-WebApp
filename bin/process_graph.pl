@@ -34,6 +34,13 @@ my $model = LIMS2::Model->new( user => 'tasks' );
 
 my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
 
-my $graph = LIMS2::Model::ProcessGraph->new( start_with => $well, type => $type );
+my $graph;
+
+if ( $type eq 'ancestors' ) {
+    $graph = $well->ancestors;
+}
+elsif ( $type eq 'descendants' ) {
+    $graph = $well->descendants;
+}
 
 $graph->render( output_file => $output_file );
