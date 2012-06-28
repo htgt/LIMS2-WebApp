@@ -4,10 +4,11 @@ use Moose;
 use Const::Fast;
 use List::MoreUtils qw( uniq );
 use LIMS2::Exception::Implementation;
+use LIMS2::Model::Types qw( ProcessGraphType );
 use Iterator::Simple qw( iter );
 use namespace::autoclean;
 
-const my $PROCESS_GRAPH_QUERY => <<'EOT';
+const my $QUERY_DESCENDANTS => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
     SELECT pr.id, pr_in.well_id, pr_out.well_id
     FROM processes pr
@@ -23,6 +24,24 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
 )
 SELECT process_id, input_well_id, output_well_id
 FROM well_hierarchy
+EOT
+
+const my $QUERY_ANCESTORS => <<'EOT';
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
+     SELECT pr.id, pr_in.well_id, pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     WHERE pr_out.well_id = ?
+     UNION ALL
+     SELECT pr.id, pr_in.well_id, pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+)
+SELECT process_id, input_well_id, output_well_id
+FROM well_hierarchy;
 EOT
 
 with 'MooseX::Log::Log4perl';
@@ -42,6 +61,12 @@ has start_with => (
     is       => 'ro',
     isa      => 'LIMS2::Model::Schema::Result::Well',
     required => 1
+);
+
+has type => (
+    is      => 'ro',
+    isa     => ProcessGraphType,
+    default => 'descendants'
 );
 
 has prefetch_process_data => (
@@ -66,10 +91,21 @@ has edges => (
 sub _build_edges {
     my $self = shift;
 
+    my $query;
+    if ( $self->type eq 'descendants' ) {
+        $query = $QUERY_DESCENDANTS;
+    }
+    elsif ( $self->type eq 'ancestors' ) {
+        $query = $QUERY_ANCESTORS;
+    }
+    else {
+        LIMS2::Model::Exception::Implementation->throw( "Invalid graph type '" . $self->type . "'" );
+    }    
+    
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
-            my $sth = $dbh->prepare_cached( $PROCESS_GRAPH_QUERY );
+            my $sth = $dbh->prepare_cached( $query );
             $sth->execute( $self->start_with->id );
             $sth->fetchall_arrayref;
         }
