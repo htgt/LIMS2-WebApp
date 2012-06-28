@@ -9,6 +9,7 @@ require LIMS2::Model::FormValidator;
 require DateTime::Format::ISO8601;
 require Module::Pluggable::Object;
 use Data::Dump qw( pp );
+use CHI;
 use Scalar::Util qw( blessed );
 use namespace::autoclean;
 
@@ -63,6 +64,29 @@ sub txn_do {
     my ( $self, $code_ref, @args ) = @_;
 
     return $self->schema->txn_do( $code_ref, $self, @args );
+}
+
+# has_XXX_cache attributes may be defined in a plugin; their builder
+# method will call this one with an appropriate namespace.  See
+# LIMS2::Model::Plugin::Gene for an example
+
+sub _build_cache {
+    my ( $self, $namespace ) = @_;
+
+    my %chi_args = (
+        driver     => 'Memory',
+        max_size   => '1m',
+        expires_in => '8 hours',
+        namespace  => $namespace,
+        global     => 1
+    );
+        
+    if ( my $root_dir = $ENV{LIMS2_MODEL_CACHE_ROOT} ) {
+        $chi_args{driver}   = 'FastMmap';
+        $chi_args{root_dir} = $root_dir;
+    }
+    
+    return CHI->new( %chi_args );
 }
 
 has form_validator => (
