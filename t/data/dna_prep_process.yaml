@@ -5,10 +5,13 @@ valid_input:
         - plate_name: PGS100
           well_name: A01
     input_wells: 
-        - plate_name: PCS100
+        - plate_name: FINAL100
           well_name: A01
-missing_input_well:
+invalid_input_well:
     type: dna_prep
     output_wells:
+        - plate_name: PGS100
+          well_name: A01
+    input_wells: 
         - plate_name: PCS100
           well_name: A01

@@ -39,7 +39,7 @@ my $create_di_process_data= test_data( 'create_di_process.yaml' );
 
 throws_ok {
     my $process = model->create_process( $create_di_process_data->{invalid_input_wells} );
-} qr/create_di process should have 0 input wells \(got 1\)/;
+} qr/create_di process should have 0 input well\(s\) \(got 1\)/;
 
 throws_ok {
     my $process = model->create_process( $create_di_process_data->{invalid_design_id} );
@@ -74,13 +74,13 @@ my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
     is $output_well->plate->name, 'PCS100', '..and is on correct plate';
 }
 
-#throws_ok {
-    #my $process = model->create_process( $create_di_process_data->{missing_input_well} );
-#} qr/int_recom process should have 1 input wells \(got 0\)/;
+throws_ok {
+    my $process = model->create_process( $int_recom_process_data->{missing_input_well} );
+} qr/int_recom process should have 1 input well\(s\) \(got 0\)/;
 
-#throws_ok {
-    #my $process = model->create_process( $create_di_process_data->{invalid_input_well} );
-#} qr/int_recom process input well should be type 'DESIGN' \(got POSTINT\)/;
+throws_ok {
+    my $process = model->create_process( $int_recom_process_data->{invalid_input_well} );
+} qr/int_recom process input well should be type DESIGN \(got POSTINT\)/;
 
 
 note( "Testing 2w_gateway process creation" );
@@ -113,13 +113,17 @@ my $process_data_2w_gateway= test_data( '2w_gateway_process.yaml' );
     is $process_recombinases->next->recombinase->id, 'Cre', 'is Cre recombinase';
 }
 
-#throws_ok {
-    #my $process = model->create_process( $create_di_process_data->{missing_input_well} );
-#} qr/2w_gateway process should have 1 input wells \(got 0\)/;
+throws_ok {
+    my $process = model->create_process( $process_data_2w_gateway->{require_cassette_or_backbone} );
+} qr/cassette_or_backbone, is missing/;
 
-#throws_ok {
-    #my $process = model->create_process( $create_di_process_data->{invalid_input_well} );
-#} qr/2w_gateway process input well should be type or 'INT' or 'POSTINT' \(got DESIGN\)/;
+throws_ok {
+    my $process = model->create_process( $process_data_2w_gateway->{missing_input_well} );
+} qr/2w_gateway process should have 1 input well\(s\) \(got 0\)/;
+
+throws_ok {
+    my $process = model->create_process( $process_data_2w_gateway->{invalid_input_well} );
+} qr/2w_gateway process input well should be type (INT|,|POSTINT)+ \(got DESIGN\)/;
 
 note( "Testing 3w_gateway process creation" );
 my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
@@ -154,6 +158,14 @@ my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
     is $process_recombinases->next->recombinase->id, 'Cre', 'is Cre recombinase';
 }
 
+throws_ok {
+    my $process = model->create_process( $process_data_3w_gateway->{missing_input_well} );
+} qr/3w_gateway process should have 1 input well\(s\) \(got 0\)/;
+
+throws_ok {
+    my $process = model->create_process( $process_data_3w_gateway->{invalid_input_well} );
+} qr/3w_gateway process input well should be type INT \(got DESIGN\)/;
+
 note( "Testing cre_bac_recom process creation" );
 my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
 
@@ -182,14 +194,9 @@ my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
     is $output_well->plate->name, 'PCS100', '..and is on correct plate';
 }
 
-#throws_ok {
-    #my $process = model->create_process( $cre_bac_recom_process_data->{missing_input_well} );
-#} qr/int_recom process should have 1 input wells \(got 0\)/;
-
-#throws_ok {
-    #my $process = model->create_process( $cre_bac_recom_process_data->{invalid_input_well} );
-#} qr/int_recom process input well should be type 'DESIGN' \(got POSTINT\)/;
-
+throws_ok {
+    my $process = model->create_process( $cre_bac_recom_process_data->{invalid_input_well} );
+} qr/cre_bac_recom process input well should be type DESIGN \(got INT\)/;
 
 note( "Testing recombinase process creation" );
 my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
@@ -218,14 +225,6 @@ my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
     is $process_recombinases->next->recombinase->id, 'Cre', 'is Cre recombinase';
 }
 
-#throws_ok {
-    #my $process = model->create_process( $recombinase_process_data->{missing_recombinase} );
-#} qr/missing recombinase/;
-
-#throws_ok {
-    #my $process = model->create_process( $recombinase_process_data->{missing_input_well} );
-#} qr/recombinase process should have 1 input wells \(got 0\)/;
-
 note( "Testing rearray process creation" );
 my $rearray_process_data= test_data( 'rearray_process.yaml' );
 
@@ -246,12 +245,12 @@ my $rearray_process_data= test_data( 'rearray_process.yaml' );
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PGS100', '..and is on correct plate';
+    is $output_well->plate->name, 'PCS200', '..and is on correct plate';
 }
 
-#throws_ok {
-    #my $process = model->create_process( $rearray_process_data->{missing_input_well} );
-#} qr/missing input well/;
+throws_ok {
+    my $process = model->create_process( $rearray_process_data->{input_and_output_wells_different_type} );
+} qr/rearray process should have input and output wells of the same type/;
 
 note( "Testing dna_prep process creation" );
 my $dna_prep_process_data= test_data( 'dna_prep_process.yaml' );
@@ -267,7 +266,7 @@ my $dna_prep_process_data= test_data( 'dna_prep_process.yaml' );
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
     is $input_well->name, 'A01', 'input well has correct name';
-    is $input_well->plate->name, 'PCS100', '..and is on correct plate';
+    is $input_well->plate->name, 'FINAL100', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
@@ -276,8 +275,8 @@ my $dna_prep_process_data= test_data( 'dna_prep_process.yaml' );
     is $output_well->plate->name, 'PGS100', '..and is on correct plate';
 }
 
-#throws_ok {
-    #my $process = model->create_process( $dna_prep_process_data->{missing_input_well} );
-#} qr/missing input well/;
+throws_ok {
+    my $process = model->create_process( $dna_prep_process_data->{invalid_input_well} );
+} qr/dna_prep process input well should be type FINAL/;
 
 done_testing();
