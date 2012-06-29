@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::WellRecombineeringResult;
+package LIMS2::Model::Schema::Result::WellDnaQuality;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::WellRecombineeringResult
+LIMS2::Model::Schema::Result::WellDnaQuality
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<well_recombineering_results>
+=head1 TABLE: C<well_dna_quality>
 
 =cut
 
-__PACKAGE__->table("well_recombineering_results");
+__PACKAGE__->table("well_dna_quality");
 
 =head1 ACCESSORS
 
@@ -44,13 +44,7 @@ __PACKAGE__->table("well_recombineering_results");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 result_type_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 result
+=head2 quality
 
   data_type: 'text'
   is_nullable: 0
@@ -79,9 +73,7 @@ __PACKAGE__->table("well_recombineering_results");
 __PACKAGE__->add_columns(
   "well_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "result_type_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "result",
+  "quality",
   { data_type => "text", is_nullable => 0 },
   "comment_text",
   { data_type => "text", default_value => "", is_nullable => 0 },
@@ -102,13 +94,11 @@ __PACKAGE__->add_columns(
 
 =item * L</well_id>
 
-=item * L</result_type_id>
-
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("well_id", "result_type_id");
+__PACKAGE__->set_primary_key("well_id");
 
 =head1 RELATIONS
 
@@ -124,21 +114,6 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 result_type
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::RecombineeringResultType>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "result_type",
-  "LIMS2::Model::Schema::Result::RecombineeringResultType",
-  { id => "result_type_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -158,8 +133,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-29 14:10:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WTe5FZ2uglQm8chqfclHkg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-29 14:09:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ax8zVuB3pEzZWi226WHnlA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

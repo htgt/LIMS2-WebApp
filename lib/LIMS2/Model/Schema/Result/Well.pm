@@ -236,16 +236,61 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 well_recombineering_result
+=head2 well_dna_quality
 
 Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellDnaQuality>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_dna_quality",
+  "LIMS2::Model::Schema::Result::WellDnaQuality",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_dna_status
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellDnaStatus>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_dna_status",
+  "LIMS2::Model::Schema::Result::WellDnaStatus",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_qc_sequencing_result
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellQcSequencingResult>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_qc_sequencing_result",
+  "LIMS2::Model::Schema::Result::WellQcSequencingResult",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_recombineering_results
+
+Type: has_many
 
 Related object: L<LIMS2::Model::Schema::Result::WellRecombineeringResult>
 
 =cut
 
-__PACKAGE__->might_have(
-  "well_recombineering_result",
+__PACKAGE__->has_many(
+  "well_recombineering_results",
   "LIMS2::Model::Schema::Result::WellRecombineeringResult",
   { "foreign.well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -272,8 +317,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-23 11:01:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IQn9rwOCrLSUJ5miVE7OGA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-29 14:10:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sGn4iJx9ohRNUty9LjY+Yw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

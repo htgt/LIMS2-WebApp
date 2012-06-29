@@ -242,6 +242,51 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_dna_qualities
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellDnaQuality>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_dna_qualities",
+  "LIMS2::Model::Schema::Result::WellDnaQuality",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_dna_statuses
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellDnaStatus>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_dna_statuses",
+  "LIMS2::Model::Schema::Result::WellDnaStatus",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_recombineering_results
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellRecombineeringResult>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_recombineering_results",
+  "LIMS2::Model::Schema::Result::WellRecombineeringResult",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 wells
 
 Type: has_many
@@ -268,8 +313,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-18 11:19:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hLcQVw7mz4XN13VqDiKzAw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-29 14:10:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VnjlwxgtcVdElUgUKOiHsQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
