@@ -1,0 +1,67 @@
+[% META title = "Qc Run Summary" %]
+<h1>Results for [% "${plate_name}${well_name}" %]</h1>
+
+<p>
+QC Run id: <a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}" ) %]">[% qc_run.id %]</a><br />
+Run date: [% qc_run.created_at %]<br />
+</p>
+
+<h2>Sequence Reads</h2>
+<p>
+Download sequence reads: <a href="[% c.uri_for( "/ui/qc_seq_reads/${qc_run.id}/${plate_name}/${well_name}", {format => "fasta"} ) %]">FASTA</a>
+</p>
+
+<div class="row">
+    <div class="span3">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <td>Primer</td>
+              <td>Read Length</td>
+            </tr>
+          </thead>
+          <tbody>
+            [% FOR s IN seq_reads -%]
+            <tr>
+              <td>[% s.primer_name %]</td>
+              <td>[% s.length %]</td>
+            </tr>
+            [% END -%]
+          </tbody>
+        </table>
+    </div>
+</div>
+
+[% FOR r IN results -%]
+<h2>Design [% r.synvec.design_id %] (score [% r.score %], [% IF r.pass == 1; THEN; "pass"; ELSE; "fail"; END %])</h2>
+<p>
+Download synthetic vector: <a href="[% c.uri_for( "/ui/qc_eng_seq/${r.qc_eng_seq_id}", {format => "genbank"} ) %]">GenBank</a>
+</p>
+<table class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th>Primer</th>
+      <th>Pass</th>
+      <th>Score</th>
+      <th>Read Length</th>
+      <th>Alignment Length</th>
+      <th>Features</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOR a IN r.alignments -%]
+    <tr>
+      <td>[% a.primer_name %]</td>
+      <td>[% IF a.pass == 1; THEN; "yes"; ELSE; "no"; END %]</td>
+      <td>[% a.score %]</td>
+      <td>[% a.qc_seq_read.length %]</td>
+      <td>[% a.align_length %]</td>
+      <td>[% a.features %]</td>
+      <td><a href="[% c.uri_for( "/ui/view_alignment/${r.qc_test_result_id}/${a.qc_seq_read_id}" ) %]">View Alignment</a></td>
+    </tr>
+  [% END -%]
+  </tbody>  
+</table>
+[% END -%]
+
