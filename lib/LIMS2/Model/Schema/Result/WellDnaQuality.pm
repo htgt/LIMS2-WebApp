@@ -138,5 +138,18 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+        well_id    => $self->well_id,
+        quality    => $self->quality,
+        comment    => $self->comment_text,
+        created_by => $self->created_by->name,
+        created_at => $self->created_at->iso8601
+    }
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

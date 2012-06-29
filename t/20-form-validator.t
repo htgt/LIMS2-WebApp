@@ -72,16 +72,33 @@ ok my $dfv_profile = model->form_validator->dfv_profile( $pspec ),
 }
 
 {
-    my %pspec = ( foo => { validate => 'comma_separated_list' } );
+    my %pspec = ( foo => { validate => 'comma_separated_list', optional => 1 } );
 
     lives_ok {
         model->check_params( { foo => 'abc' }, \%pspec )
     } 'comma_separated_list validates single-element list';
 
     lives_ok {
-        model->check_params( { foo => 'abc,2,def,34' } )
+        model->check_params( { foo => 'abc,2,def,34' }, \%pspec )
     } 'comma_separeted_list validates multi-element list';
+
+    lives_ok {
+        model->check_params( { foo => '' }, \%pspec )
+    } 'comma_separeted_list validates empty list';    
+}
+
+{
+    my %pspec = ( url => { validate => 'absolute_url' } );
+
+    lives_ok {    
+        model->check_params( { url => 'http://example.org/foo/bar' }, \%pspec )
+    } 'validate absolute_url';
+
+    for my $url ( qw( /foo/bar http:/foo/bar http://foo ) ) {
+        throws_ok {
+            model->check_params( { url => $url }, \%pspec );
+        } 'LIMS2::Exception::Validation', "$url is not an absolute URL";
+    }
 }
 
 done_testing;
-

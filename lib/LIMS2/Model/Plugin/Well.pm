@@ -145,6 +145,164 @@ sub update_well_accepted_override {
     $override->update( { slice_def $validated_params, qw( created_by_id created_at accepted ) } );
 }
 
+sub pspec_create_well_recombineering_result {
+    return {
+        well_id      => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name   => { validate => 'existing_plate_name', optional => 1 },
+        well_name    => { validate => 'well_name', optional => 1 },
+        result_type  => { validate => 'existing_recombineering_result_type', rename => 'result_type_id' },
+        result       => { validate => 'recombineering_result' },
+        comment_text => { validate => 'non_empty_string', optional => 1 },
+        created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    }
+}
+
+sub create_well_recombineering_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_recombineering_result );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $recombineering_result = $well->create_related(
+        well_recombineering_results => { slice_def $validated_params, qw( result_type_id result comment_text created_by created_at ) }
+    );
+
+    return $recombineering_result;
+}
+
+sub retrieve_well_recombineering_results {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $rec_results = $well->well_recombineering_results;
+
+    if ( @{ $rec_results } == 0) {
+        $self->throw( NotFound => { entity_class => 'WellRecombineeringResult', search_params => $params } );        
+    }
+    
+    return $rec_results;
+}
+
+sub pspec_create_well_dna_status {
+    return {
+        well_id      => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name   => { validate => 'existing_plate_name', optional => 1 },
+        well_name    => { validate => 'well_name', optional => 1 },
+        pass         => { validate => 'boolean' },
+        comment_text => { validate => 'non_empty_string', optional => 1 },
+        created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
+    }
+}
+
+sub create_well_dna_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params => $self->check_params( $params, $self->pspec_create_well_dna_status );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $dna_status = $well->create_related(
+        well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by created_at ) }
+    );
+
+    return $dna_status;
+}
+
+sub retrieve_well_dna_status {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $dna_status = $well->well_dna_status
+        or $self->throw( NotFound => { entity_class => 'WellDnaStatus', search_params => $params } );
+
+    return $dna_status;
+}
+
+sub pspec_create_well_dna_quality {
+    return {
+        well_id      => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name   => { validate => 'existing_plate_name', optional => 1 },
+        well_name    => { validate => 'well_name', optional => 1 },
+        quality      => { validate => 'dna_quality' },
+        comment_text => { validate => 'non_empty_string', optional => 1 },
+        created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }        
+    }
+}
+
+sub create_well_dna_quality {
+    my ( $self, $params ) = @_;
+
+    my $validated_params => $self->check_params( $params, $self->pspec_create_well_dna_quality );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $dna_quality = $well->create_related(
+        well_dna_quality => { slice_def $validated_params, qw( quality comment_text created_by created_at ) }
+    );
+
+    return $dna_quality;
+}
+
+sub retrieve_well_dna_quality {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $dna_quality = $well->well_dna_quality
+        or $self->throw( NotFound => { entity_class => 'WellDnaQuality', search_params => $params } );
+
+    return $dna_quality;
+}
+
+sub pspec_create_well_qc_sequencing_result {
+    return {
+        well_id         => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name      => { validate => 'existing_plate_name', optional => 1 },
+        well_name       => { validate => 'well_name', optional => 1 },
+        valid_primers   => { validate => 'comma_separated_list', optional => 1 },
+        mixed_reads     => { validate => 'boolean', optional => 1, default => 0 },
+        pass            => { validate => 'boolean', optional => 1, default => 0 },
+        test_result_url => { validate => 'absolute_url' },
+        created_by      => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }                
+    }
+}
+
+sub create_well_qc_sequencing_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params => $self->check_params( $params, $self->pspec_create_well_qc_sequencing_result );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $qc_seq_result = $well->create_related(
+        well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by created_at ) }
+    );
+
+    return $qc_seq_result;    
+}
+
+sub retrieve_well_qc_sequencing_result {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $qc_seq_result = $well->well_dna_status
+        or $self->throw( NotFound => { entity_class => 'WellQcSequencingResult', search_params => $params } );
+
+    return $qc_seq_result;
+}
+
 1;
 
 __END__

@@ -6,6 +6,8 @@ use warnings FATAL => 'all';
 use DateTime::Format::ISO8601;
 use Regexp::Common;
 use Try::Tiny;
+use URI;
+use Text::CSV;
 use JSON qw( decode_json );
 
 sub in_set {
@@ -77,10 +79,6 @@ sub boolean {
 
 sub validated_by_annotation {
     return in_set( 'yes', 'no', 'maybe', 'not done' );
-}
-
-sub assay_result {
-    return in_set( 'pass', 'fail', 'maybe' );
 }
 
 sub dna_seq {
@@ -204,10 +202,18 @@ sub existing_recombinase {
     return in_resultset( $model, 'Recombinase', 'id');
 }
 
-#sub existing_design_well_recombineering_assay {
-#    my ( $class, $model ) = @_;
-#    return in_resultset( $model, 'DesignWellRecombineeringAssay', 'assay' );
-#}
+sub existing_recombineering_result_type {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'RecombineeringResultType', 'id' );
+}
+
+sub recombineering_result {
+    return in_set( 'pass', 'fail', 'weak' );
+}
+
+sub dna_quality {
+    return in_set( qw( L M ML S U ) );
+}
 
 sub existing_genotyping_primer_type {
     my ( $class, $model ) = @_;
@@ -266,16 +272,6 @@ sub existing_qc_eng_seq_id {
     return existing_row( $model, 'QcEngSeq', 'id' );
 }
 
-sub existing_assay {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'AssayResult', 'assay' );
-}
-
-sub existing_assay_result {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'AssayResult', 'result' );
-}
-
 sub existing_intermediate_cassette {
     my ( $class, $model ) = @_;
     return eng_seq_of_type( $model, 'intermediate-cassette' );
@@ -296,42 +292,12 @@ sub existing_final_backbone {
     return eng_seq_of_type( $model, 'final-backbone' );
 }
 
-# sub design_parent_plate_type {
-#     return in_set();
-# }
-
-# sub pcs_parent_plate_type {
-#     return in_set(qw( design pcs ));
-# }
-
-# sub pgs_parent_plate_type {
-#     return in_set(qw( design pcs pgs ));
-# }
-
-# sub vtp_parent_plate_type {
-
-#     # probably more plates types to add here
-#     return in_set(qw( design pcs pgs ));
-# }
-
-# sub dna_parent_plate_type {
-#     return in_set(qw( design pcs pgs dna ));
-# }
-
-# sub ep_parent_plate_type {
-#     return in_set(qw( design pcs pgs dna ep ));
-# }
-
-# sub epd_parent_plate_type {
-#     return in_set(qw( design pcs pgs ep epd ));
-# }
-
-# sub fp_parent_plate_type {
-#     return in_set(qw( design pcs pgs ep epd fp ));
-# }
-
 sub comma_separated_list {
-    return regexp_matches(qr/^[^,]+(?:,[^,+])*$/);
+    my $csv = Text::CSV->new;
+    return sub {
+        my $str = shift;
+        $csv->parse($str);
+    }
 }
 
 sub ensembl_transcript_id {
@@ -376,10 +342,19 @@ sub json {
     };
 }
 
+sub absolute_url {
+    return sub {
+        my $str = shift;
+        return 0 unless defined $str and length $str;
+        my $uri = try { URI->new( $str ) } catch { undef };
+        return $uri && $uri->scheme && $uri->host && $uri->path;
+    }
+}
+
 sub hashref {
     return sub {
         ref $_[0] eq ref {};
-        }
+    }
 }
 
 1;

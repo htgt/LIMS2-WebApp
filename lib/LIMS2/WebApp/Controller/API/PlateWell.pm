@@ -138,6 +138,146 @@ sub well_accepted_override_PUT {
     );    
 }
 
+sub well_recombineering_result :Path('/api/well/recombineering_result') :Args(0) :ActionClass('REST') {
+}
+
+sub well_recombineering_result_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $rec_results = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_well_recombineering_results( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $rec_results );
+}
+
+sub well_recombineering_result_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $rec_result = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_well_recombineering_result( $c->request->data )
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/well/recombineering_result', { well_id => $rec_result->well_id } ),
+        entity   => $rec_result
+    );
+}
+
+sub well_dna_status :Path('/api/well/dna_status') :Args(0) :ActionClass('REST') {
+}
+
+sub well_dna_status_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $dna_status = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_well_dna_status( $c->request->params )
+        }
+    );
+
+    return $self->status_ok( $c, entity => $dna_status );
+}
+
+sub well_dna_status_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $dna_status = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_well_dna_status( $c->request->data )
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/well/dna_status', { well_id => $dna_status->well_id } ),
+        entity   => $dna_status
+    );    
+}
+
+sub well_dna_quality :Path('/api/well/dna_quality') :Args(0) :ActionClass('REST') {
+}
+
+sub well_dna_quality_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $dna_quality = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_well_dna_quality( $c->request->params )
+        }
+    );
+
+    return $self->status_ok( $c, entity => $dna_quality );
+}
+
+sub well_dna_quality_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $dna_quality = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_well_dna_quality( $c->request->data )
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/well/dna_quality', { well_id => $dna_quality->well_id } ),
+        entity   => $dna_quality
+    );
+}
+
+sub well_qc_sequencing_result :Path('/api/well/qc_sequencing_result') :Args(0) :ActionClass('REST') {
+}
+
+sub well_qc_sequencing_result_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $qc_sequencing_result = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_well_qc_sequencing_result( $c->request->params )
+        }
+    );
+
+    return $self->status_ok( $c, entity => $qc_sequencing_result );
+}
+
+sub well_qc_sequencing_result_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $qc_sequencing_result = $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_well_qc_sequencing_result( $c->request->data )
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/well/qc_sequencing_result', { well_id => $qc_sequencing_result->well_id } ),
+        entity   => $qc_sequencing_result
+    );    
+}
+
 =head1 AUTHOR
 
 Ray Miller
