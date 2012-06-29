@@ -277,5 +277,18 @@ sub _uniq_design_ids_from_test_results {
     return scalar( uniq @design_ids );
 }
 
+sub primers {
+    my $self = shift;
+
+    my @primers;
+    for my $seq_well ( $self->qc_run_seq_wells ) {
+        for my $seq_read ( $seq_well->qc_seq_reads ) {
+            push @primers, map{ $_->primer_name  } $seq_read->qc_alignments;
+        }
+    }
+
+    return [ uniq @primers ];
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

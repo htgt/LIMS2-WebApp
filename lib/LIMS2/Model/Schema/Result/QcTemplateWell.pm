@@ -160,5 +160,11 @@ sub as_hash {
     };
 }
 
+sub design_id {
+    my $self = shift;
+
+    return $self->qc_eng_seq->design_id;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

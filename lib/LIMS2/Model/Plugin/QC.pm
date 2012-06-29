@@ -9,6 +9,7 @@ use List::MoreUtils qw( uniq );
 use Scalar::Util qw( blessed );
 use JSON ();
 use Data::Compare qw( Compare );
+use LIMS2::Model::Util::QC qw( retrieve_qc_run_results retrieve_qc_run_summary_results );
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
@@ -543,7 +544,7 @@ sub retrieve_qc_run {
     return $qc_run;
 }
 
-sub retrieve_qc_run_results {
+sub qc_run_results {
     my ( $self, $params ) = @_;
 
     my $qc_run = $self->retrieve_qc_run( $params );
@@ -551,12 +552,118 @@ sub retrieve_qc_run_results {
     unless ( $qc_run ) {
         $self->throw( NotFound => { entity_class => 'QcRun', search_params => $params } );
     }
-    my $qc_run_results;
+    my $results = retrieve_qc_run_results( $qc_run );
 
-    # see HTGT::Utils::QCTestResults ( in htgt )
+    return ( $qc_run, $results );
+}
 
-    return $qc_run->as_hash;
-    #return $qc_run_results;
+sub qc_run_summary_results {
+    my ( $self, $params ) = @_;
+
+    my $qc_run = $self->retrieve_qc_run( $params );
+
+    unless ( $qc_run ) {
+        $self->throw( NotFound => { entity_class => 'QcRun', search_params => $params } );
+    }
+    my $results = retrieve_qc_run_summary_results( $qc_run );
+
+    return ( $qc_run, $results );
+}
+
+use Smart::Comments;
+sub qc_run_seq_well_result {
+    my ( $self, $params ) = @_;
+
+    #TODO add proper param validation
+    my $qc_run = $self->retrieve_qc_run( { id => $params->{qc_run_id} } );
+
+    my $seq_well = $self->schema->resultset('QcRunSeqWell')->find(
+        {
+            'qc_run.id' => $params->{qc_run_id},
+            'me.plate_name' => $params->{plate_name},
+            'me.well_name' => $params->{well_name},
+
+        },
+        {
+            join => 'qc_run'
+        }
+    );
+
+    #TODO add error catching for no wells or more than one well
+
+    my @seq_reads = $seq_well->qc_seq_reads;
+
+    unless ( @seq_reads ) {
+        $self->throw( Meh => { 'No sequence reads for well ' . $params->{plate_name} . $params->{well_name} } );
+    }
+
+    my @qc_alignments = map { $_->qc_alignments } @seq_reads;
+
+    my @qc_results;
+    for my $test_result ( $seq_well->qc_test_results ) {
+        my %result;
+        $result{design_id} = $test_result->qc_eng_seq->design_id;
+        $result{score} = $test_result->score;
+        $result{pass} = $test_result->pass;
+        $result{qc_test_result_id} = $test_result->id;
+        $result{alignments} = [ grep{ $_->qc_eng_seq_id == $test_result->qc_eng_seq->id  } @qc_alignments ];
+        push @qc_results, \%result;
+    }
+
+    return( \@seq_reads, \@qc_results );
+}
+
+use HTGT::QC::Util::Alignment qw( alignment_match );
+use HTGT::QC::Util::CigarParser;
+sub qc_alignment_result {
+    my ( $self, $params ) = @_;
+
+    my $test_result = $self->schema->resultset( 'QcTestResult' )->find(
+        {
+            id => $params->{qc_test_result_id}
+        }
+    );
+
+    unless ( $test_result ) {
+        $self->throw( NotFound => { entity_class => 'QcTestResult', search_params => {} } );
+    }
+
+    my $alignment = $self->schema->resultset( 'QcAlignment' )->search_rs(
+        {
+            qc_eng_seq_id  => $test_result->qc_eng_seq_id,
+            qc_seq_read_id => $params->{qc_seq_read_id}
+        }
+    )->first;
+
+    unless ( $alignment ) {
+        $self->throw( NotFound => { entity_class => 'QcAlignment', search_params => {} } );
+    }
+
+    my $qc_eng_seq = $test_result->qc_eng_seq->as_hash;
+    my $eng_seq_method= $qc_eng_seq->{eng_seq_method};
+    my $target = $self->eng_seq_builder->$eng_seq_method( $qc_eng_seq->{eng_seq_params} );
+    my $query  = $alignment->qc_seq_read->bio_seq;
+    my $cigar  = HTGT::QC::Util::CigarParser->new(strict_mode => 0)->parse_cigar( $alignment->cigar );
+
+    my $match = alignment_match( $query, $target, $cigar, $cigar->{target_start}, $cigar->{target_end} );
+
+    my $target_strand = $alignment->target_strand == 1 ? '+' : '-';
+
+    my $alignment_str = HTGT::QC::Util::Alignment::format_alignment(
+        %{$match},
+        target_id  => "Target ($target_strand)",
+        query_id   => 'Sequence Read',
+        line_len   => 72,
+        header_len => 12
+    );
+
+    return {
+         target        => $target->display_id,
+         query         => $query->display_id,
+         alignment_str => $alignment_str,
+         alignment     => $alignment,
+         test_result   => $test_result
+    };
 }
 
 1;

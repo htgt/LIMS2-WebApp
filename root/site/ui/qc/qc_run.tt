@@ -1,8 +1,78 @@
 [% META title = "View Qc Run" %]
-<h2>Qc Run Details</h2>
-<strong>ID:</strong> [% qc_run.id %]<br>
-<strong>Profile:</strong> [% qc_run.profile %]<br>
-<strong>Software VersionID:</strong> [% qc_run.software_version %]<br>
-<strong>Created At:</strong> [% qc_run.created_at %]<br>
-<strong>Created By:</strong> [% qc_run.created_by %]<br>
-<strong>Qc Template:</strong> [% qc_run.qc_template %]<br>
+[% MACRO yes_no(bool) IF bool == 1; "yes"; ELSE; "no"; END; -%]
+[% MACRO pass_fail(bool) IF bool == 1; "pass"; ELSE; "fail"; END; -%]
+
+<h2>Qc Run Details [% qc_run.id %]</h2>
+<div class="row">
+    <div class="span4">
+        <strong>Qc Template:</strong> [% qc_run.qc_template %]
+    </div>
+    <div class="span4">
+        <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]
+    </div>
+    <div class="span4">
+        <strong>Profile:</strong> [% qc_run.profile %]
+    </div>
+</div>
+
+<div class="row">
+    <div class="span4">
+        <strong>Created By:</strong> [% qc_run.created_by %]
+    </div>
+    <div class="span4">
+        <strong>Created At:</strong> [% qc_run.created_at %]
+    </div>
+    <div class="span4">
+        <strong>Software VersionID:</strong> [% qc_run.software_version %]
+    </div>
+</div>
+
+<div class="row">
+    <div class="span6">
+        <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run/${qc_run.id}", { view => "csvdl" } ) %]"><i class="icon-download-alt"></i> Download Full Results</a>
+        <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run_summary/${qc_run.id}", { view => "csvdl" } ) %]"><i class="icon-download-alt"></i> Download Summary Results All</a>
+    </div>
+</div>
+
+<div class="row">
+    <table class="table table-striped table-condensed table-bordered">
+      <thead>
+        <tr>
+            <th>Plate Name</th>
+            <th>Well Name</th>
+            <th>384 Well Name</th>
+            <th>Design Id</th>
+            <th>Expected Design Id</th>
+            <th>Marker Symbol</th>
+            <th>Pass?</th>
+            <th>Raw Score</th>
+            <th>Number of Primer Reads</th>
+            <th>Number of Valid Primers</th>
+            <th>Valid Primer Score</th>
+            <th>Valid Primers</th>
+            <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        [% FOR r IN results -%]
+        <tr>
+            <td>[% r.plate_name %]</td>
+            <td>[% r.well_name %]</td>
+            <td></td>
+            <td>[% r.design_id %]</td>
+            <td>[% r.expected_design_id %]</td>
+            <td></td>
+            <td>[% pass_fail( r.pass ) %]</td>
+            <td>[% r.score %]</td>
+            <td>[% r.num_reads %]</td>
+            <td>[% r.valid_primers.size %]</td>
+            <td>[% r.valid_primers_score %]</td>
+            <td>[% r.valid_primers.join( "," ) %]</td>
+            <td>
+               <a href="[% c.uri_for( "/ui/view_result/${qc_run.id}/${r.plate_name}/${r.well_name}" ) %]">Details</a>
+            </td>
+        </tr>
+        [% END -%]
+      </tbody>
+    </table>
+</div>
