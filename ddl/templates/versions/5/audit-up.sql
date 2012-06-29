@@ -353,40 +353,6 @@ CREATE TRIGGER plate_comments_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.plate_comments
     FOR EACH ROW EXECUTE PROCEDURE public.process_plate_comments_audit();
 
-CREATE TABLE audit.well_recombineering_results (
-audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
-audit_user TEXT NOT NULL,
-audit_stamp TIMESTAMP NOT NULL,
-audit_txid INTEGER NOT NULL,
-well_id integer,
-pcr_u text,
-pcr_d text,
-pcr_g text,
-rec_u text,
-rec_d text,
-rec_g text,
-rec_ns text,
-rec_result text
-);
-GRANT SELECT ON audit.well_recombineering_results TO "[% ro_role %]";
-GRANT SELECT,INSERT ON audit.well_recombineering_results TO "[% rw_role %]";
-CREATE OR REPLACE FUNCTION public.process_well_recombineering_results_audit()
-RETURNS TRIGGER AS $well_recombineering_results_audit$
-    BEGIN
-        IF (TG_OP = 'DELETE') THEN
-           INSERT INTO audit.well_recombineering_results SELECT 'D', user, now(), txid_current(), OLD.*;
-        ELSIF (TG_OP = 'UPDATE') THEN
-           INSERT INTO audit.well_recombineering_results SELECT 'U', user, now(), txid_current(), NEW.*;
-        ELSIF (TG_OP = 'INSERT') THEN
-           INSERT INTO audit.well_recombineering_results SELECT 'I', user, now(), txid_current(), NEW.*;
-        END IF;
-        RETURN NULL;
-    END;
-$well_recombineering_results_audit$ LANGUAGE plpgsql;
-CREATE TRIGGER well_recombineering_results_audit
-AFTER INSERT OR UPDATE OR DELETE ON public.well_recombineering_results
-    FOR EACH ROW EXECUTE PROCEDURE public.process_well_recombineering_results_audit();
-
 CREATE TABLE audit.well_comments (
 audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
 audit_user TEXT NOT NULL,
@@ -468,3 +434,147 @@ $recombinases_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER recombinases_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.recombinases
     FOR EACH ROW EXECUTE PROCEDURE public.process_recombinases_audit();
+
+CREATE TABLE audit.well_recombineering_results (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+well_id integer,
+result_type_id text,
+result text,
+comment_text text,
+created_at timestamp without time zone,
+created_by_id integer
+);
+GRANT SELECT ON audit.well_recombineering_results TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.well_recombineering_results TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_well_recombineering_results_audit()
+RETURNS TRIGGER AS $well_recombineering_results_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.well_recombineering_results SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.well_recombineering_results SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.well_recombineering_results SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$well_recombineering_results_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER well_recombineering_results_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.well_recombineering_results
+    FOR EACH ROW EXECUTE PROCEDURE public.process_well_recombineering_results_audit();
+CREATE TABLE audit.recombineering_result_types (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+id text
+);
+GRANT SELECT ON audit.recombineering_result_types TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.recombineering_result_types TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_recombineering_result_types_audit()
+RETURNS TRIGGER AS $recombineering_result_types_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.recombineering_result_types SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.recombineering_result_types SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.recombineering_result_types SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$recombineering_result_types_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER recombineering_result_types_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.recombineering_result_types
+    FOR EACH ROW EXECUTE PROCEDURE public.process_recombineering_result_types_audit();
+CREATE TABLE audit.well_dna_quality (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+well_id integer,
+quality text,
+comment_text text,
+created_at timestamp without time zone,
+created_by_id integer
+);
+GRANT SELECT ON audit.well_dna_quality TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.well_dna_quality TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_well_dna_quality_audit()
+RETURNS TRIGGER AS $well_dna_quality_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.well_dna_quality SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.well_dna_quality SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.well_dna_quality SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$well_dna_quality_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER well_dna_quality_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.well_dna_quality
+    FOR EACH ROW EXECUTE PROCEDURE public.process_well_dna_quality_audit();
+CREATE TABLE audit.well_qc_sequencing_result (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+well_id integer,
+valid_primers text,
+mixed_reads boolean,
+pass boolean,
+test_result_url text
+);
+GRANT SELECT ON audit.well_qc_sequencing_result TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.well_qc_sequencing_result TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_well_qc_sequencing_result_audit()
+RETURNS TRIGGER AS $well_qc_sequencing_result_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.well_qc_sequencing_result SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.well_qc_sequencing_result SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.well_qc_sequencing_result SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$well_qc_sequencing_result_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER well_qc_sequencing_result_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.well_qc_sequencing_result
+    FOR EACH ROW EXECUTE PROCEDURE public.process_well_qc_sequencing_result_audit();
+CREATE TABLE audit.well_dna_status (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+well_id integer,
+pass boolean,
+comment_text text,
+created_at timestamp without time zone,
+created_by_id integer
+);
+GRANT SELECT ON audit.well_dna_status TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.well_dna_status TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_well_dna_status_audit()
+RETURNS TRIGGER AS $well_dna_status_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.well_dna_status SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.well_dna_status SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.well_dna_status SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$well_dna_status_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER well_dna_status_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.well_dna_status
+    FOR EACH ROW EXECUTE PROCEDURE public.process_well_dna_status_audit();
+    

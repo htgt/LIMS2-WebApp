@@ -21,3 +21,6 @@ VALUES ('create_di', 'Create design instance'),
 
 INSERT INTO recombinases(id)
 VALUES ('Cre'),('Flp'),('Dre');
+
+INSERT INTO recombineering_result_types(id)
+VALUES ('pcr_u'),('pcr_d'),('pcr_g'),('rec_u'),('rec_d'),('rec_g'),('rec_ns'),('rec_result');

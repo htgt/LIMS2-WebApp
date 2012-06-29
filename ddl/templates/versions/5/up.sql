@@ -68,20 +68,6 @@ GRANT SELECT ON well_comments TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON well_comments TO "[% rw_role %]";
 GRANT USAGE ON well_comments_id_seq TO "[% rw_role %]";
 
-CREATE TABLE well_recombineering_results (
-       well_id             INTEGER PRIMARY KEY REFERENCES wells(id),
-       pcr_u               TEXT NOT NULL CHECK (pcr_u      IN ( 'pass', 'fail', 'weak' )),
-       pcr_d               TEXT NOT NULL CHECK (pcr_d      IN ( 'pass', 'fail', 'weak' )),
-       pcr_g               TEXT NOT NULL CHECK (pcr_g      IN ( 'pass', 'fail', 'weak' )),
-       rec_u               TEXT NOT NULL CHECK (rec_u      IN ( 'pass', 'fail', 'weak' )),
-       rec_d               TEXT NOT NULL CHECK (rec_d      IN ( 'pass', 'fail', 'weak' )),
-       rec_g               TEXT NOT NULL CHECK (rec_g      IN ( 'pass', 'fail', 'weak' )),
-       rec_ns              TEXT NOT NULL CHECK (rec_ns     IN ( 'pass', 'fail', 'weak' )),
-       rec_result          TEXT NOT NULL CHECK (rec_result IN ( 'pass', 'fail' ))
-);
-GRANT SELECT ON well_recombineering_results TO "[% ro_role %]";
-GRANT SELECT, INSERT, UPDATE, DELETE ON well_recombineering_results TO "[% rw_role %]";
-
 CREATE TABLE process_types (
        id            TEXT PRIMARY KEY,
        description   TEXT NOT NULL DEFAULT ''
@@ -158,3 +144,51 @@ CREATE TABLE process_recombinase (
 );
 GRANT SELECT ON process_recombinase TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_recombinase TO "[% rw_role %]";
+
+CREATE TABLE recombineering_result_types (
+       id TEXT PRIMARY KEY
+);       
+GRANT SELECT ON recombineering_result_types TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON recombineering_result_types TO "[% rw_role %]";
+
+CREATE TABLE well_recombineering_results (
+       well_id             INTEGER NOT NULL REFERENCES wells(id),
+       result_type_id      TEXT NOT NULL REFERENCES recombineering_result_types(id),
+       result              TEXT NOT NULL CHECK (result IN ( 'pass', 'fail', 'weak' )),
+       comment_text        TEXT NOT NULL DEFAULT '',
+       created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       created_by_id       INTEGER NOT NULL REFERENCES users(id),
+       PRIMARY KEY(well_id, result_type_id)
+);       
+GRANT SELECT ON well_recombineering_results TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON well_recombineering_results TO "[% rw_role %]";
+
+CREATE TABLE well_dna_status (
+       well_id             INTEGER PRIMARY KEY REFERENCES wells(id),
+       pass                BOOLEAN NOT NULL,
+       comment_text        TEXT NOT NULL DEFAULT '',
+       created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       created_by_id       INTEGER NOT NULL REFERENCES users(id)
+);
+GRANT SELECT ON well_dna_status TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON well_dna_status TO "[% rw_role %]";
+
+CREATE TABLE well_dna_quality (
+       well_id             INTEGER PRIMARY KEY REFERENCES wells(id),
+       quality             TEXT NOT NULL CHECK (quality IN ('L', 'M', 'ML', 'S', 'U')),
+       comment_text        TEXT NOT NULL DEFAULT '',
+       created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       created_by_id       INTEGER NOT NULL REFERENCES users(id)
+);
+GRANT SELECT ON well_dna_quality TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON well_dna_quality TO "[% rw_role %]";
+       
+CREATE TABLE well_qc_sequencing_result (
+       well_id             INTEGER PRIMARY KEY REFERENCES wells(id),
+       valid_primers       TEXT NOT NULL DEFAULT '',
+       mixed_reads         BOOLEAN NOT NULL DEFAULT FALSE,
+       pass                BOOLEAN NOT NULL DEFAULT FALSE,
+       test_result_url     TEXT NOT NULL       
+);
+GRANT SELECT ON well_qc_sequencing_result TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON well_qc_sequencing_result TO "[% rw_role %]";
