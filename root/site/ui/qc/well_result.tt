@@ -4,7 +4,7 @@
 </div>
 
 <div class="well">
-<strong>Qc Run:</strong> <a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}" ) %]">[% qc_run.id %]</a><br />
+<strong>Qc Run:</strong> <a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/view" ) %]">[% qc_run.id %]</a><br />
 <strong>Run Date:</strong> [% qc_run.created_at %]<br />
 </div>
 
@@ -28,7 +28,7 @@
             [% END -%]
           </tbody>
         </table>
-        <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/${plate_name}/${well_name}", { format => "fasta" } ) %]"><i class="icon-download-alt"></i> Download Sequence Reads</a>
+        <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/qc_seq_well/${plate_name}/${well_name}/seq_reads", { format => 'fasta' } ) %]"><i class="icon-download-alt"></i> Download Sequence Reads</a>
     </div>
 </div>
 
@@ -56,13 +56,13 @@
       <td>[% a.qc_seq_read.length %]</td>
       <td>[% a.align_length %]</td>
       <td>[% a.features %]</td>
-      <td><a href="[% c.uri_for( "/ui/view_alignment/${r.qc_test_result_id}/${a.qc_seq_read_id}" ) %]">View Alignment</a></td>
+      <td><a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/qc_seq_well/${plate_name}/${well_name}/alignment", r.qc_test_result_id, a.qc_seq_read_id ) %]">View Alignment</a></td>
     </tr>
   [% END -%]
   </tbody>  
 </table>
 <p>
-    <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_eng_seq/${r.qc_eng_seq_id}", { format => "genbank" } ) %]"><i class="icon-download-alt"></i> Download Synthetic Vectors</a>
+    <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/qc_seq_well/${plate_name}/${well_name}/qc_eng_seq", r.qc_test_result_id, { format => "genbank" } ) %]"><i class="icon-download-alt"></i> Download Synthetic Vectors</a>
 </p>
 [% END -%]
 

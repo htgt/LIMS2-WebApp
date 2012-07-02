@@ -12,6 +12,9 @@ use Data::Compare qw( Compare );
 use LIMS2::Model::Util::QC qw( retrieve_qc_run_results retrieve_qc_run_summary_results );
 use namespace::autoclean;
 
+use Const::Fast;
+use Bio::SeqIO;
+
 requires qw( schema check_params throw );
 
 sub _encode_eng_seq_params {
@@ -524,6 +527,32 @@ sub _build_qc_runs_search_params {
     return \%search;
 }
 
+sub pspec_retrieve_qc_seq_well {
+    return {
+        qc_run_id  => { validate => 'integer' },
+        plate_name => { validate => 'plate_name' },
+        well_name  => { validate => 'well_name' },
+    };
+}
+
+sub retrieve_qc_seq_well {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_seq_well );
+
+    return $self->retrieve( 'QcRunSeqWell' =>
+        {
+            'qc_run.id'     => $validated_params->{qc_run_id},
+            'me.plate_name' => $validated_params->{plate_name},
+            'me.well_name'  => $validated_params->{well_name},
+
+        },
+        {
+            join => 'qc_run'
+        }
+    );
+}
+
 sub pspec_retrieve_qc_run {
     return {
         id => { validate => 'integer' },
@@ -534,67 +563,34 @@ sub retrieve_qc_run {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_run );
-
-    my $qc_run = $self->schema->resultset('QcRun')->find(
-        {
-            'me.id' => $params->{id},
-        }
-    );
+    my $qc_run = $self->retrieve( 'QcRun' => $validated_params );
 
     return $qc_run;
 }
 
 sub qc_run_results {
-    my ( $self, $params ) = @_;
+    my ( $self, $qc_run ) = @_;
+    #TODO add check I have a valid qc_run object here?
 
-    my $qc_run = $self->retrieve_qc_run( $params );
-
-    unless ( $qc_run ) {
-        $self->throw( NotFound => { entity_class => 'QcRun', search_params => $params } );
-    }
-    my $results = retrieve_qc_run_results( $qc_run );
-
-    return ( $qc_run, $results );
+    return retrieve_qc_run_results( $qc_run );
 }
 
 sub qc_run_summary_results {
-    my ( $self, $params ) = @_;
+    my ( $self, $qc_run ) = @_;
+    #TODO add check I have a valid qc_run object here?
 
-    my $qc_run = $self->retrieve_qc_run( $params );
-
-    unless ( $qc_run ) {
-        $self->throw( NotFound => { entity_class => 'QcRun', search_params => $params } );
-    }
-    my $results = retrieve_qc_run_summary_results( $qc_run );
-
-    return ( $qc_run, $results );
+    return retrieve_qc_run_summary_results( $qc_run );
 }
 
-use Smart::Comments;
 sub qc_run_seq_well_result {
-    my ( $self, $params ) = @_;
-
-    #TODO add proper param validation
-    my $qc_run = $self->retrieve_qc_run( { id => $params->{qc_run_id} } );
-
-    my $seq_well = $self->schema->resultset('QcRunSeqWell')->find(
-        {
-            'qc_run.id' => $params->{qc_run_id},
-            'me.plate_name' => $params->{plate_name},
-            'me.well_name' => $params->{well_name},
-
-        },
-        {
-            join => 'qc_run'
-        }
-    );
-
-    #TODO add error catching for no wells or more than one well
+    my ( $self, $seq_well ) = @_;
+    #TODO check for seq_well
 
     my @seq_reads = $seq_well->qc_seq_reads;
 
     unless ( @seq_reads ) {
-        $self->throw( Meh => { 'No sequence reads for well ' . $params->{plate_name} . $params->{well_name} } );
+        $self->throw( Validation => {
+                'No sequence reads for qc seq well ' . $seq_well->plate_name . $seq_well->well_name } );
     }
 
     my @qc_alignments = map { $_->qc_alignments } @seq_reads;
@@ -664,6 +660,77 @@ sub qc_alignment_result {
          alignment     => $alignment,
          test_result   => $test_result
     };
+}
+
+sub retrieve_qc_seq_read_sequences {
+    my ( $self, $seq_well, $format ) = @_;
+    #TODO add validtion checks
+
+    my @seq_reads = $seq_well->qc_seq_reads;
+    unless ( @seq_reads ) {
+        $self->throw( Validation => {
+                'No sequence reads for qc seq well ' . $seq_well->plate_name . $seq_well->well_name } );
+    }
+
+    my $params = $self->_validated_download_seq_params( $format );
+
+    my $filename = 'seq_reads_' . $seq_well->plate_name . $seq_well->well_name . $params->{suffix};
+
+    my $formatted_seq;
+    my $seq_io = Bio::SeqIO->new( -fh => IO::String->new( $formatted_seq ), -format => $params->{format} );
+
+    for my $seq_read ( @seq_reads ) {
+        $seq_io->write_seq( $seq_read->bio_seq );
+    }
+
+    return ( $filename, $formatted_seq );
+}
+
+sub retrieve_qc_eng_seq {
+    my ( $self, $qc_test_result_id, $format ) = @_;
+    #TODO add validtion checks
+
+    my $qc_test_result = $self->retrieve(
+        'QcTestResult' => { id => $qc_test_result_id },
+    );
+    my $qc_eng_seq_params = $qc_test_result->qc_eng_seq->as_hash;
+    my $eng_seq_method= $qc_eng_seq_params->{eng_seq_method};
+    my $qc_eng_seq = $self->eng_seq_builder->$eng_seq_method( $qc_eng_seq_params->{eng_seq_params} );
+
+    my $params = $self->_validated_download_seq_params( $format );
+
+    my $filename = $qc_eng_seq->display_id . $params->{suffix};
+
+    my $formatted_seq;
+    Bio::SeqIO->new(
+        -fh => IO::String->new( $formatted_seq ),
+        -format => $params->{format}
+    )->write_seq( $qc_eng_seq );
+
+    return ( $filename, $formatted_seq );
+}
+
+sub _validated_download_seq_params {
+    my ( $self, $format ) = @_;
+
+    my %params = (
+        format => 'genbank',
+    );
+
+    const my %SUFFIX_FOR => ( genbank => '.gbk', fasta => '.fasta' );
+
+    if ( $format ) {
+        $format =~ s/^\s+//;
+        $format =~ s/\s+$//;
+        $format = lc( $format );
+        if ( $SUFFIX_FOR{$format} ) {
+            $params{format} = $format;
+        }
+    }
+
+    $params{suffix} = $SUFFIX_FOR{ $params{format} };
+
+    return \%params;
 }
 
 1;
