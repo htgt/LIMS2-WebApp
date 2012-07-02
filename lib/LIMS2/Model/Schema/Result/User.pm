@@ -272,6 +272,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_qc_sequencing_results
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellQcSequencingResult>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_qc_sequencing_results",
+  "LIMS2::Model::Schema::Result::WellQcSequencingResult",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_recombineering_results
 
 Type: has_many
@@ -313,8 +328,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-29 14:10:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VnjlwxgtcVdElUgUKOiHsQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-02 10:22:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k2HlEbwruz4Il4JOVcQ1rw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

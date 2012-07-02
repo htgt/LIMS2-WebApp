@@ -324,7 +324,6 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 use List::MoreUtils qw( any );
-use LIMS2::Exception::Implementation;
 
 sub is_accepted {
     my $self = shift;
@@ -409,6 +408,7 @@ sub assert_not_double_targeted {
     my $self = shift;
 
     if ( $self->is_double_targeted ) {
+        require LIMS2::Exception::Implementation;
         LIMS2::Exception::Implementation->throw(
             "Must specify first or second allele when querying double-targeted construct"
         );

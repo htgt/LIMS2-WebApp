@@ -188,7 +188,9 @@ CREATE TABLE well_qc_sequencing_result (
        valid_primers       TEXT NOT NULL DEFAULT '',
        mixed_reads         BOOLEAN NOT NULL DEFAULT FALSE,
        pass                BOOLEAN NOT NULL DEFAULT FALSE,
-       test_result_url     TEXT NOT NULL       
+       test_result_url     TEXT NOT NULL,
+       created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       created_by_id       INTEGER NOT NULL REFERENCES users(id)
 );
 GRANT SELECT ON well_qc_sequencing_result TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON well_qc_sequencing_result TO "[% rw_role %]";

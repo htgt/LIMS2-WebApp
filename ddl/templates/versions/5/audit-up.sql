@@ -528,7 +528,9 @@ well_id integer,
 valid_primers text,
 mixed_reads boolean,
 pass boolean,
-test_result_url text
+test_result_url text,
+created_at timestamp without time zone,
+created_by_id integer
 );
 GRANT SELECT ON audit.well_qc_sequencing_result TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.well_qc_sequencing_result TO "[% rw_role %]";
