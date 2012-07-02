@@ -10,7 +10,7 @@ use Sub::Exporter -setup => {
 use Log::Log4perl qw( :easy );
 use Const::Fast;
 use List::Util qw(sum);
-#use HTGT::Utils::WellName qw ( to384 ); #add
+use LIMS2::Model::Util::WellName qw ( to384 );
 use HTGT::QC::Config;
 use HTGT::QC::Config::Profile;
 
@@ -45,12 +45,13 @@ sub retrieve_qc_run_results {
         my $plate_name = $seq_well->plate_name;
         my $well_name = lc( $seq_well->well_name );
         my %result = (
-            plate_name => $plate_name,
-            well_name  => $well_name,
+            plate_name         => $plate_name,
+            well_name          => $well_name,
             expected_design_id => $expected_design_loc->{ uc $well_name },
-            design_id => $qc_eng_seq->as_hash->{eng_seq_params}{design_id},
-            pass =>  $qc_test_result->pass,
-            num_reads => scalar( keys %{ $read_length_for{ $plate_name }{ $well_name } } ), #better way to do this
+            design_id          => $qc_eng_seq->as_hash->{eng_seq_params}{design_id},
+            marker_symbol      => '-',
+            pass               => $qc_test_result->pass,
+            num_reads          => scalar( keys %{ $read_length_for{ $plate_name }{ $well_name } } ), #better way to do this
         );
 
         my %primers;
@@ -104,7 +105,7 @@ sub retrieve_qc_run_results {
             if ( @these_results ) {
                 for my $r ( @these_results ) {
                     $r->{num_reads} = $num_reads;
-                    #$r->{well_name_384} = lc to384( $plate_name, $well_name );
+                    $r->{well_name_384} = lc to384( $plate_name, $well_name );
                     push @all_results, $r;
                 }
             }
@@ -112,7 +113,7 @@ sub retrieve_qc_run_results {
                 push @all_results, {
                     plate_name          => $plate_name,
                     well_name           => $well_name,
-                    #well_name_384       => lc to384( $plate_name, $well_name ),
+                    well_name_384       => lc to384( $plate_name, $well_name ),
                     num_reads           => $num_reads,
                     num_valid_primers   => 0,
                     valid_primers_score => 0,
@@ -163,7 +164,7 @@ sub retrieve_qc_run_summary_results {
         if ( my $best = shift @results ) {
             $s{plate_name}    = $best->{plate_name};
             $s{well_name}     = uc $best->{well_name};
-            #$s{well_name_384} = uc $best->{well_name_384};
+            $s{well_name_384} = uc $best->{well_name_384};
             $s{valid_primers} = join( q{,}, @{ $best->{valid_primers} } );
             $s{pass}          = $best->{pass};
         }
