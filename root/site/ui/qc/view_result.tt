@@ -1,19 +1,18 @@
-[% META title = "Qc Run Summary" %]
-<h1>Results for [% "${plate_name}${well_name}" %]</h1>
+[% META title = "Qc Test Result" %]
+<div class="page-header">
+<h1>Qc Well Results <small>[% "${plate_name}${well_name}" %]</small></h1>
+</div>
 
-<p>
-QC Run id: <a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}" ) %]">[% qc_run.id %]</a><br />
-Run date: [% qc_run.created_at %]<br />
-</p>
+<div class="well">
+<strong>Qc Run:</strong> <a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}" ) %]">[% qc_run.id %]</a><br />
+<strong>Run Date:</strong> [% qc_run.created_at %]<br />
+</div>
 
 <h2>Sequence Reads</h2>
-<p>
-Download sequence reads: <a href="[% c.uri_for( "/ui/qc_seq_reads/${qc_run.id}/${plate_name}/${well_name}", {format => "fasta"} ) %]">FASTA</a>
-</p>
 
 <div class="row">
     <div class="span3">
-        <table class="table table-bordered table-striped">
+        <table class="table table-striped">
           <thead>
             <tr>
               <td>Primer</td>
@@ -29,15 +28,14 @@ Download sequence reads: <a href="[% c.uri_for( "/ui/qc_seq_reads/${qc_run.id}/$
             [% END -%]
           </tbody>
         </table>
+        <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/${plate_name}/${well_name}", { format => "fasta" } ) %]"><i class="icon-download-alt"></i> Download Sequence Reads</a>
     </div>
 </div>
 
 [% FOR r IN results -%]
-<h2>Design [% r.synvec.design_id %] (score [% r.score %], [% IF r.pass == 1; THEN; "pass"; ELSE; "fail"; END %])</h2>
-<p>
-Download synthetic vector: <a href="[% c.uri_for( "/ui/qc_eng_seq/${r.qc_eng_seq_id}", {format => "genbank"} ) %]">GenBank</a>
-</p>
-<table class="table table-bordered table-striped">
+</br>
+<h2>Design [% r.design_id %] <small>score [% r.score %], [% IF r.pass == 1; THEN; "pass"; ELSE; "fail"; END %]</small></h2>
+<table class="table table-striped">
   <thead>
     <tr>
       <th>Primer</th>
@@ -63,5 +61,8 @@ Download synthetic vector: <a href="[% c.uri_for( "/ui/qc_eng_seq/${r.qc_eng_seq
   [% END -%]
   </tbody>  
 </table>
+<p>
+    <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_eng_seq/${r.qc_eng_seq_id}", { format => "genbank" } ) %]"><i class="icon-download-alt"></i> Download Synthetic Vectors</a>
+</p>
 [% END -%]
 
