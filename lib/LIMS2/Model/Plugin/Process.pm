@@ -328,8 +328,8 @@ sub _create_process_aux_data_recombinase {
     foreach my $recombinase ( @{ $validated_params->{recombinase} } ) {
         $process->create_related(
             process_recombinases => {
-                recombinase => $recombinase,
-                rank        => ++$rank,
+                recombinase_id => $recombinase,
+                rank           => $rank++,
             }
         );
     }

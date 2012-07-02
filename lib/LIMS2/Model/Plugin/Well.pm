@@ -166,7 +166,7 @@ sub create_well_recombineering_result {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $recombineering_result = $well->create_related(
-        well_recombineering_results => { slice_def $validated_params, qw( result_type_id result comment_text created_by created_at ) }
+        well_recombineering_results => { slice_def $validated_params, qw( result_type_id result comment_text created_by_id created_at ) }
     );
 
     return $recombineering_result;
@@ -202,12 +202,12 @@ sub pspec_create_well_dna_status {
 sub create_well_dna_status {
     my ( $self, $params ) = @_;
 
-    my $validated_params => $self->check_params( $params, $self->pspec_create_well_dna_status );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_dna_status );
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $dna_status = $well->create_related(
-        well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by created_at ) }
+        well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
     );
 
     return $dna_status;
@@ -240,12 +240,12 @@ sub pspec_create_well_dna_quality {
 sub create_well_dna_quality {
     my ( $self, $params ) = @_;
 
-    my $validated_params => $self->check_params( $params, $self->pspec_create_well_dna_quality );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_dna_quality );
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $dna_quality = $well->create_related(
-        well_dna_quality => { slice_def $validated_params, qw( quality comment_text created_by created_at ) }
+        well_dna_quality => { slice_def $validated_params, qw( quality comment_text created_by_id created_at ) }
     );
 
     return $dna_quality;
@@ -280,12 +280,12 @@ sub pspec_create_well_qc_sequencing_result {
 sub create_well_qc_sequencing_result {
     my ( $self, $params ) = @_;
 
-    my $validated_params => $self->check_params( $params, $self->pspec_create_well_qc_sequencing_result );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_qc_sequencing_result );
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $qc_seq_result = $well->create_related(
-        well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by created_at ) }
+        well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by_id created_at ) }
     );
 
     return $qc_seq_result;    
