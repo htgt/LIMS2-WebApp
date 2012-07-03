@@ -56,7 +56,7 @@
       <td>[% a.qc_seq_read.length %]</td>
       <td>[% a.align_length %]</td>
       <td>[% a.features %]</td>
-      <td><a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/qc_seq_well/${plate_name}/${well_name}/alignment", r.qc_test_result_id, a.qc_seq_read_id ) %]">View Alignment</a></td>
+      <td><a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/qc_seq_well/${plate_name}/${well_name}/alignment",  a.id ) %]">View Alignment</a></td>
     </tr>
   [% END -%]
   </tbody>  
