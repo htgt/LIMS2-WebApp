@@ -364,6 +364,32 @@ sub _create_process_aux_data_dna_prep {
     return;
 }
 
+sub pspec_delete_process {
+    return {
+        id => { validate => 'integer' }
+    }
+}
+
+sub delete_process {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_delete_process );
+
+    my $process = $self->retrieve( Process => { id => $validated_params->{id} } );
+
+    my @related_resultsets = qw(  process_backbone process_bacs process_cassette process_design
+                                  process_input_wells process_output_wells process_recombinases );
+    
+    for my $rs ( @related_resultsets ) {        
+        $process->search_related_rs( $rs )->delete;
+    }
+
+    $process->delete;
+
+    return;
+}
+
+
 1;
 
 __END__
