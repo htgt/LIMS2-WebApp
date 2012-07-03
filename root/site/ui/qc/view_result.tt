@@ -1,0 +1,94 @@
+[% META title = "Qc Test Result" %]
+<div class="page-header">
+  <h1>Qc Well Results <small>[% "${qc_seq_well.plate_name}${qc_seq_well.well_name}" %]</small></h1>
+</div>
+
+<div class="well">
+  <strong>Qc Run:</strong>
+  <a href="[% c.uri_for( '/ui/view_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a><br />
+  <strong>Run Date:</strong>
+  [% qc_run.created_at %]<br />
+</div>
+
+<h2>Sequence Reads</h2>
+
+<div class="row">
+  <div class="span3">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <td>Primer</td>
+          <td>Read Length</td>
+        </tr>
+      </thead>
+      <tbody>
+        [% FOR s IN seq_reads -%]
+        <tr>
+          <td>[% s.primer_name %]</td>
+          <td>[% s.length %]</td>
+        </tr>
+        [% END -%]
+      </tbody>
+    </table>
+    <a class="btn btn-info" href="[% c.uri_for( '/ui/seq_reads',
+      {
+      'qc_run_id' => qc_run.id,
+      'plate_name' => qc_seq_well.plate_name,
+      'well_name' => qc_seq_well.well_name
+      })
+      %]">
+      <i class="icon-download-alt"></i> Download Sequence Reads
+    </a>
+  </div>
+</div>
+
+[% FOR r IN results -%]
+</br>
+<h2>
+  Design [% r.design_id %]
+  <small>score [% r.score %], [% IF r.pass == 1; THEN; "pass"; ELSE; "fail"; END %]</small>
+</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Primer</th>
+      <th>Pass</th>
+      <th>Score</th>
+      <th>Read Length</th>
+      <th>Alignment Length</th>
+      <th>Features</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    [% FOR a IN r.alignments -%]
+    <tr>
+      <td>[% a.primer_name %]</td>
+      <td>[% IF a.pass == 1; THEN; "yes"; ELSE; "no"; END %]</td>
+      <td>[% a.score %]</td>
+      <td>[% a.qc_seq_read.length %]</td>
+      <td>[% a.align_length %]</td>
+      <td>[% a.features %]</td>
+      <td>
+        <a href="[% c.uri_for( '/ui/view_alignment',
+          {
+          'qc_run_id' => qc_run.id,
+          'plate_name' => qc_seq_well.plate_name,
+          'well_name' => qc_seq_well.well_name,
+          'qc_alignment_id' => a.id
+          })
+          %]">
+          View Alignment
+        </a>
+      </td>
+    </tr>
+    [% END -%]
+  </tbody>
+</table>
+<p>
+<a class="btn btn-info" href="[% c.uri_for( '/ui/qc_eng_seq',
+  { 'format' => "genbank", 'qc_test_result_id' => r.qc_test_result_id } ) %]">
+  <i class="icon-download-alt"></i> Download Synthetic Vectors
+</a>
+</p>
+[% END -%]

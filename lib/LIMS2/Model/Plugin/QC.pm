@@ -530,32 +530,6 @@ sub _build_qc_runs_search_params {
     return \%search;
 }
 
-sub pspec_retrieve_qc_seq_well {
-    return {
-        qc_run_id  => { validate => 'integer' },
-        plate_name => { validate => 'plate_name' },
-        well_name  => { validate => 'well_name' },
-    };
-}
-
-sub retrieve_qc_seq_well {
-    my ( $self, $params ) = @_;
-
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_seq_well );
-
-    return $self->retrieve( 'QcRunSeqWell' =>
-        {
-            'qc_run.id'     => $validated_params->{qc_run_id},
-            'me.plate_name' => $validated_params->{plate_name},
-            'me.well_name'  => $validated_params->{well_name},
-
-        },
-        {
-            join => 'qc_run'
-        }
-    );
-}
-
 sub pspec_retrieve_qc_run {
     return {
         id => { validate => 'integer' },
@@ -571,25 +545,83 @@ sub retrieve_qc_run {
     return $qc_run;
 }
 
-sub qc_run_results {
-    my ( $self, $qc_run ) = @_;
-    #TODO add check I have a valid qc_run object here?
+sub pspec_retrieve_qc_run_seq_well {
+    return {
+        qc_run_id  => { validate => 'uuid' },
+        plate_name => { validate => 'plate_name' },
+        well_name  => { validate => 'well_name' },
+    };
+}
 
-    return retrieve_qc_run_results( $qc_run );
+sub retrieve_qc_run_seq_well {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_run_seq_well );
+
+    my $qc_seq_well = $self->retrieve( 'QcRunSeqWell' =>
+        {
+            'qc_run.id'     => $validated_params->{qc_run_id},
+            'me.plate_name' => $validated_params->{plate_name},
+            'me.well_name'  => $validated_params->{well_name},
+
+        },
+        {
+            join => 'qc_run'
+        }
+    );
+
+    return $qc_seq_well;
+}
+
+sub pspec_qc_run_results {
+    return {
+        qc_run_id => { validate => 'uuid' },
+    };
+}
+
+sub qc_run_results {
+    my ( $self, $params ) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_run_results );
+
+    my $qc_run = $self->retrieve( 'QcRun' => { id => $validated_params->{qc_run_id} } );
+
+    my $results = retrieve_qc_run_results( $qc_run );
+
+    return ( $qc_run, $results );
+}
+
+sub pspec_qc_run_summary_results {
+    return {
+        qc_run_id => { validate => 'uuid' },
+    };
 }
 
 sub qc_run_summary_results {
-    my ( $self, $qc_run ) = @_;
-    #TODO add check I have a valid qc_run object here?
+    my ( $self, $params ) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_run_summary_results );
+
+    my $qc_run = $self->retrieve( 'QcRun' => { id => $validated_params->{qc_run_id} } );
 
     return retrieve_qc_run_summary_results( $qc_run );
 }
 
-sub qc_run_seq_well_result {
-    my ( $self, $seq_well ) = @_;
-    #TODO check for seq_well
+sub pspec_qc_run_seq_well_results {
+    return {
+        qc_run_id  => { validate => 'uuid' },
+        plate_name => { validate => 'plate_name' },
+        well_name  => { validate => 'well_name' },
+    };
+}
 
-    return retrieve_qc_run_seq_well_results( $seq_well );
+sub qc_run_seq_well_results {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_run_seq_well_results );
+    my $qc_seq_well = $self->retrieve_qc_run_seq_well( $validated_params );
+
+    my ( $seq_reads, $results ) = retrieve_qc_run_seq_well_results( $qc_seq_well );
+
+    return( $qc_seq_well, $seq_reads, $results );
 }
 
 sub pspec_qc_alignment_result {
@@ -613,11 +645,25 @@ sub qc_alignment_result {
     );
 }
 
-sub qc_seq_read_sequences {
-    my ( $self, $seq_well, $format ) = @_;
-    #TODO add validtion checks
+sub pspec_qc_seq_read_sequences {
+    return {
+        qc_run_id  => { validate => 'uuid' },
+        plate_name => { validate => 'plate_name' },
+        well_name  => { validate => 'well_name' },
+        format     => { validate => 'non_empty_string' },
+    };
+}
 
-    return retrieve_qc_seq_read_sequences( $seq_well, $format );
+sub qc_seq_read_sequences {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_seq_read_sequences );
+
+    my $qc_seq_well = $self->retrieve_qc_run_seq_well(
+        { slice_def( $validated_params, qw( plate_name well_name qc_run_id ) ) }
+    );
+
+    return retrieve_qc_seq_read_sequences( $qc_seq_well, $validated_params->{format} );
 }
 
 sub pspec_qc_eng_seq_sequence {

@@ -27,10 +27,6 @@ use HTGT::QC::Util::CigarParser;
 sub retrieve_qc_run_results {
     my ( $qc_run ) = @_;
 
-    unless( $qc_run ) {
-        die; #TODO throw better error
-    }
-
     my $vector_stage        = _get_vector_stage( $qc_run );
     my $expected_design_loc = _design_loc_for_qc_template_plate( $qc_run );
     my $read_length_for     = _read_lengths_for_seq_reads( $qc_run, $vector_stage );

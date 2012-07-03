@@ -46,12 +46,13 @@ sub index :Path( '/ui/qc_runs' ) :Args(0) {
     );
 }
 
-sub qc_run : Chained('/') PathPart( 'ui/qc_run' ) CaptureArgs(1) {
-    my ( $self, $c, $qc_run_id ) = @_;
-    my $qc_run;
+sub view_run :Path( '/ui/view_run' ) :Args(0) {
+    my ( $self, $c ) = @_;
+    my ( $qc_run, $results );
 
     try {
-        $qc_run = $c->model('Golgi')->retrieve_qc_run( { id => $qc_run_id } );
+        ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
+            { qc_run_id => $c->request->params->{qc_run_id} } );
     }
     catch {
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -65,23 +66,13 @@ sub qc_run : Chained('/') PathPart( 'ui/qc_run' ) CaptureArgs(1) {
     };
 
     $c->stash(
-        qc_run_obj => $qc_run,
-        qc_run     => $qc_run->as_hash,
-    );
-}
-
-sub view_run : Chained('qc_run') PathPart('view') Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $results = $c->model( 'Golgi' )->qc_run_results( { qc_run => $c->stash->{qc_run_obj} );
-
-    $c->stash(
+        qc_run  => $qc_run->as_hash,
         results => $results,
     );
 }
 
 #TODO work out how we are dealing with csv download
-sub download_run : Chained('qc_run') PathPart('download') Args(0) {
+sub download_run :Path('/ui/download_run') Args(0) {
     my ( $self, $c ) = @_;
 
     my $qc_run = $c->stash->{ qc_run_obj };
@@ -115,7 +106,7 @@ sub download_run : Chained('qc_run') PathPart('download') Args(0) {
 
 }
 
-sub view_run_summary : Chained('qc_run') PathPart( 'view_summary' ) Args(0) {
+sub view_run_summary :Path( '/ui/view_run_summary' ) Args(0) {
     my ( $self, $c ) = @_;
     my $qc_run = $c->stash->{ qc_run_obj };
     my $results = $c->model('Golgi')->qc_run_summary_results( $qc_run );
@@ -131,42 +122,17 @@ sub view_run_summary : Chained('qc_run') PathPart( 'view_summary' ) Args(0) {
     }
 }
 
-sub qc_seq_well : Chained('qc_run') PathPart('qc_seq_well') CaptureArgs(2) {
-    my ( $self, $c, $plate_name, $well_name ) = @_;
-
-    my $qc_seq_well;
-
-    try {
-          $qc_seq_well  = $c->model('Golgi')->retrieve_qc_seq_well( {
-              qc_run_id => $c->stash->{qc_run_obj}->id,
-              plate_name => $plate_name,
-              well_name => uc( $well_name )
-          } );
-    }
-    catch {
-        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
-            $_->show_params( 0 );
-            $c->stash( error_msg => $_->as_string );
-            $c->detach( 'index' );
-        }
-        else {
-            die $_;
-        }
-    };
-
-    $c->stash(
-        plate_name  => $plate_name,
-        well_name   => $well_name,
-        qc_seq_well => $qc_seq_well,
-    );
-}
-
-sub well_result : Chained('qc_seq_well') PathPart( 'results' ) :Args(0) {
+sub view_result :Path('/ui/view_result') Args(0) {
     my ( $self, $c ) = @_;
-    my ( $seq_reads, $results );
 
+    my ( $qc_run, $seq_reads, $results, $qc_seq_well );
     try {
-        ( $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_result( $c->stash->{qc_seq_well} );
+         ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results( {
+              qc_run_id  => $c->req->params->{qc_run_id},
+              plate_name => $c->req->params->{plate_name},
+              well_name  => uc( $c->req->params->{well_name} ),
+          } );
+        $qc_run = $c->model('Golgi')->retrieve_qc_run( { id => $c->req->params->{qc_run_id} } );
     }
     catch {
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -180,19 +146,27 @@ sub well_result : Chained('qc_seq_well') PathPart( 'results' ) :Args(0) {
     };
 
     $c->stash(
-        results    => $results,
-        seq_reads  => [ sort { $a->primer_name cmp $b->primer_name } @{ $seq_reads } ]
+        qc_run      => $qc_run->as_hash,
+        qc_seq_well => $qc_seq_well,
+        results     => $results,
+        seq_reads   => [ sort { $a->primer_name cmp $b->primer_name } @{ $seq_reads } ]
     );
 }
 
-sub seq_reads : Chained('qc_seq_well') PathPart( 'seq_reads' ) :Args(0) {
+sub seq_reads :Path( '/ui/seq_reads' ) :Args(0) {
     my ( $self, $c ) = @_;
     my ( $filename, $formatted_seq );
     my $format = $c->req->params->{format} || 'fasta';
 
     try{
-        ( $filename, $formatted_seq )
-            = $c->model('Golgi')->qc_seq_read_sequences( $c->stash->{qc_seq_well}, $format );
+        ( $filename, $formatted_seq ) = $c->model('Golgi')->qc_seq_read_sequences(
+            {
+                qc_run_id  => $c->req->params->{qc_run_id},
+                plate_name => $c->req->params->{plate_name},
+                well_name  => uc( $c->req->params->{well_name} ),
+                format     => $format,
+            }
+        );
     }
     catch{
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -210,14 +184,18 @@ sub seq_reads : Chained('qc_seq_well') PathPart( 'seq_reads' ) :Args(0) {
     $c->response->body( $formatted_seq );
 }
 
-sub qc_eng_seq : Chained('qc_seq_well') PathPart( 'qc_eng_seq' ) :Args(1) {
-    my ( $self, $c, $qc_test_result_id ) = @_;
+sub qc_eng_seq :Path( '/ui/qc_eng_seq' ) :Args(0) {
+    my ( $self, $c ) = @_;
     my ( $filename, $formatted_seq );
     my $format = $c->req->params->{format} || 'genbank';
 
     try{
         ( $filename, $formatted_seq ) = $c->model('Golgi')->qc_eng_seq_sequence(
-                { qc_test_result_id => $qc_test_result_id, format => $format } );
+            {
+                qc_test_result_id => $c->req->params->{qc_test_result_id},
+                format => $format
+            }
+        );
     }
     catch{
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -235,13 +213,14 @@ sub qc_eng_seq : Chained('qc_seq_well') PathPart( 'qc_eng_seq' ) :Args(1) {
     $c->response->body( $formatted_seq );
 }
 
-sub view_alignment : Chained( 'qc_seq_well' ) PathPart('alignment') Args(1) {
-    my ( $self, $c, $qc_alignment_id ) = @_;
+sub view_alignment :Path('/ui/view_alignment') :Args(0) {
+    my ( $self, $c ) = @_;
     my $alignment_data;
 
     try {
         $alignment_data = $c->model('Golgi')->qc_alignment_result(
-            { qc_alignment_id => $qc_alignment_id } );
+            { qc_alignment_id => $c->req->params->{qc_alignment_id} }
+        );
     }
     catch {
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -254,7 +233,12 @@ sub view_alignment : Chained( 'qc_seq_well' ) PathPart('alignment') Args(1) {
         }
     };
 
-    $c->stash( data => $alignment_data );
+    $c->stash(
+        data       => $alignment_data,
+        qc_run_id  => $c->req->params->{qc_run_id},
+        plate_name => $c->req->params->{plate_name},
+        well_name  => uc( $c->req->params->{well_name} ),
+    );
 }
 
 =head1 AUTHOR

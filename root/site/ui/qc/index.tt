@@ -36,7 +36,11 @@
     <tbody>
         [% FOR qc_run IN qc_runs %]
             <tr>
-                <td><a href="[% c.uri_for( '/ui/qc_run', qc_run.id, 'view' ) %]">[% qc_run.id.substr(0,8) %]</a></td>
+                <td>
+                    <a href="[% c.uri_for( '/ui/view_run', { 'qc_run_id' =>  qc_run.id } ) %]">
+                        [% qc_run.id.substr(0,8) %]
+                    </a>
+                </td>
                 <td>[% qc_run.profile %]</td>
                 <td>[% qc_run.created_at %]</td>
                 <td>[% qc_run.created_by %]</td>

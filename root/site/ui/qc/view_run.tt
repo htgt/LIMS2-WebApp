@@ -3,69 +3,76 @@
 [% MACRO pass_fail(bool) IF bool == 1; "pass"; ELSE; "fail"; END; -%]
 
 <div class="page-header">
-    <h1>Qc-Run <small>[% qc_run.id %]</small></h1>
+  <h1>Qc-Run <small>[% qc_run.id %]</small></h1>
 </div>
 
 <div class="row">
-    <div class="span6">
-        <div class="well">
-            <strong>Qc Template:</strong> [% qc_run.qc_template %]</br>
-            <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]</br>
-            <strong>Profile:</strong> [% qc_run.profile %]
-        </div>
+  <div class="span6">
+    <div class="well">
+      <strong>Qc Template:</strong> [% qc_run.qc_template %]</br>
+      <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]</br>
+      <strong>Profile:</strong> [% qc_run.profile %]
     </div>
-    <div class="span6">
-        <div class="well">
-            <strong>Created At:</strong> [% qc_run.created_at %]</br>
-            <strong>Created By:</strong> [% qc_run.created_by %]</br>
-            <strong>Software VersionID:</strong> [% qc_run.software_version %]
-        </div>
+  </div>
+  <div class="span6">
+    <div class="well">
+      <strong>Created At:</strong> [% qc_run.created_at %]</br>
+      <strong>Created By:</strong> [% qc_run.created_by %]</br>
+      <strong>Software VersionID:</strong> [% qc_run.software_version %]
     </div>
+  </div>
 </div>
 
 <div class="row">
-    <div class="span6">
-        <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run/${qc_run.id}", { view => "csvdl" } ) %]"><i class="icon-download-alt"></i> Download Full Results</a>
-        <a class="btn btn-info" href="[% c.uri_for( "/ui/qc_run_summary/${qc_run.id}", { view => "csvdl" } ) %]"><i class="icon-download-alt"></i> Download Summary Results All</a>
-    </div>
+  <div class="span6">
+    <a class="btn btn-info" href="[% c.uri_for( '/ui/download_run', { 'qc_run_id' => qc_run.id } ) %]">
+      <i class="icon-download-alt"></i> Download Full Results
+    </a>
+    <a class="btn btn-info" href="[% c.uri_for( '/ui/view_run_summary', { 'qc_run_id' => qc_run.id } ) %]">
+      <i class="icon-download-alt"></i> Download Summary Results All
+    </a>
+  </div>
 </div>
 
 <table class="table table-striped table-condensed">
   <thead>
     <tr>
-        <th>Plate Name</th>
-        <th>Well Name</th>
-        <th>384 Well Name</th>
-        <th>Design Id</th>
-        <th>Expected Design Id</th>
-        <th>Marker Symbol</th>
-        <th>Pass?</th>
-        <th>Raw Score</th>
-        <th>Number of Primer Reads</th>
-        <th>Number of Valid Primers</th>
-        <th>Valid Primer Score</th>
-        <th>Valid Primers</th>
-        <th></th>
+      <th>Plate Name</th>
+      <th>Well Name</th>
+      <th>384 Well Name</th>
+      <th>Design Id</th>
+      <th>Expected Design Id</th>
+      <th>Marker Symbol</th>
+      <th>Pass?</th>
+      <th>Raw Score</th>
+      <th>Number of Primer Reads</th>
+      <th>Number of Valid Primers</th>
+      <th>Valid Primer Score</th>
+      <th>Valid Primers</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
     [% FOR r IN results -%]
     <tr>
-        <td>[% r.plate_name %]</td>
-        <td>[% r.well_name %]</td>
-        <td>[% r.well_name_384 %]</td>
-        <td>[% r.design_id %]</td>
-        <td>[% r.expected_design_id %]</td>
-        <td>[% r.marker_symbol %]</td>
-        <td>[% pass_fail( r.pass ) %]</td>
-        <td>[% r.score %]</td>
-        <td>[% r.num_reads %]</td>
-        <td>[% r.valid_primers.size %]</td>
-        <td>[% r.valid_primers_score %]</td>
-        <td>[% r.valid_primers.join( "," ) %]</td>
-        <td>
-           <a href="[% c.uri_for( "/ui/qc_run/${qc_run.id}/qc_seq_well/${r.plate_name}/${r.well_name}/results" ) %]">Details</a>
-        </td>
+      <td>[% r.plate_name %]</td>
+      <td>[% r.well_name %]</td>
+      <td>[% r.well_name_384 %]</td>
+      <td>[% r.design_id %]</td>
+      <td>[% r.expected_design_id %]</td>
+      <td>[% r.marker_symbol %]</td>
+      <td>[% pass_fail( r.pass ) %]</td>
+      <td>[% r.score %]</td>
+      <td>[% r.num_reads %]</td>
+      <td>[% r.valid_primers.size %]</td>
+      <td>[% r.valid_primers_score %]</td>
+      <td>[% r.valid_primers.join( "," ) %]</td>
+      <td>
+        <a href="[% c.uri_for( '/ui/view_result',
+          { 'qc_run_id' => qc_run.id, 'plate_name' => r.plate_name, 'well_name' => r.well_name } ) %]">
+          Details
+        </a>
+      </td>
     </tr>
     [% END -%]
   </tbody>
