@@ -72,6 +72,32 @@ sub create_well {
     return $well;
 }
 
+sub delete_well {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well($params);
+
+    if ( $well->input_processes > 0 ) {
+        $self->throw( InvalidState => "Cannot delete a well that is an input to another process" );
+    }
+
+    for my $p ( $well->output_processes ) {
+        if ( $p->output_wells == 1 ) {
+            $self->delete_process( { id => $p->id } );
+        }
+    }
+
+    my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
+                                 well_qc_sequencing_result well_recombineering_results );
+
+    for my $rs ( @related_resultsets ) {
+        $well->search_related_rs( $rs )->delete;
+    }
+
+    $well->delete;
+}
+
 sub pspec_retrieve_well_accepted_override {
     return {
         well_id => { validate => 'integer' }
