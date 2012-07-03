@@ -86,6 +86,20 @@ sub well_POST {
     );
 }
 
+sub well_DELETE {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->delete_well( $c->request->params );
+        }
+    );
+
+    return $self->status_no_content( $c );
+}
+
 sub well_accepted_override :Path('/api/well/accepted') :Args(0) :ActionClass('REST') {
 }
 
