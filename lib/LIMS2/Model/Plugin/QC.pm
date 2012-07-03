@@ -6,14 +6,17 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use List::MoreUtils qw( uniq );
-use Scalar::Util qw( blessed );
 use JSON ();
 use Data::Compare qw( Compare );
-use LIMS2::Model::Util::QC qw( retrieve_qc_run_results retrieve_qc_run_summary_results );
+use LIMS2::Model::Util::QCResults qw(
+    retrieve_qc_run_results
+    retrieve_qc_run_summary_results
+    retrieve_qc_run_seq_well_results
+    retrieve_qc_alignment_results
+    retrieve_qc_seq_read_sequences
+    retrieve_qc_eng_seq_sequence
+);
 use namespace::autoclean;
-
-use Const::Fast;
-use Bio::SeqIO;
 
 requires qw( schema check_params throw );
 
@@ -586,151 +589,55 @@ sub qc_run_seq_well_result {
     my ( $self, $seq_well ) = @_;
     #TODO check for seq_well
 
-    my @seq_reads = $seq_well->qc_seq_reads;
-
-    unless ( @seq_reads ) {
-        $self->throw( Validation => {
-                'No sequence reads for qc seq well ' . $seq_well->plate_name . $seq_well->well_name } );
-    }
-
-    my @qc_alignments = map { $_->qc_alignments } @seq_reads;
-
-    my @qc_results;
-    for my $test_result ( $seq_well->qc_test_results ) {
-        my %result;
-        $result{design_id} = $test_result->qc_eng_seq->design_id;
-        $result{score} = $test_result->score;
-        $result{pass} = $test_result->pass;
-        $result{qc_test_result_id} = $test_result->id;
-        $result{alignments} = [ grep{ $_->qc_eng_seq_id == $test_result->qc_eng_seq->id  } @qc_alignments ];
-        push @qc_results, \%result;
-    }
-
-    return( \@seq_reads, \@qc_results );
+    return retrieve_qc_run_seq_well_results( $seq_well );
 }
 
-use HTGT::QC::Util::Alignment qw( alignment_match );
-use HTGT::QC::Util::CigarParser;
-sub qc_alignment_result {
-    my ( $self, $params ) = @_;
-
-    my $test_result = $self->schema->resultset( 'QcTestResult' )->find(
-        {
-            id => $params->{qc_test_result_id}
-        }
-    );
-
-    unless ( $test_result ) {
-        $self->throw( NotFound => { entity_class => 'QcTestResult', search_params => {} } );
-    }
-
-    my $alignment = $self->schema->resultset( 'QcAlignment' )->search_rs(
-        {
-            qc_eng_seq_id  => $test_result->qc_eng_seq_id,
-            qc_seq_read_id => $params->{qc_seq_read_id}
-        }
-    )->first;
-
-    unless ( $alignment ) {
-        $self->throw( NotFound => { entity_class => 'QcAlignment', search_params => {} } );
-    }
-
-    my $qc_eng_seq = $test_result->qc_eng_seq->as_hash;
-    my $eng_seq_method= $qc_eng_seq->{eng_seq_method};
-    my $target = $self->eng_seq_builder->$eng_seq_method( $qc_eng_seq->{eng_seq_params} );
-    my $query  = $alignment->qc_seq_read->bio_seq;
-    my $cigar  = HTGT::QC::Util::CigarParser->new(strict_mode => 0)->parse_cigar( $alignment->cigar );
-
-    my $match = alignment_match( $query, $target, $cigar, $cigar->{target_start}, $cigar->{target_end} );
-
-    my $target_strand = $alignment->target_strand == 1 ? '+' : '-';
-
-    my $alignment_str = HTGT::QC::Util::Alignment::format_alignment(
-        %{$match},
-        target_id  => "Target ($target_strand)",
-        query_id   => 'Sequence Read',
-        line_len   => 72,
-        header_len => 12
-    );
-
+sub pspec_qc_alignment_result {
     return {
-         target        => $target->display_id,
-         query         => $query->display_id,
-         alignment_str => $alignment_str,
-         alignment     => $alignment,
-         test_result   => $test_result
+        qc_alignment_id => { validate => 'integer' },
     };
 }
 
-sub retrieve_qc_seq_read_sequences {
+sub qc_alignment_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_alignment_result );
+
+    my $qc_alignment = $self->retrieve(
+        'QcAlignment' => { 'me.id' => $validated_params->{qc_alignment_id} },
+    );
+
+    return retrieve_qc_alignment_results(
+        $self->eng_seq_builder,
+        $qc_alignment
+    );
+}
+
+sub qc_seq_read_sequences {
     my ( $self, $seq_well, $format ) = @_;
     #TODO add validtion checks
 
-    my @seq_reads = $seq_well->qc_seq_reads;
-    unless ( @seq_reads ) {
-        $self->throw( Validation => {
-                'No sequence reads for qc seq well ' . $seq_well->plate_name . $seq_well->well_name } );
-    }
-
-    my $params = $self->_validated_download_seq_params( $format );
-
-    my $filename = 'seq_reads_' . $seq_well->plate_name . $seq_well->well_name . $params->{suffix};
-
-    my $formatted_seq;
-    my $seq_io = Bio::SeqIO->new( -fh => IO::String->new( $formatted_seq ), -format => $params->{format} );
-
-    for my $seq_read ( @seq_reads ) {
-        $seq_io->write_seq( $seq_read->bio_seq );
-    }
-
-    return ( $filename, $formatted_seq );
+    return retrieve_qc_seq_read_sequences( $seq_well, $format );
 }
 
-sub retrieve_qc_eng_seq {
-    my ( $self, $qc_test_result_id, $format ) = @_;
-    #TODO add validtion checks
+sub pspec_qc_eng_seq_sequence {
+    return {
+        format            => { validate => 'non_empty_string' },
+        qc_test_result_id => { validate => 'integer' },
+    };
+}
+
+sub qc_eng_seq_sequence {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_eng_seq_sequence );
 
     my $qc_test_result = $self->retrieve(
-        'QcTestResult' => { id => $qc_test_result_id },
-    );
-    my $qc_eng_seq_params = $qc_test_result->qc_eng_seq->as_hash;
-    my $eng_seq_method= $qc_eng_seq_params->{eng_seq_method};
-    my $qc_eng_seq = $self->eng_seq_builder->$eng_seq_method( $qc_eng_seq_params->{eng_seq_params} );
-
-    my $params = $self->_validated_download_seq_params( $format );
-
-    my $filename = $qc_eng_seq->display_id . $params->{suffix};
-
-    my $formatted_seq;
-    Bio::SeqIO->new(
-        -fh => IO::String->new( $formatted_seq ),
-        -format => $params->{format}
-    )->write_seq( $qc_eng_seq );
-
-    return ( $filename, $formatted_seq );
-}
-
-sub _validated_download_seq_params {
-    my ( $self, $format ) = @_;
-
-    my %params = (
-        format => 'genbank',
+        'QcTestResult' => { id => $validated_params->{qc_test_result_id} },
     );
 
-    const my %SUFFIX_FOR => ( genbank => '.gbk', fasta => '.fasta' );
-
-    if ( $format ) {
-        $format =~ s/^\s+//;
-        $format =~ s/\s+$//;
-        $format = lc( $format );
-        if ( $SUFFIX_FOR{$format} ) {
-            $params{format} = $format;
-        }
-    }
-
-    $params{suffix} = $SUFFIX_FOR{ $params{format} };
-
-    return \%params;
+    return retrieve_qc_eng_seq_sequence(
+        $self->eng_seq_builder, $qc_test_result, $validated_params->{format} );
 }
 
 1;

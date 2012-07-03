@@ -73,7 +73,7 @@ sub qc_run : Chained('/') PathPart( 'ui/qc_run' ) CaptureArgs(1) {
 sub view_run : Chained('qc_run') PathPart('view') Args(0) {
     my ( $self, $c ) = @_;
 
-    my $results = $c->model( 'Golgi' )->qc_run_results( $c->stash->{qc_run_obj} );
+    my $results = $c->model( 'Golgi' )->qc_run_results( { qc_run => $c->stash->{qc_run_obj} );
 
     $c->stash(
         results => $results,
@@ -192,7 +192,7 @@ sub seq_reads : Chained('qc_seq_well') PathPart( 'seq_reads' ) :Args(0) {
 
     try{
         ( $filename, $formatted_seq )
-            = $c->model('Golgi')->retrieve_qc_seq_read_sequences( $c->stash->{qc_seq_well}, $format );
+            = $c->model('Golgi')->qc_seq_read_sequences( $c->stash->{qc_seq_well}, $format );
     }
     catch{
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -205,7 +205,7 @@ sub seq_reads : Chained('qc_seq_well') PathPart( 'seq_reads' ) :Args(0) {
         }
     };
 
-    $c->response->content_type( 'application/octet-stream' ); # XXX Is this an appropriate content type?
+    $c->response->content_type( 'chemical/seq-na-fasta' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
     $c->response->body( $formatted_seq );
 }
@@ -216,8 +216,8 @@ sub qc_eng_seq : Chained('qc_seq_well') PathPart( 'qc_eng_seq' ) :Args(1) {
     my $format = $c->req->params->{format} || 'genbank';
 
     try{
-        ( $filename, $formatted_seq )
-            = $c->model('Golgi')->retrieve_qc_eng_seq( $qc_test_result_id, $format );
+        ( $filename, $formatted_seq ) = $c->model('Golgi')->qc_eng_seq_sequence(
+                { qc_test_result_id => $qc_test_result_id, format => $format } );
     }
     catch{
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
@@ -230,18 +230,18 @@ sub qc_eng_seq : Chained('qc_seq_well') PathPart( 'qc_eng_seq' ) :Args(1) {
         }
     };
 
-    $c->response->content_type( 'application/octet-stream' ); # XXX Is this an appropriate content type?
+    $c->response->content_type( 'chemical/seq-na-genbank' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
     $c->response->body( $formatted_seq );
 }
 
-sub view_alignment : Chained( 'qc_seq_well' ) PathPart('alignment') Args(2) {
-    my ( $self, $c, $qc_test_result_id, $qc_seq_read_id ) = @_;
+sub view_alignment : Chained( 'qc_seq_well' ) PathPart('alignment') Args(1) {
+    my ( $self, $c, $qc_alignment_id ) = @_;
     my $alignment_data;
 
     try {
         $alignment_data = $c->model('Golgi')->qc_alignment_result(
-            { qc_test_result_id => $qc_test_result_id, qc_seq_read_id => $qc_seq_read_id } );
+            { qc_alignment_id => $qc_alignment_id } );
     }
     catch {
         if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
