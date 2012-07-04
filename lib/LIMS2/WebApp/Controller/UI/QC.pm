@@ -28,7 +28,7 @@ sub begin :Private {
 sub end :Private {
     my ( $self, $c ) = @_;
     # if we are running in debug mode we want to see the error in its full glory
-    return if $c->debug;
+    $c->forward('LIMS2::WebApp::View::HTML') if $c->debug;
 
     if ( scalar @{ $c->error } ) {
         my @errors = @{ $c->error };
