@@ -1,6 +1,8 @@
 package LIMS2::WebApp::Controller::UI::QC;
 use Moose;
 use namespace::autoclean;
+use HTTP::Status qw( :constants );
+use Scalar::Util qw( blessed );
 use Try::Tiny;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -23,23 +25,87 @@ sub begin :Private {
     return;
 }
 
-sub index :Path( '/ui/qc_runs' ) :Args(0) {
+sub end :Private {
     my ( $self, $c ) = @_;
-    my $qc_runs;
+    # if we are running in debug mode we want to see the error in its full glory
+    return if $c->debug;
 
-    try {
-        $qc_runs = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
-    }
-    catch {
-        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
-            $_->show_params( 0 );
-            $c->stash( error_msg => $_->as_string );
-            $c->detach( 'index' );
+    if ( scalar @{ $c->error } ) {
+        my @errors = @{ $c->error };
+        $c->log->error($_) for @errors;
+        $c->clear_errors;
+
+        #assume first error most interesting
+        my $error = $errors[0];
+
+        if ( blessed( $error ) and $error->isa( 'LIMS2::Exception' ) ) {
+            $self->handle_lims2_exception( $c, $error );
         }
         else {
-            die $_;
+            $self->error_status( $c, HTTP_INTERNAL_SERVER_ERROR, { error => "$error" } );
         }
-    };
+    }
+
+    return 1 if $c->response->status =~ /^3\d\d$/;
+    return 1 if $c->response->body;
+
+    unless ( $c->response->content_type ) {
+        $c->response->content_type('text/html; charset=utf-8');
+    }
+
+    $c->forward('LIMS2::WebApp::View::HTML');
+}
+
+sub error_status :Private {
+    my ( $self, $c, $status_code, $entity ) = @_;
+
+    #TODO should we be setting response status?
+    $c->response->status($status_code);
+
+    $c->stash->{error_msg} = $entity->{error};
+    return;
+}
+
+sub handle_lims2_exception {
+    my ( $self, $c, $error ) = @_;
+
+    #TODO: forward to custom error page
+    my %entity = ( error => $error->message, class => blessed $error );
+
+    if ( $error->isa('LIMS2::Exception::Authorization') ) {
+        return $self->error_status( $c, HTTP_FORBIDDEN, \%entity );
+    }
+
+    if ( $error->isa('LIMS2::Exception::Validation') ) {
+        if ( my $results = $error->results ) {
+            $entity{missing} = [ $results->missing ]
+                if $results->has_missing;
+            $entity{invalid} = { map { $_ => $results->invalid($_) } $results->invalid }
+                if $results->has_invalid;
+            $entity{unknown} = [ $results->unknown ]
+                if $results->has_unknown;
+        }
+        return $self->error_status( $c, HTTP_BAD_REQUEST, \%entity );
+    }
+
+    if ( $error->isa('LIMS2::Exception::InvalidState') ) {
+        return $self->error_status( $c, HTTP_CONFLICT, \%entity );
+    }
+
+    if ( $error->isa('LIMS2::Exception::NotFound') ) {
+        $entity{entity_class}  = $error->entity_class;
+        $entity{search_params} = $error->search_params;
+        return $self->error_status( $c, HTTP_NOT_FOUND, \%entity );
+    }
+
+    # Default to an internal server error
+    return $self->error_status( $c, HTTP_INTERNAL_SERVER_ERROR, { error => $error->message } );
+}
+
+sub index :Path( '/ui/qc_runs' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $qc_runs = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
 
     $c->stash(
         qc_runs  => $qc_runs,
@@ -50,22 +116,9 @@ sub index :Path( '/ui/qc_runs' ) :Args(0) {
 
 sub view_run :Path( '/ui/view_run' ) :Args(0) {
     my ( $self, $c ) = @_;
-    my ( $qc_run, $results );
 
-    try {
-        ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
-            { qc_run_id => $c->request->params->{qc_run_id} } );
-    }
-    catch {
-        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
-            $_->show_params( 0 );
-            $c->stash( error_msg => $_->as_string );
-            $c->detach( 'index' );
-        }
-        else {
-            die $_;
-        }
-    };
+    my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
+        { qc_run_id => $c->request->params->{qc_run_id} } );
 
     $c->stash(
         qc_run  => $qc_run->as_hash,
@@ -130,25 +183,15 @@ sub view_run_summary :Path( '/ui/view_run_summary' ) Args(0) {
 sub view_result :Path('/ui/view_result') Args(0) {
     my ( $self, $c ) = @_;
 
-    my ( $qc_run, $seq_reads, $results, $qc_seq_well );
-    try {
-         ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results( {
-              qc_run_id  => $c->req->params->{qc_run_id},
-              plate_name => $c->req->params->{plate_name},
-              well_name  => uc( $c->req->params->{well_name} ),
-          } );
-        $qc_run = $c->model('Golgi')->retrieve_qc_run( { id => $c->req->params->{qc_run_id} } );
-    }
-    catch {
-        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
-            $_->show_params( 0 );
-            $c->stash( error_msg => $_->as_string );
-            $c->detach( 'index' );
+    my ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results(
+        {
+            qc_run_id  => $c->req->params->{qc_run_id},
+            plate_name => $c->req->params->{plate_name},
+            well_name  => uc( $c->req->params->{well_name} ),
         }
-        else {
-            die $_;
-        }
-    };
+    );
+
+    my $qc_run = $c->model('Golgi')->retrieve_qc_run( { id => $c->req->params->{qc_run_id} } );
 
     $c->stash(
         qc_run      => $qc_run->as_hash,
@@ -161,29 +204,17 @@ sub view_result :Path('/ui/view_result') Args(0) {
 
 sub seq_reads :Path( '/ui/seq_reads' ) :Args(0) {
     my ( $self, $c ) = @_;
-    my ( $filename, $formatted_seq );
+
     my $format = $c->req->params->{format} || 'fasta';
 
-    try{
-        ( $filename, $formatted_seq ) = $c->model('Golgi')->qc_seq_read_sequences(
-            {
-                qc_run_id  => $c->req->params->{qc_run_id},
-                plate_name => $c->req->params->{plate_name},
-                well_name  => uc( $c->req->params->{well_name} ),
-                format     => $format,
-            }
-        );
-    }
-    catch{
-        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
-            $_->show_params( 0 );
-            $c->stash( error_msg => $_->as_string );
-            $c->detach( 'index' );
+    my ( $filename, $formatted_seq ) = $c->model('Golgi')->qc_seq_read_sequences(
+        {
+            qc_run_id  => $c->req->params->{qc_run_id},
+            plate_name => $c->req->params->{plate_name},
+            well_name  => uc( $c->req->params->{well_name} ),
+            format     => $format,
         }
-        else {
-            die $_;
-        }
-    };
+    );
 
     $c->response->content_type( 'chemical/seq-na-fasta' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
@@ -193,27 +224,15 @@ sub seq_reads :Path( '/ui/seq_reads' ) :Args(0) {
 
 sub qc_eng_seq :Path( '/ui/qc_eng_seq' ) :Args(0) {
     my ( $self, $c ) = @_;
-    my ( $filename, $formatted_seq );
+
     my $format = $c->req->params->{format} || 'genbank';
 
-    try{
-        ( $filename, $formatted_seq ) = $c->model('Golgi')->qc_eng_seq_sequence(
-            {
-                qc_test_result_id => $c->req->params->{qc_test_result_id},
-                format => $format
-            }
-        );
-    }
-    catch{
-        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
-            $_->show_params( 0 );
-            $c->stash( error_msg => $_->as_string );
-            $c->detach( 'index' );
+    my ( $filename, $formatted_seq ) = $c->model('Golgi')->qc_eng_seq_sequence(
+        {
+            qc_test_result_id => $c->req->params->{qc_test_result_id},
+            format => $format
         }
-        else {
-            die $_;
-        }
-    };
+    );
 
     $c->response->content_type( 'chemical/seq-na-genbank' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
@@ -223,23 +242,10 @@ sub qc_eng_seq :Path( '/ui/qc_eng_seq' ) :Args(0) {
 
 sub view_alignment :Path('/ui/view_alignment') :Args(0) {
     my ( $self, $c ) = @_;
-    my $alignment_data;
 
-    try {
-        $alignment_data = $c->model('Golgi')->qc_alignment_result(
-            { qc_alignment_id => $c->req->params->{qc_alignment_id} }
-        );
-    }
-    catch {
-        if ( blessed( $_ ) and $_->isa( 'LIMS2::Model::Error' ) ) {
-            $_->show_params( 0 );
-            $c->stash( error_msg => $_->as_string );
-            $c->detach( 'index' );
-        }
-        else {
-            die $_;
-        }
-    };
+    my $alignment_data = $c->model('Golgi')->qc_alignment_result(
+        { qc_alignment_id => $c->req->params->{qc_alignment_id} }
+    );
 
     $c->stash(
         data       => $alignment_data,
