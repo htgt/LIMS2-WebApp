@@ -37,7 +37,7 @@
         [% FOR qc_run IN qc_runs %]
             <tr>
                 <td>
-                    <a href="[% c.uri_for( '/ui/view_run', { 'qc_run_id' =>  qc_run.id } ) %]">
+                    <a href="[% c.uri_for( '/user/view_run', { 'qc_run_id' =>  qc_run.id } ) %]">
                         [% qc_run.id.substr(0,8) %]
                     </a>
                 </td>
