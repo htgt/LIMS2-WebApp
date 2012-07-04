@@ -163,6 +163,8 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:38:22
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gqB+KF8Sf6p1LvblnArAbg
 
+__PACKAGE__->many_to_many("qc_seq_reads", "qc_run_seq_well_qc_seq_reads", "qc_seq_read");
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

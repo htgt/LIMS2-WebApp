@@ -136,7 +136,22 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Urjoqnrt6rmdAKqhawUwhg
 
+use HTGT::QC::Util::Alignment;
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub format_alignment {
+    my ( $self, $line_len, $header_len ) = @_;
+
+    my $strand = $self->qc_alignment->target_strand == 1 ? '+' : '-';
+
+    return HTGT::QC::Util::Alignment::format_alignment(
+        target_id  => "Target ($strand)",
+        target_str => $self->target_str,
+        query_id   => 'Sequence Read',
+        query_str  => $self->query_str,
+        match_str  => $self->match_str,
+        line_len   => $line_len,
+        header_len => $header_len
+    );
+}
 __PACKAGE__->meta->make_immutable;
 1;

@@ -156,10 +156,18 @@ sub as_hash {
     my $self = shift;
 
     return {
-        eng_seq_id     => $self->eng_seq_id,
+        eng_seq_id     => $self->id,
         eng_seq_method => $self->method,
-        eng_seq_params => decode_json( $self->eng_seq_params )
+        eng_seq_params => decode_json( $self->params )
     };
+}
+
+sub design_id {
+    my $self = shift;
+
+    my $eng_seq_params = decode_json( $self->params );
+
+    return $eng_seq_params->{design_id};
 }
 
 __PACKAGE__->meta->make_immutable;

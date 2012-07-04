@@ -1,0 +1,41 @@
+[% META title => "View Alignment" -%]
+[% MACRO strand_name(strand) IF strand == 1; THEN; "forward strand"; ELSE; "reverse strand"; END %]
+
+<div class="page-header">
+  <h1>Alignment</h1>
+</div>
+
+<div class="well">
+  <strong>Target:</strong> [% data.target %]
+    (bases [% data.alignment.target_start %] to [% data.alignment.target_end %],
+    [% strand_name( data.alignment.target_strand ) %]) <br />
+  <strong>Query:</strong>  [% data.query %]
+    (bases [% data.alignment.query_start %] to [% data.alignment.query_end %],
+    [% strand_name( data.alignment.query_strand ) %]) <br />
+    <a href="[% c.uri_for( '/ui/view_result',
+    { 'qc_run_id' => qc_run_id, 'plate_name' => plate_name, 'well_name' => well_name } ) %]">
+      Back to test result
+    </a>
+</div>
+
+<div class="row">
+  <div class="span7">
+<pre>
+[% data.alignment_str %]
+</pre>
+  </div>
+</div>
+
+[% FOR r IN data.alignment.qc_alignment_regions -%]
+<div class="row">
+  <h2>[% r.name %]</h2>
+  <p>
+  Matched [% r.match_count %] of [% r.length %] bases.
+  </p>
+  <div class="span7">
+<pre>
+[% r.format_alignment(72,18) %]
+</pre>
+  </div>
+</div>
+[% END -%]

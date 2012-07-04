@@ -16,6 +16,7 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
+use List::MoreUtils qw( uniq );
 extends 'DBIx::Class::Core';
 
 =head1 COMPONENTS LOADED
@@ -216,7 +217,77 @@ sub as_hash {
         profile          => $self->profile,
         software_version => $self->software_version,
         qc_template      => $self->qc_template->name,
+        sequencing_projects => [ map{ $_->id } $self->qc_seq_projects ],
     };
+}
+
+sub count_designs {
+    my $self = shift;
+
+    my $qc_template_wells = $self->qc_template->qc_template_wells;
+    return 0 unless $qc_template_wells->count;
+
+    my @design_ids;
+    foreach my $well ( $qc_template_wells->all ) {
+        my $design_id = $well->as_hash->{eng_seq_params}{design_id};
+        push @design_ids, $design_id if $design_id;
+    }
+
+    return scalar( uniq @design_ids );
+}
+
+sub count_observed_designs {
+    my $self = shift;
+
+    return $self->_uniq_design_ids_from_test_results(
+        $self->search_related_rs(
+            qc_test_results => {},
+            { prefetch => 'qc_eng_seq', }
+        )
+    );
+}
+
+sub count_valid_designs {
+    my $self = shift;
+
+    return $self->_uniq_design_ids_from_test_results(
+        $self->search_related_rs(
+            qc_test_results => {
+                'me.pass' => 1
+            },
+            {
+                prefetch => 'qc_eng_seq',
+            }
+        )
+    );
+}
+
+sub _uniq_design_ids_from_test_results {
+    my ( $self, $test_results ) = @_;
+
+    return 0 unless $test_results->count;
+
+    my @design_ids;
+    foreach my $test_result ( $test_results->all ) {
+        my $eng_seq_params = $test_result->qc_eng_seq->as_hash;
+        my $design_id = $eng_seq_params->{eng_seq_params}{design_id};
+        push @design_ids, $design_id if $design_id;
+    }
+
+    return scalar( uniq @design_ids );
+}
+
+sub primers {
+    my $self = shift;
+
+    my @primers;
+    for my $seq_well ( $self->qc_run_seq_wells ) {
+        for my $seq_read ( $seq_well->qc_seq_reads ) {
+            push @primers, map{ $_->primer_name  } $seq_read->qc_alignments;
+        }
+    }
+
+    return [ uniq @primers ];
 }
 
 __PACKAGE__->meta->make_immutable;
