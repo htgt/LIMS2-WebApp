@@ -37,11 +37,13 @@ const my %PROCESS_INPUT_WELL_CHECK => (
     },
 );
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _well_id_for {
     my ( $self, $data ) = @_;
 
-    $self->retrieve_well($data)->id;
+    return $self->retrieve_well($data)->id;
 }
+## use critic
 
 sub check_input_wells {
     my ( $self, $process ) = @_;
@@ -71,48 +73,61 @@ sub check_input_wells {
     return;
 }
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_create_di {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_int_recom {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_2w_gateway {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_3w_gateway {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_recombinase {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_cre_bac_recom {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_rearray {
     my ( $self, $process ) = @_;
 
@@ -137,13 +152,16 @@ sub _check_input_wells_rearray {
 
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_dna_prep {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
     return;
 }
+## use critic
 
 sub pspec_create_process {
     return {
@@ -204,6 +222,7 @@ sub pspec__create_process_aux_data_create_di {
     };
 }
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_create_di {
     my ( $self, $params, $process ) = @_;
 
@@ -237,6 +256,7 @@ sub _create_process_aux_data_create_di {
 
     return;
 }
+## use critic
 
 sub pspec__create_process_aux_data_int_recom {
     return {
@@ -245,6 +265,7 @@ sub pspec__create_process_aux_data_int_recom {
     };
 }
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_int_recom {
     my ( $self, $params, $process ) = @_;
 
@@ -256,6 +277,7 @@ sub _create_process_aux_data_int_recom {
 
     return;
 }
+## use critic
 
 sub pspec__create_process_aux_data_2w_gateway {
     return {
@@ -266,6 +288,7 @@ sub pspec__create_process_aux_data_2w_gateway {
     };
 }
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_2w_gateway {
     my ( $self, $params, $process ) = @_;
 
@@ -285,6 +308,7 @@ sub _create_process_aux_data_2w_gateway {
 
     return;
 }
+## use critic
 
 sub pspec__create_process_aux_data_3w_gateway {
     return {
@@ -294,6 +318,7 @@ sub pspec__create_process_aux_data_3w_gateway {
     };
 }
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_3w_gateway {
     my ( $self, $params, $process ) = @_;
 
@@ -310,11 +335,13 @@ sub _create_process_aux_data_3w_gateway {
 
     return;
 }
+## use critic
 
 sub pspec__create_process_aux_data_recombinase {
     return { recombinase => { validate => 'existing_recombinase' }, };
 }
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_recombinase {
     my ( $self, $params, $process ) = @_;
 
@@ -336,6 +363,7 @@ sub _create_process_aux_data_recombinase {
 
     return;
 }
+## use critic
 
 sub pspec__create_process_aux_data_cre_bac_recom {
     return {
@@ -344,6 +372,7 @@ sub pspec__create_process_aux_data_cre_bac_recom {
     };
 }
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_cre_bac_recom {
     my ( $self, $params, $process ) = @_;
 
@@ -355,14 +384,19 @@ sub _create_process_aux_data_cre_bac_recom {
 
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_rearray {
     return;
 }
+## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_dna_prep {
     return;
 }
+## use critic
 
 sub pspec_delete_process {
     return {
