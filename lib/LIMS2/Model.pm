@@ -80,12 +80,12 @@ sub _build_cache {
         namespace  => $namespace,
         global     => 1
     );
-        
+
     if ( my $root_dir = $ENV{LIMS2_MODEL_CACHE_ROOT} ) {
         $chi_args{driver}   = 'FastMmap';
         $chi_args{root_dir} = $root_dir;
     }
-    
+
     return CHI->new( %chi_args );
 }
 

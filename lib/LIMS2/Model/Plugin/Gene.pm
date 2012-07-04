@@ -31,11 +31,11 @@ sub search_genes {
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
 
     my $gene = $validated_params->{gene};
-    
+
     return $self->_genes_cache->compute(
         $gene,
         undef,
-        sub {   
+        sub {
             my $genes = $self->solr_query( $gene );
             $self->throw( NotFound => { entity_class => 'Gene', search_params => $validated_params } )
                 unless @{$genes} > 0;

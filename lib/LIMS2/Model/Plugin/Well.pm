@@ -142,7 +142,7 @@ sub create_well_accepted_override {
     if ( ! $well->assay_complete ) {
         $well->update( { assay_complete => $override->created_at } );
     }
-    
+
     return $override;
 }
 
@@ -207,9 +207,9 @@ sub retrieve_well_recombineering_results {
     my $rec_results = $well->well_recombineering_results;
 
     if ( @{ $rec_results } == 0) {
-        $self->throw( NotFound => { entity_class => 'WellRecombineeringResult', search_params => $params } );        
+        $self->throw( NotFound => { entity_class => 'WellRecombineeringResult', search_params => $params } );
     }
-    
+
     return $rec_results;
 }
 
@@ -259,7 +259,7 @@ sub pspec_create_well_dna_quality {
         quality      => { validate => 'dna_quality' },
         comment_text => { validate => 'non_empty_string', optional => 1 },
         created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
-        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }        
+        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
     }
 }
 
@@ -299,7 +299,7 @@ sub pspec_create_well_qc_sequencing_result {
         pass            => { validate => 'boolean', optional => 1, default => 0 },
         test_result_url => { validate => 'absolute_url' },
         created_by      => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
-        created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }                
+        created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
     }
 }
 
@@ -314,7 +314,7 @@ sub create_well_qc_sequencing_result {
         well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by_id created_at ) }
     );
 
-    return $qc_seq_result;    
+    return $qc_seq_result;
 }
 
 sub retrieve_well_qc_sequencing_result {

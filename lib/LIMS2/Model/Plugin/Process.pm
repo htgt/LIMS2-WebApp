@@ -379,8 +379,8 @@ sub delete_process {
 
     my @related_resultsets = qw(  process_backbone process_bacs process_cassette process_design
                                   process_input_wells process_output_wells process_recombinases );
-    
-    for my $rs ( @related_resultsets ) {        
+
+    for my $rs ( @related_resultsets ) {
         $process->search_related_rs( $rs )->delete;
     }
 

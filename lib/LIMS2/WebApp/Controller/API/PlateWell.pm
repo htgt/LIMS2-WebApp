@@ -114,7 +114,7 @@ sub well_accepted_override_GET {
         }
     );
 
-    return $self->status_ok( $c, entity => $override );    
+    return $self->status_ok( $c, entity => $override );
 }
 
 sub well_accepted_override_POST {
@@ -132,7 +132,7 @@ sub well_accepted_override_POST {
         $c,
         location => $c->uri_for( '/api/well/accepted', { well_id => $override->well_id } ),
         entity   => $override
-    );    
+    );
 }
 
 sub well_accepted_override_PUT {
@@ -149,7 +149,7 @@ sub well_accepted_override_PUT {
     return $self->status_ok(
         $c,
         entity => $override
-    );    
+    );
 }
 
 sub well_recombineering_result :Path('/api/well/recombineering_result') :Args(0) :ActionClass('REST') {
@@ -219,7 +219,7 @@ sub well_dna_status_POST {
         $c,
         location => $c->uri_for( '/api/well/dna_status', { well_id => $dna_status->well_id } ),
         entity   => $dna_status
-    );    
+    );
 }
 
 sub well_dna_quality :Path('/api/well/dna_quality') :Args(0) :ActionClass('REST') {
@@ -289,7 +289,7 @@ sub well_qc_sequencing_result_POST {
         $c,
         location => $c->uri_for( '/api/well/qc_sequencing_result', { well_id => $qc_sequencing_result->well_id } ),
         entity   => $qc_sequencing_result
-    );    
+    );
 }
 
 =head1 AUTHOR

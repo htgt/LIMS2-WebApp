@@ -100,8 +100,8 @@ sub _build_edges {
     }
     else {
         LIMS2::Exception::Implementation->throw( "Invalid graph type '" . $self->type . "'" );
-    }    
-    
+    }
+
     $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
@@ -109,7 +109,7 @@ sub _build_edges {
             $sth->execute( $self->start_with->id );
             $sth->fetchall_arrayref;
         }
-    );    
+    );
 }
 
 has _processes => (
@@ -169,7 +169,7 @@ sub _build__wells {
 
 sub _cache_by_id {
     my ( $self, $rs ) = @_;
-    
+
     my %cache;
 
     while ( my $r = $rs->next ) {
@@ -183,7 +183,7 @@ sub edges_in {
     my ( $self, $node ) = @_;
 
     my $node_id = $node->id;
-    
+
     grep { defined $_->[2] and $_->[2] == $node_id } @{ $self->edges };
 }
 
@@ -233,10 +233,10 @@ sub breadth_first_traversal {
     elsif ( $direction eq 'out' ) {
         $neighbours = 'output_wells';
     }
-    else {    
+    else {
         LIMS2::Exception::Implementation->throw( "direction must be 'in' or 'out'" );
-    }    
-    
+    }
+
     my ( %seen, @queue );
 
     push @queue, $node;
@@ -249,7 +249,7 @@ sub breadth_first_traversal {
         return unless $this_node;
         push @queue, $self->$neighbours( $this_node );
         return $this_node;
-    }    
+    }
 }
 
 sub process_data_for {
@@ -289,7 +289,7 @@ sub render {
     my ( $self, %opts ) = @_;
 
     require GraphViz2;
-    
+
     my $graph = GraphViz2->new(
         edge    => { color => 'grey' },
         global  => { directed => 1   },

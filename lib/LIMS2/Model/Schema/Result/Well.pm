@@ -335,7 +335,7 @@ sub is_accepted {
     }
     else {
         return $self->accepted;
-    }    
+    }
 }
 
 use overload '""' => \&as_string;
@@ -343,7 +343,7 @@ use overload '""' => \&as_string;
 sub as_string {
     my $self = shift;
 
-    return sprintf( '%s_%s', $self->plate->name, $self->name );    
+    return sprintf( '%s_%s', $self->plate->name, $self->name );
 }
 
 sub as_hash {
@@ -373,7 +373,7 @@ sub _build_ancestors {
 
     require LIMS2::Model::ProcessGraph;
 
-    return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );    
+    return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );
 }
 
 has descendants => (
@@ -388,15 +388,15 @@ sub _build_descendants {
 
     require LIMS2::Model::ProcessGraph;
 
-    return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'descendants' );    
+    return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'descendants' );
 }
 
 sub is_double_targeted {
     my $self = shift;
 
-    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );    
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while ( my $well = $it->next ) {
-        if ( $well->plate->type_id eq 'SEP' ) {            
+        if ( $well->plate->type_id eq 'SEP' ) {
             return 1;
         }
     }
@@ -414,14 +414,14 @@ sub assert_not_double_targeted {
         );
     }
 
-    return;    
+    return;
 }
 
 sub cassette {
     my $self = shift;
 
     $self->assert_not_double_targeted;
-    
+
     my $process_cassette = $self->ancestors->find_process( $self, 'process_cassette' );
 
     return $process_cassette ? $process_cassette->cassette : '';
@@ -431,7 +431,7 @@ sub backbone {
     my $self = shift;
 
     $self->assert_not_double_targeted;
-    
+
     my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
 
     return $process_backbone ? $process_backbone->backbone : '';
@@ -450,7 +450,7 @@ sub recombinases {
     my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
 
     my @recombinases;
-    
+
     while( my $this_well = $it->next ) {
         for my $process ( $self->ancestors->input_processes( $this_well ) ) {
             my @this_recombinase = sort { $a->rank <=> $b->rank } $process->process_recombinases;
