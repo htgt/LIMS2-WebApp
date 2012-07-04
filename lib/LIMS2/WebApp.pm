@@ -18,7 +18,6 @@ use Log::Log4perl::Catalyst;
 #                 directory
 
 use Catalyst qw/
-    -Debug
     ConfigLoader
     Static::Simple
     Session
