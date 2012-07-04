@@ -229,7 +229,7 @@ __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 sub as_string {
     my $self = shift;
 
-    $self->type->description || $self->type_id;
+    return $self->type->description || $self->type_id;
 }
 
 __PACKAGE__->meta->make_immutable;

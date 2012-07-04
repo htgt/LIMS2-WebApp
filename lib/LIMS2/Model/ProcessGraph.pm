@@ -78,7 +78,7 @@ has prefetch_process_data => (
 );
 
 sub schema {
-    shift->start_with->result_source->schema;
+    return shift->start_with->result_source->schema;
 }
 
 has edges => (
@@ -102,7 +102,7 @@ sub _build_edges {
         LIMS2::Exception::Implementation->throw( "Invalid graph type '" . $self->type . "'" );
     }
 
-    $self->schema->storage->dbh_do(
+    return $self->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
             my $sth = $dbh->prepare_cached( $query );
@@ -136,7 +136,7 @@ sub _build__processes {
         }
     );
 
-    $self->_cache_by_id( $rs );
+    return $self->_cache_by_id( $rs );
 }
 
 has _wells => (
@@ -164,7 +164,7 @@ sub _build__wells {
         }
     );
 
-    $self->_cache_by_id( $rs );
+    return $self->_cache_by_id( $rs );
 }
 
 sub _cache_by_id {
@@ -184,7 +184,7 @@ sub edges_in {
 
     my $node_id = $node->id;
 
-    grep { defined $_->[2] and $_->[2] == $node_id } @{ $self->edges };
+    return grep { defined $_->[2] and $_->[2] == $node_id } @{ $self->edges };
 }
 
 sub edges_out {
@@ -192,25 +192,25 @@ sub edges_out {
 
     my $node_id = $node->id;
 
-    grep { defined $_->[1] and $_->[1] == $node_id } @{ $self->edges };
+    return grep { defined $_->[1] and $_->[1] == $node_id } @{ $self->edges };
 }
 
 sub input_processes {
     my ( $self, $node ) = @_;
 
-    map { $self->process( $_->[0] ) } $self->edges_in( $node );
+    return map { $self->process( $_->[0] ) } $self->edges_in( $node );
 }
 
 sub output_processes {
     my ( $self, $node ) = @_;
 
-    map { $self->process( $_->[0] ) } $self->edges_out( $node );
+    return map { $self->process( $_->[0] ) } $self->edges_out( $node );
 }
 
 sub input_wells {
     my ( $self, $node ) = @_;
 
-    map {
+    return map {
         defined $_->[1] ? $self->well( $_->[1] ) : ()
     } $self->edges_in( $node );
 }
@@ -218,7 +218,7 @@ sub input_wells {
 sub output_wells {
     my ( $self, $node ) = @_;
 
-    map {
+    return map {
         defined $_->[2] ? $self->well( $_->[2] ) : ()
     } $self->edges_out( $node );
 }

@@ -96,6 +96,7 @@ sub delete_well {
     }
 
     $well->delete;
+    return;
 }
 
 sub pspec_retrieve_well_accepted_override {
@@ -169,6 +170,7 @@ sub update_well_accepted_override {
         unless $override->accepted xor $validated_params->{accepted};
 
     $override->update( { slice_def $validated_params, qw( created_by_id created_at accepted ) } );
+    return;
 }
 
 sub pspec_create_well_recombineering_result {
