@@ -20,6 +20,7 @@ Catalyst Controller.
 sub begin :Private {
     my ( $self, $c ) = @_;
     $c->assert_user_roles( 'read' );
+    return;
 }
 
 sub index :Path( '/ui/qc_runs' ) :Args(0) {
@@ -44,6 +45,7 @@ sub index :Path( '/ui/qc_runs' ) :Args(0) {
         qc_runs  => $qc_runs,
         profiles => $c->model('Golgi')->list_profiles,
     );
+    return;
 }
 
 sub view_run :Path( '/ui/view_run' ) :Args(0) {
@@ -69,6 +71,7 @@ sub view_run :Path( '/ui/view_run' ) :Args(0) {
         qc_run  => $qc_run->as_hash,
         results => $results,
     );
+    return;
 }
 
 #TODO work out how we are dealing with csv download
@@ -77,6 +80,11 @@ sub download_run :Path('/ui/download_run') Args(0) {
 
     my $qc_run = $c->stash->{ qc_run_obj };
     my @primers = $qc_run->primers;
+    my @primer_fields;
+    for my $primer ( @primers ) {
+        push @primer_fields, map { $primer.'_'.$_ }
+            qw( pass critical_regions target_align_length read_length score  );
+    }
     my @columns = ( qw(
                           plate_name
                           well_name_384
@@ -90,12 +98,8 @@ sub download_run :Path('/ui/download_run') Args(0) {
                           num_valid_primers
                           valid_primers_score
                   ),
-                    map( { $_.'_pass',
-                           $_.'_critical_regions',
-                           $_.'_target_align_length',
-                           $_.'_read_length',
-                           $_.'_score' } @primers ),
-                    map( { $_.'_features' } @primers )
+                  @primer_fields,
+                  map( { $_.'_features' } @primers )
                 );
 
     $c->stash(
@@ -103,7 +107,7 @@ sub download_run :Path('/ui/download_run') Args(0) {
         csv_filename => substr( $qc_run->id, 0, 8 ) . '.csv',
         columns      => \@columns
     );
-
+    return;
 }
 
 sub view_run_summary :Path( '/ui/view_run_summary' ) Args(0) {
@@ -120,6 +124,7 @@ sub view_run_summary :Path( '/ui/view_run_summary' ) Args(0) {
     if ( $c->req->param( 'view' ) eq 'csvdl' ) {
         $c->stash( csv_filename => substr( $qc_run->id, 0, 8 ) . '_summary.csv' );
     }
+    return;
 }
 
 sub view_result :Path('/ui/view_result') Args(0) {
@@ -151,6 +156,7 @@ sub view_result :Path('/ui/view_result') Args(0) {
         results     => $results,
         seq_reads   => [ sort { $a->primer_name cmp $b->primer_name } @{ $seq_reads } ]
     );
+    return;
 }
 
 sub seq_reads :Path( '/ui/seq_reads' ) :Args(0) {
@@ -182,6 +188,7 @@ sub seq_reads :Path( '/ui/seq_reads' ) :Args(0) {
     $c->response->content_type( 'chemical/seq-na-fasta' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
     $c->response->body( $formatted_seq );
+    return;
 }
 
 sub qc_eng_seq :Path( '/ui/qc_eng_seq' ) :Args(0) {
@@ -211,6 +218,7 @@ sub qc_eng_seq :Path( '/ui/qc_eng_seq' ) :Args(0) {
     $c->response->content_type( 'chemical/seq-na-genbank' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
     $c->response->body( $formatted_seq );
+    return;
 }
 
 sub view_alignment :Path('/ui/view_alignment') :Args(0) {
@@ -239,6 +247,7 @@ sub view_alignment :Path('/ui/view_alignment') :Args(0) {
         plate_name => $c->req->params->{plate_name},
         well_name  => uc( $c->req->params->{well_name} ),
     );
+    return;
 }
 
 =head1 AUTHOR

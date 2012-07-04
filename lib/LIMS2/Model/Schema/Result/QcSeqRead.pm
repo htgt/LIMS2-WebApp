@@ -162,12 +162,13 @@ use Bio::Seq;
 sub bio_seq {
     my $self = shift;
 
-    Bio::Seq->new(
+    return Bio::Seq->new(
         -display_id => $self->id,
         -desc       => $self->description,
         -alphabet   => 'dna',
         -seq        => $self->seq
     );
 }
+
 __PACKAGE__->meta->make_immutable;
 1;

@@ -224,7 +224,7 @@ __PACKAGE__->belongs_to(
 sub align_length {
     my $self = shift;
 
-    abs( $self->target_end - $self->target_start );
+    return abs( $self->target_end - $self->target_start );
 }
 
 __PACKAGE__->meta->make_immutable;

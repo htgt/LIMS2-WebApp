@@ -520,7 +520,7 @@ sub list_profiles {
         }
     )->all;
 
-    return [ map $_->profile, @profiles ];
+    return [ map { $_->profile } @profiles ];
 }
 
 sub _build_qc_runs_search_params {

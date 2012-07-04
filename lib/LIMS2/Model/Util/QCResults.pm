@@ -294,8 +294,8 @@ sub _parse_qc_test_result {
     my @valid_primers = sort { $a cmp $b } grep { $primers->{$_}->{pass} } keys %{$primers};
     $result{valid_primers}       = \@valid_primers;
     $result{num_valid_primers}   = scalar @valid_primers;
-    $result{score}               = sum( 0, map $_->{score}, values %{$primers} );
-    $result{valid_primers_score} = sum( 0, map $primers->{$_}->{score}, @valid_primers );
+    $result{score}               = sum( 0, map { $_->{score} } values %{$primers} );
+    $result{valid_primers_score} = sum( 0, map { $primers->{$_}->{score} } @valid_primers );
 
     while ( my ( $primer_name, $primer ) = each %{$primers} ) {
         $result{ $primer_name . '_pass' }                = $primer->{pass};

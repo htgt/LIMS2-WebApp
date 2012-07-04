@@ -143,7 +143,7 @@ sub format_alignment {
 
     my $strand = $self->qc_alignment->target_strand == 1 ? '+' : '-';
 
-    HTGT::QC::Util::Alignment::format_alignment(
+    return HTGT::QC::Util::Alignment::format_alignment(
         target_id  => "Target ($strand)",
         target_str => $self->target_str,
         query_id   => 'Sequence Read',
