@@ -3,7 +3,7 @@
 [% MACRO pass_fail(bool) IF bool == 1; "pass"; ELSE; "fail"; END; -%]
 
 <div class="page-header">
-  <h1>Qc-Run <small>[% qc_run.id %]</small></h1>
+  <h1>QC Run <small>[% qc_run.id %]</small></h1>
 </div>
 
 <div class="row">
@@ -25,10 +25,10 @@
 
 <div class="row">
   <div class="span6">
-    <a class="btn btn-info" href="[% c.uri_for( '/user/download_run', { 'qc_run_id' => qc_run.id } ) %]">
+    <a class="btn btn-info" href="[% c.uri_for( '/user/download_qc_run', { 'qc_run_id' => qc_run.id } ) %]">
       <i class="icon-download-alt"></i> Download Full Results
     </a>
-    <a class="btn btn-info" href="[% c.uri_for( '/user/view_run_summary', { 'qc_run_id' => qc_run.id } ) %]">
+    <a class="btn btn-info" href="[% c.uri_for( '/user/view_qc_run_summary', { 'qc_run_id' => qc_run.id } ) %]">
       <i class="icon-download-alt"></i> Download Summary Results All
     </a>
   </div>
@@ -68,7 +68,7 @@
       <td>[% r.valid_primers_score %]</td>
       <td>[% r.valid_primers.join( "," ) %]</td>
       <td>
-        <a href="[% c.uri_for( '/user/view_result',
+        <a href="[% c.uri_for( '/user/view_qc_result',
           { 'qc_run_id' => qc_run.id, 'plate_name' => r.plate_name, 'well_name' => r.well_name } ) %]">
           Details
         </a>

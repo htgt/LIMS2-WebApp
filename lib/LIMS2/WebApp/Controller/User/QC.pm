@@ -28,7 +28,11 @@ sub begin :Private {
 sub end :Private {
     my ( $self, $c ) = @_;
     # if we are running in debug mode we want to see the error in its full glory
-    $c->forward('LIMS2::WebApp::View::HTML') if $c->debug;
+    if ( $c->debug ) {
+        return 1 if $c->response->status =~ /^3\d\d$/;
+        return 1 if $c->response->body;
+        $c->forward('LIMS2::WebApp::View::HTML');
+    }
 
     if ( scalar @{ $c->error } ) {
         my @errors = @{ $c->error };
@@ -114,7 +118,7 @@ sub index :Path( '/user/qc_runs' ) :Args(0) {
     return;
 }
 
-sub view_run :Path( '/user/view_run' ) :Args(0) {
+sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
@@ -128,7 +132,7 @@ sub view_run :Path( '/user/view_run' ) :Args(0) {
 }
 
 #TODO work out how we are dealing with csv download
-sub download_run :Path('/user/download_run') Args(0) {
+sub download_qc_run :Path('/user/download_qc_run') Args(0) {
     my ( $self, $c ) = @_;
 
     my $qc_run = $c->stash->{ qc_run_obj };
@@ -163,7 +167,7 @@ sub download_run :Path('/user/download_run') Args(0) {
     return;
 }
 
-sub view_run_summary :Path( '/user/view_run_summary' ) Args(0) {
+sub view_qc_run_summary :Path( '/user/view_qc_run_summary' ) Args(0) {
     my ( $self, $c ) = @_;
     my $qc_run = $c->stash->{ qc_run_obj };
     my $results = $c->model('Golgi')->qc_run_summary_results( $qc_run );
@@ -180,7 +184,7 @@ sub view_run_summary :Path( '/user/view_run_summary' ) Args(0) {
     return;
 }
 
-sub view_result :Path('/user/view_result') Args(0) {
+sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     my ( $self, $c ) = @_;
 
     my ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results(
@@ -202,7 +206,7 @@ sub view_result :Path('/user/view_result') Args(0) {
     return;
 }
 
-sub seq_reads :Path( '/user/seq_reads' ) :Args(0) {
+sub qc_seq_reads :Path( '/user/qc_seq_reads' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my $format = $c->req->params->{format} || 'fasta';
@@ -240,7 +244,7 @@ sub qc_eng_seq :Path( '/user/qc_eng_seq' ) :Args(0) {
     return;
 }
 
-sub view_alignment :Path('/user/view_alignment') :Args(0) {
+sub view_qc_alignment :Path('/user/view_qc_alignment') :Args(0) {
     my ( $self, $c ) = @_;
 
     my $alignment_data = $c->model('Golgi')->qc_alignment_result(

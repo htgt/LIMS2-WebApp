@@ -1,13 +1,15 @@
 [% META title = "Qc Test Result" %]
 <div class="page-header">
-  <h1>Qc Well Results <small>[% "${qc_seq_well.plate_name}${qc_seq_well.well_name}" %]</small></h1>
+  <h1>QC Well Results <small>[% "${qc_seq_well.plate_name}[${qc_seq_well.well_name}]" %]</small></h1>
 </div>
 
 <div class="well">
-  <strong>Qc Run:</strong>
-  <a href="[% c.uri_for( '/user/view_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a><br />
+  <strong>QC Run:</strong>
+  <a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a><br />
   <strong>Run Date:</strong>
   [% qc_run.created_at %]<br />
+  <strong>Qc Template:</strong> [% qc_run.qc_template %]</br>
+  <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]</br>
 </div>
 
 <h2>Sequence Reads</h2>
@@ -30,7 +32,7 @@
         [% END -%]
       </tbody>
     </table>
-    <a class="btn btn-info" href="[% c.uri_for( '/user/seq_reads',
+    <a class="btn btn-info" href="[% c.uri_for( '/user/qc_seq_reads',
       {
       'qc_run_id' => qc_run.id,
       'plate_name' => qc_seq_well.plate_name,
@@ -70,7 +72,7 @@
       <td>[% a.align_length %]</td>
       <td>[% a.features %]</td>
       <td>
-        <a href="[% c.uri_for( '/user/view_alignment',
+        <a href="[% c.uri_for( '/user/view_qc_alignment',
           {
           'qc_run_id' => qc_run.id,
           'plate_name' => qc_seq_well.plate_name,
