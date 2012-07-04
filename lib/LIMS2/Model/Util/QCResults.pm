@@ -29,9 +29,9 @@ use HTGT::QC::Util::CigarParser;
 sub retrieve_qc_run_results {
     my ($qc_run) = @_;
 
-    my $vector_stage        = _get_vector_stage($qc_run);
+    my $stage               = _get_stage($qc_run);
     my $expected_design_loc = _design_loc_for_qc_template_plate($qc_run);
-    my $read_length_for     = _read_lengths_for_seq_reads( $qc_run, $vector_stage );
+    my $read_length_for     = _read_lengths_for_seq_reads( $qc_run, $stage );
 
     my @qc_test_results
         = $qc_run->qc_test_results( {}, { prefetch => [ 'qc_eng_seq', 'qc_run_seq_well' ] } );
@@ -208,7 +208,7 @@ sub _validated_download_seq_params {
 }
 
 sub _read_lengths_for_seq_reads {
-    my ( $qc_run, $vector_stage ) = @_;
+    my ( $qc_run, $stage ) = @_;
     my %read_length_for;
 
     for my $seq_well ( $qc_run->qc_run_seq_wells ) {
@@ -220,7 +220,7 @@ sub _read_lengths_for_seq_reads {
     }
 
     %read_length_for = %{ _combine_ABRZ_plates( \%read_length_for ) }
-        if $vector_stage eq 'allele';
+        if $stage eq 'allele';
 
     return \%read_length_for;
 }
@@ -240,7 +240,7 @@ sub _design_loc_for_qc_template_plate {
     return \%design_loc_for;
 }
 
-sub _get_vector_stage {
+sub _get_stage {
     my ($qc_run) = @_;
 
     my $profile_name = $qc_run->profile;
@@ -289,7 +289,7 @@ sub _parse_qc_test_result {
         num_reads          => scalar( keys %{ $read_length_for->{$plate_name}{$well_name} } ),
     );
 
-    my $primers = _get_primers_for_seq_well( $seq_well, $read_length_for );
+    my $primers = _get_primers_for_seq_well( $seq_well );
 
     my @valid_primers = sort { $a cmp $b } grep { $primers->{$_}->{pass} } keys %{$primers};
     $result{valid_primers}       = \@valid_primers;
@@ -310,7 +310,7 @@ sub _parse_qc_test_result {
 }
 
 sub _get_primers_for_seq_well {
-    my ( $seq_well, $read_length_for ) = @_;
+    my ( $seq_well ) = @_;
 
     my @qc_seq_reads = $seq_well->qc_seq_reads( {},
         { prefetch => [ { qc_alignments => 'qc_alignment_regions' } ] } );
@@ -324,23 +324,28 @@ sub _get_primers_for_seq_well {
             $primers{$primer_name}{features} = $alignment->features;
             $primers{$primer_name}{target_align_length}
                 = abs( $alignment->target_end - $alignment->target_start );
-            $primers{$primer_name}{read_length}
-                = $read_length_for->{ $seq_well->plate_name }{ lc( $seq_well->well_name ) }
-                {$primer_name};
+            $primers{$primer_name}{read_length} = $seq_read->length;
 
-            my @regions;
-            for my $region ( $alignment->qc_alignment_regions ) {
-                push @regions,
-                      $region->name . ': '
-                    . $region->match_count . '/'
-                    . $region->length
-                    . $region->pass ? 'pass' : 'fail';
-            }
-            $primers{$primer_name}{regions} = join( q{,}, @regions );
+            $primers{$primer_name}{regions} = _parse_alignment_region( $alignment );
         }
     }
 
     return \%primers;
+}
+
+sub _parse_alignment_region {
+    my ( $alignment ) = @_;
+
+    my @regions;
+    for my $region ( $alignment->qc_alignment_regions ) {
+        push @regions,
+              $region->name . ': '
+            . $region->match_count . '/'
+            . $region->length
+            . $region->pass ? 'pass' : 'fail';
+    }
+
+    return join( q{,}, @regions );
 }
 
 sub _merge_number_primer_reads {
