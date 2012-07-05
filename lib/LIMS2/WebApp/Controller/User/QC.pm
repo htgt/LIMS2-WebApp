@@ -21,6 +21,12 @@ Catalyst Controller.
 
 sub begin :Private {
     my ( $self, $c ) = @_;
+
+    unless ( $c->user ) {
+        $c->stash( error_msg => 'Please login to access this system' );
+        $c->go( 'Controller::Auth', 'login' );
+    }
+
     $c->assert_user_roles( 'read' );
     return;
 }
