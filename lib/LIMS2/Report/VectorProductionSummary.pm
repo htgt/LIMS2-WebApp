@@ -94,7 +94,7 @@ sub counts_and_efficiency {
     for my $allele_type ( qw( first_allele second_allele ) ) {
         my $created    = $self->count_for( $data, $allele_type, 'created' );
         my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
-        my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) : '-';
+        my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) . '%' : '-';
         push @return, $created, $accepted, $efficiency;
     }
 
