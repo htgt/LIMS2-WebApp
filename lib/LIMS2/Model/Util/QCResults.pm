@@ -20,6 +20,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use Bio::SeqIO;
 use List::Util qw(sum);
+use List::MoreUtils qw(uniq);
 use LIMS2::Exception;
 use LIMS2::Model::Util::WellName qw ( to384 );
 use HTGT::QC::Config;
@@ -27,22 +28,22 @@ use HTGT::QC::Util::Alignment qw( alignment_match );
 use HTGT::QC::Util::CigarParser;
 
 sub retrieve_qc_run_results {
-    my ($qc_run) = @_;
+    my $qc_run = shift;
 
-    my $stage               = _get_stage($qc_run);
     my $expected_design_loc = _design_loc_for_qc_template_plate($qc_run);
-    my $read_length_for     = _read_lengths_for_seq_reads( $qc_run, $stage );
+    my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
+        { prefetch => ['qc_test_results'] } );
 
-    my @qc_test_results
-        = $qc_run->qc_test_results( {}, { prefetch => [ 'qc_eng_seq', 'qc_run_seq_well' ] } );
+    my @qc_run_results = map { @{ _parse_qc_seq_wells( $_, $expected_design_loc ) } } @qc_seq_wells;
 
-    my @results = map { _parse_qc_test_result( $_, $read_length_for, $expected_design_loc ) }
-        @qc_test_results;
+    @qc_run_results = sort {
+               $a->{plate_name} cmp $b->{plate_name}
+            || lc( $a->{well_name} ) cmp lc( $b->{well_name} )
+            || $b->{num_valid_primers} <=> $a->{num_valid_primers}
+            || $b->{valid_primers_score} <=> $a->{valid_primers_score};
+    } @qc_run_results;
 
-    # Merge in the number of primer reads (this has to be done in a
-    # separate loop to catch wells with primer reads but no test results)
-
-    return _merge_number_primer_reads( \@results, $read_length_for );
+    return \@qc_run_results;
 }
 
 sub retrieve_qc_run_summary_results {
@@ -207,24 +208,6 @@ sub _validated_download_seq_params {
     return \%params;
 }
 
-sub _read_lengths_for_seq_reads {
-    my ( $qc_run, $stage ) = @_;
-    my %read_length_for;
-
-    for my $seq_well ( $qc_run->qc_run_seq_wells ) {
-        my $plate_name = $seq_well->plate_name;
-        my $well_name  = lc( $seq_well->well_name );
-        for my $seq_read ( $seq_well->qc_seq_reads ) {
-            $read_length_for{$plate_name}{$well_name}{ $seq_read->primer_name } = $seq_read->length;
-        }
-    }
-
-    %read_length_for = %{ _combine_ABRZ_plates( \%read_length_for ) }
-        if $stage eq 'allele';
-
-    return \%read_length_for;
-}
-
 sub _design_loc_for_qc_template_plate {
     my ($qc_run) = @_;
     my %design_loc_for;
@@ -240,83 +223,59 @@ sub _design_loc_for_qc_template_plate {
     return \%design_loc_for;
 }
 
-sub _get_stage {
-    my ($qc_run) = @_;
+sub _parse_qc_seq_wells {
+    my ( $qc_seq_well, $expected_design_loc ) = @_;
 
-    my $profile_name = $qc_run->profile;
+    my $plate_name      = $qc_seq_well->plate_name;
+    my $well_name       = lc( $qc_seq_well->well_name );
+    my @qc_test_results = $qc_seq_well->qc_test_results;
+    my @qc_seq_reads    = $qc_seq_well->qc_seq_reads( {},
+        { prefetch => [ { qc_alignments => 'qc_alignment_regions' } ] } );
+    my $num_reads = uniq map { $_->primer_name } @qc_seq_reads;
 
-    my $profile = HTGT::QC::Config->new->profile($profile_name);
-
-    return $profile->vector_stage;
-}
-
-sub _combine_ABRZ_plates {
-    my ($read_length_for) = @_;
-
-    my %combined;
-    for my $plate_name ( keys %{$read_length_for} ) {
-        my $plate_name_stem = $plate_name;
-        my $plate_type;
-        ( $plate_name_stem, $plate_type ) = $plate_name =~ /^(.+)_([ABRZ])_\d$/
-            if $plate_name =~ /_[ABRZ]_\d$/;
-        for my $well_name ( keys %{ $read_length_for->{$plate_name} } ) {
-            for my $primer ( keys %{ $read_length_for->{$plate_name}{$well_name} } ) {
-                my $primer_name = $primer;
-                $primer_name = $plate_type . '_' . $primer if $plate_type;
-                $combined{$plate_name_stem}{$well_name}{$primer_name}
-                    = $read_length_for->{$plate_name}{$well_name}{$primer};
-            }
-        }
-    }
-
-    return \%combined;
-}
-
-sub _parse_qc_test_result {
-    my ( $qc_test_result, $read_length_for, $expected_design_loc ) = @_;
-
-    my $seq_well   = $qc_test_result->qc_run_seq_well;
-    my $qc_eng_seq = $qc_test_result->qc_eng_seq;
-    my $plate_name = $seq_well->plate_name;
-    my $well_name  = lc( $seq_well->well_name );
-    my %result     = (
+    my %result = (
         plate_name         => $plate_name,
         well_name          => $well_name,
+        well_name_384      => lc to384( $plate_name, $well_name ),
         expected_design_id => $expected_design_loc->{ uc $well_name },
-        design_id          => $qc_eng_seq->as_hash->{eng_seq_params}{design_id},
-        marker_symbol      => '-',
-        pass               => $qc_test_result->pass,
-        num_reads          => scalar( keys %{ $read_length_for->{$plate_name}{$well_name} } ),
+        marker_symbol      => '-', #TODO add marker symbol info once designs imported to lims2
+        num_reads          => $num_reads
     );
 
-    my $primers = _get_primers_for_seq_well( $seq_well );
+    return _no_results_for_seq_well( \%result, \@qc_seq_reads )
+        unless @qc_test_results;
 
-    my @valid_primers = sort { $a cmp $b } grep { $primers->{$_}->{pass} } keys %{$primers};
-    $result{valid_primers}       = \@valid_primers;
-    $result{num_valid_primers}   = scalar @valid_primers;
-    $result{score}               = sum( 0, map { $_->{score} } values %{$primers} );
-    $result{valid_primers_score} = sum( 0, map { $primers->{$_}->{score} } @valid_primers );
+    _get_primers_for_seq_well( \@qc_seq_reads, \%result );
 
-    while ( my ( $primer_name, $primer ) = each %{$primers} ) {
-        $result{ $primer_name . '_pass' }                = $primer->{pass};
-        $result{ $primer_name . '_critical_regions' }    = $primer->{regions};
-        $result{ $primer_name . '_target_align_length' } = $primer->{target_align_length};
-        $result{ $primer_name . '_score' }               = $primer->{score};
-        $result{ $primer_name . '_features' }            = $primer->{features};
-        $result{ $primer_name . '_read_length' }         = $primer->{read_length};
+    my @test_results;
+    for my $qc_test_result ( $qc_seq_well->qc_test_results ) {
+        my %test_result = %result;
+        $test_result{pass}      = $qc_test_result->pass;
+        $test_result{design_id} = $qc_test_result->qc_eng_seq->as_hash->{eng_seq_params}{design_id},
+            push @test_results, \%test_result;
     }
 
-    return \%result;
+    return \@test_results;
+}
+
+sub _no_results_for_seq_well {
+    my ( $result, $qc_seq_reads ) = @_;
+
+    $result->{num_valid_primers} = 0;
+    $result->{valid_primer_score} = 0;
+    for my $qc_seq_read ( @{ $qc_seq_reads } ) {
+        my $primer_name = $qc_seq_read->primer_name;
+        $result->{ $primer_name . '_read_length' } = $qc_seq_read->length;
+    }
+
+    return [ $result ];
 }
 
 sub _get_primers_for_seq_well {
-    my ( $seq_well ) = @_;
-
-    my @qc_seq_reads = $seq_well->qc_seq_reads( {},
-        { prefetch => [ { qc_alignments => 'qc_alignment_regions' } ] } );
-
+    my ( $qc_seq_reads, $result ) = @_;
     my %primers;
-    for my $seq_read (@qc_seq_reads) {
+
+    for my $seq_read ( @{$qc_seq_reads} ) {
         for my $alignment ( $seq_read->qc_alignments ) {
             my $primer_name = $alignment->primer_name;
             $primers{$primer_name}{pass}     = $alignment->pass;
@@ -326,70 +285,40 @@ sub _get_primers_for_seq_well {
                 = abs( $alignment->target_end - $alignment->target_start );
             $primers{$primer_name}{read_length} = $seq_read->length;
 
-            $primers{$primer_name}{regions} = _parse_alignment_region( $alignment );
+            $primers{$primer_name}{regions} = _parse_alignment_region($alignment);
         }
     }
 
-    return \%primers;
+    my @valid_primers = sort { $a cmp $b } grep { $primers{$_}{pass} } keys %primers;
+    $result->{valid_primers}       = \@valid_primers;
+    $result->{num_valid_primers}   = scalar @valid_primers;
+    $result->{score}               = sum( 0, map { $_->{score} } values %primers );
+    $result->{valid_primers_score} = sum( 0, map { $primers{$_}{score} } @valid_primers );
+
+    while ( my ( $primer_name, $primer ) = each %primers ) {
+        $result->{ $primer_name . '_pass' }                = $primer->{pass};
+        $result->{ $primer_name . '_critical_regions' }    = $primer->{regions};
+        $result->{ $primer_name . '_target_align_length' } = $primer->{target_align_length};
+        $result->{ $primer_name . '_score' }               = $primer->{score};
+        $result->{ $primer_name . '_features' }            = $primer->{features};
+        $result->{ $primer_name . '_read_length' }         = $primer->{read_length};
+    }
+
+    return;
 }
 
 sub _parse_alignment_region {
-    my ( $alignment ) = @_;
+    my $alignment = shift;
 
     my @regions;
     for my $region ( $alignment->qc_alignment_regions ) {
         push @regions,
-              $region->name . ': '
-            . $region->match_count . '/'
-            . $region->length
-            . $region->pass ? 'pass' : 'fail';
+            $region->name . ': ' . $region->match_count . '/' . $region->length . $region->pass
+            ? 'pass'
+            : 'fail';
     }
 
     return join( q{,}, @regions );
-}
-
-sub _merge_number_primer_reads {
-    my ( $results, $read_length_for ) = @_;
-    my @all_results;
-
-    for my $plate_name ( keys %{$read_length_for} ) {
-        for my $well_name ( keys %{ $read_length_for->{$plate_name} } ) {
-            my $num_reads = scalar( keys %{ $read_length_for->{$plate_name}{$well_name} } );
-            my @these_results
-                = grep { $_->{plate_name} eq $plate_name && $_->{well_name} eq $well_name }
-                @{$results};
-
-            if (@these_results) {
-                for my $r (@these_results) {
-                    $r->{num_reads} = $num_reads;
-                    $r->{well_name_384} = lc to384( $plate_name, $well_name );
-                    push @all_results, $r;
-                }
-            }
-            else {
-                push @all_results,
-                    {
-                    plate_name          => $plate_name,
-                    well_name           => $well_name,
-                    well_name_384       => lc to384( $plate_name, $well_name ),
-                    num_reads           => $num_reads,
-                    num_valid_primers   => 0,
-                    valid_primers_score => 0,
-                    map { $_ . '_read_length' => $read_length_for->{$plate_name}{$well_name}{$_} }
-                        keys %{ $read_length_for->{$plate_name}{$well_name} }
-                    };
-            }
-        }
-    }
-
-    @all_results = sort {
-               $a->{plate_name} cmp $b->{plate_name}
-            || lc( $a->{well_name} ) cmp lc( $b->{well_name} )
-            || $b->{num_valid_primers} <=> $a->{num_valid_primers}
-            || $b->{valid_primers_score} <=> $a->{valid_primers_score};
-    } @all_results;
-
-    return \@all_results;
 }
 
 1;
