@@ -1,7 +1,7 @@
 [% META title = "View Qc Runs" %]
 <form method="GET" class="well form-inline">
   <fieldset>
-    <h3>Filter Qc Runs</h3>
+    <h3>Filter QC Runs</h3>
     <label for="sequencing_project">Sequencing Project</label>
     <input name="sequencing_project" id="sequencing_project" type="text" />
     <label for="template_plate">Template Plate</label>
@@ -37,7 +37,7 @@
         [% FOR qc_run IN qc_runs %]
             <tr>
                 <td>
-                    <a href="[% c.uri_for( '/ui/view_run', { 'qc_run_id' =>  qc_run.id } ) %]">
+                    <a href="[% c.uri_for( '/user/view_qc_run', { 'qc_run_id' =>  qc_run.id } ) %]">
                         [% qc_run.id.substr(0,8) %]
                     </a>
                 </td>

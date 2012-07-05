@@ -1,4 +1,4 @@
-package LIMS2::WebApp::Controller::UI::QC;
+package LIMS2::WebApp::Controller::User::QC;
 use Moose;
 use namespace::autoclean;
 use HTTP::Status qw( :constants );
@@ -21,6 +21,12 @@ Catalyst Controller.
 
 sub begin :Private {
     my ( $self, $c ) = @_;
+
+    unless ( $c->user ) {
+        $c->stash( error_msg => 'Please login to access this system' );
+        $c->go( 'Controller::Auth', 'login' );
+    }
+
     $c->assert_user_roles( 'read' );
     return;
 }
@@ -28,7 +34,11 @@ sub begin :Private {
 sub end :Private {
     my ( $self, $c ) = @_;
     # if we are running in debug mode we want to see the error in its full glory
-    $c->forward('LIMS2::WebApp::View::HTML') if $c->debug;
+    if ( $c->debug ) {
+        return 1 if $c->response->status =~ /^3\d\d$/;
+        return 1 if $c->response->body;
+        $c->forward('LIMS2::WebApp::View::HTML');
+    }
 
     if ( scalar @{ $c->error } ) {
         my @errors = @{ $c->error };
@@ -102,7 +112,7 @@ sub handle_lims2_exception {
     return $self->error_status( $c, HTTP_INTERNAL_SERVER_ERROR, { error => $error->message } );
 }
 
-sub index :Path( '/ui/qc_runs' ) :Args(0) {
+sub index :Path( '/user/qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my $qc_runs = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
@@ -114,7 +124,7 @@ sub index :Path( '/ui/qc_runs' ) :Args(0) {
     return;
 }
 
-sub view_run :Path( '/ui/view_run' ) :Args(0) {
+sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
@@ -128,7 +138,7 @@ sub view_run :Path( '/ui/view_run' ) :Args(0) {
 }
 
 #TODO work out how we are dealing with csv download
-sub download_run :Path('/ui/download_run') Args(0) {
+sub download_qc_run :Path('/user/download_qc_run') Args(0) {
     my ( $self, $c ) = @_;
 
     my $qc_run = $c->stash->{ qc_run_obj };
@@ -156,14 +166,14 @@ sub download_run :Path('/ui/download_run') Args(0) {
                 );
 
     $c->stash(
-        template     => 'ui/qc/qc_run.csvtt',
+        template     => 'user/qc/qc_run.csvtt',
         csv_filename => substr( $qc_run->id, 0, 8 ) . '.csv',
         columns      => \@columns
     );
     return;
 }
 
-sub view_run_summary :Path( '/ui/view_run_summary' ) Args(0) {
+sub view_qc_run_summary :Path( '/user/view_qc_run_summary' ) Args(0) {
     my ( $self, $c ) = @_;
     my $qc_run = $c->stash->{ qc_run_obj };
     my $results = $c->model('Golgi')->qc_run_summary_results( $qc_run );
@@ -180,7 +190,7 @@ sub view_run_summary :Path( '/ui/view_run_summary' ) Args(0) {
     return;
 }
 
-sub view_result :Path('/ui/view_result') Args(0) {
+sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     my ( $self, $c ) = @_;
 
     my ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results(
@@ -202,7 +212,7 @@ sub view_result :Path('/ui/view_result') Args(0) {
     return;
 }
 
-sub seq_reads :Path( '/ui/seq_reads' ) :Args(0) {
+sub qc_seq_reads :Path( '/user/qc_seq_reads' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my $format = $c->req->params->{format} || 'fasta';
@@ -222,7 +232,7 @@ sub seq_reads :Path( '/ui/seq_reads' ) :Args(0) {
     return;
 }
 
-sub qc_eng_seq :Path( '/ui/qc_eng_seq' ) :Args(0) {
+sub qc_eng_seq :Path( '/user/qc_eng_seq' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my $format = $c->req->params->{format} || 'genbank';
@@ -240,7 +250,7 @@ sub qc_eng_seq :Path( '/ui/qc_eng_seq' ) :Args(0) {
     return;
 }
 
-sub view_alignment :Path('/ui/view_alignment') :Args(0) {
+sub view_qc_alignment :Path('/user/view_qc_alignment') :Args(0) {
     my ( $self, $c ) = @_;
 
     my $alignment_data = $c->model('Golgi')->qc_alignment_result(

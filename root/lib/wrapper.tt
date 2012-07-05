@@ -44,7 +44,7 @@
               </ul>              
             </li>
             <li[% IF template.tab_name == "QC" %] class="active"[% END %]>
-              <a href="[% c.uri_for( '/ui/qc_runs' ) %]">QC</a>
+              <a href="[% c.uri_for( '/user/qc_runs' ) %]">QC</a>
             </li>
             [% IF c.check_user_roles( 'admin' ) %]
             <li[% IF template.tab_name == "Admin" %] class="active"[% END %]>
