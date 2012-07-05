@@ -8,6 +8,7 @@ require LIMS2::Model::DBConnect;
 require LIMS2::Model::FormValidator;
 require DateTime::Format::ISO8601;
 require Module::Pluggable::Object;
+use LIMS2::Model::Util::PgUserRole qw( db_name );
 use Data::Dump qw( pp );
 use CHI;
 use Scalar::Util qw( blessed );
@@ -56,6 +57,14 @@ sub txn_do {
     my ( $self, $code_ref, @args ) = @_;
 
     return $self->schema->txn_do( $code_ref, $self, @args );
+}
+
+sub software_version {
+    return $__PACKAGE__::VERSION || 'dev';
+}
+
+sub database_name {
+    return db_name( shift->schema->storage->dbh );    
 }
 
 # has_XXX_cache attributes may be defined in a plugin; their builder
