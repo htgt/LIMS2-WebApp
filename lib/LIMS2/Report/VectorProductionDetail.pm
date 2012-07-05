@@ -14,7 +14,8 @@ sub _build_name {
 
 sub _build_columns {
     return [
-        "MGI Accession Id", "Marker Symbol", "Plate", "Well", "Design", "Cassette", "Backbone", "Recombinase", "Accepted?"
+        "MGI Accession Id", "Marker Symbol", "Plate", "Well", "Created Date",
+        "Design", "Cassette", "Backbone", "Recombinase", "Accepted?"
     ];
 }
 
@@ -45,6 +46,7 @@ sub iterator {
                 join( '/', @marker_symbols ),
                 $well->plate->name,
                 $well->name,
+                $well->created_at->ymd,
                 $design->id,
                 $well->cassette,
                 $well->backbone,
