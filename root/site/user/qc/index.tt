@@ -18,6 +18,16 @@
   </fieldset>
 </form>
 
+<div class="pagination">
+  <ul>
+    <li><a href="#">&laquo;</a></li>
+    [% FOR page IN [ pager.first_page .. pager.last_page ] %]
+      <li [% IF page == pager.current_page %]class="active"[% END %]><a href="#">[% page %]</a></li>
+    [% END %]
+    <li><a href="#">&raquo;</a></li>
+  </ul>
+</div>
+
 <table class="table table-striped">
     <thead>
         <tr>

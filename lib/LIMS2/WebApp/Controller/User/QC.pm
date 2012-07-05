@@ -115,10 +115,11 @@ sub handle_lims2_exception {
 sub index :Path( '/user/qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my $qc_runs = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
+    my ( $qc_runs, $pager ) = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
 
     $c->stash(
         qc_runs  => $qc_runs,
+        pager    => $pager,
         profiles => $c->model('Golgi')->list_profiles,
     );
     return;

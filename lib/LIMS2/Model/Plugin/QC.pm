@@ -479,6 +479,8 @@ sub pspec_retrieve_qc_runs {
         sequencing_project => { validate => 'existing_qc_seq_project_id', optional => 1 },
         template_plate     => { validate => 'existing_qc_template_name',  optional => 1 },
         profile            => { validate => 'non_empty_string',           optional => 1 },
+        page               => { validate => 'integer', default => 1 },
+        page_size          => { validate => 'integer', default => 2 },
     };
 }
 
@@ -489,16 +491,18 @@ sub retrieve_qc_runs {
 
     my $search_params = $self->_build_qc_runs_search_params($validated_params);
 
-    my @qc_runs = $self->schema->resultset('QcRun')->search(
+    my $qc_runs = $self->schema->resultset('QcRun')->search(
         $search_params,
         {   join     => [qw( qc_template qc_run_seq_projects )],
             order_by => { -desc => 'created_at' },
             distinct => 1,
+            page     => $validated_params->{page},
+            rows     => $validated_params->{page_size},
         }
     );
 
     my @qc_runs_data;
-    foreach my $qc_run (@qc_runs) {
+    while ( my $qc_run = $qc_runs->next ) {
         my $qc_run_data = $qc_run->as_hash;
         $qc_run_data->{expected_designs} = $qc_run->count_designs;
         $qc_run_data->{observed_designs} = $qc_run->count_observed_designs;
@@ -506,7 +510,7 @@ sub retrieve_qc_runs {
         push @qc_runs_data, $qc_run_data;
     }
 
-    return \@qc_runs_data;
+    return(  \@qc_runs_data, $qc_runs->pager );
 }
 
 sub list_profiles {
