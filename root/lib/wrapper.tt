@@ -55,7 +55,7 @@
       [% END %]      
       [% content | none %]
       <footer>
-      LIMS2 software version: [% c.model('Golgi').software_version %], database [% c.model('Golgi').database_name %]
+      LIMS2 software version: [% c.model('Golgi').software_version %], database: [% c.model('Golgi').database_name %].
       </footer>
     </div> <!-- /container -->
 
