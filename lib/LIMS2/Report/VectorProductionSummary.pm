@@ -16,10 +16,10 @@ sub _build_name {
 sub _build_columns {
     return [
         "Month",
-        "First Allele Created", "First Allele Accepted",
-        "Second Allele Created", "Second Allele Accepted",
-        "First Allele Created (Cumulative)", "First Allele Accepted (Cumulative)",
-        "Second Allele Created (Cumulative)", "Second Allele Accepted (Cumulative)",
+        "First Allele Created", "First Allele Accepted", "First Allele Efficiency",
+        "Second Allele Created", "Second Allele Accepted", "Second Allele Efficiency",
+        "First Allele Created (Cumulative)", "First Allele Accepted (Cumulative)", "First Allele Efficiency (Cumulative)",
+        "Second Allele Created (Cumulative)", "Second Allele Accepted (Cumulative)", "Second Allele Efficiency (Cumulative)"
     ];
 }
 
@@ -61,10 +61,9 @@ sub iterator {
                 $well = $final_vectors_rs->next;
             }
             return [ $date_formatter->format_datetime( $created_at ),
-                     $self->to_counts( \%this_month ),
-                     $self->to_counts( \%cumulative )
-                 ];            
-                     
+                     $self->counts_and_efficiency( \%this_month ),
+                     $self->counts_and_efficiency( \%cumulative )
+                 ];
         }
     );
 }
@@ -87,12 +86,19 @@ sub count_for {
     scalar keys %{ $data->{$allele_type}->{$status} || {} };
 }
 
-sub to_counts {
+sub counts_and_efficiency {
     my ( $self, $data ) = @_;
 
-    return map { $self->count_for( $data, @$_ ) }
-        ( [ 'first_allele', 'created' ], [ 'first_allele', 'accepted' ],
-          [ 'second_allele', 'created' ], [ 'second_allele', 'accepted' ] );
+    my @return;
+    
+    for my $allele_type ( qw( first_allele second_allele ) ) {
+        my $created    = $self->count_for( $data, $allele_type, 'created' );
+        my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
+        my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) : '-';
+        push @return, $created, $accepted, $efficiency;
+    }
+
+    return @return;
 }
 
 __PACKAGE__->meta->make_immutable;
