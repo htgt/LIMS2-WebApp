@@ -1,0 +1,17 @@
+$(document).ready( function () {
+  $.smartPoller( function(retry) {
+    $.getJSON( "[% c.uri_for( '/api/report/ready', report_id ) %]", function(response) {
+      if( response.status == "DONE" ) {
+        $("#report_pending").hide;
+        $("#report_complete").show;
+      }
+      else if ( response.status == "PENDING" ) {
+        retry();
+      }
+      else {
+        $("#report_pending").hide;
+        $("#report_failed").show;
+      }
+    );
+             });
+               });

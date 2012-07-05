@@ -4,7 +4,6 @@ use strict;
 use warnings FATAL => 'all';
 
 use LIMS2::Model;
-use LIMS2::Model::ProcessGraph;
 use List::MoreUtils qw( uniq );
 use Text::CSV;
 use Const::Fast;
