@@ -54,17 +54,14 @@
     </tbody>
 </table>
 
-<script>
-$(document).ready(function() {
-  $("#template_plate").autocomplete({
-    source: "[% c.uri_for( '/autocomplete/qc_templates' ) %]",
-    minLength: 2,
-  });
-
-  $("#sequencing_project").autocomplete({
-    source: "[% c.uri_for( '/autocomplete/sequencing_projects' ) %]",
-    minLength: 2,
-  });
+<script type="text/javascript">
+$("#template_plate").autocomplete({
+  source: "[% c.uri_for( '/autocomplete/qc_templates' ) %]",
+  minLength: 2,
 });
 
+$("#sequencing_project").autocomplete({
+  source: "[% c.uri_for( '/autocomplete/sequencing_projects' ) %]",
+  minLength: 2,
+});
 </script>
