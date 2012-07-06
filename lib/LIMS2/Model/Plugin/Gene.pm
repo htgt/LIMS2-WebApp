@@ -40,13 +40,13 @@ sub search_genes {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
-    
+
     if ( $validated_params->{gene} ) {
         return $self->_search_genes( $validated_params );
     }
     else {
         return $self->_search_cached_genes( $validated_params );
-    }        
+    }
 }
 
 sub _search_genes {
@@ -67,7 +67,7 @@ sub _search_cached_genes {
     my $cache = '_cache_' . $search_key;
 
     my $search_str = $params->{$search_key};
-    
+
     return $self->$cache->compute(
         $search_str,
         undef,
