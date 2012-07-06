@@ -21,6 +21,7 @@ sub auto : Private {
 
     unless ( $c->user ) {
         $c->stash( error_msg => 'Please login to access this system' );
+        $c->stash( goto_on_success => $c->request->uri );        
         $c->go( 'Controller::Auth', 'login' );
     }
 

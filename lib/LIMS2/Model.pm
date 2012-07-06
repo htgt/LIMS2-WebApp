@@ -8,6 +8,7 @@ require LIMS2::Model::DBConnect;
 require LIMS2::Model::FormValidator;
 require DateTime::Format::ISO8601;
 require Module::Pluggable::Object;
+use LIMS2::Model::Util::PgUserRole qw( db_name );
 use Data::Dump qw( pp );
 use CHI;
 use Scalar::Util qw( blessed );
@@ -15,29 +16,10 @@ use namespace::autoclean;
 
 # XXX TODO: authorization checks?
 
-# This assumes we're using Catalyst::Model::Factory::PerRequest and
-# setting the audit_user when the LIMS2::Model object is
-# instantiated. If necessary, we could make audit_user rw and allow
-# the model object to be reused.
-
 has audit_user => (
     is      => 'ro',
     isa     => 'Str',
-    trigger => \&_audit_user_set
 );
-
-sub _audit_user_set {
-    my ( $self, $user, $old_user ) = @_;
-
-    $self->schema->storage->dbh_do(
-        sub {
-            my ( $storage, $dbh ) = @_;
-            $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($user) );
-        }
-    );
-
-    return;
-}
 
 has user => (
     is  => 'ro',
@@ -57,13 +39,32 @@ sub _build_schema {
     my $user = $self->user
         or confess "user must be specified for database login";
 
-    return LIMS2::Model::DBConnect->connect( 'LIMS2_DB', $user );
+    my $schema = LIMS2::Model::DBConnect->connect( 'LIMS2_DB', $user );
+
+    if ( my $audit_user = $self->audit_user ) {
+        $schema->storage->dbh_do(
+            sub {
+                my ( $storage, $dbh ) = @_;
+                $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($audit_user) );
+            }
+        );
+    }
+
+    return $schema;
 }
 
 sub txn_do {
     my ( $self, $code_ref, @args ) = @_;
 
     return $self->schema->txn_do( $code_ref, $self, @args );
+}
+
+sub software_version {
+    return $__PACKAGE__::VERSION || 'dev';
+}
+
+sub database_name {
+    return db_name( shift->schema->storage->dbh );    
 }
 
 # has_XXX_cache attributes may be defined in a plugin; their builder

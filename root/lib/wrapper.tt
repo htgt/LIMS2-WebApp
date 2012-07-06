@@ -22,47 +22,17 @@
     <![endif]-->
 
     <link rel="shortcut icon" href="[% c.uri_for( '/favicon.ico' ) %]">
+
+    <!-- Le javascript
+    ================================================== -->
+    <script src="[% c.uri_for( '/static/js/jquery-1.7.2.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/js/poller.js' ) %]"></script>
   </head>
 
   <body>
 
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
-          [% IF template.title != 'Login' %]
-          <ul class="nav">            
-            <li[% IF template.tab_name == "Home" %] class="active"[% END %]>
-              <a href="[% c.uri_for( '/' ) %]">Home</a>
-            </li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Designs<b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li>
-                  <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse</a>
-                </li>
-              </ul>              
-            </li>
-            <li[% IF template.tab_name == "QC" %] class="active"[% END %]>
-              <a href="[% c.uri_for( '/user/qc_runs' ) %]">QC</a>
-            </li>
-            [% IF c.check_user_roles( 'admin' ) %]
-            <li[% IF template.tab_name == "Admin" %] class="active"[% END %]>
-              <a href="[% c.uri_for( '/admin' ) %]">Admin</a>
-            </li>
-            [% END %]
-          </ul>
-          <p class="nav pull-right">
-            [% IF c.user %]
-            Logged in as [% c.user.name %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
-            [% ELSE %]
-            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-            [% END %]
-          </p>
-        </div>
-        [% END %]
-      </div>
-    </div>
+    [% INCLUDE 'navigation.tt' %]
 
     <div id="main" class="container">
       [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
@@ -84,12 +54,10 @@
       </div>
       [% END %]      
       [% content | none %]
+      <footer>
+      LIMS2 software version: [% c.model('Golgi').software_version %], database: [% c.model('Golgi').database_name %].
+      </footer>
     </div> <!-- /container -->
 
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="[% c.uri_for( '/static/js/jquery-1.7.2.min.js' ) %]"></script>
-    <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
   </body>
 </html>
