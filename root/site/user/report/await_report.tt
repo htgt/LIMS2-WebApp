@@ -1,6 +1,9 @@
 <h1>Generating report...</h1>
 
 <div id="report_pending">
+  <p>
+    Reports may take several minutes to generate. <em>Please be patient.</em>
+  </p>
   <img alt="Waiting" src="[% c.uri_for( '/static/images/spinner-circle.gif' ) %]">
 </div>
 
@@ -21,16 +24,13 @@
   $.smartPoller( function(retry){
     $.getJSON( "[% c.uri_for( '/api/report/ready', report_id ) %]", function(response){
       if( response.status == "DONE" ) {
-         console.log( "Got status DONE" );
          $("#report_pending").hide();
          $("#report_complete").show();
       }
       else if ( response.status == "PENDING" ) {
-        console.log( "Retrying" );
         retry();
       }
       else {
-        console.log( "Report generation failed" );
         $("#report_pending").hide();
         $("#report_failed").show();
       }
