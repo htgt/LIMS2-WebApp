@@ -199,23 +199,6 @@ sub retrieve {
 }
 ## use critic
 
-sub autocomplete {
-    my ( $self, $entity_class, $search_column, $search_term ) = @_;
-
-    my @objects = $self->schema->resultset($entity_class)->search(
-        {
-            $search_column => { LIKE => $search_term . '%' },
-        },
-        {
-            rows     => 25,
-            order_by => { -asc => $search_column  } ,
-            columns  => [ ( $search_column ) ],
-        }
-    );
-
-    return [ map { $_->$search_column } @objects ];
-}
-
 ## no critic(RequireFinalReturn)
 sub retrieve_list {
     my ( $self, $entity_class, $search_params, $search_opts ) = @_;
