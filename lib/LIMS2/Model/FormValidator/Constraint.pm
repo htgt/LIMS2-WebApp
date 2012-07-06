@@ -117,6 +117,10 @@ sub mgi_accession_id {
     return regexp_matches(qr/^MGI:\d+$/);
 }
 
+sub ensembl_gene_id {
+    return regexp_matches(qr/^ENS[A-Z]*G\d+$/);
+}
+
 # More restrictive values  for Cre Bac recombineering
 sub cre_bac_recom_bac_library {
     return in_set('black6');
