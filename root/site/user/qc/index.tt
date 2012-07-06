@@ -3,9 +3,9 @@
   <fieldset>
     <h3>Filter QC Runs</h3>
     <label for="sequencing_project">Sequencing Project</label>
-    <input name="sequencing_project" id="sequencing_project" type="text" />
+    <input name="sequencing_project" id="sequencing_project" type="text" autocomplete="off" />
     <label for="template_plate">Template Plate</label>
-    <input name="template_plate" id="template_plate" type="text" />
+    <input name="template_plate" id="template_plate" type="text" autocomplete="off" />
     <label for="profile">Profile</label>
     <select name="profile" id="profile">
       <option>-</option>
@@ -17,6 +17,8 @@
     <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i> Show All</button>
   </fieldset>
 </form>
+
+[% INCLUDE 'pagination.tt' pageset = pageset %]
 
 <table class="table table-striped">
     <thead>
@@ -53,3 +55,15 @@
         [% END %]
     </tbody>
 </table>
+
+<script type="text/javascript">
+$("#template_plate").autocomplete({
+  source: "[% c.uri_for( '/autocomplete/qc_templates' ) %]",
+  minLength: 2,
+});
+
+$("#sequencing_project").autocomplete({
+  source: "[% c.uri_for( '/autocomplete/sequencing_projects' ) %]",
+  minLength: 2,
+});
+</script>
