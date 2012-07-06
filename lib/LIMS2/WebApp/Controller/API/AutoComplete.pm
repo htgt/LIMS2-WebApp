@@ -32,8 +32,8 @@ sub qc_templates_GET {
     my $template_names;
 
     try{
-        $template_names = $c->model('Golgi')->autocomplete(
-           'QcTemplate', 'name', $c->request->params->{term},
+        $template_names = $self->_entity_column_search(
+           $c->model('Golgi'), 'QcTemplate', 'name', $c->request->params->{term},
         );
     };
 
@@ -54,12 +54,33 @@ sub sequencing_projects_GET {
     my $sequencing_project_names;
 
     try{
-        $sequencing_project_names = $c->model('Golgi')->autocomplete(
-           'QcSeqProject', 'id', $c->request->params->{term},
+        $sequencing_project_names = $self->_entity_column_search(
+           $c->model('Golgi'), 'QcSeqProject', 'id', $c->request->params->{term},
         );
     };
 
     return $self->status_ok( $c, entity => $sequencing_project_names );
+}
+
+sub _entity_column_search {
+    my ( $self, $model, $entity_class, $search_column, $search_term ) = @_;
+
+    # Sanitize input for like command, need to escape backslashes first, then
+    # underscores and percent signs
+    for ( $search_term ) { s/\\/\\\\/g; s/_/\\_/g; s/\%/\\%/g; }
+
+    my @objects = $model->schema->resultset($entity_class)->search(
+        {
+            $search_column => { ILIKE => '%' . $search_term . '%' },
+        },
+        {
+            rows     => 25,
+            order_by => { -asc => $search_column  } ,
+            columns  => [ ( $search_column ) ],
+        }
+    );
+
+    return [ map { $_->$search_column } @objects ];
 }
 
 =head1 AUTHOR
