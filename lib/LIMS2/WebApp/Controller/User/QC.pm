@@ -115,10 +115,22 @@ sub handle_lims2_exception {
 sub index :Path( '/user/qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my $qc_runs = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
+    my ( $qc_runs, $pager ) = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
+
+    my $pageset = LIMS2::WebApp::Pageset->new(
+        {
+            total_entries    => $pager->total_entries,
+            entries_per_page => $pager->entries_per_page,
+            current_page     => $pager->current_page,
+            pages_per_set    => 5,
+            mode             => 'slide',
+            base_uri         => $c->request->uri
+        }
+    );
 
     $c->stash(
         qc_runs  => $qc_runs,
+        pageset  => $pageset,
         profiles => $c->model('Golgi')->list_profiles,
     );
     return;

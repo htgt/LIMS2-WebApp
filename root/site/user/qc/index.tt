@@ -18,6 +18,8 @@
   </fieldset>
 </form>
 
+[% INCLUDE 'pagination.tt' pageset = pageset %]
+
 <table class="table table-striped">
     <thead>
         <tr>
