@@ -26,10 +26,10 @@
 <div class="row">
   <div class="span6">
     <a class="btn btn-info" href="[% c.uri_for( '/user/download_qc_run', { 'qc_run_id' => qc_run.id } ) %]">
-      <i class="icon-download-alt"></i> Download Full Results
+      <i class="icon-download-alt icon-white"></i> Download Full Results
     </a>
     <a class="btn btn-info" href="[% c.uri_for( '/user/view_qc_run_summary', { 'qc_run_id' => qc_run.id } ) %]">
-      <i class="icon-download-alt"></i> Download Summary Results All
+      <i class="icon-download-alt icon-white"></i> Download Summary Results All
     </a>
   </div>
 </div>
