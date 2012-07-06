@@ -16,6 +16,12 @@
         padding-top: 20px;
       }
     </style>
+    <!-- jQuery UI stylesheets -->
+    <link rel="stylesheet" type="text/css" href="/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" type="text/css" href="/static/css/lims2.css">
+
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -28,6 +34,7 @@
     <script src="[% c.uri_for( '/static/js/jquery-1.7.2.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/js/poller.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.8.21.custom.min.js' ) %]"></script>
   </head>
 
   <body>
