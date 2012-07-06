@@ -480,7 +480,6 @@ sub pspec_retrieve_qc_runs {
         template_plate     => { validate => 'existing_qc_template_name',  optional => 1 },
         profile            => { validate => 'non_empty_string',           optional => 1 },
         page               => { validate => 'integer', default => 1 },
-        page_size          => { validate => 'integer', default => 2 },
     };
 }
 
@@ -497,7 +496,7 @@ sub retrieve_qc_runs {
             order_by => { -desc => 'created_at' },
             distinct => 1,
             page     => $validated_params->{page},
-            rows     => $validated_params->{page_size},
+            rows     => 15,
         }
     );
 
