@@ -40,7 +40,7 @@ sub iterator {
             my $design = $well->design;
             my @mgi_accessions = map { $_->gene_id } $design->genes;    
             my @marker_symbols = uniq map { $_->{marker_symbol} }
-                map { @{ $model->search_genes( { gene => $_ } ) } } @mgi_accessions;
+                map { @{ $model->search_genes( { mgi_accession_id => $_ } ) } } @mgi_accessions;
             return [
                 join( '/', @mgi_accessions ),
                 join( '/', @marker_symbols ),
