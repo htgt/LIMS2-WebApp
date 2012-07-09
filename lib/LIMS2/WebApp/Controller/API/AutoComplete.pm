@@ -75,7 +75,7 @@ Autocomplete for marker symbols
 
 =cut
 
-sub marker_symbols :Path( '/api/autocomplete/marker_symbols' ) :Args(0) {
+sub marker_symbols :Path( '/api/autocomplete/marker_symbols' ) :Args(0) :ActionClass('REST') {
 }
 
 sub marker_symbols_GET {
@@ -88,7 +88,6 @@ sub marker_symbols_GET {
 
     try {
         my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
-
         @results = map { +{ label => $_->{marker_symbol}, value => $_->{mgi_accession_id} } }
             @{ $solr->query( $search_term, undef, 1 ) };
     }
