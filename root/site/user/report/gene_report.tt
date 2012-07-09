@@ -106,6 +106,7 @@
             <th>Plate</th>
             <th>Well</th>
             <th>Created at</th>
+            <th>Design Id</th>
             <th>Recombineering result</th>
             <th>Accepted?</th>      
           </thead>
@@ -115,6 +116,7 @@
               <td>[% well.plate.name %]</td>
               <td>[% well.name %]</td>
               <td>[% well.created_at.ymd %]</td>
+              <td>[% well.design.id %]</td>
               <td>[% well.recombineering_result('rec_result').result %]</td>
               <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
             </tr>
