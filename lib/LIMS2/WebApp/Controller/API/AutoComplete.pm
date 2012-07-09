@@ -24,18 +24,22 @@ Autocomplete for QC Template Plate names
 
 =cut
 
-sub qc_templates : Path( '/autocomplete/qc_templates' ) : Args(0) : ActionClass( 'REST' ) {
+sub qc_templates :Path( '/api/autocomplete/qc_templates' ) :Args(0) :ActionClass( 'REST' ) {
 }
 
 sub qc_templates_GET {
     my ( $self, $c ) = @_;
     my $template_names;
 
-    try{
+    try {
         $template_names = $self->_entity_column_search(
            $c->model('Golgi'), 'QcTemplate', 'name', $c->request->params->{term},
         );
+    }
+    catch {
+        $c->log->error($_);
     };
+    
 
     return $self->status_ok( $c, entity => $template_names );
 }
@@ -46,20 +50,53 @@ Autocomplete for QC Sequencing Projects names
 
 =cut
 
-sub sequencing_projects : Path( '/autocomplete/sequencing_projects' ) : Args(0) : ActionClass( 'REST' ) {
+sub sequencing_projects :Path( '/api/autocomplete/sequencing_projects' ) :Args(0) :ActionClass( 'REST' ) {
 }
 
 sub sequencing_projects_GET {
     my ( $self, $c ) = @_;
     my $sequencing_project_names;
 
-    try{
+    try {
         $sequencing_project_names = $self->_entity_column_search(
            $c->model('Golgi'), 'QcSeqProject', 'id', $c->request->params->{term},
         );
-    };
+    }
+    catch {
+        $c->log->error( $_ );
+    };    
 
     return $self->status_ok( $c, entity => $sequencing_project_names );
+}
+
+=head1 GET /api/autocomplete/marker_symbols
+
+Autocomplete for marker symbols
+
+=cut
+
+sub marker_symbols :Path( '/api/autocomplete/marker_symbols' ) :Args(0) {
+}
+
+sub marker_symbols_GET {
+    my ( $self, $c ) = @_;
+
+    my $search_term = $c->request->param( 'term' )
+        or return [];
+
+    my @results;
+
+    try {
+        my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
+
+        @results = map { +{ label => $_->{marker_symbol}, value => $_->{mgi_accession_id} } }
+            @{ $solr->query( $search_term, undef, 1 ) };
+    }
+    catch {
+        $c->log->error($_);
+    };
+
+    return $self->status_ok( $c, entity => \@results );
 }
 
 sub _entity_column_search {
