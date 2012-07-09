@@ -1,9 +1,9 @@
-[%- META title = "Gene Report" %]
+[%- META title = "Gene Summary" %]
 <h1>[% template.title %]</h1>
 
 <form id="gene_report_form" class="well form-horizontal">
   <input type="text" class="span3" id="gene_id_input" name="gene_id" placeholder="Gene identifier" autocomplete="off" />
-  <button type="submit" class="btn">Show Gene Report</button>
+  <button type="submit" class="btn">Show Summary</button>
 </form>
 
 [%- MACRO vector_report(wells) BLOCK -%]
