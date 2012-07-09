@@ -19,6 +19,11 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
+              <a href="[% c.uri_for( '/user/report/gene' ) %]">
+                Gene Summary
+              </a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/report/async/VectorProductionSummary' ) %]">
                 Vector Production Summary
               </a>

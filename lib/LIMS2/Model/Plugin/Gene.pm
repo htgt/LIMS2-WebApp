@@ -80,6 +80,37 @@ sub _search_cached_genes {
     );
 }
 
+sub pspec_retrieve_gene {
+    return {
+        gene => { validate => 'non_empty_string' }
+    }
+}
+
+sub retrieve_gene {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+    my $search_term = $validated_params->{gene};
+
+    my $genes;
+    
+    if ( $search_term =~ m/^MGI:\d+$/ ) {
+        $genes = $self->_search_cached_genes( { mgi_accession_id => $search_term } );
+    }
+    elsif ( $search_term =~ m/^ENS[A-Z]*G\d+$/ ) {
+        $genes = $self->_search_cached_genes( { ensembl_gene_id => $search_term } );
+    }
+    else {
+        $genes = $self->_search_cached_genes( { marker_symbol => $search_term } );
+    }
+
+    if ( @{$genes} > 1 ) {
+        $self->throw( Implementation => "Retrieval of gene '$search_term' returned " . @{$genes} . " genes" );        
+    }
+
+    return shift @{$genes};
+}
+
 1;
 
 __END__

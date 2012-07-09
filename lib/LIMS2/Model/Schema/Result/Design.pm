@@ -240,6 +240,12 @@ __PACKAGE__->might_have(
     { "foreign.design_id" => "self.id" }
 );
 
+__PACKAGE__->many_to_many(
+    "processes",
+    "process_designs",
+    "process"
+);
+
 sub as_hash {
     my ( $self, $suppress_relations ) = @_;
 

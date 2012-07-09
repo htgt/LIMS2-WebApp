@@ -1,0 +1,186 @@
+[%- META title = "Gene Summary" %]
+<h1>[% template.title %]</h1>
+
+<form id="gene_report_form" class="well form-horizontal">
+  <input type="text" class="span3" id="gene_id_input" name="gene_id" placeholder="Gene identifier" autocomplete="off" />
+  <button type="submit" class="btn">Show Summary</button>
+</form>
+
+[%- MACRO vector_report(wells) BLOCK -%]
+  <table class="table table-striped">
+    <thead>
+      <th>Plate</th>
+      <th>Well</th>
+      <th>Created at</th>
+      <th>Cassette</th>
+      <th>Backbone</th>
+      <th>Recombinase</th>
+      <th>Sequencing QC pass?</th>
+      <th>Accepted?</th>
+    </thead>
+    <tbody>
+      [%- FOR well IN wells %]
+      <tr>
+        <td>[% well.plate.name %]</td>
+        <td>[% well.name %]</td>
+        <td>[% well.created_at.ymd %]</td>
+        <td>[% well.cassette %]</td>
+        <td>[% well.backbone %]</td>
+        <td>[% well.recombinases.join( ", " ) %]</td>
+        <td>
+          [% IF well.well_qc_sequencing_result;
+            IF well.well_qc_sequencing_result.pass; "pass"; ELSE; "fail"; END;
+          END %]
+        </td>
+        <td>
+          [% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+[%- END -%]
+
+[%- IF info.defined %]
+<h2>Showing details for [% info.marker_symbol %] ([% info.mgi_accession_id %])</h2>
+
+<div class="accordion" id="gene_report_accordion">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesigns">Designs</a>
+      </h3>
+    </div>
+    <div id="collapseDesigns" class="accordion-body collapse in">
+      <div class="accordion-inner">
+        [%- IF designs.defined AND designs.size > 0 %]
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Created by</th>
+              <th>Created at</th>
+              <th>Validated by annotation</th>
+              <th>Target transcript</th>
+              <th>Assigned genes</th>
+            </tr>
+          </thead>
+          <tbody>
+            [%- FOR design IN designs %]
+            <tr>
+              <td><a href="[% c.uri_for( '/user/view_design', { design_id => design.id } ) %]">[% design.id %]</a></td>        
+              <td>[% design.name %]</td>
+              <td>[% design.design_type_id %]</td>
+              <td>[% design.created_by.name %]</td>
+              <td>[% design.created_at.ymd %]</td>
+              <td>[% design.validated_by_annotation %]</td>
+              <td>[% design.target_transcript %]</td>
+              <td>[% genes = [];
+                FOR gene IN design.genes;
+                genes.push( gene.gene_id );
+                END;
+                genes.join(", ");
+                %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+        [%- ELSE %]
+        <p><em>No assigned designs<em></p>
+        [%- END %]
+      </div>
+    </div>
+  </div>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesignInstances">Design Instances</a>
+      </h3>
+    </div>
+    <div id="collapseDesignInstances" class="accordion-body collapse">
+      <div class="accordion-inner">
+        [%- IF wells.DESIGN %]
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>Recombineering result</th>
+            <th>Accepted?</th>      
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.DESIGN %]
+            <tr>
+              <td>[% well.plate.name %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.recombineering_result('rec_result').result %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+        [%- ELSE %]
+        <p><em>No design instances.</em></p>
+        [%- END %]        
+      </div>
+    </div>
+  </div>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseInt">Intermediate Vectors</a>
+      </h3>
+    </div>
+    <div id="collapseInt" class="accordion-body collapse">
+      <div class="accordion-inner">
+        [%- IF wells.INT %]
+        [%- vector_report( wells.INT ) | none %]
+        [%- ELSE %]
+        <p><em>No intermediate vectors.</em></p>
+        [%- END %]        
+      </div>
+    </div>
+  </div>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePostInt">Post-intermediate Vectors</a>
+      </h3>
+    </div>
+    <div id="collapsePostInt" class="accordion-body collapse">
+      <div class="accordion-inner">
+        [%- IF wells.POSTINT %]
+        [%- vector_report( wells.POSTINT ) | none %]
+        [%- ELSE %]
+        <p><em>No post-intermediate vectors.</em></p>
+        [%- END %]        
+      </div>
+    </div>
+  </div>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinal">Final Vectors</a>
+      </h3>
+    </div>
+    <div id="collapseFinal" class="accordion-body collapse">
+      <div class="accordion-inner">
+        [%- SET well_type = "FINAL" %]
+        [%- IF wells.$well_type %]
+        [%- vector_report( wells.$well_type ) | none %]
+        [%- ELSE %]
+        <p><em>No final vectors.</em></p>
+        [%- END %]
+      </div>
+    </div>
+  </div>
+[%- END %]
+
+<script type="text/javascript">
+$("#gene_id_input").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/marker_symbols' ) %]",
+  minLength: 2,
+});
+</script>
