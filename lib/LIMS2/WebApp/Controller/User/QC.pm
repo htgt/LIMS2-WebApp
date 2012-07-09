@@ -149,59 +149,6 @@ sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     return;
 }
 
-#TODO work out how we are dealing with csv download
-sub download_qc_run :Path('/user/download_qc_run') Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $qc_run = $c->stash->{ qc_run_obj };
-    my @primers = $qc_run->primers;
-    my @primer_fields;
-    for my $primer ( @primers ) {
-        push @primer_fields, map { $primer.'_'.$_ }
-            qw( pass critical_regions target_align_length read_length score  );
-    }
-    my @columns = ( qw(
-                          plate_name
-                          well_name_384
-                          well_name
-                          marker_symbol
-                          design_id
-                          expected_design_id
-                          pass
-                          score
-                          num_reads
-                          num_valid_primers
-                          valid_primers_score
-                  ),
-                  @primer_fields,
-                  map( { $_.'_features' } @primers )
-                );
-
-    $c->stash(
-        template     => 'user/qc/qc_run.csvtt',
-        csv_filename => substr( $qc_run->id, 0, 8 ) . '.csv',
-        columns      => \@columns
-    );
-    return;
-}
-
-sub view_qc_run_summary :Path( '/user/view_qc_run_summary' ) Args(0) {
-    my ( $self, $c ) = @_;
-    my $qc_run = $c->stash->{ qc_run_obj };
-    my $results = $c->model('Golgi')->qc_run_summary_results( $qc_run );
-
-    $c->stash(
-        columns  => [ qw( design_id marker_symbol plate_name well_name pass valid_primers ) ],
-        results  => $results,
-    );
-
-    # move to new sub
-    if ( $c->req->param( 'view' ) eq 'csvdl' ) {
-        $c->stash( csv_filename => substr( $qc_run->id, 0, 8 ) . '_summary.csv' );
-    }
-    return;
-}
-
 sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     my ( $self, $c ) = @_;
 
