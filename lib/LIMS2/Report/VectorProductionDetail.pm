@@ -9,7 +9,7 @@ with qw( LIMS2::Role::ReportGenerator );
 
 sub _build_name {
     my $dt = DateTime->now();
-    return 'Vector Production Detail ' . $dt->ymd;    
+    return 'Vector Production Detail ' . $dt->ymd;
 }
 
 sub _build_columns {
@@ -20,9 +20,9 @@ sub _build_columns {
 }
 
 sub iterator {
-    my ( $self, $model ) = @_;
+    my ( $self ) = @_;
 
-    my $final_vectors_rs = $model->schema->resultset( 'Well' )->search(
+    my $final_vectors_rs = $self->model->schema->resultset( 'Well' )->search(
         {
             'plate.type_id' => 'FINAL'
         },
@@ -38,9 +38,9 @@ sub iterator {
             my $well = $final_vectors_rs->next
                 or return;
             my $design = $well->design;
-            my @mgi_accessions = map { $_->gene_id } $design->genes;    
+            my @mgi_accessions = map { $_->gene_id } $design->genes;
             my @marker_symbols = uniq map { $_->{marker_symbol} }
-                map { @{ $model->search_genes( { mgi_accession_id => $_ } ) } } @mgi_accessions;
+                map { @{ $self->model->search_genes( { gene => $_ } ) } } @mgi_accessions;
             return [
                 join( '/', @mgi_accessions ),
                 join( '/', @marker_symbols ),

@@ -20,9 +20,9 @@ sub _build_columns {
 }
 
 sub iterator {
-    my ( $self, $model ) = @_;
+    my ( $self ) = @_;
 
-    my $rs = $model->schema->resultset( 'Plate' )->search(
+    my $rs = $self->model->schema->resultset( 'Plate' )->search(
         { type_id => $self->plate_type },
         { order_by => { -desc => 'created_at' } }
     );

@@ -10,7 +10,7 @@ with qw( LIMS2::Role::ReportGenerator );
 
 sub _build_name {
     my $dt = DateTime->now();
-    return 'Vector Production Summary ' . $dt->ymd;    
+    return 'Vector Production Summary ' . $dt->ymd;
 }
 
 sub _build_columns {
@@ -24,11 +24,11 @@ sub _build_columns {
 }
 
 sub iterator {
-    my ( $self, $model ) = @_;
+    my ( $self ) = @_;
 
     my $date_formatter = DateTime::Format::Strptime->new( pattern => '%b %Y' );
 
-    my $final_vectors_rs = $model->schema->resultset( 'Well' )->search(
+    my $final_vectors_rs = $self->model->schema->resultset( 'Well' )->search(
         {
             'plate.type_id' => 'FINAL'
         },
@@ -56,7 +56,7 @@ sub iterator {
                     if ( $well->is_accepted ) {
                         $this_month{$allele_type}{accepted}{$gene}++;
                         $cumulative{$allele_type}{accepted}{$gene}++;
-                    }                        
+                    }
                 }
                 $well = $final_vectors_rs->next;
             }
@@ -90,7 +90,7 @@ sub counts_and_efficiency {
     my ( $self, $data ) = @_;
 
     my @return;
-    
+
     for my $allele_type ( qw( first_allele second_allele ) ) {
         my $created    = $self->count_for( $data, $allele_type, 'created' );
         my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
