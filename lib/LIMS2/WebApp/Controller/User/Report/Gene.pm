@@ -47,6 +47,10 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
 
+    while ( my ( $k, $v ) = each %wells ) {
+        $wells{$k} = [ sort { $a->created_at <=> $b->created_at } @{$v} ];
+    }
+
     $c->stash(
         info    => $gene_info,
         designs => $designs,
