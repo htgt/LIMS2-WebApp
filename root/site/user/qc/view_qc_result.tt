@@ -3,6 +3,13 @@
   <h1>QC Well Results <small>[% "${qc_seq_well.plate_name}[${qc_seq_well.well_name}]" %]</small></h1>
 </div>
 
+<a class="btn btn-primary" href="[% c.uri_for( '/user/view_qc_run', { 'qc_run_id' => qc_run.id } ) %]">
+  <i class="icon-arrow-left icon-white"></i> Back to Qc Run Results
+</a>
+
+<br>
+<br>
+
 <div class="well">
   <strong>QC Run:</strong>
   <a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a><br />
@@ -39,7 +46,7 @@
       'well_name' => qc_seq_well.well_name
       })
       %]">
-      <i class="icon-download-alt"></i> Download Sequence Reads
+      <i class="icon-download-alt icon-white"></i> Download Sequence Reads
     </a>
   </div>
 </div>
@@ -90,7 +97,7 @@
 <p>
 <a class="btn btn-info" href="[% c.uri_for( '/user/qc_eng_seq',
   { 'format' => "genbank", 'qc_test_result_id' => r.qc_test_result_id } ) %]">
-  <i class="icon-download-alt"></i> Download Synthetic Vectors
+  <i class="icon-download-alt icon-white"></i> Download Synthetic Vectors
 </a>
 </p>
 [% END -%]
