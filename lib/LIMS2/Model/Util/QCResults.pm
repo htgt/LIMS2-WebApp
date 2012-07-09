@@ -61,7 +61,10 @@ sub retrieve_qc_run_summary_results {
             unless $template_well->design_id
                 and not $seen_design{ $template_well->design_id }++;
 
-        my %s = ( design_id => $template_well->design_id, );
+        my %s = (
+            design_id     => $template_well->design_id,
+            marker_symbol => '-',
+        );
 
         my @results = reverse sort {
                    ( $a->{pass} || 0 ) <=> ( $b->{pass} || 0 )
