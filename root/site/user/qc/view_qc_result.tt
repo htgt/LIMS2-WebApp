@@ -12,11 +12,11 @@
 
 <div class="well">
   <strong>QC Run:</strong>
-  <a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a><br />
+  <a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a><br>
   <strong>Run Date:</strong>
-  [% qc_run.created_at %]<br />
-  <strong>Qc Template:</strong> [% qc_run.qc_template %]</br>
-  <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]</br>
+  [% qc_run.created_at %]<br>
+  <strong>Qc Template:</strong> [% qc_run.qc_template %]<br>
+  <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]<br>
 </div>
 
 <h2>Sequence Reads</h2>
@@ -52,7 +52,7 @@
 </div>
 
 [% FOR r IN results -%]
-</br>
+<br>
 <h2>
   Design [% r.design_id %]
   <small>score [% r.score %], [% IF r.pass == 1; THEN; "pass"; ELSE; "fail"; END %]</small>
