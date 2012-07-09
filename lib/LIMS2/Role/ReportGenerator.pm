@@ -21,6 +21,12 @@ has columns => (
     lazy_build => 1
 );
 
+has model => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model',
+    required   => 1,
+);
+
 requires qw( _build_name _build_columns iterator );
 
 1;
