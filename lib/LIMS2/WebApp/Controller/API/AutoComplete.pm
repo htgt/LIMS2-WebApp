@@ -88,8 +88,7 @@ sub marker_symbols_GET {
 
     try {
         my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
-        @results = map { +{ label => $_->{marker_symbol}, value => $_->{mgi_accession_id} } }
-            @{ $solr->query( $search_term, undef, 1 ) };
+        @results = map { $_->{marker_symbol} } @{ $solr->query( $search_term, undef, 1 ) };
     }
     catch {
         $c->log->error($_);
