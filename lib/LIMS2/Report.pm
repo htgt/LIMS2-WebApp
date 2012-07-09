@@ -17,9 +17,14 @@ use LIMS2::Exception::System;
 use LIMS2::Exception::Validation;
 
 sub generator_for {
-    my ( $report, $params ) = @_;
+    my ( $report, $model, $params ) = @_;
 
-    my $generator = load_generator_class( $report )->new( $params );
+    my $generator = load_generator_class( $report )->new(
+        {
+            %{ $params },
+            ( model => $model ),
+        }
+    );
 
     return $generator;
 }
@@ -27,7 +32,7 @@ sub generator_for {
 sub generate_report {
     my %args = @_;
 
-    my $generator = generator_for( $args{report}, $args{params} );
+    my $generator = generator_for( $args{report}, $args{model}, $args{params} );
 
     my $report_id =  Data::UUID->new->create_str();
 
@@ -35,27 +40,27 @@ sub generate_report {
 
     my $work_dir = init_work_dir( $args{output_dir}, $report_id );
 
-    if ( $args{async} ) {        
-        run_in_background( $args{model}, $generator, $work_dir );
+    if ( $args{async} ) {
+        run_in_background( $generator, $work_dir );
     }
     else {
-        run_in_foreground( $args{model}, $generator, $work_dir );
+        run_in_foreground( $generator, $work_dir );
     }
 
     return $report_id;
 }
 
 sub run_in_background {
-    my ( $model, $generator, $work_dir ) = @_;
-    
+    my ( $generator, $work_dir ) = @_;
+
     local $SIG{CHLD} = 'IGNORE';
 
     defined( my $pid = fork() )
         or LIMS2::Exception::System->throw( "Fork failed: $!" );
 
     if ( $pid == 0 ) { # child
-        Log::Log4perl->easy_init( { level => $WARN, file => $work_dir->file( 'log' ) } );        
-        do_generate_report( $model, $generator, $work_dir );
+        Log::Log4perl->easy_init( { level => $WARN, file => $work_dir->file( 'log' ) } );
+        do_generate_report( $generator, $work_dir );
         exit 0;
     }
 
@@ -63,24 +68,24 @@ sub run_in_background {
 }
 
 sub run_in_foreground {
-    my ( $model, $generator, $work_dir ) = @_;
+    my ( $generator, $work_dir ) = @_;
 
-    do_generate_report( $model, $generator, $work_dir );
+    do_generate_report( $generator, $work_dir );
 
     return;
 }
 
 sub do_generate_report {
-    my ( $model, $generator, $work_dir ) = @_;
+    my ( $generator, $work_dir ) = @_;
 
     try {
-        my $output_file = $work_dir->file( 'report.csv' );        
+        my $output_file = $work_dir->file( 'report.csv' );
         my $ofh = $output_file->openw;
 
         my $csv = Text::CSV->new( { eol => "\n" } );
         $csv->print( $ofh, $generator->columns );
-    
-        my $data = $generator->iterator( $model );
+
+        my $data = $generator->iterator();
         while ( my $datum = $data->next ) {
             $csv->print( $ofh, $datum )
                 or LIMS2::Exception::System->throw( "Error writing to $output_file: $!" );
@@ -90,15 +95,15 @@ sub do_generate_report {
             or LIMS2::Exception::System->throw( "Error closing $output_file: $!" );
 
         write_report_name( $work_dir->file( 'name' ), $generator->name );
-        
-        $work_dir->file( 'done' )->touch;        
+
+        $work_dir->file( 'done' )->touch;
     }
     catch {
         ERROR $_;
         $work_dir->file( 'failed' )->touch;
     };
 
-    return;    
+    return;
 }
 
 sub write_report_name {
