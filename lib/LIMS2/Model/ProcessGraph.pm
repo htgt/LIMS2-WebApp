@@ -74,7 +74,21 @@ has prefetch_process_data => (
     is       => 'ro',
     isa      => 'ArrayRef',
     default  => sub {
-        [ qw( process_design process_cassette process_backbone process_recombinases ) ]
+        [ 'process_design',
+          { 'process_cassette' => 'cassette' },
+          'process_backbone',
+          'process_recombinases'
+      ]
+    }
+);
+
+has prefetch_well_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    default => sub {
+        [
+            { 'plate' => 'type' }
+        ]
     }
 );
 
@@ -261,8 +275,8 @@ sub process_data_for {
     # allele or the second allele.
 
     return ( $well->design->id,
-             $well->cassette,
-             $well->backbone,
+             ( $well->cassette ? $well->cassette->name : '' ),
+             ( $well->backbone ? $well->backbone : '' ),
              join( q{,}, @{$well->recombinases} )
          );
 }
