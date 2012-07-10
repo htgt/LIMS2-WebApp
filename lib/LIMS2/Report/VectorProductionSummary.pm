@@ -17,9 +17,11 @@ sub _build_columns {
     return [
         "Month",
         "First Allele Created", "First Allele Accepted", "First Allele Efficiency",
-        "Second Allele Created", "Second Allele Accepted", "Second Allele Efficiency",
-        "First Allele Created (Cumulative)", "First Allele Accepted (Cumulative)", "First Allele Efficiency (Cumulative)",
-        "Second Allele Created (Cumulative)", "Second Allele Accepted (Cumulative)", "Second Allele Efficiency (Cumulative)"
+        "Second Allele (Promoter) Created", "Second Allele (Promoter) Accepted", "Second Allele (Promoter) Efficiency",
+        "Second Allele (Promoterless) Created", "Second Allele (Promoterless) Accepted", "Second Allele (Promoterless) Efficiency",
+        "Cumulative First Allele Created", "Cumulative First Allele Accepted", "Cumulative First Allele Efficiency",
+        "Cumulative Second Allele (Promoter) Created", "Cumulative Second Allele (Promoter) Accepted", "Cumulative Second Allele (Promoter) Efficiency",
+        "Cumulative Second Allele (Promoterless) Created", "Cumulative Second Allele (Promoterless) Accepted", "Cumulative Second Allele (Promoterless) Efficiency",
     ];
 }
 
@@ -49,7 +51,7 @@ sub iterator {
             my %this_month;
             my $created_at = $well->created_at;
             while ( $well and $self->is_same_month( $well->created_at, $created_at ) ) {
-                my $allele_type = $self->is_second_allele( $well ) ? 'second_allele' : 'first_allele';
+                my $allele_type = $self->allele_type_for( $well );
                 for my $gene ( map { $_->gene_id } $well->design->genes ) {
                     $this_month{$allele_type}{created}{$gene}++;
                     $cumulative{$allele_type}{created}{$gene}++;
@@ -66,6 +68,28 @@ sub iterator {
                  ];
         }
     );
+}
+
+sub allele_type_for {
+    my ( $self, $well ) = @_;
+
+    if ( $self->is_second_allele( $well ) ) {
+        if ( $self->is_promoter( $well ) ) {
+            return 'second_allele_promoter';
+        }
+        else {
+            return 'second_allele_promoterless';
+        }
+    }
+    else {
+        return 'first_allele';
+    }
+}
+
+sub is_promoter {
+    my ( $self, $well ) = @_;
+
+    return $well->cassette->promoter;
 }
 
 sub is_second_allele {
@@ -91,7 +115,7 @@ sub counts_and_efficiency {
 
     my @return;
 
-    for my $allele_type ( qw( first_allele second_allele ) ) {
+    for my $allele_type ( qw( first_allele second_allele_promoter second_allele_promoterless ) ) {
         my $created    = $self->count_for( $data, $allele_type, 'created' );
         my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
         my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) . '%' : '-';
