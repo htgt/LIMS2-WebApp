@@ -47,7 +47,7 @@ sub iterator {
             gene_id       => $h{'MGI Accession Id'},
             allele_type   => $self->allele_type_for( \%h ),
             accepted      => ( $h{'Accepted?'} eq 'yes' ? 1 : 0 )
-        };        
+        };
     }
 
     @vectors = sort { $a->{created_month} <=> $b->{created_month} } @vectors;
@@ -95,7 +95,7 @@ sub allele_type_for {
 sub is_promoter {
     my ( $self, $data ) = @_;
 
-    return $data->{'Cassette Type'} eq 'promoter';    
+    return $data->{'Cassette Type'} eq 'promoter';
 }
 
 sub is_second_allele {

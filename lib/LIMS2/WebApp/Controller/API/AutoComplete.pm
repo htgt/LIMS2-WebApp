@@ -39,7 +39,6 @@ sub qc_templates_GET {
     catch {
         $c->log->error($_);
     };
-    
 
     return $self->status_ok( $c, entity => $template_names );
 }
@@ -64,7 +63,7 @@ sub sequencing_projects_GET {
     }
     catch {
         $c->log->error( $_ );
-    };    
+    };
 
     return $self->status_ok( $c, entity => $sequencing_project_names );
 }

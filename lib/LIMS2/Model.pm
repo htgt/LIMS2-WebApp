@@ -64,7 +64,7 @@ sub software_version {
 }
 
 sub database_name {
-    return db_name( shift->schema->storage->dbh );    
+    return db_name( shift->schema->storage->dbh );
 }
 
 # has_XXX_cache attributes may be defined in a plugin; their builder
@@ -143,7 +143,7 @@ sub solr_util {
 
 sub solr_query {
     my $self = shift;
-    $self->solr_util->query(@_);
+    return $self->solr_util->query(@_);
 }
 
 ## no critic(RequireFinalReturn)

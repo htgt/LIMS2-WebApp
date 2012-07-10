@@ -27,7 +27,7 @@ sub login : Global {
     my $password = $c->req->param('password');
     my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
 
-    $c->stash( goto_on_success => $goto );    
+    $c->stash( goto_on_success => $goto );
 
     return unless $c->req->param('login');
 

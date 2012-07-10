@@ -28,12 +28,12 @@ sub new {
 sub base_uri {
     my ( $self, $uri ) = @_;
 
-    if ( defined $uri ) {        
+    if ( defined $uri ) {
         if ( blessed $uri and $uri->isa( 'URI' ) ) {
             $self->{base_uri} = $uri->clone;
         }
         else {
-            $self->{base_uri} = URI->new( $uri );            
+            $self->{base_uri} = URI->new( $uri );
         }
     }
 

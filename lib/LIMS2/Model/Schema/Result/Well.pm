@@ -423,7 +423,7 @@ sub recombineering_result {
     my $rec_result = $self->well_recombineering_results_rs->find( { result_type_id => $result_type } )
         or return;
 
-    return $rec_result;    
+    return $rec_result;
 }
 
 sub cassette {

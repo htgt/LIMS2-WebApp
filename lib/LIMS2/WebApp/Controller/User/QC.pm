@@ -63,7 +63,7 @@ sub end :Private {
         $c->response->content_type('text/html; charset=utf-8');
     }
 
-    $c->forward('LIMS2::WebApp::View::HTML');
+    return $c->forward('LIMS2::WebApp::View::HTML');
 }
 
 sub error_status :Private {

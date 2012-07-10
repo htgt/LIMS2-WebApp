@@ -29,8 +29,8 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     my $gene_id = $c->request->param( 'gene_id' )
         or return;
 
-    my $gene_info = $c->model('Golgi')->retrieve_gene( { gene => $gene_id } );    
-    
+    my $gene_info = $c->model('Golgi')->retrieve_gene( { gene => $gene_id } );
+
     my $mgi_accession_id = $gene_info->{mgi_accession_id}
         or $self->throw( MissingData => "Unable to determine MGI accesison id for $gene_id" );
 
@@ -55,9 +55,10 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         info    => $gene_info,
         designs => $designs,
         wells   => \%wells
-    );    
-}
+    );
 
+    return;
+}
 
 =head1 AUTHOR
 

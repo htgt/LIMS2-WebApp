@@ -35,16 +35,16 @@ sub iterator {
             or return;
 
         my $gene_id       = $gene_design->gene_id;
-        my $marker_symbol = $self->model->retrieve_gene( { gene => $gene_id } )->{marker_symbol};    
-        my $design_id     = $gene_design->design_id;    
-        
+        my $marker_symbol = $self->model->retrieve_gene( { gene => $gene_id } )->{marker_symbol};
+        my $design_id     = $gene_design->design_id;
+
         my %attrs = (
             gene_id       => $gene_design->gene_id,
             marker_symbol => $marker_symbol,
             design_id     => $design_id,
             recombinase   => []
         );
-    
+
         my @design_wells = map { $_->output_wells } $gene_design->design->processes;
 
         return iflatten imap { $self->final_vectors_iterator( \%attrs, $_ ) } \@design_wells;
@@ -55,7 +55,7 @@ sub final_vectors_iterator {
     my ( $self, $attrs, $design_well ) = @_;
 
     $attrs->{design_well} = $design_well;
-    
+
     my @final_vectors = $self->collect_final_vectors( $design_well, $design_well->descendants, $attrs );
 
     return iter sub {
@@ -90,10 +90,10 @@ sub collect_final_vectors {
         if ( my @recombinase = $process->process_recombinases ) {
             push @{ $attrs->{recombinase} }, map { $_->recombinase_id } sort { $a->rank <=> $b->rank } @recombinase;
         }
-    }    
+    }
 
     my @final_vectors;
-    
+
     if ( $current_node->plate->type_id eq 'FINAL' ) {
         push @final_vectors, { %{$attrs}, well => $current_node };
     }
@@ -103,7 +103,7 @@ sub collect_final_vectors {
         push @final_vectors, $self->collect_final_vectors( $child_well, $graph, \%attrs );
     }
 
-    return @final_vectors;    
+    return @final_vectors;
 }
 
 __PACKAGE__->meta->make_immutable;

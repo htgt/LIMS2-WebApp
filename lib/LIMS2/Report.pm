@@ -20,10 +20,7 @@ sub generator_for {
     my ( $report, $model, $params ) = @_;
 
     my $generator = load_generator_class( $report )->new(
-        {
-            %{ $params },
-            ( model => $model ),
-        }
+        +{ %{$params}, model => $model }
     );
 
     return $generator;
@@ -114,6 +111,8 @@ sub write_report_name {
         or LIMS2::Exception::System->throw( "Error writing to $file: $!" );
     $ofh->close()
         or LIMS2::Exception::System->throw( "Error closing $file: $!" );
+
+    return;
 }
 
 sub load_generator_class {

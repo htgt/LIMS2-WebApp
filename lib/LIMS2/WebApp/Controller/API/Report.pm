@@ -44,7 +44,7 @@ sub report_ready_GET {
         return $self->status_ok( $c, entity => { status => 'FAILED' } );
     }
 
-    return $self->status_ok( $c, entity => { status => 'PENDING' } );    
+    return $self->status_ok( $c, entity => { status => 'PENDING' } );
 }
 
 =head1 AUTHOR

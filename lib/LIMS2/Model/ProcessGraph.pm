@@ -287,15 +287,15 @@ sub process_data_for {
 sub find_process {
     my ( $self, $start_well, $relation ) = @_;
 
-    DEBUG( "find_process searching for relation $relation" );    
-    
+    DEBUG( "find_process searching for relation $relation" );
+
     my $it = $self->breadth_first_traversal( $start_well, 'in' );
 
     while( my $well = $it->next ) {
-        DEBUG( "find_process examining $well" );        
+        DEBUG( "find_process examining $well" );
         for my $process ( $self->input_processes( $well ) ) {
             if ( my $related = $process->$relation() ) {
-                DEBUG( "Found $relation at $well" );                
+                DEBUG( "Found $relation at $well" );
                 return $related;
             }
         }

@@ -93,7 +93,7 @@ sub retrieve_gene {
     my $search_term = $validated_params->{gene};
 
     my $genes;
-    
+
     if ( $search_term =~ m/^MGI:\d+$/ ) {
         $genes = $self->_search_cached_genes( { mgi_accession_id => $search_term } );
     }
@@ -105,7 +105,7 @@ sub retrieve_gene {
     }
 
     if ( @{$genes} > 1 ) {
-        $self->throw( Implementation => "Retrieval of gene '$search_term' returned " . @{$genes} . " genes" );        
+        $self->throw( Implementation => "Retrieval of gene '$search_term' returned " . @{$genes} . " genes" );
     }
 
     return shift @{$genes};

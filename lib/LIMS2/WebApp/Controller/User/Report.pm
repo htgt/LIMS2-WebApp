@@ -44,7 +44,7 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
         async      => 0
     );
 
-    $c->forward( 'view_report', [ $report_id ] );
+    return $c->forward( 'view_report', [ $report_id ] );
 }
 
 =head1 GET /user/report/async/$REPORT
@@ -65,11 +65,13 @@ sub async_report :Path( '/user/report/async' ) :Args(1) {
         async      => 1
     );
 
-    $c->stash(        
+    $c->stash(
         template    => 'user/report/await_report.tt',
         report_name => $report,
         report_id   => $report_id
     );
+
+    return;
 }
 
 =head1 GET /user/report/download/$REPORT_ID
@@ -87,6 +89,7 @@ sub download_report :Path( '/user/report/download' ) :Args(1) {
     $c->response->content_type( 'text/csv' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$report_name.csv" );
     $c->response->body( $report_fh );
+    return;
 }
 
 =head1 GET /user/report/view/$REPORT_ID
@@ -125,7 +128,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
             or last;
         push @data, $row;
     }
-    
+
     $c->stash(
         template  => 'user/report/simple_table.tt',
         report_id => $report_id,
@@ -134,6 +137,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         columns   => $columns,
         data      => \@data,
     );
+    return;
 }
 
 sub _count_rows {
