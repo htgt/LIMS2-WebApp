@@ -224,7 +224,7 @@ audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
 process_id integer,
-cassette text
+cassette_id integer
 );
 GRANT SELECT ON audit.process_cassette TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.process_cassette TO "[% rw_role %]";
@@ -580,3 +580,33 @@ CREATE TRIGGER well_dna_status_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.well_dna_status
     FOR EACH ROW EXECUTE PROCEDURE public.process_well_dna_status_audit();
     
+CREATE TABLE audit.cassettes (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+id integer,
+name text,
+description text,
+promoter boolean,
+phase_match_group text,
+phase integer
+);
+GRANT SELECT ON audit.cassettes TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.cassettes TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_cassettes_audit()
+RETURNS TRIGGER AS $cassettes_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.cassettes SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.cassettes SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.cassettes SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$cassettes_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER cassettes_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.cassettes
+    FOR EACH ROW EXECUTE PROCEDURE public.process_cassettes_audit();

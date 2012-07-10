@@ -68,6 +68,18 @@ GRANT SELECT ON well_comments TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON well_comments TO "[% rw_role %]";
 GRANT USAGE ON well_comments_id_seq TO "[% rw_role %]";
 
+CREATE TABLE cassettes (
+       id                SERIAL PRIMARY KEY,
+       name              TEXT NOT NULL UNIQUE,
+       description       TEXT NOT NULL DEFAULT '',
+       promoter          BOOLEAN NOT NULL,       
+       phase_match_group TEXT,
+       phase             INTEGER CHECK ( phase IS NULL OR phase IN ( -1, 0, 1, 2 ) )
+);
+GRANT SELECT ON cassettes TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON cassettes TO "[% rw_role %]";
+GRANT USAGE ON cassettes_id_seq TO "[% rw_role %]";
+
 CREATE TABLE process_types (
        id            TEXT PRIMARY KEY,
        description   TEXT NOT NULL DEFAULT ''
@@ -108,7 +120,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON process_design TO "[% rw_role %]";
 
 CREATE TABLE process_cassette (
        process_id      INTEGER PRIMARY KEY REFERENCES processes(id),
-       cassette        TEXT NOT NULL
+       cassette_id     INTEGER NOT NULL REFERENCES cassettes(id)
 );
 GRANT SELECT ON process_cassette TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_cassette TO "[% rw_role %]";
