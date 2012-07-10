@@ -2,7 +2,9 @@ package LIMS2::Report::VectorProductionSummary;
 
 use Moose;
 use DateTime;
+use DateTime::Format::ISO8601;
 use DateTime::Format::Strptime;
+use LIMS2::Report::VectorProductionDetail;
 use List::MoreUtils qw( any );
 use namespace::autoclean;
 
@@ -30,51 +32,55 @@ sub iterator {
 
     my $date_formatter = DateTime::Format::Strptime->new( pattern => '%b %Y' );
 
-    my $final_vectors_rs = $self->model->schema->resultset( 'Well' )->search(
-        {
-            'plate.type_id' => 'FINAL'
-        },
-        {
-            join     => 'plate',
-            prefetch => 'well_accepted_override',
-            order_by => { -asc => 'me.created_at' }
-        }
-    );
+    my $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model );
+    my @detail_cols = @{ $detail->columns };
 
-    my $well = $final_vectors_rs->next;
+    my @vectors;
+
+    my $it = $detail->iterator;
+
+    while ( my $row = $it->next ) {
+        my %h;
+        @h{@detail_cols}  = @{$row};
+        push @vectors, {
+            created_month => DateTime::Format::ISO8601->parse_datetime( $h{'Final Vector Created'} )->truncate( to => 'month' ),
+            gene_id       => $h{'MGI Accession Id'},
+            allele_type   => $self->allele_type_for( \%h ),
+            accepted      => ( $h{'Accepted?'} eq 'yes' ? 1 : 0 )
+        };        
+    }
+
+    @vectors = sort { $a->{created_month} <=> $b->{created_month} } @vectors;
 
     my %cumulative;
 
-    return Iterator::Simple::iter(
-        sub {
-            return unless $well;
-            my %this_month;
-            my $created_at = $well->created_at;
-            while ( $well and $self->is_same_month( $well->created_at, $created_at ) ) {
-                my $allele_type = $self->allele_type_for( $well );
-                for my $gene ( map { $_->gene_id } $well->design->genes ) {
-                    $this_month{$allele_type}{created}{$gene}++;
-                    $cumulative{$allele_type}{created}{$gene}++;
-                    if ( $well->is_accepted ) {
-                        $this_month{$allele_type}{accepted}{$gene}++;
-                        $cumulative{$allele_type}{accepted}{$gene}++;
-                    }
-                }
-                $well = $final_vectors_rs->next;
+    return Iterator::Simple::iter sub {
+        my $vector = shift @vectors
+            or return;
+        my $month = $vector->{created_month};
+        my %this_month;
+        while ( $vector and $vector->{created_month} == $month ) {
+            $this_month{ $vector->{allele_type} }{created}{ $vector->{gene_id} }++;
+            $cumulative{ $vector->{allele_type} }{created}{ $vector->{gene_id} }++;
+            if ( $vector->{accepted} ) {
+                $this_month{ $vector->{allele_type} }{accepted}{ $vector->{gene_id} }++;
+                $cumulative{ $vector->{allele_type} }{accepted}{ $vector->{gene_id} }++;
             }
-            return [ $date_formatter->format_datetime( $created_at ),
-                     $self->counts_and_efficiency( \%this_month ),
-                     $self->counts_and_efficiency( \%cumulative )
-                 ];
+            $vector = shift @vectors;
         }
-    );
+        return [
+            $date_formatter->format_datetime( $month ),
+            $self->counts_and_efficiency( \%this_month ),
+            $self->counts_and_efficiency( \%cumulative )
+        ];
+    }
 }
 
 sub allele_type_for {
-    my ( $self, $well ) = @_;
+    my ( $self, $data ) = @_;
 
-    if ( $self->is_second_allele( $well ) ) {
-        if ( $self->is_promoter( $well ) ) {
+    if ( $self->is_second_allele( $data ) ) {
+        if ( $self->is_promoter( $data ) ) {
             return 'second_allele_promoter';
         }
         else {
@@ -87,27 +93,21 @@ sub allele_type_for {
 }
 
 sub is_promoter {
-    my ( $self, $well ) = @_;
+    my ( $self, $data ) = @_;
 
-    return $well->cassette->promoter;
+    return $data->{'Cassette Type'} eq 'promoter';    
 }
 
 sub is_second_allele {
-    my ( $self, $well ) = @_;
+    my ( $self, $data ) = @_;
 
-    any { $_ eq 'Cre' } @{ $well->recombinases };
-}
-
-sub is_same_month {
-    my ( $self, $dt1, $dt2 ) = @_;
-
-    return $dt1->month == $dt2->month && $dt1->year == $dt2->year;
+    return $data->{Recombinase} =~ m/\bCre\b/;
 }
 
 sub count_for {
     my ( $self, $data, $allele_type, $status ) = @_;
 
-    scalar keys %{ $data->{$allele_type}->{$status} || {} };
+    return scalar keys %{ $data->{$allele_type}->{$status} || {} };
 }
 
 sub counts_and_efficiency {
