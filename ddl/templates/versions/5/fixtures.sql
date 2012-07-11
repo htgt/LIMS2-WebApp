@@ -89,3 +89,17 @@ VALUES
 ( 'L1L2_gt2_Del_LacZ', '', FALSE, 'L1L2_gt?_Del_LacZ', 2 ),
 ( 'L1L2_gt2', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', FALSE, 'L1L2_gt?', 2 ),
 ( 'pL1L2_GT2_bsd_frt15_neo_barcode', '', TRUE, 'pL1L2_GT?_bsd_frt15_neo_barcode', 2 );
+
+INSERT INTO backbones( name, description, antibiotic_res, gateway_type )
+VALUES
+( 'R3R4_pBR_amp', 'medium copy number vector backbone from gap repair plasmid from recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way' ),
+( 'L3L4_pZero_DTA_spec', '', '', '' ),
+( 'L3L4_pZero_DTA_kan_for_norcomm', '', '', '' ),
+( 'L3L4_pZero_kan', 'high copy number, no DTA', 'KanR', '3-way' ),
+( 'L3L4_pD223_spec', 'high copy number with DTA', 'spec R', '3-way' ),
+( 'R3R4_pBR_DTA _Bsd_amp', 'medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way' ),
+( 'L3L4_pD223_DTA_T_spec', 'high copy number with DTA', 'spec R', '3-way' ),
+( 'L3L4_pD223_DTA_spec', 'high copy number with DTA; version w/o E. Coli transcription terminator on L4 side; used in a ver limited number of experiments', 'spec R', '3-way' ),
+( 'R3R4_pBR_DTA+_Bsd_amp', 'medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way' ),
+( 'L3L4_pZero_DTA_kan', 'high copy number; standard backbone for promoterless vectors', 'KanR', '3-way' ),
+( 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 Gateway Sites with Linearization close to DTA pA, potentially compromising negative selection', 'spec R', '3-way' );

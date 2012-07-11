@@ -30,7 +30,7 @@ audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
 process_id integer,
-backbone text
+backbone_id integer
 );
 GRANT SELECT ON audit.process_backbone TO "[% ro_role %]";
 GRANT SELECT,INSERT ON audit.process_backbone TO "[% rw_role %]";
@@ -610,3 +610,34 @@ $cassettes_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER cassettes_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.cassettes
     FOR EACH ROW EXECUTE PROCEDURE public.process_cassettes_audit();
+
+CREATE TABLE audit.backbones (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+id integer,
+name text,
+description text,
+antibiotic_res text,
+gateway_type text
+);
+GRANT SELECT ON audit.backbones TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.backbones TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_backbones_audit()
+RETURNS TRIGGER AS $backbones_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.backbones SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.backbones SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.backbones SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$backbones_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER backbones_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.backbones
+    FOR EACH ROW EXECUTE PROCEDURE public.process_backbones_audit();
+    

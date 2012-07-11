@@ -80,6 +80,17 @@ GRANT SELECT ON cassettes TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON cassettes TO "[% rw_role %]";
 GRANT USAGE ON cassettes_id_seq TO "[% rw_role %]";
 
+CREATE TABLE backbones (
+       id                SERIAL PRIMARY KEY,
+       name              TEXT NOT NULL UNIQUE,
+       description       TEXT NOT NULL DEFAULT '',
+       antibiotic_res    TEXT NOT NULL DEFAULT '',
+       gateway_type      TEXT NOT NULL DEFAULT ''
+);
+GRANT SELECT ON backbones TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON backbones TO "[% rw_role %]";
+GRANT USAGE ON backbones_id_seq TO "[% rw_role %]";
+
 CREATE TABLE process_types (
        id            TEXT PRIMARY KEY,
        description   TEXT NOT NULL DEFAULT ''
@@ -127,7 +138,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON process_cassette TO "[% rw_role %]";
 
 CREATE TABLE process_backbone (
        process_id      INTEGER PRIMARY KEY REFERENCES processes(id),
-       backbone        TEXT NOT NULL
+       backbone_id     INTEGER NOT NULL REFERENCES backbones(id)
 );
 GRANT SELECT ON process_backbone TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_backbone TO "[% rw_role %]";
