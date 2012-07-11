@@ -37,13 +37,25 @@ const my %PROCESS_INPUT_WELL_CHECK => (
     },
 );
 
-## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _well_id_for {
     my ( $self, $data ) = @_;
 
     return $self->retrieve_well($data)->id;
 }
-## use critic
+
+sub _cassette_id_for {
+    my ( $self, $cassette_name ) = @_;
+
+    my $cassette = $self->retrieve( Cassette => { name => $cassette_name } );
+    return $cassette->id;
+}
+
+sub _backbone_id_for {
+    my ( $self, $backbone_name ) = @_;
+
+    my $backbone = $self->retrieve( Backbone => { name => $backbone_name } );
+    return $backbone->id;
+}
 
 sub check_input_wells {
     my ( $self, $process ) = @_;
@@ -272,8 +284,8 @@ sub _create_process_aux_data_int_recom {
     my $validated_params
         = $self->check_params( $params, $self->pspec__create_process_aux_data_int_recom );
 
-    $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } );
-    $process->create_related( process_backbone => { backbone => $validated_params->{backbone} } );
+    $process->create_related( process_cassette => { cassette_id => $self->_cassette_id_for( $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => $self->_backbone_id_for( $validated_params->{backbone} ) } );
 
     return;
 }
@@ -296,9 +308,9 @@ sub _create_process_aux_data_2w_gateway {
     my $validated_params
         = $self->check_params( $params, $self->pspec__create_process_aux_data_2w_gateway );
 
-    $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } )
+    $process->create_related( process_cassette => { cassette_id => $self->_cassette_id_for( $validated_params->{cassette} ) } )
         if $validated_params->{cassette};
-    $process->create_related( process_backbone => { backbone => $validated_params->{backbone} } )
+    $process->create_related( process_backbone => { backbone_id => $self->_backbone_id_for( $validated_params->{backbone} ) } )
         if $validated_params->{backbone};
 
     if ( $validated_params->{recombinase} ) {
@@ -325,8 +337,8 @@ sub _create_process_aux_data_3w_gateway {
     my $validated_params
         = $self->check_params( $params, $self->pspec__create_process_aux_data_3w_gateway );
 
-    $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } );
-    $process->create_related( process_backbone => { backbone => $validated_params->{backbone} } );
+    $process->create_related( process_cassette => { cassette_id => $self->_cassette_id_for( $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => $self->_backbone_id_for( $validated_params->{backbone} ) } );
 
     if ( $validated_params->{recombinase} ) {
         $self->_create_process_aux_data_recombinase(
@@ -379,8 +391,8 @@ sub _create_process_aux_data_cre_bac_recom {
     my $validated_params
         = $self->check_params( $params, $self->pspec__create_process_aux_data_cre_bac_recom );
 
-    $process->create_related( process_cassette => { cassette => $validated_params->{cassette} } );
-    $process->create_related( process_backbone => { backbone => $validated_params->{backbone} } );
+    $process->create_related( process_cassette => { cassette_id => $self->_cassette_id_for( $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => $self->_backbone_id_for( $validated_params->{backbone} ) } );
 
     return;
 }

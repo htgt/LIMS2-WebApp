@@ -69,7 +69,7 @@ sub final_vectors_iterator {
             $vector->{well}->as_string,
             $vector->{well}->created_at->ymd,
             $vector->{cassette}->name,
-            $vector->{backbone},
+            $vector->{backbone}->name,
             join( q{,}, @{$vector->{recombinase}} ),
             ( $vector->{cassette}->promoter ? 'promoter' : 'promoterless' ),
             ( $vector->{well}->is_accepted ? 'yes' : 'no' )

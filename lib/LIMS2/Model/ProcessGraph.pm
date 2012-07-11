@@ -76,7 +76,7 @@ has prefetch_process_data => (
     default  => sub {
         [ 'process_design',
           { 'process_cassette' => 'cassette' },
-          'process_backbone',
+          { 'process_backbone' => 'backbone' },
           'process_recombinases'
       ]
     }
@@ -276,7 +276,7 @@ sub process_data_for {
 
     return ( $well->design->id,
              ( $well->cassette ? $well->cassette->name : '' ),
-             ( $well->backbone ? $well->backbone : '' ),
+             ( $well->backbone ? $well->backbone->name : '' ),
              join( q{,}, @{$well->recombinases} )
          );
 }
