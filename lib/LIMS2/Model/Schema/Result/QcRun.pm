@@ -16,7 +16,6 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
-use List::MoreUtils qw( uniq );
 extends 'DBIx::Class::Core';
 
 =head1 COMPONENTS LOADED
@@ -204,8 +203,10 @@ Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 __PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IMY7Aa2uchYCH450y3+aOg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-11 10:47:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ln5Haw2iJWnRtsVG6t3Klw
+
+use List::MoreUtils qw( uniq );
 
 sub as_hash {
     my $self = shift;
@@ -290,5 +291,6 @@ sub primers {
     return [ uniq @primers ];
 }
 
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
