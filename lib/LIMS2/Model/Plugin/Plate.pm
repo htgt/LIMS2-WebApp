@@ -66,9 +66,36 @@ sub pspec_retrieve_plate {
 sub retrieve_plate {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate );
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
     my $plate = $self->retrieve( Plate => $validated_params );
+
+    return $plate;
+}
+
+sub pspec_set_plate_assay_complete {
+    my $self = shift;
+    return +{
+        %{ $self->pspec_retrieve_plate },
+        completed_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
+    };
+}
+
+sub set_plate_assay_complete {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_assay_complete );
+
+    my $plate = $self->retrieve_plate( $validated_params );
+
+    for my $well ( $plate->wells ) {
+        $self->set_well_assay_complete(
+            {
+                id           => $well->id,
+                completed_at => $validated_params->{completed_at}
+            }
+        );
+    }
 
     return $plate;
 }

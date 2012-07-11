@@ -1,3 +1,7 @@
+DELETE FROM well_dna_status;
+DELETE FROM well_dna_quality;
+DELETE FROM well_recombineering_results;
+DELETE FROM well_qc_sequencing_result;
 DELETE FROM process_bac;
 DELETE FROM process_recombinase;
 DELETE FROM process_output_well;
@@ -42,6 +46,9 @@ DELETE FROM plate_comments;
 DELETE FROM plates;
 DELETE FROM plate_types;
 DELETE FROM recombinases;
+DELETE FROM recombineering_result_types;
+DELETE FROM cassettes;
+DELETE FROM backbones;
 DELETE FROM user_role;
 DELETE FROM roles;
 DELETE FROM users;

@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
+use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -170,7 +171,8 @@ sub update_well_accepted_override {
         unless $override->accepted xor $validated_params->{accepted};
 
     $override->update( { slice_def $validated_params, qw( created_by_id created_at accepted ) } );
-    return;
+
+    return $override;
 }
 
 sub pspec_create_well_recombineering_result {
@@ -329,6 +331,44 @@ sub retrieve_well_qc_sequencing_result {
         or $self->throw( NotFound => { entity_class => 'WellQcSequencingResult', search_params => $params } );
 
     return $qc_seq_result;
+}
+
+sub pspec_set_well_assay_complete {
+    my $self = shift;
+    return +{
+        %{ $self->pspec_retrieve_well },
+        completed_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
+    }
+}
+
+sub set_well_assay_complete {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_well_assay_complete );
+
+    my $well = $self->retrieve_well( $validated_params );
+
+    # XXX We aren't checking that the well doesn't already have
+    # assay_complete set, we will just silently overwrite an existing
+    # value.
+
+    my $assay_complete = $validated_params->{completed_at} || \'CURRENT_TIMESTAMP';
+
+    # XXX We aren't checking if the well has a well_accepted_override.
+    # If it does, then the value set here is ignored. Arguably the
+    # create_well_accepted_override() method should refuse to do
+    # anything if assay_complete isn't already set.
+
+    my $accepted = compute_accepted_status( $self, $well );
+
+    $well->update(
+        {
+            assay_complete => $assay_complete,
+            accepted       => $accepted
+        }
+    );
+
+    return $well;
 }
 
 1;

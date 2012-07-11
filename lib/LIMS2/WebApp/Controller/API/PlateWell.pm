@@ -292,6 +292,47 @@ sub well_qc_sequencing_result_POST {
     );
 }
 
+sub plate_assay_complete :Path('/api/plate/assay_complete') :Args(0) :ActionClass('REST') {
+}
+
+sub plate_assay_complete_PUT {
+    my ( $self, $c ) = @_;
+
+    my %params = (
+        %{ $c->request->params },
+        %{ $c->request->data }
+    );
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->set_plate_assay_complete( \%params );
+        }
+    );
+
+    return $self->status_no_content( $c );
+}
+        
+
+sub well_assay_complete :Path('/api/well/assay_complete') :Args(0) :ActionClass('REST') {
+}
+
+sub well_assay_complete_PUT {
+    my ( $self, $c ) = @_;
+
+    my %params = (
+        %{ $c->request->params },
+        %{ $c->request->data }
+    );
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->set_well_assay_complete( \%params );
+        }
+    );
+
+    return $self->status_no_content( $c );
+}
+
 =head1 AUTHOR
 
 Ray Miller

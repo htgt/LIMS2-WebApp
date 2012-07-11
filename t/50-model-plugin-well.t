@@ -27,11 +27,7 @@ note( "Testing well creation" );
     ok my $retrieve_well = model->retrieve_well( { id => $well->id } ),
         'retrieve_well by id should succeed';
     is $well->id, $retrieve_well->id, 'has correct id';
-
-    #ok $well_process->delete, 'can delete well process';
-    ok $well->delete, 'can delete well';
 }
-
 
 {
     note( "Testing well retrieve" );
@@ -58,6 +54,56 @@ note( "Testing well creation" );
     } qr/Well already has accepted override with value TRUE/;
 
     ok $override->delete, 'can delete override';
+}
+
+{
+    note( "Testing set_well_assay_complete" );
+
+    my $date_time = DateTime->new(
+        year   => 2010,
+        month  => 9,
+        day    => 12,
+        hour   => 10,
+        minute => 5,
+        second => 7            
+    );    
+
+    my %params = ( %{ $well_data->{well_retrieve} },
+                   completed_at => $date_time->iso8601
+               );
+
+    ok my $well = model->set_well_assay_complete( \%params ), 'set_well_assay_complete should succeed';
+
+    ok ! $well->accepted, 'well is not automatically accepted';
+
+    is $well->assay_complete, $date_time, 'assay_complete has expected datetime';
+
+    ok model->create_well_qc_sequencing_result(
+        {
+            well_id         => $well->id,
+            valid_primers   => 'LR,PNF,R1R',
+            pass            => 1,
+            test_result_url => 'http://example.org/some/url/or/other',
+            created_by      => 'test_user@example.org'
+        }
+    ), 'create QC sequencing result';
+
+    $date_time = DateTime->now;
+    
+    ok $well = model->set_well_assay_complete( { id => $well->id, completed_at => $date_time->iso8601 } ),
+        'set_well_assay_complete should succeed';
+
+    ok $well->accepted, 'well is automatically accepted now that we have a sequencing pass';
+
+    is $well->assay_complete, $date_time, 'assay_complete has expected datetime';
+}
+
+{
+    note( "Testing delete_well" );
+    
+    lives_ok {
+        model->delete_well( { plate_name => 'PCS100', well_name => 'B01' } )
+    } 'delete well';
 }
 
 done_testing();
