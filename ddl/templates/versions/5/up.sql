@@ -163,7 +163,7 @@ CREATE TABLE process_recombinase (
        recombinase_id    TEXT NOT NULL REFERENCES recombinases(id),
        rank              INTEGER NOT NULL,
        PRIMARY KEY(process_id,rank),
-       UNIQUE(process_id, recombinase)
+       UNIQUE(process_id, recombinase_id)
 );
 GRANT SELECT ON process_recombinase TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_recombinase TO "[% rw_role %]";
