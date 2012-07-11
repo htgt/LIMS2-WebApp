@@ -57,9 +57,9 @@ my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
         'process is of correct type';
 
     ok my $process_cassette = $process->process_cassette, 'process has a process_cassette';
-    is $process_cassette->cassette, 'pR6K_R1R2_ZP', 'process_cassette has correct cassette';
+    is $process_cassette->cassette->name, 'pR6K_R1R2_ZP', 'process_cassette has correct cassette';
     ok my $process_backbone = $process->process_backbone, 'process has a process_backbone';
-    is $process_backbone->backbone, 'R3R4_pBR_amp', 'process_backbone has correct backbone';
+    is $process_backbone->backbone->name, 'R3R4_pBR_amp', 'process_backbone has correct backbone';
 
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
@@ -94,7 +94,7 @@ my $process_data_2w_gateway= test_data( '2w_gateway_process.yaml' );
         'process is of correct type';
 
     ok my $process_cassette = $process->process_cassette, 'process has a process_cassette';
-    is $process_cassette->cassette, 'L1L2_Bact_P', 'process_cassette has correct cassette';
+    is $process_cassette->cassette->name, 'L1L2_Bact_P', 'process_cassette has correct cassette';
 
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
@@ -136,10 +136,10 @@ my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
         'process is of correct type';
 
     ok my $process_cassette = $process->process_cassette, 'process has a process_cassette';
-    is $process_cassette->cassette, 'L1L2_Bact_P', 'process_cassette has correct cassette';
+    is $process_cassette->cassette->name, 'L1L2_Bact_P', 'process_cassette has correct cassette';
 
     ok my $process_backbone = $process->process_backbone, 'process has a process_backbone';
-    is $process_backbone->backbone, 'PL611', 'process_backbone has correct backbone';
+    is $process_backbone->backbone->name, 'L3L4_pZero_kan', 'process_backbone has correct backbone';
 
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
@@ -177,9 +177,9 @@ my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
         'process is of correct type';
 
     ok my $process_cassette = $process->process_cassette, 'process has a process_cassette';
-    is $process_cassette->cassette, 'pR6K_R1R2_ZP', 'process_cassette has correct cassette';
+    is $process_cassette->cassette->name, 'pR6K_R1R2_ZP', 'process_cassette has correct cassette';
     ok my $process_backbone = $process->process_backbone, 'process has a process_backbone';
-    is $process_backbone->backbone, 'R3R4_pBR_amp', 'process_backbone has correct backbone';
+    is $process_backbone->backbone->name, 'R3R4_pBR_amp', 'process_backbone has correct backbone';
 
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
