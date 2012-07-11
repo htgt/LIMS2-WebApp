@@ -298,6 +298,8 @@ sub plate_assay_complete :Path('/api/plate/assay_complete') :Args(0) :ActionClas
 sub plate_assay_complete_PUT {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'edit' );
+
     my %params = (
         %{ $c->request->params },
         %{ $c->request->data }
@@ -311,13 +313,14 @@ sub plate_assay_complete_PUT {
 
     return $self->status_no_content( $c );
 }
-        
 
 sub well_assay_complete :Path('/api/well/assay_complete') :Args(0) :ActionClass('REST') {
 }
 
 sub well_assay_complete_PUT {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
 
     my %params = (
         %{ $c->request->params },

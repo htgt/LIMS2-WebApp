@@ -30,6 +30,8 @@ sub report_ready :Path( '/api/report/ready' ) :Args(1) :ActionClass('REST') {
 sub report_ready_GET {
     my ( $self, $c, $report_id ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     my $work_dir = $self->report_dir->subdir( $report_id );
 
     unless ( $work_dir->stat and -d _ ) {

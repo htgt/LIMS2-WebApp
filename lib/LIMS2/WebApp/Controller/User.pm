@@ -28,12 +28,49 @@ sub auto : Private {
     return 1;
 }
 
+=head2 end
+
+If we are runnning in production, we don't want to scare off the users
+with the Catalyst error message. But in debug mode, we want the stack
+trace in its full glory. This method runs at the end of a request and,
+if we have errors and are not in debug mode, redirects to the index
+with a simple error message.
+
+=cut
+
+sub end :Private {
+    my ( $self, $c ) = @_;
+
+    my @errors = @{ $c->error };
+    if ( @errors > 0 && ! $c->debug ) {
+        $c->log->error( $_ ) for @errors;
+        $c->clear_errors;
+        $c->stash( errors => \@errors );
+        return $c->go( 'error' );
+    }
+
+    return $c->detach( 'Controller::Root', 'end' );
+}
+
 =head2 index
 
 =cut
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    return;
+}
+
+=head2 error
+
+=cut
+
+sub error :Local {
+    my ( $self, $c ) = @_;
+    $c->stash( template => 'user/error.tt' );
     return;
 }
 

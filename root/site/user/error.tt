@@ -1,0 +1,19 @@
+<h1>Oops! Something bad just happened.</h1>
+
+<p>
+  An error occurred and we are unable to complete your request at
+  this time.
+</p>
+
+<h2>Details</h2>
+[% FOR message IN errors %]
+<div class="alert alert-error">
+  <p>
+    [% message %]
+  </p>
+</div>
+[% END %]
+
+
+
+  

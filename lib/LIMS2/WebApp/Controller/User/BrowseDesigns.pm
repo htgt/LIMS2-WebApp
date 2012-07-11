@@ -26,6 +26,8 @@ Catalyst Controller.
 sub index : Path( '/user/browse_designs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     $c->stash(
         design_id => $c->request->param('design_id') || undef,
         gene_id   => $c->request->param('gene_id')   || undef,
@@ -53,6 +55,8 @@ const my @DISPLAY_DESIGN => (
 
 sub view_design : Path( '/user/view_design' ) : Args(0) {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
 
     my $design_id = $c->request->param('design_id');
 
@@ -86,6 +90,8 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
 
 sub list_designs : Path( '/user/list_designs' ) : Args(0) {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
 
     my $gene_id = $c->request->param('gene_id');
 

@@ -36,6 +36,8 @@ Synchronously generate the report I<$REPORT>. Forward to an HTML view.
 sub sync_report :Path( '/user/report/sync' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     my $report_id = LIMS2::Report::generate_report(
         model      => $c->model( 'Golgi' ),
         report     => $report,
@@ -56,6 +58,8 @@ while the report is generated.
 
 sub async_report :Path( '/user/report/async' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
+
+    $c->assert_user_roles( 'read' );
 
     my $report_id = LIMS2::Report::generate_report(
         model      => $c->model('Golgi'),
@@ -83,6 +87,8 @@ Read report I<$REPORT_ID> from disk and deliver CSV file to browser.
 sub download_report :Path( '/user/report/download' ) :Args(1) {
     my ( $self, $c, $report_id ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     my ( $report_name, $report_fh ) = $self->_read_report_from_disk( $report_id );
 
     $c->response->status( 200 );
@@ -100,6 +106,8 @@ Read report I<$REPORT_ID> from disk and deliver as paged HTML table.
 
 sub view_report :Path( '/user/report/view' ) :Args(1) {
     my ( $self, $c, $report_id ) = @_;
+
+    $c->assert_user_roles( 'read' );
 
     my ( $report_name, $report_fh ) = $self->_read_report_from_disk( $report_id );
 

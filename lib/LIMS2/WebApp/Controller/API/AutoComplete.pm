@@ -29,6 +29,9 @@ sub qc_templates :Path( '/api/autocomplete/qc_templates' ) :Args(0) :ActionClass
 
 sub qc_templates_GET {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
     my $template_names;
 
     try {
@@ -54,6 +57,9 @@ sub sequencing_projects :Path( '/api/autocomplete/sequencing_projects' ) :Args(0
 
 sub sequencing_projects_GET {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
     my $sequencing_project_names;
 
     try {
@@ -79,6 +85,8 @@ sub marker_symbols :Path( '/api/autocomplete/marker_symbols' ) :Args(0) :ActionC
 
 sub marker_symbols_GET {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
 
     my $search_term = $c->request->param( 'term' )
         or return [];

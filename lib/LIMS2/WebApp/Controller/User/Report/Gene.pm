@@ -24,6 +24,8 @@ Catalyst Controller.
 sub index :Path( '/user/report/gene' ) :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     $c->stash( template => "user/report/gene_report.tt" );
 
     my $gene_id = $c->request->param( 'gene_id' )
