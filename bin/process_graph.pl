@@ -17,7 +17,7 @@ GetOptions(
     verbose       => sub { $log_level = $INFO },
     'output=s'    => \my $output_file,
     'ancestors'   => sub { $type = 'ancestors' },
-    'descendants' => sub { $type = 'descendants' }    
+    'descendants' => sub { $type = 'descendants' }
 ) and @ARGV == 2
     or die "Usage: $0 PLATE_NAME WELL_NAME\n";
 

@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+   Implement plate and well tracking
+   Implement browse interface for qc-runs
+   Implement reporting framework
+
 0.003     2012-06-15 12:51:09 Europe/London
 
    Implement schema to store designs and BACs.

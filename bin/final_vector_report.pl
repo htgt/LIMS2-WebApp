@@ -30,7 +30,7 @@ while ( my $gene_design = $gene_design_rs->next ) {
     my $design_id = $gene_design->design_id;
     my @design_wells = map { $_->output_wells } $gene_design->design->processes;
     for my $design_well ( @design_wells ) {
-        my %attrs = (  gene_id => $gene_id, design_id => $design_id, design_well => $design_well, recombinase => [] );        
+        my %attrs = (  gene_id => $gene_id, design_id => $design_id, design_well => $design_well, recombinase => [] );
         my @final_vectors = collect_final_vectors( $design_well, $design_well->descendants, \%attrs );
         for my $vector ( @final_vectors ) {
             $csv->print(
@@ -49,7 +49,7 @@ while ( my $gene_design = $gene_design_rs->next ) {
                 ]
             );
         }
-    }    
+    }
 }
 
 sub collect_final_vectors {
@@ -65,10 +65,10 @@ sub collect_final_vectors {
         if ( my @recombinase = $process->process_recombinases ) {
             push @{ $attrs->{recombinase} }, map { $_->recombinase_id } sort { $a->rank <=> $b->rank } @recombinase;
         }
-    }    
+    }
 
     my @final_vectors;
-    
+
     if ( $current_node->plate->type_id eq 'FINAL' ) {
         push @final_vectors, { %{$attrs}, well => $current_node };
     }
@@ -78,8 +78,8 @@ sub collect_final_vectors {
         push @final_vectors, collect_final_vectors( $child_well, $graph, \%attrs );
     }
 
-    return @final_vectors;    
+    return @final_vectors;
 }
 
-    
-    
+
+

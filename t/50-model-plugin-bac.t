@@ -26,7 +26,7 @@ is_deeply $bac1->as_hash, \%bac1_data, 'as_hash() returns expected data structur
 
 my %bac2_data = (
     bac_library =>  'black6',
-    bac_name    =>  'CT7-156D8',
+    bac_name    =>  'CT7-156D9',
     loci        => [
         {
             assembly  => 'NCBIM37',
