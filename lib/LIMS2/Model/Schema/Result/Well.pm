@@ -433,7 +433,7 @@ sub cassette {
 
     my $process_cassette = $self->ancestors->find_process( $self, 'process_cassette' );
 
-    return $process_cassette ? $process_cassette->cassette : '';
+    return $process_cassette ? $process_cassette->cassette : undef;
 }
 
 sub backbone {
@@ -443,7 +443,7 @@ sub backbone {
 
     my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
 
-    return $process_backbone ? $process_backbone->backbone : '';
+    return $process_backbone ? $process_backbone->backbone : undef;
 }
 
 sub recombinases {
