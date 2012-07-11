@@ -311,7 +311,6 @@ sub plate_assay_complete_PUT {
 
     return $self->status_no_content( $c );
 }
-        
 
 sub well_assay_complete :Path('/api/well/assay_complete') :Args(0) :ActionClass('REST') {
 }
