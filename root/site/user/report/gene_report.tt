@@ -24,8 +24,8 @@
         <td>[% well.plate.name %]</td>
         <td>[% well.name %]</td>
         <td>[% well.created_at.ymd %]</td>
-        <td>[% well.cassette %]</td>
-        <td>[% well.backbone %]</td>
+        <td>[% well.cassette.name %]</td>
+        <td>[% well.backbone.name %]</td>
         <td>[% well.recombinases.join( ", " ) %]</td>
         <td>
           [% IF well.well_qc_sequencing_result;
