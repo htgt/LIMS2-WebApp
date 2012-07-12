@@ -1,0 +1,22 @@
+---
+valid_input:
+    type: rearray
+    output_wells:
+        - plate_name: PCS200
+          well_name: A01
+    input_wells: 
+        - plate_name: PCS100
+          well_name: A01
+missing_input_well:
+    type: rearray
+    output_wells:
+        - plate_name: PCS100
+          well_name: A01
+input_and_output_wells_different_type:
+    type: rearray
+    output_wells:
+        - plate_name: PGS100
+          well_name: A01
+    input_wells: 
+        - plate_name: PCS100
+          well_name: A01

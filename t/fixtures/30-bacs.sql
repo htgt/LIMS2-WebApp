@@ -1,0 +1,9 @@
+--
+-- Minimal Bac Data
+--
+
+INSERT INTO bac_clones VALUES (92013, 'CT7-156D8', 'black6');
+INSERT INTO bac_clones VALUES (92039, 'CT7-297D11', 'black6');
+
+INSERT INTO bac_clone_loci VALUES (92013, 'NCBIM37', '1', 194454015, 194680061);
+INSERT INTO bac_clone_loci VALUES (92039, 'NCBIM37', '1', 194839227, 195070608);

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::User::VERSION = '0.003';
+    $LIMS2::Model::Schema::Result::User::VERSION = '0.004';
 }
 ## use critic
 
@@ -158,6 +158,36 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 plate_comments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::PlateComment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "plate_comments",
+  "LIMS2::Model::Schema::Result::PlateComment",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Plate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "plates",
+  "LIMS2::Model::Schema::Result::Plate",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 qc_runs
 
 Type: has_many
@@ -188,6 +218,111 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_accepted_overrides
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellAcceptedOverride>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_accepted_overrides",
+  "LIMS2::Model::Schema::Result::WellAcceptedOverride",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_comments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellComment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_comments",
+  "LIMS2::Model::Schema::Result::WellComment",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_dna_qualities
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellDnaQuality>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_dna_qualities",
+  "LIMS2::Model::Schema::Result::WellDnaQuality",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_dna_statuses
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellDnaStatus>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_dna_statuses",
+  "LIMS2::Model::Schema::Result::WellDnaStatus",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_qc_sequencing_results
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellQcSequencingResult>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_qc_sequencing_results",
+  "LIMS2::Model::Schema::Result::WellQcSequencingResult",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_recombineering_results
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellRecombineeringResult>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_recombineering_results",
+  "LIMS2::Model::Schema::Result::WellRecombineeringResult",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Well>
+
+=cut
+
+__PACKAGE__->has_many(
+  "wells",
+  "LIMS2::Model::Schema::Result::Well",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 roles
 
 Type: many_to_many
@@ -199,8 +334,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:48:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ybYfORtX6Hh1mKDsaxt98Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-02 10:22:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k2HlEbwruz4Il4JOVcQ1rw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

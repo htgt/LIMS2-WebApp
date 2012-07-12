@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Auth;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Auth::VERSION = '0.003';
+    $LIMS2::WebApp::Controller::Auth::VERSION = '0.004';
 }
 ## use critic
 
@@ -31,7 +31,9 @@ sub login : Global {
 
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
-    my $goto     = $c->req->param('goto_on_success') || $c->uri_for('/');
+    my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
+
+    $c->stash( goto_on_success => $goto );
 
     return unless $c->req->param('login');
 
@@ -40,7 +42,7 @@ sub login : Global {
         return;
     }
 
-    if ( $c->authenticate( { name => $username, password => $password, active => 1 } ) ) {
+    if ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
         $c->flash( success_msg => 'Login successful' );
         return $c->res->redirect($goto);
     }

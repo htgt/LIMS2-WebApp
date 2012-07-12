@@ -1,0 +1,30 @@
+---
+valid_input:
+    type: 3w_gateway
+    cassette: L1L2_Bact_P
+    backbone: L3L4_pZero_kan
+    output_wells:
+        - plate_name: PGS100
+          well_name: A01
+    input_wells: 
+        - plate_name: PCS100
+          well_name: A01
+    recombinase:
+        - Cre
+missing_input_well:
+    type: 3w_gateway
+    cassette: L1L2_Bact_P
+    backbone: L3L4_pZero_kan
+    output_wells:
+        - plate_name: PCS100
+          well_name: A01
+invalid_input_well:
+    type: 3w_gateway
+    cassette: L1L2_Bact_P
+    backbone: L3L4_pZero_kan
+    output_wells:
+        - plate_name: PCS100
+          well_name: A01
+    input_wells: 
+        - plate_name: 100
+          well_name: A01

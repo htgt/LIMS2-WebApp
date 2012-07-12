@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.003';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.004';
 }
 ## use critic
 
@@ -203,6 +203,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessDesign>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_designs",
+  "LIMS2::Model::Schema::Result::ProcessDesign",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 type
 
 Type: belongs_to
@@ -219,8 +234,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-31 11:10:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pHH+xa16NjY04p3jFIhJlw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 10:23:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OeNg6FPP+f2Zu1ud7yngdw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -229,6 +244,12 @@ __PACKAGE__->might_have(
     "ncbim37_locus",
     "LIMS2::Model::Schema::Result::DesignOligoLocusNCBIM37",
     { "foreign.design_id" => "self.id" }
+);
+
+__PACKAGE__->many_to_many(
+    "processes",
+    "process_designs",
+    "process"
 );
 
 sub as_hash {

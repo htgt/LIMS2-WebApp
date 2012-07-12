@@ -1,7 +1,7 @@
 package LIMS2::Catalyst::Controller::REST;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Catalyst::Controller::REST::VERSION = '0.003';
+    $LIMS2::Catalyst::Controller::REST::VERSION = '0.004';
 }
 ## use critic
 
@@ -9,7 +9,6 @@ package LIMS2::Catalyst::Controller::REST;
 use Moose;
 use Scalar::Util qw( blessed );
 use HTTP::Status qw( :constants );
-use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller::REST'; }
@@ -85,7 +84,8 @@ sub handle_lims2_model_error {
     }
 
     if ( $error->isa('LIMS2::Exception::Validation') ) {
-        if ( my $results = $error->results ) {
+        my $results = $error->results;
+        if ( defined $results ) {
             $entity{missing} = [ $results->missing ]
                 if $results->has_missing;
             $entity{invalid} = { map { $_ => $results->invalid($_) } $results->invalid }

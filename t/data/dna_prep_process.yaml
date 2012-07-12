@@ -1,0 +1,17 @@
+---
+valid_input:
+    type: dna_prep
+    output_wells:
+        - plate_name: PGS100
+          well_name: A01
+    input_wells: 
+        - plate_name: FINAL100
+          well_name: A01
+invalid_input_well:
+    type: dna_prep
+    output_wells:
+        - plate_name: PGS100
+          well_name: A01
+    input_wells: 
+        - plate_name: PCS100
+          well_name: A01

@@ -1,7 +1,7 @@
 package LIMS2::Model;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::VERSION = '0.003';
+    $LIMS2::Model::VERSION = '0.004';
 }
 ## use critic
 
@@ -14,35 +14,18 @@ require LIMS2::Model::DBConnect;
 require LIMS2::Model::FormValidator;
 require DateTime::Format::ISO8601;
 require Module::Pluggable::Object;
+use LIMS2::Model::Util::PgUserRole qw( db_name );
 use Data::Dump qw( pp );
+use CHI;
 use Scalar::Util qw( blessed );
 use namespace::autoclean;
 
 # XXX TODO: authorization checks?
 
-# This assumes we're using Catalyst::Model::Factory::PerRequest and
-# setting the audit_user when the LIMS2::Model object is
-# instantiated. If necessary, we could make audit_user rw and allow
-# the model object to be reused.
-
 has audit_user => (
     is      => 'ro',
     isa     => 'Str',
-    trigger => \&_audit_user_set
 );
-
-sub _audit_user_set {
-    my ( $self, $user, $old_user ) = @_;
-
-    $self->schema->storage->dbh_do(
-        sub {
-            my ( $storage, $dbh ) = @_;
-            $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($user) );
-        }
-    );
-
-    return;
-}
 
 has user => (
     is  => 'ro',
@@ -62,13 +45,55 @@ sub _build_schema {
     my $user = $self->user
         or confess "user must be specified for database login";
 
-    return LIMS2::Model::DBConnect->connect( 'LIMS2_DB', $user );
+    my $schema = LIMS2::Model::DBConnect->connect( 'LIMS2_DB', $user );
+
+    if ( my $audit_user = $self->audit_user ) {
+        $schema->storage->dbh_do(
+            sub {
+                my ( $storage, $dbh ) = @_;
+                $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($audit_user) );
+            }
+        );
+    }
+
+    return $schema;
 }
 
 sub txn_do {
     my ( $self, $code_ref, @args ) = @_;
 
     return $self->schema->txn_do( $code_ref, $self, @args );
+}
+
+sub software_version {
+    return $__PACKAGE__::VERSION || 'dev';
+}
+
+sub database_name {
+    return db_name( shift->schema->storage->dbh );
+}
+
+# has_XXX_cache attributes may be defined in a plugin; their builder
+# method will call this one with an appropriate namespace.  See
+# LIMS2::Model::Plugin::Gene for an example
+
+sub _build_cache {
+    my ( $self, $namespace ) = @_;
+
+    my %chi_args = (
+        driver     => 'Memory',
+        max_size   => '1m',
+        expires_in => '8 hours',
+        namespace  => $namespace,
+        global     => 1
+    );
+
+    if ( my $root_dir = $ENV{LIMS2_MODEL_CACHE_ROOT} ) {
+        $chi_args{driver}   = 'FastMmap';
+        $chi_args{root_dir} = $root_dir;
+    }
+
+    return CHI->new( %chi_args );
 }
 
 has form_validator => (
@@ -116,17 +141,15 @@ sub _build_ensembl_util {
     return LIMS2::Util::EnsEMBL->new;
 }
 
-has solr_util => (
-    isa        => 'LIMS2::Util::Solr',
-    lazy_build => 1,
-    handles    => {
-        solr_query => 'query'
-    }
-);
-
-sub _build_solr_util {
+sub solr_util {
+    my $self = shift;
     require LIMS2::Util::Solr;
-    return LIMS2::Util::Solr->new;
+    return LIMS2::Util::Solr->new(@_);
+}
+
+sub solr_query {
+    my $self = shift;
+    return $self->solr_util->query(@_);
 }
 
 ## no critic(RequireFinalReturn)

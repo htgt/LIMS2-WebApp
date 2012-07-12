@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcRun;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcRun::VERSION = '0.003';
+    $LIMS2::Model::Schema::Result::QcRun::VERSION = '0.004';
 }
 ## use critic
 
@@ -209,8 +209,10 @@ Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 __PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IMY7Aa2uchYCH450y3+aOg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-11 10:47:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ln5Haw2iJWnRtsVG6t3Klw
+
+use List::MoreUtils qw( uniq );
 
 sub as_hash {
     my $self = shift;
@@ -222,8 +224,79 @@ sub as_hash {
         profile          => $self->profile,
         software_version => $self->software_version,
         qc_template      => $self->qc_template->name,
+        sequencing_projects => [ map{ $_->id } $self->qc_seq_projects ],
     };
 }
 
+sub count_designs {
+    my $self = shift;
+
+    my $qc_template_wells = $self->qc_template->qc_template_wells;
+    return 0 unless $qc_template_wells->count;
+
+    my @design_ids;
+    foreach my $well ( $qc_template_wells->all ) {
+        my $design_id = $well->as_hash->{eng_seq_params}{design_id};
+        push @design_ids, $design_id if $design_id;
+    }
+
+    return scalar( uniq @design_ids );
+}
+
+sub count_observed_designs {
+    my $self = shift;
+
+    return $self->_uniq_design_ids_from_test_results(
+        $self->search_related_rs(
+            qc_test_results => {},
+            { prefetch => 'qc_eng_seq', }
+        )
+    );
+}
+
+sub count_valid_designs {
+    my $self = shift;
+
+    return $self->_uniq_design_ids_from_test_results(
+        $self->search_related_rs(
+            qc_test_results => {
+                'me.pass' => 1
+            },
+            {
+                prefetch => 'qc_eng_seq',
+            }
+        )
+    );
+}
+
+sub _uniq_design_ids_from_test_results {
+    my ( $self, $test_results ) = @_;
+
+    return 0 unless $test_results->count;
+
+    my @design_ids;
+    foreach my $test_result ( $test_results->all ) {
+        my $eng_seq_params = $test_result->qc_eng_seq->as_hash;
+        my $design_id = $eng_seq_params->{eng_seq_params}{design_id};
+        push @design_ids, $design_id if $design_id;
+    }
+
+    return scalar( uniq @design_ids );
+}
+
+sub primers {
+    my $self = shift;
+
+    my @primers;
+    for my $seq_well ( $self->qc_run_seq_wells ) {
+        for my $seq_read ( $seq_well->qc_seq_reads ) {
+            push @primers, map{ $_->primer_name  } $seq_read->qc_alignments;
+        }
+    }
+
+    return [ uniq @primers ];
+}
+
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

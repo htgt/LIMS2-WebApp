@@ -3,7 +3,6 @@ abstract: 'Catalyst based application'
 author:
   - 'Wellcome Trust Sanger Institute'
 build_requires:
-  DateTime: 0
   English: 0
   File::Find: 0
   File::Temp: 0
@@ -20,6 +19,7 @@ name: LIMS2-WebApp
 requires:
   Bio::Seq: 0
   Bio::SeqIO: 0
+  CHI: 0
   Carp: 0
   Catalyst: 0
   Catalyst::Controller: 0
@@ -47,19 +47,32 @@ requires:
   Data::Compare: 0
   Data::Dump: 0
   Data::FormValidator: 0
+  Data::Pageset: 0
+  Data::UUID: 0
+  DateTime: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
+  DateTime::Format::Strptime: 0
   EngSeqBuilder: 0
   Exporter: 0
   File::stat: 0
   FindBin: 0
   Getopt::Long: 0
+  GraphViz2: 0
+  HTGT::QC::Config: 0
+  HTGT::QC::Util::Alignment: 0
+  HTGT::QC::Util::CigarParser: 0
   HTTP::Status: 0
   Hash::MoreUtils: 0
+  IO::Pipe: 0
   IO::String: 0
+  Iterator::Simple: 0
   JSON: 0
   LIMS2::Exception: 0
   LIMS2::Exception::Database: 0
+  LIMS2::Exception::Implementation: 0
+  LIMS2::Exception::System: 0
+  LIMS2::Exception::Validation: 0
   LIMS2::Util: 0
   LIMS2::Util::EnsEMBL: 0
   LIMS2::Util::Solr: 0
@@ -73,6 +86,8 @@ requires:
   MooseX::Log::Log4perl: 0
   MooseX::MarkAsMethods: 0
   MooseX::NonMoose: 0
+  MooseX::Types: 0
+  MooseX::Types::Path::Class: 0
   Path::Class: 0
   Regexp::Common: 0
   Scalar::Util: 0
@@ -81,12 +96,16 @@ requires:
   Term::ReadPassword: 0
   Test::More: 0
   Test::WWW::Mechanize::Catalyst: 0
+  Text::CSV: 0
   Try::Tiny: 0
   TryCatch: 0
+  URI: 0
+  URI::QueryParam: 0
   YAML::Any: 0
   base: 0
   namespace::autoclean: 0
+  overload: 0
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.003
+version: 0.004

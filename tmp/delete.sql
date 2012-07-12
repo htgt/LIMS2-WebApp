@@ -1,0 +1,10 @@
+begin;
+delete from qc_alignment_regions;
+delete from qc_alignments;
+delete from qc_seq_reads;
+delete from qc_test_results;
+delete from qc_seq_project_qc_seq_project_well;
+delete from qc_seq_project_wells;
+delete from qc_run_seq_project;
+delete from qc_seq_projects;
+delete from qc_runs;

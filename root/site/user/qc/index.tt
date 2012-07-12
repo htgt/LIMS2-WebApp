@@ -1,0 +1,69 @@
+[% META title = "View Qc Runs" %]
+<form method="GET" class="well form-inline">
+  <fieldset>
+    <h3>Filter QC Runs</h3>
+    <label for="sequencing_project">Sequencing Project</label>
+    <input name="sequencing_project" id="sequencing_project" type="text" autocomplete="off" />
+    <label for="template_plate">Template Plate</label>
+    <input name="template_plate" id="template_plate" type="text" autocomplete="off" />
+    <label for="profile">Profile</label>
+    <select name="profile" id="profile">
+      <option>-</option>
+      [% FOR p IN profiles -%]
+      <option>[% p %]</option>
+      [% END -%]
+    </select>
+    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i> Filter</button>
+    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i> Show All</button>
+  </fieldset>
+</form>
+
+[% INCLUDE 'pagination.tt' pageset = pageset %]
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Profile</th>
+            <th>Run Date</th>
+            <th>Created By</th>
+            <th>Sequencing Project</th>
+            <th>Template Plate</th>
+            <th>Expected Designs</th>
+            <th>Observed Designs</th>
+            <th>Valid Designs</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        [% FOR qc_run IN qc_runs %]
+            <tr>
+                <td>
+                    <a href="[% c.uri_for( '/user/view_qc_run', { 'qc_run_id' =>  qc_run.id } ) %]">
+                        [% qc_run.id.substr(0,8) %]
+                    </a>
+                </td>
+                <td>[% qc_run.profile %]</td>
+                <td>[% qc_run.created_at %]</td>
+                <td>[% qc_run.created_by %]</td>
+                <td>[% qc_run.sequencing_projects.join(', ') %]</td>
+                <td>[% qc_run.qc_template %]</td>
+                <td>[% qc_run.expected_designs %]</td>
+                <td>[% qc_run.observed_designs %]</td>
+                <td>[% qc_run.valid_designs %]</td>
+            </tr>
+        [% END %]
+    </tbody>
+</table>
+
+<script type="text/javascript">
+$("#template_plate").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/qc_templates' ) %]",
+  minLength: 2,
+});
+
+$("#sequencing_project").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/sequencing_projects' ) %]",
+  minLength: 2,
+});
+</script>

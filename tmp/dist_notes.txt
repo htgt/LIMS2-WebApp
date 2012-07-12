@@ -1,0 +1,90 @@
+Workflow:
+Changes for next release are commited into master branch
+new tag is made in github
+tag is downloaded into fresh directory and dzil build is run
+tarbal is placed somewhere sensible so it can be built in vm
+
+
+dzil build - build tarball to release
+
+
+[PruneCruft] - prunes files people normally put in skip file ( MANIFEST.SKIP )
+[Licence] - generate licenes file
+[Readme] - generate readme file
+
+#cpan stock tests - are we doing this?
+perl-critic.t
+pod-coverage.t
+pod-syntax.t
+
+instead of these use:
+[ExtraTests]
+[Test::Perl::Critic]
+[PodCoverageTest]
+[PodSyntaxTest]
+
+Can replace above with:
+[@Basic]
+[PodSyntaxTest]
+[PodCoverageTest]
+[CriticTest]
+
+[AutoPrereqs] - analyze code to to find all libraries we need - 
+need to specify specific version in use statements
+
+Git
+[Git::Check] - check working copy in clean state before allowing release
+ - allow_dirty = dist.ini
+[Git::Commit] - commit
+
+HTGT bundle uses:
+*[AllFiles] - same as Gatherdir - looks in root directory and adds all files there
+[HTGTVersion] - CUSTOM - gets HTGT_BUILD_VERSION from env
+[CompileTests] - DEPRECATED to Test::Compile - common tests to check syntax of module
+[PackageNameTests] - CUSTOM check package name matches file name of modules
+*[ExtraTests] - author / release / smoke tests
+[InstallDirs] - mark dir contents for installation ( bin and share )
+*[ExecDir] - installs bin/ files as executables
+*[License] - make licence file
+*[MakeMaker] - make Makefile.PL
+*[Manifest] - build Manifest file
+*[ManifestSkip] - does not build files in MANIFEST.SKIP file
+*[MetaYAML] - makes META.yml file
+[PkgVersion] - add version to each package
+[PodWeaver] - makes pod better
+*[PruneCruft] - prune surplus files that end up in working dir
+*[Readme] - build readme file
+
+[@Basic]
+[GatherDir] - gather all files in root directory
+[PruneCruft]
+[ManifestSkip]
+[MetaYAML]
+[Licence]
+[Readme]
+[ExtraTests]
+[ExecDir]
+[ShareDir] - installs a directories contents as ShareDir content ( default dir = share )
+[MakeMaker]
+[Manifest]
+[TestRelease] - extract archive and run tests before releasing dist
+[ConfirmRelease] - asks for user confirmation before releasing dist to cpan
+[UploadtoCPAN] - upload dist to CPAN when using release command
+
+
+FileGatheres - collect files for distribution
+FilePruners - remove some of these files
+FileMungers - change file contents
+
+# below is htgt dist ini stuff
+[@Filter]
+bundle = @HTGT
+remove = MakeMaker
+remove = MetaYAML
+remove = PodVersion
+remove = PodCoverageTests
+remove = PodTests
+remove = CompileTests
+;remove = PodWeaver
+
+[MakeMaker::Test]

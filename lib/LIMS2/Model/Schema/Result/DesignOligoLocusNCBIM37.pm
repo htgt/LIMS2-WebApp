@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::DesignOligoLocusNCBIM37;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligoLocusNCBIM37::VERSION = '0.003';
+    $LIMS2::Model::Schema::Result::DesignOligoLocusNCBIM37::VERSION = '0.004';
 }
 ## use critic
 

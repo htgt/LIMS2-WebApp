@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.003';
+    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.004';
 }
 ## use critic
 
@@ -164,6 +164,12 @@ sub as_hash {
         eng_seq_method => $self->qc_eng_seq->method,
         eng_seq_params => decode_json( $self->qc_eng_seq->params ),
     };
+}
+
+sub design_id {
+    my $self = shift;
+
+    return $self->qc_eng_seq->design_id;
 }
 
 __PACKAGE__->meta->make_immutable;

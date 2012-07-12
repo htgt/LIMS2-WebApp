@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcSeqRead;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcSeqRead::VERSION = '0.003';
+    $LIMS2::Model::Schema::Result::QcSeqRead::VERSION = '0.004';
 }
 ## use critic
 
@@ -156,10 +156,24 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fvXPh/4FKOffzsuvGJZxLg
 
+__PACKAGE__->many_to_many("qc_seq_wells", "qc_run_seq_well_qc_seqs_read", "qc_run_seq_well");
+
 sub as_hash {
     my $self = shift;
 
     return { map { $_ => $self->$_ } __PACKAGE__->columns };
+}
+
+use Bio::Seq;
+sub bio_seq {
+    my $self = shift;
+
+    return Bio::Seq->new(
+        -display_id => $self->id,
+        -desc       => $self->description,
+        -alphabet   => 'dna',
+        -seq        => $self->seq
+    );
 }
 
 __PACKAGE__->meta->make_immutable;

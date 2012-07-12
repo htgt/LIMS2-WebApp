@@ -1,0 +1,29 @@
+Double Targetted Products, targetting both alleles.
+
+The final product will be:
+First Allele: Conditional Knockout, targetted area is just flanked by loxp scars ( we have applied flp to remove reporter region )
+Second Allele: Deletion, the targetted area has been deleted.
+
+Why?
+So we can study thinks in-vitro ( cells ) as apposed to in-vivo work that is done currently.
+Currently need to breed the mice to get the right strain. ( because only one allele is targetted at a time ).
+We can't do this for work on humans, clearly must just work with cells so we need to make double targetted products ( for both alleles ).
+
+Modelling:
+So we can have first allele or second allele final vectors ( currently same plate / process type but this could change ).
+    No clear link between the first allele and second allele final vectors ( they could in theory be different designs ).
+    In practice the plates names will be clear ( First Allele plate, second allele plate ), and the wells will correspond ( e.g A01 on both plates are linked ).
+        However we do not model this link
+    Difference between first and second allele final vector is second allele has cre applied to it. ( deletion )
+
+Proposed we have 2 types of EP, one for first allele one for second allele. ( make it easier to report if done this way ).
+First Allele if just applying flp to it ( to remove reporter region, just leave loxp scars )
+The second allele EP has 2 inputs, first allele ep and the second allele final vector.
+
+Questions?
+What data is expected for each process?
+What data is attached to each well?
+Does the well data for the first EP and second EP differ? ( the processes will be different )
+Is the process to create the first allele just flp_application onto the EP?
+Second electroporation process, are input wells the XEP and FINAL ( second allele ) wells?
+Whats the difference between a clone_pool and clone_pick?

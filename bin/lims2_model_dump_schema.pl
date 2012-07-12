@@ -44,6 +44,18 @@ my %REL_NAME_MAP = (
     User => {
         qcs_runs => 'qc_runs'
     },
+    Process => {
+        process_inputs_well => 'process_input_wells',
+        process_outputs_well => 'process_output_wells',
+        wells => 'input_wells',
+        input_wells_2s => 'output_wells',
+    },
+    Well => {
+        process_inputs_well => 'process_input_wells',
+        process_outputs_well => 'process_output_wells',
+        processes => 'input_processes',
+        input_processes_2s => 'output_processes',
+    }
     # Bad plurals
     #bac_clone_locis        => 'bac_clone_loci',
     #design_oligo_locis     => 'design_oligo_loci',
@@ -66,6 +78,7 @@ my $pg_user      = $ENV{USER};
 my $pg_role      = undef;
 my $schema_class = 'LIMS2::Model::Schema';
 my $lib_dir      = dir( $FindBin::Bin )->parent->subdir( 'lib' );
+my $overwrite    = 0;
 my @components   = qw( InflateColumn::DateTime );
 
 GetOptions(
@@ -78,6 +91,7 @@ GetOptions(
     'schema-class=s' => \$schema_class,
     'lib-dir=s'      => \$lib_dir,
     'component=s@'   => \@components,
+    'overwrite!'     => \$overwrite,
 ) or die "$0 [OPTIONS]\n";
 
 my $dsn = 'dbi:Pg:dbname=' . $pg_database;
@@ -103,16 +117,22 @@ if ( $pg_role ) {
     $opts{on_connect_do} = [ sprintf( 'SET ROLE "%s"', $pg_role ) ];
 }
 
-make_schema_at(
-    $schema_class,
-    {   debug          => 0,
-        dump_directory => $lib_dir->stringify,
-        db_schema      => $pg_schema,
-        components     => \@components,
-        use_moose      => 1,
-        moniker_map    => \%MONIKER_MAP,
-        rel_name_map   => \%REL_NAME_MAP
-    },
-    [ $dsn, $pg_user, $pg_password, {}, \%opts ]
+my %make_schema_opts = (
+    debug          => 0,
+    dump_directory => $lib_dir->stringify,
+    db_schema      => $pg_schema,
+    components     => \@components,
+    use_moose      => 1,
+    moniker_map    => \%MONIKER_MAP,
+    rel_name_map   => \%REL_NAME_MAP
 );
 
+if ( $overwrite ) {
+    $make_schema_opts{overwrite_modifications} = 1;
+}
+
+make_schema_at(
+    $schema_class,
+    \%make_schema_opts,
+    [ $dsn, $pg_user, $pg_password, {}, \%opts ]
+);
