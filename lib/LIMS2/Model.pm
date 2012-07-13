@@ -1,7 +1,7 @@
 package LIMS2::Model;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::VERSION = '0.005';
+    $LIMS2::Model::VERSION = '0.006';
 }
 ## use critic
 
@@ -66,7 +66,7 @@ sub txn_do {
 }
 
 sub software_version {
-    return $__PACKAGE__::VERSION || 'dev';
+    return $LIMS2::Model::VERSION || 'dev';
 }
 
 sub database_name {
