@@ -208,12 +208,3 @@ t/fixtures/30-designs.sql
 t/fixtures/40-qc.sql
 t/fixtures/50-plate-wells.sql
 t/release-no-smart-comments.t
-tmp/cre_bac_recom_process.txt
-tmp/dbconnect.yaml
-tmp/delete.sql
-tmp/dist_notes.txt
-tmp/homozyogous_project_info.txt
-tmp/lims2.psgi
-tmp/process_tree.txt
-tmp/session_sp12
-tmp/webapp.conf

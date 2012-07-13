@@ -1,3 +1,8 @@
+0.005     2012-07-13 11:30:21 Europe/London
+
+   Tighten up LIMS2::Model::FormValidator::Constraint::integer.
+   Don't display the welcome paragarph in an alert div.
+
 0.004     2012-07-12 11:45:04 Europe/London
 
    Implement plate and well tracking
