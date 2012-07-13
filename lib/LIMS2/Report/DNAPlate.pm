@@ -1,0 +1,63 @@
+package LIMS2::Report::DNAPlate;
+
+use Moose;
+use namespace::autoclean;
+
+with 'LIMS2::Role::PlateReportGenerator';
+
+sub _build_name {
+    my $self = shift;
+
+    return 'Final Vector Plate ' . $self->plate_name;
+}
+
+sub _build_columns {
+    my $self = shift;
+    
+    return [
+        $self->base_columns,
+        "Cassette", "Backbone", "Recombinases",
+        "Final Vector Well", "Final Vector QC Test Result", "Final Vector Valid Primers", "Final Vector Mixed Reads?", "Final Vector Sequencing QC Pass?",
+        "DNA Quality", "DNA Quality Comment", "DNA Pass?"
+    ];
+}
+
+sub iterator {
+    my $self = shift;
+
+    my $plate = $self->model->retrieve_plate( { name => $self->plate_name, type_id => 'INT' } );
+    
+    my $wells_rs = $plate->search_related(
+        wells => {},
+        {
+            prefetch => [
+                'well_accepted_override', 'well_qc_sequencing_result'
+            ],
+            order_by => { -asc => 'me.name' }
+        }
+    );
+
+    return Iterator::Simple::iter sub {
+        my $well = $wells_rs->next
+            or return;
+
+        my $dna_status = $well->well_dna_status;
+        my $dna_quality = $well->well_dna_quality;
+
+        return [
+            $self->base_data( $well ),
+            $well->cassette->name,
+            $well->backbone->name,
+            join( q{/}, @{ $well->recombinases } ),
+            $self->ancestor_cols( $well, 'FINAL' ),
+            ( $dna_quality ? ( $dna_quality->quality, $dna_quality->comment_text ) : ('')x2 ),
+            ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' )
+        ];        
+    };    
+}
+
+__PACKAGE__->meta->make_immutable;
+
+1;
+
+__END__

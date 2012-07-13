@@ -1,4 +1,4 @@
-package LIMS2::Report::DesignPlate;
+package LIMS2::Report::IntermediateVectorPlate;
 
 use Moose;
 use namespace::autoclean;
@@ -8,26 +8,27 @@ with 'LIMS2::Role::PlateReportGenerator';
 sub _build_name {
     my $self = shift;
 
-    return 'Design Plate ' . $self->plate_name;
+    return 'Intermediate Vector Plate ' . $self->plate_name;
 }
-
 sub _build_columns {
+    my $self = shift;
+    
     return [
         $self->base_columns,
-        "PCR U", "PCR D", "PCR G", "Rec U", "Rec D", "Rec G", "Rec NS", "Rec Result",
+        "Cassette", "Backbone", "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
     ];
 }
 
 sub iterator {
     my $self = shift;
 
-    my $plate = $self->model->retrieve_plate( { name => $self->plate_name, type_id => 'DESIGN' } );    
+    my $plate = $self->model->retrieve_plate( { name => $self->plate_name, type_id => 'INT' } );
     
     my $wells_rs = $plate->search_related(
         wells => {},
         {
             prefetch => [
-                'well_accepted_override', 'well_recombineering_results'
+                'well_accepted_override', 'well_qc_sequencing_result'
             ],
             order_by => { -asc => 'me.name' }
         }
@@ -37,12 +38,12 @@ sub iterator {
         my $well = $wells_rs->next
             or return;
 
-        my %recombineering_results = map { $_->result_type_id => $_->result } $well->well_recombineering_results;
-
         return [
             $self->base_data( $well ),
-            @recombineering_results{ qw( pcr_u pcr_d pcr_g rec_u rec_d rec_g rec_ns rec_result ) },
-        ];
+            $well->cassette->name,
+            $well->backbone->name,
+            $self->qc_result_cols( $well ),
+        ];        
     };
 }
 
