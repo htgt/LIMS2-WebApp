@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.006     2012-07-13 11:57:28 Europe/London
+
+   Bugfix LIMS2::Model::software_version().
+
 0.005     2012-07-13 11:30:21 Europe/London
 
    Tighten up LIMS2::Model::FormValidator::Constraint::integer.
