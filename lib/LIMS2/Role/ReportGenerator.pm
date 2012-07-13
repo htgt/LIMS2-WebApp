@@ -29,6 +29,17 @@ has model => (
 
 requires qw( _build_name _build_columns iterator );
 
+sub boolean_str {
+    my ( $self, $bool ) = @_;
+
+    if ( $bool ) {
+        return 'yes';
+    }
+    else {
+        return 'no';
+    }
+}
+
 1;
 
 __END__
