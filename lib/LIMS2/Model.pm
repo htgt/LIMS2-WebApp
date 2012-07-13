@@ -60,7 +60,7 @@ sub txn_do {
 }
 
 sub software_version {
-    return $__PACKAGE__::VERSION || 'dev';
+    return $LIMS2::Model::VERSION || 'dev';
 }
 
 sub database_name {
