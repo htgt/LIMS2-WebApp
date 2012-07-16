@@ -9,11 +9,48 @@ use namespace::autoclean;
 
 with qw( LIMS2::Role::ReportGenerator );
 
+requires qw( plate_type );
+
 has plate_name => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1
+    is         => 'ro',
+    isa        => 'Str',
+    lazy_build => 1
 );
+
+has plate_id => (
+    is       => 'ro',
+    isa      => 'Int'
+);
+
+has plate => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::Plate',
+    lazy_build => 1
+);
+
+sub _build_plate {
+    my $self = shift;
+
+    my %search = ( type => $self->plate_type );
+
+    if ( $self->plate_id ) {
+        $search{id} = $self->plate_id;
+    }
+    elsif ( $self->plate_name ) {
+        $search{name} = $self->plate_name;
+    }
+    else {
+        LIMS2::Exception::Implementation->throw( "PlateReportGenerator requires one of plate, plate_name, or plate_id be specified" );        
+    }
+
+    return $self->model->retrieve_plate( \%search );
+}
+
+sub _build_plate_name {
+    my $self = shift;
+
+    return $self->plate->name;
+}
 
 sub base_columns {
     return ( "Well Name", "Design Id", "Gene Id", "Gene Symbol",  "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?" );

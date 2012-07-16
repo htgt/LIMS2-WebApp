@@ -5,6 +5,10 @@ use namespace::autoclean;
 
 with 'LIMS2::Role::PlateReportGenerator';
 
+sub plate_type {
+    return 'POSTINT';
+}
+
 sub _build_name {
     my $self = shift;
 

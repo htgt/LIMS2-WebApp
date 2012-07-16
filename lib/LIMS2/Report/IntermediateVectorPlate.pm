@@ -5,6 +5,10 @@ use namespace::autoclean;
 
 with 'LIMS2::Role::PlateReportGenerator';
 
+sub plate_type {
+    return 'INT';
+}
+
 sub _build_name {
     my $self = shift;
 
@@ -22,9 +26,7 @@ sub _build_columns {
 sub iterator {
     my $self = shift;
 
-    my $plate = $self->model->retrieve_plate( { name => $self->plate_name, type_id => 'INT' } );
-    
-    my $wells_rs = $plate->search_related(
+    my $wells_rs = $self->plate->search_related(
         wells => {},
         {
             prefetch => [
