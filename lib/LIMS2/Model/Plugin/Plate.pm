@@ -5,9 +5,53 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
+use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
+
+sub list_plate_types {
+    my $self = shift;
+
+    return [ $self->schema->resultset('PlateType')->search( {}, { order_by => { -asc => 'id' } } ) ];    
+}
+
+sub pspec_list_plates {
+    return {
+        plate_name => { validate => 'non_empty_string',    optional => 1 },
+        plate_type => { validate => 'existing_plate_type', optional => 1 },
+        page       => { validate => 'integer',             optional => 1, default => 1 },
+        pagesize   => { validate => 'integer',             optional => 1, default => 15 }
+    }
+}
+
+sub list_plates {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_list_plates );
+
+    my %search;
+
+    if ( $validated_params->{plate_name} ) {
+        $search{'me.name'} = { -like => '%' . sanitize_like_expr( $validated_params->{plate_name} ) . '%' };
+    }
+
+    if ( $validated_params->{plate_type} ) {
+        $search{'me.type_id'} = $validated_params->{plate_type};
+    }
+
+    my $resultset = $self->schema->resultset('Plate')->search(
+        \%search,
+        {
+            prefetch => [ 'created_by' ],
+            order_by => { -desc => 'created_at' },
+            page     => $validated_params->{page},
+            rows     => $validated_params->{pagesize}
+        }
+    );
+
+    return ( [ $resultset->all ], $resultset->pager );    
+}
 
 sub pspec_create_plate {
     return {
@@ -57,9 +101,10 @@ sub create_plate {
 
 sub pspec_retrieve_plate {
     return {
-        name         => { validate   => 'plate_name', optional => 1 },
-        id           => { validate   => 'integer',    optional => 1 },
-        REQUIRE_SOME => { name_or_id => [ 1,          qw( name id ) ] }
+        name         => { validate => 'plate_name', optional => 1, rename => 'me.name' },
+        id           => { validate => 'integer', optional => 1, rename => 'me.id' },
+        type         => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
     };
 }
 
@@ -68,9 +113,7 @@ sub retrieve_plate {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
-    my $plate = $self->retrieve( Plate => $validated_params );
-
-    return $plate;
+    return $self->retrieve( Plate => { slice_def $validated_params, qw( me.name me.id me.type_id ) } );
 }
 
 sub pspec_set_plate_assay_complete {
