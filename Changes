@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+   Implement plate list and view.
+
 0.006     2012-07-13 11:57:28 Europe/London
 
    Bugfix LIMS2::Model::software_version().
