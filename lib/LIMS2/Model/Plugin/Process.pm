@@ -12,28 +12,50 @@ use Const::Fast;
 requires qw( schema check_params throw retrieve log trace );
 
 const my %PROCESS_INPUT_WELL_CHECK => (
-    create_di => { number => 0, },
+    create_di => { number => sub { my $c = shift; $c == 1; } },
     int_recom => {
-        number => 1,
+        number => sub { my $c = shift; $c == 1 },
         type   => [qw( DESIGN )],
     },
     '2w_gateway' => {
-        number => 1,
+        number => sub { my $c = shift; $c == 1 },
         type   => [qw( INT POSTINT )],
     },
     '3w_gateway' => {
+        number => sub { my $c = shift; $c == 1 },
         number => 1,
         type   => [qw( INT )],
     },
-    recombinase   => { number => 1, },
+    recombinase   => { number =>  sub { my $c = shift; $c == 1 } },
     cre_bac_recom => {
+        number => sub { my $c = shift; $c == 1 },
         number => 1,
         type   => [qw( DESIGN )],
     },
-    rearray  => { number => 1, },
+    rearray  => { number => sub { my $c = shift; $c == 1 } },
     dna_prep => {
-        number => 1,
+        number => sub { my $c = shift; $c == 1 },
         type   => [qw( FINAL )],
+    },
+    clone_pick => {
+        number => sub { my $c = shift; $c == 1 },
+        type   => [qw( EP XEP SEP )],
+    },
+    clone_pool => {
+        number => sub { my $c = shift; $c >= 1 },
+        type   => [qw( XEP SEP )],
+    },
+    first_electroporation => {
+        number => sub { my $c = shift; $c == 1 },
+        type   => [qw( DNA )],
+    },
+    second_electroporation => {
+        number => sub { my $c = shift; $c == 2 },
+        type   => [qw( XEP FINAL )],
+    },
+    freeze => {
+        number => sub { my $c = shift; $c == 1 },
+        type   => [qw( EP_PICK SEP_PICK )],
     },
 );
 
@@ -64,10 +86,10 @@ sub check_input_wells {
 
     my @input_wells               = $process->input_wells;
     my $count                     = scalar @input_wells;
-    my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
+    my $input_well_count_check    = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
     $self->throw( Validation =>
             "$process_type process should have $expected_input_well_count input well(s) (got $count)"
-    ) unless $count == $expected_input_well_count;
+    ) unless $input_well_count_check->( $count );
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
@@ -168,6 +190,51 @@ sub _check_input_wells_rearray {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_dna_prep {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_clone_pick {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_clone_pool {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_first_electroporation {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_second_electroporation {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_freeze {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
@@ -398,6 +465,44 @@ sub _create_process_aux_data_cre_bac_recom {
 }
 ## use critic
 
+sub pspec__create_process_aux_data_first_electroporation {
+    return {
+        cell_line => { validate => 'non_empty_string' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_first_electroporation {
+    my ( $self, $params, $process ) = @_;
+
+    my $validated_params
+        = $self->check_params( $params, $self->pspec__create_process_aux_data_first_electroporation );
+
+    $process->create_related( process_electroporation => { cell_line => $validated_params->{cell_line} } );
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_second_electroporation {
+    return {
+        cell_line => { validate => 'non_empty_string' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_second_electroporation {
+    my ( $self, $params, $process ) = @_;
+
+    my $validated_params
+        = $self->check_params( $params, $self->pspec__create_process_aux_data_second_electroporation );
+
+    $process->create_related( process_electroporation => { cell_line => $validated_params->{cell_line} } );
+
+    return;
+}
+## use critic
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_rearray {
     return;
@@ -406,6 +511,25 @@ sub _create_process_aux_data_rearray {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_dna_prep {
+    return;
+}
+## use critic
+
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_clone_pool {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_clone_pick {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_freeze {
     return;
 }
 ## use critic
