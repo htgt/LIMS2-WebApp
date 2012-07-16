@@ -355,7 +355,7 @@ sub render {
 
     for my $edge ( @{ $self->edges } ) {
         my ( $process_id, $input_well_id, $output_well_id ) = @{ $edge };
-        $self->log->debug( "Adding edge $process_id to GraphVis" );
+        $self->log->debug( "Adding edge $process_id to GraphViz" );
         $graph->add_edge(
             from  => defined $input_well_id ? $self->well( $input_well_id )->as_string : 'ROOT',
             to    => $self->well( $output_well_id )->as_string,

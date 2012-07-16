@@ -37,7 +37,7 @@ sub qc_templates_GET {
 
     try {
         $template_names = $self->_entity_column_search(
-           $c->model('Golgi'), 'QcTemplate', 'name', $c->request->params->{term},
+           $c, 'QcTemplate', 'name', $c->request->params->{term},
         );
     }
     catch {
@@ -65,7 +65,7 @@ sub sequencing_projects_GET {
 
     try {
         $sequencing_project_names = $self->_entity_column_search(
-           $c->model('Golgi'), 'QcSeqProject', 'id', $c->request->params->{term},
+           $c, 'QcSeqProject', 'id', $c->request->params->{term},
         );
     }
     catch {
@@ -105,12 +105,38 @@ sub marker_symbols_GET {
     return $self->status_ok( $c, entity => \@results );
 }
 
+=head1 GET /api/autocomplete/plate_names
+
+Autocomplete for plate names
+
+=cut
+
+sub plate_names :Path( '/api/autocomplete/plate_names' ) :Args(0) :ActionClass('REST') {
+}
+
+sub plate_names_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $plate_names;
+
+    try {
+        $plate_names = $self->_entity_column_search( $c, 'Plate', 'name', $c->req->param('term') );
+    }
+    catch {
+        $c->log->error( $_ );
+    };
+
+    return $self->status_ok( $c, entity => $plate_names );
+}
+
 sub _entity_column_search {
-    my ( $self, $model, $entity_class, $search_column, $search_term ) = @_;
+    my ( $self, $c, $entity_class, $search_column, $search_term ) = @_;
 
     $search_term = sanitize_like_expr( $search_term );
 
-    my @objects = $model->schema->resultset($entity_class)->search(
+    my @objects = $c->model('Golgi')->schema->resultset($entity_class)->search(
         {
             $search_column => { ILIKE => '%' . $search_term . '%' },
         },

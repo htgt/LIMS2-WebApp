@@ -19,6 +19,9 @@
     <a href="[% c.uri_for( '/user/qc_runs' ) %]">Sequencing QC
     Results</a>
   </li>
+  <li>
+    <a href="[% c.uri_for( '/user/graph' ) %]">Well Relations</a>
+  </li>
 </ul>
 
 <h2>View Reports</h2>
