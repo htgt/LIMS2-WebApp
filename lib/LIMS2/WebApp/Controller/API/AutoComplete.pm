@@ -1,6 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 use Moose;
 use Try::Tiny;
+use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
@@ -107,9 +108,7 @@ sub marker_symbols_GET {
 sub _entity_column_search {
     my ( $self, $model, $entity_class, $search_column, $search_term ) = @_;
 
-    # Sanitize input for like command, need to escape backslashes first, then
-    # underscores and percent signs
-    for ( $search_term ) { s/\\/\\\\/g; s/_/\\_/g; s/\%/\\%/g; }
+    $search_term = sanitize_like_expr( $search_term );
 
     my @objects = $model->schema->resultset($entity_class)->search(
         {
