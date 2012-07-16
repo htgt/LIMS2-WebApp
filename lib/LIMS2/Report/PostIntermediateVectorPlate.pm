@@ -20,6 +20,7 @@ sub _build_columns {
     
     return [
         $self->base_columns,
+        "Cassette", "Backbone", "Recombinases",
         "Intermedate Well", "Intermediate QC Test Result", "Intermediate Valid Primers", "Intermediate Mixed Reads?", "Intermediate Sequencing QC Pass?",
         "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?",
     ];
@@ -47,7 +48,8 @@ sub iterator {
         return [
             $self->base_data( $well ),
             $well->cassette->name,
-            $well->backbone->name,            
+            $well->backbone->name,
+            join( q{/}, @{ $well->recombinases } ),
             $self->ancestor_cols( $well, 'INT' ),
             $self->qc_result_cols( $well )
         ];
