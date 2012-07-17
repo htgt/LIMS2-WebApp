@@ -17,7 +17,7 @@ sub _build_name {
 
 sub _build_columns {
     my $self = shift;
-    
+
     return [
         $self->base_columns,
         "Cassette", "Backbone", "Recombinases",
@@ -54,8 +54,8 @@ sub iterator {
             $self->ancestor_cols( $well, 'FINAL' ),
             ( $dna_quality ? ( $dna_quality->quality, $dna_quality->comment_text ) : ('')x2 ),
             ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' )
-        ];        
-    };    
+        ];
+    };
 }
 
 __PACKAGE__->meta->make_immutable;

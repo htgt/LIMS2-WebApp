@@ -66,22 +66,26 @@ sub index :Path( '/user/browse_plates' ) :Args(0) {
         plates              => $plates,
         pageset             => $pageset
     );
+
+    return;
 }
 
 sub view :Path( '/user/view_plate' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles('read');    
+    $c->assert_user_roles('read');
 
     my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
 
     my $report_class = $self->_report_class_for( $c, $plate );
-    $c->log->debug( "Report class: $report_class" );    
-    
+    $c->log->debug( "Report class: $report_class" );
+
     $c->stash(
         plate           => $plate,
         well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } )
     );
+
+    return;
 }
 
 sub _report_plugins {
@@ -94,7 +98,7 @@ sub _report_class_for {
     my ( $self, $c, $plate ) = @_;
 
     my $plate_type = $plate->type_id;
-    
+
     for my $plugin ( $self->_report_plugins ) {
         if ( $plugin->plate_type eq $plate_type ) {
             $c->log->debug( "Plugin class: $plugin" );

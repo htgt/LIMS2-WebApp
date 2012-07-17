@@ -17,7 +17,7 @@ sub _build_name {
 
 sub _build_columns {
     my $self = shift;
-    
+
     return [
         $self->base_columns,
         "Cassette", "Backbone", "Recombinases",
@@ -30,7 +30,7 @@ sub iterator {
     my $self = shift;
 
     my $plate = $self->model->retrieve_plate( { name => $self->plate_name, type_id => 'INT' } );
-    
+
     my $wells_rs = $plate->search_related(
         wells => {},
         {

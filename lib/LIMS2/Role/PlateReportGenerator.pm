@@ -1,6 +1,6 @@
 package LIMS2::Role::PlateReportGenerator;
 
-use strict; 
+use strict;
 use warnings;
 
 use Moose::Role;
@@ -40,7 +40,7 @@ sub _build_plate {
         $search{name} = $self->plate_name;
     }
     else {
-        LIMS2::Exception::Implementation->throw( "PlateReportGenerator requires one of plate, plate_name, or plate_id be specified" );        
+        LIMS2::Exception::Implementation->throw( "PlateReportGenerator requires one of plate, plate_name, or plate_id be specified" );
     }
 
     return $self->model->retrieve_plate( \%search );
@@ -89,7 +89,7 @@ sub qc_result_cols {
             $self->boolean_str( $result->pass )
         );
     }
-    
+
     return ('')x4;
 }
 

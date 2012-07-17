@@ -17,7 +17,7 @@ sub _build_name {
 
 sub _build_columns {
     my $self = shift;
-    
+
     return [
         $self->base_columns,
         "Cassette", "Backbone", "Recombinases",

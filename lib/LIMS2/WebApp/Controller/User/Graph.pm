@@ -22,7 +22,7 @@ has graph_dir => (
     is       => 'ro',
     isa      => 'Path::Class::Dir',
     coerce   => 1,
-    default  => sub { Path::Class::dir( '/tmp' ) }        
+    default  => sub { Path::Class::dir( '/tmp' ) }
 );
 
 has graph_format => (
@@ -103,7 +103,7 @@ sub render :Path( '/user/graph/render' )  :Args(1) {
     my $fh = $file->openr;
 
     $c->response->content_type( $self->graph_content_type );
-    $c->response->content_length( $sb->size );    
+    $c->response->content_length( $sb->size );
     $c->response->body( $fh );
 
     return;

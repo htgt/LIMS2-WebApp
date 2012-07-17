@@ -16,7 +16,7 @@ sub _build_name {
 }
 sub _build_columns {
     my $self = shift;
-    
+
     return [
         $self->base_columns,
         "Cassette", "Backbone", "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
@@ -45,7 +45,7 @@ sub iterator {
             $well->cassette->name,
             $well->backbone->name,
             $self->qc_result_cols( $well ),
-        ];        
+        ];
     };
 }
 

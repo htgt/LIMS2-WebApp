@@ -198,7 +198,7 @@ sub edges_in {
     my ( $self, $node ) = @_;
 
     return unless $node;
-    
+
     my $node_id = $node->id;
 
     return grep { defined $_->[2] and $_->[2] == $node_id } @{ $self->edges };
@@ -207,8 +207,8 @@ sub edges_in {
 sub edges_out {
     my ( $self, $node ) = @_;
 
-    return unless $node;    
-    
+    return unless $node;
+
     my $node_id = $node->id;
 
     return grep { defined $_->[1] and $_->[1] == $node_id } @{ $self->edges };

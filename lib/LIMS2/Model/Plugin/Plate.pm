@@ -13,7 +13,7 @@ requires qw( schema check_params throw retrieve log trace );
 sub list_plate_types {
     my $self = shift;
 
-    return [ $self->schema->resultset('PlateType')->search( {}, { order_by => { -asc => 'id' } } ) ];    
+    return [ $self->schema->resultset('PlateType')->search( {}, { order_by => { -asc => 'id' } } ) ];
 }
 
 sub pspec_list_plates {
@@ -50,7 +50,7 @@ sub list_plates {
         }
     );
 
-    return ( [ $resultset->all ], $resultset->pager );    
+    return ( [ $resultset->all ], $resultset->pager );
 }
 
 sub pspec_create_plate {
