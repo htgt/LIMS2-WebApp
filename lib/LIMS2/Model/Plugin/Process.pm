@@ -12,50 +12,54 @@ use Const::Fast;
 requires qw( schema check_params throw retrieve log trace );
 
 const my %PROCESS_INPUT_WELL_CHECK => (
-    create_di => { number => sub { my $c = shift; $c == 1; } },
+    create_di => {
+        number => 1
+    },
     int_recom => {
-        number => sub { my $c = shift; $c == 1 },
         type   => [qw( DESIGN )],
+        number => 1,
     },
     '2w_gateway' => {
-        number => sub { my $c = shift; $c == 1 },
         type   => [qw( INT POSTINT )],
+        number => 1,
     },
     '3w_gateway' => {
-        number => sub { my $c = shift; $c == 1 },
-        number => 1,
         type   => [qw( INT )],
-    },
-    recombinase   => { number =>  sub { my $c = shift; $c == 1 } },
-    cre_bac_recom => {
-        number => sub { my $c = shift; $c == 1 },
         number => 1,
-        type   => [qw( DESIGN )],
     },
-    rearray  => { number => sub { my $c = shift; $c == 1 } },
+    recombinase   => {
+        number => 1
+    },
+    cre_bac_recom => {
+        type   => [qw( DESIGN )],
+        number => 1,
+    },
+    rearray  => {
+        number => 1
+    },
     dna_prep => {
-        number => sub { my $c = shift; $c == 1 },
         type   => [qw( FINAL )],
+        number => 1,
     },
     clone_pick => {
-        number => sub { my $c = shift; $c == 1 },
         type   => [qw( EP XEP SEP )],
+        number => 1,
     },
     clone_pool => {
-        number => sub { my $c = shift; $c >= 1 },
         type   => [qw( XEP SEP )],
+        number => 1,
     },
     first_electroporation => {
-        number => sub { my $c = shift; $c == 1 },
         type   => [qw( DNA )],
+        number => 1,
     },
     second_electroporation => {
-        number => sub { my $c = shift; $c == 2 },
         type   => [qw( XEP FINAL )],
+        number => 2,
     },
     freeze => {
-        number => sub { my $c = shift; $c == 1 },
         type   => [qw( EP_PICK SEP_PICK )],
+        number => 1,
     },
 );
 
@@ -86,10 +90,10 @@ sub check_input_wells {
 
     my @input_wells               = $process->input_wells;
     my $count                     = scalar @input_wells;
-    my $input_well_count_check    = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
+    my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
     $self->throw( Validation =>
             "$process_type process should have $expected_input_well_count input well(s) (got $count)"
-    ) unless $input_well_count_check->( $count );
+    ) unless $count == $expected_input_well_count;
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
