@@ -5,11 +5,11 @@ CREATE TABLE process_electroporation (
 GRANT SELECT ON process_electroporation TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON process_electroporation TO "[% rw_role %]";
 
-CREATE TABLE colony_types (
+CREATE TABLE picked_colony_types (
        id TEXT PRIMARY KEY
 );
-GRANT SELECT ON colony_types TO "[% ro_role %]";
-GRANT SELECT, INSERT, UPDATE, DELETE ON colony_types TO "[% rw_role %]";
+GRANT SELECT ON picked_colony_types TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON picked_colony_types TO "[% rw_role %]";
 
 CREATE TABLE well_colony_picks (
        well_id                INTEGER NOT NULL REFERENCES wells(id),
