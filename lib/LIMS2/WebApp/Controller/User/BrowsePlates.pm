@@ -80,7 +80,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     
     $c->stash(
         plate           => $plate,
-        well_report_uri => $c->uri_for( "/user/report/async/$report_class", { plate_id => $plate->id } )
+        well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } )
     );
 }
 
