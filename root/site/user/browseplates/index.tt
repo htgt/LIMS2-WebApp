@@ -1,0 +1,42 @@
+[%- META title = 'Browse Plates'; META tab_name = 'Browse' %]
+<form method="GET" action="[% c.uri_for( '/user/browse_plates' ) %]" class="well">
+  <fieldset>
+    <legend>List Plates</legend>
+    <input type="text" name="plate_name" placeholder="Plate Name" value="[% plate_name %]">
+    <select name="plate_type">
+      <option[% IF ! selected_plate_type.defined %] selected="selected"[% END %]>-</option>
+      [%- FOR plate_type IN plate_types %]
+      <option[% IF plate_type == selected_plate_type %] selected="selected"[% END %]>[% plate_type %]</option>
+      [%- END %]
+    </select>
+    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i>Filter</button>
+    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i>Show All</button>
+  </fieldset>
+</form>
+
+[%- INCLUDE 'pagination.tt' pageset = pageset %]
+
+[% IF plates.size %]
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Plate Name</th>
+      <th>Plate Type</th>
+      <th>Description</th>
+      <th>Created By</th>
+      <th>Created At</th>      
+    </tr>
+  </thead>
+  <tbody>
+    [%- FOR plate IN plates %]
+    <tr>
+      <td><a href="[% c.uri_for( '/user/view_plate', { id => plate.id } ) %]">[% plate.name %]</a></td>
+      <td>[% plate.type_id %]</td>
+      <td>[% plate.description %]</td>
+      <td>[% plate.created_by.name %]</td>
+      <td>[% plate.created_at.ymd %]</td>
+    </tr>
+    [%- END %]
+  </tbody>
+</table>
+[% END %]

@@ -1,3 +1,8 @@
+0.007     2012-07-17 10:03:50 Europe/London
+
+   Implement plate list and view.
+   Implement well relations view.
+
 0.006     2012-07-13 11:57:28 Europe/London
 
    Bugfix LIMS2::Model::software_version().

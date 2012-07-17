@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::PlateType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::PlateType::VERSION = '0.006';
+    $LIMS2::Model::Schema::Result::PlateType::VERSION = '0.007';
 }
 ## use critic
 
@@ -99,5 +99,20 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub as_hash {
+    my $self = shift;
+    return {
+        id          => $self->id,
+        description => $self->description
+    }
+}
+
+use overload '""' => \&as_string;
+
+sub as_string {
+    return shift->id;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
