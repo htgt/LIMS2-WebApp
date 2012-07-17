@@ -227,6 +227,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_colony_picks
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellColonyPick>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_colony_picks",
+  "LIMS2::Model::Schema::Result::WellColonyPick",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_comments
 
 Type: has_many
@@ -268,6 +283,21 @@ Related object: L<LIMS2::Model::Schema::Result::WellDnaStatus>
 __PACKAGE__->has_many(
   "well_dna_statuses",
   "LIMS2::Model::Schema::Result::WellDnaStatus",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_primer_bands
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellPrimerBand>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_primer_bands",
+  "LIMS2::Model::Schema::Result::WellPrimerBand",
   { "foreign.created_by_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -328,8 +358,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-02 10:22:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k2HlEbwruz4Il4JOVcQ1rw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:52:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ayQlKW95vMSj4BKbe965BQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
