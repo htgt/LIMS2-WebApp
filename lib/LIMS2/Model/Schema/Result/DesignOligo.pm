@@ -168,7 +168,10 @@ __PACKAGE__->has_many(
 sub as_hash {
     my $self = shift;
 
-    my $locus = $self->search_related( 'loci', { assembly_id => 'NCBIM37' } )->first;
+    my $locus;
+    if ( my $assembly = $self->design->species->default_assembly ) {
+        $locus = $self->search_related( 'loci', { assembly_id => $assembly->id } )->first;
+    }
 
     return {
         id    => $self->id,

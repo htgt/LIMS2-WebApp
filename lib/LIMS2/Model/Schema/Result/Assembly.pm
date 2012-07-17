@@ -43,9 +43,20 @@ __PACKAGE__->table("assemblies");
   data_type: 'text'
   is_nullable: 0
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
-__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "id",
+  { data_type => "text", is_nullable => 0 },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+);
 
 =head1 PRIMARY KEY
 
@@ -91,9 +102,39 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 species
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TJlrAuoIRKs4IGrvw90aUA
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 species_default_assemblies
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::SpeciesDefaultAssembly>
+
+=cut
+
+__PACKAGE__->has_many(
+  "species_default_assemblies",
+  "LIMS2::Model::Schema::Result::SpeciesDefaultAssembly",
+  { "foreign.assembly_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RP/Y74wTQtcMtXCIIZHqSg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

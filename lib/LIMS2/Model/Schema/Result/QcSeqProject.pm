@@ -43,9 +43,20 @@ __PACKAGE__->table("qc_seq_projects");
   data_type: 'text'
   is_nullable: 0
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
-__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "id",
+  { data_type => "text", is_nullable => 0 },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+);
 
 =head1 PRIMARY KEY
 
@@ -91,6 +102,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 species
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
 =head2 qc_runs
 
 Type: many_to_many
@@ -102,8 +128,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_run
 __PACKAGE__->many_to_many("qc_runs", "qc_run_seq_projects", "qc_run");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 11:26:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DzljdWTygYUJuZ2UcSOAQQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2p61P7N3AdwRWGHz2S15ZA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

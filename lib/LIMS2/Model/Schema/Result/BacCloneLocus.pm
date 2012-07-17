@@ -50,12 +50,6 @@ __PACKAGE__->table("bac_clone_loci");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 chr_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 chr_start
 
   data_type: 'integer'
@@ -66,6 +60,12 @@ __PACKAGE__->table("bac_clone_loci");
   data_type: 'integer'
   is_nullable: 0
 
+=head2 chr_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -73,12 +73,12 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "assembly_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "chr_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "chr_start",
   { data_type => "integer", is_nullable => 0 },
   "chr_end",
   { data_type => "integer", is_nullable => 0 },
+  "chr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -143,8 +143,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZVqz0XOqgyIUTsedjS/MIQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4OUqcQDpEx6e1Sxs1yNYjw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -153,8 +153,9 @@ sub as_hash {
     my $self = shift;
 
     return {
+        species   => $self->assembly->species,
         assembly  => $self->assembly_id,
-        chr_name  => $self->chr_id,
+        chr_name  => $self->chr->name,
         chr_start => $self->chr_start,
         chr_end   => $self->chr_end
     };

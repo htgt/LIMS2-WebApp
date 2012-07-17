@@ -41,6 +41,9 @@ my %REL_NAME_MAP = (
     QcTemplate => {
         qcs_runs => 'qc_runs'
     },
+    Species => {
+        species_default_assembly => 'default_assembly'
+    },
     User => {
         qcs_runs => 'qc_runs'
     },
