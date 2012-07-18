@@ -45,11 +45,15 @@ sub _qc_template_has_identical_layout {
 }
 
 sub _find_qc_template_with_layout {
-    my ( $self, $template_name, $template_layout ) = @_;
+    my ( $self, $species, $template_name, $template_layout ) = @_;
 
-    my $template_rs
-        = $self->schema->resultset('QcTemplate')->search( { 'me.name' => $template_name },
-        { prefetch => { qc_template_wells => 'qc_eng_seq' } } );
+    my $template_rs = $self->schema->resultset('QcTemplate')->search(
+        {
+            'me.name'       => $template_name,
+            'me.species_id' => $species
+        },
+        { prefetch => { qc_template_wells => 'qc_eng_seq' } }
+    );
 
     while ( my $template = $template_rs->next ) {
         if ( $self->_qc_template_has_identical_layout( $template, $template_layout ) ) {
@@ -64,6 +68,7 @@ sub _find_qc_template_with_layout {
 sub pspec_find_or_create_qc_template {
     return {
         name       => { validate => 'plate_name' },
+        species    => { validate => 'existing_species', rename => 'species_id' },
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
         wells      => { validate => 'hashref' }
     };
@@ -83,7 +88,7 @@ sub find_or_create_qc_template {
 
     # If a template already exists with this name and layout, return it
     my $existing_template
-        = $self->_find_qc_template_with_layout( $validated_params->{name}, \%template_layout );
+        = $self->_find_qc_template_with_layout( @{$validated_params}{'species_id','name'}, \%template_layout );
     if ($existing_template) {
         $self->log->debug( 'Returning matching template with id ' . $existing_template->id );
         return $existing_template;
@@ -91,7 +96,7 @@ sub find_or_create_qc_template {
 
     # Otherwise, create a new template
     my $qc_template = $self->schema->resultset('QcTemplate')
-        ->create( { slice_def $validated_params, qw( name created_at ) } );
+        ->create( { slice_def $validated_params, qw( name species_id created_at ) } );
     $self->log->debug(
         'created qc template plate ' . $qc_template->name . ' with id ' . $qc_template->id );
     while ( my ( $well_name, $eng_seq_id ) = each %template_layout ) {
@@ -115,6 +120,10 @@ sub _build_qc_template_search_params {
 
     my %search;
 
+    if ( $params->{species} ) {
+        $search{'me.species_id'} = $params->{species};
+    }
+    
     if ( $params->{name} ) {
         $search{'me.name'} = $params->{name};
     }
@@ -143,9 +152,10 @@ sub _build_qc_template_search_params {
 
 sub pspec_retrieve_qc_templates {
     return {
-        id     => { validate => 'integer',          optional => 1 },
-        name   => { validate => 'non_empty_string', optional => 1 },
-        latest => { validate => 'boolean',          default  => 1 },
+        id      => { validate => 'integer',          optional => 1 },
+        species => { validate => 'existing_species', optional => 1 },
+        name    => { validate => 'non_empty_string', optional => 1 },
+        latest  => { validate => 'boolean',          default  => 1 },
         created_before =>
             { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
     };
@@ -200,6 +210,7 @@ sub delete_qc_template {
 sub pspec_find_or_create_qc_seq_read {
     return {
         id                => { validate => 'qc_seq_read_id' },
+        species           => { validate => 'existing_species', rename => 'species_id' },
         qc_run_id         => { validate => 'existing_qc_run_id' },
         plate_name        => { validate => 'plate_name' },
         well_name         => { validate => 'well_name' },
@@ -217,7 +228,7 @@ sub find_or_create_qc_seq_read {
     my $validated_params = $self->check_params( $params, $self->pspec_find_or_create_qc_seq_read );
 
     my $seq_proj = $self->schema->resultset('QcSeqProject')
-        ->find_or_create( { id => $validated_params->{qc_seq_project_id} } );
+        ->find_or_create( { id => $validated_params->{qc_seq_project_id}, species_id => $validated_params->{species_id} } );
 
     my $qc_seq_read = $self->schema->resultset('QcSeqRead')->find_or_create(
         +{  slice_def( $validated_params, qw( id description primer_name seq length ) ),
@@ -395,7 +406,10 @@ sub retrieve_qc_test_result {
 }
 
 sub pspec__create_qc_run_seq_proj {
-    return { qc_seq_project_id => { validate => 'non_empty_string' } };
+    return {
+        qc_seq_project_id => { validate => 'non_empty_string' },
+        species_id        => { validate => 'existing_species' }
+    }
 }
 
 sub _create_qc_run_seq_proj {
@@ -403,16 +417,20 @@ sub _create_qc_run_seq_proj {
 
     my $validated_params = $self->check_params( $params, $self->pspec__create_qc_run_seq_proj );
 
-    $self->schema->resultset('QcSeqProject')
-        ->find_or_create( { id => $validated_params->{qc_seq_project_id} } );
+    my $qc_seq_project = $self->schema->resultset( 'QcSeqProject' )->find_or_create(
+        {
+            id         => $validated_params->{qc_seq_project_id},
+            species_id => $validated_params->{species_id}
+        }
+    );
 
-    return $qc_run->create_related(
-        qc_run_seq_projects => { qc_seq_project_id => $validated_params->{qc_seq_project_id} } );
+    return $qc_run->create_related( qc_run_seq_projects => { qc_seq_project_id => $qc_seq_project->id } );
 }
 
 sub pspec_create_qc_run {
     return {
         id         => { validate => 'uuid' },
+        species    => { validate => 'existing_species', rename => 'species_id' },
         created_at => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         created_by => {
             validate    => 'existing_user',
@@ -449,7 +467,13 @@ sub create_qc_run {
     );
 
     for my $seq_proj_id ( @{ $validated_params->{qc_sequencing_projects} } ) {
-        $self->_create_qc_run_seq_proj( { qc_seq_project_id => $seq_proj_id }, $qc_run );
+        my $qc_run_seq_proj = $self->_create_qc_run_seq_proj(
+            {
+                species_id        => $validated_params->{species_id},
+                qc_seq_project_id => $seq_proj_id
+            },
+            $qc_run
+        );
     }
 
     return $qc_run;
@@ -476,6 +500,7 @@ sub update_qc_run {
 
 sub pspec_retrieve_qc_runs {
     return {
+        species            => { validate => 'existing_species_id', rename => 'species_id' },
         sequencing_project => { validate => 'existing_qc_seq_project_id', optional => 1 },
         template_plate     => { validate => 'existing_qc_template_name',  optional => 1 },
         profile            => { validate => 'non_empty_string',           optional => 1 },
@@ -492,7 +517,7 @@ sub retrieve_qc_runs {
 
     my $qc_runs = $self->schema->resultset('QcRun')->search(
         $search_params,
-        {   join     => [qw( qc_template qc_run_seq_projects )],
+        {   join     => [ 'qc_template',  { 'qc_run_seq_projects' => 'qc_seq_project' } ],
             order_by => { -desc => 'created_at' },
             distinct => 1,
             page     => $validated_params->{page},
@@ -529,7 +554,10 @@ sub list_profiles {
 sub _build_qc_runs_search_params {
     my ( $self, $params ) = @_;
 
-    my %search = ( 'me.upload_complete' => 't' );
+    my %search = (
+        'me.upload_complete'        => 't',
+        'qc_seq_project.species_id' => $params->{species_id}
+    );
 
     unless ( $params->{show_all} ) {
         if ( $params->{sequencing_project} ) {
