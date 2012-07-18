@@ -18,14 +18,14 @@ use Test::Most;
 }
 
 {
-    ok my $designs = model->list_assigned_designs_for_gene( { gene_id => 'MGI:1915248' } ), 'list assigned designs by MGI accession';
+    ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248' } ), 'list assigned designs by MGI accession';
     isa_ok $designs, ref [];
     ok @{$designs} > 0, '...the list is not empty';
     isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};    
 }
 
 {
-    ok my $designs = model->list_assigned_designs_for_gene( { gene_id => 'MGI:1915248', type => 'conditional' } ),
+    ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248', type => 'conditional' } ),
         'list assigned designs by MGI accession and design type conditional';
     isa_ok $designs, ref [];
     ok @{$designs} > 0, '...the list is not empty';
@@ -33,13 +33,13 @@ use Test::Most;
 }
 
 {
-    ok my $designs = model->list_assigned_designs_for_gene( { gene_id => 'MGI:1915248', type => 'deletion' } ),
+    ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248', type => 'deletion' } ),
         'list assigned designs by MGI accession and design type deletion';
     is @{$designs}, 0, 'returns no designs';
 }
 
 {
-    ok my $designs = model->list_candidate_designs_for_gene( { gene_id => 'MGI:1915248' } ),
+    ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248' } ),
         'list candidate designs for MGI accession';
     isa_ok $designs, ref [];
     ok grep( { $_->id == 95 } @{$designs} ), '...returns the expected design';

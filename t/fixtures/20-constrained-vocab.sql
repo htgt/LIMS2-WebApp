@@ -1,12 +1,17 @@
-INSERT INTO assemblies(id)
-VALUES ('NCBIM34'), ('NCBIM36'), ('NCBIM37');
+INSERT INTO species(id) VALUES ('Mouse'), ('Human');
 
-INSERT INTO chromosomes (id)
-VALUES ('1'), ('2'), ('3'), ('4'), ('5'), ('6'), ('7'), ('8'), ('9'),
-       ('10'), ('11'), ('12'), ('13'), ('14'), ('15'), ('16'),
-       ('17'), ('18'), ('19'), ('X'), ('Y');
+INSERT INTO assemblies(id, species_id)
+VALUES ('NCBIM34', 'Mouse'), ('NCBIM36', 'Mouse'), ('NCBIM37', 'Mouse');
 
-INSERT INTO bac_libraries (id) VALUES ('129'), ('black6');
+INSERT INTO species_default_assembly(species_id, assembly_id)
+VALUES ('Mouse', 'NCBIM37');
+
+INSERT INTO chromosomes (name, species_id)
+VALUES ('1', 'Mouse'), ('2', 'Mouse'), ('3', 'Mouse'), ('4', 'Mouse'), ('5', 'Mouse'), ('6', 'Mouse'), ('7', 'Mouse'), ('8', 'Mouse'), ('9', 'Mouse'),
+       ('10', 'Mouse'), ('11', 'Mouse'), ('12', 'Mouse'), ('13', 'Mouse'), ('14', 'Mouse'), ('15', 'Mouse'), ('16', 'Mouse'),
+       ('17', 'Mouse'), ('18', 'Mouse'), ('19', 'Mouse'), ('X', 'Mouse'), ('Y', 'Mouse');
+
+INSERT INTO bac_libraries (id, species_id) VALUES ('129', 'Mouse'), ('black6', 'Mouse');
 
 INSERT INTO design_types(id)
 VALUES ('conditional'), ('deletion'), ('insertion'), ('artificial-intron'), ('intron-replacement'), ('cre-bac');
