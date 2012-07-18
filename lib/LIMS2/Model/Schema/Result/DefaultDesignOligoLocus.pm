@@ -1,4 +1,4 @@
-package LIMS2::Model::Schema::Result::DesignOligoLocusNCBIM37;
+package LIMS2::Model::Schema::Result::DefaultDesignOligoLocus;
 
 use strict;
 use warnings FATAL => 'all';

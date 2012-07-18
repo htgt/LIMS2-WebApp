@@ -57,6 +57,12 @@ __PACKAGE__->table("qc_templates");
   is_nullable: 0
   original: {default_value => \"now()"}
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -76,6 +82,8 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -138,9 +146,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 species
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 16:54:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:614akQzo3EqBo8+OuWU9yQ
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-18 13:31:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8d5bfBNvCdHRa9wmV/yA4A
 
 sub as_hash {
     my $self = shift;

@@ -161,9 +161,21 @@ DROP TABLE audit.chromosomes;
 
 ALTER TABLE new_chromosomes RENAME TO chromosomes;
 ALTER TABLE audit.new_chromosomes RENAME TO chromosomes;
+
+CREATE OR REPLACE FUNCTION public.process_chromosomes_audit()
+RETURNS TRIGGER AS $chromosomes_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.chromosomes SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.chromosomes SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.chromosomes SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$chromosomes_audit$ LANGUAGE plpgsql;
 ALTER TRIGGER new_chromosomes_audit ON chromosomes RENAME TO chromosomes_audit;
-DROP FUNCTION process_chromosomes_audit();
-ALTER FUNCTION process_new_chromosomes_audit() RENAME TO process_chromosomes_audit;
 
 -- designs belong to a species
 ALTER TABLE designs ADD COLUMN species_id TEXT REFERENCES species(id);
@@ -171,11 +183,17 @@ ALTER TABLE audit.designs ADD COLUMN species_id TEXT;
 UPDATE designs SET species_id = 'Mouse';
 ALTER TABLE designs ALTER COLUMN species_id SET NOT NULL;
 
--- gene_design belongs to a species
-ALTER TABLE gene_design ADD COLUMN species_id TEXT REFERENCES species(id);
-ALTER TABLE audit.gene_design ADD COLUMN species_id TEXT;
-UPDATE gene_design SET species_id = 'Mouse';
-ALTER TABLE gene_design ALTER COLUMN species_id SET NOT NULL;
+-- plates belong to a species
+ALTER TABLE plates ADD COLUMN species_id TEXT REFERENCES species(id);
+ALTER TABLE audit.plates ADD COLUMN species_id TEXT;
+UPDATE plates SET species_id = 'Mouse';
+ALTER TABLE plates ALTER COLUMN species_id SET NOT NULL;
+
+-- QC templates belong to a species
+ALTER TABLE qc_templates ADD COLUMN species_id TEXT REFERENCES species(id);
+ALTER TABLE audit.qc_templates ADD COLUMN species_id TEXT;
+UPDATE qc_templates SET species_id = 'Mouse';
+ALTER TABLE qc_templates ALTER COLUMN species_id SET NOT NULL;
 
 -- QC sequencing projects belong to a species
 ALTER TABLE qc_seq_projects ADD COLUMN species_id TEXT REFERENCES species(id);

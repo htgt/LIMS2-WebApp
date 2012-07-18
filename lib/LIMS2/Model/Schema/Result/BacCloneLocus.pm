@@ -153,7 +153,6 @@ sub as_hash {
     my $self = shift;
 
     return {
-        species   => $self->assembly->species,
         assembly  => $self->assembly_id,
         chr_name  => $self->chr->name,
         chr_start => $self->chr_start,

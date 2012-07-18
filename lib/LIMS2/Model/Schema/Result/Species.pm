@@ -136,17 +136,17 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 gene_designs
+=head2 plates
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::GeneDesign>
+Related object: L<LIMS2::Model::Schema::Result::Plate>
 
 =cut
 
 __PACKAGE__->has_many(
-  "gene_designs",
-  "LIMS2::Model::Schema::Result::GeneDesign",
+  "plates",
+  "LIMS2::Model::Schema::Result::Plate",
   { "foreign.species_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -166,9 +166,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_templates
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:59:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jqMao1eC/oUZsdprlMTRWA
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_templates",
+  "LIMS2::Model::Schema::Result::QcTemplate",
+  { "foreign.species_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-18 13:31:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ul/2dXGdqoNPhAzgGy77fg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
