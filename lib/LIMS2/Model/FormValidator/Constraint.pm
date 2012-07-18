@@ -158,6 +158,11 @@ sub bac_plate {
     return regexp_matches(qr/^[abcd]$/);
 }
 
+sub existing_species {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'Species', 'id' );
+}
+
 sub existing_assembly {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Assembly', 'id' );
@@ -170,7 +175,7 @@ sub existing_bac_library {
 
 sub existing_chromosome {
     my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Chromosome', 'id' );
+    return in_resultset( $model, 'Chromosome', 'name' );
 }
 
 sub existing_design_type {
