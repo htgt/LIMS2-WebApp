@@ -16,7 +16,8 @@ __PACKAGE__->result_source_instance->is_virtual(1);
 
 __PACKAGE__->result_source_instance->view_definition( <<'EOT' );
 select designs.id          as design_id,
-       g5_locus.chr_id     as chr_name,
+       designs.species_id  as species_id,
+       chromosomes.name    as chr_name,
        g5_locus.chr_strand as chr_strand,
        g5_locus.chr_start  as g5_start,
        g5_locus.chr_end    as g5_end,
@@ -34,6 +35,7 @@ from designs
 join species_default_assembly on species_default_assembly.species_id = designs.species_id
 join design_oligos g5 on g5.design_id = designs.id and g5.design_oligo_type_id = 'G5'
 join design_oligo_loci g5_locus on g5_locus.design_oligo_id = g5.id and g5_locus.assembly_id = species_default_assembly.assembly_id
+join chromosomes on chromosomes.id = g5_locus.chr_id
 join design_oligos u5 on u5.design_id = designs.id and u5.design_oligo_type_id = 'U5'
 join design_oligo_loci u5_locus on u5_locus.design_oligo_id = u5.id and u5_locus.assembly_id = species_default_assembly.assembly_id
 left outer join design_oligos u3 on u3.design_id = designs.id and u3.design_oligo_type_id = 'U3'
@@ -47,7 +49,7 @@ join design_oligo_loci g3_locus on g3_locus.design_oligo_id = g3.id and g3_locus
 EOT
 
 __PACKAGE__->add_columns(
-    qw( design_id chr_name chr_strand
+    qw( design_id species_id chr_name chr_strand
         g5_start g5_end u5_start u5_end u3_start u3_end d3_start d3_end g3_start g3_end )
 );
 
