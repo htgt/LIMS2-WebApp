@@ -54,11 +54,11 @@ sub pspec_create_well {
 }
 
 sub create_well {
-    my ( $self, $params ) = @_;
+    my ( $self, $params, $plate ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_well );
 
-    my $plate = $self->retrieve_plate( { name => $validated_params->{plate_name} } );
+    $plate ||= $self->retrieve_plate( { name => $validated_params->{plate_name} } );
 
     my $validated_well_params
         = { slice_def $validated_params, qw( name created_at created_by_id ) };
@@ -373,12 +373,13 @@ sub set_well_assay_complete {
 
 sub pspec_create_well_primer_bands {
     return {
-        well_id      => { validate => 'integer', optional => 1, rename => 'id' },
-        plate_name   => { validate => 'existing_plate_name', optional => 1 },
-        well_name    => { validate => 'well_name', optional => 1 },
+        well_id           => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name        => { validate => 'existing_plate_name', optional => 1 },
+        well_name         => { validate => 'well_name', optional => 1 },
         primer_band_type  => { validate => 'existing_primer_band_type', rename => 'primer_band_type_id' },
-        created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
-        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        pass              => { validate => 'boolean' },
+        created_by        => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at        => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
 }
 
@@ -390,7 +391,7 @@ sub create_well_primer_bands {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $primer_band = $well->create_related(
-        well_primer_bands => { slice_def $validated_params, qw( primer_band_type_id created_by_id created_at ) }
+        well_primer_bands => { slice_def $validated_params, qw( primer_band_type_id pass created_by_id created_at ) }
     );
 
     return $primer_band;
@@ -413,16 +414,13 @@ sub retrieve_well_primer_bands {
 
 sub pspec_create_well_colony_picks {
     return {
-        well_id                      => { validate => 'integer', optional => 1, rename => 'id' },
-        plate_name                   => { validate => 'existing_plate_name', optional => 1 },
-        well_name                    => { validate => 'well_name', optional => 1 },
-        blue_colonies                => { validate => 'integer', optional => 1 },
-        white_colonies               => { validate => 'integer', optional => 1 },
-        picked_colonies              => { validate => 'integer', optional => 1 },
-        total_colonies               => { validate => 'integer', optional => 1 },
-        remaining_unstained_colonies => { validate => 'integet', optional => 1 },
-        created_by                   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
-        created_at                   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        well_id     => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
+        colony_type => { validate => 'existing_colony_type', rename => 'colony_type_id' },
+        count       => { validate => 'integer' },
+        created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
 }
 
@@ -436,8 +434,7 @@ sub create_well_colony_picks {
     my $colony_picks = $well->create_related(
         well_colony_picks => {
             slice_def $validated_params,
-            qw( blue_colonies white_colonies picked_colonies total_colonies
-                remaining_unstained_colonies created_by_id created_at )
+            qw( colony_type_id count created_by_id created_at )
         }
     );
 
