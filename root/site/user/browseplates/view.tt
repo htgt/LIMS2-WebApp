@@ -1,0 +1,40 @@
+[%- META title="View Plate"; META tab_name = "Browse" %]
+<h1>Plate [% plate.name %]</h1>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Plate Name</th>
+      <th>Plate Type</th>
+      <th>Description</th>
+      <th>Created By</th>
+      <th>Created At</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>[% plate.name %]</td>
+      <td>[% plate.type.id %] ([% plate.type.description %])</td>
+      <td>[% plate.description %]</td>
+      <td>[% plate.created_by.name %]</td>
+      <td>[% plate.created_at.ymd %]</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Comments</h2>
+[% IF plate.plate_comments.size %]
+<dl>
+  [% FOR comment IN plate.plate_comments %]
+  <dt>[% comment.created_by.name %], [% comment.created_at.ymd %]</dt>
+  <dd>
+    <p>[% comment.comment_text %]</p>
+  </dd>
+  [% END %]
+</dl>
+[% ELSE %]
+<p><em>No comments for this plate.</em></p>
+[% END %]
+
+<h2>Wells</h2>
+<a class="btn btn-primary" href="[% well_report_uri %]"><i class="icon-list icon-white"></i> Well Details</a>

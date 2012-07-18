@@ -4,11 +4,15 @@ use strict;
 use warnings FATAL => 'all';
 
 use DateTime::Format::ISO8601;
-use Regexp::Common;
 use Try::Tiny;
 use URI;
 use Text::CSV;
+use Const::Fast;
 use JSON qw( decode_json );
+
+# See http://www.postgresql.org/docs/9.0/static/datatype-numeric.html
+const my $MIN_INT => -2147483648;
+const my $MAX_INT =>  2147483647;
 
 sub in_set {
     my @args = @_;
@@ -90,7 +94,10 @@ sub user_name {
 }
 
 sub integer {
-    return regexp_matches( $RE{num}{int} );
+    return sub {
+        my $val = shift;
+        return $val =~ qr/^\d+$/ && $val >= $MIN_INT && $val <= $MAX_INT;
+    }
 }
 
 sub alphanumeric_string {

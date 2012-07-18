@@ -1,12 +1,10 @@
 [% META title = "HTGT LIMS2"; META tab_name = "Home" -%]
 <h1>Welcome to LIMS2</h1>
 
-<div class="alert alert-info">
-  <p>
-    Welcome to the new the High Throughput Gene Targeting (HTGT) lab
-    tracking system.
-  </p>
-</div> 
+<p>
+  Welcome to the new the High Throughput Gene Targeting (HTGT) lab
+  tracking system.
+</p>
 
 <h2>Browse</h2>
 
@@ -15,8 +13,14 @@
     <a href="[% c.uri_for( '/user/browse_designs' ) %]">Designs</a>
   </li>
   <li>
+    <a href="[% c.uri_for( '/user/browse_plates' ) %]">Plates</a>
+  </li>
+  <li>
     <a href="[% c.uri_for( '/user/qc_runs' ) %]">Sequencing QC
     Results</a>
+  </li>
+  <li>
+    <a href="[% c.uri_for( '/user/graph' ) %]">Well Relations</a>
   </li>
 </ul>
 

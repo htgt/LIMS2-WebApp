@@ -197,6 +197,8 @@ sub _cache_by_id {
 sub edges_in {
     my ( $self, $node ) = @_;
 
+    return unless $node;
+
     my $node_id = $node->id;
 
     return grep { defined $_->[2] and $_->[2] == $node_id } @{ $self->edges };
@@ -204,6 +206,8 @@ sub edges_in {
 
 sub edges_out {
     my ( $self, $node ) = @_;
+
+    return unless $node;
 
     my $node_id = $node->id;
 
@@ -267,6 +271,34 @@ sub breadth_first_traversal {
     }
 }
 
+sub depth_first_traversal {
+    my ( $self, $node, $direction ) = @_;
+
+    my $neighbours;
+    if ( $direction eq 'in' ) {
+        $neighbours = 'input_wells';
+    }
+    elsif ( $direction eq 'out' ) {
+        $neighbours = 'output_wells';
+    }
+    else {
+        LIMS2::Exception::Implementation->throw( "direction must be 'in' or 'out'" );
+    }
+
+    my ( %seen, @queue );
+
+    push @queue, $node;
+
+    return iter sub {
+        my $this_node = pop @queue;
+        while ( $this_node and $seen{$this_node->as_string}++ ) {
+            $this_node = pop @queue;
+        }
+        push @queue, $self->$neighbours( $this_node );
+        return $this_node;
+    }
+}
+
 sub process_data_for {
     my ( $self, $well ) = @_;
 
@@ -323,7 +355,7 @@ sub render {
 
     for my $edge ( @{ $self->edges } ) {
         my ( $process_id, $input_well_id, $output_well_id ) = @{ $edge };
-        $self->log->debug( "Adding edge $process_id to GraphVis" );
+        $self->log->debug( "Adding edge $process_id to GraphViz" );
         $graph->add_edge(
             from  => defined $input_well_id ? $self->well( $input_well_id )->as_string : 'ROOT',
             to    => $self->well( $output_well_id )->as_string,

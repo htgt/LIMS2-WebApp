@@ -1,0 +1,23 @@
+[%- META title = "View Well Relations" %]
+<form method="GET" action="[% c.uri_for( '/user/graph' ) %]" class="well">
+  <fieldset>
+    <legend>Show Well Relations</legend>
+    <input type="text" id="plate_name_field" name="plate_name" placeholder="Plate Name" autocomplete="off" value="[% plate_name %]">
+    <input type="text" name="well_name" placeholder="Well Name" value="[% well_name %]">
+    <input type="radio" name="graph_type" value="ancestors"[% IF graph_type == 'ancestors' %] checked="checked"[% END %]>ancestors
+    <input type="radio" name="graph_type" value="descendants"[% IF graph_type == 'descendants' %] checked="checked"[% END %]>descendants
+    <button name="go" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+  </fieldset>
+</form>
+
+[% IF graph_uri %]
+<object data="[% graph_uri %]" type="image/svg+xml"></object>
+[% END %]
+
+<script type="text/javascript">
+$("#plate_name_field").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+</script>
+

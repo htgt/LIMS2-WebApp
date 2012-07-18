@@ -1,5 +1,21 @@
 {{$NEXT}}
 
+0.007     2012-07-17 10:03:50 Europe/London
+
+   Implement plate list and view.
+   Implement well relations view.
+
+0.006     2012-07-13 11:57:28 Europe/London
+
+   Bugfix LIMS2::Model::software_version().
+
+0.005     2012-07-13 11:30:21 Europe/London
+
+   Tighten up LIMS2::Model::FormValidator::Constraint::integer.
+   Don't display the welcome paragarph in an alert div.
+
+0.004     2012-07-12 11:45:04 Europe/London
+
    Implement plate and well tracking
    Implement browse interface for qc-runs
    Implement reporting framework
