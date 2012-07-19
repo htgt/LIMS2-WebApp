@@ -52,9 +52,26 @@
           <a href="[% c.uri_for( '/admin' ) %]">Admin</a>
         </li>
         [% END %]
+        [% IF c.session.selected_species %]
+        <li class="dropdown pull-right">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.session.selected_species %]<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>Switch species:</li>
+          [%- FOR species_id IN c.session.species %]
+            [%- IF species_id != c.session.selected_species %]            
+            <li>
+              <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto => c.request.uri } ) %]">
+                [% species_id %]
+              </a>
+            </li>
+            [% END %]
+          [% END %]
+          </ul>
+        </li>
+        [% END %]
       </ul>
       <p class="nav pull-right">
-        [% IF c.user %]
+        [% IF c.user %]        
         Logged in as [% c.user.name %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
         [% ELSE %]
         <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
