@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Moose::Role;
-use Hash::MoreUtils qw( slice );
+use Hash::MoreUtils qw( slice slice_def );
 use Const::Fast;
 use Crypt::SaltedHash;
 use LIMS2::Model::Util::PgUserRole qw( create_pg_user );
@@ -200,6 +200,48 @@ sub disable_user {
     $params->{active} = 0;
 
     return $self->set_user_active_status($params);
+}
+
+sub pspec_retrieve_user_preferences {
+    return {
+        name            => { validate => 'user_name', optional => 1 },
+        id              => { validate => 'integer',   optional => 1 },
+        REQUIRE_SOME    => { name_or_id => [ 1, qw( name id ) ] }
+    }
+}    
+
+sub retrieve_user_preferences {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_user_preferences, ignore_unknown => 1 );
+
+    my $user = $self->retrieve( User => { slice_def $validated_params, qw( id name ) }, { prefetch => 'user_preference' } );
+
+    return $user->user_preference
+        || $user->create_related( user_preference => { default_species_id => 'Mouse' } );
+}
+
+sub pspec_set_user_preferences {
+    return {
+        name            => { validate => 'user_name', optional => 1 },
+        id              => { validate => 'integer',   optional => 1 },
+        default_species => { validate => 'existing_species', optional => 1, default => 'Mouse' },
+        REQUIRE_SOME    => { name_or_id => [ 1, qw( name id ) ] }
+    }
+}
+
+sub set_user_preferences {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_preferences );
+
+    my $prefs = $self->retrieve_user_preferences( $validated_params );
+
+    if ( $prefs->default_species_id ne $validated_params->{default_species} ) {
+        $prefs->update( { default_species_id => $validated_params->{default_species} } );
+    }
+
+    return $prefs;
 }
 
 1;
