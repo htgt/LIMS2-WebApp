@@ -200,3 +200,43 @@ ALTER TABLE qc_seq_projects ADD COLUMN species_id TEXT REFERENCES species(id);
 ALTER TABLE audit.qc_seq_projects ADD COLUMN species_id TEXT;
 UPDATE qc_seq_projects SET species_id = 'Mouse';
 ALTER TABLE qc_seq_projects ALTER COLUMN species_id SET NOT NULL;
+
+-- Store per-user default species in a preferences table
+CREATE TABLE user_preferences (
+       user_id            INTEGER PRIMARY KEY REFERENCES users(id),
+       default_species_id TEXT NOT NULL REFERENCES species(id)
+);
+GRANT SELECT ON user_preferences TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_preferences TO "[% rw_role %]";
+
+CREATE TABLE audit.user_preferences (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+user_id integer,
+default_species_id text
+);
+GRANT SELECT ON audit.user_preferences TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.user_preferences TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_user_preferences_audit()
+RETURNS TRIGGER AS $user_preferences_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.user_preferences SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.user_preferences SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.user_preferences SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$user_preferences_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER user_preferences_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.user_preferences
+    FOR EACH ROW EXECUTE PROCEDURE public.process_user_preferences_audit();
+
+INSERT INTO user_preferences(user_id, default_species_id)
+SELECT id, 'Mouse' FROM users;
+
+INSERT INTO schema_versions(version) values(7);
