@@ -175,7 +175,11 @@ RETURNS TRIGGER AS $chromosomes_audit$
         RETURN NULL;
     END;
 $chromosomes_audit$ LANGUAGE plpgsql;
-ALTER TRIGGER new_chromosomes_audit ON chromosomes RENAME TO chromosomes_audit;
+DROP TRIGGER chromosomes_audit ON public.chromosomes;
+CREATE TRIGGER chromosomes_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.chromosomes
+    FOR EACH ROW EXECUTE PROCEDURE public.process_chromosomes_audit();
+DROP FUNCTION process_new_chromosomes_audit();
 
 -- designs belong to a species
 ALTER TABLE designs ADD COLUMN species_id TEXT REFERENCES species(id);
