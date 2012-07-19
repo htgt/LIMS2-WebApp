@@ -74,6 +74,37 @@ sub error :Local {
     return;
 }
 
+=head2 select_species
+
+=cut
+
+sub select_species :Local {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+    
+    my $goto = $c->request->param('goto') || $c->uri_for( '/' );
+
+    my $species_id = $c->request->param('species');
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->set_user_preferences(
+                {
+                    id              => $c->user->id,
+                    default_species => $species_id
+                }
+            );
+        }
+    );
+
+    $c->session->{selected_species} = $species_id;
+
+    $c->flash( info_msg => "Switched to species $species_id" );
+
+    return $c->response->redirect( $goto );
+}
+
 =head1 AUTHOR
 
 Ray Miller
