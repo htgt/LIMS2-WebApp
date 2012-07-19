@@ -14,6 +14,15 @@ has [ qw( _cache_marker_symbol _cache_mgi_accession_id _cache_ensembl_gene_id ) 
     lazy_build => 1
 );
 
+sub list_species {
+    my $self = shift;
+
+    my @species = map { $_->id }
+        $self->schema->resultset('Species')->search( {}, { order_by => { -asc => 'id' } } );
+
+    return \@species;
+}
+
 sub _build__cache_marker_symbol {
     return shift->_build_cache( 'marker_symbol' );
 }
