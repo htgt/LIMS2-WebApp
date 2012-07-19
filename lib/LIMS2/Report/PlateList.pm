@@ -14,6 +14,7 @@ has plate_type => (
 );
 
 sub _build_name {
+    my $self = shift;
     if ( $self->plate_type ) {
         return $self->plate_type . ' Plate List';
     }
