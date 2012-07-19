@@ -91,11 +91,11 @@ sub create_plate {
         { slice_def( $validated_params, qw( name type_id description created_by_id created_at ) ) }
     );
 
-    #for my $c ( @{ $validated_params->{comments} || [] } ) {
-        #my $validated_c = $self->check_params( $c, $self->pspec_create_plate_comment );
-        #$plate->create_related( plate_comments =>
-                #{ slice_def( $validated_c, qw( comment_text created_by_id created_at ) ) } );
-    #}
+    for my $c ( @{ $validated_params->{comments} || [] } ) {
+        my $validated_c = $self->check_params( $c, $self->pspec_create_plate_comment );
+        $plate->create_related( plate_comments =>
+                { slice_def( $validated_c, qw( comment_text created_by_id created_at ) ) } );
+    }
 
     $self->create_plate_wells( $validated_params->{wells}, $plate )
         if @{ $validated_params->{wells} };
@@ -118,6 +118,21 @@ sub retrieve_plate {
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
     return $self->retrieve( Plate => { slice_def $validated_params, qw( me.name me.id me.type_id ) } );
+}
+
+sub delete_plate {
+    my ( $self, $params ) = @_;
+
+    # retrieve_plate() will validate the parameters
+    my $plate = $self->retrieve_plate($params);
+
+    for my $well ( $plate->wells ) {
+        $self->delete_well( { id => $well->id } );
+    }
+
+    $plate->search_related_rs( 'plate_comments' )->delete;
+    $plate->delete;
+    return;
 }
 
 sub pspec_set_plate_assay_complete {
@@ -147,93 +162,65 @@ sub set_plate_assay_complete {
     return $plate;
 }
 
-{
-
-    const my %HANDLER_FOR_TRANSITION => (
-        #ROOT => {
-            #DESIGN  => sub { 'create_di' }
-        #},
-        #DESIGN => {
-            #INT     => sub { 'int_recom' },
-        #},
-        #INT => {
-            #INT     => sub { 'rearray' },
-            #POSTINT => compute_process_type( qw( 2w_gateway 3w_gateway ) ),
-            #FINAL   => compute_process_type( qw( 2w_gateway 3w_gateway ) ),
-        #},
-        #POSTINT => {
-            #POSTINT => compute_process_type( qw( 2w_gateway recombinase rearray ) ),
-            #FINAL   => compute_process_type( qw( 2w_gateway recombinase ) )
-        #},
-        #FINAL => {
-            #FINAL   => compute_process_type( qw( recombinase rearray ) ),
-            #DNA     => sub { 'dna_prep' }
-        #},
-        DNA => {
-            EP => 'first_electroporation'
-        },
-        EP => {
-            EP_PICK => 'colony_pick', # EPD in HTGT
-            XEP     => 'recombinase', # Flp excision
-        },
-        EP_PICK => {
-            FP => 'freeze'
-        },
-        XEP => {
-            XEP_POOL => 'colony_pool',
-            XEP_PICK => 'colony_pick', # EPD in HTGT
-            SEP      => 'second_electroporation'
-        },
-        SEP => {
-            SEP_PICK => 'colony_pick',
-            SEP_POOL => 'colony_pool',
-        },
-        SEP_PICK => {
-            SFP => 'freeze'
-        },
-    );
-
-    sub process_type_for {
-        my ( $self, $parent_type, $child_type ) = @_;
-
-        die "No process configured for transition from $parent_type to $child_type"
-            unless exists $HANDLER_FOR_TRANSITION{$parent_type}
-                and exists $HANDLER_FOR_TRANSITION{$parent_type}{$child_type};
-
-        return $HANDLER_FOR_TRANSITION{$parent_type}{$child_type};
-    }
-}
-
 sub create_plate_wells {
     my ( $self, $wells, $plate ) = @_;
 
-    for my $well ( @{ $wells } ) {
-        my $parent_well = $self->retrieve_well(
-            {
-                plate_name => $well->{parent_plate},
-                well_name => $well->{parent_well}
-            }
-        );
-
-        my $process_type = $self->process_type_for( $parent_well->plate->type_id, $plate->type_id );
+    for my $well_data ( @{ $wells } ) {
+        my $parent_well_ids = $self->find_parent_well_ids( $well_data );
 
         my %well_params = (
             plate_name => $plate->name,
-            well_name  => $well->{well_name},
+            well_name  => delete $well_data->{well_name},
             created_by => $plate->created_by->name,
-            created_at  => $plate->created_at->iso8601,
+            created_at => $plate->created_at->iso8601,
         );
-        my %process_data = (
-            type      => $process_type,
-            cell_line => $well->{cell_line},
-            input_wells =>[
-                { id => $parent_well->id }
-            ]
-        );
-        $well_params{process_data} = \%process_data;
+        my $process_type = delete $well_data->{process_type};
+
+        $well_params{process_data}              = $well_data;
+        $well_params{process_data}{type}        = $process_type;
+        $well_params{process_data}{input_wells} = [ map{ { id => $_ } } @{ $parent_well_ids } ];
+
+        ### %well_params
 
         $self->create_well( \%well_params, $plate );
     }
+}
+
+sub find_parent_well_ids {
+    my ( $self, $well_data, $plate_type ) = @_;
+    my @parent_well_ids;
+
+    if ( $well_data->{process_type} eq 'second_electroporation' ) {
+        push @parent_well_ids,
+            $self->get_well_id( $well_data->{first_allele_plate}, $well_data->{first_allele_well} );
+
+        push @parent_well_ids,
+            $self->get_well_id( $well_data->{final_vector_plate}, $well_data->{final_vector_well} );
+
+        delete @{$well_data}
+            {qw( first_allele_plate final_vector_plate first_allele_well final_vector_well )};
+    }
+    else {
+        push @parent_well_ids,
+            $self->get_well_id( $well_data->{parent_plate}, $well_data->{parent_well} );
+
+        delete @{$well_data}{qw( parent_plate parent_well )};
+    }
+
+    return \@parent_well_ids;
+}
+
+sub get_well_id {
+    my ( $self, $plate_name, $well_name ) = @_;
+
+    my $well = $self->retrieve_well(
+        {
+            plate_name => $plate_name,
+            well_name  => substr( $well_name, -3),
+        }
+    );
+
+    return $well->id;
 }
 
 1;
