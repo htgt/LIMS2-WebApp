@@ -54,7 +54,7 @@ const my %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     second_electroporation => {
-        type   => [qw( XEP FINAL )],
+        type   => [qw( XEP DNA )],
         number => 2,
     },
     freeze => {
@@ -488,21 +488,8 @@ sub _create_process_aux_data_first_electroporation {
 }
 ## use critic
 
-sub pspec__create_process_aux_data_second_electroporation {
-    return {
-        cell_line => { validate => 'non_empty_string' },
-    };
-}
-
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_second_electroporation {
-    my ( $self, $params, $process ) = @_;
-
-    my $validated_params
-        = $self->check_params( $params, $self->pspec__create_process_aux_data_second_electroporation );
-
-    $process->create_related( process_electroporation => { cell_line => $validated_params->{cell_line} } );
-
     return;
 }
 ## use critic
@@ -552,7 +539,9 @@ sub delete_process {
     my $process = $self->retrieve( Process => { id => $validated_params->{id} } );
 
     my @related_resultsets = qw(  process_backbone process_bacs process_cassette process_design
-                                  process_input_wells process_output_wells process_recombinases );
+                                  process_input_wells process_output_wells process_recombinases
+                                  process_electroporation
+                                );
 
     for my $rs ( @related_resultsets ) {
         $process->search_related_rs( $rs )->delete;
