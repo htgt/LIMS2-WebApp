@@ -91,6 +91,7 @@ lib/LIMS2/Report/DNAPlate.pm
 lib/LIMS2/Report/DesignPlate.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
+lib/LIMS2/Report/PlateList.pm
 lib/LIMS2/Report/PostIntermediateVectorPlate.pm
 lib/LIMS2/Report/QcRun.pm
 lib/LIMS2/Report/QcRunSummary.pm
