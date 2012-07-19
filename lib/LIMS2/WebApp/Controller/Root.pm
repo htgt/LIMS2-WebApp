@@ -20,6 +20,30 @@ LIMS2::WebApp::Controller::Root - Root Controller for LIMS2::WebApp
 
 =head1 METHODS
 
+=head2 auto
+
+=cut
+
+sub auto :Private {
+    my ( $self, $c ) = @_;
+
+    if ( ! $c->session->{selected_species} ) {
+        if ( $c->user ) {
+            my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
+            $c->session->{selected_species} = $prefs->default_species_id;
+        }
+        else {
+            $c->session->{selected_species} = 'Mouse';
+        }        
+    }
+
+    if ( ! $c->session->{species} ) {
+        $c->session->{species} = $c->model('Golgi')->list_species;        
+    }
+
+    return 1;
+}
+
 =head2 index
 
 The root page (/)
