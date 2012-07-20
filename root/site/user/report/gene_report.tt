@@ -182,7 +182,7 @@
 
 <script type="text/javascript">
 $("#gene_id_input").autocomplete({
-  source: "[% c.uri_for( '/api/autocomplete/marker_symbols' ) %]",
+  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
   minLength: 2,
 });
 </script>
