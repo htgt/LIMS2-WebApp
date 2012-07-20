@@ -1,26 +1,26 @@
-CREATE TABLE process_electroporation (
+CREATE TABLE process_cell_line (
        process_id      INTEGER PRIMARY KEY REFERENCES processes(id),
        cell_line       TEXT NOT NULL
 );
-GRANT SELECT ON process_electroporation TO "[% ro_role %]";
-GRANT SELECT, INSERT, UPDATE, DELETE ON process_electroporation TO "[% rw_role %]";
+GRANT SELECT ON process_cell_line TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON process_cell_line TO "[% rw_role %]";
 
-CREATE TABLE picked_colony_types (
+CREATE TABLE colony_count_types (
        id TEXT PRIMARY KEY
 );
-GRANT SELECT ON picked_colony_types TO "[% ro_role %]";
-GRANT SELECT, INSERT, UPDATE, DELETE ON picked_colony_types TO "[% rw_role %]";
+GRANT SELECT ON colony_count_types TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON colony_count_types TO "[% rw_role %]";
 
-CREATE TABLE well_colony_picks (
+CREATE TABLE well_colony_counts (
        well_id                INTEGER NOT NULL REFERENCES wells(id),
-       colony_type_id         TEXT NOT NULL REFERENCES colony_types(id),
-       count                  INTEGER NOT NULL,
+       colony_count_type_id   TEXT NOT NULL REFERENCES colony_count_types(id),
+       colony_count           INTEGER NOT NULL,
        created_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
        created_by_id          INTEGER NOT NULL REFERENCES users(id),
-       PRIMARY KEY(well_id, colony_type_id)
+       PRIMARY KEY(well_id, colony_count_type_id)
 );
-GRANT SELECT ON well_colony_picks TO "[% ro_role %]";
-GRANT SELECT, INSERT, UPDATE, DELETE ON well_colony_picks TO "[% rw_role %]";
+GRANT SELECT ON well_colony_counts TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON well_colony_counts TO "[% rw_role %]";
 
 CREATE TABLE primer_band_types (
        id TEXT PRIMARY KEY

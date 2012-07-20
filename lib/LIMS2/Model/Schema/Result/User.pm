@@ -227,17 +227,17 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 well_colony_picks
+=head2 well_colony_counts
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::WellColonyPick>
+Related object: L<LIMS2::Model::Schema::Result::WellColonyCount>
 
 =cut
 
 __PACKAGE__->has_many(
-  "well_colony_picks",
-  "LIMS2::Model::Schema::Result::WellColonyPick",
+  "well_colony_counts",
+  "LIMS2::Model::Schema::Result::WellColonyCount",
   { "foreign.created_by_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -358,8 +358,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:52:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ayQlKW95vMSj4BKbe965BQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dy4YcDCFEBlkk+2cBTtKyw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

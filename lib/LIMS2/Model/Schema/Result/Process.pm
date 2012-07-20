@@ -124,6 +124,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_cell_line
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCellLine>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_cell_line",
+  "LIMS2::Model::Schema::Result::ProcessCellLine",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_design
 
 Type: might_have
@@ -135,21 +150,6 @@ Related object: L<LIMS2::Model::Schema::Result::ProcessDesign>
 __PACKAGE__->might_have(
   "process_design",
   "LIMS2::Model::Schema::Result::ProcessDesign",
-  { "foreign.process_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 process_electroporation
-
-Type: might_have
-
-Related object: L<LIMS2::Model::Schema::Result::ProcessElectroporation>
-
-=cut
-
-__PACKAGE__->might_have(
-  "process_electroporation",
-  "LIMS2::Model::Schema::Result::ProcessElectroporation",
   { "foreign.process_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -235,8 +235,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:52:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9k2L7C8zD1Y7cTjLDfAO2w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NBlXsW++ShcwuV+e2acSLw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
