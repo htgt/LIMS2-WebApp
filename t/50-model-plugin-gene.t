@@ -7,17 +7,27 @@ use Test::Most;
 use LIMS2::Test;
 use Const::Fast;
 
-const my %TEST_DATA => ( marker_symbol => 'Cbx1', mgi_accession_id => 'MGI:105369' );
+{
+    const my %GENE_DATA => ( gene_id => 'MGI:105369', gene_symbol => 'Cbx1' );
+    const my @SEARCHES => (
+        { species => 'Mouse', search_term => 'Cbx1' },
+        { species => 'Mouse', search_term => 'MGI:105369' },
+        { species => 'Mouse', search_term => 'ENSMUSG00000018666' }
+    );
+    for my $search ( @SEARCHES ) {
+        ok my $searched = model->search_genes( $search ), 'search_genes';
+        is_deeply $searched, [ \%GENE_DATA ], '...returns expected result';
+        ok my $retrieved = model->retrieve_gene( $search ), 'retrieve_gene';
+        is_deeply $retrieved, \%GENE_DATA, '...returns expected result';
+    }
+}
 
-const my @SEARCHES => (
-    { gene             => $TEST_DATA{marker_symbol} },
-    { marker_symbol    => $TEST_DATA{marker_symbol} },
-    { mgi_accession_id => $TEST_DATA{mgi_accession_id} }
-);
-
-for my $search ( @SEARCHES ) {
-    ok my $res = model->search_genes( $search ), 'search_genes';
-    is_deeply $res, [ \%TEST_DATA ], '...returns expected result';
+{
+    const my %GENE_DATA => ( gene_id => 'ENSG00000108511', gene_symbol => 'HOXB6' );
+    for my $search_term ( values %GENE_DATA ) {
+        is_deeply model->retrieve_gene( { species => 'Human', search_term => $search_term } ), \%GENE_DATA,
+            "Retrieve gene $search_term returns the expected result";
+    }
 }
 
 done_testing;
