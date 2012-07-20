@@ -50,6 +50,7 @@ DELETE FROM cassettes;
 DELETE FROM backbones;
 DELETE FROM species_default_assembly;
 DELETE FROM assemblies;
+DELETE FROM user_preferences;
 DELETE FROM species;
 DELETE FROM user_role;
 DELETE FROM roles;
