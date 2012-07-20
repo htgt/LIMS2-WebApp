@@ -500,7 +500,7 @@ sub update_qc_run {
 
 sub pspec_retrieve_qc_runs {
     return {
-        species            => { validate => 'existing_species_id', rename => 'species_id' },
+        species            => { validate => 'existing_species', rename => 'species_id' },
         sequencing_project => { validate => 'existing_qc_seq_project_id', optional => 1 },
         template_plate     => { validate => 'existing_qc_template_name',  optional => 1 },
         profile            => { validate => 'non_empty_string',           optional => 1 },

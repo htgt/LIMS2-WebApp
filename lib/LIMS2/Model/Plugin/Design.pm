@@ -51,7 +51,7 @@ sub pspec_create_design {
         oligos                  => { optional => 1 },
         comments                => { optional => 1 },
         genotyping_primers      => { optional => 1 },
-        gene_ids                => { validate => 'mgi_accession_id', optional => 1 }
+        gene_ids                => { validate => 'non_empty_str', optional => 1 }
     };
 }
 
@@ -190,7 +190,8 @@ sub delete_design {
 
 sub pspec_retrieve_design {
     return {
-        id      => { validate => 'integer' }
+        id      => { validate => 'integer' },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
     }
 }
 
@@ -233,7 +234,7 @@ sub list_assigned_designs_for_gene {
 
 sub pspec_list_candidate_designs_for_gene {
     return {
-        gene_id => { validate => 'mgi_accession_id' },
+        gene_id => { validate => 'non_empty_str' },
         species => { validate => 'existing_species', rename => 'species_id' },
         type    => { validate => 'existing_design_type', optional => 1 }
     }

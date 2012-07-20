@@ -44,7 +44,7 @@ sub _build_columns {
                           plate_name
                           well_name
                           well_name_384
-                          marker_symbol
+                          gene_symbol
                           design_id
                           expected_design_id
                           pass

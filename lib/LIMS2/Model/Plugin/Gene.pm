@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Const::Fast;
+use Data::Dump 'pp';
 use namespace::autoclean;
 
 const my $MGI_ACCESSION_ID_RX => qr/^MGI:\d+$/;
@@ -37,6 +38,7 @@ sub search_genes {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
+    $self->log->debug( "Search genes: " . pp $params );    
 
     my $species = $validated_params->{species};
 
@@ -46,6 +48,9 @@ sub search_genes {
         @genes = map { $self->_normalize_solr_result( $_ ) }
             @{ $self->solr_query( $validated_params->{search_term} ) };
     }
+    elsif ( $species eq 'Human' ) {
+        @genes = ( $self->retrieve_gene( $validated_params ) || () );
+    }    
     else {
         LIMS2::Exception::Implementation->throw( "search_genes() for species '$species' not implemented" );
     }
@@ -69,6 +74,8 @@ sub retrieve_gene {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+
+    $self->log->debug( "retrieve_gene: " . pp $validated_params );    
 
     my $species = $validated_params->{species};
 
@@ -110,7 +117,7 @@ sub _retrieve_solr_gene {
     }
 
     if ( @{$genes} == 0 ) {
-        $self->throw( NotFound => { entity => 'Gene', search_params => $params } );
+        $self->throw( NotFound => { entity_class => 'Gene', search_params => $params } );
     }
 
     if ( @{$genes} > 1 ) {
@@ -125,14 +132,14 @@ sub _retrieve_ensembl_gene {
 
     if ( $params->{search_term} =~ $ENSEMBL_GENE_ID_RX ) {
         my $gene = $self->ensembl_gene_adaptor( $params->{species} )->fetch_by_stable_id( $params->{search_term} )
-            or $self->throw( NotFound => { entity => 'Gene', search_params => $params } );
+            or $self->throw( NotFound => { entity_class => 'Gene', search_params => $params } );
         return { gene_id => $gene->stable_id, gene_symbol => $gene->external_name };
     }
 
     my $genes = $self->ensembl_gene_adaptor( $params->{species} )->fetch_all_by_external_name( $params->{search_term} );
 
     if ( @{$genes} == 0 ) {
-        $self->throw( NotFound => { entity => 'Gene', search_params => $params } );
+        $self->throw( NotFound => { entity_class => 'Gene', search_params => $params } );
     }
 
     if ( @{$genes} > 1 ) {

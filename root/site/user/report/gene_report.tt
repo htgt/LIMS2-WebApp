@@ -41,7 +41,7 @@
 [%- END -%]
 
 [%- IF info.defined %]
-<h2>Showing details for [% info.marker_symbol %] ([% info.mgi_accession_id %])</h2>
+<h2>Showing details for [% info.gene_symbol %] ([% info.gene_id %])</h2>
 
 <div class="accordion" id="gene_report_accordion">
   <div class="accordion-group">

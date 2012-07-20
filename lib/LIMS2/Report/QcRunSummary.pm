@@ -35,7 +35,7 @@ sub _build_columns {
     return [
         qw(
               design_id
-              marker_symbol
+              gene_symbol
               plate_name
               well_name
               well_name_384

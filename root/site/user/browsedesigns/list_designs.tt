@@ -8,7 +8,7 @@
 </p>
 
 [% FOR g IN designs_by_gene %]
-<h2>[% g.mgi_accession_id %][% IF g.marker_symbol.length > 0 %] ([% g.marker_symbol %])[% END %]</h2>
+<h2>[% g.gene_id %][% IF g.gene_symbol.length > 0 %] ([% g.gene_symbol %])[% END %]</h2>
 [% IF g.designs.size > 0 %]
   <table class="table table-striped">
     <thead>

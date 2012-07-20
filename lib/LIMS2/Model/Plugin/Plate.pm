@@ -106,6 +106,7 @@ sub pspec_retrieve_plate {
         name         => { validate => 'plate_name', optional => 1, rename => 'me.name' },
         id           => { validate => 'integer', optional => 1, rename => 'me.id' },
         type         => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
+        species      => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
         REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
     };
 }
@@ -115,7 +116,7 @@ sub retrieve_plate {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
-    return $self->retrieve( Plate => { slice_def $validated_params, qw( me.name me.id me.type_id ) } );
+    return $self->retrieve( Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id ) } );
 }
 
 sub pspec_set_plate_assay_complete {
