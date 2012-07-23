@@ -51,7 +51,7 @@ sub pspec_create_design {
         oligos                  => { optional => 1 },
         comments                => { optional => 1 },
         genotyping_primers      => { optional => 1 },
-        gene_ids                => { validate => 'non_empty_str', optional => 1 }
+        gene_ids                => { validate => 'non_empty_string', optional => 1 }
     };
 }
 
@@ -200,7 +200,7 @@ sub retrieve_design {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_design );
 
-    my $design = $self->retrieve( Design => $validated_params );
+    my $design = $self->retrieve( Design => { slice_def $validated_params, qw( id species_id ) } );
 
     return $design;
 }
@@ -234,7 +234,7 @@ sub list_assigned_designs_for_gene {
 
 sub pspec_list_candidate_designs_for_gene {
     return {
-        gene_id => { validate => 'non_empty_str' },
+        gene_id => { validate => 'non_empty_string' },
         species => { validate => 'existing_species', rename => 'species_id' },
         type    => { validate => 'existing_design_type', optional => 1 }
     }
