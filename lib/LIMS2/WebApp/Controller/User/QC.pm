@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.008';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.009';
 }
 ## use critic
 
@@ -30,7 +30,10 @@ sub index :Path( '/user/qc_runs' ) :Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my ( $qc_runs, $pager ) = $c->model('Golgi')->retrieve_qc_runs( $c->request->params );
+    my $params = $c->request->params;
+    $params->{species} ||= $c->session->{selected_species};
+
+    my ( $qc_runs, $pager ) = $c->model('Golgi')->retrieve_qc_runs( $params );
 
     my $pageset = LIMS2::WebApp::Pageset->new(
         {

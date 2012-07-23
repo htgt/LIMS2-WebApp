@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.008';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.009';
 }
 ## use critic
 
@@ -24,6 +24,7 @@ sub list_plate_types {
 
 sub pspec_list_plates {
     return {
+        species    => { validate => 'existing_species' },
         plate_name => { validate => 'non_empty_string',    optional => 1 },
         plate_type => { validate => 'existing_plate_type', optional => 1 },
         page       => { validate => 'integer',             optional => 1, default => 1 },
@@ -36,7 +37,7 @@ sub list_plates {
 
     my $validated_params = $self->check_params( $params, $self->pspec_list_plates );
 
-    my %search;
+    my %search = ( 'me.species_id' => $validated_params->{species} );
 
     if ( $validated_params->{plate_name} ) {
         $search{'me.name'} = { -like => '%' . sanitize_like_expr( $validated_params->{plate_name} ) . '%' };
@@ -62,6 +63,7 @@ sub list_plates {
 sub pspec_create_plate {
     return {
         name        => { validate => 'plate_name' },
+        species     => { validate => 'existing_species', rename => 'species_id' },
         type        => { validate => 'existing_plate_type', rename => 'type_id' },
         description => { validate => 'non_empty_string', optional => 1 },
         created_by => {
@@ -92,7 +94,7 @@ sub create_plate {
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
 
     my $plate = $self->schema->resultset('Plate')->create(
-        { slice_def( $validated_params, qw( name type_id description created_by_id created_at ) ) }
+        { slice_def( $validated_params, qw( name species_id type_id description created_by_id created_at ) ) }
     );
 
     for my $c ( @{ $validated_params->{comments} || [] } ) {
@@ -110,6 +112,7 @@ sub pspec_retrieve_plate {
         name         => { validate => 'plate_name', optional => 1, rename => 'me.name' },
         id           => { validate => 'integer', optional => 1, rename => 'me.id' },
         type         => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
+        species      => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
         REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
     };
 }
@@ -119,7 +122,7 @@ sub retrieve_plate {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
-    return $self->retrieve( Plate => { slice_def $validated_params, qw( me.name me.id me.type_id ) } );
+    return $self->retrieve( Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id ) } );
 }
 
 sub pspec_set_plate_assay_complete {

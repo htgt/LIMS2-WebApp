@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.008';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.009';
 }
 ## use critic
 
@@ -68,8 +68,8 @@ sub retrieve_qc_run_summary_results {
                 and not $seen_design{ $template_well->design_id }++;
 
         my %s = (
-            design_id     => $template_well->design_id,
-            marker_symbol => '-',
+            design_id   => $template_well->design_id,
+            gene_symbol => '-',
         );
 
         my @results = reverse sort {
@@ -247,7 +247,7 @@ sub _parse_qc_seq_wells {
         well_name          => $well_name,
         well_name_384      => lc to384( $plate_name, $well_name ),
         expected_design_id => $expected_design_loc->{ uc $well_name },
-        marker_symbol      => '-', #TODO add marker symbol info once designs imported to lims2
+        gene_symbol        => '-', #TODO add gene symbol info once designs imported to lims2
         num_reads          => $num_reads
     );
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.008';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.009';
 }
 ## use critic
 
@@ -44,13 +44,21 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
+    my $params = $c->request->params;
+    $params->{species} ||= $c->session->{selected_species};
+
     my $report_id = LIMS2::Report::generate_report(
         model      => $c->model( 'Golgi' ),
         report     => $report,
-        params     => $c->request->params,
+        params     => $params,
         output_dir => $self->report_dir,
         async      => 0
     );
+
+    if ( not defined $report_id ) {
+        $c->flash( error_msg => 'Failed to generate report' );
+        return $c->response->redirect( $c->uri_for( '/' ) );
+    }
 
     return $c->forward( 'view_report', [ $report_id ] );
 }
@@ -67,10 +75,13 @@ sub async_report :Path( '/user/report/async' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
+    my $params = $c->request->params;
+    $params->{species} ||= $c->session->{selected_species};
+
     my $report_id = LIMS2::Report::generate_report(
         model      => $c->model('Golgi'),
         report     => $report,
-        params     => $c->request->params,
+        params     => $params,
         output_dir => $self->report_dir,
         async      => 1
     );

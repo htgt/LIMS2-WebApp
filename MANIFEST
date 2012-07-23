@@ -21,6 +21,7 @@ lib/LIMS2/Model/Plugin/Gene.pm
 lib/LIMS2/Model/Plugin/Plate.pm
 lib/LIMS2/Model/Plugin/Process.pm
 lib/LIMS2/Model/Plugin/QC.pm
+lib/LIMS2/Model/Plugin/Species.pm
 lib/LIMS2/Model/Plugin/User.pm
 lib/LIMS2/Model/Plugin/Well.pm
 lib/LIMS2/Model/ProcessGraph.pm
@@ -32,12 +33,12 @@ lib/LIMS2/Model/Schema/Result/BacLibrary.pm
 lib/LIMS2/Model/Schema/Result/Backbone.pm
 lib/LIMS2/Model/Schema/Result/Cassette.pm
 lib/LIMS2/Model/Schema/Result/Chromosome.pm
+lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
 lib/LIMS2/Model/Schema/Result/DesignComment.pm
 lib/LIMS2/Model/Schema/Result/DesignCommentCategory.pm
 lib/LIMS2/Model/Schema/Result/DesignOligo.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoLocus.pm
-lib/LIMS2/Model/Schema/Result/DesignOligoLocusNCBIM37.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
@@ -71,7 +72,10 @@ lib/LIMS2/Model/Schema/Result/Recombinase.pm
 lib/LIMS2/Model/Schema/Result/RecombineeringResultType.pm
 lib/LIMS2/Model/Schema/Result/Role.pm
 lib/LIMS2/Model/Schema/Result/SchemaVersion.pm
+lib/LIMS2/Model/Schema/Result/Species.pm
+lib/LIMS2/Model/Schema/Result/SpeciesDefaultAssembly.pm
 lib/LIMS2/Model/Schema/Result/User.pm
+lib/LIMS2/Model/Schema/Result/UserPreference.pm
 lib/LIMS2/Model/Schema/Result/UserRole.pm
 lib/LIMS2/Model/Schema/Result/Well.pm
 lib/LIMS2/Model/Schema/Result/WellAcceptedOverride.pm

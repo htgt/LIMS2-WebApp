@@ -42,7 +42,7 @@
       <th>384 Well Name</th>
       <th>Design Id</th>
       <th>Expected Design Id</th>
-      <th>Marker Symbol</th>
+      <th>Gene Symbol</th>
       <th>Pass?</th>
       <th>Raw Score</th>
       <th>Number of Primer Reads</th>
@@ -60,7 +60,7 @@
       <td>[% r.well_name_384 %]</td>
       <td>[% r.design_id %]</td>
       <td>[% r.expected_design_id %]</td>
-      <td>[% r.marker_symbol %]</td>
+      <td>[% r.gene_symbol %]</td>
       <td>[% pass_fail( r.pass ) %]</td>
       <td>[% r.score %]</td>
       <td>[% r.num_reads %]</td>

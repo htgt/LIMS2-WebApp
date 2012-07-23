@@ -1,7 +1,7 @@
 package LIMS2::Role::PlateReportGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Role::PlateReportGenerator::VERSION = '0.008';
+    $LIMS2::Role::PlateReportGenerator::VERSION = '0.009';
 }
 ## use critic
 
@@ -31,7 +31,10 @@ has plate_id => (
 has plate => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Plate',
-    lazy_build => 1
+    lazy_build => 1,
+    handles    => {
+        species => 'species_id'
+    }
 );
 
 sub _build_plate {
@@ -67,7 +70,9 @@ sub base_data {
 
     my $design        = $well->design;
     my @gene_ids      = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols  = uniq map { $self->model->retrieve_gene( { gene => $_ } )->{marker_symbol} } @gene_ids;
+    my @gene_symbols  = uniq map {
+        $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
+    } @gene_ids;
 
     return (
         $well->name,

@@ -41,6 +41,9 @@ my %REL_NAME_MAP = (
     QcTemplate => {
         qcs_runs => 'qc_runs'
     },
+    Species => {
+        species_default_assembly => 'default_assembly'
+    },
     User => {
         qcs_runs => 'qc_runs'
     },
@@ -118,13 +121,14 @@ if ( $pg_role ) {
 }
 
 my %make_schema_opts = (
-    debug          => 0,
-    dump_directory => $lib_dir->stringify,
-    db_schema      => $pg_schema,
-    components     => \@components,
-    use_moose      => 1,
-    moniker_map    => \%MONIKER_MAP,
-    rel_name_map   => \%REL_NAME_MAP
+    debug              => 0,
+    dump_directory     => $lib_dir->stringify,
+    db_schema          => $pg_schema,
+    components         => \@components,
+    use_moose          => 1,
+    moniker_map        => \%MONIKER_MAP,
+    rel_name_map       => \%REL_NAME_MAP,
+    skip_load_external => 1
 );
 
 if ( $overwrite ) {

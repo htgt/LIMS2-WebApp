@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::VERSION = '0.008';
+    $LIMS2::WebApp::Controller::API::VERSION = '0.009';
 }
 ## use critic
 
@@ -33,8 +33,15 @@ sub auto : Private {
     # further authentication, and provides an HTTP basic auth fallback
     # for programmatic access
     unless ( $c->user_exists ) {
-        return $c->authenticate( { realm => 'LIMS2 API' }, 'basic' );
+        $c->authenticate( { realm => 'LIMS2 API' }, 'basic' );
     }
+
+    if ( ! $c->session->{selected_species} ) {
+        my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
+        $c->session->{selected_species} = $prefs->default_species_id;
+    }
+
+    return 1;
 }
 
 =head1 AUTHOR

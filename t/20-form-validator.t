@@ -19,6 +19,7 @@ ok my $dfv_profile = model->form_validator->dfv_profile( $pspec ),
     my $res = Data::FormValidator->check(
         {
             id                    => 'VTP0000_A01.Plkr',
+            species               => 'Mouse',
             qc_run_id             => '3C41F49A-B6D6-11E1-8038-C8C8F7D1DA10',
             qc_seq_project_id     => 'FOO11111',
             well_name             => 'A01',
@@ -39,6 +40,7 @@ ok my $dfv_profile = model->form_validator->dfv_profile( $pspec ),
     my $res = Data::FormValidator->check(
         {
             id                    => '0',
+            species               => 'Mouse',
             qc_run_id             => '3C41F49A-B6D6-11E1-8038-C8C8F7D1DA10',
             qc_seq_project_id     => 'FOO11111',
             description           => 'foo',

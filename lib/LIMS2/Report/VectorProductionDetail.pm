@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionDetail::VERSION = '0.008';
+    $LIMS2::Report::VectorProductionDetail::VERSION = '0.009';
 }
 ## use critic
 
@@ -14,6 +14,12 @@ use namespace::autoclean;
 
 with qw( LIMS2::Role::ReportGenerator );
 
+has species => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1
+);
+
 sub _build_name {
     my $dt = DateTime->now();
     return 'Vector Production Detail ' . $dt->ymd;
@@ -21,7 +27,7 @@ sub _build_name {
 
 sub _build_columns {
     return [
-        "MGI Accession Id", "Marker Symbol", "Design", "Design Well",
+        "Gene Id", "Gene Symbol", "Design", "Design Well",
         "Final Vector Well", "Final Vector Created", "Cassette", "Backbone", "Recombinase", "Cassette Type", "Accepted?"
     ];
 }
@@ -30,7 +36,10 @@ sub iterator {
     my ( $self ) = @_;
 
     my $gene_design_rs = $self->model->schema->resultset( 'GeneDesign' )->search_rs(
-        { 'well.id' => { '!=', undef } },
+        {
+            'well.id'           => { '!=', undef },
+            'design.species_id' => $self->species
+        },
         {
             prefetch => [ { 'design' => { 'process_designs' => { 'process' => { 'process_output_wells' => { 'well' => 'plate' } } } } } ]
         }
@@ -40,15 +49,15 @@ sub iterator {
         my $gene_design = $gene_design_rs->next
             or return;
 
-        my $gene_id       = $gene_design->gene_id;
-        my $marker_symbol = $self->model->retrieve_gene( { gene => $gene_id } )->{marker_symbol};
-        my $design_id     = $gene_design->design_id;
+        my $gene_id     = $gene_design->gene_id;
+        my $gene_symbol = $self->model->retrieve_gene( { search_term => $gene_id, species => $self->species } )->{gene_symbol};
+        my $design_id   = $gene_design->design_id;
 
         my %attrs = (
-            gene_id       => $gene_design->gene_id,
-            marker_symbol => $marker_symbol,
-            design_id     => $design_id,
-            recombinase   => []
+            gene_id     => $gene_design->gene_id,
+            gene_symbol => $gene_symbol,
+            design_id   => $design_id,
+            recombinase => []
         );
 
         my @design_wells = map { $_->output_wells } $gene_design->design->processes;
@@ -69,7 +78,7 @@ sub final_vectors_iterator {
             or return;
         return [
             $vector->{gene_id},
-            $vector->{marker_symbol},
+            $vector->{gene_symbol},
             $vector->{design_id},
             $vector->{design_well}->as_string,
             $vector->{well}->as_string,

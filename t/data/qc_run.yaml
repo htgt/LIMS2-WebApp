@@ -6,6 +6,7 @@ qc_sequencing_projects:
 - PCS04026_A
 qc_template_name: 'XXX'
 software_version: '0.001'
+species: Mouse
 test_results:
 - alignments:
   - alignment_regions:

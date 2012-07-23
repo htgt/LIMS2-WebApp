@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.008';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.009';
 }
 ## use critic
 
@@ -81,6 +81,12 @@ __PACKAGE__->table("plates");
   is_nullable: 0
   original: {default_value => \"now()"}
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -106,6 +112,8 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -166,6 +174,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 species
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
 =head2 type
 
 Type: belongs_to
@@ -197,8 +220,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-23 11:01:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3u9I6L7F/6IxfqYbn8PhxA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-18 13:31:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aCdDZCXtzDmC3L6YY2Fw8g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

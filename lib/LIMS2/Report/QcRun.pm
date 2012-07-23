@@ -1,7 +1,7 @@
 package LIMS2::Report::QcRun;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::QcRun::VERSION = '0.008';
+    $LIMS2::Report::QcRun::VERSION = '0.009';
 }
 ## use critic
 
@@ -50,7 +50,7 @@ sub _build_columns {
                           plate_name
                           well_name
                           well_name_384
-                          marker_symbol
+                          gene_symbol
                           design_id
                           expected_design_id
                           pass

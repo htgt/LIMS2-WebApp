@@ -1,7 +1,7 @@
 package LIMS2::Report::QcRunSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::QcRunSummary::VERSION = '0.008';
+    $LIMS2::Report::QcRunSummary::VERSION = '0.009';
 }
 ## use critic
 
@@ -41,7 +41,7 @@ sub _build_columns {
     return [
         qw(
               design_id
-              marker_symbol
+              gene_symbol
               plate_name
               well_name
               well_name_384

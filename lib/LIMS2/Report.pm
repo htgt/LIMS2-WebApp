@@ -1,7 +1,7 @@
 package LIMS2::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VERSION = '0.008';
+    $LIMS2::Report::VERSION = '0.009';
 }
 ## use critic
 
@@ -47,7 +47,8 @@ sub generate_report {
         run_in_background( $generator, $work_dir );
     }
     else {
-        run_in_foreground( $generator, $work_dir );
+        run_in_foreground( $generator, $work_dir )
+            or return;
     }
 
     return $report_id;
@@ -73,13 +74,13 @@ sub run_in_background {
 sub run_in_foreground {
     my ( $generator, $work_dir ) = @_;
 
-    do_generate_report( $generator, $work_dir );
-
-    return;
+    return do_generate_report( $generator, $work_dir );
 }
 
 sub do_generate_report {
     my ( $generator, $work_dir ) = @_;
+
+    my $ok = 0;
 
     try {
         my $output_file = $work_dir->file( 'report.csv' );
@@ -100,13 +101,14 @@ sub do_generate_report {
         write_report_name( $work_dir->file( 'name' ), $generator->name );
 
         $work_dir->file( 'done' )->touch;
+        $ok = 1;
     }
     catch {
         ERROR $_;
         $work_dir->file( 'failed' )->touch;
     };
 
-    return;
+    return $ok;
 }
 
 sub write_report_name {

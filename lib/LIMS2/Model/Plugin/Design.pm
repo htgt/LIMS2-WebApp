@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.008';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.009';
 }
 ## use critic
 
@@ -45,6 +45,7 @@ sub list_design_types {
 
 sub pspec_create_design {
     return {
+        species                 => { validate => 'existing_species', rename => 'species_id' },
         id                      => { validate => 'integer' },
         type                    => { validate => 'existing_design_type', rename => 'design_type_id' },
         created_at              => { validate => 'date_time', post_filter => 'parse_date_time' },
@@ -56,7 +57,7 @@ sub pspec_create_design {
         oligos                  => { optional => 1 },
         comments                => { optional => 1 },
         genotyping_primers      => { optional => 1 },
-        gene_ids                => { validate => 'mgi_accession_id', optional => 1 }
+        gene_ids                => { validate => 'non_empty_string', optional => 1 }
     };
 }
 
@@ -82,8 +83,8 @@ sub pspec_create_design_oligo {
 
 sub pspec_create_design_oligo_locus {
     return {
-        assembly   => { validate => 'existing_assembly', rename => 'assembly_id' },
-        chr_name   => { validate => 'existing_chromosome', rename => 'chr_id' },
+        assembly   => { validate => 'existing_assembly' },
+        chr_name   => { validate => 'existing_chromosome' },
         chr_start  => { validate => 'integer' },
         chr_end    => { validate => 'integer' },
         chr_strand => { validate => 'strand' },
@@ -106,7 +107,7 @@ sub create_design {
     my $design = $self->schema->resultset( 'Design' )->create(
         {
             slice_def( $validated_params,
-                       qw( id name created_by created_at design_type_id phase
+                       qw( id species_id name created_by created_at design_type_id phase
                            validated_by_annotation target_transcript ) )
         }
     );
@@ -130,7 +131,15 @@ sub create_design {
         for my $l ( @{ $loci || [] } ) {
             $self->trace( "Create oligo locus", $l );
             my $validated_locus = $self->check_params( $l, $self->pspec_create_design_oligo_locus );
-            $oligo->create_related( loci => $validated_locus );
+            $oligo->create_related(
+                loci => {
+                    assembly_id => $validated_locus->{assembly},
+                    chr_id      => $self->_chr_id_for( @{$validated_locus}{ 'assembly', 'chr_name' } ),
+                    chr_start   => $validated_locus->{chr_start},
+                    chr_end     => $validated_locus->{chr_end},
+                    chr_strand  => $validated_locus->{chr_strand}
+                }
+            );
         }
     }
 
@@ -164,14 +173,15 @@ sub delete_design {
             }
         );
 
-    # # Check that design is not allocated to a process and, if it is, refuse to delete
-    # # XXX When we introduce project/design request to model, also need to check that design
-    # # is not attached to a project/design request.
+    # Check that design is not assigned to a gene
+    if ( $design->genes_rs->count > 0 ) {
+        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been assigned to one or more genes' );
+    }
 
-    # if ( $design->process_cre_bac_recoms_rs->count > 0
-    #          or $design->process_create_dis_rs->count > 0 ) {
-    #     $self->throw( InvalidState => 'Design ' . $design->design_id . ' is used in one or more processes' );
-    # }
+    # # Check that design is not allocated to a process and, if it is, refuse to delete
+    if ( $design->process_designs_rs->count > 0 ) {
+        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been used in one or more processes' );
+    }
 
     if ( $validated_params->{cascade} ) {
         $design->comments_rs->delete;
@@ -186,7 +196,8 @@ sub delete_design {
 
 sub pspec_retrieve_design {
     return {
-        id => { validate => 'integer' }
+        id      => { validate => 'integer' },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
     }
 }
 
@@ -195,14 +206,15 @@ sub retrieve_design {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_design );
 
-    my $design = $self->retrieve( Design => $validated_params );
+    my $design = $self->retrieve( Design => { slice_def $validated_params, qw( id species_id ) } );
 
     return $design;
 }
 
 sub pspec_list_assigned_designs_for_gene {
     return {
-        gene_id => { validate => 'mgi_accession_id' },
+        gene_id => { validate => 'non_empty_string' },
+        species => { validate => 'existing_species', rename => 'species_id' },
         type    => { validate => 'existing_design_type', optional => 1 }
     }
 }
@@ -213,6 +225,7 @@ sub list_assigned_designs_for_gene {
     my $validated_params = $self->check_params( $params, $self->pspec_list_assigned_designs_for_gene );
 
     my %search = (
+        'me.species_id' => $validated_params->{species_id},
         'genes.gene_id' => $validated_params->{gene_id}
     );
 
@@ -227,7 +240,8 @@ sub list_assigned_designs_for_gene {
 
 sub pspec_list_candidate_designs_for_gene {
     return {
-        gene_id => { validate => 'mgi_accession_id' },
+        gene_id => { validate => 'non_empty_string' },
+        species => { validate => 'existing_species', rename => 'species_id' },
         type    => { validate => 'existing_design_type', optional => 1 }
     }
 }
@@ -237,42 +251,43 @@ sub list_candidate_designs_for_gene {
 
     my $validated_params = $self->check_params( $params, $self->pspec_list_candidate_designs_for_gene );
 
-    my ( $chr, $start, $end, $strand ) = $self->_get_gene_chr_start_end_strand( $validated_params->{gene_id} );
+    my ( $chr, $start, $end, $strand ) = $self->_get_gene_chr_start_end_strand( $validated_params->{species_id}, $validated_params->{gene_id} );
 
     my %search = (
-        'ncbim37_locus.chr_name'   => $chr,
-        'ncbim37_locus.chr_strand' => $strand,
+        'default_locus.species_id' => $validated_params->{species_id},
+        'default_locus.chr_name'   => $chr,
+        'default_locus.chr_strand' => $strand,
     );
 
     if ( $strand == 1 ) {
-        $search{'ncbim37_locus.u5_end'}   = { '<', $end };
-        $search{'ncbim37_locus.d3_start'} = { '>', $start };
+        $search{'default_locus.u5_end'}   = { '<', $end };
+        $search{'default_locus.d3_start'} = { '>', $start };
     }
     else {
-        $search{'ncbim37_locus.d3_end'}   = { '<', $end };
-        $search{'ncbim37_locus.u5_start'} = { '>', $start };
+        $search{'default_locus.d3_end'}   = { '<', $end };
+        $search{'default_locus.u5_start'} = { '>', $start };
     }
 
     if ( defined $validated_params->{type} ) {
         $search{'me.design_type_id'} = $validated_params->{type};
     }
 
-    my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'ncbim37_locus' } );
+    my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'default_locus' } );
 
     return [ $design_rs->all ];
 }
 
 sub _get_gene_chr_start_end_strand {
-    my ( $self, $mgi_accession_id ) = @_;
+    my ( $self, $species, $gene_id ) = @_;
 
-    my @ensembl_genes = @{ $self->ensembl_gene_adaptor->fetch_all_by_external_name( $mgi_accession_id ) };
+    my @ensembl_genes = @{ $self->ensembl_gene_adaptor( $species )->fetch_all_by_external_name( $gene_id ) };
 
     if ( @ensembl_genes == 0 ) {
         $self->throw(
             NotFound => {
                 message       => 'Found no matching EnsEMBL genes',
                 entity        => 'EnsEMBL Gene',
-                search_params => { external_id => $mgi_accession_id }
+                search_params => { external_id => $gene_id }
             }
         );
     }

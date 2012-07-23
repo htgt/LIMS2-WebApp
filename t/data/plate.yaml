@@ -1,6 +1,7 @@
 ---
 plate_create:
     name: PCS101
+    species: Mouse
     type: INT
     description: test_plate
     created_by: test_user@example.org

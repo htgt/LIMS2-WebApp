@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionSummary::VERSION = '0.008';
+    $LIMS2::Report::VectorProductionSummary::VERSION = '0.009';
 }
 ## use critic
 
@@ -15,6 +15,12 @@ use List::MoreUtils qw( any );
 use namespace::autoclean;
 
 with qw( LIMS2::Role::ReportGenerator );
+
+has species => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1
+);
 
 sub _build_name {
     my $dt = DateTime->now();
@@ -38,7 +44,7 @@ sub iterator {
 
     my $date_formatter = DateTime::Format::Strptime->new( pattern => '%b %Y' );
 
-    my $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model );
+    my $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model, species => $self->species );
     my @detail_cols = @{ $detail->columns };
 
     my @vectors;
@@ -50,7 +56,7 @@ sub iterator {
         @h{@detail_cols}  = @{$row};
         push @vectors, {
             created_month => DateTime::Format::ISO8601->parse_datetime( $h{'Final Vector Created'} )->truncate( to => 'month' ),
-            gene_id       => $h{'MGI Accession Id'},
+            gene_id       => $h{'Gene Id'},
             allele_type   => $self->allele_type_for( \%h ),
             accepted      => ( $h{'Accepted?'} eq 'yes' ? 1 : 0 )
         };

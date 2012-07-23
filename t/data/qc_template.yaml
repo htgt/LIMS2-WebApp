@@ -1,6 +1,7 @@
 ---
 created_at: 2012-05-10T15:25:31
 name: TPG00262_Z
+species: Mouse
 wells:
   A01:
     eng_seq_method: conditional_vector_seq

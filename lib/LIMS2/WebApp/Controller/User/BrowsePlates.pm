@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.008';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.009';
 }
 ## use critic
 
@@ -49,6 +49,7 @@ sub index :Path( '/user/browse_plates' ) :Args(0) {
         {
             plate_name => $params->{plate_name},
             plate_type => $params->{plate_type},
+            species    => $params->{species} || $c->session->{selected_species},
             page       => $params->{page},
             pagesize   => $params->{pagesize}
         }
@@ -80,6 +81,8 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
+
+    my $params = $c->request->params;
 
     my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
 
