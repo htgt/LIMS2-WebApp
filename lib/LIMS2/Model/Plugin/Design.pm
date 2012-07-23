@@ -171,10 +171,10 @@ sub delete_design {
     if ( $design->genes_rs->count > 0 ) {
         $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been assigned to one or more genes' );
     }
-    
+
     # # Check that design is not allocated to a process and, if it is, refuse to delete
     if ( $design->process_designs_rs->count > 0 ) {
-        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been used in one or more processes' );        
+        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been used in one or more processes' );
     }
 
     if ( $validated_params->{cascade} ) {

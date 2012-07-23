@@ -123,7 +123,7 @@ sub _build_qc_template_search_params {
     if ( $params->{species} ) {
         $search{'me.species_id'} = $params->{species};
     }
-    
+
     if ( $params->{name} ) {
         $search{'me.name'} = $params->{name};
     }

@@ -31,7 +31,7 @@ sub list_plates {
 
     my $validated_params = $self->check_params( $params, $self->pspec_list_plates );
 
-    my %search = ( 'me.species_id' => $validated_params->{species} );    
+    my %search = ( 'me.species_id' => $validated_params->{species} );
 
     if ( $validated_params->{plate_name} ) {
         $search{'me.name'} = { -like => '%' . sanitize_like_expr( $validated_params->{plate_name} ) . '%' };

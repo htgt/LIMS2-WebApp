@@ -208,7 +208,7 @@ sub pspec_retrieve_user_preferences {
         id              => { validate => 'integer',   optional => 1 },
         REQUIRE_SOME    => { name_or_id => [ 1, qw( name id ) ] }
     }
-}    
+}
 
 sub retrieve_user_preferences {
     my ( $self, $params ) = @_;

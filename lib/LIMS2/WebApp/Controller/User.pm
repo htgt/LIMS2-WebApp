@@ -82,7 +82,7 @@ sub select_species :Local {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
-    
+
     my $species_id = $c->request->param('species');
 
     $c->model('Golgi')->txn_do(

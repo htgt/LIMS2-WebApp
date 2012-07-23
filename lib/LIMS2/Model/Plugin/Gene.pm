@@ -38,7 +38,7 @@ sub search_genes {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
-    $self->log->debug( "Search genes: " . pp $params );    
+    $self->log->debug( "Search genes: " . pp $params );
 
     my $species = $validated_params->{species};
 
@@ -50,7 +50,7 @@ sub search_genes {
     }
     elsif ( $species eq 'Human' ) {
         @genes = ( $self->retrieve_gene( $validated_params ) || () );
-    }    
+    }
     else {
         LIMS2::Exception::Implementation->throw( "search_genes() for species '$species' not implemented" );
     }
@@ -75,7 +75,7 @@ sub retrieve_gene {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
 
-    $self->log->debug( "retrieve_gene: " . pp $validated_params );    
+    $self->log->debug( "retrieve_gene: " . pp $validated_params );
 
     my $species = $validated_params->{species};
 

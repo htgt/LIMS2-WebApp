@@ -34,11 +34,11 @@ sub auto :Private {
         }
         else {
             $c->session->{selected_species} = 'Mouse';
-        }        
+        }
     }
 
     if ( ! $c->session->{species} ) {
-        $c->session->{species} = $c->model('Golgi')->list_species;        
+        $c->session->{species} = $c->model('Golgi')->list_species;
     }
 
     return 1;

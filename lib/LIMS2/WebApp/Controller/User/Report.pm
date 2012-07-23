@@ -40,7 +40,7 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
 
     my $params = $c->request->params;
     $params->{species} ||= $c->session->{selected_species};
-    
+
     my $report_id = LIMS2::Report::generate_report(
         model      => $c->model( 'Golgi' ),
         report     => $report,

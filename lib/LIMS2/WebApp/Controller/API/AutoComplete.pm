@@ -146,13 +146,13 @@ sub _entity_column_search {
     );
 
     my $resultset = $c->model('Golgi')->schema->resultset($entity_class);
-    
+
     if ( $resultset->result_source->has_column('species_id') ) {
         if ( my $species = $c->request->param('species' ) || $c->session->{selected_species} ) {
             $search{species_id} = $species;
         }
     }
-    
+
     my @objects = $resultset->search(
         \%search,
         {
