@@ -175,10 +175,10 @@ RETURNS TRIGGER AS $chromosomes_audit$
         RETURN NULL;
     END;
 $chromosomes_audit$ LANGUAGE plpgsql;
-DROP TRIGGER chromosomes_audit ON public.chromosomes;
 CREATE TRIGGER chromosomes_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.chromosomes
     FOR EACH ROW EXECUTE PROCEDURE public.process_chromosomes_audit();
+DROP TRIGGER new_chromosomes_audit ON chromosomes;    
 DROP FUNCTION process_new_chromosomes_audit();
 
 -- designs belong to a species
