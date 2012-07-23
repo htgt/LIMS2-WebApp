@@ -24,7 +24,7 @@ sub auto : Private {
         $c->stash( goto_on_success => $c->request->uri );
         $c->go( 'Controller::Auth', 'login' );
     }
- 
+
     if ( ! $c->session->{selected_species} ) {
         my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
         $c->session->{selected_species} = $prefs->default_species_id;
