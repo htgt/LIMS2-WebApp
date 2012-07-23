@@ -19,10 +19,19 @@ Catalyst Controller.
 sub auto : Private {
     my ( $self, $c ) = @_;
 
-    unless ( $c->user ) {
+    if ( ! $c->user_exists ) {
         $c->stash( error_msg => 'Please login to access this system' );
         $c->stash( goto_on_success => $c->request->uri );
         $c->go( 'Controller::Auth', 'login' );
+    }
+ 
+    if ( ! $c->session->{selected_species} ) {
+        my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
+        $c->session->{selected_species} = $prefs->default_species_id;
+    }
+
+    if ( ! $c->session->{species} ) {
+        $c->session->{species} = $c->model('Golgi')->list_species;
     }
 
     return 1;

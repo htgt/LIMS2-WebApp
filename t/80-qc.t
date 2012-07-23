@@ -27,7 +27,7 @@ my $template;
         $template = decode_json( $res->content )
     } '...decoding JSON lives';
 
-    like $res->header('location'), qr(\Q/api/qc_template?id=$template->{id}\E$), '...location header is correct';
+    like $res->header('location') || '', qr(\Q/api/qc_template?id=$template->{id}\E$), '...location header is correct';
 }
 
 note "Testing creation and retrieval of QC run";
