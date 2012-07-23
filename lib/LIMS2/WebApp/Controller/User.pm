@@ -81,10 +81,8 @@ sub error :Local {
 sub select_species :Local {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles('edit');
+    $c->assert_user_roles('read');
     
-    my $goto = $c->request->param('goto') || $c->uri_for( '/' );
-
     my $species_id = $c->request->param('species');
 
     $c->model('Golgi')->txn_do(
@@ -102,7 +100,7 @@ sub select_species :Local {
 
     $c->flash( info_msg => "Switched to species $species_id" );
 
-    return $c->response->redirect( $goto );
+    return $c->response->redirect( $c->uri_for('/') );
 }
 
 =head1 AUTHOR
