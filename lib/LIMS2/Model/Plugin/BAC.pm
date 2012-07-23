@@ -7,10 +7,40 @@ use Moose::Role;
 
 requires qw( schema check_params throw retrieve );
 
-sub list_bac_libraries {
-    my ( $self ) = @_;
+sub _chr_id_for {
+    my ( $self, $assembly_id, $chr_name ) = @_;
 
-    return [ map { $_->id } $self->schema->resultset( 'BacLibrary' )->all ];
+    my $chr = $self->schema->resultset('Chromosome')->find(
+        {
+            'me.name'       => $chr_name,
+            'assemblies.id' => $assembly_id
+        },
+        {
+            join => { 'species' => 'assemblies' }
+        }
+    );
+
+    if ( ! defined $chr ) {
+        $self->throw( Validation => "No chromosome $chr_name found for assembly $assembly_id" );
+    }
+
+    return $chr->id;
+}
+
+sub pspec_list_bac_libraies {
+    return {
+        species => { validate => 'existing_species', rename => 'species_id' }
+    }
+}
+
+sub list_bac_libraries {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_list_bac_libraries );
+
+    return [
+        map { $_->id } $self->schema->resultset( 'BacLibrary' )->search( $validated_params )
+    ];
 }
 
 sub pspec_create_bac_clone {
@@ -23,8 +53,8 @@ sub pspec_create_bac_clone {
 
 sub pspec_create_bac_clone_locus {
     return {
-        assembly  => { validate => 'existing_assembly', rename => 'assembly_id' },
-        chr_name  => { validate => 'existing_chromosome', rename => 'chr_id' },
+        assembly  => { validate => 'existing_assembly' },
+        chr_name  => { validate => 'existing_chromosome' },
         chr_start => { validate => 'integer' },
         chr_end   => { validate => 'integer' }
     };
@@ -41,7 +71,14 @@ sub create_bac_clone {
 
     for my $locus ( @{$loci} ) {
         my $validated_locus = $self->check_params( $locus, $self->pspec_create_bac_clone_locus );
-        $bac_clone->create_related( loci => $validated_locus );
+        $bac_clone->create_related(
+            loci => {
+                assembly_id => $validated_locus->{assembly},
+                chr_id      => $self->_chr_id_for( @{$validated_locus}{ 'assembly', 'chr_name' } ),
+                chr_start   => $validated_locus->{chr_start},
+                chr_end     => $validated_locus->{chr_end}
+            }
+        );
     }
 
     return $bac_clone;

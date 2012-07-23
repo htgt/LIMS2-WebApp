@@ -28,15 +28,17 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
     $c->stash( template => "user/report/gene_report.tt" );
 
-    my $gene_id = $c->request->param( 'gene_id' )
+    my $gene = $c->request->param( 'gene_id' )
         or return;
 
-    my $gene_info = $c->model('Golgi')->retrieve_gene( { gene => $gene_id } );
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
 
-    my $mgi_accession_id = $gene_info->{mgi_accession_id}
-        or $self->throw( MissingData => "Unable to determine MGI accesison id for $gene_id" );
+    my $gene_info = $c->model('Golgi')->retrieve_gene( { search_term => $gene, species => $species_id } );
 
-    my $designs = $c->model('Golgi')->list_assigned_designs_for_gene( { gene_id => $mgi_accession_id } );
+    my $gene_id = $gene_info->{gene_id}
+        or $self->throw( MissingData => "Unable to determine gene id for $gene" );
+
+    my $designs = $c->model('Golgi')->list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
 
     my %wells;
 

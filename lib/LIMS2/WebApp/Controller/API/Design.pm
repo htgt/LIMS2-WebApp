@@ -74,24 +74,24 @@ sub designs_for_gene_GET {
 
     my $designs = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->list_designs_for_gene( { slice_def $c->request->params, qw( gene type ) } );
+            shift->list_designs_for_gene( { slice_def $c->request->params, qw( gene_id species type ) } );
         }
     );
 
     return $c->forward( 'list_designs', [$designs] );
 }
 
-sub candidate_designs_for_mgi_accession : Path( '/api/candidate_designs_for_mgi_accession' ) :Args(0) :ActionClass('REST') {
+sub candidate_designs_for_gene : Path( '/api/candidate_designs_for_gene' ) :Args(0) :ActionClass('REST') {
 }
 
-sub candidate_designs_for_mgi_accession_GET {
+sub candidate_designs_for_gene_GET {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
 
     my $designs = $c->model('Golgi')->txn_do(
         sub {
-            shift->list_candidate_designs_for_mgi_accession( { slice_def $c->request->params, qw( mgi_accession_id type ) } );
+            shift->list_candidate_designs_for_gene( { slice_def $c->request->params, qw( gene_id species type ) } );
         }
     );
 

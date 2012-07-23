@@ -10,6 +10,12 @@ use namespace::autoclean;
 
 with qw( LIMS2::Role::ReportGenerator );
 
+has species => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1
+);
+
 sub _build_name {
     my $dt = DateTime->now();
     return 'Vector Production Summary ' . $dt->ymd;
@@ -32,7 +38,7 @@ sub iterator {
 
     my $date_formatter = DateTime::Format::Strptime->new( pattern => '%b %Y' );
 
-    my $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model );
+    my $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model, species => $self->species );
     my @detail_cols = @{ $detail->columns };
 
     my @vectors;
@@ -44,7 +50,7 @@ sub iterator {
         @h{@detail_cols}  = @{$row};
         push @vectors, {
             created_month => DateTime::Format::ISO8601->parse_datetime( $h{'Final Vector Created'} )->truncate( to => 'month' ),
-            gene_id       => $h{'MGI Accession Id'},
+            gene_id       => $h{'Gene Id'},
             allele_type   => $self->allele_type_for( \%h ),
             accepted      => ( $h{'Accepted?'} eq 'yes' ? 1 : 0 )
         };

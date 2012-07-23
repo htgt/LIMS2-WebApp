@@ -40,12 +40,37 @@ __PACKAGE__->table("chromosomes");
 
 =head2 id
 
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'new_chromosomes_id_seq'
+
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 name
+
   data_type: 'text'
   is_nullable: 0
 
 =cut
 
-__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "new_chromosomes_id_seq",
+  },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "name",
+  { data_type => "text", is_nullable => 0 },
+);
 
 =head1 PRIMARY KEY
 
@@ -58,6 +83,22 @@ __PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<new_chromosomes_species_id_name_key>
+
+=over 4
+
+=item * L</species_id>
+
+=item * L</name>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("new_chromosomes_species_id_name_key", ["species_id", "name"]);
 
 =head1 RELATIONS
 
@@ -91,9 +132,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 species
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 14:55:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yNW8ppt3N5zR5ICiftlMTQ
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FjPGU4oTP4APmSq9cyEehg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

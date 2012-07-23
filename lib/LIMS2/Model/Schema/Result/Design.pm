@@ -82,6 +82,12 @@ __PACKAGE__->table("designs");
   data_type: 'text'
   is_nullable: 1
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -106,6 +112,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "target_transcript",
   { data_type => "text", is_nullable => 1 },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -212,6 +220,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 species
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
 =head2 type
 
 Type: belongs_to
@@ -228,15 +251,15 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 10:23:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OeNg6FPP+f2Zu1ud7yngdw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ylRLom6mY0wW0r2ZaZpJTg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 __PACKAGE__->might_have(
-    "ncbim37_locus",
-    "LIMS2::Model::Schema::Result::DesignOligoLocusNCBIM37",
+    "default_locus",
+    "LIMS2::Model::Schema::Result::DefaultDesignOligoLocus",
     { "foreign.design_id" => "self.id" }
 );
 
@@ -258,6 +281,7 @@ sub as_hash {
         phase                   => $self->phase,
         validated_by_annotation => $self->validated_by_annotation,
         target_transcript       => $self->target_transcript,
+        species                 => $self->species_id,
         assigned_genes          => [ map { $_->gene_id } $self->genes ]
     );
 

@@ -37,7 +37,7 @@ sub qc_templates_GET {
 
     try {
         $template_names = $self->_entity_column_search(
-           $c, 'QcTemplate', 'name', $c->request->params->{term},
+           $c, 'QcTemplate', 'name', $c->request->params->{term}
         );
     }
     catch {
@@ -65,7 +65,7 @@ sub sequencing_projects_GET {
 
     try {
         $sequencing_project_names = $self->_entity_column_search(
-           $c, 'QcSeqProject', 'id', $c->request->params->{term},
+           $c, 'QcSeqProject', 'id', $c->request->params->{term}
         );
     }
     catch {
@@ -75,16 +75,16 @@ sub sequencing_projects_GET {
     return $self->status_ok( $c, entity => $sequencing_project_names );
 }
 
-=head1 GET /api/autocomplete/marker_symbols
+=head1 GET /api/autocomplete/gene_symbols
 
-Autocomplete for marker symbols
+Autocomplete for gene symbols
 
 =cut
 
-sub marker_symbols :Path( '/api/autocomplete/marker_symbols' ) :Args(0) :ActionClass('REST') {
+sub gene_symbols :Path( '/api/autocomplete/gene_symbols' ) :Args(0) :ActionClass('REST') {
 }
 
-sub marker_symbols_GET {
+sub gene_symbols_GET {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
@@ -94,13 +94,20 @@ sub marker_symbols_GET {
 
     my @results;
 
-    try {
-        my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
-        @results = map { $_->{marker_symbol} } @{ $solr->query( $search_term, undef, 1 ) };
+    my $species = $c->request->param( 'species' ) || $c->session->{selected_species} || 'Mouse';
+
+    if ( $species eq 'Mouse' ) {
+        try {
+            my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
+            @results = map { $_->{marker_symbol} } @{ $solr->query( $search_term, undef, 1 ) };
+        }
+        catch {
+            $c->log->error($_);
+        };
     }
-    catch {
-        $c->log->error($_);
-    };
+    elsif ( $species eq 'Human' ) {
+        # XXX TODO: autocompletion for human gene symbols
+    }
 
     return $self->status_ok( $c, entity => \@results );
 }
@@ -134,12 +141,20 @@ sub plate_names_GET {
 sub _entity_column_search {
     my ( $self, $c, $entity_class, $search_column, $search_term ) = @_;
 
-    $search_term = sanitize_like_expr( $search_term );
+    my %search = (
+        $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' }
+    );
 
-    my @objects = $c->model('Golgi')->schema->resultset($entity_class)->search(
-        {
-            $search_column => { ILIKE => '%' . $search_term . '%' },
-        },
+    my $resultset = $c->model('Golgi')->schema->resultset($entity_class);
+
+    if ( $resultset->result_source->has_column('species_id') ) {
+        if ( my $species = $c->request->param('species' ) || $c->session->{selected_species} ) {
+            $search{species_id} = $species;
+        }
+    }
+
+    my @objects = $resultset->search(
+        \%search,
         {
             rows     => 25,
             order_by => { -asc => $search_column  } ,

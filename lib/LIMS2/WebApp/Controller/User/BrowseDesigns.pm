@@ -58,11 +58,12 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my $design_id = $c->request->param('design_id');
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+    my $design_id  = $c->request->param('design_id');
 
     my $design;
     try {
-        $design = $c->model('Golgi')->retrieve_design( { id => $design_id } )->as_hash;
+        $design = $c->model('Golgi')->retrieve_design( { id => $design_id, species => $species_id } )->as_hash;
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design id" );
@@ -93,12 +94,13 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my $gene_id = $c->request->param('gene_id');
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+    my $gene_id    = $c->request->param('gene_id');
 
     my $genes;
 
     try {
-        $genes = $c->model('Golgi')->search_genes( { gene => $gene_id } );
+        $genes = $c->model('Golgi')->search_genes( { search_term => $gene_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid gene identifier" );
@@ -108,7 +110,7 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
         return $c->go('index');
     }
 
-    my ( $method, %search_params );
+    my $method;
 
     if ( $c->request->param('list_candidate_designs') ) {
         $method = 'list_candidate_designs_for_gene';
@@ -116,6 +118,8 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
     else {
         $method = 'list_assigned_designs_for_gene';
     }
+
+    my %search_params = ( species => $species_id );
 
     my $type = $c->request->param('design_type');
     if ( $type and $type ne '-' ) {
@@ -125,9 +129,9 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
     my ( @designs_by_gene, %seen );
 
     for my $g ( @{$genes} ) {
-        next unless defined $g->{mgi_accession_id} and not $seen{ $g->{mgi_accession_id} }++;
-        $c->log->debug("Fetching designs for $g->{marker_symbol}");
-        $search_params{gene_id} = $g->{mgi_accession_id};
+        next unless defined $g->{gene_id} and not $seen{ $g->{gene_id} }++;
+        $c->log->debug("Fetching designs for $g->{gene_symbol}");
+        $search_params{gene_id} = $g->{gene_id};
         my $designs = $c->model('Golgi')->$method( \%search_params );
         push @designs_by_gene, { %{$g}, designs => [ map { $_->as_hash(1) } @{$designs} ] };
     }

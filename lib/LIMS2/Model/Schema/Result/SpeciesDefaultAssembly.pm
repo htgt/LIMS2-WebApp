@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::BacLibrary;
+package LIMS2::Model::Schema::Result::SpeciesDefaultAssembly;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::BacLibrary
+LIMS2::Model::Schema::Result::SpeciesDefaultAssembly
 
 =cut
 
@@ -30,20 +30,21 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<bac_libraries>
+=head1 TABLE: C<species_default_assembly>
 
 =cut
 
-__PACKAGE__->table("bac_libraries");
+__PACKAGE__->table("species_default_assembly");
 
 =head1 ACCESSORS
 
-=head2 id
+=head2 species_id
 
   data_type: 'text'
+  is_foreign_key: 1
   is_nullable: 0
 
-=head2 species_id
+=head2 assembly_id
 
   data_type: 'text'
   is_foreign_key: 1
@@ -52,9 +53,9 @@ __PACKAGE__->table("bac_libraries");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "text", is_nullable => 0 },
   "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "assembly_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
@@ -62,29 +63,29 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</id>
+=item * L</species_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id");
+__PACKAGE__->set_primary_key("species_id");
 
 =head1 RELATIONS
 
-=head2 bac_clones
+=head2 assembly
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::BacClone>
+Related object: L<LIMS2::Model::Schema::Result::Assembly>
 
 =cut
 
-__PACKAGE__->has_many(
-  "bac_clones",
-  "LIMS2::Model::Schema::Result::BacClone",
-  { "foreign.bac_library_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "assembly",
+  "LIMS2::Model::Schema::Result::Assembly",
+  { id => "assembly_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 species
@@ -103,8 +104,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+LfPcV1kEqgAC3GzgcaPmA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n3aie11XqBN1c3s02hdKAA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
