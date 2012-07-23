@@ -98,7 +98,7 @@ sub create_plate {
     }
 
     $self->create_plate_wells( $validated_params->{wells}, $plate )
-        if @{ $validated_params->{wells} };
+        if exists $validated_params->{wells} and @{ $validated_params->{wells} };
 
     return $plate;
 }
