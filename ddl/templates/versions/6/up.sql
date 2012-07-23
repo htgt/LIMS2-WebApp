@@ -243,4 +243,4 @@ AFTER INSERT OR UPDATE OR DELETE ON public.user_preferences
 INSERT INTO user_preferences(user_id, default_species_id)
 SELECT id, 'Mouse' FROM users;
 
-INSERT INTO schema_versions(version) values(7);
+INSERT INTO schema_versions(version) values(6);
