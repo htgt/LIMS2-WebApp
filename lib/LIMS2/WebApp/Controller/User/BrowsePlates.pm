@@ -92,7 +92,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
 }
 
 sub _report_plugins {
-    return grep { $_->meta->does_role( 'LIMS2::Role::PlateReportGenerator' ) }
+    return grep { $_->isa( 'LIMS2::ReportGenerator::Plate' ) }
         Module::Pluggable::Object->new( search_path => [ 'LIMS2::Report' ], require => 1 )->plugins;
 }
 
@@ -103,7 +103,7 @@ sub _report_class_for {
     my $plate_type = $plate->type_id;
 
     for my $plugin ( $self->_report_plugins ) {
-        if ( $plugin->plate_type eq $plate_type ) {
+        if ( $plugin->handles_plate_type( $plate_type ) ) {
             $c->log->debug( "Plugin class: $plugin" );
             $plugin =~ s/^.*\:\://;
             return $plugin;

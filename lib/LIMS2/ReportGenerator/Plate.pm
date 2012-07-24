@@ -1,15 +1,14 @@
-package LIMS2::Role::PlateReportGenerator;
+package LIMS2::ReportGenerator::Plate;
 
 use strict;
 use warnings;
 
-use Moose::Role;
+use Moose;
+use MooseX::ClassAttribute;
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
-
-requires qw( plate_type );
+extends qw( LIMS2::ReportGenerator );
 
 has plate_name => (
     is         => 'ro',
@@ -31,10 +30,24 @@ has plate => (
     }
 );
 
+sub plate_types {
+    confess( "plate_types() must be implemented by a subclass" );
+}
+
+sub handles_plate_type {
+    my ( $class, $plate_type ) = @_;
+
+    for my $handled_plate_type ( @{ $class->plate_types } ) {
+        return 1 if $plate_type eq $handled_plate_type;
+    }
+
+    return;    
+}
+
 sub _build_plate {
     my $self = shift;
 
-    my %search = ( type => $self->plate_type );
+    my %search = ( type => $self->plate_types );
 
     if ( $self->plate_id ) {
         $search{id} = $self->plate_id;
@@ -56,10 +69,14 @@ sub _build_plate_name {
 }
 
 sub base_columns {
-    return ( "Well Name", "Design Id", "Gene Id", "Gene Symbol",  "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?" );
+    confess "base_columns() must be implemented by a subclass";
 }
 
 sub base_data {
+    confess "base_data() must be implemented by a subclass";
+}
+
+sub design_and_gene_cols {
     my ( $self, $well ) = @_;
 
     my $design        = $well->design;
@@ -68,17 +85,7 @@ sub base_data {
         $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
     } @gene_ids;
 
-    return (
-        $well->name,
-        $design->id,
-        join( q{/}, @gene_ids ),
-        join( q{/}, @gene_symbols ),
-        $well->created_by->name,
-        $well->created_at->ymd,
-        ( $well->assay_pending ? $well->assay_pending->ymd : '' ),
-        ( $well->assay_complete ? $well->assay_complete->ymd : '' ),
-        $self->boolean_str( $well->is_accepted )
-    );
+    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ) );
 }
 
 sub qc_result_cols {
@@ -114,6 +121,8 @@ sub ancestor_cols {
 
     return ('')x5;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 

@@ -28,7 +28,7 @@ VALUES ('gr1'),
        ('gf4'),
        ('tr_pcr');
 
-INSERT INTO colony_types(id)
+INSERT INTO colony_count_types(id)
 VALUES ('blue_colonies'), 
        ('white_colonies'),
        ('picked_colonies'),

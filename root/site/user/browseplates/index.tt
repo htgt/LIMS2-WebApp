@@ -17,7 +17,7 @@
 [%- INCLUDE 'pagination.tt' pageset = pageset %]
 
 [% IF plates.size %]
-<a class="btn btn-primary" href="[% c.uri_for('/user/report/sync/PlateList', {plate_type => selected_plate_type} ) %]">
+<a class="btn btn-primary" href="[% c.uri_for('/user/report/sync/PlateList', {plate_type => selected_plate_type, plate_name => plate_name} ) %]">
 <i class="icon-download-alt icon-white"></i>Downloadable Report</a>
 <table class="table table-striped">
   <thead>

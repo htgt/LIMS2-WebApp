@@ -1,9 +1,9 @@
-package LIMS2::Role::ReportGenerator;
+package LIMS2::ReportGenerator;
 
 use strict;
 use warnings FATAL => 'all';
 
-use Moose::Role;
+use Moose;
 use Iterator::Simple;
 use namespace::autoclean;
 
@@ -27,7 +27,17 @@ has model => (
     required   => 1,
 );
 
-requires qw( _build_name _build_columns iterator );
+sub _build_name {
+    confess( "_build_name() must be implemented by a subclass" );
+}
+
+sub _build_columns {
+    confess( "_build_columns() must be implemented by a subclass" );
+}
+
+sub iterator {
+    confess( "iterator() must be implemented by a subclass" );
+}
 
 sub boolean_str {
     my ( $self, $bool ) = @_;
@@ -39,6 +49,8 @@ sub boolean_str {
         return 'no';
     }
 }
+
+__PACKAGE__->meta->make_immutable();
 
 1;
 

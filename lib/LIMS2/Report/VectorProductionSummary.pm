@@ -8,7 +8,7 @@ use LIMS2::Report::VectorProductionDetail;
 use List::MoreUtils qw( any );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
+extends qw( LIMS2::ReportGenerator );
 
 has species => (
     is       => 'ro',
@@ -16,12 +16,12 @@ has species => (
     required => 1
 );
 
-sub _build_name {
+override _build_name => sub {
     my $dt = DateTime->now();
     return 'Vector Production Summary ' . $dt->ymd;
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     return [
         "Month",
         "First Allele Created", "First Allele Accepted", "First Allele Efficiency",
@@ -31,9 +31,9 @@ sub _build_columns {
         "Cumulative Second Allele (Promoter) Created", "Cumulative Second Allele (Promoter) Accepted", "Cumulative Second Allele (Promoter) Efficiency",
         "Cumulative Second Allele (Promoterless) Created", "Cumulative Second Allele (Promoterless) Accepted", "Cumulative Second Allele (Promoterless) Efficiency",
     ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my ( $self ) = @_;
 
     my $date_formatter = DateTime::Format::Strptime->new( pattern => '%b %Y' );
@@ -80,7 +80,7 @@ sub iterator {
             $self->counts_and_efficiency( \%cumulative )
         ];
     }
-}
+};
 
 sub allele_type_for {
     my ( $self, $data ) = @_;

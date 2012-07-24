@@ -4,7 +4,7 @@ use Moose;
 use LIMS2::Model::Util::QCResults qw( retrieve_qc_run_results );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
+extends qw( LIMS2::ReportGenerator );
 
 has qc_run_id => (
     is       => 'ro',
@@ -24,14 +24,14 @@ sub _build_qc_run {
     return $self->model->retrieve( 'QcRun' => { id => $self->qc_run_id } );
 }
 
-sub _build_name {
+override _build_name => sub {
     my $self = shift;
 
     my $id = substr( $self->qc_run_id, 0, 8 );
     return $id . ' QC Run Report ';
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     my $self = shift;
 
     my $primers = $self->qc_run->primers;
@@ -57,9 +57,9 @@ sub _build_columns {
                   map( { $_.'_features' } @{ $primers } )
                 );
     return \@columns;
-}
+};
 
-sub iterator {
+override iterator => sub {
     my ( $self ) = @_;
 
     my $qc_results = retrieve_qc_run_results( $self->qc_run );
@@ -81,7 +81,7 @@ sub iterator {
             return \@data;
         }
     );
-}
+};
 
 __PACKAGE__->meta->make_immutable;
 

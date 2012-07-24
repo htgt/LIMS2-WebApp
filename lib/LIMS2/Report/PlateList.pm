@@ -4,34 +4,44 @@ use strict;
 use warnings FATAL => 'all';
 
 use Moose;
+use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
+extends qw( LIMS2::ReportGenerator );
 
 has plate_type => (
     is  => 'ro',
     isa => 'Maybe[Str]'
 );
 
-sub _build_name {
+has plate_name => (
+    is  => 'ro',
+    isa => 'Maybe[Str]'
+);
+
+override _build_name => sub {
     my $self = shift;
     if ( $self->plate_type ) {
         return $self->plate_type . ' Plate List';
     }
     return 'Plate List';
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     return [ "Plate Name", "Plate Type", "Description", "Created By", "Created At" ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my ($self) = @_;
 
     my %search_params;
 
     if ( $self->plate_type and $self->plate_type ne '-' ) {
         $search_params{'me.type_id'} = $self->plate_type;
+    }
+
+    if ( $self->plate_name ) {
+        $search_params{'me.name'} = { -like => '%' . sanitize_like_expr( $self->plate_name ) . '%' };
     }
 
     my $plate_rs = $self->model->schema->resultset('Plate')->search(
@@ -47,7 +57,9 @@ sub iterator {
         return [ $plate->name, $plate->type_id, $plate->description, $plate->created_by->name,
             $plate->created_at->ymd ];
     };
-}
+};
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 
