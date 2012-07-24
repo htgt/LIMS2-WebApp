@@ -4,11 +4,17 @@ use strict;
 use warnings FATAL => 'all';
 
 use Moose;
+use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 
 with qw( LIMS2::Role::ReportGenerator );
 
 has plate_type => (
+    is  => 'ro',
+    isa => 'Maybe[Str]'
+);
+
+has plate_name => (
     is  => 'ro',
     isa => 'Maybe[Str]'
 );
@@ -32,6 +38,10 @@ sub iterator {
 
     if ( $self->plate_type and $self->plate_type ne '-' ) {
         $search_params{'me.type_id'} = $self->plate_type;
+    }
+
+    if ( $self->plate_name ) {
+        $search_params{'me.name'} = { -like => '%' . sanitize_like_expr( $self->plate_name ) . '%' };
     }
 
     my $plate_rs = $self->model->schema->resultset('Plate')->search(
