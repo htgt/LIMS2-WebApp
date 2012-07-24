@@ -3,7 +3,7 @@ package LIMS2::Report::DNAPlate;
 use Moose;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator::Plate );
+extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
     return [ 'DNA' ];

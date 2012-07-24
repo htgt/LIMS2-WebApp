@@ -3,10 +3,13 @@ package LIMS2::Report::EPPlate;
 use Moose;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator::Plate );
+extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
+# XXX If it turns out EP and XEP plates don't have the same data
+# stored against them (that is, colony counts) then XEP should be
+# removed from here and a new report implemented
 override plate_types => sub {
-    return [ 'EP' ];
+    return [ 'EP', 'XEP' ];
 };
 
 override _build_name => sub {

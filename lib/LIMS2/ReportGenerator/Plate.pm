@@ -69,29 +69,11 @@ sub _build_plate_name {
 }
 
 sub base_columns {
-    return ( "Well Name", "Design Id", "Gene Id", "Gene Symbol",  "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?" );
+    confess "base_columns() must be implemented by a subclass";
 }
 
 sub base_data {
-    my ( $self, $well ) = @_;
-
-    my $design        = $well->design;
-    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols  = uniq map {
-        $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
-    } @gene_ids;
-
-    return (
-        $well->name,
-        $design->id,
-        join( q{/}, @gene_ids ),
-        join( q{/}, @gene_symbols ),
-        $well->created_by->name,
-        $well->created_at->ymd,
-        ( $well->assay_pending ? $well->assay_pending->ymd : '' ),
-        ( $well->assay_complete ? $well->assay_complete->ymd : '' ),
-        $self->boolean_str( $well->is_accepted )
-    );
+    confess "base_data() must be implemented by a subclass";
 }
 
 sub qc_result_cols {
