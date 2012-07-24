@@ -337,7 +337,7 @@ sub process_data_for {
             push @data, 'Cassette: ' . $p->process_cassette->cassette->name;
         }
         if ( $p->process_cell_line ) {
-            push @data, 'Cell line: ' . $p->process_cell_line->cell_line;            
+            push @data, 'Cell line: ' . $p->process_cell_line->cell_line;
         }
         if ( $p->process_design ) {
             my $design = $p->process_design->design;
@@ -348,7 +348,7 @@ sub process_data_for {
             }
         }
         if ( my @recombinases = $p->process_recombinases ) {
-            push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );            
+            push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );
         }
     }
 
