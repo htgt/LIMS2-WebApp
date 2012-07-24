@@ -482,7 +482,7 @@ sub _create_process_aux_data_first_electroporation {
     my $validated_params
         = $self->check_params( $params, $self->pspec__create_process_aux_data_first_electroporation );
 
-    $process->create_related( process_electroporation => { cell_line => $validated_params->{cell_line} } );
+    $process->create_related( process_cell_line => { cell_line => $validated_params->{cell_line} } );
 
     return;
 }
