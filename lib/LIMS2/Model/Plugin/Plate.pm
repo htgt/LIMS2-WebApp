@@ -183,8 +183,6 @@ sub create_plate_wells {
         $well_params{process_data}{type}        = $process_type;
         $well_params{process_data}{input_wells} = [ map{ { id => $_ } } @{ $parent_well_ids } ];
 
-        ### %well_params
-
         $self->create_well( \%well_params, $plate );
     }
 }
@@ -195,13 +193,13 @@ sub find_parent_well_ids {
 
     if ( $well_data->{process_type} eq 'second_electroporation' ) {
         push @parent_well_ids,
-            $self->get_well_id( $well_data->{first_allele_plate}, $well_data->{first_allele_well} );
+            $self->get_well_id( $well_data->{allele_plate}, $well_data->{allele_well} );
 
         push @parent_well_ids,
-            $self->get_well_id( $well_data->{final_vector_plate}, $well_data->{final_vector_well} );
+            $self->get_well_id( $well_data->{vector_plate}, $well_data->{vector_well} );
 
         delete @{$well_data}
-            {qw( first_allele_plate final_vector_plate first_allele_well final_vector_well )};
+            {qw( allele_plate vector_plate allele_well vector_well )};
     }
     else {
         push @parent_well_ids,
