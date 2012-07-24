@@ -421,7 +421,13 @@ sub _build_descendants {
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'descendants' );
 }
 
-sub is_double_targeted {
+has is_double_targeted => (
+    is         => 'ro',
+    isa        => 'Bool',
+    lazy_build => 1
+);
+
+sub _build_is_double_targeted {
     my $self = shift;
 
     my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
@@ -511,6 +517,66 @@ sub design {
 
     return $process_design ? $process_design->design : undef;
 }
+
+has second_electroporation_process => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::Process',
+    lazy_build => 1
+);
+
+## no critic(RequireFinalReturn)
+sub _build_second_electroporation_process {
+    my $self = shift;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
+    while ( my $well = $it->next ) {
+        for my $process ( $self->ancestors->input_processes( $well ) ) {
+            if ( $process->type_id eq 'second_electroporation' ) {
+                return $process;
+            }
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Cannot request second_electroporation_process for single-targeted construct"
+    );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub first_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate->type_id eq 'XEP' ) {
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine first allele for $self"
+    );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub second_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate->type_id ne 'XEP' ) {
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine second allele for $self"        
+    );
+}
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 1;

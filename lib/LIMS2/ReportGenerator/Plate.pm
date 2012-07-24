@@ -76,6 +76,18 @@ sub base_data {
     confess "base_data() must be implemented by a subclass";
 }
 
+sub design_and_gene_cols {
+    my ( $self, $well ) = @_;
+
+    my $design        = $well->design;
+    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
+    my @gene_symbols  = uniq map {
+        $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
+    } @gene_ids;
+
+    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ) );
+}
+
 sub qc_result_cols {
     my ( $self, $well ) = @_;
 
