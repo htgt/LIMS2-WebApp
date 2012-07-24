@@ -1,15 +1,14 @@
-package LIMS2::Role::PlateReportGenerator;
+package LIMS2::ReportGenerator::Plate;
 
 use strict;
 use warnings;
 
-use Moose::Role;
+use Moose;
+use MooseX::ClassAttribute;
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
-
-requires qw( plate_type );
+extends qw( LIMS2::ReportGenerator );
 
 has plate_name => (
     is         => 'ro',
@@ -31,10 +30,24 @@ has plate => (
     }
 );
 
+sub plate_types {
+    confess( "plate_types() must be implemented by a subclass" );
+}
+
+sub handles_plate_type {
+    my ( $class, $plate_type ) = @_;
+
+    for my $handled_plate_type ( @{ $class->plate_types } ) {
+        return 1 if $plate_type eq $handled_plate_type;
+    }
+
+    return;    
+}
+
 sub _build_plate {
     my $self = shift;
 
-    my %search = ( type => $self->plate_type );
+    my %search = ( type => $self->plate_types );
 
     if ( $self->plate_id ) {
         $search{id} = $self->plate_id;
@@ -114,6 +127,8 @@ sub ancestor_cols {
 
     return ('')x5;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 

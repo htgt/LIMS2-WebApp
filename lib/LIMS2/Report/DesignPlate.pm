@@ -3,26 +3,26 @@ package LIMS2::Report::DesignPlate;
 use Moose;
 use namespace::autoclean;
 
-with 'LIMS2::Role::PlateReportGenerator';
+extends qw( LIMS2::ReportGenerator::Plate );
 
-sub plate_type {
-    return 'DESIGN';
-}
+override plate_types => sub {
+    return [ 'DESIGN' ];
+};
 
-sub _build_name {
+override _build_name => sub {
     my $self = shift;
 
     return 'Design Plate ' . $self->plate_name;
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     return [
         shift->base_columns,
         "PCR U", "PCR D", "PCR G", "Rec U", "Rec D", "Rec G", "Rec NS", "Rec Result",
     ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my $self = shift;
 
     my $wells_rs = $self->plate->search_related(
@@ -46,7 +46,7 @@ sub iterator {
             @recombineering_results{ qw( pcr_u pcr_d pcr_g rec_u rec_d rec_g rec_ns rec_result ) },
         ];
     };
-}
+};
 
 __PACKAGE__->meta->make_immutable;
 

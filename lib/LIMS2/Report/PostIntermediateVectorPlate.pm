@@ -3,19 +3,19 @@ package LIMS2::Report::PostIntermediateVectorPlate;
 use Moose;
 use namespace::autoclean;
 
-with 'LIMS2::Role::PlateReportGenerator';
+extends qw( LIMS2::ReportGenerator::Plate );
 
-sub plate_type {
-    return 'POSTINT';
-}
+override plate_types => sub {
+    return [ 'POSTINT' ];
+};
 
-sub _build_name {
+override _build_name => sub {
     my $self = shift;
 
     return 'Post-intermediate Vector Plate ' . $self->plate_name;
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     my $self = shift;
 
     return [
@@ -24,9 +24,9 @@ sub _build_columns {
         "Intermedate Well", "Intermediate QC Test Result", "Intermediate Valid Primers", "Intermediate Mixed Reads?", "Intermediate Sequencing QC Pass?",
         "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?",
     ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my $self = shift;
 
     my $plate = $self->model->retrieve_plate( { name => $self->plate_name, type_id => 'INT' } );
@@ -54,7 +54,7 @@ sub iterator {
             $self->qc_result_cols( $well )
         ];
     }
-}
+};
 
 __PACKAGE__->meta->make_immutable;
 

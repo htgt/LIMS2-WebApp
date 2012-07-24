@@ -7,7 +7,7 @@ use Moose;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
+extends qw( LIMS2::ReportGenerator );
 
 has plate_type => (
     is  => 'ro',
@@ -19,19 +19,19 @@ has plate_name => (
     isa => 'Maybe[Str]'
 );
 
-sub _build_name {
+override _build_name => sub {
     my $self = shift;
     if ( $self->plate_type ) {
         return $self->plate_type . ' Plate List';
     }
     return 'Plate List';
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     return [ "Plate Name", "Plate Type", "Description", "Created By", "Created At" ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my ($self) = @_;
 
     my %search_params;
@@ -57,7 +57,9 @@ sub iterator {
         return [ $plate->name, $plate->type_id, $plate->description, $plate->created_by->name,
             $plate->created_at->ymd ];
     };
-}
+};
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 
