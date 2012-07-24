@@ -5,6 +5,7 @@ use List::MoreUtils qw( apply );
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
+with qw( LIMS2::ReportGenerator::ColonyCounts );
 
 # XXX If it turns out EP and XEP plates don't have the same data
 # stored against them (that is, colony counts) then XEP should be
@@ -25,29 +26,9 @@ override _build_columns => sub {
     return [
         $self->base_columns,
         "Cassette", "Recombinases", "Cell Line",
-        apply { s/_/ /g; s/\b([a-z])/uc($1)/ge; $_ } $self->colony_count_types
+        $self->colony_count_column_names
     ];
 };
-
-has colony_count_types => (
-    isa        => 'ArrayRef[Str]',
-    lazy_build => 1,
-    traits     => [ 'Array' ],
-    handles    => {
-        colony_count_types => 'elements'
-    }
-);
-
-sub _build_colony_count_types {
-    my $self = shift;
-
-    my @types =  map { $_->id } $self->model->schema->resultset('ColonyCountType')->search(
-        {},
-        { order_by => { -asc => 'id' } }
-    );
-
-    return \@types;
-}
 
 override iterator => sub {
     my $self = shift;
@@ -68,14 +49,13 @@ override iterator => sub {
 
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
         my $cell_line = $process_cell_line ? $process_cell_line->cell_line : '';
-        my %colony_counts = map { $_->colony_count_type_id => $_->colony_count } $well->well_colony_counts;
 
         return [
             $self->base_data( $well ),
             $well->cassette->name,
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,
-            @colony_counts{ $self->colony_count_types }
+            $self->colony_counts( $well )
         ];
     };
 };
