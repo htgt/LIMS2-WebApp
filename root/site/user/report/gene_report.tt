@@ -6,6 +6,10 @@
   <button type="submit" class="btn">Show Summary</button>
 </form>
 
+[% MACRO plate_link(well) BLOCK -%]
+<a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate.name %]</a>
+[%- END -%]
+
 [%- MACRO vector_report(wells) BLOCK -%]
   <table class="table table-striped">
     <thead>
@@ -21,7 +25,7 @@
     <tbody>
       [%- FOR well IN wells %]
       <tr>
-        <td>[% well.plate.name %]</td>
+        <td>[% plate_link(well) | none %]</td>
         <td>[% well.name %]</td>
         <td>[% well.created_at.ymd %]</td>
         <td>[% well.cassette.name %]</td>
@@ -44,6 +48,7 @@
 <h2>Showing details for [% info.gene_symbol %] ([% info.gene_id %])</h2>
 
 <div class="accordion" id="gene_report_accordion">
+
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -92,6 +97,8 @@
       </div>
     </div>
   </div>
+
+  [%- IF wells.DESIGN %]
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -100,7 +107,6 @@
     </div>
     <div id="collapseDesignInstances" class="accordion-body collapse">
       <div class="accordion-inner">
-        [%- IF wells.DESIGN %]
         <table class="table table-striped">
           <thead>
             <th>Plate</th>
@@ -113,7 +119,7 @@
           <tbody>
             [%- FOR well IN wells.DESIGN %]
             <tr>
-              <td>[% well.plate.name %]</td>
+              <td>[% plate_link(well) | none %]</td>
               <td>[% well.name %]</td>
               <td>[% well.created_at.ymd %]</td>
               <td>[% well.design.id %]</td>
@@ -123,12 +129,12 @@
             [%- END %]
           </tbody>
         </table>
-        [%- ELSE %]
-        <p><em>No design instances.</em></p>
-        [%- END %]        
       </div>
     </div>
   </div>
+  [%- END %]        
+
+  [%- IF wells.INT %]
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -137,14 +143,13 @@
     </div>
     <div id="collapseInt" class="accordion-body collapse">
       <div class="accordion-inner">
-        [%- IF wells.INT %]
         [%- vector_report( wells.INT ) | none %]
-        [%- ELSE %]
-        <p><em>No intermediate vectors.</em></p>
-        [%- END %]        
       </div>
     </div>
   </div>
+  [%- END %]        
+
+  [%- IF wells.POSTINT %]
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -153,14 +158,14 @@
     </div>
     <div id="collapsePostInt" class="accordion-body collapse">
       <div class="accordion-inner">
-        [%- IF wells.POSTINT %]
-        [%- vector_report( wells.POSTINT ) | none %]
-        [%- ELSE %]
-        <p><em>No post-intermediate vectors.</em></p>
-        [%- END %]        
-      </div>
+          [%- vector_report( wells.POSTINT ) | none %]
+       </div>
     </div>
   </div>
+  [%- END %]        
+
+  [%- SET well_type = "FINAL" %]
+  [%- IF wells.$well_type %]
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -169,14 +174,162 @@
     </div>
     <div id="collapseFinal" class="accordion-body collapse">
       <div class="accordion-inner">
-        [%- SET well_type = "FINAL" %]
-        [%- IF wells.$well_type %]
         [%- vector_report( wells.$well_type ) | none %]
-        [%- ELSE %]
-        <p><em>No final vectors.</em></p>
-        [%- END %]
       </div>
     </div>
+  </div>
+  [%- END %]
+
+  [%- IF wells.DNA %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDNA">DNA Preparation</a>
+      </h3>
+    </div>
+    <div id="collapseDNA" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>Final Vector</th>
+            <th>DNA Quality</th>
+            <th>DNA Quality Comment</th>
+            <th>DNA Status</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.DNA %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.final_vector.as_string %]</td>
+              <td>[% well.well_dna_quality.quality %]</td>
+              <td>[% well.well_dna_quality.comment_text %]</td>
+              <td>
+                [%- IF well.well_dna_status %]
+                  [%- IF well.well_dna_status.pass %]pass[% ELSE %]fail[% END %]
+                [%- END -%]
+              </td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF wells.EP %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEP">First Allele Electroporation</a>
+      </h3>
+    </div>
+    <div id="collapseEP" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>Final Vector</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.EP %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.final_vector.as_string %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF wells.XEP %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseXEP">Electroporation with Recombinase</a>
+      </h3>
+    </div>
+    <div id="collapseXEP" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>Final Vector</th>
+            <th>Recombinases</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.XEP %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.final_vector.as_string %]</td>
+              <td>[% well.recombinases.join(", ") %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF wells.SEP %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSEP">Second Allele Electroporation</a>
+      </h3>
+    </div>
+    <div id="collapseSEP" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>First Allele Vector</th>
+            <th>Second Allele Vector</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.SEP %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.first_allele.final_vector.as_string %]</td>
+              <td>[% well.second_allele.final_vector.as_string %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+      
   </div>
 [%- END %]
 

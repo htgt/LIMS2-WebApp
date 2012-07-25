@@ -578,5 +578,23 @@ sub second_allele {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub final_vector {
+    my $self = shift;
+
+    $self->assert_not_double_targeted;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'FINAL' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine final vector for $self" );
+}
+## use critic
+
 __PACKAGE__->meta->make_immutable;
 1;
