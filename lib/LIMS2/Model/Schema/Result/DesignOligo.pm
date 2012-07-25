@@ -169,8 +169,8 @@ sub as_hash {
     my $self = shift;
 
     my $locus;
-    if ( my $assembly = $self->design->species->default_assembly ) {
-        $locus = $self->search_related( 'loci', { assembly_id => $assembly->id } )->first;
+    if ( my $default_assembly = $self->design->species->default_assembly ) {
+        $locus = $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }
 
     return {
