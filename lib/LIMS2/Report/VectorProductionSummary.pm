@@ -25,10 +25,10 @@ override _build_columns => sub {
     return [
         "Month",
         "First Allele Created", "First Allele Accepted", "First Allele Efficiency",
-        "Second Allele (Promoter) Created", "Second Allele (Promoter) Accepted", "Second Allele (Promoter) Efficiency",
-        "Second Allele (Promoterless) Created", "Second Allele (Promoterless) Accepted", "Second Allele (Promoterless) Efficiency",
         "Cumulative First Allele Created", "Cumulative First Allele Accepted", "Cumulative First Allele Efficiency",
+        "Second Allele (Promoter) Created", "Second Allele (Promoter) Accepted", "Second Allele (Promoter) Efficiency",
         "Cumulative Second Allele (Promoter) Created", "Cumulative Second Allele (Promoter) Accepted", "Cumulative Second Allele (Promoter) Efficiency",
+        "Second Allele (Promoterless) Created", "Second Allele (Promoterless) Accepted", "Second Allele (Promoterless) Efficiency",
         "Cumulative Second Allele (Promoterless) Created", "Cumulative Second Allele (Promoterless) Accepted", "Cumulative Second Allele (Promoterless) Efficiency",
     ];
 };
@@ -76,8 +76,10 @@ override iterator => sub {
         }
         return [
             $date_formatter->format_datetime( $month ),
-            $self->counts_and_efficiency( \%this_month ),
-            $self->counts_and_efficiency( \%cumulative )
+            map {
+                $self->counts_and_efficiency( \%this_month, $_ ),
+                $self->counts_and_efficiency( \%cumulative, $_ )
+            } qw( first_allele second_allele_promoter second_allele_promoterless )
         ];
     }
 };
@@ -117,18 +119,13 @@ sub count_for {
 }
 
 sub counts_and_efficiency {
-    my ( $self, $data ) = @_;
+    my ( $self, $data, $allele_type ) = @_;
 
-    my @return;
+    my $created    = $self->count_for( $data, $allele_type, 'created' );
+    my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
+    my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) . '%' : '-';
 
-    for my $allele_type ( qw( first_allele second_allele_promoter second_allele_promoterless ) ) {
-        my $created    = $self->count_for( $data, $allele_type, 'created' );
-        my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
-        my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) . '%' : '-';
-        push @return, $created, $accepted, $efficiency;
-    }
-
-    return @return;
+    return( $created, $accepted, $efficiency );
 }
 
 __PACKAGE__->meta->make_immutable;
