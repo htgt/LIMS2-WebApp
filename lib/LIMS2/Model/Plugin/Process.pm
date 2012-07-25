@@ -13,7 +13,7 @@ requires qw( schema check_params throw retrieve log trace );
 
 const my %PROCESS_INPUT_WELL_CHECK => (
     create_di => {
-        number => 1
+        number => 0
     },
     int_recom => {
         type   => [qw( DESIGN )],
