@@ -185,6 +185,8 @@ sub create_plate_wells {
 
         $self->create_well( \%well_params, $plate );
     }
+
+    return;
 }
 
 sub find_parent_well_ids {
