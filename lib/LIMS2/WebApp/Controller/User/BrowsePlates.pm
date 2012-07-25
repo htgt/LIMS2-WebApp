@@ -1,8 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 use Moose;
 use LIMS2::WebApp::Pageset;
-use LIMS2::Exception::Implementation;
-use Module::Pluggable::Object;
+use LIMS2::ReportGenerator::Plate;
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -80,7 +79,8 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
 
     my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
 
-    my $report_class = $self->_report_class_for( $c, $plate );
+    my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
+    $report_class =~ s/^.*\:\://;    
     $c->log->debug( "Report class: $report_class" );
 
     $c->stash(
@@ -90,29 +90,6 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
 
     return;
 }
-
-sub _report_plugins {
-    return grep { $_->isa( 'LIMS2::ReportGenerator::Plate' ) }
-        Module::Pluggable::Object->new( search_path => [ 'LIMS2::Report' ], require => 1 )->plugins;
-}
-
-## no critic(RequireFinalReturn)
-sub _report_class_for {
-    my ( $self, $c, $plate ) = @_;
-
-    my $plate_type = $plate->type_id;
-
-    for my $plugin ( $self->_report_plugins ) {
-        if ( $plugin->handles_plate_type( $plate_type ) ) {
-            $c->log->debug( "Plugin class: $plugin" );
-            $plugin =~ s/^.*\:\://;
-            return $plugin;
-        }
-    }
-
-    LIMS2::Exception::Implementation->throw( "No report class implemented for plate type $plate_type" );
-}
-## use critic
 
 =head1 AUTHOR
 

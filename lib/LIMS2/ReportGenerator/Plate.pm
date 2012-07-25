@@ -5,10 +5,31 @@ use warnings;
 
 use Moose;
 use MooseX::ClassAttribute;
+use LIMS2::Exception::Implementation;
+use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
+
+sub _report_plugins {
+    return grep { $_->isa( 'LIMS2::ReportGenerator::Plate' ) }
+        Module::Pluggable::Object->new( search_path => [ 'LIMS2::Report' ], require => 1 )->plugins;    
+}
+
+## no critic(RequireFinalReturn)
+sub report_class_for {
+    my ( $class, $plate_type ) = @_;
+
+    for my $plugin ( $class->_report_plugins ) {
+        if ( $plugin->handles_plate_type( $plate_type ) ) {
+            return $plugin;
+        }
+    }
+
+    LIMS2::Exception::Implementation->throw( "No report class implemented for plate type $plate_type" );
+}
+## use critic
 
 has plate_name => (
     is         => 'ro',

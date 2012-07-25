@@ -2,13 +2,9 @@ package LIMS2::Report::SecondElectroporationProductionDetail;
 
 use Moose;
 use DateTime;
-use List::MoreUtils qw( uniq );
-use Iterator::Simple qw( iter imap iflatten );
-use LIMS2::Exception::Implementation;
-use LIMS2::Report::SEPPlate;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator );
+extends qw( LIMS2::ReportGenerator::ProductionDetail );
 
 has species => (
     is       => 'ro',
@@ -33,26 +29,9 @@ override _build_columns => sub {
          ];
 };
 
-override iterator => sub {
-    my $self = shift;
-
-    my $sep_plate_rs = $self->model->schema->resultset( 'Plate' )->search_rs(
-        {
-            'me.type_id'    => 'SEP',
-            'me.species_id' => $self->species
-        }
-    );
-
-    return iflatten imap { $self->plate_report_iterator( $_ ) } iter $sep_plate_rs;
+override _build_plate_type => sub {
+    'SEP';
 };
-
-sub plate_report_iterator {
-    my ( $self, $plate ) = @_;
-
-    my $report = LIMS2::Report::SEPPlate->new( model => $self->model, species => $self->species, plate => $plate );
-
-    return imap { unshift @{$_}, $plate->name; $_ } $report->iterator;
-}
 
 __PACKAGE__->meta->make_immutable;
 
