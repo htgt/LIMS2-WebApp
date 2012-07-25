@@ -27,7 +27,12 @@ VALUES ('create_di', 'Create design instance'),
        ('3w_gateway', 'Three-way gateway'),
        ('rearray', 'rearray wells'),
        ('dna_prep', 'dna prep'),
-       ('recombinase', 'apply recombinase');
+       ('recombinase', 'apply recombinase'),
+       ('clone_pick', 'Pick from EP plate'),
+       ('clone_pool', 'Pool es cells into backup vial'),
+       ('first_electroporation', 'First (standard) electroporation'),
+       ('second_electroporation', 'Second electroporation in double targetted cells'),
+       ('freeze', 'Create freezer plate well');
 
 INSERT INTO recombinases(id)
 VALUES ('Cre'),('Flp'),('Dre');
@@ -38,7 +43,17 @@ VALUES ('DESIGN', 'Design Instances'),
        ('POSTINT', 'Post-intermediate Vectors' ),
        ('FINAL', 'Final Vectors' ),
        ('CREBAC', 'Cre/BAC Vectors' ),
-       ('DNA', 'DNA QC' );
+       ('DNA', 'DNA QC' ),
+       ('EP', 'Electroporation'),
+       ('EP_PICK', 'ES Cells' ),
+       ('XEP', 'Electroporation With Recombinase Applied' ),
+       ('XEP_PICK', 'ES Cells With Recombinase Applied' ),
+       ('XEP_POOL', 'ES Cells Backup Vial' ),
+       ('SEP', 'Second Allele Electroporation' ),
+       ('SEP_PICK', 'Second Allele ES Cells' ),
+       ('SEP_POOL', 'Second Allele Backup Vial' ),
+       ('SFP', 'Second Allele Freezer Plates' ),
+       ('FP', 'Freezer Plates' );
 
 INSERT INTO recombineering_result_types(id)
 VALUES ('pcr_u'),('pcr_d'),('pcr_g'),('rec_u'),('rec_d'),('rec_g'),('rec_ns'),('rec_result');
@@ -121,4 +136,21 @@ VALUES
 ( 'R3R4_pBR_DTA+_Bsd_amp', 'medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way' ),
 ( 'L3L4_pZero_DTA_kan', 'high copy number; standard backbone for promoterless vectors', 'KanR', '3-way' ),
 ( 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 Gateway Sites with Linearization close to DTA pA, potentially compromising negative selection', 'spec R', '3-way' );
-       
+
+INSERT INTO primer_band_types(id)
+VALUES ('gr1'),
+       ('gr2'),
+       ('gr3'),
+       ('gr4'),
+       ('gf1'),
+       ('gf2'),
+       ('gf3'),
+       ('gf4'),
+       ('tr_pcr');
+
+INSERT INTO colony_count_types(id)
+VALUES ('blue_colonies'),
+       ('white_colonies'),
+       ('picked_colonies'),
+       ('total_colonies'),
+       ('remaining_unstained_colonies');

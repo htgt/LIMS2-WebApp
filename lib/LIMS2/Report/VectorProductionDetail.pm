@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionDetail::VERSION = '0.009';
+    $LIMS2::Report::VectorProductionDetail::VERSION = '0.010';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ use List::MoreUtils qw( uniq );
 use Iterator::Simple qw( iter imap iflatten );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
+extends qw( LIMS2::ReportGenerator );
 
 has species => (
     is       => 'ro',
@@ -20,19 +20,19 @@ has species => (
     required => 1
 );
 
-sub _build_name {
+override _build_name => sub {
     my $dt = DateTime->now();
     return 'Vector Production Detail ' . $dt->ymd;
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     return [
         "Gene Id", "Gene Symbol", "Design", "Design Well",
         "Final Vector Well", "Final Vector Created", "Cassette", "Backbone", "Recombinase", "Cassette Type", "Accepted?"
     ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my ( $self ) = @_;
 
     my $gene_design_rs = $self->model->schema->resultset( 'GeneDesign' )->search_rs(
@@ -64,7 +64,7 @@ sub iterator {
 
         return iflatten imap { $self->final_vectors_iterator( \%attrs, $_ ) } \@design_wells;
     }
-}
+};
 
 sub final_vectors_iterator {
     my ( $self, $attrs, $design_well ) = @_;

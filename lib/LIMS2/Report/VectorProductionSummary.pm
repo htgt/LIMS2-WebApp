@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionSummary::VERSION = '0.009';
+    $LIMS2::Report::VectorProductionSummary::VERSION = '0.010';
 }
 ## use critic
 
@@ -14,7 +14,7 @@ use LIMS2::Report::VectorProductionDetail;
 use List::MoreUtils qw( any );
 use namespace::autoclean;
 
-with qw( LIMS2::Role::ReportGenerator );
+extends qw( LIMS2::ReportGenerator );
 
 has species => (
     is       => 'ro',
@@ -22,24 +22,24 @@ has species => (
     required => 1
 );
 
-sub _build_name {
+override _build_name => sub {
     my $dt = DateTime->now();
     return 'Vector Production Summary ' . $dt->ymd;
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     return [
         "Month",
         "First Allele Created", "First Allele Accepted", "First Allele Efficiency",
-        "Second Allele (Promoter) Created", "Second Allele (Promoter) Accepted", "Second Allele (Promoter) Efficiency",
-        "Second Allele (Promoterless) Created", "Second Allele (Promoterless) Accepted", "Second Allele (Promoterless) Efficiency",
         "Cumulative First Allele Created", "Cumulative First Allele Accepted", "Cumulative First Allele Efficiency",
+        "Second Allele (Promoter) Created", "Second Allele (Promoter) Accepted", "Second Allele (Promoter) Efficiency",
         "Cumulative Second Allele (Promoter) Created", "Cumulative Second Allele (Promoter) Accepted", "Cumulative Second Allele (Promoter) Efficiency",
+        "Second Allele (Promoterless) Created", "Second Allele (Promoterless) Accepted", "Second Allele (Promoterless) Efficiency",
         "Cumulative Second Allele (Promoterless) Created", "Cumulative Second Allele (Promoterless) Accepted", "Cumulative Second Allele (Promoterless) Efficiency",
     ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my ( $self ) = @_;
 
     my $date_formatter = DateTime::Format::Strptime->new( pattern => '%b %Y' );
@@ -82,11 +82,12 @@ sub iterator {
         }
         return [
             $date_formatter->format_datetime( $month ),
-            $self->counts_and_efficiency( \%this_month ),
-            $self->counts_and_efficiency( \%cumulative )
+            map {
+                ( $self->counts_and_efficiency( \%this_month, $_ ), $self->counts_and_efficiency( \%cumulative, $_ ) )
+            } qw( first_allele second_allele_promoter second_allele_promoterless )
         ];
     }
-}
+};
 
 sub allele_type_for {
     my ( $self, $data ) = @_;
@@ -123,18 +124,13 @@ sub count_for {
 }
 
 sub counts_and_efficiency {
-    my ( $self, $data ) = @_;
+    my ( $self, $data, $allele_type ) = @_;
 
-    my @return;
+    my $created    = $self->count_for( $data, $allele_type, 'created' );
+    my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
+    my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) . '%' : '-';
 
-    for my $allele_type ( qw( first_allele second_allele_promoter second_allele_promoterless ) ) {
-        my $created    = $self->count_for( $data, $allele_type, 'created' );
-        my $accepted   = $self->count_for( $data, $allele_type, 'accepted' );
-        my $efficiency = $created > 0 ? int( $accepted * 100 / $created ) . '%' : '-';
-        push @return, $created, $accepted, $efficiency;
-    }
-
-    return @return;
+    return( $created, $accepted, $efficiency );
 }
 
 __PACKAGE__->meta->make_immutable;

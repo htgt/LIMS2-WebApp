@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.009';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.010';
 }
 ## use critic
 
@@ -227,6 +227,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_colony_counts
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellColonyCount>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_colony_counts",
+  "LIMS2::Model::Schema::Result::WellColonyCount",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_comments
 
 Type: has_many
@@ -268,6 +283,21 @@ Related object: L<LIMS2::Model::Schema::Result::WellDnaStatus>
 __PACKAGE__->might_have(
   "well_dna_status",
   "LIMS2::Model::Schema::Result::WellDnaStatus",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_primer_bands
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellPrimerBand>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_primer_bands",
+  "LIMS2::Model::Schema::Result::WellPrimerBand",
   { "foreign.well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -323,8 +353,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-29 14:10:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sGn4iJx9ohRNUty9LjY+Yw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jksJS1DnrazHhwYFT6vWJg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -397,7 +427,13 @@ sub _build_descendants {
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'descendants' );
 }
 
-sub is_double_targeted {
+has is_double_targeted => (
+    is         => 'ro',
+    isa        => 'Bool',
+    lazy_build => 1
+);
+
+sub _build_is_double_targeted {
     my $self = shift;
 
     my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
@@ -487,6 +523,84 @@ sub design {
 
     return $process_design ? $process_design->design : undef;
 }
+
+has second_electroporation_process => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::Process',
+    lazy_build => 1
+);
+
+## no critic(RequireFinalReturn)
+sub _build_second_electroporation_process {
+    my $self = shift;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
+    while ( my $well = $it->next ) {
+        for my $process ( $self->ancestors->input_processes( $well ) ) {
+            if ( $process->type_id eq 'second_electroporation' ) {
+                return $process;
+            }
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Cannot request second_electroporation_process for single-targeted construct"
+    );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub first_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate->type_id eq 'XEP' ) {
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine first allele for $self"
+    );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub second_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate->type_id ne 'XEP' ) {
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine second allele for $self"
+    );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub final_vector {
+    my $self = shift;
+
+    $self->assert_not_double_targeted;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'FINAL' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine final vector for $self" );
+}
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 1;

@@ -1,3 +1,10 @@
+0.010     2012-07-25 13:08:51 Europe/London
+
+   Implement support for creation of EP, XEP, SEP, EP_PICK and FP plate types.
+   Implement basic reports for new plate types.
+   Re-order columns in vector production summary report
+   Add tables for primer_band and colony_pick data
+
 0.009     2012-07-23 12:54:21 Europe/London
 
    Add support for multiple species.

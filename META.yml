@@ -83,6 +83,7 @@ requires:
   Module::Pluggable::Object: 0
   Moose: 0
   Moose::Role: 0
+  MooseX::ClassAttribute: 0
   MooseX::Log::Log4perl: 0
   MooseX::MarkAsMethods: 0
   MooseX::NonMoose: 0
@@ -107,4 +108,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.009
+version: 0.010

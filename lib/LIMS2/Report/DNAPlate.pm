@@ -1,7 +1,7 @@
 package LIMS2::Report::DNAPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DNAPlate::VERSION = '0.009';
+    $LIMS2::Report::DNAPlate::VERSION = '0.010';
 }
 ## use critic
 
@@ -9,19 +9,19 @@ package LIMS2::Report::DNAPlate;
 use Moose;
 use namespace::autoclean;
 
-with 'LIMS2::Role::PlateReportGenerator';
+extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
-sub plate_type {
-    return 'DNA';
-}
+override plate_types => sub {
+    return [ 'DNA' ];
+};
 
-sub _build_name {
+override _build_name => sub {
     my $self = shift;
 
     return 'Final Vector Plate ' . $self->plate_name;
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     my $self = shift;
 
     return [
@@ -30,9 +30,9 @@ sub _build_columns {
         "Final Vector Well", "Final Vector QC Test Result", "Final Vector Valid Primers", "Final Vector Mixed Reads?", "Final Vector Sequencing QC Pass?",
         "DNA Quality", "DNA Quality Comment", "DNA Pass?"
     ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my $self = shift;
 
     my $wells_rs = $self->plate->search_related(
@@ -62,7 +62,7 @@ sub iterator {
             ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' )
         ];
     };
-}
+};
 
 __PACKAGE__->meta->make_immutable;
 

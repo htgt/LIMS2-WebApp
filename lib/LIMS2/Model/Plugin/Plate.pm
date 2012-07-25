@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.009';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.010';
 }
 ## use critic
 
@@ -12,6 +12,7 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
+use Const::Fast;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -73,6 +74,7 @@ sub pspec_create_plate {
         },
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
         comments   => { optional => 1 },
+        wells      => { optional => 1 }
     };
 }
 
@@ -103,7 +105,9 @@ sub create_plate {
                 { slice_def( $validated_c, qw( comment_text created_by_id created_at ) ) } );
     }
 
-    # XXX Should this return profile-specific data?
+    $self->create_plate_wells( $validated_params->{wells}, $plate )
+        if exists $validated_params->{wells} and @{ $validated_params->{wells} };
+
     return $plate;
 }
 
@@ -123,6 +127,21 @@ sub retrieve_plate {
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
     return $self->retrieve( Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id ) } );
+}
+
+sub delete_plate {
+    my ( $self, $params ) = @_;
+
+    # retrieve_plate() will validate the parameters
+    my $plate = $self->retrieve_plate($params);
+
+    for my $well ( $plate->wells ) {
+        $self->delete_well( { id => $well->id } );
+    }
+
+    $plate->search_related_rs( 'plate_comments' )->delete;
+    $plate->delete;
+    return;
 }
 
 sub pspec_set_plate_assay_complete {
@@ -150,6 +169,67 @@ sub set_plate_assay_complete {
     }
 
     return $plate;
+}
+
+sub create_plate_wells {
+    my ( $self, $wells, $plate ) = @_;
+
+    for my $well_data ( @{ $wells } ) {
+        my $parent_well_ids = $self->find_parent_well_ids( $well_data );
+
+        my %well_params = (
+            plate_name => $plate->name,
+            well_name  => delete $well_data->{well_name},
+            created_by => $plate->created_by->name,
+            created_at => $plate->created_at->iso8601,
+        );
+        my $process_type = delete $well_data->{process_type};
+
+        $well_params{process_data}              = $well_data;
+        $well_params{process_data}{type}        = $process_type;
+        $well_params{process_data}{input_wells} = [ map{ { id => $_ } } @{ $parent_well_ids } ];
+
+        $self->create_well( \%well_params, $plate );
+    }
+
+    return;
+}
+
+sub find_parent_well_ids {
+    my ( $self, $well_data, $plate_type ) = @_;
+    my @parent_well_ids;
+
+    if ( $well_data->{process_type} eq 'second_electroporation' ) {
+        push @parent_well_ids,
+            $self->get_well_id( $well_data->{allele_plate}, $well_data->{allele_well} );
+
+        push @parent_well_ids,
+            $self->get_well_id( $well_data->{vector_plate}, $well_data->{vector_well} );
+
+        delete @{$well_data}
+            {qw( allele_plate vector_plate allele_well vector_well )};
+    }
+    else {
+        push @parent_well_ids,
+            $self->get_well_id( $well_data->{parent_plate}, $well_data->{parent_well} );
+
+        delete @{$well_data}{qw( parent_plate parent_well )};
+    }
+
+    return \@parent_well_ids;
+}
+
+sub get_well_id {
+    my ( $self, $plate_name, $well_name ) = @_;
+
+    my $well = $self->retrieve_well(
+        {
+            plate_name => $plate_name,
+            well_name  => substr( $well_name, -3),
+        }
+    );
+
+    return $well->id;
 }
 
 1;

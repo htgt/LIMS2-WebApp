@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Process::VERSION = '0.009';
+    $LIMS2::Model::Plugin::Process::VERSION = '0.010';
 }
 ## use critic
 
@@ -18,28 +18,54 @@ use Const::Fast;
 requires qw( schema check_params throw retrieve log trace );
 
 const my %PROCESS_INPUT_WELL_CHECK => (
-    create_di => { number => 0, },
+    create_di => {
+        number => 0
+    },
     int_recom => {
-        number => 1,
         type   => [qw( DESIGN )],
+        number => 1,
     },
     '2w_gateway' => {
-        number => 1,
         type   => [qw( INT POSTINT )],
+        number => 1,
     },
     '3w_gateway' => {
-        number => 1,
         type   => [qw( INT )],
+        number => 1,
     },
-    recombinase   => { number => 1, },
+    recombinase   => {
+        number => 1
+    },
     cre_bac_recom => {
-        number => 1,
         type   => [qw( DESIGN )],
-    },
-    rearray  => { number => 1, },
-    dna_prep => {
         number => 1,
+    },
+    rearray  => {
+        number => 1
+    },
+    dna_prep => {
         type   => [qw( FINAL )],
+        number => 1,
+    },
+    clone_pick => {
+        type   => [qw( EP XEP SEP )],
+        number => 1,
+    },
+    clone_pool => {
+        type   => [qw( XEP SEP )],
+        number => 1,
+    },
+    first_electroporation => {
+        type   => [qw( DNA )],
+        number => 1,
+    },
+    second_electroporation => {
+        type   => [qw( XEP DNA )],
+        number => 2,
+    },
+    freeze => {
+        type   => [qw( EP_PICK SEP_PICK )],
+        number => 1,
     },
 );
 
@@ -174,6 +200,51 @@ sub _check_input_wells_rearray {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_input_wells_dna_prep {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_clone_pick {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_clone_pool {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_first_electroporation {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_second_electroporation {
+    my ( $self, $process ) = @_;
+
+    $self->check_input_wells($process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_input_wells_freeze {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
@@ -404,6 +475,31 @@ sub _create_process_aux_data_cre_bac_recom {
 }
 ## use critic
 
+sub pspec__create_process_aux_data_first_electroporation {
+    return {
+        cell_line => { validate => 'non_empty_string' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_first_electroporation {
+    my ( $self, $params, $process ) = @_;
+
+    my $validated_params
+        = $self->check_params( $params, $self->pspec__create_process_aux_data_first_electroporation );
+
+    $process->create_related( process_cell_line => { cell_line => $validated_params->{cell_line} } );
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_second_electroporation {
+    return;
+}
+## use critic
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_rearray {
     return;
@@ -412,6 +508,25 @@ sub _create_process_aux_data_rearray {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_dna_prep {
+    return;
+}
+## use critic
+
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_clone_pool {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_clone_pick {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_freeze {
     return;
 }
 ## use critic
@@ -430,7 +545,9 @@ sub delete_process {
     my $process = $self->retrieve( Process => { id => $validated_params->{id} } );
 
     my @related_resultsets = qw(  process_backbone process_bacs process_cassette process_design
-                                  process_input_wells process_output_wells process_recombinases );
+                                  process_input_wells process_output_wells process_recombinases
+                                  process_cell_line
+                                );
 
     for my $rs ( @related_resultsets ) {
         $process->search_related_rs( $rs )->delete;

@@ -1,7 +1,7 @@
 package LIMS2::Report::FinalVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FinalVectorPlate::VERSION = '0.009';
+    $LIMS2::Report::FinalVectorPlate::VERSION = '0.010';
 }
 ## use critic
 
@@ -9,19 +9,19 @@ package LIMS2::Report::FinalVectorPlate;
 use Moose;
 use namespace::autoclean;
 
-with 'LIMS2::Role::PlateReportGenerator';
+extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
-sub plate_type {
-    return 'FINAL';
-}
+override plate_types => sub {
+    return [ 'FINAL' ];
+};
 
-sub _build_name {
+override _build_name => sub {
     my $self = shift;
 
     return 'Final Vector Plate ' . $self->plate_name;
-}
+};
 
-sub _build_columns {
+override _build_columns => sub {
     my $self = shift;
 
     return [
@@ -31,9 +31,9 @@ sub _build_columns {
         "Post-intermedate Well", "Post-intermediate QC Test Result", "Post-intermediate Valid Primers", "Post-intermediate Mixed Reads?", "Post-intermediate Sequencing QC Pass?",
         "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
     ];
-}
+};
 
-sub iterator {
+override iterator => sub {
     my $self = shift;
 
     my $wells_rs = $self->plate->search_related(
@@ -60,7 +60,7 @@ sub iterator {
             $self->qc_result_cols( $well )
         ];
     }
-}
+};
 
 __PACKAGE__->meta->make_immutable;
 

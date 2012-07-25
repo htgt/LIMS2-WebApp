@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.009';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.010';
 }
 ## use critic
 
@@ -305,20 +305,6 @@ sub depth_first_traversal {
     }
 }
 
-sub process_data_for {
-    my ( $self, $well ) = @_;
-
-    # XXX This will return the WRONG DATA for double-targeted cells.
-    # We need to know whether we are retrieving data for the first
-    # allele or the second allele.
-
-    return ( $well->design->id,
-             ( $well->cassette ? $well->cassette->name : '' ),
-             ( $well->backbone ? $well->backbone->name : '' ),
-             join( q{,}, @{$well->recombinases} )
-         );
-}
-
 # Breadth-first search for a process with a value in the related table
 # $relation.  Returns the related record. $relation should be
 # something like 'process_design', 'process_cassette', etc.
@@ -342,6 +328,39 @@ sub find_process {
     return;
 }
 
+sub process_data_for {
+    my ( $well ) = shift;
+
+    my @processes = $well->output_processes;
+
+    my @data;
+    for my $p ( @processes ) {
+        # Ignoring process_bacs
+        if ( $p->process_backbone ) {
+            push @data, 'Backbone: ' . $p->process_backbone->backbone->name;
+        }
+        if ( $p->process_cassette ) {
+            push @data, 'Cassette: ' . $p->process_cassette->cassette->name;
+        }
+        if ( $p->process_cell_line ) {
+            push @data, 'Cell line: ' . $p->process_cell_line->cell_line;
+        }
+        if ( $p->process_design ) {
+            my $design = $p->process_design->design;
+            push @data, 'Design: ' . $design->id;
+            my @genes = $design->genes;
+            if ( @genes ) {
+                push @data, 'Genes: ' . join( q{, }, map { $_->gene_id } @genes );
+            }
+        }
+        if ( my @recombinases = $p->process_recombinases ) {
+            push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );
+        }
+    }
+
+    return @data;
+}
+
 sub render {
     my ( $self, %opts ) = @_;
 
@@ -356,11 +375,13 @@ sub render {
 
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
-        $graph->add_node( name => $well->as_string, label => [ $well->as_string, $self->process_data_for( $well ) ] );
+        $graph->add_node( name => $well->as_string, label => [ $well->as_string, process_data_for( $well ) ] );
     }
 
+    my %seen_process;
     for my $edge ( @{ $self->edges } ) {
         my ( $process_id, $input_well_id, $output_well_id ) = @{ $edge };
+        next if $seen_process{$process_id}{$input_well_id}{$output_well_id}++;
         $self->log->debug( "Adding edge $process_id to GraphViz" );
         $graph->add_edge(
             from  => defined $input_well_id ? $self->well( $input_well_id )->as_string : 'ROOT',
