@@ -41,7 +41,7 @@ sub handles_plate_type {
         return 1 if $plate_type eq $handled_plate_type;
     }
 
-    return;    
+    return;
 }
 
 sub _build_plate {

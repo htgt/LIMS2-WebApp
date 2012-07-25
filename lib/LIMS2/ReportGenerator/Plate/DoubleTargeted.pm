@@ -10,18 +10,19 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate );
 
 sub base_columns {
+    my @allele_cols = ( "Design", "Gene Id", "Gene Symbol", "Cassette", "Recombinases" );
     return ( "Well Name", "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?",
-             "First Allele Design", "First Allele Gene Id", "First Allele Cassette", "First Allele Recombinases",
-             "Second Allele Design", "Second Allele Gene Id", "Second Allele Cassette", "Second Allele Recombinases"
-             );
+             map( { "First Allele $_" } @allele_cols ),
+             map( { "Second Alelle $_" } @allele_cols )
+         );
 }
 
 sub base_data {
     my ( $self, $well ) = @_;
 
     my $first_allele  = $well->first_allele;
-    my $second_allele = $well->second_allele;    
-    
+    my $second_allele = $well->second_allele;
+
     return (
         $well->name,
         $well->created_by->name,

@@ -573,7 +573,7 @@ sub second_allele {
 
     require LIMS2::Exception::Implementation;
     LIMS2::Exception::Implementation->throw(
-        "Failed to determine second allele for $self"        
+        "Failed to determine second allele for $self"
     );
 }
 ## use critic

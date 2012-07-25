@@ -337,7 +337,7 @@ sub process_data_for {
             push @data, 'Cassette: ' . $p->process_cassette->cassette->name;
         }
         if ( $p->process_cell_line ) {
-            push @data, 'Cell line: ' . $p->process_cell_line->cell_line;            
+            push @data, 'Cell line: ' . $p->process_cell_line->cell_line;
         }
         if ( $p->process_design ) {
             my $design = $p->process_design->design;
@@ -348,7 +348,7 @@ sub process_data_for {
             }
         }
         if ( my @recombinases = $p->process_recombinases ) {
-            push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );            
+            push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );
         }
     }
 
@@ -372,8 +372,10 @@ sub render {
         $graph->add_node( name => $well->as_string, label => [ $well->as_string, process_data_for( $well ) ] );
     }
 
+    my %seen_process;
     for my $edge ( @{ $self->edges } ) {
         my ( $process_id, $input_well_id, $output_well_id ) = @{ $edge };
+        next if $seen_process{$process_id}{$input_well_id}{$output_well_id}++;
         $self->log->debug( "Adding edge $process_id to GraphViz" );
         $graph->add_edge(
             from  => defined $input_well_id ? $self->well( $input_well_id )->as_string : 'ROOT',

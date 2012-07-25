@@ -1,6 +1,7 @@
 package LIMS2::Report::EPPlate;
 
 use Moose;
+use List::MoreUtils qw( apply );
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
@@ -24,7 +25,7 @@ override _build_columns => sub {
     return [
         $self->base_columns,
         "Cassette", "Recombinases", "Cell Line",
-        map { s/_/ /g; s/\b([a-z])/uc($1)/ge; $_ } $self->colony_count_types
+        apply { s/_/ /g; s/\b([a-z])/uc($1)/ge; $_ } $self->colony_count_types
     ];
 };
 
@@ -40,9 +41,12 @@ has colony_count_types => (
 sub _build_colony_count_types {
     my $self = shift;
 
-    [ map { $_->id }
-          $self->model->schema->resultset('ColonyCountType')->search( {}, { order_by => { -asc => 'id' } } )
-      ];
+    my @types =  map { $_->id } $self->model->schema->resultset('ColonyCountType')->search(
+        {},
+        { order_by => { -asc => 'id' } }
+    );
+
+    return \@types;
 }
 
 override iterator => sub {
@@ -65,7 +69,7 @@ override iterator => sub {
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
         my $cell_line = $process_cell_line ? $process_cell_line->cell_line : '';
         my %colony_counts = map { $_->colony_count_type_id => $_->colony_count } $well->well_colony_counts;
-        
+
         return [
             $self->base_data( $well ),
             $well->cassette->name,
