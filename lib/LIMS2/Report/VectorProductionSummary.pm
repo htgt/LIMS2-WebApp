@@ -77,8 +77,7 @@ override iterator => sub {
         return [
             $date_formatter->format_datetime( $month ),
             map {
-                $self->counts_and_efficiency( \%this_month, $_ ),
-                $self->counts_and_efficiency( \%cumulative, $_ )
+                ( $self->counts_and_efficiency( \%this_month, $_ ), $self->counts_and_efficiency( \%cumulative, $_ ) )
             } qw( first_allele second_allele_promoter second_allele_promoterless )
         ];
     }
