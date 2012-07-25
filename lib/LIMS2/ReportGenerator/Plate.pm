@@ -122,6 +122,20 @@ sub ancestor_cols {
     return ('')x5;
 }
 
+sub pick_counts {
+    my ( $self, $well, $pick_type ) = @_;
+
+    # XXX This assumes the picked wells are immediate descendants of
+    # $well: we aren't doing a full traversal.
+    my @picks = grep { $_->plate->type_id eq $pick_type }
+        $well->descendants->output_wells( $well );
+
+    my $picked   = scalar @picks;
+    my $accepted = scalar grep { $_->is_accepted } @picks;
+
+    return ( $picked, $accepted );
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
