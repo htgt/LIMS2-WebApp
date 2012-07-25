@@ -25,9 +25,9 @@ override _build_columns => sub {
 
     return [
         'Gene Id', 'Gene Symbol', 'Design', 'Design Well',
-        'EP Well', 'Comments', 'Cassette', 'Recombinases',
+        'EP Well', 'Final Vector', 'Cassette', 'Recombinases',
         $self->colony_count_column_names,
-        '# Picked EPDs', '# Accepted EPDs'
+        'Number Picked', 'Number Accepted', 'Number XEPs', 'Comments'
     ];
 };
 
@@ -81,11 +81,13 @@ sub first_ep_iterator {
             $ep->{design_id},
             $ep->{design_well}->as_string,
             $ep->{well}->as_string,
-            join( q{; }, map { $_->comment_text } $ep->{well}->well_comments ),
+            $ep->{well}->final_vector->as_string,
             $ep->{cassette}->name,
             join( q{, }, @{$ep->{recombinase}} ),
             $self->colony_counts( $ep->{well} ),
-            $self->ep_pick_counts( $ep->{well}, $design_well->descendants )
+            $self->ep_pick_counts( $ep->{well}, $design_well->descendants ),
+            $self->xep_count( $ep->{well}, $design_well->descendants ),
+            join( q{; }, map { $_->comment_text } $ep->{well}->well_comments )
         ];
     };
 }
@@ -100,6 +102,15 @@ sub ep_pick_counts {
     my $accepted = scalar grep { $_->is_accepted } @epds;
 
     return ( $picked, $accepted );
+}
+
+sub xep_count {
+    my ( $self, $ep_well, $graph ) = @_;
+
+    my @xeps = grep { $_->plate->type_id eq 'XEP' }
+        $graph->output_wells( $ep_well );
+
+    return scalar @xeps;
 }
 
 sub collect_first_eps {
