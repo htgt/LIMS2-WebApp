@@ -23,7 +23,7 @@ override _build_columns => sub {
     my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Cassette", "Recombinases" );
     return [ "Plate Name", "Well Name", "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?",
              map( { "First Allele $_" } @allele_cols ),
-             map( { "Second Alelle $_" } @allele_cols ),
+             map( { "Second Allele $_" } @allele_cols ),
              'Second Allele Cassette Type',
              'Number Picked', 'Number Accepted'
          ];
