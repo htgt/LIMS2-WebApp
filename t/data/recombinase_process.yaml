@@ -3,10 +3,10 @@ valid_input:
     type: recombinase
     cassette: L1L2_Bact_P
     output_wells:
-        - plate_name: PGS100
+        - plate_name: MOHSAS0001_A
           well_name: A01
     input_wells: 
-        - plate_name: PCS100
-          well_name: A01
+        - plate_name: PCS00177_A
+          well_name: G02
     recombinase:
         - Cre
