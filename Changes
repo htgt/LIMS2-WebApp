@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+   Implement electroporation detail and summary reports.
+
 0.010     2012-07-25 13:08:51 Europe/London
 
    Implement support for creation of EP, XEP, SEP, EP_PICK and FP plate types.
