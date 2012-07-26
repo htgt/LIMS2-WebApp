@@ -57,7 +57,7 @@ override iterator => sub {
     $self->summarize_second_ep( \%by_month );
 
     my @months = sort { $by_month{$a}{dt} <=> $by_month{$b}{dt} } keys %by_month;
-    
+
     my %cumulative;
 
     return iter sub {
@@ -87,7 +87,7 @@ override iterator => sub {
 
 sub summarize_first_ep {
     my ( $self, $by_month ) = @_;
-       
+
     my $detail = LIMS2::Report::FirstElectroporationProductionDetail->new(
         model => $self->model, species => $self->species
     );

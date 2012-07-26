@@ -19,9 +19,11 @@ has plate_type => (
     lazy_build => 1
 );
 
+## no critic(RequireFinalReturn)
 sub _build_plate_type {
     LIMS2::Exception::Implementation->throw( "_build_plate_type() must be implemeted by a subclass" );
 }
+## use critic
 
 override iterator => sub {
     my $self = shift;
@@ -40,7 +42,7 @@ sub plate_report_iterator {
     my ( $self, $plate ) = @_;
 
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
-    
+
     my $report = $report_class->new( model => $self->model, species => $self->species, plate => $plate );
 
     return imap { unshift @{$_}, $plate->name; $_ } $report->iterator;

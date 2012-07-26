@@ -108,8 +108,8 @@ sub _load_fixtures {
 
     my $admin_role = $dbname . '_admin';
 
-    $dbh->do( "SET ROLE $admin_role" );    
-    
+    $dbh->do( "SET ROLE $admin_role" );
+
     for my $fixture ( sort { $a cmp $b } grep { _is_fixture($_) } $fixtures_dir->children ) {
         DEBUG("Loading fixtures from $fixture");
         DBIx::RunSQL->run_sql_file(
@@ -120,7 +120,7 @@ sub _load_fixtures {
         );
     }
 
-    $dbh->do( "RESET ROLE" );    
+    $dbh->do( "RESET ROLE" );
 
     return;
 }

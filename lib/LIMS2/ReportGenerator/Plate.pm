@@ -14,7 +14,7 @@ extends qw( LIMS2::ReportGenerator );
 
 sub _report_plugins {
     return grep { $_->isa( 'LIMS2::ReportGenerator::Plate' ) }
-        Module::Pluggable::Object->new( search_path => [ 'LIMS2::Report' ], require => 1 )->plugins;    
+        Module::Pluggable::Object->new( search_path => [ 'LIMS2::Report' ], require => 1 )->plugins;
 }
 
 ## no critic(RequireFinalReturn)

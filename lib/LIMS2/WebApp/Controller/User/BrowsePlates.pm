@@ -80,7 +80,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
 
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
-    $report_class =~ s/^.*\:\://;    
+    $report_class =~ s/^.*\:\://;
     $c->log->debug( "Report class: $report_class" );
 
     $c->stash(
