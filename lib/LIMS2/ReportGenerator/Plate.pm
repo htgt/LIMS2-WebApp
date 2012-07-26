@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.010';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.011';
 }
 ## use critic
 
@@ -11,10 +11,31 @@ use warnings;
 
 use Moose;
 use MooseX::ClassAttribute;
+use LIMS2::Exception::Implementation;
+use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
+
+sub _report_plugins {
+    return grep { $_->isa( 'LIMS2::ReportGenerator::Plate' ) }
+        Module::Pluggable::Object->new( search_path => [ 'LIMS2::Report' ], require => 1 )->plugins;
+}
+
+## no critic(RequireFinalReturn)
+sub report_class_for {
+    my ( $class, $plate_type ) = @_;
+
+    for my $plugin ( $class->_report_plugins ) {
+        if ( $plugin->handles_plate_type( $plate_type ) ) {
+            return $plugin;
+        }
+    }
+
+    LIMS2::Exception::Implementation->throw( "No report class implemented for plate type $plate_type" );
+}
+## use critic
 
 has plate_name => (
     is         => 'ro',
@@ -126,6 +147,20 @@ sub ancestor_cols {
     }
 
     return ('')x5;
+}
+
+sub pick_counts {
+    my ( $self, $well, $pick_type ) = @_;
+
+    # XXX This assumes the picked wells are immediate descendants of
+    # $well: we aren't doing a full traversal.
+    my @picks = grep { $_->plate->type_id eq $pick_type }
+        $well->descendants->output_wells( $well );
+
+    my $picked   = scalar @picks;
+    my $accepted = scalar grep { $_->is_accepted } @picks;
+
+    return ( $picked, $accepted );
 }
 
 __PACKAGE__->meta->make_immutable;

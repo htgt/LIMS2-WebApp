@@ -1,7 +1,7 @@
 package LIMS2::Report::FinalVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FinalVectorPlate::VERSION = '0.010';
+    $LIMS2::Report::FinalVectorPlate::VERSION = '0.011';
 }
 ## use critic
 
@@ -26,7 +26,7 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
-        "Cassette", "Backbone", "Recombinases",
+        "Cassette", "Cassette Type", "Backbone", "Recombinases",
         "Intermedate Well", "Intermediate QC Test Result", "Intermediate Valid Primers", "Intermediate Mixed Reads?", "Intermediate Sequencing QC Pass?",
         "Post-intermedate Well", "Post-intermediate QC Test Result", "Post-intermediate Valid Primers", "Post-intermediate Mixed Reads?", "Post-intermediate Sequencing QC Pass?",
         "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
@@ -53,6 +53,7 @@ override iterator => sub {
         return [
             $self->base_data( $well ),
             $well->cassette->name,
+            ( $well->cassette->promoter ? 'promoter' : 'promoterless' ),
             $well->backbone->name,
             join( q{/}, @{ $well->recombinases } ),
             $self->ancestor_cols( $well, 'INT' ),

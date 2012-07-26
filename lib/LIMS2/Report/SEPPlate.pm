@@ -1,7 +1,7 @@
 package LIMS2::Report::SEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SEPPlate::VERSION = '0.010';
+    $LIMS2::Report::SEPPlate::VERSION = '0.011';
 }
 ## use critic
 
@@ -27,7 +27,7 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    return [ $self->base_columns ];
+    return [ $self->base_columns, 'Number Picked', 'Number Accepted' ];
 };
 
 override iterator => sub {
@@ -47,7 +47,9 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
-        return [ $self->base_data( $well ) ];
+        return [
+            $self->base_data( $well ), $self->pick_counts( $well, 'SEP_PICK' )
+        ];
     };
 };
 

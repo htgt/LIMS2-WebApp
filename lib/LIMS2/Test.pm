@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.010';
+    $LIMS2::Test::VERSION = '0.011';
 }
 ## use critic
 
@@ -24,7 +24,9 @@ use YAML::Any;
 use Path::Class;
 use Test::More;
 use Test::WWW::Mechanize::Catalyst;
+use File::Temp;
 use Try::Tiny;
+use LIMS2::Model::Util::PgUserRole qw( db_name );
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
@@ -108,6 +110,12 @@ sub _load_fixtures {
         $fixtures_dir = dir($FindBin::Bin)->subdir('fixtures');
     }
 
+    my $dbname = db_name( $dbh );
+
+    my $admin_role = $dbname . '_admin';
+
+    $dbh->do( "SET ROLE $admin_role" );
+
     for my $fixture ( sort { $a cmp $b } grep { _is_fixture($_) } $fixtures_dir->children ) {
         DEBUG("Loading fixtures from $fixture");
         DBIx::RunSQL->run_sql_file(
@@ -117,6 +125,8 @@ sub _load_fixtures {
             sql             => $fixture
         );
     }
+
+    $dbh->do( "RESET ROLE" );
 
     return;
 }

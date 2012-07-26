@@ -100,6 +100,7 @@ lib/LIMS2/Report.pm
 lib/LIMS2/Report/DNAPlate.pm
 lib/LIMS2/Report/DesignPlate.pm
 lib/LIMS2/Report/EPPlate.pm
+lib/LIMS2/Report/ElectroporationProductionSummary.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/FirstElectroporationProductionDetail.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
@@ -108,6 +109,7 @@ lib/LIMS2/Report/PostIntermediateVectorPlate.pm
 lib/LIMS2/Report/QcRun.pm
 lib/LIMS2/Report/QcRunSummary.pm
 lib/LIMS2/Report/SEPPlate.pm
+lib/LIMS2/Report/SecondElectroporationProductionDetail.pm
 lib/LIMS2/Report/VectorProductionDetail.pm
 lib/LIMS2/Report/VectorProductionSummary.pm
 lib/LIMS2/ReportGenerator.pm
@@ -115,6 +117,7 @@ lib/LIMS2/ReportGenerator/ColonyCounts.pm
 lib/LIMS2/ReportGenerator/Plate.pm
 lib/LIMS2/ReportGenerator/Plate/DoubleTargeted.pm
 lib/LIMS2/ReportGenerator/Plate/SingleTargeted.pm
+lib/LIMS2/ReportGenerator/ProductionDetail.pm
 lib/LIMS2/Test.pm
 lib/LIMS2/WebApp.pm
 lib/LIMS2/WebApp/Controller/API.pm

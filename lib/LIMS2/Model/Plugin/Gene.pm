@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.010';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.011';
 }
 ## use critic
 
@@ -119,7 +119,7 @@ sub _retrieve_solr_gene {
         $genes = $self->solr_query( [ ensembl_gene_id => $search_term ] );
     }
     else {
-        $genes = $self->solr_query( [ marker_symbol => $search_term ] );
+        $genes = $self->solr_query( [ marker_symbol_str => $search_term ] );
     }
 
     if ( @{$genes} == 0 ) {
@@ -127,7 +127,7 @@ sub _retrieve_solr_gene {
     }
 
     if ( @{$genes} > 1 ) {
-        $self->throw( Implemnetation => "Retrieval of gene Mouse/$search_term returned " . @{$genes} . " genes" );
+        $self->throw( Implementation => "Retrieval of gene Mouse/$search_term returned " . @{$genes} . " genes" );
     }
 
     return $self->_normalize_solr_result( shift @{$genes} );

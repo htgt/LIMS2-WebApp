@@ -5,7 +5,6 @@ author:
 build_requires:
   English: 0
   File::Find: 0
-  File::Temp: 0
   HTTP::Request::Common: 0
   Test::More: 0.88
   Test::Most: 0
@@ -55,6 +54,7 @@ requires:
   DateTime::Format::Strptime: 0
   EngSeqBuilder: 0
   Exporter: 0
+  File::Temp: 0
   File::stat: 0
   FindBin: 0
   Getopt::Long: 0
@@ -108,4 +108,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.010
+version: 0.011

@@ -1,3 +1,8 @@
+0.011     2012-07-26 16:06:14 Europe/London
+
+   Implement electroporation detail and summary reports.
+   Bugfix mouse gene retrieval; resolves #8713.
+
 0.010     2012-07-25 13:08:51 Europe/London
 
    Implement support for creation of EP, XEP, SEP, EP_PICK and FP plate types.

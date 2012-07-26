@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPlate::VERSION = '0.010';
+    $LIMS2::Report::EPPlate::VERSION = '0.011';
 }
 ## use critic
 
@@ -15,10 +15,22 @@ with qw( LIMS2::ReportGenerator::ColonyCounts );
 
 # XXX If it turns out EP and XEP plates don't have the same data
 # stored against them (that is, colony counts) then XEP should be
-# removed from here and a new report implemented
+# removed from here and a new report implemented. OK, so I lied. We
+# include (or not) XEP counts depending on the plate type.
 override plate_types => sub {
     return [ 'EP', 'XEP' ];
 };
+
+has wants_xep_count => (
+    is         => 'ro',
+    isa        => 'Bool',
+    init_arg   => undef,
+    lazy_build => 1
+);
+
+sub _build_wants_xep_count {
+    return shift->plate->type_id ne 'XEP';
+}
 
 override _build_name => sub {
     my $self = shift;
@@ -29,11 +41,18 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    return [
+    my @columns = (
         $self->base_columns,
         "Cassette", "Recombinases", "Cell Line",
-        $self->colony_count_column_names
-    ];
+        $self->colony_count_column_names,
+        "Number Picked", "Number Accepted"
+    );
+
+    if ( $self->wants_xep_count ) {
+        push @columns, "Number XEPs";
+    }
+
+    return \@columns;
 };
 
 override iterator => sub {
@@ -61,10 +80,22 @@ override iterator => sub {
             $well->cassette->name,
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,
-            $self->colony_counts( $well )
+            $self->colony_counts( $well ),
+            $self->pick_counts( $well, 'EP_PICK' ),
+            ( $self->wants_xep_count ? $self->xep_count( $well ) : () )
         ];
     };
 };
+
+sub xep_count {
+    my ( $self, $well ) = @_;
+
+    # XXX This assumes the XEPs are direct descendants of $well: we
+    # aren't doing a full traversal.
+    my @xeps = grep { $_->plate->type_id eq 'XEP' } $well->descendants->output_wells( $well );
+
+    return scalar @xeps;
+}
 
 __PACKAGE__->meta->make_immutable;
 
