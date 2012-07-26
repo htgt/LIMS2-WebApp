@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-SET ROLE lims2_test_admin;
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -41,7 +40,6 @@ SELECT pg_catalog.setval('design_oligos_id_seq', 54196, true);
 SELECT pg_catalog.setval('genotyping_primers_id_seq', 115477, true);
 
 
-RESET ROLE;
 
 --
 -- Data for Name: design_comment_categories; Type: TABLE DATA; Schema: public; Owner: lims2_devel_admin
