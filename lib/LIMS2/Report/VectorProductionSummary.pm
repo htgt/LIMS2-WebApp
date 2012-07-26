@@ -49,7 +49,7 @@ override iterator => sub {
         my %h;
         @h{@detail_cols}  = @{$row};
         push @vectors, {
-            created_month => DateTime::Format::ISO8601->parse_datetime( $h{'Final Vector Created'} )->truncate( to => 'month' ),
+            created_month => DateTime::Format::ISO8601->parse_datetime( $h{'Created At'} )->truncate( to => 'month' ),
             gene_id       => $h{'Gene Id'},
             allele_type   => $self->allele_type_for( \%h ),
             accepted      => ( $h{'Accepted?'} eq 'yes' ? 1 : 0 )
@@ -108,7 +108,7 @@ sub is_promoter {
 sub is_second_allele {
     my ( $self, $data ) = @_;
 
-    return $data->{Recombinase} =~ m/\bCre\b/;
+    return $data->{Recombinases} =~ m/\bCre\b/;
 }
 
 sub count_for {
