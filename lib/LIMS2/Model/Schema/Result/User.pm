@@ -372,8 +372,9 @@ Composing rels: L</user_roles> -> role
 
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dy4YcDCFEBlkk+2cBTtKyw
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-26 12:05:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xUPA71nvcLSjf8ZremRI1g
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
