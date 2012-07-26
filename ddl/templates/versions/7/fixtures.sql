@@ -34,3 +34,5 @@ VALUES ('blue_colonies'),
        ('picked_colonies'),
        ('total_colonies'),
        ('remaining_unstained_colonies'); 
+
+INSERT INTO schema_versions(version) VALUES (7);
