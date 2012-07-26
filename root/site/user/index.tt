@@ -52,6 +52,11 @@
       Second Allele Electroporation Detail
     </a>
   </li>
+  <li>
+    <a href="[% c.uri_for( '/user/report/async/ElectroporationProductionSummary' ) %]">
+      Electroporation Production Summary
+    </a>
+  </li>
 </ul>
 
 

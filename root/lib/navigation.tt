@@ -51,7 +51,12 @@
               <a href="[% c.uri_for( '/user/report/async/SecondElectroporationProductionDetail' ) %]">
                 Second Allele Electroporation Detail
               </a>
-            </li>           
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/async/ElectroporationProductionSummary' ) %]">
+                Electroporation Production Summary
+              </a>
+            </li>
           </ul>
         </li>
         <li[% IF template.tab_name == "QC" %] class="active"[% END %]>
