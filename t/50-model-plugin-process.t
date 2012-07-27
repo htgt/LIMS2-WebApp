@@ -279,4 +279,65 @@ throws_ok {
     my $process = model->create_process( $dna_prep_process_data->{invalid_input_well} );
 } qr/dna_prep process input well should be type FINAL/;
 
+note( "Testing first_electroporation process creation" );
+my $first_electroporation_data= test_data( 'first_electroporation.yaml' );
+
+{
+    ok my $process = model->create_process( $first_electroporation_data->{valid_input} ),
+        'create_process for type first_electroporation should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'first_electroporation',
+        'process is of correct type';
+
+    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 1, 'only one input well';
+    my $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'input well has correct name';
+    is $input_well->plate->name, 'MOHSAQ0001_A_2', '..and is on correct plate';
+
+    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    my $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'FEP0006', '..and is on correct plate';
+
+    ok my $process_cell_line = $process->process_cell_line, 'process has process_cell_line';
+    is $process_cell_line->cell_line, 'foo cell line', 'is correct cell line';
+}
+
+note( "Testing second_electroporation process creation" );
+my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
+
+{
+    ok my $process = model->create_process( $second_electroporation_data->{valid_input} ),
+        'create_process for type second_electroporation should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'second_electroporation',
+        'process is of correct type';
+
+    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 2, 'has two input wells';
+    my $first_input_well = $input_wells->next;
+    is $first_input_well->name, 'A01', 'input well has correct name';
+    like $first_input_well->plate->name, qr/MOH(S|F)AQ0001_A_2/, '..and is on correct plate';
+    my $second_input_well = $input_wells->next;
+    is $second_input_well->name, 'A01', 'input well has correct name';
+    like $second_input_well->plate->name, qr/MOH(S|F)AQ0001_A_2/, '..and is on correct plate';
+
+    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    my $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'SEP0006', '..and is on correct plate';
+
+}
+
+## Not currently testing the processes listed below, they have no auxillary process data so all
+## we would be testing is the input well checks, find some way to test this seperately?
+## freeze
+## clone_pool
+## clone_pick
+##
+## can also test dna_prep and rearray process like this
+
 done_testing();
