@@ -16,6 +16,12 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Exception::System;
 use LIMS2::Exception::Validation;
 
+sub cached_report {
+    my %args = @_;
+
+    
+}
+
 sub generator_for {
     my ( $report, $model, $params ) = @_;
 
