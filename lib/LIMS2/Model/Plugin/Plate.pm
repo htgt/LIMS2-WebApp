@@ -92,6 +92,9 @@ sub create_plate {
     my $plate = $self->schema->resultset('Plate')->create(
         { slice_def( $validated_params, qw( name species_id type_id description created_by_id created_at ) ) }
     );
+    # refresh object data from database, sets created_by value
+    # if it was set by database
+    $plate->discard_changes;
 
     for my $c ( @{ $validated_params->{comments} || [] } ) {
         my $validated_c = $self->check_params( $c, $self->pspec_create_plate_comment );
@@ -99,8 +102,9 @@ sub create_plate {
                 { slice_def( $validated_c, qw( comment_text created_by_id created_at ) ) } );
     }
 
-    $self->create_plate_wells( $validated_params->{wells}, $plate )
-        if exists $validated_params->{wells} and @{ $validated_params->{wells} };
+    if ( exists $validated_params->{wells} ) {
+        $self->create_plate_well( $_, $plate ) for @{ $validated_params->{wells} };
+    }
 
     return $plate;
 }
@@ -139,9 +143,7 @@ sub delete_plate {
 }
 
 sub pspec_set_plate_assay_complete {
-    my $self = shift;
-    return +{
-        %{ $self->pspec_retrieve_plate },
+    return {
         completed_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
     };
 }
@@ -149,9 +151,9 @@ sub pspec_set_plate_assay_complete {
 sub set_plate_assay_complete {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_assay_complete );
+    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_assay_complete, ignore_unknown => 1 );
 
-    my $plate = $self->retrieve_plate( $validated_params );
+    my $plate = $self->retrieve_plate( $params );
 
     for my $well ( $plate->wells ) {
         $self->set_well_assay_complete(
@@ -165,49 +167,75 @@ sub set_plate_assay_complete {
     return $plate;
 }
 
-sub create_plate_wells {
-    my ( $self, $wells, $plate ) = @_;
+sub pspec_create_plate_well {
+    return {
+        well_name    => { validate => 'well_name' },
+        process_type => { validate => 'existing_process_type' },
+    };
+}
 
-    for my $well_data ( @{ $wells } ) {
-        my $parent_well_ids = $self->find_parent_well_ids( $well_data );
+# input will be in the format a user trying to create a plate will use
+# we need to convert this into a format expected by create_well
+sub create_plate_well {
+    my ( $self, $params, $plate ) = @_;
 
-        my %well_params = (
-            plate_name => $plate->name,
-            well_name  => delete $well_data->{well_name},
-            created_by => $plate->created_by->name,
-            created_at => $plate->created_at->iso8601,
-        );
-        my $process_type = delete $well_data->{process_type};
+    my $validated_params = $self->check_params( $params, $self->pspec_create_plate_well, ignore_unknown => 1 );
 
-        $well_params{process_data}              = $well_data;
-        $well_params{process_data}{type}        = $process_type;
-        $well_params{process_data}{input_wells} = [ map{ { id => $_ } } @{ $parent_well_ids } ];
+    my $parent_well_ids = $self->find_parent_well_ids( $params );
 
-        $self->create_well( \%well_params, $plate );
-    }
+    my %well_params = (
+        plate_name => $plate->name,
+        well_name  => $validated_params->{well_name},
+        created_by => $plate->created_by->name,
+        created_at => $plate->created_at->iso8601,
+    );
 
-    return;
+    # the remaining params are specific to the process
+    delete @{$params} {qw( well_name process_type )};
+
+    $well_params{process_data}              = $params;
+    $well_params{process_data}{type}        = $validated_params->{process_type};
+    $well_params{process_data}{input_wells} = [ map{ { id => $_ } } @{ $parent_well_ids } ];
+
+    $self->create_well( \%well_params, $plate );
+}
+
+sub pspec_find_parent_well_ids {
+    return {
+        parent_plate => { validate => 'plate_name', optional => 1 },
+        parent_well  => { validate => 'well_name', optional => 1 },
+        allele_plate => { validate => 'plate_name', optional => 1 },
+        allele_well  => { validate => 'well_name', optional => 1 },
+        vector_plate => { validate => 'plate_name', optional => 1 },
+        vector_well  => { validate => 'well_name', optional => 1 },
+        DEPENDENCY_GROUPS => { parent => [qw( parent_plate parent_well )] },
+        DEPENDENCY_GROUPS => { vector => [qw( vector_plate vector_well )] },
+        DEPENDENCY_GROUPS => { allele => [qw( allele_plate allele_well )] },
+    };
 }
 
 sub find_parent_well_ids {
-    my ( $self, $well_data, $plate_type ) = @_;
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_find_parent_well_ids, ignore_unknown => 1 );
+
     my @parent_well_ids;
 
-    if ( $well_data->{process_type} eq 'second_electroporation' ) {
+    if ( $params->{process_type} eq 'second_electroporation' ) {
         push @parent_well_ids,
-            $self->get_well_id( $well_data->{allele_plate}, $well_data->{allele_well} );
+            $self->get_well_id( $validated_params->{allele_plate}, $validated_params->{allele_well} );
 
         push @parent_well_ids,
-            $self->get_well_id( $well_data->{vector_plate}, $well_data->{vector_well} );
+            $self->get_well_id( $validated_params->{vector_plate}, $validated_params->{vector_well} );
 
-        delete @{$well_data}
+        delete @{$params}
             {qw( allele_plate vector_plate allele_well vector_well )};
     }
     else {
         push @parent_well_ids,
-            $self->get_well_id( $well_data->{parent_plate}, $well_data->{parent_well} );
+            $self->get_well_id( $validated_params->{parent_plate}, $validated_params->{parent_well} );
 
-        delete @{$well_data}{qw( parent_plate parent_well )};
+        delete @{$params}{qw( parent_plate parent_well )};
     }
 
     return \@parent_well_ids;
