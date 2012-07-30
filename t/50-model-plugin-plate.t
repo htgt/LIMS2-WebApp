@@ -40,7 +40,7 @@ note( "Testing plate retrieve" );
     ok my $plate = model->retrieve_plate( $plate_data->{plate_retrieve} ),
         'retrieve_plate by name should succeed';
     isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
-    is $plate->name, 'PCS100', 'retrieved correct plate';
+    is $plate->name, 'PCS00075_A', 'retrieved correct plate';
 }
 
 done_testing();

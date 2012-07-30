@@ -3,33 +3,33 @@ valid_input:
     type: 2w_gateway
     cassette: L1L2_Bact_P
     output_wells:
-        - plate_name: PGS100
+        - plate_name: MOHSAS0001_A
           well_name: A01
     input_wells: 
-        - plate_name: PCS100
-          well_name: A01
+        - plate_name: PCS00177_A
+          well_name: G02
     recombinase:
         - Cre
 require_cassette_or_backbone:
     type: 2w_gateway
     output_wells:
-        - plate_name: PGS100
+        - plate_name: MOHSAS0001_A
           well_name: A01
     input_wells: 
-        - plate_name: PCS100
-          well_name: A01
+        - plate_name: PCS00177_A
+          well_name: G02
 missing_input_well:
     type: 2w_gateway
     cassette: L1L2_Bact_P
     output_wells:
-        - plate_name: PCS100
+        - plate_name: MOHSAS0001_A
           well_name: A01
 invalid_input_well:
     type: 2w_gateway
     cassette: L1L2_Bact_P
     output_wells:
-        - plate_name: PCS100
+        - plate_name: MOHSAS0001_A
           well_name: A01
     input_wells: 
         - plate_name: 100
-          well_name: A01
+          well_name: F06
