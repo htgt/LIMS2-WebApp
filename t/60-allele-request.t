@@ -13,19 +13,19 @@ const my @TEST_DATA => (
         allele_request => {
             gene_id                         => 'MGI:1914632',
             targeting_type                  => 'double_targeted',
-            first_allele_mutation_type      => 'ko first',
-            first_allele_cassette_function  => 'ko first',
-            second_allele_mutation_type     => 'ko first',
-            second_allele_cassette_function => 'reporter only'
+            first_allele_mutation_type      => 'ko_first',
+            first_allele_cassette_function  => 'ko_first',
+            second_allele_mutation_type     => 'ko_first',
+            second_allele_cassette_function => 'reporter_only'
         },
-        first_allele_designs       => [ 34188 ],
-        first_allele_design_wells  => [ '56_G04' ],
-        second_allele_designs      => [ 34188 ],
-        second_allele_design_wells => [ '56_G04' ],
-        first_allele_vectors       => [ 'MOHFAS0001_A_H02' ],
-        second_allele_vectors      => [ 'MOHSAS0001_A_H02' ],
-        first_electorporations     => [ 'FEP0006_A01' ],
-        second_electroporations    => [ 'SEP0006_C01' ]
+        first_allele_designs         => [ 34188 ],
+        first_allele_design_wells    => [ '56_G04' ],
+        second_allele_designs        => [ 34188 ],
+        second_allele_design_wells   => [ '56_G04' ],
+        first_allele_vector_wells    => [ 'MOHFAS0001_A_H02' ],
+        second_allele_vector_wells   => [ 'MOHSAS0001_A_H02' ],
+        first_electroporation_wells  => [ 'FEP0006_A01' ],
+        second_electroporation_wells => [ 'SEP0006_C01' ]
     }
 );
 
@@ -52,8 +52,8 @@ sub run_allele_request_test {
     for my $method (
         qw( first_allele_designs second_allele_designs
             first_allele_design_wells second_allele_design_wells
-            first_allele_vectors second_allele_vectors
-            first_electroporations second_electroporations
+            first_allele_vector_wells second_allele_vector_wells
+            first_electroporation_wells second_electroporation_wells
       ) ) {
         check_lives_and_cmp_bag( $ar, $test_data, $method );
     }

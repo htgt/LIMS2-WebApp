@@ -38,7 +38,7 @@ sub _build_second_allele_designs {
 
 has [
     qw( first_allele_design_wells second_allele_design_wells
-        first_allele_final_vector_wells second_allele_final_vector_wells
+        first_allele_vector_wells second_allele_vector_wells
   )
 ] => (
     is         => 'ro',
@@ -49,17 +49,22 @@ has [
 
 sub _build_first_allele_design_wells {
     my $self = shift;
-    [ map { $self->design_wells($_) } @{$self->first_allele_designs} ];
+    return [ map { $self->design_wells($_) } @{$self->first_allele_designs} ];
 }
 
 sub _build_second_allele_design_wells {
     my $self = shift;
-    [ map { $self->design_wells($_) } @{$self->second_allele_designs} ];
+    return [ map { $self->design_wells($_) } @{$self->second_allele_designs} ];
 }
 
-sub _build_first_allele_final_vector_wells {
+sub _build_first_allele_vector_wells {
     my $self = shift;
-    
+    return [ $self->final_vector_wells( $self->first_allele_design_wells, $self->first_allele_cassette_function ) ];
+}
+
+sub _build_second_allele_vector_wells {
+    my $self = shift;
+    return [ $self->final_vector_wells( $self->second_allele_design_wells, $self->second_allele_cassette_function ) ];
 }
 
 __PACKAGE__->meta->make_immutable;
