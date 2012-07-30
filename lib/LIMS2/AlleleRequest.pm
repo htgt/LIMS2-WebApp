@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Moose;
 use MooseX::ClassAttribute;
 use List::MoreUtils qw( any );
+use LIMS2::CassetteFunction qw( satisfies_cassette_function );
 use namespace::autoclean;
 
 class_has handled_targeting_types => (
@@ -70,7 +71,7 @@ sub final_vector_wells {
         my $it = $design_well->descendants->depth_first_traversal($design_well, 'out');
         while ( my $well = $it->next ) {
             push @final_vector_wells, $well
-                if $well->plate->type_id eq 'FINAL' && $self->satisfies_cassette_function( $cassette_function, $well );
+                if $well->plate->type_id eq 'FINAL' && satisfies_cassette_function( $cassette_function, $well );
         }        
     }
 
@@ -92,20 +93,6 @@ sub electroporation_wells {
     return @electroporation_wells;
 }
 
-## no critic(RequireFinalReturn)
-sub satisfies_cassette_function {
-    my ( $self, $function, $well ) = @_;
-
-    if ( $function eq 'ko_first' ) {
-        return $well->cassette->conditional && ! @{$well->recombinases};
-    }
-    elsif ( $function eq 'reporter_only' ) {
-        return $well->cassette->conditional && any { $_ eq 'Cre' } @{$well->recombinases};
-    }
-
-    LIMS2::Exception::Implementation->throw( "Unrecognized cassette function: $function" );
-}
-## use critic
 
 # Input:
 #
