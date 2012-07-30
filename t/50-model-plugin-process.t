@@ -24,16 +24,16 @@ my $create_di_process_data= test_data( 'create_di_process.yaml' );
         'process is of correct type';
 
     ok my $process_design = $process->process_design, 'process has a process_design';
-    is $process_design->design_id, 1, 'process_design has correct design_id';
+    is $process_design->design_id, 95120, 'process_design has correct design_id';
     ok my $process_bacs = $process->process_bacs, 'process has process_bacs';
     is $process_bacs->count, 1, 'only has one bac';
     ok my $bac_clone = $process_bacs->next->bac_clone, 'can retrieve bac clone from process';
-    is $bac_clone->name, 'CT7-156D8', '.. and has correct bac_clone';
+    is $bac_clone->name, 'RP24-135L5', '.. and has correct bac_clone';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'F06', 'output well has correct name';
     is $output_well->plate->name, '100', '..and is on correct plate';
 }
 
@@ -64,14 +64,14 @@ my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
-    is $input_well->name, 'A01', 'input well has correct name';
+    is $input_well->name, 'F06', 'input well has correct name';
     is $input_well->plate->name, '100', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PCS100', '..and is on correct plate';
+    is $output_well->name, 'G02', 'output well has correct name';
+    is $output_well->plate->name, 'PCS00177_A', '..and is on correct plate';
 }
 
 throws_ok {
@@ -80,7 +80,7 @@ throws_ok {
 
 throws_ok {
     my $process = model->create_process( $int_recom_process_data->{invalid_input_well} );
-} qr/int_recom process input well should be type DESIGN \(got POSTINT\)/;
+} qr/int_recom process input well should be type DESIGN \(got EP\)/;
 
 
 note( "Testing 2w_gateway process creation" );
@@ -99,14 +99,14 @@ my $process_data_2w_gateway= test_data( '2w_gateway_process.yaml' );
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
-    is $input_well->name, 'A01', 'input well has correct name';
-    is $input_well->plate->name, 'PCS100', '..and is on correct plate';
+    is $input_well->name, 'G02', 'input well has correct name';
+    is $input_well->plate->name, 'PCS00177_A', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PGS100', '..and is on correct plate';
+    is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
     is $process_recombinases->count, 1, 'has 1 recombinase';
@@ -144,14 +144,14 @@ my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
-    is $input_well->name, 'A01', 'input well has correct name';
-    is $input_well->plate->name, 'PCS100', '..and is on correct plate';
+    is $input_well->name, 'G02', 'input well has correct name';
+    is $input_well->plate->name, 'PCS00177_A', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PGS100', '..and is on correct plate';
+    is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
     is $process_recombinases->count, 1, 'has 1 recombinase';
@@ -184,14 +184,14 @@ my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
-    is $input_well->name, 'A01', 'input well has correct name';
+    is $input_well->name, 'F06', 'input well has correct name';
     is $input_well->plate->name, '100', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PCS100', '..and is on correct plate';
+    is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 }
 
 throws_ok {
@@ -211,14 +211,14 @@ my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
-    is $input_well->name, 'A01', 'input well has correct name';
-    is $input_well->plate->name, 'PCS100', '..and is on correct plate';
+    is $input_well->name, 'G02', 'input well has correct name';
+    is $input_well->plate->name, 'PCS00177_A', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PGS100', '..and is on correct plate';
+    is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
     is $process_recombinases->count, 1, 'has 1 recombinase';
@@ -239,13 +239,13 @@ my $rearray_process_data= test_data( 'rearray_process.yaml' );
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
     is $input_well->name, 'A01', 'input well has correct name';
-    is $input_well->plate->name, 'PCS100', '..and is on correct plate';
+    is $input_well->plate->name, 'MOHFAS0001_A', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PCS200', '..and is on correct plate';
+    is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 }
 
 throws_ok {
@@ -266,13 +266,13 @@ my $dna_prep_process_data= test_data( 'dna_prep_process.yaml' );
     is $input_wells->count, 1, 'only one input well';
     my $input_well = $input_wells->next;
     is $input_well->name, 'A01', 'input well has correct name';
-    is $input_well->plate->name, 'FINAL100', '..and is on correct plate';
+    is $input_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'PGS100', '..and is on correct plate';
+    is $output_well->plate->name, 'MOHSAQ0001_A_2', '..and is on correct plate';
 }
 
 throws_ok {

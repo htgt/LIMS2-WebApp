@@ -2,20 +2,20 @@
 valid_input:
     type: cre_bac_recom
     output_wells:
-        - plate_name: PCS100
+        - plate_name: MOHSAS0001_A
           well_name: A01
     input_wells: 
         - plate_name: 100
-          well_name: A01
+          well_name: F06
     cassette: pR6K_R1R2_ZP
     backbone: R3R4_pBR_amp
 invalid_input_well:
     type: cre_bac_recom
     output_wells:
-        - plate_name: PGS100
+        - plate_name: MOHSAS0001_A
           well_name: A01
     input_wells:
-        - plate_name: PCS100
-          well_name: A01
+        - plate_name: PCS00177_A
+          well_name: G02
     cassette: pR6K_R1R2_ZP
     backbone: R3R4_pBR_amp
