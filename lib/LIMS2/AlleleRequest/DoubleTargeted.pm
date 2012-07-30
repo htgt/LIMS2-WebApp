@@ -75,7 +75,15 @@ sub _build_first_electroporation_wells {
 
 sub _build_second_electroporation_wells {
     my $self = shift;
-    return [ $self->electroporation_wells( $self->second_allele_vector_wells, 'SEP' ) ];
+
+    # The SEP wells we are interested in are in the intersection of
+    # first allele descendants and second allele descendants
+    
+    my %is_first = map { $_->id => 1 } $self->electroporation_wells( $self->first_allele_vector_wells, 'SEP' );
+
+    my @intersection = grep { $is_first{ $_->id } } $self->electroporation_wells( $self->second_allele_vector_wells, 'SEP' );
+
+    return \@intersection;
 }
 
 __PACKAGE__->meta->make_immutable;
