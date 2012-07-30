@@ -9,6 +9,6 @@ plate_create:
         - comment_text: this is a awesome test comment
           created_by: test_user@example.org
 plate_retrieve:
-    name: PCS100
+    name: PCS00075_A 
 
 
