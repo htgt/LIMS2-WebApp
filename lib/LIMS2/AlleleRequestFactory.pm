@@ -27,7 +27,9 @@ sub plugins {
 
 ## no critic(RequireFinalReturn)
 sub allele_request {
-    my ( $self, %params ) = @_;
+    my $self = shift;
+
+    my %params = @_ == 1 ? %{$_[0]} : @_;
 
     my $targeting_type = delete $params{targeting_type}
         or LIMS2::Exception::Implementation->throw( "allele_request() requires targeting_type" );
