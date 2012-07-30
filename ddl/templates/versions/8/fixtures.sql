@@ -9,19 +9,21 @@ VALUES ('Core', 'Homozygous - Core'),
        ('Cre BAC', 'EUCOMMTools-Cre BAC'),
        ('Human','Homozygous - Human');
 
-INSERT INTO mutation_type(mutation_type)
+INSERT INTO mutation_types(mutation_type)
 VALUES ('conditional'),
        ('deletion'),
        ('insertion');
 
-INSERT INTO targeting_type(targeting_type)
+INSERT INTO targeting_types(targeting_type)
 VALUES ('single_targeting'),
        ('double_targeting'),
        ('modified_bac_insertion');
 
-INSERT INTO final_cassette_function(final_cassette_function)
+INSERT INTO cassette_functions(final_cassette_function)
 VALUES ('knockout_first'),
        ('reporter_only'),
        ('conditional_only'),
        ('cre_expressor'),
        ('promoterless_cre_expressor');
+
+[% FOR cassette IN        
