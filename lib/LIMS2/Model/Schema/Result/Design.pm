@@ -296,6 +296,12 @@ sub as_hash {
     return \%h;
 }
 
+use overload '""' => \&as_string;
+
+sub as_string {
+    return shift->id;
+}
+
 sub _sort_oligos {
     my $self = shift;
 
