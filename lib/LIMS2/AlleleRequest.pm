@@ -77,6 +77,21 @@ sub final_vector_wells {
     return @final_vector_wells;
 }
 
+sub electroporation_wells {
+    my ( $self, $vector_wells, $plate_type ) = @_;
+
+    my @electroporation_wells;
+    for my $vector_well( @{$vector_wells} ) {
+        my $it = $vector_well->descendants->depth_first_traversal($vector_well, 'out');
+        while ( my $well = $it->next ) {
+            push @electroporation_wells, $well
+                if $well->plate->type_id eq $plate_type;
+        }
+    }
+
+    return @electroporation_wells;
+}
+
 ## no critic(RequireFinalReturn)
 sub satisfies_cassette_function {
     my ( $self, $function, $well ) = @_;
