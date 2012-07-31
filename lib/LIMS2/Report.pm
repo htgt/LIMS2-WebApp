@@ -41,8 +41,11 @@ sub cached_report {
     my $lock_file = $args{output_dir}->file('lims2.cache.lock');
     my $lock_fh = $lock_file->open( O_RDWR|O_CREAT, oct(644) )
         or LIMS2::Exception::System->throw( "open $lock_file failed: $!" );
+    local $SIG{ALRM} = sub { LIMS2::Exception::System->throw( "Timeout waiting for lock on $lock_file" ) };
+    alarm(10);
     flock( $lock_fh, LOCK_EX )
         or LIMS2::Exception::System->throw( "flock $lock_file failed: $!" );
+    alarm(0);
 
     if ( my $in_cache = $generator->cached_report ) {
         if ( _cached_report_ok( $args{output_dir}, $in_cache ) ) {
