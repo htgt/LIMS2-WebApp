@@ -14,8 +14,8 @@ class_has '+handled_targeting_types' => (
 );
 
 has [ qw( first_allele_mutation_type first_allele_cassette_function second_allele_mutation_type second_allele_cassette_function ) ] => (
-    is => 'ro',
-    isa => 'Str',
+    is       => 'ro',
+    isa      => 'Str',
     required => 1
 );
 
