@@ -93,25 +93,6 @@ sub electroporation_wells {
     return @electroporation_wells;
 }
 
-
-# Input:
-#
-# gene_id: Snf8 ( MGI:1343161 )
-# targeting type: double targeting
-# first allele Mutation type: ko first
-# first allele cassette function: ko first
-# second allele mutation type: conditional
-# second allele cassette function: reporter only (conditional + cre)
-
-# Output:
-#
-# Designs
-# Design wells
-# Final vector wells for 1st allele
-# Final vector wells for 2nd allele
-# First EP
-# Second EP
-
 __PACKAGE__->meta->make_immutable;
 
 1;
