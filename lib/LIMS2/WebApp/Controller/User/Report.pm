@@ -27,46 +27,16 @@ Catalyst Controller.
 
 =cut
 
-=head1 GET /user/report/cache/sync/$REPORT
-
-Retrieve a cached report. Generate the report synchronously if there is no vaild copy in the cache.
-
-=cut
-
-sub cached_sync_report :Path( '/user/report/cache/sync' ) :Args(1) {
-    my ( $self, $c, $report ) = @_;
-
-    $self->assert_user_roles( 'read' );
-
-    my $params = $c->request->params;
-    $params->{species} ||= $c->session->{selected_species};
-
-    my $report_id = LIMS2::Report::cached_report(
-        model      => $c->model( 'Golgi' ),
-        report     => $report,
-        params     => $params,
-        output_dir => $self->report_dir,
-        async      => 0
-    );
-
-    if ( not defined $report_id ) {
-        $c->flash( error_msg => 'Failed to generate report' );
-        return $c->response->redirect( $c->uri_for( '/' ) );
-    }
-
-    return $c->forward( 'view_report', [ $report_id ] );
-}
-
-=head1 GET /user/report/cache/async/$REPORT
+=head1 GET /user/report/cache/$REPORT
 
 Retrieve a cached report. Generate the report asynchronously if there is no vaild copy in the cache.
 
 =cut
 
-sub cached_async_report :Path( '/user/report/cache/async' ) :Args(1) {
+sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
 
-    $self->assert_user_roles( 'read' );
+    $c->assert_user_roles( 'read' );
 
     my $params = $c->request->params;
     $params->{species} ||= $c->session->{selected_species};
@@ -75,8 +45,7 @@ sub cached_async_report :Path( '/user/report/cache/async' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        output_dir => $self->report_dir,
-        async      => 1
+        output_dir => $self->report_dir
     );
 
     $c->stash(

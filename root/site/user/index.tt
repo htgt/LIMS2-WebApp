@@ -33,27 +33,27 @@
     </a>
   </li>
   <li>
-    <a href="[% c.uri_for( '/user/report/async/VectorProductionSummary' ) %]">
+    <a href="[% c.uri_for( '/user/report/cache/VectorProductionSummary' ) %]">
       Vector Production Summary
     </a>
   </li>
   <li>
-    <a href="[% c.uri_for( '/user/report/async/VectorProductionDetail' ) %]">
+    <a href="[% c.uri_for( '/user/report/cache/VectorProductionDetail' ) %]">
       Vector Production Detail
     </a>
   </li>
   <li>
-    <a href="[% c.uri_for( '/user/report/async/FirstElectroporationProductionDetail' ) %]">
+    <a href="[% c.uri_for( '/user/report/cache/FirstElectroporationProductionDetail' ) %]">
       First Allele Electroporation Detail
     </a>
   </li>
   <li>
-    <a href="[% c.uri_for( '/user/report/async/SecondElectroporationProductionDetail' ) %]">
+    <a href="[% c.uri_for( '/user/report/cache/SecondElectroporationProductionDetail' ) %]">
       Second Allele Electroporation Detail
     </a>
   </li>
   <li>
-    <a href="[% c.uri_for( '/user/report/async/ElectroporationProductionSummary' ) %]">
+    <a href="[% c.uri_for( '/user/report/cache/ElectroporationProductionSummary' ) %]">
       Electroporation Production Summary
     </a>
   </li>

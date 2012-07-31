@@ -18,6 +18,10 @@ has qc_run => (
     lazy_build => 1,
 );
 
+has '+param_names' => (
+    default => sub { [ 'qc_run_id' ] }
+);
+
 sub _build_qc_run {
     my $self = shift;
 

@@ -51,6 +51,10 @@ has plate => (
     }
 );
 
+has '+param_names' => (
+    default => sub { [ 'plate_name' ] }
+);
+
 sub plate_types {
     confess( "plate_types() must be implemented by a subclass" );
 }
