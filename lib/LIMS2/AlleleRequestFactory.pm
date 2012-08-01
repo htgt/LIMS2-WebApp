@@ -14,7 +14,7 @@ has model => (
     required => 1
 );
 
-has species => ( 
+has species => (
     is       => 'ro',
     isa      => 'Str',
     required => 1

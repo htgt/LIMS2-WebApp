@@ -27,7 +27,7 @@ has model => (
     required => 1
 );
 
-has [ qw( species gene_id ) ] => ( 
+has [ qw( species gene_id ) ] => (
     is => 'ro',
     isa => 'Str',
     required => 1
@@ -52,8 +52,11 @@ sub design_types_for {
     if ( $mutation_type eq 'ko_first' ) {
         return [ 'conditional', 'artificial-intron', 'intron-replacement' ];
     }
+    if ( $mutation_type eq 'deletion' or $mutation_type eq 'insertion' ){
+        return $mutation_type;
+    }
 
-    $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );    
+    $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );
 }
 ## use critic
 
@@ -66,13 +69,13 @@ sub final_vector_wells {
     my ( $self, $design_wells, $cassette_function ) = @_;
 
     my @final_vector_wells;
-    
+
     for my $design_well ( @{$design_wells} ) {
         my $it = $design_well->descendants->depth_first_traversal($design_well, 'out');
         while ( my $well = $it->next ) {
             push @final_vector_wells, $well
                 if $well->plate->type_id eq 'FINAL' && satisfies_cassette_function( $cassette_function, $well );
-        }        
+        }
     }
 
     return @final_vector_wells;

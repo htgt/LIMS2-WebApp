@@ -10,7 +10,8 @@ use Sub::Exporter -setup => {
 use LIMS2::Exception::Implementation;
 use List::MoreUtils qw( any all );
 
-use constant CASSETTE_FUNCTION_CHECKS => {
+use Readonly;
+Readonly my $CASSETTE_FUNCTION_CHECKS => {
     ko_first                   => [ \&has_conditional_cassette, \&has_no_recombinase ],
     ko_first_promoter          => [ \&has_conditional_cassette, \&has_promoter_cassette, \&has_no_recombinase ],
     ko_first_promoterless      => [ \&has_conditional_cassette, \&has_promoterless_cassette, \&has_no_recombinase ],
@@ -22,7 +23,7 @@ use constant CASSETTE_FUNCTION_CHECKS => {
 sub satisfies_cassette_function {
     my ( $function, $well ) = @_;
 
-    my $checks = CASSETTE_FUNCTION_CHECKS->{$function}
+    my $checks = $CASSETTE_FUNCTION_CHECKS->{$function}
         or LIMS2::Exception::Implementation->throw( "Unrecognized cassette function '$function'" );
 
     return all { $_->($well) } @{$checks};

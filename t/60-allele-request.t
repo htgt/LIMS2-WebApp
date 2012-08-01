@@ -172,7 +172,7 @@ const my @TEST_DATA => (
         first_electroporation_wells  => [],
         second_electroporation_wells => []
     },
-    # Final vector wells but no electroporation wells
+    # Final vector wells for first allele but not second electroporation wells
     {
         allele_request => {
             gene_id                         => 'MGI:94912',
@@ -182,12 +182,12 @@ const my @TEST_DATA => (
             second_allele_mutation_type     => 'ko_first',
             second_allele_cassette_function => 'reporter_only_promoter'
         },
-        first_allele_designs         => [ 116636 ],
+        first_allele_designs         => [ 170606 ],
         first_allele_design_wells    => [ '148_F02' ],
-        second_allele_designs        => [ 116636 ],
+        second_allele_designs        => [ 170606 ],
         second_allele_design_wells   => [ '148_F02' ],
-        first_allele_vector_wells    => [ 'MOHFAQ0001_A_1_D04' ],
-        second_allele_vector_wells   => [ 'MOHSAQ0001_A_1_D04' ],
+        first_allele_vector_wells    => [ 'MOHFAS0001_A_D04' ],
+        second_allele_vector_wells   => [],
         first_electroporation_wells  => [],
         second_electroporation_wells => []
     },
