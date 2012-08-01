@@ -22,7 +22,7 @@ model->txn_do(
         can_ok $model, 'disable_user';
 
         ok $model->disable_user( { name => $u1->name } );
-        
+
         can_ok $model, 'enable_user';
 
         ok $model->enable_user( { name => $u1->name } );
