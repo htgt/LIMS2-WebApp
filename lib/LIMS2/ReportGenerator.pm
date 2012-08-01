@@ -74,8 +74,7 @@ sub cached_report {
             expires      => { '>' => \'current_timestamp' }
         },
         {
-            order_by => { -desc => 'expires' },
-            limit    => 1
+            order_by => { -desc => 'expires' }
         }
     );
 
