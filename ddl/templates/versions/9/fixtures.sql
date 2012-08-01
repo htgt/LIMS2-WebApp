@@ -1,5 +1,5 @@
 INSERT INTO schema_versions(version)
-VALUES (8);
+VALUES (9);
 
 UPDATE cassettes SET conditional = TRUE
 WHERE name IN (
