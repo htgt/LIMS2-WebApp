@@ -12,16 +12,16 @@ use Test::Most;
     can_ok $design, 'as_hash';
     ok my $h1 = $design->as_hash(), 'as hash, with relations';
     isa_ok $h1, ref {};
-    ok $h1->{genotyping_primers}, '...has genotyping primers';    
+    ok $h1->{genotyping_primers}, '...has genotyping primers';
     ok my $h2 = $design->as_hash(1), 'as_hash, suppress relations';
-    ok !$h2->{genotyping_primers}, '...no genotyping primers'; 
+    ok !$h2->{genotyping_primers}, '...no genotyping primers';
 }
 
 {
     ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912' } ), 'list assigned designs by MGI accession';
     isa_ok $designs, ref [];
     ok @{$designs} > 0, '...the list is not empty';
-    isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};    
+    isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
 }
 
 {
@@ -29,7 +29,7 @@ use Test::Most;
         'list assigned designs by MGI accession and design type conditional';
     isa_ok $designs, ref [];
     ok @{$designs} > 0, '...the list is not empty';
-    isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};    
+    isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
 }
 
 {

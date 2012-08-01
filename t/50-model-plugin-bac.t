@@ -34,7 +34,7 @@ my %bac2_data = (
             chr_start => 194454015,
             chr_name  => '1'
         }
-    ]        
+    ]
 );
 
 ok my $bac2 = $model->create_bac_clone( \%bac2_data ),

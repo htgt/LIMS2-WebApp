@@ -29,9 +29,6 @@ note( "Testing plate creation" );
     ok my $retrieve_plate = model->retrieve_plate( { id => $plate->id } ),
         'retrieve_plate by id should succeed';
     is $plate->id, $retrieve_plate->id, 'has correct id';
-
-    ok $plate_comments->delete, 'can delete plate comments';
-    ok $plate->delete, 'can delete plate';
 }
 
 note( "Testing plate retrieve" );
@@ -42,5 +39,63 @@ note( "Testing plate retrieve" );
     isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
     is $plate->name, 'PCS00075_A', 'retrieved correct plate';
 }
+
+note( "Testing plate create with wells" );
+
+{
+    ok my $plate = model->create_plate( $plate_data->{plate_create_wells} ),
+        'create_plate should succeed';
+    isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
+
+    ok my $wells = $plate->wells, 'can retrieve plate wells';
+    ok my $well = $wells->find( { name => 'A01' } ), '..retrieve well A01';
+    ok my $process = $well->output_processes->first, '..can get output process';
+    is $process->type_id, 'first_electroporation', 'process is correct type';
+    ok my $input_well = $process->process_input_wells->first->well, 'retrieve input well for process';
+    is $input_well->plate->name, 'MOHFAQ0001_A_2', '..correct plate';
+    is $input_well->name, 'A01', '..correct well';
+
+}
+
+note( "Testing SEP type plate create with wells" );
+
+{
+    ok my $plate = model->create_plate( $plate_data->{sep_plate_create_wells} ),
+        'create_plate should succeed';
+    isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
+
+    ok my $wells = $plate->wells, 'can retrieve plate wells';
+    ok my $well = $wells->find( { name => 'A01' } ), '..retrieve well A01';
+    ok my $process = $well->output_processes->first, '..can get output process';
+    is $process->type_id, 'second_electroporation', 'process is correct type';
+    ok my $process_input_wells = $process->process_input_wells, 'retrieve input well for process';
+    is $process_input_wells->count, 2, 'we have 2 input wells for process';
+}
+
+note( "Plate Assay Complete" );
+
+{
+    ok my $plate = model->set_plate_assay_complete( $plate_data->{plate_assay_complete} ),
+        'create_plate should succeed';
+    isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
+
+    ok my $wells = $plate->wells, 'can retrieve plate wells';
+    ok my $well = $wells->find( { name => 'A05' } ), '..retrieve well A05';
+    is $well->assay_complete,'2012-05-21T00:00:00', 'assay complete is correct';
+}
+
+{
+    note( "Testing delete_plate" );
+
+    lives_ok {
+        model->delete_plate( { name => 'PCS101' } )
+    } 'delete plate';
+
+    lives_ok {
+        model->delete_plate( { name => 'EP10001' } )
+    } 'delete plate';
+}
+
+#TODO add tests for set_plate_assay_complete
 
 done_testing();
