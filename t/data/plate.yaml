@@ -5,10 +5,45 @@ plate_create:
     type: INT
     description: test_plate
     created_by: test_user@example.org
-    comments: 
+    comments:
         - comment_text: this is a awesome test comment
           created_by: test_user@example.org
 plate_retrieve:
-    name: PCS100
-
-
+    name: PCS00075_A
+plate_create_wells:
+    name: EP10001
+    species: Mouse
+    type: EP
+    created_by: test_user@example.org
+    wells:
+        - well_name: A01
+          process_type: first_electroporation
+          parent_plate: MOHFAQ0001_A_2
+          parent_well: A01
+          cell_line: test_cell_line
+        - well_name: B01
+          process_type: first_electroporation
+          parent_plate: MOHFAQ0001_A_2
+          parent_well: B02
+          cell_line: test_cell_line
+        - well_name: C01
+          process_type: first_electroporation
+          parent_plate: MOHFAQ0001_A_2
+          parent_well: C03
+          cell_line: test_cell_line
+sep_plate_create_wells:
+    name: SEP10001
+    species: Mouse
+    type: SEP
+    created_by: test_user@example.org
+    wells:
+        - well_name: A01
+          process_type: second_electroporation
+          allele_plate: XEP0006
+          allele_well: A01
+          vector_plate: MOHSAQ0001_A_2
+          vector_well: A01
+          cell_line: test_cell_line
+plate_assay_complete:
+    name: PCS00075_A
+    completed_at: 2012-05-21T00:00:00

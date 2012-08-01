@@ -49,11 +49,13 @@ requires:
   Data::Pageset: 0
   Data::UUID: 0
   DateTime: 0
+  DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
   DateTime::Format::Strptime: 0
   EngSeqBuilder: 0
   Exporter: 0
+  Fcntl: 0
   File::Temp: 0
   File::stat: 0
   FindBin: 0
@@ -108,4 +110,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.011
+version: 0.012

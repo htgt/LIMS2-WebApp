@@ -1,3 +1,7 @@
+0.012     2012-08-01 10:55:30 Europe/London
+
+   Implement cacheing for slow-to-generate reports.
+
 0.011     2012-07-26 16:06:14 Europe/London
 
    Implement electroporation detail and summary reports.

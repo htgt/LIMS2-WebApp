@@ -1,7 +1,7 @@
 package LIMS2::Report::QcRun;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::QcRun::VERSION = '0.011';
+    $LIMS2::Report::QcRun::VERSION = '0.012';
 }
 ## use critic
 
@@ -22,6 +22,10 @@ has qc_run => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::QcRun',
     lazy_build => 1,
+);
+
+has '+param_names' => (
+    default => sub { [ 'qc_run_id' ] }
 );
 
 sub _build_qc_run {

@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::ProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::ProductionDetail::VERSION = '0.011';
+    $LIMS2::ReportGenerator::ProductionDetail::VERSION = '0.012';
 }
 ## use critic
 
@@ -23,6 +23,10 @@ has plate_type => (
     is         => 'ro',
     isa        => 'Str',
     lazy_build => 1
+);
+
+has '+param_names' => (
+    default => sub { [ 'species', 'plate_type' ] }
 );
 
 ## no critic(RequireFinalReturn)

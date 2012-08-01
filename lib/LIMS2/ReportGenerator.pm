@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::VERSION = '0.011';
+    $LIMS2::ReportGenerator::VERSION = '0.012';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use warnings FATAL => 'all';
 
 use Moose;
 use Iterator::Simple;
+use JSON;
 use namespace::autoclean;
 
 has name => (
@@ -31,6 +32,19 @@ has model => (
     is         => 'ro',
     isa        => 'LIMS2::Model',
     required   => 1,
+);
+
+has cache_ttl => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => '8 hours'
+);
+
+has param_names => (
+    isa     => 'ArrayRef[Str]',
+    traits  => [ 'Array' ],
+    handles => { param_names => 'elements' },
+    default => sub { [] }
 );
 
 sub _build_name {
@@ -54,6 +68,52 @@ sub boolean_str {
     else {
         return 'no';
     }
+}
+
+sub cached_report {
+    my $self = shift;
+
+    my @cached = $self->model->schema->resultset('CachedReport')->search(
+        {
+            report_class => ref $self,
+            params       => JSON->new->utf8->canonical->encode( $self->params_hash ),
+            expires      => { '>' => \'current_timestamp' }
+        },
+        {
+            order_by => { -desc => 'expires' }
+        }
+    );
+
+    my @complete = grep { $_->complete } @cached;
+    if ( @complete ) {
+        return $complete[0];
+    }
+    elsif ( @cached ) {
+        return $cached[0];
+    }
+
+    return;
+}
+
+sub init_cached_report {
+    my ( $self, $report_id ) = @_;
+
+    my $cache_entry = $self->model->schema->resultset('CachedReport')->create(
+        {
+            id           => $report_id,
+            report_class => ref $self,
+            params       => JSON->new->utf8->canonical->encode( $self->params_hash ),
+            expires      => \sprintf( 'current_timestamp + interval \'%s\'', $self->cache_ttl )
+        }
+    );
+
+    return $cache_entry;
+}
+
+sub params_hash {
+    my $self = shift;
+
+    return { map { $_ => $self->$_ }  $self->param_names };
 }
 
 __PACKAGE__->meta->make_immutable();

@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionSummary::VERSION = '0.011';
+    $LIMS2::Report::VectorProductionSummary::VERSION = '0.012';
 }
 ## use critic
 
@@ -20,6 +20,10 @@ has species => (
     is       => 'ro',
     isa      => 'Str',
     required => 1
+);
+
+has '+param_names' => (
+    default => sub { [ 'species' ] }
 );
 
 override _build_name => sub {

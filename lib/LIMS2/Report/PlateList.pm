@@ -1,7 +1,7 @@
 package LIMS2::Report::PlateList;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PlateList::VERSION = '0.011';
+    $LIMS2::Report::PlateList::VERSION = '0.012';
 }
 ## use critic
 
@@ -23,6 +23,10 @@ has plate_type => (
 has plate_name => (
     is  => 'ro',
     isa => 'Maybe[Str]'
+);
+
+has '+param_names' => (
+    default => sub { [ 'plate_type', 'plate_name' ] }
 );
 
 override _build_name => sub {

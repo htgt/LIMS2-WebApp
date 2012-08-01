@@ -3,22 +3,22 @@ valid_input:
     type: create_di
     output_wells:
         - plate_name: 100
-          well_name: A01
-    design_id: 1
+          well_name: F06
+    design_id: 95120
     bacs:
       - bac_plate: a
         bac_library: black6
-        bac_name: CT7-156D8
+        bac_name: RP24-135L5
 invalid_input_wells:
     type: create_di
     output_wells:
         - plate_name: 100
-          well_name: A01
+          well_name: F06
     design_id: 1
     bacs:
     input_wells:
-        - plate_name: PCS100
-          well_name: A01
+        - plate_name: PCS00177_A 
+          well_name: G02
     bacs:
       - bac_plate: a
         bac_library: black6
@@ -27,7 +27,7 @@ invalid_design_id:
     type: create_di
     output_wells:
         - plate_name: 100
-          well_name: A01
+          well_name: F06
     design_id: 9999999999
     bacs:
       - bac_plate: a

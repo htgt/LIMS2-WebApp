@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.011';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.012';
 }
 ## use critic
 
@@ -55,6 +55,10 @@ has plate => (
     handles    => {
         species => 'species_id'
     }
+);
+
+has '+param_names' => (
+    default => sub { [ 'plate_name' ] }
 );
 
 sub plate_types {

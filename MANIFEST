@@ -31,6 +31,7 @@ lib/LIMS2/Model/Schema/Result/BacClone.pm
 lib/LIMS2/Model/Schema/Result/BacCloneLocus.pm
 lib/LIMS2/Model/Schema/Result/BacLibrary.pm
 lib/LIMS2/Model/Schema/Result/Backbone.pm
+lib/LIMS2/Model/Schema/Result/CachedReport.pm
 lib/LIMS2/Model/Schema/Result/Cassette.pm
 lib/LIMS2/Model/Schema/Result/Chromosome.pm
 lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
@@ -221,9 +222,11 @@ t/80-qc.t
 t/author-critic.t
 t/data/2w_gateway_process.yaml
 t/data/3w_gateway_process.yaml
+t/data/clone_pick_process.yaml
 t/data/cre_bac_recom_process.yaml
 t/data/create_di_process.yaml
 t/data/dna_prep_process.yaml
+t/data/first_electroporation.yaml
 t/data/int_recom_process.yaml
 t/data/plate.yaml
 t/data/qc_run.yaml
@@ -231,12 +234,8 @@ t/data/qc_seq_reads.yaml
 t/data/qc_template.yaml
 t/data/rearray_process.yaml
 t/data/recombinase_process.yaml
+t/data/second_electroporation.yaml
 t/data/well.yaml
 t/fixtures/00-clean-db.sql
-t/fixtures/10-users-roles.sql
-t/fixtures/20-constrained-vocab.sql
-t/fixtures/30-bacs.sql
-t/fixtures/30-designs.sql
-t/fixtures/40-qc.sql
-t/fixtures/50-plate-wells.sql
+t/fixtures/10-load-fixture-data.sql
 t/release-no-smart-comments.t
