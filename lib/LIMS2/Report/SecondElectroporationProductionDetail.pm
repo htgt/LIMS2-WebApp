@@ -33,6 +33,10 @@ override _build_plate_type => sub {
     'SEP';
 };
 
+has '+allele_request_wells_method' => (
+    default => 'second_electroporation_wells'
+);
+
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -28,6 +28,10 @@ override _build_plate_type => sub {
     return 'EP';
 };
 
+has '+allele_request_wells_method' => (
+    default => 'first_electroporation_wells'
+);
+
 __PACKAGE__->meta->make_immutable;
 
 1;

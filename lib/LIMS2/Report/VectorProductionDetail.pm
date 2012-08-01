@@ -2,6 +2,8 @@ package LIMS2::Report::VectorProductionDetail;
 
 use Moose;
 use DateTime;
+use JSON qw( decode_json );
+use LIMS2::AlleleRequestFactory;
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::ProductionDetail );
@@ -24,6 +26,10 @@ override _build_columns => sub {
 override _build_plate_type => sub {
     'FINAL';
 };
+
+has '+allele_request_wells_method' => (
+    default => 'all_vector_wells'
+);
 
 __PACKAGE__->meta->make_immutable;
 

@@ -68,6 +68,11 @@ sub _build_second_allele_vector_wells {
     return [ $self->final_vector_wells( $self->second_allele_design_wells, $self->second_allele_cassette_function ) ];
 }
 
+sub all_vector_wells {
+    my $self = shift;
+    return [ @{$self->first_allele_vector_wells}, @{$self->second_allele_vector_wells} ];    
+}
+
 sub _build_first_electroporation_wells {
     my $self = shift;
     return [ $self->electroporation_wells( $self->first_allele_vector_wells, 'EP' ) ];
