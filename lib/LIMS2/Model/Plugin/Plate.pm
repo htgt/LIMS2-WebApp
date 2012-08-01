@@ -207,6 +207,8 @@ sub create_plate_well {
     $well_params{process_data}{input_wells} = [ map { { id => $_ } } @{$parent_well_ids} ];
 
     $self->create_well( \%well_params, $plate );
+
+    return;
 }
 
 sub pspec_find_parent_well_ids {
