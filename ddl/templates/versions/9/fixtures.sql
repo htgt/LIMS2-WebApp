@@ -29,3 +29,11 @@ WHERE name IN (
  'pL1L2_GT1_bsd_frt15_neo_barcode',
  'pL1L2_GT2_bsd_frt15_neo_barcode'
 );
+
+INSERT INTO sponsors(id,description)
+VALUES ( 'Core',        'Homozygous - Core' ),
+       ( 'Syboss',      'Homozygous - Syboss' ),
+       ( 'Pathogens',   'Homozygous - Pathogens' ),
+       ( 'Cre Knockin', 'EUCOMMTools-Cre Knockin' ),
+       ( 'Cre BAC',     'EUCOMMTools-Cre BAC' ),
+       ( 'Human',       'Homozygous - Human' );

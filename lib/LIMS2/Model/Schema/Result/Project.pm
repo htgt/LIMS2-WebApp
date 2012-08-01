@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Sponsor;
+package LIMS2::Model::Schema::Result::Project;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Sponsor
+LIMS2::Model::Schema::Result::Project
 
 =cut
 
@@ -30,32 +30,46 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<sponsors>
+=head1 TABLE: C<projects>
 
 =cut
 
-__PACKAGE__->table("sponsors");
+__PACKAGE__->table("projects");
 
 =head1 ACCESSORS
 
 =head2 id
 
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'projects_id_seq'
+
+=head2 sponsor_id
+
   data_type: 'text'
+  is_foreign_key: 1
   is_nullable: 0
 
-=head2 description
+=head2 allele_request
 
   data_type: 'text'
-  default_value: (empty string)
-  is_nullable: 1
+  is_nullable: 0
 
 =cut
 
 __PACKAGE__->add_columns(
   "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "projects_id_seq",
+  },
+  "sponsor_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "allele_request",
   { data_type => "text", is_nullable => 0 },
-  "description",
-  { data_type => "text", default_value => "", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -72,24 +86,24 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 projects
+=head2 sponsor
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Project>
+Related object: L<LIMS2::Model::Schema::Result::Sponsor>
 
 =cut
 
-__PACKAGE__->has_many(
-  "projects",
-  "LIMS2::Model::Schema::Result::Project",
-  { "foreign.sponsor_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "sponsor",
+  "LIMS2::Model::Schema::Result::Sponsor",
+  { id => "sponsor_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-08-01 16:23:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xZzQ8o0GCiDIaEDQRz5otw
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TEWL4wmlfym0+CuGo3C9zg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
