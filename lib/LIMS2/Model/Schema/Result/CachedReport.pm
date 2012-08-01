@@ -60,15 +60,12 @@ __PACKAGE__->table("cached_reports");
   default_value: (now() + '08:00:00'::interval)
   is_nullable: 0
 
-<<<<<<< HEAD
-=======
 =head2 complete
 
   data_type: 'boolean'
   default_value: false
   is_nullable: 0
 
->>>>>>> devel
 =cut
 
 __PACKAGE__->add_columns(
@@ -84,11 +81,8 @@ __PACKAGE__->add_columns(
     default_value => \"(now() + '08:00:00'::interval)",
     is_nullable   => 0,
   },
-<<<<<<< HEAD
-=======
   "complete",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
->>>>>>> devel
 );
 
 =head1 PRIMARY KEY
@@ -103,34 +97,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-<<<<<<< HEAD
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<cached_reports_report_class_params_key>
-
-=over 4
-
-=item * L</report_class>
-
-=item * L</params>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "cached_reports_report_class_params_key",
-  ["report_class", "params"],
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-26 18:16:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L/KCszm7wcxQEDmoFTrhjw
-=======
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-31 16:36:06
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:++CtoB4pjLtlShaOGgBGdA
->>>>>>> devel
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
