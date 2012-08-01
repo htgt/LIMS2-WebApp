@@ -19,6 +19,10 @@ has plate_name => (
     isa => 'Maybe[Str]'
 );
 
+has '+param_names' => (
+    default => sub { [ 'plate_type', 'plate_name' ] }
+);
+
 override _build_name => sub {
     my $self = shift;
     if ( $self->plate_type ) {

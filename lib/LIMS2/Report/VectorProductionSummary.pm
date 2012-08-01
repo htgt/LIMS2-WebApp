@@ -16,6 +16,10 @@ has species => (
     required => 1
 );
 
+has '+param_names' => (
+    default => sub { [ 'species' ] }
+);
+
 override _build_name => sub {
     my $dt = DateTime->now();
     return 'Vector Production Summary ' . $dt->ymd;

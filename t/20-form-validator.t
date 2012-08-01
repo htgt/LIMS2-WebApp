@@ -86,13 +86,13 @@ ok my $dfv_profile = model->form_validator->dfv_profile( $pspec ),
 
     lives_ok {
         model->check_params( { foo => '' }, \%pspec )
-    } 'comma_separeted_list validates empty list';    
+    } 'comma_separeted_list validates empty list';
 }
 
 {
     my %pspec = ( url => { validate => 'absolute_url' } );
 
-    lives_ok {    
+    lives_ok {
         model->check_params( { url => 'http://example.org/foo/bar' }, \%pspec )
     } 'validate absolute_url';
 

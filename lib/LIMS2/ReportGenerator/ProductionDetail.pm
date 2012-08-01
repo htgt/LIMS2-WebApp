@@ -19,6 +19,10 @@ has plate_type => (
     lazy_build => 1
 );
 
+has '+param_names' => (
+    default => sub { [ 'species', 'plate_type' ] }
+);
+
 ## no critic(RequireFinalReturn)
 sub _build_plate_type {
     LIMS2::Exception::Implementation->throw( "_build_plate_type() must be implemeted by a subclass" );
