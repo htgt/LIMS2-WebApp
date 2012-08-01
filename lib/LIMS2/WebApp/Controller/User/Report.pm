@@ -8,13 +8,6 @@ use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
-has report_dir => (
-    is       => 'ro',
-    isa      => 'Path::Class::Dir',
-    coerce   => 1,
-    required => 1
-);
-
 =head1 NAME
 
 LIMS2::WebApp::Controller::User::Report - Catalyst Controller
@@ -45,7 +38,6 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        output_dir => $self->report_dir
     );
 
     $c->stash(
@@ -75,7 +67,6 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        output_dir => $self->report_dir,
         async      => 0
     );
 
@@ -106,7 +97,6 @@ sub async_report :Path( '/user/report/async' ) :Args(1) {
         model      => $c->model('Golgi'),
         report     => $report,
         params     => $params,
-        output_dir => $self->report_dir,
         async      => 1
     );
 
@@ -130,7 +120,7 @@ sub download_report :Path( '/user/report/download' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
-    my ( $report_name, $report_fh ) = $self->_read_report_from_disk( $report_id );
+    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
@@ -150,7 +140,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
-    my ( $report_name, $report_fh ) = $self->_read_report_from_disk( $report_id );
+    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
 
     my $pageset = LIMS2::WebApp::Pageset->new(
         {
@@ -200,17 +190,6 @@ sub _count_rows {
     $fh->seek(0,0);
 
     return $count - 1;
-}
-
-sub _read_report_from_disk {
-    my ( $self, $report_id ) = @_;
-
-    my $dir = $self->report_dir->subdir( $report_id );
-
-    my $report_fh   = $dir->file( 'report.csv' )->openr;
-    my $report_name = $dir->file( 'name' )->slurp;
-
-    return ( $report_name, $report_fh );
 }
 
 =head1 AUTHOR

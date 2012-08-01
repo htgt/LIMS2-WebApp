@@ -17,11 +17,70 @@ use Scalar::Util qw( blessed );
 use Fcntl qw( :DEFAULT :flock );
 use LIMS2::Exception::System;
 use LIMS2::Exception::Validation;
+use Path::Class;
+use Const::Fast;
+use DateTime;
+use DateTime::Duration;
+
+const my $WORK_DIR       => dir( $ENV{LIMS2_REPORT_DIR} || '/var/tmp/lims2-reports' );
+const my $CACHE_FILE_TTL => DateTime::Duration->new( days => 3 );
+
+sub clean_cache {
+    my ( $model, $verbose ) = @_;
+
+    INFO( "Deleting expired entries from cached_reports table" );
+    $model->schema->resultset('CachedReport')->search_rs(
+        {
+            expires => { '<=', \'current_timestamp' }
+        }
+    )->delete;
+
+    my $cutoff = DateTime->now() - $CACHE_FILE_TTL;
+    INFO( "Deleting cache files older than $cutoff" );
+    for my $d ( grep { $_->is_dir } $WORK_DIR->children ) {
+        if ( $d->stat->mtime <= $cutoff->epoch ) {
+            $d->rmtree($verbose);
+        }
+    }
+
+    return;
+}
+
+sub get_report_status {
+    my $report_id = shift;
+
+    my $work_dir = $WORK_DIR->subdir( $report_id );
+
+    unless ( $work_dir->stat and -d _ ) {
+        return 'NOT_FOUND';
+    }
+
+    if ( $work_dir->file( 'done' )->stat ) {
+        return 'DONE';
+    }
+
+    if ( $work_dir->file( 'failed' )->stat ) {
+        return 'FAILED';
+    }
+
+    return 'PENDING';
+}
+
+sub read_report_from_disk {
+    my ( $report_id ) = @_;
+
+    my $dir = $WORK_DIR->subdir( $report_id );
+
+    my $report_fh   = $dir->file( 'report.csv' )->openr;
+    my $report_name = $dir->file( 'name' )->slurp;
+
+    return ( $report_name, $report_fh );
+}
 
 sub _cached_report_ok {
-    my ( $work_dir, $cache_entry ) = @_;
+    my ( $cache_entry ) = @_;
 
-    my $report_dir = $work_dir->subdir( $cache_entry->id );
+    my $report_dir = $WORK_DIR->subdir( $cache_entry->id );
     if ( $report_dir->stat && ! $report_dir->file('fail')->stat ) {
         return 1;
     }
@@ -38,7 +97,8 @@ sub cached_report {
     # Take an exclusive lock to avoid race between interrogating table
     # and creating cache row. This ensures we don't set off concurrent
     # cache refreshes for the same report.
-    my $lock_file = $args{output_dir}->file('lims2.cache.lock');
+    $WORK_DIR->mkpath;
+    my $lock_file = $WORK_DIR->file('lims2.cache.lock');
     my $lock_fh = $lock_file->open( O_RDWR|O_CREAT, oct(644) )
         or LIMS2::Exception::System->throw( "open $lock_file failed: $!" );
     local $SIG{ALRM} = sub { LIMS2::Exception::System->throw( "Timeout waiting for lock on $lock_file" ) };
@@ -48,7 +108,7 @@ sub cached_report {
     alarm(0);
 
     if ( my $in_cache = $generator->cached_report ) {
-        if ( _cached_report_ok( $args{output_dir}, $in_cache ) ) {
+        if ( _cached_report_ok( $in_cache ) ) {
             return $in_cache->id;
         }
     }
@@ -56,7 +116,7 @@ sub cached_report {
     my $cache_entry = $generator->init_cached_report( generate_report_id() );
     $lock_fh->close(); # End of critical code: release the lock
 
-    my $work_dir = init_work_dir( $args{output_dir}, $cache_entry->id );
+    my $work_dir = init_work_dir( $cache_entry->id );
     run_in_background( $generator, $work_dir, $cache_entry );
 
     return $cache_entry->id;
@@ -85,7 +145,7 @@ sub generate_report {
 
     INFO( "Generating $args{report} report $report_id" );
 
-    my $work_dir = init_work_dir( $args{output_dir}, $report_id );
+    my $work_dir = init_work_dir( $report_id );
 
     if ( $args{async} ) {
         run_in_background( $generator, $work_dir );
@@ -191,9 +251,9 @@ sub load_generator_class {
 }
 
 sub init_work_dir {
-    my ( $output_dir, $report_id ) = @_;
+    my ( $report_id ) = @_;
 
-    my $work_dir = dir( $output_dir )->subdir( $report_id );
+    my $work_dir = $WORK_DIR->subdir( $report_id );
     $work_dir->mkpath;
 
     return $work_dir;

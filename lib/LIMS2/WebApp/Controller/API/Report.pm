@@ -1,16 +1,10 @@
 package LIMS2::WebApp::Controller::API::Report;
 use Moose;
 use MooseX::Types::Path::Class;
+use LIMS2::Report;
 use namespace::autoclean;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
-
-has report_dir => (
-    is       => 'ro',
-    isa      => 'Path::Class::Dir',
-    coerce   => 1,
-    required => 1
-);
 
 =head1 NAME
 
@@ -32,21 +26,8 @@ sub report_ready_GET {
 
     $c->assert_user_roles( 'read' );
 
-    my $work_dir = $self->report_dir->subdir( $report_id );
-
-    unless ( $work_dir->stat and -d _ ) {
-        return $self->status_ok( $c, entity => { status => 'NOT_FOUND' } );
-    }
-
-    if ( $work_dir->file( 'done' )->stat ) {
-        return $self->status_ok( $c, entity => { status => 'DONE' } );
-    }
-
-    if ( $work_dir->file( 'failed' )->stat ) {
-        return $self->status_ok( $c, entity => { status => 'FAILED' } );
-    }
-
-    return $self->status_ok( $c, entity => { status => 'PENDING' } );
+    my $status = LIMS2::Report::get_report_status( $report_id );
+    return $self->status_ok( $c, entity => { status => $status } );
 }
 
 =head1 AUTHOR
