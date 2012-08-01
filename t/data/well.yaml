@@ -3,9 +3,9 @@ well_create:
     plate_name: PCS00177_A
     well_name: A01
     created_by: test_user@example.org
-    process_data: 
+    process_data:
         type: int_recom
-        input_wells: 
+        input_wells:
             - plate_name: 100
               well_name: F06
         cassette: pR6K_R1R2_ZP
@@ -28,6 +28,6 @@ well_accepted_override_update_same:
     well_name: A01
     created_by: test_user@example.org
     accepted: 1
-    
+
 
 

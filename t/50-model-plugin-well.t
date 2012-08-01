@@ -65,8 +65,8 @@ note( "Testing well creation" );
         day    => 12,
         hour   => 10,
         minute => 5,
-        second => 7            
-    );    
+        second => 7
+    );
 
     my %params = ( %{ $well_data->{well_retrieve} },
                    completed_at => $date_time->iso8601
@@ -89,7 +89,7 @@ note( "Testing well creation" );
     ), 'create QC sequencing result';
 
     $date_time = DateTime->now;
-    
+
     ok $well = model->set_well_assay_complete( { id => $well->id, completed_at => $date_time->iso8601 } ),
         'set_well_assay_complete should succeed';
 
@@ -100,7 +100,7 @@ note( "Testing well creation" );
 
 {
     note( "Testing delete_well" );
-    
+
     lives_ok {
         model->delete_well( { plate_name => 'PCS00177_A', well_name => 'A01' } )
     } 'delete well';
