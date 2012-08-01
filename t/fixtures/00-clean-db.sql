@@ -60,3 +60,4 @@ DELETE FROM colony_count_types;
 DELETE FROM user_role;
 DELETE FROM roles;
 DELETE FROM users;
+DELETE FROM sponsors;
