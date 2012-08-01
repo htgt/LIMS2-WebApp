@@ -332,6 +332,29 @@ my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
 
 }
 
+note( "Testing clone_pick process creation" );
+my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
+
+{
+    ok my $process = model->create_process( $clone_pick_process_data->{valid_input} ),
+        'create_process for type clone_pick should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'clone_pick',
+        'process is of correct type';
+
+    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 1, 'only one input well';
+    my $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'input well has correct name';
+    is $input_well->plate->name, 'FEP0006', '..and is on correct plate';
+
+    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    my $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'FEPD0006_1', '..and is on correct plate';
+}
+
 ## Not currently testing the processes listed below, they have no auxillary process data so all
 ## we would be testing is the input well checks, find some way to test this seperately?
 ## freeze
