@@ -17,8 +17,14 @@ has species => (
     required => 1
 );
 
+has sponsor => (
+    is        => 'ro',
+    isa       => 'Str',
+    predicate => 'has_sponsor'
+);
+
 has '+param_names' => (
-    default => sub { [ 'species' ] }
+    default => sub { [ 'species', 'sponsor' ] }
 );
 
 override _build_name => sub {
@@ -92,9 +98,17 @@ override iterator => sub {
 sub summarize_first_ep {
     my ( $self, $by_month ) = @_;
 
-    my $detail = LIMS2::Report::FirstElectroporationProductionDetail->new(
-        model => $self->model, species => $self->species
-    );
+    my $detail;
+    if ( $self->has_sponsor ){
+        $detail = LIMS2::Report::FirstElectroporationProductionDetail->new(
+            model => $self->model, species => $self->species, sponsor => $self->sponsor
+        );
+    }
+    else{
+        $detail = LIMS2::Report::FirstElectroporationProductionDetail->new(
+            model => $self->model, species => $self->species
+        );
+    }
     my @detail_cols = @{ $detail->columns };
 
     my $it = $detail->iterator;
@@ -120,9 +134,17 @@ sub summarize_first_ep {
 sub summarize_second_ep {
     my ( $self, $by_month ) = @_;
 
-    my $detail = LIMS2::Report::SecondElectroporationProductionDetail->new(
-        model => $self->model, species => $self->species
-    );
+    my $detail;
+    if ( $self->has_sponsor ) {
+        $detail = LIMS2::Report::SecondElectroporationProductionDetail->new(
+            model => $self->model, species => $self->species, sponsor => $self->sponsor
+        );
+    }
+    else {
+        $detail = LIMS2::Report::SecondElectroporationProductionDetail->new(
+            model => $self->model, species => $self->species
+        );
+    }
     my @detail_cols = @{ $detail->columns };
 
     my $it = $detail->iterator;

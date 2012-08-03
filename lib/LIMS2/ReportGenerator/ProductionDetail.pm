@@ -4,6 +4,7 @@ use Moose;
 use Iterator::Simple qw( iflatten imap iter igrep );
 use LIMS2::Exception::Implementation;
 use LIMS2::AlleleRequestFactory;
+use JSON qw( decode_json );
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
@@ -60,12 +61,12 @@ sub _build_sponsor_wells {
     while ( my $project = $project_rs->next ) {
         my $ar = $arf->allele_request( decode_json( $project->allele_request ) );
         next unless $ar->can( $method );
-        for my $well ( $ar->$method ) {
+        for my $well ( @{$ar->$method} ) {
             $sponsor_wells{ $well->plate->name }{ $well->name }++;
         }
-    }        
+    }
 
-    return \%sponsor_wells;    
+    return \%sponsor_wells;
 }
 
 sub is_wanted_plate {

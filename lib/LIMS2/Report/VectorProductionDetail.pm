@@ -2,7 +2,6 @@ package LIMS2::Report::VectorProductionDetail;
 
 use Moose;
 use DateTime;
-use JSON qw( decode_json );
 use LIMS2::AlleleRequestFactory;
 use namespace::autoclean;
 

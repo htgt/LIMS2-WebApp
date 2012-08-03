@@ -29,27 +29,33 @@ has gene_designs => (
 sub _build_gene_designs {
     my $self = shift;
     return $self->_build_designs( $self->mutation_type );
+}
 
-has [ qw( gene_design_wells gene_vector_wells gene_electroporation_wells ) ] => (
+has [ qw( allele_design_wells allele_vector_wells allele_electroporation_wells ) ] => (
     is         => 'ro',
     isa        => 'ArrayRef[LIMS2::Model::Schema::Result::Well]',
     init_arg   => undef,
     lazy_build => 1
 );
 
-sub _build_gene_design_wells {
+sub _build_allele_design_wells {
     my $self = shift;
     return [ map { $self->design_wells($_) } @{$self->gene_designs} ];
 }
 
-sub _build_gene_vector_wells {
+sub _build_allele_vector_wells {
     my $self = shift;
     return [ $self->final_vector_wells( $self->gene_design_wells, $self->cassette_function ) ];
 }
 
-sub _build_gene_electroporation_wells {
+sub _build_allele_electroporation_wells {
     my $self = shift;
     return [ $self->electroporation_wells( $self->gene_vector_wells, 'EP' ) ];
+}
+
+sub all_vector_wells {
+    my $self = shift;
+    return [ @{$self->allele_vector_wells} ];
 }
 
 __PACKAGE__->meta->make_immutable;
