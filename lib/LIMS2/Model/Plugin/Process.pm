@@ -552,6 +552,13 @@ sub delete_process {
     return;
 }
 
+sub list_process_types {
+    my ( $self, $params ) = @_;
+
+    my @process_types = $self->schema->resultset('ProcessType')->all;
+
+    return [ map{ $_->id } @process_types ];
+}
 
 1;
 
