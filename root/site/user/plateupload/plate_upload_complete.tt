@@ -1,0 +1,10 @@
+[%- META title = 'Plate Upload Complete'; META tab_name = 'Plates' %]
+
+<div class="page-header">
+  <h1>Upload Plate Complete</h1>
+</div>
+
+<div class="well">
+    <p>Well done, you uploaded a plate, you hero</p>
+</div>
+

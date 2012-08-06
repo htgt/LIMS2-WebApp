@@ -1,0 +1,43 @@
+[%- META title = 'Plate Upload 2'; META tab_name = 'Plates' %]
+
+<div class="page-header">
+  <h1>Upload Plate <small> Step 2</small></h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="GET" action="[% c.uri_for( '/user/plate_upload_complete' ) %]" class="form well" >
+
+        <label>Plate Name</label> <input name="plate_name" id="plate_name" type="text"/>
+
+        <label>Process Type</label>
+        <span class="input uneditable-input">[% process_type.replace( '_', ' ' ) %]</span>
+
+        <label>Plate Type</label>
+        <select name="plate_type">
+          [% IF plate_types.count > 1 %]
+            <option value="" selected="selected">-</option>
+          [% ELSE %]
+            <option value="" selected="selected">-</option>
+            [%- FOR plate_type IN plate_types %]
+              <option>[% plate_type %]</option>
+            [%- END %]
+          [%- END %]
+        </select>
+
+        [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
+
+        <label>Well CSV File</label> <input name="wells_input" id="wells_input" type="file">
+
+        <label>Description</label> <input name="description" id="description" type="text"/>
+        <span class="help-inline">optional</span>
+
+        <br>
+        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn">
+            <i class="icon-upload"></i> Create Plate
+        </button>
+    </form>
+  </div>
+
+</div>

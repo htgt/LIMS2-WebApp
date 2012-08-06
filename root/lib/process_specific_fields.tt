@@ -1,0 +1,6 @@
+[% IF process_fields.size %]
+  [% FOR field IN process_fields %]
+    <label>[% field.ucfirst.replace( '_', ' ' ) %]</label>
+    <input name="[% field %]" id="[% field %]" type="input">
+  [% END %]
+[% END %]
