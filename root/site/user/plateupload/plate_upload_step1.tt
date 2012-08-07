@@ -8,15 +8,19 @@
 
   <div class="span6 offset3">
     <form method="GET" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form-inline well" >
-      Process Type: <select name="process_type">
-      <option value="" selected="selected">-</option>
-      [%- FOR process_type IN process_types %]
-        <option value="[% process_type %]">[% process_type.replace( '_', ' ' ) %]</option>
-      [%- END %]
+
+      <label>Process Type</label>
+      <select name="process_type">
+        <option value="" selected="selected">-</option>
+        [%- FOR process_type IN process_types %]
+          <option value="[% process_type %]">[% process_type.replace( '_', ' ' ) %]</option>
+        [%- END %]
       </select>
+
       <button name="submit" id="submit" type="submit" value="submit" class="btn">
         <i class="icon-chevron-right"></i> Next
       </button>
+
     </form>
   </div>
 

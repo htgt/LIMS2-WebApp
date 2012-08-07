@@ -7,30 +7,33 @@
 <div class="row">
 
   <div class="span6 offset3">
-    <form method="GET" action="[% c.uri_for( '/user/plate_upload_complete' ) %]" class="form well" >
+    <form method="POST" action="[% c.uri_for( '/user/plate_upload_complete' ) %]" class="form well"  enctype="multipart/form-data" >
 
-        <label>Plate Name</label> <input name="plate_name" id="plate_name" type="text"/>
+        <label>Plate Name</label>
+        <input name="plate_name" id="plate_name" type="text" [% IF plate_name %]value="[% plate_name %]"[% END %]/>
 
         <label>Process Type</label>
-        <span class="input uneditable-input">[% process_type.replace( '_', ' ' ) %]</span>
+        <input name="process_type" id="process_type" readonly="true" value="[% process_type %]"/>
 
         <label>Plate Type</label>
-        <select name="plate_type">
-          [% IF plate_types.count > 1 %]
-            <option value="" selected="selected">-</option>
-          [% ELSE %]
-            <option value="" selected="selected">-</option>
-            [%- FOR plate_type IN plate_types %]
-              <option>[% plate_type %]</option>
-            [%- END %]
-          [%- END %]
-        </select>
+        [% IF plate_types.size > 1 %]
+          <select name="plate_type">
+              [% UNLESS plate_type %]<option value="" selected="selected">-</option>[% END %]
+              [%- FOR type IN plate_types %]
+                <option [% IF plate_type == type %] selected="selected"[% END %]>[% type %]</option>
+              [%- END %]
+          </select>
+        [% ELSE %]
+          <input name="plate_type" id="plate_type" readonly="true" value="[% plate_types.0 %]"/>
+        [%- END %]
 
         [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
 
-        <label>Well CSV File</label> <input name="wells_input" id="wells_input" type="file">
+        <label>Well Data File</label>
+        <input name="datafile" type="file">
 
-        <label>Description</label> <input name="description" id="description" type="text"/>
+        <label>Description</label>
+        <input name="description" id="description" type="text" [% IF description %]value="[% description %]"[% END %]/>
         <span class="help-inline">optional</span>
 
         <br>
