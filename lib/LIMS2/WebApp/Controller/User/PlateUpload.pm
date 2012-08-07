@@ -17,8 +17,6 @@ Catalyst Controller.
 
 =cut
 
-use Smart::Comments;
-
 sub begin :Private {
     my ( $self, $c ) = @_;
 
@@ -28,8 +26,10 @@ sub begin :Private {
 sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
     my ( $self, $c ) = @_;
 
+    my @process_types = map{ $_->id } @{ $c->model('Golgi')->list_process_types };
+
     $c->stash(
-        process_types => $c->model('Golgi')->list_process_types,
+        process_types => [ grep{ !/create_di/ } @process_types ],
     );
 }
 
@@ -41,19 +41,14 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         $c->flash->{error_msg} = 'You must specify a process type';
         return $c->res->redirect('/user/plate_upload_step1');
     }
-    #check process type here
-    $c->stash( process_type => $process_type );
-    my $process_fields = $c->model('Golgi')->get_process_fields( $process_type );
 
-    #my $process_fields = $c->model('Golgi')->get_process_fields( $process_type );
-    my $plate_types    = get_process_plate_types( $process_type );
-    ### $process_fields
-    $c->stash( process_fields => $process_fields );
-    $c->stash( plate_types => $plate_types );
+    $c->stash(
+        process_type   => $process_type,
+        process_fields => $c->model('Golgi')->get_process_fields( { process_type => $process_type } ),
+        plate_types    => $c->model('Golgi')->get_process_plate_types( { process_type => $process_type } ),
+    );
 
-    #stash cassettes, backbones, recombinases
-    #$c->stash( 'final-cassettes' => $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassettes' ) );
-
+    return;
 }
 
 sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
@@ -63,53 +58,41 @@ sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
         return $c->res->redirect('/user/plate_upload_step1');
     }
 
-    my $well_data = $c->req->upload('well_data');
+    $c->stash( $c->request->params );
     my $params = $c->request->params;
+
+    my $well_data = $c->request->upload('datafile');
+    unless ( $well_data ) {
+        $c->stash->{error_msg} = 'No well data';
+        #TODO this should just be detach?
+        $c->go( 'plate_upload_step2' );
+    }
+
+    unless ( $params->{plate_name} ) {
+        $c->stash->{error_msg} = 'Must specify a plate name';
+        $c->go( 'plate_upload_step2' );
+    }
+
     $params->{species} ||= $c->session->{selected_species};
-    $params->{created_by} = $c->user->id;
-    ### $params
+    $params->{created_by} = $c->user->name;
 
-    $c->model('Golgi')->process_plate_data( $params, $well_data->fh );
-}
+    my $plate_data = $c->model('Golgi')->process_plate_data( $params, $well_data->fh );
 
-my %PROCESS_FIELDS = (
-    #create_id             => [ qw( design_id bacs ) ],
-    int_recom             => [ qw( cassette backbone ) ],
-    cre_bac_recom         => [ qw( cassette backbone ) ],
-    '2w_gateway'          => [ qw( cassette backbone recombinase ) ],
-    '3w_gateway'          => [ qw( cassette backbone recombinase ) ],
-    recombinase           => [ qw( recombinase ) ],
-    first_electroporation => [ qw( cell_line ) ],
-);
+    #my $plate;
+    #$c->model('Golgi')->txn_do(
+        #sub {
+            #try{
+                #$plate = $c->model('Golgo')->create_plate( $plate_data );
+            #}
+            #catch {
+                #$c->stash->{error_msg} = 'Error encountered while creating plate: ' . $_;
+                #$c->go( 'plate_upload_step2' );
+            #};
+            #$c->model('Golgi')->txn_rollback;
+        #}
+    #);
 
-sub get_process_fields {
-    my ( $process_type ) = @_;
-
-    my %process_fields;
-    my $fields =  exists $PROCESS_FIELDS{$process_type} ? $PROCESS_FIELDS{$process_type} : [];
-
-    # must get this to report hash, keys and fields, values as list of allowed values
-}
-
-my %PROCESS_PLATE_TYPES = (
-    create_id              => [ qw( DESIGN ) ],
-    int_recom              => [ qw( INT ) ],
-    cre_bac_recom          => [ qw( INT ) ],
-    '2w_gateway'           => [ qw( POSTINT FINAL ) ],
-    '3w_gateway'           => [ qw( POSTINT FINAL ) ],
-    dna_prep               => [ qw( DNA ) ],
-    recombinase            => [ qw( FINAL XEP POSTINT ) ],
-    first_electroporation  => [ qw( EP ) ],
-    second_electroporation => [ qw( SEP ) ],
-    clone_pick             => [ qw( EP_PICK SEP_PICK XEP_PICK ) ],
-    clone_pool             => [ qw( SEP_POOL XEP_POOL ) ],
-    freeze                 => [ qw( FP SFP ) ],
-);
-
-sub get_process_plate_types {
-    my $process_type = shift;
-
-    return $PROCESS_PLATE_TYPES{$process_type};
+    #$c->stash->{plate} = $plate;
 }
 
 =head1 AUTHOR

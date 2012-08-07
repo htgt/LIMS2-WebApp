@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
+use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use Const::Fast;
 use namespace::autoclean;
 
@@ -265,6 +266,20 @@ sub get_well_id {
     );
 
     return $well->id;
+}
+
+sub process_plate_data {
+    my ( $self, $params, $well_data_fh ) = @_;
+
+    my %well_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by );
+    my %plate_process_data;
+    for my $field ( @{ process_aux_data_field_list() } ) {
+        $plate_process_data{$field} = $params->{$field} if exists $params->{$field};
+    }
+    ### %well_data
+    ### %plate_process_data
+
+    #$well_data{wells} = \@well_data;
 }
 
 1;
