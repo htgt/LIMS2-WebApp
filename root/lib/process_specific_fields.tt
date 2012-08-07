@@ -1,6 +1,21 @@
 [% IF process_fields.size %]
-  [% FOR field IN process_fields %]
+
+  [% FOR field IN process_fields.keys %]
     <label>[% field.ucfirst.replace( '_', ' ' ) %]</label>
-    <input name="[% field %]" id="[% field %]" type="input">
+
+    [% IF process_fields.defined(field) %]
+      <select name="[% field %]">
+      [% UNLESS $field %]<option value="" selected="selected">-</option>[% END %]
+      [%- FOR field_value IN process_fields.$field %]
+        <option value="[% field_value %]" [% IF field_value == $field %] selected="selected"[% END %]>
+          [% field_value %]
+        </option>
+      [%- END %]
+      </select>
+    [% ELSE %]
+      <input name="[% field %]" id="[% field %]" [% IF $field %] value="[% $field %]"[% END %] type="input">
+    [% END %]
+
   [% END %]
+
 [% END %]
