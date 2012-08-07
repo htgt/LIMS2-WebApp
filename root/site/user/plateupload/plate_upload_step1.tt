@@ -6,22 +6,24 @@
 
 <div class="row">
 
-  <div class="span6 offset3">
-    <form method="GET" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form-inline well" >
+  <div class="span4 offset4" align="center">
+    <form method="GET" id="process_type_select" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form-inline well" >
 
       <label>Process Type</label>
-      <select name="process_type">
+      <select name="process_type" id="process_type">
         <option value="" selected="selected">-</option>
         [%- FOR process_type IN process_types %]
           <option value="[% process_type %]">[% process_type.replace( '_', ' ' ) %]</option>
         [%- END %]
       </select>
 
-      <button name="submit" id="submit" type="submit" value="submit" class="btn">
-        <i class="icon-chevron-right"></i> Next
-      </button>
-
     </form>
   </div>
 
 </div>
+
+<script type="text/javascript">
+  $('#process_type').change(function() {
+    $(this).closest("form").submit();
+  })
+</script>
