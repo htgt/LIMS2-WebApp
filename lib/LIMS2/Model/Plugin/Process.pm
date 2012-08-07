@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use List::MoreUtils qw( uniq notall );
+use LIMS2::Model::Util::CreateProcess qw( process_fields process_plate_types );
 use namespace::autoclean;
 use Const::Fast;
 
@@ -506,7 +507,6 @@ sub _create_process_aux_data_dna_prep {
 }
 ## use critic
 
-
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_clone_pool {
     return;
@@ -553,11 +553,38 @@ sub delete_process {
 }
 
 sub list_process_types {
+    my ($self) = @_;
+
+    return [
+        $self->schema->resultset('ProcessType')->search( {}, { order_by => { -asc => 'id' } } ) ];
+}
+
+sub pspec_get_process_fields {
+    return {
+        process_type => { validate => 'existing_process_type' },
+    };
+}
+
+sub get_process_fields {
     my ( $self, $params ) = @_;
 
-    my @process_types = $self->schema->resultset('ProcessType')->all;
+    my $validated_params = $self->check_params( $params, $self->pspec_get_process_fields );
 
-    return [ map{ $_->id } @process_types ];
+    return process_fields( $self, $validated_params->{process_type} );
+}
+
+sub pspec_get_process_plate_types {
+    return {
+        process_type => { validate => 'existing_process_type' },
+    };
+}
+
+sub get_process_plate_types {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_get_process_plate_types );
+
+    return process_plate_types( $self, $validated_params->{process_type} );
 }
 
 1;
