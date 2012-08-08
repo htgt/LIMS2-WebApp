@@ -8,6 +8,7 @@ use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use Const::Fast;
+use Text::CSV_XS;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -90,6 +91,11 @@ sub create_plate {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
+
+    my $current_plate = $self->schema->resultset('Plate')->find( { name => $validated_params->{name} } );
+    if ( $current_plate ) {
+        $self->throw( Validation => 'Plate ' . $validated_params->{name} . ' already exists' );
+    }
 
     my $plate = $self->schema->resultset('Plate')->create(
         {   slice_def(
@@ -271,15 +277,55 @@ sub get_well_id {
 sub process_plate_data {
     my ( $self, $params, $well_data_fh ) = @_;
 
-    my %well_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by );
-    my %plate_process_data;
-    for my $field ( @{ process_aux_data_field_list() } ) {
-        $plate_process_data{$field} = $params->{$field} if exists $params->{$field};
-    }
-    ### %well_data
-    ### %plate_process_data
+    my %plate_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by );
+    $plate_data{name} = delete $plate_data{plate_name};
+    $plate_data{type} = delete $plate_data{plate_type};
 
-    #$well_data{wells} = \@well_data;
+    my %plate_process_data = map { $_ => $params->{$_} }
+        grep { exists $params->{$_} } @{ process_aux_data_field_list() };
+    $plate_process_data{process_type} = $params->{process_type};
+
+    my $well_data = $self->_parse_well_data_csv( $well_data_fh );
+
+    for my $datum ( @{$well_data} ) {
+        $self->_merge_plate_process_data( $datum, \%plate_process_data );
+    }
+    $plate_data{wells} = $well_data;
+
+    return \%plate_data;
+}
+
+## no critic(RequireFinalReturn)
+sub _merge_plate_process_data {
+    my ( $self, $well_data, $plate_data ) = @_;
+
+    for my $process_field ( keys %{ $plate_data } ) {
+        # insert plate process data only if it is not present in well data
+        $well_data->{$process_field} = $plate_data->{$process_field}
+            if !exists $well_data->{$process_field}
+                or !defined $well_data->{$process_field};
+    }
+
+    #recombinse data needs to be array ref
+    $well_data->{recombinase} = [ delete $well_data->{recombinase} ]
+        if exists $well_data->{recombinase};
+}
+## use critic
+
+sub _parse_well_data_csv {
+    my ( $self, $well_data_fh ) = @_;
+
+    my $csv = Text::CSV_XS->new();
+    $csv->column_names( $csv->getline($well_data_fh) );
+    my $well_data = $csv->getline_hr_all($well_data_fh);
+
+    unless ($well_data) {
+        $self->throw(
+            Validation => sprintf( "failed to parse '%s': %s", $csv->error_input || '', '' . $csv->error_diag)
+        );
+    }
+
+    return $well_data;
 }
 
 1;
