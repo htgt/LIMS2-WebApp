@@ -10,7 +10,9 @@
     <form method="POST" id="plate_create" action="[% c.uri_for( '/user/plate_upload_complete' ) %]" class="form well"  enctype="multipart/form-data" >
 
         <label>Plate Name</label>
-        <input name="plate_name" id="plate_name" type="text" [% IF plate_name %]value="[% plate_name %]"[% END %]/>
+        <input name="plate_name" id="plate_name" type="text"
+          [% IF plate_name %]value="[% plate_name %]"[% END %]
+        />
 
         <label>Process Type</label>
         <input name="process_type" id="process_type" readonly="true" value="[% process_type %]"/>
@@ -33,7 +35,9 @@
         <input name="datafile" type="file">
 
         <label>Description</label>
-        <input name="description" id="description" type="text" [% IF description %]value="[% description %]"[% END %]/>
+        <input name="description" id="description" type="text"
+          [% IF description %]value="[% description %]"[% END %]
+        />
         <span class="help-inline">optional</span>
 
         <br>
