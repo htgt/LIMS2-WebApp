@@ -28,13 +28,37 @@ const my %PROCESS_SPECIFIC_FIELDS => (
     first_electroporation => [ qw( cell_line ) ],
 );
 
-my %process_field_values = (
-    final_cassette        => sub{ return _eng_seq_type_list( shift, 'final-cassette' ) },
-    final_backbone        => sub{ return _eng_seq_type_list( shift, 'final-backbone' ) },
-    intermediate_cassette => sub{ return _eng_seq_type_list( shift, 'intermediate-cassette' ) },
-    intermediate_backbone => sub{ return _eng_seq_type_list( shift, 'intermediate-backbone' ) },
-    cell_line             => sub{ return },
-    recombinase           => sub{ return [ map{ $_->id } shift->schema->resultset('Recombinase')->all ] },
+my %process_field_data = (
+    final_cassette => {
+        values => sub{ return _eng_seq_type_list( shift, 'final-cassette' ) },
+        label  => 'Cassette (Final)',
+        name   => 'cassette',
+    },
+    final_backbone => {
+        values => sub{ return _eng_seq_type_list( shift, 'final-backbone' ) },
+        label  => 'Backbone (Final)',
+        name   => 'backbone',
+    },
+    intermediate_cassette => {
+        values => sub{ return _eng_seq_type_list( shift, 'intermediate-cassette' ) },
+        label  => 'Cassette (Intermediate)',
+        name   => 'cassette',
+    },
+    intermediate_backbone => {
+        values => sub{ return _eng_seq_type_list( shift, 'intermediate-backbone' ) },
+        label  => 'Backbone (Intermediate)',
+        name   => 'backbone',
+    },
+    cell_line => {
+        values => sub{ return },
+        label  => 'Cell Line',
+        name   => 'cell_line',
+    },
+    recombinase => {
+        values => sub{ return [ map{ $_->id } shift->schema->resultset('Recombinase')->all ] },
+        label  => 'Recombinase',
+        name   => 'recombinase',
+    },
 );
 
 sub process_fields {
@@ -45,9 +69,14 @@ sub process_fields {
     for my $field ( @{ $fields } ) {
         LIMS2::Exception::Implementation->throw(
             "Don't know how to setup process field $field"
-        ) unless exists $process_field_values{$field};
+        ) unless exists $process_field_data{$field};
 
-        $process_fields{$field} = $process_field_values{$field}->($model);
+        my $field_values = $process_field_data{$field}{values}->($model);
+        $process_fields{$field} = {
+            values => $field_values,
+            label  => $process_field_data{$field}{label},
+            name   => $process_field_data{$field}{name},
+        };
     }
 
     return \%process_fields;
@@ -76,7 +105,7 @@ sub process_plate_types {
 }
 
 sub process_aux_data_field_list {
-    return [ uniq map{ @{ $_ } } values %PROCESS_SPECIFIC_FIELDS ];
+    return [ uniq map{ $process_field_data{$_}{name} } keys %process_field_data ];
 }
 1;
 
