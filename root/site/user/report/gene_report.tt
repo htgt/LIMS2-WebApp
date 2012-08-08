@@ -329,7 +329,77 @@
     </div>
   </div>
   [%- END %]
-      
+  
+  [%- IF wells.EP_PICK %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEPPICK">First Allele Electroporation Picks</a>
+      </h3>
+    </div>
+    <div id="collapseEPPICK" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>First Allele Electroporation</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.EP_PICK %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.first_ep.as_string %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF wells.SEP_PICK %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSEPPICK">Second Allele Electroporation Picks</a>
+      </h3>
+    </div>
+    <div id="collapseSEPPICK" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>First Allele Electroporation</th>
+            <th>Second Allele Electroporation</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.SEP_PICK %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.first_ep.as_string %]</td>
+              <td>[% well.second_ep.as_string %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
   </div>
 [%- END %]
 

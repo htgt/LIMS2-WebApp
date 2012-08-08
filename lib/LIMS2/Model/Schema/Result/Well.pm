@@ -596,5 +596,36 @@ sub final_vector {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub first_ep {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'EP' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine first electroporation plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub second_ep {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'SEP' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine second electroporation plate/well for $self" );
+}
+## use critic
 __PACKAGE__->meta->make_immutable;
 1;
