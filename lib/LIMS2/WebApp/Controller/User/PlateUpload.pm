@@ -54,17 +54,12 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
 sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    unless ( $c->req->param('create_plate') ) {
-        return $c->res->redirect('/user/plate_upload_step1');
-    }
-
     $c->stash( $c->request->params );
     my $params = $c->request->params;
 
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
         $c->stash->{error_msg} = 'No well data';
-        #TODO this should just be detach?
         $c->go( 'plate_upload_step2' );
     }
 
@@ -73,26 +68,32 @@ sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
         $c->go( 'plate_upload_step2' );
     }
 
+    unless ( $params->{plate_type} ) {
+        $c->stash->{error_msg} = 'Must specify a plate type';
+        $c->go( 'plate_upload_step2' );
+    }
+
     $params->{species} ||= $c->session->{selected_species};
     $params->{created_by} = $c->user->name;
 
     my $plate_data = $c->model('Golgi')->process_plate_data( $params, $well_data->fh );
 
-    #my $plate;
-    #$c->model('Golgi')->txn_do(
-        #sub {
-            #try{
-                #$plate = $c->model('Golgo')->create_plate( $plate_data );
-            #}
-            #catch {
-                #$c->stash->{error_msg} = 'Error encountered while creating plate: ' . $_;
-                #$c->go( 'plate_upload_step2' );
-            #};
-            #$c->model('Golgi')->txn_rollback;
-        #}
-    #);
+    my $plate;
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $plate = $c->model('Golgi')->create_plate( $plate_data );
+            }
+            catch {
+                $c->stash->{error_msg} = 'Error encountered while creating plate: ' . $_;
+                $c->go( 'plate_upload_step2' );
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+    #TODO clear stash
 
-    #$c->stash->{plate} = $plate;
+    $c->stash->{plate} = $plate;
 }
 
 =head1 AUTHOR
