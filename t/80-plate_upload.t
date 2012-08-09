@@ -17,6 +17,7 @@ ok $mech->submit_form(
 ), 'Login with correct username and password';
 
 {
+    note( "set undef process type" );
     $mech->get_ok( '/user/plate_upload_step1' );
     $mech->title_is('Plate Upload');
     ok my $res = $mech->submit_form(
@@ -30,6 +31,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "set invalid process type" );
     $mech->get_ok( '/user/plate_upload_step1' );
     $mech->title_is('Plate Upload');
     ok my $res = $mech->submit_form(
@@ -43,6 +45,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "set process type to rearray" );
     $mech->get_ok( '/user/plate_upload_step1' );
     $mech->title_is('Plate Upload');
     ok my $res = $mech->submit_form(
@@ -56,6 +59,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "set process type to first_electroporation" );
     $mech->get_ok( '/user/plate_upload_step1' );
     $mech->title_is('Plate Upload');
     ok my $res = $mech->submit_form(
@@ -70,6 +74,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "2w_gateway process type form check" );
     $mech->get_ok( '/user/plate_upload_step2?process_type=2w_gateway' );
     $mech->title_is('Plate Upload 2');
     $mech->text_contains('Backbone', '...have Backbone field');
@@ -79,6 +84,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "No well data file set" );
     $mech->get_ok( '/user/plate_upload_step2?process_type=first_electroporation' );
     $mech->title_is('Plate Upload 2');
     $mech->text_contains('Cell Line', '...have Cell Line field');
@@ -98,6 +104,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "No plate_name set" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print('Test File');
 
@@ -119,6 +126,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "No plate_type set" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print('Test File');
 
@@ -139,6 +147,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "Invalid well data csv file" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 
     $mech->get_ok( '/user/plate_upload_step2?process_type=first_electroporation' );
@@ -159,6 +168,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "No well data" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print('Test File');
     $test_file->seek( 0, 0 );
@@ -182,6 +192,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "Invalid well data" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print("well_name,parent_plate,parent_well,cell_line\n" 
                       . "BLAH,MOHFAQ001_A_2,A01,cell_line_foo");
@@ -205,6 +216,7 @@ ok $mech->submit_form(
 }
 
 {
+    note( "Successful plate create" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print("well_name,parent_plate,parent_well,cell_line\n" 
                       . "A01,MOHFAQ0001_A_2,A01,cell_line_foo");
