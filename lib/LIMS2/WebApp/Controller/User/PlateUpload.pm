@@ -21,6 +21,7 @@ sub begin :Private {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    return;
 }
 
 sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
@@ -31,6 +32,7 @@ sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
     $c->stash(
         process_types => [ grep{ !/create_di/ } @process_types ],
     );
+    return;
 }
 
 sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
@@ -49,13 +51,14 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
     );
 
     my $step = $c->request->params->{plate_upload_step};
-    return unless $step == 2;
+    return if !$step  || $step != 2;
 
     my $plate = $self->process_plate_upload_form( $c );
     return unless $plate;
 
     $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
     $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
+    return;
 }
 
 sub process_plate_upload_form :Private {
