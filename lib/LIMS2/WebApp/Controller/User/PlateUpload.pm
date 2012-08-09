@@ -31,6 +31,7 @@ sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
 
     $c->stash(
         process_types => [ grep{ !/create_di/ } @process_types ],
+        plate_help  => $c->model('Golgi')->plate_help_info,
     );
     return;
 }

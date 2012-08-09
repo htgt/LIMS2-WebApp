@@ -7,6 +7,8 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
+use LIMS2::Model::Constants
+    qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
 use Const::Fast;
 use Try::Tiny;
 use Text::CSV_XS;
@@ -332,6 +334,22 @@ sub _parse_well_data_csv {
         unless @{$well_data};
 
     return $well_data;
+}
+
+sub plate_help_info {
+    my ($self) = @_;
+    my %plate_info;
+
+    for my $process ( keys %PROCESS_PLATE_TYPES ) {
+        next if $process eq 'create_di';
+        $plate_info{$process}{plate_types} = $PROCESS_PLATE_TYPES{$process};
+        $plate_info{$process}{data}
+            = exists $PROCESS_SPECIFIC_FIELDS{$process} ? $PROCESS_SPECIFIC_FIELDS{$process} : [];
+        $plate_info{$process}{template} = $PROCESS_TEMPLATE{$process};
+
+    }
+
+    return \%plate_info;
 }
 
 1;

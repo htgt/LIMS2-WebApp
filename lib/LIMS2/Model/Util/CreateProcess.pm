@@ -17,16 +17,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use List::MoreUtils qw( uniq );
 use LIMS2::Exception;
-use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES );
-
-const my %PROCESS_SPECIFIC_FIELDS => (
-    int_recom             => [ qw( intermediate_cassette intermediate_backbone ) ],
-    cre_bac_recom         => [ qw( intermediate_cassette intermediate_backbone ) ],
-    '2w_gateway'          => [ qw( final_cassette final_backbone recombinase ) ],
-    '3w_gateway'          => [ qw( final_cassette final_backbone recombinase ) ],
-    recombinase           => [ qw( recombinase ) ],
-    first_electroporation => [ qw( cell_line ) ],
-);
+use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS );
 
 my %process_field_data = (
     final_cassette => {
