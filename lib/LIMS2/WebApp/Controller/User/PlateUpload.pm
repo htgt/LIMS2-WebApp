@@ -59,7 +59,7 @@ sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
 
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
-        $c->stash->{error_msg} = 'No well data';
+        $c->stash->{error_msg} = 'No csv file with well data specified';
         $c->go( 'plate_upload_step2' );
     }
 
@@ -76,13 +76,11 @@ sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
     $params->{species} ||= $c->session->{selected_species};
     $params->{created_by} = $c->user->name;
 
-    my $plate_data = $c->model('Golgi')->process_plate_data( $params, $well_data->fh );
-
     my $plate;
     $c->model('Golgi')->txn_do(
         sub {
             try{
-                $plate = $c->model('Golgi')->create_plate( $plate_data );
+                $plate = $c->model('Golgi')->create_plate_csv_upload( $params, $well_data->fh );
             }
             catch {
                 $c->stash->{error_msg} = 'Error encountered while creating plate: ' . $_;

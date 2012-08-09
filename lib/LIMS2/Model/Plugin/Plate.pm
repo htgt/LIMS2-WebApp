@@ -274,9 +274,10 @@ sub get_well_id {
     return $well->id;
 }
 
-sub process_plate_data {
+sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
 
+    #validation done of create_plate, not needed here
     my %plate_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by );
     $plate_data{name} = delete $plate_data{plate_name};
     $plate_data{type} = delete $plate_data{plate_type};
@@ -292,7 +293,7 @@ sub process_plate_data {
     }
     $plate_data{wells} = $well_data;
 
-    return \%plate_data;
+    return $self->create_plate( \%plate_data );
 }
 
 ## no critic(RequireFinalReturn)
