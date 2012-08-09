@@ -48,10 +48,17 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         plate_types    => $c->model('Golgi')->get_process_plate_types( { process_type => $process_type } ),
     );
 
-    return;
+    my $step = $c->request->params->{plate_upload_step};
+    return unless $step == 2;
+
+    my $plate = $self->process_plate_upload_form( $c );
+    return unless $plate;
+
+    $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
+    $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
 }
 
-sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
+sub process_plate_upload_form :Private {
     my ( $self, $c ) = @_;
 
     $c->stash( $c->request->params );
@@ -60,17 +67,17 @@ sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';
-        $c->go( 'plate_upload_step2' );
+        return;
     }
 
     unless ( $params->{plate_name} ) {
         $c->stash->{error_msg} = 'Must specify a plate name';
-        $c->go( 'plate_upload_step2' );
+        return;
     }
 
     unless ( $params->{plate_type} ) {
         $c->stash->{error_msg} = 'Must specify a plate type';
-        $c->go( 'plate_upload_step2' );
+        return;
     }
 
     $params->{species} ||= $c->session->{selected_species};
@@ -84,14 +91,12 @@ sub plate_upload_complete :Path( '/user/plate_upload_complete' ) :Args(0) {
             }
             catch {
                 $c->stash->{error_msg} = 'Error encountered while creating plate: ' . $_;
-                $c->go( 'plate_upload_step2' );
                 $c->model('Golgi')->txn_rollback;
             };
         }
     );
-    #TODO clear stash
 
-    $c->stash->{plate} = $plate;
+    return $plate ? $plate : undef;
 }
 
 =head1 AUTHOR

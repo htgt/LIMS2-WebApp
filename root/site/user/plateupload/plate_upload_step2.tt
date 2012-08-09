@@ -7,7 +7,9 @@
 <div class="row">
 
   <div class="span6 offset3">
-    <form method="POST" id="plate_create" action="[% c.uri_for( '/user/plate_upload_complete' ) %]" class="form well"  enctype="multipart/form-data" >
+    <form method="POST" id="plate_create" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <input name="plate_upload_step" value="2" type="hidden"/>
 
         <label>Plate Name</label>
         <input name="plate_name" id="plate_name" type="text"
