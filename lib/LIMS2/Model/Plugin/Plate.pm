@@ -8,6 +8,7 @@ use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use Const::Fast;
+use Try::Tiny;
 use Text::CSV_XS;
 use namespace::autoclean;
 
@@ -304,7 +305,7 @@ sub _merge_plate_process_data {
         # insert plate process data only if it is not present in well data
         $well_data->{$process_field} = $plate_data->{$process_field}
             if !exists $well_data->{$process_field}
-                or !defined $well_data->{$process_field};
+                || !defined $well_data->{$process_field};
     }
 
     #recombinse data needs to be array ref
@@ -315,16 +316,20 @@ sub _merge_plate_process_data {
 
 sub _parse_well_data_csv {
     my ( $self, $well_data_fh ) = @_;
+    my $well_data;
 
     my $csv = Text::CSV_XS->new();
-    $csv->column_names( $csv->getline($well_data_fh) );
-    my $well_data = $csv->getline_hr_all($well_data_fh);
-
-    unless ($well_data) {
-        $self->throw(
-            Validation => sprintf( "failed to parse '%s': %s", $csv->error_input || '', '' . $csv->error_diag)
-        );
+    try {
+        $csv->column_names( $csv->getline($well_data_fh) );
+        $well_data = $csv->getline_hr_all($well_data_fh);
     }
+    catch {
+        $self->log->debug( sprintf( "Error parsing well data csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
+        $self->throw( Validation => "Invalid well data csv file" );
+    };
+
+    $self->throw( Validation => 'No well data in file')
+        unless @{$well_data};
 
     return $well_data;
 }
