@@ -226,5 +226,12 @@ ok $mech->submit_form(
     like $res->content, qr/Created new plate EPTEST/ , '...page has create new plate message';
 }
 
+{
+    note( "Delete newly created plate" );
+
+    lives_ok {
+        model->delete_plate( { name => 'EPTEST' } )
+    } 'delete plate';
+}
 
 done_testing;
