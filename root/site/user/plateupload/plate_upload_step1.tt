@@ -22,47 +22,11 @@
 
 </div>
 
-
-<div class="accordion" id="accordion2">
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="btn btn-info " data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
-        <i class="icon-question-sign"></i> Plate Create Help
-      </a>
-    </div>
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Process</th>
-          <th>Plate Types</th>
-          <th>Specific Data Fields</th>
-          <th>Template</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        [% FOR process IN plate_help.keys %]
-          <tr>
-            <td>[% process %]</td>
-            <td>[% plate_help.$process.plate_types.join(' ') %]</td>
-            <td>[% plate_help.$process.data.join(' ') %]</td>
-            <td><a href="[% c.uri_for('/static/files/plate_upload/') %][% plate_help.$process.template %]"><i class="icon-download"></td>
-          </tr>
-        [% END %]
-      </tbody>
-
-    </table>
-      </div>
-    </div>
-  </div>
-</div>
+[% INCLUDE 'plate_upload_help.tt' plate_help = plate_help %]
 
 <script type="text/javascript">
   $('#process_type').change(function() {
     $(this).closest("form").submit();
   })
 
-  $("#help").collapse();
 </script>

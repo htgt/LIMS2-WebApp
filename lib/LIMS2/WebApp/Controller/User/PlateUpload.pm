@@ -49,6 +49,7 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         process_type   => $process_type,
         process_fields => $c->model('Golgi')->get_process_fields( { process_type => $process_type } ),
         plate_types    => $c->model('Golgi')->get_process_plate_types( { process_type => $process_type } ),
+        plate_help     => $c->model('Golgi')->plate_help_info,
     );
 
     my $step = $c->request->params->{plate_upload_step};
