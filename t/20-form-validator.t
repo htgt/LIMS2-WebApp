@@ -103,4 +103,21 @@ ok my $dfv_profile = model->form_validator->dfv_profile( $pspec ),
     }
 }
 
+{
+    my %pspec = ( cassette => { validate => 'existing_intermediate_cassette' } );
+
+    lives_ok {
+        model->check_params( { cassette => 'pR6K_R1R2_ZP' }, \%pspec )
+    } 'validate cassettte';
+
+    throws_ok {
+        model->check_params( { cassette => 'pR6K_R1R2_ZP', foo => 'foo' }, \%pspec );
+    } 'LIMS2::Exception::Validation', "Throw error if unknown value passed in";
+
+    lives_ok {
+        model->check_params( { cassette => 'pR6K_R1R2_ZP', foo => 'foo' }, \%pspec, ignore_unknown => 1 );
+    } 'ignore extra param values when ignore_unknown flag set';
+
+}
+
 done_testing;
