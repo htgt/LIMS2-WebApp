@@ -8,3 +8,4 @@ ddl/lims2_staging
 ddl/lims2_sp12
 cover_db
 app.psgi
+tmp
