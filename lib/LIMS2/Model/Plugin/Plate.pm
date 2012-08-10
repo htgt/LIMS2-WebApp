@@ -307,7 +307,7 @@ sub _merge_plate_process_data {
         # insert plate process data only if it is not present in well data
         $well_data->{$process_field} = $plate_data->{$process_field}
             if !exists $well_data->{$process_field}
-                || !defined $well_data->{$process_field};
+                || !$well_data->{$process_field};
     }
 
     #recombinse data needs to be array ref

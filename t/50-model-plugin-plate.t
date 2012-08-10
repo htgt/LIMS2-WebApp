@@ -128,6 +128,7 @@ note( "Plate Create - merge plate process data" );
         parent_plate => 'MOHFAQ0001_A_2',
         parent_well  => 'A01',
         cassette     => 'test_cassette',
+        backbone     => '',
         recombinase  => 'Cre'
     };
 
