@@ -76,6 +76,10 @@ sub check_params {
         $self->throw( Validation => { params => $params, results => $results } );
     }
 
+    if ( $results->has_unknown && !$opts{ignore_unknown} ) {
+        $self->throw( Validation => { params => $params, results => $results } );
+    }
+
     my $validated_params = $results->valid;
 
     while ( my ( $field, $f_spec ) = each %{$spec} ) {

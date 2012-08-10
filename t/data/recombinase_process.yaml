@@ -1,7 +1,6 @@
 ---
 valid_input:
     type: recombinase
-    cassette: L1L2_Bact_P
     output_wells:
         - plate_name: MOHSAS0001_A
           well_name: A01
