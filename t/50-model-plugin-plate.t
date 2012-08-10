@@ -12,6 +12,7 @@ use LIMS2::Test;
 use Test::Most;
 use Try::Tiny;
 use DateTime;
+use File::Temp ':seekable';
 
 my $plate_data= test_data( 'plate.yaml' );
 note( "Testing plate creation" );
@@ -84,6 +85,100 @@ note( "Plate Assay Complete" );
     is $well->assay_complete,'2012-05-21T00:00:00', 'assay complete is correct';
 }
 
+
+note( "Plate Create - Parse well data CSV" );
+
+{
+    my $empty_test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+
+    throws_ok {
+        model->_parse_well_data_csv( $empty_test_file );
+    } qr/Invalid well data csv file/;
+
+    my $no_well_data_test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $no_well_data_test_file->print("well_name,parent_plate,parent_well,cell_line\n" );
+    $no_well_data_test_file->seek( 0, 0 );
+
+    throws_ok {
+        model->_parse_well_data_csv( $no_well_data_test_file );
+    } qr/No well data in file/;
+
+    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $test_file->print("well_name,parent_plate,parent_well,cell_line\n"
+                      . "A01,MOHFAQ0001_A_2,A01,cell_line_foo");
+    $test_file->seek( 0, 0 );
+
+    ok my $well_data = model->_parse_well_data_csv( $test_file ), 'parses valid well data csv file';
+
+    is_deeply $well_data, [
+        {   well_name    => 'A01',
+            parent_plate => 'MOHFAQ0001_A_2',
+            parent_well  => 'A01',
+            cell_line    => 'cell_line_foo'
+        }
+    ] , 'well_data array is as expected';
+
+}
+
+note( "Plate Create - merge plate process data" );
+
+{
+    my $well_data = {
+        well_name    => 'A01',
+        parent_plate => 'MOHFAQ0001_A_2',
+        parent_well  => 'A01',
+        cassette     => 'test_cassette',
+        backbone     => '',
+        recombinase  => 'Cre'
+    };
+
+    my $plate_data = {
+        backbone => 'test_backbone',
+        cassette => 'wrong_cassette',
+        process_type => '2w_gateway',
+    };
+
+    ok model->_merge_plate_process_data( $well_data, $plate_data );
+
+    is_deeply $well_data, {
+        well_name    => 'A01',
+        parent_plate => 'MOHFAQ0001_A_2',
+        parent_well  => 'A01',
+        cassette     => 'test_cassette',
+        backbone     => 'test_backbone',
+        process_type => '2w_gateway',
+        recombinase  => ['Cre'],
+    }, 'well_data array is as expected';
+
+}
+
+note( "Plate Create CSV Upload" );
+
+{
+    my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
+    $test_file->print( "well_name,parent_plate,parent_well,cell_line\n"
+            . "A01,MOHFAQ0001_A_2,A01\n"
+            . "A02,MOHFAQ0001_A_2,A02\n" );
+    $test_file->seek( 0, 0 );
+
+    my $plate_params = {
+        plate_name   => 'EPTEST',
+        species      => 'Mouse',
+        plate_type   => 'EP',
+        process_type => 'first_electroporation',
+        created_by   => 'test_user@example.org',
+        cell_line    => 'cell_line_bar',
+    };
+
+    ok my $plate = model->create_plate_csv_upload( $plate_params, $test_file ),
+        'called create_plate_csv_upload';
+    is $plate->name,    'EPTEST', '...expected plate name';
+    is $plate->type_id, 'EP',     '...expected plate type';
+    ok my $wells = $plate->wells, '..plate has wells';
+    is $wells->count, 2, '..there are 2 wells';
+
+}
+
 {
     note( "Testing delete_plate" );
 
@@ -94,8 +189,15 @@ note( "Plate Assay Complete" );
     lives_ok {
         model->delete_plate( { name => 'EP10001' } )
     } 'delete plate';
+
+    lives_ok {
+        model->delete_plate( { name => 'SEP10001' } )
+    } 'delete plate';
+
+    lives_ok {
+        model->delete_plate( { name => 'EPTEST' } )
+    } 'delete plate';
 }
 
 #TODO add tests for set_plate_assay_complete
-
 done_testing();

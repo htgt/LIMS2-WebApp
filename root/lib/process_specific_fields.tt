@@ -1,0 +1,25 @@
+[% IF process_fields.size %]
+
+  [% FOR field IN process_fields.keys %]
+    [% field_data = process_fields.$field %]
+    <label>[% process_fields.$field.label %]</label>
+
+    [% IF field_data.defined('values') %]
+      <select name="[% field_data.name %]">
+      [% UNLESS ${field_data.name} %]<option value="" selected="selected">-</option>[% END %]
+      [%- FOR field_value IN field_data.values %]
+        <option value="[% field_value %]" [% IF field_value == ${field_data.name} %] selected="selected"[% END %]>
+          [% field_value %]
+        </option>
+      [%- END %]
+      </select>
+    [% ELSE %]
+      <input name="[% field_data.name %]" id="[% field_data.name %]" type="input"
+        [% IF ${field_data.name} %] value="[% ${field_data.name}  %]"[% END %]
+      />
+    [% END %]
+    <span class="help-inline">if not specified in csv must be set</span>
+
+  [% END %]
+
+[% END %]

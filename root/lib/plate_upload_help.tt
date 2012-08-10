@@ -1,0 +1,119 @@
+<div class="accordion" id="accordian">
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="icon-question-sign"></i> Plate Create Help
+      </a>
+    </div>
+
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <p>
+          This form is used to create plates using well data from csv files, it is broken up into 2 steps.
+        </p>
+        <p>
+          If there are any errors in the data or missing data a warning will show up and the plate will not
+          be created. If all the data is valid then the plate will be created and the page will be forwarded to
+          a view of the plate just created.
+        </p>
+
+        <div class="well">
+          <h6>Step 1</h6>
+          <p>
+            A process type must first be selected, this customises the form in step 2.<br>
+            A list of plate types linked to each process type is listed <a data-toggle="collapse" href="#collapseTwo">below</a>
+          </p>
+        </div>
+
+        <div class="well">
+          <h6>Step 2</h6>
+          <p>
+            Fill in basic plate details in step two, the compulsory fields are.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>Plate Name</dt>
+              <dd>Must contain only letters, numbers or underscores</dd>
+              <dt>Plate Type</dt>
+              <dd>May be pre-selected if only one plate type is associated with the process</dd>
+            </dl>
+          <p>
+            The optional fields are listed below <strong>Note:</strong> <em>These fields are process type specific so will not always show up</em>.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>Description</dt>
+              <dd>Plate description</dd>
+              <dt>Cassette</dt>
+              <dd>Well specify intermediate or final cassettes as appropriate</dd>
+              <dt>Backbone</dt>
+              <dd>Well specify intermediate or final backcones as appropriate</dd>
+              <dt>Recombinase</dt>
+              <dd>Name of recombinase applied</dd>
+              <dt>Cell Line</dt>
+              <dd>The cell line the vector is electroporated into</dd>
+            </dl>
+          <p>
+            Depending on the process type there may also be additional optional fields available.
+            For example for a recombinase process the Recombinase drop down will appear. You can apply
+            a recombinase to all the wells on the plate using this field.
+            <strong>Note:</strong> <em>You can still specify the these fields in the well data csv file, these values will take presedence.</em>
+          </p>
+
+          <p>
+            Finally you must select the well data
+            <abbr title="comma seperated values" class="initialism">csv</abbr> file,
+            you can find templates for the well data csv file
+            <a href="#collapseTwo" date-toggle="collapse">below</a>, these are process / plate type specific.
+            Use these as a starting point for creating the well data csv files.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+        <i class="icon-question-sign"></i> Plate Create Templates
+      </a>
+    </div>
+
+    <div id="collapseTwo" class="accordion-body collapse">
+      <div class="accordion-inner">
+
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Process</th>
+              <th>Plate Types</th>
+              <th>Specific Data Fields</th>
+              <th>Template</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            [% FOR process IN plate_help.keys %]
+              <tr>
+                <td>[% process %]</td>
+                <td>[% plate_help.$process.plate_types.join(' ') %]</td>
+                <td>[% plate_help.$process.data.join(' ') %]</td>
+                <td>
+                  <a href="[% c.uri_for('/static/files/plate_upload/') %][% plate_help.$process.template %]">
+                    <i class="icon-download"></i> Download
+                  </a>
+                </td>
+              </tr>
+            [% END %]
+          </tbody>
+
+        </table>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
