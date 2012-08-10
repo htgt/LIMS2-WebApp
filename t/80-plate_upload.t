@@ -77,9 +77,8 @@ ok $mech->submit_form(
     note( "2w_gateway process type form check" );
     $mech->get_ok( '/user/plate_upload_step2?process_type=2w_gateway' );
     $mech->title_is('Plate Upload 2');
-    $mech->text_contains('Backbone', '...have Backbone field');
-    $mech->text_contains('Cassette', '...have Cassette field');
-    $mech->text_lacks('Cell Line', '...does not have Cell Line field');
+    $mech->text_contains('Backbone (Final)', '...have Backbone field');
+    $mech->text_contains('Cassette (Final)', '...have Cassette field');
 
 }
 
