@@ -5,7 +5,7 @@ valid_input:
     backbone: L3L4_pZero_kan
     output_wells:
         - plate_name: MOHSAS0001_A
-          well_name: A01
+          well_name: J01
     input_wells: 
         - plate_name: PCS00177_A
           well_name: G02
@@ -17,14 +17,14 @@ missing_input_well:
     backbone: L3L4_pZero_kan
     output_wells:
         - plate_name: MOHSAS0001_A
-          well_name: A01
+          well_name: J02
 invalid_input_well:
     type: 3w_gateway
     cassette: L1L2_Bact_P
     backbone: L3L4_pZero_kan
     output_wells:
         - plate_name: MOHSAS0001_A
-          well_name: A01
+          well_name: J03
     input_wells: 
         - plate_name: 100
           well_name: F06

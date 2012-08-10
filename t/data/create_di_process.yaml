@@ -3,7 +3,7 @@ valid_input:
     type: create_di
     output_wells:
         - plate_name: 100
-          well_name: F06
+          well_name: A01
     design_id: 95120
     bacs:
       - bac_plate: a
@@ -13,7 +13,7 @@ invalid_input_wells:
     type: create_di
     output_wells:
         - plate_name: 100
-          well_name: F06
+          well_name: A02
     design_id: 1
     bacs:
     input_wells:
@@ -27,7 +27,7 @@ invalid_design_id:
     type: create_di
     output_wells:
         - plate_name: 100
-          well_name: F06
+          well_name: A03
     design_id: 9999999999
     bacs:
       - bac_plate: a

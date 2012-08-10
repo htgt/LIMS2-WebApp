@@ -15,3 +15,5 @@ CREATE TABLE projects (
 GRANT SELECT ON projects TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON projects TO "[% rw_role %]";
 GRANT USAGE ON projects_id_seq TO "[% rw_role %]";
+
+ALTER TABLE process_output_well ADD UNIQUE(well_id);

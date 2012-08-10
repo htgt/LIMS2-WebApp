@@ -33,7 +33,7 @@ my $create_di_process_data= test_data( 'create_di_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'F06', 'output well has correct name';
+    is $output_well->name, 'A01', 'output well has correct name';
     is $output_well->plate->name, '100', '..and is on correct plate';
 }
 
@@ -70,7 +70,7 @@ my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'G02', 'output well has correct name';
+    is $output_well->name, 'A01', 'output well has correct name';
     is $output_well->plate->name, 'PCS00177_A', '..and is on correct plate';
 }
 
@@ -105,7 +105,7 @@ my $process_data_2w_gateway= test_data( '2w_gateway_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'I01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
@@ -150,7 +150,7 @@ my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'J01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
@@ -190,7 +190,7 @@ my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'K01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 }
 
@@ -217,7 +217,7 @@ my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'M01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
@@ -244,7 +244,7 @@ my $rearray_process_data= test_data( 'rearray_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 }
 
@@ -271,7 +271,7 @@ my $dna_prep_process_data= test_data( 'dna_prep_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAQ0001_A_2', '..and is on correct plate';
 }
 
@@ -298,7 +298,7 @@ my $first_electroporation_data= test_data( 'first_electroporation.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'FEP0006', '..and is on correct plate';
 
     ok my $process_cell_line = $process->process_cell_line, 'process has process_cell_line';
@@ -327,7 +327,7 @@ my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'SEP0006', '..and is on correct plate';
 
 }
@@ -351,7 +351,7 @@ my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'FEPD0006_1', '..and is on correct plate';
 }
 
@@ -359,7 +359,6 @@ my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
 ## we would be testing is the input well checks, find some way to test this seperately?
 ## freeze
 ## clone_pool
-## clone_pick
 ##
 ## can also test dna_prep and rearray process like this
 

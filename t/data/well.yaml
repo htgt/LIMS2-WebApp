@@ -1,7 +1,7 @@
 ---
 well_create:
     plate_name: PCS00177_A
-    well_name: A01
+    well_name: B01
     created_by: test_user@example.org
     process_data:
         type: int_recom
@@ -12,22 +12,19 @@ well_create:
         backbone: R3R4_pBR_amp
 well_retrieve:
     plate_name: PCS00177_A
-    well_name: A01
+    well_name: B01
 well_accepted_override_create:
     plate_name: PCS00177_A
-    well_name: A01
+    well_name: B01
     created_by: test_user@example.org
     accepted: 0
 well_accepted_override_update:
     plate_name: PCS00177_A
-    well_name: A01
+    well_name: B01
     created_by: test_user@example.org
     accepted: 1
 well_accepted_override_update_same:
     plate_name: PCS00177_A
-    well_name: A01
+    well_name: B01
     created_by: test_user@example.org
     accepted: 1
-
-
-

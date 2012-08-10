@@ -21,7 +21,7 @@ note( "Testing well creation" );
         'create_well should succeed';
     isa_ok $well, 'LIMS2::Model::Schema::Result::Well';
     is $well->created_by->name, 'test_user@example.org', 'well has correct created by user';
-    is $well->name, 'A01', 'well has correct name';
+    is $well->name, 'B01', 'well has correct name';
     is $well->plate->name, 'PCS00177_A', 'well belongs to correct plate';
 
     ok my $retrieve_well = model->retrieve_well( { id => $well->id } ),
@@ -34,7 +34,7 @@ note( "Testing well creation" );
     ok my $well = model->retrieve_well( $well_data->{well_retrieve} ),
         'retrieve_plate by name should succeed';
     isa_ok $well, 'LIMS2::Model::Schema::Result::Well';
-    is $well->name, 'A01', 'retrieved correct well';
+    is $well->name, 'B01', 'retrieved correct well';
     is $well->plate->name, 'PCS00177_A', '.. on correct plate';
 
     note( "Testing create well accepted override" );
@@ -102,7 +102,7 @@ note( "Testing well creation" );
     note( "Testing delete_well" );
 
     lives_ok {
-        model->delete_well( { plate_name => 'PCS00177_A', well_name => 'A01' } )
+        model->delete_well( { plate_name => 'PCS00177_A', well_name => 'B01' } )
     } 'delete well';
 }
 

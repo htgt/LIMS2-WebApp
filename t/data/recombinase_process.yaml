@@ -3,7 +3,7 @@ valid_input:
     type: recombinase
     output_wells:
         - plate_name: MOHSAS0001_A
-          well_name: A01
+          well_name: M01
     input_wells: 
         - plate_name: PCS00177_A
           well_name: G02
