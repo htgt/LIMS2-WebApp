@@ -9,3 +9,13 @@ valid_input:
           well_name: A01
         - plate_name: MOHFAQ0001_A_2
           well_name: A01
+invalid_output_well:
+    type: second_electroporation
+    output_wells:
+        - plate_name: FEP0006
+          well_name: N01
+    input_wells:
+        - plate_name: MOHSAQ0001_A_2
+          well_name: A01
+        - plate_name: MOHFAQ0001_A_2
+          well_name: A01

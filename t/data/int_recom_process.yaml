@@ -26,3 +26,25 @@ invalid_input_well:
           well_name: A01
     cassette: pR6K_R1R2_ZP
     backbone: R3R4_pBR_amp
+invalid_output_well:
+    type: int_recom
+    output_wells:
+        - plate_name: FEP0006
+          well_name: A01
+    input_wells: 
+        - plate_name: 100
+          well_name: F06
+    cassette: pR6K_R1R2_ZP
+    backbone: R3R4_pBR_amp
+multiple_output_wells:
+    type: int_recom
+    output_wells:
+        - plate_name: PCS00177_A 
+          well_name: A03
+        - plate_name: PCS00177_A 
+          well_name: A02
+    input_wells: 
+        - plate_name: 100
+          well_name: F06
+    cassette: pR6K_R1R2_ZP
+    backbone: R3R4_pBR_amp

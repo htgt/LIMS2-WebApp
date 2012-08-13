@@ -7,6 +7,7 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use List::MoreUtils qw( uniq notall );
 use LIMS2::Model::Util::CreateProcess qw( process_fields process_plate_types );
+use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES );
 use namespace::autoclean;
 use Const::Fast;
 
@@ -112,62 +113,95 @@ sub check_input_wells {
     return;
 }
 
+sub check_output_wells {
+    my ( $self, $process ) = @_;
+
+    my $process_type = $process->type_id;
+
+    my @output_wells = $process->output_wells;
+    my $count        = scalar @output_wells;
+    # Only expect one output well per process, but schema can handle multiple
+    $self->throw( Validation => "Process should have 1 output well (got $count)")
+        unless $count == 1;
+
+    return unless exists $PROCESS_PLATE_TYPES{$process_type};
+
+    my @types = uniq map { $_->plate->type_id } @output_wells;
+    my %expected_output_process_types
+        = map { $_ => 1 } @{ $PROCESS_PLATE_TYPES{$process_type} };
+
+    $self->throw( Validation => "$process_type process output well should be type "
+            . join( ',', keys %expected_output_process_types )
+            . ' (got '
+            . join( ',', @types )
+            . ')' )
+        if notall { exists $expected_output_process_types{$_} } @types;
+
+    return;
+}
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_create_di {
+sub _check_wells_create_di {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_int_recom {
+sub _check_wells_int_recom {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_2w_gateway {
+sub _check_wells_2w_gateway {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_3w_gateway {
+sub _check_wells_3w_gateway {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_recombinase {
+sub _check_wells_recombinase {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_cre_bac_recom {
+sub _check_wells_cre_bac_recom {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_rearray {
+sub _check_wells_rearray {
     my ( $self, $process ) = @_;
 
     # XXX Does not allow for pooled rearray
@@ -194,55 +228,61 @@ sub _check_input_wells_rearray {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_dna_prep {
+sub _check_wells_dna_prep {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_clone_pick {
+sub _check_wells_clone_pick {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_clone_pool {
+sub _check_wells_clone_pool {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_first_electroporation {
+sub _check_wells_first_electroporation {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_second_electroporation {
+sub _check_wells_second_electroporation {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_input_wells_freeze {
+sub _check_wells_freeze {
     my ( $self, $process ) = @_;
 
     $self->check_input_wells($process);
+    $self->check_output_wells($process);
     return;
 }
 ## use critic
@@ -274,16 +314,12 @@ sub create_process {
             process_output_wells => { well_id => $self->_well_id_for($output_well) } );
     }
 
-    my $check_input_wells = '_check_input_wells_' . $validated_params->{type};
+    my $check_wells = '_check_wells_' . $validated_params->{type};
     $self->throw( Implementation =>
-            "Don't know how to validate input wells for process type $validated_params->{type}" )
-        unless $self->can($check_input_wells);
+            "Don't know how to validate wells for process type $validated_params->{type}" )
+        unless $self->can($check_wells);
 
-    $self->$check_input_wells($process);
-
-    # XXX We have checked the types of the input wells; should we
-    # check that (at the very least) all of the output wells are of
-    # the same type?
+    $self->$check_wells($process);
 
     delete @{$params}{qw( type input_wells output_wells )};
 

@@ -9,3 +9,13 @@ valid_input:
           well_name: G02
     recombinase:
         - Cre
+invalid_output_well:
+    type: recombinase
+    output_wells:
+        - plate_name: FEP0006
+          well_name: N01
+    input_wells: 
+        - plate_name: PCS00177_A
+          well_name: G02
+    recombinase:
+        - Cre
