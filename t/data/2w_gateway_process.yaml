@@ -33,3 +33,12 @@ invalid_input_well:
     input_wells: 
         - plate_name: 100
           well_name: F06
+invalid_output_well:
+    type: 2w_gateway
+    cassette: L1L2_Bact_P
+    output_wells:
+        - plate_name: 100
+          well_name: F06
+    input_wells: 
+        - plate_name: PCS00177_A
+          well_name: G02

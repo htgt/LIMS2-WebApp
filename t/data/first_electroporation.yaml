@@ -8,3 +8,12 @@ valid_input:
         - plate_name: MOHSAQ0001_A_2
           well_name: A01
     cell_line: foo cell line
+invalid_output_well:
+    type: first_electroporation
+    output_wells:
+        - plate_name: SEP0006
+          well_name: A01
+    input_wells:
+        - plate_name: MOHSAQ0001_A_2
+          well_name: A01
+    cell_line: foo cell line
