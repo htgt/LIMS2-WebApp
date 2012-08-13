@@ -89,6 +89,13 @@ SELECT pg_catalog.setval('processes_id_seq', 1269, true);
 
 
 --
+-- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('projects_id_seq', 1, false);
+
+
+--
 -- Name: qc_alignments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
@@ -155,7 +162,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1816, true);
+SELECT pg_catalog.setval('wells_id_seq', 1840, true);
 
 
 --
@@ -6931,6 +6938,30 @@ INSERT INTO wells VALUES (1812, 985, 'H09', 985, '2012-07-11 00:00:00', NULL, NU
 INSERT INTO wells VALUES (1813, 985, 'H10', 985, '2012-07-11 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1814, 985, 'H11', 985, '2012-07-11 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1815, 985, 'H12', 985, '2012-07-11 00:00:00', NULL, NULL, false);
+INSERT INTO wells VALUES (1817, 935, 'A01', 722, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1818, 935, 'A02', 722, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1819, 935, 'A03', 722, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1820, 904, 'A01', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1821, 904, 'A02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1822, 904, 'A03', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1823, 904, 'M01', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1824, 978, 'I01', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1825, 978, 'I02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1826, 978, 'I03', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1827, 978, 'I04', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1828, 978, 'J01', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1829, 978, 'J02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1830, 978, 'J03', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1831, 978, 'K01', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1832, 978, 'K02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1833, 978, 'M01', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1834, 978, 'N01', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1835, 978, 'N02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1836, 977, 'N01', 985, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1837, 977, 'N02', 985, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1838, 979, 'N01', 985, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1839, 983, 'N01', 985, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1840, 980, 'N01', 985, '2012-08-13 08:23:11.17237', NULL, NULL, false);
 
 
 --
@@ -8910,6 +8941,24 @@ INSERT INTO process_recombinase VALUES (1073, 'Flp', 1);
 
 
 --
+-- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+INSERT INTO sponsors VALUES ('Core', 'Homozygous - Core');
+INSERT INTO sponsors VALUES ('Syboss', 'Homozygous - Syboss');
+INSERT INTO sponsors VALUES ('Pathogens', 'Homozygous - Pathogens');
+INSERT INTO sponsors VALUES ('Cre Knockin', 'EUCOMMTools-Cre Knockin');
+INSERT INTO sponsors VALUES ('Cre BAC', 'EUCOMMTools-Cre BAC');
+INSERT INTO sponsors VALUES ('Human', 'Homozygous - Human');
+
+
+--
+-- Data for Name: projects; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
 -- Data for Name: qc_eng_seqs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -9011,18 +9060,6 @@ INSERT INTO roles VALUES (504, 'read');
 --
 
 INSERT INTO species_default_assembly VALUES ('Mouse', 'NCBIM37');
-
-
---
--- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO sponsors VALUES ('Core', 'Homozygous - Core');
-INSERT INTO sponsors VALUES ('Syboss', 'Homozygous - Syboss');
-INSERT INTO sponsors VALUES ('Pathogens', 'Homozygous - Pathogens');
-INSERT INTO sponsors VALUES ('Cre Knockin', 'EUCOMMTools-Cre Knockin');
-INSERT INTO sponsors VALUES ('Cre BAC', 'EUCOMMTools-Cre BAC');
-INSERT INTO sponsors VALUES ('Human', 'Homozygous - Human');
 
 
 --
