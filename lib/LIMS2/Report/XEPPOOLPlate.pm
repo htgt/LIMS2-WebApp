@@ -1,4 +1,4 @@
-package LIMS2::Report::PICKPlate;
+package LIMS2::Report::XEPPOOLPlate;
 
 use Moose;
 use namespace::autoclean;
@@ -6,28 +6,21 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
-    return [ 'EP_PICK', 'XEP_PICK' ];
+    return [ 'XEP_POOL' ];
 };
 
 override _build_name => sub {
     my $self = shift;
 
-    return 'Pick Plate ' . $self->plate_name;
+    return 'XEP Pool Plate ' . $self->plate_name;
 };
 
-# Basic columns, will need to add more as these plate reports start
-# getting used.
-# Probaby need to add:
-# well primer bands
-# child wells
-# parent well
-# qc results
+# Basic columns, will need to add more
 override _build_columns => sub {
     my $self = shift;
 
     return [
         $self->base_columns,
-        "Cassette", "Recombinases", "Cell Line",
     ];
 };
 
@@ -48,14 +41,8 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
-        my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
-        my $cell_line = $process_cell_line ? $process_cell_line->cell_line : '';
-
         return [
             $self->base_data( $well ),
-            $well->cassette->name,
-            join( q{/}, @{ $well->recombinases } ),
-            $cell_line,
         ];
     };
 };

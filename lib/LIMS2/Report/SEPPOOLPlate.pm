@@ -1,18 +1,18 @@
-package LIMS2::Report::POOLPlate;
+package LIMS2::Report::SEPPOOLPlate;
 
 use Moose;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
+extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
 
 override plate_types => sub {
-    return [ 'SEP_POOL', 'XEP_POOL' ];
+    return [ 'SEP_POOL' ];
 };
 
 override _build_name => sub {
     my $self = shift;
 
-    return 'Pool Plate ' . $self->plate_name;
+    return 'SEP Pool Plate ' . $self->plate_name;
 };
 
 # Basic columns, will need to add more
