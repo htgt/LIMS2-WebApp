@@ -162,7 +162,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1840, true);
+SELECT pg_catalog.setval('wells_id_seq', 1841, true);
 
 
 --
