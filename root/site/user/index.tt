@@ -1,5 +1,8 @@
 [% META title = "HTGT LIMS2"; META tab_name = "Home" -%]
-<h1>Welcome to LIMS2</h1>
+
+<div class="page-header">
+  <h1>Welcome to LIMS2</h1>
+</div>
 
 <p>
   Welcome to the new the High Throughput Gene Targeting (HTGT) lab
@@ -58,6 +61,3 @@
     </a>
   </li>
 </ul>
-
-
-

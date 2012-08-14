@@ -1,10 +1,15 @@
 [% META title = 'LIMS2 User Admin'; META tab_name = 'Admin' -%]
-<h1>User Administration</h1>
+
+<div class="page-header">
+  <h1>User Administration</h1>
+</div>
+
+<a href="[% c.uri_for( '/admin/create_user' ) %]" class="btn btn-primary">Create new user</a>
 
 <table class="table table-striped">
   <thead>
     <tr>
-      <th>User name</th>
+      th>User Name</th>
       <th>Roles</th>
       <th></th>
     </tr>
@@ -18,7 +23,7 @@
       <td>
         [% u.roles.join(", ") %]
       </td>
-      <td>        
+      <td>
         <a href="[% c.uri_for( '/admin/update_user', { user_id => u.id } ) %]" class="btn btn-primary">
           Update
         </a>
@@ -37,4 +42,3 @@
   </tbody>
 </table>
 
-<a href="[% c.uri_for( '/admin/create_user' ) %]" class="btn btn-primary">Create new user</a>

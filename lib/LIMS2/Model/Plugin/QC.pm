@@ -578,7 +578,7 @@ sub _build_qc_runs_search_params {
 }
 
 sub pspec_retrieve_qc_run {
-    return { id => { validate => 'integer' }, };
+    return { id => { validate => 'uuid' }, };
 }
 
 sub retrieve_qc_run {
