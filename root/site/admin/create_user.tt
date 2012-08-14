@@ -13,7 +13,7 @@
       [% FOR r IN roles %]
       <input type="checkbox" name="user_roles" value="[% r.name %]" [%- IF checked_role.${r.name} %] checked="checked"[% END %]> [% r.name.ucfirst %]</input><br>
       [% END %]
-    </fieldset>        
+    </fieldset>
     <br>
     <a href="[% c.uri_for( '/admin' ) %]" class="btn btn-info">Cancel</a>
     <input class="btn btn-primary" name="create_user" id="create_user_button" type="submit" value="Create User" />

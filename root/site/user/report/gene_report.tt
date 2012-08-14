@@ -77,7 +77,7 @@
           <tbody>
             [%- FOR design IN designs %]
             <tr>
-              <td><a href="[% c.uri_for( '/user/view_design', { design_id => design.id } ) %]">[% design.id %]</a></td>        
+              <td><a href="[% c.uri_for( '/user/view_design', { design_id => design.id } ) %]">[% design.id %]</a></td>
               <td>[% design.name %]</td>
               <td>[% design.design_type_id %]</td>
               <td>[% design.created_by.name %]</td>
@@ -117,7 +117,7 @@
             <th>Created at</th>
             <th>Design Id</th>
             <th>Recombineering result</th>
-            <th>Accepted?</th>      
+            <th>Accepted?</th>
           </thead>
           <tbody>
             [%- FOR well IN wells.DESIGN %]
@@ -135,7 +135,7 @@
       </div>
     </div>
   </div>
-  [%- END %]        
+  [%- END %]
 
   [%- IF wells.INT %]
   <div class="accordion-group">
@@ -150,7 +150,7 @@
       </div>
     </div>
   </div>
-  [%- END %]        
+  [%- END %]
 
   [%- IF wells.POSTINT %]
   <div class="accordion-group">
@@ -165,7 +165,7 @@
        </div>
     </div>
   </div>
-  [%- END %]        
+  [%- END %]
 
   [%- SET well_type = "FINAL" %]
   [%- IF wells.$well_type %]
@@ -332,7 +332,7 @@
     </div>
   </div>
   [%- END %]
-  
+
   [%- IF wells.EP_PICK %]
   <div class="accordion-group">
     <div class="accordion-heading">

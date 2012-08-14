@@ -95,7 +95,7 @@
 [% ELSE %]
   <p><em>No oligos for this design</em></p>
 [% END %]
-  
+
 
 <h2>Genotyping Primers</h2>
 [% IF design.genotyping_primers.size > 0 %]
