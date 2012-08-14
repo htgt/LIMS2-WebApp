@@ -1,10 +1,11 @@
-<h1>Select sponsor</h1>
+<div class="page-header">
+  <h1>Select Sponsor</h1>
+</div>
 
-<p>Please select which sponsor you would like to view results for.</p>
 
 <form method="POST" action="[% c.uri_for( "/user/report/cache/${report_name}" ) %]" class="well">
   <fieldset>
-    <label for="sponsor_field">Sponsor</label>
+    <label for="sponsor_field">Please select which sponsor you would like to view results for:</label>
     <select name="sponsor" id="sponor_field">
       <option value = "All">All</option>
       <option value="Syboss">Syboss</option>

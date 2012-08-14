@@ -1,5 +1,8 @@
 [%- META title="View Plate"; META tab_name = "Browse" %]
-<h1>Plate [% plate.name %]</h1>
+
+<div class="page-header">
+  <h1>Plate <small>[% plate.name %]</small></h1>
+</div>
 
 <table class="table">
   <thead>
