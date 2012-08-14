@@ -1,7 +1,7 @@
 [% META title = "View Qc Runs" %]
 <form method="GET" class="well form-inline">
   <fieldset>
-    <h3>Filter QC Runs</h3>
+    <legend>Filter QC Runs</legend>
     <label for="sequencing_project">Sequencing Project</label>
     <input name="sequencing_project" id="sequencing_project" type="text" autocomplete="off" />
     <label for="template_plate">Template Plate</label>
