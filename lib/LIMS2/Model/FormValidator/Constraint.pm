@@ -9,6 +9,7 @@ use URI;
 use Text::CSV;
 use Const::Fast;
 use JSON qw( decode_json );
+use Scalar::Util qw( openhandle );
 
 # See http://www.postgresql.org/docs/9.0/static/datatype-numeric.html
 const my $MIN_INT => -2147483648;
@@ -371,6 +372,18 @@ sub hashref {
     return sub {
         ref $_[0] eq ref {};
     }
+}
+
+sub file_handle {
+    return sub {
+        my $val = shift;
+        my $fh = openhandle( $val );
+        return $fh ? 1 : 0;
+    }
+}
+
+sub pass_or_fail {
+    return regexp_matches(qr/^(pass|fail)$/i);
 }
 
 1;
