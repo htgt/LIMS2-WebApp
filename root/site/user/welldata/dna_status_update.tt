@@ -1,0 +1,28 @@
+[%- META title = 'DNA Status Update'; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Plate DNA Status Update</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="dna_status_update" action="[% c.uri_for( '/user/dna_status_update' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>Plate Name</label>
+        <input name="plate_name" id="plate_name" type="text"
+          [% IF plate_name %]value="[% plate_name %]"[% END %]
+        />
+
+        <label>DNA Status Data File</label>
+        <input name="datafile" type="file">
+
+        <br>
+        <br>
+        <button name="update_dna_status" id="update_dna_status" type="submit" value="update_dna_status" class="btn">
+            <i class="icon-upload"></i> Update DNA Status 
+        </button>
+    </form>
+  </div>
+
+</div>
