@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
+use List::MoreUtils qw( none );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Constants
@@ -289,7 +290,7 @@ sub create_plate_csv_upload {
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
 
-    my $well_data = $self->_parse_well_data_csv( $well_data_fh );
+    my $well_data = $self->_parse_csv( $well_data_fh );
 
     for my $datum ( @{$well_data} ) {
         $self->_merge_plate_process_data( $datum, \%plate_process_data );
@@ -316,25 +317,6 @@ sub _merge_plate_process_data {
 }
 ## use critic
 
-sub _parse_well_data_csv {
-    my ( $self, $well_data_fh ) = @_;
-    my $well_data;
-
-    my $csv = Text::CSV_XS->new();
-    try {
-        $csv->column_names( $csv->getline($well_data_fh) );
-        $well_data = $csv->getline_hr_all($well_data_fh);
-    }
-    catch {
-        $self->log->debug( sprintf( "Error parsing well data csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
-        $self->throw( Validation => "Invalid well data csv file" );
-    };
-
-    $self->throw( Validation => 'No well data in file')
-        unless @{$well_data};
-
-    return $well_data;
-}
 
 sub plate_help_info {
     my ($self) = @_;
@@ -350,6 +332,110 @@ sub plate_help_info {
     }
 
     return \%plate_info;
+}
+
+sub pspec_update_plate_dna_status {
+    return {
+        plate_name => { validate => 'existing_plate_name' },
+        species    => { validate => 'existing_species' },
+        user_name  => { validate => 'existing_user' },
+        csv_fh     => { validate => 'file_handle' },
+    };
+}
+
+use Smart::Comments;
+#TODO move this to a better plugin, or create new one
+sub update_plate_dna_status {
+    my ( $self, $params, $dna_status_fh ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_plate_dna_status );
+
+    my $data = $self->_parse_csv( $validated_params->{csv_fh} );
+
+    my $plate = $self->retrieve_plate( { name => $validated_params->{plate_name} } );
+    $self->_check_plate_type( $plate, [ qw(DNA) ]  );
+
+    for my $datum ( @{$data} ) {
+        my $dna_status_params = $self->_check_dna_status( $datum, $plate );
+        $self->create_well_dna_status(
+            +{
+                %{ $dna_status_params },
+                plate_name => $validated_params->{plate_name},
+                created_by => $validated_params->{user_name},
+            }
+        );
+    }
+
+    return;
+}
+
+sub _check_plate_type {
+    my ( $self, $plate, $types ) = @_;
+
+    ### $types
+    ### name : $plate->name
+
+    if ( none{ $plate->type_id eq $_ } @{ $types } ) {
+        $self->throw( Validation => 'Invalid plate type '
+                . $plate->type_id . ' for plate '
+                . $plate->name
+                . ',expected plates of of type(s) ' . join( ',', @{$types} ) );
+    }
+}
+
+sub pspec__check_dna_status {
+    return {
+        well_name => { validate  => 'well_name' },
+        pass      => { validate  => 'pass_or_fail', post_filter => 'pass_to_boolean' },
+        comments  => { validated => 'non_empty_string', optional => 1, rename => 'comment_text' },
+    };
+}
+
+#TODO test csv file with empty lines
+sub _check_dna_status {
+    my ( $self, $params, $plate ) = @_;
+    ### $params
+
+    my $validated_params = $self->check_params( $params, $self->pspec__check_dna_status );
+    ### $validated_params
+
+    my $dna_status;
+    try {
+        $dna_status = $self->retrieve_well_dna_status(
+            { plate_name => $plate->name, well_name => $validated_params->{well_name} } );
+    };
+
+    $self->throw( Validation => 'Well ' . $plate->name . '['
+            . $validated_params->{well_name} . '] already has a dna status' )
+        if $dna_status;
+
+    return $validated_params;
+}
+
+sub _parse_csv {
+    my ( $self, $fh ) = @_;
+    my $data;
+
+    my $csv = Text::CSV_XS->new();
+    try {
+        $csv->column_names( $csv->getline($fh) );
+        $data = $csv->getline_hr_all($fh);
+    }
+    catch {
+        $self->log->debug( sprintf( "Error parsing csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
+        $self->throw( Validation => "Invalid csv file" );
+    };
+
+    $self->throw( Validation => 'No data in file')
+        unless @{$data};
+
+    #delete keys from each hash where we have no value
+    for my $datum ( @{ $data } ) {
+        my @empty_keys = grep{ !$datum->{$_} } keys %{ $datum };
+        delete @{ $datum }{ @empty_keys };
+    }
+
+    return $data;
 }
 
 1;
