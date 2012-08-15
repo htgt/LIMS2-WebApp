@@ -717,6 +717,12 @@ sub qc_eng_seq_sequence {
         $validated_params->{format} );
 }
 
+sub pass_to_boolean {
+    my ( $self, $pass_or_fail ) = @_;
+
+    return $pass_or_fail =~ /^pass$/i ? '1' : $pass_or_fail =~ /^fail$/i ? '0' : undef;
+}
+
 1;
 
 __END__
