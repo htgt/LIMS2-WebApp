@@ -120,4 +120,31 @@ ok my $dfv_profile = model->form_validator->dfv_profile( $pspec ),
 
 }
 
+{
+
+    my %pspec = (
+        name    => { validate => 'non_empty_string' },
+        comment => { validate => 'non_empty_string', optional =>1, rename => 'comment_text' },
+        user    => { validate => 'existing_user', optional =>1, post_filter => 'user_id_for' },
+    );
+
+    my $validated_params;
+    lives_ok {
+        $validated_params = model->check_params( { name => 'test' }, \%pspec )
+    } 'validate test values';
+
+    is_deeply $validated_params, { name => 'test' }, '.. validated params hash only has name';
+
+    my $validated_params2;
+    lives_ok {
+        $validated_params2 = model->check_params(
+            { name => 'test', user => 'test_user@example.org', comment => 'comment' }, \%pspec );
+    }
+    'validate test values';
+
+    is_deeply $validated_params2, { name => 'test', comment_text => 'comment', user => 1 },
+        '.. validated params hash has all 3 values';
+
+}
+
 done_testing;
