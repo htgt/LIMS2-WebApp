@@ -83,6 +83,8 @@ sub check_params {
     my $validated_params = $results->valid;
 
     while ( my ( $field, $f_spec ) = each %{$spec} ) {
+        next unless $validated_params->{$field};
+
         if ( $f_spec->{post_filter} ) {
             $validated_params->{$field} = $self->post_filter( $f_spec->{post_filter}, $validated_params->{$field} );
         }
