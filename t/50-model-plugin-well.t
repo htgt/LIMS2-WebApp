@@ -99,6 +99,31 @@ note( "Testing well creation" );
 }
 
 {
+    note("Testing well dna status create, retrieve and delete");
+
+    throws_ok {
+        model->create_well_dna_status( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', pass => 1, created_by => 'test_user@example.org' }  );
+    } qr/Well MOHFAQ0001_A_2_D04 already has a dna status of pass/;
+
+    ok my $dna_status = model->retrieve_well_dna_status( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } ), 'can retrieve dna status for well';
+    is $dna_status->pass, 1, 'dna status is pass';
+    ok my $well = $dna_status->well, '.. can grab well from dna_status';
+    is "$well", 'MOHFAQ0001_A_2_D04', '.. and dna_status is for right well';
+
+    lives_ok {
+        model->delete_well_dna_status( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
+    } 'delete well dna status';
+
+    throws_ok {
+       model->retrieve_well_dna_status( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
+    } qr/No WellDnaStatus entity found/;
+
+    ok my $new_dna_status = model->create_well_dna_status( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', pass => 1, created_by => 'test_user@example.org' }  ), 'can create well dna status';
+    is $new_dna_status->pass, 1, 'dna status is pass';
+    is $well->id, $new_dna_status->well_id , '.. and dna_status is for right well';
+}
+
+{
     note( "Testing delete_well" );
 
     lives_ok {
