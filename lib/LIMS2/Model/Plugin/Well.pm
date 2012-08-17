@@ -263,6 +263,18 @@ sub retrieve_well_dna_status {
     return $dna_status;
 }
 
+sub delete_well_dna_status {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $dna_status = $self->retrieve_well_dna_status( $params );
+
+    $dna_status->delete;
+    $self->log->debug( 'Well DNA status deleted for well  ' . $dna_status->well_id );
+
+    return;
+}
+
 sub pspec_create_well_dna_quality {
     return {
         well_id      => { validate => 'integer', optional => 1, rename => 'id' },
