@@ -14,7 +14,7 @@ use Sub::Exporter -setup => {
 
 use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( none );
-use LIMS2::Exception;
+use LIMS2::Exception::Validation;
 use Text::CSV_XS;
 use IO::File;
 use Try::Tiny;
@@ -47,7 +47,8 @@ sub upload_plate_dna_status {
             }
         );
 
-        push @success_message, $dna_status->well->name . ' - ' . ( $dna_status->pass == 1 ? 'pass' : 'fail' );
+        push @success_message,
+            $dna_status->well->name . ' - ' . ( $dna_status->pass == 1 ? 'pass' : 'fail' );
     }
 
     return \@success_message;
@@ -59,7 +60,7 @@ sub check_plate_type {
     if ( none{ $plate->type_id eq $_ } @{ $types } ) {
         LIMS2::Exception::Validation->throw(
             'Invalid plate type ' . $plate->type_id . ' for plate '
-            . $plate->name . ',expected plates of of type(s) ' . join( ',', @{$types} )
+            . $plate->name . ', expected plates of type(s) ' . join( ',', @{$types} )
         );
     }
 
