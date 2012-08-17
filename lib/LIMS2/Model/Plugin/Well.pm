@@ -236,9 +236,17 @@ sub create_well_dna_status {
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
+    #will need to provide some method of changing the dna status level on a well
+    if ( my $dna_status = $well->well_dna_status ) {
+        $self->throw( Validation => "Well $well already has a dna status of "
+                . ( $dna_status->pass == 1 ? 'pass' : 'fail' )
+        );
+    }
+
     my $dna_status = $well->create_related(
         well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
     );
+    $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
 
     return $dna_status;
 }
