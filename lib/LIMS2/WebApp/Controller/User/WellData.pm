@@ -52,7 +52,10 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
     $c->model('Golgi')->txn_do(
         sub {
             try{
-                $c->model('Golgi')->update_plate_dna_status( \%params );
+                my $msg = $c->model('Golgi')->update_plate_dna_status( \%params );
+                $c->stash->{success_msg} = "Uploaded dna status information onto plate $plate_name:<br>"
+                    . join("<br>", @{ $msg  });
+                $c->stash->{plate_name} = '';
             }
             catch {
                 $c->stash->{error_msg} = 'Error encountered while updating dna status data for plate: ' . $_;
@@ -60,8 +63,6 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
             };
         }
     );
-
-    $c->stash->{status_msg} = 'Well done dna status updated';
 
     return;
 }
