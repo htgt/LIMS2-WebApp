@@ -346,7 +346,7 @@ sub update_plate_dna_status {
 
     my $validated_params = $self->check_params( $params, $self->pspec_update_plate_dna_status );
 
-    return upload_plate_dna_status( $self, $validated_params ); 
+    return upload_plate_dna_status( $self, $validated_params );
 }
 
 1;
