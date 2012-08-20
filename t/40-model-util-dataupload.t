@@ -34,9 +34,9 @@ note('Testing parse_csv_file');
         } 'can parse csv file';
 
         is_deeply $csv_data, [
-            { comments => 'this is a proper pass', pass => 'pass', well_name => 'B01' },
-            { pass => 'pass', well_name => 'E06' },
-            { pass => 'fail', well_name => 'G03' },
+            { comments => 'this is a proper pass', dna_status_result => 'pass', well_name => 'B01' },
+            { dna_status_result => 'pass', well_name => 'E06' },
+            { dna_status_result => 'fail', well_name => 'G03' },
         ], 'data array returned is as expected';
 
     }
@@ -90,7 +90,7 @@ note('Testing upload_plate_dna_status');
                 user_name  => 'test_user@example.org'
             }
         );
-    } qr/pass, is invalid: pass_or_fail/;
+    } qr/dna_status_result, is invalid: pass_or_fail/;
 
 }
 

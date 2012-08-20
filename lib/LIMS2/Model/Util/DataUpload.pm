@@ -22,9 +22,9 @@ use Perl6::Slurp;
 
 sub pspec__check_dna_status {
     return {
-        well_name => { validate  => 'well_name' },
-        pass      => { validate  => 'pass_or_fail', post_filter => 'pass_to_boolean' },
-        comments  => { validated => 'non_empty_string', optional => 1, rename => 'comment_text' },
+        well_name         => { validate  => 'well_name' },
+        dna_status_result => { validate  => 'pass_or_fail', post_filter  => 'pass_to_boolean', rename => 'pass' },
+        comments          => { validated => 'non_empty_string', optional => 1, rename => 'comment_text' },
     };
 }
 

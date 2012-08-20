@@ -56,7 +56,7 @@ ok $mech->submit_form(
 {
     note( "Invalid csv data" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("well_name,pass\n"
+    $test_file->print("well_name,dna_status_result\n"
                       . "BLAH,pass");
     $test_file->seek( 0, 0 );
 
@@ -80,7 +80,7 @@ ok $mech->submit_form(
 {
     note( "Successful creation of dna status values" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("well_name,pass,comments\n"
+    $test_file->print("well_name,dna_status_result,comments\n"
                       . "D02,pass,this is a comment");
     $test_file->seek( 0, 0 );
 
