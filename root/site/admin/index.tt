@@ -9,7 +9,7 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      th>User Name</th>
+      <th>User Name</th>
       <th>Roles</th>
       <th></th>
     </tr>
