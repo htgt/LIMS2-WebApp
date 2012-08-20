@@ -85,41 +85,6 @@ note( "Plate Assay Complete" );
     is $well->assay_complete,'2012-05-21T00:00:00', 'assay complete is correct';
 }
 
-
-note( "Plate Create - Parse well data CSV" );
-
-{
-    my $empty_test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-
-    throws_ok {
-        model->_parse_well_data_csv( $empty_test_file );
-    } qr/Invalid well data csv file/;
-
-    my $no_well_data_test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $no_well_data_test_file->print("well_name,parent_plate,parent_well,cell_line\n" );
-    $no_well_data_test_file->seek( 0, 0 );
-
-    throws_ok {
-        model->_parse_well_data_csv( $no_well_data_test_file );
-    } qr/No well data in file/;
-
-    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("well_name,parent_plate,parent_well,cell_line\n"
-                      . "A01,MOHFAQ0001_A_2,A01,cell_line_foo");
-    $test_file->seek( 0, 0 );
-
-    ok my $well_data = model->_parse_well_data_csv( $test_file ), 'parses valid well data csv file';
-
-    is_deeply $well_data, [
-        {   well_name    => 'A01',
-            parent_plate => 'MOHFAQ0001_A_2',
-            parent_well  => 'A01',
-            cell_line    => 'cell_line_foo'
-        }
-    ] , 'well_data array is as expected';
-
-}
-
 note( "Plate Create - merge plate process data" );
 
 {

@@ -7,11 +7,11 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
+use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status parse_csv_file );
 use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
 use Const::Fast;
 use Try::Tiny;
-use Text::CSV_XS;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -289,7 +289,7 @@ sub create_plate_csv_upload {
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
 
-    my $well_data = $self->_parse_well_data_csv( $well_data_fh );
+    my $well_data = parse_csv_file( $well_data_fh );
 
     for my $datum ( @{$well_data} ) {
         $self->_merge_plate_process_data( $datum, \%plate_process_data );
@@ -316,26 +316,6 @@ sub _merge_plate_process_data {
 }
 ## use critic
 
-sub _parse_well_data_csv {
-    my ( $self, $well_data_fh ) = @_;
-    my $well_data;
-
-    my $csv = Text::CSV_XS->new();
-    try {
-        $csv->column_names( $csv->getline($well_data_fh) );
-        $well_data = $csv->getline_hr_all($well_data_fh);
-    }
-    catch {
-        $self->log->debug( sprintf( "Error parsing well data csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
-        $self->throw( Validation => "Invalid well data csv file" );
-    };
-
-    $self->throw( Validation => 'No well data in file')
-        unless @{$well_data};
-
-    return $well_data;
-}
-
 sub plate_help_info {
     my ($self) = @_;
     my %plate_info;
@@ -350,6 +330,23 @@ sub plate_help_info {
     }
 
     return \%plate_info;
+}
+
+sub pspec_update_plate_dna_status {
+    return {
+        plate_name => { validate => 'existing_plate_name' },
+        species    => { validate => 'existing_species' },
+        user_name  => { validate => 'existing_user' },
+        csv_fh     => { validate => 'file_handle' },
+    };
+}
+
+sub update_plate_dna_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_plate_dna_status );
+
+    return upload_plate_dna_status( $self, $validated_params );
 }
 
 1;
