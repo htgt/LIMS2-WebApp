@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Cassette;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Cassette::VERSION = '0.012';
+    $LIMS2::Model::Schema::Result::Cassette::VERSION = '0.013';
 }
 ## use critic
 
@@ -77,6 +77,12 @@ __PACKAGE__->table("cassettes");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 conditional
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -97,6 +103,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "phase",
   { data_type => "integer", is_nullable => 1 },
+  "conditional",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -143,8 +151,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-10 10:11:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D+Xo7L3yZPvoYe83AEbPcg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-30 15:29:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yDxwXjmUylL8sHtQ9ZhAxQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

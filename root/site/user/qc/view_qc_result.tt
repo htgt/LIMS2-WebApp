@@ -10,13 +10,28 @@
 <br>
 <br>
 
-<div class="well">
-  <strong>QC Run:</strong>
-  <a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a><br>
-  <strong>Run Date:</strong>
-  [% qc_run.created_at %]<br>
-  <strong>Qc Template:</strong> [% qc_run.qc_template %]<br>
-  <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]<br>
+<div class="row">
+  <div class="span6">
+    <div class="well">
+      <dl>
+        <dt>QC Run</dt>
+        <dd><a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a></dd>
+        <dt>Run Date</dt>
+        <dd>[% qc_run.created_at %]</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="span6">
+    <div class="well">
+      <dl>
+        <dt>Qc Template</dt>
+        <dd>[% qc_run.qc_template %]</dd>
+        <dt>Sequencing Project(s)</dt>
+        <dd>[%  qc_run.sequencing_projects.join(' - ') %]</dd>
+      </dl>
+    </div>
+  </div>
 </div>
 
 <h2>Sequence Reads</h2>

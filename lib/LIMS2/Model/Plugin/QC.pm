@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.012';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.013';
 }
 ## use critic
 
@@ -132,6 +132,9 @@ sub _build_qc_template_search_params {
 
     if ( $params->{name} ) {
         $search{'me.name'} = $params->{name};
+    }
+    else {
+        $self->throw( System => 'Can not build qc template search params without a template name');
     }
 
     if ( $params->{created_before} ) {
@@ -460,7 +463,7 @@ sub create_qc_run {
 
     if ( !defined $validated_params->{qc_template_id} ) {
         my $template = $self->retrieve_qc_templates(
-            { qc_template_name => $validated_params->{qc_template_name}, latest => 1 } )->[0];
+            { name => $validated_params->{qc_template_name}, latest => 1 } )->[0];
         $validated_params->{qc_template_id} = $template->id;
     }
 
@@ -581,7 +584,7 @@ sub _build_qc_runs_search_params {
 }
 
 sub pspec_retrieve_qc_run {
-    return { id => { validate => 'integer' }, };
+    return { id => { validate => 'uuid' }, };
 }
 
 sub retrieve_qc_run {
@@ -718,6 +721,12 @@ sub qc_eng_seq_sequence {
 
     return retrieve_qc_eng_seq_sequence( $self->eng_seq_builder, $qc_test_result,
         $validated_params->{format} );
+}
+
+sub pass_to_boolean {
+    my ( $self, $pass_or_fail ) = @_;
+
+    return $pass_or_fail =~ /^pass$/i ? '1' : $pass_or_fail =~ /^fail$/i ? '0' : undef;
 }
 
 1;

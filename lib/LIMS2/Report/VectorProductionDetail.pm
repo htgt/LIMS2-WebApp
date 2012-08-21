@@ -1,13 +1,14 @@
 package LIMS2::Report::VectorProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionDetail::VERSION = '0.012';
+    $LIMS2::Report::VectorProductionDetail::VERSION = '0.013';
 }
 ## use critic
 
 
 use Moose;
 use DateTime;
+use LIMS2::AlleleRequestFactory;
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::ProductionDetail );
@@ -30,6 +31,10 @@ override _build_columns => sub {
 override _build_plate_type => sub {
     'FINAL';
 };
+
+has '+allele_request_wells_method' => (
+    default => 'all_vector_wells'
+);
 
 __PACKAGE__->meta->make_immutable;
 

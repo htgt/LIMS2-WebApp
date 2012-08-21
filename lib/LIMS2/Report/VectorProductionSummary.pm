@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionSummary::VERSION = '0.012';
+    $LIMS2::Report::VectorProductionSummary::VERSION = '0.013';
 }
 ## use critic
 
@@ -22,8 +22,14 @@ has species => (
     required => 1
 );
 
+has sponsor => (
+    is        => 'ro',
+    isa       => 'Str',
+    predicate => 'has_sponsor'
+);
+
 has '+param_names' => (
-    default => sub { [ 'species' ] }
+    default => sub { [ 'species', 'sponsor' ] }
 );
 
 override _build_name => sub {
@@ -48,7 +54,14 @@ override iterator => sub {
 
     my $date_formatter = DateTime::Format::Strptime->new( pattern => '%b %Y' );
 
-    my $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model, species => $self->species );
+    my $detail;
+    if ( $self->has_sponsor ) {
+        $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model, species => $self->species, sponsor => $self->sponsor );
+    }
+    else{
+        $detail = LIMS2::Report::VectorProductionDetail->new( model => $self->model, species => $self->species );
+    }
+
     my @detail_cols = @{ $detail->columns };
 
     my @vectors;

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.012';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.013';
 }
 ## use critic
 
@@ -12,7 +12,12 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
+use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
+use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status parse_csv_file );
+use LIMS2::Model::Constants
+    qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
 use Const::Fast;
+use Try::Tiny;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -95,6 +100,11 @@ sub create_plate {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
+
+    my $current_plate = $self->schema->resultset('Plate')->find( { name => $validated_params->{name} } );
+    if ( $current_plate ) {
+        $self->throw( Validation => 'Plate ' . $validated_params->{name} . ' already exists' );
+    }
 
     my $plate = $self->schema->resultset('Plate')->create(
         {   slice_def(
@@ -271,6 +281,78 @@ sub get_well_id {
     );
 
     return $well->id;
+}
+
+sub create_plate_csv_upload {
+    my ( $self, $params, $well_data_fh ) = @_;
+
+    #validation done of create_plate, not needed here
+    my %plate_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by );
+    $plate_data{name} = delete $plate_data{plate_name};
+    $plate_data{type} = delete $plate_data{plate_type};
+
+    my %plate_process_data = map { $_ => $params->{$_} }
+        grep { exists $params->{$_} } @{ process_aux_data_field_list() };
+    $plate_process_data{process_type} = $params->{process_type};
+
+    my $well_data = parse_csv_file( $well_data_fh );
+
+    for my $datum ( @{$well_data} ) {
+        $self->_merge_plate_process_data( $datum, \%plate_process_data );
+    }
+    $plate_data{wells} = $well_data;
+
+    return $self->create_plate( \%plate_data );
+}
+
+## no critic(RequireFinalReturn)
+sub _merge_plate_process_data {
+    my ( $self, $well_data, $plate_data ) = @_;
+
+    for my $process_field ( keys %{ $plate_data } ) {
+        # insert plate process data only if it is not present in well data
+        $well_data->{$process_field} = $plate_data->{$process_field}
+            if !exists $well_data->{$process_field}
+                || !$well_data->{$process_field};
+    }
+
+    #recombinse data needs to be array ref
+    $well_data->{recombinase} = [ delete $well_data->{recombinase} ]
+        if exists $well_data->{recombinase};
+}
+## use critic
+
+sub plate_help_info {
+    my ($self) = @_;
+    my %plate_info;
+
+    for my $process ( keys %PROCESS_PLATE_TYPES ) {
+        next if $process eq 'create_di';
+        $plate_info{$process}{plate_types} = $PROCESS_PLATE_TYPES{$process};
+        $plate_info{$process}{data}
+            = exists $PROCESS_SPECIFIC_FIELDS{$process} ? $PROCESS_SPECIFIC_FIELDS{$process} : [];
+        $plate_info{$process}{template} = $PROCESS_TEMPLATE{$process};
+
+    }
+
+    return \%plate_info;
+}
+
+sub pspec_update_plate_dna_status {
+    return {
+        plate_name => { validate => 'existing_plate_name' },
+        species    => { validate => 'existing_species' },
+        user_name  => { validate => 'existing_user' },
+        csv_fh     => { validate => 'file_handle' },
+    };
+}
+
+sub update_plate_dna_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_plate_dna_status );
+
+    return upload_plate_dna_status( $self, $validated_params );
 }
 
 1;

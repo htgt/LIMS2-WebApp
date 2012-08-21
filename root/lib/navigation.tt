@@ -3,15 +3,16 @@
     <div class="container">
       <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
       [% IF template.title != 'Login' %]
-      <ul class="nav">            
+      <ul class="nav">
         <li[% IF template.tab_name == "Home" %] class="active"[% END %]>
           <a href="[% c.uri_for( '/' ) %]">Home</a>
         </li>
+
         <li class="dropdown[% IF template.tab_name == "Browse" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Browse<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
-              <a href="[% c.uri_for( '/user/browse_designs' ) %]">Designs</a>              
+              <a href="[% c.uri_for( '/user/browse_designs' ) %]">Designs</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/browse_plates' ) %]">Plates</a>
@@ -22,8 +23,9 @@
             <li>
               <a href="[% c.uri_for( '/user/graph' ) %]">Well Relations</a>
             </li>
-          </ul>              
+          </ul>
         </li>
+
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports<b class="caret"></b></a>
           <ul class="dropdown-menu">
@@ -33,47 +35,70 @@
               </a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/report/cache/VectorProductionSummary' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/VectorProductionSummary' ) %]">
                 Vector Production Summary
               </a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/report/cache/VectorProductionDetail' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/VectorProductionDetail' ) %]">
                 Vector Production Detail
               </a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/report/cache/FirstElectroporationProductionDetail' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
                 First Allele Electroporation Detail
               </a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/report/cache/SecondElectroporationProductionDetail' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/SecondElectroporationProductionDetail' ) %]">
                 Second Allele Electroporation Detail
               </a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/report/cache/ElectroporationProductionSummary' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
                 Electroporation Production Summary
               </a>
             </li>
           </ul>
         </li>
-        <li[% IF template.tab_name == "QC" %] class="active"[% END %]>
-          <a href="[% c.uri_for( '/user/qc_runs' ) %]">QC</a>
+
+        <li class="dropdown[% IF template.tab_name == "Plates" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Plates<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload</a>
+            </li>
+          </ul>
         </li>
+
+        <li class="dropdown[% IF template.tab_name == "QC" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">QC<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/qc_runs' ) %]">Browse Sequencing QC</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
+            </li>
+          </ul>
+        </li>
+
         [% IF c.check_user_roles( 'admin' ) %]
         <li[% IF template.tab_name == "Admin" %] class="active"[% END %]>
           <a href="[% c.uri_for( '/admin' ) %]">Admin</a>
         </li>
         [% END %]
+
         [% IF c.session.selected_species %]
         <li class="dropdown pull-right">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.session.selected_species %]<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>Switch species:</li>
           [%- FOR species_id IN c.session.species %]
-            [%- IF species_id != c.session.selected_species %]            
+            [%- IF species_id != c.session.selected_species %]
             <li>
               <a href="[% c.uri_for( '/user/select_species', { species => species_id } ) %]">
                 [% species_id %]
@@ -85,13 +110,15 @@
         </li>
         [% END %]
       </ul>
+
       <p class="nav pull-right">
-        [% IF c.user %]        
+        [% IF c.user %]
         Logged in as [% c.user.name %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
         [% ELSE %]
         <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
         [% END %]
       </p>
+
     </div>
     [% END %]
   </div>

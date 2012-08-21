@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.012';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.013';
 }
 ## use critic
 
@@ -602,5 +602,36 @@ sub final_vector {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub first_ep {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'EP' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine first electroporation plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub second_ep {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'SEP' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine second electroporation plate/well for $self" );
+}
+## use critic
 __PACKAGE__->meta->make_immutable;
 1;

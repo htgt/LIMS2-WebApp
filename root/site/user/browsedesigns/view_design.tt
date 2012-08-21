@@ -7,9 +7,11 @@
   </a>
 </p>
 
-<h1>Design [% design.id %]</h1>
+<div class="page-header">
+  <h1>Design <small> [% design.id %]</small></h1>
+</div>
 
-<table class="table">
+<table class="table table-bordered">
   [%- FOR r IN display_design %]
   [%- SET title=r.0; SET accessor = r.1 -%]
   <tr>
@@ -93,7 +95,7 @@
 [% ELSE %]
   <p><em>No oligos for this design</em></p>
 [% END %]
-  
+
 
 <h2>Genotyping Primers</h2>
 [% IF design.genotyping_primers.size > 0 %]

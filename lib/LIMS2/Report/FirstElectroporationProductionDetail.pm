@@ -1,7 +1,7 @@
 package LIMS2::Report::FirstElectroporationProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FirstElectroporationProductionDetail::VERSION = '0.012';
+    $LIMS2::Report::FirstElectroporationProductionDetail::VERSION = '0.013';
 }
 ## use critic
 
@@ -33,6 +33,10 @@ override _build_columns => sub {
 override _build_plate_type => sub {
     return 'EP';
 };
+
+has '+allele_request_wells_method' => (
+    default => 'first_electroporation_wells'
+);
 
 __PACKAGE__->meta->make_immutable;
 

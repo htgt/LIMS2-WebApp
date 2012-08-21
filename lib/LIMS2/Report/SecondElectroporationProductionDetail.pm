@@ -1,7 +1,7 @@
 package LIMS2::Report::SecondElectroporationProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SecondElectroporationProductionDetail::VERSION = '0.012';
+    $LIMS2::Report::SecondElectroporationProductionDetail::VERSION = '0.013';
 }
 ## use critic
 
@@ -38,6 +38,10 @@ override _build_columns => sub {
 override _build_plate_type => sub {
     'SEP';
 };
+
+has '+allele_request_wells_method' => (
+    default => 'second_electroporation_wells'
+);
 
 __PACKAGE__->meta->make_immutable;
 

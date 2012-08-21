@@ -33,8 +33,10 @@ my $create_di_process_data= test_data( 'create_di_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'F06', 'output well has correct name';
+    is $output_well->name, 'A01', 'output well has correct name';
     is $output_well->plate->name, '100', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
 
 throws_ok {
@@ -44,6 +46,10 @@ throws_ok {
 throws_ok {
     my $process = model->create_process( $create_di_process_data->{invalid_design_id} );
 } qr/design_id, is invalid: existing_design_id/;
+
+throws_ok {
+    my $process = model->create_process( $create_di_process_data->{invalid_output_well} );
+} qr/create_di process output well should be type DESIGN \(got INT\)/;
 
 
 note( "Testing int_recom process creation" );
@@ -70,8 +76,10 @@ my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'G02', 'output well has correct name';
+    is $output_well->name, 'A01', 'output well has correct name';
     is $output_well->plate->name, 'PCS00177_A', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
 
 throws_ok {
@@ -81,6 +89,14 @@ throws_ok {
 throws_ok {
     my $process = model->create_process( $int_recom_process_data->{invalid_input_well} );
 } qr/int_recom process input well should be type DESIGN \(got EP\)/;
+
+throws_ok {
+    my $process = model->create_process( $int_recom_process_data->{invalid_output_well} );
+} qr/int_recom process output well should be type INT \(got EP\)/;
+
+throws_ok {
+    my $process = model->create_process( $int_recom_process_data->{multiple_output_wells} );
+} qr/Process should have 1 output well \(got 2\)/;
 
 
 note( "Testing 2w_gateway process creation" );
@@ -105,12 +121,14 @@ my $process_data_2w_gateway= test_data( '2w_gateway_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'I01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
     is $process_recombinases->count, 1, 'has 1 recombinase';
     is $process_recombinases->next->recombinase->id, 'Cre', 'is Cre recombinase';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
 
 throws_ok {
@@ -124,6 +142,11 @@ throws_ok {
 throws_ok {
     my $process = model->create_process( $process_data_2w_gateway->{invalid_input_well} );
 } qr/2w_gateway process input well should be type (INT|,|POSTINT)+ \(got DESIGN\)/;
+
+throws_ok {
+    my $process = model->create_process( $process_data_2w_gateway->{invalid_output_well} );
+} qr/2w_gateway process output well should be type (FINAL|,|POSTINT)+ \(got DESIGN\)/;
+
 
 note( "Testing 3w_gateway process creation" );
 my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
@@ -150,12 +173,14 @@ my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'J01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
     is $process_recombinases->count, 1, 'has 1 recombinase';
     is $process_recombinases->next->recombinase->id, 'Cre', 'is Cre recombinase';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
 
 throws_ok {
@@ -165,6 +190,11 @@ throws_ok {
 throws_ok {
     my $process = model->create_process( $process_data_3w_gateway->{invalid_input_well} );
 } qr/3w_gateway process input well should be type INT \(got DESIGN\)/;
+
+throws_ok {
+    my $process = model->create_process( $process_data_3w_gateway->{invalid_output_well} );
+} qr/3w_gateway process output well should be type (FINAL|,|POSTINT)+ \(got DESIGN\)/;
+
 
 note( "Testing cre_bac_recom process creation" );
 my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
@@ -190,13 +220,20 @@ my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
+    is $output_well->name, 'M02', 'output well has correct name';
+    is $output_well->plate->name, 'PCS00177_A', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
 
 throws_ok {
     my $process = model->create_process( $cre_bac_recom_process_data->{invalid_input_well} );
 } qr/cre_bac_recom process input well should be type DESIGN \(got INT\)/;
+
+throws_ok {
+    my $process = model->create_process( $cre_bac_recom_process_data->{invalid_output_well} );
+} qr/cre_bac_recom process output well should be type INT \(got EP\)/;
+
 
 note( "Testing recombinase process creation" );
 my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
@@ -217,13 +254,20 @@ my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'M01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
 
     ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
     is $process_recombinases->count, 1, 'has 1 recombinase';
     is $process_recombinases->next->recombinase->id, 'Cre', 'is Cre recombinase';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
+
+throws_ok {
+    my $process = model->create_process( $recombinase_process_data->{invalid_output_well} );
+} qr/recombinase process output well should be type (POSTINT|,|XEP|FINAL)+ \(got EP\)/;
+
 
 note( "Testing rearray process creation" );
 my $rearray_process_data= test_data( 'rearray_process.yaml' );
@@ -244,8 +288,10 @@ my $rearray_process_data= test_data( 'rearray_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAS0001_A', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
 
 throws_ok {
@@ -271,13 +317,20 @@ my $dna_prep_process_data= test_data( 'dna_prep_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'MOHSAQ0001_A_2', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
 
 throws_ok {
     my $process = model->create_process( $dna_prep_process_data->{invalid_input_well} );
 } qr/dna_prep process input well should be type FINAL/;
+
+throws_ok {
+    my $process = model->create_process( $dna_prep_process_data->{invalid_output_well} );
+} qr/dna_prep process output well should be type DNA \(got INT\)/;
+
 
 note( "Testing first_electroporation process creation" );
 my $first_electroporation_data= test_data( 'first_electroporation.yaml' );
@@ -298,12 +351,19 @@ my $first_electroporation_data= test_data( 'first_electroporation.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'FEP0006', '..and is on correct plate';
 
     ok my $process_cell_line = $process->process_cell_line, 'process has process_cell_line';
     is $process_cell_line->cell_line, 'foo cell line', 'is correct cell line';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
+
+throws_ok {
+    my $process = model->create_process( $first_electroporation_data->{invalid_output_well} );
+} qr/first_electroporation process output well should be type EP \(got SEP\)/;
+
 
 note( "Testing second_electroporation process creation" );
 my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
@@ -327,10 +387,16 @@ my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'SEP0006', '..and is on correct plate';
 
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
+
+throws_ok {
+    my $process = model->create_process( $second_electroporation_data->{invalid_output_well} );
+} qr/second_electroporation process output well should be type SEP \(got EP\)/;
+
 
 note( "Testing clone_pick process creation" );
 my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
@@ -351,15 +417,20 @@ my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->name, 'N01', 'output well has correct name';
     is $output_well->plate->name, 'FEPD0006_1', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
+
+throws_ok {
+    my $process = model->create_process( $clone_pick_process_data->{invalid_output_well} );
+} qr/clone_pick process output well should be type (EP_PICK|,|SEP_PICK|XEP_PICK)+ \(got SEP\)/;
 
 ## Not currently testing the processes listed below, they have no auxillary process data so all
 ## we would be testing is the input well checks, find some way to test this seperately?
 ## freeze
 ## clone_pool
-## clone_pick
 ##
 ## can also test dna_prep and rearray process like this
 

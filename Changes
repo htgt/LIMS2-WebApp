@@ -1,3 +1,11 @@
+0.013     2012-08-21 10:30:24 Europe/London
+
+   Implement allele request tracking.
+   Add Projects and Sponsors tables.
+   Implement production reports by sponsor.
+   Implement plate create via csv upload form.
+   Implement dna assay result loading onto plates.
+
 0.012     2012-08-01 10:55:30 Europe/London
 
    Implement cacheing for slow-to-generate reports.

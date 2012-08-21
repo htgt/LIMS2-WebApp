@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::VERSION = '0.012';
+    $LIMS2::Model::FormValidator::VERSION = '0.013';
 }
 ## use critic
 
@@ -82,9 +82,15 @@ sub check_params {
         $self->throw( Validation => { params => $params, results => $results } );
     }
 
+    if ( $results->has_unknown && !$opts{ignore_unknown} ) {
+        $self->throw( Validation => { params => $params, results => $results } );
+    }
+
     my $validated_params = $results->valid;
 
     while ( my ( $field, $f_spec ) = each %{$spec} ) {
+        next unless $validated_params->{$field};
+
         if ( $f_spec->{post_filter} ) {
             $validated_params->{$field} = $self->post_filter( $f_spec->{post_filter}, $validated_params->{$field} );
         }

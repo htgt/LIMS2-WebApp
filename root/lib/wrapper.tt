@@ -7,10 +7,10 @@
 
     <!-- Le styles -->
     <link href="[% c.uri_for( '/static/bootstrap/css/bootstrap.min.css' ) %]" rel="stylesheet">
-    <style type="text/css"> 
+    <style type="text/css">
       body {
         padding-top: 60px;
-        padding-bottom: 40px;        
+        padding-bottom: 40px;
       }
       div#main {
         padding-top: 20px;
@@ -57,9 +57,9 @@
       [% SET success = success_msg || c.flash.success_msg; IF success.length > 0 %]
       <div class="alert alert-success">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
-        <p>[% success %]</p>
+        <p>[% success | none %]</p>
       </div>
-      [% END %]      
+      [% END %]
       [% content | none %]
       <footer>
       LIMS2 software version: [% c.model('Golgi').software_version %], database: [% c.model('Golgi').database_name %].

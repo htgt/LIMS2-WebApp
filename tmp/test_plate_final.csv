@@ -1,0 +1,9 @@
+well_name,parent_plate,parent_well,recombinase,cassette,backbone
+A01,MOHPC00011,A05,Dre,,L3L4_pZero_kan
+B01,MOHPC00011,B05,Dre,L1L2_st1,L3L4_pZero_kan
+C01,MOHPC00011,B07,Dre,L1L2_st1,
+D01,MOHPC00011,C01,,L1L2_st1,L3L4_pZero_kan
+E01,MOHPC00011,D01,Dre,L1L2_st1,L3L4_pZero_kan
+F01,MOHPC00011,D02,Cre,L1L2_st1,L3L4_pZero_kan
+G01,MOHPC00011,F02,Cre,L1L2_st1,L3L4_pZero_kan
+H01,MOHPC00011,H07,,L1L2_st1,L3L4_pZero_kan

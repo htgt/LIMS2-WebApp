@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.012';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.013';
 }
 ## use critic
 
@@ -39,6 +39,7 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
 
     my $params = $c->request->params;
     $params->{species} ||= $c->session->{selected_species};
+    delete $params->{sponsor} if $params->{sponsor} eq 'All';
 
     my $report_id = LIMS2::Report::cached_report(
         model      => $c->model( 'Golgi' ),
@@ -196,6 +197,19 @@ sub _count_rows {
     $fh->seek(0,0);
 
     return $count - 1;
+}
+
+sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
+    my ( $self, $c, $report ) = @_;
+
+    ### Report name: $report
+
+    $c->stash(
+        template    => 'user/report/select_sponsor.tt',
+        report_name => $report
+    );
+
+    return;
 }
 
 =head1 AUTHOR

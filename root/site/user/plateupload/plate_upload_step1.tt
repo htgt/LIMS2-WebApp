@@ -1,0 +1,32 @@
+[%- META title = 'Plate Upload'; META tab_name = 'Plates' %]
+
+<div class="page-header">
+  <h1>Upload Plate <small> Step 1</small></h1>
+</div>
+
+<div class="row">
+
+  <div class="span4 offset4" align="center">
+    <form method="GET" id="process_type_select" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form-inline well" >
+
+      <label>Process Type</label>
+      <select name="process_type" id="process_type">
+        <option value="" selected="selected">-</option>
+        [%- FOR process_type IN process_types %]
+          <option value="[% process_type %]">[% process_type.replace( '_', ' ' ) %]</option>
+        [%- END %]
+      </select>
+
+    </form>
+  </div>
+
+</div>
+
+[% INCLUDE 'plate_upload_help.tt' plate_help = plate_help %]
+
+<script type="text/javascript">
+  $('#process_type').change(function() {
+    $(this).closest("form").submit();
+  })
+
+</script>

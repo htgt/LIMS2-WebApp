@@ -9,16 +9,26 @@
 <div class="row">
   <div class="span6">
     <div class="well">
-      <strong>Qc Template:</strong> [% qc_run.qc_template %]<br>
-      <strong>Sequencing Project(s):</strong> [%  qc_run.sequencing_projects.join(' - ') %]<br>
-      <strong>Profile:</strong> [% qc_run.profile %]
+      <dl>
+        <dt>Qc Template</dt>
+        <dd>[% qc_run.qc_template %]</dd>
+        <dt>Sequencing Project(s)</dt>
+        <dd>[%  qc_run.sequencing_projects.join(' - ') %]</dd>
+        <dt>Profile</dt>
+        <dd>[% qc_run.profile %]</dd>
+      </dl>
     </div>
   </div>
   <div class="span6">
     <div class="well">
-      <strong>Created At:</strong> [% qc_run.created_at %]<br>
-      <strong>Created By:</strong> [% qc_run.created_by %]<br>
-      <strong>Software VersionID:</strong> [% qc_run.software_version %]
+      <dl>
+        <dt>Created At</dt>
+        <dd>[% qc_run.created_at %]</dd>
+        <dt>Created By</dt>
+        <dd>[% qc_run.created_by %]</dd>
+        <dt>Software VersionID</dt>
+        <dd>[% qc_run.software_version %]</dd>
+      </dl>
     </div>
   </div>
 </div>

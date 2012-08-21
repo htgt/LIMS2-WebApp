@@ -66,6 +66,7 @@ requires:
   HTGT::QC::Util::CigarParser: 0
   HTTP::Status: 0
   Hash::MoreUtils: 0
+  IO::File: 0
   IO::Pipe: 0
   IO::String: 0
   Iterator::Simple: 0
@@ -92,6 +93,8 @@ requires:
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
   Path::Class: 0
+  Perl6::Slurp: 0
+  Readonly: 0
   Scalar::Util: 0
   Sub::Exporter: 0
   Template::AutoFilter: 0
@@ -99,6 +102,7 @@ requires:
   Test::More: 0
   Test::WWW::Mechanize::Catalyst: 0
   Text::CSV: 0
+  Text::CSV_XS: 0
   Try::Tiny: 0
   TryCatch: 0
   URI: 0
@@ -110,4 +114,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.012
+version: 0.013
