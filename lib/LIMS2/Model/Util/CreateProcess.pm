@@ -9,6 +9,8 @@ use Sub::Exporter -setup => {
             process_fields
             process_plate_types
             process_aux_data_field_list
+            check_input_wells
+            check_output_wells
           )
     ]
 };
@@ -16,8 +18,8 @@ use Sub::Exporter -setup => {
 use Log::Log4perl qw( :easy );
 use Const::Fast;
 use List::MoreUtils qw( uniq );
-use LIMS2::Exception;
-use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS );
+use LIMS2::Exception::Implementation;
+use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
 
 my %process_field_data = (
     final_cassette => {
@@ -97,6 +99,61 @@ sub process_plate_types {
 
 sub process_aux_data_field_list {
     return [ uniq map{ $process_field_data{$_}{name} } keys %process_field_data ];
+}
+
+sub check_input_wells {
+    my ( $self, $process ) = @_;
+
+    my $process_type = $process->type_id;
+
+    my @input_wells               = $process->input_wells;
+    my $count                     = scalar @input_wells;
+    my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
+    $self->throw( Validation =>
+            "$process_type process should have $expected_input_well_count input well(s) (got $count)"
+    ) unless $count == $expected_input_well_count;
+
+    return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
+
+    my @types = uniq map { $_->plate->type_id } @input_wells;
+    my %expected_input_process_types
+        = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
+
+    $self->throw( Validation => "$process_type process input well should be type "
+            . join( ',', keys %expected_input_process_types )
+            . ' (got '
+            . join( ',', @types )
+            . ')' )
+        if notall { exists $expected_input_process_types{$_} } @types;
+
+    return;
+}
+
+sub check_output_wells {
+    my ( $self, $process ) = @_;
+
+    my $process_type = $process->type_id;
+
+    my @output_wells = $process->output_wells;
+    my $count        = scalar @output_wells;
+    # Only expect one output well per process, but schema can handle multiple
+    $self->throw( Validation => "Process should have 1 output well (got $count)")
+        unless $count == 1;
+
+    return unless exists $PROCESS_PLATE_TYPES{$process_type};
+
+    my @types = uniq map { $_->plate->type_id } @output_wells;
+    my %expected_output_process_types
+        = map { $_ => 1 } @{ $PROCESS_PLATE_TYPES{$process_type} };
+
+    $self->throw( Validation => "$process_type process output well should be type "
+            . join( ',', keys %expected_output_process_types )
+            . ' (got '
+            . join( ',', @types )
+            . ')' )
+        if notall { exists $expected_output_process_types{$_} } @types;
+
+    return;
 }
 1;
 

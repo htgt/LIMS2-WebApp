@@ -10,6 +10,7 @@ use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status parse_csv_file );
 use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
+use LIMS2::Model::Util qw( well_id_for );
 use Const::Fast;
 use Try::Tiny;
 use namespace::autoclean;
@@ -244,37 +245,28 @@ sub find_parent_well_ids {
     my @parent_well_ids;
 
     if ( $params->{process_type} eq 'second_electroporation' ) {
-        push @parent_well_ids,
-            $self->get_well_id( $validated_params->{allele_plate},
-            $validated_params->{allele_well} );
+        push @parent_well_ids, well_id_for(
+            plate_name => $validated_params->{allele_plate},
+            well_name  => substr( $validated_params->{allele_well}, -3 )
+        );
 
-        push @parent_well_ids,
-            $self->get_well_id( $validated_params->{vector_plate},
-            $validated_params->{vector_well} );
+        push @parent_well_ids, well_id_for(
+            plate_name => $validated_params->{vector_plate},
+            well_name  => substr( $validated_params->{allele_well}, -3 )
+        );
 
         delete @{$params}{qw( allele_plate vector_plate allele_well vector_well )};
     }
     else {
-        push @parent_well_ids,
-            $self->get_well_id( $validated_params->{parent_plate},
-            $validated_params->{parent_well} );
+        push @parent_well_ids, well_id_for(
+            plate_name => $validated_params->{parent_plate},
+            well_name  => substr( $validated_params->{allele_well}, -3 )
+        );
 
         delete @{$params}{qw( parent_plate parent_well )};
     }
 
     return \@parent_well_ids;
-}
-
-sub get_well_id {
-    my ( $self, $plate_name, $well_name ) = @_;
-
-    my $well = $self->retrieve_well(
-        {   plate_name => $plate_name,
-            well_name  => substr( $well_name, -3 ),
-        }
-    );
-
-    return $well->id;
 }
 
 sub create_plate_csv_upload {

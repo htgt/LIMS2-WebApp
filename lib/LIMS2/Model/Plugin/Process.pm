@@ -6,64 +6,11 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use List::MoreUtils qw( uniq notall );
-use LIMS2::Model::Util::CreateProcess qw( process_fields process_plate_types );
-use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES );
+use LIMS2::Model::Util::CreateProcess qw( process_fields process_plate_types check_input_wells check_output_wells );
 use namespace::autoclean;
 use Const::Fast;
 
 requires qw( schema check_params throw retrieve log trace );
-
-const my %PROCESS_INPUT_WELL_CHECK => (
-    create_di => {
-        number => 0
-    },
-    int_recom => {
-        type   => [qw( DESIGN )],
-        number => 1,
-    },
-    '2w_gateway' => {
-        type   => [qw( INT POSTINT )],
-        number => 1,
-    },
-    '3w_gateway' => {
-        type   => [qw( INT )],
-        number => 1,
-    },
-    recombinase   => {
-        number => 1
-    },
-    cre_bac_recom => {
-        type   => [qw( DESIGN )],
-        number => 1,
-    },
-    rearray  => {
-        number => 1
-    },
-    dna_prep => {
-        type   => [qw( FINAL )],
-        number => 1,
-    },
-    clone_pick => {
-        type   => [qw( EP XEP SEP )],
-        number => 1,
-    },
-    clone_pool => {
-        type   => [qw( XEP SEP )],
-        number => 1,
-    },
-    first_electroporation => {
-        type   => [qw( DNA )],
-        number => 1,
-    },
-    second_electroporation => {
-        type   => [qw( XEP DNA )],
-        number => 2,
-    },
-    freeze => {
-        type   => [qw( EP_PICK SEP_PICK )],
-        number => 1,
-    },
-);
 
 sub _well_id_for {
     my ( $self, $data ) = @_;
@@ -83,61 +30,6 @@ sub _backbone_id_for {
 
     my $backbone = $self->retrieve( Backbone => { name => $backbone_name } );
     return $backbone->id;
-}
-
-sub check_input_wells {
-    my ( $self, $process ) = @_;
-
-    my $process_type = $process->type_id;
-
-    my @input_wells               = $process->input_wells;
-    my $count                     = scalar @input_wells;
-    my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
-    $self->throw( Validation =>
-            "$process_type process should have $expected_input_well_count input well(s) (got $count)"
-    ) unless $count == $expected_input_well_count;
-
-    return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
-
-    my @types = uniq map { $_->plate->type_id } @input_wells;
-    my %expected_input_process_types
-        = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
-
-    $self->throw( Validation => "$process_type process input well should be type "
-            . join( ',', keys %expected_input_process_types )
-            . ' (got '
-            . join( ',', @types )
-            . ')' )
-        if notall { exists $expected_input_process_types{$_} } @types;
-
-    return;
-}
-
-sub check_output_wells {
-    my ( $self, $process ) = @_;
-
-    my $process_type = $process->type_id;
-
-    my @output_wells = $process->output_wells;
-    my $count        = scalar @output_wells;
-    # Only expect one output well per process, but schema can handle multiple
-    $self->throw( Validation => "Process should have 1 output well (got $count)")
-        unless $count == 1;
-
-    return unless exists $PROCESS_PLATE_TYPES{$process_type};
-
-    my @types = uniq map { $_->plate->type_id } @output_wells;
-    my %expected_output_process_types
-        = map { $_ => 1 } @{ $PROCESS_PLATE_TYPES{$process_type} };
-
-    $self->throw( Validation => "$process_type process output well should be type "
-            . join( ',', keys %expected_output_process_types )
-            . ' (got '
-            . join( ',', @types )
-            . ')' )
-        if notall { exists $expected_output_process_types{$_} } @types;
-
-    return;
 }
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
@@ -306,12 +198,12 @@ sub create_process {
 
     for my $input_well ( @{ $validated_params->{input_wells} || [] } ) {
         $process->create_related(
-            process_input_wells => { well_id => $self->_well_id_for($input_well) } );
+            process_input_wells => { well_id => well_id_for($input_well) } );
     }
 
     for my $output_well ( @{ $validated_params->{output_wells} || [] } ) {
         $process->create_related(
-            process_output_wells => { well_id => $self->_well_id_for($output_well) } );
+            process_output_wells => { well_id => well_id_for($output_well) } );
     }
 
     my $check_wells = '_check_wells_' . $validated_params->{type};

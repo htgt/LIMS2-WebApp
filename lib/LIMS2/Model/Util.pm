@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ qw( sanitize_like_expr ) ]
+    exports => [ qw( sanitize_like_expr well_id_for ) ]
 };
 
 =head2 sanitize_like_expr
@@ -23,6 +23,12 @@ sub sanitize_like_expr {
     }
 
     return $expr;
+}
+
+sub well_id_for {
+    my ( $data ) = @_;
+
+    return $self->retrieve_well($data)->id;
 }
 
 1;
