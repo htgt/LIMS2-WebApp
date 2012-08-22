@@ -1,0 +1,134 @@
+package LIMS2::Model::Util::CreatePlate;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::CreatePlate::VERSION = '0.013';
+}
+## use critic
+
+
+use strict;
+use warnings FATAL => 'all';
+
+use Sub::Exporter -setup => {
+    exports => [
+        qw(
+              create_plate_well
+              merge_plate_process_data
+          )
+    ]
+};
+
+use Log::Log4perl qw( :easy );
+use LIMS2::Model::Util qw( well_id_for );
+use List::MoreUtils qw( uniq );
+use LIMS2::Exception;
+
+sub pspec_create_plate_well {
+    return {
+        well_name    => { validate => 'well_name' },
+        process_type => { validate => 'existing_process_type' },
+    };
+}
+
+# input will be in the format a user trying to create a plate will use
+# we need to convert this into a format expected by create_well
+sub create_plate_well {
+    my ( $model, $params, $plate ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec_create_plate_well, ignore_unknown => 1 );
+
+    my $parent_well_ids = find_parent_well_ids( $model, $params );
+
+    my %well_params = (
+        plate_name => $plate->name,
+        well_name  => $validated_params->{well_name},
+        created_by => $plate->created_by->name,
+        created_at => $plate->created_at->iso8601,
+    );
+
+    # the remaining params are specific to the process
+    delete @{$params}{qw( well_name process_type )};
+
+    $well_params{process_data} = $params;
+    $well_params{process_data}{type} = $validated_params->{process_type};
+    $well_params{process_data}{input_wells} = [ map { { id => $_ } } @{$parent_well_ids} ];
+
+    $model->create_well( \%well_params, $plate );
+
+    return;
+}
+
+sub pspec_find_parent_well_ids {
+    return {
+        parent_plate      => { validate => 'plate_name', optional => 1 },
+        parent_well       => { validate => 'well_name',  optional => 1 },
+        allele_plate      => { validate => 'plate_name', optional => 1 },
+        allele_well       => { validate => 'well_name',  optional => 1 },
+        vector_plate      => { validate => 'plate_name', optional => 1 },
+        vector_well       => { validate => 'well_name',  optional => 1 },
+        DEPENDENCY_GROUPS => { parent   => [qw( parent_plate parent_well )] },
+        DEPENDENCY_GROUPS => { vector   => [qw( vector_plate vector_well )] },
+        DEPENDENCY_GROUPS => { allele   => [qw( allele_plate allele_well )] },
+    };
+}
+
+sub find_parent_well_ids {
+    my ( $model, $params ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec_find_parent_well_ids, ignore_unknown => 1 );
+
+    my @parent_well_ids;
+
+    if ( $params->{process_type} eq 'second_electroporation' ) {
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{allele_plate},
+                well_name  => substr( $validated_params->{allele_well}, -3 )
+            }
+        );
+
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{vector_plate},
+                well_name  => substr( $validated_params->{vector_well}, -3 )
+            }
+        );
+
+        delete @{$params}{qw( allele_plate vector_plate allele_well vector_well )};
+    }
+    else {
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{parent_plate},
+                well_name  => substr( $validated_params->{parent_well}, -3 )
+            }
+        );
+
+        delete @{$params}{qw( parent_plate parent_well )};
+    }
+
+    return \@parent_well_ids;
+}
+
+## no critic(RequireFinalReturn)
+sub merge_plate_process_data {
+    my ( $well_data, $plate_data ) = @_;
+
+    for my $process_field ( keys %{ $plate_data } ) {
+        # insert plate process data only if it is not present in well data
+        $well_data->{$process_field} = $plate_data->{$process_field}
+            if !exists $well_data->{$process_field}
+                || !$well_data->{$process_field};
+    }
+
+    #recombinse data needs to be array ref
+    $well_data->{recombinase} = [ delete $well_data->{recombinase} ]
+        if exists $well_data->{recombinase};
+}
+## use critic
+
+1;
+
+__END__

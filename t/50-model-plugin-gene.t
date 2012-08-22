@@ -30,4 +30,10 @@ use Const::Fast;
     }
 }
 
+{
+    ok my $searched = model->search_genes( { species => 'Human', search_term => 'HOXB6' } ), 'search human gene';
+    is_deeply $searched, [ {  gene_id => 'ENSG00000108511', gene_symbol => 'HOXB6' } ],
+        '.. returns expected results';
+}
+
 done_testing;
