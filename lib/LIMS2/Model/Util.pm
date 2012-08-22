@@ -34,7 +34,3 @@ sub well_id_for {
 1;
 
 __END__
-
-
-
-    

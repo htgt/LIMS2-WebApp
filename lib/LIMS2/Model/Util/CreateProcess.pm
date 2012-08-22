@@ -140,7 +140,7 @@ sub check_process_wells {
     my $process_type = $params->{type};
     LIMS2::Exception::Implementation->throw(
         "Don't know how to validate wells for process type $process_type"
-    ) unless exists $process_check_well{ $process_type }; 
+    ) unless exists $process_check_well{ $process_type };
 
     $process_check_well{ $process_type }->( $model, $process );
 }
@@ -372,7 +372,7 @@ sub create_process_aux_data {
     my $process_type = $process->type_id;
     LIMS2::Exception::Implementation->throw(
         "Don't know how to create auxiliary data for process type $process_type"
-    ) unless exists $process_aux_data{ $process_type }; 
+    ) unless exists $process_aux_data{ $process_type };
 
     $process_aux_data{ $process_type }->( $model, $params, $process );
 
