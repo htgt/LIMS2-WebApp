@@ -12,6 +12,7 @@ use Sub::Exporter -setup => {
             retrieve_qc_alignment_results
             retrieve_qc_seq_read_sequences
             retrieve_qc_eng_seq_sequence
+            build_qc_runs_search_params
             )
     ]
 };
@@ -21,7 +22,7 @@ use Const::Fast;
 use Bio::SeqIO;
 use List::Util qw(sum);
 use List::MoreUtils qw(uniq);
-use LIMS2::Exception;
+use LIMS2::Exception::Validation;
 use LIMS2::Model::Util::WellName qw ( to384 );
 use HTGT::QC::Config;
 use HTGT::QC::Util::Alignment qw( alignment_match );
@@ -322,6 +323,29 @@ sub _parse_alignment_region {
     }
 
     return join( q{,}, @regions );
+}
+
+sub build_qc_runs_search_params {
+    my ( $params ) = @_;
+
+    my %search = (
+        'me.upload_complete'        => 't',
+        'qc_seq_project.species_id' => $params->{species_id}
+    );
+
+    unless ( $params->{show_all} ) {
+        if ( $params->{sequencing_project} ) {
+            $search{'qc_run_seq_projects.qc_seq_project_id'} = $params->{sequencing_project};
+        }
+        if ( $params->{template_plate} ) {
+            $search{'qc_template.name'} = $params->{template_plate};
+        }
+        if ( $params->{profile} and $params->{profile} ne '-' ) {
+            $search{'me.profile'} = $params->{profile};
+        }
+    }
+
+    return \%search;
 }
 
 1;

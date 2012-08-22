@@ -8,6 +8,7 @@ use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status parse_csv_file );
+use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_data );
 use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
 use Const::Fast;
@@ -95,8 +96,9 @@ sub create_plate {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
 
-    my $current_plate = $self->schema->resultset('Plate')->find( { name => $validated_params->{name} } );
-    if ( $current_plate ) {
+    my $current_plate
+        = $self->schema->resultset('Plate')->find( { name => $validated_params->{name} } );
+    if ($current_plate) {
         $self->throw( Validation => 'Plate ' . $validated_params->{name} . ' already exists' );
     }
 
@@ -108,8 +110,7 @@ sub create_plate {
         }
     );
 
-    # refresh object data from database, sets created_by value
-    # if it was set by database
+    # refresh object data from database, sets created_by value if it was set by database
     $plate->discard_changes;
 
     for my $c ( @{ $validated_params->{comments} || [] } ) {
@@ -119,7 +120,7 @@ sub create_plate {
     }
 
     if ( exists $validated_params->{wells} ) {
-        $self->create_plate_well( $_, $plate ) for @{ $validated_params->{wells} };
+        create_plate_well( $self, $_, $plate ) for @{ $validated_params->{wells} };
     }
 
     return $plate;
@@ -185,98 +186,6 @@ sub set_plate_assay_complete {
     return $plate;
 }
 
-sub pspec_create_plate_well {
-    return {
-        well_name    => { validate => 'well_name' },
-        process_type => { validate => 'existing_process_type' },
-    };
-}
-
-# input will be in the format a user trying to create a plate will use
-# we need to convert this into a format expected by create_well
-sub create_plate_well {
-    my ( $self, $params, $plate ) = @_;
-
-    my $validated_params
-        = $self->check_params( $params, $self->pspec_create_plate_well, ignore_unknown => 1 );
-
-    my $parent_well_ids = $self->find_parent_well_ids($params);
-
-    my %well_params = (
-        plate_name => $plate->name,
-        well_name  => $validated_params->{well_name},
-        created_by => $plate->created_by->name,
-        created_at => $plate->created_at->iso8601,
-    );
-
-    # the remaining params are specific to the process
-    delete @{$params}{qw( well_name process_type )};
-
-    $well_params{process_data} = $params;
-    $well_params{process_data}{type} = $validated_params->{process_type};
-    $well_params{process_data}{input_wells} = [ map { { id => $_ } } @{$parent_well_ids} ];
-
-    $self->create_well( \%well_params, $plate );
-
-    return;
-}
-
-sub pspec_find_parent_well_ids {
-    return {
-        parent_plate      => { validate => 'plate_name', optional => 1 },
-        parent_well       => { validate => 'well_name',  optional => 1 },
-        allele_plate      => { validate => 'plate_name', optional => 1 },
-        allele_well       => { validate => 'well_name',  optional => 1 },
-        vector_plate      => { validate => 'plate_name', optional => 1 },
-        vector_well       => { validate => 'well_name',  optional => 1 },
-        DEPENDENCY_GROUPS => { parent   => [qw( parent_plate parent_well )] },
-        DEPENDENCY_GROUPS => { vector   => [qw( vector_plate vector_well )] },
-        DEPENDENCY_GROUPS => { allele   => [qw( allele_plate allele_well )] },
-    };
-}
-
-sub find_parent_well_ids {
-    my ( $self, $params ) = @_;
-
-    my $validated_params
-        = $self->check_params( $params, $self->pspec_find_parent_well_ids, ignore_unknown => 1 );
-
-    my @parent_well_ids;
-
-    if ( $params->{process_type} eq 'second_electroporation' ) {
-        push @parent_well_ids,
-            $self->get_well_id( $validated_params->{allele_plate},
-            $validated_params->{allele_well} );
-
-        push @parent_well_ids,
-            $self->get_well_id( $validated_params->{vector_plate},
-            $validated_params->{vector_well} );
-
-        delete @{$params}{qw( allele_plate vector_plate allele_well vector_well )};
-    }
-    else {
-        push @parent_well_ids,
-            $self->get_well_id( $validated_params->{parent_plate},
-            $validated_params->{parent_well} );
-
-        delete @{$params}{qw( parent_plate parent_well )};
-    }
-
-    return \@parent_well_ids;
-}
-
-sub get_well_id {
-    my ( $self, $plate_name, $well_name ) = @_;
-
-    my $well = $self->retrieve_well(
-        {   plate_name => $plate_name,
-            well_name  => substr( $well_name, -3 ),
-        }
-    );
-
-    return $well->id;
-}
-
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
 
@@ -292,29 +201,12 @@ sub create_plate_csv_upload {
     my $well_data = parse_csv_file( $well_data_fh );
 
     for my $datum ( @{$well_data} ) {
-        $self->_merge_plate_process_data( $datum, \%plate_process_data );
+        merge_plate_process_data( $datum, \%plate_process_data );
     }
     $plate_data{wells} = $well_data;
 
     return $self->create_plate( \%plate_data );
 }
-
-## no critic(RequireFinalReturn)
-sub _merge_plate_process_data {
-    my ( $self, $well_data, $plate_data ) = @_;
-
-    for my $process_field ( keys %{ $plate_data } ) {
-        # insert plate process data only if it is not present in well data
-        $well_data->{$process_field} = $plate_data->{$process_field}
-            if !exists $well_data->{$process_field}
-                || !$well_data->{$process_field};
-    }
-
-    #recombinse data needs to be array ref
-    $well_data->{recombinase} = [ delete $well_data->{recombinase} ]
-        if exists $well_data->{recombinase};
-}
-## use critic
 
 sub plate_help_info {
     my ($self) = @_;
