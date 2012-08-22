@@ -116,6 +116,8 @@ sub link_process_wells {
     }
 
     check_process_wells( $model, $process, $params );
+
+    return;
 }
 
 my %process_check_well = (
@@ -143,6 +145,8 @@ sub check_process_wells {
     ) unless exists $process_check_well{ $process_type };
 
     $process_check_well{ $process_type }->( $model, $process );
+
+    return;
 }
 
 sub check_input_wells {
