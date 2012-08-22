@@ -26,9 +26,9 @@ sub sanitize_like_expr {
 }
 
 sub well_id_for {
-    my ( $data ) = @_;
+    my ( $model, $data ) = @_;
 
-    return $self->retrieve_well($data)->id;
+    return $model->retrieve_well($data)->id;
 }
 
 1;
