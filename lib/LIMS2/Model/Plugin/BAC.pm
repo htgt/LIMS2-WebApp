@@ -27,7 +27,7 @@ sub _chr_id_for {
     return $chr->id;
 }
 
-sub pspec_list_bac_libraies {
+sub pspec_list_bac_libraries {
     return {
         species => { validate => 'existing_species', rename => 'species_id' }
     }
