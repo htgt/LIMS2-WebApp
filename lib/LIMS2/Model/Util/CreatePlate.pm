@@ -78,19 +78,19 @@ sub find_parent_well_ids {
     if ( $params->{process_type} eq 'second_electroporation' ) {
         push @parent_well_ids, well_id_for(
             $model, {
-                plate_name => $validated_params->{allele_plate},
-                well_name  => substr( $validated_params->{allele_well}, -3 )
+                plate_name => $validated_params->{xep_plate},
+                well_name  => substr( $validated_params->{xep_well}, -3 )
             }
         );
 
         push @parent_well_ids, well_id_for(
             $model, {
-                plate_name => $validated_params->{vector_plate},
-                well_name  => substr( $validated_params->{vector_well}, -3 )
+                plate_name => $validated_params->{dna_plate},
+                well_name  => substr( $validated_params->{dna_well}, -3 )
             }
         );
 
-        delete @{$params}{qw( allele_plate vector_plate allele_well vector_well )};
+        delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
     }
     else {
         push @parent_well_ids, well_id_for(
