@@ -169,18 +169,21 @@ sub delete_design {
 
     # Check that design is not assigned to a gene
     if ( $design->genes_rs->count > 0 ) {
-        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been assigned to one or more genes' );
+        $self->throw( InvalidState => 'Design ' . $design->id . ' has been assigned to one or more genes' );
     }
 
     # # Check that design is not allocated to a process and, if it is, refuse to delete
     if ( $design->process_designs_rs->count > 0 ) {
-        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been used in one or more processes' );
+        $self->throw( InvalidState => 'Design ' . $design->id . ' has been used in one or more processes' );
     }
 
     if ( $validated_params->{cascade} ) {
         $design->comments_rs->delete;
-        $design->oligos_rs->delete;
         $design->genotyping_primers_rs->delete;
+        for my $oligo ( $design->oligos_rs->all ) {
+            $oligo->loci_rs->delete;
+            $oligo->delete;
+        }
     }
 
     $design->delete;
