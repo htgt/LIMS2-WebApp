@@ -60,7 +60,7 @@ sub delete_process {
 
     $process->delete;
 
-    return;
+    return 1;
 }
 
 sub list_process_types {
