@@ -382,7 +382,7 @@ my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
     like $first_input_well->plate->name, qr/MOH(S|F)AQ0001_A_2/, '..and is on correct plate';
     my $second_input_well = $input_wells->next;
     is $second_input_well->name, 'A01', 'input well has correct name';
-    like $second_input_well->plate->name, qr/MOH(S|F)AQ0001_A_2/, '..and is on correct plate';
+    like $second_input_well->plate->name, qr/XEP0006/, '..and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
@@ -396,6 +396,10 @@ my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
 throws_ok {
     my $process = model->create_process( $second_electroporation_data->{invalid_output_well} );
 } qr/second_electroporation process output well should be type SEP \(got EP\)/;
+
+throws_ok {
+    my $process = model->create_process( $second_electroporation_data->{invalid_input_wells} );
+} qr/second_electroporation process types require two input wells, one of type XEP and the other of type DNA/;
 
 
 note( "Testing clone_pick process creation" );
