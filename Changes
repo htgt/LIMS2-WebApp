@@ -1,7 +1,12 @@
+0.015     2012-08-31 13:08:03 Europe/London
+
+   Fixed SEP plate upload template
+   Added verification for 2w gateway process
+   Moved code into Util modules
+   Fix links to css files in header
+
 0.014     2012-08-31 11:55:13 Europe/London
 
-   Fixed SEP template
-   Added SEP verification
    Sponsor heading added to reports
 
 0.013     2012-08-22 14:45:53 Europe/London

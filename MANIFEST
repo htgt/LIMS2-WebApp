@@ -188,7 +188,6 @@ root/site/user/qc/view_qc_run.tt
 root/site/user/report/await_report.tt
 root/site/user/report/gene_report.tt
 root/site/user/report/select_sponsor.tt
-root/site/user/report/select_sponsor.tt~
 root/site/user/report/simple_table.tt
 root/site/user/welldata/dna_status_update.tt
 root/static/bootstrap/css/bootstrap.css
