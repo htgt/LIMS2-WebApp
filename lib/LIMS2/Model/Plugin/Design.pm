@@ -283,7 +283,7 @@ sub _get_gene_chr_start_end_strand {
         $self->throw(
             NotFound => {
                 message       => 'Found no matching EnsEMBL genes',
-                entity        => 'EnsEMBL Gene',
+                entity_class  => 'EnsEMBL Gene',
                 search_params => { external_id => $gene_id }
             }
         );
