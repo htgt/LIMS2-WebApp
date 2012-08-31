@@ -136,6 +136,10 @@ throws_ok {
 } qr/cassette_or_backbone, is missing/;
 
 throws_ok {
+    my $process = model->create_process( $process_data_2w_gateway->{either_cassette_or_backbone} );
+} qr/2w_gateway process can have either a cassette or backbone, not both/;
+
+throws_ok {
     my $process = model->create_process( $process_data_2w_gateway->{missing_input_well} );
 } qr/2w_gateway process should have 1 input well\(s\) \(got 0\)/;
 
