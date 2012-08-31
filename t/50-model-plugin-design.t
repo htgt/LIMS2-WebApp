@@ -36,13 +36,22 @@ use Test::Most;
     ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248', type => 'deletion' } ),
         'list assigned designs by MGI accession and design type deletion';
     is @{$designs}, 0, 'returns no designs';
+
 }
 
 {
-    ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912' } ),
-        'list candidate designs for MGI accession';
+    ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912', type => 'conditional' } ),
+        'list candidate designs for MGI accession, gene on -ve strand';
     isa_ok $designs, ref [];
     ok grep( { $_->id == 170606 } @{$designs} ), '...returns the expected design';
+
+    ok my $designs2 = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:99781' } ),
+        'list candidate designs by MGI accession, gene on +ve strand';
+    is @{$designs2},0, 'returns no designs';
+
+    throws_ok{
+        model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:iiiiii' } ),
+    } 'LIMS2::Exception::NotFound', 'throws error for non existant gene';
 }
 
 {
