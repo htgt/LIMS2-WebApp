@@ -57,10 +57,10 @@ sub pspec_find_parent_well_ids {
     return {
         parent_plate      => { validate => 'plate_name', optional => 1 },
         parent_well       => { validate => 'well_name',  optional => 1 },
-        allele_plate      => { validate => 'plate_name', optional => 1 },
-        allele_well       => { validate => 'well_name',  optional => 1 },
-        vector_plate      => { validate => 'plate_name', optional => 1 },
-        vector_well       => { validate => 'well_name',  optional => 1 },
+        xep_plate         => { validate => 'plate_name', optional => 1 },
+        xep_well          => { validate => 'well_name',  optional => 1 },
+        dna_plate         => { validate => 'plate_name', optional => 1 },
+        dna_well          => { validate => 'well_name',  optional => 1 },
         DEPENDENCY_GROUPS => { parent   => [qw( parent_plate parent_well )] },
         DEPENDENCY_GROUPS => { vector   => [qw( vector_plate vector_well )] },
         DEPENDENCY_GROUPS => { allele   => [qw( allele_plate allele_well )] },
@@ -78,19 +78,19 @@ sub find_parent_well_ids {
     if ( $params->{process_type} eq 'second_electroporation' ) {
         push @parent_well_ids, well_id_for(
             $model, {
-                plate_name => $validated_params->{allele_plate},
-                well_name  => substr( $validated_params->{allele_well}, -3 )
+                plate_name => $validated_params->{xep_plate},
+                well_name  => substr( $validated_params->{xep_well}, -3 )
             }
         );
 
         push @parent_well_ids, well_id_for(
             $model, {
-                plate_name => $validated_params->{vector_plate},
-                well_name  => substr( $validated_params->{vector_well}, -3 )
+                plate_name => $validated_params->{dna_plate},
+                well_name  => substr( $validated_params->{dna_well}, -3 )
             }
         );
 
-        delete @{$params}{qw( allele_plate vector_plate allele_well vector_well )};
+        delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
     }
     else {
         push @parent_well_ids, well_id_for(
