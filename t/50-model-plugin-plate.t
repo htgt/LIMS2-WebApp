@@ -25,7 +25,7 @@ note( "Testing plate creation" );
     is $plate->created_by->name, 'test_user@example.org', 'plate has correct created by user';
 
     ok my $plate_comments = $plate->plate_comments, 'can retrieve plate_comments';
-    is $plate_comments->next->comment_text, 'this is a awesome test comment';
+    is $plate_comments->next->comment_text, 'this is a awesome test comment', '..first comment is expected';
 
     ok my $retrieve_plate = model->retrieve_plate( { id => $plate->id } ),
         'retrieve_plate by id should succeed';

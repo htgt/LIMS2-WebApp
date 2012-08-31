@@ -39,10 +39,10 @@ sep_plate_create_wells:
     wells:
         - well_name: A01
           process_type: second_electroporation
-          allele_plate: XEP0006
-          allele_well: A01
-          vector_plate: MOHSAQ0001_A_2
-          vector_well: A01
+          xep_plate: XEP0006
+          xep_well: A01
+          dna_plate: MOHSAQ0001_A_2
+          dna_well: A01
           cell_line: test_cell_line
 plate_assay_complete:
     name: PCS00075_A
