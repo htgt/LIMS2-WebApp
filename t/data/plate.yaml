@@ -8,6 +8,11 @@ plate_create:
     comments:
         - comment_text: this is a awesome test comment
           created_by: test_user@example.org
+plate_create_already_exists:
+    name: PCS00075_A
+    species: Mouse
+    type: INT
+    created_by: test_user@example.org
 plate_retrieve:
     name: PCS00075_A
 plate_create_wells:
