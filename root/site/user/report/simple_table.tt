@@ -13,6 +13,9 @@
 [% END %]
 [% END %]
 
+<br/><br/>
+<h2>[% sponsor_heading %]</h2>
+
 <table class="table table-striped table-bordered">
   <thead>
     <tr>

@@ -92,7 +92,10 @@ sub _cached_report_ok {
 sub cached_report {
     my %args = @_;
 
-    my $generator = generator_for( $args{report}, $args{model}, $args{params} );
+    my $params = $args{params};
+    my $generator = generator_for( $args{report}, $args{model}, $params );
+
+    my $sponsor = defined $params->{sponsor} ? $params->{sponsor} : 'All';
 
     # Take an exclusive lock to avoid race between interrogating table
     # and creating cache row. This ensures we don't set off concurrent
@@ -117,7 +120,7 @@ sub cached_report {
     $lock_fh->close(); # End of critical code: release the lock
 
     my $work_dir = init_work_dir( $cache_entry->id );
-    run_in_background( $generator, $work_dir, $cache_entry );
+    run_in_background( $generator, $work_dir, $sponsor, $cache_entry );
 
     return $cache_entry->id;
 }
@@ -139,7 +142,8 @@ sub generate_report_id {
 sub generate_report {
     my %args = @_;
 
-    my $generator = generator_for( $args{report}, $args{model}, $args{params} );
+    my $params = $args{params};
+    my $generator = generator_for( $args{report}, $args{model}, $params );
 
     my $report_id = generate_report_id();
 
@@ -147,11 +151,13 @@ sub generate_report {
 
     my $work_dir = init_work_dir( $report_id );
 
+    my $sponsor = defined $params->{sponsor} ? $params->{sponsor} : 'All';
+
     if ( $args{async} ) {
-        run_in_background( $generator, $work_dir );
+        run_in_background( $generator, $work_dir, $sponsor );
     }
     else {
-        run_in_foreground( $generator, $work_dir )
+        run_in_foreground( $generator, $work_dir, $sponsor )
             or return;
     }
 
@@ -159,7 +165,7 @@ sub generate_report {
 }
 
 sub run_in_background {
-    my ( $generator, $work_dir, $cache_entry ) = @_;
+    my ( $generator, $work_dir, $sponsor, $cache_entry ) = @_;
 
     local $SIG{CHLD} = 'IGNORE';
 
@@ -170,7 +176,7 @@ sub run_in_background {
         Log::Log4perl->easy_init( { level => $WARN, file => $work_dir->file( 'log' ) } );
         $generator->model->clear_schema; # Force re-connect in child process        
         local $0 = 'Generate report ' . $generator->name;
-        do_generate_report( $generator, $work_dir, $cache_entry );
+        do_generate_report( $generator, $work_dir, $sponsor, $cache_entry );
         exit 0;
     }
 
@@ -178,13 +184,13 @@ sub run_in_background {
 }
 
 sub run_in_foreground {
-    my ( $generator, $work_dir, $cache_entry ) = @_;
+    my ( $generator, $work_dir, $sponsor, $cache_entry ) = @_;
 
     return do_generate_report( $generator, $work_dir, $cache_entry );
 }
 
 sub do_generate_report {
-    my ( $generator, $work_dir, $cache_entry ) = @_;
+    my ( $generator, $work_dir, $sponsor, $cache_entry ) = @_;
 
     my $ok = 0;
 
@@ -193,6 +199,9 @@ sub do_generate_report {
         my $ofh = $output_file->openw;
 
         my $csv = Text::CSV->new( { eol => "\n" } );
+
+        my @sponsor_heading = $sponsor eq 'All' ? ('All', 'sponsors') : ( 'Sponsor(s):', $sponsor );
+        $csv->print( $ofh, \@sponsor_heading );
         $csv->print( $ofh, $generator->columns );
 
         my $data = $generator->iterator();
