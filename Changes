@@ -1,3 +1,9 @@
+0.014     2012-08-31 11:55:13 Europe/London
+
+   Fixed SEP template
+   Added SEP verification
+   Sponsor heading added to reports
+
 0.013     2012-08-22 14:45:53 Europe/London
 
    Implement allele request tracking.
