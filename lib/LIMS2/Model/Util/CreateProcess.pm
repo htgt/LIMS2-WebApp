@@ -20,6 +20,7 @@ use Const::Fast;
 use List::MoreUtils qw( uniq notall none );
 use LIMS2::Model::Util qw( well_id_for );
 use LIMS2::Exception::Implementation;
+use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
 
 my %process_field_data = (
@@ -473,9 +474,13 @@ sub pspec__create_process_aux_data_2w_gateway {
 sub _create_process_aux_data_2w_gateway {
     my ( $model, $params, $process ) = @_;
 
-    #TODO: throw error if both cassette and backbone supplied?
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_2w_gateway );
+
+    if ( $validated_params->{cassette} && $validated_params->{backbone} ) {
+        LIMS2::Exception::Validation->throw(
+            '2w_gateway process can have either a cassette or backbone, not both' );
+    }
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } )
         if $validated_params->{cassette};
