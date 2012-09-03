@@ -1,0 +1,63 @@
+[%- META title="Edit Plate"; META tab_name = "Plates" %]
+
+<div class="page-header">
+  <h1>Plate <small>[% plate.name %]</small></h1>
+</div>
+
+<table class="table">
+  <tbody>
+    <tr>
+      <td>Name</td>
+      <td>[% plate.name %]</td>
+      <td>
+        <a class="btn" role="button" href="#myModal" data-toggle="modal">
+          <i class="icon-pencil"></i> Rename
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td>Type</td>
+      <td>[% plate.type.id %] ([% plate.type.description %])</td>
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td>[% plate.description %]</td>
+    </tr>
+    <tr>
+      <td>Created By</td>
+      <td>[% plate.created_by.name %]</td>
+    </tr>
+    <tr>
+      <td>Created At</td>
+      <td>[% plate.created_at.ymd %]</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Modal header</h3>
+  </div>
+  <div class="modal-body">
+    <p>One fine body…</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary">Save changes</button>
+  </div>
+</div>
+
+<h2>Comments</h2>
+[% IF plate.plate_comments.size %]
+<dl>
+  [% FOR comment IN plate.plate_comments %]
+  <dt>[% comment.created_by.name %], [% comment.created_at.ymd %]</dt>
+  <dd>
+    <p>[% comment.comment_text %]</p>
+  </dd>
+  [% END %]
+</dl>
+[% ELSE %]
+<p><em>No comments for this plate.</em></p>
+[% END %]
