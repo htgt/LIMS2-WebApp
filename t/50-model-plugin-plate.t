@@ -113,6 +113,25 @@ note( "Plate Create CSV Upload" );
 
 }
 
+note( 'Plate Rename' );
+
+{
+    throws_ok{
+        model->rename_plate( { name => 'EPTEST' } )
+    } 'LIMS2::Exception::Validation', 'must specify a new plate name';
+
+    throws_ok{
+        model->rename_plate( { name => 'BLAH123', 'new_name' => 'FOO123' } )
+    } 'LIMS2::Exception::NotFound', 'can not rename a non existant plate';
+
+    throws_ok{
+        model->rename_plate( { name => 'EPTEST', 'new_name' => 'PCS00056_A' } )
+    } qr/Plate PCS00056_A already exists/, 'can not rename a plate to a already existing name';
+
+    ok my $plate = model->rename_plate( { name => 'EPTEST', new_name => 'EPRENAME' } ), 'can rename plate';
+    is $plate->name, 'EPRENAME', '..plate has correct name';
+
+}
 {
     note( "Testing delete_plate" );
 
