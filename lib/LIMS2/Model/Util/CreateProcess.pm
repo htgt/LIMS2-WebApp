@@ -44,7 +44,7 @@ my %process_field_data = (
         name   => 'backbone',
     },
     cell_line => {
-        values => sub{ return },
+        values => sub{ return _create_cell_line_list(shift) },
         label  => 'Cell Line',
         name   => 'cell_line',
     },
@@ -625,6 +625,12 @@ sub _backbone_id_for {
 
     my $backbone = $model->retrieve( Backbone => { name => $backbone_name } );
     return $backbone->id;
+}
+
+sub _create_cell_line_list{
+	my ($model) = @_;
+    my %cell_lines = map{ $_->cell_line => 1 } $model->schema->resultset('ProcessCellLine')->all;
+    return [keys %cell_lines];
 }
 
 1;
