@@ -132,8 +132,17 @@ note( 'Plate Rename' );
     is $plate->name, 'EPRENAME', '..plate has correct name';
 
 }
+
+note( "Testing delete_plate" );
+
 {
-    note( "Testing delete_plate" );
+    throws_ok{
+        model->delete_plate( { name => 'PCS00056_A' } )
+    } qr/Plate PCS00056_A can not be deleted, has child plates/
+        , 'throws error if trying to delete plate with child plates';
+}
+
+{
 
     lives_ok {
         model->delete_plate( { name => 'PCS101' } )
@@ -148,7 +157,7 @@ note( 'Plate Rename' );
     } 'delete plate';
 
     lives_ok {
-        model->delete_plate( { name => 'EPTEST' } )
+        model->delete_plate( { name => 'EPRENAME' } )
     } 'delete plate';
 }
 

@@ -151,13 +151,27 @@ sub delete_plate {
 
     # retrieve_plate() will validate the parameters
     my $plate = $self->retrieve_plate($params);
+    my @wells = $plate->wells;
 
-    for my $well ( $plate->wells ) {
+    $self->throw( Validation => "Plate $plate can not be deleted, has child plates" )
+        if $self->has_child_wells( \@wells );
+
+    for my $well ( @wells ) {
         $self->delete_well( { id => $well->id } );
     }
 
     $plate->search_related_rs('plate_comments')->delete;
     $plate->delete;
+    return;
+}
+
+sub has_child_wells {
+    my ( $self, $wells ) = @_;
+
+    for my $well ( @{ $wells } ) {
+        return 1 if $well->input_processes > 0;
+    }
+
     return;
 }
 
