@@ -254,6 +254,7 @@ t/50-model-plugin-well.t
 t/60-allele-request.t
 t/80-dna_status_upload.t
 t/80-login.t
+t/80-plate_report.t
 t/80-plate_upload.t
 t/80-qc.t
 t/author-critic.t

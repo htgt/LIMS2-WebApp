@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionSummary::VERSION = '0.015';
+    $LIMS2::Report::VectorProductionSummary::VERSION = '0.016';
 }
 ## use critic
 
@@ -33,8 +33,13 @@ has '+param_names' => (
 );
 
 override _build_name => sub {
+    my $self = shift;
+
     my $dt = DateTime->now();
-    return 'Vector Production Summary ' . $dt->ymd;
+    my $append = $self->has_sponsor ? ' - Sponsor ' . $self->sponsor . ' ' : '';
+    $append .= $dt->ymd;
+
+    return 'Vector Production Summary ' . $append;
 };
 
 override _build_columns => sub {
