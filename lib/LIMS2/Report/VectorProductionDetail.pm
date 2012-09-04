@@ -8,8 +8,13 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::ProductionDetail );
 
 override _build_name => sub {
+    my $self = shift;
+
     my $dt = DateTime->now();
-    return 'Vector Production Detail ' . $dt->ymd;
+    my $append = $self->has_sponsor ? ' - Sponsor ' . $self->sponsor . ' ' : '';
+    $append .= $dt->ymd;
+
+    return 'Vector Production Detail ' . $append;
 };
 
 override _build_columns => sub {
