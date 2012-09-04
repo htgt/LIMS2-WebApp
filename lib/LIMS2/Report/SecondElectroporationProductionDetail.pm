@@ -13,8 +13,13 @@ has species => (
 );
 
 override _build_name => sub {
+    my $self = shift;
+
     my $dt = DateTime->now();
-    return 'Second Electroporation Production Detail ' . $dt->ymd;
+    my $append = $self->has_sponsor ? ' - Sponsor ' . $self->sponsor . ' ' : '';
+    $append .= $dt->ymd;
+
+    return 'Second Electroporation Production Detail ' . $append;
 };
 
 override _build_columns => sub {
