@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.016     2012-09-04 11:45:16 Europe/London
+
+    Bugfix, well reports were not working because they did not have a sponsor.
+    Moved sponsor into report name, removed from generic Report code.
+    Added test to make sure Plate Reports are viewable.
+
 0.015     2012-08-31 13:08:03 Europe/London
 
    Fixed SEP plate upload template
