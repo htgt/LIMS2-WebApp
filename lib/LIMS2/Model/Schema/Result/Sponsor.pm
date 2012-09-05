@@ -47,7 +47,7 @@ __PACKAGE__->table("sponsors");
 
   data_type: 'text'
   default_value: (empty string)
-  is_nullable: 0
+  is_nullable: 1
 
 =cut
 
@@ -55,7 +55,7 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "text", is_nullable => 0 },
   "description",
-  { data_type => "text", default_value => "", is_nullable => 0 },
+  { data_type => "text", default_value => "", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -88,8 +88,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-09-04 14:38:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9C2G2ZmnZjH45Hsj66ovpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-08-01 16:23:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xZzQ8o0GCiDIaEDQRz5otw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
