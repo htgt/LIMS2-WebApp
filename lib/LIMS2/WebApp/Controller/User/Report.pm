@@ -155,8 +155,6 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
     );
 
     my $csv     = Text::CSV->new;
-    my $sponsor_row = $csv->getline( $report_fh );
-    my $sponsor_heading = $sponsor_row->[0] . ' ' . $sponsor_row->[1];
     my $columns = $csv->getline( $report_fh );
 
     my $skip = $pageset->entries_per_page * ( $pageset->current_page - 1 );
@@ -176,7 +174,6 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         report_id       => $report_id,
         title           => $report_name,
         pageset         => $pageset,
-        sponsor_heading => $sponsor_heading,
         columns         => $columns,
         data            => \@data,
     );
