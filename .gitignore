@@ -11,3 +11,4 @@ cover_db
 app.psgi
 tmp
 .project
+ddl/lims2_af11/
