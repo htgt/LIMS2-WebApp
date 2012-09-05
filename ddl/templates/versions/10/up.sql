@@ -19,9 +19,6 @@ ADD FOREIGN KEY (cell_line_id) REFERENCES cell_lines(id);
 ALTER TABLE audit.process_cell_line
 ADD COLUMN cell_line_id INTEGER;
 
-ALTER TABLE audit.process_cell_line
-ADD FOREIGN KEY (cell_line_id) REFERENCES cell_lines(id);
-
 UPDATE process_cell_line
 SET cell_line_id = id
 FROM cell_lines

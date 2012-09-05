@@ -101,7 +101,7 @@ note( "Plate Create CSV Upload" );
         plate_type   => 'EP',
         process_type => 'first_electroporation',
         created_by   => 'test_user@example.org',
-        cell_line    => 'cell_line_bar',
+        cell_line    => 'oct4:puro iCre/iFlpO #11',
     };
 
     ok my $plate = model->create_plate_csv_upload( $plate_params, $test_file ),
