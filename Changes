@@ -1,3 +1,8 @@
+0.017     2012-09-05 09:42:50 Europe/London
+
+    Show clearer error message on plate upload when parent well does not exist.
+    Switch from final-backbone check to just backbone check.
+
 0.016     2012-09-04 11:45:16 Europe/London
 
     Bugfix, well reports were not working because they did not have a sponsor.

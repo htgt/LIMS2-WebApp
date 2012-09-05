@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellPrimerBand;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellPrimerBand::VERSION = '0.016';
+    $LIMS2::Model::Schema::Result::WellPrimerBand::VERSION = '0.017';
 }
 ## use critic
 

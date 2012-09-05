@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.016';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.017';
 }
 ## use critic
 
@@ -36,7 +36,7 @@ my %process_field_data = (
         name   => 'cassette',
     },
     final_backbone => {
-        values => sub{ return _eng_seq_type_list( shift, 'final-backbone' ) },
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('Backbone')->all ] },
         label  => 'Backbone (Final)',
         name   => 'backbone',
     },
@@ -470,7 +470,7 @@ sub _create_process_aux_data_int_recom {
 sub pspec__create_process_aux_data_2w_gateway {
     return {
         cassette    => { validate => 'existing_final_cassette', optional => 1 },
-        backbone    => { validate => 'existing_final_backbone', optional => 1 },
+        backbone    => { validate => 'existing_backbone', optional => 1 },
         recombinase => { optional => 1 },
         REQUIRE_SOME => { cassette_or_backbone => [ 1, qw( cassette backbone ) ], },
     };
@@ -506,7 +506,7 @@ sub _create_process_aux_data_2w_gateway {
 sub pspec__create_process_aux_data_3w_gateway {
     return {
         cassette    => { validate => 'existing_final_cassette' },
-        backbone    => { validate => 'existing_final_backbone' },
+        backbone    => { validate => 'existing_backbone' },
         recombinase => { optional => 1 },
     };
 }

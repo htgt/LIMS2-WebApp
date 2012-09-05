@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.016';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.017';
 }
 ## use critic
 
@@ -313,6 +313,14 @@ sub existing_final_cassette {
 sub existing_final_backbone {
     my ( $class, $model ) = @_;
     return eng_seq_of_type( $model, 'final-backbone' );
+}
+
+# intermediate backbones can be in a final vector, so need a list of all backbone types
+# which eng-seq-builder can not provide using the eng_seq_of_type method
+sub existing_backbone {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'Backbone', 'name' );
 }
 
 sub comma_separated_list {

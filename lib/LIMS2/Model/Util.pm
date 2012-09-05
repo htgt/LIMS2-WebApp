@@ -1,7 +1,7 @@
 package LIMS2::Model::Util;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::VERSION = '0.016';
+    $LIMS2::Model::Util::VERSION = '0.017';
 }
 ## use critic
 
@@ -9,6 +9,8 @@ package LIMS2::Model::Util;
 use strict;
 use warnings FATAL => 'all';
 
+use Try::Tiny;
+use LIMS2::Exception::Validation;
 use Sub::Exporter -setup => {
     exports => [ qw( sanitize_like_expr well_id_for ) ]
 };
@@ -34,7 +36,13 @@ sub sanitize_like_expr {
 sub well_id_for {
     my ( $model, $data ) = @_;
 
-    return $model->retrieve_well($data)->id;
+    my $well = try { $model->retrieve_well($data) }
+    catch {
+        LIMS2::Exception::Validation->throw(
+            'Can not find parent well ' . $data->{plate_name} . '[' . $data->{well_name} . ']' );
+    };
+
+    return $well->id;
 }
 
 1;
