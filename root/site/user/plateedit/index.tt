@@ -2,51 +2,30 @@
 
 <div class="page-header">
   <h1>Plate <small>[% plate.name %]</small></h1>
+  <a class="btn" role="button"> Delete Plate</a>
 </div>
 
-<table class="table">
-  <tbody>
-    <tr>
-      <td>Name</td>
-      <td>[% plate.name %]</td>
-      <td>
-        <a class="btn" role="button" href="#myModal" data-toggle="modal">
-          <i class="icon-pencil"></i> Rename
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td>Type</td>
-      <td>[% plate.type.id %] ([% plate.type.description %])</td>
-    </tr>
-    <tr>
-      <td>Description</td>
-      <td>[% plate.description %]</td>
-    </tr>
-    <tr>
-      <td>Created By</td>
-      <td>[% plate.created_by.name %]</td>
-    </tr>
-    <tr>
-      <td>Created At</td>
-      <td>[% plate.created_at.ymd %]</td>
-    </tr>
-  </tbody>
-</table>
+<strong>Name </strong>[% plate.name %]
+  <a class="btn" role="button" href="#myModal" data-toggle="modal">
+    <i class="icon-pencil"></i> Rename
+  </a>
+<br>
 
-<div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel">Modal header</h3>
-  </div>
-  <div class="modal-body">
-    <p>One fine body…</p>
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary">Save changes</button>
-  </div>
-</div>
+<strong>Type </strong>
+[% plate.type.id %] ([% plate.type.description %])
+</br>
+
+<strong>Description</strong>
+[% plate.description %]
+</br>
+
+<strong>Created By</strong>
+<td>[% plate.created_by.name %]
+</br>
+
+<strong>Created At</strong>
+[% plate.created_at.ymd %]
+
 
 <h2>Comments</h2>
 [% IF plate.plate_comments.size %]
@@ -61,3 +40,23 @@
 [% ELSE %]
 <p><em>No comments for this plate.</em></p>
 [% END %]
+
+<div class="modal hide fade" id="myModal">
+  <form method="POST" id="plate_rename" action="[% c.uri_for( '/user/plate_rename' ) %]" class="modal-form"  enctype="multipart/form-data" >
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3 id="myModalLabel">Rename Plate</h3>
+    </div>
+
+    <div class="modal-body">
+      Rename plate from [% plate.name %] to <input name="plate_name" id="plate_name" type="text" />
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Close</button>
+      <button name="plate_rename" id="plate_rename" type="submit" value="plate_rename" class="btn btn-primary">
+          <i class="icon-pencil"></i> Rename Plate
+      </button>
+    </div>
+  </form>
+</div>
