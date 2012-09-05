@@ -170,12 +170,12 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
     }
 
     $c->stash(
-        template  => 'user/report/simple_table.tt',
-        report_id => $report_id,
-        title     => $report_name,
-        pageset   => $pageset,
-        columns   => $columns,
-        data      => \@data,
+        template        => 'user/report/simple_table.tt',
+        report_id       => $report_id,
+        title           => $report_name,
+        pageset         => $pageset,
+        columns         => $columns,
+        data            => \@data,
     );
     return;
 }
@@ -195,8 +195,6 @@ sub _count_rows {
 
 sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
-
-    ### Report name: $report
 
     $c->stash(
         template    => 'user/report/select_sponsor.tt',

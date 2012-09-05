@@ -28,8 +28,13 @@ has '+param_names' => (
 );
 
 override _build_name => sub {
+    my $self = shift;
+
     my $dt = DateTime->now();
-    return 'Electroporation Production Summary ' . $dt->ymd;
+    my $append = $self->has_sponsor ? ' - Sponsor ' . $self->sponsor . ' ' : '';
+    $append .= $dt->ymd;
+
+    return 'Electroporation Production Summary ' . $append;
 };
 
 override _build_columns => sub {

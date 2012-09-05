@@ -193,6 +193,7 @@ sub do_generate_report {
         my $ofh = $output_file->openw;
 
         my $csv = Text::CSV->new( { eol => "\n" } );
+
         $csv->print( $ofh, $generator->columns );
 
         my $data = $generator->iterator();

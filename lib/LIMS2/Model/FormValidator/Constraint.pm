@@ -313,6 +313,14 @@ sub existing_final_backbone {
     return eng_seq_of_type( $model, 'final-backbone' );
 }
 
+# intermediate backbones can be in a final vector, so need a list of all backbone types
+# which eng-seq-builder can not provide using the eng_seq_of_type method
+sub existing_backbone {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'Backbone', 'name' );
+}
+
 sub comma_separated_list {
     my $csv = Text::CSV->new;
     return sub {

@@ -17,9 +17,10 @@ use Sub::Exporter -setup => {
 
 use Log::Log4perl qw( :easy );
 use Const::Fast;
-use List::MoreUtils qw( uniq notall );
+use List::MoreUtils qw( uniq notall none );
 use LIMS2::Model::Util qw( well_id_for );
 use LIMS2::Exception::Implementation;
+use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
 
 my %process_field_data = (
@@ -29,7 +30,7 @@ my %process_field_data = (
         name   => 'cassette',
     },
     final_backbone => {
-        values => sub{ return _eng_seq_type_list( shift, 'final-backbone' ) },
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('Backbone')->all ] },
         label  => 'Backbone (Final)',
         name   => 'backbone',
     },
@@ -340,6 +341,18 @@ sub _check_wells_second_electroporation {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+
+    #two input wells, one must be xep, other dna
+    my @input_well_types = map{ $_->plate->type_id } $process->input_wells;
+
+    if ( ( none { $_ eq 'XEP' } @input_well_types ) || ( none { $_ eq 'DNA' } @input_well_types ) ) {
+        LIMS2::Exception::Validation->throw(
+            'second_electroporation process types require two input wells, one of type XEP '
+            . 'and the other of type DNA'
+            . ' (got ' . join( ',', @input_well_types ) . ')'
+        );
+    }
+
     return;
 }
 ## use critic
@@ -451,7 +464,7 @@ sub _create_process_aux_data_int_recom {
 sub pspec__create_process_aux_data_2w_gateway {
     return {
         cassette    => { validate => 'existing_final_cassette', optional => 1 },
-        backbone    => { validate => 'existing_final_backbone', optional => 1 },
+        backbone    => { validate => 'existing_backbone', optional => 1 },
         recombinase => { optional => 1 },
         REQUIRE_SOME => { cassette_or_backbone => [ 1, qw( cassette backbone ) ], },
     };
@@ -461,9 +474,13 @@ sub pspec__create_process_aux_data_2w_gateway {
 sub _create_process_aux_data_2w_gateway {
     my ( $model, $params, $process ) = @_;
 
-    #TODO: throw error if both cassette and backbone supplied?
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_2w_gateway );
+
+    if ( $validated_params->{cassette} && $validated_params->{backbone} ) {
+        LIMS2::Exception::Validation->throw(
+            '2w_gateway process can have either a cassette or backbone, not both' );
+    }
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } )
         if $validated_params->{cassette};
@@ -483,7 +500,7 @@ sub _create_process_aux_data_2w_gateway {
 sub pspec__create_process_aux_data_3w_gateway {
     return {
         cassette    => { validate => 'existing_final_cassette' },
-        backbone    => { validate => 'existing_final_backbone' },
+        backbone    => { validate => 'existing_backbone' },
         recombinase => { optional => 1 },
     };
 }
