@@ -114,13 +114,5 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
-
-# cell_line text field replaced by foreign key cell_line_id
-# this method allows existing cell_line calls to fecth the cell line's name
-sub cell_line{
-	my ($self) = @_;
-	return $self->cell_line->name;
-}
-
 __PACKAGE__->meta->make_immutable;
 1;
