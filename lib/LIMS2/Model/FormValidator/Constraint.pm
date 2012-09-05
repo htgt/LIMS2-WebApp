@@ -174,6 +174,10 @@ sub existing_bac_library {
     return in_resultset( $model, 'BacLibrary', 'id' );
 }
 
+sub existing_cell_line {
+	my ( $class, $model ) = @_;
+	return in_resultset( $model, 'CellLine', 'name' );
+}
 sub existing_chromosome {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Chromosome', 'name' );

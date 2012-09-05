@@ -44,7 +44,7 @@ my %process_field_data = (
         name   => 'backbone',
     },
     cell_line => {
-        values => sub{ return _create_cell_line_list(shift) },
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('CellLine')->all ] },
         label  => 'Cell Line',
         name   => 'cell_line',
     },
@@ -560,7 +560,7 @@ sub _create_process_aux_data_cre_bac_recom {
 
 sub pspec__create_process_aux_data_first_electroporation {
     return {
-        cell_line => { validate => 'non_empty_string' },
+        cell_line => { validate => 'existing_cell_line' },
     };
 }
 
@@ -571,7 +571,7 @@ sub _create_process_aux_data_first_electroporation {
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_first_electroporation );
 
-    $process->create_related( process_cell_line => { cell_line => $validated_params->{cell_line} } );
+    $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) } );
 
     return;
 }
@@ -627,10 +627,11 @@ sub _backbone_id_for {
     return $backbone->id;
 }
 
-sub _create_cell_line_list{
-	my ($model) = @_;
-    my %cell_lines = map{ $_->cell_line => 1 } $model->schema->resultset('ProcessCellLine')->all;
-    return [keys %cell_lines];
+sub _cell_line_id_for {
+	my ( $model, $cell_line_name ) = @_;
+	
+	my $cell_line = $model->retrieve( CellLine => { name => $cell_line_name });
+	return $cell_line->id;
 }
 
 1;
