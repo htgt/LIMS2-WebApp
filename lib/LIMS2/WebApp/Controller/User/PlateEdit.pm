@@ -49,6 +49,7 @@ sub delete_plate :Path( '/user/delete_plate' ) :Args(0) {
             };
         }
     );
+    return;
 }
 
 sub rename_plate :Path( '/user/rename_plate' ) :Args(0) {
@@ -82,6 +83,7 @@ sub rename_plate :Path( '/user/rename_plate' ) :Args(0) {
     );
 
     $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
 }
 
 =head1 AUTHOR
