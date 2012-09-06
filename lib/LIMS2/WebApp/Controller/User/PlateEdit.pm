@@ -29,11 +29,35 @@ sub index :Path( '/user/edit_plate' ) :Args(0) {
 
     my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
 
-    $c->stash(
-        plate => $plate,
-    );
-
+    $c->stash( plate => $plate );
     return;
+}
+
+sub delete_plate :Path( '/user/delete_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    unless ( $params->{plate_id} ) {
+        $c->flash->{error_msg} = 'No plate_id specified when trying to delete plate';
+        $c->res->redirect( $c->uri_for('/user/browse_plates') );
+        return;
+    }
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->delete_plate( { id => $params->{plate_id} } );
+                $c->flash->{success_msg} = 'Deleted plate ' . $params->{plate_name};
+                $c->res->redirect( $c->uri_for('/user/browse_plates') );
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while deleting plate: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+                $c->res->redirect( $c->uri_for('/user/edit_plate', { id => $params->{plate_id} }) );
+            };
+        }
+    );
 }
 
 =head1 AUTHOR
