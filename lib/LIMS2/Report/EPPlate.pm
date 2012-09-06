@@ -71,9 +71,9 @@ override iterator => sub {
         my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
 
         DEBUG "Found cell_line $cell_line";
-        
+
         my $cassette = $well->cassette ? $well->cassette->name : '';
-        
+
         return [
             $self->base_data( $well ),
             $cassette,
