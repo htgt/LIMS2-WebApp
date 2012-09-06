@@ -241,5 +241,15 @@ sub as_hash {
     };
 }
 
+sub has_child_wells {
+    my $self = shift;
+
+    for my $well ( $self->wells ) {
+        return 1 if $well->input_processes > 0;
+    }
+
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

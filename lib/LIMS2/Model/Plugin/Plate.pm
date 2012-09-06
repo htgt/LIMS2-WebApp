@@ -151,12 +151,11 @@ sub delete_plate {
 
     # retrieve_plate() will validate the parameters
     my $plate = $self->retrieve_plate($params);
-    my @wells = $plate->wells;
 
     $self->throw( Validation => "Plate $plate can not be deleted, has child plates" )
-        if $self->has_child_wells( \@wells );
+        if $plate->has_child_wells;
 
-    for my $well ( @wells ) {
+    for my $well ( $plate->wells ) {
         $self->delete_well( { id => $well->id } );
     }
 
@@ -165,15 +164,6 @@ sub delete_plate {
     return;
 }
 
-sub has_child_wells {
-    my ( $self, $wells ) = @_;
-
-    for my $well ( @{ $wells } ) {
-        return 1 if $well->input_processes > 0;
-    }
-
-    return;
-}
 
 sub pspec_set_plate_assay_complete {
     return {
