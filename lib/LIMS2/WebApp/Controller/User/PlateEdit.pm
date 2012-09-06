@@ -65,6 +65,36 @@ sub delete_plate :Path( '/user/delete_plate' ) :Args(0) {
 sub rename_plate :Path( '/user/rename_plate' ) :Args(0) {
     my ( $self, $c ) = @_;
 
+    my $params = $c->request->params;
+
+    unless ( $params->{plate_id} ) {
+        $c->flash->{error_msg} = 'No plate_id specified';
+        $c->res->redirect( $c->uri_for('/user/browse_plates') );
+        return;
+    }
+
+    unless ( $params->{new_plate_name} ) {
+        $c->flash->{error_msg} = 'You must specify a new plate name';
+        $c->res->redirect( $c->uri_for('/user/edit_plate', { id => $params->{plate_id} }) );
+        return;
+    }
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi') ->rename_plate(
+                    { id => $params->{plate_id}, new_name => $params->{new_plate_name} } );
+
+                $c->flash->{success_msg} = 'Renamed plate to ' . $params->{new_plate_name};
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while renaming plate: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/edit_plate', { id => $params->{plate_id} }) );
 }
 
 =head1 AUTHOR
