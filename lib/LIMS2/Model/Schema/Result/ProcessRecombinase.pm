@@ -82,7 +82,7 @@ __PACKAGE__->set_primary_key("process_id", "rank");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<process_recombinase_process_id_recombinase_key>
+=head2 C<process_recombinase_process_id_recombinase_id_key>
 
 =over 4
 
@@ -95,7 +95,7 @@ __PACKAGE__->set_primary_key("process_id", "rank");
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "process_recombinase_process_id_recombinase_key",
+  "process_recombinase_process_id_recombinase_id_key",
   ["process_id", "recombinase_id"],
 );
 
@@ -132,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-28 12:54:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BL6EYPEtTYshh0XQ4JC7EQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-09-05 14:23:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AIQNWvccTcY2LenqlrnGAA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

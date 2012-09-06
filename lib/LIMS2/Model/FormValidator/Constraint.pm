@@ -174,6 +174,10 @@ sub existing_bac_library {
     return in_resultset( $model, 'BacLibrary', 'id' );
 }
 
+sub existing_cell_line {
+	my ( $class, $model ) = @_;
+	return in_resultset( $model, 'CellLine', 'name' );
+}
 sub existing_chromosome {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Chromosome', 'name' );
@@ -302,6 +306,14 @@ sub existing_final_cassette {
 sub existing_final_backbone {
     my ( $class, $model ) = @_;
     return eng_seq_of_type( $model, 'final-backbone' );
+}
+
+# intermediate backbones can be in a final vector, so need a list of all backbone types
+# which eng-seq-builder can not provide using the eng_seq_of_type method
+sub existing_backbone {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'Backbone', 'name' );
 }
 
 sub comma_separated_list {

@@ -109,7 +109,7 @@ note( "Plate Create CSV Upload" );
         plate_type   => 'EP',
         process_type => 'first_electroporation',
         created_by   => 'test_user@example.org',
-        cell_line    => 'cell_line_bar',
+        cell_line    => 'oct4:puro iCre/iFlpO #11',
     };
 
     ok my $plate = model->create_plate_csv_upload( $plate_params, $test_file ),
@@ -135,10 +135,36 @@ note( 'List Plates' );
     my @plate_names2 =  map{ $_->name } @{ $plate_list2 };
     is_deeply \@plate_names2, [ 'FFP0001' ], '..and plate list is correct';
 
+note( 'Plate Rename' );
+
+{
+    throws_ok{
+        model->rename_plate( { name => 'EPTEST' } )
+    } 'LIMS2::Exception::Validation', 'must specify a new plate name';
+
+    throws_ok{
+        model->rename_plate( { name => 'BLAH123', 'new_name' => 'FOO123' } )
+    } 'LIMS2::Exception::NotFound', 'can not rename a non existant plate';
+
+    throws_ok{
+        model->rename_plate( { name => 'EPTEST', 'new_name' => 'PCS00056_A' } )
+    } qr/Plate PCS00056_A already exists/, 'can not rename a plate to a already existing name';
+
+    ok my $plate = model->rename_plate( { name => 'EPTEST', new_name => 'EPRENAME' } ), 'can rename plate';
+    is $plate->name, 'EPRENAME', '..plate has correct name';
+
+}
+
+note( "Testing delete_plate" );
+
+{
+    throws_ok{
+        model->delete_plate( { name => 'PCS00056_A' } )
+    } qr/Plate PCS00056_A can not be deleted, has child plates/
+        , 'throws error if trying to delete plate with child plates';
 }
 
 {
-    note( "Testing delete_plate" );
 
     lives_ok {
         model->delete_plate( { name => 'PCS101' } )
@@ -153,7 +179,7 @@ note( 'List Plates' );
     } 'delete plate';
 
     lives_ok {
-        model->delete_plate( { name => 'EPTEST' } )
+        model->delete_plate( { name => 'EPRENAME' } )
     } 'delete plate';
 }
 

@@ -193,7 +193,7 @@ ok $mech->submit_form(
 {
     note( "Invalid well data" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("well_name,parent_plate,parent_well,cell_line\n" 
+    $test_file->print("well_name,parent_plate,parent_well,cell_line\n"
                       . "BLAH,MOHFAQ001_A_2,A01,cell_line_foo");
     $test_file->seek( 0, 0 );
 
@@ -215,10 +215,34 @@ ok $mech->submit_form(
 }
 
 {
+    note( "Invalid parent well" );
+    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $test_file->print("well_name,parent_plate,parent_well,cell_line\n"
+                      . "A01,MOHFAZ001_A_2,A01,cell_line_foo");
+    $test_file->seek( 0, 0 );
+
+    $mech->get_ok( '/user/plate_upload_step2?process_type=first_electroporation' );
+    $mech->title_is('Plate Upload 2');
+    ok my $res = $mech->submit_form(
+        form_id => 'plate_create',
+        fields  => {
+            plate_name => 'EPTEST',
+            datafile   => $test_file->filename
+        },
+        button  => 'create_plate'
+    ), 'submit form with well data file with invalid parent well data';
+
+    ok $res->is_success, '...response is_success';
+    is $res->base->path, '/user/plate_upload_step2', '... stays on same page';
+    like $res->content, qr/Error encountered while creating plate: Can not find parent well MOHFAZ/
+        , '...throws error can not find parent well';
+}
+
+{
     note( "Successful plate create" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("well_name,parent_plate,parent_well,cell_line\n" 
-                      . "A01,MOHFAQ0001_A_2,A01,cell_line_foo");
+    $test_file->print("well_name,parent_plate,parent_well,cell_line\n"
+                      . "A01,MOHFAQ0001_A_2,A01,oct4:puro iCre/iFlpO #11");
     $test_file->seek( 0, 0 );
 
     $mech->get_ok( '/user/plate_upload_step2?process_type=first_electroporation' );

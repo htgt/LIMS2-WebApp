@@ -49,7 +49,7 @@ override iterator => sub {
             or return;
 
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
-        my $cell_line = $process_cell_line ? $process_cell_line->cell_line : '';
+        my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
 
         return [
             $self->base_data( $well ),

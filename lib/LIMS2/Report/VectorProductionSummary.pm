@@ -27,8 +27,13 @@ has '+param_names' => (
 );
 
 override _build_name => sub {
+    my $self = shift;
+
     my $dt = DateTime->now();
-    return 'Vector Production Summary ' . $dt->ymd;
+    my $append = $self->has_sponsor ? ' - Sponsor ' . $self->sponsor . ' ' : '';
+    $append .= $dt->ymd;
+
+    return 'Vector Production Summary ' . $append;
 };
 
 override _build_columns => sub {

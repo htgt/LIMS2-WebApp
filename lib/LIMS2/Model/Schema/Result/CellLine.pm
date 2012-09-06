@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Sponsor;
+package LIMS2::Model::Schema::Result::CellLine;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Sponsor
+LIMS2::Model::Schema::Result::CellLine
 
 =cut
 
@@ -30,20 +30,22 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<sponsors>
+=head1 TABLE: C<cell_lines>
 
 =cut
 
-__PACKAGE__->table("sponsors");
+__PACKAGE__->table("cell_lines");
 
 =head1 ACCESSORS
 
 =head2 id
 
-  data_type: 'text'
+  data_type: 'integer'
+  is_auto_increment: 1
   is_nullable: 0
+  sequence: 'cell_lines_id_seq'
 
-=head2 description
+=head2 name
 
   data_type: 'text'
   default_value: (empty string)
@@ -53,8 +55,13 @@ __PACKAGE__->table("sponsors");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "text", is_nullable => 0 },
-  "description",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "cell_lines_id_seq",
+  },
+  "name",
   { data_type => "text", default_value => "", is_nullable => 0 },
 );
 
@@ -72,24 +79,24 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 projects
+=head2 process_cell_lines
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::Project>
+Related object: L<LIMS2::Model::Schema::Result::ProcessCellLine>
 
 =cut
 
 __PACKAGE__->has_many(
-  "projects",
-  "LIMS2::Model::Schema::Result::Project",
-  { "foreign.sponsor_id" => "self.id" },
+  "process_cell_lines",
+  "LIMS2::Model::Schema::Result::ProcessCellLine",
+  { "foreign.cell_line_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-09-05 14:23:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/IG7gsenAqWM9N/y2kgDmA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-09-04 14:38:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DFRIeamc2KcUUCXzv4REmQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
