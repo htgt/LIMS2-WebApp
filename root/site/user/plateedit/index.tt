@@ -69,8 +69,8 @@
     </div>
 
     <div class="modal-body" align="center">
-      <input type="hidden" name="plate_id" value="[% plate.id %]" />
-      <input type="hidden" name="plate_name" value="[% plate.name %]" />
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      <input type="hidden" name="name" value="[% plate.name %]" />
       Are you sure you want to delete plate <strong>[% plate.name %]</strong>?
     </div>
 
@@ -91,9 +91,9 @@
     </div>
 
     <div class="modal-body">
-      <input type="hidden" name="plate_id" value="[% plate.id %]" />
-      <input type="hidden" name="plate_name" value="[% plate.name %]" />
-      Rename plate from <strong>[% plate.name %]</strong> to <input name="new_plate_name" id="new_plate_name" type="text" />
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      <input type="hidden" name="name" value="[% plate.name %]" />
+      Rename plate from <strong>[% plate.name %]</strong> to <input name="new_name" id="new_name" type="text" />
     </div>
 
     <div class="modal-footer">
