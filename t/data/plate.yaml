@@ -20,17 +20,17 @@ plate_create_wells:
           process_type: first_electroporation
           parent_plate: MOHFAQ0001_A_2
           parent_well: A01
-          cell_line: test_cell_line
+          cell_line: "oct4:puro iCre/iFlpO #11"
         - well_name: B01
           process_type: first_electroporation
           parent_plate: MOHFAQ0001_A_2
           parent_well: B02
-          cell_line: test_cell_line
+          cell_line: "oct4:puro iCre/iFlpO #11"
         - well_name: C01
           process_type: first_electroporation
           parent_plate: MOHFAQ0001_A_2
           parent_well: C03
-          cell_line: test_cell_line
+          cell_line: "oct4:puro iCre/iFlpO #11"
 sep_plate_create_wells:
     name: SEP10001
     species: Mouse
@@ -43,7 +43,7 @@ sep_plate_create_wells:
           xep_well: A01
           dna_plate: MOHSAQ0001_A_2
           dna_well: A01
-          cell_line: test_cell_line
+          cell_line: "oct4:puro iCre/iFlpO #11"
 plate_assay_complete:
     name: PCS00075_A
     completed_at: 2012-05-21T00:00:00

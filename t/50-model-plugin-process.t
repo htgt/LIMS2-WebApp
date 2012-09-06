@@ -359,7 +359,7 @@ my $first_electroporation_data= test_data( 'first_electroporation.yaml' );
     is $output_well->plate->name, 'FEP0006', '..and is on correct plate';
 
     ok my $process_cell_line = $process->process_cell_line, 'process has process_cell_line';
-    is $process_cell_line->cell_line, 'foo cell line', 'is correct cell line';
+    is $process_cell_line->cell_line->name, 'oct4:puro iCre/iFlpO #11', 'is correct cell line';
 
     lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process'; 
 }
