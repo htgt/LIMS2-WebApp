@@ -29,7 +29,9 @@ sub index :Path( '/user/edit_plate' ) :Args(0) {
 
     my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
 
-    $c->stash( plate => $plate );
+    $c->stash(
+        plate => $plate,
+    );
     return;
 }
 
@@ -58,6 +60,11 @@ sub delete_plate :Path( '/user/delete_plate' ) :Args(0) {
             };
         }
     );
+}
+
+sub rename_plate :Path( '/user/rename_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
 }
 
 =head1 AUTHOR
