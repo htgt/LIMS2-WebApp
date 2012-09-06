@@ -56,7 +56,7 @@ sub delete_plate :Path( '/user/delete_plate' ) :Args(0) {
             catch {
                 $c->flash->{error_msg} = 'Error encountered while deleting plate: ' . $_;
                 $c->model('Golgi')->txn_rollback;
-                $c->res->redirect( $c->uri_for('/user/edit_plate', { id => $params->{id} }) );
+                $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
             };
         }
     );
@@ -69,7 +69,7 @@ sub rename_plate :Path( '/user/rename_plate' ) :Args(0) {
 
     unless ( $params->{new_name} ) {
         $c->flash->{error_msg} = 'You must specify a new plate name';
-        $c->res->redirect( $c->uri_for('/user/edit_plate', { id => $params->{id} }) );
+        $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
         return;
     }
 
@@ -92,7 +92,7 @@ sub rename_plate :Path( '/user/rename_plate' ) :Args(0) {
         }
     );
 
-    $c->res->redirect( $c->uri_for('/user/edit_plate', { id => $params->{id} }) );
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
 }
 
 =head1 AUTHOR

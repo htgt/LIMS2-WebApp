@@ -36,11 +36,6 @@
       <td>
         <a href="[% c.uri_for( '/user/view_plate', { id => plate.id } ) %]">[% plate.name %]</a>
       </td>
-      <td>
-        <a class="btn btn-mini" href="[% c.uri_for('/user/edit_plate', { id => plate.id } ) %]">
-          <i class="icon-pencil"></i> Edit
-        </a>
-      </td>
       <td>[% plate.type_id %]</td>
       <td>[% plate.description %]</td>
       <td>[% plate.created_by.name %]</td>
