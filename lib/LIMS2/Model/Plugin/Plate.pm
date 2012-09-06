@@ -164,7 +164,6 @@ sub delete_plate {
     return;
 }
 
-
 sub pspec_set_plate_assay_complete {
     return {
         completed_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
