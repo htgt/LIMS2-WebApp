@@ -58,6 +58,7 @@
       </a>
     </div>
   </div>
+  </br>
 [% END %]
 
 <div class="modal hide fade" id="DeletePlateModal">
@@ -74,7 +75,7 @@
     </div>
 
     <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Close</button>
+      <button class="btn" data-dismiss="modal">Cancel</button>
       <button type="submit" value="delete_plate" class="btn btn-danger" id="delete_plate_button" >
         <i class="icon-remove icon-white"></i> Confirm Delete Plate
       </button>
@@ -83,18 +84,20 @@
 </div>
 
 <div class="modal hide fade" id="RenamePlateModal">
-  <form method="POST" id="plate_rename" action="[% c.uri_for( '/user/plate_rename' ) %]" class="modal-form"  enctype="multipart/form-data" >
+  <form method="POST" id="plate_rename" action="[% c.uri_for( '/user/rename_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal">×</button>
       <h3 id="myModalLabel">Rename Plate</h3>
     </div>
 
     <div class="modal-body">
-      Rename plate from <strong>[% plate.name %]</strong> to <input name="plate_name" id="plate_name" type="text" />
+      <input type="hidden" name="plate_id" value="[% plate.id %]" />
+      <input type="hidden" name="plate_name" value="[% plate.name %]" />
+      Rename plate from <strong>[% plate.name %]</strong> to <input name="new_plate_name" id="new_plate_name" type="text" />
     </div>
 
     <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Close</button>
+      <button class="btn" data-dismiss="modal">Cancel</button>
       <button name="plate_rename" id="plate_rename" type="submit" value="plate_rename" class="btn btn-primary">
           <i class="icon-pencil"></i> Rename Plate
       </button>
