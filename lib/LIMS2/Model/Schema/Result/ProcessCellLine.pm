@@ -44,18 +44,19 @@ __PACKAGE__->table("process_cell_line");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 cell_line
+=head2 cell_line_id
 
-  data_type: 'text'
-  is_nullable: 0
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
 
 =cut
 
 __PACKAGE__->add_columns(
   "process_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "cell_line",
-  { data_type => "text", is_nullable => 0 },
+  "cell_line_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -71,6 +72,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("process_id");
 
 =head1 RELATIONS
+
+=head2 cell_line
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::CellLine>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "cell_line",
+  "LIMS2::Model::Schema::Result::CellLine",
+  { id => "cell_line_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 process
 
@@ -88,8 +109,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qQxF97H05rqht12UAuJQcw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-09-04 14:38:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IDIAT+/ZSQF/L74jZg3WiQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

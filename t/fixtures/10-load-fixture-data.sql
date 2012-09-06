@@ -33,6 +33,13 @@ SELECT pg_catalog.setval('cassettes_id_seq', 10478, true);
 
 
 --
+-- Name: cell_lines_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('cell_lines_id_seq', 1, true);
+
+
+--
 -- Name: design_comment_categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
@@ -1045,6 +1052,13 @@ INSERT INTO cassettes VALUES (10471, 'L1L2_gt1', 'Standard EUCOMM promoterless c
 INSERT INTO cassettes VALUES (10476, 'L1L2_gt2_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 2, true);
 INSERT INTO cassettes VALUES (10477, 'L1L2_gt2', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 2, true);
 INSERT INTO cassettes VALUES (10478, 'pL1L2_GT2_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 2, true);
+
+
+--
+-- Data for Name: cell_lines; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+INSERT INTO cell_lines VALUES (1, 'oct4:puro iCre/iFlpO #11');
 
 
 --
@@ -5852,11 +5866,11 @@ INSERT INTO process_cassette VALUES (968, 10438);
 -- Data for Name: process_cell_line; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO process_cell_line VALUES (970, 'oct4:puro iCre/iFlpO #11');
-INSERT INTO process_cell_line VALUES (971, 'oct4:puro iCre/iFlpO #11');
-INSERT INTO process_cell_line VALUES (972, 'oct4:puro iCre/iFlpO #11');
-INSERT INTO process_cell_line VALUES (973, 'oct4:puro iCre/iFlpO #11');
-INSERT INTO process_cell_line VALUES (974, 'oct4:puro iCre/iFlpO #11');
+INSERT INTO process_cell_line VALUES (970, 1);
+INSERT INTO process_cell_line VALUES (971, 1);
+INSERT INTO process_cell_line VALUES (972, 1);
+INSERT INTO process_cell_line VALUES (973, 1);
+INSERT INTO process_cell_line VALUES (974, 1);
 
 
 --

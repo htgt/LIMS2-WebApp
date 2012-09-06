@@ -7,7 +7,7 @@ valid_input:
     input_wells:
         - plate_name: MOHSAQ0001_A_2
           well_name: A01
-    cell_line: foo cell line
+    cell_line: "oct4:puro iCre/iFlpO #11"
 invalid_output_well:
     type: first_electroporation
     output_wells:
@@ -16,4 +16,4 @@ invalid_output_well:
     input_wells:
         - plate_name: MOHSAQ0001_A_2
           well_name: A01
-    cell_line: foo cell line
+    cell_line: "oct4:puro iCre/iFlpO #11"
