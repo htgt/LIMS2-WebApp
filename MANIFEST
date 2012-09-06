@@ -38,6 +38,7 @@ lib/LIMS2/Model/Schema/Result/BacLibrary.pm
 lib/LIMS2/Model/Schema/Result/Backbone.pm
 lib/LIMS2/Model/Schema/Result/CachedReport.pm
 lib/LIMS2/Model/Schema/Result/Cassette.pm
+lib/LIMS2/Model/Schema/Result/CellLine.pm
 lib/LIMS2/Model/Schema/Result/Chromosome.pm
 lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
@@ -151,6 +152,7 @@ lib/LIMS2/WebApp/Controller/User.pm
 lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
+lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/Report.pm
@@ -242,6 +244,7 @@ t/10-dbconnect.t
 t/10-lims2-test.t
 t/20-form-validator.t
 t/40-model-util-createplate.t
+t/40-model-util-createprocess.t
 t/40-model-util-dataupload.t
 t/50-model-plugin-bac.t
 t/50-model-plugin-design.t
@@ -256,6 +259,7 @@ t/80-dna_status_upload.t
 t/80-login.t
 t/80-plate_report.t
 t/80-plate_upload.t
+t/80-plate_view.t
 t/80-qc.t
 t/author-critic.t
 t/data/2w_gateway_process.yaml

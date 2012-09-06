@@ -1,7 +1,7 @@
 package LIMS2::Report::PICKPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PICKPlate::VERSION = '0.017';
+    $LIMS2::Report::PICKPlate::VERSION = '0.018';
 }
 ## use critic
 
@@ -55,7 +55,7 @@ override iterator => sub {
             or return;
 
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
-        my $cell_line = $process_cell_line ? $process_cell_line->cell_line : '';
+        my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
 
         return [
             $self->base_data( $well ),

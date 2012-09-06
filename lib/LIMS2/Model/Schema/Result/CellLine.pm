@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Role;
+package LIMS2::Model::Schema::Result::CellLine;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Role::VERSION = '0.018';
+    $LIMS2::Model::Schema::Result::CellLine::VERSION = '0.018';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::Role;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Role
+LIMS2::Model::Schema::Result::CellLine
 
 =cut
 
@@ -36,11 +36,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<roles>
+=head1 TABLE: C<cell_lines>
 
 =cut
 
-__PACKAGE__->table("roles");
+__PACKAGE__->table("cell_lines");
 
 =head1 ACCESSORS
 
@@ -49,11 +49,12 @@ __PACKAGE__->table("roles");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'roles_id_seq'
+  sequence: 'cell_lines_id_seq'
 
 =head2 name
 
   data_type: 'text'
+  default_value: (empty string)
   is_nullable: 0
 
 =cut
@@ -64,10 +65,10 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "roles_id_seq",
+    sequence          => "cell_lines_id_seq",
   },
   "name",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "text", default_value => "", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -82,56 +83,28 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<roles_name_key>
-
-=over 4
-
-=item * L</name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("roles_name_key", ["name"]);
-
 =head1 RELATIONS
 
-=head2 user_roles
+=head2 process_cell_lines
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::UserRole>
+Related object: L<LIMS2::Model::Schema::Result::ProcessCellLine>
 
 =cut
 
 __PACKAGE__->has_many(
-  "user_roles",
-  "LIMS2::Model::Schema::Result::UserRole",
-  { "foreign.role_id" => "self.id" },
+  "process_cell_lines",
+  "LIMS2::Model::Schema::Result::ProcessCellLine",
+  { "foreign.cell_line_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 users
 
-Type: many_to_many
-
-Composing rels: L</user_roles> -> user
-
-=cut
-
-__PACKAGE__->many_to_many("users", "user_roles", "user");
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-09-04 14:38:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DFRIeamc2KcUUCXzv4REmQ
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uumBlrhfH+BMqB+tge67iw
-
-sub as_hash {
-    my $self = shift;
-
-    return { map { $_ => $self->$_ } $self->columns };
-}
-
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

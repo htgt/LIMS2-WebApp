@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.017';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.018';
 }
 ## use critic
 
@@ -158,6 +158,9 @@ sub delete_plate {
     # retrieve_plate() will validate the parameters
     my $plate = $self->retrieve_plate($params);
 
+    $self->throw( Validation => "Plate $plate can not be deleted, has child plates" )
+        if $plate->has_child_wells;
+
     for my $well ( $plate->wells ) {
         $self->delete_well( { id => $well->id } );
     }
@@ -245,6 +248,31 @@ sub update_plate_dna_status {
     my $validated_params = $self->check_params( $params, $self->pspec_update_plate_dna_status );
 
     return upload_plate_dna_status( $self, $validated_params );
+}
+
+sub pspec_rename_plate {
+    return {
+        name         => { validate => 'plate_name', optional => 1  },
+        id           => { validate => 'integer',  optional => 1 },
+        species      => { validate => 'existing_species', optional => 1 },
+        new_name     => { validate => 'plate_name' },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    };
+}
+
+sub rename_plate {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_rename_plate );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+
+    $self->throw( Validation => 'Plate '
+            . $validated_params->{new_name}
+            . ' already exists, can not use this new plate name' )
+        if try { $self->retrieve_plate( { name => $validated_params->{new_name} } ) };
+
+    return $plate->update( { name => $validated_params->{new_name} } );
 }
 
 1;

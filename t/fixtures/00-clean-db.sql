@@ -61,3 +61,4 @@ DELETE FROM user_role;
 DELETE FROM roles;
 DELETE FROM users;
 DELETE FROM sponsors;
+DELETE FROM cell_lines;

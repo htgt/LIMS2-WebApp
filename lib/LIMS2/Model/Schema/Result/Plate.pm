@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.017';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.018';
 }
 ## use critic
 
@@ -245,6 +245,16 @@ sub as_hash {
         created_at  => $self->created_at->iso8601,
         wells       => [ sort map { $_->name } $self->wells ]
     };
+}
+
+sub has_child_wells {
+    my $self = shift;
+
+    for my $well ( $self->wells ) {
+        return 1 if $well->input_processes > 0;
+    }
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

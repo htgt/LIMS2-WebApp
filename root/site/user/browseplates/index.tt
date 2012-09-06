@@ -23,6 +23,7 @@
   <thead>
     <tr>
       <th>Plate Name</th>
+      <th></th>
       <th>Plate Type</th>
       <th>Description</th>
       <th>Created By</th>
@@ -32,7 +33,9 @@
   <tbody>
     [%- FOR plate IN plates %]
     <tr>
-      <td><a href="[% c.uri_for( '/user/view_plate', { id => plate.id } ) %]">[% plate.name %]</a></td>
+      <td>
+        <a href="[% c.uri_for( '/user/view_plate', { id => plate.id } ) %]">[% plate.name %]</a>
+      </td>
       <td>[% plate.type_id %]</td>
       <td>[% plate.description %]</td>
       <td>[% plate.created_by.name %]</td>

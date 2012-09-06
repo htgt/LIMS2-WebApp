@@ -242,7 +242,7 @@ ok $mech->submit_form(
     note( "Successful plate create" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print("well_name,parent_plate,parent_well,cell_line\n"
-                      . "A01,MOHFAQ0001_A_2,A01,cell_line_foo");
+                      . "A01,MOHFAQ0001_A_2,A01,oct4:puro iCre/iFlpO #11");
     $test_file->seek( 0, 0 );
 
     $mech->get_ok( '/user/plate_upload_step2?process_type=first_electroporation' );

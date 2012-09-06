@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.017';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.018';
 }
 ## use critic
 
@@ -180,6 +180,10 @@ sub existing_bac_library {
     return in_resultset( $model, 'BacLibrary', 'id' );
 }
 
+sub existing_cell_line {
+	my ( $class, $model ) = @_;
+	return in_resultset( $model, 'CellLine', 'name' );
+}
 sub existing_chromosome {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Chromosome', 'name' );
