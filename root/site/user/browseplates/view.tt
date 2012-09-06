@@ -39,5 +39,9 @@
 <p><em>No comments for this plate.</em></p>
 [% END %]
 
+<a class="btn" href="[% c.uri_for('/user/edit_plate', { id => plate.id } ) %]">
+  <i class="icon-pencil"></i> Edit Plate
+</a>
+
 <h2>Wells</h2>
 <a class="btn btn-primary" href="[% well_report_uri %]"><i class="icon-list icon-white"></i> Well Details</a>
