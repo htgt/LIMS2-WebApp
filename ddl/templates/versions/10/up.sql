@@ -4,7 +4,7 @@ CREATE TABLE cell_lines (
 );
 GRANT SELECT ON cell_lines TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON cell_lines TO "[% rw_role %]";
-
+GRANT USAGE ON cell_lines_id_seq TO "[% rw_role %]";
 
 INSERT INTO cell_lines (name) 
 SELECT DISTINCT cell_line 
