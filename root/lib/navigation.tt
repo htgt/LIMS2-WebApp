@@ -71,9 +71,11 @@
             <li>
               <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse</a>
             </li>
+            [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload</a>
             </li>
+            [% END %]
           </ul>
         </li>
 
@@ -83,9 +85,11 @@
             <li>
               <a href="[% c.uri_for( '/user/qc_runs' ) %]">Browse Sequencing QC</a>
             </li>
+            [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
+            [% END %]
           </ul>
         </li>
 
@@ -116,14 +120,16 @@
 
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
-        <li class="dropdown">
+        <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
             [% IF c.check_user_roles( 'admin' ) %]
             <li><a href="[% c.uri_for( '/admin' ) %]"><i class="icon-user"></i> User Admin</a></li>
             [% END %]
-            <li><a href="[% c.uri_for('/change_password') %]"><i class="icon-pencil"></i> Change Password</a></li>
+            [% IF c.check_user_roles( 'edit' ) %]
+            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="icon-pencil"></i> Change Password</a></li>
             <li class="divider"></li>
+            [% END %]
             <li><a href="[% c.uri_for('/logout') %]"><i class="icon-off"></i> Logout</a></li>
           </ul>
         </li>
