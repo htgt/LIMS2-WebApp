@@ -244,6 +244,32 @@ sub set_user_preferences {
     return $prefs;
 }
 
+sub pspec_change_user_password {
+    return {
+        id                   => { validate   => 'integer' },
+        new_password         => { validate   => 'password_string' },
+        new_password_confirm => { validate   => 'password_string' },
+    };
+}
+
+sub change_user_password {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_change_user_password );
+
+    $self->throw( Validation => 'new password and password confirm values do not match' )
+        unless $validated_params->{new_password} eq $validated_params->{new_password_confirm};
+
+    my $user = $self->retrieve( User => { id => $validated_params->{id} } );
+
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+    $csh->add( $validated_params->{new_password} );
+
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
 1;
 
 __END__

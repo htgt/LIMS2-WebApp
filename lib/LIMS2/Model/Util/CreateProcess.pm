@@ -646,7 +646,7 @@ sub _backbone_id_for {
 
 sub _cell_line_id_for {
 	my ( $model, $cell_line_name ) = @_;
-	
+
 	my $cell_line = $model->retrieve( CellLine => { name => $cell_line_name });
 	return $cell_line->id;
 }

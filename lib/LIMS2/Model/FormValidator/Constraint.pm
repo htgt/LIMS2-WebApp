@@ -393,6 +393,11 @@ sub pass_or_fail {
     return regexp_matches(qr/^(pass|fail)$/i);
 }
 
+# at least 6 non whitespace characters long
+sub password_string {
+    return regexp_matches(qr/^\S{6,}$/);
+}
+
 1;
 
 __END__
