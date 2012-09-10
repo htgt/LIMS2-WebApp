@@ -16,6 +16,23 @@ Catalyst Controller.
 
 =cut
 
+sub plate_list :Path('/api/plate') :Args(0) :ActionClass('REST') {
+}
+
+sub plate_list_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my ( $plate_list ) = $c->model('Golgi')->txn_do(
+        sub {
+            shift->list_plates( $c->request->params )
+        }
+    );
+
+    return $self->status_ok( $c, entity => $plate_list );
+}
+
 sub plate :Path('/api/plate') :Args(0) :ActionClass('REST') {
 }
 
