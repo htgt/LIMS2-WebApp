@@ -134,6 +134,7 @@ note( 'List Plates' );
         ,'can list plates with name like FFP';
     my @plate_names2 =  map{ $_->name } @{ $plate_list2 };
     is_deeply \@plate_names2, [ 'FFP0001' ], '..and plate list is correct';
+}
 
 note( 'Plate Rename' );
 
