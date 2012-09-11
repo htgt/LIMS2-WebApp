@@ -147,7 +147,23 @@ note( "Testing well creation" );
 	
 	throws_ok{
 		model->create_well_recombineering_result( $well_data->{well_recombineering_create_bad} )
-	} qr//;
+	} qr/is invalid: existing_recombineering_result_type/;
+}
+
+{
+	note( "Testing well dna quality create and retrieve");
+	
+	ok my $quality = model->create_well_dna_quality( $well_data->{well_dna_quality_create} ),
+	    'create_well_dna_quality should succeed';
+	isa_ok $quality, 'LIMS2::Model::Schema::Result::WellDnaQuality';
+	is $quality->quality, 'M', 'DNA quality is correct';
+	
+	ok model->retrieve_well_dna_quality( $well_data->{well_dna_quality_create} ),
+	    'retrieve_well_dna_quality should succeed';
+    
+    throws_ok{
+    	model->retrieve_well_dna_quality( { id => 845 } );
+    } qr /No WellDnaQuality entity found/;
 }
 
 {

@@ -39,4 +39,11 @@ well_recombineering_create_bad:
     well_name: B01
     created_by: test_user@example.org
     result_type: foo
-    result: pass    
+    result: pass
+well_dna_quality_create:
+    plate_name: PCS00177_A
+    well_name: B01
+    created_by: test_user@example.org
+    quality: M
+    
+    
