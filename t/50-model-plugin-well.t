@@ -95,6 +95,12 @@ note( "Testing well creation" );
             created_by      => 'test_user@example.org'
         }
     ), 'create QC sequencing result';
+    
+    ok my $qc_seq = model->retrieve_well_qc_sequencing_result( { id => $well->id } ),
+        'retrieve_well_qc_sequencing_result should succeed';
+    isa_ok $qc_seq, 'LIMS2::Model::Schema::Result::WellQcSequencingResult';
+    is $qc_seq->valid_primers, 'LR,PNF,R1R', 'qc valid primers correct';
+    is $qc_seq->test_result_url, 'http://example.org/some/url/or/other', 'qc test result url correct';
 
     $date_time = DateTime->now;
 
@@ -104,6 +110,14 @@ note( "Testing well creation" );
     ok $well->accepted, 'well is automatically accepted now that we have a sequencing pass';
 
     is $well->assay_complete, $date_time, 'assay_complete has expected datetime';
+    
+    lives_ok {
+        model->delete_well_qc_sequencing_result( { id => $well->id } )
+    } 'delete well qc sequencing result';
+    
+    throws_ok{
+    	model->retrieve_well_qc_sequencing_result( { id => $well->id } )
+    } qr/No WellQcSequencingResult entity found/;
 }
 
 {

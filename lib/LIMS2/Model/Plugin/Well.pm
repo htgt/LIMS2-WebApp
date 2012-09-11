@@ -347,10 +347,22 @@ sub retrieve_well_qc_sequencing_result {
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
-    my $qc_seq_result = $well->well_dna_status
+    my $qc_seq_result = $well->well_qc_sequencing_result
         or $self->throw( NotFound => { entity_class => 'WellQcSequencingResult', search_params => $params } );
 
     return $qc_seq_result;
+}
+
+sub delete_well_qc_sequencing_result {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $qc_seq_result = $self->retrieve_well_qc_sequencing_result( $params );
+
+    $qc_seq_result->delete;
+    $self->log->debug( 'Well QC sequencing result deleted for well  ' . $qc_seq_result->well_id );
+
+    return;
 }
 
 sub pspec_set_well_assay_complete {
