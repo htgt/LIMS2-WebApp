@@ -203,11 +203,6 @@ sub existing_design_oligo_type {
     return in_resultset( $model, 'DesignOligoType', 'id' );
 }
 
-#sub existing_pipeline {
-#    my ( $class, $model ) = @_;
-#    return in_resultset( $model, 'Pipeline', 'name' );
-#}
-
 sub existing_plate_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'PlateType', 'id' );
@@ -396,6 +391,11 @@ sub file_handle {
 
 sub pass_or_fail {
     return regexp_matches(qr/^(pass|fail)$/i);
+}
+
+# at least 6 non whitespace characters long
+sub password_string {
+    return regexp_matches(qr/^\S{6,}$/);
 }
 
 1;

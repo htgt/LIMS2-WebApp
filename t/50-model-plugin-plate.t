@@ -41,6 +41,14 @@ note( "Testing plate retrieve" );
     is $plate->name, 'PCS00075_A', 'retrieved correct plate';
 }
 
+{
+
+    throws_ok{
+        model->create_plate( $plate_data->{plate_create_already_exists} )
+    } qr/Plate PCS00075_A already exists/, 'throws correct error when trying to create plate that already exists';
+
+}
+
 note( "Testing plate create with wells" );
 
 {
@@ -111,6 +119,21 @@ note( "Plate Create CSV Upload" );
     ok my $wells = $plate->wells, '..plate has wells';
     is $wells->count, 2, '..there are 2 wells';
 
+}
+
+note( 'List Plates' );
+
+{
+    ok my ( $plate_list, $pager ) = model->list_plates( { species => 'Mouse', plate_type => 'FP' } )
+        ,'can list plates of type FP';
+    isa_ok $pager, 'DBIx::Class::ResultSet::Pager';
+    my @plate_names =  map{ $_->name } @{ $plate_list };
+    is_deeply \@plate_names, [ 'FFP0001' ], '..and plate list is correct';
+
+    ok my ( $plate_list2, $pager2 ) = model->list_plates( { species => 'Mouse', plate_name => 'FFP' } )
+        ,'can list plates with name like FFP';
+    my @plate_names2 =  map{ $_->name } @{ $plate_list2 };
+    is_deeply \@plate_names2, [ 'FFP0001' ], '..and plate list is correct';
 }
 
 note( 'Plate Rename' );

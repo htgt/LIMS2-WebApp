@@ -17,7 +17,8 @@
         />
 
         <label>Process Type</label>
-        <input name="process_type" id="process_type" readonly="true" value="[% process_type %]"/>
+        <input type="hidden" name="process_type" id="process_type" value="[% process_type %]" />
+        <span class="input uneditable-input">[% process_type %]</span>
 
         <label>Plate Type</label>
         [% IF plate_types.size > 1 %]
@@ -28,7 +29,8 @@
               [%- END %]
           </select>
         [% ELSE %]
-          <input name="plate_type" id="plate_type" readonly="true" value="[% plate_types.0 %]"/>
+          <input type="hidden" name="plate_type" id="plate_type" value="[% plate_types.0 %]"/>
+          <span class="input uneditable-input">[% plate_types.0 %]</span>
         [%- END %]
 
         [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]

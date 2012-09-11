@@ -147,4 +147,131 @@ ok my $dfv_profile = model->form_validator->dfv_profile( $pspec ),
 
 }
 
+
+
+
+{
+    my %constraint_test_hash = (
+        integer => [
+            { name => 'integer too big', pass  => 0, value => 999999999999999999 },
+            { name => 'integer too small', pass => 0, value => -99999999999999999 },
+            { pass => 1, value => 9999, },
+        ],
+        alphanumeric_string => [
+            { name => 'non alpha numeric', pass => 0, value => 'asdf%' },
+            { name => 'non alpha numeric', pass => 0, value => '9998.9'},
+            { pass => 1, value => 'sdf_sdfs87' },
+        ],
+        mgi_accession_id => [
+            { pass => 0, value => 'MGD:skdjfhk' },
+            { pass => 1, value => 'MGI:98798' },
+        ],
+        ensembl_gene_id => [
+            { pass => 0, value => 'EDS345345' },
+            { pass => 1, value => 'ENSMUSG00000018666' },
+        ],
+        phase => [
+            { pass => 0, value => -2 },
+            { pass => 1, value => 2 },
+        ],
+        validated_by_annotation => [
+            { pass => 0, value => 'possibly' },
+            { pass => 1, value => 'yes' },
+        ],
+        cre_bac_recom_bac_library => [
+            { pass => 0, value => 'notblack6' },
+            { pass => 1, value => 'black6' },
+        ],
+        cre_bac_recom_bac_name => [
+            { pass => 0, value => 'RP25' },
+            { pass => 1, value => 'RP23' },
+        ],
+        cre_bac_recom_cassette => [
+            { pass => 0, value => 'pL1L2_BactP' },
+            { pass => 1, value => 'pGTK_En2_eGFPo_T2A_CreERT_Kan' },
+        ],
+        cre_bac_recom_backbone => [
+            { pass => 0, value => 'R3R4_pBR_amp' },
+            { pass => 1, value => 'pBACe3.6 (RP23) with HPRT3-9 without PUC Linker' },
+        ],
+        existing_design_comment_category => [
+            { pass => 0, value => 'foo bar' },
+            { pass => 1, value => 'Recovery design' },
+        ],
+        existing_design_oligo_type => [
+            { pass => 0, value => 'F5' },
+            { pass => 1, value => 'U5' },
+        ],
+        existing_recombineering_result_type => [
+            { pass => 0, value => 'pcr_z' },
+            { pass => 1, value => 'pcr_u' },
+        ],
+        recombineering_result=> [
+            { pass => 0, value => 'foo' },
+            { pass => 1, value => 'pass' },
+        ],
+        dna_quality=> [
+            { pass => 0, value => 'Z' },
+            { pass => 1, value => 'L' },
+        ],
+        existing_genotyping_primer_type => [
+            { pass => 0, value => 'ZR4' },
+            { pass => 1, value => 'GF1' },
+        ],
+        ensembl_transcript_id => [
+            { pass => 0, value => 'ENSMUSG12349' },
+            { pass => 1, value => 'ENSMUST23346' },
+        ],
+        file_handle => [
+            { pass => 0, value => 'file' },
+            { pass => 1, value => IO::File->new_tmpfile },
+        ],
+        absolute_url => [
+            { pass => 0, value => undef },
+            { pass => 0, value => '' },
+            { pass => 0, value => 'http://www.sanger.ac.uk' },
+            { pass => 1, value => 'http://www.sanger.ac.uk/htgt/welcome' },
+        ],
+    );
+
+    for my $validate_test ( keys %constraint_test_hash ) {
+        my %pspec = ( value => { validate => $validate_test } );
+
+        for my $test ( @{ $constraint_test_hash{$validate_test} } ) {
+            if ( $test->{pass} ){
+                lives_ok {
+                    model->check_params( { value => $test->{value} }, \%pspec )
+                } "validate passes for $validate_test with value $test->{value}";
+            }
+            else {
+                my $test_name = exists $test->{name} ? $test->{name} : "non $validate_test";
+                throws_ok {
+                    model->check_params( { value => $test->{value} }, \%pspec );
+                } 'LIMS2::Exception::Validation', $test_name;
+            }
+        }
+    }
+
+}
+
+{
+    use JSON;
+    my %pspec = ( value => { validate => 'json' } );
+
+    my $data = { test => 'foo' };
+
+    my $json = JSON->new;
+    my $json_data = $json->encode( $data );
+
+    throws_ok {
+        model->check_params( { value => $data }, \%pspec );
+    } 'LIMS2::Exception::Validation', 'non json data fails test' ;
+
+    lives_ok {
+        model->check_params( { value => $json_data }, \%pspec )
+    } "validate passes for json";
+
+}
+
+
 done_testing;
