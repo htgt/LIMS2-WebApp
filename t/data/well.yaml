@@ -28,3 +28,15 @@ well_accepted_override_update_same:
     well_name: B01
     created_by: test_user@example.org
     accepted: 1
+well_recombineering_create:
+    plate_name: PCS00177_A
+    well_name: B01
+    created_by: test_user@example.org
+    result_type: pcr_u
+    result: pass
+well_recombineering_create_bad:
+    plate_name: PCS00177_A
+    well_name: B01
+    created_by: test_user@example.org
+    result_type: foo
+    result: pass    

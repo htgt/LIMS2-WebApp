@@ -208,13 +208,13 @@ sub retrieve_well_recombineering_results {
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
-    my $rec_results = $well->well_recombineering_results;
+    my @rec_results = $well->well_recombineering_results;
 
-    if ( @{ $rec_results } == 0) {
+    if ( @rec_results == 0) {
         $self->throw( NotFound => { entity_class => 'WellRecombineeringResult', search_params => $params } );
     }
 
-    return $rec_results;
+    return \@rec_results;
 }
 
 sub pspec_create_well_dna_status {
