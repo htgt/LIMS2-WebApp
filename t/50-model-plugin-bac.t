@@ -54,5 +54,19 @@ ok $model->delete_bac_clone( { bac_library => $bac1->bac_library_id,
 ok $model->delete_bac_clone( { bac_library => $bac2->bac_library_id,
                                bac_name    => $bac2->name } ), 'delete bac with NCBIM37 locus';
 
+{
+    throws_ok{
+        $model->_chr_id_for( 'NCBIM37', '99' );
+    } 'LIMS2::Exception::Validation', 'throw error with invalid chromosome name';
+
+}
+
+{
+    ok my $bac_libraries
+        = $model->list_bac_libraries( { species => 'Mouse' } ), 'can list bac libraries for Mouse';
+
+    is_deeply $bac_libraries, [ '129', 'black6' ], '.. lists expected libraries';
+}
+
 done_testing;
 

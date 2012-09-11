@@ -1,4 +1,15 @@
+0.019     2012-09-11 10:29:35 Europe/London
+
+   Default assembly now GRCm38
+   Improved test coverage
+   Updated to twitter bootstrap 2.1.1
+   Implement change password form
+   Styling improvements
+
 0.018     2012-09-06 15:08:49 Europe/London
+
+	Added cell line drop down to plate upload and validation of cell line csv input
+    Added plate edit functionality
 
 0.017     2012-09-05 09:42:50 Europe/London
 

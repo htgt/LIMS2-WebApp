@@ -157,6 +157,7 @@ lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/Report.pm
 lib/LIMS2/WebApp/Controller/User/Report/Gene.pm
+lib/LIMS2/WebApp/Controller/User/UserPreferences.pm
 lib/LIMS2/WebApp/Controller/User/WellData.pm
 lib/LIMS2/WebApp/Model/AuthDB.pm
 lib/LIMS2/WebApp/Model/Golgi.pm
@@ -191,6 +192,7 @@ root/site/user/report/await_report.tt
 root/site/user/report/gene_report.tt
 root/site/user/report/select_sponsor.tt
 root/site/user/report/simple_table.tt
+root/site/user/userpreferences/change_password.tt
 root/site/user/welldata/dna_status_update.tt
 root/static/bootstrap/css/bootstrap.css
 root/static/bootstrap/css/bootstrap.min.css
@@ -255,6 +257,7 @@ t/50-model-plugin-qc.t
 t/50-model-plugin-user.t
 t/50-model-plugin-well.t
 t/60-allele-request.t
+t/80-change_password.t
 t/80-dna_status_upload.t
 t/80-login.t
 t/80-plate_report.t

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::BAC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::BAC::VERSION = '0.018';
+    $LIMS2::Model::Plugin::BAC::VERSION = '0.019';
 }
 ## use critic
 
@@ -33,7 +33,7 @@ sub _chr_id_for {
     return $chr->id;
 }
 
-sub pspec_list_bac_libraies {
+sub pspec_list_bac_libraries {
     return {
         species => { validate => 'existing_species', rename => 'species_id' }
     }

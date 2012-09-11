@@ -1,15 +1,17 @@
-<div class="navbar navbar-fixed-top">
+<div class="navbar navbar-fixed-top navbar-inverse">
   <div class="navbar-inner">
     <div class="container">
       <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
       [% IF template.title != 'Login' %]
       <ul class="nav">
+
         <li[% IF template.tab_name == "Home" %] class="active"[% END %]>
           <a href="[% c.uri_for( '/' ) %]">Home</a>
         </li>
 
+
         <li class="dropdown[% IF template.tab_name == "Browse" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Browse<b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Browse <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/browse_designs' ) %]">Designs</a>
@@ -26,8 +28,9 @@
           </ul>
         </li>
 
+
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports<b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/report/gene' ) %]">
@@ -63,61 +66,82 @@
         </li>
 
         <li class="dropdown[% IF template.tab_name == "Plates" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Plates<b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Plates <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse</a>
             </li>
+            [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload</a>
             </li>
+            [% END %]
           </ul>
         </li>
 
         <li class="dropdown[% IF template.tab_name == "QC" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">QC<b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">QC <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/qc_runs' ) %]">Browse Sequencing QC</a>
             </li>
+            [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
+            [% END %]
           </ul>
         </li>
 
-        [% IF c.check_user_roles( 'admin' ) %]
-        <li[% IF template.tab_name == "Admin" %] class="active"[% END %]>
-          <a href="[% c.uri_for( '/admin' ) %]">Admin</a>
-        </li>
-        [% END %]
 
         [% IF c.session.selected_species %]
-        <li class="dropdown pull-right">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.session.selected_species %]<b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>Switch species:</li>
-          [%- FOR species_id IN c.session.species %]
-            [%- IF species_id != c.session.selected_species %]
-            <li>
-              <a href="[% c.uri_for( '/user/select_species', { species => species_id } ) %]">
-                [% species_id %]
-              </a>
-            </li>
-            [% END %]
-          [% END %]
-          </ul>
-        </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              [% c.session.selected_species %] <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+              <li>&nbsp Switch species:</li>
+                [%- FOR species_id IN c.session.species %]
+                  [%- IF species_id != c.session.selected_species %]
+                  <li>
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id } ) %]">
+                      [% species_id %]
+                    </a>
+                  </li>
+                  [% END %]
+                [% END %]
+            </ul>
+          </li>
         [% END %]
+
       </ul>
 
+      [% IF c.user %]
+
+      <ul class="nav pull-right">
+        <li class="divider-vertical"></li>
+        <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            [% IF c.check_user_roles( 'admin' ) %]
+            <li><a href="[% c.uri_for( '/admin' ) %]"><i class="icon-user"></i> User Admin</a></li>
+            [% END %]
+            [% IF c.check_user_roles( 'edit' ) %]
+            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="icon-pencil"></i> Change Password</a></li>
+            <li class="divider"></li>
+            [% END %]
+            <li><a href="[% c.uri_for('/logout') %]"><i class="icon-off"></i> Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      [% ELSE %]
+
       <p class="nav pull-right">
-        [% IF c.user %]
-        Logged in as [% c.user.name %] <a class="btn" href="[% c.uri_for('/logout') %]">Logout</a>
-        [% ELSE %]
         <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-        [% END %]
       </p>
+
+      [% END %]
 
     </div>
     [% END %]

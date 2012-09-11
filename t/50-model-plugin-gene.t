@@ -23,6 +23,12 @@ use Const::Fast;
 }
 
 {
+    throws_ok{
+        model->search_genes( { species => 'Mouse', search_term => 'FooBarBaz' } )
+    } 'LIMS2::Exception::NotFound', 'not found genes for made up name';
+}
+
+{
     const my %GENE_DATA => ( gene_id => 'ENSG00000108511', gene_symbol => 'HOXB6' );
     for my $search_term ( values %GENE_DATA ) {
         is_deeply model->retrieve_gene( { species => 'Human', search_term => $search_term } ), \%GENE_DATA,

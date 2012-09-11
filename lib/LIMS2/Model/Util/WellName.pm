@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::WellName;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::WellName::VERSION = '0.018';
+    $LIMS2::Model::Util::WellName::VERSION = '0.019';
 }
 ## use critic
 

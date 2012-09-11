@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.018';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.019';
 }
 ## use critic
 
@@ -175,18 +175,21 @@ sub delete_design {
 
     # Check that design is not assigned to a gene
     if ( $design->genes_rs->count > 0 ) {
-        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been assigned to one or more genes' );
+        $self->throw( InvalidState => 'Design ' . $design->id . ' has been assigned to one or more genes' );
     }
 
     # # Check that design is not allocated to a process and, if it is, refuse to delete
     if ( $design->process_designs_rs->count > 0 ) {
-        $self->throw( InvalidState => 'Design ' . $design->design_id . ' has been used in one or more processes' );
+        $self->throw( InvalidState => 'Design ' . $design->id . ' has been used in one or more processes' );
     }
 
     if ( $validated_params->{cascade} ) {
         $design->comments_rs->delete;
-        $design->oligos_rs->delete;
         $design->genotyping_primers_rs->delete;
+        for my $oligo ( $design->oligos_rs->all ) {
+            $oligo->loci_rs->delete;
+            $oligo->delete;
+        }
     }
 
     $design->delete;
@@ -286,7 +289,7 @@ sub _get_gene_chr_start_end_strand {
         $self->throw(
             NotFound => {
                 message       => 'Found no matching EnsEMBL genes',
-                entity        => 'EnsEMBL Gene',
+                entity_class  => 'EnsEMBL Gene',
                 search_params => { external_id => $gene_id }
             }
         );

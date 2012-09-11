@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Process::VERSION = '0.018';
+    $LIMS2::Model::Plugin::Process::VERSION = '0.019';
 }
 ## use critic
 
@@ -66,7 +66,7 @@ sub delete_process {
 
     $process->delete;
 
-    return;
+    return 1;
 }
 
 sub list_process_types {
