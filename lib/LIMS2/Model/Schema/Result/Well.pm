@@ -380,6 +380,7 @@ sub as_hash {
     my $self = shift;
 
     return {
+        id             => $self->id,
         plate_name     => $self->plate->name,
         plate_type     => $self->plate->type_id,
         well_name      => $self->name,
