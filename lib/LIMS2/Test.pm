@@ -4,8 +4,8 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ model => \'_build_model', test_data => \'_build_test_data', 'mech', 'unauthenticated_mech' ],
-    groups => { default => [qw( model mech unauthenticated_mech test_data )] }
+    exports => [ model => \'_build_model', test_data => \'_build_test_data', 'mech', 'unauthenticated_mech', 'reload_fixtures' ],
+    groups => { default => [qw( model mech unauthenticated_mech test_data reload_fixtures)] }
 };
 
 use FindBin;
@@ -20,6 +20,7 @@ use Test::More;
 use Test::WWW::Mechanize::Catalyst;
 use File::Temp;
 use Try::Tiny;
+use Digest::MD5;
 use LIMS2::Model::Util::PgUserRole qw( db_name );
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
@@ -28,7 +29,11 @@ const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 const my $TEST_USER   => 'test_user@example.org';
 const my $TEST_PASSWD => 'ahdooS1e';
 
+my $MODEL;
+my $MECH_USED;
+
 sub unauthenticated_mech {
+	$MECH_USED = 1;
     return Test::WWW::Mechanize::Catalyst->new( catalyst_app => 'LIMS2::WebApp' );
 }
 
@@ -36,6 +41,23 @@ sub mech {
     my $mech = unauthenticated_mech();
     $mech->credentials( $TEST_USER, $TEST_PASSWD );
     return $mech;
+}
+
+sub reload_fixtures { 
+
+    my $args = { force => 1 };
+
+    try {
+        $MODEL->schema->storage->dbh_do(
+            sub {
+                my ( $storage, $dbh ) = @_;
+                _load_fixtures( $dbh, $args );
+            }
+        );
+    }
+    catch {
+        BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
+    };	
 }
 
 sub _build_test_data {
@@ -90,6 +112,8 @@ sub _build_model {
         };
     }
 
+    $model->schema->storage->txn_begin;
+    $MODEL = $model;
     return sub {$model};
 }
 
@@ -104,23 +128,34 @@ sub _load_fixtures {
         $fixtures_dir = dir($FindBin::Bin)->subdir('fixtures');
     }
 
-    my $dbname = db_name( $dbh );
+    my @fixtures = ( sort { $a cmp $b } grep { _is_fixture($_) } $fixtures_dir->children );
 
-    my $admin_role = $dbname . '_admin';
+    my $fixture_md5 = _calculate_md5(@fixtures);
 
-    $dbh->do( "SET ROLE $admin_role" );
+    # If we find any new/modified files then reload all fixtures
+    if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
 
-    for my $fixture ( sort { $a cmp $b } grep { _is_fixture($_) } $fixtures_dir->children ) {
-        DEBUG("Loading fixtures from $fixture");
-        DBIx::RunSQL->run_sql_file(
-            verbose         => 1,
-            verbose_handler => \&DEBUG,
-            dbh             => $dbh,
-            sql             => $fixture
-        );
+    	print STDERR "loading fixture data";
+
+        my $dbname = db_name( $dbh );
+
+        my $admin_role = $dbname . '_admin';
+
+        $dbh->do( "SET ROLE $admin_role" );
+
+    	foreach my $fixture (@fixtures){
+            DEBUG("Loading fixtures from $fixture");
+            DBIx::RunSQL->run_sql_file(
+                verbose         => 1,
+                verbose_handler => \&DEBUG,
+                dbh             => $dbh,
+                sql             => $fixture
+            );
+    	}
+    	_update_fixture_md5($dbh, $fixture_md5);
+    	$dbh->commit;
+    	$dbh->do( "RESET ROLE" );
     }
-
-    $dbh->do( "RESET ROLE" );
 
     return;
 }
@@ -133,6 +168,48 @@ sub _is_fixture {
     return $obj->basename =~ m/$FIXTURE_RX/;
 }
 
+sub _calculate_md5{
+    my @files = @_;
+
+    my $md5 = Digest::MD5->new;
+
+    foreach my $file (@files){
+    	open (my $fh, "<", $file) or die "Could not open $file for MD5 digest - $!";
+        $md5->addfile($fh);
+        close $fh;
+    }
+
+    return $md5->hexdigest;
+}
+
+sub _has_new_fixtures {
+    my ($dbh, $md5) = @_;
+
+    my $existing_md5 = $dbh->selectrow_array("select md5 from fixture_md5");
+
+    if($existing_md5 and $existing_md5 eq $md5){
+    	return 0;
+    }
+
+    return 1;
+}
+
+sub _update_fixture_md5{
+	my ($dbh, $md5) = @_;
+
+	$dbh->do("delete from fixture_md5");
+	my $sth = $dbh->prepare("insert into fixture_md5 values ( ?, now() )")
+	    or die $dbh->errstr;
+	$sth->execute($md5);
+
+	return;
+}
+
+END{
+	if ($MECH_USED){
+		reload_fixtures;
+	}
+}
 1;
 
 __END__
