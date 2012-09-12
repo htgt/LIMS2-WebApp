@@ -203,11 +203,6 @@ sub existing_design_oligo_type {
     return in_resultset( $model, 'DesignOligoType', 'id' );
 }
 
-#sub existing_pipeline {
-#    my ( $class, $model ) = @_;
-#    return in_resultset( $model, 'Pipeline', 'name' );
-#}
-
 sub existing_plate_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'PlateType', 'id' );

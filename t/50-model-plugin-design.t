@@ -36,13 +36,110 @@ use Test::Most;
     ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248', type => 'deletion' } ),
         'list assigned designs by MGI accession and design type deletion';
     is @{$designs}, 0, 'returns no designs';
+
 }
 
 {
-    ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912' } ),
-        'list candidate designs for MGI accession';
+    ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912', type => 'conditional' } ),
+        'list candidate designs for MGI accession, gene on -ve strand';
     isa_ok $designs, ref [];
     ok grep( { $_->id == 170606 } @{$designs} ), '...returns the expected design';
+
+    ok my $designs2 = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:99781' } ),
+        'list candidate designs by MGI accession, gene on +ve strand';
+    is @{$designs2},0, 'returns no designs';
+
+    throws_ok{
+        model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:iiiiii' } ),
+    } 'LIMS2::Exception::NotFound', 'throws error for non existant gene';
+}
+
+{
+    ok my $design_types = model->list_design_types(), 'can list design types';
+}
+
+
+note('Testing the Creation and Deletion of designs');
+{
+    my $design_data = build_design_data(84231);
+
+    ok my $new_design = model->create_design($design_data), 'can create new design';
+    is $new_design->id, 99999999, '..and new design has correct id';
+    ok my $design_comment = $new_design->comments->first, 'can retrieve design comment';
+    is $design_comment->comment_text, 'Test comment', '.. has write comment text';
+    ok my $design_gene = $new_design->genes->first, 'can grab gene linked to design';
+
+    throws_ok {
+        model->delete_design( { id => 99999999, cascade => 1 } );
+    } qr/Design 99999999 has been assigned to one or more genes/,
+        'can not delete design assigned to one or more genes';
+
+    ok $design_gene->delete, 'can delete design-gene link';
+
+    #link process to new design
+    ok my $new_process = model->create_process(
+        { type => 'create_di', design_id => 99999999, output_wells => [ { id => 1816 } ] } ),
+        'can create process linked to new design';
+
+    throws_ok {
+        model->delete_design( { id => 99999999, cascade => 1 } );
+    } qr/Design 99999999 has been used in one or more processes/,
+        'can not delete design assigned to one or more create_di processes';
+
+    ok model->delete_process( { id => $new_process->id } ), 'delete linked process';
+
+    throws_ok{
+        model->delete_design( { id => 99999999 } )
+    } 'DBIx::Class::Exception', 'can not delete this design without cascade delete enabled';
+
+    ok model->delete_design( { id => 99999999, cascade => 1 } ), 'can delete newly created design';
+
+    throws_ok{
+        model->delete_design( { id => 11111111 } )
+    } 'LIMS2::Exception::NotFound', 'can not delete non existant design';
+
+    throws_ok {
+        model->retrieve_design( { id => 99999999 } );
+    }
+    'LIMS2::Exception::NotFound', '..can not retreive deleted design';
+}
+
+sub build_design_data{
+    my $design_id = shift;
+
+    # base new design data on current design data
+    ok my $design = model->retrieve_design( { id => $design_id } ), "retrieve design id=$design_id";
+
+    my $design_data = $design->as_hash;
+    $design_data->{id} = 99999999;
+
+    delete $design_data->{assigned_genes};
+    delete $design_data->{oligos_fasta};
+    $design_data->{genotyping_primers}
+        = [ map{ delete $_->{id}; $_ } @{ delete $design_data->{genotyping_primers} } ];
+
+    delete $design_data->{comments};
+    $design_data->{comments} = [
+        {
+            category => 'Other',
+            comment_text => 'Test comment',
+            created_at => '2012-05-21T00:00:00',
+            created_by => 'test_user@example.org',
+            is_public  => 1,
+        }
+    ];
+
+    $design_data->{gene_ids} = [ 'MGI:1917722' ];
+
+    my $oligos = delete $design_data->{oligos};
+    for my $oligo ( @{ $oligos } ) {
+        delete $oligo->{id};
+        $oligo->{loci} = [ delete $oligo->{locus} ];
+        delete $oligo->{loci}[0]{species};
+    }
+    $design_data->{oligos} = $oligos;
+
+    return $design_data;
 }
 
 done_testing;
