@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Model::Golgi;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Model::Golgi::VERSION = '0.019';
+    $LIMS2::WebApp::Model::Golgi::VERSION = '0.020';
 }
 ## use critic
 

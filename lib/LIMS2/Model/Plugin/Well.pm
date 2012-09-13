@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.019';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.020';
 }
 ## use critic
 
@@ -214,13 +214,13 @@ sub retrieve_well_recombineering_results {
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
-    my $rec_results = $well->well_recombineering_results;
+    my @rec_results = $well->well_recombineering_results;
 
-    if ( @{ $rec_results } == 0) {
+    if ( @rec_results == 0) {
         $self->throw( NotFound => { entity_class => 'WellRecombineeringResult', search_params => $params } );
     }
 
-    return $rec_results;
+    return \@rec_results;
 }
 
 sub pspec_create_well_dna_status {
@@ -343,6 +343,7 @@ sub create_well_qc_sequencing_result {
     my $qc_seq_result = $well->create_related(
         well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by_id created_at ) }
     );
+    $self->log->debug( 'Well QC sequencing result created for well  ' . $qc_seq_result->well_id );
 
     return $qc_seq_result;
 }
@@ -353,10 +354,22 @@ sub retrieve_well_qc_sequencing_result {
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
-    my $qc_seq_result = $well->well_dna_status
+    my $qc_seq_result = $well->well_qc_sequencing_result
         or $self->throw( NotFound => { entity_class => 'WellQcSequencingResult', search_params => $params } );
 
     return $qc_seq_result;
+}
+
+sub delete_well_qc_sequencing_result {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $qc_seq_result = $self->retrieve_well_qc_sequencing_result( $params );
+
+    $qc_seq_result->delete;
+    $self->log->debug( 'Well QC sequencing result deleted for well  ' . $qc_seq_result->well_id );
+
+    return;
 }
 
 sub pspec_set_well_assay_complete {

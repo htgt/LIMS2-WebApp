@@ -14,6 +14,7 @@ use Try::Tiny;
 use DateTime;
 
 my $well_data= test_data( 'well.yaml' );
+
 note( "Testing well creation" );
 
 {
@@ -44,6 +45,13 @@ note( "Testing well creation" );
     is $override->accepted, 0, 'override has correct value';
     is $override->well->id, $well->id, 'override belongs to correct well';
 
+    note( "Testing retrieve well accepted override" );
+    ok my $well2 = model->retrieve_well($well_data->{well_accepted_override_create}),
+        'retrieve created well should succeed';
+    ok my $override2 = model->retrieve_well_accepted_override( {well_id => $well2->id} ),
+        'retrieve_well_accepted_override should succeed';
+    is $override2->well->id, $well2->id, 'retrieved override belongs to correct well';
+        
     note( "Testing update well accepted override" );
     ok my $updated_override =  model->update_well_accepted_override( $well_data->{well_accepted_override_update} ),
         'update_well_accepted_override should succeed';
@@ -87,6 +95,12 @@ note( "Testing well creation" );
             created_by      => 'test_user@example.org'
         }
     ), 'create QC sequencing result';
+    
+    ok my $qc_seq = model->retrieve_well_qc_sequencing_result( { id => $well->id } ),
+        'retrieve_well_qc_sequencing_result should succeed';
+    isa_ok $qc_seq, 'LIMS2::Model::Schema::Result::WellQcSequencingResult';
+    is $qc_seq->valid_primers, 'LR,PNF,R1R', 'qc valid primers correct';
+    is $qc_seq->test_result_url, 'http://example.org/some/url/or/other', 'qc test result url correct';
 
     $date_time = DateTime->now;
 
@@ -96,6 +110,14 @@ note( "Testing well creation" );
     ok $well->accepted, 'well is automatically accepted now that we have a sequencing pass';
 
     is $well->assay_complete, $date_time, 'assay_complete has expected datetime';
+    
+    lives_ok {
+        model->delete_well_qc_sequencing_result( { id => $well->id } )
+    } 'delete well qc sequencing result';
+    
+    throws_ok{
+    	model->retrieve_well_qc_sequencing_result( { id => $well->id } )
+    } qr/No WellQcSequencingResult entity found/;
 }
 
 {
@@ -121,6 +143,41 @@ note( "Testing well creation" );
     ok my $new_dna_status = model->create_well_dna_status( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', pass => 1, created_by => 'test_user@example.org' }  ), 'can create well dna status';
     is $new_dna_status->pass, 1, 'dna status is pass';
     is $well->id, $new_dna_status->well_id , '.. and dna_status is for right well';
+}
+
+{
+	note("Testing well recombineering result create and retrieve");
+	
+	ok my $recomb = model->create_well_recombineering_result( $well_data->{well_recombineering_create} ),
+	    'create_well_recombineering_result should succeed';
+	isa_ok $recomb, 'LIMS2::Model::Schema::Result::WellRecombineeringResult';
+	is $recomb->result_type_id, 'pcr_u', 'recombineering result type correct';
+	is $recomb->result, 'pass', 'recombineering result correct';
+	
+	ok my $rec_results = model->retrieve_well_recombineering_results( $well_data->{well_recombineering_create} ),
+	    'can retrieve recombineering results by name';
+	isa_ok($rec_results, 'ARRAY');
+	isa_ok($rec_results->[0], 'LIMS2::Model::Schema::Result::WellRecombineeringResult');    
+	
+	throws_ok{
+		model->create_well_recombineering_result( $well_data->{well_recombineering_create_bad} )
+	} qr/is invalid: existing_recombineering_result_type/;
+}
+
+{
+	note( "Testing well dna quality create and retrieve");
+	
+	ok my $quality = model->create_well_dna_quality( $well_data->{well_dna_quality_create} ),
+	    'create_well_dna_quality should succeed';
+	isa_ok $quality, 'LIMS2::Model::Schema::Result::WellDnaQuality';
+	is $quality->quality, 'M', 'DNA quality is correct';
+	
+	ok model->retrieve_well_dna_quality( $well_data->{well_dna_quality_create} ),
+	    'retrieve_well_dna_quality should succeed';
+    
+    throws_ok{
+    	model->retrieve_well_dna_quality( { id => 845 } );
+    } qr /No WellDnaQuality entity found/;
 }
 
 {

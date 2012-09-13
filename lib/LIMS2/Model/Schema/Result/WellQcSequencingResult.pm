@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellQcSequencingResult;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellQcSequencingResult::VERSION = '0.019';
+    $LIMS2::Model::Schema::Result::WellQcSequencingResult::VERSION = '0.020';
 }
 ## use critic
 
@@ -165,11 +165,13 @@ sub as_hash {
     my $self = shift;
 
     return {
-        well_id       => $self->well_id,
-        valid_primers => $self->valid_primers,
-        mixed_reads   => $self->mixed_reads,
-        pass          => $self->pass,
-        created_at    => $self->created_at->iso8601
+        well_id         => $self->well_id,
+        valid_primers   => $self->valid_primers,
+        mixed_reads     => $self->mixed_reads,
+        pass            => $self->pass,
+        test_result_url => $self->test_result_url,
+        created_by      => $self->created_by->name,
+        created_at      => $self->created_at->iso8601,
     }
 }
 

@@ -13,6 +13,36 @@ use Test::Most;
 use Try::Tiny;
 use DateTime;
 
+note("Testing process types and fields creation");
+{
+	my @process_types = qw(
+	    create_di
+        cre_bac_recom
+        int_recom
+        2w_gateway
+        3w_gateway
+        rearray
+        dna_prep
+        recombinase
+        clone_pick
+        clone_pool
+        first_electroporation
+        second_electroporation
+        freeze
+	);
+	is_deeply([sort map {$_->id} @{ model->list_process_types }], [sort @process_types], 'process type list correct');
+
+	my $fields = model->get_process_fields({process_type => 'recombinase'});
+	ok exists $fields->{'recombinase'}, 'recombinase process has recombinase field';
+	$fields = model->get_process_fields({process_type => 'int_recom'});
+	ok !exists $fields->{'recombinase'}, 'int_recom does not have recombinase field';
+	
+	is_deeply(model->get_process_plate_types({process_type => 'cre_bac_recom'}), [qw( INT )], 
+	     'cre_bac_recom plate types correct');
+	is_deeply(model->get_process_plate_types({process_type => 'clone_pick'}), [qw( EP_PICK SEP_PICK XEP_PICK )],
+	    'clone_pick plate types correct');
+}
+
 note( "Testing create_di process creation" );
 my $create_di_process_data= test_data( 'create_di_process.yaml' );
 
@@ -22,6 +52,8 @@ my $create_di_process_data= test_data( 'create_di_process.yaml' );
     isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
     is $process->type->id, 'create_di',
         'process is of correct type';
+    
+    my $fields = model    
 
     ok my $process_design = $process->process_design, 'process has a process_design';
     is $process_design->design_id, 95120, 'process_design has correct design_id';

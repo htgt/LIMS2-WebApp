@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.019';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.020';
 }
 ## use critic
 
@@ -21,6 +21,23 @@ Catalyst Controller.
 =head1 METHODS
 
 =cut
+
+sub plate_list :Path('/api/plate') :Args(0) :ActionClass('REST') {
+}
+
+sub plate_list_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my ( $plate_list ) = $c->model('Golgi')->txn_do(
+        sub {
+            shift->list_plates( $c->request->params )
+        }
+    );
+
+    return $self->status_ok( $c, entity => $plate_list );
+}
 
 sub plate :Path('/api/plate') :Args(0) :ActionClass('REST') {
 }
@@ -296,6 +313,20 @@ sub well_qc_sequencing_result_POST {
         location => $c->uri_for( '/api/well/qc_sequencing_result', { well_id => $qc_sequencing_result->well_id } ),
         entity   => $qc_sequencing_result
     );
+}
+
+sub well_qc_sequencing_result_DELETE {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->delete_well_qc_sequencing_result( $c->request->params )
+        }
+    );
+
+    return $self->status_no_content( $c );
 }
 
 sub plate_assay_complete :Path('/api/plate/assay_complete') :Args(0) :ActionClass('REST') {

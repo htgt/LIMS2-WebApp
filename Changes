@@ -1,3 +1,8 @@
+0.020     2012-09-13 13:47:33 Europe/London
+
+	Unit test speed improvement. 
+	Added well_qc_sequencing_result delete method to API.
+
 0.019     2012-09-11 10:29:35 Europe/London
 
    Default assembly now GRCm38

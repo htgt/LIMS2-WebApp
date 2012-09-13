@@ -54,6 +54,7 @@ requires:
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
   DateTime::Format::Strptime: 0
+  Digest::MD5: 0
   EngSeqBuilder: 0
   Exporter: 0
   Fcntl: 0
@@ -116,4 +117,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.019
+version: 0.020

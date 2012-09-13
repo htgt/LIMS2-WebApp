@@ -1,3 +1,4 @@
+DELETE FROM fixture_md5;
 DELETE FROM well_dna_status;
 DELETE FROM well_dna_quality;
 DELETE FROM well_recombineering_results;
