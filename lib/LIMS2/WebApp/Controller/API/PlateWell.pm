@@ -309,6 +309,20 @@ sub well_qc_sequencing_result_POST {
     );
 }
 
+sub well_qc_sequencing_result_DELETE {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->delete_well_qc_sequencing_result( $c->request->params )
+        }
+    );
+
+    return $self->status_no_content( $c );
+}
+
 sub plate_assay_complete :Path('/api/plate/assay_complete') :Args(0) :ActionClass('REST') {
 }
 
