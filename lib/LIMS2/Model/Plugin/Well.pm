@@ -337,6 +337,7 @@ sub create_well_qc_sequencing_result {
     my $qc_seq_result = $well->create_related(
         well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by_id created_at ) }
     );
+    $self->log->debug( 'Well QC sequencing result created for well  ' . $qc_seq_result->well_id );
 
     return $qc_seq_result;
 }
