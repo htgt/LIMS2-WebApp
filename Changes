@@ -1,6 +1,47 @@
 {{$NEXT}}
 
-0.013     2012-08-22 14:33:19 Europe/London
+0.019     2012-09-11 10:29:35 Europe/London
+
+   Default assembly now GRCm38
+   Improved test coverage
+   Updated to twitter bootstrap 2.1.1
+   Implement change password form
+   Styling improvements
+
+0.018     2012-09-06 15:08:49 Europe/London
+
+	Added cell line drop down to plate upload and validation of cell line csv input
+    Added plate edit functionality
+
+0.017     2012-09-05 09:42:50 Europe/London
+
+    Show clearer error message on plate upload when parent well does not exist.
+    Switch from final-backbone check to just backbone check.
+
+0.016     2012-09-04 11:45:16 Europe/London
+
+    Bugfix, well reports were not working because they did not have a sponsor.
+    Moved sponsor into report name, removed from generic Report code.
+    Added test to make sure Plate Reports are viewable.
+
+0.015     2012-08-31 13:08:03 Europe/London
+
+   Fixed SEP plate upload template
+   Added verification for 2w gateway process
+   Moved code into Util modules
+   Fix links to css files in header
+
+0.014     2012-08-31 11:55:13 Europe/London
+
+   Sponsor heading added to reports
+
+0.013     2012-08-22 14:45:53 Europe/London
+
+   Implement allele request tracking.
+   Add Projects and Sponsors tables.
+   Implement production reports by sponsor.
+   Implement plate create via csv upload form.
+   Implement dna assay result loading onto plates.
 
 0.012     2012-08-01 10:55:30 Europe/London
 
