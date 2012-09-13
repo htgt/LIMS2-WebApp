@@ -29,11 +29,19 @@ const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 const my $TEST_USER   => 'test_user@example.org';
 const my $TEST_PASSWD => 'ahdooS1e';
 
-my $MODEL;
-my $MECH_USED;
-
 sub unauthenticated_mech {
-	$MECH_USED = 1;
+
+	# Reset the fixture data checksum because webapp
+	# may change the database content
+	my $model = LIMS2::Model->new( { user => 'tests' } );
+	my $dbh = $model->schema->storage->dbh;
+	my $name = db_name($dbh);
+	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
+
+	# This warns "commit ineffective with AutoCommit enabled"
+	# but it seems to be necessary...
+    $dbh->commit;
+
     return Test::WWW::Mechanize::Catalyst->new( catalyst_app => 'LIMS2::WebApp' );
 }
 
@@ -43,12 +51,13 @@ sub mech {
     return $mech;
 }
 
-sub reload_fixtures { 
+sub reload_fixtures {
 
+    my $model = LIMS2::Model->new( { user => 'tests' } );
     my $args = { force => 1 };
 
     try {
-        $MODEL->schema->storage->dbh_do(
+        $model->schema->storage->dbh_do(
             sub {
                 my ( $storage, $dbh ) = @_;
                 _load_fixtures( $dbh, $args );
@@ -57,7 +66,9 @@ sub reload_fixtures {
     }
     catch {
         BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
-    };	
+    };
+
+    return;
 }
 
 sub _build_test_data {
@@ -113,7 +124,6 @@ sub _build_model {
     }
 
     $model->schema->storage->txn_begin;
-    $MODEL = $model;
     return sub {$model};
 }
 
@@ -153,7 +163,6 @@ sub _load_fixtures {
             );
     	}
     	_update_fixture_md5($dbh, $fixture_md5);
-    	$dbh->commit;
     	$dbh->do( "RESET ROLE" );
     }
 
@@ -205,11 +214,6 @@ sub _update_fixture_md5{
 	return;
 }
 
-END{
-	if ($MECH_USED){
-		reload_fixtures;
-	}
-}
 1;
 
 __END__
