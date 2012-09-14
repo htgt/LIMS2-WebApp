@@ -85,7 +85,7 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 986, true);
+SELECT pg_catalog.setval('plates_id_seq', 988, true);
 
 
 --
@@ -169,7 +169,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1841, true);
+SELECT pg_catalog.setval('wells_id_seq', 1843, true);
 
 
 --
@@ -979,12 +979,6 @@ INSERT INTO backbones VALUES (1856, 'L3L4_pD223_DTA_spec', 'high copy number wit
 INSERT INTO backbones VALUES (1857, 'R3R4_pBR_DTA+_Bsd_amp', 'medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way');
 INSERT INTO backbones VALUES (1858, 'L3L4_pZero_DTA_kan', 'high copy number; standard backbone for promoterless vectors', 'KanR', '3-way');
 INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 Gateway Sites with Linearization close to DTA pA, potentially compromising negative selection', 'spec R', '3-way');
-
-
---
--- Data for Name: cached_reports; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
 
 
 --
@@ -4606,6 +4600,7 @@ INSERT INTO plates VALUES (982, 'XEP0006', '', 'XEP', 1, '2012-06-15 00:00:00', 
 INSERT INTO plates VALUES (983, 'SEP0006', '', 'SEP', 985, '2012-06-15 00:00:00', 'Mouse');
 INSERT INTO plates VALUES (984, 'SEPD0006_1', '', 'SEP_PICK', 985, '2012-07-04 00:00:00', 'Mouse');
 INSERT INTO plates VALUES (985, 'SFP0001', '', 'SFP', 985, '2012-07-11 00:00:00', 'Mouse');
+INSERT INTO plates VALUES (988, 'SEP_POOL0001', '', 'SEP_POOL', 985, '2012-09-14 09:44:02.964811', 'Mouse');
 
 
 --
@@ -7560,6 +7555,8 @@ INSERT INTO wells VALUES (1838, 979, 'N01', 985, '2012-08-13 08:23:11.17237', NU
 INSERT INTO wells VALUES (1839, 983, 'N01', 985, '2012-08-13 08:23:11.17237', NULL, NULL, false);
 INSERT INTO wells VALUES (1840, 980, 'N01', 985, '2012-08-13 08:23:11.17237', NULL, NULL, false);
 INSERT INTO wells VALUES (1841, 904, 'M02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
+INSERT INTO wells VALUES (1842, 981, 'A07', 985, '2012-09-14 09:39:57.695101', NULL, NULL, false);
+INSERT INTO wells VALUES (1843, 988, 'A01', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
 
 
 --
