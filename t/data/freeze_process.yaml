@@ -1,0 +1,17 @@
+---
+valid_input:
+    type: freeze
+    output_wells:
+        - plate_name: FFP0001
+          well_name: A07
+    input_wells:
+        - plate_name: FEPD0006_1
+          well_name: A01
+invalid_output_well:
+    type: freeze
+    output_wells:
+        - plate_name: SEP0006
+          well_name: A01
+    input_wells:
+        - plate_name: FEPD0006_1
+          well_name: A01
