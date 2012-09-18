@@ -40,6 +40,7 @@ has [
     qw( first_allele_design_wells   second_allele_design_wells
         first_allele_vector_wells   second_allele_vector_wells
         first_electroporation_wells second_electroporation_wells
+        first_allele_dna_wells      second_allele_dna_wells
   )
 ] => (
     is         => 'ro',
@@ -71,6 +72,21 @@ sub _build_second_allele_vector_wells {
 sub all_vector_wells {
     my $self = shift;
     return [ @{$self->first_allele_vector_wells}, @{$self->second_allele_vector_wells} ];
+}
+
+sub _build_first_allele_dna_wells {
+    my $self = shift;
+    return [ $self->dna_wells( $self->first_allele_vector_wells ) ];
+}
+
+sub _build_second_allele_dna_wells {
+    my $self = shift;
+    return [ $self->dna_wells( $self->second_allele_vector_wells ) ];
+}
+
+sub all_dna_wells {
+    my $self = shift;
+    return [ @{$self->first_allele_dna_wells}, @{$self->second_allele_dna_wells} ];
 }
 
 sub _build_first_electroporation_wells {
