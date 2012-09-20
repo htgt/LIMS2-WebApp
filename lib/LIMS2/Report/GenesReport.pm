@@ -29,9 +29,8 @@ has '+param_names' => (
 override _build_name => sub {
     my $self = shift;
 
-    my $dt = DateTime->now();
 
-    return $self->sponsor . ' Genes Report ' . $dt->ymd;
+    return 'Genes Report ' . $append;
 };
 
 override _build_columns => sub {
@@ -72,7 +71,14 @@ sub create_gene_report {
     my $self = shift;
 
     my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
-    my $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
+
+    my $project_rs;
+    if ( $self->has_sponsor ) {
+        $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
+    }
+    else {
+        $project_rs = $self->model->schema->resultset('Project')->search( {} );
+    }
 
     my @gene_list;
     while ( my $project = $project_rs->next ) {

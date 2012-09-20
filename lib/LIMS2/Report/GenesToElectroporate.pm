@@ -2,7 +2,6 @@ package LIMS2::Report::GenesToElectroporate;
 
 use Moose;
 use DateTime;
-#use LIMS2::Model::Util::GeneElectroporation qw( gene_electroporate_list );
 use LIMS2::AlleleRequestFactory;
 use JSON qw( decode_json );
 use List::Util qw( max );
@@ -37,7 +36,14 @@ sub _build_gene_electroporate_list {
     my $self = shift;
 
     my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
-    my $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
+
+    my $project_rs;
+    if ( $self->has_sponsor ) {
+        $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
+    }
+    else {
+        $project_rs = $self->model->schema->resultset('Project')->search( {} );
+    }
 
     my @electroporate_list;
     while ( my $project = $project_rs->next ) {
@@ -118,8 +124,10 @@ override _build_name => sub {
     my $self = shift;
 
     my $dt = DateTime->now();
+    my $append = $self->has_sponsor ? ' - Sponsor ' . $self->sponsor . ' ' : '';
+    $append .= $dt->ymd;
 
-    return 'Genes To Electroporate ' . $dt->ymd;
+    return 'Genes To Electroporate ' . $append;
 };
 
 override _build_columns => sub {
