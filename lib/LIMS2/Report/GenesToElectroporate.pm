@@ -9,6 +9,7 @@ use List::Util qw( max );
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
+#TODO deal with single targeted
 
 has species => (
     is       => 'ro',
@@ -33,7 +34,7 @@ has gene_electroporate_list => (
 );
 
 sub _build_gene_electroporate_list {
-    my ( $self ) = @_;
+    my $self = shift;
 
     my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
     my $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
@@ -46,42 +47,69 @@ sub _build_gene_electroporate_list {
         $data{gene_id}       = $ar->gene_id;
         $data{marker_symbol} = $self->model->retrieve_gene(
             { species => $self->species, search_term => $ar->gene_id } )->{gene_symbol};
-        $data{valid_dna_wells} = valid_dna_wells($ar);
-        $data{fep_wells}       = electroporation_wells( $ar, 'first_electroporation_wells' );
-        $data{sep_wells}       = electroporation_wells( $ar, 'second_electroporation_wells' );
+
+        $data{first_allele_promoter_dna_wells}
+            = valid_dna_wells( $ar, { type => 'first_allele_dna_wells', promoter => 1 } );
+        $data{first_allele_promoterless_dna_wells}
+            = valid_dna_wells( $ar, { type => 'first_allele_dna_wells', promoter => 0 } );
+        $data{second_allele_promoter_dna_wells}
+            = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 1 } );
+        $data{second_allele_promoterless_dna_wells}
+            = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 0 } );
+
+        $data{fep_wells} = electroporation_wells( $ar, 'first_electroporation_wells' );
+        $data{sep_wells} = electroporation_wells( $ar, 'second_electroporation_wells' );
+
         push @electroporate_list, \%data;
-        last;
     }
 
     return \@electroporate_list;
 }
 
-has [ qw(  max_num_dna_wells max_num_fep_wells max_num_sep_wells ) ] => (
+has [ qw(
+    max_num_first_allele_promoter_dna_wells
+    max_num_first_allele_promoterless_dna_wells
+    max_num_second_allele_promoter_dna_wells
+    max_num_second_allele_promoterless_dna_wells
+    max_num_fep_wells
+    max_num_sep_wells )
+] => (
     is         => 'ro',
     isa        => 'Int',
     lazy_build => 1,
 );
 
-sub _build_max_num_dna_wells {
-    my $self = shift;
 
-    my @well_counts = map{ scalar( @{ $_->{valid_dna_wells} } ) } @{ $self->gene_electroporate_list };
+sub _build_max_num_first_allele_promoter_dna_wells {
+    return _column_count( shift, 'first_allele_promoter_dna_wells' );
+}
 
-    return max @well_counts;
+sub _build_max_num_first_allele_promoterless_dna_wells {
+    return _column_count( shift, 'first_allele_promoterless_dna_wells' );
+}
+
+sub _build_max_num_second_allele_promoter_dna_wells {
+    return _column_count( shift, 'second_allele_promoter_dna_wells' );
+}
+
+sub _build_max_num_second_allele_promoterless_dna_wells {
+    return _column_count( shift, 'second_allele_promoterless_dna_wells' );
 }
 
 sub _build_max_num_fep_wells {
-    my $self = shift;
-
-    my @well_counts = map{ scalar( @{ $_->{fep_wells} } ) } @{ $self->gene_electroporate_list };
-
-    return max @well_counts;
+    return _column_count( shift, 'fep_wells' );
 }
 
 sub _build_max_num_sep_wells {
-    my $self = shift;
+    return _column_count( shift, 'sep_wells' );
+}
 
-    my @well_counts = map{ scalar( @{ $_->{sep_wells} } ) } @{ $self->gene_electroporate_list };
+sub _column_count {
+    my ( $self, $column ) = @_;
+
+    my @well_counts = map{ scalar( @{ $_->{$column} } ) } @{ $self->gene_electroporate_list };
+
+    return 0 unless @well_counts;
 
     return max @well_counts;
 }
@@ -99,9 +127,12 @@ override _build_columns => sub {
 
     return [
         'Gene ID', 'Marker Symbol',
-        ( 'Valid DNA Wells' ) x $self->max_num_dna_wells,
-        ( 'FEP Wells' ) x $self->max_num_fep_wells,
-        ( 'SEP Wells' ) x $self->max_num_sep_wells,
+        ( '1st Allele Promoter DNA Well' )     x $self->max_num_first_allele_promoter_dna_wells,
+        ( '1st Allele Promoterless DNA Well' ) x $self->max_num_first_allele_promoterless_dna_wells,
+        ( '2nd Allele Promoter DNA Well' )     x $self->max_num_second_allele_promoter_dna_wells,
+        ( '2nd Allele Promoterless DNA Well' ) x $self->max_num_second_allele_promoterless_dna_wells,
+        ( 'FEP Well' )                         x $self->max_num_fep_wells,
+        ( 'SEP Well' )                         x $self->max_num_sep_wells,
     ];
 };
 
@@ -109,35 +140,43 @@ override iterator => sub {
     my ($self) = @_;
 
     my $electroporate_list = $self->gene_electroporate_list;
+    my @sorted_electroporate_list
+        = sort { scalar( @{ $a->{fep_wells} } ) <=> scalar( @{ $b->{fep_wells} } ) }
+        @{$electroporate_list};
 
-    my $result = shift @{ $electroporate_list };
+    my $result = shift @sorted_electroporate_list;
 
     return Iterator::Simple::iter(
         sub {
             return unless $result;
             my @data = ( $result->{gene_id}, $result->{marker_symbol} );
 
-            _print_wells( \@data, $result->{valid_dna_wells}, $self->max_num_dna_wells );
-            _print_wells( \@data, $result->{fep_wells}, $self->max_num_fep_wells );
-            _print_wells( \@data, $result->{sep_wells}, $self->max_num_sep_wells );
+            $self->print_wells( \@data, $result, 'first_allele_promoter_dna_wells');
+            $self->print_wells( \@data, $result, 'first_allele_promoterless_dna_wells');
+            $self->print_wells( \@data, $result, 'second_allele_promoter_dna_wells');
+            $self->print_wells( \@data, $result, 'second_allele_promoterless_dna_wells');
+            $self->print_wells( \@data, $result, 'fep_wells');
+            $self->print_wells( \@data, $result, 'sep_wells');
 
-            $result = shift @{ $electroporate_list };
+            $result = shift @sorted_electroporate_list;
             return \@data;
         }
     );
 };
 
-sub _print_wells{
-    my ( $data, $wells, $max_num ) = @_;
+sub print_wells{
+    my ( $self, $data, $result, $type ) = @_;
 
-    for my $num ( 0..( $max_num - 1) ) {
+    my $wells = $result->{$type};
+    my $max_num_attribute = 'max_num_' . $type;
+
+    for my $num ( 0..( $self->$max_num_attribute - 1) ) {
         my $well = $wells->[$num];
         if ( $well ) {
-            push @{ $data }, $well->plate->type_id . ' : ' . $well->as_string;
+            push @{ $data }, $well->plate->name . '[' . $well->name . ']';
         }
         else {
             push @{ $data }, '';
-
         }
     }
 
@@ -145,17 +184,29 @@ sub _print_wells{
 }
 
 sub valid_dna_wells {
-    my ( $ar ) = @_;
+    my ( $ar, $params ) = @_;
 
     my %dna_wells;
-    next unless $ar->can( 'all_dna_wells' );
-    for my $well ( @{ $ar->all_dna_wells } ) {
+    my $type = $params->{type};
+    next unless $ar->can( $type );
+    for my $well ( @{ $ar->$type } ) {
         next if exists $dna_wells{ $well->as_string };
 
         my $dna_status = $well->well_dna_status;
         if ( $dna_status ) {
             next unless $dna_status->pass;
             $dna_wells{ $well->as_string } = $well;
+        }
+
+        my $cassette = $well->cassette;
+
+        if ( $params->{promoter} ) {
+            $dna_wells{ $well->as_string } = $well
+                if $cassette->promoter;
+        }
+        else {
+            $dna_wells{ $well->as_string } = $well
+                unless $cassette->promoter;
         }
     }
 
