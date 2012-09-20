@@ -1,4 +1,4 @@
-package LIMS2::Report::SponsorGenesReport;
+package LIMS2::Report::GenesReport;
 
 use Moose;
 use DateTime;
