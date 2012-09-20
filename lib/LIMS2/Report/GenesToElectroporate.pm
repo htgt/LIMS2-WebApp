@@ -116,8 +116,8 @@ override iterator => sub {
             $self->print_wells( \@data, $result, 'first_allele_promoterless_dna_wells');
             $self->print_wells( \@data, $result, 'second_allele_promoter_dna_wells');
             $self->print_wells( \@data, $result, 'second_allele_promoterless_dna_wells');
-            $self->print_plates( \@data, $result, 'fep_wells');
-            $self->print_plates( \@data, $result, 'sep_wells');
+            $self->print_electroporation_wells( \@data, $result, 'fep_wells');
+            $self->print_electroporation_wells( \@data, $result, 'sep_wells');
 
             $result = shift @sorted_electroporate_list;
             return \@data;
@@ -128,14 +128,26 @@ override iterator => sub {
 sub print_wells{
     my ( $self, $data, $result, $type ) = @_;
 
-    push @{ $data }, join( " -  ", map{ $_->plate->name . '[' . $_->name . ']' } @{ $result->{$type} } );
+    push @{ $data }, join( " - ", map{ $_->plate->name . '[' . $_->name . ']' } @{ $result->{$type} } );
     return;
 }
 
-sub print_plates{
+sub print_electroporation_wells{
     my ( $self, $data, $result, $type ) = @_;
 
-    push @{ $data }, join( " -  ", map{ $_->plate->name } @{ $result->{$type} } );
+    my @ep_data;
+
+    for my $datum ( @{ $result->{$type} } ) {
+        my $well_data = $datum->{'well'}->plate->name . '[' . $datum->{'well'}->name . ']';
+        $well_data
+            .= ' ('
+            . $datum->{'parent_dna_well'}->plate->name . '['
+            . $datum->{'parent_dna_well'}->name . '] )';
+
+        push @ep_data, $well_data;
+    }
+
+    push @{ $data }, join( " - ", @ep_data );
     return;
 }
 
@@ -177,10 +189,24 @@ sub electroporation_wells {
     for my $well ( @{ $ar->$type } ) {
         next if exists $wells{ $well->as_string };
 
-        $wells{ $well->as_string } = $well;
+        $wells{ $well->as_string }{ 'well' } = $well;
+        $wells{ $well->as_string }{ 'parent_dna_well' } = _find_dna_parent_well( $well );
+
     }
 
     return [ values %wells ];
+}
+
+sub _find_dna_parent_well {
+    my ( $ep_well ) = @_;
+
+    my $it = $ep_well->ancestors->breadth_first_traversal($ep_well, 'in');
+    while ( my $well = $it->next ) {
+        return $well
+            if $well->plate->type_id eq 'DNA';
+    }
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;
