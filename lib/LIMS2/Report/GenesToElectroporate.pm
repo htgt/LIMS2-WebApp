@@ -72,54 +72,6 @@ sub _build_gene_electroporate_list {
     return \@electroporate_list;
 }
 
-has [ qw(
-    max_num_first_allele_promoter_dna_wells
-    max_num_first_allele_promoterless_dna_wells
-    max_num_second_allele_promoter_dna_wells
-    max_num_second_allele_promoterless_dna_wells
-    max_num_fep_wells
-    max_num_sep_wells )
-] => (
-    is         => 'ro',
-    isa        => 'Int',
-    lazy_build => 1,
-);
-
-
-sub _build_max_num_first_allele_promoter_dna_wells {
-    return _column_count( shift, 'first_allele_promoter_dna_wells' );
-}
-
-sub _build_max_num_first_allele_promoterless_dna_wells {
-    return _column_count( shift, 'first_allele_promoterless_dna_wells' );
-}
-
-sub _build_max_num_second_allele_promoter_dna_wells {
-    return _column_count( shift, 'second_allele_promoter_dna_wells' );
-}
-
-sub _build_max_num_second_allele_promoterless_dna_wells {
-    return _column_count( shift, 'second_allele_promoterless_dna_wells' );
-}
-
-sub _build_max_num_fep_wells {
-    return _column_count( shift, 'fep_wells' );
-}
-
-sub _build_max_num_sep_wells {
-    return _column_count( shift, 'sep_wells' );
-}
-
-sub _column_count {
-    my ( $self, $column ) = @_;
-
-    my @well_counts = map{ scalar( @{ $_->{$column} } ) } @{ $self->gene_electroporate_list };
-
-    return 0 unless @well_counts;
-
-    return max @well_counts;
-}
-
 override _build_name => sub {
     my $self = shift;
 
@@ -134,13 +86,14 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Gene ID', 'Marker Symbol',
-        ( '1st Allele Promoter DNA Well' )     x $self->max_num_first_allele_promoter_dna_wells,
-        ( '1st Allele Promoterless DNA Well' ) x $self->max_num_first_allele_promoterless_dna_wells,
-        ( '2nd Allele Promoter DNA Well' )     x $self->max_num_second_allele_promoter_dna_wells,
-        ( '2nd Allele Promoterless DNA Well' ) x $self->max_num_second_allele_promoterless_dna_wells,
-        ( 'FEP Well' )                         x $self->max_num_fep_wells,
-        ( 'SEP Well' )                         x $self->max_num_sep_wells,
+        'Gene ID',
+        'Marker Symbol',
+        '1st Allele Promoter DNA Well',
+        '1st Allele Promoterless DNA Well',
+        '2nd Allele Promoter DNA Well',
+        '2nd Allele Promoterless DNA Well',
+        'FEP Well',
+        'SEP Well',
     ];
 };
 
@@ -163,8 +116,8 @@ override iterator => sub {
             $self->print_wells( \@data, $result, 'first_allele_promoterless_dna_wells');
             $self->print_wells( \@data, $result, 'second_allele_promoter_dna_wells');
             $self->print_wells( \@data, $result, 'second_allele_promoterless_dna_wells');
-            $self->print_wells( \@data, $result, 'fep_wells');
-            $self->print_wells( \@data, $result, 'sep_wells');
+            $self->print_plates( \@data, $result, 'fep_wells');
+            $self->print_plates( \@data, $result, 'sep_wells');
 
             $result = shift @sorted_electroporate_list;
             return \@data;
@@ -175,19 +128,14 @@ override iterator => sub {
 sub print_wells{
     my ( $self, $data, $result, $type ) = @_;
 
-    my $wells = $result->{$type};
-    my $max_num_attribute = 'max_num_' . $type;
+    push @{ $data }, join( " -  ", map{ $_->plate->name . '[' . $_->name . ']' } @{ $result->{$type} } );
+    return;
+}
 
-    for my $num ( 0..( $self->$max_num_attribute - 1) ) {
-        my $well = $wells->[$num];
-        if ( $well ) {
-            push @{ $data }, $well->plate->name . '[' . $well->name . ']';
-        }
-        else {
-            push @{ $data }, '';
-        }
-    }
+sub print_plates{
+    my ( $self, $data, $result, $type ) = @_;
 
+    push @{ $data }, join( " -  ", map{ $_->plate->name } @{ $result->{$type} } );
     return;
 }
 
