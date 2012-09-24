@@ -81,6 +81,22 @@ sub final_vector_wells {
     return @final_vector_wells;
 }
 
+sub dna_wells {
+    my ( $self, $vector_wells ) = @_;
+
+    my @dna_wells;
+
+    for my $vector_well ( @{$vector_wells} ) {
+        my $it = $vector_well->descendants->depth_first_traversal($vector_well, 'out');
+        while ( my $well = $it->next ) {
+            push @dna_wells, $well
+                if $well->plate->type_id eq 'DNA';
+        }
+    }
+
+    return @dna_wells;
+}
+
 sub electroporation_wells {
     my ( $self, $vector_wells, $plate_type ) = @_;
 
