@@ -9,13 +9,15 @@
   tracking system.
 </p>
 
+[% IF report_id %]
+
 <h3>Progress Report</h3>
 
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
       [%- FOR col IN columns %]
-      <th>[% col %]</th>
+        <th>[% col %]</th>
       [%- END %]
     </tr>
   </thead>
@@ -29,3 +31,5 @@
     [%- END %]
   </tbody>
 </table>
+
+[% END %]
