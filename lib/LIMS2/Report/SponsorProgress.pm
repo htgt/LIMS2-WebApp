@@ -123,7 +123,7 @@ sub _build_sponsor_data {
 
     my $project_rs = $self->model->schema->resultset('Project')->search( {} );
 
-    while ( my $project = $project_rs->next ) { ### Loading |===[%]    |
+    while ( my $project = $project_rs->next ) {
         $self->_find_project_wells( $project, $arf, \%sponsor_data );
     }
 
@@ -164,7 +164,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Catagory',
+        'Stage',
         @{ $self->sponsors }
     ];
 };
@@ -209,7 +209,6 @@ sub has_wells_of_type {
     return @{ $ar->$type } ? 1 : 0;
 }
 
-#TODO possible to prefetch well_dna_status?
 sub has_valid_dna_wells{
     my ( $ar, $type ) = @_;
 
