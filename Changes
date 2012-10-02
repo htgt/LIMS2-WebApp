@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.021     2012-10-02 10:03:30 Europe/London
+
+    Added front page report
+    Added genes to electroporate report
+    Implemented more tests for process creation
+
 0.020     2012-09-13 13:47:33 Europe/London
 
 	Unit test speed improvement. 
