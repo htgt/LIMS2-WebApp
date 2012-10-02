@@ -118,6 +118,7 @@ lib/LIMS2/Report/ElectroporationProductionSummary.pm
 lib/LIMS2/Report/FPPlate.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/FirstElectroporationProductionDetail.pm
+lib/LIMS2/Report/GenesToElectroporate.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
 lib/LIMS2/Report/PICKPlate.pm
 lib/LIMS2/Report/PlateList.pm
@@ -128,6 +129,7 @@ lib/LIMS2/Report/SEPPICKPlate.pm
 lib/LIMS2/Report/SEPPOOLPlate.pm
 lib/LIMS2/Report/SEPPlate.pm
 lib/LIMS2/Report/SecondElectroporationProductionDetail.pm
+lib/LIMS2/Report/SponsorProgress.pm
 lib/LIMS2/Report/VectorProductionDetail.pm
 lib/LIMS2/Report/VectorProductionSummary.pm
 lib/LIMS2/Report/XEPPOOLPlate.pm
@@ -245,6 +247,7 @@ t/00-compile.t
 t/10-dbconnect.t
 t/10-lims2-test.t
 t/20-form-validator.t
+t/40-model-util-computestatus.t
 t/40-model-util-createplate.t
 t/40-model-util-createprocess.t
 t/40-model-util-dataupload.t
@@ -268,6 +271,7 @@ t/author-critic.t
 t/data/2w_gateway_process.yaml
 t/data/3w_gateway_process.yaml
 t/data/clone_pick_process.yaml
+t/data/clone_pool_process.yaml
 t/data/cre_bac_recom_process.yaml
 t/data/create_di_process.yaml
 t/data/csv_upload_linux.csv
@@ -275,6 +279,7 @@ t/data/csv_upload_mac.csv
 t/data/csv_upload_win.csv
 t/data/dna_prep_process.yaml
 t/data/first_electroporation.yaml
+t/data/freeze_process.yaml
 t/data/int_recom_process.yaml
 t/data/invalid_csv_upload.csv
 t/data/plate.yaml

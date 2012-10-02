@@ -1,11 +1,13 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.020';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.021';
 }
 ## use critic
 
 use Moose;
+use LIMS2::Report;
+use Text::CSV;
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -75,6 +77,31 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
+
+    my $species = $c->session->{selected_species};
+
+    my $report_id = LIMS2::Report::cached_report(
+        model  => $c->model( 'Golgi' ),
+        report => 'SponsorProgress',
+        params => { species => $c->session->{selected_species} },
+    );
+
+    my $status = LIMS2::Report::get_report_status( $report_id );
+
+    if ( $status eq 'DONE' ) {
+        my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+
+        my $csv     = Text::CSV->new;
+        my $columns = $csv->getline( $report_fh );
+        my $data = $csv->getline_all( $report_fh );
+
+        $c->stash(
+            report_id => $report_id,
+            title     => $report_name,
+            columns   => $columns,
+            data      => $data,
+        );
+    }
 
     return;
 }

@@ -1,7 +1,7 @@
 package LIMS2::Report::QcRunSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::QcRunSummary::VERSION = '0.020';
+    $LIMS2::Report::QcRunSummary::VERSION = '0.021';
 }
 ## use critic
 

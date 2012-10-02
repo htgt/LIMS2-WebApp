@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::VERSION = '0.020';
+    $LIMS2::ReportGenerator::VERSION = '0.021';
 }
 ## use critic
 
@@ -37,7 +37,7 @@ has model => (
 has cache_ttl => (
     is      => 'ro',
     isa     => 'Str',
-    default => '8 hours'
+    default => '22 hours'
 );
 
 has param_names => (

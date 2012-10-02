@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.020';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.021';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use MooseX::ClassAttribute;
 use LIMS2::Exception::Implementation;
 use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq );
+use Try::Tiny;
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
@@ -112,9 +113,13 @@ sub design_and_gene_cols {
 
     my $design        = $well->design;
     my @gene_ids      = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols  = uniq map {
-        $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
-    } @gene_ids;
+    my @gene_symbols;
+    try {
+        @gene_symbols  = uniq map {
+            $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
+        } @gene_ids;
+    };
+
 
     return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ) );
 }

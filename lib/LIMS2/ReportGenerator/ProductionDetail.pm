@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::ProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::ProductionDetail::VERSION = '0.020';
+    $LIMS2::ReportGenerator::ProductionDetail::VERSION = '0.021';
 }
 ## use critic
 
@@ -10,6 +10,7 @@ use Moose;
 use Iterator::Simple qw( iflatten imap iter igrep );
 use LIMS2::Exception::Implementation;
 use LIMS2::AlleleRequestFactory;
+use LIMS2::ReportGenerator::Plate;
 use JSON qw( decode_json );
 use namespace::autoclean;
 
