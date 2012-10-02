@@ -1,0 +1,54 @@
+[%- META title = 'Submit New QC Job'; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Submit New QC Job</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/submit_new_qc' ) %]" class="form well"  enctype="multipart/form-data" >
+      <a class="add" href="#" onClick="addFormField(); return false;">Add Sequencing Project</a>
+      <div id="sequencingprojects">
+      [% IF sequencing_project AND sequencing_project.size %]     
+        [% FOR sp IN sequencing_project %]
+          <label>Sequencing Project</label>
+          <input name="sequencing_project" id="sequencing_project" type="text" value="[% sp %]"/>           
+        [%- END %]
+      [% ELSE %]
+        <label>Sequencing Project</label>
+        <input name="sequencing_project" id="sequencing_project" type="text"/>
+      [% END %]
+      </div>
+              
+        <label>Template Plate</label>
+        <input name="template_plate" id="template_plate" type="text"
+          [% IF template_plate %]value="[% template_plate %]"[% END %]
+        />
+
+        <label>Profile</label>
+
+          <select name="profile">
+              [%- FOR prof IN profiles %]
+                <option [% IF profile == prof %] selected="selected"[% END %]>[% prof %]</option>
+              [%- END %]
+          </select>
+
+        <br>
+        <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn">
+            <i class="icon-upload"></i> Launch QC
+        </button>
+    </form>
+  </div>
+  
+</div>
+
+<script type="text/javascript" charset="utf-8">
+    /* Add new sequencing project field */
+    function addFormField() {
+        
+        $('div#sequencingprojects').after(
+          "<label for='sequencing_project'>Sequencing Project</label><input type='text' name='sequencing_project' id='sequencing_project'/>"
+        );
+    }
+</script>

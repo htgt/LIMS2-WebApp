@@ -3,7 +3,12 @@ use Moose;
 use namespace::autoclean;
 use HTTP::Status qw( :constants );
 use Scalar::Util qw( blessed );
+use LWP::UserAgent;
+use JSON qw( encode_json decode_json );
 use Try::Tiny;
+use Config::Tiny;
+use Data::Dumper;
+use HTGT::QC::Config;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -18,6 +23,12 @@ Catalyst Controller.
 =head1 METHODS
 
 =cut
+
+sub _list_all_profiles {
+    my ( $self, $c ) = @_;
+
+    [ sort HTGT::QC::Config->new->profiles ];
+}
 
 sub index :Path( '/user/qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
@@ -145,6 +156,88 @@ sub view_qc_alignment :Path('/user/view_qc_alignment') :Args(0) {
         well_name  => uc( $c->req->params->{well_name} ),
     );
     return;
+}
+
+sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
+	my ($self, $c) = @_;
+
+    $c->stash->{profiles} = $self->_list_all_profiles;
+    
+    my $requirements = {
+    	template_plate     => { validate => 'existing_qc_template_name'},
+    	profile            => { validate => 'alphanumeric_string'},
+    	sequencing_project => { validate => 'alphanumeric_string'},
+    	launch_qc          => { optional => 0 },
+    };
+    
+	# Store form values
+	$c->stash->{sequencing_project} = [ $c->req->param('sequencing_project') ];
+	$c->stash->{template_plate} = $c->req->param('template_plate');
+	$c->stash->{profile} = $c->req->param('profile');
+	
+	my $run_id;
+	if ( $c->req->param('launch_qc') ){
+		# validate input params before attempting to run QC
+		$c->model('Golgi')->check_params($c->req->params, $requirements);
+		if ( $run_id = $self->_launch_qc($c) ){
+			$c->stash->{run_id} = $run_id;
+			$c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id";
+		}
+	}
+	return;
+}
+
+sub _launch_qc{
+	my ($self, $c) = @_;
+	
+    my $ua = LWP::UserAgent->new();
+    my $qc_conf = Config::Tiny->new();
+    $qc_conf = Config::Tiny->read($ENV{LIMS2_QC_CONFIG});
+    
+    unless ($qc_conf){
+    	die "No QC submission service has been configured. Cannot submit QC job.";
+    }
+
+    # FIXME: how is this generated?
+    my $plate_map = {};
+    
+    my $params = {
+	    profile             => $c->stash->{profile},
+	    template_plate      => $c->stash->{template_plate},
+	    sequencing_projects => $c->stash->{sequencing_project},
+	    plate_map           => $plate_map,
+	    username            => $qc_conf->{_}->{username},
+	    password            => $qc_conf->{_}->{password},
+	    created_by          => $c->user->name,
+	    species             => $c->session->{selected_species},
+    };
+
+
+    
+    my $uri = $qc_conf->{_}->{submit_uri};
+    
+    my $content;
+    
+    try{
+        my $req = HTTP::Request->new(POST => $uri);
+        $req->content_type('application/json');
+        $req->content( encode_json( $params ) );
+        
+        my $response = $ua->request($req);
+        $c->log->debug($response->content);
+        $content = decode_json( $response->content );
+        
+        unless ($response->is_success){
+        	die "Request to $uri was not successful. Error message: ".$content->{'error'};
+        }
+    }
+    catch{
+    	$c->stash( error_msg => "Sorry, your QC job submission failed with error $_" );
+    };
+    
+    my $run_id = $content->{'qc_run_id'};
+    
+    return $run_id;
 }
 
 =head1 AUTHOR

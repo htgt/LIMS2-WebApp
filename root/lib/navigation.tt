@@ -94,6 +94,9 @@
             <li>
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
+            </li>            
             [% END %]
           </ul>
         </li>
