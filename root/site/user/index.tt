@@ -11,7 +11,7 @@
 
 [% IF report_id %]
 
-<h3>Progress Report</h3>
+<h3>Pipeline Summary</h3>
 
 <table class="table table-striped table-bordered">
   <thead>
