@@ -31,7 +31,7 @@ has model => (
 has cache_ttl => (
     is      => 'ro',
     isa     => 'Str',
-    default => '8 hours'
+    default => '22 hours'
 );
 
 has param_names => (

@@ -40,6 +40,8 @@ has [
     qw( first_allele_design_wells   second_allele_design_wells
         first_allele_vector_wells   second_allele_vector_wells
         first_electroporation_wells second_electroporation_wells
+        first_allele_dna_wells      second_allele_dna_wells
+        first_allele_pick_wells     second_allele_pick_wells
   )
 ] => (
     is         => 'ro',
@@ -73,6 +75,21 @@ sub all_vector_wells {
     return [ @{$self->first_allele_vector_wells}, @{$self->second_allele_vector_wells} ];
 }
 
+sub _build_first_allele_dna_wells {
+    my $self = shift;
+    return [ $self->dna_wells( $self->first_allele_vector_wells ) ];
+}
+
+sub _build_second_allele_dna_wells {
+    my $self = shift;
+    return [ $self->dna_wells( $self->second_allele_vector_wells ) ];
+}
+
+sub all_dna_wells {
+    my $self = shift;
+    return [ @{$self->first_allele_dna_wells}, @{$self->second_allele_dna_wells} ];
+}
+
 sub _build_first_electroporation_wells {
     my $self = shift;
     return [ $self->electroporation_wells( $self->first_allele_vector_wells, 'EP' ) ];
@@ -89,6 +106,16 @@ sub _build_second_electroporation_wells {
     my @intersection = grep { $is_first{ $_->id } } $self->electroporation_wells( $self->second_allele_vector_wells, 'SEP' );
 
     return \@intersection;
+}
+
+sub _build_first_allele_pick_wells {
+    my $self = shift;
+    return [ $self->pick_wells( $self->first_electroporation_wells, 'EP_PICK' ) ];
+}
+
+sub _build_second_allele_pick_wells {
+    my $self = shift;
+    return [ $self->pick_wells( $self->second_electroporation_wells, 'SEP_PICK' ) ];
 }
 
 __PACKAGE__->meta->make_immutable;

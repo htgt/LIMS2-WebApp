@@ -31,7 +31,12 @@ sub _build_gene_designs {
     return $self->_build_designs( $self->mutation_type );
 }
 
-has [ qw( allele_design_wells allele_vector_wells allele_electroporation_wells ) ] => (
+has [
+    qw( allele_design_wells allele_vector_wells
+        allele_dna_wells    allele_electroporation_wells
+        allele_pick_wells
+    )
+] => (
     is         => 'ro',
     isa        => 'ArrayRef[LIMS2::Model::Schema::Result::Well]',
     init_arg   => undef,
@@ -48,6 +53,11 @@ sub _build_allele_vector_wells {
     return [ $self->final_vector_wells( $self->gene_design_wells, $self->cassette_function ) ];
 }
 
+sub _build_allele_dna_wells {
+    my $self = shift;
+    return [ $self->dna_wells( $self->allele_vector_wells ) ];
+}
+
 sub _build_allele_electroporation_wells {
     my $self = shift;
     return [ $self->electroporation_wells( $self->gene_vector_wells, 'EP' ) ];
@@ -57,6 +67,12 @@ sub all_vector_wells {
     my $self = shift;
     return [ @{$self->allele_vector_wells} ];
 }
+
+sub _build_allele_pick_wells {
+    my $self = shift;
+    return [ $self->pick_wells( $self->allele_electroporation_wells, 'EP_PICK' ) ];
+}
+
 
 __PACKAGE__->meta->make_immutable;
 
