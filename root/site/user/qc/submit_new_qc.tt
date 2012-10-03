@@ -8,36 +8,67 @@
 
   <div class="span6 offset3">
     <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/submit_new_qc' ) %]" class="form well"  enctype="multipart/form-data" >
-      <a class="add" href="#" onClick="addFormField(); return false;">Add Sequencing Project</a>
+      [% UNLESS plate_map_request %]
+        <a class="add" href="#" onClick="addFormField(); return false;">Add Sequencing Project</a>
+      [% END %]
       <div id="sequencingprojects">
       [% IF sequencing_project AND sequencing_project.size %]     
         [% FOR sp IN sequencing_project %]
           <label>Sequencing Project</label>
-          <input name="sequencing_project" id="sequencing_project" type="text" value="[% sp %]"/>           
+          <input name="sequencing_project" id="sequencing_project" type="text" value="[% sp %]"
+          [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
+          />           
         [%- END %]
       [% ELSE %]
         <label>Sequencing Project</label>
-        <input name="sequencing_project" id="sequencing_project" type="text"/>
+        <input name="sequencing_project" id="sequencing_project" type="text"
+        [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
+        />
       [% END %]
       </div>
               
         <label>Template Plate</label>
         <input name="template_plate" id="template_plate" type="text"
           [% IF template_plate %]value="[% template_plate %]"[% END %]
+          [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
         />
 
         <label>Profile</label>
 
+        [% IF plate_map_request %]
+          <input name="profile" id="profile" type="text" readonly="readonly" class="form-readonly" value="[% profile %]" />
+        [% ELSE %]
           <select name="profile">
               [%- FOR prof IN profiles %]
                 <option [% IF profile == prof %] selected="selected"[% END %]>[% prof %]</option>
               [%- END %]
           </select>
-
+        [% END %]
+        
         <br>
-        <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn">
-            <i class="icon-upload"></i> Launch QC
-        </button>
+        
+        [% IF plate_map_request %]
+          <h5>Plate Map</h5>
+          <table>
+          <tr><th>Plate Name</th><th>Canonical Name</th><tr>
+          [% FOR plate IN plate_map %]
+            <tr>
+              <td>[% plate.key %]</td>
+              <td><input name="[% plate.key %]_map" id="[% plate.key %]_map" type="text" value="[% plate.value %]"></td>
+            </tr>
+          [% END %] 
+          </table>       
+        
+          <br>
+          
+          <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn">
+            <i class="icon-upload"></i> Submit QC - step 2
+          </button>      
+        [% ELSE %]
+          <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn">
+            <i class="icon-upload"></i> Submit QC - step 1
+          </button>
+        [% END %]
     </form>
   </div>
   

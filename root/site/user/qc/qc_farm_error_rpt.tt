@@ -1,0 +1,9 @@
+[% META title = "QC Error Report" ; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Error report for [% run_id %] - [% last_stage %]</h1>
+</div>
+
+[% FOREACH e IN error_content -%]
+[% e %]</br>
+[% END -%]
