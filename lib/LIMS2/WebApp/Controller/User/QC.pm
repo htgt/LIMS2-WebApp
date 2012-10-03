@@ -11,6 +11,7 @@ use Data::Dumper;
 use HTGT::QC::Config;
 use LIMS2::QC::ListLatestRuns;
 use LIMS2::QC::KillQCFarmJobs;
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -186,16 +187,34 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 	
 	my $run_id;
 	if ( $c->req->param('submit_initial_info')){
-		# validate input params before doing anything else
-		$c->model('Golgi')->check_params($c->req->params, $requirements);
-	    
-	    # FIXME: build suggested plate map
-		$c->stash->{plate_map} = { 'test_key' => 'test_value' };
-		$c->stash->{plate_map_request} = 1;
+		try{
+			# validate input params before doing anything else
+			$c->model('Golgi')->check_params($c->req->params, $requirements);
+		    
+		    my $plate_map = create_suggested_plate_map( 
+		        $c->stash->{sequencing_project},
+	            $c->model('Golgi')->schema,
+	            "Plate",    
+	        );
+		    $c->stash->{plate_map} = $plate_map;
+		    $c->stash->{plate_map_request} = 1;
+		},
+		catch{
+			$c->stash( error_msg => "QC plate map generation failed with error $_" );
+		}
 	}
 	elsif ( $c->req->param('launch_qc') ){
-		# FIXME: validate plate map
-		if ( $run_id = $self->_launch_qc($c) ){
+		
+        my $plate_map = $self->_build_plate_map( $c );
+        my $validated_plate_map = $self->_validate_plate_map( $c, $plate_map, $c->stash->{sequencing_project} );
+        
+        unless ( $validated_plate_map ) {
+            $c->stash( plate_map => $plate_map );
+            $c->stash( plate_map_request => 1 );
+            return;
+        }
+        
+		if ( $run_id = $self->_launch_qc($c, $validated_plate_map) ){
 			$c->stash->{run_id} = $run_id;
 			$c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "
 			                           ."Go to <a href=\"".$c->uri_for('/user/latest_runs')."\">Latest Runs</a>"
@@ -206,7 +225,7 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 }
 
 sub _launch_qc{
-	my ($self, $c) = @_;
+	my ($self, $c, $plate_map) = @_;
 	
     my $ua = LWP::UserAgent->new();
     my $qc_conf = Config::Tiny->new();
@@ -215,9 +234,8 @@ sub _launch_qc{
     unless ($qc_conf){
     	die "No QC submission service has been configured. Cannot submit QC job.";
     }
-
-    # FIXME: how is this generated?
-    my $plate_map = {};
+    
+    $plate_map ||= {};
     
     my $params = {
 	    profile             => $c->stash->{profile},
@@ -290,6 +308,60 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
     my $jobs_killed = $kill_jobs->kill_unfinished_farm_jobs();
     $c->stash( info_msg => 'Killing farm jobs (' . join( ' ', @{$jobs_killed} ) . ') from QC run '.$qc_run_id );
     $c->go( 'latest_runs' );
+}
+
+sub _build_plate_map {
+    my ( $self, $c ) = @_;
+    my $params = $c->request->params;
+    my $sequencing_projects = $c->request->params->{ 'sequencing_project' };
+    $sequencing_projects = [ $sequencing_projects ] unless ref $sequencing_projects;
+
+    my @map_params = grep{ $_ =~ /_map$/ } keys %{ $params };
+
+    my %plate_map;
+    foreach my $map_key ( @map_params ) {
+        my $map = $self->_clean_input( $params->{$map_key});
+        next unless $map;
+        my $plate_name = substr( $map_key,0, -4 );
+
+        $plate_map{$plate_name} = $map;
+    }
+
+    return \%plate_map;
+}
+
+sub _validate_plate_map {
+    my ( $self, $c, $plate_map, $sequencing_projects ) = @_;
+    my @errors;
+
+    my $seq_project_plate_names = get_sequencing_project_plate_names( $sequencing_projects );
+    
+    for my $plate_name ( @{ $seq_project_plate_names } ) {
+        unless ( defined $plate_map->{$plate_name} ) {
+            push @errors, "$plate_name not defined in plate_map";
+        }
+
+        my $canonical_plate_name = $plate_map->{$plate_name};
+        unless ( $canonical_plate_name ) {
+            push @errors, "$plate_name has no new plate_name mapped to it";
+        }
+    }
+
+    if ( @errors ) {
+        $c->stash( error_msg => join '<br />', @errors );
+        return;
+    }
+
+    return $plate_map;
+}
+
+sub _clean_input {
+    my ( $self, $value ) = @_;
+    return unless $value;
+    $value =~ s/^\s+//;
+    $value =~ s/\s+$//;
+
+    return $value;
 }
 
 =head1 AUTHOR
