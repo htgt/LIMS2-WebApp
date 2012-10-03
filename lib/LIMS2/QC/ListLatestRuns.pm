@@ -71,6 +71,10 @@ sub get_last_stage_details{
 
     my @outfiles = $self->config->basedir->subdir( $qc_run_id )->subdir('output')->children;
 
+    # Avoid interface error when user goes to run list before any output files
+    # have been written
+    return( "-", "-") unless @outfiles;
+    
     my @time_sorted_outfiles = reverse sort { $a->{ctime} <=> $b->{ctime} } @outfiles;
 
     my ($last_stage) = $time_sorted_outfiles[0]->basename =~ /^(.*)\.out$/;
