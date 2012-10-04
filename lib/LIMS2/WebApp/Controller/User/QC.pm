@@ -9,8 +9,8 @@ use Try::Tiny;
 use Config::Tiny;
 use Data::Dumper;
 use HTGT::QC::Config;
-use LIMS2::QC::ListLatestRuns;
-use LIMS2::QC::KillQCFarmJobs;
+use HTGT::QC::Util::ListLatestRuns;
+use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -277,7 +277,7 @@ sub _launch_qc{
 sub latest_runs :Path('/user/latest_runs') :Args(0) {
     my ( $self, $c ) = @_;
 
-    my $llr = LIMS2::QC::ListLatestRuns->new( { config => $self->qc_config } );
+    my $llr = HTGT::QC::Util::ListLatestRuns->new( { config => $self->qc_config } );
 
     $c->stash( latest => $llr->get_latest_run_data );
 }
@@ -299,7 +299,7 @@ sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
 sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
     my ( $self, $c, $qc_run_id ) = @_;
 
-    my $kill_jobs = LIMS2::QC::KillQCFarmJobs->new(
+    my $kill_jobs = HTGT::QC::Util::KillQCFarmJobs->new(
         {
             qc_run_id => $qc_run_id,
             config    => $self->qc_config,
