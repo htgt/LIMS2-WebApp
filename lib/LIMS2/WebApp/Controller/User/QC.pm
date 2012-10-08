@@ -37,7 +37,7 @@ has qc_config => (
 sub _list_all_profiles {
     my ( $self, $c ) = @_;
 
-    [ sort $self->qc_config->profiles ];
+    return [ sort $self->qc_config->profiles ];
 }
 
 sub index :Path( '/user/qc_runs' ) :Args(0) {
@@ -172,29 +172,29 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 	my ($self, $c) = @_;
 
     $c->stash->{profiles} = $self->_list_all_profiles;
-    
+
     my $requirements = {
     	template_plate      => { validate => 'existing_qc_template_name'},
     	profile             => { validate => 'non_empty_string'},
     	sequencing_project  => { validate => 'non_empty_string'},
     	submit_initial_info => { optional => 0 },
     };
-    
+
 	# Store form values
 	$c->stash->{sequencing_project} = [ $c->req->param('sequencing_project') ];
 	$c->stash->{template_plate} = $c->req->param('template_plate');
 	$c->stash->{profile} = $c->req->param('profile');
-	
+
 	my $run_id;
 	if ( $c->req->param('submit_initial_info')){
 		try{
 			# validate input params before doing anything else
 			$c->model('Golgi')->check_params($c->req->params, $requirements);
-		    
-		    my $plate_map = create_suggested_plate_map( 
+
+		    my $plate_map = create_suggested_plate_map(
 		        $c->stash->{sequencing_project},
 	            $c->model('Golgi')->schema,
-	            "Plate",    
+	            "Plate",
 	        );
 		    $c->stash->{plate_map} = $plate_map;
 		    $c->stash->{plate_map_request} = 1;
@@ -204,16 +204,16 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 		}
 	}
 	elsif ( $c->req->param('launch_qc') ){
-		
+
         my $plate_map = $self->_build_plate_map( $c );
         my $validated_plate_map = $self->_validate_plate_map( $c, $plate_map, $c->stash->{sequencing_project} );
-        
+
         unless ( $validated_plate_map ) {
             $c->stash( plate_map => $plate_map );
             $c->stash( plate_map_request => 1 );
             return;
         }
-        
+
 		if ( $run_id = $self->_launch_qc($c, $validated_plate_map) ){
 			$c->stash->{run_id} = $run_id;
 			$c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "
@@ -226,17 +226,17 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 
 sub _launch_qc{
 	my ($self, $c, $plate_map) = @_;
-	
+
     my $ua = LWP::UserAgent->new();
     my $qc_conf = Config::Tiny->new();
     $qc_conf = Config::Tiny->read($ENV{LIMS2_QC_CONFIG});
-    
+
     unless ($qc_conf){
     	die "No QC submission service has been configured. Cannot submit QC job.";
     }
-    
+
     $plate_map ||= {};
-    
+
     my $params = {
 	    profile             => $c->stash->{profile},
 	    template_plate      => $c->stash->{template_plate},
@@ -247,20 +247,20 @@ sub _launch_qc{
 	    created_by          => $c->user->name,
 	    species             => $c->session->{selected_species},
     };
-    
+
     my $uri = $qc_conf->{_}->{submit_uri};
-    
+
     my $content;
-    
+
     try{
         my $req = HTTP::Request->new(POST => $uri);
         $req->content_type('application/json');
         $req->content( encode_json( $params ) );
-        
+
         my $response = $ua->request($req);
         $c->log->debug($response->content);
         $content = decode_json( $response->content );
-        
+
         unless ($response->is_success){
         	die "Request to $uri was not successful. Error message: ".$content->{'error'};
         }
@@ -268,9 +268,9 @@ sub _launch_qc{
     catch{
     	$c->stash( error_msg => "Sorry, your QC job submission failed with error $_" );
     };
-    
+
     my $run_id = $content->{'qc_run_id'};
-    
+
     return $run_id;
 }
 
@@ -280,6 +280,8 @@ sub latest_runs :Path('/user/latest_runs') :Args(0) {
     my $llr = HTGT::QC::Util::ListLatestRuns->new( { config => $self->qc_config } );
 
     $c->stash( latest => $llr->get_latest_run_data );
+
+    return;
 }
 
 sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
@@ -294,6 +296,8 @@ sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
     $c->stash( run_id => $qc_run_id );
     $c->stash( last_stage => $last_stage );
     $c->stash( error_content => \@error_file_content );
+
+    return;
 }
 
 sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
@@ -304,10 +308,12 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
             qc_run_id => $qc_run_id,
             config    => $self->qc_config,
         } );
-        
+
     my $jobs_killed = $kill_jobs->kill_unfinished_farm_jobs();
     $c->stash( info_msg => 'Killing farm jobs (' . join( ' ', @{$jobs_killed} ) . ') from QC run '.$qc_run_id );
     $c->go( 'latest_runs' );
+
+    return;
 }
 
 sub _build_plate_map {
@@ -335,7 +341,7 @@ sub _validate_plate_map {
     my @errors;
 
     my $seq_project_plate_names = get_sequencing_project_plate_names( $sequencing_projects );
-    
+
     for my $plate_name ( @{ $seq_project_plate_names } ) {
         unless ( defined $plate_map->{$plate_name} ) {
             push @errors, "$plate_name not defined in plate_map";
