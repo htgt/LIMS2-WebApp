@@ -112,6 +112,21 @@ sub electroporation_wells {
     return @electroporation_wells;
 }
 
+sub pick_wells {
+    my ( $self, $electroporation_wells, $plate_type ) = @_;
+
+    my @pick_wells;
+    for my $ep_well ( @{$electroporation_wells} ) {
+        my $it = $ep_well->descendants->depth_first_traversal($ep_well, 'out');
+        while ( my $well = $it->next ) {
+            push @pick_wells, $well
+                if $well->plate->type_id eq $plate_type;
+        }
+    }
+
+    return @pick_wells;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -41,6 +41,7 @@ has [
         first_allele_vector_wells   second_allele_vector_wells
         first_electroporation_wells second_electroporation_wells
         first_allele_dna_wells      second_allele_dna_wells
+        first_allele_pick_wells     second_allele_pick_wells
   )
 ] => (
     is         => 'ro',
@@ -105,6 +106,16 @@ sub _build_second_electroporation_wells {
     my @intersection = grep { $is_first{ $_->id } } $self->electroporation_wells( $self->second_allele_vector_wells, 'SEP' );
 
     return \@intersection;
+}
+
+sub _build_first_allele_pick_wells {
+    my $self = shift;
+    return [ $self->pick_wells( $self->first_electroporation_wells, 'EP_PICK' ) ];
+}
+
+sub _build_second_allele_pick_wells {
+    my $self = shift;
+    return [ $self->pick_wells( $self->second_electroporation_wells, 'SEP_PICK' ) ];
 }
 
 __PACKAGE__->meta->make_immutable;

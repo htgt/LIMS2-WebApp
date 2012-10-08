@@ -4,6 +4,7 @@ use Moose;
 use Iterator::Simple qw( iflatten imap iter igrep );
 use LIMS2::Exception::Implementation;
 use LIMS2::AlleleRequestFactory;
+use LIMS2::ReportGenerator::Plate;
 use JSON qw( decode_json );
 use namespace::autoclean;
 
