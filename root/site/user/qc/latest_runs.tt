@@ -1,0 +1,34 @@
+[% META title = "Latest QC Runs"; META tab_name = 'QC' %]
+
+[% INCLUDE 'pagination.tt' pageset = pageset %]
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>QC Run ID</th>
+      <th>Run Inititated</th>
+      <th>Profile</th>
+      <th>Sequencing Projects</th>
+      <th>Template Plate</th>
+      <th>Last Stage</th>
+      <th>Last Stage Executed</th>
+      <th>Kill Unfinished Processes</th>
+    </tr>
+  </thead>
+  <tbody>
+    [% FOREACH l IN latest -%]
+    <tr>
+      <td>[% l.qc_run_id %]</td>
+      <td>[% l.created %]</td>
+      <td>[% l.profile %]</td>
+      <td>[% l.seq_projects %]</td>
+      <td>[% l.template_plate %]</td>
+      <td><a href="[%c.uri_for( "/user/qc_farm_error_rpt/${l.qc_run_id}___${l.last_stage}" ) %]">[% l.last_stage %]</td>
+      <td>[% l.last_stage_time %]</td>
+      <td align="center"><a href="[%c.uri_for( "/user/kill_farm_jobs/${l.qc_run_id}" ) %]" class="button link">Kill Farm Jobs</a></td>
+    </tr>
+    [% END -%]
+  </tbody>
+</table>
+
+</div> 

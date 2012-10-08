@@ -3,7 +3,6 @@ abstract: 'Catalyst based application'
 author:
   - 'Wellcome Trust Sanger Institute'
 build_requires:
-  Data::Dumper: 0
   English: 0
   File::Find: 0
   HTTP::Request::Common: 0
@@ -37,6 +36,7 @@ requires:
   Catalyst::View::TT: 0
   Class::Data::Inheritable: 0
   Config::Any: 0
+  Config::Tiny: 0
   Const::Fast: 0
   Crypt::SaltedHash: 0
   DBIx::Class::Core: 0
@@ -46,6 +46,7 @@ requires:
   DBIx::RunSQL: 0
   Data::Compare: 0
   Data::Dump: 0
+  Data::Dumper: 0
   Data::FormValidator: 0
   Data::Pageset: 0
   Data::UUID: 0
@@ -66,6 +67,9 @@ requires:
   HTGT::QC::Config: 0
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
+  HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
+  HTGT::QC::Util::KillQCFarmJobs: 0
+  HTGT::QC::Util::ListLatestRuns: 0
   HTTP::Status: 0
   Hash::MoreUtils: 0
   IO::File: 0
@@ -82,6 +86,7 @@ requires:
   LIMS2::Util: 0
   LIMS2::Util::EnsEMBL: 0
   LIMS2::Util::Solr: 0
+  LWP::UserAgent: 0
   List::MoreUtils: 0
   List::Util: 0
   Log::Log4perl: 0
@@ -117,4 +122,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.021
+version: 0.022
