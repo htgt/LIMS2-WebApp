@@ -106,28 +106,28 @@ SELECT pg_catalog.setval('projects_id_seq', 1, false);
 -- Name: qc_alignments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('qc_alignments_id_seq', 92, true);
+SELECT pg_catalog.setval('qc_alignments_id_seq', 94, true);
 
 
 --
 -- Name: qc_eng_seqs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('qc_eng_seqs_id_seq', 2219, true);
+SELECT pg_catalog.setval('qc_eng_seqs_id_seq', 2221, true);
 
 
 --
 -- Name: qc_run_seq_wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('qc_run_seq_wells_id_seq', 69, true);
+SELECT pg_catalog.setval('qc_run_seq_wells_id_seq', 72, true);
 
 
 --
 -- Name: qc_template_wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('qc_template_wells_id_seq', 3264, true);
+SELECT pg_catalog.setval('qc_template_wells_id_seq', 3266, true);
 
 
 --
@@ -141,7 +141,7 @@ SELECT pg_catalog.setval('qc_templates_id_seq', 200, true);
 -- Name: qc_test_results_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('qc_test_results_id_seq', 69, true);
+SELECT pg_catalog.setval('qc_test_results_id_seq', 71, true);
 
 
 --
@@ -985,26 +985,6 @@ INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 G
 -- Data for Name: cassettes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false);
-INSERT INTO cassettes VALUES (10452, 'pL1L2_GT0_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', NULL, false);
-INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false);
-INSERT INTO cassettes VALUES (10454, 'pL1L2_GT1_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false);
-INSERT INTO cassettes VALUES (10455, 'L1L2_Pgk_P', 'PGK promoter driving WT neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10460, 'pL1L2_GT1_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 1, false);
-INSERT INTO cassettes VALUES (10466, 'L1L2_Del_BactPneo_FFL_TAG1A', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10467, 'V5_Flag_biotin', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false);
-INSERT INTO cassettes VALUES (10472, 'B1B2_frame0_Norcomm', '', false, 'B1B2_frame?_Norcomm', NULL, false);
-INSERT INTO cassettes VALUES (10473, 'pL1L2_GT2_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 2, false);
-INSERT INTO cassettes VALUES (10474, 'pL1L2_GT2_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false);
-INSERT INTO cassettes VALUES (10417, 'Ty1_EGFP', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10419, 'L1L2_st0', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', NULL, false);
-INSERT INTO cassettes VALUES (10420, 'L1L2_NTARU-1', '', false, 'L1L2_NTARU-?', 1, false);
-INSERT INTO cassettes VALUES (10423, 'L1L2_NTARU-0', '', false, 'L1L2_NTARU-?', NULL, false);
 INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false);
 INSERT INTO cassettes VALUES (10426, 'L1L2_GT0_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', '', true, 'L1L2_GT?_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', 2, false);
 INSERT INTO cassettes VALUES (10427, 'B1B2_frame2_Norcomm', '', false, 'B1B2_frame?_Norcomm', 2, false);
@@ -1025,6 +1005,26 @@ INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', fal
 INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true);
 INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true);
 INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true);
+INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false);
+INSERT INTO cassettes VALUES (10452, 'pL1L2_GT0_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', NULL, false);
+INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false);
+INSERT INTO cassettes VALUES (10454, 'pL1L2_GT1_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false);
+INSERT INTO cassettes VALUES (10455, 'L1L2_Pgk_P', 'PGK promoter driving WT neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10460, 'pL1L2_GT1_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 1, false);
+INSERT INTO cassettes VALUES (10466, 'L1L2_Del_BactPneo_FFL_TAG1A', '', true, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10467, 'V5_Flag_biotin', '', true, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false);
+INSERT INTO cassettes VALUES (10472, 'B1B2_frame0_Norcomm', '', false, 'B1B2_frame?_Norcomm', NULL, false);
+INSERT INTO cassettes VALUES (10473, 'pL1L2_GT2_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 2, false);
+INSERT INTO cassettes VALUES (10474, 'pL1L2_GT2_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false);
+INSERT INTO cassettes VALUES (10417, 'Ty1_EGFP', '', true, NULL, NULL, false);
+INSERT INTO cassettes VALUES (10419, 'L1L2_st0', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', NULL, false);
+INSERT INTO cassettes VALUES (10420, 'L1L2_NTARU-1', '', false, 'L1L2_NTARU-?', 1, false);
+INSERT INTO cassettes VALUES (10423, 'L1L2_NTARU-0', '', false, 'L1L2_NTARU-?', NULL, false);
 INSERT INTO cassettes VALUES (10425, 'Ifitm2_intron_L1L2_GT1_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 1, true);
 INSERT INTO cassettes VALUES (10428, 'Ifitm2_intron_R1_ZeoPheS_R2', '', false, NULL, NULL, true);
 INSERT INTO cassettes VALUES (10435, 'L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true);
@@ -4607,6 +4607,16 @@ INSERT INTO plates VALUES (988, 'SEP_POOL0001', '', 'SEP_POOL', 985, '2012-09-14
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO plate_comments VALUES (44, 955, 'New promoterless gateway', 751, '2008-02-08 00:00:00');
+INSERT INTO plate_comments VALUES (45, 955, 'Production Gateway finished', 751, '2007-11-21 00:00:00');
+INSERT INTO plate_comments VALUES (46, 955, 'PCS_A and PGS_A stored', 751, '2007-11-21 00:00:00');
+INSERT INTO plate_comments VALUES (47, 955, 'at the CRE step, handed for QC 3rd week of January', 958, '2008-01-10 00:00:00');
+INSERT INTO plate_comments VALUES (48, 955, 'recombineering will be repeated 1st week of Dec', 958, '2007-11-29 00:00:00');
+INSERT INTO plate_comments VALUES (49, 955, 'PC 100% positive combining te two plates A+B and C+D', 877, '2010-01-29 00:00:00');
+INSERT INTO plate_comments VALUES (50, 956, '89 pass PCQC', 751, '2009-05-05 00:00:00');
+INSERT INTO plate_comments VALUES (51, 960, 'all wells passed recombineering (there were some fails in the C+D)', 958, '2009-02-04 00:00:00');
+INSERT INTO plate_comments VALUES (52, 965, 'This plate has been arrayed in the wrong order A01=H12 etc', 751, '2010-07-29 00:00:00');
+INSERT INTO plate_comments VALUES (53, 966, 'Production Gateway finished', 751, '2007-11-20 00:00:00');
 INSERT INTO plate_comments VALUES (54, 966, 'Second Recomb attempt in analysis', 751, '2008-01-11 00:00:00');
 INSERT INTO plate_comments VALUES (55, 966, 'plate 100% OK combining different PC plates', 877, '2010-01-29 00:00:00');
 INSERT INTO plate_comments VALUES (56, 972, 'PCS_A and PGS_A stored', 751, '2007-11-21 00:00:00');
@@ -4647,16 +4657,6 @@ INSERT INTO plate_comments VALUES (40, 942, '61 pass (3P), 6 pass (2P), 2 pass (
 INSERT INTO plate_comments VALUES (41, 947, 'Gateway in process', 751, '2007-11-21 00:00:00');
 INSERT INTO plate_comments VALUES (42, 947, '2nd set PC anlysis in process', 751, '2007-11-20 00:00:00');
 INSERT INTO plate_comments VALUES (43, 947, 'Production Gateway finished', 751, '2007-11-26 00:00:00');
-INSERT INTO plate_comments VALUES (44, 955, 'New promoterless gateway', 751, '2008-02-08 00:00:00');
-INSERT INTO plate_comments VALUES (45, 955, 'Production Gateway finished', 751, '2007-11-21 00:00:00');
-INSERT INTO plate_comments VALUES (46, 955, 'PCS_A and PGS_A stored', 751, '2007-11-21 00:00:00');
-INSERT INTO plate_comments VALUES (47, 955, 'at the CRE step, handed for QC 3rd week of January', 958, '2008-01-10 00:00:00');
-INSERT INTO plate_comments VALUES (48, 955, 'recombineering will be repeated 1st week of Dec', 958, '2007-11-29 00:00:00');
-INSERT INTO plate_comments VALUES (49, 955, 'PC 100% positive combining te two plates A+B and C+D', 877, '2010-01-29 00:00:00');
-INSERT INTO plate_comments VALUES (50, 956, '89 pass PCQC', 751, '2009-05-05 00:00:00');
-INSERT INTO plate_comments VALUES (51, 960, 'all wells passed recombineering (there were some fails in the C+D)', 958, '2009-02-04 00:00:00');
-INSERT INTO plate_comments VALUES (52, 965, 'This plate has been arrayed in the wrong order A01=H12 etc', 751, '2010-07-29 00:00:00');
-INSERT INTO plate_comments VALUES (53, 966, 'Production Gateway finished', 751, '2007-11-20 00:00:00');
 
 
 --
@@ -9557,30 +9557,39 @@ INSERT INTO sponsors VALUES ('Human', 'Homozygous - Human');
 -- Data for Name: qc_eng_seqs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_eng_seqs VALUES (2220, 'conditional_vector_seq', '{"backbone":{"name":"L3L4_pD223_DTA_T_spec"},"chromosome":"15","d_insertion":{"name":"LoxP"},"design_id":"372441","display_id":"372441#L1L2_Bact_P#L3L4_pD223_DTA_T_spec","five_arm_end":"38155533","five_arm_start":"38149485","recombinase":[],"strand":"1","target_region_end":"38156625","target_region_start":"38155546","three_arm_end":"38159537","three_arm_start":"38156657","u_insertion":{"name":"L1L2_Bact_P"}}');
+INSERT INTO qc_eng_seqs VALUES (2221, 'conditional_vector_seq', '{"backbone":{"name":"L3L4_pD223_DTA_T_spec"},"chromosome":"3","d_insertion":{"name":"LoxP"},"design_id":"372441","display_id":"372441#L1L2_Bact_P#L3L4_pD223_DTA_T_spec","five_arm_end":"38155533","five_arm_start":"38149485","recombinase":[],"strand":"1","target_region_end":"38156625","target_region_start":"38155546","three_arm_end":"38159537","three_arm_start":"38156657","u_insertion":{"name":"L1L2_Bact_P"}}');
 
 
 --
 -- Data for Name: qc_seq_projects; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_seq_projects VALUES ('PCS05036_A', 'Mouse');
 
 
 --
 -- Data for Name: qc_seq_reads; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_seq_reads VALUES ('PCS05036_A_1g12.p1kLR', 'bases 110 to 454 (QL to QR)', 'LR', 'CTCTATAAAAATGTNGNATAGTGAAACATGCTTATAAATACTGGGAATGTTTATCTTTGAGTAGAATAATATCTTGAATTTGTGTTTTTCTTCCTTGTCTTTTCCAGCCTTTCAAGGCAGTCTTGTTAGTTCTGATTTGGAGACAAACTTAAGAACTAGATGTGATGGCACATGCCTCTCATCCGAGACCCAGCAAGCACAGGAAGATTACAAGTTTGAGGCCAGTTTGGCTAGAGAGTAAAATTCAGTCTTTAAAGTGAAAATATTTCAACAAAATAATACATACTTCCATAACTGTGAAAGGTTTAATATCAAAACAGAAAAATATTAGATATCAAAATGATT', 345, 'PCS05036_A');
+INSERT INTO qc_seq_reads VALUES ('PCS05036_A_1b02.p1kLR', 'bases 46 to 469 (QL to QR)', 'LR', 'TCTCACCCAGCCCTTCCATTTCCCTCCTCCCATCATGGGATGTCTCCAGNTTTGCTACACAGACCCAGGATGTACCCTTTGGGCTGGAATACCCATGGGCAGCTTACTGTGTTTGTTCTGGAATCCTGCAGTGTAAACTTCCATGCCCTGGAAAAAATGAAAAAACAGAGTACTCTGAAGTAATCCAACATTCCAACGATTCTTAAGTTCAGATAAGCCTCGGCAGTCCCGGAAAGGCTTCTGTGTAGAGAGGGACGGCTAGGCCCTAATCGCAGCACTTAGGAGGTATATACAGGAGGACTCCCATGAGCGTAGATAGATAGCTGCATAAACAATCCTCCCTTTCTCTTCACTTGATGGCTGCAGAAGGCAATCCAGATTTGTTTCCTCATCTTTCCTCAGAGGTCTCTGTTCCCATGGATTG', 424, 'PCS05036_A');
 
 
 --
 -- Data for Name: qc_alignments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_alignments VALUES (93, 'PCS05036_A_1b02.p1kLR', 2221, 'LR', 0, 521, 1, 11191, 10670, -1, 2605, true, 'synthetic loxP region,Critical Region', 'cigar: PCS05036_A_1a01.p1kcLR 0 521 + 372239#pR6K_R1R2_ZP#R3R4_pBR_amp 11191 10670 - 2605  M 521', 'M 521');
+INSERT INTO qc_alignments VALUES (94, 'PCS05036_A_1g12.p1kLR', 2220, 'LR', 0, 569, 1, 11049, 10480, -1, 2836, true, 'synthetic loxP region,Critical Region', 'cigar: PCS05036_A_1a03.p1kcLR 0 569 + 372471#pR6K_R1R2_ZP#R3R4_pBR_amp 11049 10480 - 2836  M 569', 'M 569');
 
 
 --
 -- Data for Name: qc_alignment_regions; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_alignment_regions VALUES (93, 'target-region-rev-72-80', 1064, 518, 'AAGCCTTTTGGTGGGAATGGGATGTGGAAGGTGCGGCAGAGGGGTAATAAGATGGCGATGCTGCCAAGGACACTGTGGAAGGTGGCACCTCTTAGCAACACTTAGGCAATAAAGGCCCCATAGTGGAGCAAATGCTTAGCATGCACAATCCTCTGGGCTCGTGCACACACGCACATGGGCACATGTGCACACACACACACACACCAAGAGCCCATTATTACATCATTTTCTAAAGTAAAAATGAGAATTGTCTTGTAAAATTCCAACACTAATGGATCCATAAGGTTTACAGAATTATAAACAGACAGACCAACCCCCAGAGTGACAGACCAAACCCCCAGAGTGTCATTTAGGAGACATGTGACACAGGCTCTACCCTGTTCTCCGGCAACAGGATATGGCTTTGGGCTCACCTTGAACTTCCACGTATATGGGATCAGATACAATCTCTCTATTGTTCACCTTCATCTTACAGAAGTACGACCCATTGTCTGAGCGCTGCACACTGGCTATGCTTC------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------', 'AAGCCTTTTGGTGGGAATGGGATGTGGAAGGTGCGGCAGAGGGGTAATAAGATGGCGATGCTGCCAAGGACACTGTGGAAGGTGGCACCTCTTAGCAACACTTAGGCAATAAAGGCCCCATAGTGGAGCAAATGCTTAGCATGCACAATCCTCTGGGCTCGTGCACACACGCACATGGGCACATGTGCACACACACACACACACCAAGAGCCCATTATTACATCATTTTCTAAAGTAAAAATGAGAATTGTCTTGTAAAATTCCAACACTAATGGATCCATAAGGTTTACAGAATTATAAACAGACAGACCAACCCCCAGAGTGACAGACCAAACCCCCAGAGTGTCATTTAGGAGACATGTGACACAGGCTCTACCCTGTTCTCCGGCAACAGGATATGGCTTTGGGCTCACCTTGAACTTCCACGTATATGGGATCAGATACAATCTCTCTATTGTTCACCTTCATCTTACAGAAGTACGACCCATTGTCTGAGCGCTGCACACTGGCTATGCTTCAAAGAGAACACAAAAAGAAATTTGCAGTGACTATCTTTTGAGTCCCCATTATAGAAATAGAAGATCCTTCAACACACTTATCATGTGGTTAACTTTTTGTGTCAACATGGCCAGGCTGTAGTACTTGGTGGTCTACATGCTGCTGTAAGAATATGTTCCAAATGCTGTGAACATTTAACTTGGCAACCTTTGAGTAAAGCAGTTGACCCTCCCCAGCATGCGTGGGTCTCCTCTAATCAGCTGCAGACTGAGGTCCCCTGAGGAAGGTCAGCAGCAGTCTGCCAGGGTCTCCAACCAACACCCGGCTGGCCTCAGATTCGTTAATGTTTACTATAGTATGAATTCACTGACCCTTTCCCTCTCTTTCTCTAGTGTGTGCTCGAGAGTACATACGCATGCGGGGGCGCGCGCGCGCGCGCGCACACACACACACACACACACACACACACACGGTTGCTCTTGCACTCACATCTCTTGCTTTCATCCATCTTTGAATCTCTAATACACGTACTATCAGGTGTCTTGCTTACCATGGCGGCTTCTAAA', '||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ', true);
+INSERT INTO qc_alignment_regions VALUES (94, 'target-region-rev-72-80', 992, 560, 'TCTGTGACAGGAACCTACTATTATCACTCACGACGGGGCAAAACATGTTAAATTCCTGTGCAAACTGATTATCCCCGGATGAGTCAACACTGTCATGAAGAACTTCCAAAAGGGATGCCTCTGCATCCCATAGGCGACTGTGACAAATTCCGTCTAGAAGCCATTTAGGGATGCTTAAAAAGAGAGAGAAAAAAGACAGTAGCAAATTTCCCCTTAACTTTTAAATAACACCCTCAAAAAGGAAACATCTACTCCTATGCTGACTTTGCCTTCCTTTTCCTGCGTCAGTTAACCCTGAGAGTTCAAATATAAACAAACGCAATTCCCAATGGTACATCTGAACCAGAAGAAATCTGGAATTAATTGCCAAGTATTTTGGGTCCTATTGCAGCTGTTACAAGTGTTTGATTTGGCGAGGGAAGAGAAAAGGCGTTGCATACCAATTTCATGAGCCACAGTGAAGGCTGCATGGAGGCCATCATCTTCAATCACTGCACAGCTGCGCTCCGGAGAACATATGGTCCCAACGTCTGCCATTTCCAGGGTGTCACATGAATGATG-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------', 'TCTGTGACAGGAACCTACTATTATCACTCACGACGGGGCAAAACATGTTAAATTCCTGTGCAAACTGATTATCCCCGGATGAGTCAACACTGTCATGAAGAACTTCCAAAAGGGATGCCTCTGCATCCCATAGGCGACTGTGACAAATTCCGTCTAGAAGCCATTTAGGGATGCTTAAAAAGAGAGAGAAAAAAGACAGTAGCAAATTTCCCCTTAACTTTTAAATAACACCCTCAAAAAGGAAACATCTACTCCTATGCTGACTTTGCCTTCCTTTTCCTGCGTCAGTTAACCCTGAGAGTTCAAATATAAACAAACGCAATTCCCAATGGTACATCTGAACCAGAAGAAATCTGGAATTAATTGCCAAGTATTTTGGGTCCTATTGCAGCTGTTACAAGTGTTTGATTTGGCGAGGGAAGAGAAAAGGCGTTGCATACCAATTTCATGAGCCACAGTGAAGGCTGCATGGAGGCCATCATCTTCAATCACTGCACAGCTGCGCTCCGGAGAACATATGGTCCCAACGTCTGCCATTCCCAGGGTGTCACATGAATGATGCCCACATAAATCCTGCCCGGGAGAAAGAAAGAAATCATTAAAATCAATTTACATCCAGAAGGAGCCACCATGGACAGCCACTTGTTCACCCCAAATGGCAAGACTGAGATATGTTTATGGTGTCACCTGCTCAGCGCTGGAGGCCTTCCAAAGACAAATTCAAAGCAGGAACTCTTCTGAGCTACTTTGTAACCCAGAAGCACAGAAGGATAAAGACATTCAATGACATTTTAAAAGAAGCCACGGTTATAGCCTGTTCATTACACTCCAAGCTCTACAGCCCGAACAAAGATTAAGTGCCTACACAAATGTCAAAGGTTACATGTGTTCAATACAGAAGTGCCTAATATTCTGAGCTAAATTCAGACTGAACTTCTTGGAAGAGAGGTCTAATAATTTGTTTTCTGTTAGAGTCAAACTACAATCACACT', '|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| ||||||||||||||||||||||                                                                                                                                                                                                                                                                                                                                                                                                                                               ', true);
 
 
 --
@@ -9595,36 +9604,47 @@ INSERT INTO qc_templates VALUES (200, 'T001', '2012-07-25 14:01:33.89531', 'Mous
 --
 
 INSERT INTO qc_runs VALUES ('3C41F49A-B6D6-11E1-8038-C8C8F7D1DA10', '2012-07-26 13:23:42.011512', 1, 'test', 200, '0.001', false);
+INSERT INTO qc_runs VALUES ('534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', '2012-10-03 11:13:52.960754', 1, 'eucomm-cre', 200, '0.002', true);
 
 
 --
 -- Data for Name: qc_run_seq_project; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_run_seq_project VALUES ('534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 'PCS05036_A');
 
 
 --
 -- Data for Name: qc_run_seq_wells; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_run_seq_wells VALUES (70, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 'PCS05036_A_1', 'B02');
+INSERT INTO qc_run_seq_wells VALUES (71, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 'PCS05036_A_1', 'G12');
+INSERT INTO qc_run_seq_wells VALUES (72, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 'PCS05036_A_1', 'A01');
 
 
 --
 -- Data for Name: qc_run_seq_well_qc_seq_read; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_run_seq_well_qc_seq_read VALUES (70, 'PCS05036_A_1b02.p1kLR');
+INSERT INTO qc_run_seq_well_qc_seq_read VALUES (71, 'PCS05036_A_1g12.p1kLR');
 
 
 --
 -- Data for Name: qc_template_wells; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_template_wells VALUES (3265, 200, 'A01', 2220);
+INSERT INTO qc_template_wells VALUES (3266, 200, 'A02', 2221);
 
 
 --
 -- Data for Name: qc_test_results; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO qc_test_results VALUES (70, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 2221, 2605, false, 70);
+INSERT INTO qc_test_results VALUES (71, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 2220, 2836, true, 71);
 
 
 --
@@ -10123,6 +10143,70 @@ INSERT INTO well_dna_status VALUES (1516, true, '', '2012-06-25 00:00:00', 985);
 -- Data for Name: well_qc_sequencing_result; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO well_qc_sequencing_result VALUES (977, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027949', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (978, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253911', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (981, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=127585', '2008-06-11 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (982, 'LR,LRR,R4R,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027837', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (983, 'L1,LR,R2R,R3', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254077', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (986, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1734163', '2010-02-01 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (987, 'LR,LRR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027687', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (988, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253897', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (991, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1355254', '2009-10-22 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (992, 'LRR', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027858', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (993, 'LRR', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027858', '2010-03-22 00:00:00', 722);
+INSERT INTO well_qc_sequencing_result VALUES (996, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=54905', '2008-06-11 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (997, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027769', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (998, 'FCHK,R2R,R3', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254240', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1001, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1727678', '2010-02-01 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1002, 'Z1,Z2', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027659', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1003, 'L1,NF,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2188402', '2010-03-25 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1006, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7271', '2008-06-11 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (1007, 'LR,LRR,R4R,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028001', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1008, 'FCHK,L1,LR,R2R,R3', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254328', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1011, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1375329', '2009-11-05 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1012, 'R3F,Z1,Z2', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028016', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1013, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254012', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1016, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=362901', '2008-07-28 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1017, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027673', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1018, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027673', '2010-03-22 00:00:00', 722);
+INSERT INTO well_qc_sequencing_result VALUES (1021, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1378660', '2009-11-05 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1022, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027928', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1023, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254180', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1026, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7507', '2008-06-11 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (1027, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027921', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1028, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253862', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1031, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1795332', '2010-02-15 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1032, 'LR,LRR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027755', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1033, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254379', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1036, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1411324', '2010-02-15 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1037, 'LR,LRR,R3F,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028229', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1038, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254028', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1041, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1352499', '2009-10-22 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1042, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028075', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1043, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254113', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1046, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1790832', '2010-02-15 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1047, 'LR,LRR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027726', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1048, 'L1,LR,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254416', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1052, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028152', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1053, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254451', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1056, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7879', '2008-06-11 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (1057, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027851', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1058, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254169', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1061, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=16052', '2008-06-11 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (1062, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027823', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1063, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254128', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1066, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1815687', '2010-12-09 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (1067, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028215', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1068, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253964', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1072, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027963', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1073, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254092', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1076, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7436', '2008-06-11 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (1077, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027638', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1078, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254277', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1081, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1815036', '2010-12-09 00:00:00', 1058);
+INSERT INTO well_qc_sequencing_result VALUES (1082, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027680', '2010-03-15 00:00:00', 953);
+INSERT INTO well_qc_sequencing_result VALUES (1083, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254284', '2010-04-08 00:00:00', 751);
+INSERT INTO well_qc_sequencing_result VALUES (1086, 'LR', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1374309', '2009-11-05 00:00:00', 751);
 INSERT INTO well_qc_sequencing_result VALUES (846, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1413362', '2010-02-15 00:00:00', 751);
 INSERT INTO well_qc_sequencing_result VALUES (847, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027844', '2010-03-15 00:00:00', 953);
 INSERT INTO well_qc_sequencing_result VALUES (848, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254430', '2010-04-08 00:00:00', 751);
@@ -10200,70 +10284,6 @@ INSERT INTO well_qc_sequencing_result VALUES (971, 'Z2', false, false, 'http://w
 INSERT INTO well_qc_sequencing_result VALUES (972, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028145', '2010-03-15 00:00:00', 953);
 INSERT INTO well_qc_sequencing_result VALUES (973, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254085', '2010-04-08 00:00:00', 751);
 INSERT INTO well_qc_sequencing_result VALUES (976, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1374922', '2009-10-27 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (977, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027949', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (978, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253911', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (981, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=127585', '2008-06-11 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (982, 'LR,LRR,R4R,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027837', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (983, 'L1,LR,R2R,R3', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254077', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (986, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1734163', '2010-02-01 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (987, 'LR,LRR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027687', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (988, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253897', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (991, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1355254', '2009-10-22 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (992, 'LRR', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027858', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (993, 'LRR', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027858', '2010-03-22 00:00:00', 722);
-INSERT INTO well_qc_sequencing_result VALUES (996, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=54905', '2008-06-11 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (997, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027769', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (998, 'FCHK,R2R,R3', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254240', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1001, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1727678', '2010-02-01 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1002, 'Z1,Z2', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027659', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1003, 'L1,NF,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2188402', '2010-03-25 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1006, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7271', '2008-06-11 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (1007, 'LR,LRR,R4R,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028001', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1008, 'FCHK,L1,LR,R2R,R3', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254328', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1011, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1375329', '2009-11-05 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1012, 'R3F,Z1,Z2', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028016', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1013, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254012', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1016, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=362901', '2008-07-28 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1017, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027673', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1018, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027673', '2010-03-22 00:00:00', 722);
-INSERT INTO well_qc_sequencing_result VALUES (1021, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1378660', '2009-11-05 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1022, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027928', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1023, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254180', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1026, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7507', '2008-06-11 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (1027, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027921', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1028, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253862', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1031, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1795332', '2010-02-15 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1032, 'LR,LRR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027755', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1033, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254379', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1036, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1411324', '2010-02-15 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1037, 'LR,LRR,R3F,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028229', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1038, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254028', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1041, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1352499', '2009-10-22 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1042, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028075', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1043, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254113', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1046, 'LR,PGO,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1790832', '2010-02-15 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1047, 'LR,LRR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027726', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1048, 'L1,LR,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254416', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1052, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028152', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1053, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254451', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1056, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7879', '2008-06-11 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (1057, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027851', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1058, '', false, false, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254169', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1061, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=16052', '2008-06-11 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (1062, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027823', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1063, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254128', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1066, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1815687', '2010-12-09 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (1067, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028215', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1068, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2253964', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1072, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027963', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1073, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254092', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1076, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=7436', '2008-06-11 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (1077, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027638', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1078, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254277', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1081, 'LR,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1815036', '2010-12-09 00:00:00', 1058);
-INSERT INTO well_qc_sequencing_result VALUES (1082, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027680', '2010-03-15 00:00:00', 953);
-INSERT INTO well_qc_sequencing_result VALUES (1083, 'FCHK,L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254284', '2010-04-08 00:00:00', 751);
-INSERT INTO well_qc_sequencing_result VALUES (1086, 'LR', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=1374309', '2009-11-05 00:00:00', 751);
 INSERT INTO well_qc_sequencing_result VALUES (1087, 'LR,LRR,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2028043', '2010-03-15 00:00:00', 953);
 INSERT INTO well_qc_sequencing_result VALUES (1088, 'L1,LR,R2R,R3,R4', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2254225', '2010-04-08 00:00:00', 751);
 INSERT INTO well_qc_sequencing_result VALUES (1092, 'LR,LRR,R3F,R4R,Z1,Z2', false, true, 'http://www.sanger.ac.uk/htgt/qc/qctest_result_view?qctest_result_id=2027908', '2010-03-15 00:00:00', 953);
