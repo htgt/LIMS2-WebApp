@@ -47,7 +47,15 @@ sub unauthenticated_mech {
 
 sub mech {
     my $mech = unauthenticated_mech();
-    $mech->credentials( $TEST_USER, $TEST_PASSWD );
+
+    $mech->get( '/login' );
+
+    $mech->submit_form(
+        form_name => 'login_form',
+        fields    => { username => $TEST_USER, password => $TEST_PASSWD },
+        button    => 'login'
+    );
+
     return $mech;
 }
 

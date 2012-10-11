@@ -20,6 +20,7 @@ use Sub::Exporter -setup => {
 use Log::Log4perl qw( :easy );
 use Const::Fast;
 use Bio::SeqIO;
+use IO::String;
 use List::Util qw(sum);
 use List::MoreUtils qw(uniq);
 use LIMS2::Exception::Validation;
@@ -202,7 +203,7 @@ sub _validated_download_seq_params {
         $format =~ s/^\s+//;
         $format =~ s/\s+$//;
         $format = lc($format);
-        if ( $SUFFIX_FOR{$format} ) {
+        if ( exists $SUFFIX_FOR{$format} ) {
             $params{format} = $format;
         }
     }
