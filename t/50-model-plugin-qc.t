@@ -158,4 +158,86 @@ throws_ok {
     model->delete_qc_template( { id => $id } )
 } qr/Template \d+ has been used in one or more QC runs, so cannot be deleted/;
 
+note( "Testing Qc Run Retrieval" );
+
+{
+    ok my ($qc_runs_data) = model->retrieve_qc_runs( { species => 'Mouse' } ),
+        'Can retrieve all qc runs';
+    is scalar( @{$qc_runs_data} ), 2, '.. we have 2 qc runs';
+
+    ok my ($qc_runs_profile_data)
+        = model->retrieve_qc_runs( { species => 'Mouse', profile => 'eucomm-post-cre' } ),
+        'Can retrieve all qc runs with specific profile';
+    is scalar( @{$qc_runs_profile_data} ), 1, '.. we have no qc runs with specfied profile';
+
+    ok my $qc_run = model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8'  } )
+        , 'can retrieve single Qc Run';
+}
+
+note ( 'Qc Run Seq Well Retrieval' );
+
+{
+    ok my $qc_seq_well = model->retrieve_qc_run_seq_well(
+        {   qc_run_id  => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8',
+            plate_name => 'PCS04026_A_1',
+            well_name  => 'B02'
+        }
+    ), 'can retrieve qc run seq well';
+
+    isa_ok $qc_seq_well, 'LIMS2::Model::Schema::Result::QcRunSeqWell';
+
+    is $qc_seq_well->qc_run_id, '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8', '..seq well belongs to correct Qc Run';
+}
+
+note ( 'Qc Run Results Retrieval' );
+
+{
+    lives_ok {
+        model->qc_run_results( { qc_run_id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8' } ),
+    } 'can retrieve Qc Run results';
+
+    lives_ok {
+        model->qc_run_summary_results( { qc_run_id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8' } )
+    } 'can retrieve Qc Run summary results';
+
+    lives_ok {
+        model->qc_run_seq_well_results(
+            {   qc_run_id  => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8',
+                plate_name => 'PCS04026_A_1',
+                well_name  => 'B02'
+            }
+        )
+    } 'can retrieve qc run seq well results';
+
+    lives_ok {
+        model->qc_alignment_result( { qc_alignment_id => 93 } )
+    } 'can get qc alignment result';
+
+    lives_ok {
+        model->qc_seq_read_sequences(
+            {   qc_run_id  => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8',
+                plate_name => 'PCS04026_A_1',
+                well_name  => 'B02',
+                format     => 'fasta',
+            }
+        )
+    } 'can retrieve qc seq read sequences';
+
+    lives_ok {
+        model->qc_eng_seq_sequence(
+            {   format  => 'fasta',
+                qc_test_result_id => 70,
+            }
+        )
+    } 'can retrieve qc eng seq sequence';
+
+}
+
+note ( "Testing List Profiles" );
+
+{
+    ok my $profiles = model->list_profiles(), 'list_profiles ok';
+    is_deeply $profiles, [ 'eucomm-cre', 'eucomm-post-cre', 'test' ], '.. profile list is correct';
+}
+
 done_testing();

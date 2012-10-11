@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::VERSION = '0.022';
+    $LIMS2::WebApp::Controller::API::VERSION = '0.023';
 }
 ## use critic
 
@@ -33,7 +33,11 @@ sub auto : Private {
     # further authentication, and provides an HTTP basic auth fallback
     # for programmatic access
     unless ( $c->user_exists ) {
-        $c->authenticate( { realm => 'LIMS2 API' }, 'basic' );
+        my $username = delete $c->req->parameters->{ 'username' };
+        my $password = delete $c->req->parameters->{ 'password' };
+        return 1 unless ( $username && $password );
+
+        $c->authenticate( { name => lc($username), password => $password, active => 1 } );
     }
 
     if ( ! $c->session->{selected_species} ) {

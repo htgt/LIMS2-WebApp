@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.022';
+    $LIMS2::Test::VERSION = '0.023';
 }
 ## use critic
 
@@ -53,7 +53,15 @@ sub unauthenticated_mech {
 
 sub mech {
     my $mech = unauthenticated_mech();
-    $mech->credentials( $TEST_USER, $TEST_PASSWD );
+
+    $mech->get( '/login' );
+
+    $mech->submit_form(
+        form_name => 'login_form',
+        fields    => { username => $TEST_USER, password => $TEST_PASSWD },
+        button    => 'login'
+    );
+
     return $mech;
 }
 

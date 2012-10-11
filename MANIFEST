@@ -254,6 +254,7 @@ t/40-model-util-computestatus.t
 t/40-model-util-createplate.t
 t/40-model-util-createprocess.t
 t/40-model-util-dataupload.t
+t/40-model-util-qcresults.t
 t/50-model-plugin-bac.t
 t/50-model-plugin-design.t
 t/50-model-plugin-gene.t

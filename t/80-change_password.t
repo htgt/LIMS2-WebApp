@@ -6,14 +6,7 @@ use warnings FATAL => 'all';
 use LIMS2::Test;
 use Test::Most;
 
-my $mech = unauthenticated_mech();
-
-$mech->get_ok( '/login' );
-ok $mech->submit_form(
-    form_name => 'login_form',
-    fields    => { username => 'test_user@example.org', password => 'ahdooS1e' },
-    button    => 'login'
-), 'Login with correct username and password';
+my $mech = mech();
 
 {
     note( "Don't specify new password" );
