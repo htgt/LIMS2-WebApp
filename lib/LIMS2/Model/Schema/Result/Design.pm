@@ -324,6 +324,7 @@ sub _oligos_fasta {
     return unless @{$oligos};
 
     my $strand = $oligos->[0]{locus}{chr_strand};
+    return unless $strand;
 
     require Bio::Seq;
     require Bio::SeqIO;
