@@ -198,10 +198,11 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 	        );
 		    $c->stash->{plate_map} = $plate_map;
 		    $c->stash->{plate_map_request} = 1;
-		},
+		}
 		catch{
 			$c->stash( error_msg => "QC plate map generation failed with error $_" );
-		}
+			return;
+		};
 	}
 	elsif ( $c->req->param('launch_qc') ){
 
@@ -258,12 +259,12 @@ sub _launch_qc{
         $req->content( encode_json( $params ) );
 
         my $response = $ua->request($req);
-        $c->log->debug($response->content);
-        $content = decode_json( $response->content );
 
         unless ($response->is_success){
-        	die "Request to $uri was not successful. Error message: ".$content->{'error'};
+        	die "Request to $uri was not successful. Response: ".$response->status_line;
         }
+
+        $content = decode_json( $response->content );
     }
     catch{
     	$c->stash( error_msg => "Sorry, your QC job submission failed with error $_" );
