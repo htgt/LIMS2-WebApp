@@ -7,6 +7,8 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
+use LIMS2::Model::ProcessGraph;
+use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params);
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -487,6 +489,48 @@ sub retrieve_well_colony_picks {
     }
 
     return $colony_picks;
+}
+
+sub pspec_generate_eng_seq_params {
+	return {
+        plate_name  => { validate => 'existing_plate_name',     optional => 1 },
+        well_name   => { validate => 'well_name',               optional => 1 },
+        well_id     => { validate => 'integer', rename => 'id', optional => 1 },
+        cassette    => { validate => 'existing_final_cassette', optional => 1 },
+        backbone    => { validate => 'existing_backbone',       optional => 1 },
+        recombinase => { validate => 'existing_recombinase',    optional => 1 },
+	}
+}
+use Data::Dumper;
+$Data::Dumper::Maxdepth=3;
+
+sub retrieve_well_design{
+	my ( $self, $well ) = @_;
+
+    my $graph = LIMS2::Model::ProcessGraph->new({ start_with => $well });
+    my $proc_design = $graph->find_process($well, 'process_design')
+        or die "No process_design identified for well ID ".$well->id;
+    
+    return $proc_design->design->as_hash;
+}
+
+sub generate_well_eng_seq_params{
+    
+    my ( $self, $params ) = @_;
+    
+	my $validated_params = $self->check_params( $params, $self->pspec_generate_eng_seq_params );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( plate_name well_name id ) } ); 	
+    $self->throw( NotFound => { entity_class => 'Well', search_params => $params })
+        unless $well;
+        	
+	my $design = $self->retrieve_well_design( $well ); 
+
+    my $design_params = fetch_design_eng_seq_params($design);
+   
+    my $well_params = fetch_well_eng_seq_params($well, {slice_def $validated_params, qw( cassette backbone recombinase)} );
+    
+    return { %$design_params, %$well_params };    
 }
 
 1;
