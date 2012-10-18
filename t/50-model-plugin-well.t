@@ -12,15 +12,13 @@ use LIMS2::Test;
 use Test::Most;
 use Try::Tiny;
 use DateTime;
-use Data::Dumper;
 
 my $well_data= test_data( 'well.yaml' );
 
 note( "Testing well EngSeqParam generation");
 {
-    ok my $params = model->generate_well_eng_seq_params({ well_id => 845 }),
+    ok my ($method, $params) = model->generate_well_eng_seq_params({ well_id => 850 }),
         'generate well_eng_seq_params should succeed'; 
-print Dumper($params);
 }
 
 note( "Testing well creation" );

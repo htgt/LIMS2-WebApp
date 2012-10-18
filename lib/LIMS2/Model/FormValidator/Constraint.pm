@@ -381,6 +381,12 @@ sub hashref {
     }
 }
 
+sub arrayref {
+    return sub {
+        ref $_[0] eq ref [];
+    }
+}
+
 sub file_handle {
     return sub {
         my $val = shift;
