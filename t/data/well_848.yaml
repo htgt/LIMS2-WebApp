@@ -1,0 +1,20 @@
+---
+assembly: GRCm38
+backbone:
+  name: R3R4_pBR_amp
+chromosome: '9'
+d_insertion:
+  name: LoxP
+design_id: 170606
+display_id: 170606#L1L2_GT2_LacZ_BSD#R3R4_pBR_amp#cre
+five_arm_end: 20926524
+five_arm_start: 20920679
+recombinase:
+- cre
+strand: -1
+target_region_end: 20920581
+target_region_start: 20917778
+three_arm_end: 20917744
+three_arm_start: 20914201
+u_insertion:
+  name: L1L2_GT2_LacZ_BSD

@@ -17,8 +17,21 @@ my $well_data= test_data( 'well.yaml' );
 
 note( "Testing well EngSeqParam generation");
 {
-    ok my ($method, $params) = model->generate_well_eng_seq_params({ well_id => 850 }),
-        'generate well_eng_seq_params should succeed'; 
+    throws_ok {
+    	model->generate_well_eng_seq_params({ well_id => 850 });
+    } qr/No cassette found for well/;
+    
+    my %user_params = ( cassette => 'L1L2_GT2_LacZ_BSD', backbone => 'R3R4_pBR_amp', recombinase => ['Cre']);
+    ok my ($method2, $params2) = model->generate_well_eng_seq_params({ well_id => 850, %user_params }),
+        'generate well_eng_seq_params with user specified details should succeed';
+    is_deeply ($params2, test_data("well_850_user_params.yaml"),
+        'engseq params as expected for well 850 with user specified params');
+    is $method2, 'conditional_vector_seq', 'engseq method correct';    
+    
+    ok my ($method3, $params3) = model->generate_well_eng_seq_params({ well_id => 848, %user_params }),
+        'generate well_eng_seq_params should succeed';
+    is_deeply ($params3, test_data('well_848.yaml'), 'engseq params as expected for well 848');
+
 }
 
 note( "Testing well creation" );

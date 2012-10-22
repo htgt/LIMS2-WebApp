@@ -86,31 +86,29 @@ sub fetch_well_eng_seq_params{
 
 	my ($well_params, $method);
 
-	my $graph = LIMS2::Model::ProcessGraph->new({  start_with => $well, type => 'ancestors' });
-
 	# Fetch cassette etc from process graph if not user supplied
 	unless ($params->{cassette}){
-		my $process_cassette = $graph->find_process($well, 'process_cassette');
-		$params->{cassette} = $process_cassette ? $process_cassette->cassette->name
-		                                        : undef ;
+		my $cassette = $well->cassette;
+		$params->{cassette} = $cassette ? $cassette->name
+		                                : undef ;
 	}
 
 	unless (@{ $params->{recombinase} }){
-		my $process_recombinases = $graph->find_process($well, 'process_recombinases');
-		# FIXME: should these be sorted by rank?
-		my @recombinases = $process_recombinases ? map { lc $_->recombinase_id } $process_recombinases->all
-		                                         : () ;
-		$params->{recombinase} = \@recombinases;
+		$params->{recombinase} = $well->recombinases;
 	}
 
 	unless ($params->{backbone} or $params->{is_allele}){
-		my $process_backbone = $graph->find_process($well, 'process_backbone');
-		$params->{backbone} = $process_backbone ? $process_backbone->backbone->name
-		                                        : undef ;
+		my $backbone = $well->backbone;
+		$params->{backbone} = $backbone ? $backbone->name
+		                                : undef ;
 	}
 
-    # Always store recombinase
-    $well_params->{recombinase} = $params->{recombinase};
+    # Always store recombinase (in lower case)
+    my @recom = map { lc $_ } @{ $params->{recombinase} };
+    $well_params->{recombinase} = \@recom;
+
+    # We always need a cassette
+    die "No cassette found for well ".$well->id unless $params->{cassette};
 
 	my $design_type = $params->{design_type};
 
@@ -143,7 +141,8 @@ sub fetch_well_eng_seq_params{
 
 	}
 	else {
-		$well_params->{backbone}->{name} = $params->{backbone};
+		$well_params->{backbone}->{name} = $params->{backbone}
+		    or die "No backbone found for well ".$well->id;
 
 	    if ( $design_type eq 'conditional') {
 	        $method = 'conditional_vector_seq';
