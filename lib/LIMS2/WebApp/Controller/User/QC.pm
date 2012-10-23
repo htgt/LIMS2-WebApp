@@ -371,6 +371,61 @@ sub _clean_input {
     return $value;
 }
 
+sub create_template_plate :Path('/user/create_template_plate') :Args(0){
+	my ($self, $c) = @_;
+
+    my $template_name = $c->req->param('template_plate');
+
+	# Store form values
+	$c->stash->{template_plate} = $template_name;
+	$c->stash->{source_plate} = $c->req->param('source_plate');
+
+	if ( $c->req->param('create_from_plate')){
+		try{
+			unless($template_name){
+				die "You must provide a name for the template plate";
+			}
+			unless($c->req->param('source_plate')){
+				die "You must provide a source plate";
+			}
+
+			my $template = $c->model('Golgi')->create_qc_template_from_plate({
+				name => $c->req->param('source_plate'),
+				template_name => $c->req->param('template_plate'),
+			});
+			$c->stash->{success_msg} = "Template $template_name was successfully created";
+		}
+		catch{
+			$c->stash->{error_msg} = "Sorry, template plate creation failed with error: $_" ;
+		};
+	}
+	elsif( $c->req->param('create_from_csv')){
+		try{
+			unless($template_name){
+				die "You must provide a name for the template plate";
+			}
+
+			my $well_data = $c->request->upload('datafile');
+
+			unless ($well_data){
+				die "You must select a csv file containing the well list";
+			}
+
+			$c->model('Golgi')->create_qc_template_from_csv({
+				template_name => $template_name,
+				well_data_fh  => $well_data->fh,
+				species       => $c->session->{selected_species},
+			});
+
+			$c->stash->{success_msg} = "Template $template_name was successfully created";
+		}
+		catch{
+			$c->stash->{error_msg} = "Sorry, template plate creation failed with error: $_" ;
+		};
+	}
+
+	return;
+}
 =head1 AUTHOR
 
 Sajith Perera

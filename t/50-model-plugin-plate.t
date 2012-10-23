@@ -14,6 +14,12 @@ use Try::Tiny;
 use DateTime;
 use File::Temp ':seekable';
 
+note ( "Testing EngSeq param generation for plate");
+{
+	ok my $template = model->create_qc_template_from_plate({ id => 864, template_name => 'template_864' }),
+	   'create_qc_template_from_plate should succeed';	        
+}
+
 my $plate_data= test_data( 'plate.yaml' );
 note( "Testing plate creation" );
 
