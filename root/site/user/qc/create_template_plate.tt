@@ -1,0 +1,52 @@
+[%- META title = 'Create New QC Template Plate'; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Create New QC Template Plate</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="create_template_plate" action="[% c.uri_for( '/user/create_template_plate' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>Name for Template Plate</label>
+        <input name="template_plate" id="template_plate" type="text"
+          [% IF template_plate %]value="[% template_plate %]"[% END %]
+        />
+        
+        <label>Enter name of source plate</label>
+        <input name="source_plate" id="source_plate" type="text"
+          [% IF source_plate %]value="[% source_plate %]"[% END %]
+        />
+      
+       <br/>
+       
+       <button name="create_from_plate" id="create_from_plate" type="submit" value="create_from_plate" class="btn">
+         Create New Template from Plate
+       </button>
+       
+       <br/>
+       <br/>
+       
+       <label>Or upload csv file listing the required wells</label>
+       <input name="datafile" type="file"/>
+       
+       <a href="[% c.uri_for('/static/files/plate_upload/qc_template_plate_template.csv') %]">
+         <i class="icon-download"></i> Download Example CSV File
+       </a>       
+       
+       <button name="create_from_csv" id="create_from_csv" type="submit" value="create_from_csv" class="btn">
+         Create New Template from CSV
+       </button>
+       
+     </form>
+  </div>
+  
+</div>
+
+<script type="text/javascript">
+$("#source_plate").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+</script>
