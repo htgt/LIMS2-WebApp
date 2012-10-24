@@ -82,4 +82,10 @@
           "<label for='sequencing_project'>Sequencing Project</label><input type='text' name='sequencing_project' id='sequencing_project'/>"
         );
     }
+
+    $("#template_plate").autocomplete({
+       source: "[% c.uri_for( '/api/autocomplete/qc_templates' ) %]",
+       minLength: 2,
+     });
+   
 </script>
