@@ -269,6 +269,40 @@ sub rename_plate {
     return $plate->update( { name => $validated_params->{new_name} } );
 }
 
+sub pspec_qc_template_from_plate{
+	return{
+		name          => { validate => 'existing_plate_name', optional => '1'},
+		id            => { validate => 'integer',             optional => '1'},
+		species       => { validate => 'existing_species',    optional => '1'},
+		template_name => { validate => 'plate_name'},
+	};
+}
+
+sub create_qc_template_from_plate {
+	my ( $self, $params ) = @_;
+
+    # FIXME: include optional cassette, backbone, recombinase?
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
+
+	my $plate = $self->retrieve_plate( { slice_def( $params, qw( name id species ) ) } );
+
+	my $well_hash;
+
+	foreach my $well ($plate->wells->all){
+		my $name = $well->name;
+        $well_hash->{$name}->{well_id} = $well->id;
+	}
+
+    my $template = $self->create_qc_template_from_wells({
+		template_name => $params->{template_name},
+		species       => $plate->species_id,
+		wells         => $well_hash,
+	});
+
+	return $template;
+}
+
 1;
 
 __END__

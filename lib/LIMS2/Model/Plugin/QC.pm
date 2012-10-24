@@ -22,6 +22,7 @@ use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_eng_seq_sequence
     build_qc_runs_search_params
 );
+use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
@@ -40,11 +41,13 @@ sub find_or_create_qc_template {
 
     my $validated_params = $self->check_params( $params, $self->pspec_find_or_create_qc_template );
 
-    # Build a new data structure mapping each well to a qc_eng_seq.id
+    # Build a new data structure mapping each well to a qc_eng_seq.id and source well id
     my %template_layout;
+    my %source_for_well;
     while ( my ( $well_name, $well_params ) = each %{ $validated_params->{wells} } ) {
         next unless defined $well_params and keys %{$well_params};
         $template_layout{$well_name} = create_or_retrieve_eng_seq( $self, $well_params )->id;
+        $source_for_well{$well_name} = $well_params->{source_well_id};
     }
 
     # If a template already exists with this name and layout, return it
@@ -64,7 +67,8 @@ sub find_or_create_qc_template {
         $qc_template->create_related(
             qc_template_wells => {
                 name          => $well_name,
-                qc_eng_seq_id => $eng_seq_id
+                qc_eng_seq_id => $eng_seq_id,
+                source_well_id => $source_for_well{$well_name},
             }
         );
     }
@@ -504,6 +508,83 @@ sub pass_to_boolean {
     return $pass_or_fail =~ /^pass$/i ? '1' : $pass_or_fail =~ /^fail$/i ? '0' : undef;
 }
 
+sub pspec_qc_template_from_csv{
+	return{
+		template_name => { validate => 'plate_name'},
+		species       => { validate => 'existing_species'},
+		well_data_fh  => { validate => 'file_handle' },
+	};
+}
+
+sub create_qc_template_from_csv{
+    my ( $self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_csv );
+
+	my $well_data = parse_csv_file($params->{well_data_fh});
+
+	my $well_hash;
+
+	for my $datum (@{$well_data}){
+		my $name = $datum->{well_name};
+        $well_hash->{$name}->{well_name} = $datum->{source_well};
+        $well_hash->{$name}->{plate_name} = $datum->{source_plate};
+        # FIXME: handle optional cassette, backbone, recombinase?
+	}
+
+	my $template = $self->create_qc_template_from_wells({
+		template_name => $params->{template_name},
+		species       => $params->{species},
+		wells         => $well_hash,
+	});
+
+    return $template;
+}
+
+sub pspec_qc_template_from_wells {
+    return {
+        template_name => { validate => 'plate_name' },
+        species       => { validate => 'existing_species' },
+        wells         => { validate => 'hashref' },
+    };
+}
+
+sub create_qc_template_from_wells{
+	my ($self, $params) = @_;
+
+	my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_wells );
+
+	# die if template name already exists
+	my $existing = $self->retrieve_qc_templates({ name => $params->{template_name} });
+	if (@$existing){
+		die "QC template ".$params->{template_name}." already exists. Cannot use this plate name.";
+	}
+
+	my $wells;
+
+	for my $name (keys %{ $validated_params->{wells} }){
+
+        my $datum = $validated_params->{wells}->{$name};
+
+		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id ) ) };
+
+		my ($method, $source_well_id, $esb_params) = $self->generate_well_eng_seq_params($well_params);
+
+		$wells->{$name}->{eng_seq_id}     = $esb_params->{display_id};
+		$wells->{$name}->{well_name}      = $params->{template_name}."_$name";
+		$wells->{$name}->{eng_seq_method} = $method;
+		$wells->{$name}->{eng_seq_params} = $esb_params;
+		$wells->{$name}->{source_well_id} = $source_well_id;
+	}
+
+	my $template = $self->find_or_create_qc_template({
+		name    => $params->{template_name},
+		species => $params->{species},
+		wells   => $wells,
+	});
+
+    return $template;
+}
 1;
 
 __END__

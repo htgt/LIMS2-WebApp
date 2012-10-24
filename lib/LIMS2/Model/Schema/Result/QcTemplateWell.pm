@@ -62,6 +62,12 @@ __PACKAGE__->table("qc_template_wells");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 source_well_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -78,6 +84,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "qc_eng_seq_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "source_well_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -143,9 +151,29 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 source_well
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D4Ifl7gQpTU8g9vtA9KSgw
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Well>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "source_well",
+  "LIMS2::Model::Schema::Result::Well",
+  { id => "source_well_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-10-24 11:47:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pz+dnl8q+3VScTgh2kunnw
 
 use JSON qw( decode_json );
 
@@ -157,6 +185,7 @@ sub as_hash {
         eng_seq_id     => $self->qc_eng_seq->id,
         eng_seq_method => $self->qc_eng_seq->method,
         eng_seq_params => decode_json( $self->qc_eng_seq->params ),
+        source_well    => $self->source_well ? $self->source_well->as_hash : undef,
     };
 }
 
