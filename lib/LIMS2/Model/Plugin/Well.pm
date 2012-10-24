@@ -533,7 +533,7 @@ sub generate_well_eng_seq_params{
     my $eng_seq_params = { %$design_params, %$well_params };
     add_display_id($stage, $eng_seq_params);
 
-    return $method, $eng_seq_params;
+    return $method, $well->id, $eng_seq_params;
 }
 
 1;

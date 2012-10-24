@@ -41,11 +41,13 @@ sub find_or_create_qc_template {
 
     my $validated_params = $self->check_params( $params, $self->pspec_find_or_create_qc_template );
 
-    # Build a new data structure mapping each well to a qc_eng_seq.id
+    # Build a new data structure mapping each well to a qc_eng_seq.id and source well id
     my %template_layout;
+    my %source_for_well;
     while ( my ( $well_name, $well_params ) = each %{ $validated_params->{wells} } ) {
         next unless defined $well_params and keys %{$well_params};
         $template_layout{$well_name} = create_or_retrieve_eng_seq( $self, $well_params )->id;
+        $source_for_well{$well_name} = $well_params->{source_well_id};
     }
 
     # If a template already exists with this name and layout, return it
@@ -65,7 +67,8 @@ sub find_or_create_qc_template {
         $qc_template->create_related(
             qc_template_wells => {
                 name          => $well_name,
-                qc_eng_seq_id => $eng_seq_id
+                qc_eng_seq_id => $eng_seq_id,
+                source_well_id => $source_for_well{$well_name},
             }
         );
     }
@@ -565,12 +568,13 @@ sub create_qc_template_from_wells{
 
 		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id ) ) };
 
-		my ($method, $esb_params) = $self->generate_well_eng_seq_params($well_params);
+		my ($method, $source_well_id, $esb_params) = $self->generate_well_eng_seq_params($well_params);
 
 		$wells->{$name}->{eng_seq_id}     = $esb_params->{display_id};
 		$wells->{$name}->{well_name}      = $params->{template_name}."_$name";
 		$wells->{$name}->{eng_seq_method} = $method;
 		$wells->{$name}->{eng_seq_params} = $esb_params;
+		$wells->{$name}->{source_well_id} = $source_well_id;
 	}
 
 	my $template = $self->find_or_create_qc_template({
