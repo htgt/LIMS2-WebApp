@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.023';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.024';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use LIMS2::Model::Types qw( ProcessGraphType );
 use Log::Log4perl qw( :easy );
 use Iterator::Simple qw( iter );
 use namespace::autoclean;
+use Data::Dumper;
 
 const my $QUERY_DESCENDANTS => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
@@ -113,6 +114,7 @@ sub _build_edges {
     my $self = shift;
 
     my $query;
+
     if ( $self->type eq 'descendants' ) {
         $query = $QUERY_DESCENDANTS;
     }
@@ -319,7 +321,11 @@ sub find_process {
         DEBUG( "find_process examining $well" );
         for my $process ( $self->input_processes( $well ) ) {
             if ( my $related = $process->$relation() ) {
-                DEBUG( "Found $relation at $well" );
+
+            	# Don't return $related if it is an empty resultset
+            	next if ($related->isa("DBIx::Class::ResultSet") and $related->count == 0 );
+
+                DEBUG( "Found $relation at $well (process ".$process->id.")" );
                 return $related;
             }
         }

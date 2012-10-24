@@ -11,6 +11,103 @@ use HTTP::Status qw( :constants );
 
 my $mech = mech();
 
+note "Testing creation of QC template from plate";
+
+{
+	my $template = 'test_template';
+	my $source = 'MOHFAS0001_A';
+	
+	$mech->get_ok('/user/create_template_plate');
+ 
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+        	template_plate   => $template,
+        },
+        button  => 'create_from_plate'
+    ), 'submit create template from plate with no plate';
+    ok $mech->success, 'response is success';
+    $mech->content_like( qr/You must provide a source plate/, 'source plate name must be provided');
+
+    $mech->back;
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+            source_plate   => $source,            
+        },
+        button  => 'create_from_plate'
+    ), 'submit create template from plate with no template';
+    ok $mech->success, 'response is success';
+    $mech->content_like( qr/You must provide a name for the template plate/, 'template plate name must be provided');
+
+    $mech->back;               
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+            template_plate => $template,
+            source_plate   => $source,
+        },
+        button  => 'create_from_plate'
+    ), 'create template from plate';
+    ok $mech->success, 'response is success';
+    $mech->content_like( qr/Template $template was successfully created/, 'template created successfully');
+    
+    ok my $res = model->retrieve_qc_templates( { name => $template } ), 'retrieved qc template';
+    is @{$res}, 1, 'one qc template found';
+    is (scalar $res->[0]->qc_template_wells, 96, '96 qc_template_wells found for template');
+}
+
+note "Testing creation of QC template from CSV upload";
+
+{
+    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $test_file->print("well_name,source_plate,source_well\n"
+                      . "A01,MOHFAS0001_A,B01\n"
+                      . "A02,MOHFAS0001_A,B02");
+    $test_file->seek( 0, 0 );
+
+    $mech->back;
+    my $template = 'test_template_csv';
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+            template_plate => $template,
+        },
+        button  => 'create_from_csv'
+    ), 'create template from csv upload with no file';
+    ok $mech->success, 'response is success';
+    $mech->content_like( qr/You must select a csv file containing the well list/, 'csv file must be provided');
+    
+    $mech->back;
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+            template_plate => $template,
+            datafile       => $test_file->filename
+        },
+        button  => 'create_from_csv'
+    ), 'create template from csv upload';
+    ok $mech->success, 'response is success';
+    $mech->content_like( qr/Template $template was successfully created/, 'template created successfully');
+    
+    ok my $res = model->retrieve_qc_templates( { name => $template } ), 'retrieved qc template';
+    is @{$res}, 1, 'one qc template found';
+    is (scalar $res->[0]->qc_template_wells, 2, '2 qc_template_wells found for template');
+
+    $mech->back;
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+            template_plate => $template,
+            datafile       => $test_file->filename
+        },
+        button  => 'create_from_csv'
+    ), 'create template from csv upload with existing name';
+    ok $mech->success, 'response is success';
+    $mech->content_like( qr/QC template $template already exists/, 'cannot use existing template name');
+ 
+}
+
 note "Testing creation and retrieval of QC template";
 
 my $template;

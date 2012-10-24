@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.023';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.024';
 }
 ## use critic
 
@@ -330,6 +330,7 @@ sub _oligos_fasta {
     return unless @{$oligos};
 
     my $strand = $oligos->[0]{locus}{chr_strand};
+    return unless $strand;
 
     require Bio::Seq;
     require Bio::SeqIO;

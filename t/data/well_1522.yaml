@@ -1,0 +1,17 @@
+---
+assembly: GRCm38
+chromosome: X
+d_insertion:
+  name: LoxP
+design_id: 42815
+display_id: 42815#L1L2_gt0_Del_LacZ
+five_arm_end: 18198728
+five_arm_start: 18194242
+recombinase: []
+strand: 1
+target_region_end: 18199438
+target_region_start: 18198775
+three_arm_end: 18204623
+three_arm_start: 18199550
+u_insertion:
+  name: L1L2_gt0_Del_LacZ

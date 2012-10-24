@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.023';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.024';
 }
 ## use critic
 
@@ -212,6 +212,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_template_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWell>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_wells",
+  "LIMS2::Model::Schema::Result::QcTemplateWell",
+  { "foreign.source_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_accepted_override
 
 Type: might_have
@@ -353,8 +368,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jksJS1DnrazHhwYFT6vWJg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-10-24 11:47:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FjB+lADJIDqg79FyuB5i/Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
