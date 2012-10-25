@@ -20,6 +20,9 @@
               <a href="[% c.uri_for( '/user/browse_plates' ) %]">Plates</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/browse_templates' ) %]">QC Templates</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/qc_runs' ) %]">Sequencing QC Results</a>
             </li>
             <li>
