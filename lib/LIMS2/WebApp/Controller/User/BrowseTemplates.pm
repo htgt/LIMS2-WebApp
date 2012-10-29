@@ -37,7 +37,6 @@ sub index :Path( '/user/browse_templates' ) :Args(0) {
         delete @{$params}{ qw( show_all template_name ) };
     }
 
-    # FIXME: implement list_templates based on list_plates
     my ( $templates, $pager ) = $c->model('Golgi')->list_templates(
         {
             template_name => $params->{template_name},
@@ -102,7 +101,6 @@ sub view :Path( '/user/view_template' ) :Args(0) {
         	$info->{source_plate} = $source->plate->name;
         	$info->{source_well} = $source->name;
         	$info->{design_id} = $source->design->id;
-        	# FIXME: add gene name
         	my @gene_ids      = uniq map { $_->gene_id } $source->design->genes;
         	$info->{gene_ids} = join q{/}, @gene_ids;
         }

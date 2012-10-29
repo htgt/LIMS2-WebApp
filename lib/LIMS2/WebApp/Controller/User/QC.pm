@@ -384,11 +384,14 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 
     $c->assert_user_roles( 'edit' );
 
+    # Store form values
+    foreach my $param qw(template_plate source_plate cassette backbone ){
+    	$c->stash->{$param} = $c->req->param($param);
+    }
+    $c->stash->{recombinase} = [ $c->req->param('recombinase') ];
     my $template_name = $c->req->param('template_plate');
 
-	# Store form values
-	$c->stash->{template_plate} = $template_name;
-	$c->stash->{source_plate} = $c->req->param('source_plate');
+    $self->_populate_create_template_menus($c);
 
 	if ( $c->req->param('create_from_plate')){
 		try{
@@ -399,9 +402,14 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must provide a source plate";
 			}
 
+            my %overrides = map { $_ => $c->req->param($_) if $c->req->param($_) }
+                            qw( cassette backbone );
+            $overrides{recombinase} = [ $c->req->param('recombinase') ];
+
 			my $template = $c->model('Golgi')->create_qc_template_from_plate({
 				name => $c->req->param('source_plate'),
 				template_name => $c->req->param('template_plate'),
+				%overrides,
 			});
 			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
 			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
@@ -436,6 +444,22 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 	}
 
 	return;
+}
+
+sub _populate_create_template_menus{
+	my ($self, $c) = @_;
+
+    my $cassettes = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette');
+    $c->stash->{cassettes} = [ map {$_->{name} } @$cassettes ];
+    unshift @{ $c->stash->{cassettes} }, "";
+
+    my $backbones = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-backbone');
+    $c->stash->{backbones} = [ map { $_->{name} } @$backbones ];
+    unshift @{ $c->stash->{backbones} }, "";
+
+    $c->stash->{recombinases} = [ map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
+
+    return;
 }
 =head1 AUTHOR
 

@@ -569,7 +569,14 @@ sub create_qc_template_from_csv{
 		my $name = $datum->{well_name};
         $well_hash->{$name}->{well_name} = $datum->{source_well};
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
-        # FIXME: handle optional cassette, backbone, recombinase?
+        $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
+        $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
+
+        if ($datum->{recombinase}){
+            my @recombinases = split ",", $datum->{recombinase};
+            s/\s*//g foreach @recombinases;
+            $well_hash->{$name}->{recombinase} = \@recombinases;
+        }
 	}
 
 	my $template = $self->create_qc_template_from_wells({
@@ -606,7 +613,16 @@ sub create_qc_template_from_wells{
 
         my $datum = $validated_params->{wells}->{$name};
 
-		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id ) ) };
+		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id cassette backbone) ) };
+
+		# Recombinase, if defined, must be an arrayref
+		my $recombinase = $datum->{recombinase};
+        if ($recombinase and ref $recombinase eq ref []){
+        	$well_params->{recombinase} = $recombinase;
+        }
+        elsif($recombinase){
+        	$well_params->{recombinase} = [ $recombinase ];
+        }
 
 		my ($method, $source_well_id, $esb_params) = $self->generate_well_eng_seq_params($well_params);
 

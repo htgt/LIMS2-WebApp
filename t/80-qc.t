@@ -125,6 +125,61 @@ note "Testing creation of QC template from CSV upload";
      
 }
 
+# FIXME: add tests for overrides with both csv and plate upload
+note "Testing creation of QC template with overrides";
+{
+	my $template = "test_overrides";
+	my $source = 'MOHFAS0001_A';
+	my $cassette = 'L1L2_st1';
+	my $backbone = 'PL611';
+	my $recom = 'Dre';
+	
+	$mech->get_ok('/user/create_template_plate');
+	
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+        	template_plate   => $template,
+        	source_plate     => $source,
+        	cassette         => $cassette,
+        	backbone         => $backbone,
+        	recombinase      => $recom,
+        },
+        button  => 'create_from_plate'
+    ), 'submit create template from plate with overrides';
+    ok $mech->success, 'response is success';
+    
+    ok $mech->follow_link( url_regex => qr/view_template/), 'can view new qc template';
+    $mech->content_like(qr/$cassette/,'cassette override value used in new template');
+    $mech->content_like(qr/$backbone/,'backbone override value used in new template');
+    $mech->content_like(qr/$recom/i,'recombinase override value used in new template');
+    
+    $template = "test_overrides_csv";
+
+    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $test_file->print("well_name,source_plate,source_well,cassette,backbone,recombinase\n"
+                      . "A01,MOHFAS0001_A,B01,$cassette,$backbone,$recom\n"
+                      . "A02,MOHFAS0001_A,B02,$cassette,$backbone,$recom");
+    $test_file->seek( 0, 0 );
+    
+    $mech->get_ok('/user/create_template_plate');
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+        	template_plate => $template,
+        	datafile       => $test_file->filename
+        },
+        button  => 'create_from_csv'
+    ), 'submit create template from csv with overrides';
+    ok $mech->success, 'response is success';
+    
+    ok $mech->follow_link( url_regex => qr/view_template/), 'can view new qc template';
+    $mech->content_like(qr/$cassette/,'cassette override value used in new template');
+    $mech->content_like(qr/$backbone/,'backbone override value used in new template');
+    $mech->content_like(qr/$recom/i,'recombinase override value used in new template');        
+   
+}
+
 note "Testing creation and retrieval of QC template";
 
 my $template;
