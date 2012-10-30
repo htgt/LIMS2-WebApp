@@ -171,6 +171,8 @@ sub view_qc_alignment :Path('/user/view_qc_alignment') :Args(0) {
 sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 	my ($self, $c) = @_;
 
+    $c->assert_user_roles( 'edit' );
+
     $c->stash->{profiles} = $self->_list_all_profiles;
 
     my $requirements = {
@@ -278,6 +280,8 @@ sub _launch_qc{
 sub latest_runs :Path('/user/latest_runs') :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     my $llr = HTGT::QC::Util::ListLatestRuns->new( { config => $self->qc_config } );
 
     $c->stash( latest => $llr->get_latest_run_data );
@@ -287,6 +291,8 @@ sub latest_runs :Path('/user/latest_runs') :Args(0) {
 
 sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
     my ( $self, $c, $params ) = @_;
+
+    $c->assert_user_roles( 'read' );
 
     my ( $qc_run_id, $last_stage ) = $params =~ /^(.+)___(.+)$/;
     my $config = $self->qc_config;
@@ -303,6 +309,8 @@ sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
 
 sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
     my ( $self, $c, $qc_run_id ) = @_;
+
+    $c->assert_user_roles( 'edit' );
 
     my $kill_jobs = HTGT::QC::Util::KillQCFarmJobs->new(
         {
@@ -374,11 +382,16 @@ sub _clean_input {
 sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 	my ($self, $c) = @_;
 
+    $c->assert_user_roles( 'edit' );
+
+    # Store form values
+    foreach my $param qw(template_plate source_plate cassette backbone ){
+    	$c->stash->{$param} = $c->req->param($param);
+    }
+    $c->stash->{recombinase} = [ $c->req->param('recombinase') ];
     my $template_name = $c->req->param('template_plate');
 
-	# Store form values
-	$c->stash->{template_plate} = $template_name;
-	$c->stash->{source_plate} = $c->req->param('source_plate');
+    $self->_populate_create_template_menus($c);
 
 	if ( $c->req->param('create_from_plate')){
 		try{
@@ -389,11 +402,17 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must provide a source plate";
 			}
 
+            my %overrides = map { $_ => $c->req->param($_) if $c->req->param($_) }
+                            qw( cassette backbone );
+            $overrides{recombinase} = [ $c->req->param('recombinase') ];
+
 			my $template = $c->model('Golgi')->create_qc_template_from_plate({
 				name => $c->req->param('source_plate'),
 				template_name => $c->req->param('template_plate'),
+				%overrides,
 			});
-			$c->stash->{success_msg} = "Template $template_name was successfully created";
+			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
+			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}
 		catch{
 			$c->stash->{error_msg} = "Sorry, template plate creation failed with error: $_" ;
@@ -411,13 +430,13 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must select a csv file containing the well list";
 			}
 
-			$c->model('Golgi')->create_qc_template_from_csv({
+			my $template = $c->model('Golgi')->create_qc_template_from_csv({
 				template_name => $template_name,
 				well_data_fh  => $well_data->fh,
 				species       => $c->session->{selected_species},
 			});
-
-			$c->stash->{success_msg} = "Template $template_name was successfully created";
+			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
+			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}
 		catch{
 			$c->stash->{error_msg} = "Sorry, template plate creation failed with error: $_" ;
@@ -425,6 +444,22 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 	}
 
 	return;
+}
+
+sub _populate_create_template_menus{
+	my ($self, $c) = @_;
+
+    my $cassettes = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette');
+    $c->stash->{cassettes} = [ map {$_->{name} } @$cassettes ];
+    unshift @{ $c->stash->{cassettes} }, "";
+
+    my $backbones = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-backbone');
+    $c->stash->{backbones} = [ map { $_->{name} } @$backbones ];
+    unshift @{ $c->stash->{backbones} }, "";
+
+    $c->stash->{recombinases} = [ map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
+
+    return;
 }
 =head1 AUTHOR
 

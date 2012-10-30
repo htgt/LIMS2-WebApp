@@ -23,6 +23,7 @@ use LIMS2::Model::Util::QCResults qw(
     build_qc_runs_search_params
 );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
+use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
@@ -98,6 +99,45 @@ sub retrieve_qc_templates {
         ->search( $search_params, { prefetch => { qc_template_wells => 'qc_eng_seq' } } );
 
     return \@templates;
+}
+
+# Retrieve single QC template by ID
+sub pspec_retrieve_qc_template {
+    return {
+        id      => { validate => 'integer' },
+    };
+}
+
+sub retrieve_qc_template {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_template );
+
+    my $template = $self->retrieve(
+        'QcTemplate' => { 'me.id' => $validated_params->{id} },
+        { prefetch => 'qc_template_wells' }
+    );
+
+    return $template;
+}
+
+sub pspec_retrieve_qc_template_well {
+    return {
+        id      => { validate => 'integer' },
+    };
+}
+
+sub retrieve_qc_template_well {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_template_well );
+
+    my $template_well = $self->retrieve(
+        'QcTemplateWell' => { 'me.id' => $validated_params->{id} },
+        { prefetch => 'qc_eng_seq' }
+    );
+
+    return $template_well;
 }
 
 sub pspec_delete_qc_template {
@@ -529,7 +569,14 @@ sub create_qc_template_from_csv{
 		my $name = $datum->{well_name};
         $well_hash->{$name}->{well_name} = $datum->{source_well};
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
-        # FIXME: handle optional cassette, backbone, recombinase?
+        $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
+        $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
+
+        if ($datum->{recombinase}){
+            my @recombinases = split ",", $datum->{recombinase};
+            s/\s*//g foreach @recombinases;
+            $well_hash->{$name}->{recombinase} = \@recombinases;
+        }
 	}
 
 	my $template = $self->create_qc_template_from_wells({
@@ -566,7 +613,16 @@ sub create_qc_template_from_wells{
 
         my $datum = $validated_params->{wells}->{$name};
 
-		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id ) ) };
+		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id cassette backbone) ) };
+
+		# Recombinase, if defined, must be an arrayref
+		my $recombinase = $datum->{recombinase};
+        if ($recombinase and ref $recombinase eq ref []){
+        	$well_params->{recombinase} = $recombinase;
+        }
+        elsif($recombinase){
+        	$well_params->{recombinase} = [ $recombinase ];
+        }
 
 		my ($method, $source_well_id, $esb_params) = $self->generate_well_eng_seq_params($well_params);
 
@@ -585,6 +641,40 @@ sub create_qc_template_from_wells{
 
     return $template;
 }
+
+sub pspec_list_templates {
+    return {
+        species       => { validate => 'existing_species' },
+        template_name => { validate => 'non_empty_string', optional => 1 },
+        page          => { validate => 'integer', optional => 1, default => 1 },
+        pagesize      => { validate => 'integer', optional => 1, default => 15 }
+    };
+}
+
+sub list_templates {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_list_templates );
+
+    my %search = ( 'me.species_id' => $validated_params->{species} );
+
+    if ( $validated_params->{template_name} ) {
+        $search{'me.name'}
+            = { -like => '%' . sanitize_like_expr( $validated_params->{template_name} ) . '%' };
+    }
+
+    my $resultset = $self->schema->resultset('QcTemplate')->search(
+        \%search,
+        {
+            order_by => { -desc => 'created_at' },
+            page     => $validated_params->{page},
+            rows     => $validated_params->{pagesize}
+        }
+    );
+
+    return ( [ $resultset->all ], $resultset->pager );
+}
+
 1;
 
 __END__

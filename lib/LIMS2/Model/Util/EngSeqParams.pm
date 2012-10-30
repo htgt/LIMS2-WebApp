@@ -9,6 +9,7 @@ use Sub::Exporter -setup => {
             fetch_design_eng_seq_params
             fetch_well_eng_seq_params
             add_display_id
+            generate_genbank_for_qc_well
           )
     ]
 };
@@ -16,7 +17,8 @@ use Sub::Exporter -setup => {
 use Log::Log4perl qw( :easy );
 use LIMS2::Model::Constants qw($DEFAULT_ASSEMBLY);
 use LIMS2::Model::ProcessGraph;
-
+use EngSeqBuilder;
+use JSON;
 use Data::Dumper;
 
 sub fetch_design_eng_seq_params{
@@ -187,6 +189,21 @@ sub add_display_id{
 
     $params->{display_id} = $seq_id;
     return $params;
+}
+
+sub generate_genbank_for_qc_well{
+	my ($qc_well, $tmp_fh) = @_;
+
+	my $method = $qc_well->qc_eng_seq->method;
+	my $params = decode_json($qc_well->qc_eng_seq->params);
+
+	my $builder = EngSeqBuilder->new;
+	my $seq = $builder->$method( %{ $params });
+
+    my $seq_io = Bio::SeqIO->new( -fh => $tmp_fh, -format => 'genbank' );
+    $seq_io->write_seq( $seq );
+
+    return;
 }
 
 1;

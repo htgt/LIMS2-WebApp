@@ -29,7 +29,7 @@ note( "Testing well EngSeqParam generation");
     is $method, 'conditional_allele_seq', 'engseq method correct for well 1522';
     is_deeply ($params, test_data('well_1522.yaml'), 'engseq params as expected for well 1522');
     
-    my %user_params = ( cassette => 'L1L2_GT2_LacZ_BSD', backbone => 'R3R4_pBR_amp', recombinase => ['Cre']);
+    my %user_params = ( cassette => 'L1L2_GT2_LacZ_BSD', backbone => 'PL611', recombinase => ['Cre']);
     ok my ($method2, $well_id2, $params2) = model->generate_well_eng_seq_params({ well_id => 850, %user_params }),
         'generate well_eng_seq_params for well 850 with user specified details should succeed';
     is_deeply ($params2, test_data("well_850_user_params.yaml"),

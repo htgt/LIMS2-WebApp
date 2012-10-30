@@ -14,19 +14,61 @@
           [% IF template_plate %]value="[% template_plate %]"[% END %]
         />
         
+        <hr/>
+        
+        <table>
+         <tr>
+          <td>
         <label>Enter name of source plate</label>
         <input name="source_plate" id="source_plate" type="text"
           [% IF source_plate %]value="[% source_plate %]"[% END %]
-        />
-      
-       <br/>
-       
+          </td>
+        
+          <td>
+        <label>Cassette (optional)</label>
+        <select name="cassette" id="cassette"/>
+          [% FOR cass IN cassettes %]
+            <option [% IF cass == cassette %] selected="selected"[% END %]>[% cass %]</option>
+          [%- END %]
+        </select>
+          </td>
+         </tr>
+         <tr>
+          <td>
+          </td>
+          <td>
+        <label>Backbone (optional)</label>
+        <select name="backbone" id="backbone"/>
+          [% FOR bb IN backbones %]
+            <option [% IF bb == backbone %] selected="selected"[% END %]>[% bb %]</option>
+          [%- END %]
+        </select>
+          </td>
+         </tr>
+         <tr>
+          <td>
+          </td>
+          <td>
+        <label>Recombinases (optional)</label>
+        <select name="recombinase" id="recombinase" multiple="multiple"/>
+          [% FOR recom IN recombinases %]
+            <option [% IF recombinase.grep(recom).size %] selected="selected"[% END %]>[% recom %]</option>
+          [%- END %]
+        </select>
+          </td>
+         </tr>
+         <tr>
+          <td>
        <button name="create_from_plate" id="create_from_plate" type="submit" value="create_from_plate" class="btn">
          Create New Template from Plate
        </button>
+          </td>
+          <td>
+          </td>
+         </tr>
+        </table> 
        
-       <br/>
-       <br/>
+       <hr/>
        
        <label>Or upload csv file listing the required wells</label>
        <input name="datafile" type="file"/>
