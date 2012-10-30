@@ -154,6 +154,7 @@ lib/LIMS2/WebApp/Controller/Root.pm
 lib/LIMS2/WebApp/Controller/User.pm
 lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
+lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
@@ -182,6 +183,8 @@ root/site/user/browsedesigns/list_designs.tt
 root/site/user/browsedesigns/view_design.tt
 root/site/user/browseplates/index.tt
 root/site/user/browseplates/view.tt
+root/site/user/browsetemplates/index.tt
+root/site/user/browsetemplates/view.tt
 root/site/user/error.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt

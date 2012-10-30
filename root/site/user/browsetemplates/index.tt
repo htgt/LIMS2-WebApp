@@ -1,0 +1,32 @@
+[%- META title = "Browse Templates"; META tab_name = "Browse" %]
+<form method="GET" action="[% c.uri_for( '/user/browse_templates' ) %]" class="well">
+  <fieldset>
+    <legend>List QC Templates</legend>
+    <input type="text" name="template_name" placeholder="Template Name" value="[% template_name %]">
+    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i>Filter</button>
+    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i>Show All</button>
+  </fieldset>
+</form>
+
+[%- INCLUDE 'pagination.tt' pageset = pageset %]
+
+[% IF templates.size %]
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Template Name</th>
+      <th>Created At</th>
+    </tr>
+  </thead>
+  <tbody>
+    [%- FOR qc_template IN templates %]
+    <tr>
+      <td>
+        <a href="[% c.uri_for( '/user/view_template', { id => qc_template.id } ) %]">[% qc_template.name %]</a>
+      </td>
+      <td>[% qc_template.created_at.ymd %]</td>
+    </tr>
+    [%- END %]
+  </tbody>
+</table>
+[% END %]

@@ -1,12 +1,12 @@
 ---
 assembly: GRCm38
 backbone:
-  name: R3R4_pBR_amp
+  name: PL611
 chromosome: '15'
 d_insertion:
   name: LoxP
 design_id: 84231
-display_id: 84231#L1L2_GT2_LacZ_BSD#R3R4_pBR_amp#cre
+display_id: 84231#L1L2_GT2_LacZ_BSD#PL611#cre
 five_arm_end: 58122003
 five_arm_start: 58116316
 recombinase:

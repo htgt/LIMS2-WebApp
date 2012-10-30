@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.024';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.025';
 }
 ## use critic
 
@@ -277,17 +277,18 @@ sub rename_plate {
 
 sub pspec_qc_template_from_plate{
 	return{
-		name          => { validate => 'existing_plate_name', optional => '1'},
-		id            => { validate => 'integer',             optional => '1'},
-		species       => { validate => 'existing_species',    optional => '1'},
+		name          => { validate => 'existing_plate_name', optional => 1},
+		id            => { validate => 'integer',             optional => 1},
+		species       => { validate => 'existing_species',    optional => 1},
 		template_name => { validate => 'plate_name'},
+		cassette      => { validate => 'existing_final_cassette',   optional => 1},
+		backbone      => { validate => 'existing_final_backbone',   optional => 1},
+		recombinase   => { validate => 'existing_recombinase', optional => 1},
 	};
 }
 
 sub create_qc_template_from_plate {
 	my ( $self, $params ) = @_;
-
-    # FIXME: include optional cassette, backbone, recombinase?
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
 
@@ -298,6 +299,9 @@ sub create_qc_template_from_plate {
 	foreach my $well ($plate->wells->all){
 		my $name = $well->name;
         $well_hash->{$name}->{well_id} = $well->id;
+        foreach my $override qw(cassette recombinase backbone){
+        	$well_hash->{$name}->{$override} = $validated_params->{$override} if exists $validated_params->{$override};
+        }
 	}
 
     my $template = $self->create_qc_template_from_wells({

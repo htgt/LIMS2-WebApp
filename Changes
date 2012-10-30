@@ -1,3 +1,8 @@
+0.025     2012-10-30 09:38:47 Europe/London
+
+	Added QC template plate views
+        Added optional cassette and backbone overrides to create template form
+ 
 0.024     2012-10-24 15:58:08 Europe/London
 
 	Added interface to create new template plates
