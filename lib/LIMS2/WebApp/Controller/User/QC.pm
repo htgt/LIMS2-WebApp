@@ -8,6 +8,7 @@ use JSON qw( encode_json decode_json );
 use Try::Tiny;
 use Config::Tiny;
 use Data::Dumper;
+use List::MoreUtils qw( uniq );
 use HTGT::QC::Config;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
@@ -460,6 +461,60 @@ sub _populate_create_template_menus{
     $c->stash->{recombinases} = [ map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
 
     return;
+}
+
+sub create_plates :Path('/user/create_plates') :Args(0){
+	my ($self, $c) = @_;
+	
+	my $run_id = $c->req->param('qc_run_id');
+	
+	# Store params for reload
+	$c->stash->{qc_run_id} = $run_id;
+	$c->stash->{process_type} = $c->req->param('process_type');
+	$c->stash->{plate_type} = $c->req->param('plate_type');
+
+    # FIXME: allow plate renaming as in htgt?
+    
+	# FIXME: display sensible subset of these
+	my @process_types = map{ $_->id } @{ $c->model('Golgi')->list_process_types };
+	my @plate_types = map{ $_->id } @{ $c->model('Golgi')->list_plate_types };
+		
+	$c->stash->{process_types} = \@process_types;
+	$c->stash->{plate_types} = \@plate_types;
+			
+	unless ($run_id){
+		$c->flash->{error_msg} = "No QC run ID provided to create plates";
+		$c->res->redirect( $c->uri_for('/user/qc_runs') );
+		return;
+	}
+	
+	if($c->req->param('create')){
+		# Create the plates
+		try{
+			my (@new_plates) = $c->model('Golgi')->create_plates_from_qc({ 
+				qc_run_id    => $run_id,
+				process_type => $c->req->param('process_type'),
+				plate_type   => $c->req->param('plate_type'),
+			});
+			if (@new_plates){
+				$c->stash->{success_msg} = "The following plates where created: ".
+				                           join ", ", map { $_->name } @new_plates;
+			}
+		}
+		catch{
+			$c->stash->{error_msg} = "Plate creation failed with error: $_";
+		}
+	}
+	else{
+        my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results( { qc_run_id => $run_id } );
+		my @plates = uniq map { $_->{plate_name} } @$results;
+		
+		$c->log->debug("Plates: ",join ", ", @plates);
+		
+		$c->stash->{qc_run_plates} = \@plates;
+	}
+	
+	return;
 }
 =head1 AUTHOR
 
