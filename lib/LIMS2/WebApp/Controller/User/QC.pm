@@ -474,13 +474,9 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 	$c->stash->{plate_type} = $c->req->param('plate_type');
 
     # FIXME: allow plate renaming as in htgt?
-    
-	# FIXME: display sensible subset of these
-	my @process_types = map{ $_->id } @{ $c->model('Golgi')->list_process_types };
-	my @plate_types = map{ $_->id } @{ $c->model('Golgi')->list_plate_types };
 		
-	$c->stash->{process_types} = \@process_types;
-	$c->stash->{plate_types} = \@plate_types;
+	$c->stash->{process_types} = [ qw(2w_gateway 3w_gateway rearray) ];
+	$c->stash->{plate_types}   = [ qw(POSTINT FINAL) ];
 			
 	unless ($run_id){
 		$c->flash->{error_msg} = "No QC run ID provided to create plates";
@@ -489,21 +485,30 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 	}
 	
 	if($c->req->param('create')){
-		# Create the plates
-		try{
-			my (@new_plates) = $c->model('Golgi')->create_plates_from_qc({ 
-				qc_run_id    => $run_id,
-				process_type => $c->req->param('process_type'),
-				plate_type   => $c->req->param('plate_type'),
-			});
-			if (@new_plates){
-				$c->stash->{success_msg} = "The following plates where created: ".
-				                           join ", ", map { $_->name } @new_plates;
-			}
-		}
-		catch{
-			$c->stash->{error_msg} = "Plate creation failed with error: $_";
-		}
+		# Create the plates within transaction so this can be re-run
+		# if creation of any individual plate fails
+		my @new_plates;
+		$c->model('Golgi')->txn_do(
+		    sub{
+		    	try{
+			        @new_plates = $c->model('Golgi')->create_plates_from_qc({ 
+				        qc_run_id    => $run_id,
+				        process_type => $c->req->param('process_type'),
+				        plate_type   => $c->req->param('plate_type'),
+				        created_by   => $c->user->name,
+			        });
+		        }
+		        catch{
+			        $c->stash->{error_msg} = "Plate creation failed with error: $_";
+			        $c->model('Golgi')->txn_rollback;
+		        }
+		    }
+		);
+		# Report names of created plates
+		if (@new_plates){
+		    $c->stash->{success_msg} = "The following plates where created: ".
+				                       join ", ", map { $_->name } @new_plates;
+	    }
 	}
 	else{
         my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results( { qc_run_id => $run_id } );

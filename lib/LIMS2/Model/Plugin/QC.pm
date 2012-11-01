@@ -682,6 +682,7 @@ sub pspec_create_plates_from_qc{
         qc_run_id    => { validate => 'uuid' },
         process_type => { validate => 'existing_process_type' },
         plate_type   => { validate => 'existing_plate_type'   },
+        created_by   => { validate => 'existing_user'},
     };
 }
 
@@ -709,7 +710,8 @@ sub create_plates_from_qc{
 		    results_by_well => \%results_by_well,
 		    plate_type      => $validated_params->{plate_type},
 		    process_type    => $validated_params->{process_type},
-		    qc_template_id  => $qc_run->qc_template->id, 
+		    qc_template_id  => $qc_run->qc_template->id,
+		    created_by      => $validated_params->{created_by},
 		});
 		
 		push @created_plates, $plate;
@@ -724,6 +726,7 @@ sub pspec_create_plate_from_qc{
         plate_type   => { validate => 'existing_plate_type'   },
         results_by_well => { validate => 'hashref' },
         qc_template_id  => { validate => 'integer' },
+        created_by   => { validate => 'existing_user'},
     };
 }
 
@@ -745,7 +748,7 @@ sub create_plate_from_qc{
 			DEBUG "Found design $design_id for well $well";
 			my $template_well;
 			
-            if ($design_id eq $best->{expected_design_id}){
+            if ($best->{expected_design_id} and $design_id eq $best->{expected_design_id}){
             	# Fetch source well from template well with same location
             	DEBUG "Found design $design_id at expected location on template";
             	($template_well) = $template->qc_template_wells->search({ name => $well });
@@ -772,11 +775,11 @@ sub create_plate_from_qc{
             
             # Store cassette and backbone to be linked to well creation process (not needed for rearraying)
             unless ($validated_params->{process_type} eq 'rearray'){
-            	$well_params{backbone} = $eng_seq_params->{backbone}->{name} if $eng_seq_params->{backbone}->{name};
+            	my $cassette = $eng_seq_params->{insertion}->{name} ? $eng_seq_params->{insertion}->{name} 
+            	              :                                       $eng_seq_params->{u_insertion}->{name};
             	
-            	$well_params{cassette} = $eng_seq_params->{insertion}->{name} ? 
-            	                         $eng_seq_params->{insertion}->{name} :
-            	                         $eng_seq_params->{u_insertion}->{name};
+            	$well_params{cassette} = $cassette if $cassette;
+            	$well_params{backbone} = $eng_seq_params->{backbone}->{name} if $eng_seq_params->{backbone}->{name};
             }
             
             push @new_wells, \%well_params;
@@ -795,6 +798,7 @@ sub create_plate_from_qc{
 		species => $template->species->id,
 		type    => $validated_params->{plate_type},
 		wells   => \@new_wells,
+		created_by => $validated_params->{created_by},
 	});
 	
 	return $plate;
