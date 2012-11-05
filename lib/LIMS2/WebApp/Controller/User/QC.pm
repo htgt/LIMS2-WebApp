@@ -465,38 +465,50 @@ sub _populate_create_template_menus{
 
 sub create_plates :Path('/user/create_plates') :Args(0){
 	my ($self, $c) = @_;
-	
+
 	my $run_id = $c->req->param('qc_run_id');
-	
+
 	# Store params for reload
 	$c->stash->{qc_run_id} = $run_id;
 	$c->stash->{process_type} = $c->req->param('process_type');
 	$c->stash->{plate_type} = $c->req->param('plate_type');
 
-    # FIXME: allow plate renaming as in htgt?
-		
 	$c->stash->{process_types} = [ qw(2w_gateway 3w_gateway rearray) ];
 	$c->stash->{plate_types}   = [ qw(POSTINT FINAL) ];
-			
+
 	unless ($run_id){
 		$c->flash->{error_msg} = "No QC run ID provided to create plates";
 		$c->res->redirect( $c->uri_for('/user/qc_runs') );
 		return;
 	}
-	
+
+    # Store list of plates from existing plate name map
+    my $rename_plate = $self->_create_plate_rename_map($c);
+
+    # If plate map is empty get plate names from QC run
+    unless(keys %{ $rename_plate || {} }){
+        my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results( { qc_run_id => $run_id } );
+		my @plates = uniq map { $_->{plate_name} } @$results;
+		$c->stash->{qc_run_plates} = [sort @plates];
+    }
+
 	if($c->req->param('create')){
 		# Create the plates within transaction so this can be re-run
 		# if creation of any individual plate fails
 		my @new_plates;
+
 		$c->model('Golgi')->txn_do(
 		    sub{
 		    	try{
-			        @new_plates = $c->model('Golgi')->create_plates_from_qc({ 
+			        @new_plates = $c->model('Golgi')->create_plates_from_qc({
 				        qc_run_id    => $run_id,
 				        process_type => $c->req->param('process_type'),
 				        plate_type   => $c->req->param('plate_type'),
+				        rename_plate => $rename_plate,
 				        created_by   => $c->user->name,
-			        });
+			        },
+			        $c,
+			        );
 		        }
 		        catch{
 			        $c->stash->{error_msg} = "Plate creation failed with error: $_";
@@ -506,21 +518,46 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 		);
 		# Report names of created plates
 		if (@new_plates){
-		    $c->stash->{success_msg} = "The following plates where created: ".
+		    $c->flash->{success_msg} = "The following plates where created: ".
 				                       join ", ", map { $_->name } @new_plates;
+		    my $browse_plate_params = {filter => 'Filter',  plate_type => $c->req->param('plate_type')};
+            $c->res->redirect( $c->uri_for('/user/browse_plates', $browse_plate_params) );
 	    }
 	}
-	else{
-        my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results( { qc_run_id => $run_id } );
-		my @plates = uniq map { $_->{plate_name} } @$results;
-		
-		$c->log->debug("Plates: ",join ", ", @plates);
-		
-		$c->stash->{qc_run_plates} = \@plates;
-	}
-	
+
 	return;
 }
+
+sub _create_plate_rename_map{
+	my ($self, $c) = @_;
+
+    my $params = $c->request->parameters;
+    my %plate_map;
+
+    for my $p ( keys %{$params} ) {
+        my ( $plate_name ) = $p =~ /^rename_plate_(.+)$/;
+        if ( $plate_name ) {
+            my $rename_to = $params->{$p};
+            $rename_to =~ s/\s+//;
+            $plate_map{$plate_name} = uc( $rename_to );
+            # Store mapping for reload
+            $c->stash->{$p} = $rename_to;
+        }
+    }
+
+    # Store plate list for reload
+    $c->stash->{qc_run_plates} = [sort keys %plate_map];
+
+    # Check that there are no duplicates in the list of plates we're asked to create
+    my @to_create = values %plate_map;
+    if ( @to_create != uniq @to_create ) {
+        $c->stash->{error_msg} = "Duplicate plate names found";
+        $c->detach();
+    }
+
+    return \%plate_map;
+}
+
 =head1 AUTHOR
 
 Sajith Perera

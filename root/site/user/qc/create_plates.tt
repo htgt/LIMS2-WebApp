@@ -12,8 +12,16 @@
 
        <input type="hidden" name="qc_run_id" value="[% qc_run_id %]">
 
+       <p>
+       Use sequencing project names as plate names, or enter new plate names below
+       </p>
+       
        [% FOR plate IN qc_run_plates %]
-        Create plate for [% plate %]<br/>
+         [% SET rename_plate = "rename_plate_${plate}" %]
+         [% SET rename_to = c.request.param( rename_plate ) %]
+           Create plate [% plate %] as 
+           <input name="[% rename_plate %]" id="[% rename_plate %]" type="text" value="[% rename_to.length ? rename_to : plate %]" />
+           <br />
        [% END %]
        
        <br/>

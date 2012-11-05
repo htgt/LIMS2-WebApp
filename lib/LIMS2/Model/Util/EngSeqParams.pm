@@ -35,7 +35,7 @@ sub fetch_design_eng_seq_params{
     if(@not_found){
     	die "No design oligo loci found for design ".$design->{id}." oilgos ".(join ", ", @not_found);
     }
-    
+
 	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type}, $loxp);
 	$params->{design_id} = $design->{id};
 
