@@ -125,7 +125,6 @@ note "Testing creation of QC template from CSV upload";
      
 }
 
-# FIXME: add tests for overrides with both csv and plate upload
 note "Testing creation of QC template with overrides";
 {
 	my $template = "test_overrides";
@@ -178,6 +177,44 @@ note "Testing creation of QC template with overrides";
     $mech->content_like(qr/$backbone/,'backbone override value used in new template');
     $mech->content_like(qr/$recom/i,'recombinase override value used in new template');        
    
+}
+
+note "Testing creation of plates from QC run";
+{
+	my $qc_run_id = '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7';
+	$mech->get_ok('/user/view_qc_run?qc_run_id='.$qc_run_id);
+	ok $mech->follow_link( url_regex => qr/create_plates/i ), 'can view create plate page';
+	my @name_inputs = $mech->find_all_inputs( type => 'text', name_regex => qr/rename_plate/ );
+	is scalar @name_inputs, 1, '1 plate rename input found';
+    print "Input name: ", $name_inputs[0]->name, "\n";
+    
+    ok $mech->submit_form(
+        form_id => 'create_plates',
+        fields  => {
+        	$name_inputs[0]->name => $name_inputs[0]->value,
+        	process_type => '2w_gateway',
+        	plate_type   => 'FINAL',
+        },
+        button => 'create',
+    ), 'submit plate creation form with wrong process';
+    $mech->content_like(qr/2w_gateway process can have either a cassette or backbone, not both/, 'incorrect process type error reported');
+      
+    ok $mech->submit_form(
+        form_id => 'create_plates',
+        fields  => {
+        	$name_inputs[0]->name => $name_inputs[0]->value,
+        	process_type => '3w_gateway',
+        	plate_type   => 'FINAL',
+        },
+        button => 'create',
+    ), 'submit plate creation form';
+    
+    $mech->content_like(qr/The following plates where created/,'new plate created');
+    $mech->title_is('Browse Plates', 'plate creation redirects to browse plates');
+    ok $mech->follow_link( text => $name_inputs[0]->value ), 'can view new plate';
+    ok $mech->follow_link( text => 'Well Details'), 'can view well details';
+    $mech->text_contains('B02', 'well B02 created');
+    $mech->text_contains('G12', 'well G12 created');    
 }
 
 note "Testing creation and retrieval of QC template";

@@ -9635,8 +9635,8 @@ INSERT INTO qc_run_seq_well_qc_seq_read VALUES (71, 'PCS05036_A_1g12.p1kLR');
 -- Data for Name: qc_template_wells; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO qc_template_wells VALUES (3265, 200, 'A01', 2220);
-INSERT INTO qc_template_wells VALUES (3266, 200, 'A02', 2221);
+INSERT INTO qc_template_wells VALUES (3265, 200, 'A01', 2220, 846);
+INSERT INTO qc_template_wells VALUES (3266, 200, 'A02', 2221, 847);
 
 
 --
