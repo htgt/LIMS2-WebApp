@@ -451,14 +451,16 @@ sub _populate_create_template_menus{
 	my ($self, $c) = @_;
 
     my $cassettes = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette');
-    $c->stash->{cassettes} = [ map {$_->{name} } @$cassettes ];
+    $c->stash->{cassettes} = [ sort { lc($a) cmp lc($b) } map {$_->{name} } @$cassettes ];
     unshift @{ $c->stash->{cassettes} }, "";
 
-    my $backbones = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-backbone');
-    $c->stash->{backbones} = [ map { $_->{name} } @$backbones ];
+    # intermediate backbones can be in a final vector, so need a list of all backbone types
+    # which eng-seq-builder can not provide using the eng_seq_of_type method
+    my @backbones = $c->model('Golgi')->schema->resultset('Backbone')->all;
+    $c->stash->{backbones} = [ sort { lc($a) cmp lc($b) } map { $_->name } @backbones ];
     unshift @{ $c->stash->{backbones} }, "";
 
-    $c->stash->{recombinases} = [ map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
+    $c->stash->{recombinases} = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
 
     return;
 }
@@ -474,7 +476,7 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 	$c->stash->{plate_type} = $c->req->param('plate_type');
 
 	$c->stash->{process_types} = [ qw(2w_gateway 3w_gateway rearray) ];
-	$c->stash->{plate_types}   = [ qw(POSTINT FINAL) ];
+	$c->stash->{plate_types}   = [ qw(INT POSTINT FINAL) ];
 
 	unless ($run_id){
 		$c->flash->{error_msg} = "No QC run ID provided to create plates";
