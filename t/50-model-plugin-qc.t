@@ -13,6 +13,35 @@ use Test::Most;
 use Try::Tiny;
 use DateTime;
 
+note "Testing creation of plate from QC results";
+
+{
+    my $params = {
+        qc_run_id    => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7',
+        process_type => '3w_gateway',
+        plate_type   => 'FINAL',
+        created_by   => 'test_user@example.org',
+        view_uri     => 'http://test/view',
+    };
+    
+    ok my ($new_plate) = model->create_plates_from_qc($params), 'new plates created from QC';
+    isa_ok $new_plate, 'LIMS2::Model::Schema::Result::Plate';
+    is $new_plate->name, 'PCS05036_A_1', 'plate name correct';
+    is $new_plate->type->id, 'FINAL', 'plate type is correct';
+    my @wells = $new_plate->wells->all;
+    is scalar @wells, 2, 'plate has 2 wells';
+    my ($b02) = grep { $_->name eq 'B02'} @wells;
+    my ($g12) = grep { $_->name eq 'G12'} @wells;
+    ok $b02, 'well B02 created';
+    ok $g12, 'well G12 created';
+    ok my $result = $g12->well_qc_sequencing_result, 'well G12 has sequencing result';
+    is $result->valid_primers, 'LR','well valid primers correct';
+    is $result->mixed_reads, '0','well mixed reads correct';
+    is $result->pass, '1','well pass correct';
+    my $view_uri = 'http://test/view?well_name=g12&plate_name=PCS05036_A_1&qc_run_id=534EE22E-3DBF-22E4-5EF2-1234F5CB64C7';
+    is $result->test_result_url, $view_uri, 'well test result url correct';
+}
+
 note( "Testing QC template storage and retrieval" );
 
 my $template_data = test_data( 'qc_template.yaml' );

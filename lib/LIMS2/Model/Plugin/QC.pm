@@ -682,13 +682,14 @@ sub pspec_create_plates_from_qc{
         qc_run_id    => { validate => 'uuid' },
         process_type => { validate => 'existing_process_type' },
         plate_type   => { validate => 'existing_plate_type'   },
-        created_by   => { validate => 'existing_user'},
+        created_by   => { validate => 'existing_user' },
         rename_plate => { validate => 'hashref', optional => 1 },
+        view_uri     => { validate => 'absolute_url' },
     };
 }
 
 sub create_plates_from_qc{
-	my ($self, $params, $c) = @_;
+	my ($self, $params) = @_;
 
 	my $validated_params = $self->check_params( $params, $self->pspec_create_plates_from_qc);
 
@@ -720,8 +721,9 @@ sub create_plates_from_qc{
 		    process_type    => $validated_params->{process_type},
 		    qc_template_id  => $qc_run->qc_template->id,
 		    created_by      => $validated_params->{created_by},
+		    view_uri        => $validated_params->{view_uri},
+		    qc_run_id       => $validated_params->{qc_run_id},
 		},
-		$c,
 		);
 
 		push @created_plates, $plate;
@@ -738,11 +740,13 @@ sub pspec_create_plate_from_qc{
         results_by_well => { validate => 'hashref' },
         qc_template_id  => { validate => 'integer' },
         created_by   => { validate => 'existing_user'},
+        view_uri     => { validate => 'absolute_url'},
+        qc_run_id    => { validate => 'uuid'},
     };
 }
 
 sub create_plate_from_qc{
-	my ($self, $params, $c) = @_;
+	my ($self, $params) = @_;
 
 	DEBUG "Creating plate ".$params->{plate_name};
 
@@ -803,9 +807,6 @@ sub create_plate_from_qc{
 		}
 	}
 
-	use Data::Dumper;
-	DEBUG Dumper(@new_wells);
-
 	my $plate = $self->create_plate({
 		name    => $validated_params->{plate_name},
 		species => $template->species->id,
@@ -814,32 +815,53 @@ sub create_plate_from_qc{
 		created_by => $validated_params->{created_by},
 	});
 
-	$self->_add_well_qc_sequencing_results($plate, $validated_params->{orig_name}, $results_by_well, $c);
+	$self->_add_well_qc_sequencing_results({
+		plate           => $plate,
+		orig_name       => $validated_params->{orig_name},
+		results_by_well => $results_by_well,
+		view_uri        => $validated_params->{view_uri},
+		qc_run_id       => $validated_params->{qc_run_id},
+	});
 
 	return $plate;
 }
 
+sub pspec_add_well_qc_sequencing_results{
+	return{
+        plate   => { },
+        orig_name       => { validate => 'non_empty_string' },
+        results_by_well => { validate => 'hashref' },
+        view_uri        => { validate => 'absolute_url' },
+        qc_run_id       => { validate => 'uuid' },
+	};
+}
+
 sub _add_well_qc_sequencing_results{
-	my ($self, $plate, $orig_name, $results_by_well, $c) = @_;
+	my ($self, $params) = @_;
+
+    my $v_params = $self->check_params($params, $self->pspec_add_well_qc_sequencing_results);
+
+    my $plate = $v_params->{plate};
 
 	foreach my $well ($plate->wells->all){
-		my $results = $results_by_well->{$well->name};
+		my $results = $v_params->{results_by_well}->{$well->name};
 		my $best = $results->[0];
 
         my $view_params = {
             well_name  => lc($well->name),
-            plate_name => $orig_name,
-            qc_run_id  => $c->req->param('qc_run_id'),
+            plate_name => $v_params->{orig_name},
+            qc_run_id  => $v_params->{qc_run_id},
         };
 
-		my $url = $c->uri_for("/user/view_qc_result", $view_params);
+		my $url = URI->new($v_params->{view_uri});
+		$url->query_form($view_params);
 
 		my $qc_result = {
 			well_id         => $well->id,
 			valid_primers   => join( q{,}, @{ $best->{valid_primers} } ),
 			mixed_reads     => @{ $results } > 1 ? 1 : 0,
 			pass            => $best->{pass} ? 1 : 0,
-			test_result_url => $url,
+			test_result_url => $url->as_string,
 			created_by      => $plate->created_by->name,
 		};
         $self->create_well_qc_sequencing_result($qc_result);

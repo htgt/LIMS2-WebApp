@@ -500,15 +500,16 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 		$c->model('Golgi')->txn_do(
 		    sub{
 		    	try{
+		    		# The view_uri is needed to create path to results view
+		    		# which is entered in the well_qc_sequencing_result
 			        @new_plates = $c->model('Golgi')->create_plates_from_qc({
 				        qc_run_id    => $run_id,
 				        process_type => $c->req->param('process_type'),
 				        plate_type   => $c->req->param('plate_type'),
 				        rename_plate => $rename_plate,
 				        created_by   => $c->user->name,
-			        },
-			        $c,
-			        );
+				        view_uri     => $c->uri_for("/user/view_qc_result"),
+			        });
 		        }
 		        catch{
 			        $c->stash->{error_msg} = "Plate creation failed with error: $_";
