@@ -115,6 +115,32 @@ sub list_designs : Private {
     );
 }
 
+sub design_oligo : Path( '/api/design_oligo' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+=head2 POST
+
+Create a design oligo.
+
+=cut
+
+sub design_oligo_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $design_oligo = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->create_design_oligo( $c->request->data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        entity => $design_oligo
+    );
+}
+
 =head1 AUTHOR
 
 Ray Miller
