@@ -106,6 +106,24 @@ note('Testing the Creation and Deletion of designs');
     'LIMS2::Exception::NotFound', '..can not retreive deleted design';
 }
 
+note('Testing create design oligo');
+{
+    my $design_data = build_design_data(84231);
+
+    my $oligos = delete $design_data->{oligos};
+
+    ok my $new_design = model->create_design($design_data), 'can create new design';
+
+    my $oligo_data = shift @{ $oligos };
+
+    throws_ok{
+        model->create_design_oligo( $oligo_data );
+    } 'LIMS2::Exception::Validation', 'design_id not present';
+
+    $oligo_data->{design_id} = $new_design->id;
+    ok my $new_oligo = model->create_design_oligo( $oligo_data ), 'can create new oligo';
+}
+
 sub build_design_data{
     my $design_id = shift;
 
