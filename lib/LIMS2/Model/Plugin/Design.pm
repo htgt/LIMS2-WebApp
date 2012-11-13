@@ -100,7 +100,6 @@ sub create_design {
     }
 
     for my $oligo_params ( @{ $validated_params->{oligos} || [] } ) {
-        $self->trace( "Create design oligo", $oligo_params );
         $oligo_params->{design_id} = $design->id;
         $self->create_design_oligo( $oligo_params, $design );
     }
@@ -123,6 +122,28 @@ sub pspec_create_design_oligo {
     };
 }
 
+
+sub create_design_oligo {
+    my ( $self, $params, $design ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_design_oligo );
+    $self->trace( "Create design oligo", $validated_params );
+
+    $design ||= $self->retrieve_design( { id => $validated_params->{design_id} } );
+
+    delete $validated_params->{design_id};
+    my $loci = delete $validated_params->{loci};
+    my $oligo = $design->create_related( oligos => $validated_params );
+
+    for my $locus_params ( @{ $loci || [] } ) {
+        $locus_params->{design_id} = $design->id;
+        $locus_params->{oligo_type} = $oligo->design_oligo_type_id;
+        $self->create_design_oligo_locus( $locus_params, $oligo );
+    }
+
+    return $oligo;
+}
+
 sub pspec_create_design_oligo_locus {
     return {
         assembly   => { validate => 'existing_assembly' },
@@ -130,40 +151,35 @@ sub pspec_create_design_oligo_locus {
         chr_start  => { validate => 'integer' },
         chr_end    => { validate => 'integer' },
         chr_strand => { validate => 'strand' },
+        oligo_type => { validate => 'existing_design_oligo_type' },
+        design_id  => { validate => 'integer' },
     };
 }
 
-sub create_design_oligo {
-    my ( $self, $params, $design ) = @_;
+sub create_design_oligo_locus {
+    my ( $self, $params, $oligo ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_create_design_oligo );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_design_oligo_locus );
+    $self->trace( "Create oligo locus", $validated_params );
 
-    $design ||= $self->schema->resultset( 'Design' )->find( { id => $validated_params->{design_id} } )
-        or $self->throw(
-            NotFound => {
-                entity_class  => 'Design',
-                search_params =>  { id => $validated_params->{design_id} }
-            }
-        );
+    $oligo ||= $self->retrieve_design_oligo(
+        {
+            design_id  => $validated_params->{design_id},
+            oligo_type => $validated_params->{oligo_type},
+        }
+    );
 
-    my $loci = delete $validated_params->{loci};
-    my $oligo = $design->create_related( oligos => $validated_params );
+    my $oligo_locus = $oligo->create_related(
+        loci => {
+            assembly_id => $validated_params->{assembly},
+            chr_id      => $self->_chr_id_for( @{$validated_params}{ 'assembly', 'chr_name' } ),
+            chr_start   => $validated_params->{chr_start},
+            chr_end     => $validated_params->{chr_end},
+            chr_strand  => $validated_params->{chr_strand}
+        }
+    );
 
-    for my $l ( @{ $loci || [] } ) {
-        $self->trace( "Create oligo locus", $l );
-        my $validated_locus = $self->check_params( $l, $self->pspec_create_design_oligo_locus );
-        $oligo->create_related(
-            loci => {
-                assembly_id => $validated_locus->{assembly},
-                chr_id      => $self->_chr_id_for( @{$validated_locus}{ 'assembly', 'chr_name' } ),
-                chr_start   => $validated_locus->{chr_start},
-                chr_end     => $validated_locus->{chr_end},
-                chr_strand  => $validated_locus->{chr_strand}
-            }
-        );
-    }
-
-    return $oligo;
+    return $oligo_locus;
 }
 
 sub pspec_delete_design {
@@ -215,7 +231,7 @@ sub pspec_retrieve_design {
     return {
         id      => { validate => 'integer' },
         species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
-    }
+    };
 }
 
 sub retrieve_design {
@@ -226,6 +242,24 @@ sub retrieve_design {
     my $design = $self->retrieve( Design => { slice_def $validated_params, qw( id species_id ) } );
 
     return $design;
+}
+
+sub pspec_retrieve_design_oligo {
+    return {
+        design_id  => { validate => 'integer' },
+        oligo_type => { validate => 'existing_design_oligo_type', rename => 'design_oligo_type_id' },
+    };
+}
+
+sub retrieve_design_oligo {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_design_oligo );
+
+    my $design_oligo = $self->retrieve(
+        DesignOligo => { slice_def $validated_params, qw( design_id design_oligo_type_id ) } );
+
+    return $design_oligo;
 }
 
 sub pspec_list_assigned_designs_for_gene {
