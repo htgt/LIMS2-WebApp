@@ -157,6 +157,7 @@ sub design_oligo_POST {
 
     return $self->status_created(
         $c,
+        location => $c->uri_for( '/api/design_oligo', { id => $design_oligo->id } ),
         entity => $design_oligo
     );
 }
@@ -183,6 +184,7 @@ sub design_oligo_locus_POST {
 
     return $self->status_created(
         $c,
+        location => $c->uri_for( '/api/design_oligo_locus' , { id => $design_oligo_locus->id } ),
         entity => $design_oligo_locus
     );
 }
