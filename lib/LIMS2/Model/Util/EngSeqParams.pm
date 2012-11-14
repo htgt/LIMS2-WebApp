@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.025';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.026';
 }
 ## use critic
 
@@ -31,11 +31,16 @@ sub fetch_design_eng_seq_params{
 	my ($design, $loxp) = @_;
 
 	my %locus_for;
+    my @not_found;
 
 	foreach my $oligo (@{ $design->{oligos} }){
 		my $locus_type = $oligo->{type};
-		$locus_for{$locus_type} = $oligo->{locus};
+		$locus_for{$locus_type} = $oligo->{locus} or push @not_found ,$locus_type;
 	}
+
+    if(@not_found){
+    	die "No design oligo loci found for design ".$design->{id}." oilgos ".(join ", ", @not_found);
+    }
 
 	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type}, $loxp);
 	$params->{design_id} = $design->{id};

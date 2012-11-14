@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.025';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.026';
 }
 ## use critic
 
@@ -282,7 +282,7 @@ sub pspec_qc_template_from_plate{
 		species       => { validate => 'existing_species',    optional => 1},
 		template_name => { validate => 'plate_name'},
 		cassette      => { validate => 'existing_final_cassette',   optional => 1},
-		backbone      => { validate => 'existing_final_backbone',   optional => 1},
+		backbone      => { validate => 'existing_backbone',   optional => 1},
 		recombinase   => { validate => 'existing_recombinase', optional => 1},
 	};
 }

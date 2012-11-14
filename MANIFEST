@@ -190,6 +190,7 @@ root/site/user/graph/index.tt
 root/site/user/index.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
+root/site/user/qc/create_plates.tt
 root/site/user/qc/create_template_plate.tt
 root/site/user/qc/index.tt
 root/site/user/qc/latest_runs.tt

@@ -1,7 +1,7 @@
 package LIMS2::Model::Types;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Types::VERSION = '0.025';
+    $LIMS2::Model::Types::VERSION = '0.026';
 }
 ## use critic
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.025';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.026';
 }
 ## use critic
 
@@ -73,24 +73,6 @@ sub pspec_create_design_comment {
     }
 }
 
-sub pspec_create_design_oligo {
-    return {
-        type => { validate => 'existing_design_oligo_type', rename => 'design_oligo_type_id' },
-        seq  => { validate => 'dna_seq' },
-        loci => { optional => 1 }
-    }
-}
-
-sub pspec_create_design_oligo_locus {
-    return {
-        assembly   => { validate => 'existing_assembly' },
-        chr_name   => { validate => 'existing_chromosome' },
-        chr_start  => { validate => 'integer' },
-        chr_end    => { validate => 'integer' },
-        chr_strand => { validate => 'strand' },
-    }
-}
-
 sub pspec_create_genotyping_primer {
     return {
         type => { validate => 'existing_genotyping_primer_type', rename => 'genotyping_primer_type_id' },
@@ -123,24 +105,9 @@ sub create_design {
         $design->create_related( comments => $validated );
     }
 
-    for my $o ( @{ $validated_params->{oligos} || [] } ) {
-        $self->trace( "Create design oligo", $o );
-        my $validated_oligo = $self->check_params( $o, $self->pspec_create_design_oligo );
-        my $loci = delete $validated_oligo->{loci};
-        my $oligo = $design->create_related( oligos => $validated_oligo );
-        for my $l ( @{ $loci || [] } ) {
-            $self->trace( "Create oligo locus", $l );
-            my $validated_locus = $self->check_params( $l, $self->pspec_create_design_oligo_locus );
-            $oligo->create_related(
-                loci => {
-                    assembly_id => $validated_locus->{assembly},
-                    chr_id      => $self->_chr_id_for( @{$validated_locus}{ 'assembly', 'chr_name' } ),
-                    chr_start   => $validated_locus->{chr_start},
-                    chr_end     => $validated_locus->{chr_end},
-                    chr_strand  => $validated_locus->{chr_strand}
-                }
-            );
-        }
+    for my $oligo_params ( @{ $validated_params->{oligos} || [] } ) {
+        $oligo_params->{design_id} = $design->id;
+        $self->create_design_oligo( $oligo_params, $design );
     }
 
     for my $p ( @{ $validated_params->{genotyping_primers} || [] } ) {
@@ -150,6 +117,75 @@ sub create_design {
     }
 
     return $design;
+}
+
+sub pspec_create_design_oligo {
+    return {
+        type      => { validate => 'existing_design_oligo_type', rename => 'design_oligo_type_id' },
+        seq       => { validate => 'dna_seq' },
+        loci      => { optional => 1 },
+        design_id => { validate => 'integer' },
+    };
+}
+
+
+sub create_design_oligo {
+    my ( $self, $params, $design ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_design_oligo );
+    $self->trace( "Create design oligo", $validated_params );
+
+    $design ||= $self->retrieve_design( { id => $validated_params->{design_id} } );
+
+    delete $validated_params->{design_id};
+    my $loci = delete $validated_params->{loci};
+    my $oligo = $design->create_related( oligos => $validated_params );
+
+    for my $locus_params ( @{ $loci || [] } ) {
+        $locus_params->{design_id} = $design->id;
+        $locus_params->{oligo_type} = $oligo->design_oligo_type_id;
+        $self->create_design_oligo_locus( $locus_params, $oligo );
+    }
+
+    return $oligo;
+}
+
+sub pspec_create_design_oligo_locus {
+    return {
+        assembly   => { validate => 'existing_assembly' },
+        chr_name   => { validate => 'existing_chromosome' },
+        chr_start  => { validate => 'integer' },
+        chr_end    => { validate => 'integer' },
+        chr_strand => { validate => 'strand' },
+        oligo_type => { validate => 'existing_design_oligo_type' },
+        design_id  => { validate => 'integer' },
+    };
+}
+
+sub create_design_oligo_locus {
+    my ( $self, $params, $oligo ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_design_oligo_locus );
+    $self->trace( "Create oligo locus", $validated_params );
+
+    $oligo ||= $self->retrieve_design_oligo(
+        {
+            design_id  => $validated_params->{design_id},
+            oligo_type => $validated_params->{oligo_type},
+        }
+    );
+
+    my $oligo_locus = $oligo->create_related(
+        loci => {
+            assembly_id => $validated_params->{assembly},
+            chr_id      => $self->_chr_id_for( @{$validated_params}{ 'assembly', 'chr_name' } ),
+            chr_start   => $validated_params->{chr_start},
+            chr_end     => $validated_params->{chr_end},
+            chr_strand  => $validated_params->{chr_strand}
+        }
+    );
+
+    return $oligo_locus;
 }
 
 sub pspec_delete_design {
@@ -201,7 +237,7 @@ sub pspec_retrieve_design {
     return {
         id      => { validate => 'integer' },
         species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
-    }
+    };
 }
 
 sub retrieve_design {
@@ -212,6 +248,31 @@ sub retrieve_design {
     my $design = $self->retrieve( Design => { slice_def $validated_params, qw( id species_id ) } );
 
     return $design;
+}
+
+sub pspec_retrieve_design_oligo {
+    return {
+        id         => { validate => 'integer', optional => 1 },
+        design_id  => { validate => 'integer', optional => 1 },
+        oligo_type => {
+            validate => 'existing_design_oligo_type',
+            rename   => 'design_oligo_type_id',
+            optional => 1
+        },
+        REQUIRE_SOME => { design_id_or_design_oligo_id => [ 1, qw( id design_id ) ] },
+        DEPENDENCY_GROUPS => { design_id_and_oligo_type => [qw( design_id oligo_type )] },
+    };
+}
+
+sub retrieve_design_oligo {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_design_oligo );
+
+    my $design_oligo = $self->retrieve(
+        DesignOligo => { slice_def $validated_params, qw( design_id design_oligo_type_id id ) } );
+
+    return $design_oligo;
 }
 
 sub pspec_list_assigned_designs_for_gene {

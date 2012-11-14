@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.025';
+    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.026';
 }
 ## use critic
 
@@ -119,6 +119,76 @@ sub list_designs : Private {
         $c,
         entity => \@result
     );
+}
+
+sub design_oligo : Path( '/api/design_oligo' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+=head2 GET /api/design_oligo
+
+Retrieve a design oligo.
+
+=cut
+
+sub design_oligo_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $design_oligo = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_design_oligo( { slice_def $c->request->params, qw( design_id oligo_type ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $design_oligo );
+}
+
+=head2 POST
+
+Create a design oligo.
+
+=cut
+
+sub design_oligo_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $design_oligo = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->create_design_oligo( $c->request->data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/design_oligo', { id => $design_oligo->id } ),
+        entity => $design_oligo
+    );
+}
+
+sub design_oligo_locus : Path( '/api/design_oligo_locus' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+=head2 POST
+
+Create a design oligo locus.
+
+=cut
+
+sub design_oligo_locus_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $design_oligo_locus = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->create_design_oligo_locus( $c->request->data );
+        }
+    );
+
+    return $self->status_no_content( $c );
 }
 
 =head1 AUTHOR

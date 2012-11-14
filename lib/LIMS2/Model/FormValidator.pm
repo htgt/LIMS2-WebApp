@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::VERSION = '0.025';
+    $LIMS2::Model::FormValidator::VERSION = '0.026';
 }
 ## use critic
 
@@ -13,6 +13,7 @@ use Moose;
 use Data::FormValidator;
 use LIMS2::Model::FormValidator::Constraint;
 use Hash::MoreUtils qw( slice_def );
+use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
 has model => (
@@ -79,10 +80,12 @@ sub check_params {
     my $results = Data::FormValidator->check( $params, $self->dfv_profile($spec) );
 
     if ( !$results->success ) {
+    	DEBUG "Invalid parameters seen in ".( caller(2) )[3];
         $self->throw( Validation => { params => $params, results => $results } );
     }
 
     if ( $results->has_unknown && !$opts{ignore_unknown} ) {
+    	DEBUG "Invalid parameters seen in ".( caller(2) )[3];
         $self->throw( Validation => { params => $params, results => $results } );
     }
 
