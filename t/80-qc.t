@@ -130,7 +130,7 @@ note "Testing creation of QC template with overrides";
 	my $template = "test_overrides";
 	my $source = 'MOHFAS0001_A';
 	my $cassette = 'L1L2_st1';
-	my $backbone = 'PL611';
+	my $backbone = 'R3R4_pBR_amp';
 	my $recom = 'Dre';
 	
 	$mech->get_ok('/user/create_template_plate');
