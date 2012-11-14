@@ -24,6 +24,8 @@ use LIMS2::Model::Util::QCResults qw(
 );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
+use List::MoreUtils qw( uniq );
+use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
@@ -675,6 +677,197 @@ sub list_templates {
     return ( [ $resultset->all ], $resultset->pager );
 }
 
+sub pspec_create_plates_from_qc{
+    return {
+        qc_run_id    => { validate => 'uuid' },
+        process_type => { validate => 'existing_process_type' },
+        plate_type   => { validate => 'existing_plate_type'   },
+        created_by   => { validate => 'existing_user' },
+        rename_plate => { validate => 'hashref', optional => 1 },
+        view_uri     => { validate => 'absolute_url' },
+    };
+}
+
+sub create_plates_from_qc{
+	my ($self, $params) = @_;
+
+	my $validated_params = $self->check_params( $params, $self->pspec_create_plates_from_qc);
+
+	my ($qc_run, $results) = $self->qc_run_results({ qc_run_id => $validated_params->{qc_run_id}});
+	my @created_plates;
+
+	# Get list of all sequencing plate names
+	my @plates = uniq map { $_->{plate_name} } @$results;
+
+	foreach my $plate (@plates){
+		# Get results for this plate only, store by well
+		my %results_by_well;
+        for my $r ( @$results ) {
+            next unless $r->{plate_name} eq $plate;
+            push @{ $results_by_well{ uc( substr( $r->{well_name}, -3 ) ) } }, $r;
+        }
+
+		my $old_name = $plate;
+		my $new_name;
+		my $rename = $validated_params->{rename_plate};
+		$new_name = ($rename and $rename->{$old_name}) ? $rename->{$old_name}
+		                                               : $old_name;
+
+		my $plate = $self->create_plate_from_qc({
+			plate_name      => $new_name,
+			orig_name       => $old_name,
+		    results_by_well => \%results_by_well,
+		    plate_type      => $validated_params->{plate_type},
+		    process_type    => $validated_params->{process_type},
+		    qc_template_id  => $qc_run->qc_template->id,
+		    created_by      => $validated_params->{created_by},
+		    view_uri        => $validated_params->{view_uri},
+		    qc_run_id       => $validated_params->{qc_run_id},
+		},
+		);
+
+		push @created_plates, $plate;
+	}
+	return @created_plates;
+}
+
+sub pspec_create_plate_from_qc{
+    return {
+        plate_name   => { validate => 'non_empty_string' },
+        orig_name    => { validate => 'non_empty_string' },
+        process_type => { validate => 'existing_process_type' },
+        plate_type   => { validate => 'existing_plate_type'   },
+        results_by_well => { validate => 'hashref' },
+        qc_template_id  => { validate => 'integer' },
+        created_by   => { validate => 'existing_user'},
+        view_uri     => { validate => 'absolute_url'},
+        qc_run_id    => { validate => 'uuid'},
+    };
+}
+
+sub create_plate_from_qc{
+	my ($self, $params) = @_;
+
+	DEBUG "Creating plate ".$params->{plate_name};
+
+	my $validated_params = $self->check_params( $params, $self->pspec_create_plate_from_qc );
+
+	my $template = $self->retrieve_qc_template({ id => $validated_params->{qc_template_id}});
+	my $results_by_well = $validated_params->{results_by_well};
+
+	my @new_wells;
+
+	while (my ($well, $results) = each %$results_by_well){
+		my $best = $results->[0];
+		if(my $design_id = $best->{design_id}){
+			DEBUG "Found design $design_id for well $well";
+			my $template_well;
+
+            if ($best->{expected_design_id} and $design_id eq $best->{expected_design_id}){
+            	# Fetch source well from template well with same location
+            	DEBUG "Found design $design_id at expected location on template";
+            	($template_well) = $template->qc_template_wells->search({ name => $well });
+            }
+            else{
+            	# See if design_id was expected in some other well on the template,
+            	# and get source for that
+            	DEBUG "Looking for design $design_id at different template location";
+            	($template_well) = grep { $_->as_hash->{eng_seq_params}->{design_id} eq $design_id }
+            	                      $template->qc_template_wells->all;
+            	die "Could not find template well for design $design_id" unless $template_well;
+            }
+            my $source_well = $template_well->source_well
+                or die "No source well linked to template well ".$template_well->id;
+            my $eng_seq_params = $template_well->as_hash->{eng_seq_params};
+
+            # Store new well params
+            my %well_params = (
+                well_name => $well,
+                process_type => $validated_params->{process_type},
+                parent_plate => $source_well->plate->name,
+                parent_well  => $source_well->name,
+            );
+
+            # Store cassette and backbone to be linked to well creation process (not needed for rearraying)
+            unless ($validated_params->{process_type} eq 'rearray'){
+            	my $cassette = $eng_seq_params->{insertion}->{name} ? $eng_seq_params->{insertion}->{name}
+            	              :                                       $eng_seq_params->{u_insertion}->{name};
+
+            	$well_params{cassette} = $cassette if $cassette;
+            	$well_params{backbone} = $eng_seq_params->{backbone}->{name} if $eng_seq_params->{backbone}->{name};
+            }
+
+            push @new_wells, \%well_params;
+		}
+		else{
+			# Decided not to create empty wells
+			# If we created empty wells they would either need dummy input process,
+			# or we would have to remove the constraint that wells have input process
+			DEBUG "No design for well $well";
+		}
+	}
+
+	my $plate = $self->create_plate({
+		name    => $validated_params->{plate_name},
+		species => $template->species->id,
+		type    => $validated_params->{plate_type},
+		wells   => \@new_wells,
+		created_by => $validated_params->{created_by},
+	});
+
+	$self->_add_well_qc_sequencing_results({
+		plate           => $plate,
+		orig_name       => $validated_params->{orig_name},
+		results_by_well => $results_by_well,
+		view_uri        => $validated_params->{view_uri},
+		qc_run_id       => $validated_params->{qc_run_id},
+	});
+
+	return $plate;
+}
+
+sub pspec_add_well_qc_sequencing_results{
+	return{
+        plate   => { },
+        orig_name       => { validate => 'non_empty_string' },
+        results_by_well => { validate => 'hashref' },
+        view_uri        => { validate => 'absolute_url' },
+        qc_run_id       => { validate => 'uuid' },
+	};
+}
+
+sub _add_well_qc_sequencing_results{
+	my ($self, $params) = @_;
+
+    my $v_params = $self->check_params($params, $self->pspec_add_well_qc_sequencing_results);
+
+    my $plate = $v_params->{plate};
+
+	foreach my $well ($plate->wells->all){
+		my $results = $v_params->{results_by_well}->{$well->name};
+		my $best = $results->[0];
+
+        my $view_params = {
+            well_name  => lc($well->name),
+            plate_name => $v_params->{orig_name},
+            qc_run_id  => $v_params->{qc_run_id},
+        };
+
+		my $url = URI->new($v_params->{view_uri});
+		$url->query_form($view_params);
+
+		my $qc_result = {
+			well_id         => $well->id,
+			valid_primers   => join( q{,}, @{ $best->{valid_primers} } ),
+			mixed_reads     => @{ $results } > 1 ? 1 : 0,
+			pass            => $best->{pass} ? 1 : 0,
+			test_result_url => $url->as_string,
+			created_by      => $plate->created_by->name,
+		};
+        $self->create_well_qc_sequencing_result($qc_result);
+	}
+	return;
+}
 1;
 
 __END__

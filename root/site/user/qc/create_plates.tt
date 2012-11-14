@@ -1,0 +1,52 @@
+[%- META title = 'Create Plates from QC'; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Create Plates from QC Run <small>[% qc_run_id %]</small></h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="create_plates" action="[% c.uri_for( '/user/create_plates' ) %]" class="form well"  enctype="multipart/form-data" >
+
+
+       <input type="hidden" name="qc_run_id" value="[% qc_run_id %]">
+
+       <p>
+       Use sequencing project names as plate names, or enter new plate names below
+       </p>
+       
+       [% FOR plate IN qc_run_plates %]
+         [% SET rename_plate = "rename_plate_${plate}" %]
+         [% SET rename_to = c.request.param( rename_plate ) %]
+           Create plate [% plate %] as 
+           <input name="[% rename_plate %]" id="[% rename_plate %]" type="text" value="[% rename_to.length ? rename_to : plate %]" />
+           <br />
+       [% END %]
+       
+       <br/>
+       
+       <label>Plate Creation Process</label>
+       <select name="process_type" id="process_type">
+         [% FOR pr_type IN process_types %]
+           <option [% IF pr_type == process_type %] selected="selected"[% END %]>[% pr_type %]</option>
+         [% END %]
+       </select>
+       
+       <label>Plate Type</label>
+       <select name="plate_type" id="plate_type">
+         [% FOR pl_type IN plate_types %]
+           <option [% IF pl_type == plate_type %] selected="selected"[% END %]>[% pl_type %]</option>
+         [%- END %]
+       </select>
+       
+       <br/>
+       
+       <button name="create" id="create" type="submit" value="create" class="btn">
+         Create Plates
+       </button>
+       
+     </form>
+  </div>
+  
+</div>    

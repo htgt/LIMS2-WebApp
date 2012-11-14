@@ -41,6 +41,9 @@
     <a class="btn btn-info" href="[% c.uri_for( '/user/report/sync/QcRunSummary', { 'qc_run_id' => qc_run.id } ) %]">
       <i class="icon-download-alt icon-white"></i> View Summary Results
     </a>
+    <a class="btn btn-info" href="[% c.uri_for( '/user/create_plates', { 'qc_run_id' => qc_run.id } ) %]">
+      Create Plates from QC
+    </a>    
   </div>
 </div>
 

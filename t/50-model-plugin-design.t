@@ -89,7 +89,7 @@ note('Testing the Creation and Deletion of designs');
     ok model->delete_process( { id => $new_process->id } ), 'delete linked process';
 
     # Commented out for now as this test dies with "DBD::Pg::st execute failed"
-    # when running within a transaction. Can't work out why 
+    # when running within a transaction. Can't work out why
     #throws_ok{
     #    model->delete_design( { id => 99999999 } )
     #} 'DBIx::Class::Exception', 'can not delete this design without cascade delete enabled';
@@ -104,6 +104,72 @@ note('Testing the Creation and Deletion of designs');
         model->retrieve_design( { id => 99999999 } );
     }
     'LIMS2::Exception::NotFound', '..can not retreive deleted design';
+}
+
+note('Testing create design oligo');
+{
+    my $design_data = build_design_data(84231);
+
+    my $oligos = delete $design_data->{oligos};
+
+    ok my $new_design = model->create_design($design_data), 'can create new design';
+
+    my $oligo_data = shift @{ $oligos };
+
+    throws_ok{
+        model->create_design_oligo( $oligo_data );
+    } 'LIMS2::Exception::Validation', 'design_id not present';
+
+    $oligo_data->{design_id} = $new_design->id;
+    ok my $new_oligo = model->create_design_oligo( $oligo_data ), 'can create new oligo';
+}
+
+note('Testing retrieve design oligo');
+{
+    ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } )
+        , 'can retrieve design oligo by design_id and oligo_type';
+
+    is $design_oligo->seq, 'AATATCATGTTTTATGCTGTCTGGAATTTATTGCCTATTTCAAAGCAAAG', 'oligo has correct sequence';
+
+    ok my $design_oligo2 = model->retrieve_design_oligo( { id => 54761 } ), 'can retrieve design oligo by id';
+}
+
+note('Testing create design oligo locus');
+{
+    ok my $design_oligo_locus = model->create_design_oligo_locus(
+        {
+            assembly   => 'NCBIM34',
+            chr_name   => 1,
+            chr_start  => 10,
+            chr_end    => 20,
+            chr_strand => 1,
+            oligo_type => 'D5',
+            design_id  => 81136,
+        }
+    ), 'can create design oligo locus';
+
+    ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } )
+        , 'can retrieve design_oligo';
+
+    ok my $loci = $design_oligo->loci->find( { assembly_id => 'GRCm38' } )
+        , 'can find newly created loci attached to oligo';
+
+    throws_ok{
+         model->create_design_oligo_locus(
+            {
+                assembly   => 'GRCm38',
+                chr_name   => 1,
+                chr_start  => 10,
+                chr_end    => 20,
+                chr_strand => 1,
+                oligo_type => 'D5',
+                design_id  => 999999,
+            }
+        ), 'can create design oligo locus';
+
+
+    } 'LIMS2::Exception::NotFound', 'unable to create locus for non existant oligo';
+
 }
 
 sub build_design_data{
