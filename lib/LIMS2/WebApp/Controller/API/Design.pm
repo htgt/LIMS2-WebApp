@@ -182,11 +182,7 @@ sub design_oligo_locus_POST {
         }
     );
 
-    return $self->status_created(
-        $c,
-        location => $c->uri_for( '/api/design_oligo_locus' , { id => $design_oligo_locus->id } ),
-        entity => $design_oligo_locus
-    );
+    return $self->status_no_content( $c );
 }
 
 =head1 AUTHOR
