@@ -127,9 +127,11 @@ note('Testing create design oligo');
 note('Testing retrieve design oligo');
 {
     ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } )
-        , 'can retrieve design_oligo';
+        , 'can retrieve design oligo by design_id and oligo_type';
 
     is $design_oligo->seq, 'AATATCATGTTTTATGCTGTCTGGAATTTATTGCCTATTTCAAAGCAAAG', 'oligo has correct sequence';
+
+    ok my $design_oligo2 = model->retrieve_design_oligo( { id => 54761 } ), 'can retrieve design oligo by id';
 }
 
 note('Testing create design oligo locus');

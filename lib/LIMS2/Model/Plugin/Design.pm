@@ -246,8 +246,15 @@ sub retrieve_design {
 
 sub pspec_retrieve_design_oligo {
     return {
-        design_id  => { validate => 'integer' },
-        oligo_type => { validate => 'existing_design_oligo_type', rename => 'design_oligo_type_id' },
+        id         => { validate => 'integer', optional => 1 },
+        design_id  => { validate => 'integer', optional => 1 },
+        oligo_type => {
+            validate => 'existing_design_oligo_type',
+            rename   => 'design_oligo_type_id',
+            optional => 1
+        },
+        REQUIRE_SOME => { design_id_or_design_oligo_id => [ 1, qw( id design_id ) ] },
+        DEPENDENCY_GROUPS => { design_id_and_oligo_type => [qw( design_id oligo_type )] },
     };
 }
 
@@ -257,7 +264,7 @@ sub retrieve_design_oligo {
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_design_oligo );
 
     my $design_oligo = $self->retrieve(
-        DesignOligo => { slice_def $validated_params, qw( design_id design_oligo_type_id ) } );
+        DesignOligo => { slice_def $validated_params, qw( design_id design_oligo_type_id id ) } );
 
     return $design_oligo;
 }
