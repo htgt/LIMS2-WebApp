@@ -569,7 +569,7 @@ sub retrieve_well_phase_matched_cassette{
     });
 
     # Use phase 0 cassette if no k (-1) cassette available
-    if ($phase == -1 and not defined $cassette){
+    if (defined $phase and $phase == -1 and not defined $cassette){
         $cassette = $self->schema->resultset('Cassette')->find({
     	    phase_match_group => $validated_params->{phase_match_group},
     	    phase             => undef,
