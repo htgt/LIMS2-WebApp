@@ -106,12 +106,12 @@ sub view :Path( '/user/view_template' ) :Args(0) {
 		my @gene_symbols;
 		foreach my $gene_id ( @gene_ids ) {
 			$genes = $c->model('Golgi')->search_genes(
-			 { search_term => $gene_id, species =>  $c->session->{selected_species} } );
+                { search_term => $gene_id, species =>  $c->session->{selected_species} } );
 
-			push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };  	
+            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
 		}
         	$info->{gene_ids} = join q{/}, @gene_ids;
-		$info->{gene_symbols} = join q{/}, @gene_symbols;
+            $info->{gene_symbols} = join q{/}, @gene_symbols;
         }
 
         push @well_info, $info;
