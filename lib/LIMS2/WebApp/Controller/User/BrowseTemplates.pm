@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseTemplates::VERSION = '0.028';
+    $LIMS2::WebApp::Controller::User::BrowseTemplates::VERSION = '0.029';
 }
 ## use critic
 
@@ -103,12 +103,21 @@ sub view :Path( '/user/view_template' ) :Args(0) {
         $info->{recombinase} = $es_params->{recombinase} ? join ", ", @{$es_params->{recombinase}}
                                                          : undef;
 
+	my $genes;
         if (my $source = $well->source_well){
         	$info->{source_plate} = $source->plate->name;
         	$info->{source_well} = $source->name;
         	$info->{design_id} = $source->design->id;
         	my @gene_ids      = uniq map { $_->gene_id } $source->design->genes;
+		my @gene_symbols;
+		foreach my $gene_id ( @gene_ids ) {
+			$genes = $c->model('Golgi')->search_genes(
+                { search_term => $gene_id, species =>  $c->session->{selected_species} } );
+
+            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+		}
         	$info->{gene_ids} = join q{/}, @gene_ids;
+            $info->{gene_symbols} = join q{/}, @gene_symbols;
         }
 
         push @well_info, $info;

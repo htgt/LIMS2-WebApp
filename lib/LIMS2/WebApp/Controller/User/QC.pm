@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.028';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.029';
 }
 ## use critic
 
@@ -392,7 +392,7 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
     $c->assert_user_roles( 'edit' );
 
     # Store form values
-    foreach my $param qw(template_plate source_plate cassette backbone ){
+    foreach my $param qw(template_plate source_plate cassette backbone phase_matched_cassette){
     	$c->stash->{$param} = $c->req->param($param);
     }
     $c->stash->{recombinase} = [ $c->req->param('recombinase') ];
@@ -409,8 +409,9 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must provide a source plate";
 			}
 
-            my %overrides = map { $_ => $c->req->param($_) if $c->req->param($_) }
-                            qw( cassette backbone );
+            my %overrides = map { $_ => $c->req->param($_) }
+                            grep { $c->req->param($_) }
+                            qw( cassette backbone phase_matched_cassette);
             $overrides{recombinase} = [ $c->req->param('recombinase') ];
 
 			my $template = $c->model('Golgi')->create_qc_template_from_plate({
@@ -457,12 +458,28 @@ sub _populate_create_template_menus{
 	my ($self, $c) = @_;
 
     my $cassettes = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette');
-    $c->stash->{cassettes} = [ sort { lc($a) cmp lc($b) } map {$_->{name} } @$cassettes ];
-    unshift @{ $c->stash->{cassettes} }, "";
+
+    my $schema = $c->model('Golgi')->schema;
+
+    my (@phase_cassettes, @non_phase_cassettes);
+
+    # Filter cassette list into non-phase matched cassettes, and phase match groups
+    foreach my $cass (@$cassettes){
+    	my $cassette_name = $cass->{name};
+    	my $cassette = $schema->resultset('Cassette')->find({ name => $cassette_name});
+    	if ($cassette and defined $cassette->phase_match_group){
+    		push @phase_cassettes, $cassette->phase_match_group;
+    	}
+    	else{
+    		push @non_phase_cassettes, $cassette_name;
+    	}
+    }
+    $c->stash->{phase_cassettes} = [ "", uniq sort {lc($a) cmp lc($b) } @phase_cassettes ];
+    $c->stash->{non_phase_cassettes} = [ "", sort {lc($a) cmp lc($b) } @non_phase_cassettes ];
 
     # intermediate backbones can be in a final vector, so need a list of all backbone types
     # which eng-seq-builder can not provide using the eng_seq_of_type method
-    my @backbones = $c->model('Golgi')->schema->resultset('Backbone')->all;
+    my @backbones = $schema->resultset('Backbone')->all;
     $c->stash->{backbones} = [ sort { lc($a) cmp lc($b) } map { $_->name } @backbones ];
     unshift @{ $c->stash->{backbones} }, "";
 

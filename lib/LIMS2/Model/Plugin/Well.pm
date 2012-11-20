@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.028';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.029';
 }
 ## use critic
 
@@ -540,6 +540,49 @@ sub generate_well_eng_seq_params{
     add_display_id($stage, $eng_seq_params);
 
     return $method, $well->id, $eng_seq_params;
+}
+
+sub pspec_retrieve_well_phase_matched_cassette {
+	return {
+        plate_name  => { validate => 'existing_plate_name',     optional => 1 },
+        well_name   => { validate => 'well_name',               optional => 1 },
+        well_id     => { validate => 'integer', rename => 'id', optional => 1 },
+        phase_matched_cassette => { rename => 'phase_match_group', optional => 0 },
+	}
+}
+
+sub retrieve_well_phase_matched_cassette{
+	my ( $self, $params ) = @_;
+
+	my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_phase_matched_cassette);
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( plate_name well_name id ) } );
+    $self->throw( NotFound => { entity_class => 'Well', search_params => $params })
+        unless $well;
+
+    my $phase = $well->design->phase;
+
+    unless (defined $phase){
+    	die "No phase specified for design for well ".$well->id;
+    }
+
+    # Cassettes for phase 0 have phase "undef" in cassettes table
+    $phase = undef if $phase == 0;
+
+    my $cassette = $self->schema->resultset('Cassette')->find({
+    	phase_match_group => $validated_params->{phase_match_group},
+    	phase             => $phase,
+    });
+
+    # Use phase 0 cassette if no k (-1) cassette available
+    if (defined $phase and $phase == -1 and not defined $cassette){
+        $cassette = $self->schema->resultset('Cassette')->find({
+    	    phase_match_group => $validated_params->{phase_match_group},
+    	    phase             => undef,
+        });
+    }
+
+    return $cassette ? $cassette->name : undef;
 }
 
 1;

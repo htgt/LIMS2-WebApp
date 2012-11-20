@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.028';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.029';
 }
 ## use critic
 
@@ -579,6 +579,7 @@ sub create_qc_template_from_csv{
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
         $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
         $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
+        $well_hash->{$name}->{phase_matched_cassette} = $datum->{phase_matched_cassette} if $datum->{phase_matched_cassette};
 
         if ($datum->{recombinase}){
             my @recombinases = split ",", $datum->{recombinase};
@@ -622,6 +623,24 @@ sub create_qc_template_from_wells{
         my $datum = $validated_params->{wells}->{$name};
 
 		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id cassette backbone) ) };
+
+        # If we have a phase matched cassette group then handle it here
+        if (my $phase_match_group = $datum->{phase_matched_cassette}){
+        	if ($datum->{cassette}){
+        		die "A new cassette AND phase matched cassette have been provided for well $name";
+        	}
+        	DEBUG "Attempting to fetch phase matched cassette for well $name";
+        	my $new_cassette = $self->retrieve_well_phase_matched_cassette({
+        		slice_def( $datum, qw(plate_name well_name well_id phase_matched_cassette ) )
+        	});
+        	if($new_cassette){
+        	     $well_params->{cassette} = $new_cassette;
+        	}
+        	else{
+        		die "No suitable phase matched cassette found for well $name";
+        	}
+        	DEBUG "Phase matched cassette: $new_cassette";
+        }
 
 		# Recombinase, if defined, must be an arrayref
 		my $recombinase = $datum->{recombinase};
