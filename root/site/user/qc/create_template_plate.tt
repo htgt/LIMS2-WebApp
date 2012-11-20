@@ -25,13 +25,27 @@
           </td>
         
           <td>
-        <label>Cassette (optional)</label>
+        <label>Non-Phase Matched Cassette (optional)</label>
         <select name="cassette" id="cassette"/>
-          [% FOR cass IN cassettes %]
+          [% FOR cass IN non_phase_cassettes %]
             <option [% IF cass == cassette %] selected="selected"[% END %]>[% cass %]</option>
           [%- END %]
         </select>
           </td>
+         </tr>
+          
+         <tr>
+          <td>
+          </td> 
+          <td>
+        <label>Phase Matched Cassette (optional)</label>
+        <select name="phase_matched_cassette" id="phase_matched_cassette"/>
+          [% FOR p_cass IN phase_cassettes %]
+            <option [% IF p_cass == phase_matched_cassette %] selected="selected"[% END %]>[% p_cass %]</option>
+          [%- END %]
+        </select>
+          </td>
+                    
          </tr>
          <tr>
           <td>

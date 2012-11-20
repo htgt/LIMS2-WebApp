@@ -75,6 +75,7 @@
       <th>Source Well</th>
       <th>Design ID</th>
       <th>Gene ID</th>
+      <th>Gene Name</th>
       <th>Cassette</th>
       <th>Backbone</th>
       <th>Recombinase</th>
@@ -89,6 +90,7 @@
       <td>[% well.source_well %]</td>
       <td>[% well.design_id %]</td>
       <td>[% well.gene_ids %]</td>
+      <td>[% well.gene_symbols %]</td>
       <td>[% well.cassette %]</td>
       <td>[% well.backbone %]</td> 
       <td>[% well.recombinase %]</td>

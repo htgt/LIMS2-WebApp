@@ -215,4 +215,24 @@ note( "Testing well creation" );
     } 'delete well';
 }
 
+{
+    note( "Testing cassette phase" );
+
+    ok my $well_cassette = model->retrieve_well_phase_matched_cassette(
+        { well_id => '855', phase_matched_cassette => 'L1L2_st?' }
+    );
+
+    my $design = model->retrieve_well( { id => '855'} )->design;
+    is $design->phase,  -1, 'well design phase match';
+    is $well_cassette,  'L1L2_st0', 'well cassette phase match';
+
+    ok my $well_cassette1 = model->retrieve_well_phase_matched_cassette(
+        { well_id => '940', phase_matched_cassette => 'L1L2_gt?' }
+    );
+
+    my $design1 = model->retrieve_well( { id => '940'} )->design;
+    is $design1->phase,  2, 'well design phase match';
+    is $well_cassette1,  'L1L2_gt2', 'well cassette phase match';
+}
+
 done_testing();

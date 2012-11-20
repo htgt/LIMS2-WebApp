@@ -201,6 +201,8 @@ note( "Testing Qc Run Retrieval" );
 
     ok my $qc_run = model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8'  } )
         , 'can retrieve single Qc Run';
+
+    is_deeply [ sort @{$qc_run->primers} ], [ 'LR', 'Z1', ], '.. primer list is correct';
 }
 
 note ( 'Qc Run Seq Well Retrieval' );

@@ -276,6 +276,7 @@ sub pspec_qc_template_from_plate{
 		species       => { validate => 'existing_species',    optional => 1},
 		template_name => { validate => 'plate_name'},
 		cassette      => { validate => 'existing_final_cassette',   optional => 1},
+		phase_matched_cassette => { optional => 1 },
 		backbone      => { validate => 'existing_backbone',   optional => 1},
 		recombinase   => { validate => 'existing_recombinase', optional => 1},
 	};
@@ -293,7 +294,7 @@ sub create_qc_template_from_plate {
 	foreach my $well ($plate->wells->all){
 		my $name = $well->name;
         $well_hash->{$name}->{well_id} = $well->id;
-        foreach my $override qw(cassette recombinase backbone){
+        foreach my $override qw(cassette recombinase backbone phase_matched_cassette){
         	$well_hash->{$name}->{$override} = $validated_params->{$override} if exists $validated_params->{$override};
         }
 	}
