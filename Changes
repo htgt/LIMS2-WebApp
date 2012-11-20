@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.027     2012-11-20 09:37:52 Europe/London
+
+    Added gene name to QC template view
+    Added phase matched cassettes to template creation
+
 0.026     2012-11-14 12:47:08 Europe/London
 
     Added plate creation from QC results
