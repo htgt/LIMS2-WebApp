@@ -4451,6 +4451,25 @@ INSERT INTO genotyping_primers VALUES (116729, 'GR4', 96830, 'GACGTGGCAGCTGAGACC
 
 
 --
+-- Data for Name: genotyping_result_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+INSERT INTO genotyping_result_types VALUES ('loacrit');
+INSERT INTO genotyping_result_types VALUES ('loatam');
+INSERT INTO genotyping_result_types VALUES ('loxp');
+INSERT INTO genotyping_result_types VALUES ('lacz');
+INSERT INTO genotyping_result_types VALUES ('neo');
+INSERT INTO genotyping_result_types VALUES ('en2-int');
+INSERT INTO genotyping_result_types VALUES ('cre');
+INSERT INTO genotyping_result_types VALUES ('puro');
+INSERT INTO genotyping_result_types VALUES ('chry');
+INSERT INTO genotyping_result_types VALUES ('chr1');
+INSERT INTO genotyping_result_types VALUES ('chr8a');
+INSERT INTO genotyping_result_types VALUES ('chr11b');
+INSERT INTO genotyping_result_types VALUES ('bsd');
+
+
+--
 -- Data for Name: plate_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -10131,6 +10150,12 @@ INSERT INTO well_dna_status VALUES (1502, true, '', '2012-06-25 00:00:00', 985);
 INSERT INTO well_dna_status VALUES (1508, true, '', '2012-06-25 00:00:00', 985);
 INSERT INTO well_dna_status VALUES (1512, true, '', '2012-06-25 00:00:00', 985);
 INSERT INTO well_dna_status VALUES (1516, true, '', '2012-06-25 00:00:00', 985);
+
+
+--
+-- Data for Name: well_genotyping_results; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
 
 
 --
