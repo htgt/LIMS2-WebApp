@@ -86,6 +86,14 @@ sub validated_by_annotation {
     return in_set( 'yes', 'no', 'maybe', 'not done' );
 }
 
+sub genotyping_result_text {
+    return in_set( 'potential', 'present', 'pass', 'passb', 'fail', 'fa', 'na' );
+}
+
+sub chromosome_fail_text {
+    return in_set( '0', '1', '2', '3', '4', 'Y' );
+}
+
 sub dna_seq {
     return regexp_matches(qr/^[ATGCN]+$/);
 }
