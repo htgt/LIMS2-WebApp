@@ -42,6 +42,8 @@ DELETE FROM qc_templates;
 DELETE FROM qc_eng_seqs;
 DELETE FROM well_accepted_override;
 DELETE FROM well_comments;
+DELETE FROM well_chromosome_fail;
+DELETE FROM well_targeting_pass;
 DELETE FROM well_genotyping_results;
 DELETE FROM well_recombineering_results;
 DELETE FROM well_colony_counts;

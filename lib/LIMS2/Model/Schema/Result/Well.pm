@@ -236,6 +236,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_chromosome_fail
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellChromosomeFail>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_chromosome_fail",
+  "LIMS2::Model::Schema::Result::WellChromosomeFail",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_colony_counts
 
 Type: has_many
@@ -356,6 +371,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_pass
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingPass>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_targeting_pass",
+  "LIMS2::Model::Schema::Result::WellTargetingPass",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 input_processes
 
 Type: many_to_many
@@ -377,8 +407,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-21 16:21:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CdE1Ndx3iCaxzr4M2xwQ9w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-22 11:29:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fRWsB1eB3LjpjJRiD/5YHA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
