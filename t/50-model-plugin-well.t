@@ -253,6 +253,10 @@ note( "Testing well creation" );
     is $targeting_pass->result, 'passb', 'targeting fail result is passb';
     ok my $well = $targeting_pass->well, '.. can grab well from targeting_pass';
     is "$well", 'MOHFAQ0001_A_2_D04', '.. and targeting_pass is for right well';
+    
+    BEGIN { use_ok("LIMS2::Model::Util::RankQCResults", "rank"); }
+    ok rank($targeting_pass) > rank('fail'), 'passb is better than fail';
+    ok rank('pass') > rank($targeting_pass), 'pass is better than passb';
 
     lives_ok {
         model->delete_well_targeting_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
