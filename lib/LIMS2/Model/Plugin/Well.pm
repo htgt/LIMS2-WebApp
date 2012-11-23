@@ -9,6 +9,7 @@ use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 use LIMS2::Model::ProcessGraph;
 use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params add_display_id);
+use LIMS2::Model::Util::RankQCResults qw( rank );
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -618,6 +619,35 @@ sub create_well_targeting_pass {
     return $targeting_pass;
 }
 
+
+sub update_or_create_well_targeting_pass {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
+
+    my $targeting_pass;
+    # Check whether there is a well to update, otherwise create it
+    my $well = $self->retrieve_well( { slice_def $validated_params,  qw( id plate_name well_name ) });
+    if ( $targeting_pass = $well->well_targeting_pass ) {
+       # instead of throwing an error, check the rank and update if appropriate
+       my $update_request = {slice_def $validated_params, qw( result )};
+       if ( rank( $update_request->{result} ) > rank( $targeting_pass ) ) {
+           $targeting_pass->update( { result => $update_request->{result} });
+       }
+    }
+    else {
+        $targeting_pass = $well->create_related(
+        well_targeting_pass => {
+            slice_def $validated_params,
+            qw( result created_by_id created_at )
+        }
+    );
+
+    }
+
+    return $targeting_pass;
+}
+
 sub retrieve_well_targeting_pass {
     my ( $self, $params ) = @_;
 
@@ -672,6 +702,31 @@ sub create_well_chromosome_fail {
             qw( result created_by_id created_at )
         }
     );
+
+    return $chromosome_fail;
+}
+
+sub update_or_create_well_chromosome_fail {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_chromosome_fail );
+
+    my $chromosome_fail;
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    if ( $chromosome_fail = $well->well_chromosome_fail ) {
+        my $update_request = {slice_def $validated_params, qw( result )};
+        $chromosome_fail->update( { result => $update_request->{result} } );
+    }
+    else {
+        $chromosome_fail = $well->create_related(
+        well_chromosome_fail => {
+            slice_def $validated_params,
+            qw( result created_by_id created_at )
+        }
+        );
+    }
 
     return $chromosome_fail;
 }

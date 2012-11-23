@@ -258,6 +258,9 @@ note( "Testing well creation" );
     ok rank($targeting_pass) > rank('fail'), 'passb is better than fail';
     ok rank('pass') > rank($targeting_pass), 'pass is better than passb';
 
+    ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
+    is $targeting_pass->result, 'pass', '..updated result is now pass';
+
     lives_ok {
         model->delete_well_targeting_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
      } 'delete well targeting pass';
@@ -290,7 +293,10 @@ note( "Testing well creation" );
     ok my $well = $chromosome_fail->well, '.. can grab well from chromosome_fail';
     is "$well", 'MOHFAQ0001_A_2_D04', '.. and chromosome_fail is for right well';
 
-    lives_ok {
+    ok $chromosome_fail = model->update_or_create_well_chromosome_fail( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => '4' , created_by => 'test_user@example.org' } ), 'can update chromosome fail well result';
+    is $chromosome_fail->result, '4', '..updated result is now 4';
+
+lives_ok {
         model->delete_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
      } 'delete well chromosome fail result';
 
