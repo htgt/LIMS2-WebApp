@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.030     2012-11-28 13:57:39 Europe/London
+
+    Added to the API to allow well_clone_picks and well_primer_bands to be created through the API
+
 0.029     2012-11-20 12:03:54 Europe/London
 
 	Re-attempt release of v0.027
