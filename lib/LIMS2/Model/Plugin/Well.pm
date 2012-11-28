@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.029';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.030';
 }
 ## use critic
 
@@ -98,7 +98,7 @@ sub delete_well {
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
-                                 well_qc_sequencing_result well_recombineering_results );
+                                 well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands );
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
@@ -444,13 +444,13 @@ sub retrieve_well_primer_bands {
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
-    my $primer_bands = $well->well_primer_bands;
+    my @primer_bands = $well->well_primer_bands;
 
-    if ( @{ $primer_bands } == 0) {
+    if ( @primer_bands == 0) {
         $self->throw( NotFound => { entity_class => 'WellPrimerBands', search_params => $params } );
     }
 
-    return $primer_bands;
+    return \@primer_bands;
 }
 
 sub pspec_create_well_colony_picks {
@@ -458,8 +458,8 @@ sub pspec_create_well_colony_picks {
         well_id     => { validate => 'integer', optional => 1, rename => 'id' },
         plate_name  => { validate => 'existing_plate_name', optional => 1 },
         well_name   => { validate => 'well_name', optional => 1 },
-        colony_type => { validate => 'existing_colony_type', rename => 'colony_type_id' },
-        count       => { validate => 'integer' },
+        colony_count_type => { validate => 'existing_colony_type', rename => 'colony_count_type_id' },
+        colony_count       => { validate => 'integer' },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
@@ -473,9 +473,9 @@ sub create_well_colony_picks {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $colony_picks = $well->create_related(
-        well_colony_picks => {
+        well_colony_counts => {
             slice_def $validated_params,
-            qw( colony_type_id count created_by_id created_at )
+            qw( colony_count_type_id colony_count created_by_id created_at )
         }
     );
 
@@ -488,13 +488,13 @@ sub retrieve_well_colony_picks {
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
-    my $colony_picks = $well->well_colony_picks;
+    my @colony_picks = $well->well_colony_counts;
 
-    if ( @{ $colony_picks } == 0) {
-        $self->throw( NotFound => { entity_class => 'WellColonyPicks', search_params => $params } );
+    if ( @colony_picks == 0) {
+        $self->throw( NotFound => { entity_class => 'WellColonyCount', search_params => $params } );
     }
 
-    return $colony_picks;
+    return \@colony_picks;
 }
 
 sub pspec_generate_eng_seq_params {

@@ -45,5 +45,27 @@ well_dna_quality_create:
     well_name: B01
     created_by: test_user@example.org
     quality: M
-    
-    
+well_colony_picks_create:
+    plate_name: PCS00177_A
+    well_name: B01
+    colony_count_type: blue_colonies
+    colony_count: 40
+    created_by: test_user@example.org
+well_colony_picks_create_bad:
+    plate_name: PCS00177_A
+    well_name: B01
+    colony_count_type: bad_colony_type
+    colony_count: 40
+    created_by: test_user@example.org
+well_primer_bands_create:
+    plate_name: PCS00177_A
+    well_name: B01
+    primer_band_type: gr1
+    pass: 1
+    created_by: test_user@example.org
+well_primer_bands_create_bad:
+    plate_name: PCS00177_A
+    well_name: B01
+    primer_band_type: bad_primer_type
+    pass: 1
+    created_by: test_user@example.org

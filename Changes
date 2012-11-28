@@ -1,3 +1,7 @@
+0.030     2012-11-28 14:35:07 Europe/London
+
+    Change to API to allow clone_picks and primer_bands to be added through the API
+
 0.029     2012-11-20 12:03:54 Europe/London
 
 	Re-attempt release of v0.027

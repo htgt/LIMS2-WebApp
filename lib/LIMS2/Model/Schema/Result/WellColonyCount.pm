@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellColonyCount;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellColonyCount::VERSION = '0.029';
+    $LIMS2::Model::Schema::Result::WellColonyCount::VERSION = '0.030';
 }
 ## use critic
 
@@ -159,6 +159,17 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ha2y0rgmzDeZ4IKf0cY4OA
 
+sub as_hash {
+    my $self = shift;
+
+    return {
+        well_id                => $self->well_id,
+        colony_count_type      => $self->colony_count_type->id,
+        colony_count           => $self->colony_count,
+        created_by             => $self->created_by->name,
+        created_at             => $self->created_at->iso8601,
+    }
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

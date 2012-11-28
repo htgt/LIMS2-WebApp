@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.029';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.030';
 }
 ## use critic
 
@@ -227,6 +227,16 @@ sub existing_recombinase {
 sub existing_recombineering_result_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'RecombineeringResultType', 'id' );
+}
+
+sub existing_colony_type {
+    my ($class, $model) = @_;
+    return in_resultset ( $model, 'ColonyCountType', 'id')
+}
+
+sub existing_primer_band_type {
+    my ($class, $model) = @_;
+    return in_resultset ( $model, 'PrimerBandType', 'id')
 }
 
 sub recombineering_result {
