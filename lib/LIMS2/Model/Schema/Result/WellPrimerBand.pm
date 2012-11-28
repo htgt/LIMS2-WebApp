@@ -153,7 +153,17 @@ __PACKAGE__->belongs_to(
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:50:28
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tv+ghDkyaLq6QkC+nQJXfw
+sub as_hash {
+    my $self = shift;
 
+    return {
+        well_id                => $self->well_id,
+        primer_band_type       => $self->primer_band_type->id,
+        pass                   => $self->pass,
+        created_by             => $self->created_by->name,
+        created_at             => $self->created_at->iso8601,
+    }
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

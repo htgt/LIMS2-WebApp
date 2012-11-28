@@ -223,6 +223,16 @@ sub existing_recombineering_result_type {
     return in_resultset( $model, 'RecombineeringResultType', 'id' );
 }
 
+sub existing_colony_type {
+    my ($class, $model) = @_;
+    return in_resultset ( $model, 'ColonyCountType', 'id')
+}
+
+sub existing_primer_band_type {
+    my ($class, $model) = @_;
+    return in_resultset ( $model, 'PrimerBandType', 'id')
+}
+
 sub recombineering_result {
     return in_set( 'pass', 'fail', 'weak' );
 }
