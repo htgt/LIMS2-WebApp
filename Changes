@@ -1,3 +1,6 @@
+0.031     2012-11-29 10:07:31 Europe/London
+
+	Added virtual plate support
 0.030     2012-11-28 14:35:07 Europe/London
 
     Change to API to allow clone_picks and primer_bands to be added through the API

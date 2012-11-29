@@ -30,7 +30,7 @@
     [%- FOR datum IN data %]
     <tr>
       [%- FOR val IN datum %]
-      <td>[% linkify( val ) | none %]</td>
+      <td[% IF plate_is_virtual %] style="background-color:#f2dede" [% END %]>[% linkify( val ) | none %]</td>
       [%- END %]
     </tr>
     [%- END %]

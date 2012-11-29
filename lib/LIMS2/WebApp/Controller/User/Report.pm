@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.030';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.031';
 }
 ## use critic
 
@@ -168,6 +168,15 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         $report_fh->getline;
     }
 
+    # Check for plate_id and set the is_virtual_plate flag if appropriate 
+
+    my $is_virtual_plate = 0;
+
+    if ( my $plate_id = $c->request->param('plate_id') ) {
+        my $plate = $c->model( 'Golgi')->retrieve_plate({ id =>  $plate_id });
+        $is_virtual_plate = $plate->is_virtual;
+    }
+
     my @data;
     for ( 1..$pageset->entries_per_page ) {
         my $row = $csv->getline( $report_fh )
@@ -182,6 +191,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         pageset         => $pageset,
         columns         => $columns,
         data            => \@data,
+        plate_is_virtual   => $is_virtual_plate,
     );
     return;
 }
