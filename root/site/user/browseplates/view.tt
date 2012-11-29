@@ -6,9 +6,16 @@
 
 <div class="row">
   <div class="span6">
-      <table class="table">
+      <table class="table" [% IF plate.is_virtual %] style="background-color:#f2dede" [% END %]>
 
+[% IF plate.is_virtual %]
         <tr>
+          <td>
+            <strong>NB: This is a virtual plate</strong>
+          </td>
+        </tr>
+[% END %]
+         <tr>
           <td>
             <strong>Name</strong>
           </td>

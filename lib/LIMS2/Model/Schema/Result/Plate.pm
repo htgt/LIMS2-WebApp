@@ -81,6 +81,11 @@ __PACKAGE__->table("plates");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 is_virtual
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -108,6 +113,8 @@ __PACKAGE__->add_columns(
   },
   "species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "is_virtual",
+  { data_type => "boolean", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -214,8 +221,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-18 13:31:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aCdDZCXtzDmC3L6YY2Fw8g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-28 11:14:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AWH80QCZWvtchWyfufWSIA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
