@@ -755,6 +755,105 @@ sub delete_well_chromosome_fail {
     return;
 }
 
+# Genotyping assay specific results
+
+sub pspec_well_genotyping_result {
+    return {
+        well_id     => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
+        genotyping_result_type_id =>
+                       { validate => 'existing_genotyping_result_type' },
+        call        => { validate => 'genotyping_result_text' },
+        copy_number => { validate => 'copy_float', optional => 1 },
+        copy_number_range =>
+                       { validate => 'copy_float', optional => 1 },
+        confidence  => { validate => 'confidence_float', optional => 1 },
+        created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    }
+}
+
+sub create_well_genotyping_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    if ( my $genotyping_result = $self->retrieve_well_genotyping_result( $params )) {
+        print "\n well: $well \n";
+         $self->throw( Validation => "Well $well already has a genotyping_results value of "
+                    . $genotyping_result->call );
+    }
+
+    my $genotyping_result = $well->create_related(
+        well_genotyping_results => {
+            slice_def $validated_params,
+            qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
+        }
+    );
+    return $genotyping_result;
+}
+
+
+# sub update_or_create_well_genotyping_result {
+#     my ( $self, $params ) = @_;
+# 
+#     my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result );
+# 
+#     my $genotyping_result;
+#     # Check whether there is a well to update, otherwise create it
+#     my $well = $self->retrieve_well( { slice_def $validated_params,  qw( well_id plate_name well_name ) });
+#     if ( $genotyping_result = $well->genotyping_result ) {
+#        my $update_request = {slice_def $validated_params,
+#            qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
+#        if ( rank( $update_request->{call} ) > rank( $genotyping_result ) ) {
+#            $genotyping_result->update( {  $update_request} );
+#            # will that pass the correct parameters for updating?
+#            # or do we need a slice_def ?
+#        }
+#     }
+#     else {
+#         $genotyping_result = $well->create_related(
+#         well_genotyping_results => {
+#             slice_def $validated_params,
+#             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
+#         });
+# 
+#     }
+# 
+#     return $genotyping_result;
+# }
+
+sub retrieve_well_genotyping_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result);
+
+    my $well = $self->retrieve_well({ slice_def $validated_params, qw( plate_name well_name id ) });
+    my $requested_row = {
+        well_id => $well->id,
+        genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
+    };
+    my $genotyping_result = $self->schema->resultset('WellGenotypingResult')->find( $requested_row )
+        or $self->throw( NotFound => { entity_class => 'WellGenotypingResult',
+        search_params => $find_record } } );
+
+    return $genotyping_result;
+}
+
+# sub delete_well_genotyping_result {
+#     my ( $self, $params ) = @_;
+# 
+#     # retrieve_well() will validate the parameters
+#     my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
+# 
+#     $genotyping_result->delete;
+#     $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
+# 
+#     return;
+# }
 
 1;
 

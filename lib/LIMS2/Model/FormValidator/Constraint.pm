@@ -109,6 +109,20 @@ sub integer {
     }
 }
 
+sub confidence_float {
+    return sub {
+        my $val = shift;
+        return $val =~ qr/^\d+\.\d+$/ ;
+    }
+}
+
+sub copy_float {
+    return sub {
+        my $val = shift;
+        return $val =~ qr/^\d+\.\d+$/ ;
+    }
+}
+
 sub alphanumeric_string {
     return regexp_matches(qr/^\w+$/);
 }
@@ -242,6 +256,11 @@ sub dna_quality {
 sub existing_genotyping_primer_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'GenotypingPrimerType', 'id' );
+}
+
+sub existing_genotyping_result_type {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'GenotypingResultType', 'id' );
 }
 
 sub existing_user {
