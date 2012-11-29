@@ -239,6 +239,83 @@ sub well_dna_status_POST {
     );
 }
 
+sub plate_genotyping_qc :Path('/api/plate/genotyping_qc') :Args(0) :ActionClass('REST') {
+}
+
+sub plate_genotyping_qc_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    
+    my $plate_name = $c->request->param('plate_name');
+    
+    my $model = $c->model('Golgi');
+
+    my $plate = $model->retrieve_plate({ name => $plate_name});
+    
+    my @value_names = qw(call copy_number copy_number_range confidence);
+    my @assay_types = sort map { $_->id } $model->schema->resultset('GenotypingResultType')->all;
+    	
+	my @well_data;
+	foreach my $well ($plate->wells){
+		my $datum;
+		$datum->{plate_name} = $plate_name;
+		$datum->{well} = $well->name;
+		$datum->{chromosome_fail} = $well->well_chromosome_fail ? $well->well_chromosome_fail->result
+		                                                        : undef;
+		$datum->{targeting_pass} = $well->well_targeting_pass ? $well->well_targeting_pass->result
+		                                                      : undef;
+		
+		# foreach loop to get assay specific results
+		foreach my $assay (@assay_types){
+			foreach my $name (@value_names){
+				my $result = $model->schema->resultset('WellGenotypingResult')->find({
+					well_id => $well->id,
+					genotyping_result_type_id => $name,
+				});
+				
+				$datum->{$assay.$name} = $result ? $result->$name
+				                                 : undef ;
+			}
+		}
+		
+		push @well_data, $datum;
+	}    
+    
+    return $self->status_ok( $c, entity => \@well_data );
+}
+
+sub plate_genotyping_qc_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $data = $c->request->data;
+use Data::Dumper;
+$c->log->debug(Dumper($data));
+
+    my $plate_name = $data->{'plate_name'};
+    
+    # FIXME: update all results... or only those that have changed if we can
+    # identify these without too much overhead
+    my $targ_pass = $c->model('Golgi')->txn_do(
+        sub {
+            shift->update_or_create_well_targeting_pass({
+            	created_by => $c->user->name,
+            	result => $data->{'targeting_pass'},
+            	plate_name => $plate_name,
+            	well_name => $data->{'well'},
+            })
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for('/api/plate/genotyping_qc', {plate_name => $plate_name}),
+        entity => $data,
+    );
+}
+
 sub well_dna_quality :Path('/api/well/dna_quality') :Args(0) :ActionClass('REST') {
 }
 

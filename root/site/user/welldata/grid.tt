@@ -1,0 +1,68 @@
+<script type="text/javascript" charset="utf-8">
+        Ext.onReady(function(){
+
+            Ext.define('GenotypingQC', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    {name: 'plate_name', type: 'string'},
+                    {name: 'well', type: 'string'},
+                    {name: 'chromosome_fail', type: 'string'},
+                    {name: 'targeting_pass', type: 'string'},
+                  [% FOR assay IN assay_types %]
+                    [% FOR name IN value_names %]
+                       { name: '[% assay _ name.field %]', type: 'string' },
+                    [% END %]
+                  [% END %]     
+                ],
+            });
+            
+            var store = new Ext.data.Store({
+                model: 'GenotypingQC',
+                autoLoad: true,
+                autoSync: true,
+                proxy: {
+                  type: 'rest',
+                  url: '[% c.uri_for('/api/plate/genotyping_qc') %]',
+                  extraParams: {
+                    plate_name: '[% plate_name %]'
+                  },
+                  headers: {'Content-type': 'application/json'},
+                  reader: {
+                   type: 'json'
+                  },
+                  writer: {
+                   type: 'json'
+                  }
+                }
+            });
+            
+            var columns = [
+                {header: "Plate", dataIndex: 'plate_name', hidden: true},
+                {header: "Well", dataIndex: 'well'},
+                {header: "Chromosome Fail", dataIndex: 'chromosome_fail'},
+                {header: "Targeting Pass", dataIndex: 'targeting_pass', field: { xtype: 'textfield'}},
+                [% FOR assay IN assay_types %]
+                  {header: "[% assay %]", columns: [
+                    [% FOR name IN value_names %]
+                      {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]", hideable: true}, 
+                    [% END %]
+                  ]},
+                [% END %]
+            ];
+            
+            var grid = new Ext.grid.Panel({
+                height: 500,
+                width: 1200,
+                store: store,
+                columns: columns,
+                title: "[% plate_name %] QC Results",
+                renderTo: 'my_results',
+                selType: 'rowmodel',
+                simpleSelect: true,
+                plugins: [
+                    Ext.create('Ext.grid.plugin.RowEditing', { clicksToEdit: 1 })
+                ]
+            });                      
+});
+                   
+</script>
