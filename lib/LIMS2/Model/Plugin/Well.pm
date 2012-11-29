@@ -837,8 +837,8 @@ sub retrieve_well_genotyping_result {
         genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
     };
     my $genotyping_result = $self->schema->resultset('WellGenotypingResult')->find( $requested_row )
-        or $self->throw( NotFound => { entity_class => 'WellGenotypingResult',
-        search_params => $find_record } } );
+        or $self->throw({ NotFound => { entity_class => 'WellGenotypingResult',
+                                        search_params => $requested_row } } );
 
     return $genotyping_result;
 }
