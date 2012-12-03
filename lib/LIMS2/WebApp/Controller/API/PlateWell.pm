@@ -271,7 +271,7 @@ sub plate_genotyping_qc_GET {
 			foreach my $name (@value_names){
 				my $result = $model->schema->resultset('WellGenotypingResult')->find({
 					well_id => $well->id,
-					genotyping_result_type_id => $name,
+					genotyping_result_type_id => $assay,
 				});
 				
 				$datum->{$assay.$name} = $result ? $result->$name
