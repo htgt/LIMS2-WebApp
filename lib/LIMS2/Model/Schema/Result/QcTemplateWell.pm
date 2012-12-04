@@ -151,6 +151,51 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_template_well_backbone
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellBackbone>
+
+=cut
+
+__PACKAGE__->might_have(
+  "qc_template_well_backbone",
+  "LIMS2::Model::Schema::Result::QcTemplateWellBackbone",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_template_well_cassette
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellCassette>
+
+=cut
+
+__PACKAGE__->might_have(
+  "qc_template_well_cassette",
+  "LIMS2::Model::Schema::Result::QcTemplateWellCassette",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_template_well_recombinases
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellRecombinase>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_recombinases",
+  "LIMS2::Model::Schema::Result::QcTemplateWellRecombinase",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 source_well
 
 Type: belongs_to
@@ -171,9 +216,19 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 recombinases
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-10-24 11:47:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pz+dnl8q+3VScTgh2kunnw
+Type: many_to_many
+
+Composing rels: L</qc_template_well_recombinases> -> recombinase
+
+=cut
+
+__PACKAGE__->many_to_many("recombinases", "qc_template_well_recombinases", "recombinase");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-03 17:14:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ttJw+Eo0ppn6zOr1p3jjaw
 
 use JSON qw( decode_json );
 

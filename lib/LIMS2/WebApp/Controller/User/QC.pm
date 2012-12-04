@@ -408,11 +408,17 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
                             qw( cassette backbone phase_matched_cassette);
             $overrides{recombinase} = [ $c->req->param('recombinase') ];
 
-			my $template = $c->model('Golgi')->create_qc_template_from_plate({
-				name => $c->req->param('source_plate'),
-				template_name => $c->req->param('template_plate'),
-				%overrides,
-			});
+            my $template;
+            $c->model('Golgi')->txn_do(
+			    sub{
+			    	$template = $c->model('Golgi')->create_qc_template_from_plate({
+				        name => $c->req->param('source_plate'),
+				        template_name => $c->req->param('template_plate'),
+				        %overrides,
+			        });
+			    }
+            );
+            
 			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
 			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}
