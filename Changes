@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.033     2012-12-04 16:01:10 Europe/London
+
+    Added design_type for cre_knockins
+
 0.032     2012-12-04 12:19:22 Europe/London
 
     Added cre_knockin support for sponsor_report
