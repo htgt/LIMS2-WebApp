@@ -744,7 +744,6 @@ sub list_templates {
 sub pspec_create_plates_from_qc{
     return {
         qc_run_id    => { validate => 'uuid' },
-        process_type => { validate => 'existing_process_type' },
         plate_type   => { validate => 'existing_plate_type'   },
         created_by   => { validate => 'existing_user' },
         rename_plate => { validate => 'hashref', optional => 1 },
@@ -782,7 +781,6 @@ sub create_plates_from_qc{
 			orig_name       => $old_name,
 		    results_by_well => \%results_by_well,
 		    plate_type      => $validated_params->{plate_type},
-		    process_type    => $validated_params->{process_type},
 		    qc_template_id  => $qc_run->qc_template->id,
 		    created_by      => $validated_params->{created_by},
 		    view_uri        => $validated_params->{view_uri},
@@ -799,7 +797,6 @@ sub pspec_create_plate_from_qc{
     return {
         plate_name   => { validate => 'non_empty_string' },
         orig_name    => { validate => 'non_empty_string' },
-        process_type => { validate => 'existing_process_type' },
         plate_type   => { validate => 'existing_plate_type'   },
         results_by_well => { validate => 'hashref' },
         qc_template_id  => { validate => 'integer' },
@@ -847,20 +844,38 @@ sub create_plate_from_qc{
             # Store new well params
             my %well_params = (
                 well_name => $well,
-                process_type => $validated_params->{process_type},
                 parent_plate => $source_well->plate->name,
                 parent_well  => $source_well->name,
             );
 
-            # Store cassette and backbone to be linked to well creation process (not needed for rearraying)
-            unless ($validated_params->{process_type} eq 'rearray'){
-            	my $cassette = $eng_seq_params->{insertion}->{name} ? $eng_seq_params->{insertion}->{name}
-            	              :                                       $eng_seq_params->{u_insertion}->{name};
-
-            	$well_params{cassette} = $cassette if $cassette;
-            	$well_params{backbone} = $eng_seq_params->{backbone}->{name} if $eng_seq_params->{backbone}->{name};
+            # Identify reagent overrides from QC wells
+            my $reagent_count = 0;
+            if ( my $cassette = $template_well->qc_template_well_cassette){
+            	$well_params{cassette} = $cassette->cassette->name;
+            	$reagent_count++;
             }
 
+            if ( my $backbone = $template_well->qc_template_well_backbone){
+            	$well_params{backbone} = $backbone->backbone->name;
+            	$reagent_count++;
+            }
+
+            if ( my @recombinases = $template_well->qc_template_well_recombinases->all ){
+            	$well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
+            }
+
+            # Infer process type from combination of reagents
+            if ($reagent_count == 0){
+            	$well_params{process_type} = $well_params{recombinase} ? 'recombinase' 
+            	                           : 'rearray' ;
+            }
+            elsif ($reagent_count == 1){
+            	$well_params{process_type} = '2w_gateway';
+            }
+            else{
+            	$well_params{process_type} = '3w_gateway';
+            }
+         
             push @new_wells, \%well_params;
 		}
 		else{
