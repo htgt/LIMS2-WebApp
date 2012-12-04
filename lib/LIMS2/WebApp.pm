@@ -1,7 +1,7 @@
 package LIMS2::WebApp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::VERSION = '0.032';
+    $LIMS2::WebApp::VERSION = '0.033';
 }
 ## use critic
 

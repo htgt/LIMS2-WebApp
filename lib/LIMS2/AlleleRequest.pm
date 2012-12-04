@@ -1,7 +1,7 @@
 package LIMS2::AlleleRequest;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::AlleleRequest::VERSION = '0.032';
+    $LIMS2::AlleleRequest::VERSION = '0.033';
 }
 ## use critic
 
@@ -62,7 +62,7 @@ sub design_types_for {
         return $mutation_type;
     }
     if ( $mutation_type eq 'cre_knock_in'){
-        return [ 'conditional', 'artificial-intron', 'intron-replacement', 'deletion', 'insertion', 'cre_bac' ];
+        return [ 'conditional', 'artificial-intron', 'intron-replacement', 'deletion', 'insertion', 'cre-bac' ];
     }
 
     $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );
