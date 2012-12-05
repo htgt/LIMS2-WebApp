@@ -21,6 +21,7 @@ use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_seq_read_sequences
     retrieve_qc_eng_seq_sequence
     build_qc_runs_search_params
+    infer_qc_process_type
 );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
@@ -839,7 +840,6 @@ sub create_plate_from_qc{
             }
             my $source_well = $template_well->source_well
                 or die "No source well linked to template well ".$template_well->id;
-            my $eng_seq_params = $template_well->as_hash->{eng_seq_params};
 
             # Store new well params
             my %well_params = (
@@ -848,34 +848,21 @@ sub create_plate_from_qc{
                 parent_well  => $source_well->name,
             );
 
-            # Identify reagent overrides from QC wells
-            my $reagent_count = 0;
+            # Identify reagent overrides from QC wells            
             if ( my $cassette = $template_well->qc_template_well_cassette){
             	$well_params{cassette} = $cassette->cassette->name;
-            	$reagent_count++;
             }
 
             if ( my $backbone = $template_well->qc_template_well_backbone){
             	$well_params{backbone} = $backbone->backbone->name;
-            	$reagent_count++;
             }
 
             if ( my @recombinases = $template_well->qc_template_well_recombinases->all ){
             	$well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
             }
+            
+            $well_params{process_type} = infer_qc_process_type(\%well_params);
 
-            # Infer process type from combination of reagents
-            if ($reagent_count == 0){
-            	$well_params{process_type} = $well_params{recombinase} ? 'recombinase' 
-            	                           : 'rearray' ;
-            }
-            elsif ($reagent_count == 1){
-            	$well_params{process_type} = '2w_gateway';
-            }
-            else{
-            	$well_params{process_type} = '3w_gateway';
-            }
-         
             push @new_wells, \%well_params;
 		}
 		else{
