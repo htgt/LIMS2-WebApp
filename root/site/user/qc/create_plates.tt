@@ -26,13 +26,6 @@
        
        <br/>
        
-       <label>Plate Creation Process</label>
-       <select name="process_type" id="process_type">
-         [% FOR pr_type IN process_types %]
-           <option [% IF pr_type == process_type %] selected="selected"[% END %]>[% pr_type %]</option>
-         [% END %]
-       </select>
-       
        <label>Plate Type</label>
        <select name="plate_type" id="plate_type">
          [% FOR pl_type IN plate_types %]

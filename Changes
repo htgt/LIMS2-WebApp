@@ -1,3 +1,9 @@
+0.035     2012-12-06 15:52:33 Europe/London
+
+	Added cassette, backbone and recombinase parameters to QC template wells
+        Plate creation from QC infers process type from QC template wells
+	Added tables to store well genotyping result data (upload/update interface work in progress)
+
 0.034     2012-12-05 15:41:39 Europe/London
 
     Amended Single_Targeted model

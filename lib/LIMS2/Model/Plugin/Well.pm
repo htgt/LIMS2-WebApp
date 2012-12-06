@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.034';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.035';
 }
 ## use critic
 
@@ -15,6 +15,7 @@ use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 use LIMS2::Model::ProcessGraph;
 use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params add_display_id);
+use LIMS2::Model::Util::RankQCResults qw( rank );
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -584,6 +585,281 @@ sub retrieve_well_phase_matched_cassette{
 
     return $cassette ? $cassette->name : undef;
 }
+
+# genotyping overall results methods
+#
+# well_targeting_pass
+# well_chromosome_fail
+#
+
+sub pspec_create_well_targeting_pass {
+    return {
+        well_id     => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
+        result      => { validate => 'genotyping_result_text' },
+        created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    }
+}
+
+sub create_well_targeting_pass {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    if ( my $targeting_pass = $well->well_targeting_pass ) {
+         $self->throw( Validation => "Well $well already has a targeting pass value of "
+                    . $targeting_pass->result );
+    }
+
+    my $targeting_pass = $well->create_related(
+        well_targeting_pass => {
+            slice_def $validated_params,
+            qw( result created_by_id created_at )
+        }
+    );
+
+    return $targeting_pass;
+}
+
+
+sub update_or_create_well_targeting_pass {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
+
+    my $targeting_pass;
+    # Check whether there is a well to update, otherwise create it
+    my $well = $self->retrieve_well( { slice_def $validated_params,  qw( id plate_name well_name ) });
+    if ( $targeting_pass = $well->well_targeting_pass ) {
+       # instead of throwing an error, check the rank and update if appropriate
+       my $update_request = {slice_def $validated_params, qw( result )};
+       if ( rank( $update_request->{result} ) > rank( $targeting_pass ) ) {
+           $targeting_pass->update( { result => $update_request->{result} });
+       }
+    }
+    else {
+        $targeting_pass = $well->create_related(
+        well_targeting_pass => {
+            slice_def $validated_params,
+            qw( result created_by_id created_at )
+        }
+    );
+
+    }
+
+    return $targeting_pass;
+}
+
+sub retrieve_well_targeting_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $targeting_pass = $well->well_targeting_pass
+        or $self->throw( NotFound => { entity_class => 'WellTargetingPass', search_params => $params } );
+
+    return $targeting_pass;
+}
+
+sub delete_well_targeting_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $targeting_pass = $self->retrieve_well_targeting_pass( $params );
+
+    $targeting_pass->delete;
+    $self->log->debug( 'Well targeting_pass result deleted for well  ' . $targeting_pass->well_id );
+
+    return;
+}
+
+
+sub pspec_create_well_chromosome_fail {
+    return {
+        well_id     => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
+        result      => { validate => 'chromosome_fail_text' },
+        created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    }
+}
+
+sub create_well_chromosome_fail {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_chromosome_fail );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    if ( my $chromosome_fail = $well->well_chromosome_fail ) {
+         $self->throw( Validation => "Well $well already has a chromosome fail value of "
+                    . $chromosome_fail->result );
+    }
+
+    my $chromosome_fail = $well->create_related(
+        well_chromosome_fail => {
+            slice_def $validated_params,
+            qw( result created_by_id created_at )
+        }
+    );
+
+    return $chromosome_fail;
+}
+
+sub update_or_create_well_chromosome_fail {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_chromosome_fail );
+
+    my $chromosome_fail;
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    if ( $chromosome_fail = $well->well_chromosome_fail ) {
+        my $update_request = {slice_def $validated_params, qw( result )};
+        $chromosome_fail->update( { result => $update_request->{result} } );
+    }
+    else {
+        $chromosome_fail = $well->create_related(
+        well_chromosome_fail => {
+            slice_def $validated_params,
+            qw( result created_by_id created_at )
+        }
+        );
+    }
+
+    return $chromosome_fail;
+}
+
+sub retrieve_well_chromosome_fail {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $chromosome_fail = $well->well_chromosome_fail
+        or $self->throw( NotFound => { entity_class => 'WellChromosomeFail', search_params => $params } );
+
+    return $chromosome_fail;
+}
+
+sub delete_well_chromosome_fail {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $chromosome_fail = $self->retrieve_well_chromosome_fail( $params );
+
+    $chromosome_fail->delete;
+    $self->log->debug( 'Well chromosome_fail result deleted for well  ' . $chromosome_fail->well_id );
+
+    return;
+}
+
+# Genotyping assay specific results
+
+sub pspec_well_genotyping_result {
+    return {
+        well_id     => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
+        genotyping_result_type_id =>
+                       { validate => 'existing_genotyping_result_type' },
+        call        => { validate => 'genotyping_result_text' },
+        copy_number => { validate => 'copy_float', optional => 1 },
+        copy_number_range =>
+                       { validate => 'copy_float', optional => 1 },
+        confidence  => { validate => 'confidence_float', optional => 1 },
+        created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    }
+}
+
+sub create_well_genotyping_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    if ( my $genotyping_result = $self->retrieve_well_genotyping_result( $params )) {
+        print "\n well: $well \n";
+         $self->throw( Validation => "Well $well already has a genotyping_results value of "
+                    . $genotyping_result->call );
+    }
+
+    my $genotyping_result = $well->create_related(
+        well_genotyping_results => {
+            slice_def $validated_params,
+            qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
+        }
+    );
+    return $genotyping_result;
+}
+
+
+# sub update_or_create_well_genotyping_result {
+#     my ( $self, $params ) = @_;
+# 
+#     my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result );
+# 
+#     my $genotyping_result;
+#     # Check whether there is a well to update, otherwise create it
+#     my $well = $self->retrieve_well( { slice_def $validated_params,  qw( well_id plate_name well_name ) });
+#     if ( $genotyping_result = $well->genotyping_result ) {
+#        my $update_request = {slice_def $validated_params,
+#            qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
+#        if ( rank( $update_request->{call} ) > rank( $genotyping_result ) ) {
+#            $genotyping_result->update( {  $update_request} );
+#            # will that pass the correct parameters for updating?
+#            # or do we need a slice_def ?
+#        }
+#     }
+#     else {
+#         $genotyping_result = $well->create_related(
+#         well_genotyping_results => {
+#             slice_def $validated_params,
+#             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
+#         });
+# 
+#     }
+# 
+#     return $genotyping_result;
+# }
+
+sub retrieve_well_genotyping_result {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result);
+
+    my $well = $self->retrieve_well({ slice_def $validated_params, qw( plate_name well_name id ) });
+    my $requested_row = {
+        well_id => $well->id,
+        genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
+    };
+    my $genotyping_result = $self->schema->resultset('WellGenotypingResult')->find( $requested_row )
+        or $self->throw({ NotFound => { entity_class => 'WellGenotypingResult',
+                                        search_params => $requested_row } } );
+
+    return $genotyping_result;
+}
+
+# sub delete_well_genotyping_result {
+#     my ( $self, $params ) = @_;
+# 
+#     # retrieve_well() will validate the parameters
+#     my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
+# 
+#     $genotyping_result->delete;
+#     $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
+# 
+#     return;
+# }
 
 1;
 

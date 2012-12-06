@@ -18,7 +18,6 @@ note "Testing creation of plate from QC results";
 {
     my $params = {
         qc_run_id    => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7',
-        process_type => '3w_gateway',
         plate_type   => 'FINAL',
         created_by   => 'test_user@example.org',
         view_uri     => 'http://test/view',

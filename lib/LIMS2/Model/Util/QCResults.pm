@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.034';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.035';
 }
 ## use critic
 
@@ -19,6 +19,7 @@ use Sub::Exporter -setup => {
             retrieve_qc_seq_read_sequences
             retrieve_qc_eng_seq_sequence
             build_qc_runs_search_params
+            infer_qc_process_type
             )
     ]
 };
@@ -355,6 +356,28 @@ sub build_qc_runs_search_params {
     return \%search;
 }
 
+sub infer_qc_process_type{
+	my ($params) = @_;
+
+	my $process_type;
+	my $reagent_count = 0;
+
+	$reagent_count++ if $params->{cassette};
+	$reagent_count++ if $params->{backbone};
+
+    # Infer process type from combination of reagents
+    if ($reagent_count == 0){
+        $process_type = $params->{recombinase} ? 'recombinase'
+            	                               : 'rearray' ;
+    }
+    elsif ($reagent_count == 1){
+        $process_type = '2w_gateway';
+    }
+    else{
+        $process_type = '3w_gateway';
+    }
+    return $process_type;
+}
 1;
 
 __END__

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Backbone;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Backbone::VERSION = '0.034';
+    $LIMS2::Model::Schema::Result::Backbone::VERSION = '0.035';
 }
 ## use critic
 
@@ -137,9 +137,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_template_well_backbones
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-11 10:46:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mtkKrtpF3SU6ur7VUUh+2A
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellBackbone>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_backbones",
+  "LIMS2::Model::Schema::Result::QcTemplateWellBackbone",
+  { "foreign.backbone_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-03 17:06:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CIJ4Qxrq69y0cvce52NJLg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

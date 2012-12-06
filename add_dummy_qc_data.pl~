@@ -1,0 +1,42 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use LIMS2::Model;
+use List::Util qw(shuffle);
+
+my @chr_fails = qw( 0 1 2 3 4 Y);
+my @results = qw(potential present pass passb fail fa na);
+
+my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER}.'@sanger.ac.uk' );
+
+my $plate_name = 'SEPD0006_1';
+
+my $plate = $model->retrieve_plate({ name => $plate_name }) or die $!;
+
+my @assay_types = map {$_->id} $model->schema->resultset('GenotypingResultType')->all;
+
+# af11 in devel
+my $user = 'af11@sanger.ac.uk';
+my $user_id = 1440;
+
+$model->schema->storage->txn_begin;
+foreach my $well ($plate->wells){
+    my ($rand_result) = shuffle @results;
+    my ($rand_chr_fail) = shuffle @chr_fails;
+    $model->update_or_create_well_targeting_pass({ well_id => $well->id, result => $rand_result, created_by=>$user });
+    $model->update_or_create_well_chromosome_fail({ well_id => $well->id, result => $rand_chr_fail, created_by=>$user });
+    foreach my $type (@assay_types){
+        $well->create_related('well_genotyping_results' =>
+             {
+                 genotyping_result_type_id => $type,
+                 call => $rand_result,
+                 copy_number => rand(5),
+                 copy_number_range => rand(5),
+                 confidence => rand(1),
+                 created_by_id => $user_id,
+             }
+        );
+    }
+}

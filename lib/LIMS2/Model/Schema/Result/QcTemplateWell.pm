@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.034';
+    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.035';
 }
 ## use critic
 
@@ -157,6 +157,51 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_template_well_backbone
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellBackbone>
+
+=cut
+
+__PACKAGE__->might_have(
+  "qc_template_well_backbone",
+  "LIMS2::Model::Schema::Result::QcTemplateWellBackbone",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_template_well_cassette
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellCassette>
+
+=cut
+
+__PACKAGE__->might_have(
+  "qc_template_well_cassette",
+  "LIMS2::Model::Schema::Result::QcTemplateWellCassette",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_template_well_recombinases
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellRecombinase>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_recombinases",
+  "LIMS2::Model::Schema::Result::QcTemplateWellRecombinase",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 source_well
 
 Type: belongs_to
@@ -177,9 +222,19 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 recombinases
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-10-24 11:47:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pz+dnl8q+3VScTgh2kunnw
+Type: many_to_many
+
+Composing rels: L</qc_template_well_recombinases> -> recombinase
+
+=cut
+
+__PACKAGE__->many_to_many("recombinases", "qc_template_well_recombinases", "recombinase");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-03 17:14:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ttJw+Eo0ppn6zOr1p3jjaw
 
 use JSON qw( decode_json );
 
@@ -199,6 +254,27 @@ sub design_id {
     my $self = shift;
 
     return $self->qc_eng_seq->design_id;
+}
+
+use LIMS2::Model::Util::QCResults qw(infer_qc_process_type);
+
+sub process_type{
+	my $self = shift;
+
+	my %params;
+    if ( my $cassette = $self->qc_template_well_cassette){
+        $params{cassette} = $cassette->cassette->name;
+    }
+
+    if ( my $backbone = $self->qc_template_well_backbone){
+        $params{backbone} = $backbone->backbone->name;
+    }
+
+    if ( my @recombinases = $self->qc_template_well_recombinases->all ){
+        $params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
+    }
+
+    return infer_qc_process_type(\%params);
 }
 
 __PACKAGE__->meta->make_immutable;

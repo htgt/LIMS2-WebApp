@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.034';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.035';
 }
 ## use critic
 
@@ -19,6 +19,7 @@ use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
 use Const::Fast;
 use Try::Tiny;
+use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -293,7 +294,7 @@ sub create_qc_template_from_plate {
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
 
-	my $plate = $self->retrieve_plate( { slice_def( $params, qw( name id species ) ) } );
+    my $plate = $self->retrieve_plate( { slice_def( $params, qw( name id species ) ) } );
 
 	my $well_hash;
 

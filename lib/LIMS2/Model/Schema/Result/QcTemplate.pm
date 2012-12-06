@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplate::VERSION = '0.034';
+    $LIMS2::Model::Schema::Result::QcTemplate::VERSION = '0.035';
 }
 ## use critic
 
@@ -182,5 +182,14 @@ sub as_hash {
     };
 }
 
+sub process_type{
+    my $self = shift;
+
+    # We have to assume that all wells on the template have been
+    # created with the same combination of cassette, backbone and recombinase
+    my $well = $self->qc_template_wells->first or return;
+
+    return $well->process_type;
+}
 __PACKAGE__->meta->make_immutable;
 1;

@@ -4,6 +4,7 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+add_dummy_qc_data.pl~
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
@@ -52,6 +53,7 @@ lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimer.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimerType.pm
+lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/Plate.pm
 lib/LIMS2/Model/Schema/Result/PlateComment.pm
 lib/LIMS2/Model/Schema/Result/PlateType.pm
@@ -79,6 +81,9 @@ lib/LIMS2/Model/Schema/Result/QcSeqProject.pm
 lib/LIMS2/Model/Schema/Result/QcSeqRead.pm
 lib/LIMS2/Model/Schema/Result/QcTemplate.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWell.pm
+lib/LIMS2/Model/Schema/Result/QcTemplateWellBackbone.pm
+lib/LIMS2/Model/Schema/Result/QcTemplateWellCassette.pm
+lib/LIMS2/Model/Schema/Result/QcTemplateWellRecombinase.pm
 lib/LIMS2/Model/Schema/Result/QcTestResult.pm
 lib/LIMS2/Model/Schema/Result/Recombinase.pm
 lib/LIMS2/Model/Schema/Result/RecombineeringResultType.pm
@@ -92,13 +97,16 @@ lib/LIMS2/Model/Schema/Result/UserPreference.pm
 lib/LIMS2/Model/Schema/Result/UserRole.pm
 lib/LIMS2/Model/Schema/Result/Well.pm
 lib/LIMS2/Model/Schema/Result/WellAcceptedOverride.pm
+lib/LIMS2/Model/Schema/Result/WellChromosomeFail.pm
 lib/LIMS2/Model/Schema/Result/WellColonyCount.pm
 lib/LIMS2/Model/Schema/Result/WellComment.pm
 lib/LIMS2/Model/Schema/Result/WellDnaQuality.pm
 lib/LIMS2/Model/Schema/Result/WellDnaStatus.pm
+lib/LIMS2/Model/Schema/Result/WellGenotypingResult.pm
 lib/LIMS2/Model/Schema/Result/WellPrimerBand.pm
 lib/LIMS2/Model/Schema/Result/WellQcSequencingResult.pm
 lib/LIMS2/Model/Schema/Result/WellRecombineeringResult.pm
+lib/LIMS2/Model/Schema/Result/WellTargetingPass.pm
 lib/LIMS2/Model/Types.pm
 lib/LIMS2/Model/Util.pm
 lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
@@ -110,6 +118,7 @@ lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/QCResults.pm
+lib/LIMS2/Model/Util/RankQCResults.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
 lib/LIMS2/Report/DNAPlate.pm
@@ -205,6 +214,8 @@ root/site/user/report/select_sponsor.tt
 root/site/user/report/simple_table.tt
 root/site/user/userpreferences/change_password.tt
 root/site/user/welldata/dna_status_update.tt
+root/site/user/welldata/genotyping_qc_data.tt
+root/site/user/welldata/grid.tt
 root/static/bootstrap/css/bootstrap.css
 root/static/bootstrap/css/bootstrap.min.css
 root/static/bootstrap/img/glyphicons-halflings-white.png
@@ -212,6 +223,8 @@ root/static/bootstrap/img/glyphicons-halflings.png
 root/static/bootstrap/js/bootstrap.js
 root/static/bootstrap/js/bootstrap.min.js
 root/static/css/lims2.css
+root/static/extjs/ext-all.js
+root/static/extjs/resources/css/ext-all.css
 root/static/files/plate_upload/first_electroporation_template.csv
 root/static/files/plate_upload/gateway_template.csv
 root/static/files/plate_upload/qc_template_plate_template.csv
