@@ -581,24 +581,24 @@ sub design {
 
 sub all_genotyping_qc_data{
 	my $self = shift;
-	
+
 	# Fetch all related genotyping data as hash for use in ExtJS grid
 	my $schema = $self->result_source->schema;
-	
+
 	my @value_names = qw(call copy_number copy_number_range confidence);
     my @assay_types = sort map { $_->id } $schema->resultset('GenotypingResultType')->all;
-    
+
     my $datum;
 
 	$datum->{id} = $self->id;
 	$datum->{plate_name} = $self->plate->name;
 	$datum->{well} = $self->name;
-		    
+
 	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
 		                                                    : undef;
 	$datum->{targeting_pass} = $self->well_targeting_pass ? $self->well_targeting_pass->result
 		                                                  : undef;
-		
+
 	# foreach loop to get assay specific results
 	foreach my $assay (@assay_types){
 		foreach my $name (@value_names){
@@ -606,12 +606,12 @@ sub all_genotyping_qc_data{
 				well_id => $self->id,
 				genotyping_result_type_id => $assay,
 			});
-				
+
 			$datum->{$assay.$name} = $result ? $result->$name
 				                             : undef ;
 		}
     }
-    
+
     return $datum;
 }
 

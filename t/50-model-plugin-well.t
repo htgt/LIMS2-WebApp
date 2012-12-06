@@ -352,6 +352,7 @@ lives_ok {
 }
 
 {
+=head
     note("Testing well_genotyping_result create, update, retrieve and delete");
 
     throws_ok {
@@ -364,7 +365,7 @@ lives_ok {
                 genotyping_result_type_id => 'loacrit',
                 call => 'fa',
                 created_by => 'test_user@example.org' } ) , 'genotyping_results fa call - created successfully' ;
-
+=cut
 #    throws_ok {
 #        model->create_well_genotyping_results( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', call => 'FA' , created_by => 'test_user@example.org' }  );
 #    } qr/Well MOHFAQ0001_A_2_D04 already has a genotyping_results value of/;

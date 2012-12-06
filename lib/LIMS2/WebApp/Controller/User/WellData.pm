@@ -76,22 +76,22 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
         return;
     }
     $c->stash->{plate_name} = $plate_name;
-    
+
     my $model = $c->model('Golgi');
 
     my $plate = $model->retrieve_plate({ name => $plate_name});
-    
+
     my @value_names = (
-        { title => 'Call', field=>'call'}, 
-        { title => 'Copy Number', field => 'copy_number'}, 
+        { title => 'Call', field=>'call'},
+        { title => 'Copy Number', field => 'copy_number'},
         { title => 'Range', field => 'copy_number_range'},
         { title => 'Confidence', field => 'confidence' },
     );
     my @assay_types = sort map { $_->id } $model->schema->resultset('GenotypingResultType')->all;
-    
+
 	$c->stash->{assay_types} = \@assay_types;
 	$c->stash->{value_names} = \@value_names;
-	
+
 	return;
 }
 
