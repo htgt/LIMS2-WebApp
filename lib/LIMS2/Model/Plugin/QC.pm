@@ -21,6 +21,7 @@ use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_seq_read_sequences
     retrieve_qc_eng_seq_sequence
     build_qc_runs_search_params
+    infer_qc_process_type
 );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
@@ -67,13 +68,50 @@ sub find_or_create_qc_template {
     $self->log->debug(
         'created qc template plate ' . $qc_template->name . ' with id ' . $qc_template->id );
     while ( my ( $well_name, $eng_seq_id ) = each %template_layout ) {
-        $qc_template->create_related(
-            qc_template_wells => {
+
+    	# Store the overrides that were specified for this template
+    	my %well_overrides = slice_def ($validated_params->{wells}->{$well_name},
+    	                                qw( cassette backbone recombinase ) );
+
+        my $template_well = $qc_template->create_related(
+                qc_template_wells => {
                 name          => $well_name,
                 qc_eng_seq_id => $eng_seq_id,
                 source_well_id => $source_for_well{$well_name},
             }
         );
+
+        if(my $cassette_name = $well_overrides{'cassette'}){
+        	my $cassette = $self->schema->resultset('Cassette')->find({ name => $cassette_name })
+        	or die "Cassette $cassette_name not found";
+        	$template_well->create_related(
+        	    qc_template_well_cassette => {
+        	    	cassette_id => $cassette->id,
+        	    }
+        	);
+        }
+
+        if(my $backbone_name = $well_overrides{'backbone'}){
+        	my $backbone = $self->schema->resultset('Backbone')->find({ name => $backbone_name })
+        	or die "Backbone $backbone_name not found";
+        	$template_well->create_related(
+        	    qc_template_well_backbone => {
+        	    	backbone_id => $backbone->id,
+        	    }
+        	);
+        }
+
+        if(my $recom_list = $well_overrides{'recombinase'}){
+            foreach my $recom (@$recom_list){
+                $self->schema->resultset('Recombinase')->find({ id => $recom })
+                or die "Recombinase $recom not found";
+	        	$template_well->create_related(
+	        	    qc_template_well_recombinases => {
+	        	    	recombinase_id => $recom,
+	        	    }
+	        	);
+            }
+        }
     }
 
     return $qc_template;
@@ -165,6 +203,9 @@ sub delete_qc_template {
     }
 
     for my $well ( $template->qc_template_wells ) {
+        $well->delete_related('qc_template_well_cassette');
+        $well->delete_related('qc_template_well_backbone');
+        $well->delete_related('qc_template_well_recombinases');
         $well->delete;
     }
 
@@ -652,6 +693,11 @@ sub create_qc_template_from_wells{
 		$wells->{$name}->{eng_seq_method} = $method;
 		$wells->{$name}->{eng_seq_params} = $esb_params;
 		$wells->{$name}->{source_well_id} = $source_well_id;
+
+		# We also need to store the overrides for each QC template well
+		$wells->{$name}->{cassette} = $well_params->{cassette};
+		$wells->{$name}->{backbone} = $well_params->{backbone};
+		$wells->{$name}->{recombinase} = $well_params->{recombinase};
 	}
 
 	my $template = $self->find_or_create_qc_template({
@@ -699,7 +745,6 @@ sub list_templates {
 sub pspec_create_plates_from_qc{
     return {
         qc_run_id    => { validate => 'uuid' },
-        process_type => { validate => 'existing_process_type' },
         plate_type   => { validate => 'existing_plate_type'   },
         created_by   => { validate => 'existing_user' },
         rename_plate => { validate => 'hashref', optional => 1 },
@@ -737,7 +782,6 @@ sub create_plates_from_qc{
 			orig_name       => $old_name,
 		    results_by_well => \%results_by_well,
 		    plate_type      => $validated_params->{plate_type},
-		    process_type    => $validated_params->{process_type},
 		    qc_template_id  => $qc_run->qc_template->id,
 		    created_by      => $validated_params->{created_by},
 		    view_uri        => $validated_params->{view_uri},
@@ -754,7 +798,6 @@ sub pspec_create_plate_from_qc{
     return {
         plate_name   => { validate => 'non_empty_string' },
         orig_name    => { validate => 'non_empty_string' },
-        process_type => { validate => 'existing_process_type' },
         plate_type   => { validate => 'existing_plate_type'   },
         results_by_well => { validate => 'hashref' },
         qc_template_id  => { validate => 'integer' },
@@ -797,24 +840,28 @@ sub create_plate_from_qc{
             }
             my $source_well = $template_well->source_well
                 or die "No source well linked to template well ".$template_well->id;
-            my $eng_seq_params = $template_well->as_hash->{eng_seq_params};
 
             # Store new well params
             my %well_params = (
                 well_name => $well,
-                process_type => $validated_params->{process_type},
                 parent_plate => $source_well->plate->name,
                 parent_well  => $source_well->name,
             );
 
-            # Store cassette and backbone to be linked to well creation process (not needed for rearraying)
-            unless ($validated_params->{process_type} eq 'rearray'){
-            	my $cassette = $eng_seq_params->{insertion}->{name} ? $eng_seq_params->{insertion}->{name}
-            	              :                                       $eng_seq_params->{u_insertion}->{name};
-
-            	$well_params{cassette} = $cassette if $cassette;
-            	$well_params{backbone} = $eng_seq_params->{backbone}->{name} if $eng_seq_params->{backbone}->{name};
+            # Identify reagent overrides from QC wells            
+            if ( my $cassette = $template_well->qc_template_well_cassette){
+            	$well_params{cassette} = $cassette->cassette->name;
             }
+
+            if ( my $backbone = $template_well->qc_template_well_backbone){
+            	$well_params{backbone} = $backbone->backbone->name;
+            }
+
+            if ( my @recombinases = $template_well->qc_template_well_recombinases->all ){
+            	$well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
+            }
+
+            $well_params{process_type} = infer_qc_process_type(\%well_params);
 
             push @new_wells, \%well_params;
 		}

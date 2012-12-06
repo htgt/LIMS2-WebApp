@@ -28,14 +28,14 @@ note( "Testing well EngSeqParam generation");
     is $well_id, 1522, 'correct source well id returned';
     is $method, 'conditional_allele_seq', 'engseq method correct for well 1522';
     is_deeply ($params, test_data('well_1522.yaml'), 'engseq params as expected for well 1522');
-    
+
     my %user_params = ( cassette => 'L1L2_GT2_LacZ_BSD', backbone => 'R3R4_pBR_amp', recombinase => ['Cre']);
     ok my ($method2, $well_id2, $params2) = model->generate_well_eng_seq_params({ well_id => 850, %user_params }),
         'generate well_eng_seq_params for well 850 with user specified details should succeed';
     is_deeply ($params2, test_data("well_850_user_params.yaml"),
         'engseq params as expected for well 850 with user specified params');
-    is $method2, 'conditional_vector_seq', 'engseq method correct for well 850';    
-    
+    is $method2, 'conditional_vector_seq', 'engseq method correct for well 850';
+
     ok my ($method3, $well_id3, $params3) = model->generate_well_eng_seq_params({ well_id => 848, %user_params }),
         'generate_well_eng_seq_params for well 848 should succeed';
     is_deeply ($params3, test_data('well_848.yaml'), 'engseq params as expected for well 848');
@@ -78,7 +78,7 @@ note( "Testing well creation" );
     ok my $override2 = model->retrieve_well_accepted_override( {well_id => $well2->id} ),
         'retrieve_well_accepted_override should succeed';
     is $override2->well->id, $well2->id, 'retrieved override belongs to correct well';
-        
+
     note( "Testing update well accepted override" );
     ok my $updated_override =  model->update_well_accepted_override( $well_data->{well_accepted_override_update} ),
         'update_well_accepted_override should succeed';
@@ -122,7 +122,7 @@ note( "Testing well creation" );
             created_by      => 'test_user@example.org'
         }
     ), 'create QC sequencing result';
-    
+
     ok my $qc_seq = model->retrieve_well_qc_sequencing_result( { id => $well->id } ),
         'retrieve_well_qc_sequencing_result should succeed';
     isa_ok $qc_seq, 'LIMS2::Model::Schema::Result::WellQcSequencingResult';
@@ -137,11 +137,11 @@ note( "Testing well creation" );
     ok $well->accepted, 'well is automatically accepted now that we have a sequencing pass';
 
     is $well->assay_complete, $date_time, 'assay_complete has expected datetime';
-    
+
     lives_ok {
         model->delete_well_qc_sequencing_result( { id => $well->id } )
     } 'delete well qc sequencing result';
-    
+
     throws_ok{
     	model->retrieve_well_qc_sequencing_result( { id => $well->id } )
     } qr/No WellQcSequencingResult entity found/;
@@ -174,34 +174,76 @@ note( "Testing well creation" );
 
 {
 	note("Testing well recombineering result create and retrieve");
-	
+
 	ok my $recomb = model->create_well_recombineering_result( $well_data->{well_recombineering_create} ),
 	    'create_well_recombineering_result should succeed';
 	isa_ok $recomb, 'LIMS2::Model::Schema::Result::WellRecombineeringResult';
 	is $recomb->result_type_id, 'pcr_u', 'recombineering result type correct';
 	is $recomb->result, 'pass', 'recombineering result correct';
-	
+
 	ok my $rec_results = model->retrieve_well_recombineering_results( $well_data->{well_recombineering_create} ),
 	    'can retrieve recombineering results by name';
 	isa_ok($rec_results, 'ARRAY');
-	isa_ok($rec_results->[0], 'LIMS2::Model::Schema::Result::WellRecombineeringResult');    
-	
+	isa_ok($rec_results->[0], 'LIMS2::Model::Schema::Result::WellRecombineeringResult');
+
 	throws_ok{
 		model->create_well_recombineering_result( $well_data->{well_recombineering_create_bad} )
 	} qr/is invalid: existing_recombineering_result_type/;
 }
 
 {
+        note("Testing well colony picks create and retrieve");
+
+        ok my $colony_picks = model->create_well_colony_picks( $well_data->{well_colony_picks_create} ),
+            'create_well_colony_picks should succeed';
+        isa_ok $colony_picks, 'LIMS2::Model::Schema::Result::WellColonyCount';
+        is $colony_picks->colony_count_type_id, 'blue_colonies', 'colony pick type correct';
+        is $colony_picks->colony_count, 40, 'colony picks correct';
+
+        ok my $rec_colony_pick = model->retrieve_well_colony_picks( $well_data->{well_colony_picks_create} ),
+            'can retrieve colony_picks by name';
+        isa_ok($rec_colony_pick, 'ARRAY');
+        isa_ok($rec_colony_pick->[0], 'LIMS2::Model::Schema::Result::WellColonyCount');
+
+        throws_ok{
+                model->create_well_colony_picks( $well_data->{well_colony_picks_create_bad} )
+        } qr/is invalid: existing_colony_type/;
+}
+
+##
+
+{
+        note("Testing well primer bands create and retrieve");
+
+        ok my $primer_bands = model->create_well_primer_bands( $well_data->{well_primer_bands_create} ),
+            'create_well_primer bands should succeed';
+        isa_ok $primer_bands, 'LIMS2::Model::Schema::Result::WellPrimerBand';
+        is $primer_bands->primer_band_type_id, 'gr1', 'primer band type correct';
+        is $primer_bands->pass, 1, 'primer band correct';
+
+        ok my $rec_primer_bands = model->retrieve_well_primer_bands( $well_data->{well_primer_bands_create} ),
+            'can retrieve primer_bands by name';
+        isa_ok($rec_primer_bands, 'ARRAY');
+        isa_ok($rec_primer_bands->[0], 'LIMS2::Model::Schema::Result::WellPrimerBand');
+
+        throws_ok{
+                model->create_well_primer_bands( $well_data->{well_primer_bands_create_bad} )
+        } qr/is invalid: existing_primer_band_type/;
+}
+
+##
+
+{
 	note( "Testing well dna quality create and retrieve");
-	
+
 	ok my $quality = model->create_well_dna_quality( $well_data->{well_dna_quality_create} ),
 	    'create_well_dna_quality should succeed';
 	isa_ok $quality, 'LIMS2::Model::Schema::Result::WellDnaQuality';
 	is $quality->quality, 'M', 'DNA quality is correct';
-	
+
 	ok model->retrieve_well_dna_quality( $well_data->{well_dna_quality_create} ),
 	    'retrieve_well_dna_quality should succeed';
-    
+
     throws_ok{
     	model->retrieve_well_dna_quality( { id => 845 } );
     } qr /No WellDnaQuality entity found/;

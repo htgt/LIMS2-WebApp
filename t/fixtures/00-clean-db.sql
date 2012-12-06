@@ -37,6 +37,9 @@ DELETE FROM qc_seq_reads;
 DELETE FROM qc_run_seq_wells;
 DELETE FROM qc_seq_projects;
 DELETE FROM qc_runs;
+DELETE FROM qc_template_well_cassette;
+DELETE FROM qc_template_well_backbone;
+DELETE FROM qc_template_well_recombinase;
 DELETE FROM qc_template_wells;
 DELETE FROM qc_templates;
 DELETE FROM qc_eng_seqs;
@@ -67,3 +70,5 @@ DELETE FROM roles;
 DELETE FROM users;
 DELETE FROM sponsors;
 DELETE FROM cell_lines;
+DELETE FROM genotyping_result_types;
+

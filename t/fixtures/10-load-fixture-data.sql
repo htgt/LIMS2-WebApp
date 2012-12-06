@@ -85,14 +85,14 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 988, true);
+SELECT pg_catalog.setval('plates_id_seq', 989, true);
 
 
 --
 -- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('processes_id_seq', 1269, true);
+SELECT pg_catalog.setval('processes_id_seq', 1270, true);
 
 
 --
@@ -169,7 +169,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1843, true);
+SELECT pg_catalog.setval('wells_id_seq', 1844, true);
 
 
 --
@@ -4495,131 +4495,131 @@ INSERT INTO plate_types VALUES ('FP', 'Freezer Plates');
 -- Data for Name: plates; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO plates VALUES (986, '98', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (863, 'MOHFAQ0001_A_2', '', 'DNA', 1003, '2010-08-30 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (864, 'MOHFAS0001_A', 'Homozygote project first allele', 'FINAL', 751, '2010-03-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (865, 'MOHPCS0001_A', '', 'INT', 751, '2010-03-03 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (866, 'PCS00148_A', 'Pooled selected', 'INT', 751, '2009-03-03 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (867, '148', '', 'DESIGN', 722, '2008-11-13 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (868, 'PCS00092_A', 'Pooled intermediate', 'INT', 751, '2008-09-10 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (869, '92', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (870, 'PCTS00123_A', 'Bsd_DTA', 'INT', 1020, '2009-07-16 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (871, '123', '', 'DESIGN', 722, '2008-08-11 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (872, 'PCS00105_A', 'Pooled 8 clones', 'INT', 751, '2008-09-03 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (873, '105', '', 'DESIGN', 722, '2008-06-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (874, 'PCS00033_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (875, '33', 'Plate 33', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (876, 'PCTS00127_B', 'Bsd_DTA', 'INT', 1020, '2009-07-16 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (877, '127', '', 'DESIGN', 722, '2008-09-05 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (878, 'PCS00075_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (879, '75', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (880, 'PCS00013_A', '', 'INT', 802, '2008-02-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (881, '13', 'Plate 13', 'DESIGN', 720, '2007-11-21 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (882, 'PCS00128_B', 'Retransformed pool', 'INT', 751, '2008-10-28 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (883, '128', '', 'DESIGN', 722, '2008-09-05 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (884, 'PCS00096_A', 'Pooled intermediate', 'INT', 751, '2008-09-03 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (885, '96', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (886, 'PCS00037_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (887, '37', 'Plate 37', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (888, 'PCS00063_A', '', 'INT', 802, '2008-03-04 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (889, '63', 'Plate 63', 'DESIGN', 720, '2007-11-21 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (890, 'PCTS00149_A', '', 'INT', 1020, '2009-08-06 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (891, '149', '', 'DESIGN', 722, '2008-11-17 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (892, 'PCTS00111_A', '', 'INT', 1020, '2010-01-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (893, '111', '', 'DESIGN', 722, '2008-06-26 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (894, 'PCS00145_A', '', 'INT', 1020, '2009-07-27 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (895, '145', '', 'DESIGN', 722, '2008-11-04 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (896, 'PCS00133_A', 'Pooled', 'INT', 751, '2009-02-13 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (897, '133', '', 'DESIGN', 722, '2008-09-29 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (898, 'PCS00046_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (899, '46', 'Plate 46', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (900, 'PCS00056_A', '', 'INT', 802, '2008-03-04 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (901, '56', 'Plate 56', 'DESIGN', 720, '2007-08-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (902, 'PCS00016_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (903, '16', 'Plate 16', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (904, 'PCS00177_A', 'BSD_DTA', 'INT', 751, '2010-01-05 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (905, '177', '', 'DESIGN', 740, '2009-04-28 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (906, 'PCS00063_B', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (907, 'PCS00140_B', 'Pooled', 'INT', 751, '2009-02-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (908, '140', '', 'DESIGN', 722, '2008-10-20 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (909, 'PCS00097_A', 'Pooled 8 selected', 'INT', 751, '2008-08-18 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (910, '97', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (911, 'PCS00073_A', 'Pooled intermediate plate', 'INT', 751, '2008-04-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (912, '73', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (913, 'PCS00139_B', 'BSD_DTA', 'INT', 751, '2009-12-11 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (914, '139', '', 'DESIGN', 722, '2008-10-16 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (915, 'PCS00069_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (916, '69', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (917, 'PCS00128_C', 'T after PC, BSD DTA', 'INT', 751, '2009-06-04 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (918, 'PCS00019_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (919, '19', 'Plate 19', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (920, 'PCS00076_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (921, '76', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (922, 'PCS00083_D', '', 'INT', 751, '2008-07-28 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (923, '83', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (924, 'PCS00090_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-08-08 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (925, '90', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (926, 'PCTS00099_A', 'T after PC, BSD_DTA', 'INT', 751, '2009-05-06 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (927, '99', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (928, 'PCS00136_A', 'Pooled', 'INT', 751, '2009-01-30 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (929, '136', '', 'DESIGN', 722, '2008-10-07 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (930, 'PCS00071_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (931, '71', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (932, 'PCS00174_A', 'BSD_DTA', 'INT', 751, '2010-01-05 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (933, '174', '', 'DESIGN', 740, '2009-04-02 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (934, 'PCS00100_D', 'Selected retransformed', 'INT', 751, '2008-10-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (935, '100', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (936, 'PCS00023_E', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (937, '23', 'Plate 23', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (938, 'PCS00187_A', '', 'INT', 1020, '2009-10-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (939, '187', '', 'DESIGN', 740, '2009-07-03 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (940, 'PCS00129_A', '', 'INT', 802, '2008-12-13 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (941, '129', '', 'DESIGN', 722, '2008-09-10 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (942, 'PCS00068_A', 'Pooled intermediate glycerol', 'INT', 802, '2008-04-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (943, '68', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (944, 'PCS00184_A', 'BSD_DTA', 'INT', 751, '2010-01-05 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (945, '184', '', 'DESIGN', 740, '2009-05-30 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (946, 'PCS00054_A', '', 'INT', 802, '2009-02-20 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (947, '54', 'Plate 54', 'DESIGN', 720, '2007-07-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (948, 'PCS00117_B', 'Retransformed pool', 'INT', 751, '2008-11-14 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (949, '117', '', 'DESIGN', 722, '2008-07-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (950, 'PCS00102_B', 'Retransformed pool', 'INT', 751, '2008-10-28 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (951, '102', '', 'DESIGN', 722, '2008-08-27 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (952, 'PCS00141_A', '', 'INT', 1020, '2009-10-19 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (953, '141', '', 'DESIGN', 722, '2008-10-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (954, 'PCS00030_B', '', 'INT', 802, '2008-03-04 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (955, '30', 'Plate 30', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (956, 'PCS00094_B', '', 'INT', 751, '2009-05-05 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (957, '94', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (958, 'PCS00096_D', 'Retransformed intermediate', 'INT', 751, '2008-10-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (959, 'PCS00077_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (960, '77', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (961, 'PCS00162_A', 'BDS_DTA', 'INT', 751, '2009-04-21 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (962, '162', '', 'DESIGN', 958, '2009-01-21 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (963, 'PCS00171_A', 'BSD_DTA', 'INT', 751, '2009-12-15 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (964, '171', '', 'DESIGN', 740, '2009-03-11 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (965, 'PCS00051_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (966, '51', 'Plate 51', 'DESIGN', 720, '2007-07-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (967, 'PCS00078_A', 'Pooled intermediate', 'INT', 751, '2008-05-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (968, '78', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (969, 'PCS00072_A', '', 'INT', 802, '2008-04-10 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (970, '72', '', 'DESIGN', 802, '2008-04-10 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (971, 'PCS00017_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (972, '17', 'Plate 17', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (973, 'PCTS00150_A', '', 'INT', 1020, '2009-08-20 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (974, '150', '', 'DESIGN', 722, '2008-11-21 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (975, 'PCS00101_C', '', 'INT', 751, '2008-11-19 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (976, '101', '', 'DESIGN', 722, '2008-08-27 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (977, 'MOHSAQ0001_A_2', '', 'DNA', 985, '2012-06-15 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (978, 'MOHSAS0001_A', 'Homozygote project second allele', 'FINAL', 751, '2010-03-23 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (979, 'FEP0006', '', 'EP', 985, '2012-05-21 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (980, 'FEPD0006_1', '', 'EP_PICK', 985, '2012-06-28 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (981, 'FFP0001', '', 'FP', 985, '2012-06-28 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (982, 'XEP0006', '', 'XEP', 1, '2012-06-15 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (983, 'SEP0006', '', 'SEP', 985, '2012-06-15 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (984, 'SEPD0006_1', '', 'SEP_PICK', 985, '2012-07-04 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (985, 'SFP0001', '', 'SFP', 985, '2012-07-11 00:00:00', 'Mouse');
-INSERT INTO plates VALUES (988, 'SEP_POOL0001', '', 'SEP_POOL', 985, '2012-09-14 09:44:02.964811', 'Mouse');
+INSERT INTO plates VALUES (986, '98', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (863, 'MOHFAQ0001_A_2', '', 'DNA', 1003, '2010-08-30 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (864, 'MOHFAS0001_A', 'Homozygote project first allele', 'FINAL', 751, '2010-03-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (865, 'MOHPCS0001_A', '', 'INT', 751, '2010-03-03 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (866, 'PCS00148_A', 'Pooled selected', 'INT', 751, '2009-03-03 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (867, '148', '', 'DESIGN', 722, '2008-11-13 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (868, 'PCS00092_A', 'Pooled intermediate', 'INT', 751, '2008-09-10 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (869, '92', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (870, 'PCTS00123_A', 'Bsd_DTA', 'INT', 1020, '2009-07-16 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (871, '123', '', 'DESIGN', 722, '2008-08-11 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (872, 'PCS00105_A', 'Pooled 8 clones', 'INT', 751, '2008-09-03 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (873, '105', '', 'DESIGN', 722, '2008-06-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (874, 'PCS00033_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (875, '33', 'Plate 33', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (876, 'PCTS00127_B', 'Bsd_DTA', 'INT', 1020, '2009-07-16 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (877, '127', '', 'DESIGN', 722, '2008-09-05 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (878, 'PCS00075_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (879, '75', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (880, 'PCS00013_A', '', 'INT', 802, '2008-02-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (881, '13', 'Plate 13', 'DESIGN', 720, '2007-11-21 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (882, 'PCS00128_B', 'Retransformed pool', 'INT', 751, '2008-10-28 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (883, '128', '', 'DESIGN', 722, '2008-09-05 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (884, 'PCS00096_A', 'Pooled intermediate', 'INT', 751, '2008-09-03 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (885, '96', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (886, 'PCS00037_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (887, '37', 'Plate 37', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (888, 'PCS00063_A', '', 'INT', 802, '2008-03-04 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (889, '63', 'Plate 63', 'DESIGN', 720, '2007-11-21 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (890, 'PCTS00149_A', '', 'INT', 1020, '2009-08-06 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (891, '149', '', 'DESIGN', 722, '2008-11-17 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (892, 'PCTS00111_A', '', 'INT', 1020, '2010-01-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (893, '111', '', 'DESIGN', 722, '2008-06-26 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (894, 'PCS00145_A', '', 'INT', 1020, '2009-07-27 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (895, '145', '', 'DESIGN', 722, '2008-11-04 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (896, 'PCS00133_A', 'Pooled', 'INT', 751, '2009-02-13 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (897, '133', '', 'DESIGN', 722, '2008-09-29 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (898, 'PCS00046_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (899, '46', 'Plate 46', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (900, 'PCS00056_A', '', 'INT', 802, '2008-03-04 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (901, '56', 'Plate 56', 'DESIGN', 720, '2007-08-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (902, 'PCS00016_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (903, '16', 'Plate 16', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (904, 'PCS00177_A', 'BSD_DTA', 'INT', 751, '2010-01-05 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (905, '177', '', 'DESIGN', 740, '2009-04-28 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (906, 'PCS00063_B', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (907, 'PCS00140_B', 'Pooled', 'INT', 751, '2009-02-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (908, '140', '', 'DESIGN', 722, '2008-10-20 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (909, 'PCS00097_A', 'Pooled 8 selected', 'INT', 751, '2008-08-18 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (910, '97', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (911, 'PCS00073_A', 'Pooled intermediate plate', 'INT', 751, '2008-04-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (912, '73', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (913, 'PCS00139_B', 'BSD_DTA', 'INT', 751, '2009-12-11 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (914, '139', '', 'DESIGN', 722, '2008-10-16 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (915, 'PCS00069_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (916, '69', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (917, 'PCS00128_C', 'T after PC, BSD DTA', 'INT', 751, '2009-06-04 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (918, 'PCS00019_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (919, '19', 'Plate 19', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (920, 'PCS00076_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (921, '76', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (922, 'PCS00083_D', '', 'INT', 751, '2008-07-28 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (923, '83', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (924, 'PCS00090_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-08-08 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (925, '90', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (926, 'PCTS00099_A', 'T after PC, BSD_DTA', 'INT', 751, '2009-05-06 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (927, '99', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (928, 'PCS00136_A', 'Pooled', 'INT', 751, '2009-01-30 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (929, '136', '', 'DESIGN', 722, '2008-10-07 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (930, 'PCS00071_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (931, '71', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (932, 'PCS00174_A', 'BSD_DTA', 'INT', 751, '2010-01-05 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (933, '174', '', 'DESIGN', 740, '2009-04-02 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (934, 'PCS00100_D', 'Selected retransformed', 'INT', 751, '2008-10-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (935, '100', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (936, 'PCS00023_E', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (937, '23', 'Plate 23', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (938, 'PCS00187_A', '', 'INT', 1020, '2009-10-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (939, '187', '', 'DESIGN', 740, '2009-07-03 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (940, 'PCS00129_A', '', 'INT', 802, '2008-12-13 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (941, '129', '', 'DESIGN', 722, '2008-09-10 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (942, 'PCS00068_A', 'Pooled intermediate glycerol', 'INT', 802, '2008-04-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (943, '68', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (944, 'PCS00184_A', 'BSD_DTA', 'INT', 751, '2010-01-05 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (945, '184', '', 'DESIGN', 740, '2009-05-30 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (946, 'PCS00054_A', '', 'INT', 802, '2009-02-20 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (947, '54', 'Plate 54', 'DESIGN', 720, '2007-07-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (948, 'PCS00117_B', 'Retransformed pool', 'INT', 751, '2008-11-14 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (949, '117', '', 'DESIGN', 722, '2008-07-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (950, 'PCS00102_B', 'Retransformed pool', 'INT', 751, '2008-10-28 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (951, '102', '', 'DESIGN', 722, '2008-08-27 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (952, 'PCS00141_A', '', 'INT', 1020, '2009-10-19 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (953, '141', '', 'DESIGN', 722, '2008-10-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (954, 'PCS00030_B', '', 'INT', 802, '2008-03-04 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (955, '30', 'Plate 30', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (956, 'PCS00094_B', '', 'INT', 751, '2009-05-05 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (957, '94', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (958, 'PCS00096_D', 'Retransformed intermediate', 'INT', 751, '2008-10-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (959, 'PCS00077_A', 'Pooled intermediate glycerol', 'INT', 751, '2008-04-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (960, '77', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (961, 'PCS00162_A', 'BDS_DTA', 'INT', 751, '2009-04-21 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (962, '162', '', 'DESIGN', 958, '2009-01-21 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (963, 'PCS00171_A', 'BSD_DTA', 'INT', 751, '2009-12-15 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (964, '171', '', 'DESIGN', 740, '2009-03-11 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (965, 'PCS00051_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (966, '51', 'Plate 51', 'DESIGN', 720, '2007-07-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (967, 'PCS00078_A', 'Pooled intermediate', 'INT', 751, '2008-05-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (968, '78', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (969, 'PCS00072_A', '', 'INT', 802, '2008-04-10 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (970, '72', '', 'DESIGN', 802, '2008-04-10 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (971, 'PCS00017_A', '', 'INT', 802, '2007-12-12 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (972, '17', 'Plate 17', 'DESIGN', 720, '2007-06-24 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (973, 'PCTS00150_A', '', 'INT', 1020, '2009-08-20 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (974, '150', '', 'DESIGN', 722, '2008-11-21 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (975, 'PCS00101_C', '', 'INT', 751, '2008-11-19 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (976, '101', '', 'DESIGN', 722, '2008-08-27 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (977, 'MOHSAQ0001_A_2', '', 'DNA', 985, '2012-06-15 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (978, 'MOHSAS0001_A', 'Homozygote project second allele', 'FINAL', 751, '2010-03-23 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (979, 'FEP0006', '', 'EP', 985, '2012-05-21 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (980, 'FEPD0006_1', '', 'EP_PICK', 985, '2012-06-28 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (981, 'FFP0001', '', 'FP', 985, '2012-06-28 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (982, 'XEP0006', '', 'XEP', 1, '2012-06-15 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (983, 'SEP0006', '', 'SEP', 985, '2012-06-15 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (984, 'SEPD0006_1', '', 'SEP_PICK', 985, '2012-07-04 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (985, 'SFP0001', '', 'SFP', 985, '2012-07-11 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (988, 'SEP_POOL0001', '', 'SEP_POOL', 985, '2012-09-14 09:44:02.964811', 'Mouse', NULL);
 
 
 --
@@ -9659,6 +9659,26 @@ INSERT INTO qc_template_wells VALUES (3266, 200, 'A02', 2221, 847);
 
 
 --
+-- Data for Name: qc_template_well_backbone; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
+-- Data for Name: qc_template_well_cassette; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+INSERT INTO qc_template_well_cassette VALUES (3265, 10468);
+INSERT INTO qc_template_well_cassette VALUES (3266, 10468);
+
+
+--
+-- Data for Name: qc_template_well_recombinase; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
 -- Data for Name: qc_test_results; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -9980,6 +10000,12 @@ INSERT INTO well_accepted_override VALUES (1501, true, 722, '2010-03-29 00:00:00
 INSERT INTO well_accepted_override VALUES (1507, true, 722, '2010-04-08 00:00:00');
 INSERT INTO well_accepted_override VALUES (1511, true, 722, '2010-03-29 00:00:00');
 INSERT INTO well_accepted_override VALUES (1515, true, 722, '2010-04-08 00:00:00');
+
+
+--
+-- Data for Name: well_chromosome_fail; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
 
 
 --
@@ -11242,6 +11268,12 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_d', 'pass', '', '2008
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_g', 'pass', '', '2008-12-10 00:00:00', 800);
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_ns', 'pass', '', '2008-12-10 00:00:00', 800);
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', '2008-12-10 00:00:00', 800);
+
+
+--
+-- Data for Name: well_targeting_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
 
 
 --

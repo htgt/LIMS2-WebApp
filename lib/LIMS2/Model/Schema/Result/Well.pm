@@ -615,6 +615,12 @@ sub all_genotyping_qc_data{
     return $datum;
 }
 
+sub parent_processes{
+	my $self = shift;
+
+	return $self->ancestors->input_processes($self);
+}
+
 has second_electroporation_process => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Process',

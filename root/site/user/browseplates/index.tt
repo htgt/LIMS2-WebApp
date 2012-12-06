@@ -32,13 +32,14 @@
   <tbody>
     [%- FOR plate IN plates %]
     <tr>
-      <td>
+      [%# Background colour set on td's in order to overide odd row striping specificity %]
+      <td [% IF plate.is_virtual %] style="background-color:#f2dede" [% END %]>
         <a href="[% c.uri_for( '/user/view_plate', { id => plate.id } ) %]">[% plate.name %]</a>
       </td>
-      <td>[% plate.type_id %]</td>
-      <td>[% plate.description %]</td>
-      <td>[% plate.created_by.name %]</td>
-      <td>[% plate.created_at.ymd %]</td>
+      <td[% IF plate.is_virtual %] style="background-color:#f2dede" [% END %]>[% plate.type_id %]</td>
+      <td[% IF plate.is_virtual %] style="background-color:#f2dede" [% END %]>[% IF plate.is_virtual %] VIRTUAL! [% END %][% plate.description %]</td>
+      <td[% IF plate.is_virtual %] style="background-color:#f2dede" [% END %]>[% plate.created_by.name %]</td>
+      <td[% IF plate.is_virtual %] style="background-color:#f2dede" [% END %]>[% plate.created_at.ymd %]</td>
     </tr>
     [%- END %]
   </tbody>
