@@ -55,6 +55,9 @@ sub design_types_for {
     if ( $mutation_type eq 'deletion' or $mutation_type eq 'insertion' ){
         return $mutation_type;
     }
+    if ( $mutation_type eq 'cre_knock_in'){
+        return [ 'conditional', 'artificial-intron', 'intron-replacement', 'deletion', 'insertion', 'cre-bac' ];
+    }
 
     $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );
 }

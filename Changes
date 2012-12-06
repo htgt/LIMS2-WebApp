@@ -1,5 +1,54 @@
 {{$NEXT}}
 
+0.031     2012-11-29 10:07:31 Europe/London
+
+	Added virtual plate support
+0.030     2012-11-28 14:35:07 Europe/London
+
+    Change to API to allow clone_picks and primer_bands to be added through the API
+
+0.029     2012-11-20 12:03:54 Europe/London
+
+	Re-attempt release of v0.027
+
+0.028     2012-11-20 09:53:22 Europe/London
+
+0.027     2012-11-20 09:37:52 Europe/London
+
+    Added gene name to QC template view
+    Added phase matched cassettes to template creation
+
+0.026     2012-11-14 12:47:08 Europe/London
+
+    Added plate creation from QC results
+
+0.025     2012-10-30 09:38:47 Europe/London
+
+	Added QC template plate views
+        Added optional cassette and backbone overrides to create template form
+ 
+0.024     2012-10-24 15:58:08 Europe/London
+
+	Added interface to create new template plates
+
+0.023     2012-10-11 11:26:59 Europe/London
+
+0.022     2012-10-08 11:41:07 Europe/London
+
+	Added QC job submission form
+	Added lastest QC jobs view
+
+0.021     2012-10-02 10:03:30 Europe/London
+
+    Added front page report
+    Added genes to electroporate report
+    Implemented more tests for process creation
+
+0.020     2012-09-13 13:47:33 Europe/London
+
+	Unit test speed improvement. 
+	Added well_qc_sequencing_result delete method to API.
+
 0.019     2012-09-11 10:29:35 Europe/London
 
    Default assembly now GRCm38
