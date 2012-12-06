@@ -76,9 +76,38 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_template_well_recombinases
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-28 12:54:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c9oYHDSKOfcfcJoB9aeoyg
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellRecombinase>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_recombinases",
+  "LIMS2::Model::Schema::Result::QcTemplateWellRecombinase",
+  { "foreign.recombinase_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_templates_well
+
+Type: many_to_many
+
+Composing rels: L</qc_template_well_recombinases> -> qc_template_well
+
+=cut
+
+__PACKAGE__->many_to_many(
+  "qc_templates_well",
+  "qc_template_well_recombinases",
+  "qc_template_well",
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-03 17:14:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:98xFVd7Yi8pqHlBgDqf0UA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

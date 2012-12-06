@@ -55,6 +55,7 @@ note "Testing creation of QC template from plate";
     ok my $res = model->retrieve_qc_templates( { name => $template } ), 'retrieved qc template';
     is @{$res}, 1, 'one qc template found';
     is (scalar $res->[0]->qc_template_wells, 96, '96 qc_template_wells found for template');
+    is $res->[0]->process_type, 'rearray', 'process for new template without overrides is rearray';
 }
 
 note "Testing creation of QC template from CSV upload";
@@ -94,6 +95,7 @@ note "Testing creation of QC template from CSV upload";
     is @{$res}, 1, 'one qc template found';
     is (scalar $res->[0]->qc_template_wells, 2, '2 qc_template_wells found for template');
     my $created_id = $res->[0]->id;
+    is $res->[0]->process_type, 'rearray', 'process for new template without overrides is rearray';    
 
     $mech->back;
     ok $mech->submit_form(
@@ -134,7 +136,20 @@ note "Testing creation of QC template with overrides";
 	my $recom = 'Dre';
 	
 	$mech->get_ok('/user/create_template_plate');
-	
+
+    ok $mech->submit_form(
+        form_id => 'create_template_plate',
+        fields  => {
+        	template_plate   => $template,
+        	source_plate     => $source,
+        	cassette         => 'rubbish',
+        },
+        button  => 'create_from_plate'
+    ), 'submit create template from plate with invalid overrides';
+    ok $mech->success, 'response is success';
+    $mech->content_like(qr/cassette, is invalid/, 'cannot use unknown cassette');
+    
+    	
     ok $mech->submit_form(
         form_id => 'create_template_plate',
         fields  => {
@@ -152,6 +167,7 @@ note "Testing creation of QC template with overrides";
     $mech->content_like(qr/$cassette/,'cassette override value used in new template');
     $mech->content_like(qr/$backbone/,'backbone override value used in new template');
     $mech->content_like(qr/$recom/i,'recombinase override value used in new template');
+    $mech->content_like(qr/3w_gateway/i,'new template has process type 3w_gateway');
     
     $template = "test_overrides_csv";
 
@@ -176,7 +192,7 @@ note "Testing creation of QC template with overrides";
     $mech->content_like(qr/$cassette/,'cassette override value used in new template');
     $mech->content_like(qr/$backbone/,'backbone override value used in new template');
     $mech->content_like(qr/$recom/i,'recombinase override value used in new template');        
-   
+    $mech->content_like(qr/3w_gateway/i,'new template has process type 3w_gateway');   
 }
 
 note "Testing creation of QC template with phase matched cassette";
@@ -206,6 +222,7 @@ note "Testing creation of QC template with phase matched cassette";
     
     $mech->content_like(qr/new cassette AND phase matched/,'cannot select new cassette and phase matched cassette');
 
+    $mech->get_ok('/user/create_template_plate');
     ok $mech->submit_form(
         form_id => 'create_template_plate',
         fields  => {
@@ -218,11 +235,10 @@ note "Testing creation of QC template with phase matched cassette";
         button  => 'create_from_plate'
     ), 'submit create template from plate with phase matched cassette';
     ok $mech->success, 'response is success';
-    
    
     ok $mech->follow_link( url_regex => qr/view_template/), 'can view new qc template';
     $mech->content_like(qr/L1L2_st/,'phased cassette used in new template');
-   
+    $mech->content_like(qr/3w_gateway/i,'new template has process type 3w_gateway');
 }
 
 note "Testing creation of plates from QC run";
@@ -238,18 +254,6 @@ note "Testing creation of plates from QC run";
         form_id => 'create_plates',
         fields  => {
         	$name_inputs[0]->name => $name_inputs[0]->value,
-        	process_type => '2w_gateway',
-        	plate_type   => 'FINAL',
-        },
-        button => 'create',
-    ), 'submit plate creation form with wrong process';
-    $mech->content_like(qr/2w_gateway process can have either a cassette or backbone, not both/, 'incorrect process type error reported');
-      
-    ok $mech->submit_form(
-        form_id => 'create_plates',
-        fields  => {
-        	$name_inputs[0]->name => $name_inputs[0]->value,
-        	process_type => '3w_gateway',
         	plate_type   => 'FINAL',
         },
         button => 'create',
@@ -260,7 +264,12 @@ note "Testing creation of plates from QC run";
     ok $mech->follow_link( text => $name_inputs[0]->value ), 'can view new plate';
     ok $mech->follow_link( text => 'Well Details'), 'can view well details';
     $mech->text_contains('B02', 'well B02 created');
-    $mech->text_contains('G12', 'well G12 created');    
+    $mech->text_contains('G12', 'well G12 created');
+    
+    my $well = model->retrieve_well({ well_name => 'G12', plate_name => $name_inputs[0]->value});
+    my ($process) = $well->parent_processes;
+    is $process->type_id, '2w_gateway', 'new plate wells have correct parent process type';
+    
 }
 
 note "Testing creation and retrieval of QC template";
