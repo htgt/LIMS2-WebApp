@@ -68,7 +68,7 @@ sub find_or_create_qc_template {
     $self->log->debug(
         'created qc template plate ' . $qc_template->name . ' with id ' . $qc_template->id );
     while ( my ( $well_name, $eng_seq_id ) = each %template_layout ) {
-    	
+
     	# Store the overrides that were specified for this template
     	my %well_overrides = slice_def ($validated_params->{wells}->{$well_name},
     	                                qw( cassette backbone recombinase ) );
@@ -80,10 +80,10 @@ sub find_or_create_qc_template {
                 source_well_id => $source_for_well{$well_name},
             }
         );
-        
+
         if(my $cassette_name = $well_overrides{'cassette'}){
-        	# FIXME: Catch missing cassette error!
-        	my $cassette = $self->schema->resultset('Cassette')->find({ name => $cassette_name });
+        	my $cassette = $self->schema->resultset('Cassette')->find({ name => $cassette_name })
+        	or die "Cassette $cassette_name not found";
         	$template_well->create_related(
         	    qc_template_well_cassette => {
         	    	cassette_id => $cassette->id,
@@ -92,8 +92,8 @@ sub find_or_create_qc_template {
         }
 
         if(my $backbone_name = $well_overrides{'backbone'}){
-        	# FIXME: Catch missing backbone error!
-        	my $backbone = $self->schema->resultset('Backbone')->find({ name => $backbone_name });
+        	my $backbone = $self->schema->resultset('Backbone')->find({ name => $backbone_name })
+        	or die "Backbone $backbone_name not found";
         	$template_well->create_related(
         	    qc_template_well_backbone => {
         	    	backbone_id => $backbone->id,
@@ -102,8 +102,9 @@ sub find_or_create_qc_template {
         }
 
         if(my $recom_list = $well_overrides{'recombinase'}){
-            foreach my $recom (@$recom_list){        	
-	        	# FIXME: Catch missing recombinase error!
+            foreach my $recom (@$recom_list){
+                $self->schema->resultset('Recombinase')->find({ id => $recom })
+                or die "Recombinase $recom not found";
 	        	$template_well->create_related(
 	        	    qc_template_well_recombinases => {
 	        	    	recombinase_id => $recom,
@@ -111,7 +112,6 @@ sub find_or_create_qc_template {
 	        	);
             }
         }
-             
     }
 
     return $qc_template;
@@ -201,11 +201,11 @@ sub delete_qc_template {
             }
         );
     }
-    
+
     for my $well ( $template->qc_template_wells ) {
         $well->delete_related('qc_template_well_cassette');
         $well->delete_related('qc_template_well_backbone');
-        $well->delete_related('qc_template_well_recombinases');    	
+        $well->delete_related('qc_template_well_recombinases');
         $well->delete;
     }
 
@@ -693,7 +693,7 @@ sub create_qc_template_from_wells{
 		$wells->{$name}->{eng_seq_method} = $method;
 		$wells->{$name}->{eng_seq_params} = $esb_params;
 		$wells->{$name}->{source_well_id} = $source_well_id;
-		
+
 		# We also need to store the overrides for each QC template well
 		$wells->{$name}->{cassette} = $well_params->{cassette};
 		$wells->{$name}->{backbone} = $well_params->{backbone};
@@ -860,7 +860,7 @@ sub create_plate_from_qc{
             if ( my @recombinases = $template_well->qc_template_well_recombinases->all ){
             	$well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
             }
-            
+
             $well_params{process_type} = infer_qc_process_type(\%well_params);
 
             push @new_wells, \%well_params;

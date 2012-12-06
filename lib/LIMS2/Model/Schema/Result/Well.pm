@@ -534,6 +534,12 @@ sub design {
     return $process_design ? $process_design->design : undef;
 }
 
+sub parent_processes{
+	my $self = shift;
+
+	return $self->ancestors->input_processes($self);
+}
+
 has second_electroporation_process => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Process',

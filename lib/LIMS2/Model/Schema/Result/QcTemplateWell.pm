@@ -254,7 +254,7 @@ use LIMS2::Model::Util::QCResults qw(infer_qc_process_type);
 
 sub process_type{
 	my $self = shift;
-	
+
 	my %params;
     if ( my $cassette = $self->qc_template_well_cassette){
         $params{cassette} = $cassette->cassette->name;
@@ -267,8 +267,8 @@ sub process_type{
     if ( my @recombinases = $self->qc_template_well_recombinases->all ){
         $params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
     }
-            
-    return infer_qc_process_type(\%params);	
+
+    return infer_qc_process_type(\%params);
 }
 
 __PACKAGE__->meta->make_immutable;

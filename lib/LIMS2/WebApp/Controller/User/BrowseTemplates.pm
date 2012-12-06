@@ -109,7 +109,7 @@ sub view :Path( '/user/view_template' ) :Args(0) {
 	    	# FIXME: what if some recombinases from source and some from template?
 	    	$info->{recombinase_new} = join ", ", map { $_->recombinase_id } @recombinases;
 	    }
-	    
+
 	    my $genes;
         if (my $source = $well->source_well){
         	$info->{source_plate} = $source->plate->name;

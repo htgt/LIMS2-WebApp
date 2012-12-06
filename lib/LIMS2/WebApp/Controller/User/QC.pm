@@ -418,7 +418,7 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 			        });
 			    }
             );
-            
+
 			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
 			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}

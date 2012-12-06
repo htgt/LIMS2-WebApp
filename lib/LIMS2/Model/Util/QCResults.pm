@@ -351,18 +351,17 @@ sub build_qc_runs_search_params {
 }
 
 sub infer_qc_process_type{
-	
 	my ($params) = @_;
-	
+
 	my $process_type;
 	my $reagent_count = 0;
-	
+
 	$reagent_count++ if $params->{cassette};
 	$reagent_count++ if $params->{backbone};
-	
+
     # Infer process type from combination of reagents
     if ($reagent_count == 0){
-        $process_type = $params->{recombinase} ? 'recombinase' 
+        $process_type = $params->{recombinase} ? 'recombinase'
             	                               : 'rearray' ;
     }
     elsif ($reagent_count == 1){
@@ -371,7 +370,7 @@ sub infer_qc_process_type{
     else{
         $process_type = '3w_gateway';
     }
-    return $process_type;	
+    return $process_type;
 }
 1;
 
