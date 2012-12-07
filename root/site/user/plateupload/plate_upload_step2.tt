@@ -16,6 +16,9 @@
           [% IF plate_name %]value="[% plate_name %]"[% END %]
         />
 
+        <label>Virtual Plate <input type="checkbox" name="is_virtual" value="1"></label>
+        
+
         <label>Process Type</label>
         <input type="hidden" name="process_type" id="process_type" value="[% process_type %]" />
         <span class="input uneditable-input">[% process_type %]</span>
