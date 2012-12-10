@@ -352,7 +352,7 @@ lives_ok {
 }
 
 {
-=head
+
     note("Testing well_genotyping_result create, update, retrieve and delete");
 
     throws_ok {
@@ -361,45 +361,67 @@ lives_ok {
                 call => 'FF' , created_by => 'test_user@example.org' }  );
     } qr/Parameter validation failed/;
 
-    ok model->create_well_genotyping_result( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
+    my $result_input = { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
                 genotyping_result_type_id => 'loacrit',
                 call => 'fa',
-                created_by => 'test_user@example.org' } ) , 'genotyping_results fa call - created successfully' ;
-=cut
-#    throws_ok {
-#        model->create_well_genotyping_results( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', call => 'FA' , created_by => 'test_user@example.org' }  );
-#    } qr/Well MOHFAQ0001_A_2_D04 already has a genotyping_results value of/;
-
-#    ok my $genotyping_result = model->update_or_create_well_genotyping_results( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
-#                call => 'pass',
-#                copy_number => '2.4',
-#                copy_number_range => '0.2',
-#                created_by => 'test_user@example.org' } ), 'can update well_genotyping_results';
-#    is $genotyping_result->call, 'pass', '..updated call attribute is now pass';
-#    is $genotyping_result->copy_number, '2.4', '..updated copy_number attribute is now 2.4';
-#    is $genotyping_result->copy_number_range, '0.2', '..updated call attribute is now pass';
-    # what happens if we query on confidence when it has not been set?
+                created_by => 'test_user@example.org' };
+                
+    ok my $result = model->create_well_genotyping_result( $result_input ) , 'genotyping_results fa call - created successfully' ;
+    is $result->call, 'fa', 'new result has expected call';
+    is $result->genotyping_result_type_id, 'loacrit', 'new result has expected assay type';
+    throws_ok {
+    	model->create_well_genotyping_result( $result_input );
+    } qr/already has a genotyping_results value/;
 
 
-#    ok my $chromosome_fail = model->retrieve_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } ), 'can retrieve chromosome fail data for well';
-#    is $chromosome_fail->result, '3', 'chromosome fail result is 3';
-#    ok my $well = $chromosome_fail->well, '.. can grab well from chromosome_fail';
-#    is "$well", 'MOHFAQ0001_A_2_D04', '.. and chromosome_fail is for right well';
+    ok my $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
+                genotyping_result_type_id => 'loacrit',
+                call => 'pass',
+                copy_number => '2.4',
+                copy_number_range => '0.2',
+                created_by => 'test_user@example.org' } ), 'can update well_genotyping_results';
+    is $genotyping_result->id, $result->id, "..existing well has been updated";
+    is $genotyping_result->call, 'pass', '..updated call attribute is now pass';
+    is $genotyping_result->copy_number, '2.4', '..updated copy_number attribute is now 2.4';
+    is $genotyping_result->copy_number_range, '0.2', '..updated copy_number_range is now 0.2';
+    
+    ok $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
+                genotyping_result_type_id => 'loacrit',
+                call => 'fail',
+                copy_number => '3',
+                created_by => 'test_user@example.org',
+    }), 'attempt to update with worse result runs without error';
+    is $genotyping_result->call, 'pass', '..but result call is not updated';
+    is $genotyping_result->copy_number, '2.4', '..and copy number is not updated';
 
-#    ok $chromosome_fail = model->update_or_create_well_chromosome_fail( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => '4' , created_by => 'test_user@example.org' } ), 'can update chromosome fail well result';
-#    is $chromosome_fail->result, '4', '..updated result is now 4';
+    ok $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
+                genotyping_result_type_id => 'loacrit',
+                call => 'fail',
+                copy_number => '3',
+                created_by => 'test_user@example.org',
+                overwrite => 1,
+    }), 'attempt to update with worse result runs using overwrite flag';
+    is $genotyping_result->call, 'fail', '..and result call is updated';
 
-#lives_ok {
-#        model->delete_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
-#     } 'delete well chromosome fail result';
+    ok my $chromosome_fail = model->retrieve_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } ), 'can retrieve chromosome fail data for well';
+    is $chromosome_fail->result, '3', 'chromosome fail result is 3';
+    ok my $well = $chromosome_fail->well, '.. can grab well from chromosome_fail';
+    is "$well", 'MOHFAQ0001_A_2_D04', '.. and chromosome_fail is for right well';
 
-#    throws_ok {
-#       model->retrieve_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
-#    } qr/No WellChromosomeFail entity found/;
+    ok $chromosome_fail = model->update_or_create_well_chromosome_fail( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => '4' , created_by => 'test_user@example.org' } ), 'can update chromosome fail well result';
+    is $chromosome_fail->result, '4', '..updated result is now 4';
+    
+    lives_ok {
+        model->delete_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
+    } 'delete well chromosome fail result';
 
-#    ok my $new_chromosome_fail = model->create_well_chromosome_fail( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => '3', created_by => 'test_user@example.org' }  ), 'can create new well chromosome fail result';
-#    is $new_chromosome_fail->result, '3', 'chromosome fail result is 3';
-#    is $well->id, $new_chromosome_fail->well_id , '.. and chromosome_fail result is for right well';
+    throws_ok {
+        model->retrieve_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
+    } qr/No WellChromosomeFail entity found/;
+
+    ok my $new_chromosome_fail = model->create_well_chromosome_fail( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => '3', created_by => 'test_user@example.org' }  ), 'can create new well chromosome fail result';
+    is $new_chromosome_fail->result, '3', 'chromosome fail result is 3';
+    is $well->id, $new_chromosome_fail->well_id , '.. and chromosome_fail result is for right well';
 }
 
 done_testing();

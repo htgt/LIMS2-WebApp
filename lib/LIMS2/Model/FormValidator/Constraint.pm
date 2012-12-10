@@ -112,14 +112,14 @@ sub integer {
 sub confidence_float {
     return sub {
         my $val = shift;
-        return $val =~ qr/^\d+\.\d+$/ ;
+        return $val =~ qr/^\d+(\.\d+)?$/ ;
     }
 }
 
 sub copy_float {
     return sub {
         my $val = shift;
-        return $val =~ qr/^\d+\.\d+$/ ;
+        return $val =~ qr/^\d+(\.\d+)?$/ ;
     }
 }
 
