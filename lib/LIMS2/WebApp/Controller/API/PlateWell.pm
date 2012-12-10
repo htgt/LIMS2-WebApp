@@ -239,6 +239,63 @@ sub well_dna_status_POST {
     );
 }
 
+sub well_genotyping_qc_list :Path('/api/well/genotyping_qc') :Args(0) :ActionClass('REST'){
+}
+
+sub well_genotyping_qc_list_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $plate_name = $c->request->param('plate_name');
+
+    my $model = $c->model('Golgi');
+
+    my $plate = $model->retrieve_plate({ name => $plate_name});
+
+	my @well_data;
+	foreach my $well ($plate->wells){
+		my $datum = $well->all_genotyping_qc_data;
+		push @well_data, $datum;
+	}
+
+    return $self->status_ok( $c, entity => \@well_data );
+}
+
+sub well_genotyping_qc :Path('/api/well/genotyping_qc') :Args(1) :ActionClass('REST') {
+}
+
+sub well_genotyping_qc_PUT{
+    my ( $self, $c, $well_id ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $data = $c->request->data;
+use Data::Dumper;
+$c->log->debug(Dumper($data));
+
+    my $plate_name = $data->{'plate_name'};
+
+    # FIXME: this is working - now handle all the other results!
+    my $targ_pass = $c->model('Golgi')->txn_do(
+        sub {
+            shift->update_or_create_well_targeting_pass({
+            	created_by => $c->user->name,
+            	result     => $data->{'targeting_pass'},
+            	well_id    => $well_id,
+            })
+        }
+    );
+
+    my $new_data = $c->model('Golgi')->retrieve_well({ id => $well_id})->all_genotyping_qc_data;
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for('/api/well/genotyping_qc', {plate_name => $plate_name}),
+        entity => $new_data,
+    );
+}
+
 sub well_dna_quality :Path('/api/well/dna_quality') :Args(0) :ActionClass('REST') {
 }
 

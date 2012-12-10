@@ -236,6 +236,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_chromosome_fail
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellChromosomeFail>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_chromosome_fail",
+  "LIMS2::Model::Schema::Result::WellChromosomeFail",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_colony_counts
 
 Type: has_many
@@ -296,6 +311,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_genotyping_results
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellGenotypingResult>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_genotyping_results",
+  "LIMS2::Model::Schema::Result::WellGenotypingResult",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_primer_bands
 
 Type: has_many
@@ -341,6 +371,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_pass
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingPass>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_targeting_pass",
+  "LIMS2::Model::Schema::Result::WellTargetingPass",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 input_processes
 
 Type: many_to_many
@@ -362,8 +407,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-10-24 11:47:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FjB+lADJIDqg79FyuB5i/Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-22 11:29:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fRWsB1eB3LjpjJRiD/5YHA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -532,6 +577,48 @@ sub design {
     my $process_design = $self->ancestors->find_process( $self, 'process_design' );
 
     return $process_design ? $process_design->design : undef;
+}
+
+sub all_genotyping_qc_data{
+	my $self = shift;
+
+	# Fetch all related genotyping data as hash for use in ExtJS grid
+	my $schema = $self->result_source->schema;
+
+	my @value_names = qw(call copy_number copy_number_range confidence);
+    my @assay_types = sort map { $_->id } $schema->resultset('GenotypingResultType')->all;
+
+    my $datum;
+
+	$datum->{id} = $self->id;
+	$datum->{plate_name} = $self->plate->name;
+	$datum->{well} = $self->name;
+
+	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
+		                                                    : undef;
+	$datum->{targeting_pass} = $self->well_targeting_pass ? $self->well_targeting_pass->result
+		                                                  : undef;
+
+	# foreach loop to get assay specific results
+	foreach my $assay (@assay_types){
+		foreach my $name (@value_names){
+			my $result = $schema->resultset('WellGenotypingResult')->find({
+				well_id => $self->id,
+				genotyping_result_type_id => $assay,
+			});
+
+			$datum->{$assay.$name} = $result ? $result->$name
+				                             : undef ;
+		}
+    }
+
+    return $datum;
+}
+
+sub parent_processes{
+	my $self = shift;
+
+	return $self->ancestors->input_processes($self);
 }
 
 has second_electroporation_process => (

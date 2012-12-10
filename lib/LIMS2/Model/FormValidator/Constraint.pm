@@ -86,6 +86,14 @@ sub validated_by_annotation {
     return in_set( 'yes', 'no', 'maybe', 'not done' );
 }
 
+sub genotyping_result_text {
+    return in_set( 'potential', 'present', 'pass', 'passb', 'fail', 'fa', 'na' );
+}
+
+sub chromosome_fail_text {
+    return in_set( '0', '1', '2', '3', '4', 'Y' );
+}
+
 sub dna_seq {
     return regexp_matches(qr/^[ATGCN]+$/);
 }
@@ -98,6 +106,20 @@ sub integer {
     return sub {
         my $val = shift;
         return $val =~ qr/^\d+$/ && $val >= $MIN_INT && $val <= $MAX_INT;
+    }
+}
+
+sub confidence_float {
+    return sub {
+        my $val = shift;
+        return $val =~ qr/^\d+\.\d+$/ ;
+    }
+}
+
+sub copy_float {
+    return sub {
+        my $val = shift;
+        return $val =~ qr/^\d+\.\d+$/ ;
     }
 }
 
@@ -244,6 +266,11 @@ sub dna_quality {
 sub existing_genotyping_primer_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'GenotypingPrimerType', 'id' );
+}
+
+sub existing_genotyping_result_type {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'GenotypingResultType', 'id' );
 }
 
 sub existing_user {

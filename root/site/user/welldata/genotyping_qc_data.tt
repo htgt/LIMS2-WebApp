@@ -1,0 +1,11 @@
+[%- META title = 'Genotyping QC Results'; META tab_name = 'QC'  %]
+
+<link rel="stylesheet" type="text/css" href="/static/extjs/resources/css/ext-all.css" />
+
+[% PROCESS 'user/welldata/grid.tt' %]
+   
+<div class="page-header">
+  <h1>Plate Genotyping QC Results</h1>
+  <div id="my_results"></div>
+</div>
+

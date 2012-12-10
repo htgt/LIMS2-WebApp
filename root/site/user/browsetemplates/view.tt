@@ -19,6 +19,16 @@
 
         <tr>
           <td>
+            <strong>Process Type</strong>
+          </td>
+          <td>
+            [% qc_template.process_type %]
+          </td>
+          <td></td>
+        </tr>
+        
+        <tr>
+          <td>
             <strong>Created At</strong>
           </td>
           <td>
@@ -66,7 +76,8 @@
 
 
 <h2>Wells</h2>
-
+<p> Cassettes, backbones and recombinases that were applied to create this template are shown 
+in bold </p>
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
@@ -91,9 +102,25 @@
       <td>[% well.design_id %]</td>
       <td>[% well.gene_ids %]</td>
       <td>[% well.gene_symbols %]</td>
+      
+      [% IF well.cassette_new %]
+      <td><strong>[% well.cassette_new %]</strong></td>
+      [% ELSE %]
       <td>[% well.cassette %]</td>
-      <td>[% well.backbone %]</td> 
+      [% END %]
+      
+      [% IF well.backbone_new %]
+      <td><strong>[% well.backbone_new %]</strong></td>
+      [% ELSE %]
+      <td>[% well.backbone %]</td>
+      [% END %]
+      
+      [% IF well.recombinase_new %]
+      <td><strong>[% well.recombinase_new %]</strong></td>
+      [% ELSE %]
       <td>[% well.recombinase %]</td>
+      [% END %]
+      
       <td>  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/view_template', { genbank_well_id => well.id, id => qc_template.id } ) %]">
             <i class="icon-download-alt icon-white"></i>Download</a> </td>          
     </tr>

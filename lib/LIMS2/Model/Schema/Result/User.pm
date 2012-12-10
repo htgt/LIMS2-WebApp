@@ -242,6 +242,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_chromosomes_fail
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellChromosomeFail>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_chromosomes_fail",
+  "LIMS2::Model::Schema::Result::WellChromosomeFail",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_colony_counts
 
 Type: has_many
@@ -302,6 +317,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_genotyping_results
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellGenotypingResult>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_genotyping_results",
+  "LIMS2::Model::Schema::Result::WellGenotypingResult",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_primer_bands
 
 Type: has_many
@@ -347,6 +377,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_passes
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingPass>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_targeting_passes",
+  "LIMS2::Model::Schema::Result::WellTargetingPass",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 wells
 
 Type: has_many
@@ -373,8 +418,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-26 12:05:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xUPA71nvcLSjf8ZremRI1g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-22 11:29:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8UaHWmnUYiSY2k/mSzdzCw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

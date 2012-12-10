@@ -97,7 +97,20 @@ sub view :Path( '/user/view_template' ) :Args(0) {
         $info->{recombinase} = $es_params->{recombinase} ? join ", ", @{$es_params->{recombinase}}
                                                          : undef;
 
-	my $genes;
+        # Store as *_new the cassette, backbone and recombinases that
+        # were specified for the qc template (rather than taken from source well)
+	    if (my $cassette = $well->qc_template_well_cassette){
+	    	$info->{cassette_new} = $cassette->cassette->name;
+	    }
+	    if (my $backbone = $well->qc_template_well_backbone){
+	    	$info->{backbone_new} = $backbone->backbone->name;
+	    }
+	    if (my @recombinases = $well->qc_template_well_recombinases->all){
+	    	# FIXME: what if some recombinases from source and some from template?
+	    	$info->{recombinase_new} = join ", ", map { $_->recombinase_id } @recombinases;
+	    }
+
+	    my $genes;
         if (my $source = $well->source_well){
         	$info->{source_plate} = $source->plate->name;
         	$info->{source_well} = $source->name;

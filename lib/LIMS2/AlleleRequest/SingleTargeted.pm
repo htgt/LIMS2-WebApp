@@ -50,7 +50,7 @@ sub _build_allele_design_wells {
 
 sub _build_allele_vector_wells {
     my $self = shift;
-    return [ $self->final_vector_wells( $self->gene_design_wells, $self->cassette_function ) ];
+    return [ $self->final_vector_wells( $self->allele_design_wells, $self->cassette_function ) ];
 }
 
 sub _build_allele_dna_wells {
@@ -60,7 +60,7 @@ sub _build_allele_dna_wells {
 
 sub _build_allele_electroporation_wells {
     my $self = shift;
-    return [ $self->electroporation_wells( $self->gene_vector_wells, 'EP' ) ];
+    return [ $self->electroporation_wells( $self->allele_vector_wells, 'EP' ) ];
 }
 
 sub all_vector_wells {
