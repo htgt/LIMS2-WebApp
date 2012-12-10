@@ -4,7 +4,6 @@ MANIFEST
 META.yml
 Makefile.PL
 README
-add_dummy_qc_data.pl~
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl

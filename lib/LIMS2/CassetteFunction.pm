@@ -1,7 +1,7 @@
 package LIMS2::CassetteFunction;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::CassetteFunction::VERSION = '0.035';
+    $LIMS2::CassetteFunction::VERSION = '0.036';
 }
 ## use critic
 
@@ -24,7 +24,7 @@ Readonly my $CASSETTE_FUNCTION_CHECKS => {
     reporter_only              => [ \&has_conditional_cassette, \&has_cre_recombinase ],
     reporter_only_promoter     => [ \&has_conditional_cassette, \&has_promoter_cassette, \&has_cre_recombinase ],
     reporter_only_promoterless => [ \&has_conditional_cassette, \&has_promoterless_cassette, \&has_cre_recombinase ],
-    cre_knock_in               => [ \&has_cre_recombinase ]
+    cre_knock_in               => [ \&has_cre_cassette ]
 };
 
 sub satisfies_cassette_function {
@@ -52,6 +52,12 @@ sub has_promoterless_cassette {
     my $well = shift;
 
     return ! has_promoter_cassette($well);
+}
+
+sub has_cre_cassette {
+    my $well = shift;
+
+    return $well->cassette->cre;
 }
 
 sub has_cre_recombinase {
