@@ -67,19 +67,37 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
     return;
 }
 
+sub show_genotyping_qc_data :Path('/user/show_genotyping_qc_data') :Args(0){
+	my ($self, $c) = @_;
+	
+    $c->stash->{plate_name} = $c->request->params->{plate_name};
+    
+    return;
+}
+
 sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
 	my ( $self, $c ) = @_;
 
     my $plate_name = $c->request->params->{plate_name};
     unless ( $plate_name ) {
-        $c->stash->{error_msg} = 'You must specify a plate name';
-        return;
+        $c->flash->{error_msg} = 'You must specify a plate name';
+        return $c->res->redirect('/user/show_genotyping_qc_data');
     }
+    
     $c->stash->{plate_name} = $plate_name;
 
     my $model = $c->model('Golgi');
-
-    my $plate = $model->retrieve_plate({ name => $plate_name});
+    my $plate;
+    
+    try{
+    	$plate = $model->retrieve_plate({ name => $plate_name });
+    }
+    catch{
+        $c->flash->{error_msg} = "Plate $plate_name not found";
+    	return $c->res->redirect('/user/show_genotyping_qc_data');    	
+    };
+    	
+    return unless $plate;
 
     my @value_names = (
         { title => 'Call', field=>'call'},

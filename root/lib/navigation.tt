@@ -93,6 +93,9 @@
             <li>
               <a href="[% c.uri_for( '/user/qc_runs' ) %]">Browse Sequencing QC</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/browse_templates' ) %]">Browse QC Templates</a>
+            </li>            
             [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
@@ -105,7 +108,10 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
-            </li>                      
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/show_genotyping_qc_data' ) %]">Genotyping QC Results</a>
+            </li>    
             [% END %]
           </ul>
         </li>
