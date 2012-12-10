@@ -227,7 +227,7 @@ sub has_accepted_pick_wells {
     return 0 unless $ar->can( $type );
 
     for my $well ( @{ $ar->$type } ) {
-        return 1 if $well->accepted;
+        return 1 if $well->is_accepted;
     }
 
     return 0;
