@@ -98,7 +98,7 @@ sub flag_virtual_plate :Path( '/user/flag_virtual_plate' ) :Args(0) {
                     {   id       => $params->{id}, }
                 );
                 $plate->update( { is_virtual => 1 } );
-                
+
                 $c->flash->{success_msg} = 'Plate ' . $plate->name . ' status changed to virtual ';
             }
             catch {
@@ -124,7 +124,7 @@ sub unflag_virtual_plate :Path( '/user/unflag_virtual_plate' ) :Args(0) {
                     {   id       => $params->{id}, }
                 );
                 $plate->update( { is_virtual => 0 } );
-                
+
                 $c->flash->{success_msg} = 'Plate ' . $plate->name . ' status changed to not virtual ';
             }
             catch {
