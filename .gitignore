@@ -6,6 +6,7 @@ ddl/lims2_test2
 ddl/lims2_live
 ddl/lims2_staging
 ddl/lims2_sp12
+ddl/lims2_dp10
 *~
 cover_db
 app.psgi

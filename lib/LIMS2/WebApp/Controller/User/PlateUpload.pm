@@ -65,7 +65,6 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
 
 sub process_plate_upload_form :Private {
     my ( $self, $c ) = @_;
-
     $c->stash( $c->request->params );
     my $params = $c->request->params;
 
