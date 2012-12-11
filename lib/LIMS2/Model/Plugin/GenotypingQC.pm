@@ -66,7 +66,7 @@ $self->log->debug(Dumper($data));
 		}
 
 		# for each assay type see if we have pass/call
-		# if we do and pass/call == na then create/update with na and no values
+		# if we do and pass/call == na or fa then create/update with no values
 		# for other pass/call values create/update result with all available data (confidence is optional)
 		foreach my $assay (@assay_types){
 			if (my $call = $datum->{$assay."_pass"}){
@@ -76,7 +76,7 @@ $self->log->debug(Dumper($data));
 				$call =~ s/\s*//g;
 				$call = lc($call);
 
-				if ($call eq "na"){
+				if ($call eq "na" or $call eq "fa"){
 					# FIXME: do we need to set existing results in DB to undef?
 					# will the update validation allow this?
 					($result, $message) = $self->update_or_create_well_genotyping_result({

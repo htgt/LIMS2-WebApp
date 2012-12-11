@@ -625,6 +625,7 @@ sub create_well_targeting_pass {
 sub update_or_create_well_targeting_pass {
     my ( $self, $params ) = @_;
 
+    my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
     my $targeting_pass;
@@ -633,11 +634,14 @@ sub update_or_create_well_targeting_pass {
     if ( $targeting_pass = $well->well_targeting_pass ) {
        # Update the result if new result is "better" or if overwrite flag is set to true
        my $update_request = {slice_def $validated_params, qw( result )};
-       if ( $validated_params->{overwrite} or rank( $update_request->{result} ) > rank( $targeting_pass ) ) {
+       my $previous = $targeting_pass->result;
+       if ( $validated_params->{overwrite} or rank( $update_request->{result} ) > rank( $previous) ) {
            $targeting_pass->update( { result => $update_request->{result} });
+           $message = "Targeting pass updated from $previous to ".$targeting_pass->result;
        }
        else{
-           $self->log->debug("Will not update result ".$targeting_pass->result." with result ".$update_request->{result});
+       	   $message = "Will not update targeting pass result $previous with result ".$update_request->{result};
+           $self->log->debug($message);
        }
     }
     else {
@@ -645,12 +649,11 @@ sub update_or_create_well_targeting_pass {
         well_targeting_pass => {
             slice_def $validated_params,
             qw( result created_by_id created_at )
-        }
-    );
-
+        });
+        $message = "Targeting pass created with result ".$targeting_pass->result;
     }
 
-    return $targeting_pass;
+    return wantarray ? ($targeting_pass, $message) : $targeting_pass ;
 }
 
 sub retrieve_well_targeting_pass {
@@ -714,6 +717,7 @@ sub create_well_chromosome_fail {
 sub update_or_create_well_chromosome_fail {
     my ( $self, $params ) = @_;
 
+    my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_chromosome_fail );
 
     my $chromosome_fail;
@@ -722,7 +726,9 @@ sub update_or_create_well_chromosome_fail {
 
     if ( $chromosome_fail = $well->well_chromosome_fail ) {
         my $update_request = {slice_def $validated_params, qw( result )};
+        my $previous = $chromosome_fail->result;
         $chromosome_fail->update( { result => $update_request->{result} } );
+        $message = "Chromosome fail updated from $previous to ".$chromosome_fail->result;
     }
     else {
         $chromosome_fail = $well->create_related(
@@ -731,9 +737,10 @@ sub update_or_create_well_chromosome_fail {
             qw( result created_by_id created_at )
         }
         );
+        $message = "Chromosome fail created with result ".$chromosome_fail->result;
     }
 
-    return $chromosome_fail;
+    return wantarray ? ($chromosome_fail, $message) : $chromosome_fail ;
 }
 
 sub retrieve_well_chromosome_fail {
@@ -812,6 +819,7 @@ sub create_well_genotyping_result {
 sub update_or_create_well_genotyping_result {
     my ( $self, $params ) = @_;
 
+    my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_genotyping_result );
 
     my $well_params = { slice_def $validated_params, qw( id plate_name well_name ) };
@@ -828,11 +836,16 @@ sub update_or_create_well_genotyping_result {
        my $update_request = {slice_def $validated_params,
            qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
        # Update the result if new result is "better" or if overwrite flag is set to true
-       if ( $validated_params->{overwrite} or rank( $update_request->{call} ) > rank( $genotyping_result->call ) ) {
+       my $previous = $genotyping_result->call;
+       if ( $validated_params->{overwrite} or rank( $update_request->{call} ) > rank( $previous ) ) {
            $genotyping_result->update( $update_request );
+           $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
+                     ." updated from ".$previous." to ".$genotyping_result->call;
        }
        else{
-           $self->log->debug("Will not update result ".$genotyping_result->call." with result ".$update_request->{call});
+       	   $message = "Will not update ".$validated_params->{genotyping_result_type_id}
+       	             ." result ".$previous." with result ".$update_request->{call};
+           $self->log->debug($message);
        }
     }
     else {
@@ -841,9 +854,10 @@ sub update_or_create_well_genotyping_result {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
         });
-
+        $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
+                  ." created with result ".$genotyping_result->call;
     }
-    return $genotyping_result;
+    return wantarray ? ($genotyping_result, $message) : $genotyping_result;
 }
 
 sub pspec_retrieve_well_genotyping_result {

@@ -69,9 +69,9 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
 
 sub show_genotyping_qc_data :Path('/user/show_genotyping_qc_data') :Args(0){
 	my ($self, $c) = @_;
-	
+
     $c->stash->{plate_name} = $c->request->params->{plate_name};
-    
+
     return;
 }
 
@@ -83,20 +83,20 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
         $c->flash->{error_msg} = 'You must specify a plate name';
         return $c->res->redirect('/user/show_genotyping_qc_data');
     }
-    
+
     $c->stash->{plate_name} = $plate_name;
 
     my $model = $c->model('Golgi');
     my $plate;
-    
+
     try{
     	$plate = $model->retrieve_plate({ name => $plate_name });
     }
     catch{
         $c->flash->{error_msg} = "Plate $plate_name not found";
-    	return $c->res->redirect('/user/show_genotyping_qc_data');    	
+        return $c->res->redirect('/user/show_genotyping_qc_data');
     };
-    	
+
     return unless $plate;
 
     my @value_names = (
@@ -111,6 +111,39 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
 	$c->stash->{value_names} = \@value_names;
 
 	return;
+}
+
+sub upload_genotyping_qc : Path( '/user/upload_genotyping_qc') : Args(0){
+	my ($self, $c) = @_;
+
+	unless ($c->request->params->{submit_genotyping_qc}){
+		return;
+	}
+
+    my $genotyping_data = $c->request->upload('datafile');
+    unless ( $genotyping_data ) {
+        $c->stash->{error_msg} = 'No csv file with genotyping QC data specified';
+        return;
+    }
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $msg = $c->model('Golgi')->update_genotyping_qc_data({
+                    csv_fh => $genotyping_data->fh,
+                    created_by => $c->user->name,
+                });
+                $c->stash->{success_msg} = "Uploaded genotpying QC results<br>"
+                    . join("<br>", @{ $msg  });
+            }
+            catch {
+                $c->stash->{error_msg} = "Error encountered while uploading genotyping QC results: $_";
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    return;
 }
 
 =head1 AUTHOR

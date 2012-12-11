@@ -111,7 +111,10 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/show_genotyping_qc_data' ) %]">Genotyping QC Results</a>
-            </li>    
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
+            </li>                
             [% END %]
           </ul>
         </li>
