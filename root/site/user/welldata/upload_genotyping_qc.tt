@@ -1,0 +1,69 @@
+[%- META title = 'Genotyping QC Data Upload'; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Genotyping QC Data Upload</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="upload_genotyping_qc" action="[% c.uri_for( '/user/upload_genotyping_qc' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>Genotyping QC Data File</label>
+        <input name="datafile" type="file">
+
+        <br>
+        <br>
+        <button name="submit_genotyping_qc" id="submit_genotyping_qc" type="submit" value="submit_genotyping_qc" class="btn">
+            <i class="icon-upload"></i> Upload Genotyping QC
+        </button>
+    </form>
+  </div>
+
+</div>
+
+<div class="accordion" id="accordian">
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="icon-question-sign"></i> Genotyping QC Data Upload Help
+      </a>
+    </div>
+
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <p>
+          This form is used to update the XXXXX, using a csv file.
+        </p>
+        <p>
+          If there are any errors in the data or missing data a warning will show up and the genotyping data values will not
+          be changed. If all the data is valid then the genotyping data will be uploaded and a success message shown detailing
+          the exact data that was added.
+        </p>
+
+        <div class="well">
+
+          <h6>Genotyping QC Data File</h6>
+          <p>
+            A csv file with XXXXX column headers is used to upload the data:
+            <dl class="dl-horizontal">
+              <dt>well_name</dt>
+              <dd>Name of the well</dd>
+              <dt></dt>
+              <dd>Values accepted:</dd>
+              <dt></dt>
+              <dd></dd>
+            </dl>
+            <p>A template for the upload file can be found <a href="[% c.uri_for('/static/files/genotyping_upload/') %]genotyping_upload_template.csv">here</a>.
+
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
