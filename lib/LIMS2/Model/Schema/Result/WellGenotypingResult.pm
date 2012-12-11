@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellGenotypingResult;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellGenotypingResult::VERSION = '0.036';
+    $LIMS2::Model::Schema::Result::WellGenotypingResult::VERSION = '0.037';
 }
 ## use critic
 
@@ -64,12 +64,12 @@ __PACKAGE__->table("well_genotyping_results");
 =head2 copy_number
 
   data_type: 'double precision'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 copy_number_range
 
   data_type: 'double precision'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 confidence
 
@@ -99,9 +99,9 @@ __PACKAGE__->add_columns(
   "call",
   { data_type => "text", is_nullable => 0 },
   "copy_number",
-  { data_type => "double precision", is_nullable => 0 },
+  { data_type => "double precision", is_nullable => 1 },
   "copy_number_range",
-  { data_type => "double precision", is_nullable => 0 },
+  { data_type => "double precision", is_nullable => 1 },
   "confidence",
   { data_type => "double precision", is_nullable => 1 },
   "created_at",
@@ -177,8 +177,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-21 16:21:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WA5aZsQjL19t9CUHMpEvgA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-10 09:54:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dOpZKNBXzNSOwo/cR/oW/g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -13,6 +13,19 @@
           <td>
             <strong>NB: This is a virtual plate</strong>
           </td>
+           <td>
+           <a class="btn btn-primary" role="button" href="#UnflagPlateVirtual" data-toggle="modal">
+             <i class="icon-pencil"></i> Unflag Virtual Plate
+           </a>
+           </td>
+        </tr>
+[% ELSIF plate.type_id == 'INT' %]
+        <tr>
+            <td>
+            <a class="btn btn-primary" role="button" href="#FlagPlateVirtual" data-toggle="modal">
+              <i class="icon-pencil"></i> Flag Virtual Plate
+            </a>
+            </td>
         </tr>
 [% END %]
          <tr>
@@ -110,6 +123,48 @@
       <button class="btn" data-dismiss="modal">Cancel</button>
       <button name="plate_rename" id="plate_rename" type="submit" value="plate_rename" class="btn btn-primary">
           <i class="icon-pencil"></i> Rename Plate
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="modal hide fade" id="FlagPlateVirtual">
+  <form method="POST" id="plate_virtual" action="[% c.uri_for( '/user/flag_virtual_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3 id="myModalLabel">Flag Virtual Plate</h3>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      Are you sure you want to flag plate <strong>[% plate.name %]</strong> as a virtual plate?
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Cancel</button>
+      <button name="flag_virtual" id="flag_virtual" type="submit" value="flag_virtual" class="btn btn-primary">
+          <i class="icon-pencil"></i> Flag Virtual Plate
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="modal hide fade" id="UnflagPlateVirtual">
+  <form method="POST" id="plate_not_virtual" action="[% c.uri_for( '/user/unflag_virtual_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3 id="myModalLabel">Unflag Virtual Plate</h3>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      Are you sure you want to remove virtual flag from plate <strong>[% plate.name %]</strong>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Cancel</button>
+      <button name="unflag_virtual" id="unflag_virtual" type="submit" value="unflag_virtual" class="btn btn-primary">
+          <i class="icon-pencil"></i> Unflag Virtual Plate
       </button>
     </div>
   </form>

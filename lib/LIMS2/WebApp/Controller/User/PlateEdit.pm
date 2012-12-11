@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateEdit;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.036';
+    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.037';
 }
 ## use critic
 
@@ -83,6 +83,58 @@ sub rename_plate :Path( '/user/rename_plate' ) :Args(0) {
             }
             catch {
                 $c->flash->{error_msg} = 'Error encountered while renaming plate: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
+
+sub flag_virtual_plate :Path( '/user/flag_virtual_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $plate = $c->model('Golgi')->retrieve_plate(
+                    {   id       => $params->{id}, }
+                );
+                $plate->update( { is_virtual => 1 } );
+
+                $c->flash->{success_msg} = 'Plate ' . $plate->name . ' status changed to virtual ';
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while setting virtual flag to true on plate: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
+
+sub unflag_virtual_plate :Path( '/user/unflag_virtual_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $plate = $c->model('Golgi')->retrieve_plate(
+                    {   id       => $params->{id}, }
+                );
+                $plate->update( { is_virtual => 0 } );
+
+                $c->flash->{success_msg} = 'Plate ' . $plate->name . ' status changed to not virtual ';
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while setting virtual flag to false on plate: ' . $_;
                 $c->model('Golgi')->txn_rollback;
             };
         }

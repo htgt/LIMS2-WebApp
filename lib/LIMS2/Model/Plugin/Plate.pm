@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.036';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.037';
 }
 ## use critic
 
@@ -82,7 +82,8 @@ sub pspec_create_plate {
         },
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
         comments   => { optional => 1 },
-        wells      => { optional => 1 }
+        wells      => { optional => 1 },
+        is_virtual => { validate => 'boolean', optional => 1 },
     };
 }
 
@@ -112,7 +113,7 @@ sub create_plate {
     my $plate = $self->schema->resultset('Plate')->create(
         {   slice_def(
                 $validated_params,
-                qw( name species_id type_id description created_by_id created_at )
+                qw( name species_id type_id description created_by_id created_at is_virtual )
             )
         }
     );
@@ -200,9 +201,21 @@ sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
 
     #validation done of create_plate, not needed here
-    my %plate_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by );
+    my %plate_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by is_virtual process_type);
     $plate_data{name} = delete $plate_data{plate_name};
     $plate_data{type} = delete $plate_data{plate_type};
+
+    # validate the is_virtual flag (can only be true for process:rearray and plate:INT) 
+
+    if ( $plate_data{is_virtual} ) {
+
+        if ( ($plate_data{type} ne 'INT') or ($plate_data{process_type} ne 'rearray') ) {
+            $self->throw(
+                Validation => 'Plate type (' . $plate_data{type} . ') and process (' . $plate_data{process_type}
+                . ') combination invalid for virtual plate');
+        }
+    }
+    delete $plate_data{process_type};
 
     my %plate_process_data = map { $_ => $params->{$_} }
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };

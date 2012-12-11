@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.036';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.037';
 }
 ## use critic
 
@@ -71,7 +71,6 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
 
 sub process_plate_upload_form :Private {
     my ( $self, $c ) = @_;
-
     $c->stash( $c->request->params );
     my $params = $c->request->params;
 

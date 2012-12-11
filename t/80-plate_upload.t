@@ -232,6 +232,58 @@ my $mech = mech();
 }
 
 {
+    note( "Invalid virtual plate" );
+    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $test_file->print("well_name,parent_plate,parent_well\n"
+                      . "A01,PCS00148_A,F02");
+    $test_file->seek( 0, 0 );
+
+    $mech->get_ok( '/user/plate_upload_step2?process_type=rearray' );
+    $mech->title_is('Plate Upload 2');
+    ok my $res = $mech->submit_form(
+        form_id => 'plate_create',
+        fields  => {
+            plate_name => 'VTEST',
+            datafile   => $test_file->filename,
+            is_virtual => 1,
+            plate_type => 'EP',
+        },
+        button  => 'create_plate'
+    ), 'submit virtual plate form with valid well data file';
+
+    ok $res->is_success, '...response is_success';
+    is $res->base->path, '/user/plate_upload_step2', '... stays on same page';
+    like $res->content, qr/Error encountered while creating plate: Plate type \(EP\) and process/
+        , '...throws error invalid combination of plate type and process for virtual plate';
+}
+
+{
+    note( "Valid intermediate virtual plate" );
+    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $test_file->print("well_name,parent_plate,parent_well\n"
+                      . "A01,PCS00148_A,F02");
+    $test_file->seek( 0, 0 );
+
+    $mech->get_ok( '/user/plate_upload_step2?process_type=rearray' );
+    $mech->title_is('Plate Upload 2');
+    ok my $res = $mech->submit_form(
+        form_id => 'plate_create',
+        fields  => {
+            plate_name => 'VTEST',
+            datafile   => $test_file->filename,
+            is_virtual => 1,
+            plate_type => 'INT',
+        },
+        button  => 'create_plate'
+    ), 'submit virtual plate form with valid well data file';
+
+    ok $res->is_success, '...response is_success';
+    is $res->base->path, '/user/view_plate', '... moves to plate view page';
+    like $res->content, qr/Created new plate VTEST/ , '...page has create new plate message';
+}
+
+
+{
     note( "Successful plate create" );
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print("well_name,parent_plate,parent_well,cell_line\n"
