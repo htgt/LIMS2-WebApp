@@ -201,7 +201,7 @@ sub create_plate_csv_upload {
 
     # validate the is_virtual flag (can only be true for process:rearray and plate:INT) 
 
-    if ( exists $plate_data{is_virtual} ) {
+    if ( $plate_data{is_virtual} ) {
 
         if ( ($plate_data{type} ne 'INT') or ($plate_data{process_type} ne 'rearray') ) {
             $self->throw(
