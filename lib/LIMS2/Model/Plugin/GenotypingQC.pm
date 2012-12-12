@@ -30,12 +30,17 @@ sub update_genotyping_qc_data{
 	my @required_data = qw(copy_number copy_number_range);
     my @messages;
 
-use Data::Dumper;
-$self->log->debug(Dumper($data));
+    # Build a hash of all valid col names so we can report anything not recognized
+    my $recognized = $self->_valid_column_names(\@assay_types);
+    my $not_recognized = {};
 
 	my $counter;
 	foreach my $datum (@$data){
 		$counter++;
+        
+        # Store unrecognized columns to report to user
+		grep { $not_recognized->{$_} = 1 } grep { not $recognized->{$_} } keys %$datum;
+
 		unless ($datum->{well_name}){
 			die "No well name provided for line $counter";
 		}
@@ -77,8 +82,7 @@ $self->log->debug(Dumper($data));
 				$call = lc($call);
 
 				if ($call eq "na" or $call eq "fa"){
-					# FIXME: do we need to set existing results in DB to undef?
-					# will the update validation allow this?
+					# Update call - any existing copy number etc will be removed from db
 					($result, $message) = $self->update_or_create_well_genotyping_result({
 						well_id    => $well->id,
 						genotyping_result_type_id => $assay,
@@ -95,8 +99,6 @@ $self->log->debug(Dumper($data));
 					}
 					# confidence is optional
 					if (defined (my $conf = $datum->{$assay."_confidence"}) ){
-						# Remove < > prefix
-						$conf =~ s/^\s*[<>]\s*//g;
 						$new_values{'confidence'} = $conf;
 					}
 
@@ -114,7 +116,23 @@ $self->log->debug(Dumper($data));
 
 	}
 
+    if (keys %$not_recognized){
+    	unshift @messages, "The following unrecognized columns were ignored: "
+    	                   .join ", ", sort keys %$not_recognized;
+    }
 	return \@messages;
+}
+
+sub _valid_column_names{
+	my ($self, $assay_types) = @_;
+	
+    my %recognized = map { $_ => 1 } qw(well_name targeting_pass chromosome_fail);
+    foreach my $assay (@$assay_types){
+    	foreach my $colname qw( pass confidence copy_number copy_number_range){
+    		$recognized{$assay."_".$colname} = 1;
+    	}
+    }
+    return \%recognized;
 }
 
 1;

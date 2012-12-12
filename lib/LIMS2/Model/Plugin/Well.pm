@@ -838,6 +838,12 @@ sub update_or_create_well_genotyping_result {
        # Update the result if new result is "better" or if overwrite flag is set to true
        my $previous = $genotyping_result->call;
        if ( $validated_params->{overwrite} or rank( $update_request->{call} ) > rank( $previous ) ) {
+       	   if ($update_request->{call} eq "na" or $update_request->{call} eq "fa"){
+       	   	   # Make sure we overwrite any existing values with nulls
+       	       $update_request->{copy_number} = undef;
+       	       $update_request->{copy_number_range} = undef;
+       	       $update_request->{confidence} = undef;
+       	   }
            $genotyping_result->update( $update_request );
            $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                      ." updated from ".$previous." to ".$genotyping_result->call;
