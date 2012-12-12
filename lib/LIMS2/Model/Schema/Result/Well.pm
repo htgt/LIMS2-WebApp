@@ -386,6 +386,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_puro_pass
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingPuroPass>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_targeting_puro_pass",
+  "LIMS2::Model::Schema::Result::WellTargetingPuroPass",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 input_processes
 
 Type: many_to_many
@@ -407,8 +422,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-22 11:29:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fRWsB1eB3LjpjJRiD/5YHA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-12 16:36:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:voTiu8dL7hsZzKH67rilrA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
