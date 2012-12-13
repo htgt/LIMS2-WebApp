@@ -53,14 +53,19 @@ sub update_genotyping_qc_data{
 
         push @messages, "Well ".$datum->{well_name}.":";
 		# update targeting_pass and chromosome_fail if provided
-		foreach my $overall qw(targeting_pass chromosome_fail){
+		foreach my $overall qw(targeting_pass targeting-puro_pass chromosome_fail){
 			if (my $result = $datum->{$overall}){
 
+                # Change targeting-puro (targeting minus puro) to targeting_puro 
+                # for consistency with naming of db tables
+                my $table = $overall;
+                $table =~ s/targeting-puro/targeting_puro/;
+                
 				# Tidy up result input values
 				$result =~ s/\s*//g;
 				$result = lc($result) unless $result eq "Y";
 
-				my $method = "update_or_create_well_".$overall;
+				my $method = "update_or_create_well_".$table;
 				my ($result, $message) = $self->$method({
 					well_id    => $well->id,
 					result     => $result,
@@ -126,7 +131,7 @@ sub update_genotyping_qc_data{
 sub _valid_column_names{
 	my ($self, $assay_types) = @_;
 	
-    my %recognized = map { $_ => 1 } qw(well_name targeting_pass chromosome_fail);
+    my %recognized = map { $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail);
     foreach my $assay (@$assay_types){
     	foreach my $colname qw( pass confidence copy_number copy_number_range){
     		$recognized{$assay."_".$colname} = 1;
