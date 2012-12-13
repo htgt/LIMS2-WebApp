@@ -28,10 +28,11 @@ sub update_genotyping_qc_data{
 
 	my @assay_types = sort map { $_->id } $self->schema->resultset('GenotypingResultType')->all;
 	my @required_data = qw(copy_number copy_number_range);
+	my @primer_bands = qw(tr_pcr lr_pcr gr3 gr4 gf3 gf4);
     my @messages;
 
     # Build a hash of all valid col names so we can report anything not recognized
-    my $recognized = $self->_valid_column_names(\@assay_types);
+    my $recognized = $self->_valid_column_names(\@assay_types, \@primer_bands);
     my $not_recognized = {};
 
 	my $counter;
@@ -118,7 +119,24 @@ sub update_genotyping_qc_data{
 				push @messages, "- ".$message;
 			}
 		}
-
+		
+		# Handle well primer band status
+		foreach my $primer (@primer_bands){
+			my $value = $datum->{$primer};
+			if (defined $value){
+				die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless $value eq "yes";
+				
+				# FIXME: need an update or create method        
+				$self->create_well_primer_bands({
+					well_id          => $well->id,
+					primer_band_type => $primer,
+					pass             => 1,
+					created_by       => $val_params->{created_by},
+				});
+				
+				push @messages, "- Created $primer primer band with pass";
+			}
+		}
 	}
 
     if (keys %$not_recognized){
@@ -129,9 +147,13 @@ sub update_genotyping_qc_data{
 }
 
 sub _valid_column_names{
-	my ($self, $assay_types) = @_;
+	my ($self, $assay_types, $primer_bands) = @_;
 	
-    my %recognized = map { $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail);
+	# Overall results including primer bands
+    my %recognized = map { $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail), 
+                                     @$primer_bands;
+    
+    # Assay specific results                       
     foreach my $assay (@$assay_types){
     	foreach my $colname qw( pass confidence copy_number copy_number_range){
     		$recognized{$assay."_".$colname} = 1;
