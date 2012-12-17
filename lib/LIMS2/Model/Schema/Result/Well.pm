@@ -621,6 +621,12 @@ sub parent_processes{
 	return $self->ancestors->input_processes($self);
 }
 
+sub child_processes{
+    my $self = shift;
+    
+    return $self->descendants->output_processes($self);	
+}
+
 has second_electroporation_process => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Process',
