@@ -35,29 +35,54 @@
     <div id="collapseOne" class="accordion-body collapse">
       <div class="accordion-inner">
         <p>
-          This form is used to update the XXXXX, using a csv file.
+          This form is used to update genotyping QC results, using a csv file.
         </p>
         <p>
           If there are any errors in the data or missing data a warning will show up and the genotyping data values will not
           be changed. If all the data is valid then the genotyping data will be uploaded and a success message shown detailing
           the exact data that was added.
         </p>
-
+        <p>Data in unrecognized columns will be ignored. A list of ignored columns will be reported after the upload is complete</p>
         <div class="well">
 
           <h6>Genotyping QC Data File</h6>
           <p>
-            A csv file with XXXXX column headers is used to upload the data:
+            A csv file with some or all of these column headers is used to upload the data:
             <dl class="dl-horizontal">
               <dt>well_name</dt>
-              <dd>Name of the well</dd>
-              <dt></dt>
-              <dd>Values accepted:</dd>
-              <dt></dt>
-              <dd></dd>
+              <dd>REQUIRED - Name of the plate and well, e.g. CEPD0008_8_A01</dd>
+              <dt>targeting_pass</dt>
+              <dd>Values accepted: na, fa, fail, potential, present, passb, pass</dd>
+              <dt>targeting-puro_pass</dt>
+              <dd>Values accepted: na, fa, fail, potential, present, passb, pass</dd>
+              <dt>chromosome_fail</dt>
+              <dd>Values accepted: 0, 1, 2, 3, 4, Y</dd>
             </dl>
-            <p>A template for the upload file can be found <a href="[% c.uri_for('/static/files/genotyping_upload/') %]genotyping_upload_template.csv">here</a>.
-
+            The following types of qc results can be uploaded:
+            <dl class = "dl-horizontal">
+              [% FOR assay IN assays %]
+               <dt>[% assay %]</dt>
+              [% END %]
+            </dl>
+            For each of these types you can provide the following data:
+            <dl class="dl-horizontal">
+             <dt>pass</dt>
+             <dd>REQUIRED - Values accepted: na, fa, fail, potential, present, passb, pass</dd>
+             <dt>copy_number</dt>
+             <dd>REQUIRED - Must be a valid number</dd>
+             <dt>copy_number_range</dt>
+             <dd>REQUIRED - Must be a valid number</dd>
+             <dt>confidence</dt>
+             <dd>Must be a valid number, can include &gt; or &lt; symbol</dd>
+            </dl>
+            For example, to upload bsd results use the following columns:
+            <dl class="dl-horizontal">
+             <dt>bsd_pass</dt>
+             <dt>bsd_copy_number</dt>
+             <dt>bsd_copy_number_range</dt>
+             <dt>bsd_confidence</dt> 
+            </dl>         
+            <p>A template for the upload file can be found <a href="[% c.uri_for('/static/files/qc_upload/') %]genotyping_upload_template.csv">here</a>.
           </p>
         </div>
 

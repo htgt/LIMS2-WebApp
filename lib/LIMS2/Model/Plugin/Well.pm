@@ -596,7 +596,18 @@ sub pspec_create_well_targeting_pass {
         overwrite   => { validate => 'boolean', optional => 1, default => 0 },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        minus_puro  => { validate => 'boolean', optional => 0, default => 0 },
     }
+}
+
+# Inputs and login for updating/creating targeting_pass and targeting_puro_pass are identical
+# so we use the same methods but add a flag to indicate which type of targeting pass we are setting
+sub create_well_targeting_puro_pass {
+    my ( $self, $params ) = @_;
+    
+    $params->{minus_puro} = 1;
+    
+    return $self->create_well_targeting_pass( $params );	
 }
 
 sub create_well_targeting_pass {
@@ -606,13 +617,15 @@ sub create_well_targeting_pass {
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
-    if ( my $targeting_pass = $well->well_targeting_pass ) {
-         $self->throw( Validation => "Well $well already has a targeting pass value of "
+    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+    
+    if ( my $targeting_pass = $well->$targ_pass_type ) {
+         $self->throw( Validation => "Well $well already has a $targ_pass_type value of "
                     . $targeting_pass->result );
     }
 
     my $targeting_pass = $well->create_related(
-        well_targeting_pass => {
+        $targ_pass_type => {
             slice_def $validated_params,
             qw( result created_by_id created_at )
         }
@@ -621,6 +634,13 @@ sub create_well_targeting_pass {
     return $targeting_pass;
 }
 
+sub update_or_create_well_targeting_puro_pass {
+	my ( $self, $params ) = @_;
+	
+	$params->{minus_puro} = 1;
+	
+	return $self->update_or_create_well_targeting_pass( $params );
+}
 
 sub update_or_create_well_targeting_pass {
     my ( $self, $params ) = @_;
@@ -628,32 +648,46 @@ sub update_or_create_well_targeting_pass {
     my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
+    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+
     my $targeting_pass;
 
     my $well = $self->retrieve_well( { slice_def $validated_params,  qw( id plate_name well_name ) });
-    if ( $targeting_pass = $well->well_targeting_pass ) {
+    if ( $targeting_pass = $well->$targ_pass_type ) {
        # Update the result if new result is "better" or if overwrite flag is set to true
        my $update_request = {slice_def $validated_params, qw( result )};
        my $previous = $targeting_pass->result;
        if ( $validated_params->{overwrite} or rank( $update_request->{result} ) > rank( $previous) ) {
            $targeting_pass->update( { result => $update_request->{result} });
-           $message = "Targeting pass updated from $previous to ".$targeting_pass->result;
+           $message = "$targ_pass_type updated from $previous to ".$targeting_pass->result;
        }
        else{
-       	   $message = "Will not update targeting pass result $previous with result ".$update_request->{result};
+       	   $message = "Will not update $targ_pass_type result $previous with result ".$update_request->{result};
            $self->log->debug($message);
        }
     }
     else {
         $targeting_pass = $well->create_related(
-        well_targeting_pass => {
+        $targ_pass_type => {
             slice_def $validated_params,
             qw( result created_by_id created_at )
         });
-        $message = "Targeting pass created with result ".$targeting_pass->result;
+        $message = "$targ_pass_type created with result ".$targeting_pass->result;
     }
 
     return wantarray ? ($targeting_pass, $message) : $targeting_pass ;
+}
+
+sub retrieve_well_targeting_puro_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $targeting_pass = $well->well_targeting_puro_pass
+        or $self->throw( NotFound => { entity_class => 'WellTargetingPuroPass', search_params => $params } );
+
+    return $targeting_pass;
 }
 
 sub retrieve_well_targeting_pass {
@@ -666,6 +700,18 @@ sub retrieve_well_targeting_pass {
         or $self->throw( NotFound => { entity_class => 'WellTargetingPass', search_params => $params } );
 
     return $targeting_pass;
+}
+
+sub delete_well_targeting_puro_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $targeting_pass = $self->retrieve_well_targeting_puro_pass( $params );
+
+    $targeting_pass->delete;
+    $self->log->debug( 'Well targeting-puro_pass result deleted for well  ' . $targeting_pass->well_id );
+
+    return;
 }
 
 sub delete_well_targeting_pass {
@@ -838,6 +884,12 @@ sub update_or_create_well_genotyping_result {
        # Update the result if new result is "better" or if overwrite flag is set to true
        my $previous = $genotyping_result->call;
        if ( $validated_params->{overwrite} or rank( $update_request->{call} ) > rank( $previous ) ) {
+       	   if ($update_request->{call} eq "na" or $update_request->{call} eq "fa"){
+       	   	   # Make sure we overwrite any existing values with nulls
+       	       $update_request->{copy_number} = undef;
+       	       $update_request->{copy_number_range} = undef;
+       	       $update_request->{confidence} = undef;
+       	   }
            $genotyping_result->update( $update_request );
            $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                      ." updated from ".$previous." to ".$genotyping_result->call;

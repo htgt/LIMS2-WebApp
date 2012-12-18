@@ -4453,7 +4453,7 @@ INSERT INTO genotyping_primers VALUES (116729, 'GR4', 96830, 'GACGTGGCAGCTGAGACC
 --
 -- Data for Name: genotyping_result_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
-
+INSERT INTO genotyping_result_types VALUES ('loadel');
 INSERT INTO genotyping_result_types VALUES ('loacrit');
 INSERT INTO genotyping_result_types VALUES ('loatam');
 INSERT INTO genotyping_result_types VALUES ('loxp');

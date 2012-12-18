@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::WellGenotypingResult;
+package LIMS2::Model::Schema::Result::WellTargetingPuroPass;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::WellGenotypingResult
+LIMS2::Model::Schema::Result::WellTargetingPuroPass
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<well_genotyping_results>
+=head1 TABLE: C<well_targeting_puro_pass>
 
 =cut
 
-__PACKAGE__->table("well_genotyping_results");
+__PACKAGE__->table("well_targeting_puro_pass");
 
 =head1 ACCESSORS
 
@@ -44,31 +44,10 @@ __PACKAGE__->table("well_genotyping_results");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 genotyping_result_type_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 call
+=head2 result
 
   data_type: 'text'
   is_nullable: 0
-
-=head2 copy_number
-
-  data_type: 'double precision'
-  is_nullable: 1
-
-=head2 copy_number_range
-
-  data_type: 'double precision'
-  is_nullable: 1
-
-=head2 confidence
-
-  data_type: 'text'
-  is_nullable: 1
 
 =head2 created_at
 
@@ -88,16 +67,8 @@ __PACKAGE__->table("well_genotyping_results");
 __PACKAGE__->add_columns(
   "well_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "genotyping_result_type_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "call",
+  "result",
   { data_type => "text", is_nullable => 0 },
-  "copy_number",
-  { data_type => "double precision", is_nullable => 1 },
-  "copy_number_range",
-  { data_type => "double precision", is_nullable => 1 },
-  "confidence",
-  { data_type => "text", is_nullable => 1 },
   "created_at",
   {
     data_type     => "timestamp",
@@ -115,13 +86,11 @@ __PACKAGE__->add_columns(
 
 =item * L</well_id>
 
-=item * L</genotyping_result_type_id>
-
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("well_id", "genotyping_result_type_id");
+__PACKAGE__->set_primary_key("well_id");
 
 =head1 RELATIONS
 
@@ -137,21 +106,6 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 genotyping_result_type
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::GenotypingResultType>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "genotyping_result_type",
-  "LIMS2::Model::Schema::Result::GenotypingResultType",
-  { id => "genotyping_result_type_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -171,8 +125,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-12 13:33:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LupPeZalcXTqgXrt1G5Zig
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-12 16:36:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/4cF4eJPMOizIQIhCVkIpg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
