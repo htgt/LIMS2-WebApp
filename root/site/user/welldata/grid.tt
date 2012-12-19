@@ -9,6 +9,7 @@
                     {name: 'well', type: 'string'},
                     {name: 'chromosome_fail', type: 'string'},
                     {name: 'targeting_pass', type: 'string'},
+                    {name: 'targeting_puro_pass', type: 'string'},
                   [% FOR assay IN assay_types %]
                     [% FOR name IN value_names %]
                        { name: '[% assay _ name.field %]', type: 'string' },
@@ -43,7 +44,19 @@
                 }
             });
             
-            var call_types = Ext.create('Ext.data.Store', {
+            var call_types_chromosome_fail = Ext.create('Ext.data.Store', {
+                fields: ['call_label'],
+                data: [
+                {"call_label":"0"},
+                {"call_label":"1"},
+                {"call_label":"2"},
+                {"call_label":"3"},
+                {"call_label":"4"},
+                {"call_label":"Y"},
+                ]
+            });
+
+            var call_types_targeting = Ext.create('Ext.data.Store', {
                 fields: ['call_label'],
                 data: [
                 {"call_label":"pass"},
@@ -56,22 +69,41 @@
                 ]
             });
 
-            var call_types_combo = Ext.create('Ext.form.ComboBox', {    
+            var call_types_targeting_combo = Ext.create('Ext.form.ComboBox', {    
                 queryMode: 'local',
-                store: call_types,
+                store: call_types_targeting,
+                displayField: 'call_label',
+                forceSelection: true
+            });
+
+            var call_types_chromosome_fail_combo = Ext.create('Ext.form.ComboBox', {    
+                queryMode: 'local',
+                store: call_types_chromosome_fail,
                 displayField: 'call_label',
                 forceSelection: true
             });
 
             var columns = [
-                {header: "Plate", dataIndex: 'plate_name', hidden: true},
-                {header: "Well", dataIndex: 'well'},
-                {header: "Chromosome Fail", dataIndex: 'chromosome_fail'},
-                {header: "Targeting Pass", dataIndex: 'targeting_pass', editor: call_types_combo},
+                {header: "Well", dataIndex: 'well', locked: true},
+                {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
+                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
+                {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
                 [% FOR assay IN assay_types %]
                   {header: "[% assay %]", columns: [
                     [% FOR name IN value_names %]
-                      {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]", hideable: true}, 
+                        [% IF name.title == "Call" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            editor: call_types_targeting_combo, hideable: true},
+                        [% ELSIF name.title == "Copy Number" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            editor: { xtype: 'numberfield' }, hidden: true},
+                        [% ELSIF name.title == "Range" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            editor: { xtype: 'numberfield' }, hidden: true},
+                        [% ELSIF name.title == "Confidence" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            editor: { xtype: 'textfield' }, hidden: true},
+                        [% END %]
                     [% END %]
                   ]},
                 [% END %]
