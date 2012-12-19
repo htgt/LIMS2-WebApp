@@ -1,0 +1,128 @@
+package LIMS2::Model::Util::DrawPlateGraph;
+
+use strict;
+use warnings FATAL => 'all';
+
+use LIMS2::Model;
+use Log::Log4perl qw( :easy );
+use GraphViz2;
+
+use Sub::Exporter -setup => {
+    exports => [
+        qw(
+            draw_plate_graph
+          )
+    ]
+};
+
+my %seen_edge;
+
+=item draw_plate_graph(<plate_name>)
+
+Construct a graph of plate ancestors and descendants and render it to <plate_name>.svg
+
+=cut
+
+sub draw_plate_graph{
+    my ($plate_name) = @_;
+
+    my ($graph) = GraphViz2->new( global => {
+	                                  directed => 1, 
+	                                  record_orientation => 'horizontal',
+                                  },
+                                  graph => {
+                                      landscape => 'false',
+                                      concentrate => 'true',	  
+                                  }
+	                         );
+
+    my $model = LIMS2::Model->new( user => 'tasks' );
+
+    my $plate = $model->retrieve_plate({ name => $plate_name });
+
+    $graph->add_node( name => condense_seq_plate_names($plate_name), color => 'red' );
+
+    add_ancestors($graph,$plate);
+    add_descendants($graph, $plate);
+
+    $graph->run(format => "svg", output_file => $plate_name.".svg");
+}
+
+sub add_ancestors{
+    my ($graph, $plate, $seen) = @_;
+    
+    $seen ||= {};
+    
+    return if $seen->{$plate->name};
+    
+    DEBUG "Adding ancestors of $plate to graph";
+    
+    $seen->{$plate->name}++;
+    
+    my $parents = $plate->parent_plates_by_process_type;
+    
+    foreach my $type (keys %{ $parents || {} }){
+    	foreach my $parent_plate_name (keys %{ $parents->{$type}  }){
+    		
+    		# ARGS: graph, input, output, process type
+    		add_edge($graph, $parent_plate_name, $plate->name, $type);
+
+    		add_ancestors($graph, $parents->{$type}->{$parent_plate_name}, $seen);
+    	}
+    }
+    return;
+}
+
+sub add_descendants{
+    my ($graph, $plate, $seen) = @_;
+    
+    $seen ||= {};
+    
+    return if $seen->{$plate->name};
+    
+    DEBUG "Adding descendants of $plate to graph";
+    
+    $seen->{$plate->name}++;
+    
+    my $children = $plate->child_plates_by_process_type;
+    
+    foreach my $type (keys %{ $children || {} }){
+    	foreach my $child_plate_name (keys %{ $children->{$type}  }){
+    		
+    		# ARGS: graph, input, output, process type
+    		add_edge($graph, $plate->name, $child_plate_name, $type);
+
+    		add_descendants($graph, $children->{$type}->{$child_plate_name}, $seen);
+    	}
+    }
+    return;	
+}
+
+sub condense_seq_plate_names{
+	my ($name) = @_;
+	
+	# e.g. MOHSA60001_A_1 -> MOHSA6001_A_x
+	# to reduce number of nodes created for sequencing plates
+	$name =~ s/^([A-Z0-9]+_[A-Z])_[0-9]$/$1_x/g;
+	
+	return $name;
+}
+
+sub add_edge{
+	my ($graph, $input_name, $output_name, $type) = @_;
+
+    my $input = condense_seq_plate_names($input_name);
+    my $output = condense_seq_plate_names($output_name);
+    my $edge_name = $input.$type.$output;
+    return if $seen_edge{$edge_name};
+    $seen_edge{$edge_name}++;
+    		
+    DEBUG "Process type: $type";
+    $graph->add_edge( 
+    	from => $input, 
+    	to => $output, 
+    	label => $type, 
+    );
+}
+
+1;

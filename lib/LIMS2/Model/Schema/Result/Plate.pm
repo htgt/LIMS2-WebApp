@@ -265,7 +265,7 @@ sub parent_plates_by_process_type{
 	
 	for my $well ( $self->wells ){
 	    foreach my $process ($well->parent_processes){
-	    	my $type = $process->type->id;
+	    	my $type = $process->type_id;
 	    	$parents->{$type} ||= {};
 	    	foreach my $input ($process->input_wells){
 	    		my $plate = $input->plate;
@@ -284,7 +284,7 @@ sub child_plates_by_process_type{
 	
 	for my $well ( $self->wells ){
 	    foreach my $process ($well->child_processes){
-	    	my $type = $process->type->id;
+	    	my $type = $process->type_id;
 	    	$children->{$type} ||= {};
 	    	foreach my $output ($process->output_wells){
 	    		my $plate = $output->plate;
