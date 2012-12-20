@@ -613,6 +613,9 @@ sub all_genotyping_qc_data{
 		                                                    : undef;
 	$datum->{targeting_pass} = $self->well_targeting_pass ? $self->well_targeting_pass->result
 		                                                  : undef;
+	$datum->{targeting_puro_pass} = $self->well_targeting_puro_pass ? $self->well_targeting_puro_pass->result
+		                                                  : undef;
+
 
 	# foreach loop to get assay specific results
 	foreach my $assay (@assay_types){

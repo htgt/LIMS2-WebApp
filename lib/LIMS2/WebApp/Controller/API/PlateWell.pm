@@ -273,6 +273,7 @@ sub well_genotyping_qc_PUT{
     my $data = $c->request->data;
 use Data::Dumper;
 $c->log->debug(Dumper($data));
+$DB::single=1;
 
     my $plate_name = $data->{'plate_name'};
 
