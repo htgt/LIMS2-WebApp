@@ -185,7 +185,7 @@ sub electroporation_wells {
     my ( $ar, $type ) = @_;
 
     my %wells;
-    next unless $ar->can( $type );
+    return unless $ar->can( $type );
     for my $well ( @{ $ar->$type } ) {
         next if exists $wells{ $well->as_string };
 
