@@ -99,17 +99,28 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
-            </li>            
+            </li>
             <li>
               <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
-            </li>                      
+            </li>
             [% END %]
           </ul>
         </li>
 
+        <li class="dropdown[% IF template.tab_name == "Well Data" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Well Data <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/recombinase_upload' ) %]">add recombinase(dre)</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Input colony counts</a>
+            </li>
+          </ul>
+        </li>
 
         [% IF c.session.selected_species %]
           <li class="dropdown">
