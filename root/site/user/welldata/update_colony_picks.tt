@@ -1,0 +1,33 @@
+[%- META title = "Colony Counts" %]
+
+<div class="page-header">
+  <h1>Add Colony Data</h1>
+</div>
+
+<div>
+    <form method="POST" action="[% c.uri_for( '/user/update_colony_picks' ) %]" class="well">
+      <fieldset>
+        <legend>Select Well</legend>
+        <input type= [% IF go == 2 %] "hidden" [% ELSE %] "text" [% END %] id="plate_name_field" name="plate_name" placeholder="Plate Name" autocomplete="off" value="[% plate_name %]" >
+        [% IF go == 2 %] <span class="input uneditable-input">[% plate_name %]</span> [% END %]
+        <input type=[% IF go == 2 %] "hidden" [% ELSE %] "text" [% END %] name="well_name" placeholder="Well Name" value="[% well_name %]" >
+        [% IF go == 2 %] <span class="input uneditable-input">[% well_name %]</span> [% END %]
+        [% INCLUDE 'well_specific_fields.tt' well_fields = colony_pick_fields %]
+        <button name="go" type="submit" value="[% go %]" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> [% IF go == 2 %] Save [% ELSE %] Go [% END %]</button>
+      </fieldset>
+    </form>
+</div>
+
+<form method="POST" action="[% c.uri_for( '/user/upload_well_colony_counts_file_data' ) %]" class="well" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Or Upload Well Data from File</legend>
+        <input name="datafile" type="file">
+    <button name="go" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+  </fieldset>
+</form>
+
+[% INCLUDE 'colony_count_upload_help.tt' %]
+
+
+
+

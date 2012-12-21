@@ -43,7 +43,7 @@ sub pspec_add_recombinase_data {
         plate_name        => { validate   => 'plate_name' },
         plate_name        => { validate => 'existing_plate_name' },
         well_name         => { validate   => 'well_name' },
-        recombinase => { validate => 'existing_recombinase' },
+        recombinase       => { validate => 'existing_recombinase' },
     };
 }
 
