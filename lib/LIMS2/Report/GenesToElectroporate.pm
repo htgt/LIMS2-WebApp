@@ -1,7 +1,7 @@
 package LIMS2::Report::GenesToElectroporate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GenesToElectroporate::VERSION = '0.038';
+    $LIMS2::Report::GenesToElectroporate::VERSION = '0.039';
 }
 ## use critic
 
@@ -191,7 +191,7 @@ sub electroporation_wells {
     my ( $ar, $type ) = @_;
 
     my %wells;
-    next unless $ar->can( $type );
+    return unless $ar->can( $type );
     for my $well ( @{ $ar->$type } ) {
         next if exists $wells{ $well->as_string };
 

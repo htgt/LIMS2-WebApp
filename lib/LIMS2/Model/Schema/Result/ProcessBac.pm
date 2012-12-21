@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ProcessBac;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProcessBac::VERSION = '0.038';
+    $LIMS2::Model::Schema::Result::ProcessBac::VERSION = '0.039';
 }
 ## use critic
 
