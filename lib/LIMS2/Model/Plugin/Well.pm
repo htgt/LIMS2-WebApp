@@ -506,18 +506,19 @@ sub pspec_update_well_colony_picks {
 
 sub update_well_colony_picks{
     my ( $self, $params ) = @_;
-        use Smart::Comments;
-    my $validated_params = $self->check_params( $params, $self->pspec_update_well_colony_picks, ignore_unknown => 1);
 
-    my $plate_name = $validated_params->{plate_name};
-    my $well_name = $validated_params->{well_name};
+    my $validated_params = $self->check_params( $params, $self->pspec_update_well_colony_picks,
+        ignore_unknown => 1 );
 
     my @colony_types = map { $_->id } $self->schema->resultset('ColonyCountType')->all;
-    my $well = $self->retrieve_well({ plate_name => $plate_name, well_name => $well_name });
+    my $well = $self->retrieve_well(
+        {   plate_name => $validated_params->{plate_name},
+            well_name  => $validated_params->{well_name}
+        }
+    );
+
     foreach my $colony_type (@colony_types){
-
         if (exists $params->{$colony_type} and $params->{$colony_type} =~ /^\d+$/){
-
             $well->update_or_create_related( 'well_colony_counts' => {
                   colony_count_type_id => $colony_type,
                   colony_count      => $params->{$colony_type},
@@ -542,21 +543,34 @@ sub upload_well_colony_picks_file_data {
         $line++;
         foreach my $column (keys %{$well_colony_picks}){
 
+            #TODO self->throw
+            #TODO check this is doing what you think its doing
             LIMS2::Exception::Validation->throw(
                 "invalid column names or data"
             ) unless ( grep( /^$column$/, @columns ) );
+            #TODO use List::MoreUtils qw( none )
 
             $params->{$column}  = $well_colony_picks->{$column};
+            #TODO in wrong place
             $params->{created_by} = $created_by;
         };
+        #TODO just use $well_colony_picks and add created_by to this
         try{
             update_well_colony_picks( $self, $params )
         }
         catch{
-            $error_log .= 'line ' . $line . ': plate ' . $params->{plate_name} . ', well ' . $params->{well_name} . ' ERROR: $_';
+            $error_log
+                .= 'line ' 
+                . $line
+                . ': plate '
+                . $params->{plate_name}
+                . ', well '
+                . $params->{well_name}
+                . ' ERROR: $_';
         };
     $params = undef;
     }
+    #TODO self->throw
     LIMS2::Exception::Validation->throw(
         "$error_log"
     )if $error_log;
@@ -568,17 +582,16 @@ sub get_well_colony_pick_fields_values {
     my ( $self, $params ) = @_;
 
     my @colony_data;
-    my %fields = map { $_->id => {label => $_->id, name => $_->id } } $self->schema->resultset('ColonyCountType')->all;
+    my %fields = map { $_->id => { label => $_->id, name => $_->id } }
+        $self->schema->resultset('ColonyCountType')->all;
 
     if (exists $params->{plate_name} && exists $params->{well_name}){
-        my $well =  $self->retrieve_well( $params );
-        if ($well){
-            @colony_data = $well->well_colony_counts;
+        my $well = $self->retrieve_well( $params );
+        @colony_data = $well->well_colony_counts;
 
-            if (@colony_data) {
-                foreach (@colony_data){
-                    $fields{$_->colony_count_type_id}{att_values} = $_->colony_count;
-                }
+        if (@colony_data) {
+            foreach (@colony_data){
+                $fields{$_->colony_count_type_id}{att_values} = $_->colony_count;
             }
         }
     }

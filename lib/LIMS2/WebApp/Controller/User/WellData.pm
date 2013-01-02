@@ -95,10 +95,11 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
         return;
 }
 
+#TODO re-write
 sub update_colony_picks : Path( '/user/update_colony_picks' ) :Args(0) {
     my ( $self, $c ) = @_;
     my $params = $c->request->params;
-    my $model =$c->model('Golgi');
+    my $model = $c->model('Golgi');
 
     unless (exists $params->{plate_name} && exists $params->{well_name}){
         $c->stash(
@@ -151,10 +152,8 @@ sub update_colony_picks : Path( '/user/update_colony_picks' ) :Args(0) {
 
 }
 
-
 sub upload_well_colony_picks_file_data  : Path( '/user/upload_well_colony_counts_file_data' ) :Args(0){
     my ( $self, $c ) = @_;
-
 
     my $well_colony_picks_data = $c->request->upload('datafile');
     $c->request->params->{created_by} = $c->user->name;
@@ -170,9 +169,9 @@ sub upload_well_colony_picks_file_data  : Path( '/user/upload_well_colony_counts
         $c->model('Golgi')->txn_do(
             sub {
                 shift->upload_well_colony_picks_file_data( $well_colony_picks_data->fh, $c->request->params );
-                 $c->flash->{success_msg} = 'Successfully added well colony counts to wells';
             }
         );
+        $c->flash->{success_msg} = 'Successfully added well colony counts to wells';
     }
     catch{
         $c->flash->{error_msg} = "$_";
@@ -180,7 +179,6 @@ sub upload_well_colony_picks_file_data  : Path( '/user/upload_well_colony_counts
 
     $c->res->redirect( $c->uri_for('/user/update_colony_picks') );
     return;
-
 }
 
 =head1 AUTHOR

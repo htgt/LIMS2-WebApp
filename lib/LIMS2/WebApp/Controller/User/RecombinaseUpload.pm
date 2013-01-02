@@ -19,20 +19,22 @@ Catalyst Controller.
 sub recombinase_upload :Path( '/user/recombinase_upload' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my $process_type = 'recombinase';
-
     $c->stash(
-        process_fields => $c->model('Golgi')->get_process_fields( { process_type => $process_type } )
+        process_fields => $c->model('Golgi')->get_process_fields( { process_type => 'recombinase' } )
     );
     return;
 }
 
-
 sub add_recombinase :Path( '/user/add_recombinase' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    unless ($c->request->params->{plate_name} and $c->request->params->{well_name} and $c->request->params->{recombinase}){
-        $c->flash->{error_msg} = 'Data must be specified for all three fields; Plate Name, Well Name and Recombinase';
+    #TODO make plate form auto complete
+    unless ($c->request->params->{plate_name}
+        and $c->request->params->{well_name}
+        and $c->request->params->{recombinase} )
+    {
+        $c->flash->{error_msg}
+            = 'Data must be specified for all three fields; Plate Name, Well Name and Recombinase';
         $c->res->redirect( $c->uri_for('/user/recombinase_upload') );
         return;
     }
@@ -40,11 +42,15 @@ sub add_recombinase :Path( '/user/add_recombinase' ) :Args(0) {
     $c->assert_user_roles('edit');
     try{
         $c->model('Golgi')->txn_do(
-            sub {
-                 shift->add_recombinase_data( $c->request->params );
-                 $c->flash->{success_msg} = 'Add ' . $c->request->params->{recombinase} . ' recombinase for well ' . $c->request->params->{well_name} . ' on plate ' . $c->request->params->{plate_name} ;
-                }
+            sub { shift->add_recombinase_data( $c->request->params ) }
         );
+        $c->flash->{success_msg}
+            = 'Add '
+            . $c->request->params->{recombinase}
+            . ' recombinase for well '
+            . $c->request->params->{well_name}
+            . ' on plate '
+            . $c->request->params->{plate_name};
     }
     catch {
         s/\{(.*?)\}//;
@@ -53,7 +59,6 @@ sub add_recombinase :Path( '/user/add_recombinase' ) :Args(0) {
     $c->res->redirect( $c->uri_for('/user/recombinase_upload') );
     return;
 }
-
 
 sub upload_recombinase_file :Path( '/user/upload_recombinase_file' ) :Args(0) {
     my ( $self, $c ) = @_;
@@ -71,9 +76,9 @@ sub upload_recombinase_file :Path( '/user/upload_recombinase_file' ) :Args(0) {
         $c->model('Golgi')->txn_do(
             sub {
                 shift->upload_recombinase_file_data( $recombinase_data->fh, $c->request->params );
-                 $c->flash->{success_msg} = 'Successfully added recombinase to wells';
             }
         );
+        $c->flash->{success_msg} = 'Successfully added recombinase to wells';
     }
     catch{
         $c->flash->{error_msg} = "$_";
@@ -82,7 +87,6 @@ sub upload_recombinase_file :Path( '/user/upload_recombinase_file' ) :Args(0) {
     $c->res->redirect( $c->uri_for('/user/recombinase_upload') );
     return;
 }
-
 
 =head1 AUTHOR
 

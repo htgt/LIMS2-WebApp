@@ -530,6 +530,7 @@ sub pspec_create_process_aux_data_recombinase {
     return { recombinase => { validate => 'existing_recombinase' }, };
 }
 
+#NOTE order recombinaes added is just the order that they are specified in the array
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub create_process_aux_data_recombinase {
     my ( $model, $params, $process ) = @_;
@@ -541,6 +542,7 @@ sub create_process_aux_data_recombinase {
         "recombinase process should have 1 or more recombinases"
     ) unless @{ $validated_params->{recombinase} };
 
+    #TODO fix this
     if ($process->process_recombinases->find( { 'recombinase_id' => $validated_params->{recombinase} } )){
         LIMS2::Exception::Validation->throw(
             "recombinase process already exists"

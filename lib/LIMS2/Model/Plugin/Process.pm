@@ -40,10 +40,10 @@ sub create_process {
 
 sub pspec_add_recombinase_data {
     return {
-        plate_name        => { validate   => 'plate_name' },
-        plate_name        => { validate => 'existing_plate_name' },
-        well_name         => { validate   => 'well_name' },
-        recombinase       => { validate => 'existing_recombinase' },
+        plate_name  => { validate => 'plate_name' },
+        plate_name  => { validate => 'existing_plate_name' },
+        well_name   => { validate => 'well_name' },
+        recombinase => { validate => 'existing_recombinase' },
     };
 }
 
@@ -55,12 +55,9 @@ sub add_recombinase_data {
 
     my $well = $self->retrieve_well( $validated_params );
 
-    LIMS2::Exception::Validation->throw(
-        "Well does not exist"
-    ) unless $well;
-
     my @process = $well->parent_processes;
 
+    #TODO use $self->throw
     LIMS2::Exception::Validation->throw(
         "could not retreive process"
     ) unless @process ;
@@ -86,10 +83,10 @@ sub upload_recombinase_file_data {
     my $error_log;
     my $line = 1;
 
-
     foreach my $recombinase (@{$recombinase_data}){
         $line++;
 
+        #TODO $self->throw
         LIMS2::Exception::Validation->throw(
             "invalid column names or data"
         ) unless $recombinase->{plate_name} && $recombinase->{well_name} && $recombinase->{recombinase};
@@ -98,12 +95,24 @@ sub upload_recombinase_file_data {
         $params->{well_name}   = $recombinase->{well_name};
         $params->{recombinase} = $recombinase->{recombinase};
         try{
+            #TODO see if you can not use $params here, use $recombinase
             add_recombinase_data( $self, $params );
         }
         catch{
-            $error_log .= 'line ' . $line . ': plate ' . $params->{plate_name} . ', well ' . $params->{well_name} . ' , recombinase ' . $params->{recombinase} . ' ERROR: ' . $_ ;
-        }
+            $error_log
+                .= 'line ' 
+                . $line
+                . ': plate '
+                . $params->{plate_name}
+                . ', well '
+                . $params->{well_name}
+                . ' , recombinase '
+                . $params->{recombinase}
+                . ' ERROR: '
+                . $_;
+        };
     }
+    #TODO $self->throw
     LIMS2::Exception::Validation->throw(
         "$error_log"
     )if $error_log;
