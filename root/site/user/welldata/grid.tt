@@ -1,15 +1,22 @@
 <script type="text/javascript" charset="utf-8">
         Ext.onReady(function(){
-
+            var types = Ext.data.Types;
             Ext.define('GenotypingQC', {
                 extend: 'Ext.data.Model',
                 fields: [
                     {name: 'id', type: 'integer' },
                     {name: 'plate_name', type: 'string'},
                     {name: 'well', type: 'string'},
+                    {name: 'gene_name', type: 'string'},
                     {name: 'chromosome_fail', type: 'string'},
                     {name: 'targeting_pass', type: 'string'},
                     {name: 'targeting_puro_pass', type: 'string'},
+                    {name: 'tr_pcr', type: types.BOOLEAN},
+                    {name: 'gr3', type: types.BOOLEAN},
+                    {name: 'gr4', type: types.BOOLEAN},
+                    {name: 'gf3', type: types.BOOLEAN},
+                    {name: 'gf4', type: types.BOOLEAN},
+//                    {name: 'TRPCR_seq', type: 'string'},
                   [% FOR assay IN assay_types %]
                     [% FOR name IN value_names %]
                        { name: '[% assay _ name.field %]', type: 'string' },
@@ -83,11 +90,21 @@
                 forceSelection: true
             });
 
+            
             var columns = [
                 {header: "Well", dataIndex: 'well', locked: true},
+                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
                 {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
                 {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
+                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: {xtype: 'checkbox'}  },
+                {header: "LRPCR bands", columns: [
+                    {header: "gr3", dataIndex: 'gr3', editor: { xtype: 'checkbox' }},
+                    {header: "gr4", dataIndex: 'gr4', editor: { xtype: 'checkbox' }},
+                    {header: "gf3", dataIndex: 'gf3', editor: { xtype: 'checkbox' }},
+                    {header: "gf4", dataIndex: 'gf4', editor: { xtype: 'checkbox' }}
+                ]},
+//                {header: "TRPCR<br>Seq", editor: { xtype: 'textfield' }},
                 [% FOR assay IN assay_types %]
                   {header: "[% assay %]", columns: [
                     [% FOR name IN value_names %]
