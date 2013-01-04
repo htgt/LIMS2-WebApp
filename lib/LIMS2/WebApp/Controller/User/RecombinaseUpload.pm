@@ -28,7 +28,6 @@ sub recombinase_upload :Path( '/user/recombinase_upload' ) :Args(0) {
 sub add_recombinase :Path( '/user/add_recombinase' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    #TODO make plate form auto complete
     unless ($c->request->params->{plate_name}
         and $c->request->params->{well_name}
         and $c->request->params->{recombinase} )
@@ -53,7 +52,7 @@ sub add_recombinase :Path( '/user/add_recombinase' ) :Args(0) {
             . $c->request->params->{plate_name};
     }
     catch {
-        s/\{(.*?)\}//;
+        s/\{.*?\}//;
         $c->flash->{error_msg} = 'Error: ' . $_;
     };
     $c->res->redirect( $c->uri_for('/user/recombinase_upload') );
@@ -81,7 +80,7 @@ sub upload_recombinase_file :Path( '/user/upload_recombinase_file' ) :Args(0) {
         $c->flash->{success_msg} = 'Successfully added recombinase to wells';
     }
     catch{
-        $c->flash->{error_msg} = "$_";
+        $c->flash->{error_msg} = "$_->message";
     };
 
     $c->res->redirect( $c->uri_for('/user/recombinase_upload') );

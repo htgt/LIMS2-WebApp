@@ -542,15 +542,12 @@ sub create_process_aux_data_recombinase {
         "recombinase process should have 1 or more recombinases"
     ) unless @{ $validated_params->{recombinase} };
 
-    #TODO fix this
-    if ($process->process_recombinases->find( { 'recombinase_id' => $validated_params->{recombinase} } )){
-        LIMS2::Exception::Validation->throw(
-            "recombinase process already exists"
-        );
-    }
-
     my $rank = $process->process_recombinases->count + 1;
     foreach my $recombinase ( @{ $validated_params->{recombinase} } ) {
+
+        if ($process->process_recombinases->find( { 'recombinase_id' => $recombinase } )){
+            LIMS2::Exception::Validation->throw("recombinase process already exists")
+        }
         $process->create_related(
             process_recombinases => {
                 recombinase_id => $recombinase,

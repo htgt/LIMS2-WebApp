@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
+use List::MoreUtils qw (any);
 use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 use LIMS2::Model::ProcessGraph;
@@ -12,6 +13,7 @@ use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_
 use LIMS2::Model::Util::RankQCResults qw( rank );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use Try::Tiny;
+
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -496,9 +498,8 @@ sub retrieve_well_colony_picks {
 
 sub pspec_update_well_colony_picks {
     return {
-        well_id     => { validate => 'integer', optional => 1, rename => 'id' },
-        plate_name  => { validate => 'existing_plate_name', optional => 1 },
-        well_name   => { validate => 'well_name', optional => 1 },
+        plate_name  => { validate => 'existing_plate_name' },
+        well_name   => { validate => 'well_name' },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
@@ -530,47 +531,29 @@ sub update_well_colony_picks{
 }
 
 sub upload_well_colony_picks_file_data {
-    my ( $self, $well_colony_picks_data_fh, $params ) = @_;
+    my ( $self, $well_colony_picks_data_fh, $const_params ) = @_;
             use Smart::Comments;
     my $well_colony_picks_data = parse_csv_file( $well_colony_picks_data_fh );
     my $error_log;
-    my $created_by = $params->{created_by};
     my $line = 1;
-    my @columns = map {$_->id} $self->schema->resultset('ColonyCountType')->all;
-    push (@columns, qw(plate_name well_name));
 
     foreach my $well_colony_picks (@{$well_colony_picks_data}){
         $line++;
-        foreach my $column (keys %{$well_colony_picks}){
-
-            #TODO self->throw
-            #TODO check this is doing what you think its doing
-            LIMS2::Exception::Validation->throw(
-                "invalid column names or data"
-            ) unless ( grep( /^$column$/, @columns ) );
-            #TODO use List::MoreUtils qw( none )
-
-            $params->{$column}  = $well_colony_picks->{$column};
-            #TODO in wrong place
-            $params->{created_by} = $created_by;
-        };
-        #TODO just use $well_colony_picks and add created_by to this
         try{
-            update_well_colony_picks( $self, $params )
+            update_well_colony_picks( $self, $well_colony_picks.merge($const_params) )
         }
         catch{
             $error_log
-                .= 'line ' 
+                .= 'line '
                 . $line
                 . ': plate '
-                . $params->{plate_name}
+                . $well_colony_picks->{plate_name}
                 . ', well '
-                . $params->{well_name}
+                . $well_colony_picks->{well_name}
                 . ' ERROR: $_';
         };
-    $params = undef;
     }
-    #TODO self->throw
+
     LIMS2::Exception::Validation->throw(
         "$error_log"
     )if $error_log;
@@ -587,6 +570,10 @@ sub get_well_colony_pick_fields_values {
 
     if (exists $params->{plate_name} && exists $params->{well_name}){
         my $well = $self->retrieve_well( $params );
+
+        $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
+        unless any {$well->plate->type_id eq $_} qw(EP XEP SEP);
+
         @colony_data = $well->well_colony_counts;
 
         if (@colony_data) {

@@ -54,22 +54,13 @@ sub add_recombinase_data {
         = $self->check_params( $params, $self->pspec_add_recombinase_data, ignore_unknown => 1 );
 
     my $well = $self->retrieve_well( $validated_params );
-
     my @process = $well->parent_processes;
 
-    #TODO use $self->throw
-    LIMS2::Exception::Validation->throw(
-        "could not retreive process"
-    ) unless @process ;
+    $self->throw( NotFound => "could not retreive process" ) unless @process;
+    $self->throw( Validation => "cannot apply recombinase to this well" ) unless scalar(@process) == 1;
+    $self->throw( Validation => "invalid plate type; can only add recombinase to EP_PICK plates" ) unless $well->plate->type_id eq 'EP_PICK';
 
-    LIMS2::Exception::Validation->throw(
-        "cannot apply recombinase to this well"
-    ) unless @process eq 1 ;
-
-    LIMS2::Exception::Validation->throw(
-        "invalid plate type; can only add recombinase to EP_PICK plates"
-    ) unless $well->plate->type_id eq 'EP_PICK' ;
-
+    # converts recombinase to an array to satisfy create_process_aux_data_recombinase method
     $validated_params->{recombinase} = [$validated_params->{recombinase}];
     create_process_aux_data_recombinase( $self, $validated_params, $process[0] );
 
@@ -77,6 +68,7 @@ sub add_recombinase_data {
 }
 
 sub upload_recombinase_file_data {
+
     my ( $self, $recombinase_data_fh, $params ) = @_;
 
     my $recombinase_data = parse_csv_file( $recombinase_data_fh );
@@ -86,33 +78,26 @@ sub upload_recombinase_file_data {
     foreach my $recombinase (@{$recombinase_data}){
         $line++;
 
-        #TODO $self->throw
-        LIMS2::Exception::Validation->throw(
-            "invalid column names or data"
-        ) unless $recombinase->{plate_name} && $recombinase->{well_name} && $recombinase->{recombinase};
+        $self->throw( NotFound => "invalid column names or data" ) unless $recombinase->{plate_name} && $recombinase->{well_name} && $recombinase->{recombinase};
 
-        $params->{plate_name}  = $recombinase->{plate_name};
-        $params->{well_name}   = $recombinase->{well_name};
-        $params->{recombinase} = $recombinase->{recombinase};
         try{
-            #TODO see if you can not use $params here, use $recombinase
-            add_recombinase_data( $self, $params );
+            add_recombinase_data( $self, $recombinase );
         }
         catch{
             $error_log
-                .= 'line ' 
+                .= 'line '
                 . $line
                 . ': plate '
-                . $params->{plate_name}
+                . $recombinase->{plate_name}
                 . ', well '
-                . $params->{well_name}
+                . $recombinase->{well_name}
                 . ' , recombinase '
-                . $params->{recombinase}
+                . $recombinase->{recombinase}
                 . ' ERROR: '
                 . $_;
         };
     }
-    #TODO $self->throw
+
     LIMS2::Exception::Validation->throw(
         "$error_log"
     )if $error_log;

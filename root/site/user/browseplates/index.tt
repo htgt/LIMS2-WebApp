@@ -2,7 +2,7 @@
 <form method="GET" action="[% c.uri_for( '/user/browse_plates' ) %]" class="well">
   <fieldset>
     <legend>List Plates</legend>
-    <input type="text" name="plate_name" placeholder="Plate Name" value="[% plate_name %]">
+    <input type="text" id="plate_name" name="plate_name" placeholder="Plate Name" value="[% plate_name %]"  autocomplete="off">
     <select name="plate_type">
       <option[% IF ! selected_plate_type.defined %] selected="selected"[% END %]>-</option>
       [%- FOR plate_type IN plate_types %]
@@ -45,3 +45,12 @@
   </tbody>
 </table>
 [% END %]
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+
+</script>
