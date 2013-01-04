@@ -289,7 +289,7 @@ note( "Testing well creation" );
 
     throws_ok {
         model->create_well_targeting_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'passb' , created_by => 'test_user@example.org' }  );
-    } qr/Well MOHFAQ0001_A_2_D04 already has a targeting pass value of passb/;
+    } qr/Well MOHFAQ0001_A_2_D04 already has a well_targeting_pass value of passb/;
 
     ok my $targeting_pass = model->retrieve_well_targeting_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } ), 'can retrieve targeting pass data for well';
     is $targeting_pass->result, 'passb', 'targeting fail result is passb';
