@@ -604,10 +604,12 @@ sub all_genotyping_qc_data{
     my @assay_types = sort map { $_->id } $schema->resultset('GenotypingResultType')->all;
 
     my $datum;
-
+$DB::single=1;
 	$datum->{id} = $self->id;
 	$datum->{plate_name} = $self->plate->name;
 	$datum->{well} = $self->name;
+    #TODO: translate gene_id to a symbolic string
+    $datum->{gene_name} = $self->design->genes->first->gene_id;
 
 	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
 		                                                    : undef;
@@ -615,6 +617,15 @@ sub all_genotyping_qc_data{
 		                                                  : undef;
 	$datum->{targeting_puro_pass} = $self->well_targeting_puro_pass ? $self->well_targeting_puro_pass->result
 		                                                  : undef;
+
+    foreach my $primer_band ( $self->well_primer_bands ) {
+$DB::single=1;        
+            $datum->{$primer_band->primer_band_type_id} = $primer_band->pass;
+            my @datum_keys = sort keys %$datum;
+            foreach my $item ( @datum_keys ) {
+                print("$item -> " . $datum->{$item} . "\n") if $datum->{$item};
+            }
+    }
 
 
 	# foreach loop to get assay specific results
