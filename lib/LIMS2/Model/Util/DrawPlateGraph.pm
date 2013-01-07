@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use LIMS2::Model;
 use Log::Log4perl qw( :easy );
 use GraphViz2;
+use List::MoreUtils qw( uniq );
 
 use Sub::Exporter -setup => {
     exports => [
@@ -16,6 +17,7 @@ use Sub::Exporter -setup => {
 };
 
 my %seen_edge;
+my %orig_names_for;
 
 =item draw_plate_graph(<plate_name>)
 
@@ -44,6 +46,14 @@ sub draw_plate_graph{
 
     add_ancestors($graph,$plate);
     add_descendants($graph, $plate);
+    
+    # Add orig plate name lists to condensed nodes
+    foreach my $condensed_node (keys %orig_names_for){
+    	$graph->add_node( 
+    	                  name => $condensed_node, 
+    	                  label => join "\\n", uniq sort @{ $orig_names_for{$condensed_node} },
+    	                 );
+    }
 
     $graph->run(format => "svg", output_file => $plate_name.".svg");
 }
@@ -101,10 +111,17 @@ sub add_descendants{
 sub condense_seq_plate_names{
 	my ($name) = @_;
 	
+	my $orig_name = $name;
+	
 	# e.g. MOHSA60001_A_1 -> MOHSA6001_A_x
 	# to reduce number of nodes created for sequencing plates
-	$name =~ s/^([A-Z0-9]+_[A-Z])_[0-9]$/$1_x/g;
-	
+	my $changed = ($name =~ s/^([A-Z0-9]+_[A-Z])_[0-9]$/$1_x/g);
+
+    if ($changed){
+     	$orig_names_for{$name} ||= [];
+     	push @{ $orig_names_for{$name} }, $orig_name;
+    }
+    
 	return $name;
 }
 
