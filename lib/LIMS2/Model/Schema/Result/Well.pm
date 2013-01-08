@@ -640,7 +640,7 @@ $DB::single=1;
 				                             : undef ;
 		}
     }
-
+print $datum->{well} . " complete\n";
     return $datum;
 }
 

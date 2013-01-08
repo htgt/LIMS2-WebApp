@@ -162,4 +162,8 @@ sub _valid_column_names{
     return \%recognized;
 }
 
+#TODO: methods for updating individual fields of assays to be invoked as the user modifies data in the
+#      extJS interface.
+#      This is similar to the spreadsheet upload but only one item will likely be updated on each call.
+
 1;
