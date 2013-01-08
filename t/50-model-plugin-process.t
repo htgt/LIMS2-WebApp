@@ -305,6 +305,17 @@ throws_ok {
 } qr/recombinase process output well should be type (POSTINT|,|XEP|FINAL)+ \(got EP\)/;
 
 
+note( "Testing adding recombinase to an existing process" );
+my $add_recombinase_process_data= test_data( 'add_recombinase.yaml' );
+{
+    lives_ok { model->add_recombinase_data( $add_recombinase_process_data->{valid_input} ) }
+       'should succeed for an EP_PICK plate';
+    my @process = model->retrieve_well( {plate_name => $add_recombinase_process_data->{valid_input}{plate_name}, well_name => $add_recombinase_process_data->{valid_input}{well_name} })->parent_processes;
+    is $process[0]->process_recombinases->first->recombinase_id, 'Dre', 'should be dre';
+}
+throws_ok { model->add_recombinase_data( $add_recombinase_process_data->{invalid_input} );
+} qr/invalid plate type; can only add recombinase to EP_PICK plates/;
+
 note( "Testing rearray process creation" );
 my $rearray_process_data= test_data( 'rearray_process.yaml' );
 

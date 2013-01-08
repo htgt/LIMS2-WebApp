@@ -1,0 +1,9 @@
+---
+valid_input:
+    plate_name: FEPD0006_1
+    well_name: A01
+    recombinase: Dre
+invalid_input:
+    plate_name: PCS00051_A
+    well_name: D07
+    recombinase: Dre

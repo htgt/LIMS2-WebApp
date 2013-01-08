@@ -295,7 +295,7 @@ note( "Testing well creation" );
     is $targeting_pass->result, 'passb', 'targeting fail result is passb';
     ok my $well = $targeting_pass->well, '.. can grab well from targeting_pass';
     is "$well", 'MOHFAQ0001_A_2_D04', '.. and targeting_pass is for right well';
-    
+
     BEGIN { use_ok("LIMS2::Model::Util::RankQCResults", "rank"); }
     ok rank($targeting_pass) > rank('fail'), 'passb is better than fail';
     ok rank('pass') > rank($targeting_pass), 'pass is better than passb';
@@ -401,5 +401,26 @@ lives_ok {
 #    is $new_chromosome_fail->result, '3', 'chromosome fail result is 3';
 #    is $well->id, $new_chromosome_fail->well_id , '.. and chromosome_fail result is for right well';
 }
+
+
+note( "Add colony counts to a well" );
+{
+use Smart::Comments;
+    my $colony_count_data = test_data( 'add_colony_count.yaml' );
+    lives_ok { model->update_well_colony_picks( $colony_count_data->{valid_input} ) }
+        'should succeed for EP plate';
+    lives_ok { my $colony_counts = model->get_well_colony_pick_fields_values({ plate_name => $colony_count_data->{valid_input}{plate_name} , well_name => $colony_count_data->{valid_input}{well_name} }) }
+        'return all colony count types with asociated values for that well';
+    my $colony_counts = model->get_well_colony_pick_fields_values({ plate_name => $colony_count_data->{valid_input}{plate_name} , well_name => $colony_count_data->{valid_input}{well_name} });
+
+    foreach my $colony_count_type ( map {$_->id} model->schema->resultset('ColonyCountType')->all ) {
+        is $colony_count_data->{valid_input}{$colony_count_type}, $colony_counts->{$colony_count_type}{att_values},
+            'should of returned the colony counts entered' ;
+    }
+
+throws_ok { model->get_well_colony_pick_fields_values( { plate_name => $colony_count_data->{invalid_input}{plate_name} , well_name => $colony_count_data->{invalid_input}{well_name} } );
+} qr/invalid plate type; can only add colony data to EP, SEP and XEP plates/;
+}
+
 
 done_testing();
