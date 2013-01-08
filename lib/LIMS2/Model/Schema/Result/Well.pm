@@ -584,6 +584,7 @@ sub recombinases {
     return [ map { $_->recombinase_id } @recombinases ];
 }
 
+
 sub design {
     my $self = shift;
 
@@ -592,6 +593,26 @@ sub design {
     my $process_design = $self->ancestors->find_process( $self, 'process_design' );
 
     return $process_design ? $process_design->design : undef;
+}
+
+sub designs{
+	my $self = shift;
+	
+	my $edges = $self->ancestors->edges;
+	
+	my @designs;
+	
+	foreach my $edge (@$edges){
+		my ($process, $input, $output) = @$edge;
+		# Edges with no input node are (probably!) design processes
+		if(not defined $input){
+			my $process_design = $self->result_source->schema->resultset('ProcessDesign')->find({ process_id => $process });
+			if ($process_design){
+			    push @designs, $process_design->design;
+			}
+		}
+	}
+    return @designs;
 }
 
 sub all_genotyping_qc_data{
@@ -609,7 +630,8 @@ $DB::single=1;
 	$datum->{plate_name} = $self->plate->name;
 	$datum->{well} = $self->name;
     #TODO: translate gene_id to a symbolic string
-    $datum->{gene_name} = $self->design->genes->first->gene_id;
+    my ($design) = $self->designs;
+    $datum->{gene_name} = $design->genes->first->gene_id if $design;
 
 	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
 		                                                    : undef;
