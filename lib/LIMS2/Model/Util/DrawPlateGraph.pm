@@ -35,14 +35,14 @@ sub draw_plate_graph{
 
     %seen_edge = ();
     %orig_names_for = ();
-    
+
     my ($graph) = GraphViz2->new( global => {
-	                                  directed => 1, 
+	                                  directed => 1,
 	                                  record_orientation => 'horizontal',
                                   },
                                   graph => {
                                       landscape => 'false',
-                                      concentrate => 'true',	  
+                                      concentrate => 'true',
                                   },
 	                         );
 
@@ -65,34 +65,35 @@ sub draw_plate_graph{
     else {
     	die "Unrecognized graph type $type requested";
     }
-    
+
     # Add orig plate name lists to condensed nodes
     foreach my $condensed_node (keys %orig_names_for){
-    	$graph->add_node( 
-    	                  name => $condensed_node, 
+    	$graph->add_node(
+    	                  name => $condensed_node,
     	                  label => join "\\n", uniq sort @{ $orig_names_for{$condensed_node} },
     	                 );
     }
 
     $graph->run(format => "svg", output_file => $filename);
+    return $filename;
 }
 
 sub add_ancestors{
     my ($graph, $plate, $seen) = @_;
-    
+
     $seen ||= {};
-    
+
     return if $seen->{$plate->name};
-    
+
     DEBUG "Adding ancestors of $plate to graph";
-    
+
     $seen->{$plate->name}++;
-    
+
     my $parents = $plate->parent_plates_by_process_type;
-    
+
     foreach my $type (keys %{ $parents || {} }){
     	foreach my $parent_plate_name (keys %{ $parents->{$type}  }){
-    		
+
     		# ARGS: graph, input, output, process type
     		add_edge($graph, $parent_plate_name, $plate->name, $type);
 
@@ -104,34 +105,34 @@ sub add_ancestors{
 
 sub add_descendants{
     my ($graph, $plate, $seen) = @_;
-    
+
     $seen ||= {};
-    
+
     return if $seen->{$plate->name};
-    
+
     DEBUG "Adding descendants of $plate to graph";
-    
+
     $seen->{$plate->name}++;
-    
+
     my $children = $plate->child_plates_by_process_type;
-    
+
     foreach my $type (keys %{ $children || {} }){
     	foreach my $child_plate_name (keys %{ $children->{$type}  }){
-    		
+
     		# ARGS: graph, input, output, process type
     		add_edge($graph, $plate->name, $child_plate_name, $type);
 
     		add_descendants($graph, $children->{$type}->{$child_plate_name}, $seen);
     	}
     }
-    return;	
+    return;
 }
 
 sub condense_seq_plate_names{
 	my ($name) = @_;
-	
+
 	my $orig_name = $name;
-	
+
 	# e.g. MOHSA60001_A_1 -> MOHSA6001_A_x
 	# to reduce number of nodes created for sequencing plates
 	my $changed = ($name =~ s/^([A-Z0-9]+_[A-Z])_[0-9]$/$1_x/g);
@@ -140,7 +141,7 @@ sub condense_seq_plate_names{
      	$orig_names_for{$name} ||= [];
      	push @{ $orig_names_for{$name} }, $orig_name;
     }
-    
+
 	return $name;
 }
 
@@ -152,13 +153,15 @@ sub add_edge{
     my $edge_name = $input.$type.$output;
     return if $seen_edge{$edge_name};
     $seen_edge{$edge_name}++;
-    		
+
     DEBUG "Process type: $type";
-    $graph->add_edge( 
-    	from => $input, 
-    	to => $output, 
-    	label => $type, 
+    $graph->add_edge(
+    	from => $input,
+    	to => $output,
+    	label => $type,
     );
+
+    return;
 }
 
 1;

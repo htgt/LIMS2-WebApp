@@ -55,7 +55,7 @@ sub index :Path :Args(0) {
     my $plate_name  = $c->req->param('plate_name');
     my $well_name   = $c->req->param('well_name');
     my $graph_type  = $c->req->param('graph_type') || 'descendants';
-    
+
     my $pr_plate_name = $c->req->param('pr_plate_name');
     my $pr_graph_type = $c->req->param('pr_graph_type') || 'both';
 
@@ -75,12 +75,12 @@ sub index :Path :Args(0) {
     		$c->stash( error_msg => 'Please enter a plate name');
     		return;
     	}
-    	
+
     	if ( ! $pr_graph_type ){
     		$c->stash( error_msg => "Please select 'ancestors', 'descendants' or 'both'");
     		return;
     	}
-    	
+
     	try{
     	    my $uuid = $self->_write_plate_graph($pr_plate_name, $pr_graph_type);
     	    $c->stash( graph_uri => $c->uri_for( "/user/graph/render/$uuid" ) );
@@ -88,10 +88,10 @@ sub index :Path :Args(0) {
     	catch{
     		$c->stash( error_msg => 'Error generating plate relation graph for plate: ' . $_);
     	};
-    	
+
     	return;
     }
-    
+
     # Or generate a well relation graph
     if ( ! $plate_name || ! $well_name ) {
         $c->stash( error_msg => 'Please enter a plate name and well name' );
@@ -142,14 +142,14 @@ sub render :Path( '/user/graph/render' )  :Args(1) {
 
 sub _write_plate_graph{
 	my ($self, $plate_name, $type)  = @_;
-	
+
     my $uuid = Data::UUID->new->create_str;
     my $output_dir = $self->graph_dir->subdir( $uuid );
     $output_dir->mkpath;
     my $output_file = $output_dir->file( $self->graph_filename )->stringify;
     draw_plate_graph($plate_name, $type, $output_file );
-    
-    return $uuid;    	
+
+    return $uuid;
 }
 
 =head1 AUTHOR

@@ -260,9 +260,9 @@ sub has_child_wells {
 
 sub parent_plates_by_process_type{
 	my $self = shift;
-	
+
 	my $parents;
-	
+
 	for my $well ( $self->wells ){
 	    foreach my $process ($well->parent_processes){
 	    	my $type = $process->type_id;
@@ -271,17 +271,17 @@ sub parent_plates_by_process_type{
 	    		my $plate = $input->plate;
 	    		$parents->{$type}->{$plate->name} = $plate;
 	        }
-	    }	
+	    }
 	}
-	
+
 	return $parents;
 }
 
 sub child_plates_by_process_type{
 	my $self = shift;
-	
+
 	my $children;
-	
+
 	for my $well ( $self->wells ){
 	    foreach my $process ($well->child_processes){
 	    	my $type = $process->type_id;
@@ -290,10 +290,10 @@ sub child_plates_by_process_type{
 	    		my $plate = $output->plate;
 	    		$children->{$type}->{$plate->name} = $plate;
 	        }
-	    }	
+	    }
 	}
-	
-	return $children;	
+
+	return $children;
 }
 
 __PACKAGE__->meta->make_immutable;
