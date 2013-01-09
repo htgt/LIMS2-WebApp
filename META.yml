@@ -71,6 +71,7 @@ requires:
   HTGT::QC::Util::KillQCFarmJobs: 0
   HTGT::QC::Util::ListLatestRuns: 0
   HTTP::Status: 0
+  Hash::Merge: 0
   Hash::MoreUtils: 0
   IO::File: 0
   IO::Pipe: 0
@@ -122,4 +123,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.040
+version: 0.041

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.040';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.041';
 }
 ## use critic
 
@@ -17,6 +17,7 @@ use Sub::Exporter -setup => {
             process_aux_data_field_list
             link_process_wells
             create_process_aux_data
+            create_process_aux_data_recombinase
           )
     ]
 };
@@ -378,7 +379,7 @@ my %process_aux_data = (
     int_recom              => \&_create_process_aux_data_int_recom,
     '2w_gateway'           => \&_create_process_aux_data_2w_gateway,
     '3w_gateway'           => \&_create_process_aux_data_3w_gateway,
-    recombinase            => \&_create_process_aux_data_recombinase,
+    recombinase            => \&create_process_aux_data_recombinase,
     cre_bac_recom          => \&_create_process_aux_data_cre_bac_recom,
     rearray                => \&_create_process_aux_data_rearray,
     dna_prep               => \&_create_process_aux_data_dna_prep,
@@ -494,7 +495,7 @@ sub _create_process_aux_data_2w_gateway {
         if $validated_params->{backbone};
 
     if ( $validated_params->{recombinase} ) {
-        _create_process_aux_data_recombinase(
+        create_process_aux_data_recombinase(
             $model,
             { recombinase => $validated_params->{recombinase} }, $process );
     }
@@ -522,7 +523,7 @@ sub _create_process_aux_data_3w_gateway {
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
 
     if ( $validated_params->{recombinase} ) {
-        _create_process_aux_data_recombinase(
+        create_process_aux_data_recombinase(
             $model,
             { recombinase => $validated_params->{recombinase} }, $process );
     }
@@ -531,23 +532,28 @@ sub _create_process_aux_data_3w_gateway {
 }
 ## use critic
 
-sub pspec__create_process_aux_data_recombinase {
+sub pspec_create_process_aux_data_recombinase {
     return { recombinase => { validate => 'existing_recombinase' }, };
 }
 
+#NOTE order recombinaes added is just the order that they are specified in the array
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_recombinase {
+sub create_process_aux_data_recombinase {
     my ( $model, $params, $process ) = @_;
 
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_recombinase );
+        = $model->check_params( $params, pspec_create_process_aux_data_recombinase, , ignore_unknown => 1 );
 
     LIMS2::Exception::Validation->throw(
         "recombinase process should have 1 or more recombinases"
     ) unless @{ $validated_params->{recombinase} };
 
-    my $rank = 1;
+    my $rank = $process->process_recombinases->count + 1;
     foreach my $recombinase ( @{ $validated_params->{recombinase} } ) {
+
+        if ($process->process_recombinases->find( { 'recombinase_id' => $recombinase } )){
+            LIMS2::Exception::Validation->throw("recombinase process already exists")
+        }
         $process->create_related(
             process_recombinases => {
                 recombinase_id => $recombinase,

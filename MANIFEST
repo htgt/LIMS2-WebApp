@@ -169,6 +169,7 @@ lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
+lib/LIMS2/WebApp/Controller/User/RecombinaseUpload.pm
 lib/LIMS2/WebApp/Controller/User/Report.pm
 lib/LIMS2/WebApp/Controller/User/Report/Gene.pm
 lib/LIMS2/WebApp/Controller/User/UserPreferences.pm
@@ -179,10 +180,13 @@ lib/LIMS2/WebApp/Pageset.pm
 lib/LIMS2/WebApp/Script/FastCGI.pm
 lib/LIMS2/WebApp/View/HTML.pm
 root/favicon.ico
+root/lib/colony_count_upload_help.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_upload_help.tt
 root/lib/process_specific_fields.tt
+root/lib/recombinase_upload_help.tt
+root/lib/well_specific_fields.tt
 root/lib/wrapper.tt
 root/site/admin/create_user.tt
 root/site/admin/index.tt
@@ -209,6 +213,7 @@ root/site/user/qc/submit_new_qc.tt
 root/site/user/qc/view_qc_alignment.tt
 root/site/user/qc/view_qc_result.tt
 root/site/user/qc/view_qc_run.tt
+root/site/user/recombinaseupload/recombinase_upload.tt
 root/site/user/report/await_report.tt
 root/site/user/report/gene_report.tt
 root/site/user/report/select_sponsor.tt
@@ -217,6 +222,8 @@ root/site/user/userpreferences/change_password.tt
 root/site/user/welldata/dna_status_update.tt
 root/site/user/welldata/genotyping_qc_data.tt
 root/site/user/welldata/grid.tt
+root/site/user/welldata/update_colony_picks_step_1.tt
+root/site/user/welldata/update_colony_picks_step_2.tt
 root/static/bootstrap/css/bootstrap.css
 root/static/bootstrap/css/bootstrap.min.css
 root/static/bootstrap/img/glyphicons-halflings-white.png
@@ -292,10 +299,14 @@ t/80-plate_report.t
 t/80-plate_upload.t
 t/80-plate_view.t
 t/80-qc.t
+t/80-recombinase_upload.t
 t/80-relation_graph.t
+t/80-well_data.t
 t/author-critic.t
 t/data/2w_gateway_process.yaml
 t/data/3w_gateway_process.yaml
+t/data/add_colony_count.yaml
+t/data/add_recombinase.yaml
 t/data/clone_pick_process.yaml
 t/data/clone_pool_process.yaml
 t/data/cre_bac_recom_process.yaml

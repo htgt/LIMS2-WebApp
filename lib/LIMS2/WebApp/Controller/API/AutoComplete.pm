@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.040';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.041';
 }
 ## use critic
 
@@ -9,7 +9,6 @@ use Moose;
 use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
-
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
@@ -133,9 +132,8 @@ sub plate_names_GET {
     $c->assert_user_roles( 'read' );
 
     my $plate_names;
-
     try {
-        $plate_names = $self->_entity_column_search( $c, 'Plate', 'name', $c->req->param('term') );
+        $plate_names = $self->_entity_column_search( $c, 'Plate', 'name', $c->request->params->{term} );
     }
     catch {
         $c->log->error( $_ );
@@ -145,12 +143,12 @@ sub plate_names_GET {
 }
 
 sub _entity_column_search {
+
     my ( $self, $c, $entity_class, $search_column, $search_term ) = @_;
 
     my %search = (
         $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' }
     );
-
     my $resultset = $c->model('Golgi')->schema->resultset($entity_class);
 
     if ( $resultset->result_source->has_column('species_id') ) {
@@ -158,7 +156,6 @@ sub _entity_column_search {
             $search{species_id} = $species;
         }
     }
-
     my @objects = $resultset->search(
         \%search,
         {

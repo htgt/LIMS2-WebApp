@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.040';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.041';
 }
 ## use critic
 
@@ -11,11 +11,16 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
+use Hash::Merge qw( merge );
+use List::MoreUtils qw (any);
 use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 use LIMS2::Model::ProcessGraph;
 use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params add_display_id);
 use LIMS2::Model::Util::RankQCResults qw( rank );
+use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
+use Try::Tiny;
+
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -498,6 +503,97 @@ sub retrieve_well_colony_picks {
     return \@colony_picks;
 }
 
+sub pspec_update_well_colony_picks {
+    return {
+        plate_name  => { validate => 'existing_plate_name' },
+        well_name   => { validate => 'well_name' },
+        created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
+        created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    }
+}
+
+sub update_well_colony_picks{
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_well_colony_picks,
+        ignore_unknown => 1 );
+
+    my @colony_types = map { $_->id } $self->schema->resultset('ColonyCountType')->all;
+    my $well = $self->retrieve_well(
+        {   plate_name => $validated_params->{plate_name},
+            well_name  => $validated_params->{well_name}
+        }
+    );
+    $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
+    unless any {$well->plate->type_id eq $_} qw(EP XEP SEP);
+
+    foreach my $colony_type (@colony_types){
+        if (exists $params->{$colony_type} and $params->{$colony_type} =~ /^\d+$/){
+            $well->update_or_create_related( 'well_colony_counts' => {
+                  colony_count_type_id => $colony_type,
+                  colony_count      => $params->{$colony_type},
+                  created_by_id     => $validated_params->{created_by_id},
+            }, { key => 'primary'});
+        }
+    }
+    return;
+}
+
+sub upload_well_colony_picks_file_data {
+    my ( $self, $well_colony_picks_data_fh, $const_params ) = @_;
+    my $well_colony_picks_data = parse_csv_file( $well_colony_picks_data_fh );
+    my $error_log;
+    my $line = 1;
+
+    foreach my $well_colony_picks (@{$well_colony_picks_data}){
+        $line++;
+        try{
+            update_well_colony_picks( $self, merge( $well_colony_picks, $const_params) );
+        }
+        catch{
+            $error_log
+                .= "line "
+                . $line
+                . ": plate "
+                . $well_colony_picks->{plate_name}
+                . ", well "
+                . $well_colony_picks->{well_name}
+                . " ERROR: $_";
+        };
+    }
+
+    LIMS2::Exception::Validation->throw(
+
+        "$error_log"
+    )if $error_log;
+
+    return 1;
+}
+
+sub get_well_colony_pick_fields_values {
+    my ( $self, $params ) = @_;
+
+    my @colony_data;
+    my %fields = map { $_->id => { label => $_->id, name => $_->id } }
+        $self->schema->resultset('ColonyCountType')->all;
+
+    if (exists $params->{plate_name} && exists $params->{well_name}){
+        my $well = $self->retrieve_well( $params );
+
+        $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
+        unless any {$well->plate->type_id eq $_} qw(EP XEP SEP);
+
+        @colony_data = $well->well_colony_counts;
+
+        if (@colony_data) {
+            foreach (@colony_data){
+                $fields{$_->colony_count_type_id}{att_values} = $_->colony_count;
+            }
+        }
+    }
+    return \%fields;
+}
+
 sub pspec_generate_eng_seq_params {
 	return {
         plate_name  => { validate => 'existing_plate_name',     optional => 1 },
@@ -805,9 +901,9 @@ sub create_well_genotyping_result {
 
 # sub update_or_create_well_genotyping_result {
 #     my ( $self, $params ) = @_;
-# 
+#
 #     my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result );
-# 
+#
 #     my $genotyping_result;
 #     # Check whether there is a well to update, otherwise create it
 #     my $well = $self->retrieve_well( { slice_def $validated_params,  qw( well_id plate_name well_name ) });
@@ -826,9 +922,9 @@ sub create_well_genotyping_result {
 #             slice_def $validated_params,
 #             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
 #         });
-# 
+#
 #     }
-# 
+#
 #     return $genotyping_result;
 # }
 
@@ -851,13 +947,13 @@ sub retrieve_well_genotyping_result {
 
 # sub delete_well_genotyping_result {
 #     my ( $self, $params ) = @_;
-# 
+#
 #     # retrieve_well() will validate the parameters
 #     my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
-# 
+#
 #     $genotyping_result->delete;
 #     $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
-# 
+#
 #     return;
 # }
 

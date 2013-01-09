@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ColonyCountType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ColonyCountType::VERSION = '0.040';
+    $LIMS2::Model::Schema::Result::ColonyCountType::VERSION = '0.041';
 }
 ## use critic
 
@@ -86,6 +86,13 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:53
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4aJhHNfWKy3a0/skOFjvDg
 
+sub as_hash {
+    my $self = shift;
+
+    return {
+        id                => $self->id,
+    }
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
