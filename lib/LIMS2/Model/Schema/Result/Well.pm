@@ -618,7 +618,19 @@ sub all_genotyping_qc_data{
 sub parent_processes{
 	my $self = shift;
 
-	return $self->ancestors->input_processes($self);
+	# Fetch processes of which this well is an output
+	my @parent_processes = map { $_->process } $self->process_output_wells->all;
+
+	return @parent_processes;
+}
+
+sub child_processes{
+    my $self = shift;
+
+	# Fetch processes of which this well is an input
+	my @child_processes = map { $_->process } $self->process_input_wells->all;
+
+	return @child_processes;
 }
 
 has second_electroporation_process => (
