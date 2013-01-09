@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
+use Hash::Merge qw( merge );
 use List::MoreUtils qw (any);
 use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
@@ -517,6 +518,8 @@ sub update_well_colony_picks{
             well_name  => $validated_params->{well_name}
         }
     );
+    $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
+    unless any {$well->plate->type_id eq $_} qw(EP XEP SEP);
 
     foreach my $colony_type (@colony_types){
         if (exists $params->{$colony_type} and $params->{$colony_type} =~ /^\d+$/){
@@ -532,7 +535,6 @@ sub update_well_colony_picks{
 
 sub upload_well_colony_picks_file_data {
     my ( $self, $well_colony_picks_data_fh, $const_params ) = @_;
-            use Smart::Comments;
     my $well_colony_picks_data = parse_csv_file( $well_colony_picks_data_fh );
     my $error_log;
     my $line = 1;
@@ -540,21 +542,22 @@ sub upload_well_colony_picks_file_data {
     foreach my $well_colony_picks (@{$well_colony_picks_data}){
         $line++;
         try{
-            update_well_colony_picks( $self, $well_colony_picks.merge($const_params) )
+            update_well_colony_picks( $self, merge( $well_colony_picks, $const_params) );
         }
         catch{
             $error_log
-                .= 'line '
+                .= "line "
                 . $line
-                . ': plate '
+                . ": plate "
                 . $well_colony_picks->{plate_name}
-                . ', well '
+                . ", well "
                 . $well_colony_picks->{well_name}
-                . ' ERROR: $_';
+                . " ERROR: $_";
         };
     }
 
     LIMS2::Exception::Validation->throw(
+
         "$error_log"
     )if $error_log;
 

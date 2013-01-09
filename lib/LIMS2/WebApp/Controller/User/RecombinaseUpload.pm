@@ -74,7 +74,7 @@ sub upload_recombinase_file :Path( '/user/upload_recombinase_file' ) :Args(0) {
     try{
         $c->model('Golgi')->txn_do(
             sub {
-                shift->upload_recombinase_file_data( $recombinase_data->fh, $c->request->params );
+                shift->upload_recombinase_file_data( $recombinase_data->fh);
             }
         );
         $c->flash->{success_msg} = 'Successfully added recombinase to wells';

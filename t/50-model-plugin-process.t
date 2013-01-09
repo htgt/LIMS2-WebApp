@@ -12,6 +12,7 @@ use LIMS2::Test;
 use Test::Most;
 use Try::Tiny;
 use DateTime;
+use File::Temp ':seekable';
 
 note("Testing process types and fields creation");
 {
@@ -315,6 +316,43 @@ my $add_recombinase_process_data= test_data( 'add_recombinase.yaml' );
 }
 throws_ok { model->add_recombinase_data( $add_recombinase_process_data->{invalid_input} );
 } qr/invalid plate type; can only add recombinase to EP_PICK plates/;
+
+note( "Testing adding recombinase using upload" );
+{
+    my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
+    $test_file->print( "plate_name,well_name,recombinase\n"
+          . "FEPD0006_1,A02,Dre\n"
+          . "FEPD0006_1,A03,Dre\n"
+          . "FEPD0006_1,A04,Dre\n" );
+    $test_file->seek( 0, 0 );
+
+    ok model->upload_recombinase_file_data( $test_file),
+       'should succeed';
+}
+
+note( "Testing adding recombinase using upload fails if csv data is incorrect" );
+{
+    my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
+    $test_file->print( "plate_name,well_name,recombinase\n"
+          . "FEPD0006_1,A05,Dre\n"
+          . "FEPD0006_1,A06,Dre\n"
+          . "FEP0006,C01,Dre\n" );
+    $test_file->seek( 0, 0 );
+
+    throws_ok { model->upload_recombinase_file_data( $test_file)
+    } qr/line 4: plate FEP0006, well C01 , recombinase Dre ERROR/;
+}
+
+note( "Testing adding recombinase using upload fails if csv data is missing columns" );
+{
+    my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
+    $test_file->print( "plate_name,well_name\n"
+          . "FEPD0006_1,B01\n");
+    $test_file->seek( 0, 0 );
+
+    throws_ok { model->upload_recombinase_file_data( $test_file)
+    } qr/invalid column names or data/;
+}
 
 note( "Testing rearray process creation" );
 my $rearray_process_data= test_data( 'rearray_process.yaml' );

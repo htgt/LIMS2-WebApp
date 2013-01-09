@@ -405,13 +405,11 @@ lives_ok {
 
 note( "Add colony counts to a well" );
 {
-use Smart::Comments;
     my $colony_count_data = test_data( 'add_colony_count.yaml' );
     lives_ok { model->update_well_colony_picks( $colony_count_data->{valid_input} ) }
         'should succeed for EP plate';
-    lives_ok { my $colony_counts = model->get_well_colony_pick_fields_values({ plate_name => $colony_count_data->{valid_input}{plate_name} , well_name => $colony_count_data->{valid_input}{well_name} }) }
+    ok  my $colony_counts = model->get_well_colony_pick_fields_values({ plate_name => $colony_count_data->{valid_input}{plate_name} , well_name => $colony_count_data->{valid_input}{well_name} }),
         'return all colony count types with asociated values for that well';
-    my $colony_counts = model->get_well_colony_pick_fields_values({ plate_name => $colony_count_data->{valid_input}{plate_name} , well_name => $colony_count_data->{valid_input}{well_name} });
 
     foreach my $colony_count_type ( map {$_->id} model->schema->resultset('ColonyCountType')->all ) {
         is $colony_count_data->{valid_input}{$colony_count_type}, $colony_counts->{$colony_count_type}{att_values},
@@ -420,6 +418,30 @@ use Smart::Comments;
 
 throws_ok { model->get_well_colony_pick_fields_values( { plate_name => $colony_count_data->{invalid_input}{plate_name} , well_name => $colony_count_data->{invalid_input}{well_name} } );
 } qr/invalid plate type; can only add colony data to EP, SEP and XEP plates/;
+}
+
+note( "Testing adding colony counts using upload" );
+{
+    my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
+    $test_file->print( "plate_name,well_name,total_colonies,picked_colonies,remaining_unstained_colonies\n"
+          . "FEP0006,B01,30,20,10\n"
+          . "FEP0006,C01,40,20,20\n");
+    $test_file->seek( 0, 0 );
+
+    ok model->upload_well_colony_picks_file_data( $test_file, {created_by => 'test_user@example.org'}),
+       'should succeed';
+}
+
+note( "Testing adding colony counts using upload fails if csv data is incorrect" );
+{
+    my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
+    $test_file->print( "plate_name,well_name,total_colonies,picked_colonies,remaining_unstained_colonies\n"
+          . "FEP0006,D01,30,20,10\n"
+          . "FEPD0006_1,C01,10,5,5\n" );
+    $test_file->seek( 0, 0 );
+
+    throws_ok { model->upload_well_colony_picks_file_data( $test_file, {created_by => 'test_user@example.org'})
+    } qr/ERROR: invalid plate type; can only add colony data to EP, SEP and XEP plates/;
 }
 
 

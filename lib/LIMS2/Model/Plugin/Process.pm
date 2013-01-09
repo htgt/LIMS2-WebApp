@@ -57,8 +57,6 @@ sub add_recombinase_data {
     my @process = $well->parent_processes;
 
     $self->throw( NotFound => "could not retreive process" ) unless @process;
-    foreach my $p (@process){
-    }
     $self->throw( Validation => "cannot apply recombinase to this well" ) unless scalar(@process) == 1;
     $self->throw( Validation => "invalid plate type; can only add recombinase to EP_PICK plates" ) unless $well->plate->type_id eq 'EP_PICK';
 
@@ -71,17 +69,14 @@ sub add_recombinase_data {
 
 sub upload_recombinase_file_data {
 
-    my ( $self, $recombinase_data_fh, $params ) = @_;
-
+    my ( $self, $recombinase_data_fh ) = @_;
     my $recombinase_data = parse_csv_file( $recombinase_data_fh );
     my $error_log;
     my $line = 1;
 
     foreach my $recombinase (@{$recombinase_data}){
         $line++;
-
-        $self->throw( NotFound => "invalid column names or data" ) unless $recombinase->{plate_name} && $recombinase->{well_name} && $recombinase->{recombinase};
-
+        $self->throw( Validation => "invalid column names or data" ) unless $recombinase->{plate_name} && $recombinase->{well_name} && $recombinase->{recombinase};
         try{
             add_recombinase_data( $self, $recombinase );
         }
