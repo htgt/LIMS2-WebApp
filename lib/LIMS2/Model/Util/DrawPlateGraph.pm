@@ -7,6 +7,7 @@ use LIMS2::Model;
 use Log::Log4perl qw( :easy );
 use GraphViz2;
 use List::MoreUtils qw( uniq );
+use Data::Dumper;
 
 use Sub::Exporter -setup => {
     exports => [
@@ -26,8 +27,15 @@ Construct a graph of plate ancestors and descendants and render it to <plate_nam
 =cut
 
 sub draw_plate_graph{
-    my ($plate_name) = @_;
+    my ($plate_name, $type, $filename) = @_;
 
+    # Use some defaults if output file and graph type not specified
+    $type ||= "both";
+    $filename ||= $plate_name.".svg";
+
+    %seen_edge = ();
+    %orig_names_for = ();
+    
     my ($graph) = GraphViz2->new( global => {
 	                                  directed => 1, 
 	                                  record_orientation => 'horizontal',
@@ -35,7 +43,7 @@ sub draw_plate_graph{
                                   graph => {
                                       landscape => 'false',
                                       concentrate => 'true',	  
-                                  }
+                                  },
 	                         );
 
     my $model = LIMS2::Model->new( user => 'tasks' );
@@ -44,8 +52,19 @@ sub draw_plate_graph{
 
     $graph->add_node( name => condense_seq_plate_names($plate_name), color => 'red' );
 
-    add_ancestors($graph,$plate);
-    add_descendants($graph, $plate);
+    if ($type eq "ancestors"){
+        add_ancestors($graph,$plate);
+    }
+    elsif ($type eq "descendants"){
+        add_descendants($graph, $plate);
+    }
+    elsif ($type eq "both"){
+    	add_ancestors($graph,$plate);
+    	add_descendants($graph, $plate);
+    }
+    else {
+    	die "Unrecognized graph type $type requested";
+    }
     
     # Add orig plate name lists to condensed nodes
     foreach my $condensed_node (keys %orig_names_for){
@@ -55,7 +74,7 @@ sub draw_plate_graph{
     	                 );
     }
 
-    $graph->run(format => "svg", output_file => $plate_name.".svg");
+    $graph->run(format => "svg", output_file => $filename);
 }
 
 sub add_ancestors{
