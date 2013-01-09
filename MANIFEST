@@ -4,6 +4,7 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+bin/draw_plate_relations.pl
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
@@ -113,6 +114,7 @@ lib/LIMS2/Model/Util/CreatePlate.pm
 lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
 lib/LIMS2/Model/Util/DataUpload.pm
+lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
@@ -290,6 +292,7 @@ t/80-plate_report.t
 t/80-plate_upload.t
 t/80-plate_view.t
 t/80-qc.t
+t/80-relation_graph.t
 t/author-critic.t
 t/data/2w_gateway_process.yaml
 t/data/3w_gateway_process.yaml

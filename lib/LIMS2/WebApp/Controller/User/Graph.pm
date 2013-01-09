@@ -1,13 +1,15 @@
 package LIMS2::WebApp::Controller::User::Graph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.039';
+    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.040';
 }
 ## use critic
 
 use Moose;
 use MooseX::Types::Path::Class;
 use Data::UUID;
+use LIMS2::Model::Util::DrawPlateGraph qw(draw_plate_graph);
+use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -60,14 +62,43 @@ sub index :Path :Args(0) {
     my $well_name   = $c->req->param('well_name');
     my $graph_type  = $c->req->param('graph_type') || 'descendants';
 
+    my $pr_plate_name = $c->req->param('pr_plate_name');
+    my $pr_graph_type = $c->req->param('pr_graph_type') || 'both';
+
     $c->stash(
         plate_name  => $plate_name,
         well_name   => $well_name,
-        graph_type  => $graph_type
+        graph_type  => $graph_type,
+        pr_plate_name => $pr_plate_name,
+        pr_graph_type => $pr_graph_type,
     );
 
     return unless $c->req->param('go');
 
+    # Handle request for plate relation graph
+    if ($c->req->param('go') eq 'go_plate'){
+    	if ( ! $pr_plate_name ){
+    		$c->stash( error_msg => 'Please enter a plate name');
+    		return;
+    	}
+
+    	if ( ! $pr_graph_type ){
+    		$c->stash( error_msg => "Please select 'ancestors', 'descendants' or 'both'");
+    		return;
+    	}
+
+    	try{
+    	    my $uuid = $self->_write_plate_graph($pr_plate_name, $pr_graph_type);
+    	    $c->stash( graph_uri => $c->uri_for( "/user/graph/render/$uuid" ) );
+    	}
+    	catch{
+    		$c->stash( error_msg => 'Error generating plate relation graph for plate: ' . $_);
+    	};
+
+    	return;
+    }
+
+    # Or generate a well relation graph
     if ( ! $plate_name || ! $well_name ) {
         $c->stash( error_msg => 'Please enter a plate name and well name' );
         return;
@@ -113,6 +144,18 @@ sub render :Path( '/user/graph/render' )  :Args(1) {
     $c->response->body( $fh );
 
     return;
+}
+
+sub _write_plate_graph{
+	my ($self, $plate_name, $type)  = @_;
+
+    my $uuid = Data::UUID->new->create_str;
+    my $output_dir = $self->graph_dir->subdir( $uuid );
+    $output_dir->mkpath;
+    my $output_file = $output_dir->file( $self->graph_filename )->stringify;
+    draw_plate_graph($plate_name, $type, $output_file );
+
+    return $uuid;
 }
 
 =head1 AUTHOR
