@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.041';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.042';
 }
 ## use critic
 
@@ -38,7 +38,7 @@ use HTGT::QC::Util::CigarParser;
 
 sub retrieve_qc_run_results {
     my $qc_run = shift;
-
+print "running retrieve_qc_run_results\n";
     my $expected_design_loc = _design_loc_for_qc_template_plate($qc_run);
     my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
         { prefetch => ['qc_test_results'] } );
@@ -240,6 +240,7 @@ sub _parse_qc_seq_wells {
 
     my $plate_name      = $qc_seq_well->plate_name;
     my $well_name       = lc( $qc_seq_well->well_name );
+
     my @qc_test_results = $qc_seq_well->qc_test_results;
     my @qc_seq_reads    = $qc_seq_well->qc_seq_reads( {},
         { prefetch => [ { qc_alignments => 'qc_alignment_regions' } ] } );
@@ -259,12 +260,26 @@ sub _parse_qc_seq_wells {
 
     _get_primers_for_seq_well( \@qc_seq_reads, \%result );
 
+    my @qc_alignments = map { $_->qc_alignments } @qc_seq_reads;
+
     my @test_results;
+
     for my $qc_test_result ( $qc_seq_well->qc_test_results ) {
         my %test_result = %result;
+
+        $test_result{score}     = $qc_test_result->score;
+
+        my @alignments = grep { $_->qc_eng_seq_id == $qc_test_result->qc_eng_seq->id } @qc_alignments;
+        my @valid_alignments = grep { $_->pass } @alignments;
+
+        $test_result{valid_primers} = [ sort { $a cmp $b } map { $_->primer_name }  @valid_alignments ];
+        $test_result{num_valid_primers} = scalar @valid_alignments;
+        $test_result{valid_primers_score} = sum( 0, map { $_->score } @valid_alignments );
+
         $test_result{pass}      = $qc_test_result->pass;
-        $test_result{design_id} = $qc_test_result->qc_eng_seq->as_hash->{eng_seq_params}{design_id},
-            push @test_results, \%test_result;
+        $test_result{design_id} = $qc_test_result->qc_eng_seq->design_id;;
+
+        push @test_results, \%test_result;
     }
 
     return \@test_results;
@@ -300,12 +315,6 @@ sub _get_primers_for_seq_well {
             $primers{$primer_name}{regions} = _parse_alignment_region($alignment);
         }
     }
-
-    my @valid_primers = sort { $a cmp $b } grep { $primers{$_}{pass} } keys %primers;
-    $result->{valid_primers}       = \@valid_primers;
-    $result->{num_valid_primers}   = scalar @valid_primers;
-    $result->{score}               = sum( 0, map { $_->{score} } values %primers );
-    $result->{valid_primers_score} = sum( 0, map { $primers{$_}{score} } @valid_primers );
 
     while ( my ( $primer_name, $primer ) = each %primers ) {
         $result->{ $primer_name . '_pass' }                = $primer->{pass};
