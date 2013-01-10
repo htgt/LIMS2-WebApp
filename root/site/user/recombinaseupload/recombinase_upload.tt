@@ -1,0 +1,35 @@
+[%- META title = "Add Recombinase" %]
+
+<div class="page-header">
+  <h1>Indicate excision via recombinase</h1>
+</div>
+
+<div>
+    <form method="POST" id="recombinase_form" action="[% c.uri_for( '/user/add_recombinase' ) %]" class="well">
+      <fieldset>
+	<legend>Select Well</legend>
+	<input type="text" id="plate_name" name="plate_name" placeholder="Plate Name" autocomplete="off" value="[% plate_name %]">
+	<input type="text" name="well_name" placeholder="Well Name" value="[% well_name %]">
+        [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields exclude_text => 1 %]
+	<button name="submit" id="submit" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+      </fieldset>
+    </form>
+</div>
+
+<form method="POST" id="recombinase_file_upload" action="[% c.uri_for( '/user/upload_recombinase_file' ) %]" class="well" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Or Upload Well Data from File</legend>
+        <input name="datafile" type="file">
+    <button name="upload" id="upload" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+  </fieldset>
+</form>
+
+[% INCLUDE 'recombinase_upload_help.tt' plate_help = plate_help %]
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+</script>

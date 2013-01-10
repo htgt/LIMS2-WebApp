@@ -2,7 +2,7 @@
 <form method="GET" action="[% c.uri_for( '/user/browse_templates' ) %]" class="well">
   <fieldset>
     <legend>List QC Templates</legend>
-    <input type="text" name="template_name" placeholder="Template Name" value="[% template_name %]">
+    <input type="text" id="template_name" name="template_name" placeholder="Template Name" value="[% template_name %]">
     <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i>Filter</button>
     <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i>Show All</button>
   </fieldset>
@@ -32,3 +32,11 @@
   </tbody>
 </table>
 [% END %]
+
+<script type="text/javascript">
+
+$("#template_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/qc_templates' ) %]",
+  minLength: 2,
+});
+</script>

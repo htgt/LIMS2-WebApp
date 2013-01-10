@@ -18,8 +18,9 @@
         [% IF ${field_data.name} %] value="[% ${field_data.name}  %]"[% END %]
       />
     [% END %]
-    <span class="help-inline">if not specified in csv must be set</span>
-
+    [% IF ! exclude_text %]
+      <span class="help-inline">if not specified in csv must be set</span>
+    [% END %]
   [% END %]
 
 [% END %]

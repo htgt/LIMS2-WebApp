@@ -68,7 +68,7 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
 }
 
 sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
-	my ( $self, $c ) = @_;
+    my ( $self, $c ) = @_;
 
     my $plate_name = $c->request->params->{plate_name};
     unless ( $plate_name ) {
@@ -89,10 +89,93 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
     );
     my @assay_types = sort map { $_->id } $model->schema->resultset('GenotypingResultType')->all;
 
-	$c->stash->{assay_types} = \@assay_types;
-	$c->stash->{value_names} = \@value_names;
+        $c->stash->{assay_types} = \@assay_types;
+        $c->stash->{value_names} = \@value_names;
 
-	return;
+        return;
+}
+
+sub update_colony_picks_step_1 : Path( '/user/update_colony_picks_step_1' ) :Args(0) {
+    my ( $self, $c ) = @_;
+    return;
+
+}
+
+sub update_colony_picks_step_2 : Path( '/user/update_colony_picks_step_2' ) :Args(0) {
+    my ( $self, $c ) = @_;
+    my $params = $c->request->params;
+    my $model = $c->model('Golgi');
+    my $colony_fields;
+    my $plate_name = $params->{plate_name};
+    my $well_name = $params->{well_name};
+
+    try{
+        $colony_fields = $model->get_well_colony_pick_fields_values($params);
+    }
+    catch{
+        $c->flash->{error_msg} = "$_";
+        $c->res->redirect( $c->uri_for('/user/update_colony_picks_step_1') );
+    };
+
+    $c->stash(
+        colony_pick_fields => $colony_fields,
+        plate_name => $plate_name,
+        well_name => $well_name,
+    );
+
+    return;
+
+}
+
+sub update_colony_picks : Path( '/user/update_colony_picks' ) :Args(0) {
+    my ( $self, $c ) = @_;
+    my $params = $c->request->params;
+    my $model = $c->model('Golgi');
+
+    $params->{created_by} = $c->user->name;
+
+    try{
+        $c->model('Golgi')->txn_do(
+            sub {
+                 $model->update_well_colony_picks( $params );
+                 $c->flash->{success_msg} = "Successfully added colony picks";
+            }
+        );
+    }
+    catch{
+        $c->flash->{error_msg} = "$_";
+    };
+    $c->res->redirect( $c->uri_for('/user/update_colony_picks_step_1') );
+    return;
+}
+
+sub upload_well_colony_picks_file_data  : Path( '/user/upload_well_colony_counts_file_data' ) :Args(0){
+    my ( $self, $c ) = @_;
+
+    my $well_colony_picks_data = $c->request->upload('datafile');
+    $c->request->params->{created_by} = $c->user->name;
+
+    unless ( $well_colony_picks_data ) {
+        $c->flash->{error_msg} = 'No csv file with well colony counts data specified';
+        $c->res->redirect( $c->uri_for('/user/update_colony_picks_step_1') );
+        return;
+    }
+
+    $c->assert_user_roles('edit');
+    try{
+        $c->model('Golgi')->txn_do(
+            sub {
+                shift->upload_well_colony_picks_file_data( $well_colony_picks_data->fh, $c->request->params );
+            }
+        );
+        $c->flash->{success_msg} = 'Successfully added well colony counts to wells';
+    }
+    catch{
+        $c->flash->{error_msg} = "$_";
+    };
+
+    $c->res->redirect( $c->uri_for('/user/update_colony_picks_step_1') );
+    return;
 }
 
 =head1 AUTHOR

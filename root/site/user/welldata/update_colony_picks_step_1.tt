@@ -1,0 +1,34 @@
+[%- META title = "Colony Counts" %]
+
+<div class="page-header">
+  <h1>Add Colony Data</h1>
+</div>
+
+<div>
+    <form method="POST" id="colony_count_form" action="[% c.uri_for( '/user/update_colony_picks_step_2' ) %]" class="well">
+      <fieldset>
+        <legend>Select Well</legend>
+        <input type= "text" id="plate_name" name="plate_name" placeholder="Plate Name" autocomplete="off">
+        <input type= "text" name="well_name" placeholder="Well Name">
+        <button name="submit" id="submit" type="submit" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i>Go</button>
+      </fieldset>
+    </form>
+</div>
+
+<form method="POST" id="colony_count_upload" action="[% c.uri_for( '/user/upload_well_colony_counts_file_data' ) %]" class="well" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Or Upload Well Data from File</legend>
+        <input name="datafile" type="file">
+    <button name="upload" id="upload" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+  </fieldset>
+</form>
+
+[% INCLUDE 'colony_count_upload_help.tt' %]
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+</script>
