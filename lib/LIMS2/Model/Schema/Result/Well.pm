@@ -625,7 +625,6 @@ sub all_genotyping_qc_data{
     my @assay_types = sort map { $_->id } $schema->resultset('GenotypingResultType')->all;
 
     my $datum;
-$DB::single=1;
 	$datum->{id} = $self->id;
 	$datum->{plate_name} = $self->plate->name;
 	$datum->{well} = $self->name;
@@ -641,7 +640,6 @@ $DB::single=1;
 		                                                  : undef;
 
     foreach my $primer_band ( $self->well_primer_bands ) {
-$DB::single=1;        
             $datum->{$primer_band->primer_band_type_id} = $primer_band->pass;
             my @datum_keys = sort keys %$datum;
             foreach my $item ( @datum_keys ) {
@@ -657,7 +655,6 @@ $DB::single=1;
 				well_id => $self->id,
 				genotyping_result_type_id => $assay,
 			});
-
 			$datum->{$assay.$name} = $result ? $result->$name
 				                             : undef ;
 		}

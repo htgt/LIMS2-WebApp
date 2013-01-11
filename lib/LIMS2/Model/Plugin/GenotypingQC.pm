@@ -162,8 +162,52 @@ sub _valid_column_names{
     return \%recognized;
 }
 
+
 #TODO: methods for updating individual fields of assays to be invoked as the user modifies data in the
 #      extJS interface.
 #      This is similar to the spreadsheet upload but only one item will likely be updated on each call.
+
+
+sub update_genotyping_qc_value {
+    my ($self, $params) = @_;
+
+# Define dispatch table for the various assay types
+
+    my $assays_dispatch = {
+        'targeting_pass'        => \&targeting_pass_update,
+    };
+
+    my $assay_name = $params->{'assay_name'};
+    my $assay_value = $params->{'assay_value'};
+    my $well_id = $params->{'well_id'};
+    my $user = $params->{'created_by'};
+$DB::single=1;
+    if (exists $assays_dispatch->{$assay_name} ) {
+        $assays_dispatch->{$assay_name}->($self,$assay_value, $well_id, $user);
+    }
+    else {
+        # throw an error
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "Assay $assay_name not found in dispatch table" );
+    }
+
+
+    return 1;
+}
+
+sub targeting_pass_update{
+    my $self = shift;
+    my $assay_value = shift;
+    my $well_id = shift;
+    my $user = shift;
+
+    my $targeting_pass = $self->update_or_create_well_targeting_pass({
+            	created_by => $user,
+            	result     => $assay_value,
+            	well_id    => $well_id,
+            });
+
+    return $targeting_pass;
+}
 
 1;

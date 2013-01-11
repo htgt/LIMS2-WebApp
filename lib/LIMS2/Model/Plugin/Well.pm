@@ -612,7 +612,6 @@ sub create_well_targeting_puro_pass {
 
 sub create_well_targeting_pass {
     my ( $self, $params ) = @_;
-
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
@@ -644,7 +643,6 @@ sub update_or_create_well_targeting_puro_pass {
 
 sub update_or_create_well_targeting_pass {
     my ( $self, $params ) = @_;
-
     my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
