@@ -86,6 +86,36 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 project_alleles
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectAllele>
+
+=cut
+
+__PACKAGE__->has_many(
+  "project_alleles",
+  "LIMS2::Model::Schema::Result::ProjectAllele",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 project_information
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectInformation>
+
+=cut
+
+__PACKAGE__->might_have(
+  "project_information",
+  "LIMS2::Model::Schema::Result::ProjectInformation",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 sponsor
 
 Type: belongs_to
@@ -102,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-08-01 16:23:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TEWL4wmlfym0+CuGo3C9zg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-21 11:09:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:92syAz2G6r0fis25SpxdIQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
