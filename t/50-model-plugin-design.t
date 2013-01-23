@@ -122,6 +122,22 @@ note('Testing create design oligo');
 
     $oligo_data->{design_id} = $new_design->id;
     ok my $new_oligo = model->create_design_oligo( $oligo_data ), 'can create new oligo';
+
+}
+
+note('Testing creating design without specifying design id or created data');
+{
+    my $design_data = build_design_data(84231);
+
+    delete $design_data->{oligos};
+    delete $design_data->{id};
+    delete $design_data->{created_at};
+
+    ok my $new_design = model->create_design($design_data), 'can create new design';
+
+    ok $new_design->id, 'new design as a id';
+    $new_design->discard_changes;
+    ok $new_design->created_at, 'new design has a created at date';
 }
 
 note('Testing retrieve design oligo');
