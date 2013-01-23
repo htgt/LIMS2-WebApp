@@ -449,6 +449,74 @@ sub retrieve_well_primer_bands {
     return \@primer_bands;
 }
 
+sub delete_well_primer_band {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_primer_bands );
+    my $well = $self->retrieve_well( $params );
+    my $requested_row = {
+        well_id => $well->id,
+        primer_band_type_id => $validated_params->{primer_band_type_id},
+    };
+    my $primer_band_tag = $self->schema->resultset('WellPrimerBand')->find( $requested_row );
+    my $result;
+    if ( $primer_band_tag ) {
+        $result = $primer_band_tag->delete;
+    }
+    else {
+        print( $requested_row->{well_id} . ':' . $requested_row->{primer_band_type_id}
+            . ' does not exist' . "\n");
+    }
+    $self->log->debug( 'Well primer band '
+        . $validated_params->{primer_band_type_id}
+        . ' result deleted for well '
+        . $well->id
+    );
+
+    return $result;
+}
+
+
+sub update_or_create_well_primer_bands {
+    my ( $self, $params ) = @_;
+$DB::single=1;
+    my $message;
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_primer_bands );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $requested_row = {
+        well_id => $well->id,
+        primer_band_type_id => $validated_params->{primer_band_type_id},
+    };
+    my $primer_band_tag = $self->schema->resultset('WellPrimerBand')->find( $requested_row );
+    my $primer_band;
+    if ( $primer_band_tag ) {
+        my $update_request = {slice_def $validated_params, qw( primer_band_type_id pass ) };
+        $primer_band_tag->update({
+                primer_band_type_id => $update_request->{primer_band_type_id},
+                pass => $update_request->{pass}
+            });
+        my @primer_bands = $well->well_primer_bands;
+        $message = 'Well primer band '
+                    . $update_request->{primer_band_type_id}
+                    . ' updated to '
+                    . $update_request->{pass};
+        $primer_band = \@primer_bands;
+    }
+    else {
+        $primer_band = $well->create_related(
+            well_primer_bands => { slice_def $validated_params, qw( primer_band_type_id pass created_by_id created_at ) }
+        );
+        $message = 'Well primer band did not exist and was created';
+#        $message = 'Well primer band '
+#                    . $update_request->{primer_band_type_id}
+#                    . ' has been created with pass value of '
+#                    . $update_request->{pass};
+    }
+    return wantarray ? ($primer_band, $message) : $primer_band;
+}
+
 sub pspec_create_well_colony_picks {
     return {
         well_id     => { validate => 'integer', optional => 1, rename => 'id' },
@@ -862,9 +930,13 @@ sub create_well_genotyping_result {
 
 sub update_or_create_well_genotyping_result {
     my ( $self, $params ) = @_;
-
     my $message;
-    my $validated_params = $self->check_params( $params, $self->pspec_create_well_genotyping_result );
+    my $pspec = $self->pspec_create_well_genotyping_result;
+    # The call is obligatory in the standard pspec, so set it to optional here
+    # because we can update a single value that is any value assicated with the assay,
+    # not just call.
+    $pspec->{call}{optional} = 1;
+    my $validated_params = $self->check_params( $params, $pspec );
 
     my $well_params = { slice_def $validated_params, qw( id plate_name well_name ) };
 
@@ -879,25 +951,38 @@ sub update_or_create_well_genotyping_result {
     if ( $genotyping_result ) {
        my $update_request = {slice_def $validated_params,
            qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
-       # Update the result if new result is "better" or if overwrite flag is set to true
-       my $previous = $genotyping_result->call;
-       if ( $validated_params->{overwrite} or rank( $update_request->{call} ) > rank( $previous ) ) {
-       	   if ($update_request->{call} eq "na" or $update_request->{call} eq "fa"){
-       	   	   # Make sure we overwrite any existing values with nulls
-       	       $update_request->{copy_number} = undef;
-       	       $update_request->{copy_number_range} = undef;
-       	       $update_request->{confidence} = undef;
-       	   }
-           $genotyping_result->update( $update_request );
-           $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
-                     ." updated from ".$previous." to ".$genotyping_result->call;
+       if ( $update_request->{call} ) {
+           # Update the result if new result is "better" or if overwrite flag is set to true
+           my $previous = $genotyping_result->call;
+           if ( $validated_params->{overwrite} or rank( $update_request->{call} ) > rank( $previous ) ) {
+               if ($update_request->{call} eq "na" or $update_request->{call} eq "fa"){
+                   # Make sure we overwrite any existing values with nulls
+                   $update_request->{copy_number} = undef;
+                   $update_request->{copy_number_range} = undef;
+                   $update_request->{confidence} = undef;
+               }
+               $genotyping_result->update( $update_request );
+               $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
+                         ." updated from ".$previous." to ".$genotyping_result->call;
+           }
+           else {
+               $message = "Will not update ".$validated_params->{genotyping_result_type_id}
+                         ." result ".$previous." with result ".$update_request->{call};
+               $self->log->debug($message);
+           }
        }
-       else{
-       	   $message = "Will not update ".$validated_params->{genotyping_result_type_id}
-       	             ." result ".$previous." with result ".$update_request->{call};
-           $self->log->debug($message);
+       else {
+            # The assay parameter to update is not a 'call', so no ranking needs to be applied
+$DB::single=1;            
+            my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
+            my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
+            my $previous = $genotyping_result->$assay_field;
+            $genotyping_result->update( $update_request );
+            $message = 'Genotyping result for ' . $validated_params->{genotyping_result_type_id} . '/' . $assay_field
+                . ' updated from ' . $previous . ' to ' . $genotyping_result->$assay_field;
+                print "\n" . $message . "\n";
        }
-    }
+    } 
     else {
         $genotyping_result = $well->create_related(
         well_genotyping_results => {

@@ -1,5 +1,5 @@
 <script type="text/javascript" charset="utf-8">
-        Ext.onReady(function(){
+        Ext.onReady( function() {
             var types = Ext.data.Types;
             Ext.define('GenotypingQC', {
                 extend: 'Ext.data.Model',
@@ -11,18 +11,18 @@
                     {name: 'chromosome_fail', type: 'string'},
                     {name: 'targeting_pass', type: 'string'},
                     {name: 'targeting_puro_pass', type: 'string'},
-                    {name: 'tr_pcr', type: types.BOOLEAN},
-                    {name: 'gr3', type: types.BOOLEAN},
-                    {name: 'gr4', type: types.BOOLEAN},
-                    {name: 'gf3', type: types.BOOLEAN},
-                    {name: 'gf4', type: types.BOOLEAN},
+                    {name: 'tr_pcr', type: 'string'},
+                    {name: 'gr3', type: 'string'},
+                    {name: 'gr4', type: 'string'},
+                    {name: 'gf3', type: 'string'},
+                    {name: 'gf4', type: 'string'},
 //                    {name: 'TRPCR_seq', type: 'string'},
                   [% FOR assay IN assay_types %]
                     [% FOR name IN value_names %]
-                       { name: '[% assay _ name.field %]', type: 'string' },
+                       { name: '[% assay _ '#' _ name.field %]', type: 'string' },
                     [% END %]
                   [% END %]     
-                ],
+                ]
             });
             
             var store = Ext.create('Ext.data.Store', {
@@ -90,6 +90,22 @@
                 forceSelection: true
             });
 
+            var pcr_select_values = Ext.create('Ext.data.Store', {
+                fields: ['pcr_sel'],
+                data: [
+                {"pcr_sel":"true"},
+                {"pcr_sel":"false"},
+                {"pcr_sel":"-"}
+                ]
+            });
+
+            var pcr_combo = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: pcr_select_values,
+                displayField: 'pcr_sel',
+                forceSelection: true
+
+            });
             
             var columns = [
                 {header: "Well", dataIndex: 'well', locked: true},
@@ -97,28 +113,28 @@
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
                 {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
                 {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
-                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: {xtype: 'checkbox'}  },
+                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo },
                 {header: "LRPCR bands", columns: [
-                    {header: "gr3", dataIndex: 'gr3', editor: { xtype: 'checkbox' }},
-                    {header: "gr4", dataIndex: 'gr4', editor: { xtype: 'checkbox' }},
-                    {header: "gf3", dataIndex: 'gf3', editor: { xtype: 'checkbox' }},
-                    {header: "gf4", dataIndex: 'gf4', editor: { xtype: 'checkbox' }}
+                    {header: "gr3", dataIndex: 'gr3', editor: pcr_combo },
+                    {header: "gr4", dataIndex: 'gr4', editor: pcr_combo },
+                    {header: "gf3", dataIndex: 'gf3', editor: pcr_combo },
+                    {header: "gf4", dataIndex: 'gf4', editor: pcr_combo }
                 ]},
 //                {header: "TRPCR<br>Seq", editor: { xtype: 'textfield' }},
                 [% FOR assay IN assay_types %]
                   {header: "[% assay %]", columns: [
                     [% FOR name IN value_names %]
                         [% IF name.title == "Call" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
                             editor: call_types_targeting_combo, hideable: true},
                         [% ELSIF name.title == "Copy Number" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
                             editor: { xtype: 'numberfield' }, hidden: true},
                         [% ELSIF name.title == "Range" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
                             editor: { xtype: 'numberfield' }, hidden: true},
                         [% ELSIF name.title == "Confidence" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]",
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
                             editor: { xtype: 'textfield' }, hidden: true},
                         [% END %]
                     [% END %]
@@ -130,15 +146,20 @@
                 height: 500,
                 width: 1200,
                 store: store,
+                columnLines: true,
                 columns: columns,
                 title: "[% plate_name %] QC Results",
                 renderTo: 'my_results',
-                selType: 'rowmodel',
+                viewConfig: {
+                    stripeRows: true
+                },
+                selType: 'cellmodel',
                 simpleSelect: true,
                 plugins: [
-                    Ext.create('Ext.grid.plugin.RowEditing', { clicksToEdit: 1 })
+                    Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 1 })
                 ]
             });     
-});
+
+    });
                    
 </script>

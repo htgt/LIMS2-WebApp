@@ -252,11 +252,15 @@ sub well_genotyping_qc_list_GET {
 
     my $plate = $model->retrieve_plate({ name => $plate_name});
 
+#    my @wd = $model->get_genotyping_qc_browser_data( $plate_name );
+$DB::single=1;
+    my $debug_limit = 10;
 	my @well_data;
 	foreach my $well ($plate->wells){
 		my $datum = $well->all_genotyping_qc_data;
 		push @well_data, $datum;
-	}
+        last if !$debug_limit--;
+}
 
     return $self->status_ok( $c, entity => \@well_data );
 }
@@ -268,33 +272,43 @@ sub well_genotyping_qc_PUT{
     my ( $self, $c, $well_id ) = @_;
 
     $c->assert_user_roles('edit');
-print( "\nDP-S well_genotyping_qc_PUT called\n");
+$DB::single=1;
     my $data = $c->request->data;
-use Data::Dumper;
-$c->log->debug(Dumper($data));
 
-    my $plate_name = $data->{'plate_name'};
+    my $plate_name = $c->request->param('plate_name');
 
     # $data will contain a key for well 'id' and a key whose name is the column name
     # and whose value is the new value to be passed as an update.
-    # e.g. 'chr1call' => 'fail'
-$DB::single=1;    
+    # e.g. 'chr1#call' => 'fail'
     delete $data->{'id'}; # this is already in $well_id
     my ( $assay_type, $assay_value ) = each %{$data};
     
     my $model = $c->model('Golgi');
-    my $params;
+    my $params = {};
+
+    # $assay_value needs tranlsating from string to value before sending down the line
+    # if it is a pcr band update
+    # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
+    if ( $assay_type =~ /g[r|f]/ ) {
+        if ( $assay_value eq 'true' ) {
+            $assay_value = 1;
+            }
+        elsif ( $assay_value eq 'false' ) {
+            $assay_value = 0;
+        }
+    }
 
     $params->{assay_name} = $assay_type;
     $params->{assay_value} = $assay_value;
     $params->{well_id} = $well_id;
     $params->{created_by} = $c->user->name;
 
+
     # Transaction happens at the controller level
     # need transaction_do to start here...
     $model->txn_do(
         sub {
-            shift->update_genotyping_qc_value( \$params );
+            shift->update_genotyping_qc_value( $params );
         }
     ); # end transaction
     # and finish here.

@@ -226,6 +226,32 @@ note( "Testing well creation" );
         isa_ok($rec_primer_bands, 'ARRAY');
         isa_ok($rec_primer_bands->[0], 'LIMS2::Model::Schema::Result::WellPrimerBand');
 
+        ok $primer_bands = model->update_or_create_well_primer_bands( {
+               plate_name => 'MOHFAQ0001_A_2',
+               well_name => 'D04',
+               primer_band_type => 'gf3',
+               pass => 0,
+               created_by => 'test_user@example.org',
+            }), 'can create well primer band as part of update_or_create';
+        is $primer_bands->pass, 0, 'well primer band pass is FALSE';
+        ok $primer_bands = model->update_or_create_well_primer_bands( {
+               plate_name => 'MOHFAQ0001_A_2',
+               well_name => 'D04',
+               primer_band_type => 'gf3',
+               pass => 1,
+               created_by => 'test_user@example.org',
+            }), 'can update well primer band';
+        isa_ok($primer_bands, 'ARRAY');
+        isa_ok($primer_bands->[0], 'LIMS2::Model::Schema::Result::WellPrimerBand');
+        is $primer_bands->[0]->pass, 1, 'well primer band pass is now TRUE';
+        ok my $primer_band = model->delete_well_primer_band( {
+               plate_name => 'MOHFAQ0001_A_2',
+               well_name => 'D04',
+               primer_band_type => 'gf3',
+               pass => 1,
+               created_by => 'test_user@example.org',
+            }), 'can delete well primer band';
+
         throws_ok{
                 model->create_well_primer_bands( $well_data->{well_primer_bands_create_bad} )
         } qr/is invalid: existing_primer_band_type/;

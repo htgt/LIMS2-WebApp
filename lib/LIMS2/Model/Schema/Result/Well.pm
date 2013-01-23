@@ -638,15 +638,24 @@ sub all_genotyping_qc_data{
 		                                                  : undef;
 	$datum->{targeting_puro_pass} = $self->well_targeting_puro_pass ? $self->well_targeting_puro_pass->result
 		                                                  : undef;
+# TODO: tr_pcr
+    $datum->{tr_pcr} = '-';
+$DB::single=1;
+# default is undef ('-') for primer bands. This will be overwritten by the value in the database
+# if there is one.
+
+    $datum->{gf3} = '-';
+    $datum->{gf4} = '-';
+    $datum->{gr3} = '-';
+    $datum->{gr4} = '-';
 
     foreach my $primer_band ( $self->well_primer_bands ) {
-            $datum->{$primer_band->primer_band_type_id} = $primer_band->pass;
+            $datum->{$primer_band->primer_band_type_id} = $primer_band->pass ? 'true' : 'false';
             my @datum_keys = sort keys %$datum;
             foreach my $item ( @datum_keys ) {
                 print("$item -> " . $datum->{$item} . "\n") if $datum->{$item};
             }
     }
-
 
 	# foreach loop to get assay specific results
 	foreach my $assay (@assay_types){
@@ -655,7 +664,7 @@ sub all_genotyping_qc_data{
 				well_id => $self->id,
 				genotyping_result_type_id => $assay,
 			});
-			$datum->{$assay.$name} = $result ? $result->$name
+			$datum->{$assay . '#' . $name} = $result ? $result->$name
 				                             : undef ;
 		}
     }
