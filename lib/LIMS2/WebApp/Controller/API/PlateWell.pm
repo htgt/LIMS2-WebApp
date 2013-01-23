@@ -286,17 +286,6 @@ $DB::single=1;
     my $model = $c->model('Golgi');
     my $params = {};
 
-    # $assay_value needs translating from string to value before sending down the line
-    # if it is a pcr band update
-    # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
-    if ( $assay_type =~ /g[r|f]/ ) {
-        if ( $assay_value eq 'true' ) {
-            $assay_value = 1;
-            }
-        elsif ( $assay_value eq 'false' ) {
-            $assay_value = 0;
-        }
-    }
 
     $params->{assay_name} = $assay_type;
     $params->{assay_value} = $assay_value;

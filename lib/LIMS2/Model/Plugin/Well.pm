@@ -455,8 +455,11 @@ sub retrieve_well_primer_bands {
 sub delete_well_primer_band {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_create_well_primer_bands );
-    my $well = $self->retrieve_well( $params );
+    my $pspec = $self->pspec_create_well_primer_bands;
+    delete $pspec->{'pass'};
+
+    my $validated_params = $self->check_params( $params, $pspec );
+    my $well = $self->retrieve_well( $validated_params );
     my $requested_row = {
         well_id => $well->id,
         primer_band_type_id => $validated_params->{primer_band_type_id},
@@ -467,8 +470,8 @@ sub delete_well_primer_band {
         $result = $primer_band_tag->delete;
     }
     else {
-        print( $requested_row->{well_id} . ':' . $requested_row->{primer_band_type_id}
-            . ' does not exist' . "\n");
+        $self->log->debug( $requested_row->{well_id} . ':' . $requested_row->{primer_band_type_id}
+            . ' does not exist' );
     }
     $self->log->debug( 'Well primer band '
         . $validated_params->{primer_band_type_id}
@@ -501,7 +504,7 @@ $DB::single=1;
                 pass => $update_request->{pass}
             });
         my @primer_bands = $well->well_primer_bands;
-        $message = 'Well primer band '
+        $message = 'Well ' . $well->id . ' primer band ' 
                     . $update_request->{primer_band_type_id}
                     . ' updated to '
                     . $update_request->{pass};

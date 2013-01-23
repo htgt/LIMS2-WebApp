@@ -169,6 +169,16 @@ sub _valid_column_names{
 #    a commit.
 
 
+sub pspec_update_genotyping_qc_value {
+    return {
+        well_id           => { validate => 'integer' },
+        assay_name        => { validate => 'non_empty_string' },
+        assay_value       => { validate => 'non_empty_string' },
+        created_by        => { validate => 'existing_user' },
+    }
+
+}
+
 sub update_genotyping_qc_value {
     my ($self, $params) = @_;
 
@@ -177,28 +187,40 @@ $DB::single=1;
 
 # The dispatch table is for matching specific assays to specified function calls.
     my $assays_dispatch = {
-        'chromosome_fail'       => \&chromosome_fail_update,
-        'targeting_pass'        => \&targeting_pass_update,
-        'targeting_puro_pass'   => \&targeting_puro_pass_update,
+        'chromosome_fail'       => \&well_assay_update,
+        'targeting_pass'        => \&well_assay_update,
+        'targeting_puro_pass'   => \&well_assay_update,
         'tr_pcr'                => \&tr_pcr_update,
-        'gr3'                   => \&gr3_update,
-        'gr4'                   => \&gr4_update,
-        'gf3'                   => \&gf3_update,
-        'gf4'                   => \&gf4_update,
+        'gr3'                   => \&gr_band_update,
+        'gr4'                   => \&gr_band_update,
+        'gf3'                   => \&gf_band_update,
+        'gf4'                   => \&gf_band_update,
     };
 
 #  The more generic assay, call, copy_number, copy_range, confidence call is easier to handle.
+	my $vp = $self->check_params( $params, $self->pspec_update_genotyping_qc_value );
 
-    my $assay_name = $params->{'assay_name'};
-    my $assay_value = $params->{'assay_value'};
-    my $well_id = $params->{'well_id'};
-    my $user = $params->{'created_by'};
+    my $assay_name = $vp->{'assay_name'};
+    my $assay_value = $vp->{'assay_value'};
+    my $well_id = $vp->{'well_id'};
+    my $user = $vp->{'created_by'};
+    # $assay_value needs translating from string to value before sending down the line
+    # if it is a pcr band update
+    # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
+    if ( $assay_name =~ /g[r|f]/ ) {
+        if ( $assay_value eq 'true' ) {
+            $assay_value = 1;
+            }
+        elsif ( $assay_value eq 'false' ) {
+            $assay_value = 0;
+        }
+    }
 
     my $genotyping_qc_result;
 
 $DB::single=1;
     if (exists $assays_dispatch->{$assay_name} ) {
-        $genotyping_qc_result = $assays_dispatch->{$assay_name}->($self, $assay_value, $well_id, $user);
+        $genotyping_qc_result = $assays_dispatch->{$assay_name}->($self, $assay_name, $assay_value, $well_id, $user);
     }
     elsif ( $assay_name =~ /#/ ) {
         # deal with the generic genotyping_qc assays that all have the same format
@@ -221,8 +243,27 @@ $DB::single=1;
     return $genotyping_qc_result;
 }
 
+# TODO: Update these methods to use the 'params' and slice_def technique. However, the code works as is.
+sub well_assay_update{
+    my $self = shift;
+    my $assay_name = shift;
+    my $assay_value = shift;
+    my $well_id = shift;
+    my $user = shift;
+
+    my $update_method = 'update_or_create_well_' . $assay_name;
+    my $well_assay_tag = $self->$update_method({
+            	created_by => $user,
+            	result     => $assay_value,
+            	well_id    => $well_id,
+            });
+
+    return $well_assay_tag;
+}
+
 sub targeting_pass_update{
     my $self = shift;
+    my $assay_name = shift;
     my $assay_value = shift;
     my $well_id = shift;
     my $user = shift;
@@ -238,6 +279,7 @@ sub targeting_pass_update{
 
 sub chromosome_fail_update{
     my $self = shift;
+    my $assay_name = shift;
     my $assay_value = shift;
     my $well_id = shift;
     my $user = shift;
@@ -253,6 +295,7 @@ sub chromosome_fail_update{
 
 sub targeting_puro_pass_update{
     my $self = shift;
+    my $assay_name = shift;
     my $assay_value = shift;
     my $well_id = shift;
     my $user = shift;
@@ -269,8 +312,9 @@ sub tr_pcr_update {
 
 }
 
-sub gr3_update {
+sub gr_band_update {
     my $self = shift;
+    my $assay_name = shift;
     my $assay_value = shift;
     my $well_id = shift;
     my $user = shift;
@@ -279,15 +323,14 @@ sub gr3_update {
 
     if ( $assay_value eq '-' ){
         $well_primer_band = $self->delete_well_primer_band({
-                primer_band_type => 'gr3',
-                pass => $assay_value,
+                primer_band_type => $assay_name,
                 created_by => $user,
                 well_id => $well_id,
             });
     }
     else {
         $well_primer_band = $self->update_or_create_well_primer_bands({
-                primer_band_type => 'gr3',
+                primer_band_type => $assay_name,
                 pass => $assay_value,
             	created_by => $user,
             	well_id    => $well_id,
@@ -295,58 +338,6 @@ sub gr3_update {
     }
     return $well_primer_band;
 
-}
-
-sub gr4_update {
-    my $self = shift;
-    my $assay_value = shift;
-    my $well_id = shift;
-    my $user = shift;
-
-    my $well_primer_band;
-    my $update_or_create_well_primer_bands = $self->update_or_create_well_primer_bands({
-                primer_band_type => 'gr4',
-                pass => $assay_value,
-            	created_by => $user,
-            	well_id    => $well_id,
-            });
-
-    return $well_primer_band;
-}
-
-sub gf3_update {
-    my $self = shift;
-    my $assay_value = shift;
-    my $well_id = shift;
-    my $user = shift;
-
-    my $well_primer_band;
-    my $update_or_create_well_primer_bands = $self->update_or_create_well_primer_bands({
-                primer_band_type => 'gf3',
-                pass => $assay_value,
-            	created_by => $user,
-            	well_id    => $well_id,
-            });
-
-    return $well_primer_band;
-}
-
-
-sub gf4_update {
-    my $self = shift;
-    my $assay_value = shift;
-    my $well_id = shift;
-    my $user = shift;
-
-    my $well_primer_band;
-    my $update_or_create_well_primer_bands = $self->update_or_create_well_primer_bands({
-                primer_band_type => 'gf4',
-                pass => $assay_value,
-            	created_by => $user,
-            	well_id    => $well_id,
-            });
-
-    return $well_primer_band;
 }
 
 # Generic assay update method wrapper
