@@ -125,13 +125,14 @@ note('Testing create design oligo');
 
 }
 
-note('Testing creating design without specifying design id or created data');
+note('Testing creating design without specifying design id, created data or name');
 {
     my $design_data = build_design_data(84231);
 
     delete $design_data->{oligos};
     delete $design_data->{id};
     delete $design_data->{created_at};
+    delete $design_data->{name};
 
     ok my $new_design = model->create_design($design_data), 'can create new design';
 
