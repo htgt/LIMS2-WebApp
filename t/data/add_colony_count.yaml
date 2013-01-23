@@ -1,0 +1,15 @@
+---
+valid_input:
+    plate_name: FEP0006
+    well_name: A01
+    total_colonies: 30
+    picked_colonies: 20
+    remaining_unstained_colonies: 10
+    created_by: test_user@example.org
+invalid_input:
+    plate_name: FEPD0006_1
+    well_name: A01
+    total_colonies: 30
+    picked_colonies: 20
+    remaining_unstained_colonies: 10
+    created_by: test_user@example.org

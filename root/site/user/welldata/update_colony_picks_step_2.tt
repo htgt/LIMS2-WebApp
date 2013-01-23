@@ -1,0 +1,33 @@
+[%- META title = "Colony Counts" %]
+
+<div class="page-header">
+  <h1>Add Colony Data</h1>
+</div>
+
+<div>
+    <form method="POST" id="colony_count_form" action="[% c.uri_for( '/user/update_colony_picks' ) %]" class="well">
+      <fieldset>
+        <legend>Select Well</legend>
+        <input type= "hidden" id="plate_name" name="plate_name" value="[% plate_name %]" >
+        <span class="input uneditable-input">[% plate_name %]</span>
+        <input type= "hidden" name="well_name" value="[% well_name %]" >
+        <span class="input uneditable-input">[% well_name %]</span>
+        [% INCLUDE 'well_specific_fields.tt' well_fields = colony_pick_fields %]
+        <button name="submit" id="submit" type="submit" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i>Save</button>
+      </fieldset>
+    </form>
+</div>
+
+<form method="POST" id="colony_count_upload" action="[% c.uri_for( '/user/upload_well_colony_counts_file_data' ) %]" class="well" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Or Upload Well Data from File</legend>
+        <input name="datafile" type="file">
+    <button name="upload" id="upload" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+  </fieldset>
+</form>
+
+[% INCLUDE 'colony_count_upload_help.tt' %]
+
+
+
+

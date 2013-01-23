@@ -26,7 +26,7 @@
               <a href="[% c.uri_for( '/user/qc_runs' ) %]">Sequencing QC Results</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/graph' ) %]">Well Relations</a>
+              <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
             </li>
           </ul>
         </li>
@@ -101,8 +101,14 @@
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/recombinase_upload' ) %]">Update recombinase</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update colony counts</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
-            </li>            
+            </li>
             <li>
               <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
             </li>
@@ -118,7 +124,6 @@
             [% END %]
           </ul>
         </li>
-
 
         [% IF c.session.selected_species %]
           <li class="dropdown">

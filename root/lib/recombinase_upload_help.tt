@@ -1,0 +1,55 @@
+<div class="accordion" id="accordian">
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="icon-question-sign"></i> Recombinase Help
+      </a>
+    </div>
+
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <p>
+          This form is used to indicate excision via recombinase, using either well data from a csv file, or updating a well through the form.
+        </p>
+        <p>
+          If there are any errors in the data or missing data a warning will show up and the recombinase will not be added to the wells.
+          If all the data is valid then recombinase will be added to the well.
+        </p>
+
+        <div class="well">
+          <h6>Using the form</h6>
+          <p>
+            A plate and well name must first be entered.<br><br>
+            Then select the recombinase type and select go.
+          </p>
+        </div>
+
+        <div class="well">
+          <h6>Csv file</h6>
+          <p>
+            Ensure the csv file has the following compulsory fields.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>plate_name</dt>
+              <dd>Must contain a valid plate name</dd>
+              <dt>well_name</dt>
+              <dd>Must contain a valid well name. i.e must already exist.</dd>
+              <dt>recombinase</dt>
+              <dd>Select either Cre, Flp or Dre</dd>
+            </dl>
+          <p>
+            Note! The column names must match the above ones.
+          </p>
+
+          <p>
+            Finally you must select the csv file and select go
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

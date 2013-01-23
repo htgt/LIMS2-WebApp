@@ -156,7 +156,7 @@ sub valid_dna_wells {
 
     my %dna_wells;
     my $type = $params->{type};
-    next unless $ar->can( $type );
+    return unless $ar->can( $type );
     for my $well ( @{ $ar->$type } ) {
         next if exists $dna_wells{ $well->as_string };
 
@@ -185,7 +185,7 @@ sub electroporation_wells {
     my ( $ar, $type ) = @_;
 
     my %wells;
-    next unless $ar->can( $type );
+    return unless $ar->can( $type );
     for my $well ( @{ $ar->$type } ) {
         next if exists $wells{ $well->as_string };
 

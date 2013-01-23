@@ -1,0 +1,22 @@
+[% IF well_fields.size %]
+
+  [% FOR field IN well_fields.keys %]
+    [% field_data = well_fields.$field %]
+    <label>[% well_fields.$field.label %]</label>
+
+    [% IF field_data.defined('options') %]
+      <select name="[% field_data.name %]">
+      [% UNLESS field_data.name %]<option value="" selected="selected">-</option>[% END %]
+      [%- FOR field_value IN field_data.options %]
+        <option value="[% field_value %]" [% IF field_value == field_data.att_values %] selected="selected"[% END %]>
+          [% field_value %]
+        </option>
+      [%- END %]
+      </select>
+    [% ELSE %]
+      <input name="[% field_data.name %]" id="[% field_data.name %]" [% IF field_data.defined('att_values') %] value="[% field_data.att_values %]"[% END %] type="number"
+      />
+    [% END %]
+  [% END %]
+
+[% END %]

@@ -16,12 +16,15 @@
      task_passwd      = PasswordGenerator.generate_password
 
      webapp_users = [
-       "rm7@sanger.ac.uk",
+       "dp10@sanger.ac.uk"
+       "af11@sanger.ac.uk"
+       "pm9@sanger.ac.uk"
+       "vvi@sanger.ac.uk"
        "sp12@sanger.ac.uk"
      ]
 
      system_users = [
-       "rm7", "sp12"
+       "dp10", "sp12", "af11", "pm9", "vvi" 
      ]
 -%]
 
