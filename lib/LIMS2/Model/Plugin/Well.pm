@@ -511,12 +511,12 @@ $DB::single=1;
         $primer_band = $well->create_related(
             well_primer_bands => { slice_def $validated_params, qw( primer_band_type_id pass created_by_id created_at ) }
         );
-        $message = 'Well primer band did not exist and was created';
-#        $message = 'Well primer band '
-#                    . $update_request->{primer_band_type_id}
-#                    . ' has been created with pass value of '
-#                    . $update_request->{pass};
+        $message = 'Well ' . $well->id . ' primer band '
+                    . $primer_band->primer_band_type_id
+                    . ' did not exist and has been created with pass value of '
+                    . $primer_band->pass;
     }
+    $self->log->debug( $message );
     return wantarray ? ($primer_band, $message) : $primer_band;
 }
 
