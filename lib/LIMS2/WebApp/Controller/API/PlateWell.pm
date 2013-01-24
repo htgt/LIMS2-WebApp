@@ -253,14 +253,13 @@ sub well_genotyping_qc_list_GET {
     my $plate = $model->retrieve_plate({ name => $plate_name});
 
     my @well_data = $model->get_genotyping_qc_browser_data( $plate_name );
-$DB::single=1;
 #    my $debug_limit = 10;
 #	my @well_data;
 #	foreach my $well ($plate->wells){
 #		my $datum = $well->all_genotyping_qc_data;
 #		push @well_data, $datum;
 #        last if !$debug_limit--;
-#}
+#    }
 
     return $self->status_ok( $c, entity => \@well_data );
 }

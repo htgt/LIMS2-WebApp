@@ -357,6 +357,7 @@ left outer
 left outer
 	join well_primer_bands
 		on wd."Well ID" = well_primer_bands.well_id
+order by wd."Well ID"
 SQL_END
 
 $DB::single=1;
@@ -371,6 +372,8 @@ my $sql_result =  $self->schema->storage->dbh_do(
              'Chr fail' => 1,
              'Tgt pass' => 1,
              'Puro pass' => 1,
+             'Primer band type' => 1,
+             'Primer pass?' => 1,
              'genotyping_result_type_id' => 1,
              'call' => 1,
              'copy_number' => 1,
@@ -391,20 +394,38 @@ foreach my $row ( @{$sql_result} ) {
         $datum->{chromosome_fail} = $row->{'Chr fail'} // '-';
         $datum->{targeting_pass} = $row->{'Tgt pass'} // '-';
         $datum->{targeting_puro_pass} = $row->{'Puro pass'} // '-';
-        $datum->{gf3} = $row->{'gf3'} // '-';
-        $datum->{gf4} = $row->{'gf4'} // '-';
-        $datum->{gr3} = $row->{'gr3'} // '-';
-        $datum->{gr4} = $row->{'gr4'} // '-';
+
+#       Initialize fields with a hyphen, they will be overwritten by values from the query
+        $datum->{gf3} = '-';
+        $datum->{gf4} = '-';
+        $datum->{gr3} = '-';
+        $datum->{gr4} = '-';
+        $datum->{tr_pcr} =  '-';
+    
+
+        if ($row->{'Primer band type'} ) {
+            $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
+        }
 
         my $well = $self->retrieve_well( { id => $datum->{id} } );
         my ($design) = $well->designs;
         $datum->{gene_name} = '-'; 
         $datum->{gene_name} = $design->genes->first->gene_id if $design;
         $datum->{design_id} = $design->id;
+        # get the generic assay data for this row
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-'; 
         $saved_id = $row->{'Well ID'};
+
     }
     else {
-        # get the generic assay data for this row
+        # just get the generic assay data for this row
+        if ($row->{'Primer band type'} ) {
+            $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
+        }
+
     	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-'; 
     	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-'; 
     	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-'; 
