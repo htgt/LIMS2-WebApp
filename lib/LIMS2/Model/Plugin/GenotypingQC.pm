@@ -190,11 +190,11 @@ $DB::single=1;
         'chromosome_fail'       => \&well_assay_update,
         'targeting_pass'        => \&well_assay_update,
         'targeting_puro_pass'   => \&well_assay_update,
-        'tr_pcr'                => \&tr_pcr_update,
-        'gr3'                   => \&gr_band_update,
-        'gr4'                   => \&gr_band_update,
-        'gf3'                   => \&gf_band_update,
-        'gf4'                   => \&gf_band_update,
+        'tr_pcr'                => \&primer_band_update,
+        'gr3'                   => \&primer_band_update,
+        'gr4'                   => \&primer_band_update,
+        'gf3'                   => \&primer_band_update,
+        'gf4'                   => \&primer_band_update,
     };
 
 #  The more generic assay, call, copy_number, copy_range, confidence call is easier to handle.
@@ -207,7 +207,7 @@ $DB::single=1;
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
-    if ( $assay_name =~ /g[r|f]/ ) {
+    if ( ($assay_name =~ /g[r|f]/ )  | ($assay_name =~ /tr_pcr/ ) ) {
         if ( $assay_value eq 'true' ) {
             $assay_value = 1;
             }
@@ -261,11 +261,7 @@ sub well_assay_update{
     return $well_assay_tag;
 }
 
-sub tr_pcr_update {
-    #TODO
-}
-
-sub gr_band_update {
+sub primer_band_update {
     my $self = shift;
     my $assay_name = shift;
     my $assay_value = shift;
