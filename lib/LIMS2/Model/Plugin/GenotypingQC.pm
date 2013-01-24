@@ -261,55 +261,8 @@ sub well_assay_update{
     return $well_assay_tag;
 }
 
-sub targeting_pass_update{
-    my $self = shift;
-    my $assay_name = shift;
-    my $assay_value = shift;
-    my $well_id = shift;
-    my $user = shift;
-
-    my $targeting_pass = $self->update_or_create_well_targeting_pass({
-            	created_by => $user,
-            	result     => $assay_value,
-            	well_id    => $well_id,
-            });
-
-    return $targeting_pass;
-}
-
-sub chromosome_fail_update{
-    my $self = shift;
-    my $assay_name = shift;
-    my $assay_value = shift;
-    my $well_id = shift;
-    my $user = shift;
-
-    my $chromosome_fail = $self->update_or_create_well_chromosome_fail({
-            created_by => $user,
-            result     => $assay_value,
-            well_id    => $well_id,
-        });
-
-    return $chromosome_fail;
-}
-
-sub targeting_puro_pass_update{
-    my $self = shift;
-    my $assay_name = shift;
-    my $assay_value = shift;
-    my $well_id = shift;
-    my $user = shift;
-
-    my $targeting_puro_pass = $self->update_or_create_well_targeting_puro_pass({
-            created_by => $user,
-            result     => $assay_value,
-            well_id    => $well_id,
-        });
-    return $targeting_puro_pass;
-}
-
 sub tr_pcr_update {
-
+    #TODO
 }
 
 sub gr_band_update {
@@ -406,6 +359,7 @@ left outer
 		on wd."Well ID" = well_primer_bands.well_id
 SQL_END
 
+$DB::single=1;
 my $sql_result =  $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
@@ -426,20 +380,39 @@ my $sql_result =  $self->schema->storage->dbh_do(
     }
 );
 my @all_data;
+my $saved_id = -1;
+my $datum;
 foreach my $row ( @{$sql_result} ) {
-    my $datum;
-    $datum->{id} = $row->{'Well ID'};
-    $datum->{well} = $row->{'well'};
-    $datum->{chromosome_fail} = $row->{'Chr fail'};
-    $datum->{targeting_pass} = $row->{'Tgt pass'};
-    $datum->{targeting_puro_pass} = $row->{'Puro pass'};
-    $datum->{gf3} = $row->{'gf3'};
-    $datum->{gf4} = $row->{'gf4'};
-    $datum->{gr3} = $row->{'gr3'};
-    $datum->{gr4} = $row->{'gr4'};
+    if ( $row->{'Well ID'} != $saved_id ) {
+        push @all_data, $datum if $datum;
+        $datum = undef;
+        $datum->{id} = $row->{'Well ID'};
+        $datum->{well} = $row->{'well'};
+        $datum->{chromosome_fail} = $row->{'Chr fail'} // '-';
+        $datum->{targeting_pass} = $row->{'Tgt pass'} // '-';
+        $datum->{targeting_puro_pass} = $row->{'Puro pass'} // '-';
+        $datum->{gf3} = $row->{'gf3'} // '-';
+        $datum->{gf4} = $row->{'gf4'} // '-';
+        $datum->{gr3} = $row->{'gr3'} // '-';
+        $datum->{gr4} = $row->{'gr4'} // '-';
 
-   push @all_data, $datum;
+        my $well = $self->retrieve_well( { id => $datum->{id} } );
+        my ($design) = $well->designs;
+        $datum->{gene_name} = '-'; 
+        $datum->{gene_name} = $design->genes->first->gene_id if $design;
+        $datum->{design_id} = $design->id;
+        $saved_id = $row->{'Well ID'};
+    }
+    else {
+        # get the generic assay data for this row
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-'; 
+    }
+
 }
+push @all_data, $datum if $datum;
 return @all_data;
 }
 1;
