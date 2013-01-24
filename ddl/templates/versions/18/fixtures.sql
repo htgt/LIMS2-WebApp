@@ -1,2 +1,2 @@
 INSERT INTO schema_versions(version)
-VALUES (20);
+VALUES (18);
