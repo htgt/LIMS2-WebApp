@@ -8,6 +8,7 @@
                     {name: 'plate_name', type: 'string'},
                     {name: 'well', type: 'string'},
                     {name: 'gene_name', type: 'string'},
+                    {name: 'gene_id', type: 'string'},
                     {name: 'design_id', type: 'string'},
                     {name: 'chromosome_fail', type: 'string'},
                     {name: 'targeting_pass', type: 'string'},
@@ -111,6 +112,7 @@
             var columns = [
                 {header: "Well", dataIndex: 'well', locked: true},
                 {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
+                {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true },
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
                 {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},

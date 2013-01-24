@@ -251,8 +251,11 @@ sub well_genotyping_qc_list_GET {
     my $model = $c->model('Golgi');
 
     my $plate = $model->retrieve_plate({ name => $plate_name});
-
-    my @well_data = $model->get_genotyping_qc_browser_data( $plate_name );
+$DB::single=1;
+    my @well_data = $model->get_genotyping_qc_browser_data(
+        $plate_name,
+        $c->session->{selected_species}
+    );
 #    my $debug_limit = 10;
 #	my @well_data;
 #	foreach my $well ($plate->wells){

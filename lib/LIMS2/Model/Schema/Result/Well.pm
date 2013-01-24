@@ -631,6 +631,7 @@ sub all_genotyping_qc_data{
     #TODO: translate gene_id to a symbolic string
     my ($design) = $self->designs;
     $datum->{gene_name} = $design->genes->first->gene_id if $design;
+    $datum->{gene_id} = $datum->{gene_name};
     $datum->{design_id} = $design->id;
 
 	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result

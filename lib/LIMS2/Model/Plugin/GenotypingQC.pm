@@ -218,7 +218,6 @@ $DB::single=1;
 
     my $genotyping_qc_result;
 
-$DB::single=1;
     if (exists $assays_dispatch->{$assay_name} ) {
         $genotyping_qc_result = $assays_dispatch->{$assay_name}->($self, $assay_name, $assay_value, $well_id, $user);
     }
@@ -315,6 +314,7 @@ sub generic_assay_update{
 sub get_genotyping_qc_browser_data {
     my $self = shift;
     my $plate_name = shift;
+    my $species = shift;
 
 # SQL query requires plate id as input
 my $sql_query =  <<'SQL_END';    
@@ -405,8 +405,9 @@ foreach my $row ( @{$sql_result} ) {
 
         my $well = $self->retrieve_well( { id => $datum->{id} } );
         my ($design) = $well->designs;
-        $datum->{gene_name} = '-'; 
-        $datum->{gene_name} = $design->genes->first->gene_id if $design;
+        $datum->{gene_id} = '-'; 
+        $datum->{gene_id} = $design->genes->first->gene_id if $design;
+        $datum->{gene_name} = $self->get_gene_symbol_for_accession( $well, $species);
         $datum->{design_id} = $design->id;
         # get the generic assay data for this row
     	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-'; 
@@ -431,5 +432,36 @@ foreach my $row ( @{$sql_result} ) {
 }
 push @all_data, $datum if $datum;
 return @all_data;
+}
+
+sub pspec_get_gene_symbol_for_accession {
+    return {
+
+    };
+}
+
+
+# This will return a '/' separated list of symbols for a given accession and species.
+# TODO: send in a list of accessions and return a list of gene symbols thus mimimising the overhead of calls to search_genes.
+sub get_gene_symbol_for_accession{
+    my ($self, $well, $species, $params) = @_;
+
+    my $genes;
+    my $gene_symbols;
+
+    my ($design) = $well->designs;
+    my $gene_id = $design->genes->first->gene_id if $design;
+    my @gene_ids = uniq map { $_->gene_id } $well->design->genes;
+    my @gene_symbols;
+    foreach my $gene_id ( @gene_ids ) {
+        $genes = $self->search_genes(
+            { search_term => $gene_id, species =>  $species } );
+
+        push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+    }
+    # $info->{gene_ids} = join q{/}, @gene_ids;
+    $gene_symbols = join q{/}, @gene_symbols;
+
+    return $gene_symbols;
 }
 1;
