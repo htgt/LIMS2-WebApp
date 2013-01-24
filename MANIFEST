@@ -186,6 +186,7 @@ root/lib/pagination.tt
 root/lib/plate_upload_help.tt
 root/lib/process_specific_fields.tt
 root/lib/recombinase_upload_help.tt
+root/lib/template_creation_help.tt
 root/lib/well_specific_fields.tt
 root/lib/wrapper.tt
 root/site/admin/create_user.tt

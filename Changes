@@ -1,3 +1,8 @@
+0.043     2013-01-24 11:39:04 Europe/London
+
+    Added a sequence onto the id column in the designs table.
+    Made id, name and created_at parameters optional when creating a new design.
+
 0.042     2013-01-10 11:38:57 Europe/London
 
 	Fixed bug in QC test result retrieval
