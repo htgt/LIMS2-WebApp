@@ -26,6 +26,20 @@ foreach my $project (@projects){
 	    }
 	);
 	
+        if ($info->{targeting_type} eq "single_targeted"){
+            $project->update_or_create_related('project_alleles',
+	            {
+	            	allele_type       => 'first',
+	            	cassette_function => $info->{"cassette_function"},
+	            	mutation_type     => $info->{"mutation_type"},
+	            },
+	            {
+	            	key => 'primary',
+	            },
+	        );
+            next;
+	}
+
 	foreach my $type qw(first second){
 		if ($info->{$type."_allele_cassette_function"}){
 	        $project->update_or_create_related('project_alleles',
