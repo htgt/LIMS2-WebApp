@@ -147,7 +147,7 @@
             ];
             
             var grid = Ext.create('Ext.grid.Panel', {
-                height: 500,
+                height: 750,
                 width: 1200,
                 store: store,
                 columnLines: true,

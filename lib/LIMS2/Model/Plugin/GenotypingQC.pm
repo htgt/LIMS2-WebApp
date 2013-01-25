@@ -183,9 +183,10 @@ sub update_genotyping_qc_value {
     my ($self, $params) = @_;
 
 # Define dispatch table for the various assay types
-$DB::single=1;
-
 # The dispatch table is for matching specific assays to specified function calls.
+# There are 3 kinds of assays, two of which are dealt with in the dispatch table,
+# the last more generic assay method requires a different style of parameter list
+# and is dealt with separately.
     my $assays_dispatch = {
         'chromosome_fail'       => \&well_assay_update,
         'targeting_pass'        => \&well_assay_update,
@@ -356,7 +357,6 @@ left outer
 order by wd."Well ID"
 SQL_END
 
-$DB::single=1;
 my $sql_result =  $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
@@ -381,6 +381,8 @@ my $sql_result =  $self->schema->storage->dbh_do(
 my @all_data;
 my $saved_id = -1;
 my $datum;
+my $gene_cache;
+
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
         push @all_data, $datum if $datum;
@@ -407,7 +409,14 @@ foreach my $row ( @{$sql_result} ) {
         my ($design) = $well->designs;
         $datum->{gene_id} = '-'; 
         $datum->{gene_id} = $design->genes->first->gene_id if $design;
-        $datum->{gene_name} = $self->get_gene_symbol_for_accession( $well, $species);
+        # If we have already seen this gene_id don't go searching for it again
+        if ( $gene_cache->{$datum->{gene_id} } ) {
+            $datum->{gene_name} = $gene_cache->{ $datum->{gene_id} };
+        }
+        else {
+            $datum->{gene_name} = $self->get_gene_symbol_for_accession( $well, $species);
+            $gene_cache->{$datum->{gene_id}} = $datum->{gene_name};
+        }
         $datum->{design_id} = $design->id;
         # get the generic assay data for this row
     	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-'; 
@@ -434,6 +443,8 @@ push @all_data, $datum if $datum;
 return @all_data;
 }
 
+# Template pspec. Parameter validation takes time and we want speed here. If it is required
+# this stub could be completed.
 sub pspec_get_gene_symbol_for_accession {
     return {
 
@@ -451,12 +462,12 @@ sub get_gene_symbol_for_accession{
 
     my ($design) = $well->designs;
     my $gene_id = $design->genes->first->gene_id if $design;
-    my @gene_ids = uniq map { $_->gene_id } $well->design->genes;
+    my @gene_ids = uniq map { $_->gene_id } $design->genes;
+#    my @gene_ids = uniq map { $_->gene_id } $well->design->genes;
     my @gene_symbols;
     foreach my $gene_id ( @gene_ids ) {
         $genes = $self->search_genes(
             { search_term => $gene_id, species =>  $species } );
-
         push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
     }
     # $info->{gene_ids} = join q{/}, @gene_ids;

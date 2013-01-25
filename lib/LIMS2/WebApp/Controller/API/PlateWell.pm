@@ -251,7 +251,6 @@ sub well_genotyping_qc_list_GET {
     my $model = $c->model('Golgi');
 
     my $plate = $model->retrieve_plate({ name => $plate_name});
-$DB::single=1;
     my @well_data = $model->get_genotyping_qc_browser_data(
         $plate_name,
         $c->session->{selected_species}
@@ -274,7 +273,6 @@ sub well_genotyping_qc_PUT{
     my ( $self, $c, $well_id ) = @_;
 
     $c->assert_user_roles('edit');
-$DB::single=1;
     my $data = $c->request->data;
 
     my $plate_name = $c->request->param('plate_name');
@@ -303,7 +301,10 @@ $DB::single=1;
         }
     ); # end transaction
     # and finish here.
-    my $new_data = $c->model('Golgi')->retrieve_well({ id => $well_id})->all_genotyping_qc_data;
+    my $new_data = $c->model('Golgi')->retrieve_well({ id => $well_id})->all_genotyping_qc_data(
+        $model,
+        $c->session->{selected_species}
+    );
 
     return $self->status_created(
         $c,

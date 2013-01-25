@@ -617,6 +617,8 @@ sub designs{
 
 sub all_genotyping_qc_data{
 	my $self = shift;
+    my $model = shift;
+    my $species = shift;
 
 	# Fetch all related genotyping data as hash for use in ExtJS grid
 	my $schema = $self->result_source->schema;
@@ -628,10 +630,9 @@ sub all_genotyping_qc_data{
 	$datum->{id} = $self->id;
 	$datum->{plate_name} = $self->plate->name;
 	$datum->{well} = $self->name;
-    #TODO: translate gene_id to a symbolic string
     my ($design) = $self->designs;
-    $datum->{gene_name} = $design->genes->first->gene_id if $design;
-    $datum->{gene_id} = $datum->{gene_name};
+    $datum->{gene_id} = $design->genes->first->gene_id if $design;
+    $datum->{gene_name} = $model->get_gene_symbol_for_accession( $self, $species );
     $datum->{design_id} = $design->id;
 
 	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
@@ -640,12 +641,10 @@ sub all_genotyping_qc_data{
 		                                                  : undef;
 	$datum->{targeting_puro_pass} = $self->well_targeting_puro_pass ? $self->well_targeting_puro_pass->result
 		                                                  : undef;
-# TODO: tr_pcr
-    $datum->{tr_pcr} = '-';
-$DB::single=1;
 # default is undef ('-') for primer bands. This will be overwritten by the value in the database
 # if there is one.
 
+    $datum->{tr_pcr} = '-';
     $datum->{gf3} = '-';
     $datum->{gf4} = '-';
     $datum->{gr3} = '-';
@@ -653,10 +652,6 @@ $DB::single=1;
 
     foreach my $primer_band ( $self->well_primer_bands ) {
             $datum->{$primer_band->primer_band_type_id} = $primer_band->pass ? 'true' : 'false';
-            my @datum_keys = sort keys %$datum;
-            foreach my $item ( @datum_keys ) {
-                print("$item -> " . $datum->{$item} . "\n") if $datum->{$item};
-            }
     }
 
 	# foreach loop to get assay specific results
@@ -670,7 +665,6 @@ $DB::single=1;
 				                             : undef ;
 		}
     }
-print $datum->{well} . " complete\n";
     return $datum;
 }
 
