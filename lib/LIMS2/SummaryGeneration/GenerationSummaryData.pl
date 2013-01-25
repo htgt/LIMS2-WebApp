@@ -12,9 +12,6 @@ my $WELL_INSERTS_SUCCEEDED = 0;
 my $WELL_INSERTS_FAILED = 0;
 my $DESIGN_WELL;
 my $DESIGN_WELL_ID = 0;
-#my @DESIGN_WELL_TRAILS;
-#my $CURR_TRAIL;
-#my $CURR_WELL;
 
 # Check for input of single well ID or for all DESIGN plate wells
 my ( $well_id ) = @ARGV;
@@ -28,8 +25,9 @@ my $start_time=localtime;
 print "Start time: $start_time\n";
 
 # check if output file exists, and if so rename it
+# TODO: make output file optional, maybe input from command line
 my $dir = '/nfs/users/nfs_a/as28/Sandbox/';
-my $filename = 'well_output.csv';
+my $filename = 'summaries_data.csv';
 my $CSV_FILEPATH = $dir.$filename;
 if (-e $CSV_FILEPATH) {			
 	print "Renaming existing file.\n";

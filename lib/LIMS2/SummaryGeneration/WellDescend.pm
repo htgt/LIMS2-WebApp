@@ -138,7 +138,7 @@ sub well_descendants {
     $DESIGN_WELL = $MODEL->retrieve_well( { id => $DESIGN_WELL_ID } );
     
     # returned array contains well list and trails list     
-    my @return_array = $DESIGN_WELL->descendants->depth_first_vvi($DESIGN_WELL, [], [], [], 0);
+    my @return_array = $DESIGN_WELL->descendants->depth_first_traversal_with_trails($DESIGN_WELL, [], [], [], 0);
     my ( $well_list, $all_trails ) = @return_array;			# return two array refs
     
     # For each trail in all trails
