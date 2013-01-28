@@ -40,13 +40,13 @@ sub list_design_types {
 sub pspec_create_design {
     return {
         species                 => { validate => 'existing_species', rename => 'species_id' },
-        id                      => { validate => 'integer' },
+        id                      => { validate => 'integer', optional => 1 },
         type                    => { validate => 'existing_design_type', rename => 'design_type_id' },
-        created_at              => { validate => 'date_time', post_filter => 'parse_date_time' },
+        created_at              => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         created_by              => { validate => 'existing_user', post_filter => 'user_id_for' },
         phase                   => { validate => 'phase' },
         validated_by_annotation => { validate => 'validated_by_annotation', default => 'not done' },
-        name                    => { validate => 'alphanumeric_string' },
+        name                    => { validate => 'alphanumeric_string', optional => 1 },
         target_transcript       => { optional => 1, validate => 'ensembl_transcript_id' },
         oligos                  => { optional => 1 },
         comments                => { optional => 1 },
@@ -79,7 +79,6 @@ sub create_design {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_design );
 
-    $self->log->debug( "Create design $validated_params->{id}" );
     my $design = $self->schema->resultset( 'Design' )->create(
         {
             slice_def( $validated_params,
@@ -87,6 +86,7 @@ sub create_design {
                            validated_by_annotation target_transcript ) )
         }
     );
+    $self->log->debug( 'Create design ' . $design->id );
 
     for my $g ( @{ $validated_params->{gene_ids} } ) {
         $self->trace( "Create gene_design $g" );
@@ -121,7 +121,6 @@ sub pspec_create_design_oligo {
         design_id => { validate => 'integer' },
     };
 }
-
 
 sub create_design_oligo {
     my ( $self, $params, $design ) = @_;
