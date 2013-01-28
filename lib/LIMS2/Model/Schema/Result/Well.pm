@@ -597,11 +597,11 @@ sub design {
 
 sub designs{
 	my $self = shift;
-	
+
 	my $edges = $self->ancestors->edges;
-	
+
 	my @designs;
-	
+
 	foreach my $edge (@$edges){
 		my ($process, $input, $output) = @$edge;
 		# Edges with no input node are (probably!) design processes

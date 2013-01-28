@@ -23,10 +23,10 @@
                     [% FOR name IN value_names %]
                        { name: '[% assay _ '#' _ name.field %]', type: 'string' },
                     [% END %]
-                  [% END %]     
+                  [% END %]
                 ]
             });
-            
+
             var store = Ext.create('Ext.data.Store', {
                 model: 'GenotypingQC',
                 autoLoad: true,
@@ -52,7 +52,7 @@
                     }
                 }
             });
-            
+
             var call_types_chromosome_fail = Ext.create('Ext.data.Store', {
                 fields: ['call_label'],
                 data: [
@@ -78,14 +78,14 @@
                 ]
             });
 
-            var call_types_targeting_combo = Ext.create('Ext.form.ComboBox', {    
+            var call_types_targeting_combo = Ext.create('Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: call_types_targeting,
                 displayField: 'call_label',
                 forceSelection: true
             });
 
-            var call_types_chromosome_fail_combo = Ext.create('Ext.form.ComboBox', {    
+            var call_types_chromosome_fail_combo = Ext.create('Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: call_types_chromosome_fail,
                 displayField: 'call_label',
@@ -108,7 +108,7 @@
                 forceSelection: true
 
             });
-            
+
             var columns = [
                 {header: "Well", dataIndex: 'well', locked: true},
                 {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
@@ -145,7 +145,7 @@
                   ]},
                 [% END %]
             ];
-            
+
             var grid = Ext.create('Ext.grid.Panel', {
                 height: 750,
                 width: 1200,
@@ -162,8 +162,22 @@
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 1 })
                 ]
-            });     
+            });
 
+//                var gridHeight = Ext.getBody().getViewSize().height ;
+//                var gridWidth = Ext.getBody().getViewSize().width;
+//                grid.setSize(gridWidth, gridHeight);
+
+        // This code does resize, but because of the header and footer CSS
+        // it is a bit confusing with two sets of scrollbars,
+        // one for the widget and one for the web browser.
+
+//        Ext.EventManager.onWindowResize(function () {
+//
+//               var gridHeight = Ext.getBody().getViewSize().height ;
+//                var gridWidth = Ext.getBody().getViewSize().width;
+//                grid.setSize(gridWidth, gridHeight);
+//            });
     });
-                   
+
 </script>

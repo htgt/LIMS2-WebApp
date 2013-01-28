@@ -16,8 +16,8 @@ my %RANKING = (
     passb     => 5,
     fail      => 4,
     present   => 3,
-    potential => 2,    
-    fa        => 1, #Failed Assay 
+    potential => 2,
+    fa        => 1, #Failed Assay
 );
 
 # Fetch rank for a string, WellGenotypingResult or WellTargetingPass

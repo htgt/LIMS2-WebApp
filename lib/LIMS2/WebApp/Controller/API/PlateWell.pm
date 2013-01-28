@@ -282,7 +282,7 @@ sub well_genotyping_qc_PUT{
     # e.g. 'chr1#call' => 'fail'
     delete $data->{'id'}; # this is already in $well_id
     my ( $assay_type, $assay_value ) = each %{$data};
-    
+
     my $model = $c->model('Golgi');
     my $params = {};
 

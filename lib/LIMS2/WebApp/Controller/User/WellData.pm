@@ -201,7 +201,7 @@ sub upload_genotyping_qc : Path( '/user/upload_genotyping_qc') : Args(0){
 
     my @assay_types = sort map { $_->id } $c->model('Golgi')->schema->resultset('GenotypingResultType')->all;
     $c->stash->{assays} = \@assay_types;
-    
+
 	unless ($c->request->params->{submit_genotyping_qc}){
 		return;
 	}

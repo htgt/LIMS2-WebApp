@@ -38,10 +38,14 @@ sub update_genotyping_qc_data{
 	my $counter;
 	foreach my $datum (@$data){
 		$counter++;
-        
-        # Store unrecognized columns to report to user
-		grep { $not_recognized->{$_} = 1 } grep { not $recognized->{$_} } keys %$datum;
 
+        # Store unrecognized columns to report to user
+# Perlcritic rejects use of grep in a void context and recommends a for loop
+#		grep { $not_recognized->{$_} = 1 } grep { not $recognized->{$_} } keys %$datum;
+        my @nr = grep { not $recognized->{$_} } keys %$datum;
+        foreach my $nr_datum ( @nr ) {
+            $not_recognized->{$nr_datum} = 1;
+        }
 		unless ($datum->{well_name}){
 			die "No well name provided for line $counter";
 		}
@@ -57,11 +61,11 @@ sub update_genotyping_qc_data{
 		foreach my $overall qw(targeting_pass targeting-puro_pass chromosome_fail){
 			if (my $result = $datum->{$overall}){
 
-                # Change targeting-puro (targeting minus puro) to targeting_puro 
+                # Change targeting-puro (targeting minus puro) to targeting_puro
                 # for consistency with naming of db tables
                 my $table = $overall;
                 $table =~ s/targeting-puro/targeting_puro/;
-                
+
 				# Tidy up result input values
 				$result =~ s/\s*//g;
 				$result = lc($result) unless $result eq "Y";
@@ -119,21 +123,21 @@ sub update_genotyping_qc_data{
 				push @messages, "- ".$message;
 			}
 		}
-		
+
 		# Handle well primer band status
 		foreach my $primer (@primer_bands){
 			my $value = $datum->{$primer};
 			if (defined $value){
 				die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless $value eq "yes";
-				
-				# FIXME: need an update or create method        
+
+				# FIXME: need an update or create method
 				$self->create_well_primer_bands({
 					well_id          => $well->id,
 					primer_band_type => $primer,
 					pass             => 1,
 					created_by       => $val_params->{created_by},
 				});
-				
+
 				push @messages, "- Created $primer primer band with pass";
 			}
 		}
@@ -148,12 +152,12 @@ sub update_genotyping_qc_data{
 
 sub _valid_column_names{
 	my ($self, $assay_types, $primer_bands) = @_;
-	
+
 	# Overall results including primer bands
-    my %recognized = map { $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail), 
+    my %recognized = map { $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail),
                                      @$primer_bands;
-    
-    # Assay specific results                       
+
+    # Assay specific results
     foreach my $assay (@$assay_types){
     	foreach my $colname qw( pass confidence copy_number copy_number_range){
     		$recognized{$assay."_".$colname} = 1;
@@ -230,7 +234,7 @@ sub update_genotyping_qc_value {
         # or create method.
         my ($genotyping_assay, $assay_field) = split( '#', $assay_name);
         $genotyping_qc_result = $self->generic_assay_update(
-            $genotyping_assay, $assay_field, $assay_value, $well_id, $user, 
+            $genotyping_assay, $assay_field, $assay_value, $well_id, $user,
         );
     }
     else {
@@ -318,7 +322,7 @@ sub get_genotyping_qc_browser_data {
     my $species = shift;
 
 # SQL query requires plate id as input
-my $sql_query =  <<'SQL_END';    
+my $sql_query =  <<'SQL_END';
     with wd as (
 	select p.id "Plate ID"
 	, p.name "plate"
@@ -399,7 +403,7 @@ foreach my $row ( @{$sql_result} ) {
         $datum->{gr3} = '-';
         $datum->{gr4} = '-';
         $datum->{tr_pcr} =  '-';
-    
+
 
         if ($row->{'Primer band type'} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
@@ -407,7 +411,7 @@ foreach my $row ( @{$sql_result} ) {
 
         my $well = $self->retrieve_well( { id => $datum->{id} } );
         my ($design) = $well->designs;
-        $datum->{gene_id} = '-'; 
+        $datum->{gene_id} = '-';
         $datum->{gene_id} = $design->genes->first->gene_id if $design;
         # If we have already seen this gene_id don't go searching for it again
         if ( $gene_cache->{$datum->{gene_id} } ) {
@@ -419,10 +423,10 @@ foreach my $row ( @{$sql_result} ) {
         }
         $datum->{design_id} = $design->id;
         # get the generic assay data for this row
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-'; 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-'; 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-'; 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
         $saved_id = $row->{'Well ID'};
 
     }
@@ -432,10 +436,10 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
         }
 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-'; 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-'; 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-'; 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-'; 
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
+    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
     }
 
 }
@@ -461,16 +465,15 @@ sub get_gene_symbol_for_accession{
     my $gene_symbols;
 
     my ($design) = $well->designs;
-    my $gene_id = $design->genes->first->gene_id if $design;
+    my $gene_id;
+    $gene_id = $design->genes->first->gene_id if $design;
     my @gene_ids = uniq map { $_->gene_id } $design->genes;
-#    my @gene_ids = uniq map { $_->gene_id } $well->design->genes;
     my @gene_symbols;
     foreach my $gene_id ( @gene_ids ) {
         $genes = $self->search_genes(
             { search_term => $gene_id, species =>  $species } );
         push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
     }
-    # $info->{gene_ids} = join q{/}, @gene_ids;
     $gene_symbols = join q{/}, @gene_symbols;
 
     return $gene_symbols;

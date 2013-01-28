@@ -485,7 +485,6 @@ sub delete_well_primer_band {
 
 sub update_or_create_well_primer_bands {
     my ( $self, $params ) = @_;
-$DB::single=1;
     my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_primer_bands );
 
@@ -504,7 +503,7 @@ $DB::single=1;
                 pass => $update_request->{pass}
             });
         my @primer_bands = $well->well_primer_bands;
-        $message = 'Well ' . $well->id . ' primer band ' 
+        $message = 'Well ' . $well->id . ' primer band '
                     . $update_request->{primer_band_type_id}
                     . ' updated to '
                     . $update_request->{pass};
@@ -769,10 +768,10 @@ sub pspec_create_well_targeting_pass {
 # so we use the same methods but add a flag to indicate which type of targeting pass we are setting
 sub create_well_targeting_puro_pass {
     my ( $self, $params ) = @_;
-    
+
     $params->{minus_puro} = 1;
-    
-    return $self->create_well_targeting_pass( $params );	
+
+    return $self->create_well_targeting_pass( $params );
 }
 
 sub create_well_targeting_pass {
@@ -782,7 +781,7 @@ sub create_well_targeting_pass {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
-    
+
     if ( my $targeting_pass = $well->$targ_pass_type ) {
          $self->throw( Validation => "Well $well already has a $targ_pass_type value of "
                     . $targeting_pass->result );
@@ -800,9 +799,9 @@ sub create_well_targeting_pass {
 
 sub update_or_create_well_targeting_puro_pass {
 	my ( $self, $params ) = @_;
-	
+
 	$params->{minus_puro} = 1;
-	
+
 	return $self->update_or_create_well_targeting_pass( $params );
 }
 
@@ -1070,7 +1069,6 @@ sub update_or_create_well_genotyping_result {
        }
        else {
             # The assay parameter to update is not a 'call', so no ranking needs to be applied
-$DB::single=1;            
             my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
             my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
             my $previous = $genotyping_result->$assay_field;
@@ -1079,7 +1077,7 @@ $DB::single=1;
                 . ' updated from ' . $previous . ' to ' . $genotyping_result->$assay_field;
                 print "\n" . $message . "\n";
        }
-    } 
+    }
     else {
         $genotyping_result = $well->create_related(
         well_genotyping_results => {
