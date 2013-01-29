@@ -4453,7 +4453,7 @@ INSERT INTO genotyping_primers VALUES (116729, 'GR4', 96830, 'GACGTGGCAGCTGAGACC
 --
 -- Data for Name: genotyping_result_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
-
+INSERT INTO genotyping_result_types VALUES ('loadel');
 INSERT INTO genotyping_result_types VALUES ('loacrit');
 INSERT INTO genotyping_result_types VALUES ('loatam');
 INSERT INTO genotyping_result_types VALUES ('loxp');
@@ -10181,6 +10181,7 @@ INSERT INTO well_dna_status VALUES (1516, true, '', '2012-06-25 00:00:00', 985);
 --
 -- Data for Name: well_genotyping_results; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
+INSERT INTO well_genotyping_results VALUES (1621, 'lacz', 'passb', 1.21, 0.05, '>0.98', '2013-01-28 00:00:00', 953);
 
 
 
@@ -10188,7 +10189,7 @@ INSERT INTO well_dna_status VALUES (1516, true, '', '2012-06-25 00:00:00', 985);
 -- Data for Name: well_primer_bands; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-
+INSERT INTO well_primer_bands VALUES (1621, 'gf3', 'true', '2013-01-28 00:00:00', 953);
 
 --
 -- Data for Name: well_qc_sequencing_result; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
