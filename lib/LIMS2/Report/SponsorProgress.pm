@@ -122,12 +122,9 @@ sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
 
-    # my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
-
     my $project_rs = $self->model->schema->resultset('Project')->search( {} );
 
     while ( my $project = $project_rs->next ) {
-        #$self->_find_project_wells( $project, $arf, \%sponsor_data );
         $self->_find_project_wells_2( $project, \%sponsor_data );
     }
 
@@ -152,6 +149,22 @@ sub _find_project_wells_2 {
     }
 
     return;
+}
+
+sub design_types_for {
+    my ( $self, $mutation_type ) = @_;
+
+    if ( $mutation_type eq 'ko_first' ) {
+        return [ 'conditional', 'artificial-intron', 'intron-replacement' ];
+    }
+    if ( $mutation_type eq 'deletion' or $mutation_type eq 'insertion' ){
+        return [ $mutation_type ];
+    }
+    if ( $mutation_type eq 'cre_knock_in'){
+        return [ 'conditional', 'artificial-intron', 'intron-replacement', 'deletion', 'insertion', 'cre-bac' ];
+    }
+
+    $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );
 }
 
 sub genes{
@@ -182,12 +195,20 @@ sub vectors{
     my $project_allele = $project->project_alleles->find({ allele_type => $allele });
     my $function = $project_allele->cassette_function;
       
-    # Find all final vectors matching project gene_id and satisfying
+    # Find all final vectors matching project gene_id, mutation type and satisfying
     # the cassette function for this allele
     my @matching_rows;
     my $gene = $project->project_information->gene_id;
-    
-    my $summary_rs = $self->model->schema->resultset('Summary')->search({design_gene_id => $gene});
+    my $design_types = $self->design_types_for($project_allele->mutation_type);
+        
+    # FIXME: should be filtering on species too
+    my $where = { 
+    	design_gene_id => $gene, 
+    	final_well_id => { '!=', undef }, 
+    	design_type => {-in => $design_types },
+    };
+    my $summary_rs = $self->model->schema->resultset('Summary')->search($where);
+
     while (my $summary = $summary_rs->next){
     	push @matching_rows, $summary if $summary->satisfies_cassette_function($function);
     }
@@ -226,7 +247,9 @@ sub dna{
 	}
 	
 	return undef unless $allele;
-	
+
+    DEBUG "finding $allele allele DNA";
+    	
 	$vector_category ||= $allele.'_vectors';
 		
 	# Find any DNA wells created from vector wells which have dna_status_pass
@@ -279,6 +302,8 @@ sub ep{
 		}
 	}
 	
+	DEBUG "finding $allele allele electroporations";
+	    
 	# Find EP/SEP wells created from vector wells
 	my @matching_rows;
     foreach my $summary (@{ $wells->{$vector_category} || [] }){
@@ -330,6 +355,8 @@ sub clones{
 		}
 	}
 	
+    DEBUG "finding $allele allele clones";
+	    
 	# Find EP_PICK/SEP_PICK wells created from EP/SEP wells	
 	# which have is_accepted flag
 	foreach my $summary (@{ $wells->{$ep_category} || [] }){
@@ -361,6 +388,7 @@ sub _find_project_wells {
     my ( $self, $project, $arf, $sponsor_data ) = @_;
 
     my $sponsor = $project->sponsor_id;
+
     my $ar = $arf->allele_request( decode_json( $project->allele_request ) );
 
     while ( my( $name, $catagory ) = each %REPORT_CATAGORIES ) {
