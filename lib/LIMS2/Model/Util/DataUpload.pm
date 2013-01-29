@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.043';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.044';
 }
 ## use critic
 
@@ -113,7 +113,7 @@ sub _clean_csv_data {
 
     for my $datum ( @{ $data } ) {
         #delete keys from each hash where we have no value
-        my @empty_keys = grep{ !$datum->{$_} } keys %{ $datum };
+        my @empty_keys = grep{ not defined $datum->{$_} } keys %{ $datum };
         delete @{ $datum }{ @empty_keys };
 
         # delete rows with only well_name as value - may be the case if using template files with

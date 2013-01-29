@@ -1,23 +1,33 @@
 <script type="text/javascript" charset="utf-8">
-        Ext.onReady(function(){
-
+        Ext.onReady( function() {
+            var types = Ext.data.Types;
             Ext.define('GenotypingQC', {
                 extend: 'Ext.data.Model',
                 fields: [
                     {name: 'id', type: 'integer' },
                     {name: 'plate_name', type: 'string'},
                     {name: 'well', type: 'string'},
+                    {name: 'gene_name', type: 'string'},
+                    {name: 'gene_id', type: 'string'},
+                    {name: 'design_id', type: 'string'},
                     {name: 'chromosome_fail', type: 'string'},
                     {name: 'targeting_pass', type: 'string'},
+                    {name: 'targeting_puro_pass', type: 'string'},
+                    {name: 'tr_pcr', type: 'string'},
+                    {name: 'gr3', type: 'string'},
+                    {name: 'gr4', type: 'string'},
+                    {name: 'gf3', type: 'string'},
+                    {name: 'gf4', type: 'string'},
+//                    {name: 'TRPCR_seq', type: 'string'},
                   [% FOR assay IN assay_types %]
                     [% FOR name IN value_names %]
-                       { name: '[% assay _ name.field %]', type: 'string' },
+                       { name: '[% assay _ '#' _ name.field %]', type: 'string' },
                     [% END %]
-                  [% END %]     
-                ],
+                  [% END %]
+                ]
             });
-            
-            var store = new Ext.data.Store({
+
+            var store = Ext.create('Ext.data.Store', {
                 model: 'GenotypingQC',
                 autoLoad: true,
                 autoSync: true,
@@ -42,34 +52,133 @@
                     }
                 }
             });
-            
+
+            var call_types_chromosome_fail = Ext.create('Ext.data.Store', {
+                fields: ['call_label'],
+                data: [
+                {"call_label":"0"},
+                {"call_label":"1"},
+                {"call_label":"2"},
+                {"call_label":"3"},
+                {"call_label":"4"},
+                {"call_label":"Y"},
+                ]
+            });
+
+            var call_types_targeting = Ext.create('Ext.data.Store', {
+                fields: ['call_label'],
+                data: [
+                {"call_label":"pass"},
+                {"call_label":"passb"},
+                {"call_label":"fail"},
+                {"call_label":"fa"},
+                {"call_label":"potential"},
+                {"call_label":"present"},
+                {"call_label":"na"}
+                ]
+            });
+
+            var call_types_targeting_combo = Ext.create('Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: call_types_targeting,
+                displayField: 'call_label',
+                forceSelection: true
+            });
+
+            var call_types_chromosome_fail_combo = Ext.create('Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: call_types_chromosome_fail,
+                displayField: 'call_label',
+                forceSelection: true
+            });
+
+            var pcr_select_values = Ext.create('Ext.data.Store', {
+                fields: ['pcr_sel'],
+                data: [
+                {"pcr_sel":"true"},
+                {"pcr_sel":"false"},
+                {"pcr_sel":"-"}
+                ]
+            });
+
+            var pcr_combo = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: pcr_select_values,
+                displayField: 'pcr_sel',
+                forceSelection: true
+
+            });
+
             var columns = [
-                {header: "Plate", dataIndex: 'plate_name', hidden: true},
-                {header: "Well", dataIndex: 'well'},
-                {header: "Chromosome Fail", dataIndex: 'chromosome_fail'},
-                {header: "Targeting Pass", dataIndex: 'targeting_pass', field: { xtype: 'textfield'}},
+                {header: "Well", dataIndex: 'well', locked: true},
+                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
+                {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true },
+                {header: "Design<br>ID", dataIndex: 'design_id', locked: true },
+                {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
+                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
+                {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
+                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo },
+                {header: "LRPCR bands", columns: [
+                    {header: "gr3", dataIndex: 'gr3', editor: pcr_combo },
+                    {header: "gr4", dataIndex: 'gr4', editor: pcr_combo },
+                    {header: "gf3", dataIndex: 'gf3', editor: pcr_combo },
+                    {header: "gf4", dataIndex: 'gf4', editor: pcr_combo }
+                ]},
+//                {header: "TRPCR<br>Seq", editor: { xtype: 'textfield' }},
                 [% FOR assay IN assay_types %]
                   {header: "[% assay %]", columns: [
                     [% FOR name IN value_names %]
-                      {header: "[% name.title %]", dataIndex: "[% assay _ name.field %]", hideable: true}, 
+                        [% IF name.title == "Call" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                            editor: call_types_targeting_combo, hideable: true},
+                        [% ELSIF name.title == "Copy Number" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                            editor: { xtype: 'numberfield' }, hidden: true},
+                        [% ELSIF name.title == "Range" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                            editor: { xtype: 'numberfield' }, hidden: true},
+                        [% ELSIF name.title == "Confidence" %]
+                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                            editor: { xtype: 'textfield' }, hidden: true},
+                        [% END %]
                     [% END %]
                   ]},
                 [% END %]
             ];
-            
-            var grid = new Ext.grid.Panel({
-                height: 500,
+
+            var grid = Ext.create('Ext.grid.Panel', {
+                height: 750,
                 width: 1200,
                 store: store,
+                columnLines: true,
                 columns: columns,
                 title: "[% plate_name %] QC Results",
+                invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
-                selType: 'rowmodel',
+                viewConfig: {
+                    stripeRows: true
+                },
+                selType: 'cellmodel',
                 simpleSelect: true,
                 plugins: [
-                    Ext.create('Ext.grid.plugin.RowEditing', { clicksToEdit: 1 })
+                    Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 1 })
                 ]
-            });                  
-});
-                   
+            });
+
+//                var gridHeight = Ext.getBody().getViewSize().height ;
+//                var gridWidth = Ext.getBody().getViewSize().width;
+//                grid.setSize(gridWidth, gridHeight);
+
+        // This code does resize, but because of the header and footer CSS
+        // it is a bit confusing with two sets of scrollbars,
+        // one for the widget and one for the web browser.
+
+//        Ext.EventManager.onWindowResize(function () {
+//
+//               var gridHeight = Ext.getBody().getViewSize().height ;
+//                var gridWidth = Ext.getBody().getViewSize().width;
+//                grid.setSize(gridWidth, gridHeight);
+//            });
+    });
+
 </script>

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.043';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.044';
 }
 ## use critic
 
@@ -73,19 +73,37 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
     return;
 }
 
+sub show_genotyping_qc_data :Path('/user/show_genotyping_qc_data') :Args(0){
+	my ($self, $c) = @_;
+
+    $c->stash->{plate_name} = $c->request->params->{plate_name};
+
+    return;
+}
+
 sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
     my ( $self, $c ) = @_;
 
     my $plate_name = $c->request->params->{plate_name};
     unless ( $plate_name ) {
-        $c->stash->{error_msg} = 'You must specify a plate name';
-        return;
+        $c->flash->{error_msg} = 'You must specify a plate name';
+        return $c->res->redirect('/user/show_genotyping_qc_data');
     }
+
     $c->stash->{plate_name} = $plate_name;
 
     my $model = $c->model('Golgi');
+    my $plate;
 
-    my $plate = $model->retrieve_plate({ name => $plate_name});
+    try{
+    	$plate = $model->retrieve_plate({ name => $plate_name });
+    }
+    catch{
+        $c->flash->{error_msg} = "Plate $plate_name not found";
+        return $c->res->redirect('/user/show_genotyping_qc_data');
+    };
+
+    return unless $plate;
 
     my @value_names = (
         { title => 'Call', field=>'call'},
@@ -181,6 +199,42 @@ sub upload_well_colony_picks_file_data  : Path( '/user/upload_well_colony_counts
     };
 
     $c->res->redirect( $c->uri_for('/user/update_colony_picks_step_1') );
+    return;
+}
+
+sub upload_genotyping_qc : Path( '/user/upload_genotyping_qc') : Args(0){
+	my ($self, $c) = @_;
+
+    my @assay_types = sort map { $_->id } $c->model('Golgi')->schema->resultset('GenotypingResultType')->all;
+    $c->stash->{assays} = \@assay_types;
+
+	unless ($c->request->params->{submit_genotyping_qc}){
+		return;
+	}
+
+    my $genotyping_data = $c->request->upload('datafile');
+    unless ( $genotyping_data ) {
+        $c->stash->{error_msg} = 'No csv file with genotyping QC data specified';
+        return;
+    }
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $msg = $c->model('Golgi')->update_genotyping_qc_data({
+                    csv_fh => $genotyping_data->fh,
+                    created_by => $c->user->name,
+                });
+                $c->stash->{success_msg} = "Uploaded genotpying QC results<br>"
+                    . join("<br>", @{ $msg  });
+            }
+            catch {
+                $c->stash->{error_msg} = "Error encountered while uploading genotyping QC results: $_";
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
     return;
 }
 

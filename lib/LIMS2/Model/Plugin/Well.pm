@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.043';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.044';
 }
 ## use critic
 
@@ -20,7 +20,6 @@ use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_
 use LIMS2::Model::Util::RankQCResults qw( rank );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use Try::Tiny;
-
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -459,6 +458,76 @@ sub retrieve_well_primer_bands {
     return \@primer_bands;
 }
 
+sub delete_well_primer_band {
+    my ( $self, $params ) = @_;
+
+    my $pspec = $self->pspec_create_well_primer_bands;
+    delete $pspec->{'pass'};
+
+    my $validated_params = $self->check_params( $params, $pspec );
+    my $well = $self->retrieve_well( $validated_params );
+    my $requested_row = {
+        well_id => $well->id,
+        primer_band_type_id => $validated_params->{primer_band_type_id},
+    };
+    my $primer_band_tag = $self->schema->resultset('WellPrimerBand')->find( $requested_row );
+    my $result;
+    if ( $primer_band_tag ) {
+        $result = $primer_band_tag->delete;
+    }
+    else {
+        $self->log->debug( $requested_row->{well_id} . ':' . $requested_row->{primer_band_type_id}
+            . ' does not exist' );
+    }
+    $self->log->debug( 'Well primer band '
+        . $validated_params->{primer_band_type_id}
+        . ' result deleted for well '
+        . $well->id
+    );
+
+    return $result;
+}
+
+
+sub update_or_create_well_primer_bands {
+    my ( $self, $params ) = @_;
+    my $message;
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_primer_bands );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $requested_row = {
+        well_id => $well->id,
+        primer_band_type_id => $validated_params->{primer_band_type_id},
+    };
+    my $primer_band_tag = $self->schema->resultset('WellPrimerBand')->find( $requested_row );
+    my $primer_band;
+    if ( $primer_band_tag ) {
+        my $update_request = {slice_def $validated_params, qw( primer_band_type_id pass ) };
+        $primer_band_tag->update({
+                primer_band_type_id => $update_request->{primer_band_type_id},
+                pass => $update_request->{pass}
+            });
+        my @primer_bands = $well->well_primer_bands;
+        $message = 'Well ' . $well->id . ' primer band '
+                    . $update_request->{primer_band_type_id}
+                    . ' updated to '
+                    . $update_request->{pass};
+        $primer_band = \@primer_bands;
+    }
+    else {
+        $primer_band = $well->create_related(
+            well_primer_bands => { slice_def $validated_params, qw( primer_band_type_id pass created_by_id created_at ) }
+        );
+        $message = 'Well ' . $well->id . ' primer band '
+                    . $primer_band->primer_band_type_id
+                    . ' did not exist and has been created with pass value of '
+                    . $primer_band->pass;
+    }
+    $self->log->debug( $message );
+    return wantarray ? ($primer_band, $message) : $primer_band;
+}
+
 sub pspec_create_well_colony_picks {
     return {
         well_id     => { validate => 'integer', optional => 1, rename => 'id' },
@@ -694,25 +763,38 @@ sub pspec_create_well_targeting_pass {
         plate_name  => { validate => 'existing_plate_name', optional => 1 },
         well_name   => { validate => 'well_name', optional => 1 },
         result      => { validate => 'genotyping_result_text' },
+        overwrite   => { validate => 'boolean', optional => 1, default => 0 },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        minus_puro  => { validate => 'boolean', optional => 0, default => 0 },
     }
+}
+
+# Inputs and login for updating/creating targeting_pass and targeting_puro_pass are identical
+# so we use the same methods but add a flag to indicate which type of targeting pass we are setting
+sub create_well_targeting_puro_pass {
+    my ( $self, $params ) = @_;
+
+    $params->{minus_puro} = 1;
+
+    return $self->create_well_targeting_pass( $params );
 }
 
 sub create_well_targeting_pass {
     my ( $self, $params ) = @_;
-
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
-    if ( my $targeting_pass = $well->well_targeting_pass ) {
-         $self->throw( Validation => "Well $well already has a targeting pass value of "
+    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+
+    if ( my $targeting_pass = $well->$targ_pass_type ) {
+         $self->throw( Validation => "Well $well already has a $targ_pass_type value of "
                     . $targeting_pass->result );
     }
 
     my $targeting_pass = $well->create_related(
-        well_targeting_pass => {
+        $targ_pass_type => {
             slice_def $validated_params,
             qw( result created_by_id created_at )
         }
@@ -721,31 +803,57 @@ sub create_well_targeting_pass {
     return $targeting_pass;
 }
 
+sub update_or_create_well_targeting_puro_pass {
+	my ( $self, $params ) = @_;
+
+	$params->{minus_puro} = 1;
+
+	return $self->update_or_create_well_targeting_pass( $params );
+}
 
 sub update_or_create_well_targeting_pass {
     my ( $self, $params ) = @_;
-
+    my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
+    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+
     my $targeting_pass;
-    # Check whether there is a well to update, otherwise create it
+
     my $well = $self->retrieve_well( { slice_def $validated_params,  qw( id plate_name well_name ) });
-    if ( $targeting_pass = $well->well_targeting_pass ) {
-       # instead of throwing an error, check the rank and update if appropriate
+    if ( $targeting_pass = $well->$targ_pass_type ) {
+       # Update the result if new result is "better" or if overwrite flag is set to true
        my $update_request = {slice_def $validated_params, qw( result )};
-       if ( rank( $update_request->{result} ) > rank( $targeting_pass ) ) {
+       my $previous = $targeting_pass->result;
+       if ( $validated_params->{overwrite} or rank( $update_request->{result} ) > rank( $previous) ) {
            $targeting_pass->update( { result => $update_request->{result} });
+           $message = "$targ_pass_type updated from $previous to ".$targeting_pass->result;
+       }
+       else{
+       	   $message = "Will not update $targ_pass_type result $previous with result ".$update_request->{result};
+           $self->log->debug($message);
        }
     }
     else {
         $targeting_pass = $well->create_related(
-        well_targeting_pass => {
+        $targ_pass_type => {
             slice_def $validated_params,
             qw( result created_by_id created_at )
-        }
-    );
-
+        });
+        $message = "$targ_pass_type created with result ".$targeting_pass->result;
     }
+
+    return wantarray ? ($targeting_pass, $message) : $targeting_pass ;
+}
+
+sub retrieve_well_targeting_puro_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $targeting_pass = $well->well_targeting_puro_pass
+        or $self->throw( NotFound => { entity_class => 'WellTargetingPuroPass', search_params => $params } );
 
     return $targeting_pass;
 }
@@ -760,6 +868,18 @@ sub retrieve_well_targeting_pass {
         or $self->throw( NotFound => { entity_class => 'WellTargetingPass', search_params => $params } );
 
     return $targeting_pass;
+}
+
+sub delete_well_targeting_puro_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $targeting_pass = $self->retrieve_well_targeting_puro_pass( $params );
+
+    $targeting_pass->delete;
+    $self->log->debug( 'Well targeting-puro_pass result deleted for well  ' . $targeting_pass->well_id );
+
+    return;
 }
 
 sub delete_well_targeting_pass {
@@ -811,6 +931,7 @@ sub create_well_chromosome_fail {
 sub update_or_create_well_chromosome_fail {
     my ( $self, $params ) = @_;
 
+    my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_chromosome_fail );
 
     my $chromosome_fail;
@@ -819,7 +940,9 @@ sub update_or_create_well_chromosome_fail {
 
     if ( $chromosome_fail = $well->well_chromosome_fail ) {
         my $update_request = {slice_def $validated_params, qw( result )};
+        my $previous = $chromosome_fail->result;
         $chromosome_fail->update( { result => $update_request->{result} } );
+        $message = "Chromosome fail updated from $previous to ".$chromosome_fail->result;
     }
     else {
         $chromosome_fail = $well->create_related(
@@ -828,9 +951,10 @@ sub update_or_create_well_chromosome_fail {
             qw( result created_by_id created_at )
         }
         );
+        $message = "Chromosome fail created with result ".$chromosome_fail->result;
     }
 
-    return $chromosome_fail;
+    return wantarray ? ($chromosome_fail, $message) : $chromosome_fail ;
 }
 
 sub retrieve_well_chromosome_fail {
@@ -859,7 +983,7 @@ sub delete_well_chromosome_fail {
 
 # Genotyping assay specific results
 
-sub pspec_well_genotyping_result {
+sub pspec_create_well_genotyping_result {
     return {
         well_id     => { validate => 'integer', optional => 1, rename => 'id' },
         plate_name  => { validate => 'existing_plate_name', optional => 1 },
@@ -871,6 +995,7 @@ sub pspec_well_genotyping_result {
         copy_number_range =>
                        { validate => 'copy_float', optional => 1 },
         confidence  => { validate => 'confidence_float', optional => 1 },
+        overwrite   => { validate => 'boolean', optional => 1, default => 0 },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
@@ -879,83 +1004,133 @@ sub pspec_well_genotyping_result {
 sub create_well_genotyping_result {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_genotyping_result );
 
-    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    my $well_params = { slice_def $validated_params, qw( id plate_name well_name ) };
 
-    if ( my $genotyping_result = $self->retrieve_well_genotyping_result( $params )) {
-        print "\n well: $well \n";
+    my $well = $self->retrieve_well( $well_params )
+        or $self->throw( NotFound => { entity_class => 'Well', search_params => $well_params } );
+
+    my $genotyping_result = $self->retrieve_well_genotyping_result({
+    	                               well_id => $well->id,
+    	                               genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
+                                   });
+
+    if ($genotyping_result) {
          $self->throw( Validation => "Well $well already has a genotyping_results value of "
                     . $genotyping_result->call );
     }
-
-    my $genotyping_result = $well->create_related(
+    else{
+    	$genotyping_result = $well->create_related(
         well_genotyping_results => {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
-        }
-    );
+        });
+    }
     return $genotyping_result;
 }
 
+sub update_or_create_well_genotyping_result {
+    my ( $self, $params ) = @_;
+    my $message;
+    my $pspec = $self->pspec_create_well_genotyping_result;
+    # The call is obligatory in the standard pspec, so set it to optional here
+    # because we can update a single value that is any value assicated with the assay,
+    # not just call.
+    $pspec->{call}{optional} = 1;
+    my $validated_params = $self->check_params( $params, $pspec );
 
-# sub update_or_create_well_genotyping_result {
-#     my ( $self, $params ) = @_;
-#
-#     my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result );
-#
-#     my $genotyping_result;
-#     # Check whether there is a well to update, otherwise create it
-#     my $well = $self->retrieve_well( { slice_def $validated_params,  qw( well_id plate_name well_name ) });
-#     if ( $genotyping_result = $well->genotyping_result ) {
-#        my $update_request = {slice_def $validated_params,
-#            qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
-#        if ( rank( $update_request->{call} ) > rank( $genotyping_result ) ) {
-#            $genotyping_result->update( {  $update_request} );
-#            # will that pass the correct parameters for updating?
-#            # or do we need a slice_def ?
-#        }
-#     }
-#     else {
-#         $genotyping_result = $well->create_related(
-#         well_genotyping_results => {
-#             slice_def $validated_params,
-#             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
-#         });
-#
-#     }
-#
-#     return $genotyping_result;
-# }
+    my $well_params = { slice_def $validated_params, qw( id plate_name well_name ) };
 
+    my $well = $self->retrieve_well( $well_params )
+        or $self->throw( NotFound => { entity_class => 'Well', search_params => $well_params } );
+
+    my $genotyping_result = $self->retrieve_well_genotyping_result({
+    	                               well_id => $well->id,
+    	                               genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
+                                   });
+
+    if ( $genotyping_result ) {
+       my $update_request = {slice_def $validated_params,
+           qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
+       if ( $update_request->{call} ) {
+           # Update the result if new result is "better" or if overwrite flag is set to true
+           my $previous = $genotyping_result->call;
+           if ( $validated_params->{overwrite} or rank( $update_request->{call} ) > rank( $previous ) ) {
+               if ($update_request->{call} eq "na" or $update_request->{call} eq "fa"){
+                   # Make sure we overwrite any existing values with nulls
+                   $update_request->{copy_number} = undef;
+                   $update_request->{copy_number_range} = undef;
+                   $update_request->{confidence} = undef;
+               }
+               $genotyping_result->update( $update_request );
+               $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
+                         ." updated from ".$previous." to ".$genotyping_result->call;
+           }
+           else {
+               $message = "Will not update ".$validated_params->{genotyping_result_type_id}
+                         ." result ".$previous." with result ".$update_request->{call};
+               $self->log->debug($message);
+           }
+       }
+       else {
+            # The assay parameter to update is not a 'call', so no ranking needs to be applied
+            my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
+            my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
+            my $previous = $genotyping_result->$assay_field;
+            $genotyping_result->update( $update_request );
+            $message = 'Genotyping result for ' . $validated_params->{genotyping_result_type_id} . '/' . $assay_field
+                . ' updated from ' . $previous . ' to ' . $genotyping_result->$assay_field;
+                print "\n" . $message . "\n";
+       }
+    }
+    else {
+        $genotyping_result = $well->create_related(
+        well_genotyping_results => {
+            slice_def $validated_params,
+            qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
+        });
+        $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
+                  ." created with result ".$genotyping_result->call;
+    }
+    return wantarray ? ($genotyping_result, $message) : $genotyping_result;
+}
+
+sub pspec_retrieve_well_genotyping_result {
+    return {
+        well_id     => { validate => 'integer', optional => 1, rename => 'id' },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
+        genotyping_result_type_id =>
+                       { validate => 'existing_genotyping_result_type' },
+    }
+}
 sub retrieve_well_genotyping_result {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_well_genotyping_result);
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_genotyping_result);
 
     my $well = $self->retrieve_well({ slice_def $validated_params, qw( plate_name well_name id ) });
     my $requested_row = {
         well_id => $well->id,
         genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
     };
-    my $genotyping_result = $self->schema->resultset('WellGenotypingResult')->find( $requested_row )
-        or $self->throw({ NotFound => { entity_class => 'WellGenotypingResult',
-                                        search_params => $requested_row } } );
+    my $genotyping_result = $self->schema->resultset('WellGenotypingResult')->find( $requested_row );
 
     return $genotyping_result;
 }
 
-# sub delete_well_genotyping_result {
-#     my ( $self, $params ) = @_;
-#
-#     # retrieve_well() will validate the parameters
-#     my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
-#
-#     $genotyping_result->delete;
-#     $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
-#
-#     return;
-# }
+sub delete_well_genotyping_result {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
+
+    $genotyping_result->delete;
+    $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
+
+    return;
+}
 
 1;
 
