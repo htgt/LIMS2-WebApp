@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.044     2013-01-29 11:56:37 Europe/London
+
+    Added genotyping QC csv upload, grid view and update support
+
 0.043     2013-01-24 11:39:04 Europe/London
 
     Added a sequence onto the id column in the designs table.
