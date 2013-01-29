@@ -636,11 +636,11 @@ sub all_genotyping_qc_data{
     $datum->{design_id} = $design->id;
 
 	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
-		                                                    : undef;
+		                                                    : '-';
 	$datum->{targeting_pass} = $self->well_targeting_pass ? $self->well_targeting_pass->result
-		                                                  : undef;
+		                                                  : '-';
 	$datum->{targeting_puro_pass} = $self->well_targeting_puro_pass ? $self->well_targeting_puro_pass->result
-		                                                  : undef;
+		                                                  : '-';
 # default is undef ('-') for primer bands. This will be overwritten by the value in the database
 # if there is one.
 

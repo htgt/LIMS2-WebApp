@@ -15,7 +15,6 @@ DELETE FROM processes;
 DELETE FROM process_types;
 DELETE FROM genotyping_primers;
 DELETE FROM genotyping_primer_types;
-DELETE FROM genotyping_result_types;
 DELETE FROM design_comments;
 DELETE FROM design_comment_categories;
 DELETE FROM design_oligo_loci;

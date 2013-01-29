@@ -248,7 +248,6 @@ note( "Testing well creation" );
                plate_name => 'MOHFAQ0001_A_2',
                well_name => 'D04',
                primer_band_type => 'gf3',
-               pass => 1,
                created_by => 'test_user@example.org',
             }), 'can delete well primer band';
 

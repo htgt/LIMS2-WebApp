@@ -368,6 +368,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
          $sth->execute( $plate_name );
          $sth->fetchall_arrayref({
              'Well ID' => 1,
+             'plate' => 1,
              'well' => 1,
              'Chr fail' => 1,
              'Tgt pass' => 1,
@@ -387,11 +388,13 @@ my $saved_id = -1;
 my $datum;
 my $gene_cache;
 
+$self->log->debug ('SQL query brought back ' . @{$sql_result} . ' rows.' );
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
         push @all_data, $datum if $datum;
         $datum = undef;
         $datum->{id} = $row->{'Well ID'};
+        $datum->{plate_name} = $row->{'plate'};
         $datum->{well} = $row->{'well'};
         $datum->{chromosome_fail} = $row->{'Chr fail'} // '-';
         $datum->{targeting_pass} = $row->{'Tgt pass'} // '-';

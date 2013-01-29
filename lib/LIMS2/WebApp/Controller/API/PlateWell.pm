@@ -262,7 +262,6 @@ sub well_genotyping_qc_list_GET {
 #		push @well_data, $datum;
 #        last if !$debug_limit--;
 #    }
-
     return $self->status_ok( $c, entity => \@well_data );
 }
 
