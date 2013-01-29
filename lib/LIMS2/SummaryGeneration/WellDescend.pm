@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 
-package WellDescend;
+package LIMS2::SummaryGeneration::WellDescend;
 
+use strict;
 use List::MoreUtils qw(uniq);
 
 # Insert query for summaries table
@@ -132,7 +133,7 @@ sub well_descendants {
     my $well_inserts_succeeded = 0;
     my $well_inserts_failed = 0;	
 	
-    print "Well ID processing=$DESIGN_WELL_ID\n";
+    #print "Well ID processing=$DESIGN_WELL_ID\n";
     
     $MODEL = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );		# for lims2_live_as28 running on local
     $DESIGN_WELL = $MODEL->retrieve_well( { id => $DESIGN_WELL_ID } );
@@ -158,7 +159,7 @@ sub well_descendants {
         my %done = ();			# hash keeping track of done plate types
         
         # Loop through the wells in the trail
-        foreach $CURR_WELL (reverse @{$CURR_TRAIL}){
+        foreach my $CURR_WELL (reverse @{$CURR_TRAIL}){
 			
 			my $curr_plate_type_id = $CURR_WELL->plate->type->id;
 			
@@ -184,7 +185,7 @@ sub well_descendants {
 						}						
 						
 						# Common elements
-                        unshift @output, $CURR_WELL->accepted;									# well accepted
+                        unshift @output, $CURR_WELL->is_accepted;								# well accepted (with override)
                         unshift @output, $CURR_WELL->assay_complete;							# assay complete timestamp
                         
                         if($curr_plate_type_id eq 'DESIGN'){
@@ -327,9 +328,9 @@ sub well_descendants {
 		$logmsg=$logmsg."\n";
 		
         # write output to csv log file
-        open OUTFILE, ">>$CSV_FILEPATH" or die "cannot open output file $CSV_FILEPATH for append: $!";
-		print OUTFILE $logmsg;
-		close OUTFILE;
+        open my $OUTFILE, '>>', $CSV_FILEPATH or die "Error: Summary data generation - cannot open output file $CSV_FILEPATH for append: $!";
+		print $OUTFILE $logmsg;
+		close $OUTFILE;
 		
 		$logmsg = undef;
 		
@@ -455,7 +456,9 @@ sub fetch_well_gene_symbols_and_ids {
 			} else {
 				$gene_symbols_string=$gene_symbols_string.$gene_symbol."_";
 			}
-		}
+		}		
+		@gene_symbols = undef;
+		
 	};
 	if ($@){
 		# catch failure to identify symbols
@@ -472,7 +475,6 @@ sub fetch_well_gene_symbols_and_ids {
 	
 	$well = undef;
 	@gene_ids = undef;
-	@gene_symbols = undef;
 	
 	#my @return_array = ( $gene_symbols_string, $gene_ids_string );
 	#return @return_array;

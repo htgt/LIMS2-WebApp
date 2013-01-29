@@ -4,10 +4,9 @@ use strict;
 use warnings FATAL => 'all';
 use LIMS2::Model;
 use Smart::Comments;
-use WellDescend;
+use LIMS2::SummaryGeneration::WellDescend;
 
 my $SINGLE_WELL = 0;
-
 my $WELL_INSERTS_SUCCEEDED = 0;
 my $WELL_INSERTS_FAILED = 0;
 my $DESIGN_WELL;
@@ -87,9 +86,9 @@ $logmsg = $logmsg."fp_plate_name,fp_plate_id,fp_well_name,fp_well_id,fp_well_cre
 $logmsg = $logmsg."sfp_plate_name,sfp_plate_id,sfp_well_name,sfp_well_id,sfp_well_created_ts,sfp_well_assay_complete,sfp_well_accepted,";
 # Total fields = 94
 $logmsg = $logmsg."\n";
-open OUTFILE, ">>$CSV_FILEPATH" or die "cannot open output file $CSV_FILEPATH for append: $!";
-print OUTFILE $logmsg;
-close OUTFILE;
+open my $OUTFILE, '>>', $CSV_FILEPATH or die "Error: Summary data generation - Cannot open output file $CSV_FILEPATH for append: $!";
+print $OUTFILE $logmsg;
+close $OUTFILE;
 
 
 # connect to database
@@ -97,8 +96,10 @@ close OUTFILE;
 my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );		# for lims2_live_as28 running on local
 
 if($SINGLE_WELL) {
+	print "Well ID processing=$DESIGN_WELL_ID\n";
+	
 	# Call method on well
-	my ($inserts, $fails) = WellDescend::well_descendants($DESIGN_WELL_ID, $CSV_FILEPATH);
+	my ($inserts, $fails) = LIMS2::SummaryGeneration::WellDescend::well_descendants($DESIGN_WELL_ID, $CSV_FILEPATH);
 	$WELL_INSERTS_SUCCEEDED += $inserts;
 	$WELL_INSERTS_FAILED += $fails;
 	
@@ -118,13 +119,10 @@ if($SINGLE_WELL) {
 	my @design_well_ids;
 	my $wells_count = 0;
 	
-	while ( $DESIGN_WELL = $wells_rs->next ) {
-		
+	while ( $DESIGN_WELL = $wells_rs->next ) {		
 		# transfer each of the well ids into the main well ids array
-		#my $design_well_id = $DESIGN_WELL->id;
 		push @design_well_ids, $DESIGN_WELL->id;
 		$wells_count++;
-		
 	}
 	
 	$wells_rs = undef;			# free up memory
@@ -137,27 +135,17 @@ if($SINGLE_WELL) {
 		
 	while ( $design_well_ids[$wells_index] ) {
 		
-		#print "well index at START = $wells_index\n";
-		
 		$DESIGN_WELL_ID = $design_well_ids[$wells_index];
 		
-		#print "Well number ".($wells_index+1)." of $wells_count, ID=$DESIGN_WELL_ID, started...\n";
-
-		my ($inserts, $fails) = WellDescend::well_descendants($DESIGN_WELL_ID, $CSV_FILEPATH);
+		my ($inserts, $fails) = LIMS2::SummaryGeneration::WellDescend::well_descendants($DESIGN_WELL_ID, $CSV_FILEPATH);
 		$WELL_INSERTS_SUCCEEDED += $inserts;
 		$WELL_INSERTS_FAILED += $fails;
 		
 		$inserts = undef;
 		$fails = undef;
 	
-		#@DESIGN_WELL_TRAILS = undef;		# free memory
-		
-		#my $well_descendants_time=localtime;
-		#print "Well number ".($wells_index+1)." of $wells_count, ID=$DESIGN_WELL_ID, Time completed:$well_descendants_time\n";
 		print "Well number ".($wells_index+1)." of $wells_count, ID=$DESIGN_WELL_ID\n";
 		$wells_index++;
-		
-		#print "well index AFTER = $wells_index\n";
 	}
 }
 
