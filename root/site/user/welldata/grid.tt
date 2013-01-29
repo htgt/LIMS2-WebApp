@@ -153,6 +153,7 @@
                 columnLines: true,
                 columns: columns,
                 title: "[% plate_name %] QC Results",
+                invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
                 viewConfig: {
                     stripeRows: true
