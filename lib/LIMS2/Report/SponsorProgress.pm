@@ -173,14 +173,14 @@ sub genes{
     DEBUG "finding genes";
     
     # This just counts all projects that have associated gene IDs...
-    return $project->project_information->gene_id ? 1 : 0;
+    return $project->gene_id ? 1 : 0;
 }
 
 sub vectors{
 	my ($self, $project, $wells, $allele) = @_;
 	
 	my $category;
-	if ($project->project_information->targeting_type eq "single_targeted"){
+	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
 		$category = 'vectors';
 	}
@@ -198,7 +198,7 @@ sub vectors{
     # Find all final vectors matching project gene_id, mutation type and satisfying
     # the cassette function for this allele
     my @matching_rows;
-    my $gene = $project->project_information->gene_id;
+    my $gene = $project->gene_id;
     my $design_types = $self->design_types_for($project_allele->mutation_type);
         
     # FIXME: should be filtering on species too
@@ -223,7 +223,7 @@ sub first_vectors{
 	my ($self, $project, $wells) = @_;
 	
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";
+	    unless $project->targeting_type eq "double_targeted";
 	
 	return $self->vectors($project, $wells, 'first');
 }
@@ -232,7 +232,7 @@ sub second_vectors{
 	my ($self, $project, $wells) = @_;
 
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";
+	    unless $project->targeting_type eq "double_targeted";
 	    	
 	return $self->vectors($project, $wells, 'second');	
 }
@@ -241,7 +241,7 @@ sub dna{
 	my ($self, $project, $wells, $allele) = @_;
 	
 	my $vector_category;
-	if ($project->project_information->targeting_type eq "single_targeted"){
+	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
 		$vector_category = 'vectors';
 	}
@@ -264,7 +264,7 @@ sub first_dna{
 	my ($self, $project, $wells) = @_;
 
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";
+	    unless $project->targeting_type eq "double_targeted";
 	    	
 	return $self->dna($project, $wells, 'first');	
 }
@@ -273,7 +273,7 @@ sub second_dna{
 	my ($self, $project, $wells) = @_;
 
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";
+	    unless $project->targeting_type eq "double_targeted";
 	    	
 	return $self->dna($project, $wells, 'second');		
 }
@@ -282,7 +282,7 @@ sub ep{
 	my ($self, $project, $wells, $allele) = @_;
 	
 	my ($ep_well, $vector_category, $ep_category);
-	if ($project->project_information->targeting_type eq "single_targeted"){
+	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
 		$ep_well = 'ep_well_id';
 		$vector_category = 'vectors';
@@ -320,7 +320,7 @@ sub first_ep{
 	my ($self, $project, $wells) = @_;
 
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";
+	    unless $project->targeting_type eq "double_targeted";
 	    	
 	return $self->ep($project, $wells, 'first');	
 }
@@ -329,7 +329,7 @@ sub second_ep{
 	my ($self, $project, $wells) = @_;
 
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";
+	    unless $project->targeting_type eq "double_targeted";
 	    	
 	return $self->ep($project, $wells, 'second');	
 }
@@ -338,7 +338,7 @@ sub clones{
 	my ($self, $project, $wells, $allele) = @_;
 	
 	my ($clone_accepted, $ep_category);
-	if ($project->project_information->targeting_type eq "single_targeted"){
+	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
 		$clone_accepted = 'ep_pick_well_accepted';
 		$ep_category = 'ep';
@@ -370,7 +370,7 @@ sub first_clones{
 	my ($self, $project, $wells) = @_;
 	
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";	
+	    unless $project->targeting_type eq "double_targeted";	
 
 	return $self->clones($project, $wells, 'first');
 }
@@ -379,7 +379,7 @@ sub second_clones{
 	my ($self, $project, $wells) = @_;
 	
 	return undef 
-	    unless $project->project_information->targeting_type eq "double_targeted";
+	    unless $project->targeting_type eq "double_targeted";
 	    	
 	return $self->clones($project, $wells, 'second');
 }
