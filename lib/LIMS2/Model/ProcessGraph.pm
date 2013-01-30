@@ -62,7 +62,8 @@ around BUILDARGS => sub {
 has start_with => (
     is       => 'ro',
     isa      => 'LIMS2::Model::Schema::Result::Well',
-    required => 1
+    required => 1,
+    weak_ref => 1,
 );
 
 has type => (
