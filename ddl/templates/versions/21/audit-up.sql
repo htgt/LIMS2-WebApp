@@ -9,8 +9,8 @@ params text,
 expires timestamp without time zone,
 complete boolean
 );
-GRANT SELECT ON audit.cached_reports TO lims2_devel_ro;
-GRANT SELECT,INSERT ON audit.cached_reports TO lims2_devel_rw;
+GRANT SELECT ON audit.cached_reports TO [%ro_role %];
+GRANT SELECT,INSERT ON audit.cached_reports TO [% rw_role %];
 CREATE OR REPLACE FUNCTION public.process_cached_reports_audit()
 RETURNS TRIGGER AS $cached_reports_audit$
     BEGIN
