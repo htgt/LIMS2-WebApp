@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
 use Hash::Merge qw( merge );
-use List::MoreUtils qw (any);
+use List::MoreUtils qw (any uniq);
 use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 use LIMS2::Model::ProcessGraph;
@@ -91,6 +91,13 @@ sub delete_well {
         $self->throw( InvalidState => "Cannot delete a well that is an input to another process" );
     }
 
+    if ( my @qc_template_wells = $well->qc_template_wells){
+    	my @qc_templates = map { $_->qc_template->name } @qc_template_wells;
+    	$self->throw( InvalidState => "Cannot delete well ".$well->name." as it is used by QC templates: "
+    	                              .join ",", uniq @qc_templates
+    	                              .". Delete the QC template first" );
+    }
+    
     for my $p ( $well->output_processes ) {
         if ( $p->output_wells == 1 ) {
             $self->delete_process( { id => $p->id } );
