@@ -5,6 +5,8 @@ package LIMS2::SummaryGeneration::WellDescend;
 use strict;
 use List::MoreUtils qw(uniq);
 
+use Devel::Leak;		# TODO: remove before production
+
 # Insert query for summaries table
 my $SQL_INSERT_SUMMARY = <<'EOT';
 INSERT INTO public.summaries (
@@ -121,8 +123,7 @@ INSERT INTO public.summaries (
 EOT
 
 my $NUMBER_SUMMARIES_FIELDS = 97;			# number of fields in table
-my $MODEL;
-my $DESIGN_WELL;
+my $MODEL;									# model for DB links
 
 # Determine well decendants and write result string
 sub well_descendants {
@@ -131,37 +132,39 @@ sub well_descendants {
     my ( $DESIGN_WELL_ID, $CSV_FILEPATH) = @_;
     
     my $well_inserts_succeeded = 0;
-    my $well_inserts_failed = 0;	
-	
+    my $well_inserts_failed = 0;
+    
     #print "Well ID processing=$DESIGN_WELL_ID\n";
     
     $MODEL = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );		# for lims2_live_as28 running on local
-    $DESIGN_WELL = $MODEL->retrieve_well( { id => $DESIGN_WELL_ID } );
+    my $DESIGN_WELL = $MODEL->retrieve_well( { id => $DESIGN_WELL_ID } );
     
     # returned array contains well list and trails list     
     my @return_array = $DESIGN_WELL->descendants->depth_first_traversal_with_trails($DESIGN_WELL, [], [], [], 0);
     my ( $well_list, $all_trails ) = @return_array;			# return two array refs
     
-    # For each trail in all trails
+    # dereference trails array
     my @design_well_trails = @{$all_trails};
     
-    $DESIGN_WELL = {};										# free memory
-    
+    $DESIGN_WELL = undef;									# free memory
+    $well_list = undef;
+    	
     my $trails_index = 0;
     
     while ( $design_well_trails[$trails_index] ) {
 		
 		#print "Trails index=$trails_index\n";
 		
-		my $CURR_TRAIL = $design_well_trails[$trails_index];
+		#my $CURR_TRAIL = $design_well_trails[$trails_index];
 		
 		my @output;				# output array holding row details
         my %done = ();			# hash keeping track of done plate types
         
         # Loop through the wells in the trail
-        foreach my $CURR_WELL (reverse @{$CURR_TRAIL}){
+        #foreach my $curr_well (reverse @{$CURR_TRAIL}){
+		foreach my $curr_well (reverse @{$design_well_trails[$trails_index]}){
 			
-			my $curr_plate_type_id = $CURR_WELL->plate->type->id;
+			my $curr_plate_type_id = $curr_well->plate->type->id;
 			
 			foreach my $type ('DESIGN','INT','FINAL','DNA','EP','EP_PICK','SEP','SEP_PICK','FP','SFP') {
 				
@@ -185,51 +188,51 @@ sub well_descendants {
 						}						
 						
 						# Common elements
-                        unshift @output, $CURR_WELL->is_accepted;								# well accepted (with override)
-                        unshift @output, $CURR_WELL->assay_complete;							# assay complete timestamp
+                        unshift @output, $curr_well->is_accepted;								# well accepted (with override)
+                        unshift @output, $curr_well->assay_complete;							# assay complete timestamp
                         
                         if($curr_plate_type_id eq 'DESIGN'){
 							
-							unshift @output, $CURR_WELL->design->id;							# design DB identifier
-							unshift @output, $CURR_WELL->design->name;							# design name
-							unshift @output, $CURR_WELL->design->phase;							# e.g. -1,0,1,2
-                            unshift @output, $CURR_WELL->design->design_type_id;				# design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
+							unshift @output, $curr_well->design->id;							# design DB identifier
+							unshift @output, $curr_well->design->name;							# design name
+							unshift @output, $curr_well->design->phase;							# e.g. -1,0,1,2
+                            unshift @output, $curr_well->design->design_type_id;				# design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
 							# ? 
                         }
                         if($curr_plate_type_id eq 'INT'){
-                            unshift @output, $CURR_WELL->backbone->name;						# backbone name
-                            unshift @output, $CURR_WELL->cassette->name;						# cassette name
-                            unshift @output, fetch_well_qc_sequencing_result( $CURR_WELL ); 	# qc sequencing test result
+                            unshift @output, $curr_well->backbone->name;						# backbone name
+                            unshift @output, $curr_well->cassette->name;						# cassette name
+                            unshift @output, fetch_well_qc_sequencing_result( $curr_well ); 	# qc sequencing test result
                             # valid primers?	-> qc test result and valid primers are outputs of QC system and should be linked to each well for INT, FINAL, POSTINT, DNA, EP_PICK
         					# ?
                         }
                         if($curr_plate_type_id eq 'FINAL'){
-							unshift @output, $CURR_WELL->backbone->name;						# backbone name
-							unshift @output, $CURR_WELL->cassette->conditional;					# final_cassette_conditional
-							unshift @output, $CURR_WELL->cassette->promoter;					# final_cassette_promoter
-							unshift @output, $CURR_WELL->cassette->cre;							# final_cassette_cre							
-                            unshift @output, $CURR_WELL->cassette->name;						# cassette name
-                            unshift @output, fetch_well_qc_sequencing_result( $CURR_WELL ); 	# qc sequencing test result
-                            unshift @output, fetch_well_process_recombinase( $CURR_WELL ); 		# process recombinase
+							unshift @output, $curr_well->backbone->name;						# backbone name
+							unshift @output, $curr_well->cassette->conditional;					# final_cassette_conditional
+							unshift @output, $curr_well->cassette->promoter;					# final_cassette_promoter
+							unshift @output, $curr_well->cassette->cre;							# final_cassette_cre							
+                            unshift @output, $curr_well->cassette->name;						# cassette name
+                            unshift @output, fetch_well_qc_sequencing_result( $curr_well ); 	# qc sequencing test result
+                            unshift @output, fetch_well_process_recombinase( $curr_well ); 		# process recombinase
                             # valid primers?
                             # ?
                         }
                         if($curr_plate_type_id eq 'DNA'){
-							unshift @output, fetch_well_dna_quality( $CURR_WELL );				# well dna quality e.g. M, L, ML, U
-							unshift @output, fetch_well_dna_status( $CURR_WELL );				# well dna status e.g. t or f
-							unshift @output, fetch_well_qc_sequencing_result( $CURR_WELL );		# qc sequencing test result
+							unshift @output, fetch_well_dna_quality( $curr_well );				# well dna quality e.g. M, L, ML, U
+							unshift @output, fetch_well_dna_status( $curr_well );				# well dna status e.g. t or f
+							unshift @output, fetch_well_qc_sequencing_result( $curr_well );		# qc sequencing test result
                             # valid primers?
                             # ?
                         }
                         if($curr_plate_type_id eq 'EP'){
-                            unshift @output, fetch_well_colony_count_remaining_unstained( $CURR_WELL );	# count colonies remaining unstained 
-                            unshift @output, fetch_well_colony_count_total( $CURR_WELL );		# count colonies total
-                            unshift @output, fetch_well_colony_count_picked( $CURR_WELL );		# count colonies picked
-                            unshift @output, fetch_well_first_cell_line( $CURR_WELL );			# first cell line name
+                            unshift @output, fetch_well_colony_count_remaining_unstained( $curr_well );	# count colonies remaining unstained 
+                            unshift @output, fetch_well_colony_count_total( $curr_well );		# count colonies total
+                            unshift @output, fetch_well_colony_count_picked( $curr_well );		# count colonies picked
+                            unshift @output, fetch_well_first_cell_line( $curr_well );			# first cell line name
                             # ?
                         }
                         if($curr_plate_type_id eq 'EP_PICK'){
-							unshift @output, fetch_well_qc_sequencing_result( $CURR_WELL ); 	# qc sequencing test result
+							unshift @output, fetch_well_qc_sequencing_result( $curr_well ); 	# qc sequencing test result
                             # valid primers?
                             # ?
                         }
@@ -238,12 +241,12 @@ sub well_descendants {
                         # process recombinase ? via process output well to process_recombinase table 
                         
                         if($curr_plate_type_id eq 'SEP'){
-							unshift @output, fetch_well_second_cell_line( $CURR_WELL );			# second cell line name
+							unshift @output, fetch_well_second_cell_line( $curr_well );			# second cell line name
                             # colony count or only on EP?
         					# ?
                         }
                         if($curr_plate_type_id eq 'SEP_PICK'){
-        					unshift @output, fetch_well_qc_sequencing_result( $CURR_WELL ); 	# qc sequencing test result
+        					unshift @output, fetch_well_qc_sequencing_result( $curr_well ); 	# qc sequencing test result
                             # valid primers?
                             # ?
                         }
@@ -257,18 +260,19 @@ sub well_descendants {
                         }
                         
                         # common elements                        
-                        unshift @output, $CURR_WELL->created_at;								# well created timestamp
-                        unshift @output, $CURR_WELL->id;										# well id
-                        unshift @output, $CURR_WELL->name;										# well name e.g. A01 to H12 (or P24 for 384-well plates)
-                        unshift @output, $CURR_WELL->plate->id;									# plate id
-                        unshift @output, $CURR_WELL->plate->name;								# plate name e.g. MOHSAQ60001_C_1
+                        unshift @output, $curr_well->created_at;								# well created timestamp
+                        unshift @output, $curr_well->id;										# well id
+                        unshift @output, $curr_well->name;										# well name e.g. A01 to H12 (or P24 for 384-well plates)
+                        unshift @output, $curr_well->plate->id;									# plate id
+                        unshift @output, $curr_well->plate->name;								# plate name e.g. MOHSAQ60001_C_1
                         
                         if($curr_plate_type_id eq 'DESIGN'){
                    
-							unshift @output, fetch_well_bacs_string( $CURR_WELL );				# BACs associated with this design	
-							my @genes_array = fetch_well_gene_symbols_and_ids( $CURR_WELL );		
+							unshift @output, fetch_well_bacs_string( $curr_well );				# BACs associated with this design	
+							my @genes_array = fetch_well_gene_symbols_and_ids( $curr_well );		
 							unshift @output, $genes_array[0]; 									# gene symbols
 							unshift @output, $genes_array[1]; 									# gene ids
+							@genes_array = undef;
                         }
                         
                         # TODO: remove - plate type identifier
@@ -304,7 +308,8 @@ sub well_descendants {
                 }
             }
             
-            $CURR_WELL = undef;				# memory clear up
+            $curr_well = undef;				# memory clear up
+            $curr_plate_type_id = undef;
         }
         
         # fill array out to max row size
@@ -327,12 +332,13 @@ sub well_descendants {
 		}		
 		$logmsg=$logmsg."\n";
 		
-        # write output to csv log file
-        open my $OUTFILE, '>>', $CSV_FILEPATH or die "Error: Summary data generation - cannot open output file $CSV_FILEPATH for append: $!";
-		print $OUTFILE $logmsg;
-		close $OUTFILE;
-		
-		$logmsg = undef;
+        # write output to csv log file, with exclusive lock(2)
+        {
+			open (my $OUTFILE, '>>', $CSV_FILEPATH) or die "Error: Summary data generation - cannot open output file $CSV_FILEPATH for append\nSystem message: $!\n";
+			flock($OUTFILE, 2) or die "Error: Summary data generation - failed to lock output file $CSV_FILEPATH for append\nSystem message: $!\n";
+			print $OUTFILE $logmsg;
+			close $OUTFILE;
+		}		
 		
 		# prepare output for DB write - replace empty strings with undefs in output for DB write
 		foreach my $y (@output){
@@ -341,20 +347,27 @@ sub well_descendants {
 		}
 		
 		# insert to DB
-		my $inserts_made = insert_summary_row ( \@output ); 	# or warn "Insert failed for @output\nSystem message: $!\n";
+		my $inserts_made = insert_summary_row ( \@output ) or warn "Insert failed for @output\nSystem message: $!\n";
 		if($inserts_made > 0) {
 			$well_inserts_succeeded += $inserts_made;
 		} else {
 			$well_inserts_failed += 1;
 		}
+		$inserts_made = undef;			# free memory
 		
 		@output = undef;
+		$design_well_trails[$trails_index] = undef;
+		%done = undef;
 		
 		$trails_index++;
     }
     
     $MODEL = undef;
     $DESIGN_WELL = undef;
+    $CSV_FILEPATH = undef;
+    @design_well_trails = undef;
+    
+    #print "well ID : $DESIGN_WELL_ID inserts/fails = $well_inserts_succeeded/$well_inserts_failed\n";
     
     return ($well_inserts_succeeded, $well_inserts_failed);
 }
@@ -406,7 +419,6 @@ sub fetch_well_bacs_string {
 	
 	my $process = $well->process_output_wells->first->process;
 	if (defined $process) {
-		#my $process_id = $process->id;
 
 		my @bacs_ids = uniq( map { $_->bac_clone_id } $process->process_bacs );
 		
@@ -423,6 +435,10 @@ sub fetch_well_bacs_string {
 			} else {
 				$bacs_string=$bacs_string.$bac_name."_";
 			}
+			
+			$bac_rs 	= undef;
+			$bac 		= undef;
+			$bac_name 	= undef;
 		}
 		
 		@bacs_ids = undef;
@@ -580,10 +596,10 @@ sub insert_summary_row {
 	my ( $output ) = @_;
 	
 	return $MODEL->schema->storage->dbh_do(
-        sub {
+	    sub {
             my ( $storage, $dbh ) = @_;
             
-            my $insert_handle = $dbh->prepare_cached( $SQL_INSERT_SUMMARY ); 
+            my $insert_handle = $dbh->prepare( $SQL_INSERT_SUMMARY );
           
 			die "Couldn't prepare insert query; aborting"
 				unless defined $insert_handle;
@@ -592,6 +608,5 @@ sub insert_summary_row {
         }
     );	
 }
-
 
 1;

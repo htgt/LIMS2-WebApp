@@ -2,15 +2,22 @@
 
 use strict;
 use warnings FATAL => 'all';
+
 use LIMS2::Model;
-use Smart::Comments;
 use LIMS2::SummaryGeneration::WellDescend;
 
+use threads;
+use threads::shared;
+use Thread::Queue;
+
+use Parallel::ForkManager;
+
 my $SINGLE_WELL = 0;
-my $WELL_INSERTS_SUCCEEDED = 0;
-my $WELL_INSERTS_FAILED = 0;
-my $DESIGN_WELL;
-my $DESIGN_WELL_ID = 0;
+my $NUM_CONC_PROCESSES = 10;					# Number of concurrent processes to create
+my $WELL_INSERTS_SUCCEEDED :shared = 0;		# Counter successful DB inserts
+my $WELL_INSERTS_FAILED :shared = 0;		# Counter failed DB inserts
+my @DESIGN_WELL_IDS;						# Array of design wells
+my $DESIGN_WELL_ID = 0;						# Current design well ID
 
 # Check for input of single well ID or for all DESIGN plate wells
 my ( $well_id ) = @ARGV;
@@ -96,6 +103,7 @@ close $OUTFILE;
 my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );		# for lims2_live_as28 running on local
 
 if($SINGLE_WELL) {
+	
 	print "Well ID processing=$DESIGN_WELL_ID\n";
 	
 	# Call method on well
@@ -116,37 +124,62 @@ if($SINGLE_WELL) {
 	);
 
 	# create well ids array
-	my @design_well_ids;
+	@DESIGN_WELL_IDS = ();
 	my $wells_count = 0;
 	
-	while ( $DESIGN_WELL = $wells_rs->next ) {		
+	while ( my $design_well = $wells_rs->next ) {		
 		# transfer each of the well ids into the main well ids array
-		push @design_well_ids, $DESIGN_WELL->id;
+		push @DESIGN_WELL_IDS, $design_well->id;
+		$design_well = undef;
 		$wells_count++;
 	}
 	
 	$wells_rs = undef;			# free up memory
-	$DESIGN_WELL = undef;		# free up memory
 	
 	my $wells_selected_time=localtime;
-	print "$wells_count wells identified at time: $wells_selected_time\n";
+	print "$wells_count wells identified at : $wells_selected_time\n";
 	
-	my $wells_index = 0;
-		
-	while ( $design_well_ids[$wells_index] ) {
-		
-		$DESIGN_WELL_ID = $design_well_ids[$wells_index];
-		
-		my ($inserts, $fails) = LIMS2::SummaryGeneration::WellDescend::well_descendants($DESIGN_WELL_ID, $CSV_FILEPATH);
-		$WELL_INSERTS_SUCCEEDED += $inserts;
-		$WELL_INSERTS_FAILED += $fails;
-		
-		$inserts = undef;
-		$fails = undef;
+	#------------------------------------------------------------------
+	#      Process wells
+	#------------------------------------------------------------------
 	
-		print "Well number ".($wells_index+1)." of $wells_count, ID=$DESIGN_WELL_ID\n";
-		$wells_index++;
+	# Max processes for parallel download
+	my $pm = new Parallel::ForkManager($NUM_CONC_PROCESSES); 
+
+	# Setup a callback for when a child finishes up so we can get its exit code
+	$pm->run_on_finish(
+		sub { my ($pid, $inserts, $ident) = @_;
+			print "Well ID $ident completed with PID $pid and inserts: $inserts\n";
+			lock($WELL_INSERTS_SUCCEEDED);
+			$WELL_INSERTS_SUCCEEDED += $inserts;
+			print "Total inserts: $WELL_INSERTS_SUCCEEDED\n";
+		}
+	);
+	
+	$pm->run_on_start(
+		sub { my ($pid,$ident) = @_;
+			print "Well ID $ident started, pid: $pid\n";
+		}
+	);
+	
+	$pm->run_on_wait(
+		sub {
+			print "Waiting...\n"
+		},
+		0.5
+	);
+
+	foreach my $design_well_id (@DESIGN_WELL_IDS) {
+		$pm->start($design_well_id) and next; # do the fork
+
+		my ($inserts, $fails) = LIMS2::SummaryGeneration::WellDescend::well_descendants($design_well_id, $CSV_FILEPATH);
+		
+		# TODO: May be able to pass counts back via finish callback
+		$pm->finish($inserts); # do the exit in the child process
 	}
+	$pm->wait_all_children;
+	
+	
 }
 
 my $end_time=localtime;
@@ -154,5 +187,3 @@ print "Process Completed at $end_time\n";
 print "Start time was: $start_time\n";
 print "DB Inserts successful: $WELL_INSERTS_SUCCEEDED\n";
 print "DB Inserts failed: $WELL_INSERTS_FAILED\n";
-
-
