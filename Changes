@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.045     2013-01-31 13:43:36 Europe/London
+
+    Amended path in genotyping_qc_data template to return properly formed URL so that extJS widgets render properly
+
 0.044     2013-01-29 11:56:37 Europe/London
 
     Added genotyping QC csv upload, grid view and update support
