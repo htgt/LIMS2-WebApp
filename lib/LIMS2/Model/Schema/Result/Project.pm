@@ -56,6 +56,17 @@ __PACKAGE__->table("projects");
   data_type: 'text'
   is_nullable: 0
 
+=head2 gene_id
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 targeting_type
+
+  data_type: 'text'
+  default_value: 'unknown'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -70,6 +81,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "allele_request",
   { data_type => "text", is_nullable => 0 },
+  "gene_id",
+  { data_type => "text", is_nullable => 1 },
+  "targeting_type",
+  { data_type => "text", default_value => "unknown", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -101,21 +116,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 project_information
-
-Type: might_have
-
-Related object: L<LIMS2::Model::Schema::Result::ProjectInformation>
-
-=cut
-
-__PACKAGE__->might_have(
-  "project_information",
-  "LIMS2::Model::Schema::Result::ProjectInformation",
-  { "foreign.project_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 sponsor
 
 Type: belongs_to
@@ -132,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-31 13:25:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EK0NTLsJ93TZ3JSUaIMy4w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-31 14:29:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VqJT+ZOA2ycgAxa4EUXXew
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
