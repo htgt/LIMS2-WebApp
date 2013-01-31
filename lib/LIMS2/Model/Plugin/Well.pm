@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.044';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.045';
 }
 ## use critic
 
@@ -56,6 +56,7 @@ sub pspec_create_well {
     return {
         plate_name   => { validate => 'existing_plate_name' },
         well_name    => { validate => 'well_name', rename => 'name' },
+        accepted     => { validate => 'boolean', optional => 1 },
         process_data => { validate => 'hashref' },
         created_by => {
             validate    => 'existing_user',
@@ -74,7 +75,7 @@ sub create_well {
     $plate ||= $self->retrieve_plate( { name => $validated_params->{plate_name} } );
 
     my $validated_well_params
-        = { slice_def $validated_params, qw( name created_at created_by_id ) };
+        = { slice_def $validated_params, qw( name created_at created_by_id accepted) };
 
     my $well = $plate->create_related( wells => $validated_well_params );
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreatePlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreatePlate::VERSION = '0.044';
+    $LIMS2::Model::Util::CreatePlate::VERSION = '0.045';
 }
 ## use critic
 
@@ -27,6 +27,7 @@ sub pspec_create_plate_well {
     return {
         well_name    => { validate => 'well_name' },
         process_type => { validate => 'existing_process_type' },
+        accepted     => { validate => 'boolean', optional => 1 },
     };
 }
 
@@ -45,10 +46,11 @@ sub create_plate_well {
         well_name  => $validated_params->{well_name},
         created_by => $plate->created_by->name,
         created_at => $plate->created_at->iso8601,
+        accepted   => $validated_params->{accepted},
     );
 
     # the remaining params are specific to the process
-    delete @{$params}{qw( well_name process_type )};
+    delete @{$params}{qw( well_name process_type accepted)};
 
     $well_params{process_data} = $params;
     $well_params{process_data}{type} = $validated_params->{process_type};

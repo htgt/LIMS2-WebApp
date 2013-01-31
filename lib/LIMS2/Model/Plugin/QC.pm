@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.044';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.045';
 }
 ## use critic
 
@@ -852,6 +852,7 @@ sub create_plate_from_qc{
                 well_name => $well,
                 parent_plate => $source_well->plate->name,
                 parent_well  => $source_well->name,
+                accepted     => $best->{pass},
             );
 
             # Identify reagent overrides from QC wells            
