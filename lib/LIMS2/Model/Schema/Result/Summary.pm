@@ -229,6 +229,77 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 final_pick_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 final_pick_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 final_pick_well_name
+
+  data_type: 'name'
+  is_nullable: 1
+  size: 64
+
+=head2 final_pick_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 final_pick_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 final_pick_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 final_pick_qc_seq_pass
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 final_pick_cassette_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 final_pick_cassette_cre
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 final_pick_cassette_promoter
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 final_pick_cassette_conditional
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 final_pick_backbone_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 final_pick_well_assay_complete
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 final_pick_well_accepted
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =head2 dna_plate_name
 
   data_type: 'text'
@@ -603,6 +674,34 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "final_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
+  "final_pick_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "final_pick_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "final_pick_well_name",
+  { data_type => "name", is_nullable => 1, size => 64 },
+  "final_pick_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "final_pick_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "final_pick_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
+  "final_pick_qc_seq_pass",
+  { data_type => "boolean", is_nullable => 1 },
+  "final_pick_cassette_name",
+  { data_type => "text", is_nullable => 1 },
+  "final_pick_cassette_cre",
+  { data_type => "boolean", is_nullable => 1 },
+  "final_pick_cassette_promoter",
+  { data_type => "boolean", is_nullable => 1 },
+  "final_pick_cassette_conditional",
+  { data_type => "boolean", is_nullable => 1 },
+  "final_pick_backbone_name",
+  { data_type => "text", is_nullable => 1 },
+  "final_pick_well_assay_complete",
+  { data_type => "timestamp", is_nullable => 1 },
+  "final_pick_well_accepted",
+  { data_type => "boolean", is_nullable => 1 },
   "dna_plate_name",
   { data_type => "text", is_nullable => 1 },
   "dna_plate_id",
@@ -724,8 +823,8 @@ __PACKAGE__->add_columns(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-23 16:00:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mMoDpiD/mWk6QWaEQdBhxA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-31 13:25:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tKbieXqOH7e+sqUynbtg2Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -48,6 +48,7 @@ if (-e $CSV_FILEPATH) {
 #INT		Intermediate Vectors
 #POSTINT	Post-intermediate Vectors
 #FINAL		Final Vectors
+#FINAL_PICK	Final final Vectors
 #CREBAC		Cre/BAC Vectors
 #DNA		DNA QC
 #EP			Electroporation
@@ -70,6 +71,9 @@ $logmsg = $logmsg."int_plate_name,int_plate_id,int_well_name,int_well_id,int_wel
 
 # FINAL = 14 fields
 $logmsg = $logmsg."final_plate_name,final_plate_id,final_well_name,final_well_id,final_well_created_ts,final_recombinase,final_qc_seq_pass,final_cassette,final_cassette_cre,final_cassette_promoter,final_cassette_conditional,final_backbone,final_well_assay_complete,final_well_accepted,";
+
+# FINAL_PICK = 14 fields
+$logmsg = $logmsg."final_pick_plate_name,final_pick_plate_id,final_pick_well_name,final_pick_well_id,final_pick_well_created_ts,final_pick_recombinase,final_pick_qc_seq_pass,final_pick_cassette,final_pick_cassette_cre,final_pick_cassette_promoter,final_pick_cassette_conditional,final_pick_backbone,final_pick_well_assay_complete,final_pick_well_accepted,";
 
 #DNA = 10 fields
 $logmsg = $logmsg."dna_plate_name,dna_plate_id,dna_well_name,dna_well_id,dna_well_created_ts,dna_qc_seq_pass,dna_status_pass,dna_quality,dna_well_assay_complete,dna_well_accepted,";

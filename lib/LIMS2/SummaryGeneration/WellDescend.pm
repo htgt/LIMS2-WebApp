@@ -48,6 +48,20 @@ INSERT INTO public.summaries (
 	final_backbone_name,
 	final_well_assay_complete,
 	final_well_accepted,
+	final_pick_plate_name,
+	final_pick_plate_id,
+	final_pick_well_name,
+	final_pick_well_id,
+	final_pick_well_created_ts,
+	final_pick_recombinase_id,
+	final_pick_qc_seq_pass,
+	final_pick_cassette_name,
+	final_pick_cassette_cre,
+	final_pick_cassette_promoter,
+	final_pick_cassette_conditional,
+	final_pick_backbone_name,
+	final_pick_well_assay_complete,
+	final_pick_well_accepted,
 	dna_plate_name,
 	dna_plate_id,
 	dna_well_name,
@@ -111,6 +125,7 @@ INSERT INTO public.summaries (
 	?,?,?,?,?,?,?,?,?,?,?,?,?,?,
 	?,?,?,?,?,?,?,?,?,?,
 	?,?,?,?,?,?,?,?,?,?,?,?,?,?,
+	?,?,?,?,?,?,?,?,?,?,?,?,?,?,
 	?,?,?,?,?,?,?,?,?,?,?,
 	?,?,?,?,?,?,?,?,?,?,?,?,
 	?,?,?,?,?,?,?,?,
@@ -122,7 +137,7 @@ INSERT INTO public.summaries (
 ;
 EOT
 
-my $NUMBER_SUMMARIES_FIELDS = 97;			# number of fields in table
+my $NUMBER_SUMMARIES_FIELDS = 111;			# number of fields in table
 my $MODEL;									# model for DB links
 
 # Determine well decendants and write result string
@@ -166,7 +181,7 @@ sub well_descendants {
 			
 			my $curr_plate_type_id = $curr_well->plate->type->id;
 			
-			foreach my $type ('DESIGN','INT','FINAL','DNA','EP','EP_PICK','SEP','SEP_PICK','FP','SFP') {
+			foreach my $type ('DESIGN','INT','FINAL','FINAL_PICK','DNA','EP','EP_PICK','SEP','SEP_PICK','FP','SFP') {
 				
                 if($curr_plate_type_id eq $type){
 					if(!exists $done{$type}){
@@ -176,21 +191,33 @@ sub well_descendants {
 						# NB. unshift adds an element to the beginning of an array
 						# i.e. output array is built up BACKWARDS
 						
+						if($curr_plate_type_id eq 'FINAL'){
+						# check whether hierarchy contains a FINAL_PICK plate and fill if not
+							if(!exists $done{'FINAL_PICK'}) {
+								# 14 final_pick_plate_name,final_pick_plate_id,final_pick_well_name,final_pick_well_id,final_pick_well_created_ts,final_pick_recombinase,final_pick_qc_seq_pass,final_pick_cassette,final_pick_cassette_cre,final_pick_cassette_promoter,final_pick_cassette_conditional,final_pick_backbone,final_pick_well_assay_complete,final_pick_well_accepted
+								my @FINPfill = ("") x 14;								
+								unshift @output, @FINPfill;
+							}
+						}
+						
 						if($curr_plate_type_id eq 'DNA'){
+							
 							# check whether well hierarchy had an SEP step but not an EP step and fill for EP if not
 							#print "DNA check\n";
 							if((exists $done{'SEP'}) && (!exists $done{'EP'})){
-								#print "Adding to output\n";
 								#11 ep_plate_name,ep_plate_id,ep_well_name,ep_well_id,ep_well_created_ts,ep_first_cell_line,ep_colonies_picked,ep_colonies_total,ep_colonies_rem_unstained,ep_well_assay_complete,ep_well_accepted,";
 								my @EPfill = ("") x 11;								
 								unshift @output, @EPfill;
 							}
 						}						
 						
-						# Common elements
-                        unshift @output, $curr_well->is_accepted;								# well accepted (with override)
-                        unshift @output, $curr_well->assay_complete;							# assay complete timestamp
-                        
+						# Common elements 
+						# TODO: except for design plates
+						#if($curr_plate_type_id ne 'DESIGN'){
+							unshift @output, $curr_well->is_accepted;							# well accepted (with override)
+							unshift @output, $curr_well->assay_complete;						# assay complete timestamp
+						#}
+					
                         if($curr_plate_type_id eq 'DESIGN'){
 							
 							unshift @output, $curr_well->design->id;							# design DB identifier
@@ -207,6 +234,17 @@ sub well_descendants {
         					# ?
                         }
                         if($curr_plate_type_id eq 'FINAL'){
+							unshift @output, $curr_well->backbone->name;						# backbone name
+							unshift @output, $curr_well->cassette->conditional;					# final_cassette_conditional
+							unshift @output, $curr_well->cassette->promoter;					# final_cassette_promoter
+							unshift @output, $curr_well->cassette->cre;							# final_cassette_cre							
+                            unshift @output, $curr_well->cassette->name;						# cassette name
+                            unshift @output, fetch_well_qc_sequencing_result( $curr_well ); 	# qc sequencing test result
+                            unshift @output, fetch_well_process_recombinase( $curr_well ); 		# process recombinase
+                            # valid primers?
+                            # ?
+                        }
+                        if($curr_plate_type_id eq 'FINAL_PICK'){
 							unshift @output, $curr_well->backbone->name;						# backbone name
 							unshift @output, $curr_well->cassette->conditional;					# final_cassette_conditional
 							unshift @output, $curr_well->cassette->promoter;					# final_cassette_promoter
@@ -274,10 +312,7 @@ sub well_descendants {
 							unshift @output, $genes_array[1]; 									# gene ids
 							@genes_array = undef;
                         }
-                        
-                        # TODO: remove - plate type identifier
-                        #unshift @output, $curr_plate_type_id;
-						    
+                        						    
 						if($curr_plate_type_id eq 'SFP'){
 							# fill FP
 							#7 fp_plate_name,fp_plate_id,fp_well_name,fp_well_id,fp_well_created_ts,fp_well_assay_complete,fp_well_accepted
@@ -347,13 +382,14 @@ sub well_descendants {
 		}
 		
 		# insert to DB
-		my $inserts_made = insert_summary_row ( \@output ) or warn "Insert failed for @output\nSystem message: $!\n";
+		#my $inserts_made = insert_summary_row ( \@output ) or warn "Insert failed for @output\nSystem message: $!\n";
+		my $inserts_made = insert_summary_row_via_dbix ( \@output ) or warn "Insert failed for @output\nSystem message: $!\n";
+				
 		if($inserts_made > 0) {
-			$well_inserts_succeeded += $inserts_made;
+			$well_inserts_succeeded += 1;
 		} else {
 			$well_inserts_failed += 1;
 		}
-		$inserts_made = undef;			# free memory
 		
 		@output = undef;
 		$design_well_trails[$trails_index] = undef;
@@ -499,7 +535,7 @@ sub fetch_well_gene_symbols_and_ids {
 
 # count of colonies picked for a well, if count exists
 sub fetch_well_colony_count_picked {
-	my $well = $_[0];
+	my $well = shift;
 	
 	my $colony_count_rs = $well->well_colony_counts( { colony_count_type_id => 'picked_colonies' } );
 	if (defined $colony_count_rs->first) {
@@ -514,7 +550,7 @@ sub fetch_well_colony_count_picked {
 
 # count of colonies total for a well, if count exists
 sub fetch_well_colony_count_total {
-	my $well = $_[0];
+	my $well = shift;
 	
 	my $colony_count_rs = $well->well_colony_counts( { colony_count_type_id => 'total_colonies' } );
 	if (defined $colony_count_rs->first) {
@@ -529,7 +565,7 @@ sub fetch_well_colony_count_total {
 
 # count of colonies remaining unstained for a well, if count exists
 sub fetch_well_colony_count_remaining_unstained {
-	my $well = $_[0];
+	my $well = shift;
 	
 	my $colony_count_rs = $well->well_colony_counts( { colony_count_type_id => 'remaining_unstained_colonies' } );
 	$well = undef;
@@ -545,7 +581,7 @@ sub fetch_well_colony_count_remaining_unstained {
 
 # dna quality for a well, if exists
 sub fetch_well_dna_quality {
-	my $well = $_[0];
+	my $well = shift;
 	
 	my $well_dna_quality = $well->well_dna_quality;
 	$well = undef;
@@ -558,7 +594,7 @@ sub fetch_well_dna_quality {
 	
 # dna status for a well, if exists
 sub fetch_well_dna_status {
-	my $well = $_[0];
+	my $well = shift;
 	
 	my $well_dna_status = $well->well_dna_status;
 	$well = undef;
@@ -571,7 +607,7 @@ sub fetch_well_dna_status {
 
 # recombinase used, if any
 sub fetch_well_process_recombinase {
-	my $well = $_[0];
+	my $well = shift;
 	
 	my $recombinase_string = "";
 	
@@ -591,22 +627,148 @@ sub fetch_well_process_recombinase {
 	return $recombinase_string;
 }
 
-# insert a row into the database
-sub insert_summary_row {
-	my ( $output ) = @_;
-	
-	return $MODEL->schema->storage->dbh_do(
-	    sub {
-            my ( $storage, $dbh ) = @_;
-            
-            my $insert_handle = $dbh->prepare( $SQL_INSERT_SUMMARY );
-          
-			die "Couldn't prepare insert query; aborting"
-				unless defined $insert_handle;
+# insert a row into the database via DBI
+#sub insert_summary_row {
+#	my ( $output ) = @_;
+#	
+#	return $MODEL->schema->storage->dbh_do(
+#	    sub {
+#           my ( $storage, $dbh ) = @_;
+#          
+#            my $insert_handle = $dbh->prepare( $SQL_INSERT_SUMMARY );
+#         
+#			die "Couldn't prepare insert query; aborting"
+#				unless defined $insert_handle;
+#
+#			$insert_handle->execute(@{$output}) or return 0;
+#       }
+#    );	
+#}
 
-			$insert_handle->execute(@{$output}) or return 0;
-        }
-    );	
+# insert a row into the database via DBIx
+sub insert_summary_row_via_dbix {
+	my @output = shift;
+	
+	$MODEL->schema->populate('Summary', [
+    [qw/
+    design_gene_id
+	design_gene_symbol
+	design_bacs
+	design_plate_name
+	design_plate_id
+	design_well_name
+	design_well_id
+	design_well_created_ts
+	design_type
+	design_phase
+	design_name
+	design_id
+	design_well_assay_complete
+	design_well_accepted
+	int_plate_name
+	int_plate_id
+	int_well_name
+	int_well_id
+	int_well_created_ts
+	int_qc_seq_pass
+	int_cassette_name
+	int_backbone_name
+	int_well_assay_complete
+	int_well_accepted
+	final_plate_name
+	final_plate_id
+	final_well_name
+	final_well_id
+	final_well_created_ts
+	final_recombinase_id
+	final_qc_seq_pass
+	final_cassette_name
+	final_cassette_cre
+	final_cassette_promoter
+	final_cassette_conditional
+	final_backbone_name
+	final_well_assay_complete
+	final_well_accepted
+	final_pick_plate_name
+	final_pick_plate_id
+	final_pick_well_name
+	final_pick_well_id
+	final_pick_well_created_ts
+	final_pick_recombinase_id
+	final_pick_qc_seq_pass
+	final_pick_cassette_name
+	final_pick_cassette_cre
+	final_pick_cassette_promoter
+	final_pick_cassette_conditional
+	final_pick_backbone_name
+	final_pick_well_assay_complete
+	final_pick_well_accepted
+	dna_plate_name
+	dna_plate_id
+	dna_well_name
+	dna_well_id
+	dna_well_created_ts
+	dna_qc_seq_pass
+	dna_status_pass
+	dna_quality
+	dna_well_assay_complete
+	dna_well_accepted
+	ep_plate_name
+	ep_plate_id
+	ep_well_name
+	ep_well_id
+	ep_well_created_ts
+	ep_first_cell_line_name
+	ep_colonies_picked
+	ep_colonies_total
+	ep_colonies_rem_unstained
+	ep_well_assay_complete
+	ep_well_accepted
+	ep_pick_plate_name
+	ep_pick_plate_id
+	ep_pick_well_name
+	ep_pick_well_id
+	ep_pick_well_created_ts
+	ep_pick_qc_seq_pass
+	ep_pick_well_assay_complete
+	ep_pick_well_accepted
+	sep_plate_name
+	sep_plate_id
+	sep_well_name
+	sep_well_id
+	sep_well_created_ts
+	sep_second_cell_line_name
+	sep_well_assay_complete
+	sep_well_accepted
+	sep_pick_plate_name
+	sep_pick_plate_id
+	sep_pick_well_name
+	sep_pick_well_id
+	sep_pick_well_created_ts
+	sep_pick_qc_seq_pass
+	sep_pick_well_assay_complete
+	sep_pick_well_accepted
+	fp_plate_name
+	fp_plate_id
+	fp_well_name
+	fp_well_id
+	fp_well_created_ts
+	fp_well_assay_complete
+	fp_well_accepted
+	sfp_plate_name
+	sfp_plate_id
+	sfp_well_name
+	sfp_well_id
+	sfp_well_created_ts
+	sfp_well_assay_complete
+	sfp_well_accepted
+    /],
+    @output,
+  ]);
+  
+  @output = undef;	# free memory
+  
+  return 1;
 }
 
 1;
