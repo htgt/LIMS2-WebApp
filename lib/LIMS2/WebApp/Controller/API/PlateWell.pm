@@ -273,7 +273,7 @@ sub well_genotyping_qc_PUT{
 
     $c->assert_user_roles('edit');
     my $data = $c->request->data;
-
+$DB::single=1;
     my $plate_name = $c->request->param('plate_name');
 
     # $data will contain a key for well 'id' and a key whose name is the column name

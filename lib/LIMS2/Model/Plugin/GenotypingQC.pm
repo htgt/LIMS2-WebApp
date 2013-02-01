@@ -333,10 +333,11 @@ my $sql_query =  <<'SQL_END';
 	, wgt.copy_number
 	, wgt.copy_number_range
 	, wgt.confidence
-	from plates p, wells w, well_genotyping_results wgt
+	from plates p, wells w
+        left join well_genotyping_results wgt
+		on wgt.well_id = w.id
 		where p.name = ?
 		and w.plate_id = p.id
-		and wgt.well_id = w.id
 	order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
 	wd.copy_number, wd.copy_number_range, wd.confidence,
@@ -412,6 +413,8 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
         }
 
+        $datum->{gene_id} = 'test';
+        $datum->{design} = '12345';
         my $well = $self->retrieve_well( { id => $datum->{id} } );
         my ($design) = $well->designs;
         $datum->{gene_id} = '-';
@@ -426,23 +429,27 @@ foreach my $row ( @{$sql_result} ) {
         }
         $datum->{design_id} = $design->id;
         # get the generic assay data for this row
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        if ( $row->{'genotyping_result_type_id'}) {
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        }
         $saved_id = $row->{'Well ID'};
 
     }
     else {
-        # just get the generic assay data for this row
+        # just get the primer band and generic assay data for this row
         if ($row->{'Primer band type'} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
         }
 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        if ( $row->{'genotyping_result_type_id'}) {
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        }
     }
 
 }
