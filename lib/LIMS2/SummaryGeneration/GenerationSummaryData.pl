@@ -6,43 +6,51 @@ use warnings FATAL => 'all';
 use LIMS2::Model;
 use LIMS2::SummaryGeneration::WellDescend;
 
-use threads;
-use threads::shared;
-use Thread::Queue;
+use POSIX;									# for timestamp
 
 use Parallel::ForkManager;
 
-my $SINGLE_WELL = 0;
-my $NUM_CONC_PROCESSES = 10;					# Number of concurrent processes to create
-my $WELL_INSERTS_SUCCEEDED :shared = 0;		# Counter successful DB inserts
-my $WELL_INSERTS_FAILED :shared = 0;		# Counter failed DB inserts
+#------------------------------------------------------------------
+#  Variables
+#------------------------------------------------------------------
+
+my $SINGLE_WELL = 0;						# Flag if processing a single well or all
+my $NUM_CONCURRENT_PROCESSES = 10;			# Number of concurrent processes to create
+#my $WELL_INSERTS_SUCCEEDED = 0;				# Counter successful DB inserts
+#my $WELL_INSERTS_FAILED = 0;				# Counter failed DB inserts
+my $PROCESSES_SUCCEEDED = 0;				# Successful design well sub-processes
+my $PROCESSES_FAILED = 0;					# Failed design well sub-processes
 my @DESIGN_WELL_IDS;						# Array of design wells
 my $DESIGN_WELL_ID = 0;						# Current design well ID
 
-# Check for input of single well ID or for all DESIGN plate wells
+#------------------------------------------------------------------
+#  Check for input of single well ID or if we are processing all wells
+#------------------------------------------------------------------
+
 my ( $well_id ) = @ARGV;
+
 if (defined $well_id && $well_id > 0) {
+
 	$DESIGN_WELL_ID = $well_id;
 	$SINGLE_WELL = 1;
+
 	print "Input well id:$well_id\n";
+
 }
 
 my $start_time=localtime;
 print "Start time: $start_time\n";
 
-# check if output file exists, and if so rename it
-# TODO: make output file optional, maybe input from command line
-my $dir = '/nfs/users/nfs_a/as28/Sandbox/';
-my $filename = 'summaries_data.csv';
-my $CSV_FILEPATH = $dir.$filename;
-if (-e $CSV_FILEPATH) {			
-	print "Renaming existing file.\n";
-	my $time=localtime;
-	my ($day,$month,$date,$tm,$year)=split(/\s+/,$time);
-	my $stamp=$year."_".$month."_".$date."_".$tm;
-	my $newfilepath = $dir.$stamp."_BAK_".$filename;
-	rename $CSV_FILEPATH, $newfilepath or die "Error, can not rename $CSV_FILEPATH as $newfilepath: $!";
-} 
+#------------------------------------------------------------------
+#  Generate output log filename and write header row
+#------------------------------------------------------------------
+my $DIR = '/nfs/users/nfs_a/as28/Sandbox/';
+my $FILENAME = 'summaries.csv';
+my $DATETIME = strftime("%Y-%m-%d_%H-%M-%S", localtime);
+my $LOG_FILEPATH = $DIR.$DATETIME."_BAK_".$FILENAME;
+if (-e $LOG_FILEPATH) {
+	die "Error, filepath $LOG_FILEPATH already exists\n";
+}
 
 #DESIGN		Design Instances
 #INT		Intermediate Vectors
@@ -97,29 +105,39 @@ $logmsg = $logmsg."fp_plate_name,fp_plate_id,fp_well_name,fp_well_id,fp_well_cre
 $logmsg = $logmsg."sfp_plate_name,sfp_plate_id,sfp_well_name,sfp_well_id,sfp_well_created_ts,sfp_well_assay_complete,sfp_well_accepted,";
 # Total fields = 94
 $logmsg = $logmsg."\n";
-open my $OUTFILE, '>>', $CSV_FILEPATH or die "Error: Summary data generation - Cannot open output file $CSV_FILEPATH for append: $!";
+open my $OUTFILE, '>>', $LOG_FILEPATH or die "Error: Summary data generation - Cannot open output file $LOG_FILEPATH for append: $!";
 print $OUTFILE $logmsg;
 close $OUTFILE;
 
-
-# connect to database
-#my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER}.'@sanger.ac.uk' );
-my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );		# for lims2_live_as28 running on local
-
+#------------------------------------------------------------------
+#  Process wells
+#------------------------------------------------------------------
 if($SINGLE_WELL) {
 	
-	print "Well ID processing=$DESIGN_WELL_ID\n";
+	print "Well ID $DESIGN_WELL_ID : started...\n";
 	
-	# Call method on well
-	my ($inserts, $fails) = LIMS2::SummaryGeneration::WellDescend::well_descendants($DESIGN_WELL_ID, $CSV_FILEPATH);
-	$WELL_INSERTS_SUCCEEDED += $inserts;
-	$WELL_INSERTS_FAILED += $fails;
+	#------------------------------------------------------------------
+	#  Process a single DESIGN well
+	#------------------------------------------------------------------
+	my $exit_code = LIMS2::SummaryGeneration::WellDescend::well_descendants($DESIGN_WELL_ID, $LOG_FILEPATH);
 	
+	if (defined $exit_code && $exit_code) {
+		print "Well ID $DESIGN_WELL_ID : DB inserts successful\n";
+	} else {
+		print "Well ID $DESIGN_WELL_ID : DB inserts failed\n";
+	}
+		
 } else {
-	# select ALL the DESIGN wells
+	#------------------------------------------------------------------
+	#  Select ALL the DESIGN wells
+	#------------------------------------------------------------------
+	
+	#my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER}.'@sanger.ac.uk' );
+	my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );		# for lims2_live_as28 running on local
+
 	my $wells_rs = $model->schema->resultset( 'Well' )->search( 
 		{ 
-			'plate.type_id'		=> 'DESIGN' 				# where clause, select wells where plates.type_id = 'DESIGN'
+			'plate.type_id'		=> 'DESIGN' 			# where clause, select wells where plates.type_id = 'DESIGN'
 		}, 
 		{ 		
 			prefetch			=> 'plate', 			# prefetch to speed up query
@@ -144,50 +162,74 @@ if($SINGLE_WELL) {
 	print "$wells_count wells identified at : $wells_selected_time\n";
 	
 	#------------------------------------------------------------------
-	#      Process wells
+	#  Process wells to fetch summary data use multiple FORKS
 	#------------------------------------------------------------------
 	
 	# Max processes for parallel download
-	my $pm = new Parallel::ForkManager($NUM_CONC_PROCESSES); 
+	my $pm = new Parallel::ForkManager($NUM_CONCURRENT_PROCESSES);
 
 	# Setup a callback for when a child finishes up so we can get its exit code
 	$pm->run_on_finish(
-		sub { my ($pid, $inserts, $ident) = @_;
-			print "Well ID $ident completed with PID $pid and inserts: $inserts\n";
-			lock($WELL_INSERTS_SUCCEEDED);
-			$WELL_INSERTS_SUCCEEDED += $inserts;
-			print "Total inserts: $WELL_INSERTS_SUCCEEDED\n";
+		#sub { my ($pid, ($inserts, $fails), $ident) = @_;
+		sub { my ($pid, $exit_code, $ident) = @_;
+			{
+				#$WELL_INSERTS_SUCCEEDED += $inserts;
+				#$WELL_INSERTS_FAILED += $fails;
+				#print "PID $pid : Well ID $ident : Inserts/Fails : $inserts/$fails Totals: $WELL_INSERTS_SUCCEEDED/$WELL_INSERTS_FAILED\n";
+				if($exit_code) {
+					$PROCESSES_SUCCEEDED++;
+				} else {
+					$PROCESSES_FAILED++;
+				}
+				print "Well ID $ident : Complete. Exit code = $exit_code Total successes/fails $PROCESSES_SUCCEEDED/$PROCESSES_FAILED\n";
+			}
 		}
 	);
 	
 	$pm->run_on_start(
 		sub { my ($pid,$ident) = @_;
-			print "Well ID $ident started, pid: $pid\n";
+			print "Well ID $ident : Started...\n";
 		}
 	);
 	
-	$pm->run_on_wait(
-		sub {
-			print "Waiting...\n"
-		},
-		0.5
-	);
+	#$pm->run_on_wait(
+	#	sub {
+	#		print "Waiting...\n"
+	#	},
+	#	0.5
+	#);
 
+	# Create forks for each DESIGN well, ForkManager handles pool of forks for us
 	foreach my $design_well_id (@DESIGN_WELL_IDS) {
-		$pm->start($design_well_id) and next; # do the fork
-
-		my ($inserts, $fails) = LIMS2::SummaryGeneration::WellDescend::well_descendants($design_well_id, $CSV_FILEPATH);
 		
-		# TODO: May be able to pass counts back via finish callback
-		$pm->finish($inserts); # do the exit in the child process
+		# Code between pm start and finish runs in forked process
+		$pm->start($design_well_id) and next; # create the fork and call the callback
+
+		# TODO: could first run SQL "delete from summaries where design_well_id = $design_well_id" to wipe existing data
+		# ISSUE: what about wells no longer existing, summary data would remain. Possible solution:
+		# Insert design well ids into an emptied table 'summary_wells' first then and run 
+		# "delete from summaries where design_well_id not in(select design_well_id from summary_wells)"
+		# summary_wells could even contain a processed_ts, insert_count and fail_count columns
+
+		# run the summary data generation for one design well per process
+		#my ($inserts, $fails) = LIMS2::SummaryGeneration::WellDescend::well_descendants($design_well_id, $LOG_FILEPATH);
+		my $exit_code = LIMS2::SummaryGeneration::WellDescend::well_descendants($design_well_id, $LOG_FILEPATH);
+		
+		#$pm->finish($inserts, $fails);	# close the fork and call the callback method
+		$pm->finish($exit_code);	# close the fork and call the callback method
 	}
+	
 	$pm->wait_all_children;
 	
-	
+	print "Processes successful : $PROCESSES_SUCCEEDED\n";
+	print "Processes failed     : $PROCESSES_FAILED\n";
 }
 
+#------------------------------------------------------------------
+#  End and print out totals
+#------------------------------------------------------------------
+	
 my $end_time=localtime;
-print "Process Completed at $end_time\n";
-print "Start time was: $start_time\n";
-print "DB Inserts successful: $WELL_INSERTS_SUCCEEDED\n";
-print "DB Inserts failed: $WELL_INSERTS_FAILED\n";
+print "Start time was       : $start_time\n";
+print "Process completed at : $end_time\n";
+

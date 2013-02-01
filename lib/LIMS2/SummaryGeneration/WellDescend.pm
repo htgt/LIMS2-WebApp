@@ -5,8 +5,6 @@ package LIMS2::SummaryGeneration::WellDescend;
 use strict;
 use List::MoreUtils qw(uniq);
 
-use Devel::Leak;		# TODO: remove before production
-
 # Insert query for summaries table
 my $SQL_INSERT_SUMMARY = <<'EOT';
 INSERT INTO public.summaries (
@@ -143,8 +141,8 @@ my $MODEL;									# model for DB links
 # Determine well decendants and write result string
 sub well_descendants {
 	
-	# passed design well ID, output CSV filepath
-    my ( $DESIGN_WELL_ID, $CSV_FILEPATH) = @_;
+	# passed design well ID, output LOG filepath
+    my ( $DESIGN_WELL_ID, $LOG_FILEPATH) = @_;
     
     my $well_inserts_succeeded = 0;
     my $well_inserts_failed = 0;
@@ -161,11 +159,23 @@ sub well_descendants {
     # dereference trails array
     my @design_well_trails = @{$all_trails};
     
+    #TODO: can we weaken the circular ref within DESIGN_WELL here?
     $DESIGN_WELL = undef;									# free memory
     $well_list = undef;
-    	
-    my $trails_index = 0;
     
+    # track if first trail cycle, if not can re-use DESIGN data rather than re-fetching
+    my $first_trail = 1;
+    my $curr_well_design_id;		# design DB identifier
+	my $curr_well_design_name;		# design name
+	my $curr_well_design_phase;		# e.g. -1,0,1,2
+    my $curr_well_design_type_id;	# design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
+    
+    my $curr_well_bacs_string;		# BACs associated with this design	
+	my $curr_well_gene_symbols; 	# gene symbols
+	my $curr_well_gene_ids;			# gene ids
+    	
+    	
+    my $trails_index = 0;    
     while ( $design_well_trails[$trails_index] ) {
 		
 		#print "Trails index=$trails_index\n";
@@ -220,10 +230,17 @@ sub well_descendants {
 					
                         if($curr_plate_type_id eq 'DESIGN'){
 							
-							unshift @output, $curr_well->design->id;							# design DB identifier
-							unshift @output, $curr_well->design->name;							# design name
-							unshift @output, $curr_well->design->phase;							# e.g. -1,0,1,2
-                            unshift @output, $curr_well->design->design_type_id;				# design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
+							if($first_trail) {
+								$curr_well_design_id = $curr_well->design->id;					# design DB identifier
+								$curr_well_design_name = $curr_well->design->name;				# design name
+								$curr_well_design_phase = $curr_well->design->phase;			# e.g. -1,0,1,2
+    							$curr_well_design_type_id = $curr_well->design->design_type_id;	# design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
+    						}
+							
+							unshift @output, $curr_well_design_id;								# design DB identifier
+							unshift @output, $curr_well_design_name;							# design name
+							unshift @output, $curr_well_design_phase;							# e.g. -1,0,1,2
+                            unshift @output, $curr_well_design_type_id;							# design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
 							# ? 
                         }
                         if($curr_plate_type_id eq 'INT'){
@@ -306,11 +323,17 @@ sub well_descendants {
                         
                         if($curr_plate_type_id eq 'DESIGN'){
                    
-							unshift @output, fetch_well_bacs_string( $curr_well );				# BACs associated with this design	
-							my @genes_array = fetch_well_gene_symbols_and_ids( $curr_well );		
-							unshift @output, $genes_array[0]; 									# gene symbols
-							unshift @output, $genes_array[1]; 									# gene ids
-							@genes_array = undef;
+                   			if ($first_trail) {
+                   				$curr_well_bacs_string = fetch_well_bacs_string( $curr_well );	# BACs associated with this design	
+								my @genes_array = fetch_well_gene_symbols_and_ids( $curr_well );
+								$curr_well_gene_symbols = $genes_array[0];  					# gene symbols
+								$curr_well_gene_ids = $genes_array[1];							# gene ids
+                   				# set flag so do not re-fetch this information for subsequent trails
+                   				$first_trail = 0;
+                   			}
+							unshift @output, $curr_well_bacs_string;							# BACs associated with this design	
+							unshift @output, $curr_well_gene_symbols;							# gene symbols
+							unshift @output, $curr_well_gene_ids;								# gene ids
                         }
                         						    
 						if($curr_plate_type_id eq 'SFP'){
@@ -367,10 +390,10 @@ sub well_descendants {
 		}		
 		$logmsg=$logmsg."\n";
 		
-        # write output to csv log file, with exclusive lock(2)
+        # write output to log file, with exclusive lock(2)
         {
-			open (my $OUTFILE, '>>', $CSV_FILEPATH) or die "Error: Summary data generation - cannot open output file $CSV_FILEPATH for append\nSystem message: $!\n";
-			flock($OUTFILE, 2) or die "Error: Summary data generation - failed to lock output file $CSV_FILEPATH for append\nSystem message: $!\n";
+			open (my $OUTFILE, '>>', $LOG_FILEPATH) or die "Error: Summary data generation - cannot open output file $LOG_FILEPATH for append\nSystem message: $!\n";
+			flock($OUTFILE, 2) or die "Error: Summary data generation - failed to lock output file $LOG_FILEPATH for append\nSystem message: $!\n";
 			print $OUTFILE $logmsg;
 			close $OUTFILE;
 		}		
@@ -400,12 +423,19 @@ sub well_descendants {
     
     $MODEL = undef;
     $DESIGN_WELL = undef;
-    $CSV_FILEPATH = undef;
+    $LOG_FILEPATH = undef;
     @design_well_trails = undef;
     
-    #print "well ID : $DESIGN_WELL_ID inserts/fails = $well_inserts_succeeded/$well_inserts_failed\n";
+    print "Well ID $DESIGN_WELL_ID : inserts/fails = $well_inserts_succeeded/$well_inserts_failed\n";
     
-    return ($well_inserts_succeeded, $well_inserts_failed);
+    #return ($well_inserts_succeeded, $well_inserts_failed);
+    
+    # what should we do here?
+    if($well_inserts_failed > 0) {
+    	return 0;
+    } else {
+    	return 1;
+    }    
 }
 
 # well qc sequencing test result, if any
