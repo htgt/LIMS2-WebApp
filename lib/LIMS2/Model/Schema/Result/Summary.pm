@@ -831,9 +831,7 @@ __PACKAGE__->add_columns(
 
 sub satisfies_cassette_function{
 	my ($self, $function) = @_;
-	
-	# FIXME: this method needs some tests!
-	
+
 	# No point doing these checks unless we have a final well
 	return 0 unless defined $self->final_well_id;
 	
