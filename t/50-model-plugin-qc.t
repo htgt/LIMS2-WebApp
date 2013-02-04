@@ -37,6 +37,7 @@ note "Testing creation of plate from QC results";
     is $result->valid_primers, 'LR','well valid primers correct';
     is $result->mixed_reads, '0','well mixed reads correct';
     is $result->pass, '1','well pass correct';
+    is $g12->accepted, '1', 'well accepted flag correct';
     my $view_uri = 'http://test/view?well_name=g12&plate_name=PCS05036_A_1&qc_run_id=534EE22E-3DBF-22E4-5EF2-1234F5CB64C7';
     is $result->test_result_url, $view_uri, 'well test result url correct';
 }

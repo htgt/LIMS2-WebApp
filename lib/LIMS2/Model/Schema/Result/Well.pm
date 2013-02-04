@@ -386,6 +386,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_puro_pass
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingPuroPass>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_targeting_puro_pass",
+  "LIMS2::Model::Schema::Result::WellTargetingPuroPass",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 input_processes
 
 Type: many_to_many
@@ -407,8 +422,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-11-22 11:29:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fRWsB1eB3LjpjJRiD/5YHA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-12 16:36:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:voTiu8dL7hsZzKH67rilrA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -597,8 +612,30 @@ sub design {
     return $process_design ? $process_design->design : undef;
 }
 
+sub designs{
+	my $self = shift;
+
+	my $edges = $self->ancestors->edges;
+
+	my @designs;
+
+	foreach my $edge (@$edges){
+		my ($process, $input, $output) = @$edge;
+		# Edges with no input node are (probably!) design processes
+		if(not defined $input){
+			my $process_design = $self->result_source->schema->resultset('ProcessDesign')->find({ process_id => $process });
+			if ($process_design){
+			    push @designs, $process_design->design;
+			}
+		}
+	}
+    return @designs;
+}
+
 sub all_genotyping_qc_data{
 	my $self = shift;
+    my $model = shift;
+    my $species = shift;
 
 	# Fetch all related genotyping data as hash for use in ExtJS grid
 	my $schema = $self->result_source->schema;
@@ -607,15 +644,32 @@ sub all_genotyping_qc_data{
     my @assay_types = sort map { $_->id } $schema->resultset('GenotypingResultType')->all;
 
     my $datum;
-
 	$datum->{id} = $self->id;
 	$datum->{plate_name} = $self->plate->name;
 	$datum->{well} = $self->name;
+    my ($design) = $self->designs;
+    $datum->{gene_id} = $design->genes->first->gene_id if $design;
+    $datum->{gene_name} = $model->get_gene_symbol_for_accession( $self, $species );
+    $datum->{design_id} = $design->id;
 
 	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
-		                                                    : undef;
+		                                                    : '-';
 	$datum->{targeting_pass} = $self->well_targeting_pass ? $self->well_targeting_pass->result
-		                                                  : undef;
+		                                                  : '-';
+	$datum->{targeting_puro_pass} = $self->well_targeting_puro_pass ? $self->well_targeting_puro_pass->result
+		                                                  : '-';
+# default is undef ('-') for primer bands. This will be overwritten by the value in the database
+# if there is one.
+
+    $datum->{tr_pcr} = '-';
+    $datum->{gf3} = '-';
+    $datum->{gf4} = '-';
+    $datum->{gr3} = '-';
+    $datum->{gr4} = '-';
+
+    foreach my $primer_band ( $self->well_primer_bands ) {
+            $datum->{$primer_band->primer_band_type_id} = $primer_band->pass ? 'true' : 'false';
+    }
 
 	# foreach loop to get assay specific results
 	foreach my $assay (@assay_types){
@@ -624,12 +678,10 @@ sub all_genotyping_qc_data{
 				well_id => $self->id,
 				genotyping_result_type_id => $assay,
 			});
-
-			$datum->{$assay.$name} = $result ? $result->$name
+			$datum->{$assay . '#' . $name} = $result ? $result->$name
 				                             : undef ;
 		}
     }
-
     return $datum;
 }
 
