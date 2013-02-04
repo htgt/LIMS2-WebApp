@@ -97,7 +97,7 @@ sub delete_well {
     	                              .join ",", uniq @qc_templates
     	                              .". Delete the QC template first" );
     }
-    
+
     for my $p ( $well->output_processes ) {
         if ( $p->output_wells == 1 ) {
             $self->delete_process( { id => $p->id } );
