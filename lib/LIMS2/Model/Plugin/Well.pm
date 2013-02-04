@@ -1044,7 +1044,6 @@ sub update_or_create_well_genotyping_result {
     	                               well_id => $well->id,
     	                               genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
                                    });
-$DB::single=1; 
 
     if ( $genotyping_result ) {
        my $update_request = {slice_def $validated_params,

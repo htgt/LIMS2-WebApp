@@ -414,8 +414,6 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
         }
 
-        $datum->{gene_id} = 'test';
-        $datum->{design} = '12345';
         my $well = $self->retrieve_well( { id => $datum->{id} } );
         my ($design) = $well->designs;
         $datum->{gene_id} = '-';
@@ -428,7 +426,8 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{gene_name} = $self->get_gene_symbol_for_accession( $well, $species);
             $gene_cache->{$datum->{gene_id}} = $datum->{gene_name};
         }
-        $datum->{design_id} = $design->id;
+        $datum->{design_id} = '-';
+        $datum->{design_id} = $design->id if $design;
         # get the generic assay data for this row
         if ( $row->{'genotyping_result_type_id'}) {
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
@@ -474,16 +473,16 @@ sub get_gene_symbol_for_accession{
 
     my $genes;
     my $gene_symbols;
+    my @gene_symbols;
 
     my ($design) = $well->designs;
-    my $gene_id;
-    $gene_id = $design->genes->first->gene_id if $design;
-    my @gene_ids = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols;
-    foreach my $gene_id ( @gene_ids ) {
-        $genes = $self->search_genes(
-            { search_term => $gene_id, species =>  $species } );
-        push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+    if ( $design) {
+        my @gene_ids = uniq map { $_->gene_id } $design->genes;
+        foreach my $gene_id ( @gene_ids ) {
+            $genes = $self->search_genes(
+                { search_term => $gene_id, species =>  $species } );
+            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+        }
     }
     $gene_symbols = join q{/}, @gene_symbols;
 

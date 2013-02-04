@@ -13,6 +13,7 @@ my $mech = mech();
 
 my $plate = 'SEP0006';
 
+
 $mech->get_ok('/api/well/genotyping_qc?plate_name='.$plate, 
              {'content-type' => 'application/json'} );
 
