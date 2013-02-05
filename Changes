@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.046     2013-02-05 13:56:56 Europe/London
+
+    Fixed killing of QC jobs, and added colouring to table rows showing qc runs. 
+    
 0.045     2013-01-31 13:43:36 Europe/London
 
     Amended path in genotyping_qc_data template to return properly formed URL so that extJS widgets render properly
