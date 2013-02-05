@@ -170,7 +170,7 @@ sub view_qc_alignment :Path('/user/view_qc_alignment') :Args(0) {
 }
 
 sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
-	my ($self, $c) = @_;
+	my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
 
@@ -189,14 +189,14 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 	$c->stash->{profile} = $c->req->param('profile');
 
 	my $run_id;
-	if ( $c->req->param('submit_initial_info')){
+	if ( $c->req->param( 'submit_initial_info' ) ){
 		try{
 			# validate input params before doing anything else
-			$c->model('Golgi')->check_params($c->req->params, $requirements);
+			$c->model( 'Golgi' )->check_params( $c->req->params, $requirements );
 
 		    my $plate_map = create_suggested_plate_map(
 		        $c->stash->{sequencing_project},
-	            $c->model('Golgi')->schema,
+	            $c->model( 'Golgi' )->schema,
 	            "Plate",
 	        );
 		    $c->stash->{plate_map} = $plate_map;
@@ -218,7 +218,7 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
             return;
         }
 
-		if ( $run_id = $self->_launch_qc($c, $validated_plate_map) ){
+		if ( $run_id = $self->_launch_qc( $c, $validated_plate_map ) ){
 			$c->stash->{run_id} = $run_id;
 			$c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "
 			                           ."Go to <a href=\"".$c->uri_for('/user/latest_runs')."\">Latest Runs</a>"
@@ -229,53 +229,67 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 }
 
 sub _launch_qc{
-	my ($self, $c, $plate_map) = @_;
-
-    my $ua = LWP::UserAgent->new();
-    my $qc_conf = Config::Tiny->new();
-    $qc_conf = Config::Tiny->read($ENV{LIMS2_QC_CONFIG});
-
-    unless ($qc_conf){
-    	die "No QC submission service has been configured. Cannot submit QC job.";
-    }
+    my ($self, $c, $plate_map ) = @_;
 
     $plate_map ||= {};
 
     my $params = {
-	    profile             => $c->stash->{profile},
-	    template_plate      => $c->stash->{template_plate},
-	    sequencing_projects => $c->stash->{sequencing_project},
-	    plate_map           => $plate_map,
-	    username            => $qc_conf->{_}->{username},
-	    password            => $qc_conf->{_}->{password},
-	    created_by          => $c->user->name,
-	    species             => $c->session->{selected_species},
+        profile             => $c->stash->{ profile },
+        template_plate      => $c->stash->{ template_plate },
+        sequencing_projects => $c->stash->{ sequencing_project },
+        plate_map           => $plate_map,
+        created_by          => $c->user->name,
+        species             => $c->session->{ selected_species },
     };
 
-    my $uri = $qc_conf->{_}->{submit_uri};
+    my $content = $self->_htgt_api_call( $c, $params, 'submit_uri' );
+
+    return $content->{ qc_run_id };
+}
+
+#generic function to make a htgt api call, accepting a hashref of user parameters,
+#and returning the decoded json content provided by the api page.
+sub _htgt_api_call {
+    my ( $self, $c, $params, $conf_uri_key ) = @_;
 
     my $content;
 
-    try{
-        my $req = HTTP::Request->new(POST => $uri);
-        $req->content_type('application/json');
+    #do everythign in a try because if it fails there's no template and you get a useless error
+    try {
+        die "No URI specified." unless $conf_uri_key;
+
+        my $ua = LWP::UserAgent->new();
+        my $qc_conf = Config::Tiny->new();
+        $qc_conf = Config::Tiny->read( $ENV{ LIMS2_QC_CONFIG } );
+
+        #add authentication information
+        $params->{ username } = $qc_conf->{_}->{ username };
+        $params->{ password } = $qc_conf->{_}->{ password };
+
+        my $uri = $qc_conf->{_}->{ $conf_uri_key }; #kill_uri or submit_uri
+
+        die "No QC submission service has been configured. Cannot submit QC job."
+            unless $qc_conf;
+
+        #create a http request object sending json
+        my $req = HTTP::Request->new( POST => $uri );
+        $req->content_type( 'application/json' );
         $req->content( encode_json( $params ) );
 
-        my $response = $ua->request($req);
+        #make the actual request 
+        my $response = $ua->request( $req );
 
-        unless ($response->is_success){
-        	die "Request to $uri was not successful. Response: ".$response->status_line;
-        }
+        die "Request to $uri was not successful. Response: " . $response->status_line
+            unless $response->is_success;
 
         $content = decode_json( $response->content );
     }
-    catch{
-    	$c->stash( error_msg => "Sorry, your QC job submission failed with error $_" );
+    catch {
+        $c->stash( error_msg => "Sorry, your HTGT API submission failed with error: $_" );
+        return;
     };
 
-    my $run_id = $content->{'qc_run_id'};
-
-    return $run_id;
+    return $content;
 }
 
 sub latest_runs :Path('/user/latest_runs') :Args(0) {
@@ -313,14 +327,17 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
 
     $c->assert_user_roles( 'edit' );
 
-    my $kill_jobs = HTGT::QC::Util::KillQCFarmJobs->new(
-        {
-            qc_run_id => $qc_run_id,
-            config    => $self->qc_config,
-        } );
+    my $content = $self->_htgt_api_call( $c, { qc_run_id => $qc_run_id }, 'kill_uri' );
 
-    my $jobs_killed = $kill_jobs->kill_unfinished_farm_jobs();
-    $c->stash( info_msg => 'Killing farm jobs (' . join( ' ', @{$jobs_killed} ) . ') from QC run '.$qc_run_id );
+    if ( $content ) {
+        my @jobs_killed = @{ $content->{ job_ids } };
+        $c->stash( info_msg => "Killing farm jobs (" . join( ' ', @jobs_killed ) . ") from QC run $qc_run_id" );
+    }
+    else {
+        my $error = $c->stash->{ error_msg } . "<br/>Failed to kill farm jobs."; #dont overwrite other error
+        $c->stash( error_msg => $error );
+    }
+
     $c->go( 'latest_runs' );
 
     return;
