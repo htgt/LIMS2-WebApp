@@ -5,20 +5,20 @@ use warnings FATAL => 'all';
 
 use LIMS2::Model;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
-use POSIX;									# for timestamp for files
-use Parallel::ForkManager;					# for running multiple processes
-use Try::Tiny;								# Exception handling
+use POSIX;                                  # for timestamp for files
+use Parallel::ForkManager;                  # for running multiple processes
+use Try::Tiny;                              # Exception handling
 
 #------------------------------------------------------------------
 #  Variables
 #------------------------------------------------------------------
 
-my $SINGLE_WELL = 0;						# Flag if processing a single well or all
-my $NUM_CONCURRENT_PROCESSES = 10;			# Number of concurrent processes to create
-my $PROCESSES_SUCCEEDED = 0;				# Successful design well sub-processes
-my $PROCESSES_FAILED = 0;					# Failed design well sub-processes
-my @DESIGN_WELL_IDS;						# Array of design wells
-my $DESIGN_WELL_ID = 0;						# Current design well ID
+my $SINGLE_WELL = 0;                        # Flag if processing a single well or all
+my $NUM_CONCURRENT_PROCESSES = 10;          # Number of concurrent processes to create
+my $PROCESSES_SUCCEEDED = 0;                # Successful design well sub-processes
+my $PROCESSES_FAILED = 0;                   # Failed design well sub-processes
+my @DESIGN_WELL_IDS;                        # Array of design wells
+my $DESIGN_WELL_ID = 0;                     # Current design well ID
 
 #------------------------------------------------------------------
 #  Check for input of single well ID or if we are processing all wells
@@ -28,10 +28,10 @@ my ( $well_id ) = @ARGV;
 
 if (defined $well_id && $well_id > 0) {
 
-	$DESIGN_WELL_ID = $well_id;
-	$SINGLE_WELL = 1;
+    $DESIGN_WELL_ID = $well_id;
+    $SINGLE_WELL = 1;
 
-	print "Input well id:$well_id\n";
+    print "Input well id:$well_id\n";
 
 }
 
@@ -46,26 +46,26 @@ print "Start time: $start_time\n";
 #my $DATETIME = strftime("%Y-%m-%d_%H-%M-%S", localtime);
 #my $LOG_FILEPATH = $DIR.$DATETIME."_BAK_".$FILENAME;
 #if (-e $LOG_FILEPATH) {
-#	die "Error, filepath $LOG_FILEPATH already exists\n";
+#   die "Error, filepath $LOG_FILEPATH already exists\n";
 #}
 
-#DESIGN		Design Instances
-#INT		Intermediate Vectors
-#POSTINT	Post-intermediate Vectors
-#FINAL		Final Vectors
-#FINAL_PICK	Final final Vectors
-#CREBAC		Cre/BAC Vectors
-#DNA		DNA QC
-#EP			Electroporation
-#EP_PICK	ES Cells
-#XEP		Electroporation With Recombinase Applied
-#XEP_PICK	ES Cells With Recombinase Applied
-#XEP_POOL	ES Cells Backup Vial
-#SEP		Second Allele Electroporation
-#SEP_PICK	Second Allele ES Cells
-#SEP_POOL	Second Allele Backup Vial
-#FP			Freezer Plates
-#SFP		Second Allele Freezer Plates
+#DESIGN     Design Instances
+#INT        Intermediate Vectors
+#POSTINT    Post-intermediate Vectors
+#FINAL      Final Vectors
+#FINAL_PICK Final final Vectors
+#CREBAC     Cre/BAC Vectors
+#DNA        DNA QC
+#EP         Electroporation
+#EP_PICK    ES Cells
+#XEP        Electroporation With Recombinase Applied
+#XEP_PICK   ES Cells With Recombinase Applied
+#XEP_POOL   ES Cells Backup Vial
+#SEP        Second Allele Electroporation
+#SEP_PICK   Second Allele ES Cells
+#SEP_POOL   Second Allele Backup Vial
+#FP         Freezer Plates
+#SFP        Second Allele Freezer Plates
 
 my $logmsg;
 # DESIGN = 14 fields
@@ -109,146 +109,139 @@ $logmsg = $logmsg."\n";
 #------------------------------------------------------------------
 #  Process wells
 #------------------------------------------------------------------
+my $wells_count = 0;
+
 if($SINGLE_WELL) {
-	
-	print "Well ID $DESIGN_WELL_ID : started...\n";
-	
-	#------------------------------------------------------------------
-	#  Process a single DESIGN well
-	#------------------------------------------------------------------
-	#my $exit_code = LIMS2::SummaryGeneration::SummariesWellDescend::well_descendants($DESIGN_WELL_ID, $LOG_FILEPATH);
-	my $exit_code = LIMS2::SummaryGeneration::SummariesWellDescend::well_descendants($DESIGN_WELL_ID);
-	
-	if (defined $exit_code && $exit_code) {
-		print "Well ID $DESIGN_WELL_ID : DB inserts successful\n";
-	} else {
-		print "Well ID $DESIGN_WELL_ID : DB inserts failed\n";
-	}
-		
+
+    #------------------------------------------------------------------
+    #  Process a single DESIGN well
+    #------------------------------------------------------------------
+
+    # set concurrent processes to zero to prevent forking
+    $NUM_CONCURRENT_PROCESSES = 0;
+
+    # push design well id into array for processing
+    @DESIGN_WELL_IDS = ();
+    push @DESIGN_WELL_IDS, $DESIGN_WELL_ID;
+    $wells_count = 1;
+
 } else {
-	#------------------------------------------------------------------
-	#  Select ALL the DESIGN wells
-	#------------------------------------------------------------------
-	
-	#my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER}.'@sanger.ac.uk' );
-	my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );		# for lims2_live_as28 running on local
+    #------------------------------------------------------------------
+    #  Select ALL the DESIGN wells
+    #------------------------------------------------------------------
 
-	my $wells_rs = $model->schema->resultset( 'Well' )->search( 
-		{ 
-			'plate.type_id'		=> 'DESIGN' 			# where clause, select wells where plates.type_id = 'DESIGN'
-		}, 
-		{ 		
-			prefetch			=> 'plate', 			# prefetch to speed up query
-			order_by			=> 'me.id'
-		}
-	);
+    #my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER}.'@sanger.ac.uk' );
+    my $model = LIMS2::Model->new( user => 'webapp', audit_user => $ENV{USER} );        # for lims2_live_as28 running on local
 
-	# create well ids array
-	@DESIGN_WELL_IDS = ();
-	my $wells_count = 0;
-	
-	while ( my $design_well = $wells_rs->next ) {		
-		# transfer each of the well ids into the main well ids array
-		push @DESIGN_WELL_IDS, $design_well->id;
-		$design_well = undef;
-		$wells_count++;
-	}
-	
-	$wells_rs = undef;			# free up memory
-	
-	my $wells_selected_time=localtime;
-	print "$wells_count wells identified at : $wells_selected_time\n";
-	
-	#------------------------------------------------------------------
-	#  Process wells to fetch summary data use multiple FORKS
-	#------------------------------------------------------------------
-	
-	my $STOP_RUN = 0;
-	
-	# Max processes for parallel download
-	my $pm = new Parallel::ForkManager($NUM_CONCURRENT_PROCESSES);
+    my $wells_rs = $model->schema->resultset( 'Well' )->search(
+        {
+            'plate.type_id'     => 'DESIGN'             # where clause, select wells where plates.type_id = 'DESIGN'
+        },
+        {
+            prefetch            => 'plate',             # prefetch to speed up query
+            order_by            => 'me.id'
+        }
+    );
 
-	# Setup a callback for when a child finishes up so we can get its exit code
-	$pm->run_on_finish(
-		sub { my ($pid, $exit_code, $ident) = @_;
-			{
-				if($exit_code == 0) {
-					$PROCESSES_SUCCEEDED++;
-					print "Well ID $ident : OK   : Exit code = $exit_code Total process successes/fails $PROCESSES_SUCCEEDED/$PROCESSES_FAILED\n";
-				} else {
-					$PROCESSES_FAILED++;
-					$STOP_RUN = 1;
-					print "Well ID $ident : FAIL : Exit code = $exit_code Total process successes/fails $PROCESSES_SUCCEEDED/$PROCESSES_FAILED\n";
-				}				
-			}
-		}
-	);
-	
-	$pm->run_on_start(
-		sub { my ($pid,$ident) = @_;
-			print "Well ID $ident : Started...\n";
-		}
-	);
-	
-	#$pm->run_on_wait(
-	#	sub {
-	#		print "Waiting...\n"
-	#	},
-	#	0.5
-	#);
+    # create well ids array
+    @DESIGN_WELL_IDS = ();
+    while ( my $design_well = $wells_rs->next ) {
+        push @DESIGN_WELL_IDS, $design_well->id;
+        $design_well = undef;
+        $wells_count++;
+    }
 
-	# Create forks for each DESIGN well, ForkManager handles pool of forks for us
-	my $design_well_index = 0;
-	foreach my $design_well_id (@DESIGN_WELL_IDS) {
-						
-		# exit loop if flag set
-		last if $STOP_RUN;
-		
-		# stagger the startup of the processes
-		sleep(1) if ++$design_well_index < 10;
-		
-		# Code between pm start and finish runs in forked process
-		$pm->start($design_well_id) and next; # create the fork and call the callback
+    $wells_rs = undef;          # free up memory
 
-		# ISSUE: what about wells no longer existing, summary data would remain. Possible solution:
-		# Insert design well ids into an emptied table 'summary_wells' first then and run 
-		# "delete from summaries where design_well_id not in(select design_well_id from summary_wells)"
-		# summary_wells could even contain a processed_ts, insert_count and fail_count columns
+}
+my $wells_selected_time=localtime;
+print "$wells_count well(s) identified at : $wells_selected_time\n";
 
-		# run the summary data generation for one design well per process
-		#my $exit_code = LIMS2::SummaryGeneration::SummariesWellDescend::well_descendants($design_well_id, $LOG_FILEPATH);
-		my $exit_code;
-		
-		my $return_code = LIMS2::SummaryGeneration::SummariesWellDescend::well_descendants($design_well_id);
-		
-		if(defined $return_code && $return_code == 0) {
-			$exit_code = 0;
-		} else {
-			$exit_code = 1;
-		} 
-		
-		print "Well ID $design_well_id : Index $design_well_index of $wells_count : RC=$return_code,EC=$exit_code\n";
-		
-		## when on next
-    	on_scope_exit {
-			$pm->finish($exit_code);	# close the fork and call the callback method
-		}
-	}
-	
-	$pm->wait_all_children;
-	
-	print "Processes successful : $PROCESSES_SUCCEEDED\n";
-	print "Processes failed     : $PROCESSES_FAILED\n";
-	if($STOP_RUN) {
-		print "ERROR: Run was ABORTED!\n";
-	}
+#------------------------------------------------------------------
+#  Process wells to fetch summary data use multiple FORKS
+#------------------------------------------------------------------
+
+my $STOP_RUN = 0;
+
+# Max processes for parallel download
+my $pm = Parallel::ForkManager->new($NUM_CONCURRENT_PROCESSES);
+
+# Setup a callback for when a child finishes up so we can get its exit code
+$pm->run_on_finish(
+    sub { my ($pid, $exit_code, $ident) = @_;
+        {
+            if($exit_code == 0) {
+                $PROCESSES_SUCCEEDED++;
+                print "Well ID $ident : OK   : Exit code = $exit_code Total process successes/fails $PROCESSES_SUCCEEDED/$PROCESSES_FAILED\n";
+            } else {
+                $PROCESSES_FAILED++;
+                $STOP_RUN = 1;
+                print "Well ID $ident : FAIL : Exit code = $exit_code Total process successes/fails $PROCESSES_SUCCEEDED/$PROCESSES_FAILED\n";
+            }
+        }
+    }
+);
+
+$pm->run_on_start(
+    sub { my ($pid,$ident) = @_;
+        print "Well ID $ident : Started...\n";
+    }
+);
+
+#$pm->run_on_wait(
+#   sub {
+#       print "Waiting...\n"
+#   },
+#   0.5
+#);
+
+# Create forks for each DESIGN well, ForkManager handles pool of forks for us
+my $design_well_index = 0;
+foreach my $design_well_id (@DESIGN_WELL_IDS) {
+
+    # exit loop if flag set
+    last if $STOP_RUN;
+
+    # stagger the startup of the processes
+    sleep(1) if ++$design_well_index < 10;
+
+    # Code between pm start and finish runs in forked process
+    $pm->start($design_well_id) and next; # create the fork and call the callback
+
+    # ISSUE: what about wells no longer existing, summary data would remain. Possible solution:
+    # Insert design well ids into an emptied table 'summary_wells' first then and run
+    # "delete from summaries where design_well_id not in(select design_well_id from summary_wells)"
+    # summary_wells could even contain a processed_ts, insert_count and fail_count columns
+
+    # run the summary data generation for one design well per process
+    #my $exit_code = LIMS2::SummaryGeneration::SummariesWellDescend::well_descendants($design_well_id, $LOG_FILEPATH);
+    my $exit_code;
+
+    my $return_code = LIMS2::SummaryGeneration::SummariesWellDescend::well_descendants($design_well_id);
+
+    if(defined $return_code && $return_code == 0) {
+        $exit_code = 0;
+    } else {
+        $exit_code = 1;
+    }
+
+    #print "Well ID $design_well_id : Index $design_well_index of $wells_count : RC=$return_code,EC=$exit_code\n";
+
+    $pm->finish($exit_code);    # close the fork and call the callback method
+
+}
+
+$pm->wait_all_children;
+
+print "Processes successful : $PROCESSES_SUCCEEDED\n";
+print "Processes failed     : $PROCESSES_FAILED\n";
+if($STOP_RUN) {
+    print "ERROR: Run was ABORTED!\n";
 }
 
 #------------------------------------------------------------------
 #  End and print out totals
 #------------------------------------------------------------------
-	
 my $end_time=localtime;
 print "Start time was       : $start_time\n";
 print "Process completed at : $end_time\n";
-
