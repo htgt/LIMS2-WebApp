@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.045';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.046';
 }
 ## use critic
 
@@ -279,7 +279,6 @@ sub well_genotyping_qc_PUT{
 
     $c->assert_user_roles('edit');
     my $data = $c->request->data;
-
     my $plate_name = $c->request->param('plate_name');
 
     # $data will contain a key for well 'id' and a key whose name is the column name
