@@ -257,7 +257,7 @@ sub fetch_values_for_type_FINAL {
     $params->{ summary_row_values }{ 'final_well_assay_complete' }  = $stored_values{ stored_final_well_assay_complete };
     $params->{ summary_row_values }{ 'final_well_created_ts' }      = $stored_values{ stored_final_well_created_ts };
     $params->{ summary_row_values }{ 'final_well_accepted' }        = $stored_values{ stored_final_well_accepted };
-    
+
     $params->{ summary_row_values }{ 'final_backbone_name' }        = $stored_values{ stored_final_backbone_name };
     $params->{ summary_row_values }{ 'final_cassette_name' }        = $stored_values{ stored_final_cassette_name };
     $params->{ summary_row_values }{ 'final_qc_seq_pass' }          = $stored_values{ stored_final_qc_seq_pass };
@@ -300,7 +300,7 @@ sub fetch_values_for_type_FINAL_PICK {
     $params->{ summary_row_values }{ 'final_pick_well_assay_complete' }  = $stored_values{ stored_final_pick_well_assay_complete };
     $params->{ summary_row_values }{ 'final_pick_well_created_ts' }      = $stored_values{ stored_final_pick_well_created_ts };
     $params->{ summary_row_values }{ 'final_pick_well_accepted' }        = $stored_values{ stored_final_pick_well_accepted };
-    
+
     $params->{ summary_row_values }{ 'final_pick_backbone_name' }        = $stored_values{ stored_final_pick_backbone_name };
     $params->{ summary_row_values }{ 'final_pick_cassette_name' }        = $stored_values{ stored_final_pick_cassette_name };
     $params->{ summary_row_values }{ 'final_pick_qc_seq_pass' }          = $stored_values{ stored_final_pick_qc_seq_pass };
@@ -338,8 +338,8 @@ sub fetch_values_for_type_DNA {
     $params->{ summary_row_values }{ 'dna_plate_name' }          = $stored_values{ stored_dna_plate_id };
     $params->{ summary_row_values }{ 'dna_well_assay_complete' } = $stored_values{ stored_dna_well_assay_complete };
     $params->{ summary_row_values }{ 'dna_well_created_ts' }     = $stored_values{ stored_dna_well_created_ts };
-    $params->{ summary_row_values }{ 'dna_well_accepted' }       = $stored_values{ stored_dna_well_accepted }; 
-    
+    $params->{ summary_row_values }{ 'dna_well_accepted' }       = $stored_values{ stored_dna_well_accepted };
+
     $params->{ summary_row_values }{ 'dna_quality' }             = $stored_values{ stored_dna_quality };
     $params->{ summary_row_values }{ 'dna_status_pass' }         = $stored_values{ stored_dna_status_pass };
     $params->{ summary_row_values }{ 'dna_qc_seq_pass' }         = $stored_values{ stored_dna_qc_seq_pass };
@@ -374,12 +374,12 @@ sub fetch_values_for_type_EP {
     $params->{ summary_row_values }{ 'ep_plate_name' }             = $stored_values{ stored_ep_plate_id };
     $params->{ summary_row_values }{ 'ep_well_assay_complete' }    = $stored_values{ stored_ep_well_assay_complete };
     $params->{ summary_row_values }{ 'ep_well_created_ts' }        = $stored_values{ stored_ep_well_created_ts };
-    $params->{ summary_row_values }{ 'ep_well_accepted' }          = $stored_values{ stored_ep_well_accepted }; 
+    $params->{ summary_row_values }{ 'ep_well_accepted' }          = $stored_values{ stored_ep_well_accepted };
 
-    $params->{ summary_row_values }{ 'ep_colonies_rem_unstained' } = $stored_values{ stored_ep_colonies_rem_unstained }; 
-    $params->{ summary_row_values }{ 'ep_colonies_total' }         = $stored_values{ stored_ep_colonies_total }; 
-    $params->{ summary_row_values }{ 'ep_colonies_picked' }        = $stored_values{ stored_ep_colonies_picked }; 
-    $params->{ summary_row_values }{ 'ep_first_cell_line_name' }   = $stored_values{ stored_ep_first_cell_line_name }; 
+    $params->{ summary_row_values }{ 'ep_colonies_rem_unstained' } = $stored_values{ stored_ep_colonies_rem_unstained };
+    $params->{ summary_row_values }{ 'ep_colonies_total' }         = $stored_values{ stored_ep_colonies_total };
+    $params->{ summary_row_values }{ 'ep_colonies_picked' }        = $stored_values{ stored_ep_colonies_picked };
+    $params->{ summary_row_values }{ 'ep_first_cell_line_name' }   = $stored_values{ stored_ep_first_cell_line_name };
     return;
 }
 
@@ -407,9 +407,9 @@ sub fetch_values_for_type_EP_PICK {
     $params->{ summary_row_values }{ 'ep_pick_plate_name' }           = $stored_values{ stored_ep_pick_plate_id };
     $params->{ summary_row_values }{ 'ep_pick_well_assay_complete' }  = $stored_values{ stored_ep_pick_well_assay_complete };
     $params->{ summary_row_values }{ 'ep_pick_well_created_ts' }      = $stored_values{ stored_ep_pick_well_created_ts };
-    $params->{ summary_row_values }{ 'ep_pick_well_accepted' }        = $stored_values{ stored_ep_pick_well_accepted }; 
+    $params->{ summary_row_values }{ 'ep_pick_well_accepted' }        = $stored_values{ stored_ep_pick_well_accepted };
 
-    $params->{ summary_row_values }{ 'ep_pick_qc_seq_pass' }          = $stored_values{ stored_ep_pick_qc_seq_pass }; 
+    $params->{ summary_row_values }{ 'ep_pick_qc_seq_pass' }          = $stored_values{ stored_ep_pick_qc_seq_pass };
     # valid primers?
     return;
 }
@@ -438,9 +438,9 @@ sub fetch_values_for_type_SEP {
     $params->{ summary_row_values }{ 'sep_plate_name' }            = $stored_values{ stored_sep_plate_id };
     $params->{ summary_row_values }{ 'sep_well_assay_complete' }   = $stored_values{ stored_sep_well_assay_complete };
     $params->{ summary_row_values }{ 'sep_well_created_ts' }       = $stored_values{ stored_sep_well_created_ts };
-    $params->{ summary_row_values }{ 'sep_well_accepted' }         = $stored_values{ stored_sep_well_accepted }; 
+    $params->{ summary_row_values }{ 'sep_well_accepted' }         = $stored_values{ stored_sep_well_accepted };
 
-    $params->{ summary_row_values }{ 'sep_second_cell_line_name' } = try{ $params->{ curr_well }->second_cell_line->name }; # second cell line name
+    $params->{ summary_row_values }{ 'sep_second_cell_line_name' } = $stored_values{ stored_sep_second_cell_line_name };
     # colony count or only on EP?
     return;
 }
@@ -469,9 +469,9 @@ sub fetch_values_for_type_SEP_PICK {
     $params->{ summary_row_values }{ 'sep_pick_plate_name' }            = $stored_values{ stored_sep_pick_plate_id };
     $params->{ summary_row_values }{ 'sep_pick_well_assay_complete' }   = $stored_values{ stored_sep_pick_well_assay_complete };
     $params->{ summary_row_values }{ 'sep_pick_well_created_ts' }       = $stored_values{ stored_sep_pick_well_created_ts };
-    $params->{ summary_row_values }{ 'sep_pick_well_accepted' }         = $stored_values{ stored_sep_pick_well_accepted }; 
+    $params->{ summary_row_values }{ 'sep_pick_well_accepted' }         = $stored_values{ stored_sep_pick_well_accepted };
 
-    $params->{ summary_row_values }{ 'sep_pick_qc_seq_pass' }           = $stored_values{ stored_sep_pick_qc_seq_pass }; 
+    $params->{ summary_row_values }{ 'sep_pick_qc_seq_pass' }           = $stored_values{ stored_sep_pick_qc_seq_pass };
     # valid primers?
     return;
 }
@@ -498,7 +498,7 @@ sub fetch_values_for_type_FP {
     $params->{ summary_row_values }{ 'fp_plate_name' }            = $stored_values{ stored_fp_plate_id };
     $params->{ summary_row_values }{ 'fp_well_assay_complete' }   = $stored_values{ stored_fp_well_assay_complete };
     $params->{ summary_row_values }{ 'fp_well_created_ts' }       = $stored_values{ stored_fp_well_created_ts };
-    $params->{ summary_row_values }{ 'fp_well_accepted' }         = $stored_values{ stored_fp_well_accepted }; 
+    $params->{ summary_row_values }{ 'fp_well_accepted' }         = $stored_values{ stored_fp_well_accepted };
     return;
 }
 
@@ -524,7 +524,7 @@ sub fetch_values_for_type_SFP {
     $params->{ summary_row_values }{ 'sfp_plate_name' }            = $stored_values{ stored_sfp_plate_id };
     $params->{ summary_row_values }{ 'sfp_well_assay_complete' }   = $stored_values{ stored_sfp_well_assay_complete };
     $params->{ summary_row_values }{ 'sfp_well_created_ts' }       = $stored_values{ stored_sfp_well_created_ts };
-    $params->{ summary_row_values }{ 'sfp_well_accepted' }         = $stored_values{ stored_sfp_well_accepted }; 
+    $params->{ summary_row_values }{ 'sfp_well_accepted' }         = $stored_values{ stored_sfp_well_accepted };
     return;
 }
 
@@ -646,8 +646,6 @@ sub fetch_well_colony_count_remaining_unstained {
 sub insert_summary_row_via_dbix {
     my $summary_data = shift;
 
-	### $summary_data
-	
     my $result = try { $model->schema->resultset('Summary')->create($summary_data) } catch { ERROR "Error inserting well, Exception:".$_};
 
 	return defined $result ? 1 : 0; # if defined return 1 else 0

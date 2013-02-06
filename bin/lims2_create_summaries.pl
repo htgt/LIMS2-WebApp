@@ -7,9 +7,9 @@ use LIMS2::Model;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
 use Parallel::ForkManager;                  # Running multiple processes
 use Try::Tiny;                              # Exception handling
-use Const::Fast;							# Constant variables
+use Const::Fast;                            # Constant variables
 use Getopt::Long;                           # Command line options
-use Log::Log4perl ':easy';					# DEBUG to INFO to WARN to ERROR to LOGDIE
+use Log::Log4perl ':easy';                  # DEBUG to INFO to WARN to ERROR to LOGDIE
 
 #------------------------------------------------------------------
 #  Variables
@@ -37,7 +37,7 @@ GetOptions(
 # initialise logging
 Log::Log4perl->easy_init( { level => $loglevel, layout => '%p %m%n' } );
 
-$num_concurrent_processes //= $DEFAULT_NUM_CONC_PROCS;	# if not defined populate with default
+$num_concurrent_processes //= $DEFAULT_NUM_CONC_PROCS; # if not defined populate with default
 #$num_concurrent_processes = $num_concurrent_processes ? $num_concurrent_processes:$DEFAULT_NUM_CONC_PROCS;	# if not defined populate with default
 
 my $start_time=localtime;
@@ -78,7 +78,7 @@ if($design_well_id) {
             columns             => [ 'id' ],
         }
     );
-	
+
    # select ids out of well row objects into well ids array
    @design_well_ids = $well_rows_rs->get_column( 'id' )->all;
 }
