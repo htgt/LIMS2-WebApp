@@ -13,10 +13,10 @@ use Sub::Exporter -setup => {
 my %RANKING = (
     na        => 7, #na should never be overwritten
     pass      => 6,
-    present   => 5,
-    potential => 4,
-    passb     => 3,
-    fail      => 2,
+    passb     => 5,
+    fail      => 4,
+    present   => 3,
+    potential => 2,
     fa        => 1, #Failed Assay
 );
 

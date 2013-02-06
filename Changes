@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.042     2013-01-10 11:38:57 Europe/London
+
+	Fixed bug in QC test result retrieval
+
+0.041     2013-01-09 13:28:42 Europe/London
+
+    Added forms to append recombinase to a process attached to a well and add colony counts to a well. 
+
 0.040     2013-01-09 11:48:39 Europe/London
 
 	Added plate relation view

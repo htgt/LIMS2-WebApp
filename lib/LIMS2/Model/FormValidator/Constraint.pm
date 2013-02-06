@@ -78,6 +78,10 @@ sub phase {
     return in_set( 0, 1, 2, -1 );
 }
 
+sub boolean_string {
+    return in_set( 'true', 'false' );
+}
+
 sub boolean {
     return in_set( 0, 1 );
 }
@@ -112,14 +116,14 @@ sub integer {
 sub confidence_float {
     return sub {
         my $val = shift;
-        return $val =~ qr/^\d+\.\d+$/ ;
+        return $val =~ qr/^[<>]?\s*\d+(\.\d+)?$/ ;
     }
 }
 
 sub copy_float {
     return sub {
         my $val = shift;
-        return $val =~ qr/^\d+\.\d+$/ ;
+        return $val =~ qr/^\d+(\.\d+)?$/ ;
     }
 }
 

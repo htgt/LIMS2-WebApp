@@ -93,6 +93,22 @@ sub pspec_create_plate_comment {
     };
 }
 
+=item create_plate
+
+The optional wells parameter takes an ArrayRef of hashes which contain the following params:
+
+well_name
+parent_plate (name)
+parent_well (name)
+accepted (boolean - optional)
+process_type
+...any additional process data which is required for the specific process type, e.g. cassette
+
+See module LIMS2::Model::Util::CreateProcess to find out what process data is required
+for each process type
+
+=cut
+
 sub create_plate {
     my ( $self, $params ) = @_;
 
