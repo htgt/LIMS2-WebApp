@@ -609,8 +609,10 @@ sub create_qc_template_from_csv{
 	my $well_hash;
 
 	for my $datum (@{$well_data}){
-		my $name = $datum->{well_name};
-        $well_hash->{$name}->{well_name} = $datum->{source_well};
+		# We uppercase all well and source well names so that csv
+		# input values are case insensitive
+		my $name = uc( $datum->{well_name} );
+        $well_hash->{$name}->{well_name} = uc( $datum->{source_well} );
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
         $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
         $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
