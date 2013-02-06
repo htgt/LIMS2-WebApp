@@ -144,7 +144,9 @@ sub retrieve_qc_templates {
 # Retrieve single QC template by ID
 sub pspec_retrieve_qc_template {
     return {
-        id      => { validate => 'integer' },
+        id      => { validate => 'integer', optional => 1 },
+        name    => { validate => 'existing_qc_template_name', optional => 1},
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
     };
 }
 
@@ -153,8 +155,16 @@ sub retrieve_qc_template {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_template );
 
+    my %search;
+    if ($validated_params->{name}){
+    	$search{'me.name'} = $validated_params->{name};
+    }
+    if ($validated_params->{id}){
+    	$search{'me.id'} = $validated_params->{id};
+    }
+
     my $template = $self->retrieve(
-        'QcTemplate' => { 'me.id' => $validated_params->{id} },
+        'QcTemplate' => \%search,
         { prefetch => 'qc_template_wells' }
     );
 
