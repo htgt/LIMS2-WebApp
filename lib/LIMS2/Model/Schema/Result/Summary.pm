@@ -854,21 +854,21 @@ sub satisfies_cassette_function{
 	if (defined $function->well_has_cre){
 		if ($function->well_has_cre){
 			# well must have cre
-			return 0 unless defined $final_well_recom and $final_well_recom =~ /cre/i;
+			return 0 unless $final_well_recom and $final_well_recom =~ /cre/i;
 		}
 		else{
 			# well must not have cre
-			return 0 if defined $final_well_recom and $final_well_recom =~ /cre/i;
+			return 0 if $final_well_recom and $final_well_recom =~ /cre/i;
 		}
 	}
 	
 	if (defined $function->well_has_no_recombinase){
 		if ($function->well_has_no_recombinase){
-			return 0 if defined $final_well_recom;
+			return 0 if $final_well_recom;
 		}
 		else{
 			# well must have some recombinase
-			return 0 unless defined $final_well_recom;
+			return 0 unless $final_well_recom;
 		}
 	}
 	
