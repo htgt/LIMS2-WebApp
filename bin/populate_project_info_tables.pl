@@ -16,13 +16,13 @@ my @projects = $schema->resultset('Project')->all;
 
 foreach my $project (@projects){
 	my $info = decode_json($project->allele_request);
-	
+
 	DEBUG "Populating project info for ".$project->id."\n";
-	
+
 	$project->gene_id($info->{gene_id});
 	$project->targeting_type($info->{targeting_type});
     $project->update;
-	
+
     if ($info->{targeting_type} eq "single_targeted"){
         $project->update_or_create_related('project_alleles',
 	        {
@@ -51,6 +51,6 @@ foreach my $project (@projects){
 	        );
 		}
 	}
-	
+
 }
 
