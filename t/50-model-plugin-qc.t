@@ -271,4 +271,17 @@ note ( "Testing List Profiles" );
     is_deeply $profiles, [ 'eucomm-cre', 'eucomm-post-cre', 'test' ], '.. profile list is correct';
 }
 
+note( "Testing Qc Run Deletion" );
+
+{
+    ok my $qc_run = model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8'  } )
+        , 'can retrieve single Qc Run';
+
+    ok model->delete_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8'  } ),
+        'can delete QC run';
+        
+    throws_ok { 
+    	model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8' } ) 
+    } qr/No QcRun entity found matching/;
+}
 done_testing();

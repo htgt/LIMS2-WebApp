@@ -468,6 +468,26 @@ sub retrieve_qc_run {
     return $qc_run;
 }
 
+sub delete_qc_run {
+	my ( $self, $params ) = @_;
+	
+	# This will validate params
+	my $qc_run = $self->retrieve_qc_run($params);
+
+    $qc_run->delete_related('qc_run_seq_projects');
+    
+    foreach my $well ($qc_run->search_related('qc_run_seq_wells')){
+        $well->delete_related('qc_run_seq_well_qc_seq_reads');
+        $well->delete_related('qc_test_results');
+    }
+    
+    $qc_run->delete_related('qc_run_seq_wells');
+    
+    $qc_run->delete;
+    
+    return 1;	
+}
+
 sub pspec_retrieve_qc_run_seq_well {
     return {
         qc_run_id  => { validate => 'uuid' },
