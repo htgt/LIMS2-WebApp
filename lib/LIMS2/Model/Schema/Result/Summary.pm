@@ -834,10 +834,10 @@ sub satisfies_cassette_function{
 
 	# No point doing these checks unless we have a final well
 	return 0 unless defined $self->final_well_id;
-	
+
 	ref($function) eq "LIMS2::Model::Schema::Result::CassetteFunction"
 	    or die "You must provide a CassetteFunction to satisfies_cassette_function. Got a ".ref($function);
-	
+
 	# If property, e.g. conditional, is specified true/false by CassetteFunction 
 	# then it must match the value of final_cassette_<property>
 	foreach my $property qw(conditional promoter cre){
@@ -848,7 +848,7 @@ sub satisfies_cassette_function{
 			return 0 unless defined($found_value) and $found_value eq $required_value;
 		}
 	}
-	
+
 	# We also need to check the recombinase status of the final well
 	my $final_well_recom = $self->final_recombinase_id;
 	if (defined $function->well_has_cre){
@@ -861,7 +861,7 @@ sub satisfies_cassette_function{
 			return 0 if $final_well_recom and $final_well_recom =~ /cre/i;
 		}
 	}
-	
+
 	if (defined $function->well_has_no_recombinase){
 		if ($function->well_has_no_recombinase){
 			return 0 if $final_well_recom;
@@ -871,7 +871,7 @@ sub satisfies_cassette_function{
 			return 0 unless $final_well_recom;
 		}
 	}
-	
+
 	# If we haven't returned 0 yet then the well satisfies 
 	# the cassette function rules
 	return 1;

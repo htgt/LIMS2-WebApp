@@ -137,9 +137,9 @@ sub _find_project_wells_2 {
     my $sponsor = $project->sponsor_id;
 
     my %wells;
-    
+
     DEBUG "finding wells for project ".$project->id;
-    
+
     # We have to process the categories in order because, e.g. finding DNA
     # wells depends on vector wells having already been identified
     foreach my $name (sort { $REPORT_CATAGORIES{$a}->{order} <=> $REPORT_CATAGORIES{$b}->{order} }
@@ -165,122 +165,124 @@ sub design_types_for {
     }
 
     $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );
+
+    return;
 }
 
 sub genes{
 	my ($self, $project, $wells) = @_;
 
     DEBUG "finding genes";
-    
+
     # This just counts all projects that have associated gene IDs...
     return $project->gene_id ? 1 : 0;
 }
 
 sub vectors{
 	my ($self, $project, $wells, $allele) = @_;
-	
+
 	my $category;
 	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
 		$category = 'vectors';
 	}
-		
-	return undef unless $allele;
-    
+
+	return 0 unless $allele;
+
     DEBUG "finding $allele allele vectors";
-    
+
     $category ||= $allele.'_vectors';
-    
+
     # Find the cassette function specification for this allele
     my $project_allele = $project->project_alleles->find({ allele_type => $allele });
     my $function = $project_allele->cassette_function;
-      
+
     # Find all final vectors matching project gene_id, mutation type and satisfying
     # the cassette function for this allele
     my @matching_rows;
     my $gene = $project->gene_id;
     my $design_types = $self->design_types_for($project_allele->mutation_type);
-        
+
     # FIXME: should be filtering on species too
-    my $where = { 
-    	design_gene_id => $gene, 
-    	final_well_id => { '!=', undef }, 
-    	design_type => {-in => $design_types },
+    my $where = {
+        design_gene_id => $gene,
+        final_well_id => { '!=', undef },
+        design_type => {-in => $design_types },
     };
     my $summary_rs = $self->model->schema->resultset('Summary')->search($where);
 
     while (my $summary = $summary_rs->next){
     	push @matching_rows, $summary if $summary->satisfies_cassette_function($function);
     }
-    
+
     # Store matching rows for subsequent queries
     $wells->{$category} = \@matching_rows;
-    
-    return @matching_rows ? 1 : 0; 
+
+    return @matching_rows ? 1 : 0;
 }
 
 sub first_vectors{
 	my ($self, $project, $wells) = @_;
-	
-	return undef 
+
+	return 0
 	    unless $project->targeting_type eq "double_targeted";
-	
+
 	return $self->vectors($project, $wells, 'first');
 }
 
 sub second_vectors{
 	my ($self, $project, $wells) = @_;
 
-	return undef 
+	return 0
 	    unless $project->targeting_type eq "double_targeted";
-	    	
-	return $self->vectors($project, $wells, 'second');	
+
+	return $self->vectors($project, $wells, 'second');
 }
 
 sub dna{
 	my ($self, $project, $wells, $allele) = @_;
-	
+
 	my $vector_category;
 	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
 		$vector_category = 'vectors';
 	}
-	
-	return undef unless $allele;
+
+	return 0 unless $allele;
 
     DEBUG "finding $allele allele DNA";
-    	
+
 	$vector_category ||= $allele.'_vectors';
-		
+
 	# Find any DNA wells created from vector wells which have dna_status_pass
     foreach my $summary (@{ $wells->{$vector_category} || [] }){
     	return 1 if $summary->dna_status_pass;
     }
-    
+
     return 0;
 }
 
 sub first_dna{
 	my ($self, $project, $wells) = @_;
 
-	return undef 
+	return 0
 	    unless $project->targeting_type eq "double_targeted";
-	    	
-	return $self->dna($project, $wells, 'first');	
+
+	return $self->dna($project, $wells, 'first');
 }
 
 sub second_dna{
 	my ($self, $project, $wells) = @_;
 
-	return undef 
+	return 0
 	    unless $project->targeting_type eq "double_targeted";
-	    	
-	return $self->dna($project, $wells, 'second');		
+
+	return $self->dna($project, $wells, 'second');
 }
 
 sub ep{
 	my ($self, $project, $wells, $allele) = @_;
-	
+
 	my ($ep_well, $vector_category, $ep_category);
 	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
@@ -289,7 +291,7 @@ sub ep{
 		$ep_category = 'ep';
 	}
 	else{
-		return undef unless $allele;
+		return 0 unless $allele;
 		if($allele eq 'first'){
 			$ep_well = 'ep_well_id';
 			$vector_category = 'first_vectors';
@@ -298,45 +300,45 @@ sub ep{
 		elsif($allele eq 'second'){
 			$ep_well = 'sep_well_id';
 			$vector_category = 'second_vectors';
-			$ep_category = 'second_ep';			
+			$ep_category = 'second_ep';
 		}
 	}
-	
+
 	DEBUG "finding $allele allele electroporations";
-	    
+
 	# Find EP/SEP wells created from vector wells
 	my @matching_rows;
     foreach my $summary (@{ $wells->{$vector_category} || [] }){
     	push @matching_rows, $summary if $summary->$ep_well;
-    }	
-	
+    }
+
 	# Store for subsequent queries
 	$wells->{$ep_category} = \@matching_rows;
-	
+
 	return @matching_rows ? 1 : 0;
 }
 
 sub first_ep{
 	my ($self, $project, $wells) = @_;
 
-	return undef 
+	return 0
 	    unless $project->targeting_type eq "double_targeted";
-	    	
-	return $self->ep($project, $wells, 'first');	
+
+	return $self->ep($project, $wells, 'first');
 }
 
 sub second_ep{
 	my ($self, $project, $wells) = @_;
 
-	return undef 
+	return 0
 	    unless $project->targeting_type eq "double_targeted";
-	    	
-	return $self->ep($project, $wells, 'second');	
+
+	return $self->ep($project, $wells, 'second');
 }
 
 sub clones{
 	my ($self, $project, $wells, $allele) = @_;
-	
+
 	my ($clone_accepted, $ep_category);
 	if ($project->targeting_type eq "single_targeted"){
 		$allele = 'first';
@@ -344,67 +346,44 @@ sub clones{
 		$ep_category = 'ep';
 	}
 	else{
-		return undef unless $allele;
+		return 0 unless $allele;
 		if($allele eq 'first'){
 			$clone_accepted = 'ep_pick_well_accepted';
 			$ep_category = 'first_ep';
 		}
 		elsif($allele eq 'second'){
 			$clone_accepted = 'sep_pick_well_accepted';
-			$ep_category = 'second_ep';			
+			$ep_category = 'second_ep';
 		}
 	}
-	
+
     DEBUG "finding $allele allele clones";
-	    
+
 	# Find EP_PICK/SEP_PICK wells created from EP/SEP wells	
 	# which have is_accepted flag
 	foreach my $summary (@{ $wells->{$ep_category} || [] }){
 		return 1 if $summary->$clone_accepted;
 	}
-	
+
 	return 0;
 }
 
 sub first_clones{
 	my ($self, $project, $wells) = @_;
-	
-	return undef 
-	    unless $project->targeting_type eq "double_targeted";	
+
+	return 0
+	    unless $project->targeting_type eq "double_targeted";
 
 	return $self->clones($project, $wells, 'first');
 }
 
 sub second_clones{
 	my ($self, $project, $wells) = @_;
-	
-	return undef 
+
+	return 0
 	    unless $project->targeting_type eq "double_targeted";
-	    	
+
 	return $self->clones($project, $wells, 'second');
-}
-
-sub _find_project_wells {
-    my ( $self, $project, $arf, $sponsor_data ) = @_;
-
-    my $sponsor = $project->sponsor_id;
-
-    my $ar = $arf->allele_request( decode_json( $project->allele_request ) );
-
-    while ( my( $name, $catagory ) = each %REPORT_CATAGORIES ) {
-        my $well_type = $catagory->{well_type} || '';
-
-        if ( exists $catagory->{validation} ) {
-            $sponsor_data->{$name}{$sponsor}++
-                if $catagory->{validation}->( $ar, $well_type );
-        }
-        else {
-            $sponsor_data->{$name}{$sponsor}++
-                if has_wells_of_type( $ar, $well_type );
-        }
-    }
-
-    return;
 }
 
 override _build_name => sub {

@@ -403,7 +403,7 @@ sub depth_first_traversal_with_trails {
     $depth++;
 
     $well_list = [] unless $well_list;
-    
+
     # add the current node onto the well list and current trail
     push( @{$well_list}, $node);
     push @{$current_trail}, $node;

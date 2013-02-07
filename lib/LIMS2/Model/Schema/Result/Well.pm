@@ -589,7 +589,7 @@ sub first_cell_line {
     my $self = shift;
 
     my $electroporation = $self->ancestors->find_process( $self, 'process_cell_line' );
-    
+
     return $electroporation ? $electroporation->cell_line : undef;
 }
 
