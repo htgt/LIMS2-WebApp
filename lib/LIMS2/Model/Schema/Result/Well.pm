@@ -584,6 +584,23 @@ sub recombinases {
     return [ map { $_->recombinase_id } @recombinases ];
 }
 
+# fetches first cell line
+sub first_cell_line {
+    my $self = shift;
+
+    my $electroporation = $self->ancestors->find_process( $self, 'process_cell_line' );
+
+    return $electroporation ? $electroporation->cell_line : undef;
+}
+
+# fetches second cell line
+sub second_cell_line {
+    my $self = shift;
+
+    my $electroporation = $self->second_electroporation_process;
+
+    return $electroporation ? $electroporation->process_cell_line : undef;
+}
 
 sub design {
     my $self = shift;

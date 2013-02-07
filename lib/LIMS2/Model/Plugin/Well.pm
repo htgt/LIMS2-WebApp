@@ -94,7 +94,7 @@ sub delete_well {
     if ( my @qc_template_wells = $well->qc_template_wells){
     	my @qc_templates = map { $_->qc_template->name } @qc_template_wells;
     	$self->throw( InvalidState => "Cannot delete well ".$well->name." as it is used by QC templates: "
-    	                              .join ",", uniq @qc_templates
+    	                              .(join ", ", uniq @qc_templates )
     	                              .". Delete the QC template first" );
     }
 
