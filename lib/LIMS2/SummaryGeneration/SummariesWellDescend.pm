@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 
 use strict;
@@ -7,7 +6,6 @@ use LIMS2::Model;
 use List::MoreUtils qw(uniq any);
 use Try::Tiny;                              # Exception handling
 use Log::Log4perl ':easy';                  # DEBUG to INFO to WARN to ERROR to LOGDIE
-#use Smart::Comments;
 
 #------------------------------------------------------------------
 #  Variables
@@ -19,10 +17,10 @@ my $well_inserts_succeeded = 0; # count of inserts
 my $well_inserts_failed = 0; # count of failures
 
 #------------------------------------------------------------------
-#  Accessible method
+#  Accessible methods
 #------------------------------------------------------------------
-# Determine well decendants and write result string
-sub well_descendants {
+# Given a design well id, generate summaries for all leaf nodes in well hierarchy and return result counts
+sub generate_summary_rows_for_design_well {
 
     # passed design well ID, output LOG filepath
     my $design_well_id = shift;
@@ -30,7 +28,7 @@ sub well_descendants {
     my %results;
 
     try {
-        _well_descendants($design_well_id);
+        generate_summary_rows_for_all_trails($design_well_id);
         $results{ exit_code } = 0;
         $results{ count_deletes } = $wells_deleted;
         $results{ count_inserts } = $well_inserts_succeeded;
@@ -44,7 +42,12 @@ sub well_descendants {
     return \%results;
 }
 
-sub _well_descendants {
+#------------------------------------------------------------------
+#  Internal methods
+#------------------------------------------------------------------
+# Given a design well id, generate and insert summaries for all leaf nodes in well hierarchy
+sub generate_summary_rows_for_all_trails {
+
     my $design_well_id = shift;
 
     my $design_well = try { $model->retrieve_well( { id => $design_well_id } ) };
@@ -68,10 +71,6 @@ sub _well_descendants {
     # dereference trails array
     my @design_well_trails = @{$all_trails};
 
-    #TODO: can we weaken the circular ref within design_well here?
-    $design_well = undef;                                   # free memory
-    $well_list = undef;
-
     my $trails_index = 0;
     while ( $design_well_trails[$trails_index] ) {
 
@@ -89,8 +88,6 @@ sub _well_descendants {
 
             # create the output array for this well
             add_to_output_for_well($params);
-
-            $curr_well = undef;             # memory clear up
         }
 
         # insert to DB
@@ -127,6 +124,7 @@ sub add_to_output_for_well {
 
     DEBUG caller()." Processing type = $curr_plate_type_id";
 
+    #TODO: Use a dispatch table or call method by appending plate type
     fetch_values_for_type_DESIGN($params)     if ($curr_plate_type_id eq 'DESIGN');
     fetch_values_for_type_INT($params)        if ($curr_plate_type_id eq 'INT');
     fetch_values_for_type_FINAL($params)      if ($curr_plate_type_id eq 'FINAL');
@@ -151,7 +149,7 @@ sub fetch_values_for_type_DESIGN {
 
 	if( (not exists $stored_values{ stored_design_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_design_well_id }) ) {
 		# different well to previous cycle, so must fetch and store new values
-        DEBUG caller()."Fetching new values for DESIGN well : ".$params->{ curr_well }->id;
+        DEBUG caller()." Fetching new values for DESIGN well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_design_well_id' }             = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_design_well_name' }           = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_design_plate_id' }            = $params->{ curr_well }->plate->id; # plate id
@@ -195,7 +193,7 @@ sub fetch_values_for_type_INT {
 
     if( (not exists $stored_values{ stored_int_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_int_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for INT well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for INT well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_int_well_id' }             = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_int_well_name' }           = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_int_plate_id' }            = $params->{ curr_well }->plate->id; # plate id
@@ -232,7 +230,7 @@ sub fetch_values_for_type_FINAL {
 
     if( (not exists $stored_values{ stored_final_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_final_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for FINAL well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for FINAL well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_final_well_id' }              = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_final_well_name' }            = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_final_plate_id' }             = $params->{ curr_well }->plate->id; # plate id
@@ -275,7 +273,7 @@ sub fetch_values_for_type_FINAL_PICK {
 
     if( (not exists $stored_values{ stored_final_pick_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_final_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for FINAL_PICK well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for FINAL_PICK well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_final_pick_well_id' }              = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_final_pick_well_name' }            = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_final_pick_plate_id' }             = $params->{ curr_well }->plate->id; # plate id
@@ -318,7 +316,7 @@ sub fetch_values_for_type_DNA {
 
     if( (not exists $stored_values{ stored_dna_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_dna_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for DNA well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for DNA well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_dna_well_id' }              = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_dna_well_name' }            = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_dna_plate_id' }             = $params->{ curr_well }->plate->id; # plate id
@@ -353,7 +351,7 @@ sub fetch_values_for_type_EP {
 
     if( (not exists $stored_values{ stored_ep_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_ep_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for EP well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for EP well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_ep_well_id' }                = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_ep_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_ep_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
@@ -389,7 +387,7 @@ sub fetch_values_for_type_EP_PICK {
 
     if( (not exists $stored_values{ stored_ep_pick_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_ep_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for EP_PICK well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for EP_PICK well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_ep_pick_well_id' }                = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_ep_pick_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_ep_pick_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
@@ -420,7 +418,7 @@ sub fetch_values_for_type_SEP {
 
     if( (not exists $stored_values{ stored_sep_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_sep_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for SEP well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for SEP well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_sep_well_id' }                = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_sep_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_sep_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
@@ -451,7 +449,7 @@ sub fetch_values_for_type_SEP_PICK {
 
     if( (not exists $stored_values{ stored_sep_pick_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_sep_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for SEP_PICK well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for SEP_PICK well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_sep_pick_well_id' }                = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_sep_pick_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_sep_pick_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
@@ -482,7 +480,7 @@ sub fetch_values_for_type_FP {
 
     if( (not exists $stored_values{ stored_fp_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_fp_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for FP well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for FP well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_fp_well_id' }                = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_fp_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_fp_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
@@ -508,7 +506,7 @@ sub fetch_values_for_type_SFP {
 
     if( (not exists $stored_values{ stored_sfp_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_sfp_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()."Fetching new values for SFP well : ".$params->{ curr_well }->id;
+		DEBUG caller()." Fetching new values for SFP well : ".$params->{ curr_well }->id;
 		$stored_values{ 'stored_sfp_well_id' }                = $params->{ curr_well }->id; # well id
         $stored_values{ 'stored_sfp_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values{ 'stored_sfp_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
@@ -527,27 +525,6 @@ sub fetch_values_for_type_SFP {
     $params->{ summary_row_values }{ 'sfp_well_accepted' }         = $stored_values{ stored_sfp_well_accepted };
     return;
 }
-
-# well qc sequencing test result, if any
-#sub fetch_well_qc_sequencing_result {
-#    my $well = shift;
-#   my $qc_result = try{ $well->well_qc_sequencing_result->pass };
-#    return $qc_result;
-#}
-
-# well first cell line name, if any
-#sub fetch_well_first_cell_line {
-#    my $well = shift;
-#    my $cell_line = try { $well->first_cell_line->name };   
-#    return $cell_line;
-#}
-
-# well second cell line name, if any
-#sub fetch_well_second_cell_line {
-#    my $well = shift;
-#    my $cell_line = try{ $well->second_cell_line->name };
-#    return $cell_line;
-#}
 
 # BACS ids as a simple combined field, if any
 sub fetch_well_bacs_string {
@@ -623,24 +600,6 @@ sub fetch_well_colony_count_remaining_unstained {
     }
     return;
 }
-
-# dna quality for a well, if exists
-#sub fetch_well_dna_quality {
-#    my $well = shift;
-#    return try { $well->well_dna_quality->quality }; # well dna quality e.g. M, L, ML, U
-#}
-
-# dna status for a well, if exists
-#sub fetch_well_dna_status {
-#    my $well = shift;
-#    return try { $well->well_dna_status->pass }; 
-#}
-
-# recombinase used, if any
-#sub fetch_well_process_recombinase {
-#    my $well = shift;
-#    return join( '_', @{$well->recombinases});
-#}
 
 # insert row into database
 sub insert_summary_row_via_dbix {

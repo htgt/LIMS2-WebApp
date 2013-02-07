@@ -41,7 +41,6 @@ $num_concurrent_processes //= $DEFAULT_NUM_CONC_PROCS; # if not defined populate
 #$num_concurrent_processes = $num_concurrent_processes ? $num_concurrent_processes:$DEFAULT_NUM_CONC_PROCS;	# if not defined populate with default
 
 my $start_time=localtime;
-DEBUG "Start time: $start_time";
 
 #------------------------------------------------------------------
 #  Process wells
@@ -83,7 +82,7 @@ if($design_well_id) {
    @design_well_ids = $well_rows_rs->get_column( 'id' )->all;
 }
 
-DEBUG scalar(@design_well_ids)." well(s) identified at : ".localtime;
+INFO "LIMS2 Summary data generation: ".scalar(@design_well_ids)." design well id(s) identified at : ".localtime;
 
 #------------------------------------------------------------------
 #  Process wells to fetch summary data use multiple FORKS
@@ -102,11 +101,11 @@ $pm->run_on_finish(
         {
             if($exit_code == 0) {
                 $processes_succeeded++;
-                DEBUG "Well ID $ident : OK   : Exit code = $exit_code Total process successes/fails $processes_succeeded/$processes_failed\n";
+                DEBUG "LIMS2 Summary data generation: Well ID $ident : OK   : Exit code = $exit_code Total process successes/fails $processes_succeeded/$processes_failed\n";
             } else {
                 $processes_failed++;
                 $stop_run = 1;
-                ERROR "Well ID $ident : FAIL : Exit code = $exit_code Total process successes/fails $processes_succeeded/$processes_failed\n";
+                ERROR "LIMS2 Summary data generation: Well ID $ident : FAIL : Exit code = $exit_code Total process successes/fails $processes_succeeded/$processes_failed\n";
             }
         }
     }
@@ -117,7 +116,7 @@ $pm->run_on_start(
 		++$design_well_index;
 		# stagger the startup of the processes
     	#sleep(1) if $design_well_index < $num_concurrent_processes;
-        DEBUG "Well ID $ident : Started...";
+        DEBUG "LIMS2 Summary data generation: Well ID $ident : Started...";
     }
 );
 
@@ -141,19 +140,18 @@ foreach my $design_well_id (@design_well_ids) {
     # Insert design well ids into an emptied table 'summary_wells' first then and run
     # "delete from summaries where design_well_id not in(select design_well_id from summary_wells)"
     # summary_wells could even contain a processed_ts, insert_count and fail_count columns
+    # Alternate solution, add insert_ts column into table so can delete old rows as part of job.
 
     # run the summary data generation for one design well per process
-    my $results = LIMS2::SummaryGeneration::SummariesWellDescend::well_descendants($design_well_id);
-
-	#$count_deletes, $count_inserts, $count_fails
+    my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
 
 	my $exit_code = $results->{exit_code};
 
-	DEBUG "Well ID $design_well_id : Index $design_well_index of $design_wells_total : EC=$exit_code";
+	DEBUG "LIMS2 Summary data generation: Well ID $design_well_id : Index $design_well_index of $design_wells_total : EC=$exit_code";
 	if($exit_code == 0) {
-		DEBUG "Well ID $design_well_id : Deletes/Inserts/Fails = ".$results->{count_deletes}."/".$results->{count_inserts}."/".$results->{count_fails};
+		DEBUG "LIMS2 Summary data generation: Well ID $design_well_id : Deletes/Inserts/Fails = ".$results->{count_deletes}."/".$results->{count_inserts}."/".$results->{count_fails};
 	} else {
-        DEBUG "Well ID $design_well_id : Error message = ".$results->{error_msg};
+        DEBUG "LIMS2 Summary data generation: Well ID $design_well_id : Error message = ".$results->{error_msg};
 	}
 
     $pm->finish($exit_code);    # close the fork and call the callback method
@@ -162,13 +160,13 @@ foreach my $design_well_id (@design_well_ids) {
 
 $pm->wait_all_children;
 
-INFO "Processes successful/failed : $processes_succeeded/$processes_failed";
-ERROR "Processes FAILED : $processes_failed" if $processes_failed > 0;
-ERROR "ERROR: Run was ABORTED before completion!" if $stop_run;
+INFO  "LIMS2 Summary data generation: Processes successful/failed : $processes_succeeded/$processes_failed";
+ERROR "LIMS2 Summary data generation: Processes FAILED : $processes_failed" if $processes_failed > 0;
+ERROR "LIMS2 Summary data generation: ERROR: Run was ABORTED before completion!" if $stop_run;
 
 #------------------------------------------------------------------
 #  End and print out totals
 #------------------------------------------------------------------
 my $end_time=localtime;
-INFO "Start time was       : $start_time";
-INFO "Process completed at : $end_time";
+INFO "LIMS2 Summary data generation: Start time was       : $start_time";
+INFO "LIMS2 Summary data generation: Process completed at : $end_time";
