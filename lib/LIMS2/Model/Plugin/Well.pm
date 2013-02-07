@@ -94,7 +94,7 @@ sub delete_well {
     if ( my @qc_template_wells = $well->qc_template_wells){
     	my @qc_templates = map { $_->qc_template->name } @qc_template_wells;
     	$self->throw( InvalidState => "Cannot delete well ".$well->name." as it is used by QC templates: "
-    	                              .join ",", uniq @qc_templates
+    	                              .(join ", ", uniq @qc_templates )
     	                              .". Delete the QC template first" );
     }
 
@@ -1034,7 +1034,7 @@ sub create_well_genotyping_result {
 
 sub update_or_create_well_genotyping_result {
     my ( $self, $params ) = @_;
-    my $message;
+    my $message = 'No message defined yet';
     my $pspec = $self->pspec_create_well_genotyping_result;
     # The call is obligatory in the standard pspec, so set it to optional here
     # because we can update a single value that is any value assicated with the assay,
@@ -1072,21 +1072,20 @@ sub update_or_create_well_genotyping_result {
            else {
                $message = "Will not update ".$validated_params->{genotyping_result_type_id}
                          ." result ".$previous." with result ".$update_request->{call};
-               $self->log->debug($message);
            }
        }
        else {
             # The assay parameter to update is not a 'call', so no ranking needs to be applied
             my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
             my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
-            my $previous = $genotyping_result->$assay_field;
+            my $previous = $genotyping_result->$assay_field // 'undefined';
             $genotyping_result->update( $update_request );
             $message = 'Genotyping result for ' . $validated_params->{genotyping_result_type_id} . '/' . $assay_field
                 . ' updated from ' . $previous . ' to ' . $genotyping_result->$assay_field;
-                print "\n" . $message . "\n";
        }
     }
     else {
+        # We can only create a genotyping result row if there we can set the 'call' field.
         $genotyping_result = $well->create_related(
         well_genotyping_results => {
             slice_def $validated_params,
@@ -1095,6 +1094,7 @@ sub update_or_create_well_genotyping_result {
         $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                   ." created with result ".$genotyping_result->call;
     }
+    $self->log->debug( $message );
     return wantarray ? ($genotyping_result, $message) : $genotyping_result;
 }
 

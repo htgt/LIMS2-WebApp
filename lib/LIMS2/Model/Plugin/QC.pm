@@ -144,7 +144,9 @@ sub retrieve_qc_templates {
 # Retrieve single QC template by ID
 sub pspec_retrieve_qc_template {
     return {
-        id      => { validate => 'integer' },
+        id      => { validate => 'integer', optional => 1 },
+        name    => { validate => 'existing_qc_template_name', optional => 1},
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
     };
 }
 
@@ -153,8 +155,16 @@ sub retrieve_qc_template {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_template );
 
+    my %search;
+    if ($validated_params->{name}){
+    	$search{'me.name'} = $validated_params->{name};
+    }
+    if ($validated_params->{id}){
+    	$search{'me.id'} = $validated_params->{id};
+    }
+
     my $template = $self->retrieve(
-        'QcTemplate' => { 'me.id' => $validated_params->{id} },
+        'QcTemplate' => \%search,
         { prefetch => 'qc_template_wells' }
     );
 
@@ -609,8 +619,10 @@ sub create_qc_template_from_csv{
 	my $well_hash;
 
 	for my $datum (@{$well_data}){
-		my $name = $datum->{well_name};
-        $well_hash->{$name}->{well_name} = $datum->{source_well};
+		# We uppercase all well and source well names so that csv
+		# input values are case insensitive
+		my $name = uc( $datum->{well_name} );
+        $well_hash->{$name}->{well_name} = uc( $datum->{source_well} );
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
         $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
         $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
