@@ -32,6 +32,7 @@
           [% IF template_plate %]value="[% template_plate %]"[% END %]
           [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
         />
+        [% IF template_type %]<span class="label label-info">[% template_type %]</span>[% END %]
 
         <label>Profile</label>
 

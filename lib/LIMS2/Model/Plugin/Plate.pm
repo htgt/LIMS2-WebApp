@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.046';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.047';
 }
 ## use critic
 
@@ -98,6 +98,22 @@ sub pspec_create_plate_comment {
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
     };
 }
+
+=item create_plate
+
+The optional wells parameter takes an ArrayRef of hashes which contain the following params:
+
+well_name
+parent_plate (name)
+parent_well (name)
+accepted (boolean - optional)
+process_type
+...any additional process data which is required for the specific process type, e.g. cassette
+
+See module LIMS2::Model::Util::CreateProcess to find out what process data is required
+for each process type
+
+=cut
 
 sub create_plate {
     my ( $self, $params ) = @_;

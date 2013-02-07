@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.046';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.047';
 }
 ## use critic
 
@@ -23,7 +23,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id = ?
-    UNION ALL
+    UNION
     SELECT pr.id, pr_in.well_id, pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -41,7 +41,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
      WHERE pr_out.well_id = ?
-     UNION ALL
+     UNION
      SELECT pr.id, pr_in.well_id, pr_out.well_id
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
@@ -68,7 +68,8 @@ around BUILDARGS => sub {
 has start_with => (
     is       => 'ro',
     isa      => 'LIMS2::Model::Schema::Result::Well',
-    required => 1
+    required => 1,
+    weak_ref => 1,
 );
 
 has type => (
@@ -399,6 +400,33 @@ sub render {
     $graph->run( %opts );
 
     return $opts{output_file} ? () : $graph->dot_output;
+}
+
+# version of depth_first_traversal that returns distinct trails to each leaf node
+sub depth_first_traversal_with_trails {
+    my ($self, $node, $well_list, $current_trail, $all_trails, $depth) = @_;
+
+    $depth++;
+
+    $well_list = [] unless $well_list;
+
+    # add the current node onto the well list and current trail
+    push( @{$well_list}, $node);
+    push @{$current_trail}, $node;
+
+    my @outputs = $self->output_wells($node);
+
+    if(scalar(@outputs) == 0){
+        #  add the current trail (now 'complete') onto the list of all complete trails
+        push @{$all_trails}, $current_trail;
+    }else{
+        # send a copy of the current trail array to each child
+        foreach my $output_well (@outputs){
+            my @current_trail_copy = @{$current_trail};
+             $self->depth_first_traversal_with_trails ($output_well, $well_list, \@current_trail_copy, $all_trails, $depth);
+        }
+    }
+    return ($well_list, $all_trails);
 }
 
 __PACKAGE__->meta->make_immutable;

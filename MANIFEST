@@ -6,8 +6,10 @@ Makefile.PL
 README
 bin/draw_plate_relations.pl
 bin/final_vector_report.pl
+bin/lims2_create_summaries.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
+bin/populate_project_info_tables.pl
 bin/process_graph.pl
 lib/LIMS2/AlleleRequest.pm
 lib/LIMS2/AlleleRequest/DoubleTargeted.pm
@@ -40,6 +42,7 @@ lib/LIMS2/Model/Schema/Result/BacLibrary.pm
 lib/LIMS2/Model/Schema/Result/Backbone.pm
 lib/LIMS2/Model/Schema/Result/CachedReport.pm
 lib/LIMS2/Model/Schema/Result/Cassette.pm
+lib/LIMS2/Model/Schema/Result/CassetteFunction.pm
 lib/LIMS2/Model/Schema/Result/CellLine.pm
 lib/LIMS2/Model/Schema/Result/Chromosome.pm
 lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
@@ -71,6 +74,7 @@ lib/LIMS2/Model/Schema/Result/ProcessOutputWell.pm
 lib/LIMS2/Model/Schema/Result/ProcessRecombinase.pm
 lib/LIMS2/Model/Schema/Result/ProcessType.pm
 lib/LIMS2/Model/Schema/Result/Project.pm
+lib/LIMS2/Model/Schema/Result/ProjectAllele.pm
 lib/LIMS2/Model/Schema/Result/QcAlignment.pm
 lib/LIMS2/Model/Schema/Result/QcAlignmentRegion.pm
 lib/LIMS2/Model/Schema/Result/QcEngSeq.pm
@@ -93,6 +97,7 @@ lib/LIMS2/Model/Schema/Result/SchemaVersion.pm
 lib/LIMS2/Model/Schema/Result/Species.pm
 lib/LIMS2/Model/Schema/Result/SpeciesDefaultAssembly.pm
 lib/LIMS2/Model/Schema/Result/Sponsor.pm
+lib/LIMS2/Model/Schema/Result/Summary.pm
 lib/LIMS2/Model/Schema/Result/User.pm
 lib/LIMS2/Model/Schema/Result/UserPreference.pm
 lib/LIMS2/Model/Schema/Result/UserRole.pm
@@ -152,6 +157,7 @@ lib/LIMS2/ReportGenerator/Plate.pm
 lib/LIMS2/ReportGenerator/Plate/DoubleTargeted.pm
 lib/LIMS2/ReportGenerator/Plate/SingleTargeted.pm
 lib/LIMS2/ReportGenerator/ProductionDetail.pm
+lib/LIMS2/SummaryGeneration/SummariesWellDescend.pm
 lib/LIMS2/Test.pm
 lib/LIMS2/WebApp.pm
 lib/LIMS2/WebApp/Controller/API.pm
@@ -1671,6 +1677,7 @@ t/00-compile.t
 t/10-dbconnect.t
 t/10-lims2-test.t
 t/20-form-validator.t
+t/30-model-schema-summary.t
 t/40-model-util-computestatus.t
 t/40-model-util-createplate.t
 t/40-model-util-createprocess.t

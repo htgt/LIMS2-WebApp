@@ -1,3 +1,8 @@
+0.047     2013-02-07 16:01:54 Europe/London
+
+	Added summaries table and data generation process.
+	Sponser report now generated from summaries table.
+
 0.046     2013-02-05 13:56:56 Europe/London
 
     Fixed killing of QC jobs, and added colouring to table rows showing qc runs. 

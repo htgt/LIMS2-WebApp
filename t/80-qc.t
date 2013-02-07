@@ -64,7 +64,7 @@ note "Testing creation of QC template from CSV upload";
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     $test_file->print("well_name,source_plate,source_well\n"
                       . "A01,MOHFAS0001_A,B01\n"
-                      . "A02,MOHFAS0001_A,B02");
+                      . "A02,MOHFAS0001_A,b02");
     $test_file->seek( 0, 0 );
 
     $mech->back;
