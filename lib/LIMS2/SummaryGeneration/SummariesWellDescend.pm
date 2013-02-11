@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.048';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.049';
 }
 ## use critic
 
@@ -16,7 +16,7 @@ use Log::Log4perl ':easy';                  # DEBUG to INFO to WARN to ERROR to 
 #------------------------------------------------------------------
 #  Variables
 #------------------------------------------------------------------
-my $model = LIMS2::Model->new( user => 'webapp' ); # DB connection
+my $model = LIMS2::Model->new( user => 'tasks' ); # DB connection
 my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
 my $wells_deleted = 0; # count of deleted wells
 my $well_inserts_succeeded = 0; # count of inserts
