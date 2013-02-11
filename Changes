@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.048     2013-02-11 10:15:23 Europe/London
+
+	Moved populate project info and create summaries files to scripts directory.
+
 0.047     2013-02-07 16:01:54 Europe/London
 
 	Added summaries table and data generation process.
