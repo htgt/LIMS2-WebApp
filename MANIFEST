@@ -6,10 +6,8 @@ Makefile.PL
 README
 bin/draw_plate_relations.pl
 bin/final_vector_report.pl
-bin/lims2_create_summaries.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
-bin/populate_project_info_tables.pl
 bin/process_graph.pl
 lib/LIMS2/AlleleRequest.pm
 lib/LIMS2/AlleleRequest/DoubleTargeted.pm
@@ -1668,6 +1666,8 @@ root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
 root/static/js/jquery-1.7.2.min.js
 root/static/js/jquery.qtip.min.js
 root/static/js/poller.js
+script/lims2_create_summaries.pl
+script/lims2_populate_project_tables.pl
 script/lims2_webapp_cgi.pl
 script/lims2_webapp_create.pl
 script/lims2_webapp_fastcgi.pl

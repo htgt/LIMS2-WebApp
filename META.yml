@@ -101,7 +101,6 @@ requires:
   MooseX::NonMoose: 0
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
-  Parallel::ForkManager: 0
   Path::Class: 0
   Perl6::Slurp: 0
   Readonly: 0
@@ -124,4 +123,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.047
+version: 0.048
