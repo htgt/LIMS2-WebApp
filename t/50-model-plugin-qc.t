@@ -284,4 +284,19 @@ note( "Testing Qc Run Deletion" );
     	model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8' } ) 
     } qr/No QcRun entity found matching/;
 }
+
+note ("Testing QC template and related run deletion");
+
+{
+	throws_ok {
+		model->delete_qc_template( { id => 200 } )
+	} qr/Template 200 has been used in one or more QC runs/;
+	
+	ok model->delete_qc_template( { id => 200, delete_runs => 1 } ), 'can delete QC template and related runs';
+	
+	throws_ok {
+		model->retrieve_qc_template( { id => 200 } )
+	} qr/No QcTemplate entity found/;
+	
+}
 done_testing();
