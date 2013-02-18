@@ -76,7 +76,7 @@ sub reload_fixtures {
         BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
     };
 
-    return;
+    return 1;
 }
 
 sub _build_test_data {
