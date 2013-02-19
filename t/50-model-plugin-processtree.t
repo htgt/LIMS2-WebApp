@@ -41,14 +41,15 @@ note("Testing process tree methods - descendants");
 
 note("Testing process tree methods - ancestors");
 {
-
-    ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>850, direction => 0} ), 'retrieved ancestors paths for well_id 850';
+    # TODO: complete the tests for ancestors
+    #
+    ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>850, direction => 0} ), 'retrieved ancestors paths for well_id  854';
 
     my @ref_paths;
-    my @path_cmp = ( 850, 851, 852, 853, 854 );
+    my @path_cmp = reverse ( 850, 851, 852, 853, 854 );
     push @ref_paths, [@path_cmp];
 
-    @path_cmp = ( 850, 851, 852, 1503, 1504 );
+    @path_cmp = reverse ( 850, 851, 852, 1503, 1504 );
     push @ref_paths, [@path_cmp];
 
     foreach my $check_path ( 0 .. 1 ) {
@@ -58,9 +59,9 @@ note("Testing process tree methods - ancestors");
             ++$n;
         }
     }
-	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 930, direction => 1} ), 'retrieved descendant paths for well_id 930';
+	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 930, direction => 0} ), 'retrieved descendant paths for well_id 930';
     is scalar @{$paths}, 49, '.. 49 paths were returned'; 
-	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 935, direction => 1} ), 'retrieved descendant paths for well_id 935';
+	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 935, direction => 0} ), 'retrieved descendant paths for well_id 935';
     is scalar @{$paths}, 192, '.. 192 paths were returned'; 
 }
 
