@@ -62,7 +62,7 @@
 
           <p>
             Finally you must select the well data
-            <abbr title="comma seperated values" class="initialism">csv</abbr> file,
+            <abbr title="comma separated values" class="initialism">csv</abbr> file,
             you can find templates for the well data csv file
             <a href="#collapseTwo" date-toggle="collapse">below</a>, these are process / plate type specific.
             Use these as a starting point for creating the well data csv files.

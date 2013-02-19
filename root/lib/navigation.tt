@@ -81,6 +81,9 @@
             </li>
             [% IF c.check_user_roles( 'edit' ) %]
             <li>
+              <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload</a>
             </li>
             [% END %]

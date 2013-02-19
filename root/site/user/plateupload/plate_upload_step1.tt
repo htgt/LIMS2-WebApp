@@ -9,7 +9,6 @@
   <div class="span4 offset4" align="center">
     <form method="GET" id="process_type_select" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form-inline well" >
 
-      <label>Create by copying final vector plate <input type="checkbox" name="copy_plate" value="1"></label>
       <label>Process Type</label>
       <select name="process_type" id="process_type">
         <option value="" selected="selected">-</option>
