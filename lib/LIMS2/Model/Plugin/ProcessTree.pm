@@ -125,7 +125,7 @@ sub pspec_paths_for_well_id_depth_first {
 
 sub get_paths_for_well_id_depth_first {
     my $self = shift;
-    my ($params) = @_; 
+    my ($params) = @_;
 
     my $validated_params;
 

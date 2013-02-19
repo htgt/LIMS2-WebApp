@@ -69,7 +69,7 @@ sub generate_summary_rows_for_all_trails {
 
     # hash of previously retrieved wells
     my %wells_retrieved = ();
-    
+
     my $trails_index = 0;
     while ( $design_well_trails->[$trails_index] ) {
 
