@@ -85,6 +85,30 @@ sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     return;
 }
 
+sub delete_qc_run :Path( '/user/delete_qc_run' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $params = $c->request->params;
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->delete_qc_run( { id => $params->{id} } );
+                $c->flash->{success_msg} = 'Deleted QC Run ' . $params->{id};
+                $c->res->redirect( $c->uri_for('/user/qc_runs') );
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while deleting QC run: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+                $c->res->redirect( $c->uri_for('/user/view_qc_run', { id => $params->{id} }) );
+            };
+        }
+    );
+    return;
+}
+
 sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     my ( $self, $c ) = @_;
 

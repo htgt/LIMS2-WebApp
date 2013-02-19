@@ -191,7 +191,10 @@ sub retrieve_qc_template_well {
 }
 
 sub pspec_delete_qc_template {
-    return { id => { validate => 'integer' } };
+    return {
+    	id => { validate => 'integer' },
+    	delete_runs => { validate => 'boolean', default => 0 },
+    };
 }
 
 sub delete_qc_template {
@@ -204,12 +207,19 @@ sub delete_qc_template {
         { prefetch => 'qc_template_wells' }
     );
 
-    if ( $template->qc_runs_rs->count > 0 ) {
-        $self->throw( InvalidState => {
-              message => 'Template ' . $template->id
+    if ( my @runs = $template->qc_runs ) {
+    	if ($validated_params->{delete_runs}){
+    		foreach my $run (@runs){
+    			$self->delete_qc_run({ id => $run->id });
+    		}
+    	}
+    	else{
+            $self->throw( InvalidState => {
+                message => 'Template ' . $template->id
                       . ' has been used in one or more QC runs, so cannot be deleted'
-            }
-        );
+                }
+            );
+    	}
     }
 
     for my $well ( $template->qc_template_wells ) {
@@ -466,6 +476,26 @@ sub retrieve_qc_run {
     my $qc_run = $self->retrieve( 'QcRun' => $validated_params );
 
     return $qc_run;
+}
+
+sub delete_qc_run {
+	my ( $self, $params ) = @_;
+
+	# This will validate params
+	my $qc_run = $self->retrieve_qc_run($params);
+
+    $qc_run->delete_related('qc_run_seq_projects');
+
+    foreach my $well ($qc_run->search_related('qc_run_seq_wells')){
+        $well->delete_related('qc_run_seq_well_qc_seq_reads');
+        $well->delete_related('qc_test_results');
+    }
+
+    $qc_run->delete_related('qc_run_seq_wells');
+
+    $qc_run->delete;
+
+    return 1;
 }
 
 sub pspec_retrieve_qc_run_seq_well {

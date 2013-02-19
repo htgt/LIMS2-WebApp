@@ -80,6 +80,8 @@ sub view :Path( '/user/view_template' ) :Args(0) {
     }
 
     my $template = $c->model('Golgi')->retrieve_qc_template( $c->request->params );
+    my @related_runs = $template->qc_runs;
+    my @run_ids = map { $_->id } @related_runs;
 
     my @well_info;
     foreach my $well ($template->qc_template_wells){
@@ -135,6 +137,7 @@ sub view :Path( '/user/view_template' ) :Args(0) {
     $c->stash(
         qc_template  => $template,
         wells        => \@sorted,
+        qc_run_ids   => \@run_ids,
     );
 
     return;
@@ -156,7 +159,7 @@ sub delete_template :Path( '/user/delete_template') :Args(0) {
     $c->model('Golgi')->txn_do(
         sub {
             try{
-                $c->model('Golgi')->delete_qc_template( { id => $params->{id} } );
+                $c->model('Golgi')->delete_qc_template( { id => $params->{id}, delete_runs => 1 } );
                 $c->flash->{success_msg} = 'Deleted template ' . $params->{name};
                 $c->res->redirect( $c->uri_for('/user/browse_templates') );
             }
