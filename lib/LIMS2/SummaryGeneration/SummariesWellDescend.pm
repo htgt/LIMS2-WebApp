@@ -387,7 +387,7 @@ sub fetch_values_for_type_DNA {
     $summary_row_values->{ 'dna_well_id' }             = $stored_values->{ stored_dna_well_id };
     $summary_row_values->{ 'dna_well_name' }           = $stored_values->{ stored_dna_well_name };
     $summary_row_values->{ 'dna_plate_id' }            = $stored_values->{ stored_dna_plate_id };
-    $summary_row_values->{ 'dna_plate_name' }          = $stored_values->{ stored_dna_plate_id };
+    $summary_row_values->{ 'dna_plate_name' }          = $stored_values->{ stored_dna_plate_name };
     $summary_row_values->{ 'dna_well_assay_complete' } = $stored_values->{ stored_dna_well_assay_complete };
     $summary_row_values->{ 'dna_well_created_ts' }     = $stored_values->{ stored_dna_well_created_ts };
     $summary_row_values->{ 'dna_well_accepted' }       = $stored_values->{ stored_dna_well_accepted };
