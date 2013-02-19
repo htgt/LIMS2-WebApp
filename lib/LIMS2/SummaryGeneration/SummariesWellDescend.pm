@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.049';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.050';
 }
 ## use critic
 
@@ -14,15 +14,6 @@ use Try::Tiny;                              # Exception handling
 use Log::Log4perl ':easy';                  # DEBUG to INFO to WARN to ERROR to LOGDIE
 
 #------------------------------------------------------------------
-#  Variables
-#------------------------------------------------------------------
-my $model = LIMS2::Model->new( user => 'tasks' ); # DB connection
-my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
-my $wells_deleted = 0; # count of deleted wells
-my $well_inserts_succeeded = 0; # count of inserts
-my $well_inserts_failed = 0; # count of failures
-
-#------------------------------------------------------------------
 #  Accessible methods
 #------------------------------------------------------------------
 # Given a design well id, generate summaries for all leaf nodes in well hierarchy and return result counts
@@ -31,10 +22,20 @@ sub generate_summary_rows_for_design_well {
     # passed design well ID, output LOG filepath
     my $design_well_id = shift;
 
-    my %results;
+    INFO caller()." Well ID $design_well_id passed in";
+
+    my %results = ();
+
+    # initialise variables
+    # TODO: be better if model was passed in from calling module, same as other LIMS2 modules
+    my $model = LIMS2::Model->new( user => 'tasks' );  # DB connection
+    my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
+    my $wells_deleted = 0; # count of deleted wells
+    my $well_inserts_succeeded = 0; # count of inserts
+    my $well_inserts_failed = 0; # count of failures
 
     try {
-        generate_summary_rows_for_all_trails($design_well_id);
+        generate_summary_rows_for_all_trails($design_well_id, $model, \%stored_values, \$wells_deleted, \$well_inserts_succeeded, \$well_inserts_failed);
         $results{ exit_code } = 0;
         $results{ count_deletes } = $wells_deleted;
         $results{ count_inserts } = $well_inserts_succeeded;
@@ -54,55 +55,85 @@ sub generate_summary_rows_for_design_well {
 # Given a design well id, generate and insert summaries for all leaf nodes in well hierarchy
 sub generate_summary_rows_for_all_trails {
 
-    my $design_well_id = shift;
+    my ($design_well_id, $model, $stored_values, $wells_deleted, $well_inserts_succeeded, $well_inserts_failed) = @_;
 
     my $design_well = try { $model->retrieve_well( { id => $design_well_id } ) };
 
     if (defined $design_well) {
         # delete existing rows for this design well (if any)
-        my $rows_deleted = delete_summary_rows_for_design_well($design_well_id);
+        my $rows_deleted = delete_summary_rows_for_design_well($design_well_id, $model);
         if(defined $rows_deleted && $rows_deleted > 0) {
-            $wells_deleted = $rows_deleted;
-            #warn "Well ID $design_well_id : deleted $rows_deleted summary rows.\n";
+            $$wells_deleted = $rows_deleted;
         }
     } else {
         # no design well exists for that ID, error
-        LOGDIE caller()." Well ID $design_well_id : No design well object found, cannot fetch descendant trails :";
+        LOGDIE caller()." Well ID $design_well_id : No design well object found, cannot fetch descendant trails";
     }
 
-    # returned array contains well list and trails list
-    my @return_array = $design_well->descendants->depth_first_traversal_with_trails($design_well, [], [], [], 0);
-    my ( $well_list, $all_trails ) = @return_array;         # return two array refs
+    # Call ProcessTree to fetch paths
+    my $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
 
-    # dereference trails array
-    my @design_well_trails = @{$all_trails};
+    # hash of previously retrieved wells
+    my %wells_retrieved = ();
 
     my $trails_index = 0;
-    while ( $design_well_trails[$trails_index] ) {
+    while ( $design_well_trails->[$trails_index] ) {
 
         my %summary_row_values; # hash to contain column values for rows
         my %done = ();          # hash keeping track of done plate types
 
         # Loop through the wells in the trail
-        foreach my $curr_well (reverse @{$design_well_trails[$trails_index]}){
+        foreach my $curr_well_id (reverse @{$design_well_trails->[$trails_index]}){
 
-            my $params = {
-                'summary_row_values' => \%summary_row_values,
-                'done' => \%done,
-                'curr_well' => $curr_well,
-            };
+            DEBUG caller()." Well ID $design_well_id : Path well ID $curr_well_id";
 
-            # create the output array for this well
-            add_to_output_for_well($params);
+            my $curr_well;
+
+            # check wells hash to see if we already retrieved this well object previously
+            if (exists $wells_retrieved{$curr_well_id}) {
+
+                DEBUG caller()." Re-using well ID: $curr_well_id";
+
+                # re-use same well object
+                $curr_well = $wells_retrieved{$curr_well_id};
+            } else {
+                # otherwise fetch current well object for id
+                $curr_well = try { $model->retrieve_well( { id => $curr_well_id } ) };
+
+                # and insert into hash
+                $wells_retrieved{ $curr_well_id } = $curr_well;
+
+                foreach my $key (keys %wells_retrieved)
+                {
+                    DEBUG caller()." Key: $key\n";
+                }
+            }
+
+            if (defined $curr_well) {
+                my $params = {
+                    'summary_row_values' => \%summary_row_values,
+                    'done' => \%done,
+                    'curr_well' => $curr_well,
+                    'stored_values' => $stored_values,
+                    'model' => $model,
+                };
+
+                # create the output array for this well
+                add_to_output_for_well($params);
+
+            } else {
+                # no design well exists for that ID, error
+                LOGDIE caller()." Well ID $design_well_id : No well object found for path well id : $curr_well_id, cannot continue";
+            }
         }
 
         # insert to DB
-        my $inserts = insert_summary_row_via_dbix ( \%summary_row_values ) or WARN caller()." Insert failed for well ID $design_well_id";
+        my $inserts = insert_summary_row_via_dbix ( \%summary_row_values, $model ) or WARN caller()." Insert failed for well ID $design_well_id";
 
         if($inserts) {
-            $well_inserts_succeeded += 1;
+            $$well_inserts_succeeded += 1;
         } else {
-            $well_inserts_failed += 1;
+            $$well_inserts_failed += 1;
         }
 
         %done = ();
@@ -111,39 +142,46 @@ sub generate_summary_rows_for_all_trails {
         $trails_index++;
     }
 
-    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = $wells_deleted/$well_inserts_succeeded/$well_inserts_failed";
+    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = ".$$wells_deleted."/".$$well_inserts_succeeded."/".$$well_inserts_failed;
     return;
 }
 
 
-# append to array for a well in a trail
+# append to array for one well in one trail
 sub add_to_output_for_well {
     my $params = shift;
 
     my $curr_plate_type_id = $params->{ curr_well }->plate->type->id;
 
+    # dispatch table
+	my $dispatch_fetch_values = {
+		DESIGN     => \&fetch_values_for_type_DESIGN,
+		INT        => \&fetch_values_for_type_INT,
+		FINAL      => \&fetch_values_for_type_FINAL,
+		FINAL_PICK => \&fetch_values_for_type_FINAL_PICK,
+		DNA        => \&fetch_values_for_type_DNA,
+		EP         => \&fetch_values_for_type_EP,
+		EP_PICK    => \&fetch_values_for_type_EP_PICK,
+		SEP        => \&fetch_values_for_type_SEP,
+		SEP_PICK   => \&fetch_values_for_type_SEP_PICK,
+		FP         => \&fetch_values_for_type_FP,
+		SFP        => \&fetch_values_for_type_SFP,
+	};
+
     my @include_types = ('DESIGN','INT','FINAL','FINAL_PICK','DNA','EP','EP_PICK','SEP','SEP_PICK','FP','SFP');
 
+    # checks for recognised plate type, and if an instance of this plate type already processed
     return unless any { $curr_plate_type_id eq $_ } @include_types;
-
     return if exists $params->{done}->{$curr_plate_type_id};
 
-    DEBUG caller()." Processing type = $curr_plate_type_id";
+    DEBUG caller()." Calling method to process plate type = $curr_plate_type_id";
 
-    #TODO: Use a dispatch table or call method by appending plate type
-    fetch_values_for_type_DESIGN($params)     if ($curr_plate_type_id eq 'DESIGN');
-    fetch_values_for_type_INT($params)        if ($curr_plate_type_id eq 'INT');
-    fetch_values_for_type_FINAL($params)      if ($curr_plate_type_id eq 'FINAL');
-    fetch_values_for_type_FINAL_PICK($params) if ($curr_plate_type_id eq 'FINAL_PICK');
-    fetch_values_for_type_DNA($params)        if ($curr_plate_type_id eq 'DNA');
-    fetch_values_for_type_EP($params)         if ($curr_plate_type_id eq 'EP');
-    fetch_values_for_type_EP_PICK($params)    if ($curr_plate_type_id eq 'EP_PICK');
-    fetch_values_for_type_SEP($params)        if ($curr_plate_type_id eq 'SEP');
-    fetch_values_for_type_SEP_PICK($params)   if ($curr_plate_type_id eq 'SEP_PICK');
-    fetch_values_for_type_FP($params)         if ($curr_plate_type_id eq 'FP');
-    fetch_values_for_type_SFP($params)        if ($curr_plate_type_id eq 'SFP');
+    # check plate type exists in the dispatch table, and run it passing in params
+	defined $dispatch_fetch_values->{ $curr_plate_type_id } && $dispatch_fetch_values->{ $curr_plate_type_id }->($params);
 
-    # add element in hash to indicate type is done
+    # add to done hash so we don't process another well of the same type for this trail
+    # N.B. because trail is processed in reverse we store the LAST use of a plate type, e.g.
+    # if 3 INT plates were used then we store details for the third (final) one.
     $params->{done}->{$curr_plate_type_id} = 1;
 
     return;
@@ -152,79 +190,86 @@ sub add_to_output_for_well {
 # values specific to DESIGN wells
 sub fetch_values_for_type_DESIGN {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
+    my $model = $params->{ model };
 
-	if( (not exists $stored_values{ stored_design_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_design_well_id }) ) {
+	if( (not exists $stored_values->{ stored_design_well_id }) || ($curr_well->id != $stored_values->{ stored_design_well_id }) ) {
 		# different well to previous cycle, so must fetch and store new values
-        DEBUG caller()." Fetching new values for DESIGN well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_design_well_id' }             = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_design_well_name' }           = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_design_plate_id' }            = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_design_plate_name' }          = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_design_well_created_ts' }     = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_design_well_assay_complete' } = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_design_well_accepted' }       = $params->{ curr_well }->is_accepted; # well accepted (with override)
+        DEBUG caller()." Fetching new values for DESIGN well : ".$curr_well->id;
+		$stored_values->{ 'stored_design_well_id' }             = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_design_well_name' }           = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_design_plate_id' }            = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_design_plate_name' }          = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_design_well_created_ts' }     = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_design_well_assay_complete' } = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_design_well_accepted' }       = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-        $stored_values{ 'stored_design_id' }                  = $params->{ curr_well }->design->id; # design DB identifier
-        $stored_values{ 'stored_design_name' }                = $params->{ curr_well }->design->name; # design name
-        $stored_values{ 'stored_design_phase' }               = $params->{ curr_well }->design->phase; # e.g. -1,0,1,2
-        $stored_values{ 'stored_design_type_id' }             = $params->{ curr_well }->design->design_type_id; # design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
-        $stored_values{ 'stored_design_bacs_string' }         = fetch_well_bacs_string( $params->{ curr_well } ); # BACs associated with this design 
-        my @genes_array = fetch_well_gene_symbols_and_ids( $params->{ curr_well } );
-        $stored_values{ 'stored_design_gene_symbols' }        = $genes_array[0]; # gene symbols
-        $stored_values{ 'stored_design_gene_ids' }            = $genes_array[1]; # gene ids
+        $stored_values->{ 'stored_design_id' }                  = try{ $curr_well->design->id }; # design DB identifier
+        $stored_values->{ 'stored_design_name' }                = try{ $curr_well->design->name }; # design name
+        $stored_values->{ 'stored_design_phase' }               = try{ $curr_well->design->phase }; # e.g. -1,0,1,2
+        $stored_values->{ 'stored_design_type_id' }             = try{ $curr_well->design->design_type_id }; # design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
+        $stored_values->{ 'stored_design_bacs_string' }         = fetch_well_bacs_string( $curr_well ); # BACs associated with this design 
+        my @genes_array = fetch_well_gene_symbols_and_ids( $curr_well, $model );
+        $stored_values->{ 'stored_design_gene_symbols' }        = $genes_array[0]; # gene symbols
+        $stored_values->{ 'stored_design_gene_ids' }            = $genes_array[1]; # gene ids
     }
 
 	# copy stored values into the current summary output row
-    $params->{ summary_row_values }{ 'design_well_id' }             = $stored_values{ stored_design_well_id };
-    $params->{ summary_row_values }{ 'design_well_name' }           = $stored_values{ stored_design_well_name };
-    $params->{ summary_row_values }{ 'design_plate_id' }            = $stored_values{ stored_design_plate_id };
-    $params->{ summary_row_values }{ 'design_plate_name' }          = $stored_values{ stored_design_plate_name };
-    $params->{ summary_row_values }{ 'design_well_created_ts' }     = $stored_values{ stored_design_well_created_ts };
-    $params->{ summary_row_values }{ 'design_well_assay_complete' } = $stored_values{ stored_design_well_assay_complete };
-    $params->{ summary_row_values }{ 'design_well_accepted' }       = $stored_values{ stored_design_well_accepted };
+    $summary_row_values->{ 'design_well_id' }             = $stored_values->{ stored_design_well_id };
+    $summary_row_values->{ 'design_well_name' }           = $stored_values->{ stored_design_well_name };
+    $summary_row_values->{ 'design_plate_id' }            = $stored_values->{ stored_design_plate_id };
+    $summary_row_values->{ 'design_plate_name' }          = $stored_values->{ stored_design_plate_name };
+    $summary_row_values->{ 'design_well_created_ts' }     = $stored_values->{ stored_design_well_created_ts };
+    $summary_row_values->{ 'design_well_assay_complete' } = $stored_values->{ stored_design_well_assay_complete };
+    $summary_row_values->{ 'design_well_accepted' }       = $stored_values->{ stored_design_well_accepted };
 
-    $params->{ summary_row_values }{ 'design_id' }                  = $stored_values{ stored_design_id };
-    $params->{ summary_row_values }{ 'design_name' }                = $stored_values{ stored_design_name };
-    $params->{ summary_row_values }{ 'design_phase' }               = $stored_values{ stored_design_phase };
-    $params->{ summary_row_values }{ 'design_type' }                = $stored_values{ stored_design_type_id };
-    $params->{ summary_row_values }{ 'design_bacs' }                = $stored_values{ stored_design_bacs_string };
-    $params->{ summary_row_values }{ 'design_gene_symbol' }         = $stored_values{ stored_design_gene_symbols };
-    $params->{ summary_row_values }{ 'design_gene_id' }             = $stored_values{ stored_design_gene_ids };
+    $summary_row_values->{ 'design_id' }                  = $stored_values->{ stored_design_id };
+    $summary_row_values->{ 'design_name' }                = $stored_values->{ stored_design_name };
+    $summary_row_values->{ 'design_phase' }               = $stored_values->{ stored_design_phase };
+    $summary_row_values->{ 'design_type' }                = $stored_values->{ stored_design_type_id };
+    $summary_row_values->{ 'design_bacs' }                = $stored_values->{ stored_design_bacs_string };
+    $summary_row_values->{ 'design_gene_symbol' }         = $stored_values->{ stored_design_gene_symbols };
+    $summary_row_values->{ 'design_gene_id' }             = $stored_values->{ stored_design_gene_ids };
     return;
 }
 
 # values specific to INT wells
 sub fetch_values_for_type_INT {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_int_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_int_well_id }) ) {
+    if( (not exists $stored_values->{ stored_int_well_id }) || ($curr_well->id != $stored_values->{ stored_int_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for INT well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_int_well_id' }             = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_int_well_name' }           = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_int_plate_id' }            = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_int_plate_name' }          = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_int_well_created_ts' }     = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_int_well_assay_complete' } = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_int_well_accepted' }       = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for INT well : ".$curr_well->id;
+		$stored_values->{ 'stored_int_well_id' }             = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_int_well_name' }           = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_int_plate_id' }            = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_int_plate_name' }          = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_int_well_created_ts' }     = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_int_well_assay_complete' } = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_int_well_accepted' }       = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-		$stored_values{ 'stored_int_backbone_name' }       = $params->{ curr_well }->backbone->name;   # backbone name
-		$stored_values{ 'stored_int_cassette_name' }       = $params->{ curr_well }->cassette->name; # cassette name
-		$stored_values{ 'stored_int_qc_seq_pass' }         = try{ $params->{ curr_well }->well_qc_sequencing_result->pass }; # qc sequencing test result
+		$stored_values->{ 'stored_int_backbone_name' }       = try{ $curr_well->backbone->name };   # backbone name
+		$stored_values->{ 'stored_int_cassette_name' }       = try{ $curr_well->cassette->name }; # cassette name
+		$stored_values->{ 'stored_int_qc_seq_pass' }         = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
     }
 
     # copy stored values into the current summary output row
-    $params->{ summary_row_values }{ 'int_well_id' }             = $stored_values{ stored_int_well_id };
-    $params->{ summary_row_values }{ 'int_well_name' }           = $stored_values{ stored_int_well_name };
-    $params->{ summary_row_values }{ 'int_plate_id' }            = $stored_values{ stored_int_plate_id };
-    $params->{ summary_row_values }{ 'int_plate_name' }          = $stored_values{ stored_int_plate_name };
-    $params->{ summary_row_values }{ 'int_well_created_ts' }     = $stored_values{ stored_int_well_created_ts };
-    $params->{ summary_row_values }{ 'int_well_assay_complete' } = $stored_values{ stored_int_well_assay_complete };
-    $params->{ summary_row_values }{ 'int_well_accepted' }       = $stored_values{ stored_int_well_accepted };
+    $summary_row_values->{ 'int_well_id' }             = $stored_values->{ stored_int_well_id };
+    $summary_row_values->{ 'int_well_name' }           = $stored_values->{ stored_int_well_name };
+    $summary_row_values->{ 'int_plate_id' }            = $stored_values->{ stored_int_plate_id };
+    $summary_row_values->{ 'int_plate_name' }          = $stored_values->{ stored_int_plate_name };
+    $summary_row_values->{ 'int_well_created_ts' }     = $stored_values->{ stored_int_well_created_ts };
+    $summary_row_values->{ 'int_well_assay_complete' } = $stored_values->{ stored_int_well_assay_complete };
+    $summary_row_values->{ 'int_well_accepted' }       = $stored_values->{ stored_int_well_accepted };
 
-    $params->{ summary_row_values }{ 'int_backbone_name' }       = $stored_values{ stored_int_backbone_name };
-    $params->{ summary_row_values }{ 'int_cassette_name' }       = $stored_values{ stored_int_cassette_name };
-    $params->{ summary_row_values }{ 'int_qc_seq_pass' }         = $stored_values{ stored_int_qc_seq_pass };
+    $summary_row_values->{ 'int_backbone_name' }       = $stored_values->{ stored_int_backbone_name };
+    $summary_row_values->{ 'int_cassette_name' }       = $stored_values->{ stored_int_cassette_name };
+    $summary_row_values->{ 'int_qc_seq_pass' }         = $stored_values->{ stored_int_qc_seq_pass };
 
     # valid primers?    -> qc test result and valid primers are outputs of QC system and should be linked to each well for INT, FINAL, POSTINT, DNA, EP_PICK
     return;
@@ -233,42 +278,45 @@ sub fetch_values_for_type_INT {
 # values specific to FINAL wells
 sub fetch_values_for_type_FINAL {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_final_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_final_well_id }) ) {
+    if( (not exists $stored_values->{ stored_final_well_id }) || ($curr_well->id != $stored_values->{ stored_final_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for FINAL well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_final_well_id' }              = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_final_well_name' }            = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_final_plate_id' }             = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_final_plate_name' }           = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_final_well_created_ts' }      = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_final_well_assay_complete' }  = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_final_well_accepted' }        = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for FINAL well : ".$curr_well->id;
+		$stored_values->{ 'stored_final_well_id' }              = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_final_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_final_plate_id' }             = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_final_plate_name' }           = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_final_well_created_ts' }      = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_final_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_final_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-		$stored_values{ 'stored_final_backbone_name' }        = $params->{ curr_well }->backbone->name; # backbone name
-		$stored_values{ 'stored_final_cassette_name' }        = $params->{ curr_well }->cassette->name; # cassette name
-		$stored_values{ 'stored_final_qc_seq_pass' }          = try{ $params->{ curr_well }->well_qc_sequencing_result->pass }; # qc sequencing test result
-        $stored_values{ 'stored_final_cassette_promoter' }    = $params->{ curr_well }->cassette->promoter; # final_cassette_promoter
-		$stored_values{ 'stored_final_cassette_cre' }         = $params->{ curr_well }->cassette->cre; # final_cassette_cre
-		$stored_values{ 'stored_final_cassette_conditional' } = $params->{ curr_well }->cassette->conditional;      # final_cassette_conditional
-		$stored_values{ 'stored_final_recombinase_id' }       = join( '_', @{$params->{ curr_well }->recombinases}); # process recombinase
+		$stored_values->{ 'stored_final_backbone_name' }        = try{ $curr_well->backbone->name }; # backbone name
+		$stored_values->{ 'stored_final_cassette_name' }        = try{ $curr_well->cassette->name }; # cassette name
+		$stored_values->{ 'stored_final_qc_seq_pass' }          = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
+        $stored_values->{ 'stored_final_cassette_promoter' }    = try{ $curr_well->cassette->promoter }; # final_cassette_promoter
+		$stored_values->{ 'stored_final_cassette_cre' }         = try{ $curr_well->cassette->cre }; # final_cassette_cre
+		$stored_values->{ 'stored_final_cassette_conditional' } = try{ $curr_well->cassette->conditional };      # final_cassette_conditional
+		$stored_values->{ 'stored_final_recombinase_id' }       = join( '_', @{$curr_well->recombinases}); # process recombinase
     }
 
-    $params->{ summary_row_values }{ 'final_well_id' }              = $stored_values{ stored_final_well_id };
-    $params->{ summary_row_values }{ 'final_well_name' }            = $stored_values{ stored_final_well_name };
-    $params->{ summary_row_values }{ 'final_plate_id' }             = $stored_values{ stored_final_plate_id };
-    $params->{ summary_row_values }{ 'final_plate_name' }           = $stored_values{ stored_final_plate_name };
-    $params->{ summary_row_values }{ 'final_well_assay_complete' }  = $stored_values{ stored_final_well_assay_complete };
-    $params->{ summary_row_values }{ 'final_well_created_ts' }      = $stored_values{ stored_final_well_created_ts };
-    $params->{ summary_row_values }{ 'final_well_accepted' }        = $stored_values{ stored_final_well_accepted };
+    $summary_row_values->{ 'final_well_id' }              = $stored_values->{ stored_final_well_id };
+    $summary_row_values->{ 'final_well_name' }            = $stored_values->{ stored_final_well_name };
+    $summary_row_values->{ 'final_plate_id' }             = $stored_values->{ stored_final_plate_id };
+    $summary_row_values->{ 'final_plate_name' }           = $stored_values->{ stored_final_plate_name };
+    $summary_row_values->{ 'final_well_assay_complete' }  = $stored_values->{ stored_final_well_assay_complete };
+    $summary_row_values->{ 'final_well_created_ts' }      = $stored_values->{ stored_final_well_created_ts };
+    $summary_row_values->{ 'final_well_accepted' }        = $stored_values->{ stored_final_well_accepted };
 
-    $params->{ summary_row_values }{ 'final_backbone_name' }        = $stored_values{ stored_final_backbone_name };
-    $params->{ summary_row_values }{ 'final_cassette_name' }        = $stored_values{ stored_final_cassette_name };
-    $params->{ summary_row_values }{ 'final_qc_seq_pass' }          = $stored_values{ stored_final_qc_seq_pass };
-    $params->{ summary_row_values }{ 'final_cassette_promoter' }    = $stored_values{ stored_final_cassette_promoter };
-    $params->{ summary_row_values }{ 'final_cassette_cre' }         = $stored_values{ stored_final_cassette_cre };
-    $params->{ summary_row_values }{ 'final_cassette_conditional' } = $stored_values{ stored_final_cassette_conditional };
-    $params->{ summary_row_values }{ 'final_recombinase_id' }       = $stored_values{ stored_final_recombinase_id };
+    $summary_row_values->{ 'final_backbone_name' }        = $stored_values->{ stored_final_backbone_name };
+    $summary_row_values->{ 'final_cassette_name' }        = $stored_values->{ stored_final_cassette_name };
+    $summary_row_values->{ 'final_qc_seq_pass' }          = $stored_values->{ stored_final_qc_seq_pass };
+    $summary_row_values->{ 'final_cassette_promoter' }    = $stored_values->{ stored_final_cassette_promoter };
+    $summary_row_values->{ 'final_cassette_cre' }         = $stored_values->{ stored_final_cassette_cre };
+    $summary_row_values->{ 'final_cassette_conditional' } = $stored_values->{ stored_final_cassette_conditional };
+    $summary_row_values->{ 'final_recombinase_id' }       = $stored_values->{ stored_final_recombinase_id };
     # valid primers?
     return;
 }
@@ -276,42 +324,45 @@ sub fetch_values_for_type_FINAL {
 # values specific to FINAL_PICK wells
 sub fetch_values_for_type_FINAL_PICK {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_final_pick_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_final_pick_well_id }) ) {
+    if( (not exists $stored_values->{ stored_final_pick_well_id }) || ($curr_well->id != $stored_values->{ stored_final_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for FINAL_PICK well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_final_pick_well_id' }              = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_final_pick_well_name' }            = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_final_pick_plate_id' }             = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_final_pick_plate_name' }           = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_final_pick_well_created_ts' }      = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_final_pick_well_assay_complete' }  = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_final_pick_well_accepted' }        = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for FINAL_PICK well : ".$curr_well->id;
+		$stored_values->{ 'stored_final_pick_well_id' }              = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_final_pick_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_final_pick_plate_id' }             = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_final_pick_plate_name' }           = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_final_pick_well_created_ts' }      = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_final_pick_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_final_pick_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-		$stored_values{ 'stored_final_pick_backbone_name' }        = $params->{ curr_well }->backbone->name; # backbone name
-		$stored_values{ 'stored_final_pick_cassette_name' }        = $params->{ curr_well }->cassette->name; # cassette name
-		$stored_values{ 'stored_final_pick_qc_seq_pass' }          = try{ $params->{ curr_well }->well_qc_sequencing_result->pass }; # qc sequencing test result
-        $stored_values{ 'stored_final_pick_cassette_promoter' }    = $params->{ curr_well }->cassette->promoter; # final_cassette_promoter
-		$stored_values{ 'stored_final_pick_cassette_cre' }         = $params->{ curr_well }->cassette->cre; # final_cassette_cre
-		$stored_values{ 'stored_final_pick_cassette_conditional' } = $params->{ curr_well }->cassette->conditional;      # final_cassette_conditional
-		$stored_values{ 'stored_final_pick_recombinase_id' }       = join( '_', @{$params->{ curr_well }->recombinases}); # process recombinase
+		$stored_values->{ 'stored_final_pick_backbone_name' }        = try{ $curr_well->backbone->name }; # backbone name
+		$stored_values->{ 'stored_final_pick_cassette_name' }        = try{ $curr_well->cassette->name }; # cassette name
+		$stored_values->{ 'stored_final_pick_qc_seq_pass' }          = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
+        $stored_values->{ 'stored_final_pick_cassette_promoter' }    = try{ $curr_well->cassette->promoter }; # final_cassette_promoter
+		$stored_values->{ 'stored_final_pick_cassette_cre' }         = try{ $curr_well->cassette->cre }; # final_cassette_cre
+		$stored_values->{ 'stored_final_pick_cassette_conditional' } = try{ $curr_well->cassette->conditional }; # final_cassette_conditional
+		$stored_values->{ 'stored_final_pick_recombinase_id' }       = join( '_', @{$curr_well->recombinases}); # process recombinase
     }
 
-    $params->{ summary_row_values }{ 'final_pick_well_id' }              = $stored_values{ stored_final_pick_well_id };
-    $params->{ summary_row_values }{ 'final_pick_well_name' }            = $stored_values{ stored_final_pick_well_name };
-    $params->{ summary_row_values }{ 'final_pick_plate_id' }             = $stored_values{ stored_final_pick_plate_id };
-    $params->{ summary_row_values }{ 'final_pick_plate_name' }           = $stored_values{ stored_final_pick_plate_name };
-    $params->{ summary_row_values }{ 'final_pick_well_assay_complete' }  = $stored_values{ stored_final_pick_well_assay_complete };
-    $params->{ summary_row_values }{ 'final_pick_well_created_ts' }      = $stored_values{ stored_final_pick_well_created_ts };
-    $params->{ summary_row_values }{ 'final_pick_well_accepted' }        = $stored_values{ stored_final_pick_well_accepted };
+    $summary_row_values->{ 'final_pick_well_id' }              = $stored_values->{ stored_final_pick_well_id };
+    $summary_row_values->{ 'final_pick_well_name' }            = $stored_values->{ stored_final_pick_well_name };
+    $summary_row_values->{ 'final_pick_plate_id' }             = $stored_values->{ stored_final_pick_plate_id };
+    $summary_row_values->{ 'final_pick_plate_name' }           = $stored_values->{ stored_final_pick_plate_name };
+    $summary_row_values->{ 'final_pick_well_assay_complete' }  = $stored_values->{ stored_final_pick_well_assay_complete };
+    $summary_row_values->{ 'final_pick_well_created_ts' }      = $stored_values->{ stored_final_pick_well_created_ts };
+    $summary_row_values->{ 'final_pick_well_accepted' }        = $stored_values->{ stored_final_pick_well_accepted };
 
-    $params->{ summary_row_values }{ 'final_pick_backbone_name' }        = $stored_values{ stored_final_pick_backbone_name };
-    $params->{ summary_row_values }{ 'final_pick_cassette_name' }        = $stored_values{ stored_final_pick_cassette_name };
-    $params->{ summary_row_values }{ 'final_pick_qc_seq_pass' }          = $stored_values{ stored_final_pick_qc_seq_pass };
-    $params->{ summary_row_values }{ 'final_pick_cassette_promoter' }    = $stored_values{ stored_final_pick_cassette_promoter };
-    $params->{ summary_row_values }{ 'final_pick_cassette_cre' }         = $stored_values{ stored_final_pick_cassette_cre };
-    $params->{ summary_row_values }{ 'final_pick_cassette_conditional' } = $stored_values{ stored_final_pick_cassette_conditional };
-    $params->{ summary_row_values }{ 'final_pick_recombinase_id' }       = $stored_values{ stored_final_pick_recombinase_id };
+    $summary_row_values->{ 'final_pick_backbone_name' }        = $stored_values->{ stored_final_pick_backbone_name };
+    $summary_row_values->{ 'final_pick_cassette_name' }        = $stored_values->{ stored_final_pick_cassette_name };
+    $summary_row_values->{ 'final_pick_qc_seq_pass' }          = $stored_values->{ stored_final_pick_qc_seq_pass };
+    $summary_row_values->{ 'final_pick_cassette_promoter' }    = $stored_values->{ stored_final_pick_cassette_promoter };
+    $summary_row_values->{ 'final_pick_cassette_cre' }         = $stored_values->{ stored_final_pick_cassette_cre };
+    $summary_row_values->{ 'final_pick_cassette_conditional' } = $stored_values->{ stored_final_pick_cassette_conditional };
+    $summary_row_values->{ 'final_pick_recombinase_id' }       = $stored_values->{ stored_final_pick_recombinase_id };
     # valid primers?
     return;
 }
@@ -319,34 +370,37 @@ sub fetch_values_for_type_FINAL_PICK {
 # values specific to DNA wells
 sub fetch_values_for_type_DNA {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_dna_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_dna_well_id }) ) {
+    if( (not exists $stored_values->{ stored_dna_well_id }) || ($curr_well->id != $stored_values->{ stored_dna_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for DNA well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_dna_well_id' }              = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_dna_well_name' }            = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_dna_plate_id' }             = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_dna_plate_name' }           = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_dna_well_created_ts' }      = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_dna_well_assay_complete' }  = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_dna_well_accepted' }        = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for DNA well : ".$curr_well->id;
+		$stored_values->{ 'stored_dna_well_id' }              = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_dna_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_dna_plate_id' }             = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_dna_plate_name' }           = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_dna_well_created_ts' }      = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_dna_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_dna_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-		$stored_values{ 'stored_dna_quality' }              = try { $params->{ curr_well }->well_dna_quality->quality }; # well dna quality e.g. M, L, ML, U
-        $stored_values{ 'stored_dna_status_pass' }          = try { $params->{ curr_well }->well_dna_status->pass }; # well dna status e.g. t or f
-        $stored_values{ 'stored_dna_qc_seq_pass' }          = try { $params->{ curr_well }->well_qc_sequencing_result->pass }; # qc sequencing test result
+		$stored_values->{ 'stored_dna_quality' }              = try { $curr_well->well_dna_quality->quality }; # well dna quality e.g. M, L, ML, U
+        $stored_values->{ 'stored_dna_status_pass' }          = try { $curr_well->well_dna_status->pass }; # well dna status e.g. t or f
+        $stored_values->{ 'stored_dna_qc_seq_pass' }          = try { $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
     }
 
-    $params->{ summary_row_values }{ 'dna_well_id' }             = $stored_values{ stored_dna_well_id };
-    $params->{ summary_row_values }{ 'dna_well_name' }           = $stored_values{ stored_dna_well_name };
-    $params->{ summary_row_values }{ 'dna_plate_id' }            = $stored_values{ stored_dna_plate_id };
-    $params->{ summary_row_values }{ 'dna_plate_name' }          = $stored_values{ stored_dna_plate_id };
-    $params->{ summary_row_values }{ 'dna_well_assay_complete' } = $stored_values{ stored_dna_well_assay_complete };
-    $params->{ summary_row_values }{ 'dna_well_created_ts' }     = $stored_values{ stored_dna_well_created_ts };
-    $params->{ summary_row_values }{ 'dna_well_accepted' }       = $stored_values{ stored_dna_well_accepted };
+    $summary_row_values->{ 'dna_well_id' }             = $stored_values->{ stored_dna_well_id };
+    $summary_row_values->{ 'dna_well_name' }           = $stored_values->{ stored_dna_well_name };
+    $summary_row_values->{ 'dna_plate_id' }            = $stored_values->{ stored_dna_plate_id };
+    $summary_row_values->{ 'dna_plate_name' }          = $stored_values->{ stored_dna_plate_id };
+    $summary_row_values->{ 'dna_well_assay_complete' } = $stored_values->{ stored_dna_well_assay_complete };
+    $summary_row_values->{ 'dna_well_created_ts' }     = $stored_values->{ stored_dna_well_created_ts };
+    $summary_row_values->{ 'dna_well_accepted' }       = $stored_values->{ stored_dna_well_accepted };
 
-    $params->{ summary_row_values }{ 'dna_quality' }             = $stored_values{ stored_dna_quality };
-    $params->{ summary_row_values }{ 'dna_status_pass' }         = $stored_values{ stored_dna_status_pass };
-    $params->{ summary_row_values }{ 'dna_qc_seq_pass' }         = $stored_values{ stored_dna_qc_seq_pass };
+    $summary_row_values->{ 'dna_quality' }             = $stored_values->{ stored_dna_quality };
+    $summary_row_values->{ 'dna_status_pass' }         = $stored_values->{ stored_dna_status_pass };
+    $summary_row_values->{ 'dna_qc_seq_pass' }         = $stored_values->{ stored_dna_qc_seq_pass };
     # valid primers?
     return;
 }
@@ -354,66 +408,72 @@ sub fetch_values_for_type_DNA {
 # values specific to EP wells
 sub fetch_values_for_type_EP {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_ep_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_ep_well_id }) ) {
+    if( (not exists $stored_values->{ stored_ep_well_id }) || ($curr_well->id != $stored_values->{ stored_ep_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for EP well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_ep_well_id' }                = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_ep_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_ep_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_ep_plate_name' }             = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_ep_well_created_ts' }        = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_ep_well_assay_complete' }    = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_ep_well_accepted' }          = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for EP well : ".$curr_well->id;
+		$stored_values->{ 'stored_ep_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_ep_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_ep_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_ep_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_ep_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_ep_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_ep_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-        $stored_values{ 'stored_ep_colonies_rem_unstained' } = fetch_well_colony_count_remaining_unstained( $params->{ curr_well } ); # count colonies remaining unstained 
-        $stored_values{ 'stored_ep_colonies_total' }         = fetch_well_colony_count_total( $params->{ curr_well } ); # count colonies total
-        $stored_values{ 'stored_ep_colonies_picked' }        = fetch_well_colony_count_picked( $params->{ curr_well } ); # count colonies picked
-        $stored_values{ 'stored_ep_first_cell_line_name' }   = try { $params->{ curr_well }->first_cell_line->name }; # first cell line name
+        $stored_values->{ 'stored_ep_colonies_rem_unstained' } = fetch_well_colony_count_remaining_unstained( $curr_well ); # count colonies remaining unstained 
+        $stored_values->{ 'stored_ep_colonies_total' }         = fetch_well_colony_count_total( $curr_well ); # count colonies total
+        $stored_values->{ 'stored_ep_colonies_picked' }        = fetch_well_colony_count_picked( $curr_well ); # count colonies picked
+        $stored_values->{ 'stored_ep_first_cell_line_name' }   = try { $curr_well->first_cell_line->name }; # first cell line name
     }
 
-    $params->{ summary_row_values }{ 'ep_well_id' }                = $stored_values{ stored_ep_well_id };
-    $params->{ summary_row_values }{ 'ep_well_name' }              = $stored_values{ stored_ep_well_name };
-    $params->{ summary_row_values }{ 'ep_plate_id' }               = $stored_values{ stored_ep_plate_id };
-    $params->{ summary_row_values }{ 'ep_plate_name' }             = $stored_values{ stored_ep_plate_id };
-    $params->{ summary_row_values }{ 'ep_well_assay_complete' }    = $stored_values{ stored_ep_well_assay_complete };
-    $params->{ summary_row_values }{ 'ep_well_created_ts' }        = $stored_values{ stored_ep_well_created_ts };
-    $params->{ summary_row_values }{ 'ep_well_accepted' }          = $stored_values{ stored_ep_well_accepted };
+    $summary_row_values->{ 'ep_well_id' }                = $stored_values->{ stored_ep_well_id };
+    $summary_row_values->{ 'ep_well_name' }              = $stored_values->{ stored_ep_well_name };
+    $summary_row_values->{ 'ep_plate_id' }               = $stored_values->{ stored_ep_plate_id };
+    $summary_row_values->{ 'ep_plate_name' }             = $stored_values->{ stored_ep_plate_id };
+    $summary_row_values->{ 'ep_well_assay_complete' }    = $stored_values->{ stored_ep_well_assay_complete };
+    $summary_row_values->{ 'ep_well_created_ts' }        = $stored_values->{ stored_ep_well_created_ts };
+    $summary_row_values->{ 'ep_well_accepted' }          = $stored_values->{ stored_ep_well_accepted };
 
-    $params->{ summary_row_values }{ 'ep_colonies_rem_unstained' } = $stored_values{ stored_ep_colonies_rem_unstained };
-    $params->{ summary_row_values }{ 'ep_colonies_total' }         = $stored_values{ stored_ep_colonies_total };
-    $params->{ summary_row_values }{ 'ep_colonies_picked' }        = $stored_values{ stored_ep_colonies_picked };
-    $params->{ summary_row_values }{ 'ep_first_cell_line_name' }   = $stored_values{ stored_ep_first_cell_line_name };
+    $summary_row_values->{ 'ep_colonies_rem_unstained' } = $stored_values->{ stored_ep_colonies_rem_unstained };
+    $summary_row_values->{ 'ep_colonies_total' }         = $stored_values->{ stored_ep_colonies_total };
+    $summary_row_values->{ 'ep_colonies_picked' }        = $stored_values->{ stored_ep_colonies_picked };
+    $summary_row_values->{ 'ep_first_cell_line_name' }   = $stored_values->{ stored_ep_first_cell_line_name };
     return;
 }
 
 # values specific to EP_PICK wells
 sub fetch_values_for_type_EP_PICK {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_ep_pick_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_ep_pick_well_id }) ) {
+    if( (not exists $stored_values->{ stored_ep_pick_well_id }) || ($curr_well->id != $stored_values->{ stored_ep_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for EP_PICK well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_ep_pick_well_id' }                = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_ep_pick_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_ep_pick_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_ep_pick_plate_name' }             = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_ep_pick_well_created_ts' }        = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_ep_pick_well_assay_complete' }    = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_ep_pick_well_accepted' }          = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for EP_PICK well : ".$curr_well->id;
+		$stored_values->{ 'stored_ep_pick_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_ep_pick_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_ep_pick_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_ep_pick_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_ep_pick_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_ep_pick_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_ep_pick_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-        $stored_values{ 'stored_ep_pick_qc_seq_pass' }            = try{ $params->{ curr_well }->well_qc_sequencing_result->pass };  # qc sequencing test result
+        $stored_values->{ 'stored_ep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass };  # qc sequencing test result
     }
 
-    $params->{ summary_row_values }{ 'ep_pick_well_id' }              = $stored_values{ stored_ep_pick_well_id };
-    $params->{ summary_row_values }{ 'ep_pick_well_name' }            = $stored_values{ stored_ep_pick_well_name };
-    $params->{ summary_row_values }{ 'ep_pick_plate_id' }             = $stored_values{ stored_ep_pick_plate_id };
-    $params->{ summary_row_values }{ 'ep_pick_plate_name' }           = $stored_values{ stored_ep_pick_plate_id };
-    $params->{ summary_row_values }{ 'ep_pick_well_assay_complete' }  = $stored_values{ stored_ep_pick_well_assay_complete };
-    $params->{ summary_row_values }{ 'ep_pick_well_created_ts' }      = $stored_values{ stored_ep_pick_well_created_ts };
-    $params->{ summary_row_values }{ 'ep_pick_well_accepted' }        = $stored_values{ stored_ep_pick_well_accepted };
+    $summary_row_values->{ 'ep_pick_well_id' }              = $stored_values->{ stored_ep_pick_well_id };
+    $summary_row_values->{ 'ep_pick_well_name' }            = $stored_values->{ stored_ep_pick_well_name };
+    $summary_row_values->{ 'ep_pick_plate_id' }             = $stored_values->{ stored_ep_pick_plate_id };
+    $summary_row_values->{ 'ep_pick_plate_name' }           = $stored_values->{ stored_ep_pick_plate_id };
+    $summary_row_values->{ 'ep_pick_well_assay_complete' }  = $stored_values->{ stored_ep_pick_well_assay_complete };
+    $summary_row_values->{ 'ep_pick_well_created_ts' }      = $stored_values->{ stored_ep_pick_well_created_ts };
+    $summary_row_values->{ 'ep_pick_well_accepted' }        = $stored_values->{ stored_ep_pick_well_accepted };
 
-    $params->{ summary_row_values }{ 'ep_pick_qc_seq_pass' }          = $stored_values{ stored_ep_pick_qc_seq_pass };
+    $summary_row_values->{ 'ep_pick_qc_seq_pass' }          = $stored_values->{ stored_ep_pick_qc_seq_pass };
     # valid primers?
     return;
 }
@@ -421,30 +481,33 @@ sub fetch_values_for_type_EP_PICK {
 # values specific to SEP wells
 sub fetch_values_for_type_SEP {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_sep_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_sep_well_id }) ) {
+    if( (not exists $stored_values->{ stored_sep_well_id }) || ($curr_well->id != $stored_values->{ stored_sep_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for SEP well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_sep_well_id' }                = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_sep_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_sep_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_sep_plate_name' }             = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_sep_well_created_ts' }        = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_sep_well_assay_complete' }    = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_sep_well_accepted' }          = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for SEP well : ".$curr_well->id;
+		$stored_values->{ 'stored_sep_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_sep_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_sep_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_sep_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_sep_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_sep_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_sep_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-        $stored_values{ 'stored_sep_second_cell_line_name' }  = try{ $params->{ curr_well }->second_cell_line->name }; # second cell line name
+        $stored_values->{ 'stored_sep_second_cell_line_name' }  = try{ $curr_well->second_cell_line->name }; # second cell line name
     }
 
-    $params->{ summary_row_values }{ 'sep_well_id' }               = $stored_values{ stored_sep_well_id };
-    $params->{ summary_row_values }{ 'sep_well_name' }             = $stored_values{ stored_sep_well_name };
-    $params->{ summary_row_values }{ 'sep_plate_id' }              = $stored_values{ stored_sep_plate_id };
-    $params->{ summary_row_values }{ 'sep_plate_name' }            = $stored_values{ stored_sep_plate_id };
-    $params->{ summary_row_values }{ 'sep_well_assay_complete' }   = $stored_values{ stored_sep_well_assay_complete };
-    $params->{ summary_row_values }{ 'sep_well_created_ts' }       = $stored_values{ stored_sep_well_created_ts };
-    $params->{ summary_row_values }{ 'sep_well_accepted' }         = $stored_values{ stored_sep_well_accepted };
+    $summary_row_values->{ 'sep_well_id' }               = $stored_values->{ stored_sep_well_id };
+    $summary_row_values->{ 'sep_well_name' }             = $stored_values->{ stored_sep_well_name };
+    $summary_row_values->{ 'sep_plate_id' }              = $stored_values->{ stored_sep_plate_id };
+    $summary_row_values->{ 'sep_plate_name' }            = $stored_values->{ stored_sep_plate_id };
+    $summary_row_values->{ 'sep_well_assay_complete' }   = $stored_values->{ stored_sep_well_assay_complete };
+    $summary_row_values->{ 'sep_well_created_ts' }       = $stored_values->{ stored_sep_well_created_ts };
+    $summary_row_values->{ 'sep_well_accepted' }         = $stored_values->{ stored_sep_well_accepted };
 
-    $params->{ summary_row_values }{ 'sep_second_cell_line_name' } = $stored_values{ stored_sep_second_cell_line_name };
+    $summary_row_values->{ 'sep_second_cell_line_name' } = $stored_values->{ stored_sep_second_cell_line_name };
     # colony count or only on EP?
     return;
 }
@@ -452,30 +515,33 @@ sub fetch_values_for_type_SEP {
 # values specific to SEP_PICK wells
 sub fetch_values_for_type_SEP_PICK {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_sep_pick_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_sep_pick_well_id }) ) {
+    if( (not exists $stored_values->{ stored_sep_pick_well_id }) || ($curr_well->id != $stored_values->{ stored_sep_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for SEP_PICK well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_sep_pick_well_id' }                = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_sep_pick_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_sep_pick_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_sep_pick_plate_name' }             = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_sep_pick_well_created_ts' }        = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_sep_pick_well_assay_complete' }    = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_sep_pick_well_accepted' }          = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for SEP_PICK well : ".$curr_well->id;
+		$stored_values->{ 'stored_sep_pick_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_sep_pick_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_sep_pick_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_sep_pick_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_sep_pick_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_sep_pick_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_sep_pick_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-        $stored_values{ 'stored_sep_pick_qc_seq_pass' }            = try{ $params->{ curr_well }->well_qc_sequencing_result->pass }; # qc sequencing test result
+        $stored_values->{ 'stored_sep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
     }
 
-    $params->{ summary_row_values }{ 'sep_pick_well_id' }               = $stored_values{ stored_sep_pick_well_id };
-    $params->{ summary_row_values }{ 'sep_pick_well_name' }             = $stored_values{ stored_sep_pick_well_name };
-    $params->{ summary_row_values }{ 'sep_pick_plate_id' }              = $stored_values{ stored_sep_pick_plate_id };
-    $params->{ summary_row_values }{ 'sep_pick_plate_name' }            = $stored_values{ stored_sep_pick_plate_id };
-    $params->{ summary_row_values }{ 'sep_pick_well_assay_complete' }   = $stored_values{ stored_sep_pick_well_assay_complete };
-    $params->{ summary_row_values }{ 'sep_pick_well_created_ts' }       = $stored_values{ stored_sep_pick_well_created_ts };
-    $params->{ summary_row_values }{ 'sep_pick_well_accepted' }         = $stored_values{ stored_sep_pick_well_accepted };
+    $summary_row_values->{ 'sep_pick_well_id' }               = $stored_values->{ stored_sep_pick_well_id };
+    $summary_row_values->{ 'sep_pick_well_name' }             = $stored_values->{ stored_sep_pick_well_name };
+    $summary_row_values->{ 'sep_pick_plate_id' }              = $stored_values->{ stored_sep_pick_plate_id };
+    $summary_row_values->{ 'sep_pick_plate_name' }            = $stored_values->{ stored_sep_pick_plate_id };
+    $summary_row_values->{ 'sep_pick_well_assay_complete' }   = $stored_values->{ stored_sep_pick_well_assay_complete };
+    $summary_row_values->{ 'sep_pick_well_created_ts' }       = $stored_values->{ stored_sep_pick_well_created_ts };
+    $summary_row_values->{ 'sep_pick_well_accepted' }         = $stored_values->{ stored_sep_pick_well_accepted };
 
-    $params->{ summary_row_values }{ 'sep_pick_qc_seq_pass' }           = $stored_values{ stored_sep_pick_qc_seq_pass };
+    $summary_row_values->{ 'sep_pick_qc_seq_pass' }           = $stored_values->{ stored_sep_pick_qc_seq_pass };
     # valid primers?
     return;
 }
@@ -483,52 +549,58 @@ sub fetch_values_for_type_SEP_PICK {
 # values specific to FP wells
 sub fetch_values_for_type_FP {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_fp_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_fp_well_id }) ) {
+    if( (not exists $stored_values->{ stored_fp_well_id }) || ($curr_well->id != $stored_values->{ stored_fp_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for FP well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_fp_well_id' }                = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_fp_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_fp_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_fp_plate_name' }             = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_fp_well_created_ts' }        = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_fp_well_assay_complete' }    = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_fp_well_accepted' }          = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for FP well : ".$curr_well->id;
+		$stored_values->{ 'stored_fp_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_fp_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_fp_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_fp_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_fp_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_fp_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_fp_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
     }
 
-    $params->{ summary_row_values }{ 'fp_well_id' }               = $stored_values{ stored_fp_well_id };
-    $params->{ summary_row_values }{ 'fp_well_name' }             = $stored_values{ stored_fp_well_name };
-    $params->{ summary_row_values }{ 'fp_plate_id' }              = $stored_values{ stored_fp_plate_id };
-    $params->{ summary_row_values }{ 'fp_plate_name' }            = $stored_values{ stored_fp_plate_id };
-    $params->{ summary_row_values }{ 'fp_well_assay_complete' }   = $stored_values{ stored_fp_well_assay_complete };
-    $params->{ summary_row_values }{ 'fp_well_created_ts' }       = $stored_values{ stored_fp_well_created_ts };
-    $params->{ summary_row_values }{ 'fp_well_accepted' }         = $stored_values{ stored_fp_well_accepted };
+    $summary_row_values->{ 'fp_well_id' }               = $stored_values->{ stored_fp_well_id };
+    $summary_row_values->{ 'fp_well_name' }             = $stored_values->{ stored_fp_well_name };
+    $summary_row_values->{ 'fp_plate_id' }              = $stored_values->{ stored_fp_plate_id };
+    $summary_row_values->{ 'fp_plate_name' }            = $stored_values->{ stored_fp_plate_id };
+    $summary_row_values->{ 'fp_well_assay_complete' }   = $stored_values->{ stored_fp_well_assay_complete };
+    $summary_row_values->{ 'fp_well_created_ts' }       = $stored_values->{ stored_fp_well_created_ts };
+    $summary_row_values->{ 'fp_well_accepted' }         = $stored_values->{ stored_fp_well_accepted };
     return;
 }
 
 # values specific to SFP wells
 sub fetch_values_for_type_SFP {
     my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
 
-    if( (not exists $stored_values{ stored_sfp_well_id }) || ($params->{ curr_well }->id != $stored_values{ stored_sfp_well_id }) ) {
+    if( (not exists $stored_values->{ stored_sfp_well_id }) || ($curr_well->id != $stored_values->{ stored_sfp_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for SFP well : ".$params->{ curr_well }->id;
-		$stored_values{ 'stored_sfp_well_id' }                = $params->{ curr_well }->id; # well id
-        $stored_values{ 'stored_sfp_well_name' }              = $params->{ curr_well }->name; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values{ 'stored_sfp_plate_id' }               = $params->{ curr_well }->plate->id; # plate id
-        $stored_values{ 'stored_sfp_plate_name' }             = $params->{ curr_well }->plate->name; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values{ 'stored_sfp_well_created_ts' }        = try{ $params->{ curr_well }->created_at->iso8601 }; # well created timestamp
-        $stored_values{ 'stored_sfp_well_assay_complete' }    = try{ $params->{ curr_well }->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values{ 'stored_sfp_well_accepted' }          = $params->{ curr_well }->is_accepted; # well accepted (with override)
+		DEBUG caller()." Fetching new values for SFP well : ".$curr_well->id;
+		$stored_values->{ 'stored_sfp_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_sfp_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_sfp_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_sfp_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_sfp_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_sfp_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_sfp_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
     }
 
-    $params->{ summary_row_values }{ 'sfp_well_id' }               = $stored_values{ stored_sfp_well_id };
-    $params->{ summary_row_values }{ 'sfp_well_name' }             = $stored_values{ stored_sfp_well_name };
-    $params->{ summary_row_values }{ 'sfp_plate_id' }              = $stored_values{ stored_sfp_plate_id };
-    $params->{ summary_row_values }{ 'sfp_plate_name' }            = $stored_values{ stored_sfp_plate_id };
-    $params->{ summary_row_values }{ 'sfp_well_assay_complete' }   = $stored_values{ stored_sfp_well_assay_complete };
-    $params->{ summary_row_values }{ 'sfp_well_created_ts' }       = $stored_values{ stored_sfp_well_created_ts };
-    $params->{ summary_row_values }{ 'sfp_well_accepted' }         = $stored_values{ stored_sfp_well_accepted };
+    $summary_row_values->{ 'sfp_well_id' }               = $stored_values->{ stored_sfp_well_id };
+    $summary_row_values->{ 'sfp_well_name' }             = $stored_values->{ stored_sfp_well_name };
+    $summary_row_values->{ 'sfp_plate_id' }              = $stored_values->{ stored_sfp_plate_id };
+    $summary_row_values->{ 'sfp_plate_name' }            = $stored_values->{ stored_sfp_plate_id };
+    $summary_row_values->{ 'sfp_well_assay_complete' }   = $stored_values->{ stored_sfp_well_assay_complete };
+    $summary_row_values->{ 'sfp_well_created_ts' }       = $stored_values->{ stored_sfp_well_created_ts };
+    $summary_row_values->{ 'sfp_well_accepted' }         = $stored_values->{ stored_sfp_well_accepted };
     return;
 }
 
@@ -537,7 +609,7 @@ sub fetch_well_bacs_string {
 
     my $well = shift;
 
-    my $process = $well->process_output_wells->first->process;
+    my $process = try{ $well->process_output_wells->first->process };
 
 	my $return_string;
 
@@ -551,9 +623,9 @@ sub fetch_well_bacs_string {
 
 # gene(s) associated with this well combined as single symbol and id strings
 sub fetch_well_gene_symbols_and_ids {
-    my $well = shift;
+    my ( $well, $model ) = @_;
 
-    my @gene_ids = uniq map { $_->gene_id } $well->design->genes;
+    my @gene_ids = try { uniq map { $_->gene_id } $well->design->genes };
 
     # try to fetch gene symbols
     my @gene_symbols;
@@ -609,7 +681,7 @@ sub fetch_well_colony_count_remaining_unstained {
 
 # insert row into database
 sub insert_summary_row_via_dbix {
-    my $summary_data = shift;
+    my ( $summary_data, $model ) = @_;
 
     my $result = try { $model->schema->resultset('Summary')->create($summary_data) } catch { ERROR "Error inserting well, Exception:".$_};
 
@@ -618,7 +690,7 @@ sub insert_summary_row_via_dbix {
 
 # select the rows for this design well and delete them
 sub delete_summary_rows_for_design_well {
-    my $well_id = shift;
+    my ( $well_id, $model ) = @_;
 
     my $wells_rs = $model->schema->resultset('Summary')->search({
         design_well_id => $well_id,

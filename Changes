@@ -1,3 +1,7 @@
+0.050     2013-02-19 15:36:20 Europe/London
+
+	Added Summaries test script. Modified summaries to use ProcessTree.
+
 0.049     2013-02-11 14:06:03 Europe/London
 
 	Changed role in summaries code from webapp to tasks.

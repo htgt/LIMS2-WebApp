@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.049';
+    $LIMS2::Test::VERSION = '0.050';
 }
 ## use critic
 
@@ -82,7 +82,7 @@ sub reload_fixtures {
         BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
     };
 
-    return;
+    return 1;
 }
 
 sub _build_test_data {
@@ -177,6 +177,11 @@ sub _load_fixtures {
             );
     	}
     	_update_fixture_md5($dbh, $fixture_md5);
+
+	    # This warns "commit ineffective with AutoCommit enabled"
+	    # but it seems to be necessary...
+    	$dbh->commit;
+
     	$dbh->do( "RESET ROLE" );
     }
 
