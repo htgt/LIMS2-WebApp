@@ -39,6 +39,7 @@ note("Testing process tree methods - descendants");
     is scalar @{$paths}, 192, '.. 192 paths were returned'; 
 }
 
+=head
 note("Testing process tree methods - ancestors");
 {
     # TODO: complete the tests for ancestors
@@ -64,5 +65,5 @@ note("Testing process tree methods - ancestors");
 	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 935, direction => 0} ), 'retrieved descendant paths for well_id 935';
     is scalar @{$paths}, 192, '.. 192 paths were returned'; 
 }
-
+=cut
 done_testing();
