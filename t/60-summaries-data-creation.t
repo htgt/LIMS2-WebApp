@@ -38,7 +38,7 @@ my %wells_expecting_other_behaviour = (
 );
 
 # determine total count of tests
-plan tests => (keys(%wells_expecting_success) * 7) + (keys(%wells_expecting_other_behaviour) * 7); # expected number of tests
+plan tests => (keys(%wells_expecting_success) * 7) + (keys(%wells_expecting_other_behaviour) * 7);
 
 # loop of tests expected to be successful
 while( my($design_well_id, $expected_results) = each %wells_expecting_success ) {

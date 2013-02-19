@@ -61,36 +61,64 @@ sub generate_summary_rows_for_all_trails {
         }
     } else {
         # no design well exists for that ID, error
-        LOGDIE caller()." Well ID $design_well_id : No design well object found, cannot fetch descendant trails :";
+        LOGDIE caller()." Well ID $design_well_id : No design well object found, cannot fetch descendant trails";
     }
 
-    # returned array contains well list and trails list
-    # TODO: fix depth first method call
-    my @return_array = $design_well->descendants->depth_first_traversal_with_trails($design_well, [], [], [], 0);
-    my ( $well_list, $all_trails ) = @return_array;         # return two array refs
+    # Call ProcessTree to fetch paths
+    my $design_well_trails = $model->get_paths_for_well_id_depth_first($design_well_id);
 
-    # dereference trails array
-    my @design_well_trails = @{$all_trails};
-
+    # hash of previously retrieved wells
+    my %wells_retrieved = ();
+    
     my $trails_index = 0;
-    while ( $design_well_trails[$trails_index] ) {
+    while ( $design_well_trails->[$trails_index] ) {
 
         my %summary_row_values; # hash to contain column values for rows
         my %done = ();          # hash keeping track of done plate types
 
         # Loop through the wells in the trail
-        foreach my $curr_well (reverse @{$design_well_trails[$trails_index]}){
+        foreach my $curr_well_id (reverse @{$design_well_trails->[$trails_index]}){
 
-            my $params = {
-                'summary_row_values' => \%summary_row_values,
-                'done' => \%done,
-                'curr_well' => $curr_well,
-                'stored_values' => $stored_values,
-                'model' => $model,
-            };
+            DEBUG caller()." Well ID $design_well_id : Path well ID $curr_well_id";
 
-            # create the output array for this well
-            add_to_output_for_well($params);
+            my $curr_well;
+
+            # check wells hash to see if we already retrieved this well object previously
+            if (exists $wells_retrieved{$curr_well_id}) {
+
+                DEBUG caller()." Re-using well ID: $curr_well_id";
+
+                # re-use same well object
+                $curr_well = $wells_retrieved{$curr_well_id};
+            } else {
+                # otherwise fetch current well object for id
+                $curr_well = try { $model->retrieve_well( { id => $curr_well_id } ) };
+
+                # and insert into hash
+                $wells_retrieved{ $curr_well_id } = $curr_well;
+
+                foreach my $key (keys %wells_retrieved)
+                {
+                    DEBUG caller()." Key: $key\n";
+                }
+            }
+
+            if (defined $curr_well) {
+                my $params = {
+                    'summary_row_values' => \%summary_row_values,
+                    'done' => \%done,
+                    'curr_well' => $curr_well,
+                    'stored_values' => $stored_values,
+                    'model' => $model,
+                };
+
+                # create the output array for this well
+                add_to_output_for_well($params);
+
+            } else {
+                # no design well exists for that ID, error
+                LOGDIE caller()." Well ID $design_well_id : No well object found for path well id : $curr_well_id, cannot continue";
+            }
         }
 
         # insert to DB
