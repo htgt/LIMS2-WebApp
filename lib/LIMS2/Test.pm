@@ -171,11 +171,11 @@ sub _load_fixtures {
             );
     	}
     	_update_fixture_md5($dbh, $fixture_md5);
-	    
+
 	    # This warns "commit ineffective with AutoCommit enabled"
 	    # but it seems to be necessary...
     	$dbh->commit;
-    	
+
     	$dbh->do( "RESET ROLE" );
     }
 
