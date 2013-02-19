@@ -45,14 +45,18 @@ sub _build_gene_electroporate_list {
         $project_rs = $self->model->schema->resultset('Project')->search( {} );
     }
 
+    my %wells;
     my @electroporate_list;
     while ( my $project = $project_rs->next ) {
+
+=head
         my $ar = $arf->allele_request( decode_json( $project->allele_request ) );
 
         my %data;
         $data{gene_id}       = $ar->gene_id;
         $data{marker_symbol} = $self->model->retrieve_gene(
             { species => $self->species, search_term => $ar->gene_id } )->{gene_symbol};
+
 
         $data{first_allele_promoter_dna_wells}
             = valid_dna_wells( $ar, { type => 'first_allele_dna_wells', promoter => 1 } );
@@ -62,9 +66,24 @@ sub _build_gene_electroporate_list {
             = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 1 } );
         $data{second_allele_promoterless_dna_wells}
             = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 0 } );
+=cut
 
-        $data{fep_wells} = electroporation_wells( $ar, 'first_electroporation_wells' );
-        $data{sep_wells} = electroporation_wells( $ar, 'second_electroporation_wells' );
+        my %data;
+        $data{gene_id}       = $project->gene_id;
+        $data{marker_symbol} = $self->model->retrieve_gene(
+            { species => $self->species, search_term => $project->gene_id } )->{gene_symbol};
+            
+        $data{first_allele_promoter_dna_wells}
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'first', promoter => 1 } );
+        $data{first_allele_promoterless_dna_wells}
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'first', promoter => 0 } );
+        $data{second_allele_promoter_dna_wells}
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'second', promoter => 1 } );
+        $data{second_allele_promoterless_dna_wells}
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'second', promoter => 0 } );
+            
+        $data{fep_wells} = $self->electroporation_wells( $project, \%wells, 'first' );
+        $data{sep_wells} = $self->electroporation_wells( $project, \%wells, 'second' );
 
         push @electroporate_list, \%data;
     }
@@ -125,13 +144,45 @@ override iterator => sub {
     );
 };
 
+=head
 sub print_wells{
     my ( $self, $data, $result, $type ) = @_;
 
     push @{ $data }, join( " - ", map{ $_->plate->name . '[' . $_->name . ']' } @{ $result->{$type} } );
     return;
 }
+=cut
+sub print_wells{
+	my ( $self, $data, $result, $type ) = @_;
+	
+	push @{ $data }, join( " - ", map{ $_->dna_plate_name . '[' . $_->dna_well_name . ']' } 
+	                       @{ $result->{$type} });
+	return;
+}
 
+sub print_electroporation_wells{
+    my ( $self, $data, $result, $type ) = @_;
+
+    my @ep_data;
+    my $prefix = $type eq 'fep_wells' ? 'ep'  :
+                 $type eq 'sep_wells' ? 'sep' :
+                 die "Unknown ep type: $type";
+    
+    for my $datum ( @{ $result->{$type} } ) {
+        my $well_data = $datum->$prefix.'_plate_name' . '[' . $datum->$prefix.'_well_name' . ']';
+        $well_data
+            .= ' ('
+            . $datum->dna_plate_name . '['
+            . $datum->dna_well_name . '] )';
+
+        push @ep_data, $well_data;
+    }
+
+    push @{ $data }, join( " - ", @ep_data );
+    return;    
+    
+}
+=head
 sub print_electroporation_wells{
     my ( $self, $data, $result, $type ) = @_;
 
@@ -150,11 +201,36 @@ sub print_electroporation_wells{
     push @{ $data }, join( " - ", @ep_data );
     return;
 }
+=cut
 
 sub valid_dna_wells {
-    my ( $ar, $params ) = @_;
+    my ( $self, $project, $wells, $params ) = @_;
+    
+    my @dna_wells;
 
-    my %dna_wells;
+    # Find vector wells for the project
+    $self->vectors($project, $wells, $params->{allele});
+
+    my $vectors = $params->{allele}.'_vectors';
+    foreach my $well ($wells->{$vectors}){
+    	next unless my $id = $well->dna_well_id;
+    	
+    	# CHECK: this is not the same as logic in orig code
+    	next unless $well->dna_status_pass;
+    	
+    	# FIXME: should add dna_well_cassette/cassette_promoter to summaries
+    	my $dna_well = $self->model->schema->resultset('Well')->find($id);
+    	my $cassette = $dna_well->cassette;
+    	
+    	if ( $params->{promoter} ){
+    		push @dna_wells, $well if $cassette->promoter;
+    	}
+    	else{
+    		push @dna_wells, $well unless $cassette->promoter;
+    	}
+    }
+    
+=head    
     my $type = $params->{type};
     return unless $ar->can( $type );
     for my $well ( @{ $ar->$type } ) {
@@ -177,10 +253,27 @@ sub valid_dna_wells {
                 unless $cassette->promoter;
         }
     }
+=cut
 
-    return [ values %dna_wells ];
+    return \@dna_wells;
 }
 
+sub electroporation_wells {	
+	my ($self, $project, $wells, $allele) = @_;
+	
+	my @ep_wells;
+	my $vectors = $allele.'_vectors';
+	my $ep_well = $allele eq 'first'  ? 'ep_well_id'  :
+	              $allele eq 'second' ? 'sep_well_id' :
+	              die "Unknown allele type $allele";
+	
+	foreach my $well (@{ $wells->{$vectors} || [] }){
+		push @ep_wells, $well if $well->$ep_well;
+	}
+	
+	return \@ep_wells;
+}
+=head
 sub electroporation_wells {
     my ( $ar, $type ) = @_;
 
@@ -196,6 +289,7 @@ sub electroporation_wells {
 
     return [ values %wells ];
 }
+=cut
 
 sub _find_dna_parent_well {
     my ( $ep_well ) = @_;
