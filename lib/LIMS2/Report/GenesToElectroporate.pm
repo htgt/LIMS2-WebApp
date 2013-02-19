@@ -5,10 +5,13 @@ use DateTime;
 use LIMS2::AlleleRequestFactory;
 use JSON qw( decode_json );
 use List::Util qw( max );
+use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
 #TODO deal with single targeted
+
+Log::Log4perl->easy_init($DEBUG);
 
 has species => (
     is       => 'ro',
@@ -34,7 +37,7 @@ has gene_electroporate_list => (
 
 sub _build_gene_electroporate_list {
     my $self = shift;
-
+DEBUG "Starting to build gene electroporate list";
     my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
 
     my $project_rs;
@@ -205,16 +208,17 @@ sub print_electroporation_wells{
 
 sub valid_dna_wells {
     my ( $self, $project, $wells, $params ) = @_;
-    
+DEBUG "Searching for valid DNA wells";    
     my @dna_wells;
 
     # Find vector wells for the project
     $self->vectors($project, $wells, $params->{allele});
 
     my $vectors = $params->{allele}.'_vectors';
-    foreach my $well ($wells->{$vectors}){
+    foreach my $well (@{ $wells->{$vectors} || [] }){
     	next unless my $id = $well->dna_well_id;
     	
+    	DEBUG "Processing vector well $id";
     	# CHECK: this is not the same as logic in orig code
     	next unless $well->dna_status_pass;
     	

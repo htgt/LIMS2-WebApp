@@ -151,24 +151,6 @@ sub _find_project_wells_2 {
     return;
 }
 
-sub design_types_for {
-    my ( $self, $mutation_type ) = @_;
-
-    if ( $mutation_type eq 'ko_first' ) {
-        return [ 'conditional', 'artificial-intron', 'intron-replacement' ];
-    }
-    if ( $mutation_type eq 'deletion' or $mutation_type eq 'insertion' ){
-        return [ $mutation_type ];
-    }
-    if ( $mutation_type eq 'cre_knock_in'){
-        return [ 'conditional', 'artificial-intron', 'intron-replacement', 'deletion', 'insertion', 'cre-bac' ];
-    }
-
-    $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );
-
-    return;
-}
-
 sub genes{
 	my ($self, $project, $wells) = @_;
 
