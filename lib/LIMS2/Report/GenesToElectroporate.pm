@@ -170,9 +170,12 @@ sub print_electroporation_wells{
     my $prefix = $type eq 'fep_wells' ? 'ep'  :
                  $type eq 'sep_wells' ? 'sep' :
                  die "Unknown ep type: $type";
+                 
+    my $plate = $prefix.'_plate_name';
+    my $well = $prefix.'_well_name';
     
     for my $datum ( @{ $result->{$type} } ) {
-        my $well_data = $datum->$prefix.'_plate_name' . '[' . $datum->$prefix.'_well_name' . ']';
+        my $well_data = $datum->$plate . '[' . $datum->$well . ']';
         $well_data
             .= ' ('
             . $datum->dna_plate_name . '['
@@ -222,15 +225,12 @@ DEBUG "Searching for valid DNA wells";
     	# CHECK: this is not the same as logic in orig code
     	next unless $well->dna_status_pass;
     	
-    	# FIXME: should add dna_well_cassette/cassette_promoter to summaries
-    	my $dna_well = $self->model->schema->resultset('Well')->find($id);
-    	my $cassette = $dna_well->cassette;
-    	
+    	# CHECK: is it always the final well cassette we are interested in?    	
     	if ( $params->{promoter} ){
-    		push @dna_wells, $well if $cassette->promoter;
+    		push @dna_wells, $well if $well->final_cassette_promoter;
     	}
     	else{
-    		push @dna_wells, $well unless $cassette->promoter;
+    		push @dna_wells, $well unless $well->final_cassette_promoter;
     	}
     }
     
