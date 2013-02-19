@@ -12,6 +12,9 @@ use LIMS2::Test;
 use Test::Most; # => 6;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
 
+# Force reload of fixture data
+reload_fixtures;
+
 # Design well ids used:
 # 1844 - basic example with 2 trails (one DESIGN to two INT's)
 # 930  - heterozygous example with DESIGN->INT->FINAL->DNA->EP->EP_PICK->FP - 49 rows total
