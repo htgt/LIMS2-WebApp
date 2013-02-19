@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.050';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.051';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use Hash::MoreUtils qw( slice slice_def );
 use List::Util qw( max min );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
+use LIMS2::Model::Util qw( sanitize_like_expr );
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -282,6 +283,7 @@ sub pspec_list_assigned_designs_for_gene {
     }
 }
 
+#fetch all designs from the GeneDesign table for a given mgi accession id 
 sub list_assigned_designs_for_gene {
     my ( $self, $params ) = @_;
 
@@ -296,6 +298,7 @@ sub list_assigned_designs_for_gene {
         $search{'me.design_type_id'} = $validated_params->{type};
     }
 
+    #genes is the GeneDesign table
     my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'genes' } );
 
     return [ $design_rs->all ];
@@ -309,6 +312,7 @@ sub pspec_list_candidate_designs_for_gene {
     }
 }
 
+#find any potential designs by checking if any of the loci overlap with a gene
 sub list_candidate_designs_for_gene {
     my ( $self, $params ) = @_;
 
@@ -338,6 +342,41 @@ sub list_candidate_designs_for_gene {
     my $design_rs = $self->schema->resultset('Design')->search( \%search, { join => 'default_locus' } );
 
     return [ $design_rs->all ];
+}
+
+sub pspec_search_gene_designs {
+    return {
+        search_term => { validate => 'non_empty_string' },
+        page        => { validate => 'integer', optional => 1, default => 1 },
+        pagesize    => { validate => 'integer', optional => 1, default => 50 }
+    };
+}
+
+#this function expects a marker symbol (or partial one), and returns any matching results
+#from the GeneDesigns table.
+sub search_gene_designs {
+    my ( $self, $params ) = @_;
+
+    $params = $self->check_params( $params, $self->pspec_search_gene_designs );
+
+    #find all gene_ids like the search term
+    my $gene_designs = $self->schema->resultset( 'GeneDesign' )->search(
+        { gene_id => { ilike => sanitize_like_expr( $params->{ search_term } ) . "%" } },
+        {
+            join     => 'design',
+            page     => $params->{ page },
+            rows     => $params->{ pagesize },
+        }
+    );
+
+    #get lists of designs, matching the format from list_designs in BrowseDesigns.pm
+    my @designs;
+    for my $gene_design ( $gene_designs->all ) {
+        #we need to preserve the correct (naturally sorted) order, and no longer need groupings
+        push @designs, { gene_id => $gene_design->gene_id, designs => [ $gene_design->design->as_hash(0) ] };
+    }
+
+    return ( \@designs, $gene_designs->pager );
 }
 
 sub _get_gene_chr_start_end_strand {

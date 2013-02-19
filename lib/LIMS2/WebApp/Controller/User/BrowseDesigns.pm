@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.050';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.051';
 }
 ## use critic
 
@@ -100,12 +100,64 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my $species_id = $c->request->param('species') || $c->session->{selected_species};
-    my $gene_id    = $c->request->param('gene_id');
+    my $params = $c->request->params;
+
+    my $species_id = $params->{ species } || $c->session->{selected_species};
+    my $gene_id    = $params->{ gene_id };
+
+    #search the gene designs table. if we're generating a csv we need a much larger pagesize
+    my ( $gene_designs, $pager ) = $c->model('Golgi')->search_gene_designs( {
+        search_term => $gene_id,
+        page        => $params->{ page },
+        pagesize    => ( exists $params->{ csv } ) ? 1000 : $params->{ pagesize }
+    } );
+
+    #if we found anything in the search then just display the results to the user, no more searching required
+    if ( @{ $gene_designs } ) {
+        #if the user has requested a csv create and return it, otherwise continue as normal.
+        if ( exists $params->{ csv } ) {
+            my $filename = "${gene_id}_design_results.csv";
+
+            $c->res->content_type('text/comma-separated-values');
+            $c->res->header( 'Content-Disposition', qq[attachment; filename="$filename"] );
+
+            $c->res->body( $self->_generate_designs_csv( $gene_designs, $c->uri_for( '/user/view_design' ) ) );
+
+            return;
+        }
+
+        #get a pager and stash all the information
+        my $pageset = LIMS2::WebApp::Pageset->new( {
+                total_entries    => $pager->total_entries,
+                entries_per_page => $pager->entries_per_page,
+                current_page     => $pager->current_page,
+                pages_per_set    => 5,
+                mode             => 'slide',
+                base_uri         => $c->uri_for( '/user/list_designs', $params )
+        } );
+
+        $c->stash( {
+            search_term     => $gene_id,
+            designs_by_gene => $gene_designs,
+            pageset         => $pageset,
+            template        => 'user/browsedesigns/list_designs_compact.tt'
+        } );
+        return;
+    }
+
+    #if a csv has been requested but we haven't already returned there is a problem.
+    if ( exists $params->{ csv } ) {
+        $c->stash( error_msg => "There was an error generating the CSV file." );
+        return $c->go('index');
+    }
+
+    #if we didnt find anything in the GeneDesign table we'll need to get the mgi accession id:
 
     my $genes;
 
     try {
+        #search the solr database for anything matching $gene_id (can be an mgi accession id, marker symbol)
+        #which will return any matching mgi accession ids and marker symbols.
         $genes = $c->model('Golgi')->search_genes( { search_term => $gene_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
@@ -118,7 +170,7 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
 
     my $method;
 
-    if ( $c->request->param('list_candidate_designs') ) {
+    if ( $params->{ list_candidate_designs } ) {
         $method = 'list_candidate_designs_for_gene';
     }
     else {
@@ -127,7 +179,7 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
 
     my %search_params = ( species => $species_id );
 
-    my $type = $c->request->param('design_type');
+    my $type = $params->{ design_type };
     if ( $type and $type ne '-' ) {
         $search_params{type} = $type;
     }
@@ -145,6 +197,44 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
     $c->stash( designs_by_gene => \@designs_by_gene );
 
     return;
+}
+
+sub _generate_designs_csv {
+    my ( $self, $gene_designs, $view_design_link ) = @_;
+
+    my @csv_lines;
+
+    push @csv_lines, join ",",
+    (
+        "Gene",
+        "Design ID",
+        "Oligos",
+        "Location",
+        "Created by",
+        "Created at",
+        "Design Link"
+    );
+
+    for my $gene_design ( @{ $gene_designs } ) {
+        for my $design ( @{ $gene_design->{ designs } } ) {
+            my $num_oligos = scalar @{ $design->{ oligos } };
+            my $first_locus = (shift @{ $design->{ oligos } })->{ locus };
+            my $chr_end  = (pop @{ $design->{ oligos } })->{ locus }{ chr_end };
+
+            push @csv_lines, join ',',
+            (
+                $gene_design->{ gene_id },
+                $design->{ id },
+                $num_oligos,
+                "Chr $first_locus->{ chr_name }: $first_locus->{ chr_start } - $chr_end",
+                $design->{ created_by },
+                $design->{ created_at },
+                $view_design_link . "?design_id=" . $design->{ id },
+            );
+        }
+    }
+
+    return join "\n", @csv_lines;
 }
 
 =head1 AUTHOR

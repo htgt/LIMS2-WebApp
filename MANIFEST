@@ -202,6 +202,7 @@ root/site/admin/update_user.tt
 root/site/auth/login.tt
 root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
+root/site/user/browsedesigns/list_designs_compact.tt
 root/site/user/browsedesigns/view_design.tt
 root/site/user/browseplates/index.tt
 root/site/user/browseplates/view.tt
