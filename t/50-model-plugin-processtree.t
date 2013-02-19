@@ -14,27 +14,54 @@ use Try::Tiny;
 use DateTime;
 use File::Temp ':seekable';
 
-note("Testing process tree methods");
+note("Testing process tree methods - descendants");
 {
 
-    ok my $paths = model->get_paths_for_well_id_depth_first( 850 ), 'got paths for well_id 850';
-use Data::Dumper;
+    ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>850, direction => 1} ), 'retrieved descendant paths for well_id 850';
 
-my @path_cmp[0][0 .. 4] = ( 850, 851, 852, 853, 854 );
-@path_cmp[1][0 .. 4] = ( 850, 851, 852, 1503, 1504 );
+    my @ref_paths;
+    my @path_cmp = ( 850, 851, 852, 853, 854 );
+    push @ref_paths, [@path_cmp];
 
-print Dumper( $paths );
+    @path_cmp = ( 850, 851, 852, 1503, 1504 );
+    push @ref_paths, [@path_cmp];
 
-print Dumper( $path_cmp );
-
-    my $n = 0;
-    foreach my $well ( @{$paths->[0]} ) {
-        'Well ' . $n++ . ' of trail ' . $well. "\n";
+    foreach my $check_path ( 0 .. 1 ) {
+        my $n = 0;
+        foreach my $well ( @{$paths->[$check_path]} ) {
+            is $well, $ref_paths[$check_path][$n], "path .. $n matches reference path $check_path:$n";
+            ++$n;
+        }
     }
-	ok $paths = model->get_paths_for_well_id_depth_first( 930 ), 'got paths for well_id 930';
-print Dumper( $paths );
-	ok $paths = model->get_paths_for_well_id_depth_first( 935 ), 'got paths for well_id 935';
-print Dumper( $paths );
+	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 930, direction => 1} ), 'retrieved descendant paths for well_id 930';
+    is scalar @{$paths}, 49, '.. 49 paths were returned'; 
+	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 935, direction => 1} ), 'retrieved descendant paths for well_id 935';
+    is scalar @{$paths}, 192, '.. 192 paths were returned'; 
+}
+
+note("Testing process tree methods - ancestors");
+{
+
+    ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>850, direction => 0} ), 'retrieved ancestors paths for well_id 850';
+
+    my @ref_paths;
+    my @path_cmp = ( 850, 851, 852, 853, 854 );
+    push @ref_paths, [@path_cmp];
+
+    @path_cmp = ( 850, 851, 852, 1503, 1504 );
+    push @ref_paths, [@path_cmp];
+
+    foreach my $check_path ( 0 .. 1 ) {
+        my $n = 0;
+        foreach my $well ( @{$paths->[$check_path]} ) {
+            is $well, $ref_paths[$check_path][$n], "path .. $n matches reference path $check_path:$n";
+            ++$n;
+        }
+    }
+	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 930, direction => 1} ), 'retrieved descendant paths for well_id 930';
+    is scalar @{$paths}, 49, '.. 49 paths were returned'; 
+	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 935, direction => 1} ), 'retrieved descendant paths for well_id 935';
+    is scalar @{$paths}, 192, '.. 192 paths were returned'; 
 }
 
 done_testing();

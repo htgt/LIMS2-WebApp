@@ -63,19 +63,81 @@ FROM well_hierarchy w, process_input_well
 WHERE w.output_well_id NOT IN (SELECT well_id FROM process_input_well) ;
 QUERY_END
 
+my $QUERY_ANCESTORS_BY_PLATE_NAME = << 'QUERY_END';
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+-- Non-recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     WHERE pr_out.well_id IN (
+	SELECT starting_well FROM well_list
+     )	
+     UNION ALL
+-- Recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+),
+well_list(starting_well) AS (
+	SELECT platewells.id FROM wells platewells, plates
+	WHERE plates.name =? 
+	AND platewells.plate_id = plates.id
+)
+SELECT w.process_id, w.input_well_id, w.output_well_id, pd.design_id, w.path[1] "original_well", w.path
+FROM well_hierarchy w, process_design pd
+WHERE w.process_id = pd.process_id
+--ORDER BY pd.design_id;
+GROUP BY w.process_id, w.input_well_id, w.output_well_id, pd.design_id,"original_well", w.path;
+QUERY_END
 
+my $QUERY_ANCESTORS_BY_WELL_ID = << 'QUERY_END';
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+-- Non-recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+        WHERE pr_out.well_id = ?
+     UNION ALL
+-- Recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+)
+SELECT w.process_id, w.input_well_id, w.output_well_id, pd.design_id, w.path[1] "original_well", w.path
+FROM well_hierarchy w, process_design pd
+WHERE w.process_id = pd.process_id
+--ORDER BY pd.design_id;
+GROUP BY w.process_id, w.input_well_id, w.output_well_id, pd.design_id,"original_well", w.path;
+QUERY_END
+
+sub pspec_paths_for_well_id_depth_first {
+    return {
+        well_id           => { validate   => 'integer', },
+        direction         => { validate   => 'boolean', optional => 1 },
+    };
+}
 
 sub get_paths_for_well_id_depth_first {
     my $self = shift;
-    my $well_id = shift;
+    my ($params) = @_; 
 
-    my $sql_query = $QUERY_DESCENDANTS_BY_WELL_ID;
+    my $validated_params;
+
+    $validated_params = $self->check_params( $params, $self->pspec_paths_for_well_id_depth_first  );
+
+    my $sql_query = $validated_params->{'direction'} ? $QUERY_DESCENDANTS_BY_WELL_ID : $QUERY_ANCESTORS_BY_WELL_ID;
 
     my $sql_result =  $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
          my $sth = $dbh->prepare_cached( $sql_query );
-         $sth->execute( $well_id );
+         $sth->execute( $validated_params->{'well_id'} );
          $sth->fetchall_arrayref();
         }
     );
@@ -89,5 +151,16 @@ sub get_paths_for_well_id_depth_first {
         }
     }
     return \@paths;
+}
+
+sub pspec_designs_for_plate {
+    return {
+        plate_name  =>{ validate => 'string', },
+        direction => { validate => 'boolean', optional=> 1 },
+    };
+}
+
+sub get_designs_for_plate {
+
 }
 1;
