@@ -55,7 +55,12 @@ sub _build_gene_electroporate_list {
         $data{gene_id}       = $project->gene_id;
         $data{marker_symbol} = $self->model->retrieve_gene(
             { species => $self->species, search_term => $project->gene_id } )->{gene_symbol};
-            
+
+        # Find vector wells for the project
+        $self->vectors($project, \%wells, 'first');
+        $self->vectors($project, \%wells, 'second');
+
+        # Then identify DNA and EP wells        
         $data{first_allele_promoter_dna_wells}
             = $self->valid_dna_wells( $project, \%wells, { allele => 'first', promoter => 1 } );
         $data{first_allele_promoterless_dna_wells}
@@ -64,7 +69,7 @@ sub _build_gene_electroporate_list {
             = $self->valid_dna_wells( $project, \%wells, { allele => 'second', promoter => 1 } );
         $data{second_allele_promoterless_dna_wells}
             = $self->valid_dna_wells( $project, \%wells, { allele => 'second', promoter => 0 } );
-            
+
         $data{fep_wells} = $self->electroporation_wells( $project, \%wells, 'first' );
         $data{sep_wells} = $self->electroporation_wells( $project, \%wells, 'second' );
 
@@ -129,8 +134,8 @@ override iterator => sub {
 
 sub print_wells{
 	my ( $self, $data, $result, $type ) = @_;
-	
-	push @{ $data }, join( " - ", map{ $_->dna_plate_name . '[' . $_->dna_well_name . ']' } 
+
+	push @{ $data }, join( " - ", map{ $_->dna_plate_name . '[' . $_->dna_well_name . ']' }
 	                       @{ $result->{$type} });
 	return;
 }
@@ -142,10 +147,10 @@ sub print_electroporation_wells{
     my $prefix = $type eq 'fep_wells' ? 'ep'  :
                  $type eq 'sep_wells' ? 'sep' :
                  die "Unknown ep type: $type";
-                 
+
     my $plate = $prefix.'_plate_name';
     my $well = $prefix.'_well_name';
-    
+
     for my $datum ( @{ $result->{$type} } ) {
         my $well_data = $datum->$plate . '[' . $datum->$well . ']';
         $well_data
@@ -158,76 +163,50 @@ sub print_electroporation_wells{
 
     push @{ $data }, join( " - ", @ep_data );
     return;    
-    
 }
 
 sub valid_dna_wells {
     my ( $self, $project, $wells, $params ) = @_;
-    
-    my @dna_wells;
 
-    # Find vector wells for the project
-    $self->vectors($project, $wells, $params->{allele});
+    my %dna_wells;
 
+    # Find appropriate DNA wells derived from project's vector wells
     my $vectors = $params->{allele}.'_vectors';
     foreach my $well (@{ $wells->{$vectors} || [] }){
     	next unless my $id = $well->dna_well_id;
-    	
-    	DEBUG "Processing vector well $id";
-    	# CHECK: this is not the same as logic in orig code
+    	next if exists $dna_wells{$id};
+
     	next unless $well->dna_status_pass;
-    	
-    	# CHECK: is it always the final well cassette we are interested in?    	
+
     	if ( $params->{promoter} ){
-    		push @dna_wells, $well if $well->final_cassette_promoter;
+    		$dna_wells{$id} = $well if $well->final_cassette_promoter;
     	}
     	else{
-    		push @dna_wells, $well unless $well->final_cassette_promoter;
+    		$dna_wells{$id} = $well unless $well->final_cassette_promoter;
     	}
     }
-    
-=head    
-    my $type = $params->{type};
-    return unless $ar->can( $type );
-    for my $well ( @{ $ar->$type } ) {
-        next if exists $dna_wells{ $well->as_string };
 
-        my $dna_status = $well->well_dna_status;
-        if ( $dna_status ) {
-            next unless $dna_status->pass;
-            $dna_wells{ $well->as_string } = $well;
-        }
-
-        my $cassette = $well->cassette;
-
-        if ( $params->{promoter} ) {
-            $dna_wells{ $well->as_string } = $well
-                if $cassette->promoter;
-        }
-        else {
-            $dna_wells{ $well->as_string } = $well
-                unless $cassette->promoter;
-        }
-    }
-=cut
-
-    return \@dna_wells;
+    return [ values %dna_wells ];
 }
 
-sub electroporation_wells {	
+sub electroporation_wells {
 	my ($self, $project, $wells, $allele) = @_;
-	
-	my @ep_wells;
+
+	my %ep_wells;
+
 	my $vectors = $allele.'_vectors';
 	my $ep_well = $allele eq 'first'  ? 'ep_well_id'  :
 	              $allele eq 'second' ? 'sep_well_id' :
 	              die "Unknown allele type $allele";
-	
+
+	# Find EP wells derived from project's DNA wells
 	foreach my $well (@{ $wells->{$vectors} || [] }){
-		push @ep_wells, $well if $well->$ep_well;
+		next unless my $id = $well->$ep_well;
+		next if exists $ep_wells{$id};
+		$ep_wells{$id} = $well;
 	}
-	
-	return \@ep_wells;
+
+	return [ values %ep_wells ];
 }
 
 __PACKAGE__->meta->make_immutable;

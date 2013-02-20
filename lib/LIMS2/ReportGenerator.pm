@@ -122,8 +122,8 @@ sub vectors{
     	$category = $allele.'_vectors';
     }
     elsif ($project->targeting_type eq 'single_targeted'){
-    	$allele = 'first',
-    	$category = 'vectors',
+    	$allele = 'first';
+    	$category = 'vectors';
     }
     else{
     	return 0;
@@ -133,6 +133,7 @@ sub vectors{
 
     # Find the cassette function specification for this allele
     my $project_allele = $project->project_alleles->find({ allele_type => $allele });
+    return 0 unless $project_allele;
     my $function = $project_allele->cassette_function;
 
     # Find all final vectors matching project gene_id, mutation type and satisfying
