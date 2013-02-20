@@ -40,6 +40,16 @@ use Test::Most;
 }
 
 {
+    ok model->search_gene_designs( { search_term => 'lbl', page => 1, pagesize => 50 } ), 'list genes specifying a page and pagesize';
+    ok my ( $gene_designs, $pager ) = model->search_gene_designs( { search_term => 'lbl' } ), 'list matched genes';
+    isa_ok $gene_designs, ref [];
+    isa_ok $_, 'LIMS2::Model::Schema::Result::GeneDesign' for @{ $gene_designs };
+
+    isa_ok $pager, 'Data::Page';
+
+}
+
+{
     ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912', type => 'conditional' } ),
         'list candidate designs for MGI accession, gene on -ve strand';
     isa_ok $designs, ref [];
