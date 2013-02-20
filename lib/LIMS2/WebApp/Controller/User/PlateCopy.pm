@@ -24,18 +24,18 @@ sub begin :Private {
     return;
 }
 
-sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
+sub plate_from_copy :Path( '/user/plate_from_copy' ) :Args(0) {
     my ( $self, $c ) = @_;
 $DB::single=1;
-    my @process_types = map{ $_->id } @{ $c->model('Golgi')->list_process_types };
 
     $c->stash(
-        process_types => [ grep{ !/create_di/ } @process_types ],
         plate_help  => $c->model('Golgi')->plate_help_info,
     );
     return;
 }
 
+=head
+    my @process_types = map{ $_->id } @{ $c->model('Golgi')->list_process_types };
 sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
     my ( $self, $c ) = @_;
 $DB::single=1;
@@ -104,6 +104,7 @@ sub process_plate_upload_form :Private {
 
     return $plate ? $plate : undef;
 }
+=cut
 
 =head1 AUTHOR
 
