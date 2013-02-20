@@ -162,7 +162,7 @@ sub print_electroporation_wells{
     }
 
     push @{ $data }, join( " - ", @ep_data );
-    return;    
+    return;
 }
 
 sub valid_dna_wells {
