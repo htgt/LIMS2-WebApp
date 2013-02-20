@@ -37,7 +37,7 @@ has gene_electroporate_list => (
 
 sub _build_gene_electroporate_list {
     my $self = shift;
-DEBUG "Starting to build gene electroporate list";
+
     my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
 
     my $project_rs;
@@ -51,26 +51,6 @@ DEBUG "Starting to build gene electroporate list";
     my %wells;
     my @electroporate_list;
     while ( my $project = $project_rs->next ) {
-
-=head
-        my $ar = $arf->allele_request( decode_json( $project->allele_request ) );
-
-        my %data;
-        $data{gene_id}       = $ar->gene_id;
-        $data{marker_symbol} = $self->model->retrieve_gene(
-            { species => $self->species, search_term => $ar->gene_id } )->{gene_symbol};
-
-
-        $data{first_allele_promoter_dna_wells}
-            = valid_dna_wells( $ar, { type => 'first_allele_dna_wells', promoter => 1 } );
-        $data{first_allele_promoterless_dna_wells}
-            = valid_dna_wells( $ar, { type => 'first_allele_dna_wells', promoter => 0 } );
-        $data{second_allele_promoter_dna_wells}
-            = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 1 } );
-        $data{second_allele_promoterless_dna_wells}
-            = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 0 } );
-=cut
-
         my %data;
         $data{gene_id}       = $project->gene_id;
         $data{marker_symbol} = $self->model->retrieve_gene(
@@ -147,14 +127,6 @@ override iterator => sub {
     );
 };
 
-=head
-sub print_wells{
-    my ( $self, $data, $result, $type ) = @_;
-
-    push @{ $data }, join( " - ", map{ $_->plate->name . '[' . $_->name . ']' } @{ $result->{$type} } );
-    return;
-}
-=cut
 sub print_wells{
 	my ( $self, $data, $result, $type ) = @_;
 	
@@ -188,30 +160,10 @@ sub print_electroporation_wells{
     return;    
     
 }
-=head
-sub print_electroporation_wells{
-    my ( $self, $data, $result, $type ) = @_;
-
-    my @ep_data;
-
-    for my $datum ( @{ $result->{$type} } ) {
-        my $well_data = $datum->{'well'}->plate->name . '[' . $datum->{'well'}->name . ']';
-        $well_data
-            .= ' ('
-            . $datum->{'parent_dna_well'}->plate->name . '['
-            . $datum->{'parent_dna_well'}->name . '] )';
-
-        push @ep_data, $well_data;
-    }
-
-    push @{ $data }, join( " - ", @ep_data );
-    return;
-}
-=cut
 
 sub valid_dna_wells {
     my ( $self, $project, $wells, $params ) = @_;
-DEBUG "Searching for valid DNA wells";    
+    
     my @dna_wells;
 
     # Find vector wells for the project
@@ -276,35 +228,6 @@ sub electroporation_wells {
 	}
 	
 	return \@ep_wells;
-}
-=head
-sub electroporation_wells {
-    my ( $ar, $type ) = @_;
-
-    my %wells;
-    return unless $ar->can( $type );
-    for my $well ( @{ $ar->$type } ) {
-        next if exists $wells{ $well->as_string };
-
-        $wells{ $well->as_string }{ 'well' } = $well;
-        $wells{ $well->as_string }{ 'parent_dna_well' } = _find_dna_parent_well( $well );
-
-    }
-
-    return [ values %wells ];
-}
-=cut
-
-sub _find_dna_parent_well {
-    my ( $ep_well ) = @_;
-
-    my $it = $ep_well->ancestors->breadth_first_traversal($ep_well, 'in');
-    while ( my $well = $it->next ) {
-        return $well
-            if $well->plate->type_id eq 'DNA';
-    }
-
-    return;
 }
 
 __PACKAGE__->meta->make_immutable;

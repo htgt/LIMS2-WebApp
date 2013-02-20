@@ -128,17 +128,6 @@ sub vectors{
     else{
     	return 0;
     }
-    
-=head
-	if ($project->targeting_type eq "single_targeted"){
-		$allele = 'first';
-		$category = 'vectors';
-	}
-
-	return 0 unless $allele;
-	
-    $category ||= $allele.'_vectors';
-=cut
 
     DEBUG "finding $allele allele vectors";
 
