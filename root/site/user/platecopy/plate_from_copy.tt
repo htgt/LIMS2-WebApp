@@ -10,7 +10,7 @@
     <form method="POST" id="plate_copy" action="[% c.uri_for( '/user/plate_from_copy' ) %]" class="form well"  enctype="multipart/form-data" >
 
     <label>Plate Name (from)</label>
-        <input name="from_plate_name" id="from_plate_name" type="text" placeholder="Input Plate Name" value="[% from_plate_name %]"
+        <input name="from_plate_name" id="from_plate_name" type="text" placeholder="Input Plate Name" value="[% from_plate_name %]" 
           [% IF from_plate_name %]value="[% from_plate_name %]"[% END %]
         />
 
@@ -18,6 +18,10 @@
         <input name="new_plate_name" id="new_plate_name" type="text" placeholder="Output Plate Name"
           [% IF new_plate_name %]value="[% new_plate_name %]"[% END %]
         />
+    <br>
+        <button name="copy_plate" id="copy_plate" type="submit" value="copy_plate" class="btn">
+            <i class="icon-upload"></i> Copy Plate
+        </button>
 
     </form>
   </div>
@@ -28,9 +32,13 @@
 
 <script type="text/javascript">
 
-$("#plate_name").autocomplete({
+$("#from_plate_name").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
   minLength: 2,
+});
+
+$('form#plate_copy').submit(function(){
+    $(this).children('button[type=submit]').attr('disabled', 'disabled');
 });
 
 </script>

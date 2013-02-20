@@ -4,7 +4,7 @@
 
     <div class="accordion-heading">
       <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Plate Create Help
+        <i class="icon-question-sign"></i> Plate Copy Help
       </a>
     </div>
 
