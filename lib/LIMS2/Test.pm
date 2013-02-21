@@ -76,7 +76,7 @@ sub reload_fixtures {
         BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
     };
 
-    return;
+    return 1;
 }
 
 sub _build_test_data {
@@ -171,6 +171,11 @@ sub _load_fixtures {
             );
     	}
     	_update_fixture_md5($dbh, $fixture_md5);
+
+	    # This warns "commit ineffective with AutoCommit enabled"
+	    # but it seems to be necessary...
+    	$dbh->commit;
+
     	$dbh->do( "RESET ROLE" );
     }
 

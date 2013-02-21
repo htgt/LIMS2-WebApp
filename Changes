@@ -1,5 +1,35 @@
 {{$NEXT}}
 
+0.049     2013-02-11 14:06:03 Europe/London
+
+	Changed role in summaries code from webapp to tasks.
+
+0.048     2013-02-11 10:15:23 Europe/London
+
+	Moved populate project info and create summaries files to scripts directory.
+
+0.047     2013-02-07 16:01:54 Europe/London
+
+	Added summaries table and data generation process.
+	Sponser report now generated from summaries table.
+
+0.046     2013-02-05 13:56:56 Europe/London
+
+    Fixed killing of QC jobs, and added colouring to table rows showing qc runs. 
+    
+0.045     2013-01-31 13:43:36 Europe/London
+
+    Amended path in genotyping_qc_data template to return properly formed URL so that extJS widgets render properly
+
+0.044     2013-01-29 11:56:37 Europe/London
+
+    Added genotyping QC csv upload, grid view and update support
+
+0.043     2013-01-24 11:39:04 Europe/London
+
+    Added a sequence onto the id column in the designs table.
+    Made id, name and created_at parameters optional when creating a new design.
+
 0.042     2013-01-10 11:38:57 Europe/London
 
 	Fixed bug in QC test result retrieval

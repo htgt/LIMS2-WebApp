@@ -144,7 +144,9 @@ sub retrieve_qc_templates {
 # Retrieve single QC template by ID
 sub pspec_retrieve_qc_template {
     return {
-        id      => { validate => 'integer' },
+        id      => { validate => 'integer', optional => 1 },
+        name    => { validate => 'existing_qc_template_name', optional => 1},
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
     };
 }
 
@@ -153,8 +155,16 @@ sub retrieve_qc_template {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_template );
 
+    my %search;
+    if ($validated_params->{name}){
+    	$search{'me.name'} = $validated_params->{name};
+    }
+    if ($validated_params->{id}){
+    	$search{'me.id'} = $validated_params->{id};
+    }
+
     my $template = $self->retrieve(
-        'QcTemplate' => { 'me.id' => $validated_params->{id} },
+        'QcTemplate' => \%search,
         { prefetch => 'qc_template_wells' }
     );
 
@@ -181,7 +191,10 @@ sub retrieve_qc_template_well {
 }
 
 sub pspec_delete_qc_template {
-    return { id => { validate => 'integer' } };
+    return {
+    	id => { validate => 'integer' },
+    	delete_runs => { validate => 'boolean', default => 0 },
+    };
 }
 
 sub delete_qc_template {
@@ -194,12 +207,19 @@ sub delete_qc_template {
         { prefetch => 'qc_template_wells' }
     );
 
-    if ( $template->qc_runs_rs->count > 0 ) {
-        $self->throw( InvalidState => {
-              message => 'Template ' . $template->id
+    if ( my @runs = $template->qc_runs ) {
+    	if ($validated_params->{delete_runs}){
+    		foreach my $run (@runs){
+    			$self->delete_qc_run({ id => $run->id });
+    		}
+    	}
+    	else{
+            $self->throw( InvalidState => {
+                message => 'Template ' . $template->id
                       . ' has been used in one or more QC runs, so cannot be deleted'
-            }
-        );
+                }
+            );
+    	}
     }
 
     for my $well ( $template->qc_template_wells ) {
@@ -458,6 +478,26 @@ sub retrieve_qc_run {
     return $qc_run;
 }
 
+sub delete_qc_run {
+	my ( $self, $params ) = @_;
+
+	# This will validate params
+	my $qc_run = $self->retrieve_qc_run($params);
+
+    $qc_run->delete_related('qc_run_seq_projects');
+
+    foreach my $well ($qc_run->search_related('qc_run_seq_wells')){
+        $well->delete_related('qc_run_seq_well_qc_seq_reads');
+        $well->delete_related('qc_test_results');
+    }
+
+    $qc_run->delete_related('qc_run_seq_wells');
+
+    $qc_run->delete;
+
+    return 1;
+}
+
 sub pspec_retrieve_qc_run_seq_well {
     return {
         qc_run_id  => { validate => 'uuid' },
@@ -609,8 +649,10 @@ sub create_qc_template_from_csv{
 	my $well_hash;
 
 	for my $datum (@{$well_data}){
-		my $name = $datum->{well_name};
-        $well_hash->{$name}->{well_name} = $datum->{source_well};
+		# We uppercase all well and source well names so that csv
+		# input values are case insensitive
+		my $name = uc( $datum->{well_name} );
+        $well_hash->{$name}->{well_name} = uc( $datum->{source_well} );
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
         $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
         $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
@@ -846,6 +888,7 @@ sub create_plate_from_qc{
                 well_name => $well,
                 parent_plate => $source_well->plate->name,
                 parent_well  => $source_well->name,
+                accepted     => $best->{pass},
             );
 
             # Identify reagent overrides from QC wells            

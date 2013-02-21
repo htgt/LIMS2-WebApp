@@ -62,7 +62,16 @@
       <div class="modal-body" align="center">
         <input type="hidden" name="id" value="[% qc_template.id %]" />
         <input type="hidden" name="name" value="[% qc_template.name %]" />
-        Are you sure you want to delete plate <strong>[% qc_template.name %]</strong>?
+        [% IF qc_run_ids.size %]
+        Deleting this template will also delete the QC runs which use this template:<br>
+         [% FOR run IN qc_run_ids %]
+         <strong>[% run %]</strong> <br>
+         [% END %]
+        Are you sure you want to delete template <strong>[% qc_template.name %]</strong> 
+        and all related QC runs?
+        [% ELSE %]
+        Are you sure you want to delete template <strong>[% qc_template.name %]</strong>?
+        [% END %]
       </div>
 
       <div class="modal-footer">

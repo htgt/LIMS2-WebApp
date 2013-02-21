@@ -37,6 +37,7 @@ note "Testing creation of plate from QC results";
     is $result->valid_primers, 'LR','well valid primers correct';
     is $result->mixed_reads, '0','well mixed reads correct';
     is $result->pass, '1','well pass correct';
+    is $g12->accepted, '1', 'well accepted flag correct';
     my $view_uri = 'http://test/view?well_name=g12&plate_name=PCS05036_A_1&qc_run_id=534EE22E-3DBF-22E4-5EF2-1234F5CB64C7';
     is $result->test_result_url, $view_uri, 'well test result url correct';
 }
@@ -270,4 +271,32 @@ note ( "Testing List Profiles" );
     is_deeply $profiles, [ 'eucomm-cre', 'eucomm-post-cre', 'test' ], '.. profile list is correct';
 }
 
+note( "Testing Qc Run Deletion" );
+
+{
+    ok my $qc_run = model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8'  } )
+        , 'can retrieve single Qc Run';
+
+    ok model->delete_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8'  } ),
+        'can delete QC run';
+        
+    throws_ok { 
+    	model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8' } ) 
+    } qr/No QcRun entity found matching/;
+}
+
+note ("Testing QC template and related run deletion");
+
+{
+	throws_ok {
+		model->delete_qc_template( { id => 200 } )
+	} qr/Template 200 has been used in one or more QC runs/;
+	
+	ok model->delete_qc_template( { id => 200, delete_runs => 1 } ), 'can delete QC template and related runs';
+	
+	throws_ok {
+		model->retrieve_qc_template( { id => 200 } )
+	} qr/No QcTemplate entity found/;
+	
+}
 done_testing();

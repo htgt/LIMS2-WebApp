@@ -1,6 +1,6 @@
 [%- META title = 'Genotyping QC Results'; META tab_name = 'QC'  %]
 
-<link rel="stylesheet" type="text/css" href="/static/extjs/resources/css/ext-all.css" />
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
 
 [% PROCESS 'user/welldata/grid.tt' %]
    

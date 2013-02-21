@@ -131,6 +131,7 @@ sub update_genotyping_qc_data{
 				die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless $value eq "yes";
 
 				# FIXME: need an update or create method
+                # update_or_create_well_primer_band now implemented and this code should be updated to use it
 				$self->create_well_primer_bands({
 					well_id          => $well->id,
 					primer_band_type => $primer,
@@ -333,10 +334,11 @@ my $sql_query =  <<'SQL_END';
 	, wgt.copy_number
 	, wgt.copy_number_range
 	, wgt.confidence
-	from plates p, wells w, well_genotyping_results wgt
+	from plates p, wells w
+        left join well_genotyping_results wgt
+		on wgt.well_id = w.id
 		where p.name = ?
 		and w.plate_id = p.id
-		and wgt.well_id = w.id
 	order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
 	wd.copy_number, wd.copy_number_range, wd.confidence,
@@ -424,25 +426,30 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{gene_name} = $self->get_gene_symbol_for_accession( $well, $species);
             $gene_cache->{$datum->{gene_id}} = $datum->{gene_name};
         }
-        $datum->{design_id} = $design->id;
+        $datum->{design_id} = '-';
+        $datum->{design_id} = $design->id if $design;
         # get the generic assay data for this row
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        if ( $row->{'genotyping_result_type_id'}) {
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        }
         $saved_id = $row->{'Well ID'};
 
     }
     else {
-        # just get the generic assay data for this row
+        # just get the primer band and generic assay data for this row
         if ($row->{'Primer band type'} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
         }
 
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
-    	$datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        if ( $row->{'genotyping_result_type_id'}) {
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+        }
     }
 
 }
@@ -466,16 +473,16 @@ sub get_gene_symbol_for_accession{
 
     my $genes;
     my $gene_symbols;
+    my @gene_symbols;
 
     my ($design) = $well->designs;
-    my $gene_id;
-    $gene_id = $design->genes->first->gene_id if $design;
-    my @gene_ids = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols;
-    foreach my $gene_id ( @gene_ids ) {
-        $genes = $self->search_genes(
-            { search_term => $gene_id, species =>  $species } );
-        push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+    if ( $design) {
+        my @gene_ids = uniq map { $_->gene_id } $design->genes;
+        foreach my $gene_id ( @gene_ids ) {
+            $genes = $self->search_genes(
+                { search_term => $gene_id, species =>  $species } );
+            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+        }
     }
     $gene_symbols = join q{/}, @gene_symbols;
 
