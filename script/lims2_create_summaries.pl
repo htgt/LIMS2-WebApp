@@ -38,7 +38,6 @@ GetOptions(
 Log::Log4perl->easy_init( { level => $loglevel, layout => '%p %m%n' } );
 
 $num_concurrent_processes //= $DEFAULT_NUM_CONC_PROCS; # if not defined populate with default
-#$num_concurrent_processes = $num_concurrent_processes ? $num_concurrent_processes:$DEFAULT_NUM_CONC_PROCS;	# if not defined populate with default
 
 my $start_time=localtime;
 
