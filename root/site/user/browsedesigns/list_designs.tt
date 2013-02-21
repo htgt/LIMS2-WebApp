@@ -8,8 +8,8 @@
 </p>
 
 [% FOR g IN designs_by_gene %]
-<h2>[% g.gene_id %][% IF g.gene_symbol.length > 0 %] <small>[% g.gene_symbol %]</small>[% END %]</h2>
-[% IF g.designs.size > 0 %]
+<h2>[% g.gene_id %][% IF g.gene_symbol.length %] <small>[% g.gene_symbol %]</small>[% END %]</h2>
+[% IF g.designs.size %]
   <table class="table table-striped">
     <thead>
       <tr>

@@ -1,0 +1,65 @@
+[% META title = "List Designs" %]
+
+<p>
+  <a href="[% c.uri_for( '/user/browse_designs' ) %]" class="btn btn-primary">
+    <i class="icon-hand-left icon-white"></i>
+    Back to search
+  </a>
+  <a href="[% c.uri_for( c.action ) %]?gene_id=[% search_term %]&csv" class="btn btn-primary" style="float: right;">
+    Download CSV
+  </a>
+</p>
+
+[%- INCLUDE 'pagination.tt' pageset = pageset %]
+
+
+<table class="table table-striped table-condensed">
+  <thead>
+    <tr>
+      <th>Gene</th>
+      <th>Design ID</th>
+      <th>Oligos</th>
+      <th>Location</th>
+      <th>Created by</th>
+      <th>Created at</th>
+      <th>BLAT</th>
+    </tr>
+  </thead>
+  <tbody>
+    [% FOR g IN designs_by_gene %]
+      [%- FOR d IN g.designs %]
+      <tr>
+        <td>[% g.gene_id %]</td>
+        <td>
+          <a href="[% c.uri_for( '/user/view_design', { design_id => d.id } ) %]">[% d.id %]</a>
+        </td>
+        <td>[% d.oligos.size     %]</td>
+        [% first_locus = d.oligos.shift.locus %]
+        [% chr_end = d.oligos.pop.locus.chr_end %]
+        <td>Chr [% first_locus.chr_name %]: [% first_locus.chr_start %] - [% chr_end %]</td>
+        <td>[% d.created_by                  %]</td>
+        <td>[% d.created_at                  %]</td>
+        <td>
+        [% IF d.oligos_fasta %]
+          <form style="margin: 0; padding: 0;" id="UCSC_BLAT" enctype="multipart/form-data" method="post" action="http://genome.ucsc.edu/cgi-bin/hgBlat" name="UCSC_BLAT" target="_blank">
+            <input type="hidden" name="org" value="Mouse" />
+            <input type="hidden" name="db" value="mm9" />
+            <input type="hidden" name="type" value="DNA" />
+            <input type="hidden" name="sort" value="query,score" />
+            <input type="hidden" name="output" value="hyperlink" />
+            <input type="hidden" name="userSeq" value="[% d.oligos_fasta %]"/>
+            <input type="hidden" name="Lucky" value="I'm feeling lucky" />
+            <!-- <input type="submit" value="UCSC BLAT" name="Lucky"/> -->
+            <a href="#" onclick="$(this).closest('form').submit(); return false;">UCSC BLAT</a>
+           </form>
+         [% ELSE %]
+          N/A
+         [% END %]
+         </td>
+      </tr>
+      [% END %]
+    [% END %]
+  </tbody>
+</table>
+
+[%- INCLUDE 'pagination.tt' pageset = pageset %]
