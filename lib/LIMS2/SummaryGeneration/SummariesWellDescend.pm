@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.051';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.052';
 }
 ## use critic
 
@@ -393,7 +393,7 @@ sub fetch_values_for_type_DNA {
     $summary_row_values->{ 'dna_well_id' }             = $stored_values->{ stored_dna_well_id };
     $summary_row_values->{ 'dna_well_name' }           = $stored_values->{ stored_dna_well_name };
     $summary_row_values->{ 'dna_plate_id' }            = $stored_values->{ stored_dna_plate_id };
-    $summary_row_values->{ 'dna_plate_name' }          = $stored_values->{ stored_dna_plate_id };
+    $summary_row_values->{ 'dna_plate_name' }          = $stored_values->{ stored_dna_plate_name };
     $summary_row_values->{ 'dna_well_assay_complete' } = $stored_values->{ stored_dna_well_assay_complete };
     $summary_row_values->{ 'dna_well_created_ts' }     = $stored_values->{ stored_dna_well_created_ts };
     $summary_row_values->{ 'dna_well_accepted' }       = $stored_values->{ stored_dna_well_accepted };
@@ -432,7 +432,7 @@ sub fetch_values_for_type_EP {
     $summary_row_values->{ 'ep_well_id' }                = $stored_values->{ stored_ep_well_id };
     $summary_row_values->{ 'ep_well_name' }              = $stored_values->{ stored_ep_well_name };
     $summary_row_values->{ 'ep_plate_id' }               = $stored_values->{ stored_ep_plate_id };
-    $summary_row_values->{ 'ep_plate_name' }             = $stored_values->{ stored_ep_plate_id };
+    $summary_row_values->{ 'ep_plate_name' }             = $stored_values->{ stored_ep_plate_name };
     $summary_row_values->{ 'ep_well_assay_complete' }    = $stored_values->{ stored_ep_well_assay_complete };
     $summary_row_values->{ 'ep_well_created_ts' }        = $stored_values->{ stored_ep_well_created_ts };
     $summary_row_values->{ 'ep_well_accepted' }          = $stored_values->{ stored_ep_well_accepted };
@@ -468,7 +468,7 @@ sub fetch_values_for_type_EP_PICK {
     $summary_row_values->{ 'ep_pick_well_id' }              = $stored_values->{ stored_ep_pick_well_id };
     $summary_row_values->{ 'ep_pick_well_name' }            = $stored_values->{ stored_ep_pick_well_name };
     $summary_row_values->{ 'ep_pick_plate_id' }             = $stored_values->{ stored_ep_pick_plate_id };
-    $summary_row_values->{ 'ep_pick_plate_name' }           = $stored_values->{ stored_ep_pick_plate_id };
+    $summary_row_values->{ 'ep_pick_plate_name' }           = $stored_values->{ stored_ep_pick_plate_name };
     $summary_row_values->{ 'ep_pick_well_assay_complete' }  = $stored_values->{ stored_ep_pick_well_assay_complete };
     $summary_row_values->{ 'ep_pick_well_created_ts' }      = $stored_values->{ stored_ep_pick_well_created_ts };
     $summary_row_values->{ 'ep_pick_well_accepted' }        = $stored_values->{ stored_ep_pick_well_accepted };
@@ -502,7 +502,7 @@ sub fetch_values_for_type_SEP {
     $summary_row_values->{ 'sep_well_id' }               = $stored_values->{ stored_sep_well_id };
     $summary_row_values->{ 'sep_well_name' }             = $stored_values->{ stored_sep_well_name };
     $summary_row_values->{ 'sep_plate_id' }              = $stored_values->{ stored_sep_plate_id };
-    $summary_row_values->{ 'sep_plate_name' }            = $stored_values->{ stored_sep_plate_id };
+    $summary_row_values->{ 'sep_plate_name' }            = $stored_values->{ stored_sep_plate_name };
     $summary_row_values->{ 'sep_well_assay_complete' }   = $stored_values->{ stored_sep_well_assay_complete };
     $summary_row_values->{ 'sep_well_created_ts' }       = $stored_values->{ stored_sep_well_created_ts };
     $summary_row_values->{ 'sep_well_accepted' }         = $stored_values->{ stored_sep_well_accepted };
@@ -536,7 +536,7 @@ sub fetch_values_for_type_SEP_PICK {
     $summary_row_values->{ 'sep_pick_well_id' }               = $stored_values->{ stored_sep_pick_well_id };
     $summary_row_values->{ 'sep_pick_well_name' }             = $stored_values->{ stored_sep_pick_well_name };
     $summary_row_values->{ 'sep_pick_plate_id' }              = $stored_values->{ stored_sep_pick_plate_id };
-    $summary_row_values->{ 'sep_pick_plate_name' }            = $stored_values->{ stored_sep_pick_plate_id };
+    $summary_row_values->{ 'sep_pick_plate_name' }            = $stored_values->{ stored_sep_pick_plate_name };
     $summary_row_values->{ 'sep_pick_well_assay_complete' }   = $stored_values->{ stored_sep_pick_well_assay_complete };
     $summary_row_values->{ 'sep_pick_well_created_ts' }       = $stored_values->{ stored_sep_pick_well_created_ts };
     $summary_row_values->{ 'sep_pick_well_accepted' }         = $stored_values->{ stored_sep_pick_well_accepted };
@@ -568,7 +568,7 @@ sub fetch_values_for_type_FP {
     $summary_row_values->{ 'fp_well_id' }               = $stored_values->{ stored_fp_well_id };
     $summary_row_values->{ 'fp_well_name' }             = $stored_values->{ stored_fp_well_name };
     $summary_row_values->{ 'fp_plate_id' }              = $stored_values->{ stored_fp_plate_id };
-    $summary_row_values->{ 'fp_plate_name' }            = $stored_values->{ stored_fp_plate_id };
+    $summary_row_values->{ 'fp_plate_name' }            = $stored_values->{ stored_fp_plate_name };
     $summary_row_values->{ 'fp_well_assay_complete' }   = $stored_values->{ stored_fp_well_assay_complete };
     $summary_row_values->{ 'fp_well_created_ts' }       = $stored_values->{ stored_fp_well_created_ts };
     $summary_row_values->{ 'fp_well_accepted' }         = $stored_values->{ stored_fp_well_accepted };
@@ -597,7 +597,7 @@ sub fetch_values_for_type_SFP {
     $summary_row_values->{ 'sfp_well_id' }               = $stored_values->{ stored_sfp_well_id };
     $summary_row_values->{ 'sfp_well_name' }             = $stored_values->{ stored_sfp_well_name };
     $summary_row_values->{ 'sfp_plate_id' }              = $stored_values->{ stored_sfp_plate_id };
-    $summary_row_values->{ 'sfp_plate_name' }            = $stored_values->{ stored_sfp_plate_id };
+    $summary_row_values->{ 'sfp_plate_name' }            = $stored_values->{ stored_sfp_plate_name };
     $summary_row_values->{ 'sfp_well_assay_complete' }   = $stored_values->{ stored_sfp_well_assay_complete };
     $summary_row_values->{ 'sfp_well_created_ts' }       = $stored_values->{ stored_sfp_well_created_ts };
     $summary_row_values->{ 'sfp_well_accepted' }         = $stored_values->{ stored_sfp_well_accepted };

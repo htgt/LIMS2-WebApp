@@ -37,7 +37,7 @@
                   extraParams: {
                     plate_name: '[% plate_name %]'
                   },
-                  headers: {'Content-type': 'application/json'},
+                  headers: {'Content-Type': 'application/json'},
                   reader: {
                    type: 'json'
                   },
@@ -161,7 +161,7 @@
                 selType: 'cellmodel',
                 simpleSelect: true,
                 plugins: [
-                    Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 1 })
+                    Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
                 ]
             });
 

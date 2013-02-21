@@ -1,7 +1,7 @@
 package LIMS2::Report::GenesToElectroporate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GenesToElectroporate::VERSION = '0.051';
+    $LIMS2::Report::GenesToElectroporate::VERSION = '0.052';
 }
 ## use critic
 
@@ -11,10 +11,13 @@ use DateTime;
 use LIMS2::AlleleRequestFactory;
 use JSON qw( decode_json );
 use List::Util qw( max );
+use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
 #TODO deal with single targeted
+
+Log::Log4perl->easy_init($DEBUG);
 
 has species => (
     is       => 'ro',
@@ -51,26 +54,30 @@ sub _build_gene_electroporate_list {
         $project_rs = $self->model->schema->resultset('Project')->search( {} );
     }
 
+    my %wells;
     my @electroporate_list;
     while ( my $project = $project_rs->next ) {
-        my $ar = $arf->allele_request( decode_json( $project->allele_request ) );
-
         my %data;
-        $data{gene_id}       = $ar->gene_id;
+        $data{gene_id}       = $project->gene_id;
         $data{marker_symbol} = $self->model->retrieve_gene(
-            { species => $self->species, search_term => $ar->gene_id } )->{gene_symbol};
+            { species => $self->species, search_term => $project->gene_id } )->{gene_symbol};
 
+        # Find vector wells for the project
+        $self->vectors($project, \%wells, 'first');
+        $self->vectors($project, \%wells, 'second');
+
+        # Then identify DNA and EP wells        
         $data{first_allele_promoter_dna_wells}
-            = valid_dna_wells( $ar, { type => 'first_allele_dna_wells', promoter => 1 } );
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'first', promoter => 1 } );
         $data{first_allele_promoterless_dna_wells}
-            = valid_dna_wells( $ar, { type => 'first_allele_dna_wells', promoter => 0 } );
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'first', promoter => 0 } );
         $data{second_allele_promoter_dna_wells}
-            = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 1 } );
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'second', promoter => 1 } );
         $data{second_allele_promoterless_dna_wells}
-            = valid_dna_wells( $ar, { type => 'second_allele_dna_wells', promoter => 0 } );
+            = $self->valid_dna_wells( $project, \%wells, { allele => 'second', promoter => 0 } );
 
-        $data{fep_wells} = electroporation_wells( $ar, 'first_electroporation_wells' );
-        $data{sep_wells} = electroporation_wells( $ar, 'second_electroporation_wells' );
+        $data{fep_wells} = $self->electroporation_wells( $project, \%wells, 'first' );
+        $data{sep_wells} = $self->electroporation_wells( $project, \%wells, 'second' );
 
         push @electroporate_list, \%data;
     }
@@ -132,23 +139,30 @@ override iterator => sub {
 };
 
 sub print_wells{
-    my ( $self, $data, $result, $type ) = @_;
+	my ( $self, $data, $result, $type ) = @_;
 
-    push @{ $data }, join( " - ", map{ $_->plate->name . '[' . $_->name . ']' } @{ $result->{$type} } );
-    return;
+	push @{ $data }, join( " - ", map{ $_->dna_plate_name . '[' . $_->dna_well_name . ']' }
+	                       @{ $result->{$type} });
+	return;
 }
 
 sub print_electroporation_wells{
     my ( $self, $data, $result, $type ) = @_;
 
     my @ep_data;
+    my $prefix = $type eq 'fep_wells' ? 'ep'  :
+                 $type eq 'sep_wells' ? 'sep' :
+                 die "Unknown ep type: $type";
+
+    my $plate = $prefix.'_plate_name';
+    my $well = $prefix.'_well_name';
 
     for my $datum ( @{ $result->{$type} } ) {
-        my $well_data = $datum->{'well'}->plate->name . '[' . $datum->{'well'}->name . ']';
+        my $well_data = $datum->$plate . '[' . $datum->$well . ']';
         $well_data
             .= ' ('
-            . $datum->{'parent_dna_well'}->plate->name . '['
-            . $datum->{'parent_dna_well'}->name . '] )';
+            . $datum->dna_plate_name . '['
+            . $datum->dna_well_name . '] )';
 
         push @ep_data, $well_data;
     }
@@ -158,61 +172,47 @@ sub print_electroporation_wells{
 }
 
 sub valid_dna_wells {
-    my ( $ar, $params ) = @_;
+    my ( $self, $project, $wells, $params ) = @_;
 
     my %dna_wells;
-    my $type = $params->{type};
-    return unless $ar->can( $type );
-    for my $well ( @{ $ar->$type } ) {
-        next if exists $dna_wells{ $well->as_string };
 
-        my $dna_status = $well->well_dna_status;
-        if ( $dna_status ) {
-            next unless $dna_status->pass;
-            $dna_wells{ $well->as_string } = $well;
-        }
+    # Find appropriate DNA wells derived from project's vector wells
+    my $vectors = $params->{allele}.'_vectors';
+    foreach my $well (@{ $wells->{$vectors} || [] }){
+    	next unless my $id = $well->dna_well_id;
+    	next if exists $dna_wells{$id};
 
-        my $cassette = $well->cassette;
+    	next unless $well->dna_status_pass;
 
-        if ( $params->{promoter} ) {
-            $dna_wells{ $well->as_string } = $well
-                if $cassette->promoter;
-        }
-        else {
-            $dna_wells{ $well->as_string } = $well
-                unless $cassette->promoter;
-        }
+    	if ( $params->{promoter} ){
+    		$dna_wells{$id} = $well if $well->final_cassette_promoter;
+    	}
+    	else{
+    		$dna_wells{$id} = $well unless $well->final_cassette_promoter;
+    	}
     }
 
     return [ values %dna_wells ];
 }
 
 sub electroporation_wells {
-    my ( $ar, $type ) = @_;
+	my ($self, $project, $wells, $allele) = @_;
 
-    my %wells;
-    return unless $ar->can( $type );
-    for my $well ( @{ $ar->$type } ) {
-        next if exists $wells{ $well->as_string };
+	my %ep_wells;
 
-        $wells{ $well->as_string }{ 'well' } = $well;
-        $wells{ $well->as_string }{ 'parent_dna_well' } = _find_dna_parent_well( $well );
+	my $vectors = $allele.'_vectors';
+	my $ep_well = $allele eq 'first'  ? 'ep_well_id'  :
+	              $allele eq 'second' ? 'sep_well_id' :
+	              die "Unknown allele type $allele";
 
-    }
+	# Find EP wells derived from project's DNA wells
+	foreach my $well (@{ $wells->{$vectors} || [] }){
+		next unless my $id = $well->$ep_well;
+		next if exists $ep_wells{$id};
+		$ep_wells{$id} = $well;
+	}
 
-    return [ values %wells ];
-}
-
-sub _find_dna_parent_well {
-    my ( $ep_well ) = @_;
-
-    my $it = $ep_well->ancestors->breadth_first_traversal($ep_well, 'in');
-    while ( my $well = $it->next ) {
-        return $well
-            if $well->plate->type_id eq 'DNA';
-    }
-
-    return;
+	return [ values %ep_wells ];
 }
 
 __PACKAGE__->meta->make_immutable;

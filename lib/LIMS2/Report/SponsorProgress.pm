@@ -1,7 +1,7 @@
 package LIMS2::Report::SponsorProgress;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SponsorProgress::VERSION = '0.051';
+    $LIMS2::Report::SponsorProgress::VERSION = '0.052';
 }
 ## use critic
 
@@ -157,24 +157,6 @@ sub _find_project_wells_2 {
     return;
 }
 
-sub design_types_for {
-    my ( $self, $mutation_type ) = @_;
-
-    if ( $mutation_type eq 'ko_first' ) {
-        return [ 'conditional', 'artificial-intron', 'intron-replacement' ];
-    }
-    if ( $mutation_type eq 'deletion' or $mutation_type eq 'insertion' ){
-        return [ $mutation_type ];
-    }
-    if ( $mutation_type eq 'cre_knock_in'){
-        return [ 'conditional', 'artificial-intron', 'intron-replacement', 'deletion', 'insertion', 'cre-bac' ];
-    }
-
-    $self->model->throw( Implementation => "Unrecognized mutation type: $mutation_type" );
-
-    return;
-}
-
 sub genes{
 	my ($self, $project, $wells) = @_;
 
@@ -184,66 +166,6 @@ sub genes{
     return $project->gene_id ? 1 : 0;
 }
 
-sub vectors{
-	my ($self, $project, $wells, $allele) = @_;
-
-	my $category;
-	if ($project->targeting_type eq "single_targeted"){
-		$allele = 'first';
-		$category = 'vectors';
-	}
-
-	return 0 unless $allele;
-
-    DEBUG "finding $allele allele vectors";
-
-    $category ||= $allele.'_vectors';
-
-    # Find the cassette function specification for this allele
-    my $project_allele = $project->project_alleles->find({ allele_type => $allele });
-    my $function = $project_allele->cassette_function;
-
-    # Find all final vectors matching project gene_id, mutation type and satisfying
-    # the cassette function for this allele
-    my @matching_rows;
-    my $gene = $project->gene_id;
-    my $design_types = $self->design_types_for($project_allele->mutation_type);
-
-    # FIXME: should be filtering on species too
-    my $where = {
-        design_gene_id => $gene,
-        final_well_id => { '!=', undef },
-        design_type => {-in => $design_types },
-    };
-    my $summary_rs = $self->model->schema->resultset('Summary')->search($where);
-
-    while (my $summary = $summary_rs->next){
-    	push @matching_rows, $summary if $summary->satisfies_cassette_function($function);
-    }
-
-    # Store matching rows for subsequent queries
-    $wells->{$category} = \@matching_rows;
-
-    return @matching_rows ? 1 : 0;
-}
-
-sub first_vectors{
-	my ($self, $project, $wells) = @_;
-
-	return 0
-	    unless $project->targeting_type eq "double_targeted";
-
-	return $self->vectors($project, $wells, 'first');
-}
-
-sub second_vectors{
-	my ($self, $project, $wells) = @_;
-
-	return 0
-	    unless $project->targeting_type eq "double_targeted";
-
-	return $self->vectors($project, $wells, 'second');
-}
 
 sub dna{
 	my ($self, $project, $wells, $allele) = @_;

@@ -1,3 +1,8 @@
+0.052     2013-02-21 09:52:15 Europe/London
+
+	GenesToElectroporate report now generated from summaries table
+	ExtJS genotyping data update bug fixed 
+
 0.051     2013-02-19 16:49:59 Europe/London
 
     Added functionality to view LBL genes in the DesignGene table.
