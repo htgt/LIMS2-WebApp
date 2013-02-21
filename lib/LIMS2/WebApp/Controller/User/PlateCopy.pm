@@ -34,6 +34,19 @@ $DB::single=1;
     return;
 }
 
+
+sub plate_from_copy_process :Path( '/user/plate_from_copy_process' ) :Args(0) {
+    my ( $self, $c ) = @_;
+$DB::single=1;
+
+    my $from_plate_name = $c->request->params->{from_plate_name};
+    my $to_plate_name = $c->request->params->{new_plate_name};
+    if ( !$from_plate_name or !$to_plate_name ){
+        $c->flash->{'error_msg'} = 'Specify both "from" plate name and "to" plate name';
+        return $c->res->redirect('/usr/plate_from_copy');
+    }
+}
+
 =head
     my @process_types = map{ $_->id } @{ $c->model('Golgi')->list_process_types };
 sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {

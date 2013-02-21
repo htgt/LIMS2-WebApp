@@ -1,4 +1,4 @@
-[%- META title = 'Plate Upload'; META tab_name = 'Plates' %]
+[%- META title = 'Plate Copy'; META tab_name = 'Plates' %]
 
 <div class="page-header">
   <h1>Create Copy Plate </h1>
@@ -20,7 +20,7 @@
         />
     <br>
         <button name="copy_plate" id="copy_plate" type="submit" value="copy_plate" class="btn">
-            <i class="icon-upload"></i> Copy Plate
+            <i class="icon-ok-sign"></i> Copy Plate
         </button>
 
     </form>
