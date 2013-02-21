@@ -24,10 +24,10 @@ const our %PROCESS_PLATE_TYPES => (
     create_di              => [qw( DESIGN )],
     int_recom              => [qw( INT )],
     cre_bac_recom          => [qw( INT )],
-    '2w_gateway'           => [qw( POSTINT FINAL )],
-    '3w_gateway'           => [qw( POSTINT FINAL )],
+    '2w_gateway'           => [qw( POSTINT FINAL FINAL_PICK)],
+    '3w_gateway'           => [qw( POSTINT FINAL FINAL_PICK)],
     dna_prep               => [qw( DNA )],
-    recombinase            => [qw( FINAL XEP POSTINT )],
+    recombinase            => [qw( FINAL FINAL_PICK XEP POSTINT )],
     first_electroporation  => [qw( EP )],
     second_electroporation => [qw( SEP )],
     clone_pick             => [qw( EP_PICK SEP_PICK XEP_PICK )],
@@ -79,7 +79,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     },
     rearray  => { number => 1 },
     dna_prep => {
-        type   => [qw( FINAL )],
+        type   => [qw( FINAL FINAL_PICK )],
         number => 1,
     },
     clone_pick => {

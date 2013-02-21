@@ -497,7 +497,7 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 	$c->stash->{qc_run_id} = $run_id;
 	$c->stash->{plate_type} = $c->req->param('plate_type');
 
-	$c->stash->{plate_types}   = [ qw(INT POSTINT FINAL) ];
+	$c->stash->{plate_types}   = [ qw(INT POSTINT FINAL FINAL_PICK) ];
 
 	unless ($run_id){
 		$c->flash->{error_msg} = "No QC run ID provided to create plates";
