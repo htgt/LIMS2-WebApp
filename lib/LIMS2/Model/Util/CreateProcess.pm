@@ -542,7 +542,7 @@ sub create_process_aux_data_recombinase {
         "recombinase process should have 1 or more recombinases"
     ) unless @{ $validated_params->{recombinase} };
 
-    my $rank = $process->process_recombinases->count + 1;
+    my $rank = ( $process->process_recombinases->get_column('rank')->max || 0 ) + 1;
     foreach my $recombinase ( @{ $validated_params->{recombinase} } ) {
 
         if ($process->process_recombinases->find( { 'recombinase_id' => $recombinase } )){
