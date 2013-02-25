@@ -375,14 +375,14 @@ my $final_pick_process_data= test_data( 'final_pick_process.yaml' );
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'MOHFAS0001_A_FP', '..and is on correct plate';
+    is $output_well->plate->name, 'FP1008', '..and is on correct plate';
 
     lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
 }
 
 throws_ok {
     my $process = model->create_process( $final_pick_process_data->{invalid_output_well} );
-} qr/final_pick process output well should be type (EP_PICK|,|SEP_PICK|XEP_PICK)+ \(got SEP\)/;
+} qr/final_pick process output well should be type (FINAL|FINAL_PICK)+ \(got SEP\)/;
 
 note( "Testing rearray process creation" );
 my $rearray_process_data= test_data( 'rearray_process.yaml' );
