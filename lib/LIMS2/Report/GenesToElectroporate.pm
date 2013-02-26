@@ -9,7 +9,6 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
-#TODO deal with single targeted
 
 Log::Log4perl->easy_init($DEBUG);
 
@@ -48,9 +47,9 @@ sub _build_gene_electroporate_list {
         $project_rs = $self->model->schema->resultset('Project')->search( {} );
     }
 
-    my %wells;
     my @electroporate_list;
     while ( my $project = $project_rs->next ) {
+    	my %wells;
         my %data;
         $data{gene_id}       = $project->gene_id;
         $data{marker_symbol} = $self->model->retrieve_gene(
