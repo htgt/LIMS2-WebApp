@@ -159,7 +159,8 @@ sub _load_fixtures {
 
         my $admin_role = $dbname . '_admin';
 
-        $dbh->do( "SET ROLE $admin_role" );
+        #$dbh->do( "SET ROLE $admin_role" );
+        $dbh->do( "SET ROLE as28" );
 
     	foreach my $fixture (@fixtures){
             DEBUG("Loading fixtures from $fixture");
