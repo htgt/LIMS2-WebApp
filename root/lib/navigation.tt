@@ -51,6 +51,11 @@
               </a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/report/vector/DesignVectors' ) %]">
+                Vectors By Design
+              </a>
+            </li>            
+            <li>
               <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
                 First Allele Electroporation Detail
               </a>
