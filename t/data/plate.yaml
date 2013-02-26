@@ -52,3 +52,7 @@ sep_plate_create_wells:
 plate_assay_complete:
     name: PCS00075_A
     completed_at: 2012-05-21T00:00:00
+create_plate_by_copy:
+    from_plate_name: MOHFAS0001_A
+    to_plate_name: TEST_COPY_PLATE
+    created_by: test_user@example.org
