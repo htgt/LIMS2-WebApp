@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.052';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.053';
 }
 ## use critic
 
@@ -200,6 +200,7 @@ sub set_plate_assay_complete {
     my $validated_params = $self->check_params( $params, $self->pspec_set_plate_assay_complete,
         ignore_unknown => 1 );
 
+
     my $plate = $self->retrieve_plate($params);
 
     for my $well ( $plate->wells ) {
@@ -212,6 +213,84 @@ sub set_plate_assay_complete {
 
     return $plate;
 }
+
+=head
+Method: create_plate_by_copy
+
+Takes an input plate (that must exist), and creates a copy of the plate ready for well
+data to be imported by csv upload.
+=cut
+
+
+sub pspec_create_plate_by_copy {
+    return {
+        from_plate_name  =>      { validate => 'plate_name' },
+        to_plate_name    =>      { validate => 'plate_name' },
+        created_by       =>      { validate => 'existing_user' },
+        created_at       =>      { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+
+    };
+}
+
+sub create_plate_by_copy {
+    my ( $self, $params ) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_create_plate_by_copy );
+    my $from_plate_name = $validated_params->{'from_plate_name'};
+    my $to_plate_name = $validated_params->{'to_plate_name'};
+    my $this_user = $validated_params->{'created_by'};
+
+    my $from_plate
+        = $self->schema->resultset('Plate')->find( { name => $from_plate_name } );
+    if (! $from_plate) {
+        $self->throw( Validation => 'Plate ' . $from_plate_name . ' does not exist' );
+    }
+
+    my $to_plate
+        = $self->schema->resultset('Plate')->find( { name => $to_plate_name } );
+    if ( $to_plate ) {
+        $self->throw( Validation => 'Plate ' . $to_plate_name . ' already exists' );
+    }
+#
+# Get the wells from the plate we need to copy
+#
+#
+    my $well_rs = $self->schema->resultset( 'Well' );
+
+    my @wells_on_plate = $well_rs->search( { 'plate.name' => $from_plate_name },
+        {
+            join => [ 'plate' ],
+        }
+    );
+
+# process the well data into @well_data
+    my $process_type = 'dna_prep';
+    my @well_data = ();
+
+    foreach my $well ( @wells_on_plate ) {
+        my %well_hash;
+        $well_hash{'well_name'} = $well->name;
+        $well_hash{'parent_plate'} = $from_plate->name;
+        $well_hash{'parent_well'} = $well->name;
+        $well_hash{'process_type'} = $process_type;
+        push @well_data, \%well_hash;
+    }
+
+
+    my $plate = $self->create_plate(
+        {
+            name =>  $to_plate_name ,
+            description => $from_plate->description,
+            type => 'DNA',
+            created_by => $this_user,
+            species => $from_plate->species->id,
+            wells => \@well_data,
+        }
+    );
+    $plate->discard_changes;
+
+    return $plate;
+}
+
 
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;

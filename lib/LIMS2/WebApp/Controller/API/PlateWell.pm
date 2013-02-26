@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.052';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.053';
 }
 ## use critic
 
@@ -276,7 +276,6 @@ sub well_genotyping_qc :Path('/api/well/genotyping_qc') :Args(1) :ActionClass('R
 
 sub well_genotyping_qc_PUT{
     my ( $self, $c, $well_id ) = @_;
-
     $c->assert_user_roles('edit');
     my $data = $c->request->data;
     my $plate_name = $c->request->param('plate_name');
