@@ -7,7 +7,7 @@
 <div class="row">
 
   <div class="span4 offset4" align="center">
-    <form method="POST" id="plate_copy" action="[% c.uri_for( '/user/plate_from_copy' ) %]" class="form well"  enctype="multipart/form-data" >
+    <form method="POST" id="plate_copy" action="[% c.uri_for( '/user/plate_from_copy_process' ) %]" class="form well"  enctype="multipart/form-data" >
 
     <label>Plate Name (from)</label>
         <input name="from_plate_name" id="from_plate_name" type="text" placeholder="Input Plate Name" value="[% from_plate_name %]" 
