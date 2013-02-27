@@ -1,7 +1,6 @@
 package LIMS2::Report::DesignVectors;
 
 use Moose;
-use MooseX::UndefTolerant;
 
 use DateTime;
 use JSON qw( decode_json );
@@ -29,17 +28,15 @@ has sponsor => (
 has plate_type => (
     is        => 'ro',
     isa       => 'Str',
-    predicate => 'has_plate_type',
 );
 
 has promoter_status => (
     is        => 'ro',
     isa       => 'Str',
-    predicate => 'has_promoter_status',
 );
 
 has '+param_names' => (
-    default => sub { [ 'species', 'sponsor', 'plate_type', 'promoter_status' ] }
+    default => sub { [ 'species', 'sponsor', 'plate_type', 'promoter_status'] }
 );
 
 has design_vectors_list => (
@@ -67,8 +64,8 @@ sub _build_design_vectors_list {
         $self->vectors($project, \%wells, 'first');
         $self->vectors($project, \%wells, 'second');
 
-        $self->classify_design_vectors($wells{first_vectors},'first', \%vector_list_by_design, $project->id);
-        $self->classify_design_vectors($wells{second_vectors},'second', \%vector_list_by_design, $project->id);
+        $self->classify_design_vectors($wells{first_vectors},'first', \%vector_list_by_design, $project);
+        $self->classify_design_vectors($wells{second_vectors},'second', \%vector_list_by_design, $project);
     }
 
     return [values %vector_list_by_design];
@@ -76,25 +73,27 @@ sub _build_design_vectors_list {
 
 sub classify_design_vectors{
 	my ($self, $vectors, $type, $list, $project) = @_;
-	
+
 	my $by_design = _key_by_design_id($vectors);
-    
+    my $project_id = $project->id;
+
     foreach my $design_id (keys %{ $by_design }){
-    	my $key = $design_id."_$project";
+    	my $key = $design_id."_$project_id";
     	$list->{$key} ||= {};
     	my $data = $list->{$key};
+    	$data->{sponsor} ||= $project->sponsor_id;
         $data->{design_id} ||= $design_id;
-        $data->{project_id} ||= $project;
+        $data->{project_id} ||= $project_id;
         $data->{gene_id} ||= $by_design->{$design_id}->[0]->design_gene_id;
-        $data->{$type.'_promoter'} = [ grep { $_->final_cassette_promoter == 1 } @{ $by_design->{$design_id} }];
-        $data->{$type.'_promoterless'} = [ grep { $_->final_cassette_promoter == 0 } @{ $by_design->{$design_id} }];	
+        $data->{symbol} ||= $by_design->{$design_id}->[0]->design_gene_symbol;
+        $data->{$type} = $by_design->{$design_id};
     }
     return;
 }
 
 sub _key_by_design_id{
 	my ($summaries) = @_;
-	
+
 	my %by_design;
 	foreach my $summary (@{ $summaries }){
 		my $id = $summary->design_id;
@@ -109,6 +108,15 @@ override _build_name => sub {
 
     my $dt = DateTime->now();
     my $append = $self->has_sponsor ? ' - Sponsor ' . $self->sponsor . ' ' : '';
+
+    if($self->promoter_status){
+    	$append .= $self->promoter_status.' ';
+    }
+
+    if($self->plate_type){
+    	$append .= $self->plate_type.' ';
+    }
+
     $append .= $dt->ymd;
 
     return 'Design Vectors ' . $append;
@@ -118,13 +126,17 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
+        'Sponsor',
         'Project ID',
         'Gene ID',
+        'Gene Symbol',
         'Design ID',
-        'First Promoter Vetcor Wells',
-        'First Promoterless Vector Wells',
-        'Second Promoter Vetcor Wells',
-        'Second Promoterless Vector Wells',
+        'First Vetcor Wells Count',
+        'First Vetcor Wells Accepted Count',
+        'First Vetcor Wells List',
+        'Second Vetcor Wells Count',
+        'Second Vetcor Wells Accepted Count',
+        'Second Vetcor Wells List',
     ];
 };
 
@@ -132,51 +144,69 @@ override iterator => sub {
     my ($self) = @_;
 
     my @list = @{ $self->design_vectors_list };
+    @list = sort { $a->{symbol} cmp $b->{symbol} } @list;
 
     my $result = shift @list;
 
     return Iterator::Simple::iter(
         sub {
             return unless $result;
-            my @data = ( $result->{project_id}, $result->{gene_id}, $result->{design_id} );
-            
-            push @data, $self->_print_wells($result->{first_promoter});
-            push @data, $self->_print_wells($result->{first_promoterless});
-            push @data, $self->_print_wells($result->{second_promoter});
-            push @data, $self->_print_wells($result->{second_promoterless});
-            
+            my @data = ( $result->{sponsor}, $result->{project_id}, $result->{gene_id}, $result->{symbol}, $result->{design_id} );
+
+            push @data, $self->_counts_and_list($result->{first});
+            push @data, $self->_counts_and_list($result->{second});
+
             $result = shift @list;
             return \@data;
         }
     );
 };
 
-sub _print_wells{
+sub _counts_and_list{
 	my ($self, $summaries) = @_;
 
 	my @wells = map { $self->_display_well_name($_) } @{ $summaries };
 	my @unique = uniq @wells;
 	my $list = join " - ", sort @unique;
-	return $list;
+
+	# Count the accepted wells
+	my $accepted = grep { $_ =~ /\*/ } @unique;
+
+	return (scalar @unique, $accepted, $list);
 }
 
 sub _display_well_name{
 	my ($self, $summary) = @_;
-	
+
+    my @names;
+
+	# Filter by promoter status if specified
+	if ($self->promoter_status eq "promoter"){
+		return @names unless $summary->final_cassette_promoter;
+	}
+	elsif($self->promoter_status eq "promoterless"){
+		return @names if $summary->final_cassette_promoter;
+	}
+
+	# FIXME: Filter by NEO and BSD status.. this info first needs adding to cassette
+	# table and then summaries table
+
+	# Report only requested plate type, or both if not specified
 	my @types;
-	if ($self->has_plate_type){
+	if ($self->plate_type){
 		@types = $self->plate_type;
 	}
 	else{
 		@types = qw(final final_pick);
 	}
 
-	my @names;
 	foreach my $plate_type (@types){
 		my ($plate, $well, $accepted) = map { lc($plate_type)."_".$_ } qw(plate_name well_name well_accepted);
         next unless $summary->$well;
 	    my $name = $summary->$plate . '[' . $summary->$well . ']';
-	    $name.="*" if $summary->$accepted;
+	    if($summary->$accepted){
+	        $name.="*";
+	    }
 	    push @names, $name;
 	}
 	DEBUG "Names: @names";
