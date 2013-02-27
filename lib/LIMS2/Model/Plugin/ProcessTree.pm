@@ -224,10 +224,7 @@ sub get_design_wells_for_well_id_list {
 
 #    my $validated_params = $self->check_params( $params, $self->pspec_design_wells_for_well_id_list);
 
-    my $well_list = shift @{$wells};
-    foreach my $w_id ( @{$wells} ) {
-        $well_list = join( ',', $well_list, $w_id ); 
-    }
+    my $well_list = join q{,}, @{$wells};
 
 my $QUERY_ANCESTORS_BY_WELL_LIST = << "QUERY_END";
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
