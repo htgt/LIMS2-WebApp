@@ -85,6 +85,13 @@
               <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse</a>
             </li>
             [% IF c.check_user_roles( 'edit' ) %]
+            [%# -- begin commented out code
+                Not quite ready to deploy plate_from_copy UI
+                NB: TT2 lacks a proper bloack comment...
+            <li>
+              <a href="[% c.uri_for( '/user/plate_from_copy' ) %][%#">Copy</a>
+            </li>
+            -- end of commented section %]
             <li>
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload</a>
             </li>
