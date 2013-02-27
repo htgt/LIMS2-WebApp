@@ -4,10 +4,9 @@
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
+SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-SET escape_string_warning = off;
 
 SET search_path = public, pg_catalog;
 
@@ -61,6 +60,13 @@ SELECT pg_catalog.setval('design_oligos_id_seq', 54766, true);
 
 
 --
+-- Name: designs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('designs_id_seq', 1, false);
+
+
+--
 -- Name: genotyping_primers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
@@ -85,14 +91,14 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 989, true);
+SELECT pg_catalog.setval('plates_id_seq', 1008, true);
 
 
 --
 -- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('processes_id_seq', 1270, true);
+SELECT pg_catalog.setval('processes_id_seq', 1288, true);
 
 
 --
@@ -155,7 +161,7 @@ SELECT pg_catalog.setval('roles_id_seq', 504, true);
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('users_id_seq', 1076, true);
+SELECT pg_catalog.setval('users_id_seq', 1079, true);
 
 
 --
@@ -169,7 +175,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1844, true);
+SELECT pg_catalog.setval('wells_id_seq', 1863, true);
 
 
 --
@@ -982,71 +988,77 @@ INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 G
 
 
 --
+-- Data for Name: cassette_function; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
 -- Data for Name: cassettes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false);
-INSERT INTO cassettes VALUES (10426, 'L1L2_GT0_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', '', true, 'L1L2_GT?_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', 2, false);
-INSERT INTO cassettes VALUES (10427, 'B1B2_frame2_Norcomm', '', false, 'B1B2_frame?_Norcomm', 2, false);
-INSERT INTO cassettes VALUES (10429, 'ZEN-Ub1', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10430, 'L1L2_NorCOMM', '', false, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10431, 'B1B2_framek_Norcomm', '', false, 'B1B2_frame?_Norcomm', -1, false);
-INSERT INTO cassettes VALUES (10432, 'L1L2_6XOspnEnh_Bact_P', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10433, 'pL1L2_GT2_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 2, false);
-INSERT INTO cassettes VALUES (10434, 'L1L2_st1', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 1, false);
-INSERT INTO cassettes VALUES (10436, 'pL1L2_GT0_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', NULL, false);
-INSERT INTO cassettes VALUES (10437, 'L1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10439, 'L1L2_NTARU-2', '', false, 'L1L2_NTARU-?', 2, false);
-INSERT INTO cassettes VALUES (10441, 'L1L2_NTARU-K', '', false, 'L1L2_NTARU-?', -1, false);
-INSERT INTO cassettes VALUES (10442, 'B1B2_frame1_Norcomm', '', false, 'B1B2_frame?_Norcomm', 1, false);
-INSERT INTO cassettes VALUES (10445, 'pL1L2_GT0_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', NULL, false);
-INSERT INTO cassettes VALUES (10446, 'L1L2_st2', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 2, false);
-INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', -1, false);
-INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true);
-INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true);
-INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true);
-INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false);
-INSERT INTO cassettes VALUES (10452, 'pL1L2_GT0_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', NULL, false);
-INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false);
-INSERT INTO cassettes VALUES (10454, 'pL1L2_GT1_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false);
-INSERT INTO cassettes VALUES (10455, 'L1L2_Pgk_P', 'PGK promoter driving WT neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10460, 'pL1L2_GT1_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 1, false);
-INSERT INTO cassettes VALUES (10466, 'L1L2_Del_BactPneo_FFL_TAG1A', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10467, 'V5_Flag_biotin', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false);
-INSERT INTO cassettes VALUES (10472, 'B1B2_frame0_Norcomm', '', false, 'B1B2_frame?_Norcomm', NULL, false);
-INSERT INTO cassettes VALUES (10473, 'pL1L2_GT2_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 2, false);
-INSERT INTO cassettes VALUES (10474, 'pL1L2_GT2_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false);
-INSERT INTO cassettes VALUES (10417, 'Ty1_EGFP', '', true, NULL, NULL, false);
-INSERT INTO cassettes VALUES (10419, 'L1L2_st0', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', NULL, false);
-INSERT INTO cassettes VALUES (10420, 'L1L2_NTARU-1', '', false, 'L1L2_NTARU-?', 1, false);
-INSERT INTO cassettes VALUES (10423, 'L1L2_NTARU-0', '', false, 'L1L2_NTARU-?', NULL, false);
-INSERT INTO cassettes VALUES (10425, 'Ifitm2_intron_L1L2_GT1_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 1, true);
-INSERT INTO cassettes VALUES (10428, 'Ifitm2_intron_R1_ZeoPheS_R2', '', false, NULL, NULL, true);
-INSERT INTO cassettes VALUES (10435, 'L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true);
-INSERT INTO cassettes VALUES (10438, 'L1L2_GT2_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 2, true);
-INSERT INTO cassettes VALUES (10440, 'L1L2_gtk', 'K frame contains Kozak/ATG for insertions after 5'' UTR''s', false, 'L1L2_gt?', -1, true);
-INSERT INTO cassettes VALUES (10443, 'pL1L2_GT1_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 1, true);
-INSERT INTO cassettes VALUES (10444, 'L1L2_gt0', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', NULL, true);
-INSERT INTO cassettes VALUES (10456, 'L1L2_GT1_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 1, true);
-INSERT INTO cassettes VALUES (10457, 'pL1L2_GT0_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', NULL, true);
-INSERT INTO cassettes VALUES (10458, 'pL1L2_frt15_BetactinBSD_frt14_neo_Rox', '', true, NULL, NULL, true);
-INSERT INTO cassettes VALUES (10459, 'Ifitm2_intron_L1L2_GTK_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', -1, true);
-INSERT INTO cassettes VALUES (10461, 'Ifitm2_intron_L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true);
-INSERT INTO cassettes VALUES (10462, 'L1L2_GT1_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 1, true);
-INSERT INTO cassettes VALUES (10463, 'L1L2_GTK_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', -1, true);
-INSERT INTO cassettes VALUES (10464, 'L1L2_gt0_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', NULL, true);
-INSERT INTO cassettes VALUES (10465, 'L1L2_Bact_EM7', '', true, NULL, NULL, true);
-INSERT INTO cassettes VALUES (10468, 'L1L2_Bact_P', 'Human beta actin promoter driving WT neo.  Frame independent IRES driven LacZ reporter', true, NULL, NULL, true);
-INSERT INTO cassettes VALUES (10470, 'L1L2_gt1_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 1, true);
-INSERT INTO cassettes VALUES (10471, 'L1L2_gt1', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 1, true);
-INSERT INTO cassettes VALUES (10476, 'L1L2_gt2_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 2, true);
-INSERT INTO cassettes VALUES (10477, 'L1L2_gt2', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 2, true);
-INSERT INTO cassettes VALUES (10478, 'pL1L2_GT2_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 2, true);
+INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false, false);
+INSERT INTO cassettes VALUES (10426, 'L1L2_GT0_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', '', true, 'L1L2_GT?_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', 2, false, false);
+INSERT INTO cassettes VALUES (10427, 'B1B2_frame2_Norcomm', '', false, 'B1B2_frame?_Norcomm', 2, false, false);
+INSERT INTO cassettes VALUES (10429, 'ZEN-Ub1', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10430, 'L1L2_NorCOMM', '', false, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10431, 'B1B2_framek_Norcomm', '', false, 'B1B2_frame?_Norcomm', -1, false, false);
+INSERT INTO cassettes VALUES (10432, 'L1L2_6XOspnEnh_Bact_P', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10433, 'pL1L2_GT2_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 2, false, false);
+INSERT INTO cassettes VALUES (10434, 'L1L2_st1', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 1, false, false);
+INSERT INTO cassettes VALUES (10436, 'pL1L2_GT0_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', NULL, false, false);
+INSERT INTO cassettes VALUES (10437, 'L1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10439, 'L1L2_NTARU-2', '', false, 'L1L2_NTARU-?', 2, false, false);
+INSERT INTO cassettes VALUES (10441, 'L1L2_NTARU-K', '', false, 'L1L2_NTARU-?', -1, false, false);
+INSERT INTO cassettes VALUES (10442, 'B1B2_frame1_Norcomm', '', false, 'B1B2_frame?_Norcomm', 1, false, false);
+INSERT INTO cassettes VALUES (10445, 'pL1L2_GT0_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', NULL, false, false);
+INSERT INTO cassettes VALUES (10446, 'L1L2_st2', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 2, false, false);
+INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', -1, false, false);
+INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false);
+INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true, false);
+INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false);
+INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false, false);
+INSERT INTO cassettes VALUES (10452, 'pL1L2_GT0_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', NULL, false, false);
+INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false, false);
+INSERT INTO cassettes VALUES (10454, 'pL1L2_GT1_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false);
+INSERT INTO cassettes VALUES (10455, 'L1L2_Pgk_P', 'PGK promoter driving WT neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10460, 'pL1L2_GT1_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 1, false, false);
+INSERT INTO cassettes VALUES (10466, 'L1L2_Del_BactPneo_FFL_TAG1A', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10467, 'V5_Flag_biotin', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false, false);
+INSERT INTO cassettes VALUES (10472, 'B1B2_frame0_Norcomm', '', false, 'B1B2_frame?_Norcomm', NULL, false, false);
+INSERT INTO cassettes VALUES (10473, 'pL1L2_GT2_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 2, false, false);
+INSERT INTO cassettes VALUES (10474, 'pL1L2_GT2_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false);
+INSERT INTO cassettes VALUES (10417, 'Ty1_EGFP', '', true, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10419, 'L1L2_st0', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', NULL, false, false);
+INSERT INTO cassettes VALUES (10420, 'L1L2_NTARU-1', '', false, 'L1L2_NTARU-?', 1, false, false);
+INSERT INTO cassettes VALUES (10423, 'L1L2_NTARU-0', '', false, 'L1L2_NTARU-?', NULL, false, false);
+INSERT INTO cassettes VALUES (10425, 'Ifitm2_intron_L1L2_GT1_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 1, true, false);
+INSERT INTO cassettes VALUES (10428, 'Ifitm2_intron_R1_ZeoPheS_R2', '', false, NULL, NULL, true, false);
+INSERT INTO cassettes VALUES (10435, 'L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true, false);
+INSERT INTO cassettes VALUES (10438, 'L1L2_GT2_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 2, true, false);
+INSERT INTO cassettes VALUES (10440, 'L1L2_gtk', 'K frame contains Kozak/ATG for insertions after 5'' UTR''s', false, 'L1L2_gt?', -1, true, false);
+INSERT INTO cassettes VALUES (10443, 'pL1L2_GT1_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 1, true, false);
+INSERT INTO cassettes VALUES (10444, 'L1L2_gt0', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', NULL, true, false);
+INSERT INTO cassettes VALUES (10456, 'L1L2_GT1_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 1, true, false);
+INSERT INTO cassettes VALUES (10457, 'pL1L2_GT0_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', NULL, true, false);
+INSERT INTO cassettes VALUES (10458, 'pL1L2_frt15_BetactinBSD_frt14_neo_Rox', '', true, NULL, NULL, true, false);
+INSERT INTO cassettes VALUES (10459, 'Ifitm2_intron_L1L2_GTK_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', -1, true, false);
+INSERT INTO cassettes VALUES (10461, 'Ifitm2_intron_L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true, false);
+INSERT INTO cassettes VALUES (10462, 'L1L2_GT1_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 1, true, false);
+INSERT INTO cassettes VALUES (10463, 'L1L2_GTK_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', -1, true, false);
+INSERT INTO cassettes VALUES (10464, 'L1L2_gt0_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', NULL, true, false);
+INSERT INTO cassettes VALUES (10465, 'L1L2_Bact_EM7', '', true, NULL, NULL, true, false);
+INSERT INTO cassettes VALUES (10468, 'L1L2_Bact_P', 'Human beta actin promoter driving WT neo.  Frame independent IRES driven LacZ reporter', true, NULL, NULL, true, false);
+INSERT INTO cassettes VALUES (10470, 'L1L2_gt1_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 1, true, false);
+INSERT INTO cassettes VALUES (10471, 'L1L2_gt1', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 1, true, false);
+INSERT INTO cassettes VALUES (10476, 'L1L2_gt2_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 2, true, false);
+INSERT INTO cassettes VALUES (10477, 'L1L2_gt2', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 2, true, false);
+INSERT INTO cassettes VALUES (10478, 'pL1L2_GT2_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 2, true, false);
 
 
 --
@@ -1125,6 +1137,7 @@ INSERT INTO users VALUES (985, 'np7@sanger.ac.uk', '{SSHA}TJXldhzItjnIj2UHr8Dk4H
 INSERT INTO users VALUES (1003, 'rl6@sanger.ac.uk', '{SSHA}39S8HxAYdFfCCv9HfcKvYHYoEHRR5BYS', false);
 INSERT INTO users VALUES (1020, 'sb19@sanger.ac.uk', '{SSHA}S3JLnbVLvuFfqW/cMuH36hctnRiAe863', false);
 INSERT INTO users VALUES (1058, 'vvi@sanger.ac.uk', '{SSHA}t2DGhX4Nkc7rV2aPWYCsR0wUn/WyGf3i', false);
+INSERT INTO users VALUES (1079, 'as28@sanger.ac.uk', '{SSHA}941OxYh6i8iSuE3+hIVJIdyg+NwrF397', true);
 
 
 --
@@ -4453,6 +4466,7 @@ INSERT INTO genotyping_primers VALUES (116729, 'GR4', 96830, 'GACGTGGCAGCTGAGACC
 --
 -- Data for Name: genotyping_result_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
+
 INSERT INTO genotyping_result_types VALUES ('loadel');
 INSERT INTO genotyping_result_types VALUES ('loacrit');
 INSERT INTO genotyping_result_types VALUES ('loatam');
@@ -4477,6 +4491,7 @@ INSERT INTO plate_types VALUES ('DESIGN', 'Design Instances');
 INSERT INTO plate_types VALUES ('INT', 'Intermediate Vectors');
 INSERT INTO plate_types VALUES ('POSTINT', 'Post-intermediate Vectors');
 INSERT INTO plate_types VALUES ('FINAL', 'Final Vectors');
+INSERT INTO plate_types VALUES ('FINAL_PICK', 'Final vector picks');
 INSERT INTO plate_types VALUES ('CREBAC', 'Cre/BAC Vectors');
 INSERT INTO plate_types VALUES ('DNA', 'DNA QC');
 INSERT INTO plate_types VALUES ('EP', 'Electroporation');
@@ -4620,7 +4635,26 @@ INSERT INTO plates VALUES (983, 'SEP0006', '', 'SEP', 985, '2012-06-15 00:00:00'
 INSERT INTO plates VALUES (984, 'SEPD0006_1', '', 'SEP_PICK', 985, '2012-07-04 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (985, 'SFP0001', '', 'SFP', 985, '2012-07-11 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (988, 'SEP_POOL0001', '', 'SEP_POOL', 985, '2012-09-14 09:44:02.964811', 'Mouse', NULL);
-
+INSERT INTO plates VALUES (989, '989', 'Summaries test 01', 'DESIGN', 1079, '2013-02-18 15:52:57.882597', 'Mouse', NULL);
+INSERT INTO plates VALUES (990, '990', 'Summaries test 01', 'INT', 1079, '2013-02-18 15:52:57.904222', 'Mouse', NULL);
+INSERT INTO plates VALUES (991, '991', 'Summaries test 01', 'INT', 1079, '2013-02-18 15:52:57.925523', 'Mouse', NULL);
+INSERT INTO plates VALUES (992, '992', 'Summaries test 02', 'DESIGN', 1079, '2013-02-18 15:52:58.378853', 'Mouse', NULL);
+INSERT INTO plates VALUES (993, '993', 'Summaries test 02', 'INT', 1079, '2013-02-18 15:52:58.40039', 'Mouse', NULL);
+INSERT INTO plates VALUES (994, '994', 'Summaries test 02', 'FINAL', 1079, '2013-02-18 15:52:58.421873', 'Mouse', NULL);
+INSERT INTO plates VALUES (995, '995', 'Summaries test 02', 'DNA', 1079, '2013-02-18 15:52:58.443451', 'Mouse', NULL);
+INSERT INTO plates VALUES (996, '996', 'Summaries test 02', 'DNA', 1079, '2013-02-18 15:52:58.465103', 'Mouse', NULL);
+INSERT INTO plates VALUES (997, '997', 'Summaries test 02', 'EP', 1079, '2013-02-18 15:52:58.48666', 'Mouse', NULL);
+INSERT INTO plates VALUES (998, '998', 'Summaries test 02', 'EP_PICK', 1079, '2013-02-18 15:52:58.508497', 'Mouse', NULL);
+INSERT INTO plates VALUES (999, '999', 'Summaries test 02', 'EP_PICK', 1079, '2013-02-18 15:52:58.530077', 'Mouse', NULL);
+INSERT INTO plates VALUES (1000, '1000', 'Summaries test 02', 'EP_PICK', 1079, '2013-02-18 15:52:58.551738', 'Mouse', NULL);
+INSERT INTO plates VALUES (1001, '1001', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:51.573499', 'Mouse', NULL);
+INSERT INTO plates VALUES (1002, '1002', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:52.595073', 'Mouse', NULL);
+INSERT INTO plates VALUES (1003, '1003', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:53.616845', 'Mouse', NULL);
+INSERT INTO plates VALUES (1004, '1004', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:54.638359', 'Mouse', NULL);
+INSERT INTO plates VALUES (1005, '1005', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:55.660047', 'Mouse', NULL);
+INSERT INTO plates VALUES (1006, '1006', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:56.681031', 'Mouse', NULL);
+INSERT INTO plates VALUES (1007, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:57.702485', 'Mouse', NULL);
+INSERT INTO plates VALUES (1008, 'FP1008', 'Final Pick tests', 'FINAL_PICK', 1079, '2013-02-25 15:30:00.000000', 'Mouse', NULL);
 
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -4710,6 +4744,7 @@ INSERT INTO process_types VALUES ('clone_pool', 'Pool es cells into backup vial'
 INSERT INTO process_types VALUES ('first_electroporation', 'First (standard) electroporation');
 INSERT INTO process_types VALUES ('second_electroporation', 'Second electroporation in double targetted cells');
 INSERT INTO process_types VALUES ('freeze', 'Create freezer plate well');
+INSERT INTO process_types VALUES ('final_pick','Create Final Pick plate');
 
 
 --
@@ -5688,6 +5723,25 @@ INSERT INTO processes VALUES (1265, 'freeze');
 INSERT INTO processes VALUES (1266, 'freeze');
 INSERT INTO processes VALUES (1267, 'freeze');
 INSERT INTO processes VALUES (1268, 'freeze');
+INSERT INTO processes VALUES (1270, 'create_di');
+INSERT INTO processes VALUES (1271, 'int_recom');
+INSERT INTO processes VALUES (1272, 'int_recom');
+INSERT INTO processes VALUES (1273, 'create_di');
+INSERT INTO processes VALUES (1274, 'int_recom');
+INSERT INTO processes VALUES (1275, '2w_gateway');
+INSERT INTO processes VALUES (1276, 'dna_prep');
+INSERT INTO processes VALUES (1277, 'dna_prep');
+INSERT INTO processes VALUES (1278, 'first_electroporation');
+INSERT INTO processes VALUES (1279, 'clone_pick');
+INSERT INTO processes VALUES (1280, 'clone_pick');
+INSERT INTO processes VALUES (1281, 'clone_pick');
+INSERT INTO processes VALUES (1282, 'freeze');
+INSERT INTO processes VALUES (1283, 'freeze');
+INSERT INTO processes VALUES (1284, 'freeze');
+INSERT INTO processes VALUES (1285, 'freeze');
+INSERT INTO processes VALUES (1286, 'freeze');
+INSERT INTO processes VALUES (1287, 'freeze');
+INSERT INTO processes VALUES (1288, 'freeze');
 
 
 --
@@ -6061,6 +6115,14 @@ INSERT INTO process_bac VALUES (773, 'b', 432191);
 INSERT INTO process_bac VALUES (773, 'c', 431842);
 INSERT INTO process_bac VALUES (773, 'a', 326133);
 INSERT INTO process_bac VALUES (773, 'd', 293376);
+INSERT INTO process_bac VALUES (1270, 'a', 390633);
+INSERT INTO process_bac VALUES (1270, 'b', 376917);
+INSERT INTO process_bac VALUES (1270, 'c', 435886);
+INSERT INTO process_bac VALUES (1270, 'd', 416192);
+INSERT INTO process_bac VALUES (1273, 'a', 390633);
+INSERT INTO process_bac VALUES (1273, 'b', 376917);
+INSERT INTO process_bac VALUES (1273, 'c', 435886);
+INSERT INTO process_bac VALUES (1273, 'd', 416192);
 
 
 --
@@ -6163,6 +6225,10 @@ INSERT INTO process_backbone VALUES (759, 1849);
 INSERT INTO process_backbone VALUES (764, 1849);
 INSERT INTO process_backbone VALUES (769, 1849);
 INSERT INTO process_backbone VALUES (774, 1849);
+INSERT INTO process_backbone VALUES (1271, 1849);
+INSERT INTO process_backbone VALUES (1272, 1849);
+INSERT INTO process_backbone VALUES (1274, 1849);
+INSERT INTO process_backbone VALUES (1275, 1849);
 
 
 --
@@ -6457,6 +6523,10 @@ INSERT INTO process_cassette VALUES (962, 10438);
 INSERT INTO process_cassette VALUES (964, 10438);
 INSERT INTO process_cassette VALUES (966, 10438);
 INSERT INTO process_cassette VALUES (968, 10438);
+INSERT INTO process_cassette VALUES (1271, 10447);
+INSERT INTO process_cassette VALUES (1272, 10447);
+INSERT INTO process_cassette VALUES (1274, 10447);
+INSERT INTO process_cassette VALUES (1275, 10447);
 
 
 --
@@ -6571,6 +6641,8 @@ INSERT INTO process_design VALUES (758, 40957);
 INSERT INTO process_design VALUES (763, 39873);
 INSERT INTO process_design VALUES (768, 42155);
 INSERT INTO process_design VALUES (773, 96830);
+INSERT INTO process_design VALUES (1270, 79991);
+INSERT INTO process_design VALUES (1273, 79991);
 
 
 --
@@ -7576,6 +7648,26 @@ INSERT INTO wells VALUES (1840, 980, 'N01', 985, '2012-08-13 08:23:11.17237', NU
 INSERT INTO wells VALUES (1841, 904, 'M02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
 INSERT INTO wells VALUES (1842, 981, 'A07', 985, '2012-09-14 09:39:57.695101', NULL, NULL, false);
 INSERT INTO wells VALUES (1843, 988, 'A01', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1844, 989, 'A01', 1079, '2013-02-18 15:52:57.947186', NULL, NULL, false);
+INSERT INTO wells VALUES (1845, 990, 'A01', 1079, '2013-02-18 15:52:57.968858', NULL, NULL, false);
+INSERT INTO wells VALUES (1846, 991, 'A01', 1079, '2013-02-18 15:52:57.990715', NULL, NULL, false);
+INSERT INTO wells VALUES (1847, 992, 'A01', 1079, '2013-02-18 15:52:58.724144', NULL, NULL, false);
+INSERT INTO wells VALUES (1848, 993, 'A01', 1079, '2013-02-18 15:52:58.745906', NULL, NULL, false);
+INSERT INTO wells VALUES (1849, 994, 'A01', 1079, '2013-02-18 15:52:58.767534', NULL, NULL, false);
+INSERT INTO wells VALUES (1850, 995, 'A01', 1079, '2013-02-18 15:52:58.789094', NULL, NULL, false);
+INSERT INTO wells VALUES (1851, 996, 'A01', 1079, '2013-02-18 15:52:58.810886', NULL, NULL, false);
+INSERT INTO wells VALUES (1852, 997, 'A01', 1079, '2013-02-18 15:52:58.832587', NULL, NULL, false);
+INSERT INTO wells VALUES (1853, 998, 'A01', 1079, '2013-02-18 15:52:58.854376', NULL, NULL, false);
+INSERT INTO wells VALUES (1854, 999, 'A01', 1079, '2013-02-18 15:52:58.875968', NULL, NULL, false);
+INSERT INTO wells VALUES (1855, 1000, 'A01', 1079, '2013-02-18 15:52:58.897628', NULL, NULL, false);
+INSERT INTO wells VALUES (1856, 1001, 'A01', 1079, '2013-02-18 15:52:58.919458', NULL, NULL, false);
+INSERT INTO wells VALUES (1857, 1002, 'A01', 1079, '2013-02-18 15:52:58.9412', NULL, NULL, false);
+INSERT INTO wells VALUES (1858, 1003, 'A01', 1079, '2013-02-18 15:52:58.962788', NULL, NULL, false);
+INSERT INTO wells VALUES (1859, 1004, 'A01', 1079, '2013-02-18 15:52:58.984283', NULL, NULL, false);
+INSERT INTO wells VALUES (1860, 1005, 'A01', 1079, '2013-02-18 15:52:59.006108', NULL, NULL, false);
+INSERT INTO wells VALUES (1861, 1006, 'A01', 1079, '2013-02-18 15:52:59.027906', NULL, NULL, false);
+INSERT INTO wells VALUES (1862, 1007, 'A01', 1079, '2013-02-18 15:52:59.04965', NULL, NULL, false);
+INSERT INTO wells VALUES (1863, 1008, 'A01', 1079, '2013-02-25 15:30:00.000000', NULL, NULL, false);
 
 
 --
@@ -8460,6 +8552,23 @@ INSERT INTO process_input_well VALUES (1265, 1716);
 INSERT INTO process_input_well VALUES (1266, 1717);
 INSERT INTO process_input_well VALUES (1267, 1718);
 INSERT INTO process_input_well VALUES (1268, 1719);
+INSERT INTO process_input_well VALUES (1271, 1844);
+INSERT INTO process_input_well VALUES (1272, 1844);
+INSERT INTO process_input_well VALUES (1274, 1847);
+INSERT INTO process_input_well VALUES (1275, 1848);
+INSERT INTO process_input_well VALUES (1276, 1849);
+INSERT INTO process_input_well VALUES (1277, 1849);
+INSERT INTO process_input_well VALUES (1278, 1851);
+INSERT INTO process_input_well VALUES (1279, 1852);
+INSERT INTO process_input_well VALUES (1280, 1852);
+INSERT INTO process_input_well VALUES (1281, 1852);
+INSERT INTO process_input_well VALUES (1282, 1855);
+INSERT INTO process_input_well VALUES (1283, 1855);
+INSERT INTO process_input_well VALUES (1284, 1855);
+INSERT INTO process_input_well VALUES (1285, 1855);
+INSERT INTO process_input_well VALUES (1286, 1855);
+INSERT INTO process_input_well VALUES (1287, 1855);
+INSERT INTO process_input_well VALUES (1288, 1855);
 
 
 --
@@ -9438,6 +9547,25 @@ INSERT INTO process_output_well VALUES (1265, 1812);
 INSERT INTO process_output_well VALUES (1266, 1813);
 INSERT INTO process_output_well VALUES (1267, 1814);
 INSERT INTO process_output_well VALUES (1268, 1815);
+INSERT INTO process_output_well VALUES (1270, 1844);
+INSERT INTO process_output_well VALUES (1271, 1845);
+INSERT INTO process_output_well VALUES (1272, 1846);
+INSERT INTO process_output_well VALUES (1273, 1847);
+INSERT INTO process_output_well VALUES (1274, 1848);
+INSERT INTO process_output_well VALUES (1275, 1849);
+INSERT INTO process_output_well VALUES (1276, 1850);
+INSERT INTO process_output_well VALUES (1277, 1851);
+INSERT INTO process_output_well VALUES (1278, 1852);
+INSERT INTO process_output_well VALUES (1279, 1853);
+INSERT INTO process_output_well VALUES (1280, 1854);
+INSERT INTO process_output_well VALUES (1281, 1855);
+INSERT INTO process_output_well VALUES (1282, 1856);
+INSERT INTO process_output_well VALUES (1283, 1857);
+INSERT INTO process_output_well VALUES (1284, 1858);
+INSERT INTO process_output_well VALUES (1285, 1859);
+INSERT INTO process_output_well VALUES (1286, 1860);
+INSERT INTO process_output_well VALUES (1287, 1861);
+INSERT INTO process_output_well VALUES (1288, 1862);
 
 
 --
@@ -9568,6 +9696,12 @@ INSERT INTO sponsors VALUES ('Human', 'Homozygous - Human');
 
 --
 -- Data for Name: projects; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
+-- Data for Name: project_alleles; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
 
@@ -9714,6 +9848,12 @@ INSERT INTO roles VALUES (504, 'read');
 --
 
 INSERT INTO species_default_assembly VALUES ('Mouse', 'GRCm38');
+
+
+--
+-- Data for Name: summaries; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
 
 
 --
@@ -10181,15 +10321,16 @@ INSERT INTO well_dna_status VALUES (1516, true, '', '2012-06-25 00:00:00', 985);
 --
 -- Data for Name: well_genotyping_results; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
-INSERT INTO well_genotyping_results VALUES (1621, 'lacz', 'passb', 1.21, 0.05, '>0.98', '2013-01-28 00:00:00', 953);
 
+INSERT INTO well_genotyping_results VALUES (1621, 'lacz', 'passb', 1.20999999999999996, 0.0500000000000000028, '>0.98', '2013-01-28 00:00:00', 953);
 
 
 --
 -- Data for Name: well_primer_bands; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO well_primer_bands VALUES (1621, 'gf3', 'true', '2013-01-28 00:00:00', 953);
+INSERT INTO well_primer_bands VALUES (1621, 'gf3', true, '2013-01-28 00:00:00', 953);
+
 
 --
 -- Data for Name: well_qc_sequencing_result; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -11273,6 +11414,12 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', 
 
 --
 -- Data for Name: well_targeting_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
+-- Data for Name: well_targeting_puro_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
 

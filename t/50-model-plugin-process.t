@@ -22,6 +22,7 @@ note("Testing process types and fields creation");
         int_recom
         2w_gateway
         3w_gateway
+        final_pick
         rearray
         dna_prep
         recombinase
@@ -353,6 +354,35 @@ note( "Testing adding recombinase using upload fails if csv data is missing colu
     throws_ok { model->upload_recombinase_file_data( $test_file)
     } qr/invalid column names or data/;
 }
+
+note( "Testing final_pick process creation" );
+my $final_pick_process_data= test_data( 'final_pick_process.yaml' );
+
+{
+    ok my $process = model->create_process( $final_pick_process_data->{valid_input} ),
+        'create_process for type final_pick should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'final_pick',
+        'process is of correct type';
+
+    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 1, 'only one input well';
+    my $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'input well has correct name';
+    is $input_well->plate->name, 'MOHFAS0001_A', '..and is on correct plate';
+
+    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    my $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'FP1008', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
+
+throws_ok {
+    my $process = model->create_process( $final_pick_process_data->{invalid_output_well} );
+} qr/final_pick process output well should be type (FINAL|FINAL_PICK)+ \(got SEP\)/;
 
 note( "Testing rearray process creation" );
 my $rearray_process_data= test_data( 'rearray_process.yaml' );

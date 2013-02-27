@@ -64,7 +64,8 @@ note( "Testing plate create with wells" );
 
     ok my $wells = $plate->wells, 'can retrieve plate wells';
     ok my $well = $wells->find( { name => 'A01' } ), '..retrieve well A01';
-    ok my $process = $well->output_processes->first, '..can get output process';
+    ok my $process = $well->output_processes->first, '..can getme: TEST_COPY_PLATE
+    created_by:  output process';
     is $process->type_id, 'first_electroporation', 'process is correct type';
     ok my $input_well = $process->process_input_wells->first->well, 'retrieve input well for process';
     is $input_well->plate->name, 'MOHFAQ0001_A_2', '..correct plate';
@@ -127,6 +128,19 @@ note( "Plate Create CSV Upload" );
 
 }
 
+note( 'Create Plate by Copy' );
+
+{
+    ok my $copy_plate = model->create_plate_by_copy( $plate_data->{create_plate_by_copy} ),
+        'create_plate_by_copy should succeed';
+    isa_ok $copy_plate, 'LIMS2::Model::Schema::Result::Plate';
+    is $copy_plate->name, 'TEST_COPY_PLATE', '... copy plate name is correct';
+    is $copy_plate->type_id, 'DNA', '...expected plate type: DNA';
+    ok my $plate_wells = $copy_plate->wells, '...plate has wells';
+    is $plate_wells->count, 96, '...there are 96 wells';
+    
+}
+
 note( 'List Plates' );
 
 {
@@ -134,7 +148,8 @@ note( 'List Plates' );
         ,'can list plates of type FP';
     isa_ok $pager, 'DBIx::Class::ResultSet::Pager';
     my @plate_names =  map{ $_->name } @{ $plate_list };
-    is_deeply \@plate_names, [ 'FFP0001' ], '..and plate list is correct';
+    # AS28 - added extra FP plates from summaries test
+    is_deeply \@plate_names, [ '1007','1006','1005','1004','1003','1002','1001','FFP0001' ], '..and plate list is correct';
 
     ok my ( $plate_list2, $pager2 ) = model->list_plates( { species => 'Mouse', plate_name => 'FFP' } )
         ,'can list plates with name like FFP';

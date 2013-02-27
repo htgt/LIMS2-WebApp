@@ -26,6 +26,7 @@ const our %PROCESS_PLATE_TYPES => (
     cre_bac_recom          => [qw( INT )],
     '2w_gateway'           => [qw( POSTINT FINAL )],
     '3w_gateway'           => [qw( POSTINT FINAL )],
+    final_pick             => [qw( FINAL_PICK )],
     dna_prep               => [qw( DNA )],
     recombinase            => [qw( FINAL XEP POSTINT )],
     first_electroporation  => [qw( EP )],
@@ -49,6 +50,7 @@ const our %PROCESS_TEMPLATE => (
     cre_bac_recom          => 'recombineering_template.csv',
     '2w_gateway'           => 'gateway_template.csv',
     '3w_gateway'           => 'gateway_template.csv',
+    final_pick             => 'standard_template.csv',
     dna_prep               => 'standard_template.csv',
     recombinase            => 'recombinase_template.csv',
     first_electroporation  => 'first_electroporation_template.csv',
@@ -58,6 +60,8 @@ const our %PROCESS_TEMPLATE => (
     freeze                 => 'standard_template.csv',
 );
 
+# number relates to number of input wells (e.g. an SEP has two inputs)
+# and type to their plate type(s). N.B. if you don't specify a type then any is fine
 const our %PROCESS_INPUT_WELL_CHECK => (
     create_di => { number => 0 },
     int_recom => {
@@ -72,6 +76,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( INT )],
         number => 1,
     },
+    final_pick => {
+        type   => [qw( FINAL FINAL_PICK )],
+        number => 1,
+    },
     recombinase   => { number => 1 },
     cre_bac_recom => {
         type   => [qw( DESIGN )],
@@ -79,7 +87,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     },
     rearray  => { number => 1 },
     dna_prep => {
-        type   => [qw( FINAL )],
+        type   => [qw( FINAL FINAL_PICK )],
         number => 1,
     },
     clone_pick => {
