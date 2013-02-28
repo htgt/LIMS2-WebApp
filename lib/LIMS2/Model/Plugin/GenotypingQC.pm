@@ -79,7 +79,7 @@ sub update_genotyping_qc_data{
                 push @messages, "- ".$message;
             }
         }
-
+use Smart::Comments;
         # for each assay type see if we have pass/call
         # if we do and pass/call == na or fa then create/update with no values
         # for other pass/call values create/update result with all available data (confidence is optional)
@@ -101,12 +101,15 @@ sub update_genotyping_qc_data{
                     });
                 }
                 else{
-                    # Check we have required fields
+                    # Check required field's values are number and default blank values to zero
                     my %new_values;
                     foreach my $field (@required_data){
                         defined( $new_values{$field} = $datum->{$assay."_$field"} )
-                            or die "No $assay $field value found for ".$well->name;
+                            or $new_values{$field} = 0;
+                        $self->throw( Validation => "$assay $field must be a number for well ".$well->name)
+                            unless $new_values{$field} =~ /^\d+(\.\d+)?$/;
                     }
+
                     # confidence is optional
                     if (defined (my $conf = $datum->{$assay."_confidence"}) ){
                         $new_values{'confidence'} = $conf;

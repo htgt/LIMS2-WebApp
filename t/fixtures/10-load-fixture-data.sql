@@ -85,14 +85,14 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 989, true);
+SELECT pg_catalog.setval('plates_id_seq', 991, true);
 
 
 --
 -- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('processes_id_seq', 1270, true);
+SELECT pg_catalog.setval('processes_id_seq', 1278, true);
 
 
 --
@@ -169,7 +169,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1844, true);
+SELECT pg_catalog.setval('wells_id_seq', 1852, true);
 
 
 --
@@ -985,7 +985,7 @@ INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 G
 -- Data for Name: cassettes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false);
+INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false, true);
 INSERT INTO cassettes VALUES (10426, 'L1L2_GT0_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', '', true, 'L1L2_GT?_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', 2, false);
 INSERT INTO cassettes VALUES (10427, 'B1B2_frame2_Norcomm', '', false, 'B1B2_frame?_Norcomm', 2, false);
 INSERT INTO cassettes VALUES (10429, 'ZEN-Ub1', '', true, NULL, NULL, false);
@@ -4620,7 +4620,8 @@ INSERT INTO plates VALUES (983, 'SEP0006', '', 'SEP', 985, '2012-06-15 00:00:00'
 INSERT INTO plates VALUES (984, 'SEPD0006_1', '', 'SEP_PICK', 985, '2012-07-04 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (985, 'SFP0001', '', 'SFP', 985, '2012-07-11 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (988, 'SEP_POOL0001', '', 'SEP_POOL', 985, '2012-09-14 09:44:02.964811', 'Mouse', NULL);
-
+INSERT INTO plates VALUES (989, 'CEP00008', '', 'EP', 985, '2012-09-14 09:44:02.964811', 'Mouse', NULL);
+INSERT INTO plates VALUES (990, 'CEPD0008_8', '', 'EP_PICK', 985, '2012-09-14 09:44:02.964811', 'Mouse', NULL);
 
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -5688,7 +5689,14 @@ INSERT INTO processes VALUES (1265, 'freeze');
 INSERT INTO processes VALUES (1266, 'freeze');
 INSERT INTO processes VALUES (1267, 'freeze');
 INSERT INTO processes VALUES (1268, 'freeze');
-
+INSERT INTO processes VALUES (1270, 'first_electroporation');
+INSERT INTO processes VALUES (1271, 'first_electroporation');
+INSERT INTO processes VALUES (1272, 'first_electroporation');
+INSERT INTO processes VALUES (1273, 'first_electroporation');
+INSERT INTO processes VALUES (1274, 'clone_pick');
+INSERT INTO processes VALUES (1275, 'clone_pick');
+INSERT INTO processes VALUES (1276, 'clone_pick');
+INSERT INTO processes VALUES (1277, 'clone_pick');
 
 --
 -- Data for Name: process_bac; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -6457,8 +6465,10 @@ INSERT INTO process_cassette VALUES (962, 10438);
 INSERT INTO process_cassette VALUES (964, 10438);
 INSERT INTO process_cassette VALUES (966, 10438);
 INSERT INTO process_cassette VALUES (968, 10438);
-
-
+INSERT INTO process_cassette VALUES (1270, 10424);
+INSERT INTO process_cassette VALUES (1271, 10424);
+INSERT INTO process_cassette VALUES (1272, 10424);
+INSERT INTO process_cassette VALUES (1273, 10424);
 --
 -- Data for Name: process_cell_line; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
@@ -7576,7 +7586,14 @@ INSERT INTO wells VALUES (1840, 980, 'N01', 985, '2012-08-13 08:23:11.17237', NU
 INSERT INTO wells VALUES (1841, 904, 'M02', 751, '2012-08-13 08:23:11.17237', NULL, NULL, false);
 INSERT INTO wells VALUES (1842, 981, 'A07', 985, '2012-09-14 09:39:57.695101', NULL, NULL, false);
 INSERT INTO wells VALUES (1843, 988, 'A01', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
-
+INSERT INTO wells VALUES (1844, 989, 'A01', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1845, 989, 'A02', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1846, 989, 'A03', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1847, 989, 'A04', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1848, 990, 'A01', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1849, 990, 'A02', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1850, 990, 'A03', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
+INSERT INTO wells VALUES (1851, 990, 'A04', 985, '2012-09-14 09:45:08.373074', NULL, NULL, false);
 
 --
 -- Data for Name: process_input_well; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -8460,7 +8477,14 @@ INSERT INTO process_input_well VALUES (1265, 1716);
 INSERT INTO process_input_well VALUES (1266, 1717);
 INSERT INTO process_input_well VALUES (1267, 1718);
 INSERT INTO process_input_well VALUES (1268, 1719);
-
+INSERT INTO process_input_well VALUES (1270, 1326);
+INSERT INTO process_input_well VALUES (1271, 1328);
+INSERT INTO process_input_well VALUES (1272, 1330);
+INSERT INTO process_input_well VALUES (1273, 1332);
+INSERT INTO process_input_well VALUES (1274, 1844);
+INSERT INTO process_input_well VALUES (1275, 1845);
+INSERT INTO process_input_well VALUES (1276, 1846);
+INSERT INTO process_input_well VALUES (1277, 1847);
 
 --
 -- Data for Name: process_output_well; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -9438,7 +9462,14 @@ INSERT INTO process_output_well VALUES (1265, 1812);
 INSERT INTO process_output_well VALUES (1266, 1813);
 INSERT INTO process_output_well VALUES (1267, 1814);
 INSERT INTO process_output_well VALUES (1268, 1815);
-
+INSERT INTO process_output_well VALUES (1270, 1844);
+INSERT INTO process_output_well VALUES (1271, 1845);
+INSERT INTO process_output_well VALUES (1272, 1846);
+INSERT INTO process_output_well VALUES (1273, 1847);
+INSERT INTO process_output_well VALUES (1274, 1848);
+INSERT INTO process_output_well VALUES (1275, 1849);
+INSERT INTO process_output_well VALUES (1276, 1850);
+INSERT INTO process_output_well VALUES (1277, 1851);
 
 --
 -- Data for Name: recombinases; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -9552,7 +9583,7 @@ INSERT INTO process_recombinase VALUES (968, 'Cre', 1);
 INSERT INTO process_recombinase VALUES (1071, 'Flp', 1);
 INSERT INTO process_recombinase VALUES (1072, 'Flp', 1);
 INSERT INTO process_recombinase VALUES (1073, 'Flp', 1);
-
+INSERT INTO process_recombinase VALUES (1277, 'Dre', 1);
 
 --
 -- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin

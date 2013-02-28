@@ -2,7 +2,6 @@ package LIMS2::Model::Plugin::Well;
 
 use strict;
 use warnings FATAL => 'all';
-use Smart::Comments;
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
 use Hash::Merge qw( merge );
@@ -1148,8 +1147,9 @@ sub has_dre_been_applied {
     my ( $self, $params ) = @_;
 
     my $well = $self->retrieve_well( {slice_def $params, qw( plate_name well_name id)} );
+    return unless (! $well->is_double_targeted);
     my @process = $well->parent_processes;
-    return unless scalar(@process) eq 1;
+    return unless scalar(@process) eq 1 or (! well->is_double_targeted);
 
     if ($well->cassette->cre and $params->{genotyping_result_type_id} eq 'puro' and $well->plate->type_id eq 'EP_PICK') {
         # check for existing dre recombinase
@@ -1168,7 +1168,7 @@ sub has_dre_been_applied {
             $dre_process->delete;
         }
     }
-    return;
+    return 1;
 }
 
 1;
