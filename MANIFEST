@@ -130,9 +130,11 @@ lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
 lib/LIMS2/Report/DNAPlate.pm
 lib/LIMS2/Report/DesignPlate.pm
+lib/LIMS2/Report/DesignVectors.pm
 lib/LIMS2/Report/EPPlate.pm
 lib/LIMS2/Report/ElectroporationProductionSummary.pm
 lib/LIMS2/Report/FPPlate.pm
+lib/LIMS2/Report/FinalPickVectorPlate.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/FirstElectroporationProductionDetail.pm
 lib/LIMS2/Report/GenesToElectroporate.pm
@@ -173,6 +175,7 @@ lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
+lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
@@ -190,6 +193,7 @@ root/favicon.ico
 root/lib/colony_count_upload_help.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
+root/lib/plate_copy_help.tt
 root/lib/plate_upload_help.tt
 root/lib/process_specific_fields.tt
 root/lib/recombinase_upload_help.tt
@@ -211,6 +215,8 @@ root/site/user/browsetemplates/view.tt
 root/site/user/error.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
+root/site/user/platecopy/plate_copy_wait.tt
+root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
 root/site/user/qc/create_plates.tt
@@ -226,6 +232,7 @@ root/site/user/recombinaseupload/recombinase_upload.tt
 root/site/user/report/await_report.tt
 root/site/user/report/gene_report.tt
 root/site/user/report/select_sponsor.tt
+root/site/user/report/select_vector_params.tt
 root/site/user/report/simple_table.tt
 root/site/user/userpreferences/change_password.tt
 root/site/user/welldata/dna_status_update.tt
@@ -1721,6 +1728,7 @@ t/data/csv_upload_linux.csv
 t/data/csv_upload_mac.csv
 t/data/csv_upload_win.csv
 t/data/dna_prep_process.yaml
+t/data/final_pick_process.yaml
 t/data/first_electroporation.yaml
 t/data/freeze_process.yaml
 t/data/int_recom_process.yaml
@@ -1739,4 +1747,3 @@ t/data/well_850_user_params.yaml
 t/fixtures/00-clean-db.sql
 t/fixtures/10-load-fixture-data.sql
 t/release-no-smart-comments.t
-test.pl~

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.052';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.054';
 }
 ## use critic
 
@@ -215,6 +215,19 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
     $c->stash(
         template    => 'user/report/select_sponsor.tt',
         report_name => $report
+    );
+
+    return;
+}
+
+sub select_vector_params :Path( '/user/report/vector' ) :Args(1) {
+    my ( $self, $c, $report ) = @_;
+
+    my @sponsors = map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+    $c->stash(
+        template    => 'user/report/select_vector_params.tt',
+        report_name => $report,
+        sponsors    => [sort @sponsors],
     );
 
     return;

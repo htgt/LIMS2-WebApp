@@ -1,8 +1,0 @@
-use List::MoreUtils qw (any uniq);
-
-my @qc_templates = qw(test test test2 test3 test4);
-
-my @unique = uniq @qc_templates;
-print "Cannot delete well  as it is used by QC templates: "
-                                  .(join ", ", uniq @qc_templates)
-                                  .". Delete the QC template first\n"

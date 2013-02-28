@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.052';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.054';
 }
 ## use critic
 
@@ -133,6 +133,7 @@ my %process_check_well = (
     int_recom              => \&_check_wells_int_recom,
     '2w_gateway'           => \&_check_wells_2w_gateway,
     '3w_gateway'           => \&_check_wells_3w_gateway,
+    final_pick             => \&_check_wells_final_pick,
     recombinase            => \&_check_wells_recombinase,
     cre_bac_recom          => \&_check_wells_cre_bac_recom,
     rearray                => \&_check_wells_rearray,
@@ -247,6 +248,16 @@ sub _check_wells_2w_gateway {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_3w_gateway {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_final_pick {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -379,6 +390,7 @@ my %process_aux_data = (
     int_recom              => \&_create_process_aux_data_int_recom,
     '2w_gateway'           => \&_create_process_aux_data_2w_gateway,
     '3w_gateway'           => \&_create_process_aux_data_3w_gateway,
+    final_pick             => \&_create_process_aux_data_final_pick,
     recombinase            => \&create_process_aux_data_recombinase,
     cre_bac_recom          => \&_create_process_aux_data_cre_bac_recom,
     rearray                => \&_create_process_aux_data_rearray,
@@ -602,6 +614,12 @@ sub _create_process_aux_data_first_electroporation {
 
     $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) } );
 
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_final_pick {
     return;
 }
 ## use critic

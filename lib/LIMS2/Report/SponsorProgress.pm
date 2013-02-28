@@ -1,7 +1,7 @@
 package LIMS2::Report::SponsorProgress;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SponsorProgress::VERSION = '0.052';
+    $LIMS2::Report::SponsorProgress::VERSION = '0.054';
 }
 ## use critic
 
@@ -22,73 +22,54 @@ Readonly my %REPORT_CATAGORIES => (
     genes => {
         name       => 'Targetted Genes',
         order      => 1,
-        validation => \&has_genes,
     },
     vectors =>{
         name      => 'Vectors',
         order     => 2,
-        well_type => 'allele_vector_wells'
     },
     first_vectors => {
         name      => '1st Allele Vectors',
         order     => 3,
-        well_type => 'first_allele_vector_wells',
     },
     second_vectors => {
         name      => '2nd Allele Vectors',
         order     => 4,
-        well_type => 'second_allele_vector_wells',
     },
     dna => {
         name       => 'Valid DNA',
         order      => 5,
-        well_type  => 'allele_dna_wells',
-        validation => \&has_valid_dna_wells,
     },
     first_dna => {
         name       => '1st Allele Valid DNA',
         order      => 6,
-        well_type  => 'first_allele_dna_wells',
-        validation => \&has_valid_dna_wells,
     },
     second_dna => {
         name       => '2nd Allele Valid DNA',
         order      => 7,
-        well_type  => 'second_allele_dna_wells',
-        validation => \&has_valid_dna_wells,
     },
     ep => {
         name      => 'Electroporations',
         order     => 8,
-        well_type => 'allele_electroporation_wells',
     },
     first_ep => {
         name      => '1st Allele Electroporations',
         order     => 9,
-        well_type => 'first_electroporation_wells',
     },
     second_ep => {
         name      => '2nd Allele Electroporations',
         order     => 10,
-        well_type => 'second_electroporation_wells',
     },
     clones => {
         name       => 'Clones',
         order      => 11,
-        well_type  => 'allele_pick_wells',
-        validation => \&has_accepted_pick_wells,
     },
     first_clones   => {
         name       => '1st Allele Accepted Clones',
         order      => 12,
-        well_type  => 'first_allele_pick_wells',
-        validation => \&has_accepted_pick_wells,
     },
     second_clones => {
         name       => '2nd Allele Accepted Clones',
         order      => 13,
-        well_type  => 'second_allele_pick_wells',
-        validation => \&has_accepted_pick_wells,
     },
 );
 
@@ -131,13 +112,13 @@ sub _build_sponsor_data {
     my $project_rs = $self->model->schema->resultset('Project')->search( {} );
 
     while ( my $project = $project_rs->next ) {
-        $self->_find_project_wells_2( $project, \%sponsor_data );
+        $self->_find_project_wells( $project, \%sponsor_data );
     }
 
     return \%sponsor_data;
 }
 
-sub _find_project_wells_2 {
+sub _find_project_wells {
 	my ( $self, $project, $sponsor_data ) = @_;
 
     my $sponsor = $project->sponsor_id;
@@ -357,43 +338,6 @@ override iterator => sub {
         }
     );
 };
-
-sub has_genes {
-    my ( $ar ) = @_;
-    return $ar->gene_id ? 1 : 0;
-}
-
-sub has_wells_of_type {
-    my ( $ar, $type ) = @_;
-
-    return 0 unless $ar->can( $type );
-
-    return @{ $ar->$type } ? 1 : 0;
-}
-
-sub has_valid_dna_wells{
-    my ( $ar, $type ) = @_;
-
-    return 0 unless $ar->can( $type );
-
-    for my $well ( @{ $ar->$type } ) {
-        return 1 if $well->well_dna_status;
-    }
-
-    return 0;
-}
-
-sub has_accepted_pick_wells {
-    my( $ar, $type ) = @_;
-
-    return 0 unless $ar->can( $type );
-
-    for my $well ( @{ $ar->$type } ) {
-        return 1 if $well->is_accepted;
-    }
-
-    return 0;
-}
 
 __PACKAGE__->meta->make_immutable;
 

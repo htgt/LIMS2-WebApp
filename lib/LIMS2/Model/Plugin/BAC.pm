@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::BAC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::BAC::VERSION = '0.052';
+    $LIMS2::Model::Plugin::BAC::VERSION = '0.054';
 }
 ## use critic
 
