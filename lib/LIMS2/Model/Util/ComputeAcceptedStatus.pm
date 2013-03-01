@@ -14,11 +14,12 @@ use LIMS2::Exception::Implementation;
 # process type, and/or pipeline.
 
 my %HANDLER_FOR = (
-    DESIGN  => \&has_recombineering_pass,
-    INT     => \&has_sequencing_pass,
-    POSTINT => \&has_sequencing_pass,
-    FINAL   => \&has_sequencing_pass,
-    DNA     => \&has_dna_pass,
+    DESIGN     => \&has_recombineering_pass,
+    INT        => \&has_sequencing_pass,
+    POSTINT    => \&has_sequencing_pass,
+    FINAL      => \&has_sequencing_pass,
+    FINAL_PICK => \&has_sequencing_pass,
+    DNA        => \&has_dna_pass,
 );
 
 sub compute_accepted_status {

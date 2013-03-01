@@ -214,6 +214,19 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
     return;
 }
 
+sub select_vector_params :Path( '/user/report/vector' ) :Args(1) {
+    my ( $self, $c, $report ) = @_;
+
+    my @sponsors = map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+    $c->stash(
+        template    => 'user/report/select_vector_params.tt',
+        report_name => $report,
+        sponsors    => [sort @sponsors],
+    );
+
+    return;
+}
+
 =head1 AUTHOR
 
 Ray Miller
