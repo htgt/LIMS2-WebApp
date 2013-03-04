@@ -27,7 +27,6 @@ sub update_genotyping_qc_data{
     my $data = parse_csv_file( $val_params->{csv_fh});
 
     my @assay_types = sort map { $_->id } $self->schema->resultset('GenotypingResultType')->all;
-    my @required_data = qw(copy_number copy_number_range);
     my @primer_bands = qw(tr_pcr lr_pcr gr3 gr4 gf3 gf4);
     my @messages;
 
@@ -79,52 +78,11 @@ sub update_genotyping_qc_data{
                 push @messages, "- ".$message;
             }
         }
-use Smart::Comments;
         # for each assay type see if we have pass/call
         # if we do and pass/call == na or fa then create/update with no values
         # for other pass/call values create/update result with all available data (confidence is optional)
         foreach my $assay (@assay_types){
-            if (my $call = $datum->{$assay."_pass"}){
-                my ($result, $message);
-
-                # Tidy up call input values
-                $call =~ s/\s*//g;
-                $call = lc($call);
-
-                if ($call eq "na" or $call eq "fa"){
-                    # Update call - any existing copy number etc will be removed from db
-                    ($result, $message) = $self->update_or_create_well_genotyping_result({
-                        well_id    => $well->id,
-                        genotyping_result_type_id => $assay,
-                        call       => $call,
-                        created_by => $val_params->{created_by},
-                    });
-                }
-                else{
-                    # Check required field's values are number and default blank values to zero
-                    my %new_values;
-                    foreach my $field (@required_data){
-                        defined( $new_values{$field} = $datum->{$assay."_$field"} )
-                            or $new_values{$field} = 0;
-                        $self->throw( Validation => "$assay $field must be a number for well ".$well->name)
-                            unless $new_values{$field} =~ /^\d+(\.\d+)?$/;
-                    }
-
-                    # confidence is optional
-                    if (defined (my $conf = $datum->{$assay."_confidence"}) ){
-                        $new_values{'confidence'} = $conf;
-                    }
-
-                    ($result, $message) = $self->update_or_create_well_genotyping_result({
-                        well_id => $well->id,
-                        genotyping_result_type_id => $assay,
-                        call => $call,
-                        created_by => $val_params->{created_by},
-                        %new_values,
-                    })
-                }
-                push @messages, "- ".$message;
-            }
+            create_assay($self, $datum, $val_params, $assay, $well, \@messages);
         }
 
         # Handle well primer band status
@@ -176,6 +134,54 @@ sub _valid_column_names{
 #    Once an item is successfully updated the controller will close the transaction by issuing
 #    a commit.
 
+
+sub create_assay{
+    my ($self, $datum, $val_params, $assay, $well, $messages ) = @_;
+
+    my @required_data = qw(copy_number copy_number_range);
+    if (my $call = $datum->{$assay."_pass"}){
+        my ($result, $message);
+
+        # Tidy up call input values
+        $call =~ s/\s*//g;
+        $call = lc($call);
+
+        if ($call eq "na" or $call eq "fa"){
+            # Update call - any existing copy number etc will be removed from db
+            ($result, $message) = $self->update_or_create_well_genotyping_result({
+                well_id    => $well->id,
+                genotyping_result_type_id => $assay,
+                call       => $call,
+                created_by => $val_params->{created_by},
+            });
+        }
+        else{
+            # Check required field's values are number and default blank values to zero
+            my %new_values;
+            foreach my $field (@required_data){
+                defined( $new_values{$field} = $datum->{$assay."_$field"} )
+                    or $new_values{$field} = 0;
+                $self->throw( Validation => "$assay $field must be a number for well ".$well->name)
+                    unless $new_values{$field} =~ /^\d+(\.\d+)?$/;
+            }
+
+            # confidence is optional
+            if (defined (my $conf = $datum->{$assay."_confidence"}) ){
+                $new_values{'confidence'} = $conf;
+            }
+
+            ($result, $message) = $self->update_or_create_well_genotyping_result({
+                well_id => $well->id,
+                genotyping_result_type_id => $assay,
+                call => $call,
+                created_by => $val_params->{created_by},
+                %new_values,
+            })
+        }
+        push @$messages, "- ".$message;
+    }
+return 1;
+}
 
 sub pspec_update_genotyping_qc_value {
     return {

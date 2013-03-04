@@ -1149,12 +1149,12 @@ sub has_dre_been_applied {
     my $well = $self->retrieve_well( {slice_def $params, qw( plate_name well_name id)} );
     return unless (! $well->is_double_targeted);
     my @process = $well->parent_processes;
-    return unless scalar(@process) eq 1 or (! well->is_double_targeted);
+    return unless scalar(@process) == 1 or (! well->is_double_targeted);
 
     if ($well->cassette->cre and $params->{genotyping_result_type_id} eq 'puro' and $well->plate->type_id eq 'EP_PICK') {
         # check for existing dre recombinase
         my $dre_process = $process[0]->search_related('process_recombinases', {'recombinase_id' => 'Dre'})->first;
-        if (($params->{call} =~ 'pass') and ! defined($dre_process)) {
+        if (($params->{call} =~ 'pass') && ! defined($dre_process)) {
             # add dre to wells parent process
             my %recombinase_params = (
                    plate_name  => $well->plate->name,
