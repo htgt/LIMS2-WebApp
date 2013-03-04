@@ -1,3 +1,7 @@
+0.055     2013-03-04 12:02:22 Europe/London
+
+    Amended GenotypingQc upload and automated the appending of the dre recombination to cre wells based on Puro pass.
+
 0.054     2013-02-28 10:45:42 Europe/London
 
 	Added DesignVectors report

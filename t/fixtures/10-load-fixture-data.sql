@@ -1017,7 +1017,7 @@ INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', fal
 INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false);
 INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true, false);
 INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false);
-INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, true);
 INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false, false);
 INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false, false);
 INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false);
@@ -9680,7 +9680,7 @@ INSERT INTO process_recombinase VALUES (968, 'Cre', 1);
 INSERT INTO process_recombinase VALUES (1071, 'Flp', 1);
 INSERT INTO process_recombinase VALUES (1072, 'Flp', 1);
 INSERT INTO process_recombinase VALUES (1073, 'Flp', 1);
-
+INSERT INTO process_recombinase VALUES (1281, 'Dre', 1);
 
 --
 -- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -11427,4 +11427,3 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', 
 --
 -- PostgreSQL database dump complete
 --
-

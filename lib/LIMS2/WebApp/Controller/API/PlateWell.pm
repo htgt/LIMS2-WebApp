@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.054';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.055';
 }
 ## use critic
 
@@ -304,6 +304,7 @@ sub well_genotyping_qc_PUT{
         }
     ); # end transaction
     # and finish here.
+
     my $new_data = $c->model('Golgi')->retrieve_well({ id => $well_id})->all_genotyping_qc_data(
         $model,
         $c->session->{selected_species}

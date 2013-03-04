@@ -1,7 +1,7 @@
 package LIMS2::Report::PlateList;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PlateList::VERSION = '0.054';
+    $LIMS2::Report::PlateList::VERSION = '0.055';
 }
 ## use critic
 
