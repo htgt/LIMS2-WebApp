@@ -991,6 +991,13 @@ INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 G
 -- Data for Name: cassette_function; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO cassette_function VALUES ('ko_first', NULL, true, NULL, NULL, true);
+INSERT INTO cassette_function VALUES ('ko_first_promoter', true, true, NULL, NULL, true);
+INSERT INTO cassette_function VALUES ('ko_first_promoterless', false, true, NULL, NULL, true);
+INSERT INTO cassette_function VALUES ('reporter_only', NULL, true, NULL, true, NULL);
+INSERT INTO cassette_function VALUES ('reporter_only_promoter', true, true, NULL, true, NULL);
+INSERT INTO cassette_function VALUES ('reporter_only_promoterless', false, true, NULL, true, NULL);
+INSERT INTO cassette_function VALUES ('cre_knock_in', NULL, NULL, true, NULL, NULL);
 
 
 --
