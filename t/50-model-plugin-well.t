@@ -14,6 +14,7 @@ use Try::Tiny;
 use DateTime;
 use Data::Dumper;
 use YAML::Any qw(DumpFile);
+use Hash::MoreUtils qw( slice_def );
 
 my $well_data= test_data( 'well.yaml' );
 
@@ -390,7 +391,7 @@ lives_ok {
                 genotyping_result_type_id => 'loacrit',
                 call => 'fa',
                 created_by => 'test_user@example.org' };
-                
+
     ok my $result = model->create_well_genotyping_result( $result_input ) , 'genotyping_results fa call - created successfully' ;
     is $result->call, 'fa', 'new result has expected call';
     is $result->genotyping_result_type_id, 'loacrit', 'new result has expected assay type';
@@ -409,7 +410,7 @@ lives_ok {
     is $genotyping_result->call, 'pass', '..updated call attribute is now pass';
     is $genotyping_result->copy_number, '2.4', '..updated copy_number attribute is now 2.4';
     is $genotyping_result->copy_number_range, '0.2', '..updated copy_number_range is now 0.2';
-    
+
     ok $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
                 genotyping_result_type_id => 'loacrit',
                 call => 'fail',
@@ -435,7 +436,7 @@ lives_ok {
 
     ok $chromosome_fail = model->update_or_create_well_chromosome_fail( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => '4' , created_by => 'test_user@example.org' } ), 'can update chromosome fail well result';
     is $chromosome_fail->result, '4', '..updated result is now 4';
-    
+
     lives_ok {
         model->delete_well_chromosome_fail( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
     } 'delete well chromosome fail result';
@@ -449,6 +450,44 @@ lives_ok {
     is $well->id, $new_chromosome_fail->well_id , '.. and chromosome_fail result is for right well';
 }
 
+{
+    note( "has_dre_been_applied" );
+
+    my $params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'fail' };
+    ok model->has_dre_been_applied( $params ), 'remove Dre to well for Cre project';
+    my @recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
+    foreach my $rec (@{$recombinases[0]}){
+        isnt $rec, 'Dre', '.. does not have Dre recombinase';
+    }
+
+    $params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'loacrit', call => 'pass' };
+    ok model->has_dre_been_applied( $params ), 'Only add Dre to well for Cre project when genotyping_result_id is puro';
+    @recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
+    foreach my $rec (@{$recombinases[0]}){
+        isnt $rec, 'Dre', '.. does not have Dre recombinase';
+    }
+
+    $params = { plate_name =>'997', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'pass' };
+    ok model->has_dre_been_applied( $params ), 'fail to add Dre to well for Cre project when plate type is not EP_PICK';
+    @recombinases = model->retrieve_well({ plate_name =>'997', well_name => 'A01' })->recombinases;
+    foreach my $rec (@{$recombinases[0]}){
+        isnt $rec, 'Dre', '.. does not have Dre recombinase';
+    }
+
+    $params = { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04', genotyping_result_type_id => 'puro', call => 'pass' };
+    ok model->has_dre_been_applied( $params ), 'Do nothing for non Cre project';
+    @recombinases = model->retrieve_well({ plate_name =>'MOHFAQ0001_A_2', well_name => 'A04' })->recombinases;
+    foreach my $rec (@{$recombinases[0]}){
+        isnt $rec, 'Dre', '.. does not have Dre recombinase';
+    }
+
+
+    $params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'pass' };
+    ok model->has_dre_been_applied( $params ), 'can add Dre to well for Cre project';
+    @recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
+    is $recombinases[0][-1], 'Dre', '.. has Dre recombinase';
+
+}
 
 note( "Add colony counts to a well" );
 {

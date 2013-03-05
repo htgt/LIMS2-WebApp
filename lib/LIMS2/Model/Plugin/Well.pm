@@ -2,7 +2,6 @@ package LIMS2::Model::Plugin::Well;
 
 use strict;
 use warnings FATAL => 'all';
-
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
 use Hash::Merge qw( merge );
@@ -13,6 +12,7 @@ use LIMS2::Model::ProcessGraph;
 use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params add_display_id);
 use LIMS2::Model::Util::RankQCResults qw( rank );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
+use LIMS2::Model::Util::CreateProcess qw( create_process_aux_data_recombinase );
 use Try::Tiny;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -1028,6 +1028,7 @@ sub create_well_genotyping_result {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
         });
+        $self->has_dre_been_applied ($validated_params);
     }
     return $genotyping_result;
 }
@@ -1066,6 +1067,7 @@ sub update_or_create_well_genotyping_result {
                    $update_request->{confidence} = undef;
                }
                $genotyping_result->update( $update_request );
+               $self->has_dre_been_applied ($validated_params);
                $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                          ." updated from ".$previous." to ".$genotyping_result->call;
            }
@@ -1078,8 +1080,12 @@ sub update_or_create_well_genotyping_result {
             # The assay parameter to update is not a 'call', so no ranking needs to be applied
             my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
             my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
-            my $previous = $genotyping_result->$assay_field // 'undefined';
+
+            my $previous = defined ($genotyping_result->$assay_field) ? $genotyping_result->$assay_field : 'undefined';
+#            my $previous = $genotyping_result->$assay_field // 'undefined';
+
             $genotyping_result->update( $update_request );
+            $self->has_dre_been_applied ($validated_params);
             $message = 'Genotyping result for ' . $validated_params->{genotyping_result_type_id} . '/' . $assay_field
                 . ' updated from ' . $previous . ' to ' . $genotyping_result->$assay_field;
        }
@@ -1091,6 +1097,7 @@ sub update_or_create_well_genotyping_result {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
         });
+        $self->has_dre_been_applied ($validated_params);
         $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                   ." created with result ".$genotyping_result->call;
     }
@@ -1129,9 +1136,39 @@ sub delete_well_genotyping_result {
     my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
 
     $genotyping_result->delete;
+    $self->has_dre_been_applied($params);
     $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
 
     return;
+}
+
+sub has_dre_been_applied {
+# params have always been validated before entering this method
+    my ( $self, $params ) = @_;
+
+    my $well = $self->retrieve_well( {slice_def $params, qw( plate_name well_name id)} );
+    return unless (! $well->is_double_targeted);
+    my @process = $well->parent_processes;
+    return unless scalar(@process) == 1 or (! well->is_double_targeted);
+
+    if ($well->cassette->cre and $params->{genotyping_result_type_id} eq 'puro' and $well->plate->type_id eq 'EP_PICK') {
+        # check for existing dre recombinase
+        my $dre_process = $process[0]->search_related('process_recombinases', {'recombinase_id' => 'Dre'})->first;
+        if (($params->{call} =~ 'pass') && ! defined($dre_process)) {
+            # add dre to wells parent process
+            my %recombinase_params = (
+                   plate_name  => $well->plate->name,
+                   well_name   => $well->name,
+                   recombinase => ['Dre'],
+               );
+            create_process_aux_data_recombinase( $self, \%recombinase_params, $process[0] );
+        }
+        elsif ( ( ! ($params->{call} =~ 'pass')) and $dre_process) {
+            # remove dre from parent process
+            $dre_process->delete;
+        }
+    }
+    return 1;
 }
 
 1;

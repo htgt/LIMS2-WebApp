@@ -298,6 +298,7 @@ sub well_genotyping_qc_PUT{
         }
     ); # end transaction
     # and finish here.
+
     my $new_data = $c->model('Golgi')->retrieve_well({ id => $well_id})->all_genotyping_qc_data(
         $model,
         $c->session->{selected_species}
