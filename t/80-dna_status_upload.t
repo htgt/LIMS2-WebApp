@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -d
 
 use strict;
 use warnings FATAL => 'all';
@@ -109,4 +109,37 @@ my $mech = mech();
     } 'delete dna status data';
 }
 
+{
+    note( 'Test uploading of empty wells not represented in LIMS2' );
+
+    my $plate_data = test_data( 'dna_status.yaml' );
+    ok my $dna_plate = model->create_plate( $plate_data->{'dna_plate_create_params'} ),
+        'dna plate creation succeeded';
+    my $dna_status_update = model->create_well_dna_status ( $plate_data->{'create_well_dna_status_params'} );
+    ok  (! $dna_status_update ,
+        'dna status update for empty (non-existent LIMS2) well was handled correctly');
+    my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+    $test_file->print("well_name,dna_status_result,comments\n"
+                      . "A03,pass,this is a comment");
+    $test_file->seek( 0, 0 );
+    $mech->get_ok('/user/dna_status_update');
+    $mech->title_is('DNA Status Update');
+    ok my $res = $mech->submit_form(
+        form_id => 'dna_status_update',
+        fields  => {
+            plate_name => 'DUMMY01',
+            datafile   => $test_file->filename
+        },
+        button  => 'update_dna_status'
+    ), 'submit form with valid parameters';
+
+    ok $res->is_success, '...response is_success';
+    is $res->base->path, '/user/dna_status_update', '... stays on same page';
+    like $res->content, qr/Uploaded dna status information onto plate DUMMY01/ ,
+        '...page has success message';
+    like $res->content, qr/A03 - well not available in LIMS2/,
+        '...well A03 not available in LIMS2 -- reported correctly';
+
+
+}
 done_testing;

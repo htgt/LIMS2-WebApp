@@ -246,22 +246,39 @@ sub pspec_create_well_dna_status {
 
 sub create_well_dna_status {
     my ( $self, $params ) = @_;
-
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_dna_status );
 
-    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    my $well;
+    my $dna_status;
+    # If the well does not exist on the target plate, we assume that the well in the spreadsheet is
+    # empty (water or buffer solution only). These wells are not recorded in LIMS2 as it is not
+    # possible to parent empty wells.
+    # DJP-S 6/3/13
+    #
+    try {
+        $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    }
+    catch {
+        # If the well doesn't exist make it undef and carry on
+        $well = undef;
+    };
 
     #will need to provide some method of changing the dna status level on a well
-    if ( my $dna_status = $well->well_dna_status ) {
-        $self->throw( Validation => "Well $well already has a dna status of "
-                . ( $dna_status->pass == 1 ? 'pass' : 'fail' )
-        );
-    }
+    if ( $well ) {
+        if ( $dna_status = $well->well_dna_status ) {
+            $self->throw( Validation => "Well $well already has a dna status of "
+                    . ( $dna_status->pass == 1 ? 'pass' : 'fail' )
+            );
+        }
 
-    my $dna_status = $well->create_related(
-        well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
-    );
-    $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
+        $dna_status = $well->create_related(
+            well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
+        );
+        $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
+    }
+    else {
+        $dna_status = undef;
+    }
 
     return $dna_status;
 }
