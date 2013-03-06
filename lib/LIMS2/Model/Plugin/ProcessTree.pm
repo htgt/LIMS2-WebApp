@@ -146,6 +146,11 @@ sub pspec_paths_for_well_id_depth_first {
     };
 }
 
+=heading1 get_paths_for_well_id_depth_first
+
+returns paths as well_ids
+=cut
+
 sub get_paths_for_well_id_depth_first {
     my $self = shift;
     my ($params) = @_;
@@ -176,11 +181,31 @@ sub get_paths_for_well_id_depth_first {
     return \@paths;
 }
 
+=heading1 get_well_paths_for_well_id
+
+Returns well objects.
+=cut
+
+#TODO:
+    my $rs = $self->schema->resultset( 'Well' )->search(
+        {
+            'me.id' => { '-in' => \@well_ids }
+        },
+        {
+            prefetch => [ 'plate' ]
+        }
+    );
+
+
 sub pspec_design_wells_for_well_id {
     return {
         well_id           => { validate   => 'integer', },
     };
 }
+
+=heading1 get_design_wells_for_well_id
+
+=cut
 
 sub get_design_wells_for_well_id {
     my $self = shift;
