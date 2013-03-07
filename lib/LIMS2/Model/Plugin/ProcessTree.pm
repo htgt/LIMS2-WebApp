@@ -187,6 +187,7 @@ Returns well objects.
 =cut
 
 #TODO:
+=head
     my $rs = $self->schema->resultset( 'Well' )->search(
         {
             'me.id' => { '-in' => \@well_ids }
@@ -195,7 +196,7 @@ Returns well objects.
             prefetch => [ 'plate' ]
         }
     );
-
+=cut
 
 sub pspec_design_wells_for_well_id {
     return {
@@ -294,7 +295,10 @@ QUERY_END
             'design_id'      => $result->[1],
         }
     }
-
+    # The format of the resulting hash is:
+    # well_id => {
+    #   design_well_id => integer_id,
+    #   design_id => integer_id }
     return $result_hash;
 }
 1;
