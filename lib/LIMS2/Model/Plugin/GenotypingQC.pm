@@ -541,9 +541,6 @@ sub create_design_well_cache {
         {
             'me.id' => { '-in' => \@design_well_id_list }
         },
-        {
-            join => [ 'plate' ]
-        }
     );
     # Get the designs for each design well and cache them ...
     my $designs_hash_ref;
