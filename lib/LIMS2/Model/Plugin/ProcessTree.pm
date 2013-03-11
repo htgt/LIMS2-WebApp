@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::ProcessTree;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.055';
+    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.056';
 }
 ## use critic
 
@@ -99,7 +99,7 @@ WHERE w.process_id = pd.process_id
 GROUP BY w.process_id, w.input_well_id, w.output_well_id, pd.design_id,"original_well", w.path;
 QUERY_END
 
-my $QUERY_ANCESTORS_BY_WELL_ID = << 'QUERY_END';
+my $QUERY_ANCESTORS_BY_WELL_ID_WITH_PATHS = << 'QUERY_END';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
@@ -122,12 +122,40 @@ WHERE w.process_id = pd.process_id
 GROUP BY w.process_id, w.input_well_id, w.output_well_id, pd.design_id,"original_well", w.path;
 QUERY_END
 
+my $QUERY_ANCESTORS_BY_WELL_ID = << 'QUERY_END';
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+-- Non-recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+        WHERE pr_out.well_id = ?
+     UNION ALL
+-- Recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+)
+SELECT w.output_well_id, pd.design_id, w.path[1] "original_well"
+FROM well_hierarchy w, process_design pd
+WHERE w.process_id = pd.process_id
+--ORDER BY pd.design_id;
+GROUP BY w.output_well_id, pd.design_id, "original_well";
+QUERY_END
+
 sub pspec_paths_for_well_id_depth_first {
     return {
         well_id           => { validate   => 'integer', },
         direction         => { validate   => 'boolean', optional => 1 },
     };
 }
+
+=heading1 get_paths_for_well_id_depth_first
+
+returns paths as well_ids
+=cut
 
 sub get_paths_for_well_id_depth_first {
     my $self = shift;
@@ -159,14 +187,124 @@ sub get_paths_for_well_id_depth_first {
     return \@paths;
 }
 
-sub pspec_designs_for_plate {
+=heading1 get_well_paths_for_well_id
+
+Returns well objects.
+=cut
+
+#TODO:
+=head
+    my $rs = $self->schema->resultset( 'Well' )->search(
+        {
+            'me.id' => { '-in' => \@well_ids }
+        },
+        {
+            prefetch => [ 'plate' ]
+        }
+    );
+=cut
+
+sub pspec_design_wells_for_well_id {
     return {
-        plate_name  =>{ validate => 'string', },
-        direction => { validate => 'boolean', optional=> 1 },
+        well_id           => { validate   => 'integer', },
     };
 }
 
-sub get_designs_for_plate {
+=heading1 get_design_wells_for_well_id
 
+=cut
+
+sub get_design_wells_for_well_id {
+    my $self = shift;
+    my ($params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_design_wells_for_well_id);
+
+    my $sql_query = $QUERY_ANCESTORS_BY_WELL_ID;
+    my $sql_result =  $self->schema->storage->dbh_do(
+    sub {
+         my ( $storage, $dbh ) = @_;
+         my $sth = $dbh->prepare_cached( $sql_query );
+         $sth->execute( $validated_params->{'well_id'} );
+         $sth->fetchall_arrayref();
+        }
+    );
+
+    my $result_hash;
+
+    foreach my $result ( @{$sql_result} ) {
+        $result_hash->{$result->[2]} = {
+            'design_well_id' => $result->[0],
+            'design_id'      => $result->[1],
+        }
+    }
+
+    return $result_hash;
+}
+
+
+sub pspec_design_wells_for_well_id_list {
+    return {
+         'wells'  ,
+    };
+}
+
+sub get_design_wells_for_well_id_list {
+    my $self = shift;
+    my $wells = shift;
+#    my ($params) = @_;
+
+#    my $validated_params = $self->check_params( $params, $self->pspec_design_wells_for_well_id_list);
+
+    my $well_list = join q{,}, @{$wells};
+
+my $QUERY_ANCESTORS_BY_WELL_LIST = << "QUERY_END";
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+-- Non-recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     WHERE pr_out.well_id IN (
+        $well_list
+     )	
+     UNION ALL
+-- Recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+)
+SELECT w.output_well_id, pd.design_id, w.path[1] "original_well"
+FROM well_hierarchy w, process_design pd
+WHERE w.process_id = pd.process_id
+--ORDER BY pd.design_id;
+GROUP BY w.output_well_id, pd.design_id,"original_well";
+QUERY_END
+
+    my $sql_query = $QUERY_ANCESTORS_BY_WELL_LIST;
+    my $sql_result =  $self->schema->storage->dbh_do(
+    sub {
+         my ( $storage, $dbh ) = @_;
+         my $sth = $dbh->prepare_cached( $sql_query );
+         $sth->execute();
+         $sth->fetchall_arrayref();
+        }
+    );
+
+    my $result_hash;
+
+    foreach my $result ( @{$sql_result} ) {
+        $result_hash->{$result->[2]} = {
+            'design_well_id' => $result->[0],
+            'design_id'      => $result->[1],
+        }
+    }
+    # The format of the resulting hash is:
+    # well_id => {
+    #   design_well_id => integer_id,
+    #   design_id => integer_id }
+    return $result_hash;
 }
 1;

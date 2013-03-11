@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.055';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.056';
 }
 ## use critic
 
@@ -571,18 +571,25 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 		# if creation of any individual plate fails
 		my @new_plates;
 
+        my $plate_from_qc = {
+			qc_run_id    => $run_id,
+			plate_type   => $c->req->param('plate_type'),
+			rename_plate => $rename_plate,
+			created_by   => $c->user->name,
+			view_uri     => $c->uri_for("/user/view_qc_result"),
+		};
+
+		# acs 11/03/13 - if plate type is Final_Pick add process type to final_pick
+		if($plate_from_qc->{'plate_type'} eq 'FINAL_PICK') {
+			$plate_from_qc->{'process_type'} = 'final_pick';
+		}
+
 		$c->model('Golgi')->txn_do(
 		    sub{
 		    	try{
 		    		# The view_uri is needed to create path to results view
 		    		# which is entered in the well_qc_sequencing_result
-			        @new_plates = $c->model('Golgi')->create_plates_from_qc({
-				        qc_run_id    => $run_id,
-				        plate_type   => $c->req->param('plate_type'),
-				        rename_plate => $rename_plate,
-				        created_by   => $c->user->name,
-				        view_uri     => $c->uri_for("/user/view_qc_result"),
-			        });
+			        @new_plates = $c->model('Golgi')->create_plates_from_qc($plate_from_qc);
 		        }
 		        catch{
 			        $c->stash->{error_msg} = "Plate creation failed with error: $_";

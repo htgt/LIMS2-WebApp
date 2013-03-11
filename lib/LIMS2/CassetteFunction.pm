@@ -1,7 +1,7 @@
 package LIMS2::CassetteFunction;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::CassetteFunction::VERSION = '0.055';
+    $LIMS2::CassetteFunction::VERSION = '0.056';
 }
 ## use critic
 

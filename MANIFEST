@@ -1728,6 +1728,7 @@ t/data/csv_upload_linux.csv
 t/data/csv_upload_mac.csv
 t/data/csv_upload_win.csv
 t/data/dna_prep_process.yaml
+t/data/dna_status.yaml
 t/data/final_pick_process.yaml
 t/data/first_electroporation.yaml
 t/data/freeze_process.yaml
