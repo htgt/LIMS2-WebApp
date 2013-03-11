@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.056     2013-03-11 16:08:02 Europe/London
+
+	Releasing Copy Plate, Genotyping and Final Pick functionality
+
 0.055     2013-03-04 12:02:22 Europe/London
 
     Amended GenotypingQc upload and automated the appending of the dre recombination to cre wells based on Puro pass.
