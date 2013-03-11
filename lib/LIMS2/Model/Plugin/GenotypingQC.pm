@@ -438,20 +438,21 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
         }
 
-#        my $well = $self->retrieve_well( { id => $datum->{id} } );
         # simply lookup the source well id in the design_well_cache
         my $design_well = $design_well_cache->{$datum->{'id'}}->{'design_well_ref'};
-#        my ($design) = $design_well->designs;
         my $design = $design_well_cache->{$datum->{'id'}}->{'design_ref'};
         $datum->{gene_id} = '-';
         $datum->{gene_id} = $design->genes->first->gene_id if $design;
+        $datum->{gene_name} = '-';
         # If we have already seen this gene_id don't go searching for it again
         if ( $gene_cache->{$datum->{gene_id} } ) {
             $datum->{gene_name} = $gene_cache->{ $datum->{gene_id} };
         }
         else {
-            $datum->{gene_name} = $self->get_gene_symbol_for_accession( $design_well, $species);
-            $gene_cache->{$datum->{gene_id}} = $datum->{gene_name};
+            if ( $design_well ) {
+                $datum->{gene_name} = $self->get_gene_symbol_for_accession( $design_well, $species);
+                $gene_cache->{$datum->{gene_id}} = $datum->{gene_name};
+            }
         }
         $datum->{design_id} = '-';
         $datum->{design_id} = $design_well->id if $design_well;

@@ -39,7 +39,6 @@ sub plate_from_copy_process :Path( '/user/plate_from_copy_process' ) :Args(0) {
 
     my $from_plate_name = $c->request->params->{'from_plate_name'};
     my $to_plate_name = $c->request->params->{'new_plate_name'};
-$DB::single=1;    
     if ( !$from_plate_name || !$to_plate_name ){
         $c->flash->{'error_msg'} = 'Specify both "from" plate name and "to" plate name';
         return $c->res->redirect('/user/plate_from_copy');
