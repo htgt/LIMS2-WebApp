@@ -399,6 +399,21 @@ my $saved_id = -1;
 my $datum;
 my $gene_cache;
 
+# Extract the well_ids from $sql_result and send them to create_well_cache to generate
+# a cache of well objects as a hashref. Squeeze out the duplicates along the way.
+my @well_id_list;
+my %seen;
+foreach my $row ( @{$sql_result} ) {
+    my $well_id = $row->{'Well ID'};
+    if ( !$seen{$well_id} ) {
+        push @well_id_list, $well_id;
+        $seen{$well_id} = 1;
+    }
+}
+
+my $design_well_cache = $self->create_design_well_cache( \@well_id_list );
+
+
 $self->log->debug ('SQL query brought back ' . @{$sql_result} . ' rows.' );
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
@@ -423,8 +438,11 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
         }
 
-        my $well = $self->retrieve_well( { id => $datum->{id} } );
-        my ($design) = $well->designs;
+#        my $well = $self->retrieve_well( { id => $datum->{id} } );
+        # simply lookup the source well id in the design_well_cache
+        my $design_well = $design_well_cache->{$datum->{'id'}}->{'design_well_ref'};
+#        my ($design) = $design_well->designs;
+        my $design = $design_well_cache->{$datum->{'id'}}->{'design_ref'};
         $datum->{gene_id} = '-';
         $datum->{gene_id} = $design->genes->first->gene_id if $design;
         # If we have already seen this gene_id don't go searching for it again
@@ -432,11 +450,11 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{gene_name} = $gene_cache->{ $datum->{gene_id} };
         }
         else {
-            $datum->{gene_name} = $self->get_gene_symbol_for_accession( $well, $species);
+            $datum->{gene_name} = $self->get_gene_symbol_for_accession( $design_well, $species);
             $gene_cache->{$datum->{gene_id}} = $datum->{gene_name};
         }
         $datum->{design_id} = '-';
-        $datum->{design_id} = $design->id if $design;
+        $datum->{design_id} = $design_well->id if $design_well;
         # get the generic assay data for this row
         if ( $row->{'genotyping_result_type_id'}) {
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'call'} =  $row->{'call'} // '-';
@@ -478,14 +496,14 @@ sub pspec_get_gene_symbol_for_accession {
 # This will return a '/' separated list of symbols for a given accession and species.
 # TODO: send in a list of accessions and return a list of gene symbols thus mimimising the overhead of calls to search_genes.
 sub get_gene_symbol_for_accession{
-    my ($self, $well, $species, $params) = @_;
+    my ($self, $design_well, $species, $params) = @_;
 
     my $genes;
     my $gene_symbols;
     my @gene_symbols;
 
-    my ($design) = $well->designs;
-    if ( $design) {
+    my ($design) = $design_well->designs;
+    if ( $design ) {
         my @gene_ids = uniq map { $_->gene_id } $design->genes;
         foreach my $gene_id ( @gene_ids ) {
             $genes = $self->search_genes(
@@ -496,5 +514,53 @@ sub get_gene_symbol_for_accession{
     $gene_symbols = join q{/}, @gene_symbols;
 
     return $gene_symbols;
+}
+
+# We need a design well cache so that we can call methods on the design well itself
+#
+sub create_design_well_cache {
+    my $self = shift;
+    my $well_id_list_ref = shift;
+
+    # Use a ProcessTree method to get the list of design wells.
+    my $design_well_hash = $self->get_design_wells_for_well_id_list( $well_id_list_ref );
+
+    # create a list of wells to fetch
+    # also keep a record of design_id => source_well_id for later use
+    my @design_well_id_list;
+    my %seen;
+    foreach my $well_id ( keys %{$design_well_hash} ) {
+        my $design_well_id = $design_well_hash->{$well_id}->{'design_well_id'};
+        if ( !$seen{$design_well_id} ) {
+            push @design_well_id_list, $design_well_id;
+            $seen{$design_well_id} = 1;
+        }
+    }
+    my $design_well_rs = $self->schema->resultset( 'Well' );
+    my @design_wells = $design_well_rs->search(
+        {
+            'me.id' => { '-in' => \@design_well_id_list }
+        },
+    );
+    # Get the designs for each design well and cache them ...
+    my $designs_hash_ref;
+
+    foreach my $design_well ( @design_wells ) {
+        ($designs_hash_ref->{$design_well->id}) = $design_well->designs;
+    }
+
+    # save a reference to the design well in the appropriate key/value
+    foreach my $well_id ( keys %{$design_well_hash} ) {
+        # match up the design_well_id
+        my $design_well_id = $design_well_hash->{$well_id}->{'design_well_id'};
+        MATCH_DESIGN_WELL: foreach my $design_well ( @design_wells ) {
+            if ( $design_well->id == $design_well_id ) {
+               $design_well_hash->{$well_id}->{'design_well_ref'} = $design_well;
+               $design_well_hash->{$well_id}->{'design_ref'} = $designs_hash_ref->{$design_well->id};
+               last MATCH_DESIGN_WELL;
+            }
+        }
+    }
+    return $design_well_hash;
 }
 1;

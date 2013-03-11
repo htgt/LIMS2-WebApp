@@ -8,8 +8,18 @@
 <div class="span6 offset3" align="center">
 <form method="GET" action="[% c.uri_for( '/user/genotyping_qc_data' ) %]" class="form well">
   <label>Plate Name</label>
-  <input type="text" name="plate_name" placeholder="Plate Name" value="[% plate_name %]">
+  <input type="text" id="plate_name" name="plate_name" placeholder="Plate Name" value="[% plate_name %]" autocomplete="off">
   <br/>
   <button name="search" id="search" type="submit" value="search" class="btn"><i class="icon-list-alt"></i>Search</button>  
 </form>
 </div>
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+
+</script>
+
