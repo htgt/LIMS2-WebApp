@@ -4743,6 +4743,7 @@ INSERT INTO process_types VALUES ('cre_bac_recom', 'Cre/BAC recombineering');
 INSERT INTO process_types VALUES ('int_recom', 'Intermediate recombineering');
 INSERT INTO process_types VALUES ('2w_gateway', 'Two-way gateway');
 INSERT INTO process_types VALUES ('3w_gateway', 'Three-way gateway');
+INSERT INTO process_types VALUES ('legacy_gateway', 'Legacy gateway, model old data from HTGT');
 INSERT INTO process_types VALUES ('rearray', 'rearray wells');
 INSERT INTO process_types VALUES ('dna_prep', 'dna prep');
 INSERT INTO process_types VALUES ('recombinase', 'apply recombinase');
