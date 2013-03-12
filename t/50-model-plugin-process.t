@@ -22,6 +22,7 @@ note("Testing process types and fields creation");
         int_recom
         2w_gateway
         3w_gateway
+        legacy_gateway
         final_pick
         rearray
         dna_prep
@@ -185,6 +186,56 @@ throws_ok {
     my $process = model->create_process( $process_data_2w_gateway->{invalid_output_well} );
 } qr/2w_gateway process output well should be type (FINAL|,|POSTINT)+ \(got DESIGN\)/;
 
+##
+
+note( "Testing legacy_gateway process creation" );
+my $process_data_legacy_gateway= test_data( 'legacy_gateway_process.yaml' );
+
+{
+    ok my $process = model->create_process( $process_data_legacy_gateway->{valid_input} ),
+        'create_process for type legacy_gateway should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'legacy_gateway',
+        'process is of correct type';
+
+    ok my $process_cassette = $process->process_cassette, 'process has a process_cassette';
+    is $process_cassette->cassette->name, 'L1L2_Bact_P', 'process_cassette has correct cassette';
+
+    ok my $process_backbone = $process->process_backbone, 'process has a process_backbone';
+    is $process_backbone->backbone->name, 'L3L4_pZero_kan', 'process_backbone has correct backbone';
+
+    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 1, 'only one input well';
+    my $input_well = $input_wells->next;
+    is $input_well->name, 'G02', 'input well has correct name';
+    is $input_well->plate->name, 'PCS00177_A', '..and is on correct plate';
+
+    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    my $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'FP1008', '..and is on correct plate';
+
+    ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
+    is $process_recombinases->count, 1, 'has 1 recombinase';
+    is $process_recombinases->next->recombinase->id, 'Cre', 'is Cre recombinase';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
+
+throws_ok {
+    model->create_process( $process_data_legacy_gateway->{require_cassette_or_backbone} );
+} qr/cassette_or_backbone, is missing/;
+
+throws_ok {
+    model->create_process( $process_data_legacy_gateway->{invalid_input_well} );
+} qr/legacy_gateway process input well should be type INT \(got DESIGN\)/;
+
+throws_ok {
+    model->create_process( $process_data_legacy_gateway->{invalid_output_well} );
+} qr/legacy_gateway process output well should be type FINAL_PICK \(got FINAL\)/;
+
+##
 
 note( "Testing 3w_gateway process creation" );
 my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );

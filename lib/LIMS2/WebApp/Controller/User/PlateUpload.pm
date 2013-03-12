@@ -33,10 +33,10 @@ sub begin :Private {
 sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my @process_types = map{ $_->id } @{ $c->model('Golgi')->list_process_types };
+    my @process_types = map { $_->id } @{ $c->model('Golgi')->list_process_types };
 
     $c->stash(
-        process_types => [ grep{ !/create_di/ } @process_types ],
+        process_types => [ grep{ !/create_di|legacy_gateway/ } @process_types ],
         plate_help  => $c->model('Golgi')->plate_help_info,
     );
     return;

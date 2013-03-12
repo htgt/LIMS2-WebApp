@@ -32,6 +32,7 @@ const our %PROCESS_PLATE_TYPES => (
     cre_bac_recom          => [qw( INT )],
     '2w_gateway'           => [qw( POSTINT FINAL )],
     '3w_gateway'           => [qw( POSTINT FINAL )],
+    legacy_gateway         => [qw( FINAL_PICK )],
     final_pick             => [qw( FINAL_PICK )],
     dna_prep               => [qw( DNA )],
     recombinase            => [qw( FINAL XEP POSTINT )],
@@ -79,6 +80,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     '3w_gateway' => {
+        type   => [qw( INT )],
+        number => 1,
+    },
+    legacy_gateway => {
         type   => [qw( INT )],
         number => 1,
     },

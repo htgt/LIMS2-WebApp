@@ -51,7 +51,7 @@ sub pspec_create_design {
         type                    => { validate => 'existing_design_type', rename => 'design_type_id' },
         created_at              => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         created_by              => { validate => 'existing_user', post_filter => 'user_id_for' },
-        phase                   => { validate => 'phase' },
+        phase                   => { validate => 'phase', optional => 1 },
         validated_by_annotation => { validate => 'validated_by_annotation', default => 'not done' },
         name                    => { validate => 'alphanumeric_string', optional => 1 },
         target_transcript       => { optional => 1, validate => 'ensembl_transcript_id' },

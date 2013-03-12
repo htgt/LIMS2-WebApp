@@ -1734,6 +1734,7 @@ t/data/first_electroporation.yaml
 t/data/freeze_process.yaml
 t/data/int_recom_process.yaml
 t/data/invalid_csv_upload.csv
+t/data/legacy_gateway_process.yaml
 t/data/plate.yaml
 t/data/qc_run.yaml
 t/data/qc_seq_reads.yaml
