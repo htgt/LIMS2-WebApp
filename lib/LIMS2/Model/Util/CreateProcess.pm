@@ -127,6 +127,7 @@ my %process_check_well = (
     int_recom              => \&_check_wells_int_recom,
     '2w_gateway'           => \&_check_wells_2w_gateway,
     '3w_gateway'           => \&_check_wells_3w_gateway,
+    legacy_gateway         => \&_check_wells_legacy_gateway,
     final_pick             => \&_check_wells_final_pick,
     recombinase            => \&_check_wells_recombinase,
     cre_bac_recom          => \&_check_wells_cre_bac_recom,
@@ -242,6 +243,16 @@ sub _check_wells_2w_gateway {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_3w_gateway {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_legacy_gateway {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -384,6 +395,7 @@ my %process_aux_data = (
     int_recom              => \&_create_process_aux_data_int_recom,
     '2w_gateway'           => \&_create_process_aux_data_2w_gateway,
     '3w_gateway'           => \&_create_process_aux_data_3w_gateway,
+    legacy_gateway         => \&_create_process_aux_data_legacy_gateway,
     final_pick             => \&_create_process_aux_data_final_pick,
     recombinase            => \&create_process_aux_data_recombinase,
     cre_bac_recom          => \&_create_process_aux_data_cre_bac_recom,
@@ -531,6 +543,40 @@ sub _create_process_aux_data_3w_gateway {
     if ( $validated_params->{recombinase} ) {
         create_process_aux_data_recombinase(
             $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_legacy_gateway {
+    return {
+        cassette    => { validate => 'existing_final_cassette', optional => 1 },
+        backbone    => { validate => 'existing_backbone', optional => 1 },
+        recombinase => { optional => 1 },
+        REQUIRE_SOME => { cassette_or_backbone => [ 1, qw( cassette backbone ) ], },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+# legacy_gateway is like a gateway process but goes from INT to FINAL_PICK
+# also it can have eith cassette or backbone, or both
+sub _create_process_aux_data_legacy_gateway {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_legacy_gateway );
+
+    $process->create_related( process_cassette =>
+            { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } )
+        if $validated_params->{cassette};
+    $process->create_related( process_backbone =>
+            { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } )
+        if $validated_params->{backbone};
+
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase( $model,
             { recombinase => $validated_params->{recombinase} }, $process );
     }
 
