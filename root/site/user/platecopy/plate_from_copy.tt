@@ -1,7 +1,7 @@
 [%- META title = 'Plate Copy'; META tab_name = 'Plates' %]
 
 <div class="page-header">
-  <h1>Create Copy Plate </h1>
+  <h1>Create Copy Plate <small>Copy a DNA plate to a new DNA plate using dna_prep process</small></h1>
 </div>
 
 <div class="row">
@@ -15,8 +15,8 @@
         />
 
     <label>New Plate Name (to)</label>
-        <input name="new_plate_name" id="new_plate_name" type="text" placeholder="Output Plate Name"
-          [% IF new_plate_name %]value="[% new_plate_name %]"[% END %]
+        <input name="to_plate_name" id="to_plate_name" type="text" placeholder="Output Plate Name"
+          [% IF to_plate_name %]value="[% to_plate_name %]"[% END %]
         />
     <br>
         <button name="copy_plate" id="copy_plate" type="submit" value="copy_plate" class="btn">

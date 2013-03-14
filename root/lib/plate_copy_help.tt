@@ -11,24 +11,22 @@
     <div id="collapseOne" class="accordion-body collapse">
       <div class="accordion-inner">
         <p>
-          This form is used to create plates by copy operation from another plate.
+          This form is used to create DNA plates by copy operation from another DNA plate.
         </p>
-        <p>
-         A 96 well plate will always be created, even if the 'parent' plate has fewer than 96 wells. 'Empty' wells are assumed to contain water.
-         </p>
 
         <div class="well">
           <h6>Filling in the form</h6>
           <p>
             Enter the name of the plate you want to copy from in the 'from' field. This field will autocomplete
-            with the names of candidate plates form the database.
+            with the names of candidate plates held in the database.
           </p>
           <p>
             Enter the name for the plate you want to create in the 'to' field. There is no autocompletion on this field.
           </p>
 
           <p>
-            When you are ready, click the submit button. The plate will be created for you and you will be placed in the browse view for the new plate.
+            When you are ready, click the submit button. The plate will be created for you and you can then choose to browse the plate. The form will
+            generate an error if the plate already exists. Otherwise, a success message will be produced.
         </p>
         </div>
 
