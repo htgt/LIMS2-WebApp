@@ -1,0 +1,24 @@
+---
+dna_plate_create_params:
+    name: DUMMY01
+    species: Mouse
+    type: FINAL_PICK
+    description: DNA_test
+    created_by: test_user@example.org
+    comments:
+        - comment_text: This test plate is not based on real data
+          created_by: test_user@example.org
+    wells:
+        - well_name: A01
+          process_type: final_pick
+          parent_plate: MOHFAS0001_A
+          parent_well: A01
+        - well_name: B01
+          process_type: final_pick
+          parent_plate: MOHFAS0001_A
+          parent_well: B02
+        - well_name: C01
+          process_type: final_pick
+          parent_plate: MOHFAS0001_A
+          parent_well: C03
+
