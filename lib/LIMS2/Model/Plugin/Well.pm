@@ -105,7 +105,8 @@ sub delete_well {
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
-                                 well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands );
+                                 well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands 
+                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass);
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
