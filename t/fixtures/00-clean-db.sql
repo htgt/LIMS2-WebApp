@@ -58,6 +58,7 @@ DELETE FROM plate_types;
 DELETE FROM recombinases;
 DELETE FROM recombineering_result_types;
 DELETE FROM cassettes;
+DELETE FROM cassette_function;
 DELETE FROM backbones;
 DELETE FROM species_default_assembly;
 DELETE FROM assemblies;

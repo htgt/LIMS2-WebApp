@@ -31,6 +31,7 @@ sub pspec__check_dna_status {
 sub upload_plate_dna_status {
     my ( $model, $params ) = @_;
     my @success_message;
+    my @failure_message;
 
     my $data = parse_csv_file( $params->{csv_fh} );
 
@@ -47,11 +48,19 @@ sub upload_plate_dna_status {
             }
         );
 
-        push @success_message,
-            $dna_status->well->name . ' - ' . ( $dna_status->pass == 1 ? 'pass' : 'fail' );
+        if ( $dna_status ) {
+            push @success_message,
+                $dna_status->well->name . ' - ' . ( $dna_status->pass == 1 ? 'pass' : 'fail' );
+        }
+        else {
+            # Some of the wells in the input were not present in LIMS2
+            push @failure_message,
+                $validated_params->{'well_name'} . ' - well not available in LIMS2';
+        }
     }
 
-    return \@success_message;
+    push my @returned_messages, ( @failure_message, @success_message );
+    return \@returned_messages;
 }
 
 sub check_plate_type {

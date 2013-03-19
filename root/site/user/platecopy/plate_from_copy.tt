@@ -1,0 +1,44 @@
+[%- META title = 'Plate Copy'; META tab_name = 'Plates' %]
+
+<div class="page-header">
+  <h1>Create Copy Plate <small>Copy a DNA plate to a new DNA plate using dna_prep process</small></h1>
+</div>
+
+<div class="row">
+
+  <div class="span4 offset4" align="center">
+    <form method="POST" id="plate_copy" action="[% c.uri_for( '/user/plate_from_copy_process' ) %]" class="form well"  enctype="multipart/form-data" >
+
+    <label>Plate Name (from)</label>
+        <input name="from_plate_name" id="from_plate_name" type="text" placeholder="Input Plate Name" value="[% from_plate_name %]" 
+          [% IF from_plate_name %]value="[% from_plate_name %]"[% END %]
+        />
+
+    <label>New Plate Name (to)</label>
+        <input name="to_plate_name" id="to_plate_name" type="text" placeholder="Output Plate Name"
+          [% IF to_plate_name %]value="[% to_plate_name %]"[% END %]
+        />
+    <br>
+        <button name="copy_plate" id="copy_plate" type="submit" value="copy_plate" class="btn">
+            <i class="icon-ok-sign"></i> Copy Plate
+        </button>
+
+    </form>
+  </div>
+
+</div>
+
+[% INCLUDE 'plate_copy_help.tt' plate_help = plate_help %]
+
+<script type="text/javascript">
+
+$("#from_plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+
+$('form#plate_copy').submit(function(){
+    $(this).children('button[type=submit]').attr('disabled', 'disabled');
+});
+
+</script>

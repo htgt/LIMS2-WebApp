@@ -50,7 +50,7 @@ EOT
 
 __PACKAGE__->add_columns(
     qw( design_id species_id chr_name chr_strand
-        g5_start g5_end u5_start u5_end u3_start u3_end d3_start d3_end g3_start g3_end )
+        g5_start g5_end u5_start u5_end u3_start u3_end d5_start d5_end d3_start d3_end g3_start g3_end )
 );
 
 __PACKAGE__->belongs_to(

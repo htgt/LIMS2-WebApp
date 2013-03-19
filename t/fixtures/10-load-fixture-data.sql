@@ -91,7 +91,7 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 1007, true);
+SELECT pg_catalog.setval('plates_id_seq', 1008, true);
 
 
 --
@@ -175,7 +175,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1862, true);
+SELECT pg_catalog.setval('wells_id_seq', 1863, true);
 
 
 --
@@ -991,6 +991,13 @@ INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 G
 -- Data for Name: cassette_function; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO cassette_function VALUES ('ko_first', NULL, true, NULL, NULL, true);
+INSERT INTO cassette_function VALUES ('ko_first_promoter', true, true, NULL, NULL, true);
+INSERT INTO cassette_function VALUES ('ko_first_promoterless', false, true, NULL, NULL, true);
+INSERT INTO cassette_function VALUES ('reporter_only', NULL, true, NULL, true, NULL);
+INSERT INTO cassette_function VALUES ('reporter_only_promoter', true, true, NULL, true, NULL);
+INSERT INTO cassette_function VALUES ('reporter_only_promoterless', false, true, NULL, true, NULL);
+INSERT INTO cassette_function VALUES ('cre_knock_in', NULL, NULL, true, NULL, NULL);
 
 
 --
@@ -1017,7 +1024,7 @@ INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', fal
 INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false);
 INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true, false);
 INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false);
-INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, false);
+INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, true);
 INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false, false);
 INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false, false);
 INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false);
@@ -1137,7 +1144,7 @@ INSERT INTO users VALUES (985, 'np7@sanger.ac.uk', '{SSHA}TJXldhzItjnIj2UHr8Dk4H
 INSERT INTO users VALUES (1003, 'rl6@sanger.ac.uk', '{SSHA}39S8HxAYdFfCCv9HfcKvYHYoEHRR5BYS', false);
 INSERT INTO users VALUES (1020, 'sb19@sanger.ac.uk', '{SSHA}S3JLnbVLvuFfqW/cMuH36hctnRiAe863', false);
 INSERT INTO users VALUES (1058, 'vvi@sanger.ac.uk', '{SSHA}t2DGhX4Nkc7rV2aPWYCsR0wUn/WyGf3i', false);
-INSERT INTO users VALUES (1079, 'lims2_test_admin@sanger.ac.uk', '{SSHA}gRL0fNSOEHdjli+jPus6sB6BXF3efguu', true);
+INSERT INTO users VALUES (1079, 'as28@sanger.ac.uk', '{SSHA}941OxYh6i8iSuE3+hIVJIdyg+NwrF397', true);
 
 
 --
@@ -4491,6 +4498,7 @@ INSERT INTO plate_types VALUES ('DESIGN', 'Design Instances');
 INSERT INTO plate_types VALUES ('INT', 'Intermediate Vectors');
 INSERT INTO plate_types VALUES ('POSTINT', 'Post-intermediate Vectors');
 INSERT INTO plate_types VALUES ('FINAL', 'Final Vectors');
+INSERT INTO plate_types VALUES ('FINAL_PICK', 'Final vector picks');
 INSERT INTO plate_types VALUES ('CREBAC', 'Cre/BAC Vectors');
 INSERT INTO plate_types VALUES ('DNA', 'DNA QC');
 INSERT INTO plate_types VALUES ('EP', 'Electroporation');
@@ -4646,14 +4654,14 @@ INSERT INTO plates VALUES (997, '997', 'Summaries test 02', 'EP', 1079, '2013-02
 INSERT INTO plates VALUES (998, '998', 'Summaries test 02', 'EP_PICK', 1079, '2013-02-18 15:52:58.508497', 'Mouse', NULL);
 INSERT INTO plates VALUES (999, '999', 'Summaries test 02', 'EP_PICK', 1079, '2013-02-18 15:52:58.530077', 'Mouse', NULL);
 INSERT INTO plates VALUES (1000, '1000', 'Summaries test 02', 'EP_PICK', 1079, '2013-02-18 15:52:58.551738', 'Mouse', NULL);
-INSERT INTO plates VALUES (1001, '1001', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:58.573499', 'Mouse', NULL);
-INSERT INTO plates VALUES (1002, '1002', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:58.595073', 'Mouse', NULL);
-INSERT INTO plates VALUES (1003, '1003', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:58.616845', 'Mouse', NULL);
-INSERT INTO plates VALUES (1004, '1004', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:58.638359', 'Mouse', NULL);
-INSERT INTO plates VALUES (1005, '1005', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:58.660047', 'Mouse', NULL);
-INSERT INTO plates VALUES (1006, '1006', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:58.681031', 'Mouse', NULL);
-INSERT INTO plates VALUES (1007, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:58.702485', 'Mouse', NULL);
-
+INSERT INTO plates VALUES (1001, '1001', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:51.573499', 'Mouse', NULL);
+INSERT INTO plates VALUES (1002, '1002', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:52.595073', 'Mouse', NULL);
+INSERT INTO plates VALUES (1003, '1003', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:53.616845', 'Mouse', NULL);
+INSERT INTO plates VALUES (1004, '1004', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:54.638359', 'Mouse', NULL);
+INSERT INTO plates VALUES (1005, '1005', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:55.660047', 'Mouse', NULL);
+INSERT INTO plates VALUES (1006, '1006', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:56.681031', 'Mouse', NULL);
+INSERT INTO plates VALUES (1007, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:57.702485', 'Mouse', NULL);
+INSERT INTO plates VALUES (1008, 'FP1008', 'Final Pick tests', 'FINAL_PICK', 1079, '2013-02-25 15:30:00.000000', 'Mouse', NULL);
 
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -4735,6 +4743,7 @@ INSERT INTO process_types VALUES ('cre_bac_recom', 'Cre/BAC recombineering');
 INSERT INTO process_types VALUES ('int_recom', 'Intermediate recombineering');
 INSERT INTO process_types VALUES ('2w_gateway', 'Two-way gateway');
 INSERT INTO process_types VALUES ('3w_gateway', 'Three-way gateway');
+INSERT INTO process_types VALUES ('legacy_gateway', 'Legacy gateway, model old data from HTGT');
 INSERT INTO process_types VALUES ('rearray', 'rearray wells');
 INSERT INTO process_types VALUES ('dna_prep', 'dna prep');
 INSERT INTO process_types VALUES ('recombinase', 'apply recombinase');
@@ -4743,6 +4752,7 @@ INSERT INTO process_types VALUES ('clone_pool', 'Pool es cells into backup vial'
 INSERT INTO process_types VALUES ('first_electroporation', 'First (standard) electroporation');
 INSERT INTO process_types VALUES ('second_electroporation', 'Second electroporation in double targetted cells');
 INSERT INTO process_types VALUES ('freeze', 'Create freezer plate well');
+INSERT INTO process_types VALUES ('final_pick','Create Final Pick plate');
 
 
 --
@@ -7665,6 +7675,7 @@ INSERT INTO wells VALUES (1859, 1004, 'A01', 1079, '2013-02-18 15:52:58.984283',
 INSERT INTO wells VALUES (1860, 1005, 'A01', 1079, '2013-02-18 15:52:59.006108', NULL, NULL, false);
 INSERT INTO wells VALUES (1861, 1006, 'A01', 1079, '2013-02-18 15:52:59.027906', NULL, NULL, false);
 INSERT INTO wells VALUES (1862, 1007, 'A01', 1079, '2013-02-18 15:52:59.04965', NULL, NULL, false);
+INSERT INTO wells VALUES (1863, 1008, 'A01', 1079, '2013-02-25 15:30:00.000000', NULL, NULL, false);
 
 
 --
@@ -9677,7 +9688,7 @@ INSERT INTO process_recombinase VALUES (968, 'Cre', 1);
 INSERT INTO process_recombinase VALUES (1071, 'Flp', 1);
 INSERT INTO process_recombinase VALUES (1072, 'Flp', 1);
 INSERT INTO process_recombinase VALUES (1073, 'Flp', 1);
-
+INSERT INTO process_recombinase VALUES (1281, 'Dre', 1);
 
 --
 -- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -11424,4 +11435,3 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', 
 --
 -- PostgreSQL database dump complete
 --
-
