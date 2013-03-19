@@ -1,0 +1,74 @@
+#!/bin/bash
+
+#
+# this wil become run_perl_brew
+# we'll source the perl_brew bashrc in here
+# and give htgt-env perlbrew as the "env" option
+#
+
+#doesnt work on htgt-web
+
+#
+# Dependencies for htgt_env:
+    # Moose
+    # Config::General
+    # HTGT::Env - what do we do about this guy?
+        #its just a few files: /software/team87/brave_new_world/lib/perl5/HTGT/Env.pm & EnvVars/*
+        #i have installed it manually and everything works.
+    # Pod::Usage
+    # Path::Class
+    # Readonly
+
+#installing modules in this doesnt work, cpanm/wget cant authenticate the cert or somethin
+#easiest is to wget tarball from elsewhere and just cpanm ~/whatever.tar.gz but maybe it can work
+
+#installing a new perl:
+#perlbrew install perl-5.16.0 -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
+#as htgt-web doesnt have gcc.
+
+#we want to REMOVE the -I arguments in the exec. i think
+
+#ordinary running of htgt-env sets these which breaks perlbrew stuff. we also must reset PERL5LIB
+#export PERL_MM_OPT=
+
+#just set these in our envirnoment.conf, get rid of this whole mess.
+#we want THIS conf file to run:
+#bash --rcfile /software/team87/perlbrew/etc/bashrc -ic "$@"
+#maybe we should also do a clear env.
+
+#export PERLBREW_HOME=/software/team87/.perlbrew
+#export PERLBREW_ROOT=/software/team87/perlbrew
+#export PERL5LIB=${PERLBREW_ROOT}/lib_global/perl5
+#source ${PERLBREW_ROOT}/etc/bashrc
+
+#
+#carry out the above steps to use perlbrew interactively. write a bash script somewhere
+#could add a function to the conf/bashrc to switch to perlbrew?
+#
+
+#i think we can just do:
+#perlbrew use 5.10.1
+#perlbrew use 5.8.8
+#perl -v
+
+#no command gives you an interactive shell, otherwise the command is run.
+exec htgt_env.pl --clear-env --config /software/team87/perlbrew/etc/environment.conf HOME=$HOME "$@"
+
+#example tp run the design creation:
+#./run_cmd_as_htgt "cd $HOME/Design-Creation; perl -I lib ./bin/design-create ins-del-design --design-method deletion --chromosome 11 --strand 1 --target-start 101176328 --target-end 101176428 --target-gene LBLtest --dir /nfs/users/nfs_a/ah19/new_dc_test --debug"
+
+
+
+#
+# MONDAY WORK:
+# create use_perlbrew_env or something PERMANENT
+# put it into lims2 script 
+
+# write up perlbrew stuff before i forget everything
+
+# when that is decided commit that and our new Util.
+# update design creation page to use new util script
+#
+
+#sample thing to run saj's design creation:
+#"perl design-create ins-del-design --design-method deletion --chromosome 11 --strand 1 --target-start 101176328 --target-end 101176428 --target-gene LBLtest --dir /nfs/users/nfs_a/ah19/new_dc_test --debug"

@@ -1,0 +1,18 @@
+[% META title = "Create Design"; META tab_name = "Browse" %]
+
+<form method="POST" action="[% c.uri_for( '/user/create_design' ) %]" class="well">
+  <fieldset>
+    <legend>Create Design</legend>
+    <input type="text" name="target_gene" placeholder="Target Gene" value="[% target_gene %]" /><br/>
+    <input type="text" name="chromosome" placeholder="Chromosome" value="[% chromosome %]" /><br/>
+    <input type="text" name="target_start" placeholder="Target Start" value="[% target_start %]" />
+    <input type="text" name="target_end" placeholder="Target End" value="[% target_end %]" />
+    <label for="strand_field">Strand</label>
+    <select name="strand" id="strand_field">
+      <option>1</option>
+    </select>
+
+    <br />
+    <input type="submit" name="create_design" class="btn btn-primary" value="Create Design" />
+  </fieldset>
+</form>
