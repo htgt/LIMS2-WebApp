@@ -8,6 +8,8 @@
                     {name: 'plate_name', type: 'string'},
                     {name: 'well', type: 'string'},
                     {name: 'gene_name', type: 'string'},
+                    {name: 'accepted', type: 'string'},
+                    {name: 'accepted_override', type: 'string'},
                     {name: 'gene_id', type: 'string'},
                     {name: 'design_id', type: 'string'},
                     {name: 'chromosome_fail', type: 'string'},
@@ -56,6 +58,7 @@
             var call_types_chromosome_fail = Ext.create('Ext.data.Store', {
                 fields: ['call_label'],
                 data: [
+                {"call_label":"-"},
                 {"call_label":"0"},
                 {"call_label":"1"},
                 {"call_label":"2"},
@@ -68,13 +71,15 @@
             var call_types_targeting = Ext.create('Ext.data.Store', {
                 fields: ['call_label'],
                 data: [
+                {"call_label":"-"},
                 {"call_label":"pass"},
                 {"call_label":"passb"},
                 {"call_label":"fail"},
                 {"call_label":"fa"},
                 {"call_label":"potential"},
                 {"call_label":"present"},
-                {"call_label":"na"}
+                {"call_label":"na"},
+                {"call_label":"reset"}
                 ]
             });
 
@@ -101,12 +106,27 @@
                 ]
             });
 
+            var boolean_values = Ext.create('Ext.data.Store', {
+                fields: ['b_v'],
+                data: [
+                {"b_v":"-"},
+                {"b_v":"yes"},
+                {"b_v":"no"}
+                ]
+            });
+
             var pcr_combo = Ext.create( 'Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: pcr_select_values,
                 displayField: 'pcr_sel',
                 forceSelection: true
+            });
 
+            var override_combo = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: boolean_values,
+                displayField: 'b_v',
+                forceSelection: true
             });
 
             var columns = [
@@ -114,6 +134,8 @@
                 {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true },
+                {header: "Distribute", dataIndex: 'accepted', locked: true },
+                {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true },
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
                 {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
                 {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},

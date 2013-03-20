@@ -249,20 +249,12 @@ sub well_genotyping_qc_list_GET {
     my $plate_name = $c->request->param('plate_name');
 
     my $model = $c->model('Golgi');
-
     my $plate = $model->retrieve_plate({ name => $plate_name});
-    my @well_data = $model->get_genotyping_qc_browser_data(
+    my @plate_well_data = $model->get_genotyping_qc_plate_data(
         $plate_name,
         $c->session->{selected_species}
     );
-#    my $debug_limit = 10;
-#	my @well_data;
-#	foreach my $well ($plate->wells){
-#		my $datum = $well->all_genotyping_qc_data;
-#		push @well_data, $datum;
-#        last if !$debug_limit--;
-#    }
-    return $self->status_ok( $c, entity => \@well_data );
+    return $self->status_ok( $c, entity => \@plate_well_data );
 }
 
 sub well_genotyping_qc :Path('/api/well/genotyping_qc') :Args(1) :ActionClass('REST') {
@@ -273,7 +265,8 @@ sub well_genotyping_qc_PUT{
     $c->assert_user_roles('edit');
     my $data = $c->request->data;
     my $plate_name = $c->request->param('plate_name');
-
+    my $species = $c->session->{'selected_species'};
+$DB::single=1;
     # $data will contain a key for well 'id' and a key whose name is the column name
     # and whose value is the new value to be passed as an update.
     # e.g. 'chr1#call' => 'fail'
@@ -299,10 +292,10 @@ sub well_genotyping_qc_PUT{
     ); # end transaction
     # and finish here.
 
-    my $new_data = $c->model('Golgi')->retrieve_well({ id => $well_id})->all_genotyping_qc_data(
-        $model,
-        $c->session->{selected_species}
-    );
+    # The session species is required for the gene symbol lookup
+    my @well_list;
+    push @well_list, $well_id;
+    my ($new_data) = $model->get_genotyping_qc_well_data( \@well_list, $plate_name, $species );
 
     return $self->status_created(
         $c,
