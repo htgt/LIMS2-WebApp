@@ -13,9 +13,20 @@ BEGIN { extends 'Catalyst::Controller' };
 
 const my $DEFAULT_DESIGNS_DIR => dir( '/', 'lustre', 'scratch109', 'sanger', 'team87', 'lims2_designs' );
 
+#
+#
+# TODO ON MONDAY:
+#   map the new diagram fields to actual flags in saj's program.
+#   assuming the art intron bit is just a flag, also map that.
+#   strand needs another option
+#   do some runs and check its all working
+#   run it by mark
+#   see what he requires next.
+#   add a link to this page
+#
+#
+
 #TODO: add link to this page 
-    #check this actually works (after renaming run_cmd_as_htgt etc.)
-    #for some reason this seems to stop me being able to exit lims2. must be stalling on something
 sub index : Path( '/user/create_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 

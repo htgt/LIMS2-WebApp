@@ -1,15 +1,86 @@
 [% META title = "Create Design"; META tab_name = "Browse" %]
 
+<link href="[% c.uri_for( '/static/css/jquery.qtip.min.css' ) %]" rel="stylesheet">
+<script type="text/javascript" src="[% c.uri_for( '/static/js/raphael-min.js' ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( '/static/js/jquery.qtip.min.js' ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( '/static/js/diagram.builder.js' ) %]"></script>
+<script type="text/javascript">
+
+function createDeletionDiagram(builder) {
+  //add all the boxes and exons
+  var g5 = builder.addBox("G5");
+  builder.addExon();
+  var u5 = builder.addBox("U5");
+  var critExon = builder.addCriticalExon();
+  var d3 = builder.addBox("D3");
+  builder.addExon();
+  var g3 = builder.addBox("G3");
+
+  //the last parameter says where to start the label from relative to the first box. also add a text box
+  builder.addLabel(g5, critExon, "5` retrieval arm length", "left", "retrieval_primer_offset_5p", 6500);
+  builder.addLabel(critExon, g3, "3` retrieval arm length", "right", "retrieval_primer_offset_3p", 4500);
+
+  //add all the text fields to the fields we want them on
+  builder.addField(g5, "retrieval_primer_length_5p", 1000, "5` retrieval block size");
+  builder.addField(u5, "split_5p_target_seq_length", 120, "U block size");
+  builder.addField(critExon, "min_5p_exon_flanks", 300, "Min 5` spacer", "before");
+  builder.addField(critExon, "min_3p_exon_flanks", 100, "Min 3` spacer", "after");
+  builder.addField(d3, "split_3p_target_seq_length", 120, "D block size");
+  builder.addField(g3, "retrieval_primer_length_3p", 1000, "3` retrieval block size");
+}
+
+$(document).ready(function() {
+  var builder = new DiagramBuilder("holder", 850, 150);
+
+  createDeletionDiagram(builder);
+
+  builder.clearDiagram();
+
+  createDeletionDiagram(builder);
+
+  builder.clearDiagram();
+
+  createDeletionDiagram(builder);
+});
+</script>
+
 <form method="POST" action="[% c.uri_for( '/user/create_design' ) %]" class="well">
   <fieldset>
-    <legend>Create Design</legend>
+    <legend>Design Setup</legend>
+    <label for="design_type">Design Type</label>
+    <select name="design_type" id="design_type">
+      <option>Deletion</option>
+    </select>
+    <label for="oligo_method">Oligo Select Method</label>
+    <select name="oligo_method" id="oligo_method">
+      <option value="block">Block Specified</option>
+      <option value="location">Location Specified</option>
+    </select>
+    
+    <label for="art_intron">Artificial Intron Design</label>
+    <select name="art_intron" id="art_intron">
+      <option value="0">No</option>
+      <option value="1">Yes</option>
+    </select>
+  </fieldset>
+
+  <fieldset>
+    <legend>Diagram</legend>
+    <div id="diagram" style="position: relative;">
+      <div id="holder" style="padding-top:20px;">
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Design Information</legend>
     <input type="text" name="target_gene" placeholder="Target Gene" value="[% target_gene %]" /><br/>
     <input type="text" name="chromosome" placeholder="Chromosome" value="[% chromosome %]" /><br/>
     <input type="text" name="target_start" placeholder="Target Start" value="[% target_start %]" />
     <input type="text" name="target_end" placeholder="Target End" value="[% target_end %]" />
     <label for="strand_field">Strand</label>
     <select name="strand" id="strand_field">
-      <option>1</option>
+      <option value="1">1</option>
     </select>
 
     <br />
