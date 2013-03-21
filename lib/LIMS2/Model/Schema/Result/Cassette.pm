@@ -83,6 +83,11 @@ __PACKAGE__->table("cassettes");
   default_value: false
   is_nullable: 0
 
+=head2 resistance
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -107,6 +112,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "cre",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "resistance",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -168,8 +175,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-07 12:55:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z73XIdwVTI4m7e5PXZB4uw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-03-21 15:30:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dgKY5K6JZhbr6iwnnahkQw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
