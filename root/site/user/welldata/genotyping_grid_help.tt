@@ -1,0 +1,67 @@
+<p>
+  This grid is used to view and, optionally, edit genotyping QC data.
+</p>
+
+<p>
+General note: This interface has been developed using components that look like a spreadsheet. It is not a desktop spreadsheet application and it
+will not respond in the way you might expect. However, within the limitations of a web browser environment, it is satisfactory.
+</p>
+
+<p>
+Using this type of view we can present more data more quickly. There is no paging, simply scroll to the well you want to examine.
+</p>
+
+<h4>Navigating the grid</h4>
+    <p>
+        The group of columns towards the left of the grid are locked and will not scroll out of view.
+        The remaining columns are scrollable using the horizontal scrollbar at the bottom of the grid.
+        You may have scrollbars on your browser window as well but these will not scroll the data in the grid view.
+    </p>
+        The first section of assay data comprises the following columns:
+
+        <pre>
+        chromosome fail
+        targeting pass
+        targeting puro pass
+        TRPCR band
+        LRPCR bands (gr3, gr4, gf3, gf4)
+        </pre>
+    <p>
+        The remaining assay data is presented as a single column for each assay, listing the call for that well.
+        If you want to drill down to the underlying data you can reveal the hidden columns. The columns available for each assay are:
+    </p>
+
+        <pre>
+        call
+        copy number
+        range
+        confidence
+        </pre>
+
+    <p>
+    To reveal columns hover over a column heading (any one will do) until a menu arrow appears towards the right of the column. Click the arrow and select the assay you want to drill down into. On the submenu, check the columns you want to reveal. Please be patient - depending on you browser the reveal may take a second or two per column.
+    </p>
+    <p>
+    You may drag columns into any arrangement you choose. You cannot save the column arrangement. When you reload the page, the standard column arrangement will be restored.
+    </p>
+<h4>Editing data in the grid</h4>
+
+<p>It is straightforward to edit grid data. Each cell you edit gets updqated immediately in the database when you press return.
+You proceed by updating once cell at a time. The resulting values you see in the grid are the values in the database following your update.
+
+<h6>Double click to edit</h6>
+    <p>
+    For cells that can be edited (that is, most of them - including 'Override' but not Well, Gene Name, Design ID and Distribute) simply double click the cell containing the value you want to change. Cells will present an appropriate editor so that you can enter a new value. Where values are fixed (e.g., 'call' values) a list of allowed values will be presented for you to select from. Numeric values should be entered directly. Confidence values may contain '<' or '>' and numeric values.
+</p>
+<p>
+Once you are happy with the new value, press return, or click in another cell. If the value is acceptable to LIMS2 validations, it will be committed to the database. While this is happening a red checkmark will appear in the top left hand corner of the cell. Once the commit is complete, the red checkmark will be cleared. If the checkmark does not disappear reload the page to check the data (your value will not hae been committed to the database). Values will not be committed if they do not comply with the range of values accepted by LIMS2, so you should make sure that your new value follows the rules.
+</p>
+<h6>Editing 'call' values</h6>
+<p>
+Note that ranking is applied to 'call' values. The higher ranked values may not be updated to a value with a lower ranking. This is a design feature, not a bug. If you need to reset a call, select the 'reset' value from the list. The value in the database will be deleted. Then you may enter any value in the call list. Once you have a new value in the cell, subsequent changes will be subject to ranking until you reset again. (Note: '-' is a synonym for 'reset').
+</p>
+
+<h6>Clearing values</h6>
+<p>
+Values can be cleared in any cell by selecting the '-' option in the dropdown list. The value will be deleted from the database.
+</p>

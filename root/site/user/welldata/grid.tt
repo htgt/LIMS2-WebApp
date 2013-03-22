@@ -171,9 +171,16 @@
             var items = [{
                   xtype: 'panel',
                   bodyCls: 'text-panel',
-                  minHeight: 500,
-                  minWidth: 500,
-                  autoLoad: '[% c.uri_for('/user/genotyping_grid_help') %]'
+                  title: 'Genotyping QC Grid Help',
+                  maxHeight : 600,
+                  bodyPadding: 15,
+                  loader: {
+                    url: '[% c.uri_for('/user/genotyping_grid_help') %]',
+                    loadMask : false,
+                    autoLoad : true,
+                    renderer : 'html'
+                    },
+                   autoScroll : true
                   }];
 
             var grid = Ext.create('Ext.grid.Panel', {
@@ -198,10 +205,13 @@
                         type:'help',
                         tooltip: 'Get Help',
                         handler: function(event, toolEl, panel){
-                            window = new Ext.Window({
+                            help_win = Ext.create('Ext.window.Window', {
+                                x : 10,
+                                y : 50,
                                 items: items
-                            }).show()
-                            // show help here
+                            });
+//                            help_win.center();
+                            help_win.show();
                         }
                     }],
             });
