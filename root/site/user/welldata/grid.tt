@@ -130,7 +130,7 @@
             });
 
             var columns = [
-                {header: "Well", dataIndex: 'well', locked: true},
+                {header: "Well", dataIndex: 'well', locked: true, columnWidth: 3 },
                 {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true },
@@ -168,6 +168,14 @@
                 [% END %]
             ];
 
+            var items = [{
+                  xtype: 'panel',
+                  bodyCls: 'text-panel',
+                  minHeight: 500,
+                  minWidth: 500,
+                  autoLoad: '[% c.uri_for('/user/genotyping_grid_help') %]'
+                  }];
+
             var grid = Ext.create('Ext.grid.Panel', {
                 height: 750,
                 width: 1200,
@@ -184,7 +192,18 @@
                 simpleSelect: true,
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
-                ]
+                ],
+                tools:[
+                    {
+                        type:'help',
+                        tooltip: 'Get Help',
+                        handler: function(event, toolEl, panel){
+                            window = new Ext.Window({
+                                items: items
+                            }).show()
+                            // show help here
+                        }
+                    }],
             });
 
 //                var gridHeight = Ext.getBody().getViewSize().height ;
@@ -202,5 +221,4 @@
 //                grid.setSize(gridWidth, gridHeight);
 //            });
     });
-
 </script>

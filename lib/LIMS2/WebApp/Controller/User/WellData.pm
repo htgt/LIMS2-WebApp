@@ -99,10 +99,23 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
 
     return unless $plate;
 
-    # OK, plate exists so we can display the genotyping qc grid view
-    return;
+    my @value_names = (
+        { title => 'Call', field=>'call'},
+        { title => 'Copy Number', field => 'copy_number'},
+        { title => 'Range', field => 'copy_number_range'},
+        { title => 'Confidence', field => 'confidence' },
+    );
+    my @assay_types = sort map { $_->id } $model->schema->resultset('GenotypingResultType')->all;
+
+    $c->stash->{assay_types} = \@assay_types;
+    $c->stash->{value_names} = \@value_names;
+
+        return;
 }
 
+sub genotyping_grid_help : Path( '/user/genotyping_grid_help') : Args(0) {
+    return;
+}
 sub update_colony_picks_step_1 : Path( '/user/update_colony_picks_step_1' ) :Args(0) {
     my ( $self, $c ) = @_;
     return;
