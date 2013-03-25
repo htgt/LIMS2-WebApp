@@ -11,18 +11,31 @@ use LIMS2::Util::FarmJobRunner;
 
 BEGIN { extends 'Catalyst::Controller' };
 
+#should come from a config file somewhere?
 const my $DEFAULT_DESIGNS_DIR => dir( '/', 'lustre', 'scratch109', 'sanger', 'team87', 'lims2_designs' );
+const my @DESIGN_TYPES => ( 
+            { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
+            #{ cmd => 'insertion-design', display_name => 'Insertion' },
+            #{ cmd => 'conditional-design', display_name => 'Conditional' },
+        ); #display name is used to populate the dropdown
+
+#oligo select will be something like:
+#const my @OLIGO_SELECT_METHODS => (
+#        { cmd => 'block', display_name => 'Block Specified' },
+#        { cmd => 'location', display_name => 'Location Specified' }
+#    );
 
 #
 #
 # TODO ON MONDAY:
 #   map the new diagram fields to actual flags in saj's program.
-#   assuming the art intron bit is just a flag, also map that.
-#   strand needs another option
+#   strand needs another option - is it right?
+#   chromosome as dropdown?
 #   do some runs and check its all working
 #   run it by mark
 #   see what he requires next.
 #   add a link to this page
+#   specify default dir elsewhere
 #
 #
 
@@ -32,11 +45,8 @@ sub index : Path( '/user/create_design' ) : Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    #target start
-    #target end
-    #chromosome
-    #strand
-    #dir
+    #used to populate the design type dropdown.
+    $c->stash( { design_types => \@DESIGN_TYPES } );
 
     my $params = $c->request->params;
 
@@ -44,14 +54,13 @@ sub index : Path( '/user/create_design' ) : Args(0) {
         $c->model( 'Golgi' )->check_params( $params, $self->pspec_create_design );
 
         $c->stash( {
-            target_gene  => $params->{ target_gene }, #why have i added || undef??
+            target_gene  => $params->{ target_gene }, 
             target_start => $params->{ target_start },
             target_end   => $params->{ target_end },
             chromosome   => $params->{ chromosome },
             strand       => $params->{ strand },
         } );
 
-        #allow this to be overridden with an env var or config or whatever.
         my $uuid = Data::UUID->new->create_str;
         $params->{ output_dir } = $DEFAULT_DESIGNS_DIR->subdir( $uuid );
 
@@ -77,16 +86,6 @@ sub index : Path( '/user/create_design' ) : Args(0) {
     #ins-del-design --design-method deletion --chromosome 11 --strand 1 
     #--target-start 101176328 --target-end 101176428 --target-gene LBLtest 
     #--dir /nfs/users/nfs_a/ah19/new_dc_test --debug"
-
-    #deal with optional stuff later - 
-        #design comment
-        #created by
-        #all the sizes and offsets as listed in saj's diagram
-
-    #
-    #call target gene something else?
-    #dropdown for chromosome?
-    #
 }
 
 sub get_design_cmd {
@@ -98,26 +97,47 @@ sub get_design_cmd {
     #an undef here will raise an exception.
 
     return [
-        'design-create', 'ins-del-design', #this will change, naturally
+        'design-create', 
+        $DESIGN_TYPES[ $params->{ design_type } ]->{ 'cmd' }, #look up selected design type cmd
         '--debug',
-        '--design-method', 'deletion', #this will also change. probably all of it
+        #required parameters
         '--target-gene', $params->{ target_gene },
         '--target-start', $params->{ target_start },
         '--target-end', $params->{ target_end },
         '--chromosome', $params->{ chromosome },
         '--strand', $params->{ strand },
         '--dir', $params->{ output_dir },
+        #user specified lengths
+        '--g5-region-length', $params->{ g5_length },
+        '--u5-region-length', $params->{ u5_length },
+        '--d3-region-length', $params->{ d3_length },
+        '--g3-region-length', $params->{ g3_length },
+        #user specified offsets
+        '--g5-region-offset', $params->{ g5_offset },
+        '--u5-region-offset', $params->{ u5_offset },
+        '--d3-region-offset', $params->{ d3_offset },
+        '--g3-region-offset', $params->{ g3_offset },
         '--persist',
     ];
 }
 
 sub pspec_create_design {
     return {
+        design_type   => { validate => 'integer' }, 
         target_gene   => { validate => 'non_empty_string' },
         target_start  => { validate => 'integer' },
         target_end    => { validate => 'integer' },
         chromosome    => { validate => 'existing_chromosome' },
         strand        => { validate => 'strand' },
+        #fields from the diagram
+        g5_length     => { validate => 'integer' },
+        u5_length     => { validate => 'integer' },
+        d3_length     => { validate => 'integer' },
+        g3_length     => { validate => 'integer' },
+        u5_offset     => { validate => 'integer' },
+        d3_offset     => { validate => 'integer' },
+        g5_offset     => { validate => 'integer' },
+        g3_offset     => { validate => 'integer' },
         create_design => { optional => 0 } #this is the submit button
     };
 } 

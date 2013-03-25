@@ -257,15 +257,16 @@ function DiagramBuilder(id, width, height) {
     coords.yCentre = coords.y + line_height/2;
 
     //allow the function to draw arrows at different points:
+    //we always go to the start of the last element but that COULD change
     if(orientation == "left") { 
       coords.x = first_coords.x; //start at the start of the first element
       coords.x2 = second_coords.x; //end at the start of the last element
     } else if (orientation == "right") {
       coords.x = first_coords.x2; //start at the end of the first element
-      coords.x2 = second_coords.x2; //end at the end of the last element
+      coords.x2 = second_coords.x; //end at the start of the last element
     } else {
       coords.x = first_coords.x; //by default start of first -> end of last.
-      coords.x2 = second_coords.x2;
+      coords.x2 = second_coords.x;
     }
 
     coords.xCentre = coords.x + Math.abs(coords.x - coords.x2)/2;
