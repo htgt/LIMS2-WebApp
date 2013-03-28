@@ -1,0 +1,1 @@
+ALTER TABLE cassettes ADD COLUMN resistance text;
