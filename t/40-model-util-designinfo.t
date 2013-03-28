@@ -95,6 +95,16 @@ note('Test Valid Conditional +ve Stranded Deletion');
     }
 }
 
+note( 'Test Getting Info via Design Object' );
+
+{
+    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+    is $design->chr_name, 18, 'chromosome correct';
+    is $design->chr_strand, 1, 'chromosome correct';
+    is $design->target_region_start, 60956803, 'correct target region start';
+    is $design->target_region_end, 60964117, 'correct target region end';
+}
+
 note( 'Test Invalid Design' );
 
 {
