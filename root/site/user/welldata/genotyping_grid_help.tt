@@ -1,17 +1,31 @@
+<h3>Help Index</h3>
+
+<ul>
+<li><a href="#intro">Introduction</a></li>
+<li><a href="#navig">Navigating the grid</a></li>
+<li><a href="#edit">Editing grid cell data</a></li>
+<li><a href="#csv">Download a CSV file</a></li>
+</ul>
+
+<a id="intro"><h4>Introduction to the Genotyping QC Grid View</h4></a>
 <p>
   This grid is used to view and, optionally, edit genotyping QC data.
 </p>
 
 <p>
-General note: This interface has been developed using components that look like a spreadsheet. It is not a desktop spreadsheet application and it
-will not respond in the way you might expect. However, within the limitations of a web browser environment, it is satisfactory.
+General note: This interface has been developed using components that look like a spreadsheet.
+It is not a desktop spreadsheet application and it
+may not respond in the way you might expect.
+However, within the limitations of a web browser environment, it is a useful tool.
+In particular, you will need to <em>wait</em> until the grid responds before moving on to the next cell,
+reveal columns, etc.
 </p>
 
 <p>
 Using this type of view we can present more data more quickly. There is no paging, simply scroll to the well you want to examine.
 </p>
 
-<h4>Navigating the grid</h4>
+<a id="navig"><h4>Navigating the grid</h4></a>
     <p>
         The group of columns towards the left of the grid are locked and will not scroll out of view.
         The remaining columns are scrollable using the horizontal scrollbar at the bottom of the grid.
@@ -24,8 +38,7 @@ Using this type of view we can present more data more quickly. There is no pagin
         targeting pass
         targeting puro pass
         TRPCR band
-        LRPCR bands (gr3, gr4, gf3, gf4)
-        </pre>
+        LRPCR bands (gr3, gr4, gf3, gf4) </pre>
     <p>
         The remaining assay data is presented as a single column for each assay, listing the call for that well.
         If you want to drill down to the underlying data you can reveal the hidden columns. The columns available for each assay are:
@@ -35,8 +48,7 @@ Using this type of view we can present more data more quickly. There is no pagin
         call
         copy number
         range
-        confidence
-        </pre>
+        confidence </pre>
 
     <p>
     To reveal columns hover over a column heading (any one will do) until a menu arrow appears towards the right of the column. Click the arrow and select the assay you want to drill down into. On the submenu, check the columns you want to reveal. Please be patient - depending on you browser the reveal may take a second or two per column.
@@ -44,7 +56,7 @@ Using this type of view we can present more data more quickly. There is no pagin
     <p>
     You may drag columns into any arrangement you choose. You cannot save the column arrangement. When you reload the page, the standard column arrangement will be restored.
     </p>
-<h4>Editing data in the grid</h4>
+<a id="edit"><h4>Editing data in the grid</h4></a>
 
 <p>It is straightforward to edit grid data. Each cell you edit gets updqated immediately in the database when you press return.
 You proceed by updating once cell at a time. The resulting values you see in the grid are the values in the database following your update.
@@ -65,3 +77,8 @@ Note that ranking is applied to 'call' values. The higher ranked values may not 
 <p>
 Values can be cleared in any cell by selecting the '-' option in the dropdown list. The value will be deleted from the database.
 </p>
+
+<a id="csv"><h4>Save a CSV format file of grid data</h4></a>
+In the top right of the grid header there is a 'disk' icon. Click this icon to save the Genotyping QC grid data to a comma separated format file (CSV file).
+The report data will be regenerated from the updated values in the LIMS2 database and the resulting file made available to you to download in your web browser.
+You can normally choose the name and location for the file, but these things are browser dependent.

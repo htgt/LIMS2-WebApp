@@ -412,12 +412,11 @@ my @well_id_list = $self->get_uniq_wells( $sql_result);
 my $design_well_cache = $self->create_design_well_cache( \@well_id_list );
 
 $self->log->debug ('SQL query brought back ' . @{$sql_result} . ' rows.' );
-$DB::single=1;
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
         push @all_data, $datum if $datum->{'id'};
         $datum = {};
-        $self->initialize_all_datum_fields($datum); 
+        $self->initialize_all_datum_fields($datum);
         $self->populate_well_attributes($row, $datum);
         # simply lookup the source well id in the design_well_cache
         my $design_well = $design_well_cache->{$datum->{'id'}}->{'design_well_ref'};
@@ -732,4 +731,113 @@ sub get_uniq_wells {
     }
     return @well_id_list;
 }
+
+
+=head1
+csv_genotyping_qc_data is a reporting method that returns CSV formatted data for a CSV download.
+
+Users should call this method, rather than the get_genotyping_qc_plate_data method, which will resturn
+data in a hash with useful keys but not easy to send back to a web browser for download.
+=cut
+sub csv_genotyping_qc_plate_data {
+    my $self = shift;
+    my $plate_name = shift;
+    my $species = shift;
+    my @plate_well_data = $self->get_genotyping_qc_plate_data(
+        $plate_name,
+        $species,
+    );
+
+    # Unpack the array of hashes and construct a csv format file.
+    # first - define the header
+    #
+
+    my @value_names = (
+        { 'call' => 'Call' },
+        { 'copy_number' => 'Copy Number' },
+        { 'copy_number_range' => 'Range' },
+        { 'confidence' => 'Confidence' },
+    );
+    my @assay_types = sort map { $_->id } $self->schema->resultset('GenotypingResultType')->all;
+    my @csv_header_array = $self->create_csv_header_array( \@assay_types );
+    my $csv_header = join q{,}, @csv_header_array;
+
+    my @csv_data; #This is the array of strings that gets pushed out to the caller
+    push @csv_data, $csv_header;
+
+    my $csv_row_line; # This is the string that gets pushed out to the caller
+    @plate_well_data = reverse @plate_well_data;
+    while ( @plate_well_data ) {
+        my $datum = pop @plate_well_data;
+        my @csv_row;
+        foreach my $item ( @csv_header_array ) {
+            my $tr_item = $self->translate_header_items($item);
+            if ( defined $datum->{$tr_item} ) {
+                push @csv_row, $datum->{$tr_item};
+            }
+            else {
+                push @csv_row, '';
+            }
+        }
+        $csv_row_line = join q{,}, @csv_row;
+        push @csv_data, $csv_row_line;
+    }
+    return @csv_data;
+}
+
+sub create_csv_header_array {
+    my $self = shift;
+    my $assay_types = shift;
+
+    my @header_words = (
+        'Plate',
+        'Well',
+        'Gene Name',
+        'Gene ID',
+        'Design ID',
+        'Distribute',
+        'Override',
+        'Chromosome Fail',
+        'Targeting Pass',
+        'Targeting Puro Pass',
+        'TRPCR band',
+        'gr3',
+        'gr4',
+        'gf3',
+        'gf4',
+    );
+
+    # Add the generic assay headers
+    foreach my $assay_name ( @{$assay_types} ) {
+        push @header_words ,
+            $assay_name . '#call',
+            $assay_name . '#copy_number',
+            $assay_name . '#copy_number_range',
+            $assay_name . '#confidence' ;
+    }
+
+    return @header_words;
+}
+
+sub translate_header_items {
+    my $self = shift;
+    my $item = shift;
+
+    my %tr_headers = (
+        'Plate' => 'plate_name',
+        'Well' => 'well',
+        'Gene Name' => 'gene_name',
+        'Gene ID' => 'gene_id',
+        'Design ID' => 'design_id',
+        'Distribute' => 'accepted',
+        'Override' => 'accepted_override',
+        'Chromosome Fail' => 'chromosome_fail',
+        'Targeting Pass' => 'targeting_pass',
+        'Targeting Puro Pass' => 'targeting_puro_pass',
+        'TRPCR band' => 'trpcr',
+    );
+
+    return $tr_headers{$item} // $item;
+}
+
 1;

@@ -266,7 +266,6 @@ sub well_genotyping_qc_PUT{
     my $data = $c->request->data;
     my $plate_name = $c->request->param('plate_name');
     my $species = $c->session->{'selected_species'};
-$DB::single=1;
     # $data will contain a key for well 'id' and a key whose name is the column name
     # and whose value is the new value to be passed as an update.
     # e.g. 'chr1#call' => 'fail'

@@ -29,6 +29,10 @@
                 ]
             });
 
+
+            // Save plateName for later use
+            var plateName = '[% plate_name %]';
+
             var store = Ext.create('Ext.data.Store', {
                 model: 'GenotypingQC',
                 autoLoad: true,
@@ -76,7 +80,7 @@
                 {"call_label":"passb"},
                 {"call_label":"fail"},
                 {"call_label":"fa"},
-                {"call_label":"potential"},
+                {"call_label":"potential"}, 
                 {"call_label":"present"},
                 {"call_label":"na"},
                 {"call_label":"reset"}
@@ -91,7 +95,7 @@
             });
 
             var call_types_chromosome_fail_combo = Ext.create('Ext.form.ComboBox', {
-                queryMode: 'local',
+                queryMode: 'local', 
                 store: call_types_chromosome_fail,
                 displayField: 'call_label',
                 forceSelection: true
@@ -202,6 +206,13 @@
                 ],
                 tools:[
                     {
+                        type: 'save',
+                        tooltip: 'Save CSV file',
+                        handler: function(event, toolEl, panel){
+                            DownloadCsvFile();
+                        }
+                    },
+                    {
                         type:'help',
                         tooltip: 'Get Help',
                         handler: function(event, toolEl, panel){
@@ -213,8 +224,42 @@
 //                            help_win.center();
                             help_win.show();
                         }
-                    }],
+                    }
+                    ],
             });
+
+            function DownloadCsvFile() {
+                var body = Ext.getBody();
+
+                // create a hidden frame
+                var frame = body.createChild(
+                    {
+                        tag     : 'iframe',
+                        cls     : 'x-hidden',
+                        id      : 'iframe',
+                        name    : 'iframe'
+                    }
+                );
+
+                [% formActionUrl = '/user/genotyping_qc_report/' %] 
+
+
+                // create a hidden form with download as action
+                var form = body.createChild(
+                    {
+                        tag     : 'form',
+                        cls     : 'x-hidden',
+                        id      : 'form',
+                        action  : '[% c.uri_for( '/user/genotyping_qc_report' ) %]' + '/' + plateName,
+                        target  : 'iframe'
+                    }
+                );
+
+                form.dom.submit();
+
+            }
+
+                
 
 //                var gridHeight = Ext.getBody().getViewSize().height ;
 //                var gridWidth = Ext.getBody().getViewSize().width;
