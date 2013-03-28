@@ -1189,7 +1189,6 @@ sub retrieve_well_genotyping_result {
 
 sub delete_well_genotyping_result {
     my ( $self, $params ) = @_;
-$DB::single=1;
     # retrieve_well() will validate the parameters
     my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
 
