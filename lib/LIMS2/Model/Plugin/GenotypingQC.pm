@@ -129,11 +129,6 @@ sub _valid_column_names{
 }
 
 
-#    update_genotyping_qc_value updates one item on each call. As the user makes changes to
-#    each cell in the user interface, the controller opens a transaction and calls this method.
-#    Once an item is successfully updated the controller will close the transaction by issuing
-#    a commit.
-
 
 sub create_assay{
     my ($self, $datum, $val_params, $assay, $well, $messages ) = @_;
@@ -182,6 +177,11 @@ sub create_assay{
     }
 return 1;
 }
+
+#    update_genotyping_qc_value updates one item on each call. As the user makes changes to
+#    each cell in the user interface, the controller opens a transaction and calls this method.
+#    Once an item is successfully updated the controller will close the transaction by issuing
+#    a commit.
 
 sub pspec_update_genotyping_qc_value {
     return {
@@ -642,7 +642,6 @@ sub sql_well_qc_query {
     my $self = shift;
     my $plate_name = shift;
     my $well_list = shift;
-
     # create a comma separated list for SQL
 
     $well_list = join q{,}, @{$well_list};
