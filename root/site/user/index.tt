@@ -5,30 +5,67 @@
 </div>
 
 <p>
-  Welcome to the new the High Throughput Gene Targeting (HTGT) lab
+  Welcome to the High Throughput Gene Targeting (HTGT) lab
   tracking system.
 </p>
 
 [% IF report_id %]
 
-<h3>Pipeline Summary</h3>
+<h3>[% title %]</h3>
 
 <table class="table table-striped table-bordered">
+  <caption>Single-targeted projects</caption>
   <thead>
     <tr>
-      [%- FOR col IN columns %]
+      [% FOR col IN columns %]
         <th>[% col %]</th>
-      [%- END %]
+      [% END %]
     </tr>
   </thead>
   <tbody>
-    [%- FOR datum IN data %]
-    <tr>
-      [%- FOR val IN datum %]
-      <td>[% val | none %]</td>
-      [%- END %]
+	[% FOREACH row IN st_rows %]
+	<tr>
+      <td>[% row %]</td>
+      [% FOR colname IN columns %]
+		[% UNLESS colname == "Stage" %]
+           [% countval = 0; countval = st_data.item(row).item(colname) %]
+		   [% IF countval > 0 %]
+           <td><b>[% countval %]</b></td>           
+		   [% ELSE %]
+		   <td>0</td>
+           [% END %]
+		[% END %]
+      [% END %]
     </tr>
-    [%- END %]
+	[% END %]
+  </tbody>
+</table>
+
+<table class="table table-striped table-bordered">
+  <caption>Double-targeted projects</caption>
+  <thead>
+    <tr>
+      [% FOR col IN columns %]
+        <th>[% col %]</th>
+      [% END %]
+    </tr>
+  </thead>
+  <tbody>
+	[% FOREACH row IN dt_rows %]
+	<tr>
+      <td>[% row %]</td>
+      [% FOR colname IN columns %]
+		[% UNLESS colname == "Stage" %]
+           [% countval = 0; countval = dt_data.item(row).item(colname) %]
+		   [% IF countval > 0 %]
+           <td><b>[% countval %]</b></td>           
+		   [% ELSE %]
+		   <td>0</td>
+           [% END %]
+		[% END %]
+      [% END %]
+    </tr>
+	[% END %]
   </tbody>
 </table>
 
