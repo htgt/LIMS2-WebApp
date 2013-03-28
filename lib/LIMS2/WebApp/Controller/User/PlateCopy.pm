@@ -36,15 +36,19 @@ sub plate_from_copy :Path( '/user/plate_from_copy' ) :Args(0) {
 
 sub plate_from_copy_process :Path( '/user/plate_from_copy_process' ) :Args(0) {
     my ( $self, $c ) = @_;
-
     my $from_plate_name = $c->request->params->{'from_plate_name'};
-    my $to_plate_name = $c->request->params->{'new_plate_name'};
+    my $to_plate_name = $c->request->params->{'to_plate_name'};
     if ( !$from_plate_name || !$to_plate_name ){
         $c->flash->{'error_msg'} = 'Specify both "from" plate name and "to" plate name';
-        return $c->res->redirect('/user/plate_from_copy');
+        return $c->res->redirect($c->uri_for( '/user/plate_from_copy' ));
+    }
+    if ( $from_plate_name eq $to_plate_name){
+        $c->flash->{'error_msg'} = '"from" plate name cannot be the same as "to" plate name';
+        return $c->res->redirect($c->uri_for( '/user/plate_from_copy' ));
     }
     # Copy the plate
     my $model = $c->model('Golgi');
+    $c->clear_flash();
     my $error;
     try {
         $model->txn_do( sub {
@@ -63,7 +67,7 @@ sub plate_from_copy_process :Path( '/user/plate_from_copy_process' ) :Args(0) {
     if ( ! $error ){
         $c->flash->{'success_msg'} = $from_plate_name . ' was copied to ' . $to_plate_name . ' successfully.';
     }
-    return $c->res->redirect('/user/plate_from_copy');
+    return $c->res->redirect($c->uri_for( '/user/plate_from_copy' ));
 
 }
 
