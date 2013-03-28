@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.057';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.059';
 }
 ## use critic
 
@@ -113,12 +113,40 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
     );
     my @assay_types = sort map { $_->id } $model->schema->resultset('GenotypingResultType')->all;
 
-        $c->stash->{assay_types} = \@assay_types;
-        $c->stash->{value_names} = \@value_names;
+    $c->stash->{assay_types} = \@assay_types;
+    $c->stash->{value_names} = \@value_names;
 
         return;
 }
 
+sub genotyping_qc_report : Path( '/user/genotyping_qc_report') : Args(1) {
+    my ( $self, $c, $plate_name ) = @_;
+    # generate the report for the plate as a CSV and return to the browser
+    #
+    $c->assert_user_roles( 'read' );
+
+
+#    my $plate_name = $c->request->param('plate_name');
+
+    my $model = $c->model('Golgi');
+    my $plate = $model->retrieve_plate({ name => $plate_name});
+
+    my @csv_plate_data = $model->csv_genotyping_qc_plate_data( $plate_name, $c->session->{selected_species});
+# Add newlines to the end of each array line.
+    @csv_plate_data = map { $_ . "\n" } @csv_plate_data;
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => 'attachment; filename='
+            . $plate_name
+            . '_gqc.csv' );
+    my $body = join q{}, @csv_plate_data;
+    $c->response->body( $body );
+    return;
+}
+
+sub genotyping_grid_help : Path( '/user/genotyping_grid_help') : Args(0) {
+    return;
+}
 sub update_colony_picks_step_1 : Path( '/user/update_colony_picks_step_1' ) :Args(0) {
     my ( $self, $c ) = @_;
     return;

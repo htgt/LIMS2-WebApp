@@ -9,6 +9,8 @@ bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
 bin/process_graph.pl
+docs/lab/homozygous_workflows.pdf
+docs/lab/homozygous_workflows.pptx
 lib/LIMS2/AlleleRequest.pm
 lib/LIMS2/AlleleRequest/DoubleTargeted.pm
 lib/LIMS2/AlleleRequest/SingleTargeted.pm
@@ -236,6 +238,7 @@ root/site/user/report/select_vector_params.tt
 root/site/user/report/simple_table.tt
 root/site/user/userpreferences/change_password.tt
 root/site/user/welldata/dna_status_update.tt
+root/site/user/welldata/genotyping_grid_help.tt
 root/site/user/welldata/genotyping_qc_data.tt
 root/site/user/welldata/grid.tt
 root/site/user/welldata/show_genotyping_qc_data.tt
@@ -1708,6 +1711,7 @@ t/70-controller-api-platewell.t
 t/80-change_password.t
 t/80-dna_status_upload.t
 t/80-login.t
+t/80-plate_copy.t
 t/80-plate_report.t
 t/80-plate_upload.t
 t/80-plate_view.t
@@ -1729,6 +1733,7 @@ t/data/csv_upload_mac.csv
 t/data/csv_upload_win.csv
 t/data/dna_prep_process.yaml
 t/data/dna_status.yaml
+t/data/dna_test_plate.yaml
 t/data/final_pick_process.yaml
 t/data/first_electroporation.yaml
 t/data/freeze_process.yaml
