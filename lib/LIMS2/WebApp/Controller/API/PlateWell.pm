@@ -263,6 +263,7 @@ sub well_genotyping_qc :Path('/api/well/genotyping_qc') :Args(1) :ActionClass('R
 sub well_genotyping_qc_PUT{
     my ( $self, $c, $well_id ) = @_;
     $c->assert_user_roles('edit');
+
     my $data = $c->request->data;
     my $plate_name = $c->request->param('plate_name');
     my $species = $c->session->{'selected_species'};
