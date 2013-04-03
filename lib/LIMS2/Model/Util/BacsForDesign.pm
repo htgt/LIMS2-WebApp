@@ -34,7 +34,7 @@ const my $PREFERRED_BAC_CLONE_SIZE    => 200000;
 
 =head2 bacs_for_design
 
-Input: model, design object, and optional bac library id, assembly_id
+Input: model, design object, and optional bac library id ( defaults to black6 )
 Output: array ref of up to 4 bac clone names.
 
 =cut
