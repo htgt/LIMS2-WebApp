@@ -136,6 +136,15 @@ note( 'Test Invalid Design' );
     } qr/Design 81136 oligos have inconsistent chromosomes/
         , 'throws error when getting design strand, we have mismatch';
 
+    ok $g5_locus->delete, 'can delete G5 oligo loci';
+    ok $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+
+    throws_ok {
+        $di->oligos
+    } qr/No locus information for oligo: G5/
+        , 'throws error when oligo missing locus info';
+
+
 }
 
 done_testing();
