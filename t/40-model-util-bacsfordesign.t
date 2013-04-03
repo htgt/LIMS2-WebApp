@@ -35,6 +35,12 @@ note('Test bacs_for_design');
         RP24-369G5
     );
     is_deeply $bacs, \@expected_bacs, 'we have expected bacs for design';
+
+    ok my $design2 = model->retrieve_design( { id => 170606  } ), 'can grab design 170606';
+    throws_ok{
+        bacs_for_design( model, $design2 )
+    } qr/No valid bacs/
+        ,'throws error when design has no valid bacs, RP24 or RP23';
 }
 
 note( 'Test get_bac_clones' );
@@ -120,6 +126,7 @@ note( 'Test order_bacs' );
         RP23-186E21
         RP24-322P23
         RP24-549E8
+        RP24-78L21
     );
     ok my @expected_bacs = model->schema->resultset( 'BacClone' )->search(
         {
@@ -131,14 +138,24 @@ note( 'Test order_bacs' );
         = LIMS2::Model::Util::BacsForDesign::order_bacs( \@expected_bacs, 'NCBIM37' )
         , 'can call order_bacs';
 
+    # RP24 clones first, only 4
     my @expected_ordered_bac_names = qw(
         RP24-322P23
         RP24-549E8
         RP24-359K20
-        RP23-186E21
+        RP24-78L21
     );
     is_deeply $ordered_bac_names, \@expected_ordered_bac_names
         , 'returns bac names in expected order, RP24 bacs first';
+
+    ok my $design = model->retrieve_design( { id => 170606  } ), 'can grab design 170606';
+    ok my $bacs
+        = LIMS2::Model::Util::BacsForDesign::get_bac_clones( model, $design, 'NCBIM37', 'black6' )
+        , 'get_bac_clones returns data';
+    throws_ok{
+        LIMS2::Model::Util::BacsForDesign::order_bacs( $bacs, 'NCBIM37', 170606 )
+    } qr/No valid bacs/
+        ,'throws error when design has no valid bacs, RP24 or RP23';
 }
 
 note( 'Test Invalid Design' );
