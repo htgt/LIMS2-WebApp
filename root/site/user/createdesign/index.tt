@@ -1,4 +1,4 @@
-[% META title = "Create Design"; META tab_name = "Browse" %]
+[% META title = "Create Design"; META tab_name = "Designs" %]
 
 <link href="[% c.uri_for( '/static/css/jquery.qtip.min.css' ) %]" rel="stylesheet">
 <script type="text/javascript" src="[% c.uri_for( '/static/js/raphael-min.js' ) %]"></script>
