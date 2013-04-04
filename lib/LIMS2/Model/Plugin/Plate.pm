@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.051';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.060';
 }
 ## use critic
 
@@ -119,6 +119,7 @@ sub create_plate {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
+    $self->log->info( 'Creating plate: ' . $validated_params->{name} );
 
     my $current_plate
         = $self->schema->resultset('Plate')->find( { name => $validated_params->{name} } );
@@ -175,6 +176,7 @@ sub delete_plate {
 
     # retrieve_plate() will validate the parameters
     my $plate = $self->retrieve_plate($params);
+    $self->log->info( "Deleting plate: $plate" );
 
     $self->throw( Validation => "Plate $plate can not be deleted, has child plates" )
         if $plate->has_child_wells;
@@ -201,6 +203,7 @@ sub set_plate_assay_complete {
         ignore_unknown => 1 );
 
     my $plate = $self->retrieve_plate($params);
+    $self->log->info( "Set assay complete on plate $plate" );
 
     for my $well ( $plate->wells ) {
         $self->set_well_assay_complete(
@@ -213,18 +216,95 @@ sub set_plate_assay_complete {
     return $plate;
 }
 
+=head
+Method: create_plate_by_copy
+
+Takes an input plate (that must exist), and creates a copy of the plate ready for well
+data to be imported by csv upload.
+=cut
+
+sub pspec_create_plate_by_copy {
+    return {
+        from_plate_name  =>  { validate => 'plate_name' },
+        to_plate_name    =>  { validate => 'plate_name' },
+        created_by       =>  { validate => 'existing_user' },
+        created_at       =>  { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    };
+}
+
+sub create_plate_by_copy {
+    my ( $self, $params ) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_create_plate_by_copy );
+
+    my $from_plate_name = $validated_params->{'from_plate_name'};
+    my $to_plate_name = $validated_params->{'to_plate_name'};
+    my $this_user = $validated_params->{'created_by'};
+    $self->log->info( "Creating plate: $to_plate_name, as copy of $from_plate_name" );
+
+    my $from_plate
+        = $self->schema->resultset('Plate')->find( { name => $from_plate_name } );
+    if (! $from_plate) {
+        $self->throw( Validation => 'Plate ' . $from_plate_name . ' does not exist' );
+    }
+
+    my $to_plate
+        = $self->schema->resultset('Plate')->find( { name => $to_plate_name } );
+    if ( $to_plate ) {
+        $self->throw( Validation => 'Plate ' . $to_plate_name . ' already exists' );
+    }
+#
+# Get the wells from the plate we need to copy
+#
+#
+    my $well_rs = $self->schema->resultset( 'Well' );
+
+    my @wells_on_plate = $well_rs->search( { 'plate.name' => $from_plate_name },
+        {
+            join => [ 'plate' ],
+        }
+    );
+
+# process the well data into @well_data
+    my $process_type = 'dna_prep';
+    my @well_data = ();
+
+    foreach my $well ( @wells_on_plate ) {
+        my %well_hash;
+        $well_hash{'well_name'} = $well->name;
+        $well_hash{'parent_plate'} = $from_plate->name;
+        $well_hash{'parent_well'} = $well->name;
+        $well_hash{'process_type'} = $process_type;
+        push @well_data, \%well_hash;
+    }
+
+
+    my $plate = $self->create_plate(
+        {
+            name =>  $to_plate_name ,
+            description => $from_plate->description,
+            type => 'DNA',
+            created_by => $this_user,
+            species => $from_plate->species->id,
+            wells => \@well_data,
+        }
+    );
+    $plate->discard_changes;
+
+    return $plate;
+}
+
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
 
     #validation done of create_plate, not needed here
-    my %plate_data = map { $_ => $params->{$_} } qw( plate_name species plate_type description created_by is_virtual process_type);
+    my %plate_data = map { $_ => $params->{$_} }
+        qw( plate_name species plate_type description created_by is_virtual process_type);
     $plate_data{name} = delete $plate_data{plate_name};
     $plate_data{type} = delete $plate_data{plate_type};
 
-    # validate the is_virtual flag (can only be true for process:rearray and plate:INT) 
+    # validate the is_virtual flag (can only be true for process:rearray and plate:INT)
 
     if ( $plate_data{is_virtual} ) {
-
         if ( ($plate_data{type} ne 'INT') or ($plate_data{process_type} ne 'rearray') ) {
             $self->throw(
                 Validation => 'Plate type (' . $plate_data{type} . ') and process (' . $plate_data{process_type}
@@ -252,7 +332,7 @@ sub plate_help_info {
     my %plate_info;
 
     for my $process ( keys %PROCESS_PLATE_TYPES ) {
-        next if $process eq 'create_di';
+        next if $process =~ /create_di|legacy_gateway/;
         $plate_info{$process}{plate_types} = $PROCESS_PLATE_TYPES{$process};
         $plate_info{$process}{data}
             = exists $PROCESS_SPECIFIC_FIELDS{$process} ? $PROCESS_SPECIFIC_FIELDS{$process} : [];
@@ -296,6 +376,7 @@ sub rename_plate {
     my $validated_params = $self->check_params( $params, $self->pspec_rename_plate );
 
     my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+    $self->log->info( "Renaming plate: $plate to" . $validated_params->{new_name} );
 
     $self->throw( Validation => 'Plate '
             . $validated_params->{new_name}
@@ -312,9 +393,9 @@ sub pspec_qc_template_from_plate{
 		species       => { validate => 'existing_species',    optional => 1},
 		template_name => { validate => 'plate_name'},
 		cassette      => { validate => 'existing_final_cassette',   optional => 1},
-		phase_matched_cassette => { optional => 1 },
 		backbone      => { validate => 'existing_backbone',   optional => 1},
 		recombinase   => { validate => 'existing_recombinase', optional => 1},
+		phase_matched_cassette => { optional => 1 },
 	};
 }
 
@@ -322,6 +403,7 @@ sub create_qc_template_from_plate {
 	my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
+    $self->log->info( 'Creating qc template plate: ' . $validated_params->{template_name} );
 
     my $plate = $self->retrieve_plate( { slice_def( $params, qw( name id species ) ) } );
 
@@ -330,8 +412,9 @@ sub create_qc_template_from_plate {
 	foreach my $well ($plate->wells->all){
 		my $name = $well->name;
         $well_hash->{$name}->{well_id} = $well->id;
-        foreach my $override qw(cassette recombinase backbone phase_matched_cassette){
-        	$well_hash->{$name}->{$override} = $validated_params->{$override} if exists $validated_params->{$override};
+        foreach my $override qw(cassette recombinase backbone phase_matched_cassette) {
+        	$well_hash->{$name}->{$override} = $validated_params->{$override}
+                if exists $validated_params->{$override};
         }
 	}
 

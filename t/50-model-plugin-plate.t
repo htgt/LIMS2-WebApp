@@ -64,7 +64,8 @@ note( "Testing plate create with wells" );
 
     ok my $wells = $plate->wells, 'can retrieve plate wells';
     ok my $well = $wells->find( { name => 'A01' } ), '..retrieve well A01';
-    ok my $process = $well->output_processes->first, '..can get output process';
+    ok my $process = $well->output_processes->first, '..can getme: TEST_COPY_PLATE
+    created_by:  output process';
     is $process->type_id, 'first_electroporation', 'process is correct type';
     ok my $input_well = $process->process_input_wells->first->well, 'retrieve input well for process';
     is $input_well->plate->name, 'MOHFAQ0001_A_2', '..correct plate';
@@ -125,6 +126,19 @@ note( "Plate Create CSV Upload" );
     ok my $wells = $plate->wells, '..plate has wells';
     is $wells->count, 2, '..there are 2 wells';
 
+}
+
+note( 'Create Plate by Copy' );
+
+{
+    ok my $copy_plate = model->create_plate_by_copy( $plate_data->{create_plate_by_copy} ),
+        'create_plate_by_copy should succeed';
+    isa_ok $copy_plate, 'LIMS2::Model::Schema::Result::Plate';
+    is $copy_plate->name, 'TEST_COPY_PLATE', '... copy plate name is correct';
+    is $copy_plate->type_id, 'DNA', '...expected plate type: DNA';
+    ok my $plate_wells = $copy_plate->wells, '...plate has wells';
+    is $plate_wells->count, 96, '...there are 96 wells';
+    
 }
 
 note( 'List Plates' );

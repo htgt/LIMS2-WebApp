@@ -7,7 +7,6 @@ BEGIN {
     use Log::Log4perl qw( :easy );
     Log::Log4perl->easy_init( $FATAL );
 }
-
 use LIMS2::Test;
 use Test::Most;
 use Try::Tiny;
@@ -16,6 +15,7 @@ use File::Temp ':seekable';
 
 note( "Testing Genotyping QC data update");
 {
+
 	ok my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 
 	my $plate = "SEP0006";
@@ -48,11 +48,11 @@ note( "Testing Genotyping QC data update");
     ok my $chr_fail = model->retrieve_well_chromosome_fail($well_params), "chromosome fail exists";
     is $chr_fail->result, "3", "chromosome fail == 3";
 
-	# test assay result upload with missing data
+	# test assay result upload with invalid data
 	ok my $test_file2 = File::Temp->new or die('Could not create temp test file ' . $!);
-	$test_file2->print(join ",", "well_name",      "loxp_pass", "loxp_copy_number");
+	$test_file2->print(join ",", "well_name",      "loxp_pass", "loxp_copy_number, loxp_copy_number_range");
 	$test_file2->print("\n");
-	$test_file2->print(join ",", $plate."_".$well, "pass"     , "2.1"             );
+	$test_file2->print(join ",", $plate."_".$well, "pass"     , "2.1",             'Failed'             );
 
 	my $name2 = $test_file2->filename;
 	$test_file2->close;
@@ -60,7 +60,7 @@ note( "Testing Genotyping QC data update");
 
     throws_ok{
     	model->update_genotyping_qc_data({ csv_fh => $fh2, created_by => 'test_user@example.org' })
-    }qr/No loxp .* value found/;
+    }qr/must be a number for well/;
 
 	# test assay result upload with complete data
 	ok my $test_file3 = File::Temp->new or die('Could not create temp test file ' . $!);

@@ -47,4 +47,7 @@ note( "Plate Create - merge plate process data" );
 
 }
 
+#TODO test create_plate_well
+#TODO test find_parent_well_ids
+
 done_testing();

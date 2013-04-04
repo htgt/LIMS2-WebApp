@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.051';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.060';
 }
 ## use critic
 
@@ -790,6 +790,7 @@ sub list_templates {
     return ( [ $resultset->all ], $resultset->pager );
 }
 
+# acs 11/03/13 - added optional process type for use with type FINAL_PICK
 sub pspec_create_plates_from_qc{
     return {
         qc_run_id    => { validate => 'uuid' },
@@ -797,6 +798,7 @@ sub pspec_create_plates_from_qc{
         created_by   => { validate => 'existing_user' },
         rename_plate => { validate => 'hashref', optional => 1 },
         view_uri     => { validate => 'absolute_url' },
+        process_type => { validate => 'existing_process_type', optional => 1 },
     };
 }
 
@@ -825,7 +827,7 @@ sub create_plates_from_qc{
 		$new_name = ($rename and $rename->{$old_name}) ? $rename->{$old_name}
 		                                               : $old_name;
 
-		my $plate = $self->create_plate_from_qc({
+		my $plate_from_qc = {
 			plate_name      => $new_name,
 			orig_name       => $old_name,
 		    results_by_well => \%results_by_well,
@@ -834,14 +836,21 @@ sub create_plates_from_qc{
 		    created_by      => $validated_params->{created_by},
 		    view_uri        => $validated_params->{view_uri},
 		    qc_run_id       => $validated_params->{qc_run_id},
-		},
-		);
+		};
+
+		# acs 11/03/13 - if plate type is Final_Pick add process type to final_pick
+		if($plate_from_qc->{'plate_type'} eq 'FINAL_PICK') {
+			$plate_from_qc->{'process_type'} = $validated_params->{process_type};
+		}
+
+		my $plate = $self->create_plate_from_qc($plate_from_qc,);
 
 		push @created_plates, $plate;
 	}
 	return @created_plates;
 }
 
+# acs 11/03/13 - added optional process type for use with type FINAL_PICK
 sub pspec_create_plate_from_qc{
     return {
         plate_name   => { validate => 'non_empty_string' },
@@ -852,6 +861,7 @@ sub pspec_create_plate_from_qc{
         created_by   => { validate => 'existing_user'},
         view_uri     => { validate => 'absolute_url'},
         qc_run_id    => { validate => 'uuid'},
+		process_type => { validate => 'existing_process_type', optional => 1 },
     };
 }
 
@@ -910,7 +920,13 @@ sub create_plate_from_qc{
             	$well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
             }
 
-            $well_params{process_type} = infer_qc_process_type(\%well_params);
+            # If process_type has been passed in, use it, otherwise infer it
+            if (exists $params->{process_type}) {
+                $well_params{process_type} = $params->{process_type};
+            }
+            else {
+                $well_params{process_type} = infer_qc_process_type(\%well_params);
+            }
 
             push @new_wells, \%well_params;
 		}

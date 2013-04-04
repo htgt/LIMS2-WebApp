@@ -1,14 +1,13 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.051';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.060';
 }
 ## use critic
 
 
 use strict;
 use warnings FATAL => 'all';
-
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
 use Hash::Merge qw( merge );
@@ -19,6 +18,7 @@ use LIMS2::Model::ProcessGraph;
 use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params add_display_id);
 use LIMS2::Model::Util::RankQCResults qw( rank );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
+use LIMS2::Model::Util::CreateProcess qw( create_process_aux_data_recombinase );
 use Try::Tiny;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -111,7 +111,8 @@ sub delete_well {
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
-                                 well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands );
+                                 well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands 
+                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass);
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
@@ -121,25 +122,32 @@ sub delete_well {
     return;
 }
 
-sub pspec_retrieve_well_accepted_override {
-    return {
-        well_id => { validate => 'integer' }
-    }
-}
-
 sub retrieve_well_accepted_override {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_accepted_override );
-
-    return $self->retrieve( WellAcceptedOverride => $validated_params );
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
+    my $well = $self->retrieve_well( $params );
+    my $accepted_override = $well->well_accepted_override
+        or $self->throw( NotFound => { entity_class => 'WellChromosomeFail', search_params => $params } );;
+    return $accepted_override;
 }
+
+sub delete_well_accepted_override {
+    my( $self, $params ) = @_;
+
+    my $accepted_override = $self->retrieve_well_accepted_override( $params );
+    $accepted_override->delete;
+    $self->log->debug( 'Well accepted_override deleted for well ' . $accepted_override->well_id );
+
+    return;
+}
+
 
 sub pspec_create_well_accepted_override {
     return {
         plate_name => { validate => 'existing_plate_name', optional => 1 },
         well_name  => { validate => 'well_name',           optional => 1 },
-        well_id    => { validate => 'integer',             optional => 1 },
+        well_id    => { validate => 'integer',             optional => 1, rename => 'id' },
         created_by => {
             validate    => 'existing_user',
             post_filter => 'user_id_for',
@@ -171,6 +179,36 @@ sub create_well_accepted_override {
 
 sub pspec_update_well_accepted_override {
     return shift->pspec_create_well_accepted_override;
+}
+
+sub update_or_create_well_accepted_override {
+    my ($self, $params ) = @_;
+
+    my $message;
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_accepted_override);
+
+    my $accepted_override;
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name )} );
+
+    if ( $accepted_override = $well->well_accepted_override ) {
+        my $update_request = { slice_def $validated_params, qw( accepted )};
+        my $previous = $accepted_override->accepted;
+        $accepted_override->update( { accepted => $update_request->{'accepted'} } );
+        $message = 'Well_accepted_override update from ' . $previous . ' to ' . $accepted_override->accepted;
+    }
+    else {
+        # create a new entry
+        $accepted_override = $well->create_related(
+            well_accepted_override => {
+                slice_def $validated_params,
+                    qw( accepted created_by_id created_at )
+            }
+        );
+        $message = 'Well_accepted_override created with result ' . $accepted_override->accepted;
+    }
+    $self->log->debug( $message );
+    return wantarray ? ( $accepted_override, $message) : $accepted_override;
 }
 
 sub update_well_accepted_override {
@@ -252,22 +290,39 @@ sub pspec_create_well_dna_status {
 
 sub create_well_dna_status {
     my ( $self, $params ) = @_;
-
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_dna_status );
 
-    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    my $well;
+    my $dna_status;
+    # If the well does not exist on the target plate, we assume that the well in the spreadsheet is
+    # empty (water or buffer solution only). These wells are not recorded in LIMS2 as it is not
+    # possible to parent empty wells.
+    # DJP-S 6/3/13
+    #
+    try {
+        $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    }
+    catch {
+        # If the well doesn't exist make it undef and carry on
+        $well = undef;
+    };
 
     #will need to provide some method of changing the dna status level on a well
-    if ( my $dna_status = $well->well_dna_status ) {
-        $self->throw( Validation => "Well $well already has a dna status of "
-                . ( $dna_status->pass == 1 ? 'pass' : 'fail' )
-        );
-    }
+    if ( $well ) {
+        if ( $dna_status = $well->well_dna_status ) {
+            $self->throw( Validation => "Well $well already has a dna status of "
+                    . ( $dna_status->pass == 1 ? 'pass' : 'fail' )
+            );
+        }
 
-    my $dna_status = $well->create_related(
-        well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
-    );
-    $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
+        $dna_status = $well->create_related(
+            well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
+        );
+        $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
+    }
+    else {
+        $dna_status = undef;
+    }
 
     return $dna_status;
 }
@@ -857,6 +912,7 @@ sub update_or_create_well_targeting_pass {
 sub retrieve_well_targeting_puro_pass {
     my ( $self, $params ) = @_;
 
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
@@ -869,6 +925,7 @@ sub retrieve_well_targeting_puro_pass {
 sub retrieve_well_targeting_pass {
     my ( $self, $params ) = @_;
 
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
@@ -968,6 +1025,7 @@ sub update_or_create_well_chromosome_fail {
 sub retrieve_well_chromosome_fail {
     my ( $self, $params ) = @_;
 
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
     # retrieve_well() will validate the parameters
     my $well = $self->retrieve_well( $params );
 
@@ -1034,6 +1092,7 @@ sub create_well_genotyping_result {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
         });
+        $self->has_dre_been_applied ($validated_params);
     }
     return $genotyping_result;
 }
@@ -1072,6 +1131,7 @@ sub update_or_create_well_genotyping_result {
                    $update_request->{confidence} = undef;
                }
                $genotyping_result->update( $update_request );
+               $self->has_dre_been_applied ($validated_params);
                $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                          ." updated from ".$previous." to ".$genotyping_result->call;
            }
@@ -1084,8 +1144,12 @@ sub update_or_create_well_genotyping_result {
             # The assay parameter to update is not a 'call', so no ranking needs to be applied
             my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
             my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
-            my $previous = $genotyping_result->$assay_field // 'undefined';
+
+            my $previous = defined ($genotyping_result->$assay_field) ? $genotyping_result->$assay_field : 'undefined';
+#            my $previous = $genotyping_result->$assay_field // 'undefined';
+
             $genotyping_result->update( $update_request );
+            $self->has_dre_been_applied ($validated_params);
             $message = 'Genotyping result for ' . $validated_params->{genotyping_result_type_id} . '/' . $assay_field
                 . ' updated from ' . $previous . ' to ' . $genotyping_result->$assay_field;
        }
@@ -1097,6 +1161,7 @@ sub update_or_create_well_genotyping_result {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
         });
+        $self->has_dre_been_applied ($validated_params);
         $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                   ." created with result ".$genotyping_result->call;
     }
@@ -1130,14 +1195,45 @@ sub retrieve_well_genotyping_result {
 
 sub delete_well_genotyping_result {
     my ( $self, $params ) = @_;
-
     # retrieve_well() will validate the parameters
     my $genotyping_result = $self->retrieve_well_genotyping_result( $params );
 
     $genotyping_result->delete;
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
+    # last line necessary because has_dre_been_applied relies on retrieve_well too
+    $self->has_dre_been_applied($params);
     $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
 
     return;
+}
+
+sub has_dre_been_applied {
+# params have always been validated before entering this method
+    my ( $self, $params ) = @_;
+
+    my $well = $self->retrieve_well( {slice_def $params, qw( plate_name well_name id)} );
+    return unless (! $well->is_double_targeted);
+    my @process = $well->parent_processes;
+    return unless scalar(@process) == 1 or (! well->is_double_targeted);
+
+    if ($well->cassette->cre and $params->{genotyping_result_type_id} eq 'puro' and $well->plate->type_id eq 'EP_PICK') {
+        # check for existing dre recombinase
+        my $dre_process = $process[0]->search_related('process_recombinases', {'recombinase_id' => 'Dre'})->first;
+        if (($params->{call} =~ 'pass') && ! defined($dre_process)) {
+            # add dre to wells parent process
+            my %recombinase_params = (
+                   plate_name  => $well->plate->name,
+                   well_name   => $well->name,
+                   recombinase => ['Dre'],
+               );
+            create_process_aux_data_recombinase( $self, \%recombinase_params, $process[0] );
+        }
+        elsif ( ( ! ($params->{call} =~ 'pass')) and $dre_process) {
+            # remove dre from parent process
+            $dre_process->delete;
+        }
+    }
+    return 1;
 }
 
 1;

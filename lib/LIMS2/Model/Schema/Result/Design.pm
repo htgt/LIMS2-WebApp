@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.051';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.060';
 }
 ## use critic
 
@@ -47,7 +47,9 @@ __PACKAGE__->table("designs");
 =head2 id
 
   data_type: 'integer'
+  is_auto_increment: 1
   is_nullable: 0
+  sequence: 'designs_id_seq'
 
 =head2 name
 
@@ -76,7 +78,7 @@ __PACKAGE__->table("designs");
 =head2 phase
 
   data_type: 'integer'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 validated_by_annotation
 
@@ -98,7 +100,12 @@ __PACKAGE__->table("designs");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_nullable => 0 },
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "designs_id_seq",
+  },
   "name",
   { data_type => "text", is_nullable => 1 },
   "created_by",
@@ -113,7 +120,7 @@ __PACKAGE__->add_columns(
   "design_type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "phase",
-  { data_type => "integer", is_nullable => 0 },
+  { data_type => "integer", is_nullable => 1 },
   "validated_by_annotation",
   { data_type => "text", is_nullable => 0 },
   "target_transcript",
@@ -257,8 +264,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ylRLom6mY0wW0r2ZaZpJTg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-03-21 14:59:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r/vjACKXaHwSOO81dUkVLg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -274,6 +281,26 @@ __PACKAGE__->many_to_many(
     "process_designs",
     "process"
 );
+
+require LIMS2::Model::Util::DesignInfo;
+has 'info' => (
+    is      => 'ro',
+    isa     => 'LIMS2::Model::Util::DesignInfo',
+    lazy    => 1,
+    builder => '_build_design_info',
+    handles => {
+        chr_name            => 'chr_name',
+        chr_strand          => 'chr_strand',
+        target_region_start => 'target_region_start',
+        target_region_end   => 'target_region_end',
+    }
+);
+
+sub _build_design_info {
+    my $self = shift;
+
+    return LIMS2::Model::Util::DesignInfo->new( { design => $self } );
+}
 
 sub as_hash {
     my ( $self, $suppress_relations ) = @_;

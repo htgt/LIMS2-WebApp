@@ -36,3 +36,5 @@
     [%- END %]
   </tbody>
 </table>
+
+[% INCLUDE 'pagination.tt' pageset = pageset %]

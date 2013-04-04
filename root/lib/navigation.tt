@@ -51,6 +51,11 @@
               </a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/report/vector/DesignVectors' ) %]">
+                Vectors By Design
+              </a>
+            </li>            
+            <li>
               <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
                 First Allele Electroporation Detail
               </a>
@@ -80,6 +85,9 @@
               <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse</a>
             </li>
             [% IF c.check_user_roles( 'edit' ) %]
+            <li>
+              <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy</a>
+            </li>
             <li>
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload</a>
             </li>
@@ -122,6 +130,18 @@
               <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
             </li>                
             [% END %]
+          </ul>
+        </li>
+
+        <li class="dropdown[% IF template.tab_name == "Designs" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Designs <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_design' ) %]">Create Design</a>
+            </li>
           </ul>
         </li>
 
