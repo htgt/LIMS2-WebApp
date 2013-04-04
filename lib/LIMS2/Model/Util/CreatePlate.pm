@@ -94,6 +94,9 @@ sub find_parent_well_ids {
 
         delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
     }
+    elsif ( $params->{process_type} eq 'create_di' ) {
+        return [];
+    }
     else {
         push @parent_well_ids, well_id_for(
             $model, {
