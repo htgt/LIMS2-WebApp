@@ -11,6 +11,9 @@ use Readonly;
 #this is all of the HTGT::Env package merged into a single file, so it
 #can be run from within LIMS2 hassle free.
 
+#perlcritic objects to all kinds of stuff in here and its not worth fixing:
+## no critic (RequireBlockGrep, RequireBlockMap, RequireFinalReturn, ProhibitMultiplePackages, RequireLocalizedPunctuationVars)
+
 {
     package HTGT::EnvVar::Scalar;
 
@@ -45,12 +48,12 @@ use Readonly;
     coerce 'ArrayRefOfStrs'
         => from 'Str'
         => via { [ reverse split /:/ ] };
-        
+
     has 'values' => (
         is => 'rw',
         isa => 'ArrayRefOfStrs',
         coerce => 1,
-        default => sub { [] }, 
+        default => sub { [] },
     );
 
     sub merge {
@@ -58,7 +61,7 @@ use Readonly;
 
         if ( not ref $new_values ) {
             push @{ $self->values }, reverse split /:/, $new_values;
-        }    
+        }
         elsif ( ref $new_values eq 'ARRAY' ) {
             push @{ $self->values }, @{ $new_values };
         }
@@ -83,7 +86,7 @@ use Readonly;
         is       => 'rw',
         isa      => 'HashRef',
         init_arg => undef,
-        default  => sub { {} }, 
+        default  => sub { {} },
     );
 
     sub add {
@@ -93,7 +96,7 @@ use Readonly;
         confess( "cannot add duplicate variable '$name' to environment" )
             if $self->var($name);
 
-        my $class;        
+        my $class;
         if ( uc( $args->{type} ) eq 'SCALAR' ) {
             $class = 'HTGT::EnvVar::Scalar';
         }
@@ -103,25 +106,25 @@ use Readonly;
         else {
             confess( "illegal type '$args->{type}' for environment variable" );
         }
-        
+
         my $envvar = $class->new();
         $envvar->merge( $args->{value} )
             if defined $args->{value};
-        
+
         $self->_env_vars->{$name} = $envvar;
-        
+
     }
 
     sub add_application_paths {
         my ( $self, $base_dir, @app_config ) = @_;
-        
+
         # Merge arguments, each of which should be a hashref, into a single hash, with
         # later arguments overriding earlier ones.
         my %applications = ( map %$_, grep defined, @app_config );
-        
+
         $self->add( { name => 'PATH', type => 'LIST' } )
             unless $self->exists( 'PATH' );
-            
+
         while ( my ( $name, $version ) = each %applications ) {
             my @bin_dirs;
             for my $bin ( qw( bin sbin ) ) {
@@ -132,12 +135,12 @@ use Readonly;
             confess( "cannot find bin path for $name $version" )
                 unless @bin_dirs;
             $self->var( 'PATH' )->merge( \@bin_dirs );
-        }        
+        }
     }
 
     sub add_extras {
         my ( $self, $extras ) = @_;
-        
+
         while ( my ( $name, $values ) = each %{ $extras } ) {
             if ( $self->exists( $name ) ) {
                 if ( $self->var( $name )->isa( 'HTGT::EnvVar::Scalar' ) ) {
@@ -169,12 +172,12 @@ use Readonly;
 
     sub as_hash {
         my ( $self ) = @_;
-        
+
         my %hash;
         foreach my $name ( keys %{ $self->_env_vars } ) {
             $hash{ $name } = $self->var( $name )->as_str;
         }
-        
+
         return \%hash;
     }
 }
@@ -209,11 +212,11 @@ my %conf = Config::General->new(
 
 my $env_conf = $conf{Environment}{$envname}
     or die "Environment '$envname' not configured\n";
-    
+
 my $env_global = $conf{Environment}{GLOBAL};
 
 my %env_extra;
-while ( @ARGV ) { 
+while ( @ARGV ) {
     my ( $name, $value ) = $ARGV[0] =~ qr/^(\w+)=(\S+)$/
         or last;
     $env_extra{ $name } = [ split ":", $value ];
@@ -228,7 +231,7 @@ if ( @ARGV ) {
         #but whatever is in bash_env will get excuted.
         $env_extra{ BASH_ENV } = [ $conf{ bashrc } ];
         #then we dont need --rcfile/-i
-        @cmd = ( 
+        @cmd = (
             $conf{ bash },
             #'--rcfile', $conf{ bashrc },
             '-c', join( " ", @ARGV ), #run the users command in a new interactive bash shell 
@@ -250,7 +253,7 @@ while ( my ( $varname, $type) = each %{ $conf{Export} } ) {
         {
             name  => $varname,
             type  => $type,
-            value => $env_global->{ $varname } 
+            value => $env_global->{ $varname }
         }
     );
     $env->var( $varname )->merge( $env_conf->{$varname} )

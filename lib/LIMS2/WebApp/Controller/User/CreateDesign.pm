@@ -12,9 +12,9 @@ use LIMS2::Util::FarmJobRunner;
 BEGIN { extends 'Catalyst::Controller' };
 
 #use this default if the env var isnt set.
-const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } // 
+const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_designs' );
-const my @DESIGN_TYPES => ( 
+const my @DESIGN_TYPES => (
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
             #{ cmd => 'insertion-design', display_name => 'Insertion' },
             #{ cmd => 'conditional-design', display_name => 'Conditional' },
@@ -25,7 +25,7 @@ const my @DESIGN_TYPES => (
 #        { cmd => 'block', display_name => 'Block Specified' },
 #        { cmd => 'location', display_name => 'Location Specified' }
 #    );
- 
+
 sub index : Path( '/user/create_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -43,7 +43,7 @@ sub index : Path( '/user/create_design' ) : Args(0) {
         $params->{ user_id } = $c->user->name;
 
         $c->stash( {
-            target_gene  => $params->{ target_gene }, 
+            target_gene  => $params->{ target_gene },
             target_start => $params->{ target_start },
             target_end   => $params->{ target_end },
             chromosome   => $params->{ chromosome },
@@ -57,9 +57,9 @@ sub index : Path( '/user/create_design' ) : Args(0) {
         my $runner = LIMS2::Util::FarmJobRunner->new;
 
         try {
-            my $job_id = $runner->submit( 
-                out_file => $params->{ output_dir }->file( "design_creation.out" ), 
-                cmd      => $self->get_design_cmd( $params ), 
+            my $job_id = $runner->submit(
+                out_file => $params->{ output_dir }->file( "design_creation.out" ),
+                cmd      => $self->get_design_cmd( $params ),
             );
 
             $c->stash( success_msg => "Successfully created job $job_id with run id $uuid" );
@@ -68,9 +68,9 @@ sub index : Path( '/user/create_design' ) : Args(0) {
             $c->stash( error_msg => "Error submitting Design Creation job: $_" );
             return;
         };
-
-        
     }
+
+    return;
 
     #ins-del-design --design-method deletion --chromosome 11 --strand 1 
     #--target-start 101176328 --target-end 101176428 --target-gene LBLtest 
@@ -86,7 +86,7 @@ sub get_design_cmd {
     #an undef here will raise an exception.
 
     return [
-        'design-create', 
+        'design-create',
         $DESIGN_TYPES[ $params->{ design_type } ]->{ 'cmd' }, #look up selected design type cmd
         '--debug',
         '--created-by', $params->{ user_id },
@@ -113,7 +113,7 @@ sub get_design_cmd {
 
 sub pspec_create_design {
     return {
-        design_type   => { validate => 'integer' }, 
+        design_type   => { validate => 'integer' },
         target_gene   => { validate => 'non_empty_string' },
         target_start  => { validate => 'integer' },
         target_end    => { validate => 'integer' },
@@ -130,7 +130,7 @@ sub pspec_create_design {
         g3_offset     => { validate => 'integer' },
         create_design => { optional => 0 } #this is the submit button
     };
-} 
+}
 
 __PACKAGE__->meta->make_immutable;
 
