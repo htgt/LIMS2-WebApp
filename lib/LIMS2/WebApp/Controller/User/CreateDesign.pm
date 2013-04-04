@@ -11,8 +11,9 @@ use LIMS2::Util::FarmJobRunner;
 
 BEGIN { extends 'Catalyst::Controller' };
 
-#should come from a config file somewhere?
-const my $DEFAULT_DESIGNS_DIR => dir( '/', 'lustre', 'scratch109', 'sanger', 'team87', 'lims2_designs' );
+#use this default if the env var isnt set.
+const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } // 
+                                    '/lustre/scratch109/sanger/team87/lims2_designs' );
 const my @DESIGN_TYPES => ( 
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
             #{ cmd => 'insertion-design', display_name => 'Insertion' },
@@ -24,34 +25,22 @@ const my @DESIGN_TYPES => (
 #        { cmd => 'block', display_name => 'Block Specified' },
 #        { cmd => 'location', display_name => 'Location Specified' }
 #    );
-
-#
-#
-# TODO ON MONDAY:
-#   map the new diagram fields to actual flags in saj's program.
-#   strand needs another option - is it right?
-#   chromosome as dropdown?
-#   do some runs and check its all working
-#   run it by mark
-#   see what he requires next.
-#   add a link to this page
-#   specify default dir elsewhere
-#
-#
-
-#TODO: add link to this page 
+ 
 sub index : Path( '/user/create_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
 
     #used to populate the design type dropdown.
-    $c->stash( { design_types => \@DESIGN_TYPES } );
+    $c->stash( design_types => \@DESIGN_TYPES );
 
     my $params = $c->request->params;
 
     if ( exists $c->request->params->{ create_design } ) {
         $c->model( 'Golgi' )->check_params( $params, $self->pspec_create_design );
+
+        #we need the username and this saves passing the whole $c object.
+        $params->{ user_id } = $c->user->name;
 
         $c->stash( {
             target_gene  => $params->{ target_gene }, 
@@ -100,6 +89,7 @@ sub get_design_cmd {
         'design-create', 
         $DESIGN_TYPES[ $params->{ design_type } ]->{ 'cmd' }, #look up selected design type cmd
         '--debug',
+        '--created-by', $params->{ user_id },
         #required parameters
         '--target-gene', $params->{ target_gene },
         '--target-start', $params->{ target_start },
