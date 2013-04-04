@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.059     2013-03-28 16:35:17 Europe/London
+
+0.057     2013-03-12 13:03:23 Europe/London
+
+    Make phase optional on a design
+    Add legacy_gateway process type
+
 0.056     2013-03-11 16:08:02 Europe/London
 
 	Releasing Copy Plate, Genotyping and Final Pick functionality
