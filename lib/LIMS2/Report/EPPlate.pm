@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPlate::VERSION = '0.059';
+    $LIMS2::Report::EPPlate::VERSION = '0.061';
 }
 ## use critic
 
@@ -44,6 +44,7 @@ override _build_columns => sub {
 
     my @columns = (
         $self->base_columns,
+        "DNA Well",
         "Cassette", "Recombinases", "Cell Line",
         $self->colony_count_column_names,
         "Number Picked", "Number Accepted"
@@ -75,6 +76,7 @@ override iterator => sub {
 
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
         my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
+        my $dna_well = $well->first_dna;
 
         DEBUG "Found cell_line $cell_line";
 
@@ -82,6 +84,7 @@ override iterator => sub {
 
         return [
             $self->base_data( $well ),
+            $dna_well->as_string,
             $cassette,
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,

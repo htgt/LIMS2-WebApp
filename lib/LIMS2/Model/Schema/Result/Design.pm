@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.059';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.061';
 }
 ## use critic
 
@@ -281,6 +281,26 @@ __PACKAGE__->many_to_many(
     "process_designs",
     "process"
 );
+
+require LIMS2::Model::Util::DesignInfo;
+has 'info' => (
+    is      => 'ro',
+    isa     => 'LIMS2::Model::Util::DesignInfo',
+    lazy    => 1,
+    builder => '_build_design_info',
+    handles => {
+        chr_name            => 'chr_name',
+        chr_strand          => 'chr_strand',
+        target_region_start => 'target_region_start',
+        target_region_end   => 'target_region_end',
+    }
+);
+
+sub _build_design_info {
+    my $self = shift;
+
+    return LIMS2::Model::Util::DesignInfo->new( { design => $self } );
+}
 
 sub as_hash {
     my ( $self, $suppress_relations ) = @_;

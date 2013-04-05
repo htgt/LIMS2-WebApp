@@ -1,7 +1,7 @@
 package LIMS2::Report::SEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SEPPlate::VERSION = '0.059';
+    $LIMS2::Report::SEPPlate::VERSION = '0.061';
 }
 ## use critic
 
@@ -27,7 +27,7 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    return [ $self->base_columns, 'Number Picked', 'Number Accepted' ];
+    return [ $self->base_columns, 'First DNA Well', 'Second DNA Well', 'Number Picked', 'Number Accepted' ];
 };
 
 override iterator => sub {
@@ -47,8 +47,13 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
+        my $second_dna = $well->second_dna;
+
         return [
-            $self->base_data( $well ), $self->pick_counts( $well, 'SEP_PICK' )
+            $self->base_data( $well ),
+            $well->first_dna->as_string,
+            $well->second_dna->as_string,
+            $self->pick_counts( $well, 'SEP_PICK' )
         ];
     };
 };
