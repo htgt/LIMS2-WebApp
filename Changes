@@ -5,6 +5,12 @@
 
 0.059     2013-03-28 16:35:17 Europe/London
 
+   Add 'distribute' and 'override' columns to the Genotyping QC grid display/edit page.
+   Add help and csv download to Genotyping QC grid.
+
+0.058     2013-03-14 09:48:07 Europe/London
+   Fix for copy plate functionality
+
 0.057     2013-03-12 13:03:23 Europe/London
 
     Make phase optional on a design
