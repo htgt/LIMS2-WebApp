@@ -181,5 +181,77 @@ sub as_hash {
     };
 }
 
+#
+# TODO move to constants?
+#
+my %ARTIFICIAL_INTRON_OLIGO_APPENDS = (
+    "G3" => "CCACTGGCCGTCGTTTTACA",
+    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
+    "D3" => "TGAACTGATGGCGAGCTCAGACC",
+    "D5" => "GAGATGGCGCAACGCAATTAATG",
+    "U3" => "CTGAAGGAAATTAGATGTAAGGAGC",
+    "U5" => "GTGAGTGTGCTAGAGGGGGTG",
+);
+
+my %STANDARD_KO_OLIGO_APPENDS = (
+    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
+    "G3" => "CCACTGGCCGTCGTTTTACA",
+    "U5" => "AAGGCGCATAACGATACCAC",
+    "U3" => "CCGCCTACTGCGACTATAGA",
+    "D5" => "GAGATGGCGCAACGCAATTAATG",
+    "D3" => "TGAACTGATGGCGAGCTCAGACC",
+);
+
+my %STANDARD_INS_DEL_OLIGO_APPENDS = (
+    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
+    "G3" => "CCACTGGCCGTCGTTTTACA",
+    "U5" => "AAGGCGCATAACGATACCAC",
+    "D3" => "CCGCCTACTGCGACTATAGA",
+);
+my %OLIGO_STRAND_VS_DESIGN_STRAND = (
+    "G5" => -1,
+    "U5" => 1,
+    "U3" => -1,
+    "D5" => 1,
+    "D3" => -1,
+    "G3" => 1,
+);
+
+=head2 oligo_order_seq
+
+Sequence used when ordering the oligo.
+Need to add the correct append sequence and revcomp if needed.
+
+=cut
+sub oligo_order_seq {
+    my $self = shift;
+
+    my $revcomp;
+    #
+    my $oligo_type = $self->design_oligo_type_id;
+    my $design_strand = $self->design->chr_strand;
+    my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $oligo_type };
+
+    if ( $design_strand == $oligo_strand ) {
+        $revcomp = 'no';
+    }
+    # design_strand not equal to oligo_strand
+    else {
+        $revcomp = 'yes';
+    }
+}
+
+=head2 oligo_strand_vs_design_strand
+
+What is the orientation of the oligo in relation to strand the design is targeted against.
+Remember, all oligo sequence is stored on the +ve strand, no matter the design strand.
+
+For example, the U5 oligo is on the same strand as the design ( 1 )
+So a U5 oligo for a +ve stranded design is on the +ve strand ( i.e do not revcomp )
+Conversly, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e we must revcomp it )
+
+=cut
+
+
 __PACKAGE__->meta->make_immutable;
 1;
