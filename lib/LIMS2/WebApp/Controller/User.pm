@@ -80,8 +80,7 @@ sub index :Path :Args(0) {
 	my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
 	my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
 
-	# TODO: validate params
-
+	# Fetch details from returned report parameters
 	my $report_id = $report_params->{ report_id };
 	my $title = $report_params->{ title };
 	my $columns = $report_params->{ columns };
@@ -89,7 +88,10 @@ sub index :Path :Args(0) {
 	my $dt_rows = $report_params->{ dt_rows };
 	my $st_data = $report_params->{ st_data };
 	my $dt_data = $report_params->{ dt_data };
-	
+		
+	### $st_data
+	### $dt_data
+
 	# Store report values in stash for display onscreen
     $c->stash(
         report_id => $report_id,

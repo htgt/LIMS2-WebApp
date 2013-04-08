@@ -15,11 +15,15 @@ use Readonly;
 
 Log::Log4perl->easy_init($DEBUG);
 
+extends qw( LIMS2::ReportGenerator );
+
 # Rows on report view
 Readonly my @SINGLE_TARGETED_REPORT_CATEGORIES => (
     'Targeted Genes',
     'Vectors',
     'Valid DNA',
+	'1st Allele Electroporations',
+	'Accepted Clones',
 );
 
 Readonly my @DOUBLE_TARGETED_REPORT_CATEGORIES => (
@@ -28,8 +32,13 @@ Readonly my @DOUBLE_TARGETED_REPORT_CATEGORIES => (
     'Neo Vectors',
     'Blast Vectors',
     'Valid DNA',
-    'Neo Valid DNA',
-    'Blast Valid DNA',
+    'Neomycin Valid DNA',
+    'Blasticidin Valid DNA',
+	'1st Allele Electroporations',
+	'Neomycin 1st Allele Electroporations',
+	'Blasticidin 1st Allele Electroporations',
+	'2nd Allele Electroporations',
+	'Accepted Clones',
 );
 
 has model => (
@@ -43,6 +52,10 @@ has species => (
     isa      => 'Str',
     required => 1
 );
+
+#----------------------------------------------------------
+# For Home page main report
+#----------------------------------------------------------
 
 has sponsors => (
     is         => 'ro',
@@ -107,14 +120,48 @@ sub _build_sponsor_column_data_single_targeted {
 	my $targeting_type = 'single_targeted';
 
 	DEBUG "fetching column data for single-targeted projects ";
-
-	$sponsor_data_single->{'Targeted Genes'}{$sponsor_id} = $self->genes( $sponsor_id, $targeting_type );
-
-	# only continue if targeted genes found
-	$sponsor_data_single->{'Vectors'}{$sponsor_id} = $self->vectors( $sponsor_id, $targeting_type );
 	
-	# only continue if vectors found
-	$sponsor_data_single->{'Valid DNA'}{$sponsor_id} = $self->dna( $sponsor_id, $targeting_type );
+	my $count_tgs = $self->genes( $sponsor_id, $targeting_type );
+	$sponsor_data_single->{'Targeted Genes'}{$sponsor_id} = $count_tgs;
+
+	# only look if targeted genes found
+	my $count_vectors = 0;
+	if ( $count_tgs > 0 ) {
+		$count_vectors = $self->vectors( $sponsor_id, $targeting_type );
+	}
+	$sponsor_data_single->{'Vectors'}{$sponsor_id} = $count_vectors;
+
+	$sponsor_data_single->{'Neo Vectors'}{$sponsor_id} = -1;
+	$sponsor_data_single->{'Blast Vectors'}{$sponsor_id} = -1;
+	
+	# only look if vectors found
+	my $count_dna = 0;
+	if ( $count_vectors > 0 ) {
+		$count_dna = $self->dna( $sponsor_id, $targeting_type );
+	}
+	$sponsor_data_single->{'Valid DNA'}{$sponsor_id} = $count_dna;
+
+    $sponsor_data_single->{'Neomycin Valid DNA'}{$sponsor_id} = -1;
+	$sponsor_data_single->{'Blasticidin Valid DNA'}{$sponsor_id} = -1;
+
+	# only look if dna found
+	my $count_eps = 0;
+	if ( $count_dna > 0 ) {
+		$count_eps = $self->electroporations( $sponsor_id, $targeting_type );
+	}
+	$sponsor_data_single->{'1st Allele Electroporations'}{$sponsor_id} = $count_eps;
+
+	$sponsor_data_single->{'Neomycin 1st Allele Electroporations'}{$sponsor_id} = -1;
+    $sponsor_data_single->{'Blasticidin 1st Allele Electroporations'}{$sponsor_id} = -1;
+
+	$sponsor_data_single->{'2nd Allele Electroporations'}{$sponsor_id} = -1;
+
+	# only look if first electroporations found
+	my $count_clones = 0;
+	if ( $count_eps > 0 ) {
+		$count_clones = $self->clones( $sponsor_id, $targeting_type );
+	} 
+    $sponsor_data_single->{'Accepted Clones'}{$sponsor_id} = $count_clones;
 
 }
 
@@ -125,21 +172,73 @@ sub _build_sponsor_column_data_double_targeted {
 
 	DEBUG "fetching column data for double-targeted projects ";
 
-	$sponsor_data_double->{'Targeted Genes'}{$sponsor_id} = $self->genes( $sponsor_id, $targeting_type );
+	my $count_tgs = $self->genes( $sponsor_id, $targeting_type );
+	$sponsor_data_double->{'Targeted Genes'}{$sponsor_id} = $count_tgs;
 
-	# only continue if targeted genes found
-    $sponsor_data_double->{'Vectors'}{$sponsor_id} = $self->vectors( $sponsor_id, $targeting_type );
+	# only look if targeted genes found
+	my $count_vectors = 0;
+	if ( $count_tgs > 0 ) {
+		$count_vectors = $self->vectors( $sponsor_id, $targeting_type );
+	}
+    $sponsor_data_double->{'Vectors'}{$sponsor_id} = $count_vectors;
 
-	# only continue if vectors found
-	$sponsor_data_double->{'Neo Vectors'}{$sponsor_id} = $self->neo_vectors( $sponsor_id, $targeting_type );
-	$sponsor_data_double->{'Blast Vectors'}{$sponsor_id} = $self->blast_vectors( $sponsor_id, $targeting_type);
+	# only look if vectors found
+	my $count_neo_vectors = 0;
+	my $count_blast_vectors = 0;
+	if ( $count_vectors > 0 ) {
+		$count_neo_vectors = $self->neo_vectors( $sponsor_id, $targeting_type );
+		$count_blast_vectors = $self->blast_vectors( $sponsor_id, $targeting_type);
+	}	
+	$sponsor_data_double->{'Neo Vectors'}{$sponsor_id} = $count_neo_vectors;
+	$sponsor_data_double->{'Blast Vectors'}{$sponsor_id} = $count_blast_vectors;
 
-	# only continue if vectors found
-    $sponsor_data_double->{'Valid DNA'}{$sponsor_id} = $self->dna( $sponsor_id, $targeting_type );
+	# only look if vectors found
+	my $count_dna = 0;
+	if ( $count_vectors > 0 ) {
+		$count_dna = $self->dna( $sponsor_id, $targeting_type );
+	}
+    $sponsor_data_double->{'Valid DNA'}{$sponsor_id} = $count_dna;
 
-    # only continue if DNA found
-	$sponsor_data_double->{'Neo Valid DNA'}{$sponsor_id} = $self->neo_dna( $sponsor_id, $targeting_type );
-	$sponsor_data_double->{'Blast Valid DNA'}{$sponsor_id} = $self->blast_dna( $sponsor_id, $targeting_type );
+    # only look if DNA found
+	my $count_neo_dna = 0;
+	my $count_blast_dna = 0;
+	if ( $count_dna > 0 ) {
+		$count_neo_dna = $self->neo_dna( $sponsor_id, $targeting_type );
+		$count_blast_dna = $self->blast_dna( $sponsor_id, $targeting_type );
+	}
+	$sponsor_data_double->{'Neomycin Valid DNA'}{$sponsor_id} = $count_neo_dna;
+	$sponsor_data_double->{'Blasticidin Valid DNA'}{$sponsor_id} = $count_blast_dna;
+
+	# only look if dna found
+	my $count_eps = 0;
+	if ( $count_dna > 0 ) {
+		$count_eps = $self->electroporations( $sponsor_id, $targeting_type );
+	}
+	$sponsor_data_double->{'1st Allele Electroporations'}{$sponsor_id} = $count_eps;
+
+	# only look if electroporations found
+	my $count_neo_eps = 0;
+    my $count_blast_eps = 0;
+	if ( $count_eps > 0 ) {
+		$count_neo_eps = $self->resistance_electroporations( $sponsor_id, 'neoR' );
+		$count_blast_eps = $self->resistance_electroporations( $sponsor_id, 'blastR' );
+	} 
+    $sponsor_data_double->{'Neomycin 1st Allele Electroporations'}{$sponsor_id} = $count_neo_eps;
+    $sponsor_data_double->{'Blasticidin 1st Allele Electroporations'}{$sponsor_id} = $count_blast_eps;
+
+	# only look if electroporations found
+	my $count_second_eps = 0;
+	if ( $count_eps > 0 ) {
+		$count_second_eps = $self->second_electroporations( $sponsor_id, $targeting_type );
+	} 
+    $sponsor_data_double->{'2nd Allele Electroporations'}{$sponsor_id} = $count_second_eps;
+
+	# only look if electroporations found
+	my $count_clones = 0;
+	if ( $count_eps > 0 ) {
+		$count_clones = $self->clones( $sponsor_id, $targeting_type );
+	} 
+    $sponsor_data_double->{'Accepted Clones'}{$sponsor_id} = $count_clones;
 
 }
 
@@ -172,7 +271,7 @@ sub generate_top_level_report_for_sponsors {
 	return \%return_params;
 }
 
-# Set up SQL query to count targeted genes for sponsor id
+# Set up SQL query to count targeted genes for a sponsor id
 sub create_sql_count_targeted_gene_projects_for_sponsor {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
@@ -188,9 +287,9 @@ SQL_END
 	return $sql_query;
 }
 
-# Set up SQL query to count number of vectors for single-targeted projects e.g. Cre Knockin
+# Set up SQL query to count number of vectors for single-targeted projects for a sponsor
 sub create_sql_count_vectors_for_single_targeted_sponsor_project {
-	my ( $self, $sponsor_id, $targeting_type ) = @_;
+	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
 SELECT count(distinct(s.design_gene_id)) FROM summaries s
@@ -199,15 +298,15 @@ SELECT count(distinct(s.design_gene_id)) FROM summaries s
  WHERE p.sponsor_id = '$sponsor_id'
  AND c.cre = 't'
  AND s.final_well_accepted = 't'
- AND p.targeting_type = '$targeting_type'
+ AND p.targeting_type = 'single_targeted'
 SQL_END
 
 	return $sql_query;
 }
 
-# Set up SQL query to count number of vectors for double-targeted projects e.g. Syboss
+# Set up SQL query to count number of vectors for double-targeted projects for a sponsor
 sub create_sql_count_vectors_for_double_targeted_sponsor_project {
-	my ( $self, $sponsor_id, $targeting_type ) = @_;
+	my ( $self, $sponsor_id ) = @_;
 	
 my $sql_query =  <<"SQL_END";
 SELECT COUNT(distinct(s.design_gene_id)) FROM summaries s
@@ -216,16 +315,16 @@ SELECT COUNT(distinct(s.design_gene_id)) FROM summaries s
  WHERE p.sponsor_id = '$sponsor_id'
  AND c.cre = 'f'
  AND s.final_pick_well_accepted = 't'
- AND p.targeting_type = '$targeting_type'
+ AND p.targeting_type = 'double_targeted'
 SQL_END
 
 	return $sql_query;
 }
 
 # Set up SQL query to count vectors which contain specific resistance 
-# cassettes for double-targeted projects e.g. neoR cassette Syboss
+# cassettes for double-targeted projects for a sponsor
 sub create_sql_count_resistance_vectors_for_double_targeted_sponsor_project {
-    my ( $self, $sponsor_id, $targeting_type, $resistance ) = @_;
+    my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
 SELECT count(distinct(s.design_gene_id)) FROM summaries s
@@ -235,15 +334,15 @@ SELECT count(distinct(s.design_gene_id)) FROM summaries s
  AND s.final_pick_well_accepted = 't'
  AND c.cre = 'f'
  AND c.resistance = '$resistance'
- AND p.targeting_type = '$targeting_type'
+ AND p.targeting_type = 'double_targeted'
 SQL_END
 
 	return $sql_query;
 }
 
-# Set up SQL query to count number of accepted DNA wells for single-targeted projects e.g. Cre Knockin
+# Set up SQL query to count number of accepted DNA wells for single-targeted projects for a sponsor
 sub create_sql_count_DNA_for_single_targeted_sponsor_project {
-	my ( $self, $sponsor_id, $targeting_type ) = @_;
+	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
 SELECT count(distinct(s.design_gene_id))
@@ -254,15 +353,15 @@ SELECT count(distinct(s.design_gene_id))
  AND c.cre = 't'
  AND s.dna_well_id > 0
  AND s.dna_status_pass = 't'
- AND p.targeting_type = '$targeting_type'
+ AND p.targeting_type = 'single_targeted'
 SQL_END
 
 	return $sql_query;
 }
 
-# Set up SQL query to count number of accepted DNA wells for double-targeted projects e.g. Syboss
+# Set up SQL query to count number of accepted DNA wells for double-targeted projects for a sponsor
 sub create_sql_count_DNA_for_double_targeted_sponsor_project {
-	my ( $self, $sponsor_id, $targeting_type ) = @_;
+	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
 SELECT count(distinct(s.design_gene_id))
@@ -273,16 +372,16 @@ SELECT count(distinct(s.design_gene_id))
  AND c.cre = 'f'
  AND s.dna_well_id > 0
  AND s.dna_status_pass = 't'
- AND p.targeting_type = '$targeting_type'
+ AND p.targeting_type = 'double_targeted'
 SQL_END
 
 	return $sql_query;
 }
 
 # Set up SQL query to count number of accepted resistance cassette DNA wells
-# for double-targeted projects e.g. Syboss
+# for double-targeted projects for a sponsor
 sub create_sql_count_resistance_DNA_for_double_targeted_sponsor_project {
-	my ( $self, $sponsor_id, $targeting_type, $resistance ) = @_;
+	my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
 SELECT count(distinct(s.design_gene_id))
@@ -294,14 +393,123 @@ SELECT count(distinct(s.design_gene_id))
  AND s.dna_well_id > 0
  AND s.dna_status_pass = 't'
  AND c.resistance = '$resistance'
- AND p.targeting_type = '$targeting_type'
+ AND p.targeting_type = 'double_targeted'
 SQL_END
 
 	return $sql_query;
 }
 
-# Generic method to run SQL
-sub run_query {
+# Set up SQL query to count number of electroporations for single-targeted
+# projects for a sponsor
+sub create_sql_count_eps_for_single_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT count(distinct(s.design_gene_id))
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 't'
+ AND s.ep_well_id > 0
+ AND p.targeting_type = 'single_targeted'
+SQL_END
+
+	return $sql_query;
+}
+
+# Set up SQL query to count number of first electroporations for double-targeted
+# projects for a sponsor
+sub create_sql_count_eps_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT count(distinct(s.design_gene_id))
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.ep_well_id > 0
+ AND p.targeting_type = 'double_targeted'
+SQL_END
+
+	return $sql_query;
+}
+
+# Set up SQL query to count number of 1st allele electroporations for a 
+# specific resistance for double-targeted projects for a sponsor
+sub create_sql_count_resistance_eps_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT count(distinct(s.design_gene_id))
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.ep_well_id > 0
+ AND p.targeting_type = 'double_targeted'
+ AND c.resistance = '$resistance'
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_count_second_eps_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT count(distinct(s.design_gene_id))
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.sep_well_id > 0
+ AND p.targeting_type = 'double_targeted'
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_count_accepted_clones_for_single_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT count(distinct(s.design_gene_id))
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 't'
+ AND s.ep_pick_well_accepted = 't'
+ AND p.targeting_type = 'single_targeted'
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_count_accepted_clones_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT count(distinct(s.design_gene_id))
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.sep_pick_well_accepted = 't'
+ AND p.targeting_type = 'double_targeted'
+SQL_END
+
+	return $sql_query;
+}
+
+# Generic method to run count SQL
+sub run_count_query {
    my ( $self, $sql_query ) = @_;
 
    my $count = 0;
@@ -319,7 +527,7 @@ sub run_query {
 	return $count;
 }
 
-sub genes{
+sub genes {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
     DEBUG "finding targeted genes for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
@@ -330,12 +538,12 @@ sub genes{
 
 	DEBUG "sql query = ".$sql_query;
 
-	$count = $self->run_query( $sql_query );
+	$count = $self->run_count_query( $sql_query );
 
     return $count;
 }
 
-sub vectors{
+sub vectors {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
     DEBUG "finding vectors for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
@@ -345,10 +553,10 @@ sub vectors{
 	my $sql_query;
 
 	if( $targeting_type eq 'single_targeted' ) {
-       $sql_query = $self->create_sql_count_vectors_for_single_targeted_sponsor_project( $sponsor_id, $targeting_type );
+       $sql_query = $self->create_sql_count_vectors_for_single_targeted_sponsor_project( $sponsor_id );
 	}
 	elsif ( $targeting_type eq 'double_targeted' ) {
-       $sql_query = $self->create_sql_count_vectors_for_double_targeted_sponsor_project( $sponsor_id, $targeting_type );
+       $sql_query = $self->create_sql_count_vectors_for_double_targeted_sponsor_project( $sponsor_id );
 	}
     else {
        return 0;
@@ -356,12 +564,12 @@ sub vectors{
 
 	DEBUG "sql query = ".$sql_query;
 
-	$count = $self->run_query( $sql_query );
+	$count = $self->run_count_query( $sql_query );
 
     return $count;
 }
 
-sub neo_vectors{
+sub neo_vectors {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
     DEBUG "finding neoR vectors for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
@@ -370,16 +578,16 @@ sub neo_vectors{
 
     my $resistance = 'neoR'; 
 
-	my $sql_query = $self->create_sql_count_resistance_vectors_for_double_targeted_sponsor_project( $sponsor_id, $targeting_type, $resistance );
+	my $sql_query = $self->create_sql_count_resistance_vectors_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
 
 	DEBUG "sql query = ".$sql_query;
 
-	$count = $self->run_query( $sql_query );
+	$count = $self->run_count_query( $sql_query );
 
     return $count;
 }
 
-sub blast_vectors{
+sub blast_vectors {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
     DEBUG "finding blastR vectors for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
@@ -388,16 +596,16 @@ sub blast_vectors{
 
 	my $resistance = 'blastR';
 
-	my $sql_query = $self->create_sql_count_resistance_vectors_for_double_targeted_sponsor_project( $sponsor_id, $targeting_type, $resistance );
+	my $sql_query = $self->create_sql_count_resistance_vectors_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
 
 	DEBUG "sql query = ".$sql_query;
 
-	$count = $self->run_query( $sql_query );
+	$count = $self->run_count_query( $sql_query );
 
     return $count;
 }
 
-sub dna{
+sub dna {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
     
     DEBUG "finding dna for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
@@ -407,10 +615,10 @@ sub dna{
     my $sql_query;
 
 	if( $targeting_type eq 'single_targeted' ) {
-       $sql_query = $self->create_sql_count_DNA_for_single_targeted_sponsor_project( $sponsor_id, $targeting_type );
+       $sql_query = $self->create_sql_count_DNA_for_single_targeted_sponsor_project( $sponsor_id );
 	}
 	elsif ( $targeting_type eq 'double_targeted' ) {
-       $sql_query = $self->create_sql_count_DNA_for_double_targeted_sponsor_project( $sponsor_id, $targeting_type );
+       $sql_query = $self->create_sql_count_DNA_for_double_targeted_sponsor_project( $sponsor_id );
 	}
     else {
        return 0;
@@ -418,12 +626,12 @@ sub dna{
 
 	DEBUG "sql query = ".$sql_query;
 
-	$count = $self->run_query( $sql_query );
+	$count = $self->run_count_query( $sql_query );
 
     return $count;
 }
 
-sub neo_dna{
+sub neo_dna {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
     DEBUG "finding neoR dna for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
@@ -432,16 +640,16 @@ sub neo_dna{
 
     my $resistance = 'neoR'; 
 
-	my $sql_query = $self->create_sql_count_resistance_DNA_for_double_targeted_sponsor_project( $sponsor_id, $targeting_type, $resistance );
+	my $sql_query = $self->create_sql_count_resistance_DNA_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
 
 	DEBUG "sql query = ".$sql_query;
 
-	$count = $self->run_query( $sql_query );
+	$count = $self->run_count_query( $sql_query );
 
     return $count;
 }
 
-sub blast_dna{
+sub blast_dna {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
     DEBUG "finding neoR dna for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
@@ -450,11 +658,98 @@ sub blast_dna{
 
     my $resistance = 'blastR'; 
 
-	my $sql_query = $self->create_sql_count_resistance_DNA_for_double_targeted_sponsor_project( $sponsor_id, $targeting_type, $resistance );
+	my $sql_query = $self->create_sql_count_resistance_DNA_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
 
 	DEBUG "sql query = ".$sql_query;
 
-	$count = $self->run_query( $sql_query );
+	$count = $self->run_count_query( $sql_query );
+
+    return $count;
+}
+
+sub electroporations {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+    DEBUG "finding electroporations for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
+
+	my $count = 0;
+
+	my $sql_query;	
+
+	if( $targeting_type eq 'single_targeted' ) {
+       $sql_query = $self->create_sql_count_eps_for_single_targeted_sponsor_project( $sponsor_id );
+	}
+	elsif ( $targeting_type eq 'double_targeted' ) {
+       $sql_query = $self->create_sql_count_eps_for_double_targeted_sponsor_project( $sponsor_id );
+	}
+    else {
+       return 0;
+    } 
+
+	DEBUG "sql query = ".$sql_query;
+
+	$count = $self->run_count_query( $sql_query );
+
+    return $count;
+}
+
+sub resistance_electroporations {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+    DEBUG "finding ".$resistance." electroporations for sponsor id = ".$sponsor_id;
+
+	my $count = 0;
+	my $sql_query;	
+
+	$sql_query = $self->create_sql_count_resistance_eps_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
+	
+	DEBUG "sql query = ".$sql_query;
+
+	$count = $self->run_count_query( $sql_query );
+
+    return $count;
+}
+
+sub second_electroporations {
+	my ( $self, $sponsor_id ) = @_;
+
+    DEBUG "finding second electroporations for sponsor id = ".$sponsor_id;
+
+	my $count = 0;
+
+	my $sql_query;	
+
+	$sql_query = $self->create_sql_count_second_eps_for_double_targeted_sponsor_project( $sponsor_id );
+	
+	DEBUG "sql query = ".$sql_query;
+
+	$count = $self->run_count_query( $sql_query );
+
+    return $count;
+}
+
+sub clones {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+    DEBUG "finding clones for sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
+
+	my $count = 0;
+
+	my $sql_query;	
+
+	if( $targeting_type eq 'single_targeted' ) {
+       $sql_query = $self->create_sql_count_accepted_clones_for_single_targeted_sponsor_project( $sponsor_id );
+	}
+	elsif ( $targeting_type eq 'double_targeted' ) {
+       $sql_query = $self->create_sql_count_accepted_clones_for_double_targeted_sponsor_project( $sponsor_id );
+	}
+    else {
+       return 0;
+    } 
+
+	DEBUG "sql query = ".$sql_query;
+
+	$count = $self->run_count_query( $sql_query );
 
     return $count;
 }
@@ -464,7 +759,7 @@ sub build_name {
 
     my $dt = DateTime->now();
 
-    return 'Sponsor Progress Report ' . $dt->ymd;
+    return 'Pipeline Summary Report on ' . $dt->dmy;
 };
 
 sub build_columns {
@@ -476,4 +771,664 @@ sub build_columns {
     ];
 };
 
+#----------------------------------------------------------
+# Sub-reports
+#----------------------------------------------------------
+
+has sub_report_data => (
+    is         => 'ro',
+    isa        => 'ArrayRef',
+    lazy_build => 1,
+);
+
+# Generate a sub-report for a specific targeting type, stage and sponsor
+sub generate_sub_report {
+	my ($self, $sponsor_id, $targeting_type, $stage) = @_;
+
+	# reports differ based on combination of targeting type and stage
+	
+	# TODO: will initially just display same data for all
+	my $data = $self->_build_sub_report_data($sponsor_id, $targeting_type, $stage);
+
+	my ($columns, $display_columns, $display_targeting_type, $display_stage);
+	
+	if ( $targeting_type eq 'single_targeted' ) {
+		$display_targeting_type = 'single-targeted';
+		if ( $stage eq 'Targeted Genes' ) {			
+			$display_stage = 'Targeted genes';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'number_of_designs' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'number of designs' ];
+		}
+		elsif ( $stage eq 'Vectors' ) {
+			$display_stage = 'Vectors';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'backbone_name', 'cassette_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'backbone name', 'cassette name' ];
+		}
+		elsif ( $stage eq 'Valid DNA' ) {
+			$display_stage = 'Valid DNA';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'dna_plate_name', 'dna_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		elsif ( $stage eq '1st Allele Electroporations' ) {
+			$display_stage = '1st Allele Electroporations';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'ep_plate_name', 'ep_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+       elsif ( $stage eq 'Accepted Clones' ) {
+			$display_stage = 'Accepted Clones';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'ep_pick_plate_name', 'ep_pick_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		else {
+			# TODO: Error unknown type
+		}
+	} 
+	elsif ( $targeting_type eq 'double_targeted' ) {
+		$display_targeting_type = 'double-targeted';
+		if ( $stage eq 'Targeted Genes' ) {
+			$display_stage = 'Targeted genes';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'number_of_designs' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'number of designs' ];
+		}
+		elsif ( $stage eq 'Vectors' ) {
+			$display_stage = 'Vectors';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'backbone_name', 'cassette_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'backbone name', 'cassette name' ];
+		}
+		elsif ( $stage eq 'Neo Vectors' ) {
+			$display_stage = 'Neomycin-resistant Vectors';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'backbone_name', 'cassette_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'backbone name', 'cassette name' ];
+		}
+		elsif ( $stage eq 'Blast Vectors' ) {
+			$display_stage = 'Blasticidin-resistant Vectors';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'backbone_name', 'cassette_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'backbone name', 'cassette name' ];
+		}
+		elsif ( $stage eq 'Valid DNA' ) {
+			$display_stage = 'Valid DNA';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'dna_plate_name', 'dna_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		elsif ( $stage eq 'Neomycin Valid DNA' ) {
+			$display_stage = 'Neomycin-resistant Valid DNA';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'dna_plate_name', 'dna_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		elsif ( $stage eq 'Blasticidin-resistant Valid DNA' ) {
+			$display_stage = 'Valid DNA';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'dna_plate_name', 'dna_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		elsif ( $stage eq '1st Allele Electroporations' ) {
+			$display_stage = '1st Allele Electroporations';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'ep_plate_name', 'ep_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		elsif ( $stage eq 'Neomycin 1st Allele Electroporations' ) {
+			$display_stage = 'Neomycin 1st Allele Electroporations';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'ep_plate_name', 'ep_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		elsif ( $stage eq 'Blasticidin 1st Allele Electroporations' ) {
+			$display_stage = 'Blasticidin 1st Allele Electroporations';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'ep_plate_name', 'ep_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		elsif ( $stage eq '2nd Allele Electroporations' ) {
+			$display_stage = '2nd Allele Electroporations';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'sep_plate_name', 'sep_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+       elsif ( $stage eq 'Accepted Clones' ) {
+			$display_stage = 'Accepted Clones';
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'ep_pick_plate_name', 'ep_pick_well_name' ];
+			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
+		}
+		else {
+			# TODO: Error unknown type
+		}
+	}
+
+	my %return_params = (
+		'report_id' 		=> 'SponsRepSub',
+		'disp_target_type'  => $display_targeting_type,
+		'disp_stage'        => $display_stage,
+        'columns'   		=> $columns,
+		'display_columns' 	=> $display_columns,
+        'data'   	  		=> $data,
+	);
+
+	return \%return_params;
+}
+
+sub _build_sub_report_data {
+	my ($self, $sponsor_id, $targeting_type, $stage) = @_;
+	
+	my $sub_report_data;
+
+	if ( $targeting_type eq 'single_targeted' ) {
+		if ( $stage eq 'Targeted Genes' ) {
+			$sub_report_data = $self->targeted_genes_report( $sponsor_id, $targeting_type );
+		}
+		elsif ( $stage eq 'Vectors' ) {
+			$sub_report_data = $self->vectors_report ( $sponsor_id, $targeting_type );
+		}
+
+		elsif ( $stage eq 'Valid DNA' ) {
+	       $sub_report_data = $self->valid_dna_report( $sponsor_id, $targeting_type );
+		}
+		elsif ( $stage eq '1st Allele Electroporations' ) {
+	       $sub_report_data = $self->electroporations_report( $sponsor_id, $targeting_type );
+		}
+		elsif ( $stage eq 'Accepted Clones' ) {
+	       $sub_report_data = $self->accepted_clones_report( $sponsor_id, $targeting_type 		);
+		}
+		else {
+			# TODO: Error unknown type
+		}
+	} 
+	elsif ( $targeting_type eq 'double_targeted' ) {
+		if ( $stage eq 'Targeted Genes' ) {
+			$sub_report_data = $self->targeted_genes_report( $sponsor_id, $targeting_type );
+		}
+		elsif ( $stage eq 'Vectors' ) {
+			$sub_report_data = $self->vectors_report ( $sponsor_id, $targeting_type );
+		}
+		elsif ( $stage eq 'Neo Vectors' ) {
+			$sub_report_data = $self->vectors_for_resistance_report( $sponsor_id, 'neoR' );
+		}
+		elsif ( $stage eq 'Blast Vectors' ) {
+			$sub_report_data = $self->vectors_for_resistance_report( $sponsor_id, 'blastR' );
+		}
+		elsif ( $stage eq 'Valid DNA' ) {
+			$sub_report_data = $self->valid_dna_report( $sponsor_id, $targeting_type );
+		}
+		elsif ( $stage eq 'Neomycin Valid DNA' ) {
+			$sub_report_data = $self->valid_dna_for_resistance_report( $sponsor_id, 'neoR' );
+		}
+		elsif ( $stage eq 'Blasticidin Valid DNA' ) {
+			$sub_report_data = $self->valid_dna_for_resistance_report( $sponsor_id, 'blastR' );
+		}
+		elsif ( $stage eq '1st Allele Electroporations' ) {
+	       $sub_report_data = $self->electroporations_report( $sponsor_id, $targeting_type );
+		}
+		elsif ( $stage eq 'Neomycin 1st Allele Electroporations' ) {
+	       $sub_report_data = $self->first_electroporations_resistance_report( $sponsor_id, 'neoR' );
+		}
+		elsif ( $stage eq 'Blasticidin 1st Allele Electroporations' ) {
+	       $sub_report_data = $self->first_electroporations_resistance_report( $sponsor_id, 'blastR' );
+		}
+		elsif ( $stage eq '2nd Allele Electroporations' ) {
+	       $sub_report_data = $self->second_electroporations_report( $sponsor_id );
+		}
+		elsif ( $stage eq 'Accepted Clones' ) {
+	       $sub_report_data = $self->accepted_clones_report( $sponsor_id, $targeting_type 		);
+		}
+
+		else {
+			# TODO: Error unknown type
+		}
+	}
+	#TODO: other stages + error handling
+
+	# sub_report_data is a ref to an array of hashrefs
+
+    return $sub_report_data;
+}
+
+# Set up SQL query to select targeted genes for a specific sponsor and targeting type
+sub create_sql_select_targeted_genes {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, count(distinct(s.design_well_id)) AS number_of_designs
+ FROM summaries s
+ INNER JOIN projects p ON p.gene_id = s.design_gene_id 
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND p.targeting_type = '$targeting_type'
+ GROUP by s.design_gene_id, s.design_gene_symbol
+ ORDER BY s.design_gene_symbol
+SQL_END
+
+	return $sql_query;
+}
+
+# Set up SQL query to select vectors for a single targeted project
+sub create_sql_select_vectors_for_single_targeted_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_backbone_name AS backbone_name, s.final_cassette_name AS cassette_name
+FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON s.final_cassette_name = c.name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 't'
+ AND s.final_well_accepted = 't'
+ AND p.targeting_type = 'single_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_backbone_name, s.final_cassette_name
+ ORDER BY s.design_gene_symbol, s.final_cassette_name
+SQL_END
+
+	return $sql_query;
+}
+
+# Set up SQL query to select vectors for a double targeted project
+sub create_sql_select_vectors_for_double_targeted_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name AS backbone_name, s.final_pick_cassette_name AS cassette_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON s.final_pick_cassette_name = c.name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.final_pick_well_accepted = 't'
+ AND p.targeting_type = 'double_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name, s.final_pick_cassette_name
+ ORDER BY s.design_gene_symbol, s.final_pick_cassette_name
+SQL_END
+
+	return $sql_query;
+}
+
+# Set up SQL query to select vectors with a specific resistance for a double-targeted project
+sub create_sql_select_resistance_vectors_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name AS backbone_name, s.final_pick_cassette_name AS cassette_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND s.final_pick_well_accepted = 't'
+ AND c.cre = 'f'
+ AND c.resistance = '$resistance'
+ AND p.targeting_type = 'double_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name, s.final_pick_cassette_name
+ ORDER BY s.design_gene_symbol, s.final_pick_cassette_name
+SQL_END
+
+	return $sql_query;
+}
+
+# TODO: NB. Cre Knockin single-targeted projects have c.cre = t, others may not
+
+# Set up SQL query to select accepted DNA wells for single-targeted projects
+sub create_sql_select_DNA_for_single_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 't'
+ AND s.dna_well_id > 0
+ AND s.dna_status_pass = 't'
+ AND p.targeting_type = 'single_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+# Set up SQL query to select accepted DNA wells for double-targeted projects
+sub create_sql_select_DNA_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.dna_well_id > 0
+ AND s.dna_status_pass = 't'
+ AND p.targeting_type = 'double_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+# Set up SQL query to select valid DNA with a specific resistance for a double-targeted project
+sub create_sql_select_resistance_valid_DNA_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.dna_well_id > 0
+ AND s.dna_status_pass = 't'
+ AND c.resistance = '$resistance'
+ AND p.targeting_type = 'double_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_select_electroporations_for_single_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 't'
+ AND s.ep_well_id > 0
+ AND p.targeting_type = 'single_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_select_first_electroporations_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.ep_well_id > 0
+ AND p.targeting_type = 'double_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_select_resistance_first_eps_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.ep_well_id > 0
+ AND p.targeting_type = 'double_targeted'
+ and c.resistance = '$resistance'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_select_second_eps_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.sep_well_id > 0
+ AND p.targeting_type = 'double_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
+ ORDER BY s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_select_accepted_clones_for_single_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 't'
+ AND s.ep_pick_well_accepted = 't'
+ AND p.targeting_type = 'single_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
+ ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+sub create_sql_select_accepted_clones_for_double_targeted_sponsor_project {
+	my ( $self, $sponsor_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT s.design_gene_id, s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
+ FROM summaries s
+ LEFT JOIN projects p ON p.gene_id = s.design_gene_id
+ LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
+ WHERE p.sponsor_id = '$sponsor_id'
+ AND c.cre = 'f'
+ AND s.sep_pick_well_accepted = 't'
+ AND p.targeting_type = 'double_targeted'
+ GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
+ ORDER BY s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
+SQL_END
+
+	return $sql_query;
+}
+
+# Generic method to run select SQL
+sub run_select_query {
+   my ( $self, $sql_query ) = @_;
+
+   my $sql_result = $self->model->schema->storage->dbh_do(
+      sub {
+         my ( $storage, $dbh ) = @_;
+         my $sth = $dbh->prepare( $sql_query );
+         $sth->execute or die "Unable to execute query: $dbh->errstr\n";
+         $sth->fetchall_arrayref({
+		 	
+		 });
+      }
+    );
+
+	return $sql_result;
+}
+
+sub targeted_genes_report {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+    DEBUG 'selecting targeted genes for sponsor id = '.$sponsor_id.' and targeting_type = '.$targeting_type;
+
+	my $sql_results;
+
+	my $sql_query = $self->create_sql_select_targeted_genes( $sponsor_id, $targeting_type );
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub vectors_report {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+    DEBUG 'selecting vectors for sponsor id = '.$sponsor_id.' and targeting_type = '.$targeting_type;
+
+	my $sql_results;
+	my $sql_query;
+
+	if ( $targeting_type eq 'single_targeted' ) { 
+		$sql_query = $self->create_sql_select_vectors_for_single_targeted_project( $sponsor_id );
+	}
+	elsif ( $targeting_type eq 'double_targeted' ) {
+		$sql_query = $self->create_sql_select_vectors_for_double_targeted_project( $sponsor_id );
+	}
+	# TODO : else error?
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub vectors_for_resistance_report {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+    DEBUG 'selecting vectors with resistance '.$resistance.' for sponsor id = '.$sponsor_id;
+
+	my $sql_results;
+
+	my $sql_query = $self->create_sql_select_resistance_vectors_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub valid_dna_report {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+    DEBUG 'selecting valid DNA for sponsor id = '.$sponsor_id.' and targeting_type = '.$targeting_type;
+
+	my $sql_results;
+	my $sql_query;
+
+	if ( $targeting_type eq 'single_targeted' ) { 
+		$sql_query = $self->create_sql_select_DNA_for_single_targeted_sponsor_project( $sponsor_id );
+	}
+	elsif ( $targeting_type eq 'double_targeted' ) {
+		$sql_query = $self->create_sql_select_DNA_for_double_targeted_sponsor_project( $sponsor_id );
+	}
+	# TODO : else error?
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub valid_dna_for_resistance_report {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+    DEBUG 'selecting valid DNA with resistance '.$resistance.' for sponsor id = '.$sponsor_id;
+
+	my $sql_results;
+
+	my $sql_query = $self->create_sql_select_resistance_valid_DNA_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub electroporations_report {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+    DEBUG 'selecting electroporations for single-targeted projects for sponsor id = '.$sponsor_id;
+
+	my $sql_results;
+
+	my $sql_query;
+
+	if ( $targeting_type eq 'single_targeted' ) { 
+		$sql_query = $self->create_sql_select_electroporations_for_single_targeted_sponsor_project( $sponsor_id );
+	}
+	elsif ( $targeting_type eq 'double_targeted' ) {
+		$sql_query = $self->create_sql_select_first_electroporations_for_double_targeted_sponsor_project( $sponsor_id );
+	}
+	# TODO : else error?
+
+
+ $self->( $sponsor_id );
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+
+sub first_electroporations_resistance_report {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+    DEBUG 'selecting first electroporations with resistance '.$resistance.' for sponsor id = '.$sponsor_id;
+
+	my $sql_results;
+
+	my $sql_query = $self->create_sql_select_resistance_first_eps_for_double_targeted_sponsor_project( $sponsor_id, $resistance );
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub second_electroporations_report {
+	my ( $self, $sponsor_id, $resistance ) = @_;
+
+    DEBUG 'selecting second electroporations for sponsor id = '.$sponsor_id;
+
+	my $sql_results;
+
+	my $sql_query = $self->create_sql_select_second_eps_for_double_targeted_sponsor_project( $sponsor_id );
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub accepted_clones_report {
+	my ( $self, $sponsor_id, $targeting_type ) = @_;
+
+    DEBUG 'selecting accepted clones for '.$targeting_type.' projects for sponsor id = '.$sponsor_id;
+
+	my $sql_results;
+
+	my $sql_query;
+
+	if ( $targeting_type eq 'single_targeted' ) { 
+		$sql_query = $self->create_sql_select_accepted_clones_for_single_targeted_sponsor_project( $sponsor_id );
+	}
+	elsif ( $targeting_type eq 'double_targeted' ) {
+		$sql_query = $self->create_sql_select_accepted_clones_for_double_targeted_sponsor_project( $sponsor_id );
+	}
+	# TODO : else error?
+
+	DEBUG "sql query = ".$sql_query;
+
+	$sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
 1;
