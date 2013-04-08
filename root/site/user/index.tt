@@ -14,54 +14,50 @@
 <h3>[% title %]</h3>
 
 <table class="table table-striped table-bordered">
-  <caption>Single-targeted projects</caption>
   <thead>
     <tr>
       [% FOR col IN columns %]
-        <th>[% col %]</th>
+        [% IF col == "Stage" %]
+           <th style="width:240px">[% col %]</th>
+        [% ELSE %]
+           <th colspan="2">[% col %]</th>
+        [% END %]
       [% END %]
     </tr>
-  </thead>
-  <tbody>
-	[% FOREACH row IN st_rows %]
 	<tr>
-      <td>[% row %]</td>
-      [% FOR colname IN columns %]
-		[% UNLESS colname == "Stage" %]
-           [% countval = 0; countval = st_data.item(row).item(colname) %]
-		   [% IF countval > 0 %]
-           <td><b>[% countval %]</b></td>           
-		   [% ELSE %]
-		   <td>0</td>
-           [% END %]
-		[% END %]
-      [% END %]
-    </tr>
-	[% END %]
-  </tbody>
-</table>
-
-<table class="table table-striped table-bordered">
-  <caption>Double-targeted projects</caption>
-  <thead>
-    <tr>
       [% FOR col IN columns %]
-        <th>[% col %]</th>
+        [% IF col == "Stage" %]
+           <td>&nbsp;</td>
+        [% ELSE %]
+            <td><i>Het</i></td>
+			<td><i>Hom</i></td>
+        [% END %]
       [% END %]
     </tr>
   </thead>
   <tbody>
 	[% FOREACH row IN dt_rows %]
 	<tr>
-      <td>[% row %]</td>
+      <td><b>[% row %]</b></td>
       [% FOR colname IN columns %]
 		[% UNLESS colname == "Stage" %]
-           [% countval = 0; countval = dt_data.item(row).item(colname) %]
-		   [% IF countval > 0 %]
-           <td><b>[% countval %]</b></td>           
+			
+           [% countstval = 0; countstval = st_data.item(row).item(colname) %]
+		   [% IF countstval > 0 %]			
+           <td><b><a href="[% c.uri_for( "/user/view_summary_report/single_targeted/${colname}/${row}" ) %]">[% countstval %]</a></b></td>           
+		   [% ELSIF countstval < 0 %]
+           <td>-</td>
 		   [% ELSE %]
 		   <td>0</td>
            [% END %]
+
+           [% countdtval = 0; countdtval = dt_data.item(row).item(colname) %]
+		   [% IF countdtval > 0 %]
+           <td><b><a href="[% c.uri_for( "/user/view_summary_report/double_targeted/${colname}/${row}" ) %]">[% countdtval %]</a></b></td>           
+		   [% ELSE %]
+		   <td>0</td>
+           [% END %]
+
 		[% END %]
       [% END %]
     </tr>
