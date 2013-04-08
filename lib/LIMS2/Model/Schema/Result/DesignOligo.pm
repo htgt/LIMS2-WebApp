@@ -16,6 +16,11 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
+use LIMS2::Model::Constants qw(
+%ARTIFICIAL_INTRON_OLIGO_APPENDS
+%STANDARD_KO_OLIGO_APPENDS
+%STANDARD_INS_DEL_OLIGO_APPENDS
+);
 extends 'DBIx::Class::Core';
 
 =head1 COMPONENTS LOADED
@@ -181,33 +186,21 @@ sub as_hash {
     };
 }
 
-#
-# TODO move to constants?
-#
-my %ARTIFICIAL_INTRON_OLIGO_APPENDS = (
-    "G3" => "CCACTGGCCGTCGTTTTACA",
-    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
-    "D3" => "TGAACTGATGGCGAGCTCAGACC",
-    "D5" => "GAGATGGCGCAACGCAATTAATG",
-    "U3" => "CTGAAGGAAATTAGATGTAAGGAGC",
-    "U5" => "GTGAGTGTGCTAGAGGGGGTG",
-);
 
-my %STANDARD_KO_OLIGO_APPENDS = (
-    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
-    "G3" => "CCACTGGCCGTCGTTTTACA",
-    "U5" => "AAGGCGCATAACGATACCAC",
-    "U3" => "CCGCCTACTGCGACTATAGA",
-    "D5" => "GAGATGGCGCAACGCAATTAATG",
-    "D3" => "TGAACTGATGGCGAGCTCAGACC",
-);
+=head2 oligo_strand_vs_design_strand
 
-my %STANDARD_INS_DEL_OLIGO_APPENDS = (
-    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
-    "G3" => "CCACTGGCCGTCGTTTTACA",
-    "U5" => "AAGGCGCATAACGATACCAC",
-    "D3" => "CCGCCTACTGCGACTATAGA",
-);
+What is the orientation of the oligo in relation to strand the design is targeted against.
+Remember, all oligo sequence is stored on the +ve strand, no matter the design strand.
+
+For example, the U5 oligo is on the same strand as the design ( 1 )
+So a U5 oligo for a +ve stranded design is on the +ve strand ( i.e do not revcomp )
+Conversly, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e revcomp it )
+
+The U3 oligo is on the opposite strand as the design ( -1 )
+So a U3 oligo for a +ve stranded design is on the -ve strand ( i.e revcomp it )
+Conversly, a U3 oligo for a -ve stranded design is on the +ve strand ( i.e do not revcomp )
+
+=cut
 my %OLIGO_STRAND_VS_DESIGN_STRAND = (
     "G5" => -1,
     "U5" => 1,
@@ -217,6 +210,47 @@ my %OLIGO_STRAND_VS_DESIGN_STRAND = (
     "G3" => 1,
 );
 
+sub revcomp_seq {
+    my $self = shift;
+
+    require Bio::Seq;
+    my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->seq );
+
+    return $bio_seq->revcom->seq;
+}
+
+=head2 append_seq
+
+Get append sequence for oligo, depends on design type and oligo type
+
+=cut
+sub append_seq {
+    my $self = shift;
+    require LIMS2::Exception;
+    my $append_seq;
+    my $design_type = $self->design->design_type_id;
+    my $oligo_type = $self->design_oligo_type_id;
+
+    if ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
+        $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };
+    }
+    elsif ( $design_type eq 'conditional' ) {
+        $append_seq = $STANDARD_KO_OLIGO_APPENDS{ $oligo_type };
+
+    }
+    elsif ( $design_type eq 'artificial-intron' || $design_type eq 'intron-replacement' ) {
+        $append_seq = $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type };
+    }
+    else {
+        LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
+    }
+
+    LIMS2::Exception->throw( "Undefined append sequence for $oligo_type oligo on $design_type design" )
+        unless $append_seq;
+
+    return $append_seq;
+}
+
 =head2 oligo_order_seq
 
 Sequence used when ordering the oligo.
@@ -224,34 +258,15 @@ Need to add the correct append sequence and revcomp if needed.
 
 =cut
 sub oligo_order_seq {
-    my $self = shift;
+    my ( $self, $design_strand ) = @_;
+    $design_strand ||= $self->design->chr_strand;
 
-    my $revcomp;
-    #
-    my $oligo_type = $self->design_oligo_type_id;
-    my $design_strand = $self->design->chr_strand;
-    my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $oligo_type };
+    # See comment above %OLIGO_STRAND_VS_DESIGN_STRAND for explanation
+    my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $self->design_oligo_type_id };
+    my $seq = $design_strand != $oligo_strand ? $self->revcomp_seq : $self->seq;
 
-    if ( $design_strand == $oligo_strand ) {
-        $revcomp = 'no';
-    }
-    # design_strand not equal to oligo_strand
-    else {
-        $revcomp = 'yes';
-    }
+    return $seq . $self->append_seq;
 }
-
-=head2 oligo_strand_vs_design_strand
-
-What is the orientation of the oligo in relation to strand the design is targeted against.
-Remember, all oligo sequence is stored on the +ve strand, no matter the design strand.
-
-For example, the U5 oligo is on the same strand as the design ( 1 )
-So a U5 oligo for a +ve stranded design is on the +ve strand ( i.e do not revcomp )
-Conversly, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e we must revcomp it )
-
-=cut
-
 
 __PACKAGE__->meta->make_immutable;
 1;
