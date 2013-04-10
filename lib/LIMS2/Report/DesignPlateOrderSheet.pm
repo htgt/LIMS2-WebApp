@@ -208,9 +208,11 @@ sub bac_list {
     return;
 }
 
+## no critic(RequireFinalReturn)
 sub add_blank_report_row {
     shift->add_report_row( [] );
 }
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 
