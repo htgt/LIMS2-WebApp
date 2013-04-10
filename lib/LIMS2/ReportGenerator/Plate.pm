@@ -23,7 +23,7 @@ sub report_class_for {
     my ( $class, $plate_type ) = @_;
 
     for my $plugin ( $class->_report_plugins ) {
-        if ( $plugin->handles_plate_type( $plate_type ) ) {
+        if ( $plugin->handles_plate_type( $plate_type ) && !$plugin->additional_report ) {
             return $plugin;
         }
     }
@@ -56,6 +56,17 @@ has '+param_names' => (
     default => sub { [ 'plate_name' ] }
 );
 
+# Needed way of having multiple plate type reports but having only one of these
+# reports as the default report for that plate type.
+# When adding additional reports override this sub to return 1:
+# i.e.
+# override additional_report => sub {
+#    return 1;
+# };
+sub additional_report {
+    return;
+}
+
 sub plate_types {
     confess( "plate_types() must be implemented by a subclass" );
 }
@@ -85,7 +96,7 @@ sub _build_plate {
         LIMS2::Exception::Implementation->throw( "PlateReportGenerator requires one of plate, plate_name, or plate_id be specified" );
     }
 
-    return $self->model->retrieve_plate( \%search );
+    return $self->model->retrieve_plate( \%search, { prefetch => 'wells' } );
 }
 
 sub _build_plate_name {
