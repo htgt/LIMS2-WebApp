@@ -14,6 +14,10 @@ BEGIN {
         %PROCESS_SPECIFIC_FIELDS
         %PROCESS_TEMPLATE
         %PROCESS_INPUT_WELL_CHECK
+        %ARTIFICIAL_INTRON_OLIGO_APPENDS
+        %STANDARD_KO_OLIGO_APPENDS
+        %STANDARD_INS_DEL_OLIGO_APPENDS
+        %ADDITIONAL_PLATE_REPORTS
     );
     our %EXPORT_TAGS = ();
 }
@@ -115,6 +119,42 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( EP_PICK SEP_PICK )],
         number => 1,
     },
+);
+
+const our %ARTIFICIAL_INTRON_OLIGO_APPENDS => (
+    "G3" => "CCACTGGCCGTCGTTTTACA",
+    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
+    "D3" => "TGAACTGATGGCGAGCTCAGACC",
+    "D5" => "GAGATGGCGCAACGCAATTAATG",
+    "U3" => "CTGAAGGAAATTAGATGTAAGGAGC",
+    "U5" => "GTGAGTGTGCTAGAGGGGGTG",
+);
+
+const our %STANDARD_KO_OLIGO_APPENDS => (
+    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
+    "G3" => "CCACTGGCCGTCGTTTTACA",
+    "U5" => "AAGGCGCATAACGATACCAC",
+    "U3" => "CCGCCTACTGCGACTATAGA",
+    "D5" => "GAGATGGCGCAACGCAATTAATG",
+    "D3" => "TGAACTGATGGCGAGCTCAGACC",
+);
+
+const our %STANDARD_INS_DEL_OLIGO_APPENDS => (
+    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
+    "G3" => "CCACTGGCCGTCGTTTTACA",
+    "U5" => "AAGGCGCATAACGATACCAC",
+    "D3" => "CCGCCTACTGCGACTATAGA",
+);
+
+# When creating additional report classes override the additional_report sub to return 1
+const our %ADDITIONAL_PLATE_REPORTS => (
+    DESIGN => [
+        {
+            class  => 'DesignPlateOrderSheet',
+            method => 'async',
+            name   => 'Design Plate Order Sheet',
+        },
+    ],
 );
 
 1;

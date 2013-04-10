@@ -782,6 +782,47 @@ sub final_vector {
 ## use critic
 
 ## no critic(RequireFinalReturn)
+sub first_dna {
+    my $self = shift;
+
+    if ( $self->is_double_targeted ) {
+        my $first_ep = $self->first_ep;
+        return $first_ep->first_dna;
+    }
+    else {
+        my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+        while( my $ancestor = $ancestors->next ) {
+            if ( $ancestor->plate->type_id eq 'DNA' ) {
+                return $ancestor;
+            }
+        }
+    }
+
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine first dna for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub second_dna {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate->type_id eq 'DNA' ) {
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine second allele for $self"
+    );
+
+}
+## use critic
+
+## no critic(RequireFinalReturn)
 sub first_ep {
     my $self = shift;
 
