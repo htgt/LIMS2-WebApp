@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.062     2013-04-10 12:27:32 Europe/London
+
+    Added design plate oligo / bac order sheet report.
+    Added framework for adding additional reports for specific plate types.
+    Added download QC report link.
+
 0.061     2013-04-05 09:25:22 Europe/London
 
     Added parent dna well information to EP and SEP plate reports.
