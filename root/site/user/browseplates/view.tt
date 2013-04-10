@@ -205,3 +205,9 @@
 
 <h2>Wells</h2>
 <a class="btn btn-primary" href="[% well_report_uri %]"><i class="icon-list icon-white"></i> Well Details</a>
+[% IF additional_plate_reports %]
+<h3>Additional Reports</h3>
+  [% FOREACH report IN additional_plate_reports %]
+<a class="btn btn-small" href="[% report.report_url %]"><i class="icon-list"></i> [% report.name %]</a>
+  [% END %]
+[% END %]
