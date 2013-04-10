@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.061';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.062';
 }
 ## use critic
 
@@ -282,7 +282,6 @@ __PACKAGE__->many_to_many(
     "process"
 );
 
-require LIMS2::Model::Util::DesignInfo;
 has 'info' => (
     is      => 'ro',
     isa     => 'LIMS2::Model::Util::DesignInfo',
@@ -299,6 +298,7 @@ has 'info' => (
 sub _build_design_info {
     my $self = shift;
 
+    require LIMS2::Model::Util::DesignInfo;
     return LIMS2::Model::Util::DesignInfo->new( { design => $self } );
 }
 
@@ -378,6 +378,19 @@ sub _oligos_fasta {
     $seq_io->write_seq( $strand == 1 ? $seq : $seq->revcom );
 
     return $fasta;
+}
+
+sub oligo_order_seqs {
+    my $self = shift;
+    my %oligo_order_seqs;
+
+    my @oligos = $self->oligos;
+    for my $oligo ( @oligos ) {
+        my $type = $oligo->design_oligo_type_id;
+        $oligo_order_seqs{ $type } = $oligo->oligo_order_seq( $self->chr_strand, $self->design_type_id );
+    }
+
+    return \%oligo_order_seqs;
 }
 
 __PACKAGE__->meta->make_immutable;

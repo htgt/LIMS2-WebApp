@@ -1,13 +1,14 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.061';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.062';
 }
 ## use critic
 
 use Moose;
 use LIMS2::WebApp::Pageset;
 use LIMS2::ReportGenerator::Plate;
+use LIMS2::Model::Constants qw( %ADDITIONAL_PLATE_REPORTS );
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -89,12 +90,32 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     $report_class =~ s/^.*\:\://;
     $c->log->debug( "Report class: $report_class" );
 
+    my $additional_plate_reports = $self->get_additional_plate_reports( $c, $plate );
+
     $c->stash(
         plate           => $plate,
-        well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } )
+        well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
+        additional_plate_reports => $additional_plate_reports,
     );
 
     return;
+}
+
+sub get_additional_plate_reports : Private {
+    my ( $self, $c, $plate ) = @_;
+
+    return unless exists $ADDITIONAL_PLATE_REPORTS{ $plate->type_id };
+
+    my @additional_reports;
+    for my $report ( @{ $ADDITIONAL_PLATE_REPORTS{ $plate->type_id } } ) {
+        my $url = $c->uri_for(
+            '/user/report/' . $report->{method} . '/' . $report->{class},
+            { plate_id => $plate->id }
+        );
+        push @additional_reports, { report_url => $url, name => $report->{name} };
+    }
+
+    return \@additional_reports;
 }
 
 =head1 AUTHOR

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.061';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.062';
 }
 ## use critic
 
@@ -162,13 +162,15 @@ sub pspec_retrieve_plate {
 }
 
 sub retrieve_plate {
-    my ( $self, $params ) = @_;
+    my ( $self, $params, $search_opts ) = @_;
 
     my $validated_params
         = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
     return $self->retrieve(
-        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id ) } );
+        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id ) },
+        $search_opts
+    );
 }
 
 sub delete_plate {

@@ -134,6 +134,7 @@ lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
 lib/LIMS2/Report/DNAPlate.pm
 lib/LIMS2/Report/DesignPlate.pm
+lib/LIMS2/Report/DesignPlateOrderSheet.pm
 lib/LIMS2/Report/DesignVectors.pm
 lib/LIMS2/Report/EPPlate.pm
 lib/LIMS2/Report/ElectroporationProductionSummary.pm
@@ -1697,6 +1698,7 @@ t/00-compile.t
 t/10-dbconnect.t
 t/10-lims2-test.t
 t/20-form-validator.t
+t/25-resultset-designoligo.t
 t/30-model-schema-summary.t
 t/40-model-util-bacsfordesign.t
 t/40-model-util-computestatus.t
