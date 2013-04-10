@@ -1,0 +1,78 @@
+[% META title = "Create Design"; META tab_name = "Designs" %]
+
+<link href="[% c.uri_for( '/static/css/jquery.qtip.min.css' ) %]" rel="stylesheet">
+<script type="text/javascript" src="[% c.uri_for( '/static/js/raphael-min.js' ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( '/static/js/jquery.qtip.min.js' ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( '/static/js/diagram.builder.js' ) %]"></script>
+<script type="text/javascript">
+
+function createDeletionDiagram(builder) {
+  //add all the boxes and exons
+  var g5 = builder.addBox("G5");
+  builder.addExon();
+  var u5 = builder.addBox("U5");
+  var critExon = builder.addCriticalExon();
+  var d3 = builder.addBox("D3");
+  builder.addExon();
+  var g3 = builder.addBox("G3");
+
+  //the last parameter says where to start the label from relative to the first box. also add a text box
+  builder.addLabel(g5, critExon, "5` retrieval arm length", "right", "g5_offset", 4000);
+  builder.addLabel(critExon, g3, "3` retrieval arm length", "right", "g3_offset", 4000);
+
+  //add all the text fields to the fields we want them on
+  builder.addField(g5, "g5_length", 1000, "5` retrieval block size");
+  builder.addField(u5, "u5_length", 200, "U block size");
+  builder.addField(critExon, "u5_offset", 0, "Min 5` spacer", "before");
+  builder.addField(critExon, "d3_offset", 0, "Min 3` spacer", "after");
+  builder.addField(d3, "d3_length", 200, "D block size");
+  builder.addField(g3, "g3_length", 1000, "3` retrieval block size");
+}
+
+$(document).ready(function() {
+  var builder = new DiagramBuilder("holder", 850, 150);
+
+  createDeletionDiagram(builder);
+
+  //builder.clearDiagram();
+});
+</script>
+
+<form method="POST" action="[% c.uri_for( '/user/create_design' ) %]" class="well">
+  <fieldset>
+    <legend>Design Setup</legend>
+    <label for="design_type">Design Type</label>
+    <select name="design_type" id="design_type">
+      [% i = 0 %] [%# template toolkit has bad array enumeration so we do this. %]
+      [% FOR type IN design_types %]
+        <option value="[% i %]">[% type.display_name %]</option>
+        [% i = i + 1 %]
+      [% END %]
+    </select>
+    [%# oligo method should be populted the same as above %]
+  </fieldset>
+
+  <fieldset>
+    <legend>Diagram</legend>
+    <div id="diagram" style="position: relative;">
+      <div id="holder" style="padding-top:20px;">
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Design Information</legend>
+    <input type="text" name="target_gene" placeholder="Target Gene" value="[% target_gene %]" /><br/>
+    <input type="text" name="chromosome" placeholder="Chromosome" value="[% chromosome %]" /><br/>
+    <input type="text" name="target_start" placeholder="Target Start" value="[% target_start %]" />
+    <input type="text" name="target_end" placeholder="Target End" value="[% target_end %]" />
+    <label for="strand_field">Strand</label>
+    <select name="strand" id="strand_field">
+      <option value="1">1</option>
+      <option value="-1">-1</option>
+    </select>
+
+    <br />
+    <input type="submit" name="create_design" class="btn btn-primary" value="Create Design" />
+  </fieldset>
+</form>
