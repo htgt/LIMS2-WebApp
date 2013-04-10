@@ -29,8 +29,8 @@ Readonly my @SINGLE_TARGETED_REPORT_CATEGORIES => (
 Readonly my @DOUBLE_TARGETED_REPORT_CATEGORIES => (
     'Targeted Genes',
     'Vectors',
-    'Neo Vectors',
-    'Blast Vectors',
+    'Neomycin Vectors',
+    'Blasticidin Vectors',
     'Valid DNA',
     'Neomycin Valid DNA',
     'Blasticidin Valid DNA',
@@ -131,8 +131,8 @@ sub _build_sponsor_column_data_single_targeted {
 	}
 	$sponsor_data_single->{'Vectors'}{$sponsor_id} = $count_vectors;
 
-	$sponsor_data_single->{'Neo Vectors'}{$sponsor_id} = -1;
-	$sponsor_data_single->{'Blast Vectors'}{$sponsor_id} = -1;
+	$sponsor_data_single->{'Neomycin Vectors'}{$sponsor_id} = -1;
+	$sponsor_data_single->{'Blasticidin Vectors'}{$sponsor_id} = -1;
 	
 	# only look if vectors found
 	my $count_dna = 0;
@@ -189,8 +189,8 @@ sub _build_sponsor_column_data_double_targeted {
 		$count_neo_vectors = $self->neo_vectors( $sponsor_id, $targeting_type );
 		$count_blast_vectors = $self->blast_vectors( $sponsor_id, $targeting_type);
 	}	
-	$sponsor_data_double->{'Neo Vectors'}{$sponsor_id} = $count_neo_vectors;
-	$sponsor_data_double->{'Blast Vectors'}{$sponsor_id} = $count_blast_vectors;
+	$sponsor_data_double->{'Neomycin Vectors'}{$sponsor_id} = $count_neo_vectors;
+	$sponsor_data_double->{'Blasticidin Vectors'}{$sponsor_id} = $count_blast_vectors;
 
 	# only look if vectors found
 	my $count_dna = 0;
@@ -292,13 +292,48 @@ sub create_sql_count_vectors_for_single_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id)) FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON s.final_cassette_name = c.name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.final_well_accepted = 't'
- AND p.targeting_type = 'single_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_well_accepted = 't'
 SQL_END
 
 	return $sql_query;
@@ -309,13 +344,48 @@ sub create_sql_count_vectors_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 	
 my $sql_query =  <<"SQL_END";
-SELECT COUNT(distinct(s.design_gene_id)) FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON s.final_pick_cassette_name = c.name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.final_pick_well_accepted = 't'
- AND p.targeting_type = 'double_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
 SQL_END
 
 	return $sql_query;
@@ -327,14 +397,50 @@ sub create_sql_count_resistance_vectors_for_double_targeted_sponsor_project {
     my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id)) FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND s.final_pick_well_accepted = 't'
- AND c.cre = 'f'
- AND c.resistance = '$resistance'
- AND p.targeting_type = 'double_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_pick_cassette_name
+WHERE s.final_pick_well_accepted = 't'
+AND c.resistance = '$resistance'
 SQL_END
 
 	return $sql_query;
@@ -345,15 +451,49 @@ sub create_sql_count_DNA_for_single_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.dna_well_id > 0
- AND s.dna_status_pass = 't'
- AND p.targeting_type = 'single_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_well_accepted = 't'
+AND s.dna_status_pass = 't'
 SQL_END
 
 	return $sql_query;
@@ -364,15 +504,49 @@ sub create_sql_count_DNA_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.dna_well_id > 0
- AND s.dna_status_pass = 't'
- AND p.targeting_type = 'double_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
 SQL_END
 
 	return $sql_query;
@@ -384,16 +558,51 @@ sub create_sql_count_resistance_DNA_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.dna_well_id > 0
- AND s.dna_status_pass = 't'
- AND c.resistance = '$resistance'
- AND p.targeting_type = 'double_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_pick_cassette_name
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND c.resistance = '$resistance'
 SQL_END
 
 	return $sql_query;
@@ -405,14 +614,50 @@ sub create_sql_count_eps_for_single_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.ep_well_id > 0
- AND p.targeting_type = 'single_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
 SQL_END
 
 	return $sql_query;
@@ -424,14 +669,50 @@ sub create_sql_count_eps_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.ep_well_id > 0
- AND p.targeting_type = 'double_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
 SQL_END
 
 	return $sql_query;
@@ -443,15 +724,52 @@ sub create_sql_count_resistance_eps_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.ep_well_id > 0
- AND p.targeting_type = 'double_targeted'
- AND c.resistance = '$resistance'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_pick_cassette_name
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
+AND c.resistance = '$resistance'
 SQL_END
 
 	return $sql_query;
@@ -461,14 +779,50 @@ sub create_sql_count_second_eps_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.sep_well_id > 0
- AND p.targeting_type = 'double_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.sep_well_id > 0
 SQL_END
 
 	return $sql_query;
@@ -478,14 +832,51 @@ sub create_sql_count_accepted_clones_for_single_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.ep_pick_well_accepted = 't'
- AND p.targeting_type = 'single_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
+AND s.ep_pick_well_accepted = 't'
 SQL_END
 
 	return $sql_query;
@@ -495,14 +886,51 @@ sub create_sql_count_accepted_clones_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT count(distinct(s.design_gene_id))
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.sep_pick_well_accepted = 't'
- AND p.targeting_type = 'double_targeted'
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
+SELECT count(distinct(s.design_gene_id)) 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.sep_well_id > 0
+AND s.sep_pick_well_accepted = 't'
 SQL_END
 
 	return $sql_query;
@@ -835,12 +1263,12 @@ sub generate_sub_report {
     		$columns = [ 'design_gene_id', 'design_gene_symbol', 'backbone_name', 'cassette_name' ];
 			$display_columns = [ 'gene id', 'gene symbol', 'backbone name', 'cassette name' ];
 		}
-		elsif ( $stage eq 'Neo Vectors' ) {
+		elsif ( $stage eq 'Neomycin Vectors' ) {
 			$display_stage = 'Neomycin-resistant Vectors';
     		$columns = [ 'design_gene_id', 'design_gene_symbol', 'backbone_name', 'cassette_name' ];
 			$display_columns = [ 'gene id', 'gene symbol', 'backbone name', 'cassette name' ];
 		}
-		elsif ( $stage eq 'Blast Vectors' ) {
+		elsif ( $stage eq 'Blasticidin Vectors' ) {
 			$display_stage = 'Blasticidin-resistant Vectors';
     		$columns = [ 'design_gene_id', 'design_gene_symbol', 'backbone_name', 'cassette_name' ];
 			$display_columns = [ 'gene id', 'gene symbol', 'backbone name', 'cassette name' ];
@@ -935,10 +1363,10 @@ sub _build_sub_report_data {
 		elsif ( $stage eq 'Vectors' ) {
 			$sub_report_data = $self->vectors_report ( $sponsor_id, $targeting_type );
 		}
-		elsif ( $stage eq 'Neo Vectors' ) {
+		elsif ( $stage eq 'Neomycin Vectors' ) {
 			$sub_report_data = $self->vectors_for_resistance_report( $sponsor_id, 'neoR' );
 		}
-		elsif ( $stage eq 'Blast Vectors' ) {
+		elsif ( $stage eq 'Blasticidin Vectors' ) {
 			$sub_report_data = $self->vectors_for_resistance_report( $sponsor_id, 'blastR' );
 		}
 		elsif ( $stage eq 'Valid DNA' ) {
@@ -999,16 +1427,51 @@ sub create_sql_select_vectors_for_single_targeted_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_backbone_name AS backbone_name, s.final_cassette_name AS cassette_name
 FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON s.final_cassette_name = c.name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.final_well_accepted = 't'
- AND p.targeting_type = 'single_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.final_backbone_name, s.final_cassette_name
- ORDER BY s.design_gene_symbol, s.final_cassette_name
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON s.final_cassette_name = c.name
+WHERE s.final_well_accepted = 't'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_backbone_name, s.final_cassette_name
+ORDER BY s.design_gene_symbol, s.final_cassette_name
 SQL_END
 
 	return $sql_query;
@@ -1019,16 +1482,51 @@ sub create_sql_select_vectors_for_double_targeted_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name AS backbone_name, s.final_pick_cassette_name AS cassette_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON s.final_pick_cassette_name = c.name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.final_pick_well_accepted = 't'
- AND p.targeting_type = 'double_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name, s.final_pick_cassette_name
- ORDER BY s.design_gene_symbol, s.final_pick_cassette_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON s.final_pick_cassette_name = c.name
+WHERE s.final_pick_well_accepted = 't'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name, s.final_pick_cassette_name
+ORDER BY s.design_gene_symbol, s.final_pick_cassette_name
 SQL_END
 
 	return $sql_query;
@@ -1039,16 +1537,51 @@ sub create_sql_select_resistance_vectors_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name AS backbone_name, s.final_pick_cassette_name AS cassette_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND s.final_pick_well_accepted = 't'
- AND c.cre = 'f'
- AND c.resistance = '$resistance'
- AND p.targeting_type = 'double_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name, s.final_pick_cassette_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_pick_cassette_name
+WHERE s.final_pick_well_accepted = 't'
+AND c.resistance = '$resistance'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name, s.final_pick_cassette_name
  ORDER BY s.design_gene_symbol, s.final_pick_cassette_name
 SQL_END
 
@@ -1062,17 +1595,52 @@ sub create_sql_select_DNA_for_single_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.dna_well_id > 0
- AND s.dna_status_pass = 't'
- AND p.targeting_type = 'single_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
- ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_cassette_name
+WHERE s.final_well_accepted = 't'
+AND s.dna_status_pass = 't'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
 	return $sql_query;
@@ -1083,17 +1651,52 @@ sub create_sql_select_DNA_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id, $targeting_type ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.dna_well_id > 0
- AND s.dna_status_pass = 't'
- AND p.targeting_type = 'double_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
- ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_pick_cassette_name
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
 	return $sql_query;
@@ -1104,18 +1707,53 @@ sub create_sql_select_resistance_valid_DNA_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.dna_well_id > 0
- AND s.dna_status_pass = 't'
- AND c.resistance = '$resistance'
- AND p.targeting_type = 'double_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
- ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_pick_cassette_name
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND c.resistance = '$resistance' 
+GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
 	return $sql_query;
@@ -1125,16 +1763,52 @@ sub create_sql_select_electroporations_for_single_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.ep_well_id > 0
- AND p.targeting_type = 'single_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
- ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
 	return $sql_query;
@@ -1144,16 +1818,52 @@ sub create_sql_select_first_electroporations_for_double_targeted_sponsor_project
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.ep_well_id > 0
- AND p.targeting_type = 'double_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
- ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
 	return $sql_query;
@@ -1163,17 +1873,54 @@ sub create_sql_select_resistance_first_eps_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id, $resistance ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.ep_well_id > 0
- AND p.targeting_type = 'double_targeted'
- and c.resistance = '$resistance'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
- ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+INNER JOIN cassettes c ON c.name = s.final_pick_cassette_name
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
+AND c.resistance = '$resistance'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
 	return $sql_query;
@@ -1183,16 +1930,52 @@ sub create_sql_select_second_eps_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.sep_well_id > 0
- AND p.targeting_type = 'double_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
- ORDER BY s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.sep_well_id > 0
+GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
+ORDER BY s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
 SQL_END
 
 	return $sql_query;
@@ -1202,16 +1985,53 @@ sub create_sql_select_accepted_clones_for_single_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 't'
- AND s.ep_pick_well_accepted = 't'
- AND p.targeting_type = 'single_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
- ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name 
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_cassette_cre = pr.cre
+AND s.final_cassette_promoter = pr.promoter
+AND s.final_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.ep_well_id > 0
+AND s.ep_pick_well_accepted = 't'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
+ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_END
 
 	return $sql_query;
@@ -1221,16 +2041,53 @@ sub create_sql_select_accepted_clones_for_double_targeted_sponsor_project {
 	my ( $self, $sponsor_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id AS project_id,
+ p.sponsor_id,
+ p.gene_id,
+ p.targeting_type,
+ pa.allele_type,
+ pa.cassette_function,
+ pa.mutation_type,
+ cf.id AS cassette_function_id,
+ cf.promoter,
+ cf.conditional,
+ cf.cre,
+ cf.well_has_cre,
+ cf.well_has_no_recombinase
+FROM projects p
+INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'double_targeted'
+)
 SELECT s.design_gene_id, s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
- FROM summaries s
- LEFT JOIN projects p ON p.gene_id = s.design_gene_id
- LEFT JOIN cassettes c ON c.name = s.final_pick_cassette_name
- WHERE p.sponsor_id = '$sponsor_id'
- AND c.cre = 'f'
- AND s.sep_pick_well_accepted = 't'
- AND p.targeting_type = 'double_targeted'
- GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
- ORDER BY s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+AND s.final_pick_cassette_cre = pr.cre
+AND s.final_pick_cassette_promoter = pr.promoter
+AND s.final_pick_cassette_conditional = pr.conditional
+AND
+(
+CASE 
+    WHEN pr.well_has_cre = 't' THEN s.final_pick_recombinase_id = 'Cre'
+    WHEN pr.well_has_cre = 'f' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+END  
+)
+AND
+(
+CASE
+   WHEN pr.well_has_no_recombinase = 't' THEN (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL)
+   WHEN pr.well_has_no_recombinase = 'f' THEN s.final_pick_recombinase_id IS NOT NULL
+END
+)
+AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
+WHERE s.final_pick_well_accepted = 't'
+AND s.dna_status_pass = 't'
+AND s.sep_well_id > 0
+AND s.sep_pick_well_accepted = 't'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
+ORDER BY s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
 SQL_END
 
 	return $sql_query;
@@ -1364,9 +2221,6 @@ sub electroporations_report {
 		$sql_query = $self->create_sql_select_first_electroporations_for_double_targeted_sponsor_project( $sponsor_id );
 	}
 	# TODO : else error?
-
-
- $self->( $sponsor_id );
 
 	DEBUG "sql query = ".$sql_query;
 

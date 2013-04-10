@@ -29,8 +29,8 @@
         [% IF col == "Stage" %]
            <td>&nbsp;</td>
         [% ELSE %]
-            <td><i>Het</i></td>
-			<td><i>Hom</i></td>
+            <td><i>Single</i></td>
+			<td><i>Double</i></td>
         [% END %]
       [% END %]
     </tr>
