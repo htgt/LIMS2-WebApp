@@ -17,6 +17,7 @@ BEGIN {
         %ARTIFICIAL_INTRON_OLIGO_APPENDS
         %STANDARD_KO_OLIGO_APPENDS
         %STANDARD_INS_DEL_OLIGO_APPENDS
+        %ADDITIONAL_PLATE_REPORTS
     );
     our %EXPORT_TAGS = ();
 }
@@ -143,6 +144,17 @@ const our %STANDARD_INS_DEL_OLIGO_APPENDS => (
     "G3" => "CCACTGGCCGTCGTTTTACA",
     "U5" => "AAGGCGCATAACGATACCAC",
     "D3" => "CCGCCTACTGCGACTATAGA",
+);
+
+# When creating additional report classes override the additional_report sub to return 1
+const our %ADDITIONAL_PLATE_REPORTS => (
+    DESIGN => [
+        {
+            class  => 'DesignPlateOrderSheet',
+            method => 'async',
+            name   => 'Design Plate Order Sheet',
+        },
+    ],
 );
 
 1;
