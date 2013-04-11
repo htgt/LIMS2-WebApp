@@ -1310,7 +1310,7 @@ sub generate_sub_report {
 		}
        elsif ( $stage eq 'Accepted Clones' ) {
 			$display_stage = 'Accepted Clones';
-    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'ep_pick_plate_name', 'ep_pick_well_name' ];
+    		$columns = [ 'design_gene_id', 'design_gene_symbol', 'sep_pick_plate_name', 'sep_pick_well_name' ];
 			$display_columns = [ 'gene id', 'gene symbol', 'plate name', 'well name' ];
 		}
 		else {
@@ -1523,7 +1523,6 @@ CASE
 END
 )
 AND s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
-INNER JOIN cassettes c ON s.final_pick_cassette_name = c.name
 WHERE s.final_pick_well_accepted = 't'
 GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_backbone_name, s.final_pick_cassette_name
 ORDER BY s.design_gene_symbol, s.final_pick_cassette_name
