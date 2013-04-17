@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::VERSION = '0.064';
+}
+## use critic
+
 use Moose;
 use LIMS2::Report;
 use Text::CSV;

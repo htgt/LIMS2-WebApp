@@ -1,4 +1,10 @@
 package LIMS2::Model::Plugin::Design;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Plugin::Design::VERSION = '0.064';
+}
+## use critic
+
 
 use strict;
 use warnings FATAL => 'all';

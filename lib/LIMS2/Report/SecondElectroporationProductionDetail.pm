@@ -1,4 +1,10 @@
 package LIMS2::Report::SecondElectroporationProductionDetail;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::SecondElectroporationProductionDetail::VERSION = '0.064';
+}
+## use critic
+
 
 use Moose;
 use DateTime;

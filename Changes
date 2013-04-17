@@ -1,5 +1,6 @@
-{{$NEXT}}
-
+0.064     2013-04-17 16:30:09 Europe/London
+    Fixed filter and show all buttons on QC page, and added new create design diagrams.
+    
 0.063     2013-04-17 07:28:16 Europe/London
     
     Fixed typo in design plate oligo / bac report
