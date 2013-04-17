@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignPlateOrderSheet;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.062';
+    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.063';
 }
 ## use critic
 
@@ -180,7 +180,7 @@ sub bac_plate_data {
     foreach my $bac_plate ( "a".."d" ) {
         $self->add_blank_report_row;
         $self->add_report_row( [ $self->plate->name . $bac_plate . '_BAC1' ] );
-        $self->add_report_row( [ (1..12) ] );
+        $self->add_report_row( [ '', (1..12) ] );
 
         my $wells = $self->bac_data->{$bac_plate};
         for my $row ("A".."H") {
