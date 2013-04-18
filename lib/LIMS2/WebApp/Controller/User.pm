@@ -76,31 +76,30 @@ sub index :Path :Args(0) {
 
     my $species = $c->session->{selected_species};
 
-	# Call ReportForSponsors plugin to generate report 
-	my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
-	my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
+    # Call ReportForSponsors plugin to generate report 
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
+    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
 
-	# Fetch details from returned report parameters
-	my $report_id = $report_params->{ report_id };
-	my $title = $report_params->{ title };
-	my $columns = $report_params->{ columns };
-	my $st_rows = $report_params->{ st_rows };
-	my $dt_rows = $report_params->{ dt_rows };
-	my $st_data = $report_params->{ st_data };
-	my $dt_data = $report_params->{ dt_data };
-		
-	### $st_data
-	### $dt_data
+    # Fetch details from returned report parameters
+    my $report_id = $report_params->{ report_id };
+    my $title = $report_params->{ title };
+    my $columns = $report_params->{ columns };
+    my $st_rows = $report_params->{ st_rows };
+    my $dt_rows = $report_params->{ dt_rows };
+    #my $st_data = $report_params->{ st_data };
+    #my $dt_data = $report_params->{ dt_data };
+    my $data = $report_params->{ data };
 
-	# Store report values in stash for display onscreen
+    # Store report values in stash for display onscreen
     $c->stash(
-        report_id => $report_id,
-        title     => $title,
-        columns   => $columns,
-		st_rows   => $st_rows,
-        st_data   => $st_data,
-		dt_rows   => $dt_rows,
-        dt_data   => $dt_data,
+        'report_id' => $report_id,
+        'title'     => $title,
+        'columns'   => $columns,
+        'st_rows'   => $st_rows,
+ #       'st_data'   => $st_data,
+        'dt_rows'   => $dt_rows,
+ #       'dt_data'   => $dt_data,
+        'data'      => $data,
     );
 
     return;
