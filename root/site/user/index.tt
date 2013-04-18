@@ -20,17 +20,7 @@
         [% IF col == "Stage" %]
            <th style="width:240px">[% col %]</th>
         [% ELSE %]
-           <th colspan="2">[% col %]</th>
-        [% END %]
-      [% END %]
-    </tr>
-	<tr>
-      [% FOR col IN columns %]
-        [% IF col == "Stage" %]
-           <td>&nbsp;</td>
-        [% ELSE %]
-            <td><i>Single</i></td>
-			<td><i>Double</i></td>
+           <th>[% col %]</th>
         [% END %]
       [% END %]
     </tr>
@@ -40,23 +30,27 @@
 	<tr>
       <td><b>[% row %]</b></td>
       [% FOR colname IN columns %]
-		[% UNLESS colname == "Stage" %]
-			
-           [% countstval = 0; countstval = st_data.item(row).item(colname) %]
-		   [% IF countstval > 0 %]			
-           <td><b><a href="[% c.uri_for( "/user/view_summary_report/single_targeted/${colname}/${row}" ) %]">[% countstval %]</a></b></td>           
-		   [% ELSIF countstval < 0 %]
-           <td>-</td>
-		   [% ELSE %]
-		   <td>0</td>
-           [% END %]
-
-           [% countdtval = 0; countdtval = dt_data.item(row).item(colname) %]
-		   [% IF countdtval > 0 %]
-           <td><b><a href="[% c.uri_for( "/user/view_summary_report/double_targeted/${colname}/${row}" ) %]">[% countdtval %]</a></b></td>           
-		   [% ELSE %]
-		   <td>0</td>
-           [% END %]
+		[% UNLESS colname == "Stage" %]			
+			[% IF row == "Targeting" %]
+				[% targeting_type = data.item(row).item(colname) %]
+				[% IF targeting_type == "single_targeted" %]
+					<td><i>Single</i></td>
+				[% ELSIF targeting_type == "double_targeted" %]
+					<td><i>Double</i></td>
+				[% ELSE %]
+				    <td>No projects</td>
+				[% END %]				
+			[% ELSE %]
+				[% countval = 0; countval = data.item(row).item(colname) %]
+				[% IF countval > 0 %]	
+					[% targeting_type = data.item("Targeting").item(colname) %]		
+				    <td><b><a href="[% c.uri_for( "/user/view_summary_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>           
+				[% ELSIF countval < 0 %]
+				    <td>-</td>
+				[% ELSE %]
+				    <td>0</td>
+				[% END %]
+			[% END %]
 
 		[% END %]
       [% END %]
