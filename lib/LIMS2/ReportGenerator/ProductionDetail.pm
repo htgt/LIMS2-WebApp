@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::ProductionDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::ProductionDetail::VERSION = '0.064';
+    $LIMS2::ReportGenerator::ProductionDetail::VERSION = '0.065';
 }
 ## use critic
 

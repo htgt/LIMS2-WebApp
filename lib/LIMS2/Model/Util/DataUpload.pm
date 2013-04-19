@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.064';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.065';
 }
 ## use critic
 
