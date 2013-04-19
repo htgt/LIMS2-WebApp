@@ -1110,7 +1110,7 @@ sub update_or_create_well_genotyping_result {
     	                               well_id => $well->id,
     	                               genotyping_result_type_id => $validated_params->{genotyping_result_type_id},
                                    });
-
+$DB::single=1;
     if ( $genotyping_result ) {
        my $update_request = {slice_def $validated_params,
            qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
@@ -1139,8 +1139,8 @@ sub update_or_create_well_genotyping_result {
             my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
             my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
 
-            my $previous = defined ($genotyping_result->$assay_field) ? $genotyping_result->$assay_field : 'undefined';
-#            my $previous = $genotyping_result->$assay_field // 'undefined';
+#            my $previous = defined ($genotyping_result->$assay_field) ? $genotyping_result->$assay_field : 'undefined';
+            my $previous = $genotyping_result->$assay_field // 'undefined';
 
             $genotyping_result->update( $update_request );
             $self->has_dre_been_applied ($validated_params);
