@@ -1,5 +1,18 @@
 {{$NEXT}}
 
+0.064     2013-04-17 16:30:09 Europe/London
+    Fixed filter and show all buttons on QC page, and added new create design diagrams.
+    
+0.063     2013-04-17 07:28:16 Europe/London
+    
+    Fixed typo in design plate oligo / bac report
+
+0.062     2013-04-10 12:27:32 Europe/London
+
+    Added design plate oligo / bac order sheet report.
+    Added framework for adding additional reports for specific plate types.
+    Added download QC report link.
+
 0.061     2013-04-05 09:25:22 Europe/London
 
     Added parent dna well information to EP and SEP plate reports.

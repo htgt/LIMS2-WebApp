@@ -107,9 +107,9 @@ sub cached_report {
         or LIMS2::Exception::System->throw( "flock $lock_file failed: $!" );
     alarm(0);
 
-    if ( my $in_cache = $generator->cached_report ) {
-        if ( _cached_report_ok( $in_cache ) ) {
-            return $in_cache->id;
+    if ( !exists $args{force} ) {
+        if ( my $in_cache = $generator->cached_report ) {
+            return $in_cache->id if _cached_report_ok( $in_cache );
         }
     }
 
