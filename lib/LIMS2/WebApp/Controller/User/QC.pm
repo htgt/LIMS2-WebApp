@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::QC;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.061';
+}
+## use critic
+
 use Moose;
 use namespace::autoclean;
 use HTTP::Status qw( :constants );
@@ -47,6 +53,14 @@ sub index :Path( '/user/qc_runs' ) :Args(0) {
     $c->assert_user_roles( 'read' );
 
     my $params = $c->request->params;
+
+    if ( defined $params->{show_all} ) {
+        $params = {}; #this will get everything
+    }
+
+    #filter isnt in the pspec so remove it to avoid an error
+    delete $params->{filter} if defined $params->{filter};
+
     $params->{species} ||= $c->session->{selected_species};
 
     my ( $qc_runs, $pager ) = $c->model('Golgi')->retrieve_qc_runs( $params );
