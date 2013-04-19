@@ -11,12 +11,20 @@
 function Diagram(diagramBuilder) {
   this._diagramBuilder = diagramBuilder;
   this._chain = []; 
+  this._unconnectedNodes = []; //for things not on the main chain
   
   Diagram.prototype.lastElement = function() {
     return this._chain[this._chain.length - 1];
   }
 
-  Diagram.prototype.addNode = function(node) {
+  Diagram.prototype.addNode = function(node, unconnected) {
+    if (unconnected) {
+      //if its not connected we dont want it in the main chain.
+      this._unconnectedNodes.push(node);
+      return; //dont give them the node id, it cant be used.
+    }
+
+    //if you're the first element then you dont have a connection
     if (this._chain.length) {
       this._diagramBuilder._connectBoxes(this.lastElement(), node);
     }
@@ -25,12 +33,17 @@ function Diagram(diagramBuilder) {
     return this._chain.push(node);
   }
 
+  Diagram.prototype.addUnconnectedNode = function(node) {
+    this.addNode(node, 1);
+  }
+
   Diagram.prototype.getNode = function(index) {
     return this._chain[index];
   }
 
   Diagram.prototype.empty = function() {
     this._chain = [];
+    this._unconnectedNodes = [];
   }
 }
 
@@ -73,26 +86,42 @@ function DiagramBuilder(id, width, height) {
       width: 50,
       height: 40,
       spacing: 65,
-      textWidth: 50
+      textWidth: 50,
+      textHeight: 18
     };
   };
 
+  //never access _attributes directly (unless you are me) 
   this._attributes = this._createAttributes();
   this._chain = new Diagram(this);
 
   //used to automatically space elements added to the chain
-  DiagramBuilder.prototype._getElementAttributes = function(width) {
-    //allow the user to optionally specify a width, if not use default
-    width = (typeof width === "undefined") ? this._attributes.width : width;
+  DiagramBuilder.prototype._getElementAttributes = function(width, removeSpacing) {
+    //we need a copy so we can change the global one
+    var attrs = this._getAttributesCopy(width, removeSpacing); 
 
-    //we need to update this value before we return, so store it.
-    var nextX = this._attributes.x;
+    //if we're about to draw outside the canvas add 100px to the width
+    if (attrs.x + attrs.width >= this._paper.width) {
+      this._paper.setSize(this._paper.width + 100, this._paper.height);
+    }
 
-    //update the value ready for the next element
-    this._attributes.x = nextX + width + this._attributes.spacing;
+    //update the global value ready for the next element. 
+    //if removeSpacing is set then dont add on more spacing or it would be added twice.
+    this._attributes.x += attrs.width + ((removeSpacing) ? 0 : this._attributes.spacing);
 
+    return attrs;
+  };
+
+  //dont use this unless you know what youre doing
+  DiagramBuilder.prototype._getAttributesCopy = function(width, removeSpacing) {
     //copying objects is non trivial in js so just do this
-    return {x: nextX, y: this._attributes.y, width: width, height: this._attributes.height};
+    //allow the user to remove spacing and specify their own width if they want
+    return {
+      x: (removeSpacing) ? (this._attributes.x - this._attributes.spacing) : this._attributes.x, 
+      y: this._attributes.y, 
+      width: (width) ? width : this._attributes.width, 
+      height: this._attributes.height
+    };
   };
 
   //destroy everything
@@ -109,12 +138,12 @@ function DiagramBuilder(id, width, height) {
     this._attributes = this._createAttributes();
   };
 
-  //if someone needs to do some more ADVANCED things they may ened the paper instance
+  //if someone needs to do some more ADVANCED things they may need the paper instance
   DiagramBuilder.prototype.getPaper = function() {
     return this._paper;
   };
 
-  //draw a line between any two elements
+  //draw a line between any two elements (they'd better be level)
   DiagramBuilder.prototype._connectBoxes = function(first, second) {
     var first_coords = first.getBBox();
     var second_coords = second.getBBox();
@@ -125,27 +154,52 @@ function DiagramBuilder(id, width, height) {
     return this._paper.path( "M" + start + "L" + end + "z" );
   };
 
-  DiagramBuilder.prototype.addBox = function(text) {
-    var attrs = this._getElementAttributes();
+  DiagramBuilder.prototype._addBox = function(attrs, unconnected) {
     //draw the box
     var box = this._paper.rect(attrs.x, attrs.y, attrs.width, attrs.height).attr({
       "fill": "#356AA0", 
       "stroke-width": 1.5, 
       "fill-opacity": 0.2
     });
-    var text = this._paper.text(attrs.x + (attrs.width/2), attrs.y + (attrs.height/2), text).attr({
+    var text = this._paper.text(attrs.x + (attrs.width/2), attrs.y + (attrs.height/2), attrs.text).attr({
       "font-size": 16,
       "font-weight": "bold"
     });
 
     //add the new element to our chain
-    this._chain.addNode(box);
+    this._chain.addNode(box, unconnected);
 
     return box;
   };
 
+  DiagramBuilder.prototype.addBox = function(text) {
+    var attrs = this._getElementAttributes();
+    attrs.text = text;
+    return this._addBox(attrs);
+  };
+
+  DiagramBuilder.prototype.addBoxWithoutSpacing = function(text) {
+    var attrs = this._getElementAttributes(null, 1); //2nd param is removeSpacing
+    attrs.text = text;
+    return this._addBox(attrs);
+  };
+
+  DiagramBuilder.prototype.addBoxBelowNode = function(text, node, position) {
+    //position should be left or right.
+
+    var coords = node.getBBox();
+    var attrs = { 
+      x: coords.x + ((position == "left") ? -coords.width/2 : coords.width/2),
+      y: coords.y + coords.height,
+      width: this._attributes.width,
+      height: this._attributes.height,
+      text: text
+    };
+    return this._addBox(attrs, 1);
+  }
+
   DiagramBuilder.prototype.addExon = function() {
-    var attrs = this._getElementAttributes(70); //make these slightly wider
+    var attrs = this._getElementAttributes(this._attributes.width * 1.4); //these are slightly wider
     //label all the different co-ordinates we use to (attempt to) make the code more readable.
     var coords = {
       boxLeft: attrs.x, 
@@ -156,21 +210,17 @@ function DiagramBuilder(id, width, height) {
       pointY: attrs.y+attrs.height/2
     }
 
-    var lines = [
-      {x: coords.boxLeft, y: coords.boxTop}, //initial start
-      {x: coords.boxRight, y: coords.boxTop}, //top line of box
-      {x: coords.pointX, y: coords.pointY}, //diagonal down to point
-      {x: coords.boxRight, y: coords.boxBottom}, //back in to box
-      {x: coords.boxLeft, y: coords.boxBottom} //bottom line of box
+    //each line represents a point in the format x, y
+    var points = [
+      coords.boxLeft,  coords.boxTop,     //initial start
+      coords.boxRight, coords.boxTop,     //top line of box
+      coords.pointX,   coords.pointY,     //diagonal down to point
+      coords.boxRight, coords.boxBottom,  //back in to box
+      coords.boxLeft,  coords.boxBottom   //bottom line of box
     ];
 
-    //build the lines array
-    var path_str = "M";
-    for (var i=0; i<lines.length; i++) {
-      path_str += lines[i].x + "," + lines[i].y + ",";
-    }
-
-    path_str = path_str.slice(0, -1) + "z"; //remove trailing "," and add z to complete the shape
+    //convert the array into a path
+    var path_str = "M" + points.join(",") + "z";
 
     //create the path object and set its attributes
     var path = this._paper.path(path_str).attr({
@@ -178,7 +228,7 @@ function DiagramBuilder(id, width, height) {
       "fill": '#3F4C6B',
     });
 
-    //now add the EXON label
+    //now add the EXON label, centred in the box part (ignoring the point)
     this._paper.text(attrs.x+((attrs.width*0.7)/2), attrs.y+(attrs.height/2), "Exon").attr({
       "fill": "#fff",
       "font-size": 16,
@@ -196,7 +246,10 @@ function DiagramBuilder(id, width, height) {
   };
 
   DiagramBuilder.prototype._createArrow = function(x, y, type, to) {
-    //type is H or V
+    //type must be H or V
+    if(! (type == "H" || type == "V") ) {
+      throw("Invalid type given to _createArrow: should be H or V.");
+    }
     return this._paper.path("M" + x + "," + y + type + to).attr({
       "stroke-width": 2,
       "arrow-end": "classic-wide-long"
@@ -206,20 +259,46 @@ function DiagramBuilder(id, width, height) {
   DiagramBuilder.prototype.addField = function(box, name, defaultValue, title, placement) {
     var coords = box.getBBox();
 
-    var offset = coords.x; //default placement is directly above the element
-    if (placement == "before") {
-      offset = coords.x - this._attributes.textWidth; //using the actual width makes the box too far in
-    } 
-    else if (placement == "after") {
-      offset = coords.x2 + 5;
+    //placement should be one of "[top|bottom|center] [left|right]"
+    //the default being top center
+
+    var textPad = 5; //used to add a little space between the element and the box
+
+    //NOTE: these offsets are relative to the svg itself, so in the css positioning we also add some
+    //additional values to line up correctly.
+    var offsets = {
+      "y": {
+        "top": (coords.y - this._attributes.textHeight) - textPad,
+        "center": coords.y + (coords.height/2 - this._attributes.textHeight/2), 
+        "bottom": coords.y + coords.height + textPad
+      },
+      "x": {
+        "left": (coords.x - this._attributes.textWidth) - textPad,
+        "right": coords.x2 + textPad,
+        "center": coords.x
+      } 
+    };
+
+    var placement_re = /(top|bottom|center)?\s*(left|right)?/i;
+    var match = placement_re.exec(placement || "top center"); //in case placement is null
+
+    var yOffset, xOffset;
+    if (match) {
+      yOffset = offsets["y"][(match[1] == null) ? "top" : match[1]];
+      xOffset = offsets["x"][(match[2] == null) ? "center" : match[2]];
+    }
+    else {
+      throw("Invalid placement value given to addField:" + placement);
     }
 
     //make a new input field and position it relative to the provided box
     var field = $("<input type='text' name='" + name + "' id='" + name + "' value='" + defaultValue + "' placeholder='"+title+"' />")
       .css( {
         position: "absolute", 
-        left: (offset-2) + "px", //offset from left of div to correct position 
+        left: (xOffset - this._createAttributes().x) + "px", //offset from left of div to correct position
+        top: ( yOffset + parseFloat(this._parentDiv.css("padding-top")) ) + "px", //we have padding at the top
         width: this._attributes.textWidth,
+        height: this._attributes.textHeight,
         padding: 0,
         "z-index": 100
       } )
@@ -238,38 +317,37 @@ function DiagramBuilder(id, width, height) {
     return field;
   }
 
-  DiagramBuilder.prototype.addLabel = function(first, second, text, orientation, name, defaultValue) {
+  //first and second are elements you want to label between
+  DiagramBuilder.prototype.addLabel = function(first, second, text, position, name, defaultValue) {
     //this will make a |<-- 5' retrieval arm length -->| or whatever label underneath two elements.
     //it will also add a text box inline with the text
     var first_coords = first.getBBox();
     var second_coords = second.getBBox();
 
     //what if they're not level? everything will break.
-    var y_offset = 10; //how much space to leave after elements
-    var line_height = 60; //height of the label
+    var y_offset = 10; //how much space to leave below the elements
+    var line_height = 80; //height of the label
     var text_offset = 15; //how far the text is from the line
 
-    var coords = {
-      y: first_coords.y2 + y_offset
-    };
+    var coords = {};
 
+    coords.y = first_coords.y2 + y_offset;
     coords.y2 = coords.y + line_height;
     coords.yCentre = coords.y + line_height/2;
 
-    //allow the function to draw arrows at different points:
-    //we always go to the start of the last element but that COULD change
-    if(orientation == "left") { 
-      coords.x = first_coords.x; //start at the start of the first element
-      coords.x2 = second_coords.x; //end at the start of the last element
-    } else if (orientation == "right") {
-      coords.x = first_coords.x2; //start at the end of the first element
-      coords.x2 = second_coords.x; //end at the start of the last element
-    } else {
-      coords.x = first_coords.x; //by default start of first -> end of last.
-      coords.x2 = second_coords.x;
-    }
+    //done like this so the user can provide the more readable "start to end"
+    var position_re = /(start|end).*(start|end)/i;
+    var match = position_re.exec(position || "start to end");
 
-    coords.xCentre = coords.x + Math.abs(coords.x - coords.x2)/2;
+    //allow the function to draw arrows at different points. default is start to end
+    if (match) {
+      coords.x = (match[1] == "end") ? first_coords.x2 : first_coords.x;
+      coords.x2 = (match[2] == "start") ? second_coords.x : second_coords.x2;
+      coords.xCentre = coords.x + Math.abs(coords.x - coords.x2)/2;
+    }
+    else {
+      throw("Invalid position given to addLabel:" + position);
+    }
 
     //create the path string to draw a vertical line under each element
     var left_line = "M" + coords.x + "," + coords.y  + "V" + coords.y2;
@@ -284,10 +362,8 @@ function DiagramBuilder(id, width, height) {
     //write the text and centre it accounting for the text box
     var textF = this._paper.text(coords.xCentre-this._attributes.textWidth/2, coords.yCentre+text_offset, text).attr({"font-size": 14});
 
-    //create the text box and adjust its y position. we're kind of just hacking around the addField function here really.
-    var field = this.addField(textF, name, defaultValue, text, "after");
-    //we have to add 10 to adjust for the padding on our div. 
-    field.css( { top: coords.yCentre+text_offset+10 } ); //adjust y position as the function doesnt do that
+    //finally add the textbox to the center right of the label we just wrote
+    var field = this.addField(textF, name, defaultValue, text, "center right");
 
     return path;
   };

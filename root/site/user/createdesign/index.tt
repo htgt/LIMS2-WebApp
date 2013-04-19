@@ -16,21 +16,75 @@ function createDeletionDiagram(builder) {
   builder.addExon();
   var g3 = builder.addBox("G3");
 
-  //the last parameter says where to start the label from relative to the first box. also add a text box
-  builder.addLabel(g5, critExon, "5` retrieval arm length", "right", "g5_offset", 4000);
-  builder.addLabel(critExon, g3, "3` retrieval arm length", "right", "g3_offset", 4000);
+  builder.addLabel(g5, critExon, "5` retrieval arm length", "end to start", "g5_offset", 4000);
+  builder.addLabel(critExon, g3, "3` retrieval arm length", "end to start", "g3_offset", 4000);
 
   //add all the text fields to the fields we want them on
   builder.addField(g5, "g5_length", 1000, "5` retrieval block size");
   builder.addField(u5, "u5_length", 200, "U block size");
-  builder.addField(critExon, "u5_offset", 0, "Min 5` spacer", "before");
-  builder.addField(critExon, "d3_offset", 0, "Min 3` spacer", "after");
+  builder.addField(critExon, "u5_offset", 0, "Min 5` spacer", "left");
+  builder.addField(critExon, "d3_offset", 0, "Min 3` spacer", "right");
   builder.addField(d3, "d3_length", 200, "D block size");
   builder.addField(g3, "g3_length", 1000, "3` retrieval block size");
 }
 
+function createInsertionDiagram(builder) {
+  var g5 = builder.addBox("G5");
+  builder.addExon();
+  var u5 = builder.addBox("U5"); 
+  var d3 = builder.addBoxWithoutSpacing("D3");
+  var critExon = builder.addCriticalExon();
+  builder.addExon();
+  var g3 = builder.addBox("G3");
+
+  builder.addLabel(g5, u5, "5` retrieval arm length", "end to end", "g5_offset", 4000);
+  builder.addLabel(d3, g3, "3` retrieval arm length", "start to start", "g3_offset", 4000);
+
+  builder.addField(g5, "g5_length", 1000, "5` retrieval block size");
+  builder.addField(u5, "u5_length", 120, "U block size");
+  builder.addField(d3, "d3_length", 120, "D block size");
+  builder.addField(critExon, "u5_offset", 300, "Min 5` spacer", "left");
+  builder.addField(g3, "g3_length", 1000, "3` retrieval block size");
+}
+
+function createKnockoutDiagram(builder) {
+  var g5 = builder.addBox("G5");
+  builder.addExon();
+  //need the 4 block u thnig here
+  var u51 = builder.addBox("U51");
+  var u52 = builder.addBoxBelowNode("U52", u51, "right");
+  var u31 = builder.addBoxWithoutSpacing("U31");
+  var u32 = builder.addBoxBelowNode("U32", u31, "right");
+  var critExon = builder.addCriticalExon();
+  //need the 4 block d thing here
+  var d51 = builder.addBox("D51"); 
+  var d52 = builder.addBoxBelowNode("D52", d51, "left");
+  var d31 = builder.addBoxWithoutSpacing("D31");
+  var d32 = builder.addBoxBelowNode("D32", d31, "left");
+  builder.addExon();
+  var g3 = builder.addBox("G3");
+
+  builder.addLabel(g5, critExon, "5` retrieval arm length", "end to start", "g5_offset", 4000);
+  builder.addLabel(critExon, g3, "3` retrieval arm length", "end to start", "g5_offset", 4000);
+
+  //add all the text fields to the fields we want them on
+  builder.addField(g5, "g5_length", 1000, "5` retrieval block size");
+  builder.addField(u51, "u5_length", 200, "U block size");
+  builder.addField(critExon, "u5_offset", 0, "Min 5` spacer", "left");
+  builder.addField(critExon, "d3_offset", 0, "Min 3` spacer", "right");
+  builder.addField(d31, "d3_length", 200, "D block size");
+  builder.addField(g3, "g3_length", 1000, "3` retrieval block size");
+  //the fields for boxes on the second strand  
+  builder.addField(u52, "offset_5p", 60, "Block offset", "center left");
+  builder.addField(d32, "offset_3p", 60, "Block offset", "center right");
+
+}
+
+var builder;
+
 $(document).ready(function() {
-  var builder = new DiagramBuilder("holder", 850, 150);
+  //width gets dynamically resized anyway
+  builder = new DiagramBuilder("holder", 850, 150);
 
   createDeletionDiagram(builder);
 

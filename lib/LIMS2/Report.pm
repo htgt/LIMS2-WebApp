@@ -1,7 +1,7 @@
 package LIMS2::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VERSION = '0.063';
+    $LIMS2::Report::VERSION = '0.064';
 }
 ## use critic
 
@@ -113,9 +113,9 @@ sub cached_report {
         or LIMS2::Exception::System->throw( "flock $lock_file failed: $!" );
     alarm(0);
 
-    if ( my $in_cache = $generator->cached_report ) {
-        if ( _cached_report_ok( $in_cache ) ) {
-            return $in_cache->id;
+    if ( !exists $args{force} ) {
+        if ( my $in_cache = $generator->cached_report ) {
+            return $in_cache->id if _cached_report_ok( $in_cache );
         }
     }
 
