@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.064     2013-04-19 07:43:19 Europe/London
+    
+    Add ability to force report caching.
+
 0.064     2013-04-17 16:30:09 Europe/London
     Fixed filter and show all buttons on QC page, and added new create design diagrams.
     
