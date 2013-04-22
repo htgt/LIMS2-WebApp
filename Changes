@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.067     2013-04-22 15:12:11 Europe/London
+    Added line to Makefile.PL to install run_in_perlbrew, but this time actually merged devel into master.
+
 0.066     2013-04-22 14:45:04 Europe/London
     Added line to Makefile.PL to install run_in_perlbrew 
 
