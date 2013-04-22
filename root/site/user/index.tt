@@ -3,11 +3,7 @@
 <div class="page-header">
   <h1>Welcome to LIMS2</h1>
 </div>
-
-<p>
-  Welcome to the High Throughput Gene Targeting (HTGT) lab
-  tracking system.
-</p>
+<p> The High Throughput Gene Targeting (HTGT) lab tracking system. </p>
 
 [% IF report_id %]
 
@@ -27,10 +23,13 @@
   </thead>
   <tbody>
 	[% FOREACH row IN dt_rows %]
+	[% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Accepted ES Clones" %]
+	<tr><td colspan="100%" style="border-bottom: 1px solid"></td></tr>
+	[% END %]
 	<tr>
       <td><b>[% row %]</b></td>
       [% FOR colname IN columns %]
-		[% UNLESS colname == "Stage" %]			
+		[% UNLESS colname == "Stage" %]
 			[% IF row == "Targeting" %]
 				[% targeting_type = data.item(row).item(colname) %]
 				[% IF targeting_type == "single_targeted" %]
@@ -42,10 +41,10 @@
 				[% END %]				
 			[% ELSE %]
 				[% countval = 0; countval = data.item(row).item(colname) %]
-				[% IF countval > 0 %]	
+				[% IF countval != "" && countval > 0 %]	
 					[% targeting_type = data.item("Targeting").item(colname) %]		
 				    <td><b><a href="[% c.uri_for( "/user/view_summary_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>           
-				[% ELSIF countval < 0 %]
+				[% ELSIF countval != "" && countval < 0 %]
 				    <td>-</td>
 				[% ELSE %]
 				    <td>0</td>
