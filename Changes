@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.066     2013-04-22 14:45:04 Europe/London
+    Added line to Makefile.PL to install run_in_perlbrew 
+
 0.065     2013-04-19 08:04:26 Europe/London
     
     Add ability to force report caching.
