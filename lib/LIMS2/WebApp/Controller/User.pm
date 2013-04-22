@@ -81,14 +81,12 @@ sub index :Path :Args(0) {
     my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
 
     # Fetch details from returned report parameters
-    my $report_id = $report_params->{ report_id };
-    my $title = $report_params->{ title };
-    my $columns = $report_params->{ columns };
-    my $st_rows = $report_params->{ st_rows };
-    my $dt_rows = $report_params->{ dt_rows };
-    #my $st_data = $report_params->{ st_data };
-    #my $dt_data = $report_params->{ dt_data };
-    my $data = $report_params->{ data };
+    my $report_id   = $report_params->{ report_id };
+    my $title       = $report_params->{ title };
+    my $columns     = $report_params->{ columns };
+    my $st_rows     = $report_params->{ st_rows };
+    my $dt_rows     = $report_params->{ dt_rows };
+    my $data        = $report_params->{ data };
 
     # Store report values in stash for display onscreen
     $c->stash(
@@ -96,9 +94,7 @@ sub index :Path :Args(0) {
         'title'     => $title,
         'columns'   => $columns,
         'st_rows'   => $st_rows,
- #       'st_data'   => $st_data,
         'dt_rows'   => $dt_rows,
- #       'dt_data'   => $dt_data,
         'data'      => $data,
     );
 
