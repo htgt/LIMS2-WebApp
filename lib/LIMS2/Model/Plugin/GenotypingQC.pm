@@ -423,12 +423,17 @@ foreach my $row ( @{$sql_result} ) {
         my $design_id = $design_data_cache->{$datum->{'id'}}->{'design_id'};
         $datum->{'gene_id'} = $design_data_cache->{$datum->{'id'}}->{'gene_id'};
         # If we have already seen this gene_id don't go searching for it again
-        if ( $gene_cache->{$datum->{'gene_id'} } ) {
-            $datum->{'gene_name'} = $gene_cache->{ $datum->{'gene_id'} };
+        if ( $datum->{'gene_id'}) {
+            if ( $gene_cache->{$datum->{'gene_id'} } ) {
+                $datum->{'gene_name'} = $gene_cache->{ $datum->{'gene_id'} };
+            }
+            else {
+                $datum->{'gene_name'} = $self->get_gene_symbol_for_gene_id( $datum->{'gene_id'}, $species);
+                $gene_cache->{$datum->{'gene_id'}} = $datum->{'gene_name'};
+            }
         }
         else {
-            $datum->{'gene_name'} = $self->get_gene_symbol_for_gene_id( $datum->{'gene_id'}, $species);
-            $gene_cache->{$datum->{'gene_id'}} = $datum->{'gene_name'};
+            $datum->{'gene_id'} = '-';
         }
         $datum->{'design_id'} = $design_id;
         # get the generic assay data for this row
@@ -559,7 +564,6 @@ sub create_design_data_cache {
 sub create_design_well_cache {
     my $self = shift;
     my $well_id_list_ref = shift;
-$DB::single=1;
     # Use a ProcessTree method to get the list of design wells.
     my $design_well_hash = $self->get_design_wells_for_well_id_list( $well_id_list_ref );
 $self->log->debug('Process_Tree generated design well hash' );
