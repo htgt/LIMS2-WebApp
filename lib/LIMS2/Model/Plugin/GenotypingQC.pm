@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.065';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.068';
 }
 ## use critic
 
@@ -407,6 +407,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
          });
     }
 );
+$self->log->debug ('SQL query brought back ' . @{$sql_result} . ' rows.' );
 my @all_data;
 my $saved_id = -1;
 my $datum = {};
@@ -415,9 +416,9 @@ my $gene_cache;
 # Extract the well_ids from $sql_result and send them to create_well_cache to generate
 # a cache of well objects as a hashref. Squeeze out the duplicates along the way.
 my @well_id_list = $self->get_uniq_wells( $sql_result);
-my $design_well_cache = $self->create_design_well_cache( \@well_id_list );
-
-$self->log->debug ('SQL query brought back ' . @{$sql_result} . ' rows.' );
+$self->log->debug('unique well list generated');
+my $design_data_cache = $self->create_design_data_cache( \@well_id_list );
+$self->log->debug('design data cache generated (' . @well_id_list . ' unique wells)');
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
         push @all_data, $datum if $datum->{'id'};
@@ -425,20 +426,22 @@ foreach my $row ( @{$sql_result} ) {
         $self->initialize_all_datum_fields($datum);
         $self->populate_well_attributes($row, $datum);
         # simply lookup the source well id in the design_well_cache
-        my $design_well = $design_well_cache->{$datum->{'id'}}->{'design_well_ref'};
-        my $design = $design_well_cache->{$datum->{'id'}}->{'design_ref'};
-        $datum->{'gene_id'} = $design->genes->first->gene_id if $design;
+        my $design_id = $design_data_cache->{$datum->{'id'}}->{'design_id'};
+        $datum->{'gene_id'} = $design_data_cache->{$datum->{'id'}}->{'gene_id'};
         # If we have already seen this gene_id don't go searching for it again
-        if ( $gene_cache->{$datum->{'gene_id'} } ) {
-            $datum->{'gene_name'} = $gene_cache->{ $datum->{'gene_id'} };
-        }
-        else {
-            if ( $design_well ) {
-                $datum->{'gene_name'} = $self->get_gene_symbol_for_accession( $design_well, $species);
+        if ( $datum->{'gene_id'}) {
+            if ( $gene_cache->{$datum->{'gene_id'} } ) {
+                $datum->{'gene_name'} = $gene_cache->{ $datum->{'gene_id'} };
+            }
+            else {
+                $datum->{'gene_name'} = $self->get_gene_symbol_for_gene_id( $datum->{'gene_id'}, $species);
                 $gene_cache->{$datum->{'gene_id'}} = $datum->{'gene_name'};
             }
         }
-        $datum->{'design_id'} = $design_well->id if $design_well;
+        else {
+            $datum->{'gene_id'} = '-';
+        }
+        $datum->{'design_id'} = $design_id;
         # get the generic assay data for this row
         $self->fill_out_genotyping_results($row, $datum );
 
@@ -512,17 +515,25 @@ sub fill_out_genotyping_results {
     return;
 }
 
-# Template pspec. Parameter validation takes time and we want speed here. If it is required
-# this stub could be completed.
-sub pspec_get_gene_symbol_for_accession {
-    return {
 
-    };
+sub get_gene_symbol_for_gene_id{
+    my ($self, $gene_id, $species, $params) = @_;
+
+    my $genes;
+    my $gene_symbols;
+    my @gene_symbols;
+
+    $genes = $self->search_genes(
+            { search_term => $gene_id, species =>  $species } );
+    push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+    $gene_symbols = join q{/}, @gene_symbols;
+
+    return $gene_symbols;
 }
 
 
 # This will return a '/' separated list of symbols for a given accession and species.
-sub get_gene_symbol_for_accession{
+sub get_gene_symbol_for_design_well{
     my ($self, $design_well, $species, $params) = @_;
 
     my $genes;
@@ -543,15 +554,25 @@ sub get_gene_symbol_for_accession{
     return $gene_symbols;
 }
 
-# We need a design well cache so that we can call methodgit diff remote branchs on the design well itself
+sub create_design_data_cache {
+    my $self = shift;
+    my $well_id_list_ref = shift;
+    # Use a ProcessTree method to get the list of design wells.
+
+    my $design_data_hash = $self->get_design_data_for_well_id_list( $well_id_list_ref );
+    return $design_data_hash;
+}
+
+
+# We need a design well cache so that we can call method on the design well itself
 #
+# This deprecated method returns design wells as part of the cache. 
 sub create_design_well_cache {
     my $self = shift;
     my $well_id_list_ref = shift;
-
     # Use a ProcessTree method to get the list of design wells.
     my $design_well_hash = $self->get_design_wells_for_well_id_list( $well_id_list_ref );
-
+$self->log->debug('Process_Tree generated design well hash' );
     # create a list of wells to fetch
     # also keep a record of design_id => source_well_id for later use
     my @design_well_id_list;
@@ -564,18 +585,20 @@ sub create_design_well_cache {
         }
     }
     my $design_well_rs = $self->schema->resultset( 'Well' );
+    $self->log->debug('Searching for design wells');
     my @design_wells = $design_well_rs->search(
         {
             'me.id' => { '-in' => \@design_well_id_list }
         },
     );
+    $self->log->debug('search complete');
     # Get the designs for each design well and cache them ...
     my $designs_hash_ref;
-
+    # This goes back to the db lots of times.
     foreach my $design_well ( @design_wells ) {
         ($designs_hash_ref->{$design_well->id}) = $design_well->designs;
     }
-
+$self->log->debug('Assigned designs');
     # save a reference to the design well in the appropriate key/value
     foreach my $well_id ( keys %{$design_well_hash} ) {
         # match up the design_well_id
@@ -588,6 +611,7 @@ sub create_design_well_cache {
             }
         }
     }
+$self->log->debug('design well references saved');
     return $design_well_hash;
 }
 
@@ -639,7 +663,8 @@ left outer
 left outer
     join well_accepted_override
         on wd."Well ID" = well_accepted_override.well_id
-order by wd."Well ID"
+--order by wd."Well ID"
+order by wd."well"
 SQL_END
 }
 

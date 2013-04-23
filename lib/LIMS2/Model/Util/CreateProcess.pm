@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.065';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.068';
 }
 ## use critic
 
@@ -696,7 +696,10 @@ sub _create_process_aux_data_clone_pool {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_clone_pick {
-    return;
+    return {
+        recombinase => { optional => 1 },
+    };
+;
 }
 ## use critic
 

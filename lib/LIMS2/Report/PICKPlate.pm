@@ -1,7 +1,7 @@
 package LIMS2::Report::PICKPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PICKPlate::VERSION = '0.065';
+    $LIMS2::Report::PICKPlate::VERSION = '0.068';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
-    return [ 'EP_PICK', 'XEP_PICK' ];
+    return [ 'EP_PICK', 'XEP_PICK', 'SEP_PICK' ];
 };
 
 override _build_name => sub {

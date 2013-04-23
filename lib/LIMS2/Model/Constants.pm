@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.065';
+    $LIMS2::Model::Constants::VERSION = '0.068';
 }
 ## use critic
 
@@ -53,6 +53,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     '2w_gateway'          => [qw( final_cassette final_backbone recombinase )],
     '3w_gateway'          => [qw( final_cassette final_backbone recombinase )],
     recombinase           => [qw( recombinase )],
+    clone_pick            => [qw( recombinase )],
     first_electroporation => [qw( cell_line )],
 );
 
