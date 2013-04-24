@@ -9,7 +9,6 @@ use Const::Fast;
 
 BEGIN {
     our @EXPORT_OK = qw(
-        $DEFAULT_ASSEMBLY
         %PROCESS_PLATE_TYPES
         %PROCESS_SPECIFIC_FIELDS
         %PROCESS_TEMPLATE
@@ -21,8 +20,6 @@ BEGIN {
     );
     our %EXPORT_TAGS = ();
 }
-
-const our $DEFAULT_ASSEMBLY => 'NCBIM37';
 
 const our %PROCESS_PLATE_TYPES => (
     create_di              => [qw( DESIGN )],
