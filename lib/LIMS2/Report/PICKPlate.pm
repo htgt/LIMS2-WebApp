@@ -6,7 +6,7 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
-    return [ 'EP_PICK', 'XEP_PICK', 'SEP_PICK' ];
+    return [ 'EP_PICK', 'XEP_PICK' ];
 };
 
 override _build_name => sub {
