@@ -32,6 +32,7 @@ note("Testing process types and fields creation");
         first_electroporation
         second_electroporation
         freeze
+        xep_pool
 	);
 	is_deeply([sort map {$_->id} @{ model->list_process_types }], [sort @process_types], 'process type list correct');
 
@@ -143,6 +144,12 @@ my $process_data_2w_gateway= test_data( '2w_gateway_process.yaml' );
     isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
     is $process->type->id, '2w_gateway',
         'process is of correct type';
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_freeze {
+    return;
+}
+## use critic
+
 
     ok my $process_cassette = $process->process_cassette, 'process has a process_cassette';
     is $process_cassette->cassette->name, 'L1L2_Bact_P', 'process_cassette has correct cassette';
