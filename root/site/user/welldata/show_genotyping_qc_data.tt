@@ -18,7 +18,7 @@
 
 $("#plate_name").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
-  minLength: 2,
+  minLength: 2
 });
 
 </script>
