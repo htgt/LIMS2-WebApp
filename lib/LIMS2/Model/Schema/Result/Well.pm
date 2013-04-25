@@ -718,7 +718,7 @@ sub final_vector {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'FINAL' ) {
+        if (  $ancestor->plate->type_id eq 'FINAL_PICK' || $ancestor->plate->type_id eq 'FINAL' ) {
             return $ancestor;
         }
     }
