@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.069';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.070';
 }
 ## use critic
 
@@ -724,7 +724,7 @@ sub final_vector {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'FINAL' ) {
+        if (  $ancestor->plate->type_id eq 'FINAL_PICK' || $ancestor->plate->type_id eq 'FINAL' ) {
             return $ancestor;
         }
     }
