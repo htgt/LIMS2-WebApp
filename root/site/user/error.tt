@@ -1,15 +1,16 @@
-<h1>LIMS2 Internal Error<h1>
+<h1>LIMS2 Internal Error</h1>
 
 <p>
   An error occurred and we are unable to complete your request.
 </p>
+
 <p>
   Please submit a request for help to htgt@sanger.ac.uk and include the
-  information listed below along with a brief factual desciption of
+  information listed below along with a brief factual description of
   what you were trying to do in LIMS2 when the error occurred.
   </p>
 
-<h2>Details</h2>
+<h2>Details:</h2>
 [% FOR message IN errors %]
 <div class="alert alert-error">
   <p>

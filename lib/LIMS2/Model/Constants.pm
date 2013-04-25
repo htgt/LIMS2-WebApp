@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.068';
+    $LIMS2::Model::Constants::VERSION = '0.069';
 }
 ## use critic
 
@@ -15,7 +15,6 @@ use Const::Fast;
 
 BEGIN {
     our @EXPORT_OK = qw(
-        $DEFAULT_ASSEMBLY
         %PROCESS_PLATE_TYPES
         %PROCESS_SPECIFIC_FIELDS
         %PROCESS_TEMPLATE
@@ -27,8 +26,6 @@ BEGIN {
     );
     our %EXPORT_TAGS = ();
 }
-
-const our $DEFAULT_ASSEMBLY => 'NCBIM37';
 
 const our %PROCESS_PLATE_TYPES => (
     create_di              => [qw( DESIGN )],

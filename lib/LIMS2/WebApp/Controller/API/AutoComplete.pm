@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.068';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.069';
 }
 ## use critic
 
