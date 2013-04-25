@@ -16,12 +16,6 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
-use Try::Tiny;
-use LIMS2::Model::Constants qw(
-%ARTIFICIAL_INTRON_OLIGO_APPENDS
-%STANDARD_KO_OLIGO_APPENDS
-%STANDARD_INS_DEL_OLIGO_APPENDS
-);
 extends 'DBIx::Class::Core';
 
 =head1 COMPONENTS LOADED
@@ -170,6 +164,13 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+use Try::Tiny;
+use LIMS2::Model::Constants qw(
+%ARTIFICIAL_INTRON_OLIGO_APPENDS
+%STANDARD_KO_OLIGO_APPENDS
+%STANDARD_INS_DEL_OLIGO_APPENDS
+);
 
 sub as_hash {
     my $self = shift;
