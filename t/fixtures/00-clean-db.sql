@@ -73,4 +73,5 @@ DELETE FROM sponsors;
 DELETE FROM cell_lines;
 DELETE FROM genotyping_result_types;
 DELETE FROM summaries;
+DELETE FROM mutation_design_types;
 
