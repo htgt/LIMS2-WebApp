@@ -299,7 +299,7 @@ sub primer_band_update {
 
     my $well_primer_band;
 
-    if ( $assay_value eq '-' ){
+    if ( $assay_value eq '-' || $assay_value eq 'reset' ){
         $well_primer_band = $self->delete_well_primer_band({
                 primer_band_type => $assay_name,
                 created_by => $user,
