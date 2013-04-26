@@ -26,38 +26,38 @@ Catalyst Controller.
 sub view : Path( '/user/view_summary_report' ) : Args(3) {
     my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
 
-	# expecting : 
-	# targeting type i.e. 'st' or 'dt' for single- or double-targeted
-	# sponsor id is the project sponsor e.g. Syboss, Pathogens
+    # expecting : 
+    # targeting type i.e. 'st' or 'dt' for single- or double-targeted
+    # sponsor id is the project sponsor e.g. Syboss, Pathogens
     # stage is the level e.g. Targeted genes, DNA 
 
     $c->assert_user_roles( 'read' );
-	
-	# depending on combination of targeting type and stage fetch details
 
-	my $species = $c->session->{selected_species};
+    # depending on combination of targeting type and stage fetch details
 
-	# Call ReportForSponsors plugin to generate report 
-	my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
-	my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $targeting_type, $stage);
+    my $species = $c->session->{selected_species};
 
-	# Fetch details from returned report parameters
-	my $report_id        = $report_params->{ 'report_id' };
-	my $disp_target_type = $report_params->{ 'disp_target_type' };
-	my $disp_stage       = $report_params->{ 'disp_stage' };
+    # Call ReportForSponsors plugin to generate report 
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
+    my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $targeting_type, $stage);
+
+    # Fetch details from returned report parameters
+    my $report_id        = $report_params->{ 'report_id' };
+    my $disp_target_type = $report_params->{ 'disp_target_type' };
+    my $disp_stage       = $report_params->{ 'disp_stage' };
     my $columns          = $report_params->{ 'columns' };
-	my $display_columns  = $report_params->{ 'display_columns' };
-	my $data             = $report_params->{ 'data' };
+    my $display_columns  = $report_params->{ 'display_columns' };
+    my $data             = $report_params->{ 'data' };
 
-	# Store report values in stash for display onscreen
-	$c->stash(
+    # Store report values in stash for display onscreen
+    $c->stash(
         'report_id'            => $report_id,
         'disp_target_type'     => $disp_target_type,
-		'disp_stage'           => $disp_stage,
-		'sponsor_id'           => $sponsor_id,
-		'columns'              => $columns,
-		'display_columns'      => $display_columns,
-        'data'                 => $data,		
+        'disp_stage'           => $disp_stage,
+        'sponsor_id'           => $sponsor_id,
+        'columns'              => $columns,
+        'display_columns'      => $display_columns,
+        'data'                 => $data,
     );
 
     return;

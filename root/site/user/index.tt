@@ -22,40 +22,49 @@
     </tr>
   </thead>
   <tbody>
-	[% FOREACH row IN dt_rows %]
-	[% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Accepted ES Clones" %]
-	<tr><td colspan="100%" style="border-bottom: 1px solid"></td></tr>
-	[% END %]
-	<tr>
+    [% FOREACH row IN dt_rows %]
+    <tr>
+      [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" %]
+      <td style="border-top: 1px solid"><b>[% row %]</b></td>
+      [% ELSE %]
       <td><b>[% row %]</b></td>
+      [% END %]
       [% FOR colname IN columns %]
-		[% UNLESS colname == "Stage" %]
-			[% IF row == "Targeting" %]
-				[% targeting_type = data.item(row).item(colname) %]
-				[% IF targeting_type == "single_targeted" %]
-					<td><i>Single</i></td>
-				[% ELSIF targeting_type == "double_targeted" %]
-					<td><i>Double</i></td>
-				[% ELSE %]
-				    <td>No projects</td>
-				[% END %]				
-			[% ELSE %]
-				[% countval = 0; countval = data.item(row).item(colname) %]
-				[% IF countval != "" && countval > 0 %]	
-					[% targeting_type = data.item("Targeting").item(colname) %]		
-				    <td><b><a href="[% c.uri_for( "/user/view_summary_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>           
-				[% ELSIF countval != "" && countval < 0 %]
-				    <td>-</td>
-				[% ELSE %]
-				    <td>0</td>
-				[% END %]
-			[% END %]
+        [% UNLESS colname == "Stage" %]
+            [% IF row == "Targeting" %]
+                [% targeting_type = data.item(row).item(colname) %]
+                [% IF targeting_type == "single_targeted" %]
+                    <td><i>Single</i></td>
+                [% ELSIF targeting_type == "double_targeted" %]
+                    <td><i>Double</i></td>
+                [% ELSE %]
+                    <td>No projects</td>
+                [% END %]               
+            [% ELSE %]
+                [% countval = 0; countval = data.item(row).item(colname) %]
+                [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" %]
+                <td style="border-top: 1px solid">
+                [% ELSE %]
+                <td>
+                [% END %]
+                [% IF countval != "" && countval > 0 %] 
+                    [% targeting_type = data.item("Targeting").item(colname) %]
+                    
+                    <b><a href="[% c.uri_for( "/user/view_summary_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>           
+                [% ELSIF countval != "" && countval < 0 %]
+                    -</td>
+                [% ELSE %]
+                    0</td>
+                [% END %]
+            [% END %]
 
-		[% END %]
+        [% END %]
       [% END %]
     </tr>
-	[% END %]
+    [% END %]
   </tbody>
 </table>
+
+<p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
 
 [% END %]
