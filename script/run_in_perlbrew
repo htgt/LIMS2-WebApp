@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#usage example:
+#./run_in_perlbrew "perl -v"
+
+#specifying no command gives you an interactive shell, otherwise the given command is run.
+exec htgt_env.pl --clear-env --config /software/team87/perlbrew/etc/environment.conf HOME=$HOME "$@"
+
+#see http://mediawiki.internal.sanger.ac.uk/index.php/HTGT:Perlbrew for more information.
+
+#installing a new perl:
+#perlbrew install perl-5.16.0 -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
+#as htgt-web doesnt have gcc.
+
+#
+#run the commands below to use perlbrew interactively. 
+#alternatively run /software/team87/perlbrew/start_perlbrew.sh
+#
+
+#export PERLBREW_HOME=/software/team87/.perlbrew
+#export PERLBREW_ROOT=/software/team87/perlbrew
+#export PERL5LIB=${PERLBREW_ROOT}/lib_global/perl5
+#source ${PERLBREW_ROOT}/etc/bashrc
+

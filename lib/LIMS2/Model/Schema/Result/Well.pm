@@ -632,59 +632,6 @@ sub designs{
     return @designs;
 }
 
-sub all_genotyping_qc_data{
-	my $self = shift;
-    my $model = shift;
-    my $species = shift;
-
-	# Fetch all related genotyping data as hash for use in ExtJS grid
-	my $schema = $self->result_source->schema;
-
-	my @value_names = qw(call copy_number copy_number_range confidence);
-    my @assay_types = sort map { $_->id } $schema->resultset('GenotypingResultType')->all;
-
-    my $datum;
-	$datum->{id} = $self->id;
-	$datum->{plate_name} = $self->plate->name;
-	$datum->{well} = $self->name;
-    my ($design) = $self->designs;
-    $datum->{gene_id} = $design->genes->first->gene_id if $design;
-    $datum->{gene_name} = $model->get_gene_symbol_for_accession( $self, $species );
-    $datum->{design_id} = $design->id;
-
-	$datum->{chromosome_fail} = $self->well_chromosome_fail ? $self->well_chromosome_fail->result
-		                                                    : '-';
-	$datum->{targeting_pass} = $self->well_targeting_pass ? $self->well_targeting_pass->result
-		                                                  : '-';
-	$datum->{targeting_puro_pass} = $self->well_targeting_puro_pass ? $self->well_targeting_puro_pass->result
-		                                                  : '-';
-# default is undef ('-') for primer bands. This will be overwritten by the value in the database
-# if there is one.
-
-    $datum->{tr_pcr} = '-';
-    $datum->{gf3} = '-';
-    $datum->{gf4} = '-';
-    $datum->{gr3} = '-';
-    $datum->{gr4} = '-';
-
-    foreach my $primer_band ( $self->well_primer_bands ) {
-            $datum->{$primer_band->primer_band_type_id} = $primer_band->pass ? 'true' : 'false';
-    }
-
-	# foreach loop to get assay specific results
-	foreach my $assay (@assay_types){
-		foreach my $name (@value_names){
-			my $result = $schema->resultset('WellGenotypingResult')->find({
-				well_id => $self->id,
-				genotyping_result_type_id => $assay,
-			});
-			$datum->{$assay . '#' . $name} = $result ? $result->$name
-				                             : undef ;
-		}
-    }
-    return $datum;
-}
-
 sub parent_processes{
 	my $self = shift;
 
@@ -771,13 +718,54 @@ sub final_vector {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'FINAL' ) {
+        if (  $ancestor->plate->type_id eq 'FINAL_PICK' || $ancestor->plate->type_id eq 'FINAL' ) {
             return $ancestor;
         }
     }
 
     require LIMS2::Exception::Implementation;
     LIMS2::Exception::Implementation->throw( "Failed to determine final vector for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub first_dna {
+    my $self = shift;
+
+    if ( $self->is_double_targeted ) {
+        my $first_ep = $self->first_ep;
+        return $first_ep->first_dna;
+    }
+    else {
+        my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+        while( my $ancestor = $ancestors->next ) {
+            if ( $ancestor->plate->type_id eq 'DNA' ) {
+                return $ancestor;
+            }
+        }
+    }
+
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine first dna for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub second_dna {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate->type_id eq 'DNA' ) {
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine second allele for $self"
+    );
+
 }
 ## use critic
 

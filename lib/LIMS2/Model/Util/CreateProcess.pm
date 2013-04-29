@@ -690,7 +690,10 @@ sub _create_process_aux_data_clone_pool {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_clone_pick {
-    return;
+    return {
+        recombinase => { optional => 1 },
+    };
+;
 }
 ## use critic
 

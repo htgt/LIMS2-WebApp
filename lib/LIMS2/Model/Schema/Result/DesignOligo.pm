@@ -165,6 +165,13 @@ __PACKAGE__->has_many(
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
+use Try::Tiny;
+use LIMS2::Model::Constants qw(
+%ARTIFICIAL_INTRON_OLIGO_APPENDS
+%STANDARD_KO_OLIGO_APPENDS
+%STANDARD_INS_DEL_OLIGO_APPENDS
+);
+
 sub as_hash {
     my $self = shift;
 
@@ -179,6 +186,108 @@ sub as_hash {
         seq   => $self->seq,
         locus => $locus ? $locus->as_hash : undef
     };
+}
+
+=head2 oligo_strand_vs_design_strand
+
+What is the orientation of the oligo in relation to the strand of the design it is targeted against.
+Remember, all oligo sequence is stored on the +ve strand, no matter the design strand.
+
+For example, the U5 oligo is on the same strand as the design ( 1 )
+So a U5 oligo for a +ve stranded design is on the +ve strand ( i.e do not revcomp )
+Conversly, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e revcomp it )
+
+The U3 oligo is on the opposite strand as the design ( -1 )
+So a U3 oligo for a +ve stranded design is on the -ve strand ( i.e revcomp it )
+Conversly, a U3 oligo for a -ve stranded design is on the +ve strand ( i.e do not revcomp )
+
+=cut
+my %OLIGO_STRAND_VS_DESIGN_STRAND = (
+    "G5" => -1,
+    "U5" => 1,
+    "U3" => -1,
+    "D5" => 1,
+    "D3" => -1,
+    "G3" => 1,
+);
+
+=head2 revcomp_seq
+
+Return reverse complimented oligo sequence.
+
+=cut
+sub revcomp_seq {
+    my $self = shift;
+    my $revcomp_seq;
+
+    require Bio::Seq;
+    require LIMS2::Exception;
+
+    try{
+        my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->seq );
+        $revcomp_seq = $bio_seq->revcom->seq;
+    }
+    catch {
+        LIMS2::Exception->throw( 'Error working out revcomp of sequence: ' . $self->seq );
+    };
+
+    return $revcomp_seq;
+}
+
+=head2 append_seq
+
+Get append sequence for oligo, depends on design type and oligo type
+Send in optional design_type to avoid extra DB calls.
+
+=cut
+sub append_seq {
+    my ( $self, $design_type ) = @_;
+    require LIMS2::Exception;
+
+    my $append_seq;
+    $design_type ||= $self->design->design_type_id;
+    my $oligo_type = $self->design_oligo_type_id;
+
+    if ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
+        $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type }
+            if exists $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };
+    }
+    elsif ( $design_type eq 'conditional' ) {
+        $append_seq = $STANDARD_KO_OLIGO_APPENDS{ $oligo_type }
+            if exists $STANDARD_KO_OLIGO_APPENDS{ $oligo_type };
+
+    }
+    elsif ( $design_type eq 'artificial-intron' || $design_type eq 'intron-replacement' ) {
+        $append_seq = $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type }
+            if exists $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type };
+    }
+    else {
+        LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
+    }
+
+    LIMS2::Exception->throw( "Undefined append sequence for $oligo_type oligo on $design_type design" )
+        unless $append_seq;
+
+    return $append_seq;
+}
+
+=head2 oligo_order_seq
+
+Sequence used when ordering the oligo.
+Need to add the correct append sequence and revcomp if needed.
+
+Send in optional design strand and design type to avoid extra DB calls.
+
+=cut
+sub oligo_order_seq {
+    my ( $self, $design_strand, $design_type ) = @_;
+    $design_strand ||= $self->design->chr_strand;
+
+    # See comment above %OLIGO_STRAND_VS_DESIGN_STRAND for explanation
+    my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $self->design_oligo_type_id };
+    my $seq = $design_strand != $oligo_strand ? $self->revcomp_seq : $self->seq;
+
+    return $seq . $self->append_seq( $design_type );
 }
 
 __PACKAGE__->meta->make_immutable;
