@@ -1,0 +1,33 @@
+[%- META title = "Summary Report" %]
+
+<div class="page-header">
+  <h2>Sponsor Progress Sub-Report</h2>
+</div>
+
+[% IF report_id %]
+
+<p>
+<big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+</p>
+
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      [% FOR disp_col IN display_columns %]
+        <th>[% disp_col %]</th>
+      [% END %]
+    </tr>
+  </thead>
+  <tbody>
+	[% FOREACH row IN data %]
+		<tr>	
+			[% FOREACH col IN columns %]
+				[% colval = row.item(col) %]
+				<td>[% colval %]</td>
+			[% END %]
+		</tr>
+	[% END %]
+  </tbody>
+</table>
+
+[% END %]

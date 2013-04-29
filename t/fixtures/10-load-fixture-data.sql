@@ -4789,6 +4789,7 @@ INSERT INTO process_types VALUES ('first_electroporation', 'First (standard) ele
 INSERT INTO process_types VALUES ('second_electroporation', 'Second electroporation in double targetted cells');
 INSERT INTO process_types VALUES ('freeze', 'Create freezer plate well');
 INSERT INTO process_types VALUES ('final_pick', 'Create Final Pick plate');
+INSERT INTO process_types VALUES ('xep_pool', 'Pool multiple EP_PICK wells into an XEP well');
 
 
 --
@@ -11456,7 +11457,17 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_g', 'pass', '', '2008
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_ns', 'pass', '', '2008-12-10 00:00:00', 800);
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', '2008-12-10 00:00:00', 800);
 
-
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('ko_first','conditional');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('ko_first','artificial-intron');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('ko_first','intron-replacement');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('deletion','deletion');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('insertion','insertion');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','conditional');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','artificial-intron');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','intron-replacement');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','deletion');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','insertion');
+INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','cre-bac');
 --
 -- Data for Name: well_targeting_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
