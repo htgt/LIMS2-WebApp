@@ -276,6 +276,26 @@ __PACKAGE__->many_to_many(
     "process"
 );
 
+has 'info' => (
+    is      => 'ro',
+    isa     => 'LIMS2::Model::Util::DesignInfo',
+    lazy    => 1,
+    builder => '_build_design_info',
+    handles => {
+        chr_name            => 'chr_name',
+        chr_strand          => 'chr_strand',
+        target_region_start => 'target_region_start',
+        target_region_end   => 'target_region_end',
+    }
+);
+
+sub _build_design_info {
+    my $self = shift;
+
+    require LIMS2::Model::Util::DesignInfo;
+    return LIMS2::Model::Util::DesignInfo->new( { design => $self } );
+}
+
 sub as_hash {
     my ( $self, $suppress_relations ) = @_;
 
@@ -352,6 +372,19 @@ sub _oligos_fasta {
     $seq_io->write_seq( $strand == 1 ? $seq : $seq->revcom );
 
     return $fasta;
+}
+
+sub oligo_order_seqs {
+    my $self = shift;
+    my %oligo_order_seqs;
+
+    my @oligos = $self->oligos;
+    for my $oligo ( @oligos ) {
+        my $type = $oligo->design_oligo_type_id;
+        $oligo_order_seqs{ $type } = $oligo->oligo_order_seq( $self->chr_strand, $self->design_type_id );
+    }
+
+    return \%oligo_order_seqs;
 }
 
 __PACKAGE__->meta->make_immutable;

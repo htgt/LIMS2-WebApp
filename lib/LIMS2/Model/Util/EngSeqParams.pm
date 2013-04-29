@@ -15,7 +15,6 @@ use Sub::Exporter -setup => {
 };
 
 use Log::Log4perl qw( :easy );
-use LIMS2::Model::Constants qw($DEFAULT_ASSEMBLY);
 use LIMS2::Model::ProcessGraph;
 use EngSeqBuilder;
 use JSON;

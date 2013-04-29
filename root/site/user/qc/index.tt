@@ -32,6 +32,7 @@
             <th>Expected Designs</th>
             <th>Observed Designs</th>
             <th>Valid Designs</th>
+            <th>Download CSV</th>
         </tr>
     </thead>
 
@@ -51,6 +52,7 @@
                 <td>[% qc_run.expected_designs %]</td>
                 <td>[% qc_run.observed_designs %]</td>
                 <td>[% qc_run.valid_designs %]</td>
+                <td><a class="btn btn-info" href="[% c.uri_for( '/user/report/async/QcRun', { 'qc_run_id' => qc_run.id } ) %]"><i class="icon-download-alt icon-white"></i></a></td>
             </tr>
         [% END %]
     </tbody>
