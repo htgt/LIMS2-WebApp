@@ -4,7 +4,6 @@ use Moose;
 use LIMS2::Model::Util::ReportForSponsors;
 use Text::CSV;
 use namespace::autoclean;
-use Smart::Comments;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
