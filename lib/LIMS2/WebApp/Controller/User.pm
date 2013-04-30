@@ -84,17 +84,17 @@ sub index :Path :Args(0) {
     my $report_id   = $report_params->{ report_id };
     my $title       = $report_params->{ title };
     my $columns     = $report_params->{ columns };
-    my $st_rows     = $report_params->{ st_rows };
-    my $dt_rows     = $report_params->{ dt_rows };
+    my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
+
+    ### $data
 
     # Store report values in stash for display onscreen
     $c->stash(
         'report_id' => $report_id,
         'title'     => $title,
         'columns'   => $columns,
-        'st_rows'   => $st_rows,
-        'dt_rows'   => $dt_rows,
+        'rows'      => $rows,
         'data'      => $data,
     );
 

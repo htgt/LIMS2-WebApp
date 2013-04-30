@@ -23,7 +23,17 @@
 		<tr>	
 			[% FOREACH col IN columns %]
 				[% colval = row.item(col) %]
+				[% IF col == "qc_seq_pass" || col == "dna_status_pass" %]
+					[% IF colval == "1" %]
+						<td style="color:green">true</td>
+					[% ELSIF colval == "0" %]
+						<td style="color:red">false</td>
+					[% ELSE %]
+						<td style="color:orange">not set</td>
+					[% END %] 
+				[% ELSE %]
 				<td>[% colval %]</td>
+				[% END %]
 			[% END %]
 		</tr>
 	[% END %]
