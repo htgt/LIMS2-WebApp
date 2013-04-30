@@ -22,9 +22,9 @@
     </tr>
   </thead>
   <tbody>
-    [% FOREACH row IN dt_rows %]
+    [% FOREACH row IN rows %]
     <tr>
-      [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" %]
+      [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "Electroporations"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
       <td style="border-top: 1px solid"><b>[% row %]</b></td>
       [% ELSE %]
       <td><b>[% row %]</b></td>
@@ -42,7 +42,7 @@
                 [% END %]               
             [% ELSE %]
                 [% countval = 0; countval = data.item(row).item(colname) %]
-                [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" %]
+                [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "Electroporations"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
                 <td style="border-top: 1px solid">
                 [% ELSE %]
                 <td>
