@@ -46,6 +46,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     recombinase           => [qw( recombinase )],
     clone_pick            => [qw( recombinase )],
     first_electroporation => [qw( cell_line )],
+    xep_pool              => [qw( recombinase )],
 );
 
 const our %PROCESS_TEMPLATE => (
@@ -61,6 +62,7 @@ const our %PROCESS_TEMPLATE => (
     clone_pick             => 'standard_template.csv',
     clone_pool             => 'standard_template.csv',
     freeze                 => 'standard_template.csv',
+    xep_pool               => 'standard_template.csv',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -116,6 +118,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     freeze => {
         type   => [qw( EP_PICK SEP_PICK )],
         number => 1,
+    },
+    xep_pool => {
+        type   => [qw( EP_PICK )],
+        number => 'MULTIPLE',
     },
 );
 

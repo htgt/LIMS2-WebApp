@@ -22,7 +22,7 @@ sub pspec_create_process {
 
 sub create_process {
     my ( $self, $params ) = @_;
-
+$DB::single=1;
     my $validated_params
         = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
 
