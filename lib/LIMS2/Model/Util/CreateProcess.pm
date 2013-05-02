@@ -138,6 +138,7 @@ my %process_check_well = (
     first_electroporation  => \&_check_wells_first_electroporation,
     second_electroporation => \&_check_wells_second_electroporation,
     freeze                 => \&_check_wells_freeze,
+    xep_pool               => \&_check_wells_xep_pool,
 );
 
 sub check_process_wells {
@@ -161,9 +162,11 @@ sub check_input_wells {
     my @input_wells               = $process->input_wells;
     my $count                     = scalar @input_wells;
     my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
+
     LIMS2::Exception::Validation->throw(
             "$process_type process should have $expected_input_well_count input well(s) (got $count)"
-    ) unless $count == $expected_input_well_count;
+    ) unless ($count eq $expected_input_well_count)
+        || ($count > 0 and $expected_input_well_count eq 'MULTIPLE');
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
@@ -390,6 +393,16 @@ sub _check_wells_freeze {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_xep_pool {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
 my %process_aux_data = (
     create_di              => \&_create_process_aux_data_create_di,
     int_recom              => \&_create_process_aux_data_int_recom,
@@ -406,6 +419,7 @@ my %process_aux_data = (
     first_electroporation  => \&_create_process_aux_data_first_electroporation,
     second_electroporation => \&_create_process_aux_data_second_electroporation,
     freeze                 => \&_create_process_aux_data_freeze,
+    xep_pool               => \&_create_process_aux_data_xep_pool,
 );
 
 sub create_process_aux_data {
@@ -699,6 +713,12 @@ sub _create_process_aux_data_clone_pick {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_freeze {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_xep_pool {
     return;
 }
 ## use critic
