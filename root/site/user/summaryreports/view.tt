@@ -4,11 +4,11 @@
   <h2>Sponsor Progress Sub-Report</h2>
 </div>
 
-[% IF report_id %]
-
 <p>
 <big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
 </p>
+
+[% IF report_id %]
 
 <table class="table table-striped table-bordered">
   <thead>
@@ -25,13 +25,21 @@
 				[% colval = row.item(col) %]
 				[% IF col == "qc_seq_pass" || col == "dna_status_pass" %]
 					[% IF colval == "1" %]
-						<td style="color:green">true</td>
+						<td style="color:green">pass</td>
 					[% ELSIF colval == "0" %]
-						<td style="color:red">false</td>
+						<td style="color:red">fail</td>
 					[% ELSE %]
-						<td style="color:orange">not set</td>
+						<td style="color:orange">-</td>
 					[% END %] 
-				[% ELSE %]
+				[% ELSIF col == "cassette_promotor" %]
+					[% IF colval == "1" %]
+						<td>yes</td>
+					[% ELSIF colval == "0" %]
+						<td>no</td>
+					[% ELSE %]
+						<td>-</td>
+					[% END %] 
+                [% ELSE %]
 				<td>[% colval %]</td>
 				[% END %]
 			[% END %]
@@ -40,4 +48,6 @@
   </tbody>
 </table>
 
+[% ELSE %]
+<h3>Error: No rows found for this report!</h3>
 [% END %]

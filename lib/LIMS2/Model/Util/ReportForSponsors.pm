@@ -12,14 +12,22 @@ use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use DateTime;
 use Readonly;
+use Smart::Comments;
 
 Log::Log4perl->easy_init($DEBUG);
 
 extends qw( LIMS2::ReportGenerator );
 
 # Rows on report view
-Readonly my @REPORT_CATEGORIES => (
-    'Targeting',
+Readonly my @ST_REPORT_CATEGORIES => (
+    'Targeted Genes',
+    'Vectors',
+    'Valid DNA',
+	'Electroporations',
+    'Accepted ES Clones',
+);
+
+Readonly my @DT_REPORT_CATEGORIES => (
     'Targeted Genes',
     'Vectors',
     'Vectors Neo and Bsd',
@@ -29,8 +37,6 @@ Readonly my @REPORT_CATEGORIES => (
     'Valid DNA Neo and Bsd',
     'Valid DNA Neo',
     'Valid DNA Bsd',
-	'Electroporations',
-    'Accepted ES Clones',
     'First Electroporations',
     'First Electroporations Neo',
     'First Electroporations Bsd',
@@ -48,9 +54,15 @@ has model => (
 );
 
 has species => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1
+    is         => 'ro',
+    isa        => 'Str',
+    required   => 1,
+);
+
+has targeting_type => (
+    is         => 'ro',
+    isa        => 'Str',
+    required   => 1,
 );
 
 #----------------------------------------------------------
@@ -66,11 +78,24 @@ has sponsors => (
 sub _build_sponsors {
     my $self = shift;
 
-    my @sponsors = $self->model->schema->resultset('Sponsor')->search(
-        { }, { order_by => { -asc => 'description' } }
-    );
+    # select sponsors for the selected species that have projects
+	my $sponsor_ids_rs = $self->select_sponsors_with_projects( );
 
-    return [ map{ $_->id } @sponsors ];
+    ### $sponsor_ids_rs
+
+	my @sponsor_ids;
+
+	foreach my $sponsor ( @$sponsor_ids_rs ) {
+       my $sponsor_id = $sponsor->{ id };
+       DEBUG "Sponsor id found = ".$sponsor_id;
+       push( @sponsor_ids, $sponsor_id );
+    }
+
+    DEBUG "Sponsors = ";
+    ### @sponsor_ids
+
+    return [ @sponsor_ids ];
+
 }
 
 has sponsor_data => (
@@ -85,8 +110,11 @@ sub _build_sponsor_data {
 
     my @sponsor_ids = @{ $self->sponsors };
 
+    DEBUG "Sponsor ids:";
+    ### @sponsor_ids
+
     foreach my $sponsor_id ( @sponsor_ids ) {
-        DEBUG "building data for sponsor id = ".$sponsor_id;
+        DEBUG "Building data for sponsor id = ".$sponsor_id;
         $self->_build_sponsor_column_data( $sponsor_id, \%sponsor_data );
     }
 
@@ -96,21 +124,21 @@ sub _build_sponsor_data {
 sub _build_sponsor_column_data {
     my ( $self, $sponsor_id, $sponsor_data ) = @_;
 
-    DEBUG "building column data for sponsor id = ".$sponsor_id;
+    DEBUG 'Building column data for sponsor id = '.$sponsor_id.', targeting type = '.$self->targeting_type.' and species = '.$self->species;
 
-    # select what targeting types this project has and how many genes it is targeting
-    my $sponsor_tt_counts = $self->select_sponsor_targeting_type_and_genes( $sponsor_id );
+    # select how many genes this sponsor is targeting
+    my $sponsor_gene_counts = $self->select_sponsor_genes( $sponsor_id );
 
-    foreach my $sponsor_tt ( @$sponsor_tt_counts ) {
+    # NB sponsor may have both single and double targeted projects
+    foreach my $sponsor_genes ( @$sponsor_gene_counts ) {
 
-        my $targeting_type = $sponsor_tt->{ targeting_type };
-        my $number_genes = $sponsor_tt->{ genes };
+        my $number_genes = $sponsor_genes->{ genes };
 
-        DEBUG "targeting_type = ".$targeting_type;
         DEBUG "number genes = ".$number_genes;
 
-        $self->_build_column_data( $sponsor_id, $sponsor_data, $targeting_type, $number_genes );
-
+		if ( $number_genes > 0 ) {
+            $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
+        }
     }
 
     return;
@@ -118,12 +146,9 @@ sub _build_sponsor_column_data {
 
 sub _build_column_data {
 
-    my ( $self, $sponsor_id, $sponsor_data, $targeting_type, $number_genes ) = @_;
+    my ( $self, $sponsor_id, $sponsor_data, $number_genes ) = @_;
 
-    DEBUG 'Fetching column data: sponsor = '.$sponsor_id.', targeting_type = '.$targeting_type.', number genes = '.$number_genes;
-
-    # --------- Targeting Type -----------
-    $sponsor_data->{'Targeting'}{$sponsor_id} = $targeting_type;
+    DEBUG 'Fetching column data: sponsor = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', number genes = '.$number_genes;
 
     # --------- Targeted Genes -----------
     my $count_tgs = $number_genes;
@@ -133,11 +158,11 @@ sub _build_column_data {
     # only look if targeted genes found
     my $count_vectors = 0;
     if ( $count_tgs > 0 ) {
-      $count_vectors = $self->vectors( $sponsor_id, $targeting_type, 'count' );
+      $count_vectors = $self->vectors( $sponsor_id, 'count' );
     }
     $sponsor_data->{'Vectors'}{$sponsor_id} = $count_vectors;
 
-    if ( $targeting_type eq 'double_targeted' ) {
+    if ( $self->targeting_type eq 'double_targeted' ) {
 
         # only look if vectors found
         my $count_pairs_neo_bsd_vectors = 0;
@@ -145,10 +170,10 @@ sub _build_column_data {
         my $count_blast_vectors = 0;
 
         if ( $count_vectors > 0 ) {
-          $count_pairs_neo_bsd_vectors = $self->vector_pairs_neo_and_bsd( $sponsor_id, $targeting_type, 'count' );
+          $count_pairs_neo_bsd_vectors = $self->vector_pairs_neo_and_bsd( $sponsor_id, 'count' );
 
-          $count_neo_vectors = $self->vectors_with_resistance( $sponsor_id, $targeting_type, 'neoR' , 'count');
-          $count_blast_vectors = $self->vectors_with_resistance( $sponsor_id, $targeting_type, 'blastR', 'count' );
+          $count_neo_vectors = $self->vectors_with_resistance( $sponsor_id, 'neoR' , 'count');
+          $count_blast_vectors = $self->vectors_with_resistance( $sponsor_id, 'blastR', 'count' );
         }
         $sponsor_data->{'Vectors Neo and Bsd'}{$sponsor_id} = $count_pairs_neo_bsd_vectors;
         $sponsor_data->{'Vectors Neo'}{$sponsor_id} = $count_neo_vectors;
@@ -165,20 +190,20 @@ sub _build_column_data {
     # only look if vectors found
     my $count_dna = 0;
     if ( $count_vectors > 0 ) {
-      $count_dna = $self->dna( $sponsor_id, $targeting_type, 'count' );
+      $count_dna = $self->dna( $sponsor_id, 'count' );
     }
     $sponsor_data->{'Valid DNA'}{$sponsor_id} = $count_dna;
 
-    if ( $targeting_type eq 'double_targeted' ) {
+    if ( $self->targeting_type eq 'double_targeted' ) {
         # only look if DNA found
         my $count_pairs_neo_bsd_dna = 0;
         my $count_neo_dna = 0;
         my $count_blast_dna = 0;
 
         if ( $count_dna > 0 ) {
-            $count_pairs_neo_bsd_dna = $self->dna_pairs_neo_and_bsd( $sponsor_id, $targeting_type, 'count' );
-            $count_neo_dna = $self->dna_with_resistance( $sponsor_id, $targeting_type, 'neoR', 'count' );
-            $count_blast_dna = $self->dna_with_resistance( $sponsor_id, $targeting_type, 'blastR', 'count' );
+            $count_pairs_neo_bsd_dna = $self->dna_pairs_neo_and_bsd( $sponsor_id, 'count' );
+            $count_neo_dna = $self->dna_with_resistance( $sponsor_id, 'neoR', 'count' );
+            $count_blast_dna = $self->dna_with_resistance( $sponsor_id, 'blastR', 'count' );
         }
         $sponsor_data->{'Valid DNA Neo and Bsd'}{$sponsor_id} = $count_pairs_neo_bsd_dna;
         $sponsor_data->{'Valid DNA Neo'}{$sponsor_id} = $count_neo_dna;
@@ -194,9 +219,9 @@ sub _build_column_data {
     # only look if dna found
     my $count_eps = 0;
     
-    if ($targeting_type eq 'single_targeted' ) {
+    if ($self->targeting_type eq 'single_targeted' ) {
         if ( $count_dna > 0 ) {
-            $count_eps = $self->first_electroporations( $sponsor_id, $targeting_type, 'count' );
+            $count_eps = $self->first_electroporations( $sponsor_id, 'count' );
         }
         $sponsor_data->{'Electroporations'}{$sponsor_id} = $count_eps;
 
@@ -205,7 +230,7 @@ sub _build_column_data {
         # only look if electroporations found
         my $count_clones = 0;
         if ( $count_eps > 0 ) {
-            $count_clones = $self->clones( $sponsor_id, $targeting_type, 'count' );
+            $count_clones = $self->clones( $sponsor_id, 'count' );
         }
         $sponsor_data->{'Accepted ES Clones'}{$sponsor_id} = $count_clones;
 
@@ -218,10 +243,10 @@ sub _build_column_data {
         $sponsor_data->{'Second Electroporations Bsd'}{$sponsor_id} = -1;
         $sponsor_data->{'Accepted Second ES Clones'}{$sponsor_id}   = -1;
     }
-    elsif ( $targeting_type eq 'double_targeted' ) {
+    elsif ( $self->targeting_type eq 'double_targeted' ) {
 
         if ( $count_dna > 0 ) {
-            $count_eps = $self->first_electroporations( $sponsor_id, $targeting_type, 'count' );
+            $count_eps = $self->first_electroporations( $sponsor_id, 'count' );
         }
         $sponsor_data->{'First Electroporations'}{$sponsor_id} = $count_eps;
 
@@ -229,8 +254,8 @@ sub _build_column_data {
         my $count_neo_eps = 0;
         my $count_blast_eps = 0;
         if ( $count_eps > 0 ) {
-          $count_neo_eps = $self->first_electroporations_with_resistance( $sponsor_id, $targeting_type, 'neoR', 'count' );
-          $count_blast_eps = $self->first_electroporations_with_resistance( $sponsor_id, $targeting_type, 'blastR', 'count' );
+          $count_neo_eps = $self->first_electroporations_with_resistance( $sponsor_id, 'neoR', 'count' );
+          $count_blast_eps = $self->first_electroporations_with_resistance( $sponsor_id, 'blastR', 'count' );
         }
         $sponsor_data->{'First Electroporations Neo'}{$sponsor_id} = $count_neo_eps;
         $sponsor_data->{'First Electroporations Bsd'}{$sponsor_id} = $count_blast_eps;
@@ -238,7 +263,7 @@ sub _build_column_data {
         # only look if electroporations found
         my $count_first_clones = 0;
         if ( $count_eps > 0 ) {
-            $count_first_clones = $self->clones( $sponsor_id, $targeting_type, 'count' );
+            $count_first_clones = $self->clones( $sponsor_id, 'count' );
         }
         $sponsor_data->{'Accepted First ES Clones'}{$sponsor_id} = $count_first_clones;
 
@@ -248,9 +273,9 @@ sub _build_column_data {
         my $count_second_eps_bsd = 0;
 
         if ( $count_eps > 0 ) {
-          $count_second_eps = $self->second_electroporations( $sponsor_id, $targeting_type, 'count' );
-          $count_second_eps_neo = $self->second_electroporations_with_resistance( $sponsor_id, $targeting_type, 'neoR', 'count' );
-          $count_second_eps_bsd = $self->second_electroporations_with_resistance( $sponsor_id, $targeting_type, 'blastR', 'count' );
+          $count_second_eps = $self->second_electroporations( $sponsor_id, 'count' );
+          $count_second_eps_neo = $self->second_electroporations_with_resistance( $sponsor_id, 'neoR', 'count' );
+          $count_second_eps_bsd = $self->second_electroporations_with_resistance( $sponsor_id, 'blastR', 'count' );
         }
         $sponsor_data->{'Second Electroporations'}{$sponsor_id} = $count_second_eps;
         $sponsor_data->{'Second Electroporations Neo'}{$sponsor_id} = $count_second_eps_neo;
@@ -259,7 +284,7 @@ sub _build_column_data {
         # only look if second electroporations found
         my $count_second_clones = 0;
         if ( $count_second_eps > 0 ) {
-            $count_second_clones = $self->clones_second( $sponsor_id, $targeting_type, 'count' );
+            $count_second_clones = $self->clones_second( $sponsor_id, 'count' );
         }
         $sponsor_data->{'Accepted Second ES Clones'}{$sponsor_id} = $count_second_clones;
     }
@@ -267,14 +292,28 @@ sub _build_column_data {
     return;
 }
 
-sub select_sponsor_targeting_type_and_genes {
-    my ( $self, $sponsor_id ) = @_;
+sub select_sponsors_with_projects {
+    my ( $self ) = @_;
 
-    DEBUG "selecting targeting type and genes for sponsor id = ".$sponsor_id;
+    DEBUG 'Selecting sponsors with '.$self->targeting_type.' projects where species = '.$self->species;
 
     my $sql_results;
 
-    my $sql_query = $self->create_sql_count_genes_for_a_sponsor( $sponsor_id );
+    my $sql_query = $self->create_sql_select_sponsors_with_projects( $self->species, $self->targeting_type );
+
+    $sql_results = $self->run_select_query( $sql_query );
+
+    return $sql_results;
+}
+
+sub select_sponsor_genes {
+    my ( $self, $sponsor_id ) = @_;
+
+    DEBUG "Selecting genes for sponsor id = ".$sponsor_id.' and targeting type = '.$self->targeting_type.' and species '.$self->species;
+
+    my $sql_results;
+
+    my $sql_query = $self->create_sql_count_genes_for_a_sponsor( $sponsor_id, $self->targeting_type, $self->species );
 
     $sql_results = $self->run_select_query( $sql_query );
 
@@ -283,20 +322,34 @@ sub select_sponsor_targeting_type_and_genes {
 
 # Generate front page report matrix
 sub generate_top_level_report_for_sponsors {
-    my $self = shift;
+    my ( $self ) = @_;
+    
+    DEBUG 'Generating report for '.$self->targeting_type.' projects for species '.$self->species;
 
     # build information for report
     my $columns = $self->build_columns;
-    my $data = $self->sponsor_data;
-    my $title = $self->build_page_title;
-    my $rows = \@REPORT_CATEGORIES;
+    my $data    = $self->sponsor_data;
+    my $title   = $self->build_page_title;
+
+    my $rows;
+    if ( $self->targeting_type eq 'single_targeted' ) {
+        $rows = \@ST_REPORT_CATEGORIES;
+    }
+    elsif ( $self->targeting_type eq 'double_targeted' ) {
+        $rows = \@DT_REPORT_CATEGORIES;
+    }
+
+    my $report_id;
+	if ( defined $data && keys %{ $data } ) {
+        $report_id = 'SponsRep';
+    }
     
     my %return_params = (
-        'report_id' => 'SponsRep',
-        'title'     => $title,
-        'columns'   => $columns,
-        'rows'      => $rows,
-        'data'      => $data,
+        'report_id'      => $report_id,
+        'title'          => $title,
+        'columns'        => $columns,
+        'rows'           => $rows,
+        'data'           => $data,
     );
 
     return \%return_params;
@@ -309,7 +362,7 @@ sub build_page_title {
     # last generated rather than just system date.
     my $dt = DateTime->now();
 
-    return 'Pipeline Summary Report on ' . $dt->dmy;
+    return 'Pipeline Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
 };
 
 # columns relate to project sponsors
@@ -334,10 +387,10 @@ has sub_report_data => (
 
 # Generate a sub-report for a specific targeting type, stage and sponsor
 sub generate_sub_report {
-    my ($self, $sponsor_id, $targeting_type, $stage) = @_;
+    my ($self, $sponsor_id, $stage) = @_;
 
     # reports differ based on combination of targeting type and stage
-    my $data = $self->_build_sub_report_data($sponsor_id, $targeting_type, $stage);
+    my $data = $self->_build_sub_report_data($sponsor_id, $stage);
 
     # for single-targeted projects
     my $st_rpt_flds = {
@@ -348,23 +401,23 @@ sub generate_sub_report {
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'cassette name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor' ],
         },
         'Valid DNA'                         => {
             'display_stage'         => 'Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'vector QC seq pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'vector QC seq' ],
         },
         'Electroporations'            => {
             'display_stage'         => 'Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'cassette_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'cassette name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'Accepted ES Clones'                => {
             'display_stage'         => 'Accepted ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
     };
 
@@ -373,99 +426,99 @@ sub generate_sub_report {
         'Targeted Genes'            => {
             'display_stage'         => 'Targeted genes',
             'columns'               => [ 'gene_id', 'gene_symbol' ],
-            'display_columns'       => [ 'gene id', 'gene symbol' ],
+            'display_columns'       => [ 'gene id', 'gene' ],
         },
         'Vectors'                   => {
             'display_stage'         => 'Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'plate_name', 'well_name' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'cassette name', 'plate name', 'well name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well' ],
         },
         'Vectors Neo and Bsd'       => {
             'display_stage'         => 'Vector pairs Neo and Bsd',
             'columns'               => [ 'project_id','design_id', 'design_gene_symbol' ],
-            'display_columns'       => [ 'project id', 'design id', 'gene symbol' ],
+            'display_columns'       => [ 'project id', 'design id', 'gene' ],
         },
         'Vectors Neo'               => {
             'display_stage'         => 'Neomycin-resistant Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'plate_name', 'well_name' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'cassette name', 'plate name', 'well name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well' ],
         },
         'Vectors Bsd'               => {
             'display_stage'         => 'Blasticidin-resistant Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'plate_name', 'well_name' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'cassette name', 'plate name', 'well name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well' ],
         },
         'Valid DNA'                 => {
             'display_stage'         => 'Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'vector QC seq pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'vector QC seq' ],
         },
         'Valid DNA Neo and Bsd'     => {
             'display_stage'         => 'Valid DNA pairs Neo and Bsd',
             'columns'               => [ 'project_id','design_id', 'design_gene_symbol' ],
-            'display_columns'       => [ 'project id', 'design id', 'gene symbol' ],
+            'display_columns'       => [ 'project id', 'design id', 'gene' ],
         },
         'Valid DNA Neo'             => {
             'display_stage'         => 'Neomycin-resistant Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'vector QC seq pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'vector QC seq' ],
         },
         'Valid DNA Bsd'             => {
             'display_stage'         => 'Blasticidin-resistant Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'vector QC seq pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'vector QC seq' ],
         },
         'First Electroporations'    => {
             'display_stage'         => 'First Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'cassette_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'cassette name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'First Electroporations Neo' => {
             'display_stage'         => 'First Electroporations Neo',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'cassette_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'cassette name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'First Electroporations Bsd' => {
             'display_stage'         => 'First Electroporations Bsd',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'cassette_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'cassette name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'Accepted First ES Clones'  => {
             'display_stage'         => 'Accepted First ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'Second Electroporations'   => {
             'display_stage'         => 'Second Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'cassette_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'cassette name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'resistance', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'resistance', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'Second Electroporations Neo'   => {
             'display_stage'         => 'Second Electroporations Neo',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'cassette_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'cassette name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'Second Electroporations Bsd'   => {
             'display_stage'         => 'Second Electroporations Bsd',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'cassette_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'cassette name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
         'Accepted Second ES Clones' => {
             'display_stage'         => 'Accepted Second ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'plate name', 'well name', 'vector QC seq pass', 'DNA status pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'vector QC seq', 'DNA status' ],
         },
     };
 
     my ($columns, $display_columns, $display_targeting_type, $display_stage);
 
-    if ( $targeting_type eq 'single_targeted' ) {
+    if ( $self->targeting_type eq 'single_targeted' ) {
         $display_targeting_type     = 'single-targeted';
         $display_stage              = $st_rpt_flds->{ $stage }->{ 'display_stage' };
         $columns                    = $st_rpt_flds->{ $stage }->{ 'columns' };
         $display_columns            = $st_rpt_flds->{ $stage }->{ 'display_columns' };
     }
-    elsif ( $targeting_type eq 'double_targeted' ) {
+    elsif ( $self->targeting_type eq 'double_targeted' ) {
         $display_targeting_type     = 'double-targeted';
         $display_stage              = $dt_rpt_flds->{ $stage }->{ 'display_stage' };
         $columns                    = $dt_rpt_flds->{ $stage }->{ 'columns' };
@@ -489,88 +542,90 @@ sub generate_sub_report {
 }
 
 sub _build_sub_report_data {
-    my ($self, $sponsor_id, $targeting_type, $stage) = @_;
+    my ($self, $sponsor_id, $stage) = @_;
+
+    DEBUG 'Building sub-summary report for sponsor = '.$sponsor_id.', stage = '.$stage.', targeting_type = '.$self->targeting_type.' and species = '.$self->species;
 
     my $query_type = 'select';
     my $sub_report_data;
 
     # dispatch table
     my $rep_for_stg = {
-        'Targeted Genes'                    => {
-            'func'      => \&genes,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
-        },
+         'Targeted Genes'                    => {
+             'func'      => \&genes,
+             'params'    => [ $self, $sponsor_id, $query_type ],
+         },
         'Vectors'                           => {
             'func'      => \&vectors,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'Vectors Neo and Bsd'               => {
             'func'      => \&vector_pairs_neo_and_bsd,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'Vectors Neo'                       => {
             'func'      => \&vectors_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
         },
         'Vectors Bsd'                       => {
             'func'      => \&vectors_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
         },
         'Valid DNA'                         => {
             'func'      => \&dna,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'Valid DNA Neo and Bsd'             => {
             'func'      => \&dna_pairs_neo_and_bsd,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'Valid DNA Neo'                     => {
             'func'      => \&dna_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
         },
         'Valid DNA Bsd'                     => {
             'func'      => \&dna_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
         },
         'Electroporations'                  => {
             'func'      => \&first_electroporations,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'First Electroporations'            => {
             'func'      => \&first_electroporations,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'First Electroporations Neo'        => {
             'func'      => \&first_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
         },
         'First Electroporations Bsd'        => {
             'func'      => \&first_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
         },
         'Accepted ES Clones'                => {
             'func'      => \&clones,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'Accepted First ES Clones'          => {
             'func'      => \&clones,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'Second Electroporations'           => {
             'func'      => \&second_electroporations,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
         'Second Electroporations Neo'           => {
             'func'      => \&second_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
         },
         'Second Electroporations Bsd'           => {
             'func'      => \&second_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, $targeting_type, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
         },
         'Accepted Second ES Clones'         => {
             'func'      => \&clones_second,
-            'params'    => [ $self, $sponsor_id, $targeting_type, $query_type ],
+            'params'    => [ $self, $sponsor_id, $query_type ],
         },
     };
 
@@ -586,55 +641,41 @@ sub _build_sub_report_data {
 #----------------------------------------------------------
 
 sub genes {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG "genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$targeting_type;
+    DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
 
-    if ( $query_type eq 'count' ) {
+	my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 
-        my $sql_query = $self->create_sql_count_targeted_gene_projects_for_sponsor( $sponsor_id, $targeting_type );
+	#DEBUG "sql query = ".$sql_query;
 
-        #DEBUG "sql query = ".$sql_query;
+	my $sql_results = $self->run_select_query( $sql_query );
 
-        my $count = 0;
-        $count = $self->run_count_query( $sql_query );
-        return $count;
+	# fetch gene symbols and return modified results set for display
+	my @genes_for_display;
 
-    }
-    elsif ( $query_type eq 'select' ) {
+	foreach my $gene_row ( @$sql_results ) {
+		my $gene_id = $gene_row->{ 'gene_id' };
 
-        my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $targeting_type );
+		my $gene_symbol = $self->model->retrieve_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{gene_symbol};
 
-        #DEBUG "sql query = ".$sql_query;
+		push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol };
+	}
 
-        my $sql_results = $self->run_select_query( $sql_query );
+	# sort the array by gene symbol
+	my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
 
-        # fetch gene symbols and return modified results set for display
-        my @genes_for_display;
-        foreach my $gene_row ( @$sql_results ) {
-            my $gene_id = $gene_row->{ 'gene_id' };
-
-            my $gene_symbol = $self->model->retrieve_gene( { search_term => $gene_id,  species => 'Mouse' } )->{gene_symbol};
-
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol };
-        }
-
-        # sort the array by gene symbol
-        my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
-
-        return \@sorted_genes_for_display;
-    }
+	return \@sorted_genes_for_display;
 }
 
 sub vectors {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting vectors: sponsor id = '.$sponsor_id.' , targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'Vectors: sponsor id = '.$sponsor_id.' , targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'vectors',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -642,7 +683,7 @@ sub vectors {
 
     my $sql_query = $self->generate_sql( $params );
 
-    #DEBUG "sql query = ".$sql_query;
+    DEBUG "sql query = ".$sql_query;
 
     if ( $query_type eq 'count' ) {
 
@@ -660,14 +701,13 @@ sub vectors {
 }
 
 sub vector_pairs_neo_and_bsd {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting vector pairs: sponsor id = '.$sponsor_id.' and targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'Vector pairs: sponsor id = '.$sponsor_id.' and targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'vector_pairs',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -693,14 +733,13 @@ sub vector_pairs_neo_and_bsd {
 }
 
 sub vectors_with_resistance {
-    my ( $self, $sponsor_id, $targeting_type, $resistance, $query_type ) = @_;
+    my ( $self, $sponsor_id, $resistance, $query_type ) = @_;
 
-    DEBUG 'selecting vectors: sponsor id = '.$sponsor_id.' and targeting_type = '.$targeting_type.', resistance =  '.$resistance.', query type = '.$query_type;
+    DEBUG 'Vectors with resistance: sponsor id = '.$sponsor_id.' and targeting_type = '.$self->targeting_type.', resistance =  '.$resistance.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'vectors',
         'use_resistance'    => 't',
         'resistance_type'   => $resistance,
@@ -727,14 +766,13 @@ sub vectors_with_resistance {
 }
 
 sub dna {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting dna: sponsor id = '.$sponsor_id.' and targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'DNA: sponsor id = '.$sponsor_id.' and targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'dna',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -760,14 +798,13 @@ sub dna {
 }
 
 sub dna_pairs_neo_and_bsd {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting dna pairs neo and bsd: sponsor id = '.$sponsor_id.' and targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'DNA pairs neo and bsd: sponsor id = '.$sponsor_id.' and targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'dna_pairs',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -793,14 +830,13 @@ sub dna_pairs_neo_and_bsd {
 }
 
 sub dna_with_resistance {
-    my ( $self, $sponsor_id, $targeting_type, $resistance, $query_type ) = @_;
+    my ( $self, $sponsor_id, $resistance, $query_type ) = @_;
 
-    DEBUG 'selecting dna with resistance: sponsor id = '.$sponsor_id.', targeting_type = '.$targeting_type.', resistance '.$resistance.', query type = '.$query_type;
+    DEBUG 'DNA with resistance: sponsor id = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', resistance '.$resistance.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'dna',
         'use_resistance'    => 't',
         'resistance_type'   => $resistance,
@@ -827,14 +863,13 @@ sub dna_with_resistance {
 }
 
 sub first_electroporations {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting first electroporations: sponsor id = '.$sponsor_id.', targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'First electroporations: sponsor id = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'fep',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -860,14 +895,13 @@ sub first_electroporations {
 }
 
 sub first_electroporations_with_resistance {
-    my ( $self, $sponsor_id, $targeting_type, $resistance, $query_type ) = @_;
+    my ( $self, $sponsor_id, $resistance, $query_type ) = @_;
 
-    DEBUG 'selecting first electroporations with resistance: sponsor id = '.$sponsor_id.', resistance '.$resistance.', targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'First electroporations with resistance: sponsor id = '.$sponsor_id.', resistance '.$resistance.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'fep',
         'use_resistance'    => 't',
         'resistance_type'   => $resistance,
@@ -894,14 +928,13 @@ sub first_electroporations_with_resistance {
 }
 
 sub second_electroporations {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting second electroporations: sponsor id = '.$sponsor_id.', targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'Second electroporations: sponsor id = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'sep',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -927,14 +960,13 @@ sub second_electroporations {
 }
 
 sub second_electroporations_with_resistance {
-    my ( $self, $sponsor_id, $targeting_type, $resistance, $query_type ) = @_;
+    my ( $self, $sponsor_id, $resistance, $query_type ) = @_;
 
-    DEBUG 'selecting second electroporations with resistance: sponsor id = '.$sponsor_id.', resistance '.$resistance.', targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'Second electroporations with resistance: sponsor id = '.$sponsor_id.', resistance '.$resistance.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'sep',
         'use_resistance'    => 't',
         'resistance_type'   => $resistance,
@@ -961,14 +993,13 @@ sub second_electroporations_with_resistance {
 }
 
 sub clones {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting accepted clones: sponsor id = '.$sponsor_id.', targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'Accepted clones: sponsor id = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'clones',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -994,14 +1025,13 @@ sub clones {
 }
 
 sub clones_second {
-    my ( $self, $sponsor_id, $targeting_type, $query_type ) = @_;
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-    DEBUG 'selecting accepted second allele clones: sponsor id = '.$sponsor_id.', targeting_type = '.$targeting_type.', query type = '.$query_type;
+    DEBUG 'Accepted second allele clones: sponsor id = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
 
     my $params = {
         'sql_type'          => $query_type,
         'sponsor_id'        => $sponsor_id,
-        'targeting_type'    => $targeting_type,
         'stage'             => 'clones_second',
         'use_resistance'    => 'f',
         'use_promoter'      => 'f',
@@ -1068,16 +1098,32 @@ sub run_select_query {
 }
 
 # Set up SQL query to select targeting type and count genes for a sponsor id
-sub create_sql_count_genes_for_a_sponsor {
-    my ( $self, $sponsor_id ) = @_;
+sub create_sql_select_sponsors_with_projects {
+    my ( $self, $species_id, $targeting_type ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT p.sponsor_id, targeting_type, count(distinct(gene_id)) AS genes
+SELECT distinct(s.id)
+FROM sponsors s
+JOIN projects pr ON pr.sponsor_id = s.id
+WHERE pr.species_id = '$species_id'
+AND pr.targeting_type = '$targeting_type'
+ORDER BY s.id
+SQL_END
+
+    return $sql_query;
+}
+
+# Set up SQL query to select targeting type and count genes for a sponsor id
+sub create_sql_count_genes_for_a_sponsor {
+    my ( $self, $sponsor_id, $targeting_type, $species_id ) = @_;
+
+my $sql_query =  <<"SQL_END";
+SELECT p.sponsor_id, count(distinct(gene_id)) AS genes
 FROM projects p
 WHERE p.sponsor_id = '$sponsor_id'
-GROUP BY p.sponsor_id, p.targeting_type
-ORDER BY targeting_type DESC
-;
+AND p.targeting_type = '$targeting_type'
+AND p.species_id = '$species_id'
+GROUP BY p.sponsor_id
 SQL_END
 
     return $sql_query;
@@ -1085,13 +1131,14 @@ SQL_END
 
 # Set up SQL query to select targeted genes for a specific sponsor and targeting type
 sub create_sql_sel_targeted_genes {
-    my ( $self, $sponsor_id, $targeting_type ) = @_;
+    my ( $self, $sponsor_id, $targeting_type, $species_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
 SELECT distinct(p.gene_id)
 FROM projects p
 WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = '$targeting_type'
+AND p.species_id = '$species_id'
 ORDER BY p.gene_id
 SQL_END
 
@@ -1104,7 +1151,6 @@ sub generate_sql {
 
     # params hash contains:
     # 'sql_type' = 'count' or 'select'
-    # 'targeting_type' = 'single_targeted' or 'double_targeted'
     # 'stage' = 'vectors', 'vector_pairs', 'dna', 'fep', 'sep', 'clones'
     # 'use_resistance' = 't' or 'f'
     # 'resistance_type' = 'neoR' or 'blastR'
@@ -1113,12 +1159,13 @@ sub generate_sql {
 
     my $sql_type        = $params->{ 'sql_type' };
     my $sponsor_id      = $params->{ 'sponsor_id' };
-    my $targeting_type  = $params->{ 'targeting_type' };
     my $stage           = $params->{ 'stage' };
     my $use_resistance  = $params->{ 'use_resistance' };
     my $resistance_type = $params->{ 'resistance_type' };
     my $use_promoter    = $params->{ 'use_promoter' };
     my $is_promoterless = $params->{ 'is_promoterless' };
+    my $targeting_type  = $self->targeting_type;
+    my $species_id      = $self->species;
 
 my $sql_with =  <<"SQL_WITH_END";
 WITH project_requests AS (
@@ -1140,6 +1187,7 @@ INNER JOIN project_alleles pa ON pa.project_id = p.id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = '$targeting_type'
+AND p.species_id = '$species_id'
 )
 SQL_WITH_END
 
@@ -1160,7 +1208,7 @@ SELECT count(distinct(nv.design_gene_id))
 SQL_COUNT_NEO_BSD_END
 
 my $sql_sel_vectors = <<'SQL_SELECT_VECTORS_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_plate_name AS plate_name, s.final_well_name AS well_name
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_plate_name AS plate_name, s.final_well_name AS well_name
 SQL_SELECT_VECTORS_END
 
 my $sql_with_select_neo_and_bsd_vectors = <<'SQL_WITH_SELECT_NEO_BSD_END';
@@ -1176,11 +1224,11 @@ SELECT nv.project_id, nv.design_id, nv.design_gene_symbol
 SQL_SELECT_NEO_BSD_VECTORS_END
 
 my $sql_sel_dna_st = <<'SQL_SELECT_DNA_ST_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name AS plate_name, s.dna_well_name AS well_name, s.final_qc_seq_pass AS qc_seq_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_plate_name AS parent_plate_name, s.final_well_name AS parent_well_name, s.dna_plate_name AS plate_name, s.dna_well_name AS well_name, s.final_qc_seq_pass AS qc_seq_pass
 SQL_SELECT_DNA_ST_END
 
 my $sql_sel_dna_dt = <<'SQL_SELECT_DNA_DT_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.dna_plate_name AS plate_name, s.dna_well_name AS well_name, s.final_pick_qc_seq_pass AS qc_seq_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name, s.dna_well_name AS well_name, s.final_pick_qc_seq_pass AS qc_seq_pass
 SQL_SELECT_DNA_DT_END
 
 my $sql_sel_neo_and_bsd_dna = <<'SQL_SELECT_NEO_BSD_DNA_END';
@@ -1188,27 +1236,27 @@ SELECT nv.project_id, nv.design_id, nv.design_gene_symbol
 SQL_SELECT_NEO_BSD_DNA_END
 
 my $sql_sel_fep_st = <<'SQL_SELECT_FEP_ST_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name, s.final_cassette_name AS cassette_name, s.final_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
 SQL_SELECT_FEP_ST_END
 
 my $sql_sel_fep_dt = <<'SQL_SELECT_FEP_DT_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
 SQL_SELECT_FEP_DT_END
 
 my $sql_sel_sep = <<'SQL_SELECT_SEP_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, c.resistance, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
 SQL_SELECT_SEP_END
 
 my $sql_sel_st_clones = <<'SQL_SELECT_ST_CLONES_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
 SQL_SELECT_ST_CLONES_END
 
 my $sql_sel_dt_clones = <<'SQL_SELECT_DT_CLONES_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
 SQL_SELECT_DT_CLONES_END
 
 my $sql_sel_dt_clones_second = <<'SQL_SELECT_DT_CLONES_SECOND_END';
-SELECT s.design_gene_id, s.design_gene_symbol, s.sep_pick_plate_name AS plate_name, s.sep_pick_well_name AS well_name, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.sep_pick_plate_name AS plate_name, s.sep_pick_well_name AS well_name, s.final_pick_qc_seq_pass AS qc_seq_pass, s.dna_status_pass
 SQL_SELECT_DT_CLONES_SECOND_END
 
 my $sql_body_final = <<"SQL_BODY_FINALS_END";
@@ -1349,7 +1397,7 @@ AND (
 SQL_WHERE_PL_END
 
 my $sql_sel_grpby_vectors = <<'SQL_GRP_BY_VECTORS_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_plate_name, s.final_well_name
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.final_plate_name, s.final_well_name
 ORDER BY s.design_gene_symbol, s.final_cassette_name, s.final_plate_name, s.final_well_name
 SQL_GRP_BY_VECTORS_END
 
@@ -1365,12 +1413,12 @@ ORDER BY nv.design_gene_symbol, nv.project_id, nv.design_id
 SQL_GRP_NEO_BSD_VECTORS_END
 
 my $sql_sel_grpby_dna_st = <<'SQL_GRP_BY_DNA_ST_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name, s.final_qc_seq_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.final_plate_name, s.final_well_name, s.dna_plate_name, s.dna_well_name, s.final_qc_seq_pass
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_GRP_BY_DNA_ST_END
 
 my $sql_sel_grpby_dna_dt = <<'SQL_GRP_BY_DNA_DT_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.dna_plate_name, s.dna_well_name, s.final_qc_seq_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name, s.final_pick_qc_seq_pass
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_GRP_BY_DNA_DT_END
 
@@ -1386,32 +1434,32 @@ ORDER BY nv.design_gene_symbol, nv.project_id, nv.design_id
 SQL_GRP_BY_DNA_END
 
 my $sql_sel_grpby_fep_st = <<'SQL_GRP_BY_FEP_ST_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_cassette_name, s.final_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_cassette_name, s.final_cassette_promoter, s.final_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_GRP_BY_FEP_ST_END
 
 my $sql_sel_grpby_fep_dt = <<'SQL_GRP_BY_FEP_ST_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_pick_cassette_name, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_GRP_BY_FEP_ST_END
 
 my $sql_sel_grpby_sep = <<'SQL_GRP_BY_SEP_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name, s.final_pick_cassette_name, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name, s.final_pick_cassette_name, s.final_pick_cassette_promoter, c.resistance, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
 SQL_GRP_BY_SEP_END
 
 my $sql_sel_grpby_st_clones = <<'SQL_GRP_BY_ST_CLONES_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_GRP_BY_ST_CLONES_END
 
 my $sql_sel_grpby_dt_clones = <<'SQL_GRP_BY_DT_CLONES_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_GRP_BY_DT_CLONES_END
 
 my $sql_sel_grpby_dt_clones_second = <<'SQL_GRP_BY_DT_CLONES_SECOND_END';
-GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.sep_pick_plate_name, s.sep_pick_well_name, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
 SQL_GRP_BY_DT_CLONES_SECOND_END
 
@@ -1426,7 +1474,7 @@ SQL_GRP_BY_DT_CLONES_SECOND_END
         'sql_with_select_neo_and_bsd_vectors'       => $sql_with_select_neo_and_bsd_vectors,
         'sql_sel_neo_and_bsd_vectors'               => $sql_sel_neo_and_bsd_vectors,
         'sql_sel_dna_st'                            => $sql_sel_dna_st,
-        'sql_sel_dna_dt'                            => $sql_sel_dna_st,
+        'sql_sel_dna_dt'                            => $sql_sel_dna_dt,
         'sql_with_select_neo_and_bsd_dna'           => $sql_with_select_neo_and_bsd_dna,
         'sql_sel_neo_and_bsd_dna'                   => $sql_sel_neo_and_bsd_dna,
         'sql_sel_fep_st'                            => $sql_sel_fep_st,
@@ -1496,10 +1544,10 @@ sub sql_vectors {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_count' };
     }
     elsif ( $params->{ 'sql_type' } eq 'select' ) {
-        if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+        if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_vectors' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_vectors' };
         }
     }
@@ -1513,10 +1561,10 @@ sub sql_vectors {
     }
 
     if ( $params->{ 'sql_type' } eq 'select' ) {
-        if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+        if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_vectors' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_vectors' };
         }
     }
@@ -1558,18 +1606,18 @@ sub sql_dna {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_count' };
     }
     elsif ( $params->{ 'sql_type' } eq 'select' ) {
-		if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+		if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_dna_st' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_dna_dt' };
         }        
     }
 
-    if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+    if ( $self->targeting_type eq 'single_targeted' ) {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_body_final' }.' '.$sql->{ 'sql_where_dna' };
     }
-    elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+    elsif ( $self->targeting_type eq 'double_targeted' ) {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_body_final_pick' }.' '.$sql->{ 'sql_where_dna' };
     }
 
@@ -1580,13 +1628,15 @@ sub sql_dna {
     }
 
     if ( $params->{ 'sql_type' } eq 'select' ) {        
-        if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+        if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_dna_st' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_dna_dt' };
         }
     }
+
+    DEBUG $sql_qry;
 
     return $sql_qry;
 
@@ -1626,18 +1676,18 @@ sub sql_fep {
     }
     elsif ( $params->{ 'sql_type' } eq 'select' ) {
         
-        if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+        if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_fep_st' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_fep_dt' };
         }
     }
 
-    if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+    if ( $self->targeting_type eq 'single_targeted' ) {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_body_final' }.' '.$sql->{ 'sql_where_fep' };
     }
-    elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+    elsif ( $self->targeting_type eq 'double_targeted' ) {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_body_final_pick' }.' '.$sql->{ 'sql_where_fep' };
     }
 
@@ -1648,10 +1698,10 @@ sub sql_fep {
     }
 
     if ( $params->{ 'sql_type' } eq 'select' ) {
-        if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+        if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_fep_st' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_fep_dt' };
         }
     }
@@ -1702,26 +1752,26 @@ sub sql_clones {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_count' };
     }
     elsif ( $params->{ 'sql_type' } eq 'select' ) {
-        if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+        if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_st_clones' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_dt_clones' };
         }
     }
 
-    if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+    if ( $self->targeting_type eq 'single_targeted' ) {
        $sql_qry = $sql_qry.' '.$sql->{ 'sql_body_final' }.' '.$sql->{ 'sql_where_clones' };
     }
-    elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+    elsif ( $self->targeting_type eq 'double_targeted' ) {
         $sql_qry = $sql_qry.' '.$sql->{ 'sql_body_final_pick' }.' '.$sql->{ 'sql_where_clones' };
     }
 
     if ( $params->{ 'sql_type' } eq 'select' ) {
-        if ( $params->{ 'targeting_type' } eq 'single_targeted' ) {
+        if ( $self->targeting_type eq 'single_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_st_clones' };
         }
-        elsif ( $params->{ 'targeting_type' } eq 'double_targeted' ) {
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
             $sql_qry = $sql_qry.' '.$sql->{ 'sql_sel_grpby_dt_clones' };
         }
     }
