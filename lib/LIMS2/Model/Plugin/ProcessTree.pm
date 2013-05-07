@@ -20,6 +20,7 @@ DJP-S
 =cut
 
 my $QUERY_DESCENDANTS_BY_PLATE_TYPE = << 'QUERY_END';
+-- Descendants by plate_type
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
     FROM processes pr
@@ -45,13 +46,16 @@ FROM well_hierarchy w;
 QUERY_END
 
 my $QUERY_DESCENDANTS_BY_WELL_ID = << 'QUERY_END';
+-- Descendants by well_id
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id = ?
     UNION ALL
+-- Recursive term    
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -64,6 +68,7 @@ WHERE w.output_well_id NOT IN (SELECT well_id FROM process_input_well) ;
 QUERY_END
 
 my $QUERY_ANCESTORS_BY_PLATE_NAME = << 'QUERY_END';
+-- Ancestors by plate_name
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
@@ -94,6 +99,7 @@ GROUP BY w.process_id, w.input_well_id, w.output_well_id, pd.design_id,"original
 QUERY_END
 
 my $QUERY_ANCESTORS_BY_WELL_ID_WITH_PATHS = << 'QUERY_END';
+-- Ancestors by well_id with paths
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
@@ -117,6 +123,7 @@ GROUP BY w.process_id, w.input_well_id, w.output_well_id, pd.design_id,"original
 QUERY_END
 
 my $QUERY_ANCESTORS_BY_WELL_ID = << 'QUERY_END';
+-- Ancestors by well_id
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
@@ -132,11 +139,9 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
      JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
 )
-SELECT w.output_well_id, pd.design_id, w.path[1] "original_well"
+SELECT distinct w.path
 FROM well_hierarchy w, process_design pd
 WHERE w.process_id = pd.process_id
---ORDER BY pd.design_id;
-GROUP BY w.output_well_id, pd.design_id, "original_well";
 QUERY_END
 
 sub pspec_paths_for_well_id_depth_first {
@@ -156,7 +161,6 @@ sub get_paths_for_well_id_depth_first {
     my ($params) = @_;
 
     my $validated_params;
-
     $validated_params = $self->check_params( $params, $self->pspec_paths_for_well_id_depth_first  );
 
     my $sql_query = $validated_params->{'direction'} ? $QUERY_DESCENDANTS_BY_WELL_ID : $QUERY_ANCESTORS_BY_WELL_ID;
@@ -253,6 +257,7 @@ sub get_design_wells_for_well_id_list {
     my $well_list = join q{,}, @{$wells};
 
 my $QUERY_ANCESTORS_BY_WELL_LIST = << "QUERY_END";
+-- Ancestors by well list
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
@@ -310,6 +315,7 @@ sub get_design_data_for_well_id_list {
     my $well_list = join q{,}, @{$wells};
 
 my $QUERY_ANCESTORS_BY_WELL_LIST = << "QUERY_END";
+-- Ancestors by well list
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
