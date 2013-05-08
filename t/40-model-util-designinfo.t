@@ -147,4 +147,115 @@ note( 'Test Invalid Design' );
 
 }
 
+note( 'Test ensembl adapters' );
+
+{
+    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+    
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    isa_ok $di->slice_adaptor, 'Bio::EnsEMBL::DBSQL::SliceAdaptor';
+    isa_ok $di->gene_adaptor, 'Bio::EnsEMBL::DBSQL::GeneAdaptor';
+    isa_ok $di->transcript_adaptor, 'Bio::EnsEMBL::DBSQL::TranscriptAdaptor';
+    isa_ok $di->db_adaptor, 'Bio::EnsEMBL::DBSQL::DBAdaptor';
+}
+
+note( 'Test target region slice' );
+
+{
+    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    ok my $slice = $di->target_region_slice, 'can get target region slice';
+    isa_ok $slice, 'Bio::EnsEMBL::Slice';
+
+    is $slice->start, $di->target_region_start, 'slice start is correct';
+    is $slice->end, $di->target_region_end, 'slice end is correct';
+    is $slice->seq_region_name, $di->chr_name, 'slice chromosome is correct';
+    is $slice->strand, $di->chr_strand, 'slice strand is correct';
+}
+
+note ( 'Test target gene' );
+
+{
+    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    is $di->target_gene->stable_id, 'ENSMUSG00000024617', 'target gene correct';
+}
+
+note( 'Test MGI Accession ID' );
+
+{
+    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    is $di->get_mgi_accession_id_for_gene( $di->target_gene ), 'MGI:88256', 'MGI Accession correct', 
+}
+
+note( 'Test design with target transcript' );
+
+{
+    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    ok my $transcript = $di->target_transcript, 'can get target transcript';
+    isa_ok $transcript, 'Bio::EnsEMBL::Transcript';
+
+    is $transcript->stable_id, $design->target_transcript, 'target transcript correct';
+}
+
+note( 'Test design without target transcript' );
+
+{
+    #this design is identical to 81136 but the transcript has been removed
+    ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
+
+    #make sure we get the right transcript even if one isn't set.
+    $design->target_transcript( "" );
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object without target transcript';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    ok my $transcript = $di->target_transcript, 'can get target transcript';
+    isa_ok $transcript, 'Bio::EnsEMBL::Transcript';
+
+    is $transcript->stable_id, 'ENSMUST00000025519', 'target transcript correct';
+
+    $design->discard_changes; #we dont want to save the empty transcript.
+}
+
+note ( 'Test floxed exons' );
+
+{
+    ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    isa_ok $di->floxed_exons, 'ARRAY', 'floxed exons is an arrayref';
+
+    is scalar @{ $di->floxed_exons }, 6, 'correct number of floxed exons';
+
+    my @expected_exons = qw(ENSMUSE00000143835 
+                            ENSMUSE00000493183 
+                            ENSMUSE00000504553 
+                            ENSMUSE00000572373 
+                            ENSMUSE00000572372 
+                            ENSMUSE00000507603);
+
+    my @got_exons = map { $_->stable_id } @{ $di->floxed_exons };
+
+    ok is_deeply( \@expected_exons, \@got_exons ), 'floxed exons are correct';
+}
+
 done_testing();
