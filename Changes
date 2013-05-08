@@ -1,3 +1,22 @@
+0.072     2013-05-08 13:50:08 Europe/London
+    Ported additional functionality from htgt design info. Also made run_in_perlbrew inherit live/devel/staging from the environment.
+
+0.071     2013-04-29 10:15:45 Europe/London
+	New version of LIMS2 front page report
+
+0.070     2013-04-25 09:02:11 Europe/London
+
+    final_vectors method on well object now picks up FINAL_PICK wells ( in addition to FINAL wells )
+
+0.069     2013-04-25 07:05:48 Europe/London
+
+    Bugfix, SEP plate reports were using wrong report class.
+
+0.068     2013-04-23 14:09:06 Europe/London
+
+    Added recombinase option to clone_pick process
+    Improved efficiency of genotyping QC retrieval of grid data
+
 0.067     2013-04-22 15:12:11 Europe/London
     Added line to Makefile.PL to install run_in_perlbrew, but this time actually merged devel into master.
 

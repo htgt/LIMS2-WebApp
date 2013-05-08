@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.067';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.072';
 }
 ## use critic
 
@@ -31,6 +31,10 @@ const my @DESIGN_TYPES => (
 #        { cmd => 'block', display_name => 'Block Specified' },
 #        { cmd => 'location', display_name => 'Location Specified' }
 #    );
+
+#
+# TODO: add javascript to make sure target start isnt > target end
+#
 
 sub index : Path( '/user/create_design' ) : Args(0) {
     my ( $self, $c ) = @_;

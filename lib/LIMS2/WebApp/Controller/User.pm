@@ -1,12 +1,13 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.067';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.072';
 }
 ## use critic
 
 use Moose;
-use LIMS2::Report;
+#use LIMS2::Report;
+use LIMS2::Model::Util::ReportForSponsors;
 use Text::CSV;
 use namespace::autoclean;
 
@@ -80,28 +81,27 @@ sub index :Path :Args(0) {
 
     my $species = $c->session->{selected_species};
 
-    my $report_id = LIMS2::Report::cached_report(
-        model  => $c->model( 'Golgi' ),
-        report => 'SponsorProgress',
-        params => { species => $c->session->{selected_species} },
+    # Call ReportForSponsors plugin to generate report 
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
+    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
+
+    # Fetch details from returned report parameters
+    my $report_id   = $report_params->{ report_id };
+    my $title       = $report_params->{ title };
+    my $columns     = $report_params->{ columns };
+    my $st_rows     = $report_params->{ st_rows };
+    my $dt_rows     = $report_params->{ dt_rows };
+    my $data        = $report_params->{ data };
+
+    # Store report values in stash for display onscreen
+    $c->stash(
+        'report_id' => $report_id,
+        'title'     => $title,
+        'columns'   => $columns,
+        'st_rows'   => $st_rows,
+        'dt_rows'   => $dt_rows,
+        'data'      => $data,
     );
-
-    my $status = LIMS2::Report::get_report_status( $report_id );
-
-    if ( $status eq 'DONE' ) {
-        my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
-
-        my $csv     = Text::CSV->new;
-        my $columns = $csv->getline( $report_fh );
-        my $data = $csv->getline_all( $report_fh );
-
-        $c->stash(
-            report_id => $report_id,
-            title     => $report_name,
-            columns   => $columns,
-            data      => $data,
-        );
-    }
 
     return;
 }

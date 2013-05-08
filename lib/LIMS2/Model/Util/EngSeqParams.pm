@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.067';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.072';
 }
 ## use critic
 
@@ -21,7 +21,6 @@ use Sub::Exporter -setup => {
 };
 
 use Log::Log4perl qw( :easy );
-use LIMS2::Model::Constants qw($DEFAULT_ASSEMBLY);
 use LIMS2::Model::ProcessGraph;
 use EngSeqBuilder;
 use JSON;

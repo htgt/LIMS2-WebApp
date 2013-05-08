@@ -59,6 +59,7 @@ lib/LIMS2/Model/Schema/Result/GeneDesign.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimer.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimerType.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
+lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
 lib/LIMS2/Model/Schema/Result/Plate.pm
 lib/LIMS2/Model/Schema/Result/PlateComment.pm
 lib/LIMS2/Model/Schema/Result/PlateType.pm
@@ -130,6 +131,7 @@ lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/QCResults.pm
 lib/LIMS2/Model/Util/RankQCResults.pm
+lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
 lib/LIMS2/Report/DNAPlate.pm
@@ -188,6 +190,7 @@ lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/RecombinaseUpload.pm
 lib/LIMS2/WebApp/Controller/User/Report.pm
 lib/LIMS2/WebApp/Controller/User/Report/Gene.pm
+lib/LIMS2/WebApp/Controller/User/SummaryReports.pm
 lib/LIMS2/WebApp/Controller/User/UserPreferences.pm
 lib/LIMS2/WebApp/Controller/User/WellData.pm
 lib/LIMS2/WebApp/Model/AuthDB.pm
@@ -241,6 +244,7 @@ root/site/user/report/gene_report.tt
 root/site/user/report/select_sponsor.tt
 root/site/user/report/select_vector_params.tt
 root/site/user/report/simple_table.tt
+root/site/user/summaryreports/view.tt
 root/site/user/userpreferences/change_password.tt
 root/site/user/welldata/dna_status_update.tt
 root/site/user/welldata/genotyping_grid_help.tt
@@ -1763,6 +1767,7 @@ t/data/well.yaml
 t/data/well_1522.yaml
 t/data/well_848.yaml
 t/data/well_850_user_params.yaml
+t/data/xep_pool_process.yaml
 t/fixtures/00-clean-db.sql
 t/fixtures/10-load-fixture-data.sql
 t/release-no-smart-comments.t
