@@ -715,7 +715,7 @@ sub vector_pairs_neo_and_bsd {
 
     my $sql_query = $self->generate_sql( $params );
 
-    #DEBUG "sql query = ".$sql_query;
+    DEBUG "sql query = ".$sql_query;
 
     if ( $query_type eq 'count' ) {
 
