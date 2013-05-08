@@ -21,6 +21,7 @@ BEGIN {
     our %EXPORT_TAGS = ();
 }
 
+# Output plate types
 const our %PROCESS_PLATE_TYPES => (
     create_di              => [qw( DESIGN )],
     int_recom              => [qw( INT )],
@@ -36,6 +37,7 @@ const our %PROCESS_PLATE_TYPES => (
     clone_pick             => [qw( EP_PICK SEP_PICK XEP_PICK )],
     clone_pool             => [qw( SEP_POOL XEP_POOL )],
     freeze                 => [qw( FP SFP )],
+    xep_pool               => [qw( XEP )],
 );
 
 const our %PROCESS_SPECIFIC_FIELDS => (
@@ -46,7 +48,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     recombinase           => [qw( recombinase )],
     clone_pick            => [qw( recombinase )],
     first_electroporation => [qw( cell_line )],
-    xep_pool              => [qw( recombinase )],
+#    xep_pool              => [qw( recombinase )],
 );
 
 const our %PROCESS_TEMPLATE => (
