@@ -389,6 +389,9 @@ sub _check_wells_freeze {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+    # Implement rules to validate the input wells.
+    # The wells must all be for the same design.
+
     return;
 }
 ## use critic
@@ -602,7 +605,7 @@ sub pspec_create_process_aux_data_recombinase {
     return { recombinase => { validate => 'existing_recombinase' }, };
 }
 
-#NOTE order recombinaes added is just the order that they are specified in the array
+#NOTE order recombinase added is just the order that they are specified in the array
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub create_process_aux_data_recombinase {
     my ( $model, $params, $process ) = @_;

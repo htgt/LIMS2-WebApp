@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -d
+#!/usr/bin/env perl
 
 use strict;
 use warnings FATAL => 'all';
@@ -16,7 +16,6 @@ use File::Temp ':seekable';
 
 note( "Testing xep_pool process creation" );
 my $xep_pool_process_data= test_data( 'xep_pool_process.yaml' );
-$DB::single=1;
 {
     ok my $process = model->create_process( $xep_pool_process_data->{valid_input} ),
         'create_process for type xep_pool should succeed';
@@ -40,9 +39,21 @@ $DB::single=1;
 
     lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
 }
-#
-#throws_ok {
-#    my $process = model->create_process( $clone_pool_process_data->{invalid_output_well} );
-#} qr/clone_pool process output well should be type (SEP_POOL|,|XEP_POOL)+ \(got SEP\)/;
+
+{
+    ok my $process = model->create_process( $xep_pool_process_data->{one_input_well} ),
+        'create_process for type xep_pool with one input well succeeds'; 
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'xep_pool',
+        'process is of correct type (xep_pool)';
+    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 1, '...one input well provided';
+    my $input_well = $input_wells->next;
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+   
+}
+throws_ok {
+    my $process = model->create_process( $xep_pool_process_data->{invalid_output_well} );
+} qr/xep_pool process output well should be type (XEP)/;
 
 done_testing();
