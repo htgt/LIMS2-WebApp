@@ -3,8 +3,6 @@ use Moose;
 use LIMS2::Model::Util::ReportForSponsors;
 use Text::CSV;
 use namespace::autoclean;
-use Smart::Comments;
-use Log::Log4perl qw( :easy );
 
 BEGIN {extends 'Catalyst::Controller'; }
 

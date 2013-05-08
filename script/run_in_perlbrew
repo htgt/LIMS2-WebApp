@@ -3,8 +3,12 @@
 #usage example:
 #./run_in_perlbrew "perl -v"
 
+#determine the environment that we want to run under based on the db name, default to Devel
+LIMS2_ENV=`perl -e 'print ucfirst( (split "_", lc $ENV{LIMS2_DB})[1] ) || "Devel"'`
+echo "Using environment $LIMS2_ENV"
+
 #specifying no command gives you an interactive shell, otherwise the given command is run.
-exec htgt_env.pl --clear-env --config /software/team87/perlbrew/etc/environment.conf HOME=$HOME "$@"
+exec htgt_env.pl --clear-env --environment=$LIMS2_ENV --config /software/team87/perlbrew/etc/environment.conf HOME=$HOME "$@"
 
 #see http://mediawiki.internal.sanger.ac.uk/index.php/HTGT:Perlbrew for more information.
 
@@ -21,4 +25,3 @@ exec htgt_env.pl --clear-env --config /software/team87/perlbrew/etc/environment.
 #export PERLBREW_ROOT=/software/team87/perlbrew
 #export PERL5LIB=${PERLBREW_ROOT}/lib_global/perl5
 #source ${PERLBREW_ROOT}/etc/bashrc
-

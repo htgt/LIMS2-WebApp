@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.071     2013-04-29 10:15:45 Europe/London
+	New version of LIMS2 front page report
+
+0.070     2013-04-25 09:02:11 Europe/London
+
+    final_vectors method on well object now picks up FINAL_PICK wells ( in addition to FINAL wells )
+
 0.069     2013-04-25 07:05:48 Europe/London
 
     Bugfix, SEP plate reports were using wrong report class.
