@@ -389,9 +389,6 @@ sub _check_wells_freeze {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
-    # Implement rules to validate the input wells.
-    # The wells must all be for the same design.
-
     return;
 }
 ## use critic
@@ -399,8 +396,35 @@ sub _check_wells_freeze {
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_xep_pool {
     my ( $model, $process ) = @_;
-
+$DB::single=1;
     check_input_wells( $model, $process);
+    # Implement rules to validate the input wells.
+    # The wells must all be for the same design.
+    my @input_well_ids = map{ $_->id } $process->input_wells;
+
+    my $design_data = $model->get_design_data_for_well_id_list( \@input_well_ids );
+    # Now check that the design IDs are all the same
+    my %design_ids;
+    foreach my $input_well_id ( @input_well_ids ) {
+        $design_ids{$design_data->{$input_well_id}->{'design_id'}} += 1;
+    }
+
+    if ((scalar keys %design_ids) > 1 ) {
+        my $message;
+        for my $candidate_well ( @input_well_ids ) {
+            $message .= 'Well id: '
+                . $candidate_well
+                . ' design_id: '
+                . $design_data->{$candidate_well}->{'design_id'}
+                . "\n";
+        }   
+        LIMS2::Exception::Validation->throw(
+            'Candidate wells for xep_pool operation do not all descend from the same design'
+            . "\n"
+            . $message
+        );
+    }
+
     check_output_wells( $model, $process);
     return;
 }
