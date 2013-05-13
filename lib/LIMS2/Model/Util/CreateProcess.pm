@@ -729,12 +729,25 @@ sub _create_process_aux_data_clone_pool {
 }
 ## use critic
 
-## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_clone_pick {
+sub pspec__create_process_aux_data_clone_pick {
     return {
         recombinase => { optional => 1 },
     };
-;
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_clone_pick {
+    my ( $model, $params, $process  ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_clone_pick );
+
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
+    return ;
 }
 ## use critic
 
