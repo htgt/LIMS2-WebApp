@@ -537,6 +537,18 @@ throws_ok {
     my $process = model->create_process( $first_electroporation_data->{invalid_output_well} );
 } qr/first_electroporation process output well should be type EP \(got SEP\)/;
 
+note( "Testing first_electroporation process creation with recombinase" );
+{
+    ok my $process = model->create_process( $first_electroporation_data->{'with_recombinase'} ),
+        'create_process for type first_electroporation with recombinase should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'first_electroporation',
+        'process is of correct type';
+    ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
+    is $process_recombinases->count, 1, 'has 1 recombinase';
+    is $process_recombinases->next->recombinase->id, 'Flp', 'is Flp recombinase';
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
 
 note( "Testing second_electroporation process creation" );
 my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
@@ -573,6 +585,19 @@ throws_ok {
 throws_ok {
     my $process = model->create_process( $second_electroporation_data->{invalid_input_wells} );
 } qr/second_electroporation process types require two input wells, one of type XEP and the other of type DNA/;
+
+note( "Testing second_electroporation process creation with recombinase" );
+{
+    ok my $process = model->create_process( $second_electroporation_data->{'with_recombinase'} ),
+        'create_process for type second_electroporation with recombinase should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'second_electroporation',
+        'process is of correct type';
+    ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
+    is $process_recombinases->count, 1, 'has 1 recombinase';
+    is $process_recombinases->next->recombinase->id, 'Flp', 'is Flp recombinase';
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
 
 
 note( "Testing clone_pick process creation" );

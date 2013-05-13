@@ -41,13 +41,14 @@ const our %PROCESS_PLATE_TYPES => (
 );
 
 const our %PROCESS_SPECIFIC_FIELDS => (
-    int_recom             => [qw( intermediate_cassette intermediate_backbone )],
-    cre_bac_recom         => [qw( intermediate_cassette intermediate_backbone )],
-    '2w_gateway'          => [qw( final_cassette final_backbone recombinase )],
-    '3w_gateway'          => [qw( final_cassette final_backbone recombinase )],
-    recombinase           => [qw( recombinase )],
-    clone_pick            => [qw( recombinase )],
-    first_electroporation => [qw( cell_line )],
+    int_recom              => [qw( intermediate_cassette intermediate_backbone )],
+    cre_bac_recom          => [qw( intermediate_cassette intermediate_backbone )],
+    '2w_gateway'           => [qw( final_cassette final_backbone recombinase )],
+    '3w_gateway'           => [qw( final_cassette final_backbone recombinase )],
+    recombinase            => [qw( recombinase )],
+    clone_pick             => [qw( recombinase )],
+    first_electroporation  => [qw( cell_line recombinase )],
+    second_electroporation => [qw( recombinase )],
 #    xep_pool              => [qw( recombinase )],
 );
 
