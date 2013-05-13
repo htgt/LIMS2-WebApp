@@ -558,56 +558,6 @@ sub create_design_data_cache {
 }
 
 
-# We need a design well cache so that we can call method on the design well itself
-#
-# This deprecated method returns design wells as part of the cache. 
-sub create_design_well_cache {
-    my $self = shift;
-    my $well_id_list_ref = shift;
-    # Use a ProcessTree method to get the list of design wells.
-    my $design_well_hash = $self->get_design_wells_for_well_id_list( $well_id_list_ref );
-$self->log->debug('Process_Tree generated design well hash' );
-    # create a list of wells to fetch
-    # also keep a record of design_id => source_well_id for later use
-    my @design_well_id_list;
-    my %seen;
-    foreach my $well_id ( keys %{$design_well_hash} ) {
-        my $design_well_id = $design_well_hash->{$well_id}->{'design_well_id'};
-        if ( !$seen{$design_well_id} ) {
-            push @design_well_id_list, $design_well_id;
-            $seen{$design_well_id} = 1;
-        }
-    }
-    my $design_well_rs = $self->schema->resultset( 'Well' );
-    $self->log->debug('Searching for design wells');
-    my @design_wells = $design_well_rs->search(
-        {
-            'me.id' => { '-in' => \@design_well_id_list }
-        },
-    );
-    $self->log->debug('search complete');
-    # Get the designs for each design well and cache them ...
-    my $designs_hash_ref;
-    # This goes back to the db lots of times.
-    foreach my $design_well ( @design_wells ) {
-        ($designs_hash_ref->{$design_well->id}) = $design_well->designs;
-    }
-$self->log->debug('Assigned designs');
-    # save a reference to the design well in the appropriate key/value
-    foreach my $well_id ( keys %{$design_well_hash} ) {
-        # match up the design_well_id
-        my $design_well_id = $design_well_hash->{$well_id}->{'design_well_id'};
-        MATCH_DESIGN_WELL: foreach my $design_well ( @design_wells ) {
-            if ( $design_well->id == $design_well_id ) {
-               $design_well_hash->{$well_id}->{'design_well_ref'} = $design_well;
-               $design_well_hash->{$well_id}->{'design_ref'} = $designs_hash_ref->{$design_well->id};
-               last MATCH_DESIGN_WELL;
-            }
-        }
-    }
-$self->log->debug('design well references saved');
-    return $design_well_hash;
-}
 
 
 sub sql_plate_qc_query {
