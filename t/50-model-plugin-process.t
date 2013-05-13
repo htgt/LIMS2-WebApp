@@ -604,6 +604,24 @@ throws_ok {
     my $process = model->create_process( $clone_pick_process_data->{invalid_output_well} );
 } qr/clone_pick process output well should be type (EP_PICK|,|SEP_PICK|XEP_PICK)+ \(got SEP\)/;
 
+note( 'Testing clone_pick process with recombinase option' );
+{
+    ok my $process = model->create_process( $clone_pick_process_data->{'with_recombinase'} ),
+        'create_process for type clone_pick with recombinase succeeds';
+        isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+        is $process->type->id, 'clone_pick',
+            'process is of the correct type';
+        ok my $output_wells = $process->output_wells, 'process can return output wells resultset'; 
+        my $output_well = $output_wells->next;
+        ok my $recombinases = $output_well->recombinases, 'output_well can return recombinases';
+        isa_ok $recombinases, 'ARRAY';
+        is $recombinases->[0], 'Flp', 'recombinase is of the correct type (Flp)';
+        ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
+        is $process_recombinases->count, 1, 'has 1 recombinase';
+        is $process_recombinases->next->recombinase->id, 'Flp', 'is Flp recombinase';
+        lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
+
 note( "Testing clone_pool process creation" );
 my $clone_pool_process_data= test_data( 'clone_pool_process.yaml' );
 #TODO add new wells to fixture data
