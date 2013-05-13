@@ -9,6 +9,18 @@ valid_input:
           well_name: A01
         - plate_name: XEP0006
           well_name: A01
+with_recombinase:
+    type: second_electroporation
+    output_wells:
+        - plate_name: SEP0006
+          well_name: N01
+    input_wells:
+        - plate_name: MOHSAQ0001_A_2
+          well_name: A01
+        - plate_name: XEP0006
+          well_name: A01
+    recombinase:
+        - Flp
 invalid_input_wells:
     type: second_electroporation
     output_wells:

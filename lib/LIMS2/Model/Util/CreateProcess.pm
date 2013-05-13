@@ -396,7 +396,6 @@ sub _check_wells_freeze {
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_xep_pool {
     my ( $model, $process ) = @_;
-$DB::single=1;
     check_input_wells( $model, $process);
     # Implement rules to validate the input wells.
     # The wells must all be for the same design.
@@ -683,6 +682,7 @@ sub _create_process_aux_data_cre_bac_recom {
 sub pspec__create_process_aux_data_first_electroporation {
     return {
         cell_line => { validate => 'existing_cell_line' },
+        recombinase => { optional => 1 },
     };
 }
 
@@ -694,6 +694,11 @@ sub _create_process_aux_data_first_electroporation {
         = $model->check_params( $params, pspec__create_process_aux_data_first_electroporation );
 
     $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) } );
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
 
     return;
 }
@@ -704,9 +709,24 @@ sub _create_process_aux_data_final_pick {
     return;
 }
 ## use critic
+sub pspec__create_process_aux_data_second_electroporation {
+    return {
+        recombinase => { optional => 1 },
+    };
+}
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_second_electroporation {
+    my ( $model, $params, $process  ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_second_electroporation );
+
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
     return;
 }
 ## use critic
