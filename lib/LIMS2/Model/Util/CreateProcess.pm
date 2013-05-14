@@ -416,7 +416,7 @@ sub _check_wells_xep_pool {
                 . ' design_id: '
                 . $design_data->{$candidate_well}->{'design_id'}
                 . "\n";
-        }   
+        }
         LIMS2::Exception::Validation->throw(
             'Candidate wells for xep_pool operation do not all descend from the same design'
             . "\n"
@@ -691,7 +691,7 @@ sub _create_process_aux_data_first_electroporation {
     my ( $model, $params, $process ) = @_;
 
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_first_electroporation );
+        = $model->check_params( $params, pspec__create_process_aux_data_first_electroporation, , ignore_unknown => 1 );
 
     $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) } );
     if ( $validated_params->{recombinase} ) {
@@ -720,7 +720,7 @@ sub _create_process_aux_data_second_electroporation {
     my ( $model, $params, $process  ) = @_;
 
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_second_electroporation );
+        = $model->check_params( $params, pspec__create_process_aux_data_second_electroporation, , ignore_unknown => 1 );
 
     if ( $validated_params->{recombinase} ) {
         create_process_aux_data_recombinase(
