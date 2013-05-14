@@ -23,21 +23,21 @@
 		<tr>	
 			[% FOREACH col IN columns %]
 				[% colval = row.item(col) %]
-				[% IF col == "qc_seq_pass" || col == "dna_status_pass" %]
+				[% IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
 					[% IF colval == "1" %]
 						<td style="color:green">pass</td>
 					[% ELSIF colval == "0" %]
 						<td style="color:red">fail</td>
 					[% ELSE %]
-						<td style="color:orange">-</td>
+						<td style="color:orange">----</td>
 					[% END %] 
-				[% ELSIF col == "cassette_promotor" %]
+				[% ELSIF col == "cassette_promotor" || col == "neo_p" || col == "neo_pl" || col == "bsd_p" || col == "bsd_pl" %]
 					[% IF colval == "1" %]
-						<td>yes</td>
+						<td style="color:green">yes</td>
 					[% ELSIF colval == "0" %]
-						<td>no</td>
+						<td style="color:red">no</td>
 					[% ELSE %]
-						<td>-</td>
+						<td style="color:orange">---</td>
 					[% END %] 
                 [% ELSE %]
 				<td>[% colval %]</td>
