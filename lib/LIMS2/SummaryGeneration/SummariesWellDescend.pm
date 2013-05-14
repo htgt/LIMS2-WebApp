@@ -68,8 +68,11 @@ sub generate_summary_rows_for_all_trails {
     # Call ProcessTree to fetch paths
     my $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
 
-    # hash of previously retrieved wells
+    # initialise hash of previously retrieved wells
     my %wells_retrieved = ();
+
+    # insert design well into hash so doesn't get retrieved again
+    $wells_retrieved{ $design_well_id } = $design_well;
 
     my $trails_index = 0;
     while ( $design_well_trails->[$trails_index] ) {
@@ -702,7 +705,7 @@ sub fetch_well_electroporation_recombinases {
 			$return_string = join( '_', @recombinase_ids );
 		}
 
-		if ( defined $return_string ) { 
+		if ( defined $return_string ) {
 			DEBUG 'Recombinases for process id '.$process->id.' = '.$return_string;
 		}
     }
