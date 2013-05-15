@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.071';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.073';
 }
 ## use critic
 
@@ -73,6 +73,11 @@ __PACKAGE__->table("projects");
   default_value: 'unknown'
   is_nullable: 0
 
+=head2 species_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -91,6 +96,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "targeting_type",
   { data_type => "text", default_value => "unknown", is_nullable => 0 },
+  "species_id",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -138,8 +145,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-31 14:29:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VqJT+ZOA2ycgAxa4EUXXew
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-14 16:26:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iUVJ1PISl0hfgTFswCO0Jw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

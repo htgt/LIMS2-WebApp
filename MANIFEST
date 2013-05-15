@@ -1721,6 +1721,7 @@ t/50-model-plugin-processtree.t
 t/50-model-plugin-qc.t
 t/50-model-plugin-user.t
 t/50-model-plugin-well.t
+t/50-model-plugin-xep-pool.t
 t/60-allele-request.t
 t/60-summaries-data-creation.t
 t/70-controller-api-platewell.t

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.071';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.073';
 }
 ## use critic
 
@@ -144,6 +144,7 @@ my %process_check_well = (
     first_electroporation  => \&_check_wells_first_electroporation,
     second_electroporation => \&_check_wells_second_electroporation,
     freeze                 => \&_check_wells_freeze,
+    xep_pool               => \&_check_wells_xep_pool,
 );
 
 sub check_process_wells {
@@ -167,9 +168,11 @@ sub check_input_wells {
     my @input_wells               = $process->input_wells;
     my $count                     = scalar @input_wells;
     my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
+
     LIMS2::Exception::Validation->throw(
             "$process_type process should have $expected_input_well_count input well(s) (got $count)"
-    ) unless $count == $expected_input_well_count;
+    ) unless ($count eq $expected_input_well_count)
+        || ($count > 0 and $expected_input_well_count eq 'MULTIPLE');
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
@@ -396,6 +399,42 @@ sub _check_wells_freeze {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_xep_pool {
+    my ( $model, $process ) = @_;
+    check_input_wells( $model, $process);
+    # Implement rules to validate the input wells.
+    # The wells must all be for the same design.
+    my @input_well_ids = map{ $_->id } $process->input_wells;
+
+    my $design_data = $model->get_design_data_for_well_id_list( \@input_well_ids );
+    # Now check that the design IDs are all the same
+    my %design_ids;
+    foreach my $input_well_id ( @input_well_ids ) {
+        $design_ids{$design_data->{$input_well_id}->{'design_id'}} += 1;
+    }
+
+    if ((scalar keys %design_ids) > 1 ) {
+        my $message;
+        for my $candidate_well ( @input_well_ids ) {
+            $message .= 'Well id: '
+                . $candidate_well
+                . ' design_id: '
+                . $design_data->{$candidate_well}->{'design_id'}
+                . "\n";
+        }
+        LIMS2::Exception::Validation->throw(
+            'Candidate wells for xep_pool operation do not all descend from the same design'
+            . "\n"
+            . $message
+        );
+    }
+
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
 my %process_aux_data = (
     create_di              => \&_create_process_aux_data_create_di,
     int_recom              => \&_create_process_aux_data_int_recom,
@@ -412,6 +451,7 @@ my %process_aux_data = (
     first_electroporation  => \&_create_process_aux_data_first_electroporation,
     second_electroporation => \&_create_process_aux_data_second_electroporation,
     freeze                 => \&_create_process_aux_data_freeze,
+    xep_pool               => \&_create_process_aux_data_xep_pool,
 );
 
 sub create_process_aux_data {
@@ -594,7 +634,7 @@ sub pspec_create_process_aux_data_recombinase {
     return { recombinase => { validate => 'existing_recombinase' }, };
 }
 
-#NOTE order recombinaes added is just the order that they are specified in the array
+#NOTE order recombinase added is just the order that they are specified in the array
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub create_process_aux_data_recombinase {
     my ( $model, $params, $process ) = @_;
@@ -648,6 +688,7 @@ sub _create_process_aux_data_cre_bac_recom {
 sub pspec__create_process_aux_data_first_electroporation {
     return {
         cell_line => { validate => 'existing_cell_line' },
+        recombinase => { optional => 1 },
     };
 }
 
@@ -656,9 +697,14 @@ sub _create_process_aux_data_first_electroporation {
     my ( $model, $params, $process ) = @_;
 
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_first_electroporation );
+        = $model->check_params( $params, pspec__create_process_aux_data_first_electroporation, , ignore_unknown => 1 );
 
     $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) } );
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
 
     return;
 }
@@ -669,9 +715,24 @@ sub _create_process_aux_data_final_pick {
     return;
 }
 ## use critic
+sub pspec__create_process_aux_data_second_electroporation {
+    return {
+        recombinase => { optional => 1 },
+    };
+}
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_second_electroporation {
+    my ( $model, $params, $process  ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_second_electroporation, , ignore_unknown => 1 );
+
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
     return;
 }
 ## use critic
@@ -694,17 +755,36 @@ sub _create_process_aux_data_clone_pool {
 }
 ## use critic
 
-## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_clone_pick {
+sub pspec__create_process_aux_data_clone_pick {
     return {
         recombinase => { optional => 1 },
     };
-;
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_clone_pick {
+    my ( $model, $params, $process  ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_clone_pick );
+
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
+    return ;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_freeze {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_xep_pool {
     return;
 }
 ## use critic

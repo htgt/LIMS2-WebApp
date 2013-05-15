@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.071';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.073';
 }
 ## use critic
 
@@ -44,6 +44,38 @@ __PACKAGE__->table("summaries");
 
 =head1 ACCESSORS
 
+=head2 id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'summaries_id_seq1'
+
+=head2 insert_timestamp
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 design_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 design_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 design_type
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 design_species_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 design_gene_id
 
   data_type: 'text'
@@ -57,6 +89,11 @@ __PACKAGE__->table("summaries");
 =head2 design_bacs
 
   data_type: 'text'
+  is_nullable: 1
+
+=head2 design_phase
+
+  data_type: 'integer'
   is_nullable: 1
 
 =head2 design_plate_name
@@ -82,26 +119,6 @@ __PACKAGE__->table("summaries");
 =head2 design_well_created_ts
 
   data_type: 'timestamp'
-  is_nullable: 1
-
-=head2 design_type
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 design_phase
-
-  data_type: 'integer'
-  is_nullable: 1
-
-=head2 design_name
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 design_id
-
-  data_type: 'integer'
   is_nullable: 1
 
 =head2 design_well_assay_complete
@@ -220,6 +237,11 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 final_cassette_resistance
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 final_backbone_name
 
   data_type: 'text'
@@ -289,6 +311,11 @@ __PACKAGE__->table("summaries");
 =head2 final_pick_cassette_conditional
 
   data_type: 'boolean'
+  is_nullable: 1
+
+=head2 final_pick_cassette_resistance
+
+  data_type: 'text'
   is_nullable: 1
 
 =head2 final_pick_backbone_name
@@ -381,6 +408,11 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
+=head2 ep_well_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 ep_first_cell_line_name
 
   data_type: 'text'
@@ -436,6 +468,11 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
+=head2 ep_pick_well_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 ep_pick_qc_seq_pass
 
   data_type: 'boolean'
@@ -476,6 +513,11 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
+=head2 sep_well_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 sep_second_cell_line_name
 
   data_type: 'text'
@@ -514,6 +556,11 @@ __PACKAGE__->table("summaries");
 =head2 sep_pick_well_created_ts
 
   data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 sep_pick_well_recombinase_id
+
+  data_type: 'text'
   is_nullable: 1
 
 =head2 sep_pick_qc_seq_pass
@@ -604,12 +651,31 @@ __PACKAGE__->table("summaries");
 =cut
 
 __PACKAGE__->add_columns(
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "summaries_id_seq1",
+  },
+  "insert_timestamp",
+  { data_type => "timestamp", is_nullable => 1 },
+  "design_id",
+  { data_type => "integer", is_nullable => 1 },
+  "design_name",
+  { data_type => "text", is_nullable => 1 },
+  "design_type",
+  { data_type => "text", is_nullable => 1 },
+  "design_species_id",
+  { data_type => "text", is_nullable => 1 },
   "design_gene_id",
   { data_type => "text", is_nullable => 1 },
   "design_gene_symbol",
   { data_type => "text", is_nullable => 1 },
   "design_bacs",
   { data_type => "text", is_nullable => 1 },
+  "design_phase",
+  { data_type => "integer", is_nullable => 1 },
   "design_plate_name",
   { data_type => "text", is_nullable => 1 },
   "design_plate_id",
@@ -620,14 +686,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "design_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
-  "design_type",
-  { data_type => "text", is_nullable => 1 },
-  "design_phase",
-  { data_type => "integer", is_nullable => 1 },
-  "design_name",
-  { data_type => "text", is_nullable => 1 },
-  "design_id",
-  { data_type => "integer", is_nullable => 1 },
   "design_well_assay_complete",
   { data_type => "timestamp", is_nullable => 1 },
   "design_well_accepted",
@@ -674,6 +732,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "final_cassette_conditional",
   { data_type => "boolean", is_nullable => 1 },
+  "final_cassette_resistance",
+  { data_type => "text", is_nullable => 1 },
   "final_backbone_name",
   { data_type => "text", is_nullable => 1 },
   "final_well_assay_complete",
@@ -702,6 +762,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "final_pick_cassette_conditional",
   { data_type => "boolean", is_nullable => 1 },
+  "final_pick_cassette_resistance",
+  { data_type => "text", is_nullable => 1 },
   "final_pick_backbone_name",
   { data_type => "text", is_nullable => 1 },
   "final_pick_well_assay_complete",
@@ -738,6 +800,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "ep_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
+  "ep_well_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
   "ep_first_cell_line_name",
   { data_type => "text", is_nullable => 1 },
   "ep_colonies_picked",
@@ -760,6 +824,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "ep_pick_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
+  "ep_pick_well_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
   "ep_pick_qc_seq_pass",
   { data_type => "boolean", is_nullable => 1 },
   "ep_pick_well_assay_complete",
@@ -776,6 +842,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "sep_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
+  "sep_well_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
   "sep_second_cell_line_name",
   { data_type => "text", is_nullable => 1 },
   "sep_well_assay_complete",
@@ -792,6 +860,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "sep_pick_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
+  "sep_pick_well_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
   "sep_pick_qc_seq_pass",
   { data_type => "boolean", is_nullable => 1 },
   "sep_pick_well_assay_complete",
@@ -828,9 +898,21 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
 );
 
+=head1 PRIMARY KEY
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-31 13:25:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tKbieXqOH7e+sqUynbtg2Q
+=over 4
+
+=item * L</id>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("id");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-14 15:55:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Agb6tL6E+mze3m1US0g3rQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

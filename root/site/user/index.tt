@@ -3,13 +3,23 @@
 <div class="page-header">
   <h1>Welcome to LIMS2</h1>
 </div>
-<p> The High Throughput Gene Targeting (HTGT) lab tracking system. </p>
+
+<div style="width:100%">
+The High Throughput Gene Targeting (HTGT) lab tracking system.
+<span style="float:right">
+[% IF targeting_type == "single_targeted" %]
+<a class="btn btn-primary" href="[% c.uri_for( "/user/double_targeted" ) %]"><i class="icon-list-alt icon-white"></i> Show double-targeted report</a>
+[% ELSIF targeting_type == "double_targeted" %]
+<a class="btn btn-primary" href="[% c.uri_for( "/user/single_targeted" ) %]"><i class="icon-list-alt icon-white"></i> Show single-targeted report</a>
+[% END %]
+</span>
+</div>
 
 [% IF report_id %]
-
+<div>
 <h3>[% title %]</h3>
 
-<table class="table table-striped table-bordered">
+<table class="table table-striped table-bordered" style="table-layout:fixed">
   <thead>
     <tr>
       [% FOR col IN columns %]
@@ -22,42 +32,28 @@
     </tr>
   </thead>
   <tbody>
-    [% FOREACH row IN dt_rows %]
+    [% FOREACH row IN rows %]
     <tr>
-      [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" %]
+      [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "Electroporations"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
       <td style="border-top: 1px solid"><b>[% row %]</b></td>
       [% ELSE %]
       <td><b>[% row %]</b></td>
       [% END %]
       [% FOR colname IN columns %]
         [% UNLESS colname == "Stage" %]
-            [% IF row == "Targeting" %]
-                [% targeting_type = data.item(row).item(colname) %]
-                [% IF targeting_type == "single_targeted" %]
-                    <td><i>Single</i></td>
-                [% ELSIF targeting_type == "double_targeted" %]
-                    <td><i>Double</i></td>
-                [% ELSE %]
-                    <td>No projects</td>
-                [% END %]               
-            [% ELSE %]
-                [% countval = 0; countval = data.item(row).item(colname) %]
-                [% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" %]
-                <td style="border-top: 1px solid">
-                [% ELSE %]
-                <td>
-                [% END %]
-                [% IF countval != "" && countval > 0 %] 
-                    [% targeting_type = data.item("Targeting").item(colname) %]
-                    
-                    <b><a href="[% c.uri_for( "/user/view_summary_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>           
-                [% ELSIF countval != "" && countval < 0 %]
-                    -</td>
-                [% ELSE %]
-                    0</td>
-                [% END %]
-            [% END %]
-
+			[% countval = 0; countval = data.item(row).item(colname) %]
+			[% IF row == "Targeted Genes" || row == "Vectors" || row == "Valid DNA" || row == "Electroporations"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Accepted ES Clones" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
+			<td style="border-top: 1px solid">
+			[% ELSE %]
+			<td>
+			[% END %]
+			[% IF countval != "" && countval > 0 %] 
+				<b><a href="[% c.uri_for( "/user/view_summary_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>           
+			[% ELSIF countval != "" && countval < 0 %]
+				-</td>
+			[% ELSE %]
+				0</td>
+			[% END %]
         [% END %]
       [% END %]
     </tr>
@@ -66,5 +62,9 @@
 </table>
 
 <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
-
+</div>
+[% ELSE %]
+<div>
+<h3>No projects found for this species / targeting type.</h3>
+</div>
 [% END %]

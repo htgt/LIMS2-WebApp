@@ -537,6 +537,18 @@ throws_ok {
     my $process = model->create_process( $first_electroporation_data->{invalid_output_well} );
 } qr/first_electroporation process output well should be type EP \(got SEP\)/;
 
+note( "Testing first_electroporation process creation with recombinase" );
+{
+    ok my $process = model->create_process( $first_electroporation_data->{'with_recombinase'} ),
+        'create_process for type first_electroporation with recombinase should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'first_electroporation',
+        'process is of correct type';
+    ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
+    is $process_recombinases->count, 1, 'has 1 recombinase';
+    is $process_recombinases->next->recombinase->id, 'Flp', 'is Flp recombinase';
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
 
 note( "Testing second_electroporation process creation" );
 my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
@@ -574,6 +586,19 @@ throws_ok {
     my $process = model->create_process( $second_electroporation_data->{invalid_input_wells} );
 } qr/second_electroporation process types require two input wells, one of type XEP and the other of type DNA/;
 
+note( "Testing second_electroporation process creation with recombinase" );
+{
+    ok my $process = model->create_process( $second_electroporation_data->{'with_recombinase'} ),
+        'create_process for type second_electroporation with recombinase should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'second_electroporation',
+        'process is of correct type';
+    ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
+    is $process_recombinases->count, 1, 'has 1 recombinase';
+    is $process_recombinases->next->recombinase->id, 'Flp', 'is Flp recombinase';
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
+
 
 note( "Testing clone_pick process creation" );
 my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
@@ -603,6 +628,24 @@ my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
 throws_ok {
     my $process = model->create_process( $clone_pick_process_data->{invalid_output_well} );
 } qr/clone_pick process output well should be type (EP_PICK|,|SEP_PICK|XEP_PICK)+ \(got SEP\)/;
+
+note( 'Testing clone_pick process with recombinase option' );
+{
+    ok my $process = model->create_process( $clone_pick_process_data->{'with_recombinase'} ),
+        'create_process for type clone_pick with recombinase succeeds';
+        isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+        is $process->type->id, 'clone_pick',
+            'process is of the correct type';
+        ok my $output_wells = $process->output_wells, 'process can return output wells resultset'; 
+        my $output_well = $output_wells->next;
+        ok my $recombinases = $output_well->recombinases, 'output_well can return recombinases';
+        isa_ok $recombinases, 'ARRAY';
+        is $recombinases->[0], 'Flp', 'recombinase is of the correct type (Flp)';
+        ok my $process_recombinases = $process->process_recombinases, 'process has process_recombinases';
+        is $process_recombinases->count, 1, 'has 1 recombinase';
+        is $process_recombinases->next->recombinase->id, 'Flp', 'is Flp recombinase';
+        lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
 
 note( "Testing clone_pool process creation" );
 my $clone_pool_process_data= test_data( 'clone_pool_process.yaml' );
@@ -664,3 +707,4 @@ throws_ok {
 } qr/freeze process output well should be type (FP|,|SFP)+ \(got SEP\)/;
 
 done_testing();
+

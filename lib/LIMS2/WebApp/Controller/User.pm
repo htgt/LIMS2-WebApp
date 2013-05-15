@@ -1,12 +1,11 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.071';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.073';
 }
 ## use critic
 
 use Moose;
-#use LIMS2::Report;
 use LIMS2::Model::Util::ReportForSponsors;
 use Text::CSV;
 use namespace::autoclean;
@@ -74,33 +73,48 @@ sub end :Private {
 
 =cut
 
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
+sub index :Path :Args(1) {
+    my ( $self, $c, $targeting_type ) = @_;
+
+    if ( defined $targeting_type ) {
+        # show report for the requested targeting type
+        $self->_generate_front_page_report ( $c, $targeting_type );
+    }
+    else {
+        # by default show the double-targeted page
+        $self->_generate_front_page_report ( $c, 'double_targeted' );
+    }
+
+    return;
+}
+
+sub _generate_front_page_report {
+    my ( $self, $c, $targeting_type ) = @_;
 
     $c->assert_user_roles( 'read' );
 
     my $species = $c->session->{selected_species};
 
     # Call ReportForSponsors plugin to generate report 
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
-    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
+
+    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
 
     # Fetch details from returned report parameters
     my $report_id   = $report_params->{ report_id };
     my $title       = $report_params->{ title };
     my $columns     = $report_params->{ columns };
-    my $st_rows     = $report_params->{ st_rows };
-    my $dt_rows     = $report_params->{ dt_rows };
+    my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
 
     # Store report values in stash for display onscreen
     $c->stash(
-        'report_id' => $report_id,
-        'title'     => $title,
-        'columns'   => $columns,
-        'st_rows'   => $st_rows,
-        'dt_rows'   => $dt_rows,
-        'data'      => $data,
+        'report_id'      => $report_id,
+        'title'          => $title,
+        'targeting_type' => $targeting_type,
+        'columns'        => $columns,
+        'rows'           => $rows,
+        'data'           => $data,
     );
 
     return;
