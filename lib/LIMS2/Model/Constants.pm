@@ -21,6 +21,7 @@ BEGIN {
     our %EXPORT_TAGS = ();
 }
 
+# Output plate types
 const our %PROCESS_PLATE_TYPES => (
     create_di              => [qw( DESIGN )],
     int_recom              => [qw( INT )],
@@ -36,16 +37,19 @@ const our %PROCESS_PLATE_TYPES => (
     clone_pick             => [qw( EP_PICK SEP_PICK XEP_PICK )],
     clone_pool             => [qw( SEP_POOL XEP_POOL )],
     freeze                 => [qw( FP SFP )],
+    xep_pool               => [qw( XEP )],
 );
 
 const our %PROCESS_SPECIFIC_FIELDS => (
-    int_recom             => [qw( intermediate_cassette intermediate_backbone )],
-    cre_bac_recom         => [qw( intermediate_cassette intermediate_backbone )],
-    '2w_gateway'          => [qw( final_cassette final_backbone recombinase )],
-    '3w_gateway'          => [qw( final_cassette final_backbone recombinase )],
-    recombinase           => [qw( recombinase )],
-    clone_pick            => [qw( recombinase )],
-    first_electroporation => [qw( cell_line )],
+    int_recom              => [qw( intermediate_cassette intermediate_backbone )],
+    cre_bac_recom          => [qw( intermediate_cassette intermediate_backbone )],
+    '2w_gateway'           => [qw( final_cassette final_backbone recombinase )],
+    '3w_gateway'           => [qw( final_cassette final_backbone recombinase )],
+    recombinase            => [qw( recombinase )],
+    clone_pick             => [qw( recombinase )],
+    first_electroporation  => [qw( cell_line recombinase )],
+    second_electroporation => [qw( recombinase )],
+#    xep_pool              => [qw( recombinase )],
 );
 
 const our %PROCESS_TEMPLATE => (
@@ -61,6 +65,7 @@ const our %PROCESS_TEMPLATE => (
     clone_pick             => 'standard_template.csv',
     clone_pool             => 'standard_template.csv',
     freeze                 => 'standard_template.csv',
+    xep_pool               => 'standard_template.csv',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -116,6 +121,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     freeze => {
         type   => [qw( EP_PICK SEP_PICK )],
         number => 1,
+    },
+    xep_pool => {
+        type   => [qw( EP_PICK )],
+        number => 'MULTIPLE',
     },
 );
 
