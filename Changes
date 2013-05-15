@@ -1,4 +1,6 @@
 {{$NEXT}}
+	Added recombinase to first and second EP processes, and fixed recombinase bug on clone pick process.
+	Added new columns and indexes to summaries table, and updated summaries generation procedure.
 
 0.072     2013-05-08 13:50:08 Europe/London
     Ported additional functionality from htgt design info. Also made run_in_perlbrew inherit live/devel/staging from the environment.

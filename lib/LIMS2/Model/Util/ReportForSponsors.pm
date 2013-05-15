@@ -12,8 +12,6 @@ use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use DateTime;
 use Readonly;
-# TODO remove
-use Smart::Comments;
 
 Log::Log4perl->easy_init($DEBUG);
 
