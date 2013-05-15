@@ -422,3 +422,4 @@ DROP TABLE public.summaries_old CASCADE;
 -- Set up access to the new version of the table
 GRANT SELECT ON summaries TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON summaries TO "[% rw_role %]";
+GRANT USAGE ON SEQUENCE summaries_id_seq TO "[% rw_role %]";
