@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.072     2013-05-08 13:50:08 Europe/London
+    Ported additional functionality from htgt design info. Also made run_in_perlbrew inherit live/devel/staging from the environment.
+
 0.071     2013-04-29 10:15:45 Europe/London
 	New version of LIMS2 front page report
 
