@@ -43,7 +43,7 @@ __PACKAGE__->table("summaries");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'summaries_id_seq'
+  sequence: 'summaries_id_seq1'
 
 =head2 insert_timestamp
 
@@ -402,6 +402,11 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
+=head2 ep_well_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 ep_first_cell_line_name
 
   data_type: 'text'
@@ -457,7 +462,7 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
-=head2 ep_pick_recombinase_id
+=head2 ep_pick_well_recombinase_id
 
   data_type: 'text'
   is_nullable: 1
@@ -502,6 +507,11 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
+=head2 sep_well_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 sep_second_cell_line_name
 
   data_type: 'text'
@@ -542,7 +552,7 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
-=head2 sep_pick_recombinase_id
+=head2 sep_pick_well_recombinase_id
 
   data_type: 'text'
   is_nullable: 1
@@ -640,7 +650,7 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "summaries_id_seq",
+    sequence          => "summaries_id_seq1",
   },
   "insert_timestamp",
   { data_type => "timestamp", is_nullable => 1 },
@@ -784,6 +794,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "ep_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
+  "ep_well_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
   "ep_first_cell_line_name",
   { data_type => "text", is_nullable => 1 },
   "ep_colonies_picked",
@@ -806,7 +818,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "ep_pick_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
-  "ep_pick_recombinase_id",
+  "ep_pick_well_recombinase_id",
   { data_type => "text", is_nullable => 1 },
   "ep_pick_qc_seq_pass",
   { data_type => "boolean", is_nullable => 1 },
@@ -824,6 +836,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "sep_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
+  "sep_well_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
   "sep_second_cell_line_name",
   { data_type => "text", is_nullable => 1 },
   "sep_well_assay_complete",
@@ -840,7 +854,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "sep_pick_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
-  "sep_pick_recombinase_id",
+  "sep_pick_well_recombinase_id",
   { data_type => "text", is_nullable => 1 },
   "sep_pick_qc_seq_pass",
   { data_type => "boolean", is_nullable => 1 },
@@ -891,8 +905,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-08 12:33:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7E6y5H0AflXteIPjG6bQAQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-14 15:55:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Agb6tL6E+mze3m1US0g3rQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

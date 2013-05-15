@@ -200,7 +200,7 @@ sub fetch_values_for_type_DESIGN {
         $stored_values->{ 'stored_design_id' }                  = try{ $curr_well->design->id }; # design DB identifier
         $stored_values->{ 'stored_design_name' }                = try{ $curr_well->design->name }; # design name
         $stored_values->{ 'stored_design_type_id' }             = try{ $curr_well->design->design_type_id }; # design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
-        $stored_values->{ 'stored_design_species_id' }             = try{ $curr_well->design->species_id }; # design species id, e.g. Mouse, Human
+        $stored_values->{ 'stored_design_species_id' }          = try{ $curr_well->design->species_id }; # design species id, e.g. Mouse, Human
 		$stored_values->{ 'stored_design_well_id' }             = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_design_well_name' }           = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_design_plate_id' }            = try{ $curr_well->plate->id }; # plate id
@@ -427,6 +427,7 @@ sub fetch_values_for_type_EP {
         $stored_values->{ 'stored_ep_colonies_total' }         = fetch_well_colony_count_total( $curr_well ); # count colonies total
         $stored_values->{ 'stored_ep_colonies_picked' }        = fetch_well_colony_count_picked( $curr_well ); # count colonies picked
         $stored_values->{ 'stored_ep_first_cell_line_name' }   = try { $curr_well->first_cell_line->name }; # first cell line name
+        $stored_values->{ 'stored_ep_well_recombinase_id' }    = fetch_well_electroporation_recombinases( $curr_well ); # process recombinase(s)
     }
 
     $summary_row_values->{ 'ep_well_id' }                = $stored_values->{ stored_ep_well_id };
@@ -440,6 +441,7 @@ sub fetch_values_for_type_EP {
     $summary_row_values->{ 'ep_colonies_total' }         = $stored_values->{ stored_ep_colonies_total };
     $summary_row_values->{ 'ep_colonies_picked' }        = $stored_values->{ stored_ep_colonies_picked };
     $summary_row_values->{ 'ep_first_cell_line_name' }   = $stored_values->{ stored_ep_first_cell_line_name };
+    $summary_row_values->{ 'ep_well_recombinase_id' }    = $stored_values->{ stored_ep_well_recombinase_id };
     return;
 }
 
@@ -463,7 +465,7 @@ sub fetch_values_for_type_EP_PICK {
         $stored_values->{ 'stored_ep_pick_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_ep_pick_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_ep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass };  # qc sequencing test result
-        $stored_values->{ 'stored_ep_pick_recombinase_id' }         = fetch_well_electroporation_recombinases( $curr_well ); # process recombinase(s)
+        $stored_values->{ 'stored_ep_pick_well_recombinase_id' }    = fetch_well_electroporation_recombinases( $curr_well ); # process recombinase(s)
     }
 
     $summary_row_values->{ 'ep_pick_well_id' }              = $stored_values->{ stored_ep_pick_well_id };
@@ -474,7 +476,7 @@ sub fetch_values_for_type_EP_PICK {
     $summary_row_values->{ 'ep_pick_well_created_ts' }      = $stored_values->{ stored_ep_pick_well_created_ts };
     $summary_row_values->{ 'ep_pick_well_accepted' }        = $stored_values->{ stored_ep_pick_well_accepted };
     $summary_row_values->{ 'ep_pick_qc_seq_pass' }          = $stored_values->{ stored_ep_pick_qc_seq_pass };
-    $summary_row_values->{ 'ep_pick_recombinase_id' }         = $stored_values->{ stored_ep_pick_recombinase_id };
+    $summary_row_values->{ 'ep_pick_well_recombinase_id' }  = $stored_values->{ stored_ep_pick_well_recombinase_id };
     return;
 }
 
@@ -498,6 +500,7 @@ sub fetch_values_for_type_SEP {
         $stored_values->{ 'stored_sep_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_sep_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_sep_second_cell_line_name' }  = try{ $curr_well->second_cell_line->name }; # second cell line name
+        $stored_values->{ 'stored_sep_well_recombinase_id' }    = fetch_well_electroporation_recombinases( $curr_well ); # process recombinase(s)
     }
 
     $summary_row_values->{ 'sep_well_id' }               = $stored_values->{ stored_sep_well_id };
@@ -508,6 +511,7 @@ sub fetch_values_for_type_SEP {
     $summary_row_values->{ 'sep_well_created_ts' }       = $stored_values->{ stored_sep_well_created_ts };
     $summary_row_values->{ 'sep_well_accepted' }         = $stored_values->{ stored_sep_well_accepted };
     $summary_row_values->{ 'sep_second_cell_line_name' } = $stored_values->{ stored_sep_second_cell_line_name };
+    $summary_row_values->{ 'sep_well_recombinase_id' }   = $stored_values->{ stored_sep_well_recombinase_id };
     return;
 }
 
@@ -531,7 +535,7 @@ sub fetch_values_for_type_SEP_PICK {
         $stored_values->{ 'stored_sep_pick_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_sep_pick_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_sep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
-        $stored_values->{ 'stored_sep_pick_recombinase_id' }         = fetch_well_electroporation_recombinases( $curr_well ); # process recombinase(s)
+        $stored_values->{ 'stored_sep_pick_well_recombinase_id' }    = fetch_well_electroporation_recombinases( $curr_well ); # process recombinase(s)
     }
 
     $summary_row_values->{ 'sep_pick_well_id' }               = $stored_values->{ stored_sep_pick_well_id };
@@ -542,7 +546,7 @@ sub fetch_values_for_type_SEP_PICK {
     $summary_row_values->{ 'sep_pick_well_created_ts' }       = $stored_values->{ stored_sep_pick_well_created_ts };
     $summary_row_values->{ 'sep_pick_well_accepted' }         = $stored_values->{ stored_sep_pick_well_accepted };
     $summary_row_values->{ 'sep_pick_qc_seq_pass' }           = $stored_values->{ stored_sep_pick_qc_seq_pass };
-    $summary_row_values->{ 'sep_pick_recombinase_id' }        = $stored_values->{ stored_sep_pick_recombinase_id };
+    $summary_row_values->{ 'sep_pick_well_recombinase_id' }   = $stored_values->{ stored_sep_pick_well_recombinase_id };
     return;
 }
 
