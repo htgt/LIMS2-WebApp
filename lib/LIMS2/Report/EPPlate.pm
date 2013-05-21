@@ -36,10 +36,11 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
+    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     my @columns = (
         $self->base_columns,
         "DNA Well",
-        "Cassette", "Recombinases", "Cell Line",
+        "Cassette", "Cassette Resistance", "Recombinases", "Cell Line",
         $self->colony_count_column_names,
         "Number Picked", "Number Accepted"
     );
@@ -76,10 +77,12 @@ override iterator => sub {
 
         my $cassette = $well->cassette ? $well->cassette->name : '';
 
+        # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well ),
             $dna_well->as_string,
             $cassette,
+            $well->cassette->resistance,
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,
             $self->colony_counts( $well ),
