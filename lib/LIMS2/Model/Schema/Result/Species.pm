@@ -106,6 +106,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crisprs",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { "foreign.species_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 default_assembly
 
 Type: might_have
@@ -197,8 +212,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-19 11:28:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bs3aLTDTs8jLUbVliJFq7Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 13:42:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7DLZ1fc4AY5HM33wed8iEg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
