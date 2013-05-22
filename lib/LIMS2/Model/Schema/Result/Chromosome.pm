@@ -117,6 +117,36 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_locis",
+  "LIMS2::Model::Schema::Result::CrisprLoci",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 crisprs_off_targets
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crisprs_off_targets",
+  "LIMS2::Model::Schema::Result::CrisprOffTargets",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 design_oligo_locis
 
 Type: has_many
@@ -148,8 +178,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FjPGU4oTP4APmSq9cyEehg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 13:42:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9hHPr5+4jJHRi42tNMLXXQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

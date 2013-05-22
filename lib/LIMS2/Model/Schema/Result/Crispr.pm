@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Assembly;
+package LIMS2::Model::Schema::Result::Crispr;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Assembly
+LIMS2::Model::Schema::Result::Crispr
 
 =cut
 
@@ -30,15 +30,27 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<assemblies>
+=head1 TABLE: C<crisprs>
 
 =cut
 
-__PACKAGE__->table("assemblies");
+__PACKAGE__->table("crisprs");
 
 =head1 ACCESSORS
 
 =head2 id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'crisprs_id_seq'
+
+=head2 name
+
+  data_type: 'text'
+  is_nullable: 0
+
+=head2 seq
 
   data_type: 'text'
   is_nullable: 0
@@ -49,13 +61,44 @@ __PACKAGE__->table("assemblies");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 crispr_loci_type_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 off_target_outlier
+
+  data_type: 'boolean'
+  is_nullable: 0
+
+=head2 comment
+
+  data_type: 'text'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
   "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "crisprs_id_seq",
+  },
+  "name",
+  { data_type => "text", is_nullable => 0 },
+  "seq",
   { data_type => "text", is_nullable => 0 },
   "species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "crispr_loci_type_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "off_target_outlier",
+  { data_type => "boolean", is_nullable => 0 },
+  "comment",
+  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -72,19 +115,19 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 bac_clone_locis
+=head2 crispr_loci_type
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::BacCloneLocus>
+Related object: L<LIMS2::Model::Schema::Result::CrisprLociType>
 
 =cut
 
-__PACKAGE__->has_many(
-  "bac_clone_locis",
-  "LIMS2::Model::Schema::Result::BacCloneLocus",
-  { "foreign.assembly_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "crispr_loci_type",
+  "LIMS2::Model::Schema::Result::CrisprLociType",
+  { id => "crispr_loci_type_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 crispr_locis
@@ -98,7 +141,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprLoci>
 __PACKAGE__->has_many(
   "crispr_locis",
   "LIMS2::Model::Schema::Result::CrisprLoci",
-  { "foreign.assembly_id" => "self.id" },
+  { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -113,22 +156,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
 __PACKAGE__->has_many(
   "crisprs_off_targets",
   "LIMS2::Model::Schema::Result::CrisprOffTargets",
-  { "foreign.assembly_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 design_oligo_locis
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::DesignOligoLocus>
-
-=cut
-
-__PACKAGE__->has_many(
-  "design_oligo_locis",
-  "LIMS2::Model::Schema::Result::DesignOligoLocus",
-  { "foreign.assembly_id" => "self.id" },
+  { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -147,24 +175,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 species_default_assemblies
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::SpeciesDefaultAssembly>
-
-=cut
-
-__PACKAGE__->has_many(
-  "species_default_assemblies",
-  "LIMS2::Model::Schema::Result::SpeciesDefaultAssembly",
-  { "foreign.assembly_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 13:42:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nxkL+nJKOJETSCnQtsWovw
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:t9VljfPqG3wvO3ZCh/ahMQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
