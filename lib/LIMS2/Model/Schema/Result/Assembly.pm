@@ -72,7 +72,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 bac_clone_locis
+=head2 bac_clone_loci
 
 Type: has_many
 
@@ -81,28 +81,28 @@ Related object: L<LIMS2::Model::Schema::Result::BacCloneLocus>
 =cut
 
 __PACKAGE__->has_many(
-  "bac_clone_locis",
+  "bac_clone_loci",
   "LIMS2::Model::Schema::Result::BacCloneLocus",
   { "foreign.assembly_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 crispr_locis
+=head2 crispr_loci
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::CrisprLoci>
+Related object: L<LIMS2::Model::Schema::Result::CrisprLocus>
 
 =cut
 
 __PACKAGE__->has_many(
-  "crispr_locis",
-  "LIMS2::Model::Schema::Result::CrisprLoci",
+  "crispr_loci",
+  "LIMS2::Model::Schema::Result::CrisprLocus",
   { "foreign.assembly_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 crisprs_off_targets
+=head2 crispr_off_targets
 
 Type: has_many
 
@@ -111,13 +111,13 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
 =cut
 
 __PACKAGE__->has_many(
-  "crisprs_off_targets",
+  "crispr_off_targets",
   "LIMS2::Model::Schema::Result::CrisprOffTargets",
   { "foreign.assembly_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 design_oligo_locis
+=head2 design_oligo_loci
 
 Type: has_many
 
@@ -126,7 +126,7 @@ Related object: L<LIMS2::Model::Schema::Result::DesignOligoLocus>
 =cut
 
 __PACKAGE__->has_many(
-  "design_oligo_locis",
+  "design_oligo_loci",
   "LIMS2::Model::Schema::Result::DesignOligoLocus",
   { "foreign.assembly_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -163,8 +163,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 13:42:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nxkL+nJKOJETSCnQtsWovw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 14:46:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TTS13eVNhVW+eGFpfkTa7A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
