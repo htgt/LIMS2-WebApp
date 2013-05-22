@@ -37,7 +37,7 @@ my %REL_NAME_MAP = (
     },
     Crispr => {
         crispr_locis        => 'loci',
-        crisprs_off_targets => 'crispr_off_targets',
+        crisprs_off_targets => 'off_targets',
     },
     CrisprLociType => {
         crisprs_off_targets => 'crispr_off_targets',

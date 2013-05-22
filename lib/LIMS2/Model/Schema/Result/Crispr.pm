@@ -130,21 +130,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 crispr_off_targets
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_off_targets",
-  "LIMS2::Model::Schema::Result::CrisprOffTargets",
-  { "foreign.crispr_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 loci
 
 Type: has_many
@@ -156,6 +141,21 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprLocus>
 __PACKAGE__->has_many(
   "loci",
   "LIMS2::Model::Schema::Result::CrisprLocus",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 off_targets
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
+
+=cut
+
+__PACKAGE__->has_many(
+  "off_targets",
+  "LIMS2::Model::Schema::Result::CrisprOffTargets",
   { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -176,8 +176,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 14:46:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mKsKpeFRR9kwgzNGSHqJuA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 14:55:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eCKa55kfbu0J51c33C39Nw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
