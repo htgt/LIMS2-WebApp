@@ -9,6 +9,10 @@ use JSON qw( encode_json decode_json );
 use HTTP::Request::Common;
 use HTTP::Status qw( :constants );
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+}
 my $mech = mech();
 
 note "Testing creation of QC template from plate";
@@ -235,7 +239,6 @@ note "Testing creation of QC template with phase matched cassette";
         button  => 'create_from_plate'
     ), 'submit create template from plate with phase matched cassette';
     ok $mech->success, 'response is success';
-   
     ok $mech->follow_link( url_regex => qr/view_template/), 'can view new qc template';
     $mech->content_like(qr/L1L2_st/,'phased cassette used in new template');
     $mech->content_like(qr/3w_gateway/i,'new template has process type 3w_gateway');
