@@ -65,3 +65,22 @@ valid_crispr_off_target:
    chr_end: 123458
    chr_strand: -1
    type: Intron
+
+#move this to new yaml file
+
+valid_find_crispr_by_seq:
+    species: Mouse
+    seq: ATCGGCACACAGAGAG
+    assembly: GRCm38
+    chr_name: 12
+    chr_start: 123456
+    chr_end: 123468
+    chr_strand: 1
+invalid_find_crispr_by_seq:
+    species: Mouse
+    seq: ATCGGCACACAGAGAG
+    assembly: NCBIM37
+    chr_name: 12
+    chr_start: 123456
+    chr_end: 123468
+    chr_strand: 1

@@ -31,6 +31,8 @@ my $crispr;
         model->create_crispr( $create_crispr_data->{species_assembly_mismatch} )
     } qr/Assembly GRCm38 does not belong to species Human/
         , 'throws error when species and assembly do not match';
+
+    #TODO try to create crispr that already exists sp12 Thu 23 May 2013 15:02:33 BST
 }
 
 note('Testing retrival of crispr');
@@ -46,7 +48,6 @@ note('Testing retrival of crispr');
     }
     'LIMS2::Exception::NotFound', '..can not retreive deleted crispr';
 }
-
 
 note('Testing create crispr locus');
 {
@@ -68,6 +69,18 @@ note('Testing create crispr off target');
         , 'can create new crispr off target';
 
     is $crispr_off_target->chr->name, 16, '.. crispr off target chromosome is correct';
+}
+
+note('Test finding crispr by sequence and locus');
+{
+    my $find_crispr_data = $create_crispr_data->{valid_find_crispr_by_seq};
+    ok my $found_crispr = model->find_crispr_by_seq_and_locus( $find_crispr_data )
+        , 'can find crispr site by sequence and locus data';
+    is $found_crispr->id, $crispr->id, '.. and we have found the same crispr';
+
+    # throw error because missing locus info
+    # throw error because multiple identical crisprs
+
 }
 
 note('Test deletion of cripr');

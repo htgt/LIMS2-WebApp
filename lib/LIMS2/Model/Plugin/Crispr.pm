@@ -27,7 +27,35 @@ sub create_crispr {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr );
 
-    #TODO if crispr with same seq exists, for species, what to do? sp12 Thu 23 May 2013 07:36:20 BST
+    my $crispr = $self->find_crispr_by_seq_and_locus(
+        {
+            seq     => $validated_params->{seq},
+            species => $validated_params->{species_id},
+            slice_def(
+                $validated_params->{locus},
+                qw( chr_start chr_end chr_name chr_strand assembly )
+            )
+        }
+    );
+
+    # If crispr with same seq and locus exists just drop off targets and create new ones
+    # otherwise create brand new crispr
+    if ( $crispr ) {
+        $crispr->off_targets->delete;
+        for my $o ( @{ $validated_params->{off_targets} || [] } ) {
+            $o->{crispr_id} = $crispr->id;
+            $self->create_crispr_off_target( $o, $crispr );
+        }
+    }
+    else {
+        $crispr = $self->_create_crispr( $validated_params );
+    }
+
+    return $crispr;
+}
+
+sub _create_crispr {
+    my ( $self, $validated_params ) = @_;
 
     my $crispr = $self->schema->resultset('Crispr')->create(
         {   slice_def(
@@ -180,6 +208,59 @@ sub retrieve_crispr {
     my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id species_id ) } );
 
     return $crispr;
+}
+
+sub pspec_find_crispr_by_seq_and_locus {
+    return {
+        species    => { validate => 'existing_species', rename => 'species_id' },
+        assembly   => { validate => 'existing_assembly' },
+        chr_name   => { validate => 'existing_chromosome' },
+        chr_start  => { validate => 'integer' },
+        chr_end    => { validate => 'integer' },
+        chr_strand => { validate => 'strand' },
+        seq        => { validate => 'dna_seq' },
+    };
+}
+
+# find crispr site by sequence and locus ( on same assembly for same species )
+sub find_crispr_by_seq_and_locus {
+    my ( $self, $params ) = @_;
+    my @identical_crisprs;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_find_crispr_by_seq_and_locus );
+
+    my @crisprs_same_seq = $self->schema->resultset('Crispr')->search(
+        {
+            seq        => $validated_params->{seq},
+            species_id => $validated_params->{species_id},
+        }
+    );
+
+    for my $crispr ( @crisprs_same_seq ) {
+        my $locus = $crispr->loci->find( { assembly_id => $validated_params->{assembly} } );
+        $self->throw(
+            InvalidState => "Can not find crispr locus information on assembly for "
+            . $validated_params->{assembly}
+        ) unless $locus;
+
+        if (
+            $locus->chr->name eq $validated_params->{chr_name}
+            && $locus->chr_start eq $validated_params->{chr_start}
+            && $locus->chr_end eq $validated_params->{chr_end}
+            && $locus->chr_strand eq $validated_params->{chr_strand}
+        ) {
+            push @identical_crisprs, $crispr;
+        }
+    }
+
+    if ( scalar( @identical_crisprs ) == 1 ) {
+        return shift @identical_crisprs;
+    }
+    elsif ( scalar( @identical_crisprs ) > 1 ) {
+        $self->throw( InvalidState => 'Found multiple crispr sites with same sequence and locus' );
+    }
+
+    return;
 }
 
 1;
