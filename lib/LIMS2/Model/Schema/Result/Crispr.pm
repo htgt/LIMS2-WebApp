@@ -172,6 +172,29 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-23 08:17:50
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iPNHj/yxvdYp757N0VRMqQ
 
+sub as_hash {
+    my ( $self ) = @_;
+
+    my $locus;
+    if ( my $default_assembly = $self->species->default_assembly ) {
+        $locus = $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
+    }
+
+    my %h = (
+        id      => $self->id,
+        type    => $self->crispr_loci_type_id,
+        seq     => $self->seq,
+        species => $self->species_id,
+        off_target_outlier => $self->off_target_outlier,
+        comment => $self->comment,
+        locus   => $locus ? $locus->as_hash : undef,
+    );
+
+    $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
+
+    return \%h;
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
