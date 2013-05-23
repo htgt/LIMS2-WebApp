@@ -357,6 +357,11 @@ sub existing_backbone {
     return existing_row( $model, 'Backbone', 'name' );
 }
 
+sub existing_crispr_loci_type {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'CrisprLociType', 'id' );
+}
+
 sub comma_separated_list {
     my $csv = Text::CSV->new;
     return sub {
