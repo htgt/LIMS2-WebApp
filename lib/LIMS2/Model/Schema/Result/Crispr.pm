@@ -45,11 +45,6 @@ __PACKAGE__->table("crisprs");
   is_nullable: 0
   sequence: 'crisprs_id_seq'
 
-=head2 name
-
-  data_type: 'text'
-  is_nullable: 0
-
 =head2 seq
 
   data_type: 'text'
@@ -87,8 +82,6 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "crisprs_id_seq",
   },
-  "name",
-  { data_type => "text", is_nullable => 0 },
   "seq",
   { data_type => "text", is_nullable => 0 },
   "species_id",
@@ -176,8 +169,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 14:55:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eCKa55kfbu0J51c33C39Nw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-23 08:17:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iPNHj/yxvdYp757N0VRMqQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
