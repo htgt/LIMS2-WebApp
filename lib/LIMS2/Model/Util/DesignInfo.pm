@@ -201,9 +201,10 @@ sub _build_oligos {
 }
 
 sub _build_ensembl_util {
+    my $self = shift;
     require LIMS2::Util::EnsEMBL;
 
-    return LIMS2::Util::EnsEMBL->new;
+    return LIMS2::Util::EnsEMBL->new( species => $self->design->species_id );
 }
 
 #
