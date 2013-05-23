@@ -169,6 +169,8 @@ sub create_design_oligo_locus {
         }
     );
 
+    $oligo->design->species->check_assembly_belongs( $validated_params->{assembly} );
+
     my $oligo_locus = $oligo->create_related(
         loci => {
             assembly_id => $validated_params->{assembly},
