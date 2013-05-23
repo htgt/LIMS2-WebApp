@@ -6,7 +6,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON crispr_loci_types TO "[% rw_role %]";
 
 CREATE TABLE crisprs (
     id                   SERIAL PRIMARY KEY,
-    name                 TEXT NOT NULL,
     seq                  TEXT NOT NULL,
     species_id           TEXT NOT NULL REFERENCES species(id),
     crispr_loci_type_id  TEXT NOT NULL REFERENCES crispr_loci_types(id),
