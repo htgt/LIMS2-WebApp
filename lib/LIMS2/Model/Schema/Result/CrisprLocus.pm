@@ -165,6 +165,15 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 14:33:24
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8TREYjVgtBRcnsUxGJv4PQ
 
+sub as_hash {
+    my $self = shift;
+
+    return {
+        assembly => $self->assembly_id,
+        chr_name => $self->chr->name,
+        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand )
+    };
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
