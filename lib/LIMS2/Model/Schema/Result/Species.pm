@@ -215,6 +215,18 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 13:42:36
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7DLZ1fc4AY5HM33wed8iEg
 
+sub check_assembly_belongs {
+    my ( $self, $assembly ) = @_;
+
+    unless ( $self->assemblies->find({ id => $assembly }) ) {
+        require LIMS2::Exception::InvalidState;
+        LIMS2::Exception::InvalidState->throw(
+            "Assembly $assembly does not belong to species " . $self->id
+        );
+    }
+
+    return 1;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
