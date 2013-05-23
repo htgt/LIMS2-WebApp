@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.073     2013-05-15 12:54:27 Europe/London
 	Added recombinase to first and second EP processes, and fixed recombinase bug on clone pick process.
 	Added new columns and indexes to summaries table, and updated summaries generation procedure.
 
