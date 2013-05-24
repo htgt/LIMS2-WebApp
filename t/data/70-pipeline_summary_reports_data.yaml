@@ -1,0 +1,388 @@
+---
+projects:
+  - id: 1
+    sponsor_id: 'Syboss'
+    allele_request: '{"gene_id":"MGI:1914632","second_allele_cassette_function":"reporter_only","first_allele_mutation_type":"ko_first","second_allele_mutation_type":"ko_first","first_allele_cassette_function":"ko_first","targeting_type":"double_targeted"}'
+    gene_id: 'MGI:1914632'
+    targeting_type: 'double_targeted'
+    species_id: 'Mouse'
+  - id: 2
+    sponsor_id: 'Cre Knockin'
+    allele_request: '{"gene_id":"MGI:96600","first_allele_mutation_type":"cre_knock_in","first_allele_cassette_function":"cre_knock_in","targeting_type":"single_targeted"}'
+    gene_id: 'MGI:1095419'
+    targeting_type: 'single_targeted'
+    species_id: 'Mouse'
+project_alleles:
+  - project_id: 1
+    allele_type: first
+    cassette_function: ko_first
+    mutation_type: ko_first
+  - project_id: 1
+    allele_type: second
+    cassette_function: reporter_only
+    mutation_type: ko_first
+  - project_id: 2
+    allele_type: first
+    cassette_function: cre_knock_in
+    mutation_type: cre_knock_in
+summaries:
+  - id: '1'
+    insert_timestamp: '2013-05-24 11:06:03.133847'
+    design_id: '34188'
+    design_name: 'EUCTV3754'
+    design_type: 'conditional'
+    design_species_id: 'Mouse'
+    design_gene_id: 'MGI:1914632'
+    design_gene_symbol: 'Brd3'
+    design_bacs: 'RP24-378D12_RP24-99I18_RP24-543P10_RP24-426F24'
+    design_phase: '-1'
+    design_plate_name: '56'
+    design_plate_id: '901'
+    design_well_name: 'G04'
+    design_well_id: '935'
+    design_well_created_ts: '2007-08-24 00:00:00'
+#   design_well_assay_complete:
+    design_well_accepted: 'f'
+    int_plate_name: 'MOHPCS0001_A'
+    int_plate_id: '865'
+    int_well_name: 'H02'
+    int_well_id: '937'
+    int_well_created_ts: '2010-03-03 00:00:00'
+    int_qc_seq_pass: 't'
+    int_cassette_name: 'pR6K_R1R2_ZP'
+    int_backbone_name: 'R3R4_pBR_amp'
+    int_well_assay_complete: '2010-03-15 00:00:00'
+    int_well_accepted: 't'
+    final_plate_name: 'MOHFAS0001_A'
+    final_plate_id: '864'
+    final_well_name: 'H02'
+    final_well_id: '938'
+    final_well_created_ts: '2010-03-22 00:00:00'
+#   final_recombinase_id:
+    final_qc_seq_pass: 't'
+    final_cassette_name: 'L1L2_gt2_Del_LacZ'
+    final_cassette_cre: 'f'
+    final_cassette_promoter: 'f'
+    final_cassette_conditional: 't'
+    final_cassette_resistance: 'neo'
+    final_backbone_name: 'R3R4_pBR_amp'
+    final_well_assay_complete: '2011-08-11 00:00:00'
+    final_well_accepted: 't'
+    final_pick_plate_name: 'MOHFASFP001'
+    final_pick_plate_id: '3001'
+    final_pick_well_name: 'A01'
+    final_pick_well_id: '4001'
+    final_pick_well_created_ts: '2010-03-15 00:00:00'
+#   final_pick_recombinase_id:
+    final_pick_qc_seq_pass: 't'
+    final_pick_cassette_name: 'pR6K_R1R2_ZP'
+    final_pick_cassette_cre: 'f'
+    final_pick_cassette_promoter: 'f'
+    final_pick_cassette_conditional: 't'
+    final_pick_cassette_resistance: 'neo'
+    final_pick_backbone_name: 'R3R4_pBR_amp'
+    final_pick_well_assay_complete: '2011-08-11 00:00:00'
+    final_pick_well_accepted: 't'
+    dna_plate_name: 'MOHFAQ0001_A_2'
+    dna_plate_id: '863'
+    dna_well_name: 'H02'
+    dna_well_id: '939'
+    dna_well_created_ts: '2010-08-30 00:00:00'
+    dna_qc_seq_pass: 't'
+    dna_status_pass: 't'
+#   dna_quality:
+    dna_well_assay_complete: '2011-08-11 00:00:00'
+    dna_well_accepted: 't'
+    ep_plate_name: 'FEP0006'
+    ep_plate_id: '979'
+    ep_well_name: 'A01'
+    ep_well_id: '1517'
+    ep_well_created_ts: '2012-05-21 00:00:00'
+#   ep_well_recombinase_id:
+    ep_first_cell_line_name: 'oct4:puro iCre/iFlpO #11'
+#   ep_colonies_picked:
+#   ep_colonies_total:
+#   ep_colonies_rem_unstained:
+    ep_well_assay_complete: '2011-08-11 00:00:00'
+    ep_well_accepted: 't'
+    ep_pick_plate_name: 'FEPD0006'
+    ep_pick_plate_id: '3002'
+    ep_pick_well_name: 'A01'
+    ep_pick_well_id: '4002'
+    ep_pick_well_created_ts: '2011-08-11 00:00:00'
+#   ep_pick_well_recombinase_id:
+    ep_pick_qc_seq_pass: 't'
+    ep_pick_well_assay_complete: '2011-08-11 00:00:00'
+    ep_pick_well_accepted: 't'
+    sep_plate_name: 'SEP0006'
+    sep_plate_id: '983'
+    sep_well_name: 'C01'
+    sep_well_id: '1623'
+    sep_well_created_ts: '2012-06-15 00:00:00'
+#   sep_well_recombinase_id:
+    sep_second_cell_line_name: 'oct4:puro iCre/iFlpO #11'
+    sep_well_assay_complete: '2011-08-11 00:00:00'
+    sep_well_accepted: 't'
+    sep_pick_plate_name: 'SEPD0006_1'
+    sep_pick_plate_id: '984'
+    sep_pick_well_name: 'A01'
+    sep_pick_well_id: '1624'
+    sep_pick_well_created_ts: '2012-07-04 00:00:00'
+#   sep_pick_well_recombinase_id:
+    sep_pick_qc_seq_pass: 't'
+    sep_pick_well_assay_complete: '2011-08-11 00:00:00'
+    sep_pick_well_accepted: 't'
+#   fp_plate_name:
+#   fp_plate_id:
+#   fp_well_name:
+#   fp_well_id:
+#   fp_well_created_ts:
+#   fp_well_assay_complete:
+#   fp_well_accepted:
+    sfp_plate_name: 'SFP0001'
+    sfp_plate_id: '985'
+    sfp_well_name: 'A01'
+    sfp_well_id: '1720'
+    sfp_well_created_ts: '2012-07-11 00:00:00'
+    sfp_well_assay_complete: '2011-08-11 00:00:00'
+    sfp_well_accepted: 't'
+  - id: '2'
+    insert_timestamp: '2013-05-24 11:06:02.881918'
+    design_id: '34188'
+    design_name: 'EUCTV3754'
+    design_type: 'conditional'
+    design_species_id: 'Mouse'
+    design_gene_id: 'MGI:1914632'
+    design_gene_symbol: 'Brd3'
+    design_bacs: 'RP24-378D12_RP24-99I18_RP24-543P10_RP24-426F24'
+    design_phase: '-1'
+    design_plate_name: '56'
+    design_plate_id: '901'
+    design_well_name: 'G04'
+    design_well_id: '935'
+    design_well_created_ts: '2007-08-24 00:00:00'
+#   design_well_assay_complete:
+    design_well_accepted: 't'
+    int_plate_name: 'MOHPCS0001_A'
+    int_plate_id: '865'
+    int_well_name: 'H02'
+    int_well_id: '937'
+    int_well_created_ts: '2010-03-03 00:00:00'
+    int_qc_seq_pass: 't'
+    int_cassette_name: 'pR6K_R1R2_ZP'
+    int_backbone_name: 'R3R4_pBR_amp'
+    int_well_assay_complete: '2010-03-15 00:00:00'
+    int_well_accepted: 't'
+    final_plate_name: 'MOHSAS0001_A'
+    final_plate_id: '978'
+    final_well_name: 'H02'
+    final_well_id: '1495'
+    final_well_created_ts: '2010-03-23 00:00:00'
+    final_recombinase_id: 'Cre'
+    final_qc_seq_pass: 't'
+    final_cassette_name: 'L1L2_GT2_LacZ_BSD'
+    final_cassette_cre: 'f'
+    final_cassette_promoter: 'f'
+    final_cassette_conditional: 't'
+    final_cassette_resistance: 'bsd'
+    final_backbone_name: 'R3R4_pBR_amp'
+    final_well_assay_complete: '2010-03-29 00:00:00'
+    final_well_accepted: 't'
+    final_pick_plate_name: 'MOHFASFP002'
+    final_pick_plate_id: '3002'
+    final_pick_well_name: 'A01'
+    final_pick_well_id: '4002'
+    final_pick_well_created_ts: '2010-03-15 00:00:00'
+#   final_pick_recombinase_id:
+    final_pick_qc_seq_pass: 't'
+    final_pick_cassette_name: 'L1L2_GT2_LacZ_BSD'
+    final_pick_cassette_cre: 'f'
+    final_pick_cassette_promoter: 'f'
+    final_pick_cassette_conditional: 't'
+    final_pick_cassette_resistance: 'bsd'
+    final_pick_backbone_name: 'R3R4_pBR_amp'
+    final_pick_well_assay_complete: '2011-08-11 00:00:00'
+    final_pick_well_accepted: 't'
+    dna_plate_name: 'MOHSAQ0001_A_2'
+    dna_plate_id: '977'
+    dna_well_name: 'H02'
+    dna_well_id: '1496'
+    dna_well_created_ts: '2012-06-15 00:00:00'
+    dna_qc_seq_pass: 't'
+    dna_status_pass: 't'
+#   dna_quality:
+    dna_well_assay_complete: '2011-08-11 00:00:00'
+    dna_well_accepted: 't'
+#   ep_plate_name:
+#   ep_plate_id:
+#   ep_well_name:
+#   ep_well_id:
+#   ep_well_created_ts:
+#   ep_well_recombinase_id:
+#   ep_first_cell_line_name:
+#   ep_colonies_picked:
+#   ep_colonies_total:
+#   ep_colonies_rem_unstained:
+#   ep_well_assay_complete:
+#   ep_well_accepted:
+#   ep_pick_plate_name:
+#   ep_pick_plate_id:
+#   ep_pick_well_name:
+#   ep_pick_well_id:
+#   ep_pick_well_created_ts:
+#   ep_pick_well_recombinase_id:
+#   ep_pick_qc_seq_pass:
+#   ep_pick_well_assay_complete:
+#   ep_pick_well_accepted:
+    sep_plate_name: 'SEP0006'
+    sep_plate_id: '983'
+    sep_well_name: 'C01'
+    sep_well_id: '1623'
+    sep_well_created_ts: '2012-06-15 00:00:00'
+#   sep_well_recombinase_id:
+    sep_second_cell_line_name: 'oct4:puro iCre/iFlpO #11'
+    sep_well_assay_complete: '2012-06-15 00:00:00'
+    sep_well_accepted: 't'
+    sep_pick_plate_name: 'SEPD0006_1'
+    sep_pick_plate_id: '984'
+    sep_pick_well_name: 'A01'
+    sep_pick_well_id: '1624'
+    sep_pick_well_created_ts: '2012-07-04 00:00:00'
+#   sep_pick_well_recombinase_id:
+    sep_pick_qc_seq_pass: 't'
+    sep_pick_well_assay_complete: '2012-06-15 00:00:00'
+    sep_pick_well_accepted: 't'
+#   fp_plate_name:
+#   fp_plate_id:
+#   fp_well_name:
+#   fp_well_id:
+#   fp_well_created_ts:
+#   fp_well_assay_complete:
+#   fp_well_accepted:
+    sfp_plate_name: 'SFP0001'
+    sfp_plate_id: '985'
+    sfp_well_name: 'A01'
+    sfp_well_id: '1720'
+    sfp_well_created_ts: '2012-07-11 00:00:00'
+    sfp_well_assay_complete:
+    sfp_well_accepted: 't'
+  - id: '3'
+    insert_timestamp: '2013-05-24 13:53:29.130273'
+    design_id: '42815'
+    design_name: 'EUCTV02961'
+    design_type: 'conditional'
+    design_species_id: 'Mouse'
+    design_gene_id: 'MGI:1095419'
+    design_gene_symbol: 'Kdm6a'
+    design_bacs: 'RP24-87L17_RP24-177N1_RP24-288N17_RP24-556E15'
+    design_phase: '-1'
+    design_plate_name: '46'
+    design_plate_id: '899'
+    design_well_name: 'F01'
+    design_well_id: '930'
+    design_well_created_ts: '2007-08-24 00:00:00'
+#   design_well_assay_complete:
+    design_well_accepted: 'f'
+    int_plate_name: 'MOHPCS0001_A'
+    int_plate_id: '865'
+    int_well_name: 'B05'
+    int_well_id: '932'
+    int_well_created_ts: '2010-03-03 00:00:00'
+    int_qc_seq_pass: 't'
+    int_cassette_name: 'pR6K_R1R2_ZP'
+    int_backbone_name: 'R3R4_pBR_amp'
+    int_well_assay_complete: '2010-03-15 00:00:00'
+    int_well_accepted: 't'
+    final_plate_name: 'MOHFAS0001_A'
+    final_plate_id: '864'
+    final_well_name: 'B05'
+    final_well_id: '933'
+    final_well_created_ts: '2010-03-22 00:00:00'
+#   final_recombinase_id:
+    final_qc_seq_pass: 't'
+    final_cassette_name: 'L1L2_gt0_Del_LacZ'
+    final_cassette_cre: 'f'
+    final_cassette_promoter: 'f'
+    final_cassette_conditional: 't'
+    final_cassette_resistance: 'neo'
+    final_backbone_name: 'R3R4_pBR_amp'
+    final_well_assay_complete: '2011-08-11 00:00:00'
+    final_well_accepted: 't'
+#    final_pick_plate_name:
+#    final_pick_plate_id:
+#    final_pick_well_name:
+#    final_pick_well_id:
+#    final_pick_well_created_ts:
+#    final_pick_recombinase_id:
+#    final_pick_qc_seq_pass:
+#    final_pick_cassette_name:
+#    final_pick_cassette_cre:
+#    final_pick_cassette_promoter:
+#    final_pick_cassette_conditional:
+#    final_pick_cassette_resistance:
+#    final_pick_backbone_name:
+#    final_pick_well_assay_complete:
+#    final_pick_well_accepted:
+    dna_plate_name: 'MOHFAQ0001_A_2'
+    dna_plate_id: '863'
+    dna_well_name: 'B05'
+    dna_well_id: '934'
+    dna_well_created_ts: '2010-08-30 00:00:00'
+    dna_qc_seq_pass: 't'
+    dna_status_pass: 't'
+#   dna_quality:
+    dna_well_assay_complete: '2011-08-11 00:00:00'
+    dna_well_accepted: 't'
+    ep_plate_name: 'FEP0006'
+    ep_plate_id: '979'
+    ep_well_name: 'E01'
+    ep_well_id: '1521'
+    ep_well_created_ts: '2012-05-21 00:00:00'
+#   ep_well_recombinase_id:
+    ep_first_cell_line_name: 'oct4:puro iCre/iFlpO #11'
+#   ep_colonies_picked:
+#   ep_colonies_total:
+#   ep_colonies_rem_unstained:
+    ep_well_assay_complete: '2011-08-11 00:00:00'
+    ep_well_accepted: 't'
+    ep_pick_plate_name: 'FEPD0006_1'
+    ep_pick_plate_id: '3004'
+    ep_pick_well_name: 'A01'
+    ep_pick_well_id: '4004'
+    ep_pick_well_created_ts: '2011-08-11 00:00:00'
+#   ep_pick_well_recombinase_id:
+    ep_pick_qc_seq_pass: 't'
+    ep_pick_well_assay_complete: '2011-08-11 00:00:00'
+    ep_pick_well_accepted: 't'
+#    sep_plate_name:
+#    sep_plate_id:
+#    sep_well_name:
+#    sep_well_id:
+#    sep_well_created_ts:
+#    sep_well_recombinase_id:
+#    sep_second_cell_line_name:
+#    sep_well_assay_complete:
+#    sep_well_accepted:
+#    sep_pick_plate_name:
+#    sep_pick_plate_id:
+#    sep_pick_well_name:
+#    sep_pick_well_id:
+#    sep_pick_well_created_ts:
+#    sep_pick_well_recombinase_id:
+#    sep_pick_qc_seq_pass:
+#    sep_pick_well_assay_complete:
+#    sep_pick_well_accepted:
+    fp_plate_name: 'FFP0001'
+    fp_plate_id: '981'
+    fp_well_name: 'A01'
+    fp_well_id: '1570'
+    fp_well_created_ts: '2012-06-28 00:00:00'
+#    fp_well_assay_complete: 
+    fp_well_accepted: 't'
+#    sfp_plate_name:
+#    sfp_plate_id:
+#    sfp_well_name:
+#    sfp_well_id:
+#    sfp_well_created_ts:
+#    sfp_well_assay_complete:
+#    sfp_well_accepted:
