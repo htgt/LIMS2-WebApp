@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Moose::Role;
 use Data::Dump 'pp';
 use namespace::autoclean;
+use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util::GeneSearch qw( retrieve_solr_gene retrieve_ensembl_gene normalize_solr_result );
 
 requires qw( schema check_params throw retrieve log trace );
@@ -35,7 +36,7 @@ sub search_genes {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
-    $self->log->debug( "Search genes: " . pp $params );
+    TRACE "Search genes: " . pp $params;
 
     my $species = $validated_params->{species};
 

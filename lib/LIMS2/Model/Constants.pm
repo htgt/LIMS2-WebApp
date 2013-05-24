@@ -123,7 +123,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     xep_pool => {
-        type   => [qw( EP_PICK )],
+        type   => [qw( EP EP_PICK )],
         number => 'MULTIPLE',
     },
 );
