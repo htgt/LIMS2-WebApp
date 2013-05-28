@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.073';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.074';
 }
 ## use critic
 
@@ -168,7 +168,6 @@ sub check_input_wells {
     my @input_wells               = $process->input_wells;
     my $count                     = scalar @input_wells;
     my $expected_input_well_count = $PROCESS_INPUT_WELL_CHECK{$process_type}{number};
-
     LIMS2::Exception::Validation->throw(
             "$process_type process should have $expected_input_well_count input well(s) (got $count)"
     ) unless ($count eq $expected_input_well_count)
@@ -638,7 +637,6 @@ sub pspec_create_process_aux_data_recombinase {
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub create_process_aux_data_recombinase {
     my ( $model, $params, $process ) = @_;
-
     my $validated_params
         = $model->check_params( $params, pspec_create_process_aux_data_recombinase, , ignore_unknown => 1 );
 

@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.073';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.074';
 }
 ## use critic
 
@@ -11,7 +11,7 @@ use warnings;
 use LIMS2::Model;
 use List::MoreUtils qw(uniq any);
 use Try::Tiny;                              # Exception handling
-use Log::Log4perl ':easy';                  # DEBUG to INFO to WARN to ERROR to LOGDIE
+use Log::Log4perl ':easy';                  # TRACE to INFO to WARN to ERROR to LOGDIE
 
 #------------------------------------------------------------------
 #  Accessible methods
@@ -89,14 +89,14 @@ sub generate_summary_rows_for_all_trails {
         # Loop through the wells in the trail
         foreach my $curr_well_id (reverse @{$design_well_trails->[$trails_index]}){
 
-            DEBUG caller()." Well ID $design_well_id : Path well ID $curr_well_id";
+            TRACE caller()." Well ID $design_well_id : Path well ID $curr_well_id";
 
             my $curr_well;
 
             # check wells hash to see if we already retrieved this well object previously
             if (exists $wells_retrieved{$curr_well_id}) {
 
-                DEBUG caller()." Re-using well ID: $curr_well_id";
+                TRACE caller()." Re-using well ID: $curr_well_id";
 
                 # re-use same well object
                 $curr_well = $wells_retrieved{$curr_well_id};
@@ -109,7 +109,7 @@ sub generate_summary_rows_for_all_trails {
 
                 foreach my $key (keys %wells_retrieved)
                 {
-                    DEBUG caller()." Key: $key\n";
+                    TRACE caller()." Key: $key\n";
                 }
             }
 
@@ -178,7 +178,7 @@ sub add_to_output_for_well {
     return unless any { $curr_plate_type_id eq $_ } @include_types;
     return if exists $params->{done}->{$curr_plate_type_id};
 
-    DEBUG caller()." Calling method to process plate type = $curr_plate_type_id";
+    TRACE caller()." Calling method to process plate type = $curr_plate_type_id";
 
     # check plate type exists in the dispatch table, and run it passing in params
 	defined $dispatch_fetch_values->{ $curr_plate_type_id } && $dispatch_fetch_values->{ $curr_plate_type_id }->($params);
@@ -202,7 +202,7 @@ sub fetch_values_for_type_DESIGN {
 
 	if( (not exists $stored_values->{ stored_design_well_id }) || ($curr_well->id != $stored_values->{ stored_design_well_id }) ) {
 		# different well to previous cycle, so must fetch and store new values
-        DEBUG caller()." Fetching new values for DESIGN well : ".$curr_well->id;
+        TRACE caller()." Fetching new values for DESIGN well : ".$curr_well->id;
         $stored_values->{ 'stored_design_id' }                  = try{ $curr_well->design->id }; # design DB identifier
         $stored_values->{ 'stored_design_name' }                = try{ $curr_well->design->name }; # design name
         $stored_values->{ 'stored_design_type_id' }             = try{ $curr_well->design->design_type_id }; # design type, e.g. conditional, deletion, insertion, artificial-intron, intron-replacement, cre-bac
@@ -251,7 +251,7 @@ sub fetch_values_for_type_INT {
 
     if( (not exists $stored_values->{ stored_int_well_id }) || ($curr_well->id != $stored_values->{ stored_int_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for INT well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for INT well : ".$curr_well->id;
 		$stored_values->{ 'stored_int_well_id' }             = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_int_well_name' }           = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_int_plate_id' }            = try{ $curr_well->plate->id }; # plate id
@@ -290,7 +290,7 @@ sub fetch_values_for_type_FINAL {
 
     if( (not exists $stored_values->{ stored_final_well_id }) || ($curr_well->id != $stored_values->{ stored_final_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for FINAL well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for FINAL well : ".$curr_well->id;
 		$stored_values->{ 'stored_final_well_id' }              = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_final_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_final_plate_id' }             = try{ $curr_well->plate->id }; # plate id
@@ -338,7 +338,7 @@ sub fetch_values_for_type_FINAL_PICK {
 
     if( (not exists $stored_values->{ stored_final_pick_well_id }) || ($curr_well->id != $stored_values->{ stored_final_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for FINAL_PICK well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for FINAL_PICK well : ".$curr_well->id;
 		$stored_values->{ 'stored_final_pick_well_id' }              = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_final_pick_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_final_pick_plate_id' }             = try{ $curr_well->plate->id }; # plate id
@@ -384,7 +384,7 @@ sub fetch_values_for_type_DNA {
 
     if( (not exists $stored_values->{ stored_dna_well_id }) || ($curr_well->id != $stored_values->{ stored_dna_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for DNA well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for DNA well : ".$curr_well->id;
 		$stored_values->{ 'stored_dna_well_id' }              = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_dna_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_dna_plate_id' }             = try{ $curr_well->plate->id }; # plate id
@@ -421,7 +421,7 @@ sub fetch_values_for_type_EP {
 
     if( (not exists $stored_values->{ stored_ep_well_id }) || ($curr_well->id != $stored_values->{ stored_ep_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for EP well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for EP well : ".$curr_well->id;
 		$stored_values->{ 'stored_ep_well_id' }                = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_ep_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_ep_plate_id' }               = try{ $curr_well->plate->id }; # plate id
@@ -462,7 +462,7 @@ sub fetch_values_for_type_EP_PICK {
 
     if( (not exists $stored_values->{ stored_ep_pick_well_id }) || ($curr_well->id != $stored_values->{ stored_ep_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for EP_PICK well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for EP_PICK well : ".$curr_well->id;
 		$stored_values->{ 'stored_ep_pick_well_id' }                = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_ep_pick_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_ep_pick_plate_id' }               = try{ $curr_well->plate->id }; # plate id
@@ -497,7 +497,7 @@ sub fetch_values_for_type_SEP {
 
     if( (not exists $stored_values->{ stored_sep_well_id }) || ($curr_well->id != $stored_values->{ stored_sep_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for SEP well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for SEP well : ".$curr_well->id;
 		$stored_values->{ 'stored_sep_well_id' }                = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_sep_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_sep_plate_id' }               = try{ $curr_well->plate->id }; # plate id
@@ -532,7 +532,7 @@ sub fetch_values_for_type_SEP_PICK {
 
     if( (not exists $stored_values->{ stored_sep_pick_well_id }) || ($curr_well->id != $stored_values->{ stored_sep_pick_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for SEP_PICK well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for SEP_PICK well : ".$curr_well->id;
 		$stored_values->{ 'stored_sep_pick_well_id' }                = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_sep_pick_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_sep_pick_plate_id' }               = try{ $curr_well->plate->id }; # plate id
@@ -567,7 +567,7 @@ sub fetch_values_for_type_FP {
 
     if( (not exists $stored_values->{ stored_fp_well_id }) || ($curr_well->id != $stored_values->{ stored_fp_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for FP well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for FP well : ".$curr_well->id;
 		$stored_values->{ 'stored_fp_well_id' }                = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_fp_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_fp_plate_id' }               = try{ $curr_well->plate->id }; # plate id
@@ -598,7 +598,7 @@ sub fetch_values_for_type_SFP {
 
     if( (not exists $stored_values->{ stored_sfp_well_id }) || ($curr_well->id != $stored_values->{ stored_sfp_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
-		DEBUG caller()." Fetching new values for SFP well : ".$curr_well->id;
+		TRACE caller()." Fetching new values for SFP well : ".$curr_well->id;
 		$stored_values->{ 'stored_sfp_well_id' }                = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_sfp_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
         $stored_values->{ 'stored_sfp_plate_id' }               = try{ $curr_well->plate->id }; # plate id
@@ -716,7 +716,7 @@ sub fetch_well_electroporation_recombinases {
 		}
 
 		if ( defined $return_string ) {
-			DEBUG 'Recombinases for process id '.$process->id.' = '.$return_string;
+			TRACE 'Recombinases for process id '.$process->id.' = '.$return_string;
 		}
     }
 

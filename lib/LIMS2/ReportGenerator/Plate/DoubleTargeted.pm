@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::DoubleTargeted;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::DoubleTargeted::VERSION = '0.073';
+    $LIMS2::ReportGenerator::Plate::DoubleTargeted::VERSION = '0.074';
 }
 ## use critic
 
@@ -16,12 +16,14 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate );
 
 sub base_columns {
-    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Cassette", "Recombinases" );
+# acs - 20_05_13 - redmine 10545 - add cassette resistance
+#    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Cassette", "Recombinases" );
+    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Cassette", "Cassette Resistance", "Recombinases" );
     return ( "Well Name", "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?",
-             map( { "First Allele $_" } @allele_cols ),
-             map( { "Second Alelle $_" } @allele_cols ),
-             'Second Allele Cassette Type'
-         );
+        map( { "First Allele $_" } @allele_cols ),
+		map( { "Second Alelle $_" } @allele_cols ),
+		 'Second Allele Cassette Type'
+    );
 }
 
 sub base_data {
@@ -40,10 +42,14 @@ sub base_data {
         $first_allele->final_vector->as_string,
         $self->design_and_gene_cols( $first_allele ),
         $first_allele->cassette->name,
+        # acs - 20_05_13 - redmine 10545 - add cassette resistance
+        $first_allele->cassette->resistance,
         join( q{/}, @{ $first_allele->recombinases } ),
         $second_allele->final_vector->as_string,
         $self->design_and_gene_cols( $second_allele ),
         $second_allele->cassette->name,
+        # acs - 20_05_13 - redmine 10545 - add cassette resistance
+        $second_allele->cassette->resistance,
         join( q{/}, @{ $second_allele->recombinases } ),
         ( $second_allele->cassette->promoter ? 'promoter' : 'promoterless' ),
     );

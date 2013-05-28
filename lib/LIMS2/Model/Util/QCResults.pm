@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.073';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.074';
 }
 ## use critic
 
@@ -43,7 +43,7 @@ print "running retrieve_qc_run_results\n";
     my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
         { prefetch => ['qc_test_results'] } );
 
-    my @qc_run_results = map { @{ _parse_qc_seq_wells( $_, $expected_design_loc ) } } @qc_seq_wells;
+    my @qc_run_results = map { @{ _parse_qc_seq_wells( $_, $expected_design_loc, $qc_run ) } } @qc_seq_wells;
 
     @qc_run_results = sort {
                $a->{plate_name} cmp $b->{plate_name}
@@ -98,7 +98,7 @@ sub retrieve_qc_run_summary_results {
 }
 
 sub retrieve_qc_run_seq_well_results {
-    my $seq_well = shift;
+    my ( $qc_run_id, $seq_well ) = @_;
 
     my @seq_reads = $seq_well->qc_seq_reads;
 
@@ -107,7 +107,21 @@ sub retrieve_qc_run_seq_well_results {
             'No sequence reads for qc seq well ' . $seq_well->plate_name . $seq_well->well_name );
     }
 
+    #
+    # TEMPORARY FIX
+    # until all legacy data is updated we have to allow a null qc_run_id.
+    # if its null we just allow it as we can't know which run it belongs to
+    #
     my @qc_alignments = map { $_->qc_alignments } @seq_reads;
+
+    #if there are any alignments DIRECTLY linked to a run (i.e. not legacy data)
+    #then ONLY use those alignments, or we end up with everything.
+    my @specific_alignments = grep { defined $_->qc_run_id && $_->qc_run_id eq $qc_run_id }
+                                @qc_alignments;
+
+    if ( @specific_alignments ) {
+        @qc_alignments = @specific_alignments;
+    }
 
     my @qc_results;
     for my $test_result ( $seq_well->qc_test_results ) {
@@ -236,7 +250,7 @@ sub _design_loc_for_qc_template_plate {
 }
 
 sub _parse_qc_seq_wells {
-    my ( $qc_seq_well, $expected_design_loc ) = @_;
+    my ( $qc_seq_well, $expected_design_loc, $qc_run ) = @_;
 
     my $plate_name      = $qc_seq_well->plate_name;
     my $well_name       = lc( $qc_seq_well->well_name );
@@ -260,7 +274,17 @@ sub _parse_qc_seq_wells {
 
     _get_primers_for_seq_well( \@qc_seq_reads, \%result );
 
-    my @qc_alignments = map { $_->qc_alignments } @qc_seq_reads;
+    #alignments are now linked to qc_runs so that duplicate runs don't cause problems.
+    my @qc_alignments = $qc_run->qc_alignments;
+
+    #
+    # TEMPORARY FIX
+    # until we can give all the legacy alignments the correct run ids, fall back on the old way.
+    # all new runs should return alignments from the qc run itself.
+    #
+    unless ( @qc_alignments ) {
+        @qc_alignments = map { $_->qc_alignments } @qc_seq_reads;
+    }
 
     my @test_results;
 

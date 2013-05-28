@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.073';
+    $LIMS2::Model::Constants::VERSION = '0.074';
 }
 ## use critic
 
@@ -129,7 +129,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     xep_pool => {
-        type   => [qw( EP_PICK )],
+        type   => [qw( EP EP_PICK )],
         number => 'MULTIPLE',
     },
 );

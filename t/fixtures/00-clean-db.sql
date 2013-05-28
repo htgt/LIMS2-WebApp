@@ -57,6 +57,8 @@ DELETE FROM plates;
 DELETE FROM plate_types;
 DELETE FROM recombinases;
 DELETE FROM recombineering_result_types;
+DELETE FROM project_alleles;
+DELETE FROM projects;
 DELETE FROM cassettes;
 DELETE FROM cassette_function;
 DELETE FROM backbones;

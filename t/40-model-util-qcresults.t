@@ -60,15 +60,16 @@ note('Test retrieve_qc_run_summary_results');
 
 note('Test retrieve_qc_run_seq_well_results');
 {
+    my $qc_run_id = '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7';
     ok my $seq_well = model->retrieve_qc_run_seq_well(
-        {   qc_run_id  => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7',
+        {   qc_run_id  => $qc_run_id,
             plate_name => 'PCS05036_A_1',
             well_name  => 'B02',
         }
         ),
         'retrieve qc run seq well';
 
-    ok my ( $seq_reads, $qc_seq_well_results ) = retrieve_qc_run_seq_well_results($seq_well),
+    ok my ( $seq_reads, $qc_seq_well_results ) = retrieve_qc_run_seq_well_results($qc_run_id, $seq_well),
         'can retrieve qc run seq well results';
 
     for my $seq_read ( @{$seq_reads} ) {
@@ -81,7 +82,7 @@ note('Test retrieve_qc_run_seq_well_results');
     is $result->{pass},      0,      '.. correct pass value';
 
     ok my $seq_well2 = model->retrieve_qc_run_seq_well(
-        {   qc_run_id  => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7',
+        {   qc_run_id  => $qc_run_id,
             plate_name => 'PCS05036_A_1',
             well_name  => 'A01',
         }
@@ -89,7 +90,7 @@ note('Test retrieve_qc_run_seq_well_results');
         'retrieve qc run seq well';
 
     throws_ok {
-        retrieve_qc_run_seq_well_results($seq_well2);
+        retrieve_qc_run_seq_well_results($qc_run_id, $seq_well2);
     }
     'LIMS2::Exception::Validation', 'throws error if seq well has no seq reads';
 

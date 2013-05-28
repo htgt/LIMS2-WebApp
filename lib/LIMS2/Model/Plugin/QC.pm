@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.073';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.074';
 }
 ## use critic
 
@@ -490,6 +490,12 @@ sub delete_qc_run {
 	# This will validate params
 	my $qc_run = $self->retrieve_qc_run($params);
 
+    #delete any alignments (and subsequent regions) linked to this qc run.
+    for my $alignment ( $qc_run->search_related('qc_alignments') ) {
+        $alignment->delete_related('qc_alignment_regions');
+    }
+    $qc_run->delete_related('qc_alignments');
+
     $qc_run->delete_related('qc_run_seq_projects');
 
     foreach my $well ($qc_run->search_related('qc_run_seq_wells')){
@@ -572,7 +578,7 @@ sub qc_run_seq_well_results {
     my $validated_params = $self->check_params( $params, $self->pspec_qc_run_seq_well_results );
     my $qc_seq_well = $self->retrieve_qc_run_seq_well($validated_params);
 
-    my ( $seq_reads, $results ) = retrieve_qc_run_seq_well_results($qc_seq_well);
+    my ( $seq_reads, $results ) = retrieve_qc_run_seq_well_results($params->{qc_run_id}, $qc_seq_well);
 
     return ( $qc_seq_well, $seq_reads, $results );
 }
@@ -712,7 +718,7 @@ sub create_qc_template_from_wells{
         	if ($datum->{cassette}){
         		die "A new cassette AND phase matched cassette have been provided for well $name";
         	}
-        	DEBUG "Attempting to fetch phase matched cassette for well $name";
+        	TRACE "Attempting to fetch phase matched cassette for well $name";
         	my $new_cassette = $self->retrieve_well_phase_matched_cassette({
         		slice_def( $datum, qw(plate_name well_name well_id phase_matched_cassette ) )
         	});
@@ -722,7 +728,7 @@ sub create_qc_template_from_wells{
         	else{
         		die "No suitable phase matched cassette found for well $name";
         	}
-        	DEBUG "Phase matched cassette: $new_cassette";
+        	TRACE "Phase matched cassette: $new_cassette";
         }
 
 		# Recombinase, if defined, must be an arrayref

@@ -1725,6 +1725,7 @@ t/50-model-plugin-xep-pool.t
 t/60-allele-request.t
 t/60-summaries-data-creation.t
 t/70-controller-api-platewell.t
+t/70-pipeline_summary_reports.t
 t/80-change_password.t
 t/80-dna_status_upload.t
 t/80-login.t
@@ -1739,6 +1740,7 @@ t/80-well_data.t
 t/author-critic.t
 t/data/2w_gateway_process.yaml
 t/data/3w_gateway_process.yaml
+t/data/70-pipeline_summary_reports_data.yaml
 t/data/add_colony_count.yaml
 t/data/add_recombinase.yaml
 t/data/clone_pick_process.yaml

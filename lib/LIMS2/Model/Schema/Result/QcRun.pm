@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcRun;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcRun::VERSION = '0.073';
+    $LIMS2::Model::Schema::Result::QcRun::VERSION = '0.074';
 }
 ## use critic
 
@@ -138,6 +138,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_alignments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcAlignment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_alignments",
+  "LIMS2::Model::Schema::Result::QcAlignment",
+  { "foreign.qc_run_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 qc_run_seq_projects
 
 Type: has_many
@@ -209,8 +224,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 __PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-11 10:47:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ln5Haw2iJWnRtsVG6t3Klw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-23 13:32:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lMdV4qDuS0UzyZxLfFLsLg
 
 use List::MoreUtils qw( uniq );
 

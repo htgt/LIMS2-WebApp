@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcAlignment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcAlignment::VERSION = '0.073';
+    $LIMS2::Model::Schema::Result::QcAlignment::VERSION = '0.074';
 }
 ## use critic
 
@@ -124,6 +124,13 @@ __PACKAGE__->table("qc_alignments");
   data_type: 'text'
   is_nullable: 0
 
+=head2 qc_run_id
+
+  data_type: 'char'
+  is_foreign_key: 1
+  is_nullable: 1
+  size: 36
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -162,6 +169,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "op_str",
   { data_type => "text", is_nullable => 0 },
+  "qc_run_id",
+  { data_type => "char", is_foreign_key => 1, is_nullable => 1, size => 36 },
 );
 
 =head1 PRIMARY KEY
@@ -208,6 +217,26 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_run
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "qc_run",
+  "LIMS2::Model::Schema::Result::QcRun",
+  { id => "qc_run_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 qc_seq_read
 
 Type: belongs_to
@@ -224,8 +253,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kglbx1WhuzQXFpgwGn4K0g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-23 13:32:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Lf9t1Qfmv4NdtWNwhxYxCw
 
 sub align_length {
     my $self = shift;

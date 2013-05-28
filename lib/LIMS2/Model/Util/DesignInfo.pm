@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignInfo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignInfo::VERSION = '0.073';
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.074';
 }
 ## use critic
 
@@ -207,9 +207,10 @@ sub _build_oligos {
 }
 
 sub _build_ensembl_util {
+    my $self = shift;
     require LIMS2::Util::EnsEMBL;
 
-    return LIMS2::Util::EnsEMBL->new;
+    return LIMS2::Util::EnsEMBL->new( species => $self->design->species_id );
 }
 
 #

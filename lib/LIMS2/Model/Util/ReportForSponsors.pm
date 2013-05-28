@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.073';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.074';
 }
 ## use critic
 
@@ -177,8 +177,8 @@ sub _build_column_data {
         if ( $count_vectors > 0 ) {
           $count_pairs_neo_bsd_vectors = $self->vector_pairs_neo_and_bsd( $sponsor_id, 'count' );
 
-          $count_neo_vectors = $self->vectors_with_resistance( $sponsor_id, 'neoR' , 'count');
-          $count_blast_vectors = $self->vectors_with_resistance( $sponsor_id, 'blastR', 'count' );
+          $count_neo_vectors = $self->vectors_with_resistance( $sponsor_id, 'neo' , 'count');
+          $count_blast_vectors = $self->vectors_with_resistance( $sponsor_id, 'bsd', 'count' );
         }
         $sponsor_data->{'Vectors Neo and Bsd'}{$sponsor_id} = $count_pairs_neo_bsd_vectors;
         $sponsor_data->{'Vectors Neo'}{$sponsor_id} = $count_neo_vectors;
@@ -207,8 +207,8 @@ sub _build_column_data {
 
         if ( $count_dna > 0 ) {
             $count_pairs_neo_bsd_dna = $self->dna_pairs_neo_and_bsd( $sponsor_id, 'count' );
-            $count_neo_dna = $self->dna_with_resistance( $sponsor_id, 'neoR', 'count' );
-            $count_blast_dna = $self->dna_with_resistance( $sponsor_id, 'blastR', 'count' );
+            $count_neo_dna = $self->dna_with_resistance( $sponsor_id, 'neo', 'count' );
+            $count_blast_dna = $self->dna_with_resistance( $sponsor_id, 'bsd', 'count' );
         }
         $sponsor_data->{'Valid DNA Neo and Bsd'}{$sponsor_id} = $count_pairs_neo_bsd_dna;
         $sponsor_data->{'Valid DNA Neo'}{$sponsor_id} = $count_neo_dna;
@@ -257,8 +257,8 @@ sub _build_column_data {
         my $count_neo_eps = 0;
         my $count_blast_eps = 0;
         if ( $count_eps > 0 ) {
-          $count_neo_eps = $self->first_electroporations_with_resistance( $sponsor_id, 'neoR', 'count' );
-          $count_blast_eps = $self->first_electroporations_with_resistance( $sponsor_id, 'blastR', 'count' );
+          $count_neo_eps = $self->first_electroporations_with_resistance( $sponsor_id, 'neo', 'count' );
+          $count_blast_eps = $self->first_electroporations_with_resistance( $sponsor_id, 'bsd', 'count' );
         }
         $sponsor_data->{'First Electroporations Neo'}{$sponsor_id} = $count_neo_eps;
         $sponsor_data->{'First Electroporations Bsd'}{$sponsor_id} = $count_blast_eps;
@@ -277,8 +277,8 @@ sub _build_column_data {
 
         if ( $count_eps > 0 ) {
           $count_second_eps = $self->second_electroporations( $sponsor_id, 'count' );
-          $count_second_eps_neo = $self->second_electroporations_with_resistance( $sponsor_id, 'neoR', 'count' );
-          $count_second_eps_bsd = $self->second_electroporations_with_resistance( $sponsor_id, 'blastR', 'count' );
+          $count_second_eps_neo = $self->second_electroporations_with_resistance( $sponsor_id, 'neo', 'count' );
+          $count_second_eps_bsd = $self->second_electroporations_with_resistance( $sponsor_id, 'bsd', 'count' );
         }
         $sponsor_data->{'Second Electroporations'}{$sponsor_id} = $count_second_eps;
         $sponsor_data->{'Second Electroporations Neo'}{$sponsor_id} = $count_second_eps_neo;
@@ -568,11 +568,11 @@ sub _build_sub_report_data {
         },
         'Vectors Neo'                       => {
             'func'      => \&vectors_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neo', $query_type ],
         },
         'Vectors Bsd'                       => {
             'func'      => \&vectors_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'bsd', $query_type ],
         },
         'Valid DNA'                         => {
             'func'      => \&dna,
@@ -584,11 +584,11 @@ sub _build_sub_report_data {
         },
         'Valid DNA Neo'                     => {
             'func'      => \&dna_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neo', $query_type ],
         },
         'Valid DNA Bsd'                     => {
             'func'      => \&dna_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'bsd', $query_type ],
         },
         'Electroporations'                  => {
             'func'      => \&electroporations,
@@ -600,11 +600,11 @@ sub _build_sub_report_data {
         },
         'First Electroporations Neo'        => {
             'func'      => \&first_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neo', $query_type ],
         },
         'First Electroporations Bsd'        => {
             'func'      => \&first_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'bsd', $query_type ],
         },
         'Accepted ES Clones'                => {
             'func'      => \&accepted_clones_st,
@@ -620,11 +620,11 @@ sub _build_sub_report_data {
         },
         'Second Electroporations Neo'           => {
             'func'      => \&second_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'neoR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'neo', $query_type ],
         },
         'Second Electroporations Bsd'           => {
             'func'      => \&second_electroporations_with_resistance,
-            'params'    => [ $self, $sponsor_id, 'blastR', $query_type ],
+            'params'    => [ $self, $sponsor_id, 'bsd', $query_type ],
         },
         'Accepted Second ES Clones'         => {
             'func'      => \&accepted_clones_second_ep,
@@ -730,9 +730,9 @@ sub refactor_vector_pairs_data {
     # now have a resultset with multiple rows per gene, one per combination of
     # neo/bsd and promoter/promoterless
     # e.g. project id, design id, gene, resistance, promotor
-    # 232   40416   Akt2    blastR  1
-    # 232   40416   Akt2    neoR    0
-    # 232   40416   Akt2    neoR    1
+    # 232   40416   Akt2    bsd  1
+    # 232   40416   Akt2    neo    0
+    # 232   40416   Akt2    neo    1
 
     # convert this into single row per gene for display, shows types cassettes available:
     # e.g. project id, design id, gene, cassettes_available
@@ -784,16 +784,16 @@ sub refactor_vector_pairs_data {
         # update flags according to current row (NB same flag may be triggered
         # multiple times if different cassettes have same resistance/promotor type
         if( defined $row->{ 'final_cassette_resistance' } ) {
-            if ( ($row->{ 'final_cassette_resistance' } eq 'blastR') && ($row->{ 'final_cassette_promoter' } == 1 ) ) {
+            if ( ($row->{ 'final_cassette_resistance' } eq 'bsd') && ($row->{ 'final_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_bsd_promoter' } = 1;
             }
-            if ( ($row->{ 'final_cassette_resistance' } eq 'blastR') && ($row->{ 'final_cassette_promoter' } == 0 ) ) {
+            if ( ($row->{ 'final_cassette_resistance' } eq 'bsd') && ($row->{ 'final_cassette_promoter' } == 0 ) ) {
                $row_building{ 'have_bsd_promoterless' } = 1;
             }
-            if ( ($row->{ 'final_cassette_resistance' } eq 'neoR') && ($row->{ 'final_cassette_promoter' } == 1 ) ) {
+            if ( ($row->{ 'final_cassette_resistance' } eq 'neo') && ($row->{ 'final_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_neo_promoter' } = 1;
             }
-            if ( ($row->{ 'final_cassette_resistance' } eq 'neoR') && ($row->{ 'final_cassette_promoter' } == 0 ) ) {
+            if ( ($row->{ 'final_cassette_resistance' } eq 'neo') && ($row->{ 'final_cassette_promoter' } == 0 ) ) {
                $row_building{ 'have_neo_promoterless' } = 1;
             }
         }
@@ -921,9 +921,9 @@ sub refactor_dna_pairs_data {
     # now have a resultset with multiple rows per gene, one per combination of
     # neo/bsd and promoter/promoterless
     # e.g. project id, design id, gene, resistance, promotor
-    # 232   40416   Akt2    blastR  1
-    # 232   40416   Akt2    neoR    0
-    # 232   40416   Akt2    neoR    1
+    # 232   40416   Akt2    bsd  1
+    # 232   40416   Akt2    neo    0
+    # 232   40416   Akt2    neo    1
 
     # convert this into single row per gene for display, shows types cassettes available:
     # e.g. project id, design id, gene, cassettes_available
@@ -975,16 +975,16 @@ sub refactor_dna_pairs_data {
         # update flags according to current row (NB same flag may be triggered
         # multiple times if different cassettes have same resistance/promotor type
         if( defined $row->{ 'final_pick_cassette_resistance' } ) {
-            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'blastR') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'bsd') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_bsd_promoter' } = 1;
             }
-            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'blastR') && ($row->{ 'final_pick_cassette_promoter' } == 0 ) ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'bsd') && ($row->{ 'final_pick_cassette_promoter' } == 0 ) ) {
                $row_building{ 'have_bsd_promoterless' } = 1;
             }
-            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'neoR') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'neo') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_neo_promoter' } = 1;
             }
-            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'neoR') && ($row->{ 'final_pick_cassette_promoter' } == 0 ) ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'neo') && ($row->{ 'final_pick_cassette_promoter' } == 0 ) ) {
                $row_building{ 'have_neo_promoterless' } = 1;
             }
         }
@@ -2058,7 +2058,7 @@ AND (
     )
 )
 AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'neoR' 
+AND s.final_cassette_resistance = 'neo' 
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
@@ -2102,7 +2102,7 @@ AND (
     )
 )
 AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'blastR'
+AND s.final_cassette_resistance = 'bsd'
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 SELECT count(distinct(nv.design_gene_id))
@@ -2329,7 +2329,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'neoR' AND s.dna_status_pass = true
+AND s.final_pick_cassette_resistance = 'neo' AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
@@ -2372,7 +2372,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'blastR' 
+AND s.final_pick_cassette_resistance = 'bsd' 
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3046,7 +3046,7 @@ AND (
     )
 )
 AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'neoR' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
+AND s.final_cassette_resistance = 'neo' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
 SELECT pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
@@ -3089,7 +3089,7 @@ AND (
     )
 )
 AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'blastR' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
+AND s.final_cassette_resistance = 'bsd' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
  , vector_pairings AS (
 SELECT nv.project_id, nv.design_id, nv.design_gene_id, nv.design_gene_symbol
@@ -3329,7 +3329,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'neoR' 
+AND s.final_pick_cassette_resistance = 'neo' 
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3373,7 +3373,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'blastR' 
+AND s.final_pick_cassette_resistance = 'bsd' 
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
