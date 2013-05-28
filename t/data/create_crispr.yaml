@@ -51,6 +51,25 @@ species_assembly_mismatch:
           chr_end: 234255
           chr_strand: -1
           type: Intergenic
+duplicate_crispr:
+    type: Exon
+    species: Mouse
+    seq: ATCGGCACACAGAGAG
+    comment: Test_crispr
+    locus:
+       assembly: GRCm38
+       chr_name: 12
+       chr_start: 123456
+       chr_end: 123468
+       chr_strand: 1
+    off_targets:
+        - assembly: GRCm38
+          build: 70
+          chr_name: 15
+          chr_start: 234234
+          chr_end: 234255
+          chr_strand: -1
+          type: Intron
 valid_crispr_locus:
    assembly: NCBIM37
    chr_name: 12
@@ -65,22 +84,3 @@ valid_crispr_off_target:
    chr_end: 123458
    chr_strand: -1
    type: Intron
-
-#move this to new yaml file
-
-valid_find_crispr_by_seq:
-    species: Mouse
-    seq: ATCGGCACACAGAGAG
-    assembly: GRCm38
-    chr_name: 12
-    chr_start: 123456
-    chr_end: 123468
-    chr_strand: 1
-invalid_find_crispr_by_seq:
-    species: Mouse
-    seq: ATCGGCACACAGAGAG
-    assembly: NCBIM37
-    chr_name: 12
-    chr_start: 123456
-    chr_end: 123468
-    chr_strand: 1
