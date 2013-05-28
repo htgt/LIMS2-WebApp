@@ -159,6 +159,13 @@ SELECT pg_catalog.setval('roles_id_seq', 504, true);
 
 
 --
+-- Name: summaries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('summaries_id_seq', 1972, true);
+
+
+--
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
@@ -4523,6 +4530,23 @@ INSERT INTO genotyping_result_types VALUES ('chr1');
 INSERT INTO genotyping_result_types VALUES ('chr8a');
 INSERT INTO genotyping_result_types VALUES ('chr11b');
 INSERT INTO genotyping_result_types VALUES ('bsd');
+
+
+--
+-- Data for Name: mutation_design_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+INSERT INTO mutation_design_types VALUES ('ko_first', 'conditional');
+INSERT INTO mutation_design_types VALUES ('ko_first', 'artificial-intron');
+INSERT INTO mutation_design_types VALUES ('ko_first', 'intron-replacement');
+INSERT INTO mutation_design_types VALUES ('deletion', 'deletion');
+INSERT INTO mutation_design_types VALUES ('insertion', 'insertion');
+INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'conditional');
+INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'artificial-intron');
+INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'intron-replacement');
+INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'deletion');
+INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'insertion');
+INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'cre-bac');
 
 
 --
@@ -9761,6 +9785,21 @@ INSERT INTO qc_eng_seqs VALUES (2221, 'conditional_vector_seq', '{"backbone":{"n
 
 
 --
+-- Data for Name: qc_templates; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+INSERT INTO qc_templates VALUES (200, 'T001', '2012-07-25 14:01:33.89531', 'Mouse');
+
+
+--
+-- Data for Name: qc_runs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+INSERT INTO qc_runs VALUES ('3C41F49A-B6D6-11E1-8038-C8C8F7D1DA10', '2012-07-26 13:23:42.011512', 1, 'test', 200, '0.001', false);
+INSERT INTO qc_runs VALUES ('534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', '2012-10-03 11:13:52.960754', 1, 'eucomm-cre', 200, '0.002', true);
+
+
+--
 -- Data for Name: qc_seq_projects; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -9779,8 +9818,8 @@ INSERT INTO qc_seq_reads VALUES ('PCS05036_A_1b02.p1kLR', 'bases 46 to 469 (QL t
 -- Data for Name: qc_alignments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO qc_alignments VALUES (93, 'PCS05036_A_1b02.p1kLR', 2221, 'LR', 0, 521, 1, 11191, 10670, -1, 2605, true, 'synthetic loxP region,Critical Region', 'cigar: PCS05036_A_1a01.p1kcLR 0 521 + 372239#pR6K_R1R2_ZP#R3R4_pBR_amp 11191 10670 - 2605  M 521', 'M 521');
-INSERT INTO qc_alignments VALUES (94, 'PCS05036_A_1g12.p1kLR', 2220, 'LR', 0, 569, 1, 11049, 10480, -1, 2836, true, 'synthetic loxP region,Critical Region', 'cigar: PCS05036_A_1a03.p1kcLR 0 569 + 372471#pR6K_R1R2_ZP#R3R4_pBR_amp 11049 10480 - 2836  M 569', 'M 569');
+INSERT INTO qc_alignments VALUES (93, 'PCS05036_A_1b02.p1kLR', 2221, 'LR', 0, 521, 1, 11191, 10670, -1, 2605, true, 'synthetic loxP region,Critical Region', 'cigar: PCS05036_A_1a01.p1kcLR 0 521 + 372239#pR6K_R1R2_ZP#R3R4_pBR_amp 11191 10670 - 2605  M 521', 'M 521', '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7');
+INSERT INTO qc_alignments VALUES (94, 'PCS05036_A_1g12.p1kLR', 2220, 'LR', 0, 569, 1, 11049, 10480, -1, 2836, true, 'synthetic loxP region,Critical Region', 'cigar: PCS05036_A_1a03.p1kcLR 0 569 + 372471#pR6K_R1R2_ZP#R3R4_pBR_amp 11049 10480 - 2836  M 569', 'M 569', '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7');
 
 
 --
@@ -9789,21 +9828,6 @@ INSERT INTO qc_alignments VALUES (94, 'PCS05036_A_1g12.p1kLR', 2220, 'LR', 0, 56
 
 INSERT INTO qc_alignment_regions VALUES (93, 'target-region-rev-72-80', 1064, 518, 'AAGCCTTTTGGTGGGAATGGGATGTGGAAGGTGCGGCAGAGGGGTAATAAGATGGCGATGCTGCCAAGGACACTGTGGAAGGTGGCACCTCTTAGCAACACTTAGGCAATAAAGGCCCCATAGTGGAGCAAATGCTTAGCATGCACAATCCTCTGGGCTCGTGCACACACGCACATGGGCACATGTGCACACACACACACACACCAAGAGCCCATTATTACATCATTTTCTAAAGTAAAAATGAGAATTGTCTTGTAAAATTCCAACACTAATGGATCCATAAGGTTTACAGAATTATAAACAGACAGACCAACCCCCAGAGTGACAGACCAAACCCCCAGAGTGTCATTTAGGAGACATGTGACACAGGCTCTACCCTGTTCTCCGGCAACAGGATATGGCTTTGGGCTCACCTTGAACTTCCACGTATATGGGATCAGATACAATCTCTCTATTGTTCACCTTCATCTTACAGAAGTACGACCCATTGTCTGAGCGCTGCACACTGGCTATGCTTC------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------', 'AAGCCTTTTGGTGGGAATGGGATGTGGAAGGTGCGGCAGAGGGGTAATAAGATGGCGATGCTGCCAAGGACACTGTGGAAGGTGGCACCTCTTAGCAACACTTAGGCAATAAAGGCCCCATAGTGGAGCAAATGCTTAGCATGCACAATCCTCTGGGCTCGTGCACACACGCACATGGGCACATGTGCACACACACACACACACCAAGAGCCCATTATTACATCATTTTCTAAAGTAAAAATGAGAATTGTCTTGTAAAATTCCAACACTAATGGATCCATAAGGTTTACAGAATTATAAACAGACAGACCAACCCCCAGAGTGACAGACCAAACCCCCAGAGTGTCATTTAGGAGACATGTGACACAGGCTCTACCCTGTTCTCCGGCAACAGGATATGGCTTTGGGCTCACCTTGAACTTCCACGTATATGGGATCAGATACAATCTCTCTATTGTTCACCTTCATCTTACAGAAGTACGACCCATTGTCTGAGCGCTGCACACTGGCTATGCTTCAAAGAGAACACAAAAAGAAATTTGCAGTGACTATCTTTTGAGTCCCCATTATAGAAATAGAAGATCCTTCAACACACTTATCATGTGGTTAACTTTTTGTGTCAACATGGCCAGGCTGTAGTACTTGGTGGTCTACATGCTGCTGTAAGAATATGTTCCAAATGCTGTGAACATTTAACTTGGCAACCTTTGAGTAAAGCAGTTGACCCTCCCCAGCATGCGTGGGTCTCCTCTAATCAGCTGCAGACTGAGGTCCCCTGAGGAAGGTCAGCAGCAGTCTGCCAGGGTCTCCAACCAACACCCGGCTGGCCTCAGATTCGTTAATGTTTACTATAGTATGAATTCACTGACCCTTTCCCTCTCTTTCTCTAGTGTGTGCTCGAGAGTACATACGCATGCGGGGGCGCGCGCGCGCGCGCGCACACACACACACACACACACACACACACACGGTTGCTCTTGCACTCACATCTCTTGCTTTCATCCATCTTTGAATCTCTAATACACGTACTATCAGGTGTCTTGCTTACCATGGCGGCTTCTAAA', '||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ', true);
 INSERT INTO qc_alignment_regions VALUES (94, 'target-region-rev-72-80', 992, 560, 'TCTGTGACAGGAACCTACTATTATCACTCACGACGGGGCAAAACATGTTAAATTCCTGTGCAAACTGATTATCCCCGGATGAGTCAACACTGTCATGAAGAACTTCCAAAAGGGATGCCTCTGCATCCCATAGGCGACTGTGACAAATTCCGTCTAGAAGCCATTTAGGGATGCTTAAAAAGAGAGAGAAAAAAGACAGTAGCAAATTTCCCCTTAACTTTTAAATAACACCCTCAAAAAGGAAACATCTACTCCTATGCTGACTTTGCCTTCCTTTTCCTGCGTCAGTTAACCCTGAGAGTTCAAATATAAACAAACGCAATTCCCAATGGTACATCTGAACCAGAAGAAATCTGGAATTAATTGCCAAGTATTTTGGGTCCTATTGCAGCTGTTACAAGTGTTTGATTTGGCGAGGGAAGAGAAAAGGCGTTGCATACCAATTTCATGAGCCACAGTGAAGGCTGCATGGAGGCCATCATCTTCAATCACTGCACAGCTGCGCTCCGGAGAACATATGGTCCCAACGTCTGCCATTTCCAGGGTGTCACATGAATGATG-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------', 'TCTGTGACAGGAACCTACTATTATCACTCACGACGGGGCAAAACATGTTAAATTCCTGTGCAAACTGATTATCCCCGGATGAGTCAACACTGTCATGAAGAACTTCCAAAAGGGATGCCTCTGCATCCCATAGGCGACTGTGACAAATTCCGTCTAGAAGCCATTTAGGGATGCTTAAAAAGAGAGAGAAAAAAGACAGTAGCAAATTTCCCCTTAACTTTTAAATAACACCCTCAAAAAGGAAACATCTACTCCTATGCTGACTTTGCCTTCCTTTTCCTGCGTCAGTTAACCCTGAGAGTTCAAATATAAACAAACGCAATTCCCAATGGTACATCTGAACCAGAAGAAATCTGGAATTAATTGCCAAGTATTTTGGGTCCTATTGCAGCTGTTACAAGTGTTTGATTTGGCGAGGGAAGAGAAAAGGCGTTGCATACCAATTTCATGAGCCACAGTGAAGGCTGCATGGAGGCCATCATCTTCAATCACTGCACAGCTGCGCTCCGGAGAACATATGGTCCCAACGTCTGCCATTCCCAGGGTGTCACATGAATGATGCCCACATAAATCCTGCCCGGGAGAAAGAAAGAAATCATTAAAATCAATTTACATCCAGAAGGAGCCACCATGGACAGCCACTTGTTCACCCCAAATGGCAAGACTGAGATATGTTTATGGTGTCACCTGCTCAGCGCTGGAGGCCTTCCAAAGACAAATTCAAAGCAGGAACTCTTCTGAGCTACTTTGTAACCCAGAAGCACAGAAGGATAAAGACATTCAATGACATTTTAAAAGAAGCCACGGTTATAGCCTGTTCATTACACTCCAAGCTCTACAGCCCGAACAAAGATTAAGTGCCTACACAAATGTCAAAGGTTACATGTGTTCAATACAGAAGTGCCTAATATTCTGAGCTAAATTCAGACTGAACTTCTTGGAAGAGAGGTCTAATAATTTGTTTTCTGTTAGAGTCAAACTACAATCACACT', '|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| ||||||||||||||||||||||                                                                                                                                                                                                                                                                                                                                                                                                                                               ', true);
-
-
---
--- Data for Name: qc_templates; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO qc_templates VALUES (200, 'T001', '2012-07-25 14:01:33.89531', 'Mouse');
-
-
---
--- Data for Name: qc_runs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO qc_runs VALUES ('3C41F49A-B6D6-11E1-8038-C8C8F7D1DA10', '2012-07-26 13:23:42.011512', 1, 'test', 200, '0.001', false);
-INSERT INTO qc_runs VALUES ('534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', '2012-10-03 11:13:52.960754', 1, 'eucomm-cre', 200, '0.002', true);
 
 
 --
@@ -11457,21 +11481,6 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_g', 'pass', '', '2008
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_ns', 'pass', '', '2008-12-10 00:00:00', 800);
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', '2008-12-10 00:00:00', 800);
 
---
--- Data for Name: mutation_design_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('ko_first','conditional');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('ko_first','artificial-intron');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('ko_first','intron-replacement');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('deletion','deletion');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('insertion','insertion');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','conditional');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','artificial-intron');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','intron-replacement');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','deletion');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','insertion');
-INSERT INTO mutation_design_types (mutation_id, design_type) VALUES ('cre_knock_in','cre-bac');
 
 --
 -- Data for Name: well_targeting_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
