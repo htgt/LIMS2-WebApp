@@ -45,3 +45,10 @@ CREATE TABLE crispr_off_targets (
 GRANT SELECT ON crispr_off_targets TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON crispr_off_targets TO "[% rw_role %]";
 GRANT USAGE ON SEQUENCE crispr_off_targets_id_seq TO "[% rw_role %]";
+
+CREATE TABLE process_crispr (
+       process_id      INTEGER PRIMARY KEY REFERENCES processes(id),
+       crispr_id       INTEGER NOT NULL REFERENCES crisprs(id)
+);
+GRANT SELECT ON process_crispr TO "[% ro_role %]";
+GRANT SELECT, INSERT, UPDATE, DELETE ON process_crispr TO "[% rw_role %]";
