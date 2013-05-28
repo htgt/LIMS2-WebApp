@@ -22,6 +22,13 @@ sub pspec_create_crispr {
     };
 }
 
+=head2 create_crispr
+
+Create a crispr record, along with its locus and off target information.
+If crispr with same sequence and locus already exists then just replace
+the off target information.
+
+=cut
 sub create_crispr {
     my ( $self, $params ) = @_;
 
@@ -54,6 +61,11 @@ sub create_crispr {
     return $crispr;
 }
 
+=head2 _create_crispr
+
+Actually create the crispr record here.
+
+=cut
 sub _create_crispr {
     my ( $self, $validated_params ) = @_;
 
@@ -91,6 +103,11 @@ sub pspec_create_crispr_locus {
     };
 }
 
+=head2 create_crispr_locus
+
+Create a locus row for a given crispr.
+
+=cut
 sub create_crispr_locus {
     my ( $self, $params, $crispr ) = @_;
 
@@ -131,6 +148,11 @@ sub pspec_create_crispr_off_target {
     };
 }
 
+=head2 create_crispr_off_target
+
+Create a off target hit for a given crispr.
+
+=cut
 sub create_crispr_off_target {
     my ( $self, $params, $crispr ) = @_;
 
@@ -222,7 +244,11 @@ sub pspec_find_crispr_by_seq_and_locus {
     };
 }
 
-# find crispr site by sequence and locus ( on same assembly for same species )
+=head2 find_crispr_by_seq_and_locus
+
+Find crispr site by sequence and locus ( on same assembly for same species )
+
+=cut
 sub find_crispr_by_seq_and_locus {
     my ( $self, $params ) = @_;
     my @identical_crisprs;
@@ -239,14 +265,14 @@ sub find_crispr_by_seq_and_locus {
     for my $crispr ( @crisprs_same_seq ) {
         my $locus = $crispr->loci->find( { assembly_id => $validated_params->{assembly} } );
         $self->throw(
-            InvalidState => "Can not find crispr locus information on assembly for "
+            InvalidState => "Can not find crispr locus information on assembly "
             . $validated_params->{assembly}
         ) unless $locus;
 
         if (
-            $locus->chr->name eq $validated_params->{chr_name}
-            && $locus->chr_start eq $validated_params->{chr_start}
-            && $locus->chr_end eq $validated_params->{chr_end}
+               $locus->chr->name  eq $validated_params->{chr_name}
+            && $locus->chr_start  eq $validated_params->{chr_start}
+            && $locus->chr_end    eq $validated_params->{chr_end}
             && $locus->chr_strand eq $validated_params->{chr_strand}
         ) {
             push @identical_crisprs, $crispr;
