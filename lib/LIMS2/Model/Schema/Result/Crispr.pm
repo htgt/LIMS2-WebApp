@@ -153,6 +153,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCrispr>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_crisprs",
+  "LIMS2::Model::Schema::Result::ProcessCrispr",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 species
 
 Type: belongs_to
@@ -169,8 +184,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-23 08:17:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iPNHj/yxvdYp757N0VRMqQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-28 08:50:53
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GoJ+HRk+dSoO/C9X3z81mA
 
 sub as_hash {
     my ( $self ) = @_;
