@@ -706,7 +706,7 @@ sub create_qc_template_from_wells{
         	if ($datum->{cassette}){
         		die "A new cassette AND phase matched cassette have been provided for well $name";
         	}
-        	DEBUG "Attempting to fetch phase matched cassette for well $name";
+        	TRACE "Attempting to fetch phase matched cassette for well $name";
         	my $new_cassette = $self->retrieve_well_phase_matched_cassette({
         		slice_def( $datum, qw(plate_name well_name well_id phase_matched_cassette ) )
         	});
@@ -716,7 +716,7 @@ sub create_qc_template_from_wells{
         	else{
         		die "No suitable phase matched cassette found for well $name";
         	}
-        	DEBUG "Phase matched cassette: $new_cassette";
+        	TRACE "Phase matched cassette: $new_cassette";
         }
 
 		# Recombinase, if defined, must be an arrayref
