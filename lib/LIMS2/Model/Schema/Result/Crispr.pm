@@ -70,7 +70,7 @@ __PACKAGE__->table("crisprs");
 =head2 comment
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
 
 =cut
 
@@ -91,7 +91,7 @@ __PACKAGE__->add_columns(
   "off_target_outlier",
   { data_type => "boolean", is_nullable => 0 },
   "comment",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -184,8 +184,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-28 08:50:53
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GoJ+HRk+dSoO/C9X3z81mA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-28 13:08:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:faA/1QpKzSQnix5C03kX8A
 
 sub as_hash {
     my ( $self ) = @_;

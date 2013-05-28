@@ -10,7 +10,7 @@ CREATE TABLE crisprs (
     species_id           TEXT NOT NULL REFERENCES species(id),
     crispr_loci_type_id  TEXT NOT NULL REFERENCES crispr_loci_types(id),
     off_target_outlier   BOOL NOT NULL,
-    comment              TEXT NOT NULL
+    comment              TEXT
 );
 GRANT SELECT ON crisprs TO "[% ro_role %]";
 GRANT SELECT, INSERT, UPDATE, DELETE ON crisprs TO "[% rw_role %]";
