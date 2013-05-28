@@ -25,9 +25,10 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
+    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
-        "Cassette", "Recombinases", "Cell Line",
+        "Cassette", "Cassette Resistance", "Recombinases", "Cell Line",
     ];
 };
 
@@ -51,9 +52,11 @@ override iterator => sub {
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
         my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
 
+        # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well ),
             $well->cassette->name,
+            $well->cassette->resistance,
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,
         ];
