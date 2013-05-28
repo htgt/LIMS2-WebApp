@@ -55,7 +55,7 @@ sub add_recombinase_data {
     my $well = $self->retrieve_well( $validated_params );
     my @process = $well->parent_processes;
 
-    $self->throw( NotFound => "could not retreive process" ) unless @process;
+    $self->throw( NotFound => "could not retrieve process" ) unless @process;
     $self->throw( Validation => "cannot apply recombinase to this well" ) unless scalar(@process) == 1;
     $self->throw( Validation => "invalid plate type; can only add recombinase to EP_PICK plates" ) unless $well->plate->type_id eq 'EP_PICK';
 
