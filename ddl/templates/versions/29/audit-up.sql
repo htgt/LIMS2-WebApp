@@ -86,3 +86,30 @@ $crispr_loci_types_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER crispr_loci_types_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.crispr_loci_types
     FOR EACH ROW EXECUTE PROCEDURE public.process_crispr_loci_types_audit();
+
+CREATE TABLE audit.process_crispr (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+process_id integer,
+crispr_id integer
+);
+GRANT SELECT ON audit.process_crispr TO "[% ro_role %]";
+GRANT SELECT,INSERT ON audit.process_crispr TO "[% rw_role %]";
+CREATE OR REPLACE FUNCTION public.process_process_crispr_audit()
+RETURNS TRIGGER AS $process_crispr_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO audit.process_crispr SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO audit.process_crispr SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO audit.process_crispr SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$process_crispr_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER process_crispr_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.process_crispr
+    FOR EACH ROW EXECUTE PROCEDURE public.process_process_crispr_audit();
