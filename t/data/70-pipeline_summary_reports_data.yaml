@@ -301,7 +301,7 @@ summaries:
 #   final_recombinase_id:
     final_qc_seq_pass: 't'
     final_cassette_name: 'L1L2_gt0_Del_LacZ'
-    final_cassette_cre: 'f'
+    final_cassette_cre: 't'
     final_cassette_promoter: 'f'
     final_cassette_conditional: 't'
     final_cassette_resistance: 'neo'
