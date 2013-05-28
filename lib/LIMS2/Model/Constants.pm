@@ -24,6 +24,7 @@ BEGIN {
 # Output plate types
 const our %PROCESS_PLATE_TYPES => (
     create_di              => [qw( DESIGN )],
+    create_crispr          => [qw( CRISPR )],
     int_recom              => [qw( INT )],
     cre_bac_recom          => [qw( INT )],
     '2w_gateway'           => [qw( POSTINT FINAL )],
@@ -72,6 +73,7 @@ const our %PROCESS_TEMPLATE => (
 # and type to their plate type(s). N.B. if you don't specify a type then any is fine
 const our %PROCESS_INPUT_WELL_CHECK => (
     create_di => { number => 0 },
+    create_crispr => { number => 0 },
     int_recom => {
         type   => [qw( DESIGN )],
         number => 1,

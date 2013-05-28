@@ -204,6 +204,7 @@ sub existing_cell_line {
 	my ( $class, $model ) = @_;
 	return in_resultset( $model, 'CellLine', 'name' );
 }
+
 sub existing_chromosome {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Chromosome', 'name' );
@@ -360,6 +361,11 @@ sub existing_backbone {
 sub existing_crispr_loci_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'CrisprLociType', 'id' );
+}
+
+sub existing_crispr_id {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'Crispr', 'id' );
 }
 
 sub comma_separated_list {
