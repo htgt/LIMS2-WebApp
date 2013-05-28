@@ -55,7 +55,6 @@ duplicate_crispr:
     type: Exon
     species: Mouse
     seq: ATCGGCACACAGAGAG
-    comment: Test_crispr
     locus:
        assembly: GRCm38
        chr_name: 12
