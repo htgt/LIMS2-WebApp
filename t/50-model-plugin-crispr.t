@@ -13,7 +13,7 @@ my $crispr;
 
     ok $crispr = model->create_crispr( $create_crispr_data->{valid_crispr} )
         , 'can create new crispr';
-    is $crispr->crispr_loci_type_id, 'Exon', '.. crispr type is correct';
+    is $crispr->crispr_loci_type_id, 'Exonic', '.. crispr type is correct';
     is $crispr->seq, 'ATCGGCACACAGAGAG', '.. crispr seq is correct';
 
     ok my $locus = $crispr->loci->first, 'can retrieve crispr locus';
@@ -22,7 +22,7 @@ my $crispr;
 
     ok my $off_targets = $crispr->off_targets, 'can retreive off targets from crispr';
     is $off_targets->count, 2, '.. we have 2 off targets';
-    ok my $off_target = $off_targets->find( { crispr_loci_type_id => 'Intron' } ), 'can grab intron off target';
+    ok my $off_target = $off_targets->find( { crispr_loci_type_id => 'Intronic' } ), 'can grab intron off target';
     is $off_target->assembly_id, 'GRCm38', '.. off target assembly correct';
     is $off_target->build_id, 70, '.. off target build correct';
     is $off_target->chr->name, 11, '.. off target chr correct';
@@ -95,7 +95,7 @@ my $find_crispr_data= test_data( 'find_crispr_by_seq.yaml' );
     # throw error because multiple identical crisprs
     my $duplicate_crispr_data = $create_crispr_data->{valid_crispr};
     $duplicate_crispr_data->{species_id} = 'Mouse';
-    $duplicate_crispr_data->{crispr_loci_type_id} = 'Exon';
+    $duplicate_crispr_data->{crispr_loci_type_id} = 'Exonic';
     $duplicate_crispr_data->{off_target_outlier} = 0;
     ok $crispr = model->_create_crispr( $duplicate_crispr_data )
         , 'can create new duplicate crispr';
