@@ -92,7 +92,7 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 1008, true);
+SELECT pg_catalog.setval('plates_id_seq', 1009, true);
 
 
 --
@@ -183,7 +183,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1863, true);
+SELECT pg_catalog.setval('wells_id_seq', 1864, true);
 
 
 --
@@ -4570,6 +4570,7 @@ INSERT INTO plate_types VALUES ('SEP_PICK', 'Second Allele ES Cells');
 INSERT INTO plate_types VALUES ('SEP_POOL', 'Second Allele Backup Vial');
 INSERT INTO plate_types VALUES ('SFP', 'Second Allele Freezer Plates');
 INSERT INTO plate_types VALUES ('FP', 'Freezer Plates');
+INSERT INTO plate_types VALUES ('PIQ', 'Pre-injection QC plate type');
 
 
 --
@@ -4721,6 +4722,7 @@ INSERT INTO plates VALUES (1005, '1005', 'Summaries test 02', 'FP', 1079, '2013-
 INSERT INTO plates VALUES (1006, '1006', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:56.681031', 'Mouse', NULL);
 INSERT INTO plates VALUES (1007, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:57.702485', 'Mouse', NULL);
 INSERT INTO plates VALUES (1008, 'FP1008', 'Final Pick tests', 'FINAL_PICK', 1079, '2013-02-25 15:30:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (1009, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 
 
 --
@@ -4814,6 +4816,7 @@ INSERT INTO process_types VALUES ('second_electroporation', 'Second electroporat
 INSERT INTO process_types VALUES ('freeze', 'Create freezer plate well');
 INSERT INTO process_types VALUES ('final_pick', 'Create Final Pick plate');
 INSERT INTO process_types VALUES ('xep_pool', 'Pool multiple EP_PICK wells into an XEP well');
+INSERT INTO process_types VALUES ('dist_qc', 'Create Distribution QC PIQ plate');
 
 
 --
@@ -7737,6 +7740,7 @@ INSERT INTO wells VALUES (1860, 1005, 'A01', 1079, '2013-02-18 15:52:59.006108',
 INSERT INTO wells VALUES (1861, 1006, 'A01', 1079, '2013-02-18 15:52:59.027906', NULL, NULL, false);
 INSERT INTO wells VALUES (1862, 1007, 'A01', 1079, '2013-02-18 15:52:59.04965', NULL, NULL, false);
 INSERT INTO wells VALUES (1863, 1008, 'A01', 1079, '2013-02-25 15:30:00', NULL, NULL, false);
+INSERT INTO wells VALUES (1864, 1009, 'A01', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
 
 
 --
