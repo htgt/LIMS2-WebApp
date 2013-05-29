@@ -1,6 +1,6 @@
 ---
 valid_crispr:
-    type: Exon
+    type: Exonic
     species: Mouse
     seq: ATCGGCACACAGAGAG
     comment: Test_crispr
@@ -17,7 +17,7 @@ valid_crispr:
           chr_start: 234234
           chr_end: 234255
           chr_strand: -1
-          type: Intron
+          type: Intronic
         - assembly: GRCm38
           build: 70
           chr_name: 3
@@ -26,7 +26,7 @@ valid_crispr:
           chr_strand: -1
           type: Intergenic
 species_assembly_mismatch:
-    type: Exon
+    type: Exonic
     species: Human
     seq: ATCGGCACACAGAGAG
     comment: Test_crispr
@@ -43,7 +43,7 @@ species_assembly_mismatch:
           chr_start: 234234
           chr_end: 234255
           chr_strand: -1
-          type: Intron
+          type: Intronic
         - assembly: GRCm38
           build: 70
           chr_name: 3
@@ -52,7 +52,7 @@ species_assembly_mismatch:
           chr_strand: -1
           type: Intergenic
 duplicate_crispr:
-    type: Exon
+    type: Exonic
     species: Mouse
     seq: ATCGGCACACAGAGAG
     locus:
@@ -68,7 +68,7 @@ duplicate_crispr:
           chr_start: 234234
           chr_end: 234255
           chr_strand: -1
-          type: Intron
+          type: Intronic
 valid_crispr_locus:
    assembly: NCBIM37
    chr_name: 12
@@ -82,4 +82,4 @@ valid_crispr_off_target:
    chr_start: 123446
    chr_end: 123458
    chr_strand: -1
-   type: Intron
+   type: Intronic
