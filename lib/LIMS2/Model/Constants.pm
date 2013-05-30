@@ -164,6 +164,13 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             name   => 'Design Plate Order Sheet',
         },
     ],
+    CRISPR => [
+        {
+            class => 'CrisprPlateOrderSheet',
+            method => 'async',
+            name   => 'Crispr Plate Order Sheet',
+        }
+    ],
 );
 
 1;
