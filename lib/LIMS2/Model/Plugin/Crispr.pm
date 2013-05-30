@@ -47,6 +47,7 @@ sub create_crispr {
     # If crispr with same seq and locus exists just drop off targets and create new ones
     # otherwise create brand new crispr
     if ( $crispr ) {
+        $self->log->debug( 'Found identical crispr site, just replacing off targets: ' . $crispr->id );
         $crispr->off_targets->delete;
         for my $o ( @{ $validated_params->{off_targets} || [] } ) {
             $o->{crispr_id} = $crispr->id;
