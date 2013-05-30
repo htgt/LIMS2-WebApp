@@ -196,18 +196,34 @@ sub as_hash {
     }
 
     my %h = (
-        id      => $self->id,
-        type    => $self->crispr_loci_type_id,
-        seq     => $self->seq,
-        species => $self->species_id,
+        id                 => $self->id,
+        type               => $self->crispr_loci_type_id,
+        seq                => $self->seq,
+        species            => $self->species_id,
         off_target_outlier => $self->off_target_outlier,
-        comment => $self->comment,
-        locus   => $locus ? $locus->as_hash : undef,
+        comment            => $self->comment,
+        locus              => $locus ? $locus->as_hash : undef,
     );
 
     $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
 
     return \%h;
+}
+
+sub forward_order_seq {
+    my ( $self ) = @_;
+
+    my $site = substr( $self->seq, 1, 19 );
+    return  "ACCG" . $site;
+}
+
+sub reverse_order_seq {
+    my ( $self ) = @_;
+
+    require Bio::Seq;
+    my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => substr( $self->seq, 1,19) );
+    my $revcomp_seq = $bio_seq->revcom->seq;
+    return "AAAC" . $revcomp_seq;
 }
 
 
