@@ -100,34 +100,24 @@ sub build_base_report_data{
 sub build_report {
     my ( $self ) = @_;
 
-    for my $type ( qw( forward reverse ) ) {
-        $self->add_report_row( [ 'Temp_' . $self->plate->name . '_' . $type ] );
+    for my $direction ( qw( forward reverse ) ) {
+        $self->add_report_row( [ 'Temp_' . $self->plate->name . '_' . $direction ] );
+        my $plate_name = 'plate_' . $self->plate->name . '_' . $direction . '_crispr';
+
         for my $datum ( @{ $self->crispr_data } ) {
-            $self->add_report_row( [ $datum->{well_name}, $datum->{ $type }, $datum->{'crispr_id'}  ]  );
+            $datum->{well_name} =~ /(?<row>\w)(?<column>\d{2})/;
+            my $crispr_name = $datum->{well_name} . '_' . $datum->{crispr_id} . '_' . $direction;
+            my @row_data = (
+                $plate_name,
+                $+{row},
+                $+{column},
+                $crispr_name,
+                $datum->{ $direction },
+            );
+
+            $self->add_report_row( \@row_data );
         }
         $self->add_blank_report_row;
-    }
-
-    return;
-}
-
-sub oligo_type_seq_data {
-    my ( $self, $oligo_type, $plate_name ) = @_;
-
-    for my $oligo_data ( @{ $self->oligo_data->{ $oligo_type } } ) {
-        $oligo_data->{well} =~ /(?<row>\w)(?<column>\d{2})/;
-        my $oligo_name = $oligo_data->{well} . '_' . $oligo_data->{crispr_id} . '_' . $oligo_type;
-
-        my @oligo_seq_data = (
-            $plate_name,
-            $+{row},
-            $+{column},
-            $oligo_name,
-            $oligo_data->{phase},
-        );
-        push @oligo_seq_data, $oligo_data->{seq} if $oligo_data->{seq};
-
-        $self->add_report_row( \@oligo_seq_data );
     }
 
     return;
