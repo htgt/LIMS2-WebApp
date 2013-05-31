@@ -834,16 +834,32 @@ sub second_ep_pick {
 ## use critic
 
 ## no critic(RequireFinalReturn)
-sub descendant_piq {
+sub descendant_fpiq {
     my $self = shift;
 
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ) {
-		while( my $descendant = $descendants->next ) {
-			if ( $descendant->plate->type_id eq 'PIQ' ) {
-				return $descendant;
-			}
-		}
+  		while( my $descendant = $descendants->next ) {
+  			if ( $descendant->plate->type_id eq 'FPIQ' ) {
+  				return $descendant;
+  			}
+  		}
+    }
+    return;
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub descendant_spiq {
+    my $self = shift;
+
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ) {
+      while( my $descendant = $descendants->next ) {
+        if ( $descendant->plate->type_id eq 'SPIQ' ) {
+          return $descendant;
+        }
+      }
     }
     return;
 }

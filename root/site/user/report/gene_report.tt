@@ -411,7 +411,7 @@
               <td>[% well.first_ep.as_string %]</td>
               <td>[% well.first_ep_pick.as_string %]</td>
               <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
-              <td>[% well.descendant_piq.as_string %]</td>
+              <td>[% well.descendant_fpiq.as_string %]</td>
             </tr>
             [% END %]
           </tbody>
@@ -475,6 +475,7 @@
             <th>Second Allele Electroporation</th>
             <th>Second Electroporation Pick</th>
             <th>Accepted?</th>
+            <th>PIQ?</th>
           </thead>
           <tbody>
             [%- FOR well IN wells.SFP %]
@@ -486,6 +487,7 @@
               <td>[% well.second_ep.as_string %]</td>
               <td>[% well.second_ep_pick.as_string %]</td>
               <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+              <td>[% well.descendant_spiq.as_string %]</td>
             </tr>
             [% END %]
           </tbody>
