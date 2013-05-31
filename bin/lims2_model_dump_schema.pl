@@ -13,14 +13,34 @@ my %MONIKER_MAP = (
     # Singular problems
     bac_clone_loci    => 'BacCloneLocus',
     design_oligo_loci => 'DesignOligoLocus',
+    crispr_loci       => 'CrisprLocus',
     qc_seq_reads      => 'QcSeqRead',
     qc_runs           => 'QcRun',
 );
 
 my %REL_NAME_MAP = (
     # Bad plurals, prefer shorter method name
+    Assembly => {
+        design_oligo_locis  => 'design_oligo_loci',
+        crisprs_off_targets => 'crispr_off_targets',
+        bac_clone_locis     => 'bac_clone_loci',
+        crispr_locis        => 'crispr_loci',
+    },
     BacClone => {
         bac_clone_locis => 'loci'
+    },
+    Chromosome => {
+        design_oligo_locis  => 'design_oligo_loci',
+        crisprs_off_targets => 'crispr_off_targets',
+        bac_clone_locis     => 'bac_clone_loci',
+        crispr_locis        => 'crispr_loci',
+    },
+    Crispr => {
+        crispr_locis        => 'loci',
+        crisprs_off_targets => 'off_targets',
+    },
+    CrisprLociType => {
+        crisprs_off_targets => 'crispr_off_targets',
     },
     Design => {
         design_oligos   => 'oligos',
