@@ -326,4 +326,22 @@ sub get_design_data_for_well_id_list {
     #   }
     return $result_hash;
 }
+
+sub get_ancestor_well_of_platetype {
+    my ($self, $well, $plate_type) = @_;
+
+    my $sql_query = $self->query_ancestors_by_plate_type( $well, $plate_type );
+    my $sql_result =  $self->schema->storage->dbh_do(
+    sub {
+         my ( $storage, $dbh ) = @_;
+         my $sth = $dbh->prepare_cached( $sql_query );
+         $sth->execute();
+         $sth->fetchall_arrayref();
+        }
+    );
+
+    my $ancestor_well;
+
+    return $ancestor_well;
+}
 1;

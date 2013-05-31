@@ -786,6 +786,22 @@ sub first_ep {
 ## use critic
 
 ## no critic(RequireFinalReturn)
+sub first_ep_pick {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'EP_PICK' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine first electroporation pick plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
 sub second_ep {
     my $self = shift;
 
@@ -800,5 +816,38 @@ sub second_ep {
     LIMS2::Exception::Implementation->throw( "Failed to determine second electroporation plate/well for $self" );
 }
 ## use critic
+
+## no critic(RequireFinalReturn)
+sub second_ep_pick {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'SEP_PICK' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine second electroporation pick plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub descendant_piq {
+    my $self = shift;
+
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ) {
+		while( my $descendant = $descendants->next ) {
+			if ( $descendant->plate->type_id eq 'PIQ' ) {
+				return $descendant;
+			}
+		}
+    }
+    return;
+}
+## use critic
+
 __PACKAGE__->meta->make_immutable;
 1;
