@@ -1,18 +1,18 @@
-package LIMS2::Report::PIQPlate;
+package LIMS2::Report::SPIQPlate;
 
 use Moose;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
+extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
 
 override plate_types => sub {
-    return [ 'PIQ' ];
+    return [ 'SPIQ' ];
 };
 
 override _build_name => sub {
     my $self = shift;
 
-    return 'PIQ Plate ' . $self->plate_name;
+    return 'SPIQ Plate ' . $self->plate_name;
 };
 
 # Basic columns, will need to add more

@@ -141,7 +141,8 @@ my %process_check_well = (
     'second_electroporation' => \&_check_wells_second_electroporation,
     'freeze'                 => \&_check_wells_freeze,
     'xep_pool'               => \&_check_wells_xep_pool,
-    'dist_qc'                => \&_check_wells_dist_qc,
+    'frst_allele_dist_qc'    => \&_check_wells_frst_allele_dist_qc,
+    'scnd_allele_dist_qc'    => \&_check_wells_scnd_allele_dist_qc,
 );
 
 sub check_process_wells {
@@ -442,7 +443,17 @@ sub _check_wells_xep_pool {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_wells_dist_qc {
+sub _check_wells_frst_allele_dist_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_scnd_allele_dist_qc {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -469,7 +480,8 @@ my %process_aux_data = (
     'second_electroporation' => \&_create_process_aux_data_second_electroporation,
     'freeze'                 => \&_create_process_aux_data_freeze,
     'xep_pool'               => \&_create_process_aux_data_xep_pool,
-    'dist_qc'                => \&_create_process_aux_data_dist_qc,
+    'frst_allele_dist_qc'    => \&_create_process_aux_data_frst_allele_dist_qc,
+    'scnd_allele_dist_qc'    => \&_create_process_aux_data_scnd_allele_dist_qc,
 );
 
 sub create_process_aux_data {
@@ -829,7 +841,13 @@ sub _create_process_aux_data_xep_pool {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_dist_qc {
+sub _create_process_aux_data_frst_allele_dist_qc {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_scnd_allele_dist_qc {
     return;
 }
 ## use critic
