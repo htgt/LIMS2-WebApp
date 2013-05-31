@@ -17,8 +17,8 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
-        "Well Name","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Assembly",
-        "Created By","Created At", 
+        "Well Name","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
+        "Created By","Created At",
     ];
 };
 
@@ -48,13 +48,14 @@ override iterator => sub {
 
         return [
             $well->name,
-            $crispr_data ? $crispr_data->{id}       : '-',
-            $crispr_data ? $crispr_data->{seq}      : '-',
-            $crispr_data ? $crispr_data->{type}     : '-',
-            $locus_data  ? $locus_data->{chr_name}  : '-',
-            $locus_data  ? $locus_data->{chr_start} : '-',
-            $locus_data  ? $locus_data->{chr_end}   : '-',
-            $locus_data  ? $locus_data->{assembly}  : '-',
+            $crispr_data ? $crispr_data->{id}        : '-',
+            $crispr_data ? $crispr_data->{seq}       : '-',
+            $crispr_data ? $crispr_data->{type}      : '-',
+            $locus_data  ? $locus_data->{chr_name}   : '-',
+            $locus_data  ? $locus_data->{chr_start}  : '-',
+            $locus_data  ? $locus_data->{chr_end}    : '-',
+            $locus_data  ? $locus_data->{chr_strand} : '-',
+            $locus_data  ? $locus_data->{assembly}   : '-',
             $well->created_by->name,
             $well->created_at->ymd,
         ];
