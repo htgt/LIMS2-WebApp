@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.074     2013-05-28 14:53:52 Europe/London
+	Set well accepted flag on DNA status upload.
+	Add cassette resistance column to plate views.
+	Adds check in Genes to Electroporate for final pick QC seq pass.
+	Added tests for pipeline summary reports.
+	Fix for QC sequence alignments.
+
 0.073     2013-05-15 12:54:27 Europe/London
 	Added recombinase to first and second EP processes, and fixed recombinase bug on clone pick process.
 	Added new columns and indexes to summaries table, and updated summaries generation procedure.
