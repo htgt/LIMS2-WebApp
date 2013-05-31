@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.074';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.075';
 }
 ## use critic
 
@@ -130,6 +130,7 @@ sub link_process_wells {
 
 my %process_check_well = (
     create_di              => \&_check_wells_create_di,
+    create_crispr          => \&_check_wells_create_crispr,
     int_recom              => \&_check_wells_int_recom,
     '2w_gateway'           => \&_check_wells_2w_gateway,
     '3w_gateway'           => \&_check_wells_3w_gateway,
@@ -221,6 +222,16 @@ sub check_output_wells {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_create_di {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_create_crispr {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -436,6 +447,7 @@ sub _check_wells_xep_pool {
 
 my %process_aux_data = (
     create_di              => \&_create_process_aux_data_create_di,
+    create_crispr          => \&_create_process_aux_data_create_crispr,
     int_recom              => \&_create_process_aux_data_int_recom,
     '2w_gateway'           => \&_create_process_aux_data_2w_gateway,
     '3w_gateway'           => \&_create_process_aux_data_3w_gateway,
@@ -505,6 +517,25 @@ sub _create_process_aux_data_create_di {
             }
         );
     }
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_create_crispr {
+    return {
+        crispr_id => { validate => 'existing_crispr_id' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_create_crispr {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_create_crispr() );
+
+    $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
 
     return;
 }

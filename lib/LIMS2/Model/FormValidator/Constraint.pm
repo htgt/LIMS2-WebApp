@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.074';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.075';
 }
 ## use critic
 
@@ -210,6 +210,7 @@ sub existing_cell_line {
 	my ( $class, $model ) = @_;
 	return in_resultset( $model, 'CellLine', 'name' );
 }
+
 sub existing_chromosome {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Chromosome', 'name' );
@@ -361,6 +362,16 @@ sub existing_backbone {
     my ( $class, $model ) = @_;
 
     return existing_row( $model, 'Backbone', 'name' );
+}
+
+sub existing_crispr_loci_type {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'CrisprLociType', 'id' );
+}
+
+sub existing_crispr_id {
+    my ( $class, $model ) = @_;
+    return in_resultset( $model, 'Crispr', 'id' );
 }
 
 sub comma_separated_list {

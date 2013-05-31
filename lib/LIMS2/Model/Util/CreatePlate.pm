@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreatePlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreatePlate::VERSION = '0.074';
+    $LIMS2::Model::Util::CreatePlate::VERSION = '0.075';
 }
 ## use critic
 
@@ -100,7 +100,7 @@ sub find_parent_well_ids {
 
         delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
     }
-    elsif ( $params->{process_type} eq 'create_di' ) {
+    elsif ( $params->{process_type} eq 'create_di' || $params->{process_type} eq 'create_crispr' ) {
         return [];
     }
     else {

@@ -18,6 +18,7 @@ note("Testing process types and fields creation");
 {
 	my @process_types = qw(
 	    create_di
+        create_crispr
         cre_bac_recom
         int_recom
         2w_gateway
@@ -57,8 +58,6 @@ my $create_di_process_data= test_data( 'create_di_process.yaml' );
     is $process->type->id, 'create_di',
         'process is of correct type';
 
-    my $fields = model
-
     ok my $process_design = $process->process_design, 'process has a process_design';
     is $process_design->design_id, 95120, 'process_design has correct design_id';
     ok my $process_bacs = $process->process_bacs, 'process has process_bacs';
@@ -87,6 +86,39 @@ throws_ok {
     my $process = model->create_process( $create_di_process_data->{invalid_output_well} );
 } qr/create_di process output well should be type DESIGN \(got INT\)/;
 
+note( "Testing create_crispr process creation" );
+my $create_crispr_process_data= test_data( 'create_crispr_process.yaml' );
+
+{
+    ok my $process = model->create_process( $create_crispr_process_data->{valid_input} ),
+        'create_process for type create_di should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'create_crispr',
+        'process is of correct type';
+
+    ok my $process_crispr = $process->process_crispr, 'process has a process_crispr';
+    is $process_crispr->crispr_id, 113, 'process_crispr has correct crispr_id';
+
+    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    my $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'CRISPR_1', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+}
+
+throws_ok {
+    my $process = model->create_process( $create_crispr_process_data->{invalid_input_wells} );
+} qr/create_crispr process should have 0 input well\(s\) \(got 1\)/;
+
+throws_ok {
+    my $process = model->create_process( $create_crispr_process_data->{invalid_crispr_id} );
+} qr/crispr_id, is invalid: existing_crispr_id/;
+
+throws_ok {
+    my $process = model->create_process( $create_crispr_process_data->{invalid_output_well} );
+} qr/create_crispr process output well should be type CRISPR \(got INT\)/;
 
 note( "Testing int_recom process creation" );
 my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
