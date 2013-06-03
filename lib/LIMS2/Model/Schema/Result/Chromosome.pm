@@ -132,21 +132,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 crispr_off_targets
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_off_targets",
-  "LIMS2::Model::Schema::Result::CrisprOffTargets",
-  { "foreign.chr_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 design_oligo_loci
 
 Type: has_many
@@ -178,8 +163,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 14:46:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GORIclgb6EJ7Ne5Cx+GnKQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-03 14:05:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eRunWCJZVkl/tYf8Go5ceA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
