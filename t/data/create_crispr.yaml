@@ -83,3 +83,11 @@ valid_crispr_off_target:
    chr_end: 123458
    chr_strand: -1
    type: Intronic
+crispr_off_target_non_standard_chromosome:
+   assembly: GRCm38
+   build: 70
+   chr_name: JL154.1
+   chr_start: 123446
+   chr_end: 123458
+   chr_strand: -1
+   type: Intronic
