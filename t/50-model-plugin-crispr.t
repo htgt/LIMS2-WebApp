@@ -25,7 +25,7 @@ my $crispr;
     ok my $off_target = $off_targets->find( { crispr_loci_type_id => 'Intronic' } ), 'can grab intron off target';
     is $off_target->assembly_id, 'GRCm38', '.. off target assembly correct';
     is $off_target->build_id, 70, '.. off target build correct';
-    is $off_target->chr->name, 11, '.. off target chr correct';
+    is $off_target->chromosome, 11, '.. off target chr correct';
 
     throws_ok {
         model->create_crispr( $create_crispr_data->{species_assembly_mismatch} )
@@ -38,7 +38,7 @@ my $crispr;
     is $duplicate_crispr->id, $crispr->id, 'we have the same crispr';
     ok my $new_off_targets = $duplicate_crispr->off_targets, 'can retrieve new off targets';
     is $new_off_targets->count, 1, '.. only 1 off target now';
-    is $new_off_targets->first->chr->name, 15, '.. new off target has right chromosome';
+    is $new_off_targets->first->chromosome, 15, '.. new off target has right chromosome';
 }
 
 note('Testing retrival of crispr');
@@ -74,7 +74,15 @@ note('Testing create crispr off target');
     ok my $crispr_off_target = model->create_crispr_off_target( $crispr_off_target_data )
         , 'can create new crispr off target';
 
-    is $crispr_off_target->chr->name, 16, '.. crispr off target chromosome is correct';
+    is $crispr_off_target->chromosome, 16, '.. crispr off target chromosome is correct';
+
+    my $crispr_off_target_data_2 = $create_crispr_data->{crispr_off_target_non_standard_chromosome};
+    $crispr_off_target_data_2->{crispr_id} = $crispr->id;
+
+    ok my $crispr_off_target_2 = model->create_crispr_off_target( $crispr_off_target_data_2 )
+        , 'can create new crispr off target';
+
+    is $crispr_off_target_2->chromosome, 'JL154.1', '.. crispr off target chromosome is correct';
 }
 
 note('Test finding crispr by sequence and locus');
