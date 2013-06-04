@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprOffTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprOffTargets::VERSION = '0.075';
+    $LIMS2::Model::Schema::Result::CrisprOffTargets::VERSION = '0.076';
 }
 ## use critic
 
@@ -74,12 +74,6 @@ __PACKAGE__->table("crispr_off_targets");
   data_type: 'integer'
   is_nullable: 0
 
-=head2 chr_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 chr_start
 
   data_type: 'integer'
@@ -94,6 +88,11 @@ __PACKAGE__->table("crispr_off_targets");
 
   data_type: 'integer'
   is_nullable: 0
+
+=head2 chromosome
+
+  data_type: 'text'
+  is_nullable: 1
 
 =cut
 
@@ -113,14 +112,14 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "build_id",
   { data_type => "integer", is_nullable => 0 },
-  "chr_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "chr_start",
   { data_type => "integer", is_nullable => 0 },
   "chr_end",
   { data_type => "integer", is_nullable => 0 },
   "chr_strand",
   { data_type => "integer", is_nullable => 0 },
+  "chromosome",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -149,21 +148,6 @@ __PACKAGE__->belongs_to(
   "assembly",
   "LIMS2::Model::Schema::Result::Assembly",
   { id => "assembly_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 chr
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::Chromosome>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "chr",
-  "LIMS2::Model::Schema::Result::Chromosome",
-  { id => "chr_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -198,8 +182,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 13:42:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yB7Ryze6U1LtGpdsJqNqPA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-03 14:05:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+1pbuuIhxyfDomHJuO6xdw
 
 sub as_hash {
     my $self = shift;
@@ -208,8 +192,7 @@ sub as_hash {
         assembly => $self->assembly_id,
         type     => $self->crispr_loci_type_id,
         build    => $self->build_id,
-        chr_name => $self->chr->name,
-        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand )
+        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand chromosome )
     };
 }
 

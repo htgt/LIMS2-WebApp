@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.075';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.076';
 }
 ## use critic
 
@@ -145,7 +145,7 @@ sub pspec_create_crispr_off_target {
     return {
         assembly   => { validate => 'existing_assembly' },
         build      => { validate => 'integer' },
-        chr_name   => { validate => 'existing_chromosome' },
+        chr_name   => { validate => 'non_empty_string' },
         chr_start  => { validate => 'integer' },
         chr_end    => { validate => 'integer' },
         chr_strand => { validate => 'strand' },
@@ -177,7 +177,7 @@ sub create_crispr_off_target {
         off_targets => {
             assembly_id         => $validated_params->{assembly},
             build_id            => $validated_params->{build},
-            chr_id              => $self->_chr_id_for( @{$validated_params}{ 'assembly', 'chr_name' } ),
+            chromosome          => $validated_params->{chr_name},
             chr_start           => $validated_params->{chr_start},
             chr_end             => $validated_params->{chr_end},
             chr_strand          => $validated_params->{chr_strand},
