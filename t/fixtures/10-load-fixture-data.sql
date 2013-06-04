@@ -1140,8 +1140,8 @@ INSERT INTO crispr_loci VALUES (93, 113, 'GRCm38', 3182, 102360192, 102360214, -
 -- Data for Name: crispr_off_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 3191, 102030812, 102030826, -1);
-INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 3172, 1234812, 1234826, -1);
+INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16');
+INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16');
 
 
 --
