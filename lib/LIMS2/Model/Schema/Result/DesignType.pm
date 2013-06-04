@@ -61,6 +61,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 design_targets
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignTarget>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_targets",
+  "LIMS2::Model::Schema::Result::DesignTarget",
+  { "foreign.design_type_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 designs
 
 Type: has_many
@@ -77,8 +92,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-29 13:35:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KstidUIwYdAjl0j4hQ6Edw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-04 13:23:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UGS0obaqPCIyC2R5GY2XAQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
