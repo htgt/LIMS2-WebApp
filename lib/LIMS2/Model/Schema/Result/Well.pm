@@ -576,13 +576,37 @@ sub recombinases {
         for my $process ( $self->ancestors->input_processes( $this_well ) ) {
             my @this_recombinase = sort { $a->rank <=> $b->rank } $process->process_recombinases;
             if ( @this_recombinase > 0 ) {
-                unshift @recombinases, @this_recombinase;
+                unshift @recombinases, @this_recombinase->recombinase_id;
             }
         }
     }
 
     return [ map { $_->recombinase_id } @recombinases ];
 }
+
+sub recombinases_with_labels {
+    my $self = shift;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
+
+    my @labeled_recombinases;
+
+    while( my $this_well = $it->next ) {
+        for my $process ( $self->ancestors->input_processes( $this_well ) ) {
+            my @this_well_recombinases = sort { $a->rank <=> $b->rank } $process->process_recombinases;
+            if ( @this_well_recombinases > 0 ) {
+
+                # for each recombinase pre-fix with plate and well name
+                foreach my $this_well_recombinase ( @this_well_recombinases ) {
+                    unshift @labeled_recombinases, ($this_well_recombinase->recombinase_id).':'.($this_well->as_string);
+                }
+            }
+        }
+    }
+
+    return [ @labeled_recombinases ]
+}
+
 
 # fetches first cell line
 sub first_cell_line {
@@ -714,11 +738,9 @@ sub second_allele {
 sub final_vector {
     my $self = shift;
 
-    $self->assert_not_double_targeted;
-
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if (  $ancestor->plate->type_id eq 'FINAL_PICK' || $ancestor->plate->type_id eq 'FINAL' ) {
+        if (  $ancestor->plate->type_id eq 'FINAL' || $ancestor->plate->type_id eq 'FINAL_PICK' ) {
             return $ancestor;
         }
     }
@@ -834,32 +856,32 @@ sub second_ep_pick {
 ## use critic
 
 ## no critic(RequireFinalReturn)
-sub descendant_fpiq {
+sub freezer_instance {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'SFP' ||  $ancestor->plate->type_id eq 'FP' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine freezer plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub descendant_piq {
     my $self = shift;
 
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ) {
   		while( my $descendant = $descendants->next ) {
-  			if ( $descendant->plate->type_id eq 'FPIQ' ) {
+  			if ( $descendant->plate->type_id eq 'PIQ' ) {
   				return $descendant;
   			}
   		}
-    }
-    return;
-}
-## use critic
-
-## no critic(RequireFinalReturn)
-sub descendant_spiq {
-    my $self = shift;
-
-    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
-    if ( defined $descendants ) {
-      while( my $descendant = $descendants->next ) {
-        if ( $descendant->plate->type_id eq 'SPIQ' ) {
-          return $descendant;
-        }
-      }
     }
     return;
 }

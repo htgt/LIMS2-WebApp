@@ -113,7 +113,7 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 1011, true);
+SELECT pg_catalog.setval('plates_id_seq', 1010, true);
 
 --
 -- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
@@ -203,7 +203,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1868, true);
+SELECT pg_catalog.setval('wells_id_seq', 1867, true);
 
 --
 -- Data for Name: species; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -4621,8 +4621,7 @@ INSERT INTO plate_types VALUES ('SEP_PICK', 'Second Allele ES Cells');
 INSERT INTO plate_types VALUES ('SEP_POOL', 'Second Allele Backup Vial');
 INSERT INTO plate_types VALUES ('SFP', 'Second Allele Freezer Plates');
 INSERT INTO plate_types VALUES ('FP', 'Freezer Plates');
-INSERT INTO plate_types VALUES ('FPIQ', 'First Allele Pre-injection QC plate type');
-INSERT INTO plate_types VALUES ('SPIQ', 'Second Allele Pre-injection QC plate type');
+INSERT INTO plate_types VALUES ('PIQ', 'Pre-injection distribution QC plate type');
 
 
 --
@@ -4775,8 +4774,7 @@ INSERT INTO plates VALUES (1006, '1006', 'Summaries test 02', 'FP', 1079, '2013-
 INSERT INTO plates VALUES (1007, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:57.702485', 'Mouse', NULL);
 INSERT INTO plates VALUES (1008, 'FP1008', 'Final Pick tests', 'FINAL_PICK', 1079, '2013-02-25 15:30:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (1009, 'CRISPR_1', '', 'CRISPR', 722, '2013-05-28 13:37:11.198121', 'Mouse', NULL);
-INSERT INTO plates VALUES (1010, 'FPIQ0001', 'Dist QC tests', 'FPIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
-INSERT INTO plates VALUES (1011, 'SPIQ0001', 'Dist QC tests', 'SPIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (1010, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -4870,8 +4868,7 @@ INSERT INTO process_types VALUES ('freeze', 'Create freezer plate well');
 INSERT INTO process_types VALUES ('final_pick', 'Create Final Pick plate');
 INSERT INTO process_types VALUES ('xep_pool', 'Pool multiple EP_PICK wells into an XEP well');
 INSERT INTO process_types VALUES ('create_crispr', 'Create crispr');
-INSERT INTO process_types VALUES ('frst_allele_dist_qc', 'Create First Allele Distribution QC PIQ plate');
-INSERT INTO process_types VALUES ('scnd_allele_dist_qc', 'Create Second Allele Distribution QC SPIQ plate');
+INSERT INTO process_types VALUES ('dist_qc', 'Pre-injection distribution QC PIQ create process');
 
 --
 -- Data for Name: processes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -7804,7 +7801,6 @@ INSERT INTO wells VALUES (1864, 1009, 'A01', 722, '2013-05-28 13:37:34.155703', 
 INSERT INTO wells VALUES (1865, 1009, 'A02', 722, '2013-05-28 13:43:53.556914', NULL, NULL, false);
 INSERT INTO wells VALUES (1866, 1009, 'A03', 722, '2013-05-28 13:43:53.556914', NULL, NULL, false);
 INSERT INTO wells VALUES (1867, 1010, 'A01', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
-INSERT INTO wells VALUES (1868, 1011, 'A01', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
 
 
 --
