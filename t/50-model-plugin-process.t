@@ -34,8 +34,7 @@ note("Testing process types and fields creation");
         second_electroporation
         freeze
         xep_pool
-        frst_allele_dist_qc
-        scnd_allele_dist_qc
+        dist_qc
 	);
 	is_deeply([sort map {$_->id} @{ model->list_process_types }], [sort @process_types], 'process type list correct');
 
@@ -741,14 +740,14 @@ throws_ok {
 } qr/freeze process output well should be type (FP|,|SFP)+ \(got SEP\)/;
 
 
-note( "Testing frst_allele_dist_qc process creation" );
-my $frst_allele_dist_qc_process_data= test_data( 'frst_allele_dist_qc_process.yaml' );
+note( "Testing dist_qc process creation" );
+my $dist_qc_process_data= test_data( 'dist_qc_process.yaml' );
 
 {
-    ok my $process = model->create_process( $frst_allele_dist_qc_process_data->{valid_input} ),
-        'create_process for type frst_allele_dist_qc should succeed';
+    ok my $process = model->create_process( $dist_qc_process_data->{valid_input} ),
+        'create_process for type dist_qc should succeed';
     isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    is $process->type->id, 'frst_allele_dist_qc', 'process is of correct type';
+    is $process->type->id, 'dist_qc', 'process is of correct type';
 
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 1, 'only one input well';
@@ -760,42 +759,14 @@ my $frst_allele_dist_qc_process_data= test_data( 'frst_allele_dist_qc_process.ya
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'FPIQ0001', '..and is on correct plate';
+    is $output_well->plate->name, 'PIQ0001', '..and is on correct plate';
 
     lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
 }
 
 throws_ok {
-    my $process = model->create_process( $frst_allele_dist_qc_process_data->{invalid_output_well} );
-} qr/frst_allele_dist_qc process output well should be type (FPIQ)+ \(got SEP\)/;
-
-note( "Testing scnd_allele_dist_qc process creation" );
-my $scnd_allele_dist_qc_process_data= test_data( 'scnd_allele_dist_qc_process.yaml' );
-
-{
-    ok my $process = model->create_process( $scnd_allele_dist_qc_process_data->{valid_input} ),
-        'create_process for type scnd_allele_dist_qc should succeed';
-    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    is $process->type->id, 'scnd_allele_dist_qc', 'process is of correct type';
-
-    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
-    is $input_wells->count, 1, 'only one input well';
-    my $input_well = $input_wells->next;
-    is $input_well->name, 'A01', 'input well has correct name';
-    is $input_well->plate->name, 'SFP0001', '..and is on correct plate';
-
-    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
-    is $output_wells->count, 1, 'only one output well';
-    my $output_well = $output_wells->next;
-    is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'SPIQ0001', '..and is on correct plate';
-
-    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
-}
-
-throws_ok {
-    my $process = model->create_process( $scnd_allele_dist_qc_process_data->{invalid_output_well} );
-} qr/scnd_allele_dist_qc process output well should be type (SPIQ)+ \(got SEP\)/;
+    my $process = model->create_process( $dist_qc_process_data->{invalid_output_well} );
+} qr/dist_qc process output well should be type (PIQ)+ \(got SEP\)/;
 
 done_testing();
 

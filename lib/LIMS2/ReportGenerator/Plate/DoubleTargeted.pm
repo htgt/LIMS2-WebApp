@@ -38,13 +38,13 @@ sub base_data {
         $first_allele->cassette->name,
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         $first_allele->cassette->resistance,
-        join( q{/}, @{ $first_allele->recombinases } ),
+        join( q{/}, @{ $first_allele->recombinases_with_labels() } ),
         $second_allele->final_vector->as_string,
         $self->design_and_gene_cols( $second_allele ),
         $second_allele->cassette->name,
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         $second_allele->cassette->resistance,
-        join( q{/}, @{ $second_allele->recombinases } ),
+        join( q{/}, @{ $second_allele->recombinases_with_labels() } ),
         ( $second_allele->cassette->promoter ? 'promoter' : 'promoterless' ),
     );
 }

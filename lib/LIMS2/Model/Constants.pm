@@ -39,8 +39,7 @@ const our %PROCESS_PLATE_TYPES => (
     'clone_pool'             => [qw( SEP_POOL XEP_POOL )],
     'freeze'                 => [qw( FP SFP )],
     'xep_pool'               => [qw( XEP )],
-    'frst_allele_dist_qc'    => [qw( FPIQ )],
-    'scnd_allele_dist_qc'    => [qw( SPIQ )],
+    'dist_qc'                => [qw( PIQ )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -71,8 +70,7 @@ const our %PROCESS_TEMPLATE => (
     'clone_pool'             => 'standard_template.csv',
     'freeze'                 => 'standard_template.csv',
     'xep_pool'               => 'standard_template.csv',
-    'frst_allele_dist_qc'    => 'standard_template.csv',
-    'scnd_allele_dist_qc'    => 'standard_template.csv',
+    'dist_qc'                => 'standard_template.csv',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -138,12 +136,8 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( EP EP_PICK )],
         number => 'MULTIPLE',
     },
-    'frst_allele_dist_qc' => {
-        type   => [qw( FP )],
-        number => 1,
-    },
-    'scnd_allele_dist_qc' => {
-        type   => [qw( SFP )],
+    'dist_qc' => {
+        type   => [qw( FP SFP )],
         number => 1,
     },
 );

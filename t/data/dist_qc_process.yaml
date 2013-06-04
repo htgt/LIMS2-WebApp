@@ -5,7 +5,7 @@ valid_input:
         - plate_name: FFP0001
           well_name: A01
     output_wells:
-        - plate_name: FPIQ0001
+        - plate_name: PIQ0001
           well_name: A01
 invalid_output_well:
     type: dist_qc
