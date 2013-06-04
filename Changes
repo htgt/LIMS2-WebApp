@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.076     2013-06-04 07:53:56 Europe/London
+
+    Let the crispr_off_targets table accept any text as a chromosome name, to deal with scaffolding sequence.
+
 0.075     2013-05-31 09:41:37 Europe/London
 
     Add tables to store Crispr data.
