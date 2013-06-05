@@ -375,6 +375,47 @@ sub search_gene_designs {
     return ( \@designs, $gene_designs->pager );
 }
 
+sub pspec_create_design_target {
+    return {
+        species              => { validate => 'existing_species', rename => 'species_id' },
+        gene_name            => { validate => 'non_empty_string' },
+        exon_id              => { validate => 'non_empty_string' },
+        exon_size            => { validate => 'integer', optional => 1 },
+        exon_rank            => { validate => 'integer', optional => 1 },
+        canonical_transcript => { validate => 'non_empty_string', optional => 1 },
+        assembly             => { validate => 'existing_assembly', rename => 'assembly_id' },
+        build                => { validate => 'integer', rename => 'build_id' },
+        chr_name             => { validate => 'existing_chromosome' },
+        chr_start            => { validate => 'integer' },
+        chr_end              => { validate => 'integer' },
+        chr_strand           => { validate => 'strand' },
+        automatically_picked => { validate => 'boolean' },
+        comment              => { optional => 1 },
+    }
+}
+
+sub create_design_target {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_design_target );
+
+    my $design_target = $self->schema->resultset( 'DesignTarget' )->create(
+        {
+            chr_id => $self->_chr_id_for( @{$validated_params}{ 'assembly_id', 'chr_name' } ),
+            slice_def (
+                $validated_params,
+                qw ( species_id design_type_id gene_name exon_id exon_size exon_rank
+                     canonical_transcript assembly_id build_id chr_start chr_end chr_strand
+                     automatically_picked comment
+                   )
+            ),
+        }
+    );
+    $self->log->debug( 'Created design target ' . $design_target->id );
+
+    return $design_target;
+}
+
 sub _get_gene_chr_start_end_strand {
     my ( $self, $species, $gene_id ) = @_;
 

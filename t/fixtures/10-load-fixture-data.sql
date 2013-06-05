@@ -82,6 +82,13 @@ SELECT pg_catalog.setval('design_oligos_id_seq', 54774, true);
 
 
 --
+-- Name: design_targets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('design_targets_id_seq', 1, false);
+
+
+--
 -- Name: designs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
@@ -99,7 +106,7 @@ SELECT pg_catalog.setval('genotyping_primers_id_seq', 116764, true);
 -- Name: new_chromosomes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('new_chromosomes_id_seq', 3192, true);
+SELECT pg_catalog.setval('new_chromosomes_id_seq', 3216, true);
 
 
 --
@@ -223,6 +230,7 @@ INSERT INTO assemblies VALUES ('NCBIM34', 'Mouse');
 INSERT INTO assemblies VALUES ('NCBIM36', 'Mouse');
 INSERT INTO assemblies VALUES ('NCBIM37', 'Mouse');
 INSERT INTO assemblies VALUES ('GRCm38', 'Mouse');
+INSERT INTO assemblies VALUES ('GRCh37', 'Human');
 
 
 --
@@ -631,6 +639,30 @@ INSERT INTO chromosomes VALUES (3189, 'Mouse', '18');
 INSERT INTO chromosomes VALUES (3190, 'Mouse', '19');
 INSERT INTO chromosomes VALUES (3191, 'Mouse', 'X');
 INSERT INTO chromosomes VALUES (3192, 'Mouse', 'Y');
+INSERT INTO chromosomes VALUES (3193, 'Human', '1');
+INSERT INTO chromosomes VALUES (3194, 'Human', '2');
+INSERT INTO chromosomes VALUES (3195, 'Human', '3');
+INSERT INTO chromosomes VALUES (3196, 'Human', '4');
+INSERT INTO chromosomes VALUES (3197, 'Human', '5');
+INSERT INTO chromosomes VALUES (3198, 'Human', '6');
+INSERT INTO chromosomes VALUES (3199, 'Human', '7');
+INSERT INTO chromosomes VALUES (3200, 'Human', '8');
+INSERT INTO chromosomes VALUES (3201, 'Human', '9');
+INSERT INTO chromosomes VALUES (3202, 'Human', '10');
+INSERT INTO chromosomes VALUES (3203, 'Human', '11');
+INSERT INTO chromosomes VALUES (3204, 'Human', '12');
+INSERT INTO chromosomes VALUES (3205, 'Human', '13');
+INSERT INTO chromosomes VALUES (3206, 'Human', '14');
+INSERT INTO chromosomes VALUES (3207, 'Human', '15');
+INSERT INTO chromosomes VALUES (3208, 'Human', '16');
+INSERT INTO chromosomes VALUES (3209, 'Human', '17');
+INSERT INTO chromosomes VALUES (3210, 'Human', '18');
+INSERT INTO chromosomes VALUES (3211, 'Human', '19');
+INSERT INTO chromosomes VALUES (3212, 'Human', '20');
+INSERT INTO chromosomes VALUES (3213, 'Human', '21');
+INSERT INTO chromosomes VALUES (3214, 'Human', '22');
+INSERT INTO chromosomes VALUES (3215, 'Human', 'X');
+INSERT INTO chromosomes VALUES (3216, 'Human', 'Y');
 
 
 --
@@ -3118,6 +3150,12 @@ INSERT INTO design_oligo_loci VALUES (54698, 'GRCm38', 54943781, 54943830, -1, 3
 INSERT INTO design_oligo_loci VALUES (54699, 'GRCm38', 54943667, 54943716, -1, 3183);
 INSERT INTO design_oligo_loci VALUES (54700, 'GRCm38', 54940276, 54940325, -1, 3183);
 INSERT INTO design_oligo_loci VALUES (54701, 'GRCm38', 113311516, 113311565, 1, 3177);
+
+
+--
+-- Data for Name: design_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
 
 
 --
