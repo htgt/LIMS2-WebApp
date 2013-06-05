@@ -576,7 +576,7 @@ sub recombinases {
         for my $process ( $self->ancestors->input_processes( $this_well ) ) {
             my @this_recombinase = sort { $a->rank <=> $b->rank } $process->process_recombinases;
             if ( @this_recombinase > 0 ) {
-                unshift @recombinases, @this_recombinase->recombinase_id;
+                unshift @recombinases, @this_recombinase;
             }
         }
     }
@@ -584,27 +584,58 @@ sub recombinases {
     return [ map { $_->recombinase_id } @recombinases ];
 }
 
-sub recombinases_with_labels {
+# fetches any recombinases at vector levels
+sub vector_recombinases {
     my $self = shift;
 
     my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
 
-    my @labeled_recombinases;
+    my @list_of_plate_types = ( "DESIGN", "INT", "POSTINT", "FINAL", "FINAL_PICK", "CREBAC", "DNA" );
+
+    my @vector_recombinases;
 
     while( my $this_well = $it->next ) {
-        for my $process ( $self->ancestors->input_processes( $this_well ) ) {
-            my @this_well_recombinases = sort { $a->rank <=> $b->rank } $process->process_recombinases;
-            if ( @this_well_recombinases > 0 ) {
-
-                # for each recombinase pre-fix with plate and well name
-                foreach my $this_well_recombinase ( @this_well_recombinases ) {
-                    unshift @labeled_recombinases, ($this_well_recombinase->recombinase_id).':'.($this_well->as_string);
+        # check plate type
+        my $this_well_plate_type = $this_well->plate->type_id;
+        #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
+        if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
+            for my $process ( $self->ancestors->input_processes( $this_well ) ) {
+                my @this_well_recombinases = sort { $a->rank <=> $b->rank } $process->process_recombinases;
+                if ( @this_well_recombinases > 0 ) {
+                    unshift @vector_recombinases, @this_well_recombinases;
                 }
             }
         }
     }
 
-    return [ @labeled_recombinases ]
+    return [ map { $_->recombinase_id } @vector_recombinases ];
+}
+
+# fetches any recombinases at cell levels
+sub cell_recombinases {
+    my $self = shift;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
+
+    my @list_of_plate_types = ( "EP", "EP_PICK", "XEP", "XEP_PICK", "XEP_POOL", "SEP", "SEP_PICK", "SEP_POOL", "FP", "SFP", "PIQ");
+
+    my @cell_recombinases;
+
+    while( my $this_well = $it->next ) {
+        # check plate type
+        my $this_well_plate_type = $this_well->plate->type_id;
+        #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
+        if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
+            for my $process ( $self->ancestors->input_processes( $this_well ) ) {
+                my @this_well_recombinases = sort { $a->rank <=> $b->rank } $process->process_recombinases;
+                if ( @this_well_recombinases > 0 ) {
+                    unshift @cell_recombinases, @this_well_recombinases;
+                }
+            }
+        }
+    }
+
+    return [ map { $_->recombinase_id } @cell_recombinases ];
 }
 
 
