@@ -45,12 +45,6 @@ __PACKAGE__->table("design_targets");
   is_nullable: 0
   sequence: 'design_targets_id_seq'
 
-=head2 design_type_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 gene_name
 
   data_type: 'text'
@@ -134,8 +128,6 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "design_targets_id_seq",
   },
-  "design_type_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "gene_name",
   { data_type => "text", is_nullable => 0 },
   "exon_id",
@@ -210,21 +202,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 design_type
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::DesignType>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "design_type",
-  "LIMS2::Model::Schema::Result::DesignType",
-  { id => "design_type_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
 =head2 species
 
 Type: belongs_to
@@ -241,8 +218,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-04 13:23:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZxnazRGJi4dd92XWfKe0UA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-05 10:25:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PgHDtPw5dUNkHERPsTqPhA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
