@@ -584,6 +584,61 @@ sub recombinases {
     return [ map { $_->recombinase_id } @recombinases ];
 }
 
+# fetches any recombinases at vector levels
+sub vector_recombinases {
+    my $self = shift;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
+
+    my @list_of_plate_types = ( "DESIGN", "INT", "POSTINT", "FINAL", "FINAL_PICK", "CREBAC", "DNA" );
+
+    my @vector_recombinases;
+
+    while( my $this_well = $it->next ) {
+        # check plate type
+        my $this_well_plate_type = $this_well->plate->type_id;
+        #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
+        if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
+            for my $process ( $self->ancestors->input_processes( $this_well ) ) {
+                my @this_well_recombinases = sort { $a->rank <=> $b->rank } $process->process_recombinases;
+                if ( @this_well_recombinases > 0 ) {
+                    unshift @vector_recombinases, @this_well_recombinases;
+                }
+            }
+        }
+    }
+
+    return [ map { $_->recombinase_id } @vector_recombinases ];
+}
+
+# fetches any recombinases at cell levels
+sub cell_recombinases {
+    my $self = shift;
+
+    my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
+
+    my @list_of_plate_types = ( "EP", "EP_PICK", "XEP", "XEP_PICK", "XEP_POOL", "SEP", "SEP_PICK", "SEP_POOL", "FP", "SFP", "PIQ");
+
+    my @cell_recombinases;
+
+    while( my $this_well = $it->next ) {
+        # check plate type
+        my $this_well_plate_type = $this_well->plate->type_id;
+        #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
+        if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
+            for my $process ( $self->ancestors->input_processes( $this_well ) ) {
+                my @this_well_recombinases = sort { $a->rank <=> $b->rank } $process->process_recombinases;
+                if ( @this_well_recombinases > 0 ) {
+                    unshift @cell_recombinases, @this_well_recombinases;
+                }
+            }
+        }
+    }
+
+    return [ map { $_->recombinase_id } @cell_recombinases ];
+}
+
+
 # fetches first cell line
 sub first_cell_line {
     my $self = shift;
@@ -714,11 +769,9 @@ sub second_allele {
 sub final_vector {
     my $self = shift;
 
-    $self->assert_not_double_targeted;
-
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if (  $ancestor->plate->type_id eq 'FINAL_PICK' || $ancestor->plate->type_id eq 'FINAL' ) {
+        if (  $ancestor->plate->type_id eq 'FINAL' || $ancestor->plate->type_id eq 'FINAL_PICK' ) {
             return $ancestor;
         }
     }
@@ -786,6 +839,22 @@ sub first_ep {
 ## use critic
 
 ## no critic(RequireFinalReturn)
+sub first_ep_pick {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'EP_PICK' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine first electroporation pick plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
 sub second_ep {
     my $self = shift;
 
@@ -816,6 +885,54 @@ sub get_input_wells_as_string {
     }
     return ( $parents );
 }
+
+## no critic(RequireFinalReturn)
+sub second_ep_pick {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'SEP_PICK' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine second electroporation pick plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub freezer_instance {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'SFP' ||  $ancestor->plate->type_id eq 'FP' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine freezer plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub descendant_piq {
+    my $self = shift;
+
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ) {
+  		while( my $descendant = $descendants->next ) {
+  			if ( $descendant->plate->type_id eq 'PIQ' ) {
+  				return $descendant;
+  			}
+  		}
+    }
+    return;
+}
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 1;

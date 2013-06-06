@@ -122,23 +122,26 @@ sub link_process_wells {
     return;
 }
 
+# Well validation for each process type
 my %process_check_well = (
-    create_di              => \&_check_wells_create_di,
-    int_recom              => \&_check_wells_int_recom,
-    '2w_gateway'           => \&_check_wells_2w_gateway,
-    '3w_gateway'           => \&_check_wells_3w_gateway,
-    legacy_gateway         => \&_check_wells_legacy_gateway,
-    final_pick             => \&_check_wells_final_pick,
-    recombinase            => \&_check_wells_recombinase,
-    cre_bac_recom          => \&_check_wells_cre_bac_recom,
-    rearray                => \&_check_wells_rearray,
-    dna_prep               => \&_check_wells_dna_prep,
-    clone_pick             => \&_check_wells_clone_pick,
-    clone_pool             => \&_check_wells_clone_pool,
-    first_electroporation  => \&_check_wells_first_electroporation,
-    second_electroporation => \&_check_wells_second_electroporation,
-    freeze                 => \&_check_wells_freeze,
-    xep_pool               => \&_check_wells_xep_pool,
+    'create_di'              => \&_check_wells_create_di,
+    'create_crispr'          => \&_check_wells_create_crispr,
+    'int_recom'              => \&_check_wells_int_recom,
+    '2w_gateway'             => \&_check_wells_2w_gateway,
+    '3w_gateway'             => \&_check_wells_3w_gateway,
+    'legacy_gateway'         => \&_check_wells_legacy_gateway,
+    'final_pick'             => \&_check_wells_final_pick,
+    'recombinase'            => \&_check_wells_recombinase,
+    'cre_bac_recom'          => \&_check_wells_cre_bac_recom,
+    'rearray'                => \&_check_wells_rearray,
+    'dna_prep'               => \&_check_wells_dna_prep,
+    'clone_pick'             => \&_check_wells_clone_pick,
+    'clone_pool'             => \&_check_wells_clone_pool,
+    'first_electroporation'  => \&_check_wells_first_electroporation,
+    'second_electroporation' => \&_check_wells_second_electroporation,
+    'freeze'                 => \&_check_wells_freeze,
+    'xep_pool'               => \&_check_wells_xep_pool,
+    'dist_qc'                => \&_check_wells_dist_qc,
 );
 
 sub check_process_wells {
@@ -215,6 +218,16 @@ sub check_output_wells {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_create_di {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_create_crispr {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -428,23 +441,35 @@ sub _check_wells_xep_pool {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_dist_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
 my %process_aux_data = (
-    create_di              => \&_create_process_aux_data_create_di,
-    int_recom              => \&_create_process_aux_data_int_recom,
-    '2w_gateway'           => \&_create_process_aux_data_2w_gateway,
-    '3w_gateway'           => \&_create_process_aux_data_3w_gateway,
-    legacy_gateway         => \&_create_process_aux_data_legacy_gateway,
-    final_pick             => \&_create_process_aux_data_final_pick,
-    recombinase            => \&create_process_aux_data_recombinase,
-    cre_bac_recom          => \&_create_process_aux_data_cre_bac_recom,
-    rearray                => \&_create_process_aux_data_rearray,
-    dna_prep               => \&_create_process_aux_data_dna_prep,
-    clone_pick             => \&_create_process_aux_data_clone_pick,
-    clone_pool             => \&_create_process_aux_data_clone_pool,
-    first_electroporation  => \&_create_process_aux_data_first_electroporation,
-    second_electroporation => \&_create_process_aux_data_second_electroporation,
-    freeze                 => \&_create_process_aux_data_freeze,
-    xep_pool               => \&_create_process_aux_data_xep_pool,
+    'create_di'              => \&_create_process_aux_data_create_di,
+    'create_crispr'          => \&_create_process_aux_data_create_crispr,
+    'int_recom'              => \&_create_process_aux_data_int_recom,
+    '2w_gateway'             => \&_create_process_aux_data_2w_gateway,
+    '3w_gateway'             => \&_create_process_aux_data_3w_gateway,
+    'legacy_gateway'         => \&_create_process_aux_data_legacy_gateway,
+    'final_pick'             => \&_create_process_aux_data_final_pick,
+    'recombinase'            => \&create_process_aux_data_recombinase,
+    'cre_bac_recom'          => \&_create_process_aux_data_cre_bac_recom,
+    'rearray'                => \&_create_process_aux_data_rearray,
+    'dna_prep'               => \&_create_process_aux_data_dna_prep,
+    'clone_pick'             => \&_create_process_aux_data_clone_pick,
+    'clone_pool'             => \&_create_process_aux_data_clone_pool,
+    'first_electroporation'  => \&_create_process_aux_data_first_electroporation,
+    'second_electroporation' => \&_create_process_aux_data_second_electroporation,
+    'freeze'                 => \&_create_process_aux_data_freeze,
+    'xep_pool'               => \&_create_process_aux_data_xep_pool,
+    'dist_qc'                => \&_create_process_aux_data_dist_qc,
 );
 
 sub create_process_aux_data {
@@ -499,6 +524,25 @@ sub _create_process_aux_data_create_di {
             }
         );
     }
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_create_crispr {
+    return {
+        crispr_id => { validate => 'existing_crispr_id' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_create_crispr {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_create_crispr() );
+
+    $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
 
     return;
 }
@@ -707,11 +751,14 @@ sub _create_process_aux_data_final_pick {
     return;
 }
 ## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub pspec__create_process_aux_data_second_electroporation {
     return {
         recombinase => { optional => 1 },
     };
 }
+## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_second_electroporation {
@@ -777,6 +824,12 @@ sub _create_process_aux_data_freeze {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_xep_pool {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_dist_qc {
     return;
 }
 ## use critic

@@ -27,12 +27,8 @@ sub begin :Private {
 sub plate_from_copy :Path( '/user/plate_from_copy' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->stash(
-        plate_help  => $c->model('Golgi')->plate_help_info,
-    );
     return;
 }
-
 
 sub plate_from_copy_process :Path( '/user/plate_from_copy_process' ) :Args(0) {
     my ( $self, $c ) = @_;
@@ -70,7 +66,6 @@ sub plate_from_copy_process :Path( '/user/plate_from_copy_process' ) :Args(0) {
     return $c->res->redirect($c->uri_for( '/user/plate_from_copy' ));
 
 }
-
 
 =head1 AUTHOR
 

@@ -150,7 +150,9 @@ sub create_qc_test_result_alignment {
     $validated_params->{features} ||= '';
 
     my $alignment = $model->schema->resultset('QcAlignment')->create(
-        {   slice(
+        {
+            qc_run_id => $qc_test_result->qc_run_id, #for duplicate runs
+            slice(
                 $validated_params, qw( qc_seq_read_id qc_eng_seq_id primer_name
                     query_start query_end query_strand
                     target_start target_end target_strand

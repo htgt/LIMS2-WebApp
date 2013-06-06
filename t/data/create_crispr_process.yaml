@@ -1,0 +1,28 @@
+---
+valid_input:
+    type: create_crispr
+    output_wells:
+        - plate_name: CRISPR_1
+          well_name: A01
+    crispr_id: 113 
+invalid_input_wells:
+    type: create_crispr
+    output_wells:
+        - plate_name: CRISPR_1
+          well_name: A02
+    crispr_id: 113 
+    input_wells:
+        - plate_name: PCS00177_A 
+          well_name: G02
+invalid_crispr_id:
+    type: create_crispr
+    output_wells:
+        - plate_name: CRISPR_1
+          well_name: A03
+    crispr_id: 9999999999
+invalid_output_well:
+    type: create_crispr
+    output_wells:
+        - plate_name: PCS00177_A 
+          well_name: G02
+    crispr_id: 113

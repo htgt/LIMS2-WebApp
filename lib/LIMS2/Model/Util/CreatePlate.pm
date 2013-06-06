@@ -94,7 +94,7 @@ sub find_parent_well_ids {
 
         delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
     }
-    elsif ( $params->{process_type} eq 'create_di' ) {
+    elsif ( $params->{process_type} eq 'create_di' || $params->{process_type} eq 'create_crispr' ) {
         return [];
     }
     elsif ( $params->{process_type} eq 'xep_pool' ) {

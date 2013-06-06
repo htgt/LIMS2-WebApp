@@ -382,7 +382,8 @@ sub plate_help_info {
     my %plate_info;
 
     for my $process ( keys %PROCESS_PLATE_TYPES ) {
-        next if $process =~ /create_di|legacy_gateway/;
+        next unless exists $PROCESS_TEMPLATE{$process};
+
         $plate_info{$process}{plate_types} = $PROCESS_PLATE_TYPES{$process};
         $plate_info{$process}{data}
             = exists $PROCESS_SPECIFIC_FIELDS{$process} ? $PROCESS_SPECIFIC_FIELDS{$process} : [];
