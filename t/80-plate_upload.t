@@ -338,7 +338,7 @@ my $mech = mech();
     ok $res->is_success, '...response is_success';
     is $res->base->path, '/user/plate_upload_step2', '... stays on same page';
     like $res->content,
-qr/Error encountered while creating plate: Wells from different plates cannot be pooled to the same output well: Got: FEPD0006_2 and was not expecting: FEPD0006_1/
+qr/Error encountered while creating plate: Wells from different plates cannot be pooled to the same output well: Already seen: FEPD0006_1 and was not expecting: FEPD0006_2/
         , '...throws error different parent plates not allowed';
 }
 
