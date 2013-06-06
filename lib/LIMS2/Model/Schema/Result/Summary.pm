@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.076';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.077';
 }
 ## use critic
 
@@ -917,52 +917,54 @@ __PACKAGE__->set_primary_key("id");
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
-sub satisfies_cassette_function{
-	my ($self, $function) = @_;
+sub satisfies_cassette_function {
+  my ($self, $function) = @_;
 
-	# No point doing these checks unless we have a final well
-	return 0 unless defined $self->final_well_id;
+  # No point doing these checks unless we have a final_pick well
+  return 0 unless defined $self->final_pick_well_id;
 
-	ref($function) eq "LIMS2::Model::Schema::Result::CassetteFunction"
-	    or die "You must provide a CassetteFunction to satisfies_cassette_function. Got a ".ref($function);
+  ref($function) eq "LIMS2::Model::Schema::Result::CassetteFunction"
+      or die "You must provide a CassetteFunction to satisfies_cassette_function. Got a ".ref($function);
 
-	# If property, e.g. conditional, is specified true/false by CassetteFunction 
-	# then it must match the value of final_cassette_<property>
-	foreach my $property qw(conditional promoter cre){
-		my $required_value = $function->$property;
-		if (defined $required_value){
-			my $summary_property = 'final_cassette_'.$property;
-			my $found_value = $self->$summary_property;
-			return 0 unless defined($found_value) and $found_value eq $required_value;
-		}
-	}
+  # If property, e.g. conditional, is specified true/false by CassetteFunction 
+  # then it must match the value of final_pick_cassette_<property>
+  foreach my $property qw(conditional promoter cre){
+    my $required_value = $function->$property;
+    if (defined $required_value){
+      my $summary_property = 'final_pick_cassette_'.$property;
+      my $found_value = $self->$summary_property;
+      return 0 unless defined($found_value) and $found_value eq $required_value;
+    }
+  }
 
-	# We also need to check the recombinase status of the final well
-	my $final_well_recom = $self->final_recombinase_id;
-	if (defined $function->well_has_cre){
-		if ($function->well_has_cre){
-			# well must have cre
-			return 0 unless $final_well_recom and $final_well_recom =~ /cre/i;
-		}
-		else{
-			# well must not have cre
-			return 0 if $final_well_recom and $final_well_recom =~ /cre/i;
-		}
-	}
+  # We also need to check the recombinase status of the final_pick well
+  my $final_pick_well_recom = $self->final_pick_recombinase_id;
+  if (defined $function->well_has_cre){
+    if ($function->well_has_cre){
+      # well must have cre
+      return 0 unless $final_pick_well_recom and $final_pick_well_recom =~ /cre/i;
+    }
+    else{
+      # well must not have cre
+      return 0 if $final_pick_well_recom and $final_pick_well_recom =~ /cre/i;
+    }
+  }
 
-	if (defined $function->well_has_no_recombinase){
-		if ($function->well_has_no_recombinase){
-			return 0 if $final_well_recom;
-		}
-		else{
-			# well must have some recombinase
-			return 0 unless $final_well_recom;
-		}
-	}
+  if (defined $function->well_has_no_recombinase){
+    if ($function->well_has_no_recombinase){
+      return 0 if $final_pick_well_recom;
+    }
+    else{
+      # well must have some recombinase
+      return 0 unless $final_pick_well_recom;
+    }
+  }
 
-	# If we haven't returned 0 yet then the well satisfies 
-	# the cassette function rules
-	return 1;
+  # If we haven't returned 0 yet then the well satisfies 
+  # the cassette function rules
+  return 1;
 }
+
+
 __PACKAGE__->meta->make_immutable;
 1;

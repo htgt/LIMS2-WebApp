@@ -1,3 +1,9 @@
+0.077     2013-06-06 13:58:09 Europe/London
+
+    Addition of PIQ plate type and process dist_qc
+    Support for xep_pool from csv upload with reporting
+    New methods in DesignInfo
+
 0.076     2013-06-04 07:53:56 Europe/London
 
     Let the crispr_off_targets table accept any text as a chromosome name, to deal with scaffolding sequence.

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.076';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.077';
 }
 ## use critic
 
@@ -117,7 +117,6 @@ for each process type
 
 sub create_plate {
     my ( $self, $params ) = @_;
-
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
     $self->log->info( 'Creating plate: ' . $validated_params->{name} );
 
@@ -143,13 +142,70 @@ sub create_plate {
         $plate->create_related( plate_comments =>
                 { slice_def( $validated_c, qw( comment_text created_by_id created_at ) ) } );
     }
-
     if ( exists $validated_params->{wells} ) {
-        create_plate_well( $self, $_, $plate ) for @{ $validated_params->{wells} };
+        # check for xep_pool process on the wells and rewrite the wells hash if necessary
+        my $revised_wells = check_xep_pool_wells($self, $validated_params->{wells});
+        #create_plate_well( $self, $_, $plate ) for @{ $validated_params->{wells} };
+        create_plate_well( $self, $_, $plate ) for @{ $revised_wells };
     }
 
     return $plate;
 }
+
+=head
+check_xep_pool_wells takes a well hash and generates a new hash with a list of parent wells
+to be pooled into each unique output well.
+
+If the input hash has no xep_pool processes, the hash will remain unchanged.
+
+Any wells without xep_pool processes will be passed through unchanged.
+=cut
+sub check_xep_pool_wells {
+    my $self = shift;
+    my $original_wells = shift;
+
+    my @revised_wells;
+
+    WELL_HASH: foreach my $well_hash ( @$original_wells ) {
+        if ( $well_hash->{'process_type'} ne 'xep_pool' ) {
+            push @revised_wells, $well_hash;
+            next WELL_HASH;
+        }
+        my $target_well = $well_hash->{'well_name'};
+        my $parent_well = $well_hash->{'parent_well'};
+        my $parent_plate = $well_hash->{'parent_plate'};
+        # search the revised hash for an entry with the same target well
+        # create a new well hash entry if it doesn't exist
+        # and add the current parent well to the parent_well_list
+        # note that parent wells are expected to be from the same plate.
+
+        my $found_revised_well = 0;
+        REVISED_SEARCH: foreach my $revised_well ( @revised_wells ) {
+            $self->throw( Validation => 'Wells from different plates cannot be pooled to the same output well: '
+                . 'Already seen: '
+                . $revised_well->{'parent_plate'}
+                . ' and was not expecting: '
+                . $parent_plate
+            ) if  $parent_plate ne $revised_well->{'parent_plate'};
+
+            if ($revised_well->{'well_name'} eq $target_well ){
+                push @{$revised_well->{'parent_well_list'}}, $parent_well;
+                $found_revised_well = 1;
+                last REVISED_SEARCH;
+            }
+        }
+        if ( !$found_revised_well ) {
+            # transfer well to revised wells and update the parent_well_list
+            #
+            push @{$well_hash->{'parent_well_list'}}, $parent_well;
+            delete $well_hash->{'parent_well'};
+            push @revised_wells, $well_hash;
+        }
+    }
+
+    return \@revised_wells;
+}
+
 
 sub pspec_retrieve_plate {
     return {
@@ -297,7 +353,6 @@ sub create_plate_by_copy {
 
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
-
     #validation done of create_plate, not needed here
     my %plate_data = map { $_ => $params->{$_} }
         qw( plate_name species plate_type description created_by is_virtual process_type);
@@ -325,7 +380,6 @@ sub create_plate_csv_upload {
         merge_plate_process_data( $datum, \%plate_process_data );
     }
     $plate_data{wells} = $well_data;
-
     return $self->create_plate( \%plate_data );
 }
 

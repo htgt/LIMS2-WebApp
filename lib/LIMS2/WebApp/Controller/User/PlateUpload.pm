@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.076';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.077';
 }
 ## use critic
 
@@ -73,7 +73,6 @@ sub process_plate_upload_form :Private {
     my ( $self, $c ) = @_;
     $c->stash( $c->request->params );
     my $params = $c->request->params;
-
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';

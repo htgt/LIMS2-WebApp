@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::VERSION = '0.076';
+    $LIMS2::ReportGenerator::VERSION = '0.077';
 }
 ## use critic
 
@@ -151,9 +151,10 @@ sub vectors{
     # FIXME: should be filtering on species too
     my $where = {
         design_gene_id => $gene,
-        final_well_id => { '!=', undef },
+        final_pick_well_id => { '!=', undef },
         design_type => {-in => $design_types },
     };
+
     my $summary_rs = $self->model->schema->resultset('Summary')->search($where);
 
     while (my $summary = $summary_rs->next){
