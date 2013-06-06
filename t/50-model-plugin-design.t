@@ -114,6 +114,13 @@ note('Testing the Creation and Deletion of designs');
         model->retrieve_design( { id => 99999999 } );
     }
     'LIMS2::Exception::NotFound', '..can not retreive deleted design';
+
+    $design_data->{species} = 'Human';
+    $design_data->{id} = 88888888;
+    throws_ok{
+        model->create_design($design_data)
+    } qr/Assembly GRCm38 does not belong to species Human/
+        ,'throws error for species assembly mismatch';
 }
 
 note('Testing create design oligo');

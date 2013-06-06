@@ -28,7 +28,7 @@
 
 </div>
 
-[% INCLUDE 'plate_copy_help.tt' plate_help = plate_help %]
+[% INCLUDE 'plate_copy_help.tt' %]
 
 <script type="text/javascript">
 

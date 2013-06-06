@@ -18,9 +18,10 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
+    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
-        "Cassette", "Backbone", "Recombinases",
+        "Cassette", "Cassette Resistance", "Backbone", "Recombinases",
         "Final Vector Well", "Final Vector QC Test Result", "Final Vector Valid Primers", "Final Vector Mixed Reads?", "Final Vector Sequencing QC Pass?",
         "DNA Quality", "DNA Quality Comment", "DNA Pass?"
     ];
@@ -46,9 +47,11 @@ override iterator => sub {
         my $dna_status = $well->well_dna_status;
         my $dna_quality = $well->well_dna_quality;
 
+        # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well ),
             $well->cassette->name,
+            $well->cassette->resistance,
             $well->backbone->name,
             join( q{/}, @{ $well->recombinases } ),
             $self->ancestor_cols( $well, 'FINAL' ),

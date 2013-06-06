@@ -177,11 +177,19 @@ sub valid_dna_wells {
 
     	next unless $well->dna_status_pass;
 
+        # acs - 20_05_13 redmine 10335 - also check for vector final pick QC pass 
+        next unless $well->final_pick_qc_seq_pass;
+
     	if ( $params->{promoter} ){
-    		$dna_wells{$id} = $well if $well->final_cassette_promoter;
+
+            # acs - 20_05_13 redmine 10335 - use final_pick instead of final
+            # $dna_wells{$id} = $well if $well->final_cassette_promoter;
+    		$dna_wells{$id} = $well if $well->final_pick_cassette_promoter;
     	}
     	else{
-    		$dna_wells{$id} = $well unless $well->final_cassette_promoter;
+            # acs - 20_05_13 redmine 10335 - use final_pick instead of final
+            # $dna_wells{$id} = $well unless $well->final_cassette_promoter;
+    		$dna_wells{$id} = $well unless $well->final_pick_cassette_promoter;
     	}
     }
 
