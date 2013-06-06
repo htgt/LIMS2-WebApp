@@ -12,8 +12,11 @@ with qw( LIMS2::ReportGenerator::ColonyCounts );
 # stored against them (that is, colony counts) then XEP should be
 # removed from here and a new report implemented. OK, so I lied. We
 # include (or not) XEP counts depending on the plate type.
+
+#TODO delete xep stuff from here as we now have a separate report for XEP plates.
+#
 override plate_types => sub {
-    return [ 'EP', 'XEP' ];
+    return [ 'EP' ];
 };
 
 has wants_xep_count => (

@@ -800,5 +800,22 @@ sub second_ep {
     LIMS2::Exception::Implementation->throw( "Failed to determine second electroporation plate/well for $self" );
 }
 ## use critic
+
+sub get_input_wells_as_string {
+    my $well = shift;
+
+	my $parents;
+
+    foreach my $process ($well->parent_processes){
+        foreach my $input ($process->input_wells){
+	    		my $plate_name = $input->plate->name;
+                my $well_name = $input->name;
+                my $specification = $plate_name . '[' . $well_name . ']';
+                $parents = !$parents ? $specification : join q{ - }, ( $parents, $specification );
+        }
+    }
+    return ( $parents );
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
