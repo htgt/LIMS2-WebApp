@@ -189,10 +189,21 @@ note ( 'Test target gene' );
     is $di->target_gene->stable_id, 'ENSMUSG00000024617', 'target gene correct';
 }
 
+note( 'Test design with more than one target gene' );
+
+{
+    ok my $design = model->retrieve_design( { id => 39977  } ), 'can grab design 39977';
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    is $di->target_gene->stable_id, 'ENSMUSG00000018899', 'target gene correct';
+}
+
 note( 'Test MGI Accession ID' );
 
 {
-    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+    ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
     ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -217,7 +228,6 @@ note( 'Test design with target transcript' );
 note( 'Test design without target transcript' );
 
 {
-    #this design is identical to 81136 but the transcript has been removed
     ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
     #make sure we get the right transcript even if one isn't set.
@@ -231,7 +241,7 @@ note( 'Test design without target transcript' );
 
     is $transcript->stable_id, 'ENSMUST00000025519', 'target transcript correct';
 
-    $design->discard_changes; #we dont want to save the empty transcript.
+    $design->discard_changes; #we dont need to save the empty transcript.
 }
 
 note ( 'Test floxed exons' );
