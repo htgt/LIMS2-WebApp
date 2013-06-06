@@ -148,7 +148,7 @@ sub vectors{
         final_pick_well_id => { '!=', undef },
         design_type => {-in => $design_types },
     };
-    
+
     my $summary_rs = $self->model->schema->resultset('Summary')->search($where);
 
     while (my $summary = $summary_rs->next){
