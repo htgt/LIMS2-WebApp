@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.072';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.078';
 }
 ## use critic
 
@@ -318,6 +318,11 @@ sub create_well_dna_status {
         $dna_status = $well->create_related(
             well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
         );
+
+        # acs - 20_05_13 - redmine 10328 - update well accepted flag
+        $well->accepted($dna_status->pass);
+        $well->update();
+
         $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
     }
     else {

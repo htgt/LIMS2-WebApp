@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Chromosome;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.072';
+    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.078';
 }
 ## use critic
 
@@ -108,7 +108,7 @@ __PACKAGE__->add_unique_constraint("new_chromosomes_species_id_name_key", ["spec
 
 =head1 RELATIONS
 
-=head2 bac_clone_locis
+=head2 bac_clone_loci
 
 Type: has_many
 
@@ -117,13 +117,28 @@ Related object: L<LIMS2::Model::Schema::Result::BacCloneLocus>
 =cut
 
 __PACKAGE__->has_many(
-  "bac_clone_locis",
+  "bac_clone_loci",
   "LIMS2::Model::Schema::Result::BacCloneLocus",
   { "foreign.chr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 design_oligo_locis
+=head2 crispr_loci
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprLocus>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_loci",
+  "LIMS2::Model::Schema::Result::CrisprLocus",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 design_oligo_loci
 
 Type: has_many
 
@@ -132,7 +147,7 @@ Related object: L<LIMS2::Model::Schema::Result::DesignOligoLocus>
 =cut
 
 __PACKAGE__->has_many(
-  "design_oligo_locis",
+  "design_oligo_loci",
   "LIMS2::Model::Schema::Result::DesignOligoLocus",
   { "foreign.chr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -154,8 +169,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FjPGU4oTP4APmSq9cyEehg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-03 14:05:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eRunWCJZVkl/tYf8Go5ceA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

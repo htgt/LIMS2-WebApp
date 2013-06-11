@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.072';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.078';
 }
 ## use critic
 
@@ -36,7 +36,7 @@ sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
     my @process_types = map { $_->id } @{ $c->model('Golgi')->list_process_types };
 
     $c->stash(
-        process_types => [ grep{ !/create_di|legacy_gateway/ } @process_types ],
+        process_types => [ grep{ !/create_di|legacy_gateway|create_crispr/ } @process_types ],
         plate_help  => $c->model('Golgi')->plate_help_info,
     );
     return;
@@ -73,7 +73,6 @@ sub process_plate_upload_form :Private {
     my ( $self, $c ) = @_;
     $c->stash( $c->request->params );
     my $params = $c->request->params;
-
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.072';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.078';
 }
 ## use critic
 
@@ -64,7 +64,6 @@ Synchronously generate the report I<$REPORT>. Forward to an HTML view.
 
 sub sync_report :Path( '/user/report/sync' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
-
     $c->assert_user_roles( 'read' );
 
     my $params = $c->request->params;

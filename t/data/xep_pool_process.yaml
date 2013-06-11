@@ -2,15 +2,27 @@
 valid_input:
     type: xep_pool
     output_wells:
-        - plate_name: XEP_POOL0001
+        - plate_name: XEP0006
           well_name: A01
     input_wells:
         - plate_name: FEPD0006_1
-          well_name: A01,A02,C04
+          well_name: A01
+        - plate_name: FEPD0006_1
+          well_name: A02
+        - plate_name: FEPD0006_1
+          well_name: C06
+one_input_well:
+    type: xep_pool
+    output_wells:
+        - plate_name: XEP0006
+          well_name: A01
+    input_wells:
+        - plate_name: FEPD0006_1
+          well_name: C06
 invalid_output_well:
     type: xep_pool
     output_wells:
-        - plate_name: XEP_POOL0001
+        - plate_name: SEP0006
           well_name: N01
     input_wells:
         - plate_name: FEPD0006_1

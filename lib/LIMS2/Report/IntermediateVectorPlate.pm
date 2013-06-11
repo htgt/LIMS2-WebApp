@@ -1,7 +1,7 @@
 package LIMS2::Report::IntermediateVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.072';
+    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.078';
 }
 ## use critic
 
@@ -24,9 +24,10 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
+    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
-        "Cassette", "Backbone", "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
+        "Cassette", "Cassette Resistance", "Backbone", "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
     ];
 };
 
@@ -47,9 +48,11 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
+        # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well ),
             $well->cassette->name,
+            $well->cassette->resistance,
             $well->backbone->name,
             $self->qc_result_cols( $well ),
         ];

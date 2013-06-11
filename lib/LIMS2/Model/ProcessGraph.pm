@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.072';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.078';
 }
 ## use critic
 
@@ -314,19 +314,19 @@ sub depth_first_traversal {
 sub find_process {
     my ( $self, $start_well, $relation ) = @_;
 
-    DEBUG( "find_process searching for relation $relation" );
+    TRACE( "find_process searching for relation $relation" );
 
     my $it = $self->breadth_first_traversal( $start_well, 'in' );
 
     while( my $well = $it->next ) {
-        DEBUG( "find_process examining $well" );
+        TRACE( "find_process examining $well" );
         for my $process ( $self->input_processes( $well ) ) {
             if ( my $related = $process->$relation() ) {
 
             	# Don't return $related if it is an empty resultset
             	next if ($related->isa("DBIx::Class::ResultSet") and $related->count == 0 );
 
-                DEBUG( "Found $relation at $well (process ".$process->id.")" );
+                TRACE( "Found $relation at $well (process ".$process->id.")" );
                 return $related;
             }
         }

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.072';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.078';
 }
 ## use critic
 
@@ -174,6 +174,8 @@ sub create_design_oligo_locus {
             oligo_type => $validated_params->{oligo_type},
         }
     );
+
+    $oligo->design->species->check_assembly_belongs( $validated_params->{assembly} );
 
     my $oligo_locus = $oligo->create_related(
         loci => {

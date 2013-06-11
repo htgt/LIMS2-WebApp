@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPlate::VERSION = '0.072';
+    $LIMS2::Report::EPPlate::VERSION = '0.078';
 }
 ## use critic
 
@@ -18,8 +18,11 @@ with qw( LIMS2::ReportGenerator::ColonyCounts );
 # stored against them (that is, colony counts) then XEP should be
 # removed from here and a new report implemented. OK, so I lied. We
 # include (or not) XEP counts depending on the plate type.
+
+#TODO delete xep stuff from here as we now have a separate report for XEP plates.
+#
 override plate_types => sub {
-    return [ 'EP', 'XEP' ];
+    return [ 'EP' ];
 };
 
 has wants_xep_count => (
@@ -42,10 +45,11 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
+    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     my @columns = (
         $self->base_columns,
         "DNA Well",
-        "Cassette", "Recombinases", "Cell Line",
+        "Cassette", "Cassette Resistance", "Recombinases", "Cell Line",
         $self->colony_count_column_names,
         "Number Picked", "Number Accepted"
     );
@@ -82,10 +86,12 @@ override iterator => sub {
 
         my $cassette = $well->cassette ? $well->cassette->name : '';
 
+        # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well ),
             $dna_well->as_string,
             $cassette,
+            $well->cassette->resistance,
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,
             $self->colony_counts( $well ),

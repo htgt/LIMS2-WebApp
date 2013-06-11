@@ -4,11 +4,11 @@
   <h2>Sponsor Progress Sub-Report</h2>
 </div>
 
-[% IF report_id %]
-
 <p>
 <big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
 </p>
+
+[% IF report_id %]
 
 <table class="table table-striped table-bordered">
   <thead>
@@ -23,11 +23,31 @@
 		<tr>	
 			[% FOREACH col IN columns %]
 				[% colval = row.item(col) %]
+				[% IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
+					[% IF colval == "1" %]
+						<td style="color:green">pass</td>
+					[% ELSIF colval == "0" %]
+						<td style="color:red">fail</td>
+					[% ELSE %]
+						<td style="color:orange">----</td>
+					[% END %] 
+				[% ELSIF col == "cassette_promotor" || col == "neo_p" || col == "neo_pl" || col == "bsd_p" || col == "bsd_pl" %]
+					[% IF colval == "1" %]
+						<td style="color:green">yes</td>
+					[% ELSIF colval == "0" %]
+						<td style="color:red">no</td>
+					[% ELSE %]
+						<td style="color:orange">---</td>
+					[% END %] 
+                [% ELSE %]
 				<td>[% colval %]</td>
+				[% END %]
 			[% END %]
 		</tr>
 	[% END %]
   </tbody>
 </table>
 
+[% ELSE %]
+<h3>Error: No rows found for this report!</h3>
 [% END %]

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.072';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.078';
 }
 ## use critic
 
@@ -43,7 +43,7 @@ print "running retrieve_qc_run_results\n";
     my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
         { prefetch => ['qc_test_results'] } );
 
-    my @qc_run_results = map { @{ _parse_qc_seq_wells( $_, $expected_design_loc ) } } @qc_seq_wells;
+    my @qc_run_results = map { @{ _parse_qc_seq_wells( $_, $expected_design_loc, $qc_run ) } } @qc_seq_wells;
 
     @qc_run_results = sort {
                $a->{plate_name} cmp $b->{plate_name}
@@ -98,7 +98,7 @@ sub retrieve_qc_run_summary_results {
 }
 
 sub retrieve_qc_run_seq_well_results {
-    my $seq_well = shift;
+    my ( $qc_run_id, $seq_well ) = @_;
 
     my @seq_reads = $seq_well->qc_seq_reads;
 
@@ -107,7 +107,13 @@ sub retrieve_qc_run_seq_well_results {
             'No sequence reads for qc seq well ' . $seq_well->plate_name . $seq_well->well_name );
     }
 
-    my @qc_alignments = map { $_->qc_alignments } @seq_reads;
+    #
+    # NOTE 
+    # until all legacy data is updated we have to allow a null qc_run_id.
+    # if its null we just allow it as we can't know which run it belongs to.
+    # this method will return ALL alignments if it can't find any linked ones
+    #
+    my @qc_alignments = map { $_->alignments_for_run( $qc_run_id ) } @seq_reads;
 
     my @qc_results;
     for my $test_result ( $seq_well->qc_test_results ) {
@@ -236,7 +242,7 @@ sub _design_loc_for_qc_template_plate {
 }
 
 sub _parse_qc_seq_wells {
-    my ( $qc_seq_well, $expected_design_loc ) = @_;
+    my ( $qc_seq_well, $expected_design_loc, $qc_run ) = @_;
 
     my $plate_name      = $qc_seq_well->plate_name;
     my $well_name       = lc( $qc_seq_well->well_name );
@@ -260,7 +266,14 @@ sub _parse_qc_seq_wells {
 
     _get_primers_for_seq_well( \@qc_seq_reads, \%result );
 
-    my @qc_alignments = map { $_->qc_alignments } @qc_seq_reads;
+
+    #
+    # NOTE
+    # alignments for run will return all qc alignments for a seq read if it is old
+    # qc data which doesnt have a run attached to an alignment
+    # 
+
+    my @qc_alignments = map { $_->alignments_for_run( $qc_run->id ) } @qc_seq_reads;
 
     my @test_results;
 

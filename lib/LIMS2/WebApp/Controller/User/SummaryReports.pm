@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::SummaryReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.072';
+    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.078';
 }
 ## use critic
 
@@ -44,8 +44,9 @@ sub view : Path( '/user/view_summary_report' ) : Args(3) {
     my $species = $c->session->{selected_species};
 
     # Call ReportForSponsors plugin to generate report 
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { species => $species, model => $c->model( 'Golgi' ) } );
-    my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $targeting_type, $stage);
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
+
+    my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
 
     # Fetch details from returned report parameters
     my $report_id        = $report_params->{ 'report_id' };
