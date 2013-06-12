@@ -67,7 +67,6 @@ sub process_plate_upload_form :Private {
     my ( $self, $c ) = @_;
     $c->stash( $c->request->params );
     my $params = $c->request->params;
-
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';
