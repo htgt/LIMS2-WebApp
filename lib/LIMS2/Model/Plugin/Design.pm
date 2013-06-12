@@ -279,7 +279,7 @@ sub pspec_list_assigned_designs_for_gene {
     }
 }
 
-#fetch all designs from the GeneDesign table for a given mgi accession id 
+#fetch all designs from the GeneDesign table for a given mgi accession id
 sub list_assigned_designs_for_gene {
     my ( $self, $params ) = @_;
 

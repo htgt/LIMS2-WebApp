@@ -1,0 +1,14 @@
+---
+design_target_with_design:
+    species: Mouse
+    gene_name: MGI:1915861
+    exon_id: ENSMUSE00000253876
+    exon_size: 135
+    assembly: GRCm38
+    build: 70
+    chr_name: 17
+    chr_start: 26125257
+    chr_end: 26125391
+    chr_strand: 1
+    automatically_picked: 1
+    comment: Test design target
