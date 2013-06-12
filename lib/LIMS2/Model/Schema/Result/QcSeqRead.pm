@@ -170,5 +170,19 @@ sub bio_seq {
     );
 }
 
+#qc_alignments can return duplicates, but if we have a qc_run_id we will only return
+#the ones attached to that run (because a seq read can belong to multiple runs)
+sub alignments_for_run {
+  my ( $self, $qc_run_id ) = @_;
+
+  my @all_qc_alignments = $self->qc_alignments;
+
+  my @run_alignments = grep { defined $_->qc_run_id && $_->qc_run_id eq $qc_run_id }
+                          @all_qc_alignments;
+
+  #if we didn't get any alignments for this specific run just return everything.
+  return ( @run_alignments ) ? @run_alignments : @all_qc_alignments;
+};
+
 __PACKAGE__->meta->make_immutable;
 1;

@@ -1,5 +1,15 @@
 {{$NEXT}}
 
+0.078     2013-06-11 16:01:16 Europe/London
+    
+    QC Bugfix: newer runs displayed valid primers multiple times.
+
+0.077     2013-06-06 14:54:43 Europe/London
+
+    Addition of PIQ plate type and process dist_qc
+    Support for xep_pool from csv upload with reporting
+    New methods in DesignInfo
+
 0.076     2013-06-04 07:53:56 Europe/London
 
     Let the crispr_off_targets table accept any text as a chromosome name, to deal with scaffolding sequence.
