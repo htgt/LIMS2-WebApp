@@ -379,7 +379,8 @@ sub pspec_create_design_target {
     return {
         species              => { validate => 'existing_species', rename => 'species_id' },
         gene_name            => { validate => 'non_empty_string' },
-        exon_id              => { validate => 'non_empty_string' },
+        ensembl_gene_id      => { validate => 'non_empty_string' },
+        ensembl_exon_id      => { validate => 'non_empty_string' },
         exon_size            => { validate => 'integer', optional => 1 },
         exon_rank            => { validate => 'integer', optional => 1 },
         canonical_transcript => { validate => 'non_empty_string', optional => 1 },
@@ -404,8 +405,9 @@ sub create_design_target {
             chr_id => $self->_chr_id_for( @{$validated_params}{ 'assembly_id', 'chr_name' } ),
             slice_def (
                 $validated_params,
-                qw ( species_id design_type_id gene_name exon_id exon_size exon_rank
-                     canonical_transcript assembly_id build_id chr_start chr_end chr_strand
+                qw ( species_id design_type_id gene_name ensembl_gene_id
+                     ensembl_exon_id exon_size exon_rank canonical_transcript
+                     assembly_id build_id chr_start chr_end chr_strand
                      automatically_picked comment
                    )
             ),
