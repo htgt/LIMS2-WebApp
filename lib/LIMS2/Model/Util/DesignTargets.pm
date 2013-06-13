@@ -51,7 +51,7 @@ sub designs_matching_design_target {
         my $slice = $design->info->target_region_slice;
         my @floxed_exons = try{ @{ $design->info->target_region_slice->get_all_Exons } };
 
-        if ( any { $design_target->exon_id eq $_->stable_id } @floxed_exons ) {
+        if ( any { $design_target->ensembl_exon_id eq $_->stable_id } @floxed_exons ) {
             push @designs_for_exon, $design;
         }
     }
