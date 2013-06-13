@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Chromosome;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.077';
+    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.079';
 }
 ## use critic
 
@@ -153,6 +153,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 design_targets
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignTarget>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_targets",
+  "LIMS2::Model::Schema::Result::DesignTarget",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 species
 
 Type: belongs_to
@@ -169,8 +184,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-03 14:05:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eRunWCJZVkl/tYf8Go5ceA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-04 13:23:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V/gi7z10pKZqAtXf7QWE3w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

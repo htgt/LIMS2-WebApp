@@ -1,3 +1,13 @@
+0.079     2013-06-13 08:00:40 Europe/London
+
+    Re-organised main menues.
+    Final Pick type plates now used for reports and summaries where projects are single targeted.
+    Added design_targets table.
+
+0.078     2013-06-11 16:01:16 Europe/London
+    
+    QC Bugfix: newer runs displayed valid primers multiple times.
+
 0.077     2013-06-06 14:54:43 Europe/London
 
     Addition of PIQ plate type and process dist_qc
