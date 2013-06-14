@@ -29,7 +29,7 @@ my $create_design_target_data = test_data( 'design_targets_util.yaml' );
     my $design = shift @{ $designs };
     is $design->id, 221035, '.. and that design is the correct one';
 
-    is $design->genes->first->gene_id, $design_target->gene_name, 'design target and design have same gene';
+    is $design->genes->first->gene_id, $design_target->gene_id, 'design target and design have same gene';
 
 }
 
