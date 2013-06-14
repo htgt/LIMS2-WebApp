@@ -1,7 +1,7 @@
 ---
 design_target_with_design:
     species: Mouse
-    gene_name: MGI:1915861
+    gene_id: MGI:1915861
     ensembl_gene_id: ENSMUSG00000024181
     ensembl_exon_id: ENSMUSE00000253876
     exon_size: 135

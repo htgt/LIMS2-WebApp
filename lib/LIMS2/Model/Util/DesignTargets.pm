@@ -41,7 +41,7 @@ sub designs_matching_design_target {
 
     my @designs = $schema->resultset('Design')->search(
         {
-            'genes.gene_id' => $design_target->gene_name,
+            'genes.gene_id' => $design_target->gene_id,
             species_id      => $design_target->species_id,
         },
         { join => 'genes' },
