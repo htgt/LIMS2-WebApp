@@ -50,6 +50,11 @@ __PACKAGE__->table("design_targets");
   data_type: 'text'
   is_nullable: 0
 
+=head2 ensembl_gene_id
+
+  data_type: 'text'
+  is_nullable: 0
+
 =head2 ensembl_exon_id
 
   data_type: 'text'
@@ -118,11 +123,6 @@ __PACKAGE__->table("design_targets");
   data_type: 'text'
   is_nullable: 1
 
-=head2 ensembl_gene_id
-
-  data_type: 'text'
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -134,6 +134,8 @@ __PACKAGE__->add_columns(
     sequence          => "design_targets_id_seq",
   },
   "gene_name",
+  { data_type => "text", is_nullable => 0 },
+  "ensembl_gene_id",
   { data_type => "text", is_nullable => 0 },
   "ensembl_exon_id",
   { data_type => "text", is_nullable => 0 },
@@ -161,8 +163,6 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 0 },
   "comment",
   { data_type => "text", is_nullable => 1 },
-  "ensembl_gene_id",
-  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -225,8 +225,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-13 07:24:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:99bnXf9blNY28aYhtJDrPw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-13 10:34:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:u95EfulLJDwjmrTI6Np48Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

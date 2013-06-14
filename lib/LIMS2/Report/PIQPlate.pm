@@ -18,11 +18,11 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    # acs - 20_05_13 - redmine 10545 - add cassette resistance
-    my @columns = (
+   my @columns = (
         $self->base_columns,
         'Electroporation Pick Well',
         'Freezer Well',
+        'Lab Number',
     );
 
     return \@columns;
@@ -45,10 +45,13 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
+        my $well_lab_number = $well->well_lab_number;
+
         return [
             $self->base_data( $well ),
             $well->first_ep_pick->as_string,
             $well->freezer_instance->as_string,
+            ( $well_lab_number ? $well_lab_number->lab_number : '' ),
         ];
     };
 };
