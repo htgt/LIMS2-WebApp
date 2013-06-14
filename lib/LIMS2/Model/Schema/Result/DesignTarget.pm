@@ -45,10 +45,10 @@ __PACKAGE__->table("design_targets");
   is_nullable: 0
   sequence: 'design_targets_id_seq'
 
-=head2 gene_name
+=head2 marker_symbol
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 ensembl_gene_id
 
@@ -123,6 +123,11 @@ __PACKAGE__->table("design_targets");
   data_type: 'text'
   is_nullable: 1
 
+=head2 gene_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -133,8 +138,8 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "design_targets_id_seq",
   },
-  "gene_name",
-  { data_type => "text", is_nullable => 0 },
+  "marker_symbol",
+  { data_type => "text", is_nullable => 1 },
   "ensembl_gene_id",
   { data_type => "text", is_nullable => 0 },
   "ensembl_exon_id",
@@ -163,6 +168,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 0 },
   "comment",
   { data_type => "text", is_nullable => 1 },
+  "gene_id",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -176,6 +183,25 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<design_targets_unique_target>
+
+=over 4
+
+=item * L</ensembl_exon_id>
+
+=item * L</build_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "design_targets_unique_target",
+  ["ensembl_exon_id", "build_id"],
+);
 
 =head1 RELATIONS
 
@@ -225,8 +251,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-13 10:34:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:u95EfulLJDwjmrTI6Np48Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-14 08:24:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gk8Zq8xaRHLv18vdzv7q0w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
