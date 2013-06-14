@@ -1,7 +1,8 @@
 ---
 valid_design_target:
     species: Human
-    gene_name: ABL1
+    marker_symbol: ABL1
+    gene_id: HGNC:76
     ensembl_gene_id: ENSG00000097007
     ensembl_exon_id: ENSE00002690665
     exon_size: 296

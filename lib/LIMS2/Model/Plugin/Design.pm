@@ -378,7 +378,8 @@ sub search_gene_designs {
 sub pspec_create_design_target {
     return {
         species              => { validate => 'existing_species', rename => 'species_id' },
-        gene_name            => { validate => 'non_empty_string' },
+        gene_id              => { validate => 'non_empty_string', optional => 1 },
+        marker_symbol        => { validate => 'non_empty_string', optional => 1 },
         ensembl_gene_id      => { validate => 'non_empty_string' },
         ensembl_exon_id      => { validate => 'non_empty_string' },
         exon_size            => { validate => 'integer', optional => 1 },
@@ -400,12 +401,24 @@ sub create_design_target {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_design_target );
 
+    my $existing_target = $self->schema->resultset('DesignTarget')->find(
+        {
+            ensembl_exon_id => $validated_params->{ensembl_exon_id},
+            build_id => $validated_params->{build_id}
+        }
+    );
+
+    $self->throw(
+        InvalidState => 'Design target already exists on same build for exon: '
+        . $validated_params->{ensembl_exon_id}
+    ) if $existing_target;
+
     my $design_target = $self->schema->resultset( 'DesignTarget' )->create(
         {
             chr_id => $self->_chr_id_for( @{$validated_params}{ 'assembly_id', 'chr_name' } ),
             slice_def (
                 $validated_params,
-                qw ( species_id design_type_id gene_name ensembl_gene_id
+                qw ( species_id design_type_id gene_id marker_symbol ensembl_gene_id
                      ensembl_exon_id exon_size exon_rank canonical_transcript
                      assembly_id build_id chr_start chr_end chr_strand
                      automatically_picked comment
