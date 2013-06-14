@@ -1,3 +1,8 @@
+0.080     2013-06-14 08:31:11 Europe/London
+
+    Modify design_targets table to add gene_id, rename gene_name to marker_symbol.
+    Add checks to make sure design_targets are unique on ensembl exon id for a given build.
+
 0.079     2013-06-13 08:00:40 Europe/London
 
     Re-organised main menues.
