@@ -23,7 +23,6 @@ use LIMS2::Model::Util qw( well_id_for );
 use LIMS2::Exception::Implementation;
 use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
-use Smart::Comments;
 
 my %process_field_data = (
     final_cassette => {
