@@ -451,56 +451,82 @@ lives_ok {
 }
 
 {
-    note("Testing well lab number create, retrieve and delete");
+    note("well lab number tests: create, retrieve, update and delete");
 
+    # create a PIQ plate and a well
     ok my $piq_plate = model->create_plate( $well_data->{piq_plate_create}), 'create PIQ plate should succeed';
 
     ok my $piq_well = model->create_well( $well_data->{piq_well_create_one} ), 'create PIQ well should succeed';
 
+    # check parameter validation
     throws_ok {
         model->create_well_lab_number( { well_id => $piq_well->id, }  );
-    } qr/Parameter validation failed/;
+    } qr/Parameter validation failed/, 'correctly throws parameter validation failure when parameters are incomplete';
 
+    # check normal create
     ok model->create_well_lab_number( { well_id => $piq_well->id, lab_number => 'LAB 001', }  )
-    , 'lab_number created successfully' ;
+    , 'lab number created successfully';
 
+    # check create fails when already exists
     throws_ok {
         model->create_well_lab_number( { well_id => $piq_well->id, lab_number => 'LAB 001', }  );
-    } qr/Well PIQTEST001_A01 already has a Lab Number, with a value of LAB 001/;
+    } qr/Well PIQTEST001_A01 already has a Lab Number, with a value of LAB 001/, 'correctly throws create failure when well aleady has a lab number';
 
+    # check can retrieve well number and details are correct
     ok my $lab_number = model->retrieve_well_lab_number( { plate_name =>'PIQTEST001', well_name => 'A01' } ), 'can retrieve Lab Number data for well';
 
-    is $lab_number->lab_number, 'LAB 001', 'Lab Number retrieved is correct';
+    is $lab_number->lab_number, 'LAB 001', 'lab number retrieved is correct';
 
     ok my $well = $lab_number->well, '.. can grab well from lab_number';
     
     is "$well", 'PIQTEST001_A01', '.. and lab_number is for right well';
 
-    ok $lab_number = model->update_or_create_well_lab_number( {  well_id => $piq_well->id , lab_number => 'LAB 002' } ), 'can update Lab Number when new Lab Number is unique';
+    # check can update lab number
+    ok $lab_number = model->update_or_create_well_lab_number( {  well_id => $piq_well->id , lab_number => 'LAB 002' } ), 'can update lab number when new Lab Number is unique';
 
     is $lab_number->lab_number, 'LAB 002', '..updated result is now LAB 002';
 
+    # check update fails if lab number unchanged
     throws_ok {
         $lab_number = model->update_or_create_well_lab_number( {  well_id => $piq_well->id , lab_number => 'LAB 002' } );
-    } qr/Update unnecessary. Lab Number LAB 002 is unchanged/;
+    } qr/Update unnecessary. Lab Number LAB 002 is unchanged/, 'correctly throws update failure when lab number is unchanged';
 
+    # check delete
     lives_ok {
         model->delete_well_lab_number( { plate_name =>'PIQTEST001', well_name => 'A01' } )
     } 'delete well lab number should succeed';
 
     throws_ok {
         model->retrieve_well_lab_number( { plate_name =>'PIQTEST001', well_name => 'A01' } )
-    } qr/No WellLabNumber entity should be found/;
+    } qr/No WellLabNumber entity found matching/, 'correctly throws retrieve failure';
 
-    ok $lab_number = model->update_or_create_well_lab_number( {  well_id => $piq_well->id , lab_number => 'LAB 003' } ), 'can create Lab Number when none exists for well';
+    # check update or create
+    ok $lab_number = model->update_or_create_well_lab_number( {  well_id => $piq_well->id , lab_number => 'LAB 003' } ), 'can create lab number when none exists for well';
 
     is $lab_number->lab_number, 'LAB 003', '..updated result is now LAB 003';
 
+    # create a second well
     ok my $piq_well_two = model->create_well( $well_data->{piq_well_create_two} ), 'creating a second PIQ well should succeed';
 
+    # check cannot re-use an existing lab number
     throws_ok {
         my $lab_number_two = model->update_or_create_well_lab_number( {  well_id => $piq_well_two->id , lab_number => 'LAB 003' } );
-    } qr/Create failed. Lab Number LAB 003 has already been used in well PIQTEST001_A01/;
+    } qr/Create failed. Lab Number LAB 003 has already been used in well PIQTEST001_A01/, 'correctly throws create failure when lab number already used';
+
+    # check cannot create an empty lab number
+    throws_ok {
+        my $lab_number_two = model->create_well_lab_number( {  well_id => $piq_well_two->id , lab_number => '' } );
+    } qr/Parameter validation failed/, 'correctly throws create parameter validation failure when lab number empty';
+
+    # check cannot update_or_create an empty lab number
+    throws_ok {
+        my $lab_number_two = model->update_or_create_well_lab_number( {  well_id => $piq_well_two->id , lab_number => '' } );
+    } qr/Parameter validation failed/, 'correctly throws update_or_create parameter validation failure when lab number empty';
+
+    # check can insert a valid lab number
+    ok my $lab_number_two = model->update_or_create_well_lab_number( {  well_id => $piq_well_two->id , lab_number => 'LAB 004' } ), 'can insert a second well lab number';
+
+    note("end of well lab number tests");
 }
 
 {
