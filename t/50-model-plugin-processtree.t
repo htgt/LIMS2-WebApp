@@ -25,6 +25,7 @@ note("Testing process tree methods - descendants");
 
     @path_cmp = ( 850, 851, 852, 1503, 1504 );
     push @ref_paths, [@path_cmp];
+    $paths = [sort @{$paths}];
 
     foreach my $check_path ( 0 .. 1 ) {
         my $n = 0;
@@ -48,6 +49,7 @@ note("Testing process tree methods - ancestors");
 
     @path_cmp = reverse ( 850, 851, 852, 1503, 1504 );
     push @ref_paths, [@path_cmp];
+    $paths = [sort @{$paths}];
 
     foreach my $check_path ( 0 .. 1 ) {
         my $n = 0;

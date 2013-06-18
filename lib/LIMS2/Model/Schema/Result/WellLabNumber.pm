@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::ProcessOutputWell;
+package LIMS2::Model::Schema::Result::WellLabNumber;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProcessOutputWell::VERSION = '0.081';
+    $LIMS2::Model::Schema::Result::WellLabNumber::VERSION = '0.081';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::ProcessOutputWell;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::ProcessOutputWell
+LIMS2::Model::Schema::Result::WellLabNumber
 
 =cut
 
@@ -36,19 +36,13 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<process_output_well>
+=head1 TABLE: C<well_lab_number>
 
 =cut
 
-__PACKAGE__->table("process_output_well");
+__PACKAGE__->table("well_lab_number");
 
 =head1 ACCESSORS
-
-=head2 process_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
 
 =head2 well_id
 
@@ -56,20 +50,23 @@ __PACKAGE__->table("process_output_well");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 lab_number
+
+  data_type: 'text'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
-  "process_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "well_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "lab_number",
+  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
-
-=item * L</process_id>
 
 =item * L</well_id>
 
@@ -77,24 +74,23 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("process_id", "well_id");
+__PACKAGE__->set_primary_key("well_id");
 
-=head1 RELATIONS
+=head1 UNIQUE CONSTRAINTS
 
-=head2 process
+=head2 C<lab_number_unique>
 
-Type: belongs_to
+=over 4
 
-Related object: L<LIMS2::Model::Schema::Result::Process>
+=item * L</lab_number>
+
+=back
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "process",
-  "LIMS2::Model::Schema::Result::Process",
-  { id => "process_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
+__PACKAGE__->add_unique_constraint("lab_number_unique", ["lab_number"]);
+
+=head1 RELATIONS
 
 =head2 well
 
@@ -112,8 +108,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-06-13 10:23:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qkCstfJdjR1FvUz3QSQdQQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-14 09:49:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GGIrWVuEs6bxmHIRosJD0Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

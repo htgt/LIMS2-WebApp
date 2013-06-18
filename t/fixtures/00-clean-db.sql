@@ -56,6 +56,7 @@ DELETE FROM well_genotyping_results;
 DELETE FROM well_recombineering_results;
 DELETE FROM well_colony_counts;
 DELETE FROM well_primer_bands;
+DELETE FROM well_lab_number;
 DELETE FROM wells;
 DELETE FROM plate_comments;
 DELETE FROM plates;
