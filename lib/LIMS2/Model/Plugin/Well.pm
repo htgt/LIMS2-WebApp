@@ -119,7 +119,7 @@ sub delete_well {
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
                                  well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands 
-                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass);
+                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass well_lab_number );
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
@@ -1334,7 +1334,7 @@ sub update_or_create_well_lab_number {
 
         # update where there is an existing lab number
         my $update_request = {slice_def $validated_params, qw( lab_number )};
-        
+
         # ok to update the existing lab number
         $lab_number->update( { 'lab_number' => $update_request->{ 'lab_number' } } );
 
@@ -1374,7 +1374,7 @@ sub retrieve_well_lab_number {
     $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
     my $well = $self->retrieve_well( $params );
     my $lab_number = $well->well_lab_number
-        or $self->throw( NotFound => { entity_class => 'WellLabNumber', search_params => $params } );;
+        or $self->throw( NotFound => { entity_class => 'WellLabNumber', search_params => $params } );
     return $lab_number;
 }
 
