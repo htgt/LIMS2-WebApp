@@ -1,7 +1,7 @@
 package LIMS2::t::Model::Util::CreatePlate;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Util::CreatePlate;
+use LIMS2::Model::Util::CreatePlate qw(merge_plate_process_data);
 
 =head1 NAME
 
@@ -24,7 +24,6 @@ Loading other test classes at compile time
 BEGIN
 {
     # compile time requirements
-    #{REQUIRE_PARENT}
 };
 
 =head2 before
@@ -78,10 +77,37 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Test(2)
 {
-    local $TODO = 'Test of LIMS2::Model::Util::CreatePlate not implemented yet';
-    ok(0, "Test of LIMS2::Model::Util::CreatePlate");
+    note( "Plate Create - merge plate process data" );
+
+    my $well_data = {
+        well_name    => 'A01',
+        parent_plate => 'MOHFAQ0001_A_2',
+        parent_well  => 'A01',
+        cassette     => 'test_cassette',
+        backbone     => '',
+        recombinase  => 'Cre'
+    };
+
+    my $plate_data = {
+        backbone => 'test_backbone',
+        cassette => 'wrong_cassette',
+        process_type => '2w_gateway',
+    };
+
+    ok merge_plate_process_data( $well_data, $plate_data );
+
+    is_deeply $well_data, {
+        well_name    => 'A01',
+        parent_plate => 'MOHFAQ0001_A_2',
+        parent_well  => 'A01',
+        cassette     => 'test_cassette',
+        backbone     => 'test_backbone',
+        process_type => '2w_gateway',
+        recombinase  => ['Cre'],
+    }, 'well_data array is as expected';
+
 }
 
 =head1 AUTHOR
