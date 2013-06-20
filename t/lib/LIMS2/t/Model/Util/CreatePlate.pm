@@ -77,7 +77,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(2)
+sub all_tests  : Test(3)
 {
     note( "Plate Create - merge plate process data" );
 
@@ -95,6 +95,8 @@ sub all_tests  : Test(2)
         cassette => 'wrong_cassette',
         process_type => '2w_gateway',
     };
+
+    use_ok('LIMS2::Model::Util::CreatePlate', qw( merge_plate_process_data ) );
 
     ok merge_plate_process_data( $well_data, $plate_data );
 
