@@ -24,11 +24,13 @@ sub create_pg_user {
 
     my $db_name = db_name($dbh);
 
+    #my $whoami      = $dbh->{Username};
+    #DEBUG("Logged in as '$whoami'");
     my $admin_role  = $dbh->quote_identifier( $db_name . '_admin' );
     my $webapp_role = $dbh->quote_identifier( $db_name . '_webapp' );
     my $new_role    = $dbh->quote_identifier($user_name);
 
-    $dbh->do("SET LOCAL ROLE $admin_role");
+    #$dbh->do("SET LOCAL ROLE $admin_role");
 
     my ($count) = $dbh->selectrow_array( "SELECT COUNT(*) FROM pg_roles WHERE rolname = ?", undef, $user_name );
     if ( $count > 0 ) {
@@ -40,9 +42,9 @@ sub create_pg_user {
     }
 
     DEBUG("Granting $new_role to $webapp_role");
-    $dbh->do("GRANT $new_role TO $webapp_role");
+    #$dbh->do("GRANT $new_role TO $webapp_role");
 
-    set_pg_roles( $dbh, $user_name, $user_roles );
+    #set_pg_roles( $dbh, $user_name, $user_roles );
 
     return;
 }
@@ -59,34 +61,34 @@ sub set_pg_roles {
     my $admin_role = $dbh->quote_identifier( $db_name . '_admin' );
     my $inter_role = $dbh->quote_identifier( $db_name . '_inter_admin' );
 
-    $dbh->do("SET LOCAL ROLE $admin_role");
-
-    if ( grep { $_ eq 'read' } @{$user_roles} ) {
-        DEBUG("Granting $ro_role to $user_name");
-        $dbh->do("GRANT $ro_role TO $user_name");
-    }
-    else {
-        DEBUG("Revoking $ro_role from $user_name");
-        $dbh->do("REVOKE $ro_role FROM $user_name");
-    }
-
-    if ( grep { $_ eq 'edit' } @{$user_roles} ) {
-        DEBUG("Granting $rw_role to $user_name");
-        $dbh->do("GRANT $rw_role TO $user_name");
-    }
-    else {
-        DEBUG("Revoking $rw_role from $user_name");
-        $dbh->do("REVOKE $rw_role FROM $user_name");
-    }
-
-    if ( grep { $_ eq 'admin' } @{$user_roles} ) {
-        DEBUG("Granting $inter_role to $user_name");
-        $dbh->do("GRANT $inter_role TO $user_name");
-    }
-    else {
-        DEBUG("Revoking $inter_role from $user_name");
-        $dbh->do("REVOKE $inter_role FROM $user_name");
-    }
+#    $dbh->do("SET LOCAL ROLE $admin_role");
+#
+#    if ( grep { $_ eq 'read' } @{$user_roles} ) {
+#        DEBUG("Granting $ro_role to $user_name");
+#        $dbh->do("GRANT $ro_role TO $user_name");
+#    }
+#    else {
+#        DEBUG("Revoking $ro_role from $user_name");
+#        $dbh->do("REVOKE $ro_role FROM $user_name");
+#    }
+#
+#    if ( grep { $_ eq 'edit' } @{$user_roles} ) {
+#        DEBUG("Granting $rw_role to $user_name");
+#        $dbh->do("GRANT $rw_role TO $user_name");
+#    }
+#    else {
+#        DEBUG("Revoking $rw_role from $user_name");
+#        $dbh->do("REVOKE $rw_role FROM $user_name");
+#    }
+#
+#    if ( grep { $_ eq 'admin' } @{$user_roles} ) {
+#        DEBUG("Granting $inter_role to $user_name");
+#        $dbh->do("GRANT $inter_role TO $user_name");
+#    }
+#    else {
+#        DEBUG("Revoking $inter_role from $user_name");
+#        $dbh->do("REVOKE $inter_role FROM $user_name");
+#    }
 
     return;
 }

@@ -8,7 +8,6 @@ use Sub::Exporter -setup => {
     groups => { default => [qw( model mech unauthenticated_mech test_data reload_fixtures)] }
 };
 
-use FindBin;
 use LIMS2::Model;
 use Log::Log4perl qw( :easy );
 use DBIx::RunSQL;
@@ -33,7 +32,9 @@ sub unauthenticated_mech {
 
 	# Reset the fixture data checksum because webapp
 	# may change the database content
-	my $model = LIMS2::Model->new( { user => 'tests' } );
+#       my $model = LIMS2::Model->new( { user => 'tests' } );
+	my $model = LIMS2::Model->new( { user => 'lims2' } );
+
 	my $dbh = $model->schema->storage->dbh;
 	my $name = db_name($dbh);
 	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
@@ -61,7 +62,8 @@ sub mech {
 
 sub reload_fixtures {
 
-    my $model = LIMS2::Model->new( { user => 'tests' } );
+#    my $model = LIMS2::Model->new( { user => 'tests' } );
+    my $model = LIMS2::Model->new( { user => 'lims2' } );
     my $args = { force => 1 };
 
     try {
@@ -106,7 +108,8 @@ sub _build_test_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
 
-    my $user = $args->{user} || 'tests';
+#    my $user = $args->{user} || 'tests';
+    my $user = $args->{user} || 'lims2';
 
     my $model = LIMS2::Model->new( { user => $user } );
 
@@ -153,16 +156,16 @@ sub _load_fixtures {
     # If we find any new/modified files then reload all fixtures
     if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
 
-    	print STDERR "loading fixture data";
-
         my $dbname = db_name( $dbh );
 
         my $admin_role = $dbname . '_admin';
 
-        $dbh->do( "SET ROLE $admin_role" );
+        #$dbh->do( "SET ROLE $admin_role" );
+        #$dbh->do( "SET ROLE lims2_test" ); #Errors: "Bail out!  load fixtures failed: DBI Exception: DBD::Pg::db do failed: ERROR:  relation "fixture_md5" does not exist"
+        $dbh->do( "SET ROLE lims2" );
 
     	foreach my $fixture (@fixtures){
-            DEBUG("Loading fixtures from $fixture");
+           DEBUG("Loading fixtures from $fixture");
             DBIx::RunSQL->run_sql_file(
                 verbose         => 1,
                 verbose_handler => \&DEBUG,
@@ -170,13 +173,18 @@ sub _load_fixtures {
                 sql             => $fixture
             );
     	}
+	print STDERR "Updating fixture md5\n";
     	_update_fixture_md5($dbh, $fixture_md5);
 
 	    # This warns "commit ineffective with AutoCommit enabled"
 	    # but it seems to be necessary...
     	$dbh->commit;
 
-    	$dbh->do( "RESET ROLE" );
+    	#$dbh->do( "RESET ROLE" );
+    }
+    else
+    {
+	print STDERR "No fixtures to load\n";
     }
 
     return;

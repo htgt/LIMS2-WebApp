@@ -11,12 +11,15 @@ override prepare_arguments => sub {
 
     if ( $c->user ) {
         return {
-            user       => 'webapp',
+            #user       => 'webapp',
+            user       => 'lims2',
             audit_user => $c->user->name
+            #audit_user => 'lims2'
         };
     }
     else {
-        return { user => 'webapp_ro' };
+        #return { user => 'webapp_ro' };
+        return { user => 'lims2' };
     }
 };
 

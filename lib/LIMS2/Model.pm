@@ -45,7 +45,7 @@ sub _build_schema {
         $schema->storage->dbh_do(
             sub {
                 my ( $storage, $dbh ) = @_;
-                $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($audit_user) );
+                #$dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($audit_user) );
             }
         );
     }

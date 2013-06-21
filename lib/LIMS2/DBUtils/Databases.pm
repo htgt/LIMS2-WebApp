@@ -9,21 +9,27 @@ require LIMS2::Model::DBConnect;
 require File::Temp;
 require Data::Dumper;
 
-sub BUILD {
-    my $self = shift;
-    $self->connection_params(LIMS2::Model::DBConnect->read_config);
-    die unless ($self->source_db);
-    die unless ($self->destination_db);
-    die unless ($self->source_role);
-    die unless ($self->destination_role);
-}
+use Log::Log4perl qw( :easy );
 
-#__PACKAGE__->config(
-#    schema_class => 'LIMS2::Model::AuthDB',
-#    target_connect_info => LIMS2::Model::DBConnect->params_for( 'LIMS2_DB', 'webapp_ro' ),
-#    source_connect_info => LIMS2::Model::DBConnect->params_for( 'LIMS2_CLONEFROM_DB', 'webapp_ro' ),
-#    postgres_dump => 'pg_dump'
-#);
+Log::Log4perl->easy_init($DEBUG);
+
+=head1 NAME
+
+LIMS2::DBUtils::Databases - LIMS2 database maintenance utilities
+
+=head1 SYNOPSIS
+
+See L<LIMS2>
+
+=head1 DESCRIPTION
+
+L<LIMS2::DBUtils::Databases> Utilities to handle changes on database level: Clone databases, load fixture data
+
+=head1 AUTHOR
+
+Lars G. Erlandsen
+
+=cut
 
 has connection_params => (
     is => 'rw'
@@ -88,7 +94,29 @@ has 'psql' => (
     default => '/usr/bin/psql',
 );
 
-# resolve connection parameters ({entry, role} => {host, port, database, name, password})
+=head1 METHODS
+
+=cut
+
+=head2 BUILD
+
+=cut
+
+sub BUILD {
+    my $self = shift;
+    $self->connection_params(LIMS2::Model::DBConnect->read_config);
+    die unless ($self->source_db);
+    die unless ($self->destination_db);
+    die unless ($self->source_role);
+    die unless ($self->destination_role);
+}
+
+=head2 check_connection_details
+
+resolve connection parameters ({entry, role} => {host, port, database, name, password})
+
+=cut
+
 sub check_connection_details
 {
     my ($self, $params_ref) = @_;
@@ -101,7 +129,12 @@ sub check_connection_details
     return;
 }
 
-# Dig out the connection details from configuration file and dsn connection string
+=head2 connection_parameters
+
+Dig out the connection details from configuration file and dsn connection string
+
+=cut
+
 sub connection_parameters {
     my ($self, %params) = @_;
 
@@ -112,11 +145,16 @@ sub connection_parameters {
     ($connection_details->{dbname} = $self->connection_params->{$params{database}}->{dsn}) =~ s/^.*dbname=([^;]+).*$/$1/g;
     $connection_details->{user} = $self->connection_params->{$params{database}}->{roles}->{$params{role}}->{user};
     $connection_details->{password} = $self->connection_params->{$params{database}}->{roles}->{$params{role}}->{password};
-    print STDERR Data::Dumper->Dump([\$params{database}, \$connection_details],[qw(database connection_details)]);
+    DEBUG(Data::Dumper->Dump([\$params{database}, \$connection_details],[qw(database connection_details)]));
     return ($connection_details);
 }
 
-# Check if a database exists on a postgres server
+=head2 database_exists
+
+Check if a database exists on a postgres server
+
+=cut
+
 sub database_exists
 {
     my ($self, %params) = @_;
@@ -137,12 +175,17 @@ sub database_exists
 	#((exists($params{no_role}) && $params{no_role}) ?  '' : " --role=" . $params{role}) .
     my $has_db = `$list_source_database_query`;
     chomp($has_db);
-    print STDERR Data::Dumper->Dump([\$list_source_database_query, \$has_db],[qw(list_source_database_query has_db)]);
+    DEBUG(Data::Dumper->Dump([\$list_source_database_query, \$has_db],[qw(list_source_database_query has_db)]));
 
     return($has_db);
 }
 
-# Dump a database definition to a (temporary) file
+=head2 dump_database_definition
+
+Dump a database definition to a (temporary) file
+
+=cut
+
 sub dump_database_definition
 {
     my ($self, %params) = @_;
@@ -153,8 +196,8 @@ sub dump_database_definition
     # File to use for schema dump
     #my $dir = File::Temp::tempdir( CLEANUP => 1 );
     #my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => $dir, SUFFIX => '.dump' );
-    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => '/tmp', SUFFIX => '.dump' );
-    print STDERR Data::Dumper->Dump([\$filename_schema],[qw(filename_schema)]);
+    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump' );
+    DEBUG(Data::Dumper->Dump([\$filename_schema],[qw(filename_schema)]));
 
     # Dump schema using pg_dump
     $ENV{PGPASSWORD} = $params{connection}->{password};
@@ -164,9 +207,11 @@ sub dump_database_definition
 	" --no-privileges" .
 	" --no-owner" .
 	" --no-acl" .
-	" --create" .
+	($params{with_data} ? " --data-only" : " --create") .
 	# tar format, suitable for pg_restore
-	" -Ft" .
+	($params{with_data} ? '' : " -Ft") .
+	# schema, if provided
+	($params{schema} ? " --schema=" . $params{schema} : '') .
 	" -h " . $params{connection}->{host} .
 	" -p " . $params{connection}->{port} .
 	((exists($params{no_role}) && $params{no_role}) ?  '' : " --role=" . $params{role}) .
@@ -175,13 +220,18 @@ sub dump_database_definition
 	" --no-password " .
 	$params{connection}->{dbname}
     ;
-    print STDERR Data::Dumper->Dump([\$dump_query],[qw(dump_query)]);
+    DEBUG(Data::Dumper->Dump([\$dump_query],[qw(dump_query)]));
 
     `$dump_query`;
     return($filename_schema);
 }
 
-# Restore a database definition from a (temporary) file
+=head2 restore_database
+
+Restore a database definition from a (temporary) file
+
+=cut
+
 sub restore_database
 {
     my ($self, %params) = @_;
@@ -194,6 +244,7 @@ sub restore_database
     my $restore_query =
 	$self->postgres_restore .
 	" --exit-on-error" .
+	" --no-owner" .
 	" -h " . $params{connection}->{host} .
 	" -p " . $params{connection}->{port} .
 	((exists($params{no_role}) && $params{no_role}) ?  '' : " --role=" . $params{role}) .
@@ -203,12 +254,17 @@ sub restore_database
 	" " . $params{schema}
     ;
 
-    print STDERR Data::Dumper->Dump([\$restore_query],[qw(restore_query)]);
+    DEBUG(Data::Dumper->Dump([\$restore_query],[qw(restore_query)]));
 
     `$restore_query`;
 }
 
-# Load fixture data from a file
+=head2 load_fixture
+
+Load fixture data from a file
+
+=cut
+
 sub load_fixture
 {
     my ($self, %params) = @_;
@@ -228,12 +284,17 @@ sub load_fixture
 	" " . $params{connection}->{dbname}
     ;
 
-    print STDERR Data::Dumper->Dump([\$load_query],[qw(load_query)]);
+    DEBUG(Data::Dumper->Dump([\$load_query],[qw(load_query)]));
 
     `$load_query`;
 }
 
-# Run a query in the database
+=head2 run_query
+
+Run a query in the database
+
+=cut
+
 sub run_query
 {
     my ($self, %params) = @_;
@@ -255,20 +316,27 @@ sub run_query
 	" " . $params{connection}->{dbname}
     ;
 
-    print STDERR Data::Dumper->Dump([\$run_query],[qw(run_query)]);
+    DEBUG(Data::Dumper->Dump([\$run_query],[qw(run_query)]));
 
     my $ret = `$run_query`;
     return($ret);
 }
 
-# Create a new database based on the content in a separate database.
-#  1. The schema is copied without any role or ownership information
-#  2. The data is copied over
-#  3. A new role structure is created
+=head2 clone_database
+
+Create a new database based on the content in a separate database.
+ 1. The schema is copied without any role or ownership information
+ 2. The data is copied over
+ 3. A new role structure is created
+
+=cut
+
 sub clone_database
 {
     my ($self, %params) = @_;
     my ($ret);
+    my ($source_definition_dumpfile, $source_data_dumpfile);
+    my ($role_structure);
 
     # Default arguments where none are provided
     $params{source_db} ||= $self->source_db;
@@ -286,21 +354,17 @@ sub clone_database
     my $has_source_db = $self->database_exists(connection => $source_connection_details);
 
     # Do we have a destination database
-    #my $has_destination_db;
     my $has_destination_db = $self->database_exists(connection => $destination_connection_details);
 
     #die "Not allowed to overwrite the destination database" if (($has_destination_db) && (!$params{overwrite});
 
-#    my $source_dbh = LIMS2::Model::DBConnect->connect($self->source_db, $self->source_role)
-#	or die "Failed to connect to database '$self->source_db' as user '$self->source_role'";
-#    print STDERR Data::Dumper->Dump([\$source_dbh],[qw(source_dbh)]);
-
-#    my $destination_dbh = LIMS2::Model::DBConnect->connect($self->destination_db, $self->source_role)
-#	or die "Failed to connect to database '$self->destination_db' as user '$self->destination_role'";
-#    #print STDERR Data::Dumper->Dump([\$destination_dbh],[qw(destination_dbh)]);
-
     # Dump database definition to disk
-    my $source_definition_dumpfile = $self->dump_database_definition(connection => $source_connection_details, role => $params{source_role}, no_role => $params{no_source_role}, with_data => $params{with_data} );
+    $source_definition_dumpfile = $self->dump_database_definition(connection => $source_connection_details, role => $params{source_role}, no_role => $params{no_source_role}, with_data => 0 );
+    if ($params{with_data})
+    {
+	# Copy data, but from 'public' schema only
+	$source_data_dumpfile = $self->dump_database_definition(connection => $source_connection_details, role => $params{source_role}, no_role => $params{no_source_role}, with_data => 1, schema => 'public' );
+    }
 
     # Drop database (where needed)
     if ($has_destination_db)
@@ -313,24 +377,38 @@ sub clone_database
 
     # Restore to target
     $ret = $self->restore_database(connection => $destination_connection_details, schema => $source_definition_dumpfile, role => $params{destination_role}, no_role => $params{no_destination_role}, overwrite => $params{overwrite});
+    if ($params{with_data})
+    {
+	# Copy data
+	$ret = $self->load_fixture(connection => $destination_connection_details, role => $params{destination_role}, file => $source_data_dumpfile);
+#	$ret = $self->restore_database(connection => $destination_connection_details, schema => $source_data_dumpfile, role => $params{destination_role}, no_role => $params{no_destination_role}, overwrite => $params{overwrite});
+    }
+
+    # Restore a minimum set of roles
+#    $role_structure = <<HERE_TARGET;
+#	drop role if exists "lims2_test";
+#	create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
+#
+#	drop role if exists "test_user@example.org";
+#	create role "test_user@example.org" with nologin inherit;
+#	grant lims2 to "test_user@example.org";
+#
+#	-- test_db_add_fixture_md5.sql:
+#	CREATE TABLE fixture_md5 (
+#	   md5         TEXT NOT NULL,
+#	   created_at  TIMESTAMP NOT NULL
+#	);
+#	GRANT SELECT ON fixture_md5 TO "lims2_test";
+#	GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
+#	grant all on fixture_md5 to "lims2";
+#HERE_TARGET
+#
+#    $ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $destination_connection_details->{dbname}}, query => $role_structure);
+
+    return 1;
+
 }
 
-
-=head1 NAME
-
-LIMS2::DBUtils::Databases - LIMS2 database maintenance utilities
-
-=head1 SYNOPSIS
-
-See L<LIMS2>
-
-=head1 DESCRIPTION
-
-L<LIMS2::DBUtils::Databases> Utilities to handle changes on database level: Clone databases, load fixture data
-
-=head1 AUTHOR
-
-Lars G. Erlandsen
 
 =head1 LICENSE
 
