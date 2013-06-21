@@ -1,0 +1,8 @@
+{
+    'success': true,
+    'results': [
+        {'id': 1, 'plate_name': 'FEPT0001' },
+        {'id': 2, 'plate_name': 'FEPT0002' },
+        {'id': 3, 'plate_name': 'FEPT0003' }
+    ]
+}

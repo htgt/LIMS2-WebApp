@@ -140,7 +140,7 @@ sub unflag_virtual_plate :Path( '/user/unflag_virtual_plate' ) :Args(0) {
 
 =head1 AUTHOR
 
-Sajith Perera
+t87-developers
 
 =head1 LICENSE
 

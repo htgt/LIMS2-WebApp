@@ -1,0 +1,12 @@
+[%- META title = 'Pool EP wells to XEP well'; META tab_name = 'XEP_POOL'  %]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-dev.js') %]"></script>
+
+[% PROCESS 'user/pool/XepAppLoader.tt' %]
+   
+<div class="page-header">
+  <h1>Pool EP wells to XEP well<small>Editable interface</small></h1>
+  <div id="xepAppDiv"></div>
+</div>
+

@@ -1,0 +1,18 @@
+[%- META title = 'Plate Editor'; META tab_name = 'PL'  %]
+[%#
+    This is the TT wrapper that sets up the variables passed in
+    from Catalyst that are used in the pure javascript that is loaded
+    in the script tag.
+%]
+
+<script type="text/javascript" charset="utf-8">
+console.log("We are now in XepAppLoader" );
+
+</script>
+
+<div class="page-header">
+  <h1>Plate Editor <small>Choose plate first<small></h1>
+  <div id="XepAppDiv"></div>
+</div>
+
+<script src=[% c.uri_for('/static/appjs/XepApp.js') %]></script>
