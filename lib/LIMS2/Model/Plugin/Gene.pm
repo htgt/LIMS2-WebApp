@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.081';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.082';
 }
 ## use critic
 
@@ -40,7 +40,6 @@ sub pspec_search_genes {
 
 sub search_genes {
     my ( $self, $params ) = @_;
-
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
     TRACE "Search genes: " . pp $params;
 
@@ -61,10 +60,48 @@ sub search_genes {
     }
 
     if ( @genes == 0 ) {
+        my $not_genes = $self->check_for_local_symbol( $validated_params->{'search_term'} );
+        @genes = @{ $not_genes };
+    }
+
+    if ( @genes == 0 ) {
         $self->throw( NotFound => { entity_class => 'Gene', search_params => $validated_params } );
     }
 
     return \@genes;
+}
+
+=head
+check_for_local_symbol
+
+With some designs, the id that theya re rooted to is not a gene_id that can be translated
+using the indices. So we have an alternative strategy for finding something appropriate to
+put in the gene symbol field.
+
+A better solution would be to have an extra attribute on the upload to accommodate this...
+
+=cut
+
+sub check_for_local_symbol {
+    my $self = shift;
+    my $local_id = shift;
+
+    my @not_genes;
+
+    # TODO look up the symbols in the database and read the symbolic data from there.
+    # This requires the data to be in a database table...
+    if ( $local_id =~ m/\A CGI /xgms ) {
+        push @not_genes, {
+            'gene_id' => $local_id,
+            'gene_symbol' => 'CPG_island' };
+    }
+    elsif ( $local_id =~ m/\A LBL /xgms ) {
+        push @not_genes, {
+            'gene_id' => $local_id,
+            'gene_symbol' => 'enhancer' };
+    }
+
+    return \@not_genes;
 }
 
 sub pspec_retrieve_gene {

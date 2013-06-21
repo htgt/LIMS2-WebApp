@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GeneSearch;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GeneSearch::VERSION = '0.081';
+    $LIMS2::Model::Util::GeneSearch::VERSION = '0.082';
 }
 ## use critic
 
@@ -42,6 +42,10 @@ sub retrieve_solr_gene {
     }
     else {
         $genes = $model->solr_query( [ marker_symbol_str => $search_term ] );
+    }
+
+    if ( @{$genes} == 0 ) {
+        $genes = $model->check_for_local_symbol( $search_term );
     }
 
     if ( @{$genes} == 0 ) {
@@ -86,11 +90,10 @@ sub retrieve_ensembl_gene {
 
 sub normalize_solr_result {
     my ( $solr_result ) = @_;
-
     my %normalized = %{ $solr_result };
 
-    $normalized{gene_id}     = delete $normalized{mgi_accession_id};
-    $normalized{gene_symbol} = delete $normalized{marker_symbol};
+    $normalized{gene_id}     = delete $normalized{mgi_accession_id} if $normalized{mgi_accession_id};
+    $normalized{gene_symbol} = delete $normalized{marker_symbol} if $normalized{marker_symbol};
 
     return \%normalized;
 }

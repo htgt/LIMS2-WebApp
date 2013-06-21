@@ -1,3 +1,7 @@
+0.082     2013-06-21 10:27:08 Europe/London
+
+    Added support for retrieving symbolic information for non-solr gene_ids
+
 0.081     2013-06-18 15:00:37 Europe/London
 	Added Lab Number to PIQ plate uploads
 
