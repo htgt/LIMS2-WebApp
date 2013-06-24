@@ -308,21 +308,21 @@ summaries:
     final_backbone_name: 'R3R4_pBR_amp'
     final_well_assay_complete: '2011-08-11 00:00:00'
     final_well_accepted: 't'
-#    final_pick_plate_name:
-#    final_pick_plate_id:
-#    final_pick_well_name:
-#    final_pick_well_id:
-#    final_pick_well_created_ts:
-#    final_pick_recombinase_id:
-#    final_pick_qc_seq_pass:
-#    final_pick_cassette_name:
-#    final_pick_cassette_cre:
-#    final_pick_cassette_promoter:
-#    final_pick_cassette_conditional:
-#    final_pick_cassette_resistance:
-#    final_pick_backbone_name:
-#    final_pick_well_assay_complete:
-#    final_pick_well_accepted:
+    final_pick_plate_name: 'MOHFASFP002'
+    final_pick_plate_id: '3002'
+    final_pick_well_name: 'A01'
+    final_pick_well_id: '4002'
+    final_pick_well_created_ts: '2010-03-15 00:00:00'
+#   final_pick_recombinase_id:
+    final_pick_qc_seq_pass: 't'
+    final_pick_cassette_name: 'L1L2_gt0_Del_LacZ'
+    final_pick_cassette_cre: 't'
+    final_pick_cassette_promoter: 'f'
+    final_pick_cassette_conditional: 't'
+    final_pick_cassette_resistance: 'neo'
+    final_pick_backbone_name: 'R3R4_pBR_amp'
+    final_pick_well_assay_complete: '2011-08-11 00:00:00'
+    final_pick_well_accepted: 't'
     dna_plate_name: 'MOHFAQ0001_A_2'
     dna_plate_id: '863'
     dna_well_name: 'B05'

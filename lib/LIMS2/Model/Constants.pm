@@ -70,7 +70,7 @@ const our %PROCESS_TEMPLATE => (
     'clone_pool'             => 'standard_template.csv',
     'freeze'                 => 'standard_template.csv',
     'xep_pool'               => 'standard_template.csv',
-    'dist_qc'                => 'standard_template.csv',
+    'dist_qc'                => 'piq_template.csv',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
