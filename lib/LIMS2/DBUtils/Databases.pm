@@ -299,6 +299,10 @@ sub run_query
 {
     my ($self, %params) = @_;
 
+    # Safeguard query from quotes
+    my $query = $params{query};
+    $query =~ s/"/\\"/g;
+
     # resolve connection parameters ({entry, role} => {host, port, database, name, password})
     $self->check_connection_details(\%params);
 
@@ -312,7 +316,7 @@ sub run_query
 	" -p " . $params{connection}->{port} .
 	" --username=" . $params{connection}->{user} .
 	" --no-password " .
-	" -c " . "\"" . $params{query} . "\"" .
+	" -c " . "\"" . $query . "\"" .
 	" " . $params{connection}->{dbname}
     ;
 
@@ -385,25 +389,25 @@ sub clone_database
     }
 
     # Restore a minimum set of roles
-#    $role_structure = <<HERE_TARGET;
-#	drop role if exists "lims2_test";
-#	create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
-#
-#	drop role if exists "test_user@example.org";
-#	create role "test_user@example.org" with nologin inherit;
-#	grant lims2 to "test_user@example.org";
-#
-#	-- test_db_add_fixture_md5.sql:
-#	CREATE TABLE fixture_md5 (
-#	   md5         TEXT NOT NULL,
-#	   created_at  TIMESTAMP NOT NULL
-#	);
-#	GRANT SELECT ON fixture_md5 TO "lims2_test";
-#	GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
-#	grant all on fixture_md5 to "lims2";
-#HERE_TARGET
-#
-#    $ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $destination_connection_details->{dbname}}, query => $role_structure);
+    $role_structure = <<'HERE_TARGET';
+	drop role if exists "lims2_test";
+	create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
+
+	drop role if exists "test_user@example.org";
+	create role "test_user@example.org" with nologin inherit;
+	grant lims2 to "test_user@example.org";
+
+	-- test_db_add_fixture_md5.sql:
+	CREATE TABLE fixture_md5 (
+	   md5         TEXT NOT NULL,
+	   created_at  TIMESTAMP NOT NULL
+	);
+	GRANT SELECT ON fixture_md5 TO "lims2_test";
+	GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
+	grant all on fixture_md5 to "lims2";
+HERE_TARGET
+
+    $ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $destination_connection_details->{dbname}}, query => $role_structure);
 
     return 1;
 
