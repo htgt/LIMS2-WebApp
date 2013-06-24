@@ -43,7 +43,7 @@ __PACKAGE__->table("summaries");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'summaries_id_seq1'
+  sequence: 'summaries_id_seq'
 
 =head2 insert_timestamp
 
@@ -650,7 +650,7 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "summaries_id_seq1",
+    sequence          => "summaries_id_seq",
   },
   "insert_timestamp",
   { data_type => "timestamp", is_nullable => 1 },
@@ -905,8 +905,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-14 15:55:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Agb6tL6E+mze3m1US0g3rQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-04 13:31:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FkFuerX0xhS2xWmDqsmwoA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

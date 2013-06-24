@@ -5,25 +5,14 @@
       [% IF template.title != 'Login' %]
       <ul class="nav">
 
-        <li[% IF template.tab_name == "Home" %] class="active"[% END %]>
-          <a href="[% c.uri_for( '/' ) %]">Home</a>
-        </li>
 
-
-        <li class="dropdown[% IF template.tab_name == "Browse" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Browse <b class="caret"></b></a>
+        <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
-              <a href="[% c.uri_for( '/user/browse_designs' ) %]">Designs</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/browse_plates' ) %]">Plates</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/browse_templates' ) %]">QC Templates</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/qc_runs' ) %]">Sequencing QC Results</a>
+              <a href="[% c.uri_for( '/user/report/gene' ) %]">
+                Gene Summary
+              </a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
@@ -33,28 +22,101 @@
 
 
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports <b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Designs <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
-              <a href="[% c.uri_for( '/user/report/gene' ) %]">
-                Gene Summary
-              </a>
+              <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/VectorProductionSummary' ) %]">
-                Vector Production Summary
-              </a>
+              <a href="[% c.uri_for( '/user/create_design' ) %]">Create Design</a>
             </li>
+
+           
+          </ul>
+        </li>
+
+        <li class="dropdown[% IF template.tab_name == "Vectors" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Vectors <b class="caret"></b></a>
+          <ul class="dropdown-menu">
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/VectorProductionDetail' ) %]">
-                Vector Production Detail
-              </a>
+              <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse Plates</a>
             </li>
+
+            [% IF c.check_user_roles( 'edit' ) %]
+            <li>
+              <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload Plate</a>
+            </li>
+            [% END %]
+
+            <li class="divider"></li>
+
             <li>
               <a href="[% c.uri_for( '/user/report/vector/DesignVectors' ) %]">
                 Vectors By Design
               </a>
+            </li>
+          </ul>
+        </li>
+
+        <li class="dropdown[% IF template.tab_name == "QC" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">QC <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/qc_runs' ) %]">Browse Sequencing QC</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/browse_templates' ) %]">Browse QC Templates</a>
             </li>            
+            [% IF c.check_user_roles( 'edit' ) %]
+            <li>
+              <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
+            </li>
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/show_genotyping_qc_data' ) %]">Genotyping QC Results</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
+            </li>                
+            [% END %]
+          </ul>
+        </li>
+
+        <li class="dropdown[% IF template.tab_name == "Cells" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Cells <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse Plates</a>
+            </li>
+            [% IF c.check_user_roles( 'edit' ) %]
+            <li>
+              <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
+            </li>
+            [% END %]
+            <li>
+              <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
+            </li>
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/report/sponsor/GenesToElectroporate' ) %]">
+                Genes To Electroporate
+              </a>
+            </li>
+
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
                 First Allele Electroporation Detail
@@ -70,81 +132,13 @@
                 Electroporation Production Summary
               </a>
             </li>
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/GenesToElectroporate' ) %]">
-                Genes To Electroporate
-              </a>
-            </li>
           </ul>
         </li>
+      </ul>
+      [% IF c.user %]
 
-        <li class="dropdown[% IF template.tab_name == "Plates" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Plates <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse</a>
-            </li>
-            [% IF c.check_user_roles( 'edit' ) %]
-            <li>
-              <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload</a>
-            </li>
-            [% END %]
-          </ul>
-        </li>
-
-        <li class="dropdown[% IF template.tab_name == "QC" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">QC <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="[% c.uri_for( '/user/qc_runs' ) %]">Browse Sequencing QC</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/browse_templates' ) %]">Browse QC Templates</a>
-            </li>            
-            [% IF c.check_user_roles( 'edit' ) %]
-            <li>
-              <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/recombinase_upload' ) %]">Update recombinase</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update colony counts</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/show_genotyping_qc_data' ) %]">Genotyping QC Results</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
-            </li>                
-            [% END %]
-          </ul>
-        </li>
-
-        <li class="dropdown[% IF template.tab_name == "Designs" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Designs <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/create_design' ) %]">Create Design</a>
-            </li>
-          </ul>
-        </li>
-
+      <ul class="nav pull-right">
+        <li class="divider-vertical"></li>
         [% IF c.session.selected_species %]
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -165,12 +159,6 @@
           </li>
         [% END %]
 
-      </ul>
-
-      [% IF c.user %]
-
-      <ul class="nav pull-right">
-        <li class="divider-vertical"></li>
         <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
