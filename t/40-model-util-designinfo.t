@@ -29,6 +29,13 @@ note('Test Valid Conditional -ve Stranded Design');
     # U3 end
     is $di->target_region_end, 53720128, 'correct target region end';
 
+    is $di->loxp_start, 53719367, 'correct loxp_start';
+    is $di->loxp_end, 53719452, 'correct loxp_end';
+    is $di->cassette_start, 53720129, 'correct cassette_start';
+    is $di->cassette_end, 53720171, 'correct cassette_end';
+    is $di->homology_arm_start, 53715716, 'correct homology_arm_start';
+    is $di->homology_arm_end, 53725854, 'correct homology_arm_end';
+
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
         ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
@@ -48,6 +55,13 @@ note('Test Valid Conditional +ve Stranded Design');
     is $di->target_region_start, 134595413, 'correct target region start';
     # D5 end
     is $di->target_region_end, 134596081, 'correct target region end';
+
+    is $di->loxp_start, 134596082, 'correct loxp_start';
+    is $di->loxp_end, 134596162, 'correct loxp_end';
+    is $di->cassette_start, 134595362, 'correct cassette_start';
+    is $di->cassette_end, 134595412, 'correct cassette_end';
+    is $di->homology_arm_start, 134590486, 'correct homology_arm_start';
+    is $di->homology_arm_end, 134601190, 'correct homology_arm_end';
 
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
@@ -69,6 +83,13 @@ note('Test Valid Conditional -ve Stranded Deletion');
     # U5 start
     is $di->target_region_end, 122096800, 'correct target region end';
 
+    is $di->loxp_start, undef, 'correct loxp_start';
+    is $di->loxp_end, undef, 'correct loxp_end';
+    is $di->cassette_start, 122093615, 'correct cassette_start';
+    is $di->cassette_end, 122096799, 'correct cassette_end';
+    is $di->homology_arm_start, 122090021, 'correct homology_arm_start';
+    is $di->homology_arm_end, 122103023, 'correct homology_arm_end';
+
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
         ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
@@ -88,6 +109,13 @@ note('Test Valid Conditional +ve Stranded Deletion');
     is $di->target_region_start, 60956803, 'correct target region start';
     # D3 start
     is $di->target_region_end, 60964117, 'correct target region end';
+
+    is $di->loxp_start, undef, 'correct loxp_start';
+    is $di->loxp_end, undef, 'correct loxp_end';
+    is $di->cassette_start, 60956804, 'correct cassette_start';
+    is $di->cassette_end, 60964116, 'correct cassette_end';
+    is $di->homology_arm_start, 60951494, 'correct homology_arm_start';
+    is $di->homology_arm_end, 60967893, 'correct homology_arm_end';
 
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
