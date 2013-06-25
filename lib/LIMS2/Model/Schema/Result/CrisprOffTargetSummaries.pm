@@ -80,7 +80,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "off_target_outlier",
   { data_type => "boolean", is_nullable => 0 },
-  "off_target_algorithm",
+  "algorithm",
   { data_type => "text", is_nullable => 0 },
   "summary",
   { data_type => "text", is_nullable => 1 },
@@ -123,9 +123,9 @@ sub as_hash {
     my $self = shift;
 
     return {
-        off_target_outlier   => $self->off_target_outlier,
-        off_target_algorithm => $self->off_target_algorithm,
-        summary              => $self->summary,
+        off_target_outlier => $self->off_target_outlier,
+        algorithm          => $self->algorithm,
+        summary            => $self->summary,
     };
 }
 
