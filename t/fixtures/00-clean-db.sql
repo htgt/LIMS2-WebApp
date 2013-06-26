@@ -28,6 +28,7 @@ DELETE FROM bac_clone_loci;
 DELETE FROM bac_clones;
 DELETE FROM bac_libraries;
 DELETE FROM crispr_off_targets;
+DELETE FROM crispr_off_target_summaries;
 DELETE FROM crispr_loci;
 DELETE FROM crisprs;
 DELETE FROM crispr_loci_types;

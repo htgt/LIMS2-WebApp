@@ -1158,7 +1158,7 @@ INSERT INTO crispr_loci_types VALUES ('Intergenic');
 -- Data for Name: crisprs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', false, NULL);
+INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', NULL);
 
 
 --
@@ -1172,9 +1172,8 @@ INSERT INTO crispr_loci VALUES (93, 113, 'GRCm38', 3182, 102360192, 102360214, -
 -- Data for Name: crispr_off_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16');
-INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16');
-
+INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16', 'strict');
+INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16', 'strict');
 
 --
 -- Data for Name: design_comment_categories; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
