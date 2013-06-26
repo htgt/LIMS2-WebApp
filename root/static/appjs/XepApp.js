@@ -5,20 +5,17 @@ Ext.application({
     autoCreateViewport: false,
 //    models: ['Plate', 'PlateWell'],
 //    stores: ['Plates', 'PlateResults'],
-//    controllers: ['LoadXepView'],
+    controllers: ['LoadXepView'],
 
     launch: function() {
         // This is fired as soon as the page is ready
         Ext.create('Ext.container.Container', {
             renderTo: 'XepAppDiv',
             layout: 'fit',
-            items: [
+            items: 
                 {
-                    xtype: 'panel',
-                    title: 'Plates',
-                    html : 'List of plates will go here'
+                    xtype: 'ViewDiv',
                 }
-            ]
         });
     }
 });
