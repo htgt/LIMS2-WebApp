@@ -1,17 +1,18 @@
 Ext.define('XepApp.view.ViewDiv', {
     extend: 'Ext.container.Container',
 
-    requires: [
-        'XepApp.view.SelectPlate',
-        'XepApp.view.PlateWellList'
-    ],
+//    requires: [
+//        'XepApp.view.SelectPlate',
+//        'XepApp.view.PlateWellList'
+//    ],
 // Layout is required, as the default is with the flow
     layout: 'fit',
 
     initComponent: function() {
-        this.items = {
+        this.items = [
+        {
             xtype: 'panel',
-            dockedItems: [
+            dockedItems: [{
                 dock: 'top',
                 xtype: 'toolbar',
                 height: 80,
@@ -22,24 +23,25 @@ Ext.define('XepApp.view.ViewDiv', {
                     xtype: 'component',
                     html: 'XEP_POOL App'
                 }]
-            ],
+            }],
 
             layout: {
                 type: 'hbox',
                 align: 'stretch'
             },
 
-            items: [{
+/*            items: [{
                 width: 250,
                 xtype: 'panel',
                 layout: {
                       type: 'vbox',
                       align: 'stretch'
-                },
-                items:
+                }
             }]
+*/            
         }
-    };
+    ];
+    }
 
 
 });

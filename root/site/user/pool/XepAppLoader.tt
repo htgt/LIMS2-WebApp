@@ -7,12 +7,12 @@
 
 <script type="text/javascript" charset="utf-8">
 console.log("We are now in XepAppLoader" );
-
 </script>
 
+ 
 <div class="page-header">
   <h1>Plate Editor <small>Choose plate first<small></h1>
-  <div id="XepAppDiv"></div>
 </div>
 
+<div id="XepAppDiv"></div>
 <script src=[% c.uri_for('/static/appjs/XepApp.js') %]></script>
