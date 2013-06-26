@@ -51,12 +51,12 @@ __PACKAGE__->table("crispr_off_target_summaries");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 off_target_outlier
+=head2 outlier
 
   data_type: 'boolean'
   is_nullable: 0
 
-=head2 off_target_algorithm
+=head2 algorithm
 
   data_type: 'text'
   is_nullable: 0
@@ -78,7 +78,7 @@ __PACKAGE__->add_columns(
   },
   "crispr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "off_target_outlier",
+  "outlier",
   { data_type => "boolean", is_nullable => 0 },
   "algorithm",
   { data_type => "text", is_nullable => 0 },
@@ -116,16 +116,16 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-25 11:17:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YKZb13bq2jyChQzJ3kcd/w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-26 08:25:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:31LEKuXIuwXDLgRCA+8eiA
 
 sub as_hash {
     my $self = shift;
 
     return {
-        off_target_outlier => $self->off_target_outlier,
-        algorithm          => $self->algorithm,
-        summary            => $self->summary,
+        outlier   => $self->outlier,
+        algorithm => $self->algorithm,
+        summary   => $self->summary,
     };
 }
 
