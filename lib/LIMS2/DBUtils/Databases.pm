@@ -35,14 +35,14 @@ has connection_params => (
     is => 'rw'
 );
 
-has 'source_db' => (
+has 'source_defn' => (
     is => 'rw',
     isa => 'Str',
     required => 1,
     default => $ENV{LIMS2_CLONEFROM_DB},
 );
 
-has 'destination_db' => (
+has 'destination_defn' => (
     is => 'rw',
     isa => 'Str',
     required => 1,
@@ -105,8 +105,8 @@ has 'psql' => (
 sub BUILD {
     my $self = shift;
     $self->connection_params(LIMS2::Model::DBConnect->read_config);
-    die unless ($self->source_db);
-    die unless ($self->destination_db);
+    die unless ($self->source_defn);
+    die unless ($self->destination_defn);
     die unless ($self->source_role);
     die unless ($self->destination_role);
 }
@@ -125,7 +125,7 @@ sub check_connection_details
     return if (exists($params_ref->{connection}));
 
     # No connection: Go from entry and role to connection details
-    $params_ref->{connection} = $self->connection_parameters(database => $params_ref->{database}, role => $params_ref->{role});
+    $params_ref->{connection} = $self->connection_parameters(definition => $params_ref->{definition}, role => $params_ref->{role});
     return;
 }
 
@@ -140,12 +140,12 @@ sub connection_parameters {
 
     my $connection_details;
 
-    ($connection_details->{host} = $self->connection_params->{$params{database}}->{dsn}) =~ s/^.*host=([^;]+).*$/$1/g;
-    ($connection_details->{port} = $self->connection_params->{$params{database}}->{dsn}) =~ s/^.*port=([^;]+).*$/$1/g;
-    ($connection_details->{dbname} = $self->connection_params->{$params{database}}->{dsn}) =~ s/^.*dbname=([^;]+).*$/$1/g;
-    $connection_details->{user} = $self->connection_params->{$params{database}}->{roles}->{$params{role}}->{user};
-    $connection_details->{password} = $self->connection_params->{$params{database}}->{roles}->{$params{role}}->{password};
-    DEBUG(Data::Dumper->Dump([\$params{database}, \$connection_details],[qw(database connection_details)]));
+    ($connection_details->{host} = $self->connection_params->{$params{definition}}->{dsn}) =~ s/^.*host=([^;]+).*$/$1/g;
+    ($connection_details->{port} = $self->connection_params->{$params{definition}}->{dsn}) =~ s/^.*port=([^;]+).*$/$1/g;
+    ($connection_details->{dbname} = $self->connection_params->{$params{definition}}->{dsn}) =~ s/^.*dbname=([^;]+).*$/$1/g;
+    $connection_details->{user} = $self->connection_params->{$params{definition}}->{roles}->{$params{role}}->{user};
+    $connection_details->{password} = $self->connection_params->{$params{definition}}->{roles}->{$params{role}}->{password};
+    DEBUG(Data::Dumper->Dump([\$params{definition}, \$connection_details],[qw(definition connection_details)]));
     return ($connection_details);
 }
 
@@ -182,7 +182,7 @@ sub database_exists
 
 =head2 dump_database_definition
 
-Dump a database definition to a (temporary) file
+Dump a database schema definition to a (temporary) file
 
 =cut
 
@@ -194,9 +194,8 @@ sub dump_database_definition
     $self->check_connection_details(\%params);
 
     # File to use for schema dump
-    #my $dir = File::Temp::tempdir( CLEANUP => 1 );
-    #my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => $dir, SUFFIX => '.dump' );
-    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump' );
+    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 1 );
+    #my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 0 );
     DEBUG(Data::Dumper->Dump([\$filename_schema],[qw(filename_schema)]));
 
     # Dump schema using pg_dump
@@ -209,7 +208,7 @@ sub dump_database_definition
 	" --no-acl" .
 	($params{with_data} ? " --data-only" : " --create") .
 	# tar format, suitable for pg_restore
-	($params{with_data} ? '' : " -Ft") .
+	#($params{with_data} ? '' : " -Ft") .
 	# schema, if provided
 	($params{schema} ? " --schema=" . $params{schema} : '') .
 	" -h " . $params{connection}->{host} .
@@ -218,12 +217,14 @@ sub dump_database_definition
 	" --file=" . $filename_schema .
 	" --username=" . $params{connection}->{user} .
 	" --no-password " .
-	$params{connection}->{dbname}
+	$params{connection}->{dbname} .
+	' 2>&1'
     ;
     DEBUG(Data::Dumper->Dump([\$dump_query],[qw(dump_query)]));
 
-    `$dump_query`;
-    return($filename_schema);
+    my $ret = `$dump_query`;
+    print STDERR $ret if ($ret =~ m/ERROR/);
+    return(($ret =~ m/ERROR/) ? '' : $filename_schema);
 }
 
 =head2 restore_database
@@ -251,12 +252,15 @@ sub restore_database
 	" --username=" . $params{connection}->{user} .
 	" --no-password " .
 	" -d " . $params{connection}->{dbname} .
-	" " . $params{schema}
+	" " . $params{schema} .
+	' 2>&1'
     ;
 
     DEBUG(Data::Dumper->Dump([\$restore_query],[qw(restore_query)]));
 
-    `$restore_query`;
+    my $ret = `$restore_query`;
+    print STDERR $ret if ($ret =~ m/ERROR/);
+    return(($ret =~ m/ERROR/) ? 0 : 1);
 }
 
 =head2 load_fixture
@@ -281,12 +285,15 @@ sub load_fixture
 	" --username=" . $params{connection}->{user} .
 	" --no-password " .
 	" -f " . $params{file} .
-	" " . $params{connection}->{dbname}
+	" " . $params{connection}->{dbname} .
+	' 2>&1'
     ;
 
     DEBUG(Data::Dumper->Dump([\$load_query],[qw(load_query)]));
 
-    `$load_query`;
+    my $ret = `$load_query`;
+    print STDERR $ret if ($ret =~ m/ERROR/);
+    return(($ret =~ m/ERROR/) ? 0 : 1);
 }
 
 =head2 run_query
@@ -317,21 +324,26 @@ sub run_query
 	" --username=" . $params{connection}->{user} .
 	" --no-password " .
 	" -c " . "\"" . $query . "\"" .
-	" " . $params{connection}->{dbname}
+	" " . $params{connection}->{dbname} .
+	' 2>&1'
     ;
 
     DEBUG(Data::Dumper->Dump([\$run_query],[qw(run_query)]));
 
     my $ret = `$run_query`;
-    return($ret);
+    print STDERR $ret if ($ret =~ m/ERROR/);
+    return(($ret =~ m/ERROR/) ? 0 : 1);
 }
 
 =head2 clone_database
 
 Create a new database based on the content in a separate database.
- 1. The schema is copied without any role or ownership information
- 2. The data is copied over
- 3. A new role structure is created
+ 1. The schema is copied out without any role or ownership information
+ 2. The schema is 'doctored' to change database name and procedural language creation
+     (using pg_dump and pg_restore allows database renaming, but cannot control plpgsql language creation)
+ 3. The schema is loaded into the target server
+ 4. The data is copied over
+ 5. A new role structure is created
 
 =cut
 
@@ -343,14 +355,15 @@ sub clone_database
     my ($role_structure);
 
     # Default arguments where none are provided
-    $params{source_db} ||= $self->source_db;
+    $params{source_defn} ||= $self->source_defn;
     $params{source_role} ||= $self->source_role;
-    $params{destination_db} ||= $self->destination_db;
+    $params{destination_defn} ||= $self->destination_defn;
     $params{destination_role} ||= $self->destination_role;
     $params{overwrite} ||= $self->overwrite;
 
-    my $source_connection_details = $self->connection_parameters(database => $params{source_db}, role => $params{source_role});
-    my $destination_connection_details = $self->connection_parameters(database => $params{destination_db}, role => $params{destination_role});
+    my $source_connection_details = $self->connection_parameters(definition => $params{source_defn}, role => $params{source_role});
+    my $destination_connection_details = $self->connection_parameters(definition => $params{destination_defn}, role => $params{destination_role});
+    $params{destination_db} ||= $destination_connection_details->{dbname};
 
     die "Cannot overwrite a live database" if ($destination_connection_details->{dbname} =~ m/live/i);
 
@@ -364,50 +377,77 @@ sub clone_database
 
     # Dump database definition to disk
     $source_definition_dumpfile = $self->dump_database_definition(connection => $source_connection_details, role => $params{source_role}, no_role => $params{no_source_role}, with_data => 0 );
+    die "Failed to create a database definition dump" unless ((-e $source_definition_dumpfile) && (-s $source_definition_dumpfile));
+    # Amend the definition
+    {
+	local $/;
+	open (FH, "+<", $source_definition_dumpfile) or die "Opening: $!";
+	my $content = <FH>;
+	$content =~ s/Name: $source_connection_details->{dbname};/Name: $params{destination_db};/g;
+	$content =~ s/CREATE DATABASE $source_connection_details->{dbname}/CREATE DATABASE $params{destination_db}/g;
+	$content =~ s/\\connect $source_connection_details->{dbname}/\\connect $params{destination_db}/g;
+	$content =~ s/CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;/-- CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;/g;
+	seek(FH, 0, 0) or die "Seeking: $!";
+	print FH $content or die "Printing: $!";
+	truncate(FH, tell(FH)) or die "Truncating: $!";
+	close(FH) or die "Closing: $!";
+    }
+
+
+    # Copy data (if desired)
     if ($params{with_data})
     {
 	# Copy data, but from 'public' schema only
 	$source_data_dumpfile = $self->dump_database_definition(connection => $source_connection_details, role => $params{source_role}, no_role => $params{no_source_role}, with_data => 1, schema => 'public' );
+	die "Failed to create a database content dump" unless ((-e $source_data_dumpfile) && (-s $source_data_dumpfile));
     }
 
     # Drop database (where needed)
     if ($has_destination_db)
     {
-	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => 'template1'}, role => $params{destination_role}, query => "drop database if exists $destination_connection_details->{dbname}");
+	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => 'template1'}, role => $params{destination_role}, query => "drop database if exists $params{destination_db}");
+	die "Failed to run database query" unless ($ret);
+
     }
 
-    # Create database
-    $ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => 'template1'}, role => $params{destination_role}, query => "create database $destination_connection_details->{dbname}");
+    # Create database (no longer needed)
+    #$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => 'template1'}, role => $params{destination_role}, query => "create database $params{destination_db}");
+    #die "Failed to run database query" unless ($ret);
 
     # Restore to target
-    $ret = $self->restore_database(connection => $destination_connection_details, schema => $source_definition_dumpfile, role => $params{destination_role}, no_role => $params{no_destination_role}, overwrite => $params{overwrite});
+    $ret = $self->load_fixture(connection => { %{$destination_connection_details}, dbname => 'template1'}, role => $params{destination_role}, file => $source_definition_dumpfile);
+    die "Failed to restore the schema" unless ($ret);
     if ($params{with_data})
     {
 	# Copy data
-	$ret = $self->load_fixture(connection => $destination_connection_details, role => $params{destination_role}, file => $source_data_dumpfile);
-#	$ret = $self->restore_database(connection => $destination_connection_details, schema => $source_data_dumpfile, role => $params{destination_role}, no_role => $params{no_destination_role}, overwrite => $params{overwrite});
+	$ret = $self->load_fixture(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, role => $params{destination_role}, file => $source_data_dumpfile);
+#	$ret = $self->restore_database(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, schema => $source_data_dumpfile, role => $params{destination_role}, no_role => $params{no_destination_role}, overwrite => $params{overwrite});
+	die "Failed to restore the data" unless ($ret);
     }
 
-    # Restore a minimum set of roles
-    $role_structure = <<'HERE_TARGET';
-	drop role if exists "lims2_test";
-	create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
+    # Restore a minimum set of test roles
+    if ($params{create_test_role}) {
+	$role_structure = <<'HERE_TARGET';
+	    drop role if exists "lims2_test";
+	    create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
 
-	drop role if exists "test_user@example.org";
-	create role "test_user@example.org" with nologin inherit;
-	grant lims2 to "test_user@example.org";
+	    drop role if exists "test_user@example.org";
+	    create role "test_user@example.org" with nologin inherit;
+	    grant lims2 to "test_user@example.org";
 
-	-- test_db_add_fixture_md5.sql:
-	CREATE TABLE fixture_md5 (
-	   md5         TEXT NOT NULL,
-	   created_at  TIMESTAMP NOT NULL
-	);
-	GRANT SELECT ON fixture_md5 TO "lims2_test";
-	GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
-	grant all on fixture_md5 to "lims2";
+	    -- test_db_add_fixture_md5.sql:
+	    CREATE TABLE fixture_md5 (
+	       md5         TEXT NOT NULL,
+	       created_at  TIMESTAMP NOT NULL
+	    );
+	    GRANT SELECT ON fixture_md5 TO "lims2_test";
+	    GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
+	    grant all on fixture_md5 to "lims2";
 HERE_TARGET
 
-    $ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $destination_connection_details->{dbname}}, query => $role_structure);
+	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, query => $role_structure);
+	die "Failed to create test roles" unless ($ret);
+    }
 
     return 1;
 
