@@ -426,20 +426,20 @@ sub clone_database
 	die "Failed to restore the data" unless ($ret);
 
 	# Now truncate all audit tables after they have filled up with 'gunk'
-	$truncate_audit_command = <<'HERE_TARGET';
+	my $truncate_audit_command = <<'HERE_TARGET';
 	    set search_path = audit, pg_catalog;
 	    DO
-	    $func$
+	    \$func\$
 	    BEGIN
 	       EXECUTE (
 		  SELECT 'TRUNCATE TABLE '
-			 || string_agg(quote_ident(t.tablename), ', ')
+			 || string_agg('audit.' || quote_ident(t.tablename), ', ')
 			 || ' CASCADE'
 		  FROM   pg_tables t
 		  WHERE  t.schemaname = 'audit'
 	       );
 	    END
-	    $func$;
+	    \$func\$;
 HERE_TARGET
 
 	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, query => $truncate_audit_command);
@@ -450,10 +450,10 @@ HERE_TARGET
     if ($params{create_test_role}) {
 	$role_structure = <<'HERE_TARGET';
 	    drop role if exists "lims2_test";
-	    create role if not exists "lims2_test" with encrypted password 'test_passwd' login noinherit;
+	    create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
 
 	    drop role if exists "test_user@example.org";
-	    create role if not exists "test_user@example.org" with nologin inherit;
+	    create role "test_user@example.org" with nologin inherit;
 	    grant lims2 to "test_user@example.org";
 
 	    -- test_db_add_fixture_md5.sql:
