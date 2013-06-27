@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.078';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.084';
 }
 ## use critic
 
@@ -452,6 +452,42 @@ sub _check_wells_dist_qc {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
+
+    # input wells cannot be used to create PIQ wells more than once
+    my @input_well_ids = map{ $_->id } $process->input_wells;
+
+    # for each input FP well check that it does not already exist as a dist_qc well
+    my @input_wells = $process->input_wells;
+    foreach my $input_well (@input_wells) {
+        my @child_processes = $input_well->child_processes;
+
+        my @dist_processes;
+        foreach my $child_process (@child_processes) {
+            if ( $child_process->type_id eq 'dist_qc' ) {
+
+                push @dist_processes, $child_process;
+            }
+        }
+        my $dist_count      = scalar @dist_processes;
+
+        # check for more than one as new wells already exist at this point (albeit inside transaction)
+        if ($dist_count > 1) {
+            my $well_string = $input_well->as_string;
+
+            my @piq_wells;
+            foreach my $dist_process ( @dist_processes ) {
+                push @piq_wells, $dist_process->output_wells->first->as_string;
+            }
+
+            my $piq_wells_string = join( ' and ', @piq_wells );
+
+            LIMS2::Exception::Validation->throw(
+              'FP well ' . $well_string . ' would be linked to PIQ wells ' . $piq_wells_string .
+              '; one FP well cannot be used to make more than one PIQ well' . "\n"
+            );
+        }
+    }
+
     check_output_wells( $model, $process);
     return;
 }

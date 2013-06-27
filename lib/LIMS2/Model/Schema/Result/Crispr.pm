@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.078';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.084';
 }
 ## use critic
 
@@ -68,11 +68,6 @@ __PACKAGE__->table("crisprs");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 off_target_outlier
-
-  data_type: 'boolean'
-  is_nullable: 0
-
 =head2 comment
 
   data_type: 'text'
@@ -94,8 +89,6 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "crispr_loci_type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "off_target_outlier",
-  { data_type => "boolean", is_nullable => 0 },
   "comment",
   { data_type => "text", is_nullable => 1 },
 );
@@ -140,6 +133,21 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprLocus>
 __PACKAGE__->has_many(
   "loci",
   "LIMS2::Model::Schema::Result::CrisprLocus",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 off_target_summaries
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargetSummaries>
+
+=cut
+
+__PACKAGE__->has_many(
+  "off_target_summaries",
+  "LIMS2::Model::Schema::Result::CrisprOffTargetSummaries",
   { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -190,8 +198,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-28 13:08:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:faA/1QpKzSQnix5C03kX8A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-25 11:22:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YvyxDr0ts1rErR4xy0Lp/g
 
 sub as_hash {
     my ( $self ) = @_;
@@ -206,12 +214,12 @@ sub as_hash {
         type               => $self->crispr_loci_type_id,
         seq                => $self->seq,
         species            => $self->species_id,
-        off_target_outlier => $self->off_target_outlier,
         comment            => $self->comment,
         locus              => $locus ? $locus->as_hash : undef,
     );
 
     $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
+    $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
 }
@@ -231,7 +239,6 @@ sub reverse_order_seq {
     my $revcomp_seq = $bio_seq->revcom->seq;
     return "AAAC" . $revcomp_seq;
 }
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

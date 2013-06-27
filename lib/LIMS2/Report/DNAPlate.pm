@@ -1,7 +1,7 @@
 package LIMS2::Report::DNAPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DNAPlate::VERSION = '0.078';
+    $LIMS2::Report::DNAPlate::VERSION = '0.084';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ override plate_types => sub {
 override _build_name => sub {
     my $self = shift;
 
-    return 'Final Vector Plate ' . $self->plate_name;
+    return 'DNA Plate ' . $self->plate_name;
 };
 
 override _build_columns => sub {
@@ -28,7 +28,7 @@ override _build_columns => sub {
     return [
         $self->base_columns,
         "Cassette", "Cassette Resistance", "Backbone", "Recombinases",
-        "Final Vector Well", "Final Vector QC Test Result", "Final Vector Valid Primers", "Final Vector Mixed Reads?", "Final Vector Sequencing QC Pass?",
+        "Final Pick Vector Well", "Final Pick Vector QC Test Result", "Final Pick Vector Valid Primers", "Final Pick Vector Mixed Reads?", "Final Pick Vector Sequencing QC Pass?",
         "DNA Quality", "DNA Quality Comment", "DNA Pass?"
     ];
 };
@@ -59,8 +59,8 @@ override iterator => sub {
             $well->cassette->name,
             $well->cassette->resistance,
             $well->backbone->name,
-            join( q{/}, @{ $well->recombinases } ),
-            $self->ancestor_cols( $well, 'FINAL' ),
+            join( q{/}, @{ $well->vector_recombinases } ),
+            $self->ancestor_cols( $well, 'FINAL_PICK' ),
             ( $dna_quality ? ( $dna_quality->quality, $dna_quality->comment_text ) : ('')x2 ),
             ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' )
         ];

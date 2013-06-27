@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.078';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.084';
 }
 ## use critic
 
@@ -70,6 +70,8 @@ sub pspec_create_well {
 sub create_well {
     my ( $self, $params, $plate ) = @_;
 
+    my $process_type = $params->{ 'process_data' }->{ 'type' };
+
     my $validated_params = $self->check_params( $params, $self->pspec_create_well );
 
     $plate ||= $self->retrieve_plate( { name => $validated_params->{plate_name} } );
@@ -83,6 +85,17 @@ sub create_well {
     $process_params->{output_wells} = [ { id => $well->id } ];
 
     $self->create_process($process_params);
+
+    # add piq plate type lab number insert here
+    if ( $process_type eq 'dist_qc' ) {
+        if ( defined $process_params->{ 'lab_number' } ) {
+
+            my $created_well_id = $well->id;
+            my $lab_num = $process_params->{ 'lab_number' };
+
+            $self->create_well_lab_number( { 'well_id' => $created_well_id, 'lab_number' => $lab_num, } );
+        }
+    }
 
     return $well;
 }
@@ -112,7 +125,7 @@ sub delete_well {
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
                                  well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands 
-                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass);
+                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass well_lab_number );
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
@@ -1238,6 +1251,149 @@ sub has_dre_been_applied {
         }
     }
     return 1;
+}
+
+sub pspec_create_well_lab_number {
+    return {
+        well_id     => { validate => 'integer', optional => 0, rename => 'id' },
+        lab_number  => { validate => 'non_empty_string', optional => 0 },
+    }
+}
+
+sub create_well_lab_number {
+    my ( $self, $params ) = @_;
+
+    # check parameters are valid
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_lab_number );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    # check plate type is PIQ
+    if ( $well->plate->type_id ne 'PIQ' ) {
+        $self->throw( Validation => 'Well' . $well . ' must have a plate type of PIQ, this plate is type '
+                    . $well->plate->type_id );
+    }
+
+    # check that well does not already have an attached lab number
+    if ( $well->well_lab_number && ( my $well_lab_number_existing = $well->well_lab_number ) ) {
+         $self->throw( Validation => 'Well ' . $well . ' already has a Lab Number, with a value of '
+                    . $well_lab_number_existing->lab_number );
+    }
+
+    # check that lab number has not already been used
+    my $existing_lab_number_rs = $self->schema->resultset('WellLabNumber')->search({
+        'lab_number' => $validated_params->{'lab_number'},
+    });
+
+    my $existing_lab_number = $existing_lab_number_rs->single;
+
+    if ( defined $existing_lab_number ) {
+        my $lab_num = $existing_lab_number->lab_number;
+        my $used_on_well_name = $existing_lab_number->well->as_string;
+
+        $self->throw( Validation => 'Lab Number ' . $lab_num . ' has already been used in well ' . $used_on_well_name );
+    }
+
+    # ok to go ahead and create the related lab number
+    my $well_lab_number = $well->create_related(
+        well_lab_number => {
+            slice_def $validated_params,
+            qw( lab_number )
+        }
+    );
+
+    return $well_lab_number;
+}
+
+sub update_or_create_well_lab_number {
+    my ( $self, $params ) = @_;
+
+    my $message;
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_lab_number );
+
+    my $lab_number;
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    if ( $lab_number = $well->well_lab_number ) {
+        # existing lab number
+        my $previous = $lab_number->lab_number;
+
+        # check new lab number different from existing
+        if ( $previous eq $validated_params->{'lab_number'} ) {
+            $self->throw( Validation => 'Update unnecessary. Lab Number ' . $previous . ' is unchanged' );
+        }
+
+        # check new lab number is not already in use
+        my $existing_lab_number_rs = $self->schema->resultset('WellLabNumber')->search({
+            'lab_number' => $validated_params->{'lab_number'},
+        });
+
+        my $existing_lab_number = $existing_lab_number_rs->single;
+
+        if ( defined $existing_lab_number ) {
+            my $lab_num = $existing_lab_number->lab_number;
+            my $used_on_well_name = $existing_lab_number->well->as_string;
+
+            $self->throw( Validation => 'Update failed. Lab Number ' . $lab_num . ' has already been used in well ' . $used_on_well_name );
+        }
+
+        # update where there is an existing lab number
+        my $update_request = {slice_def $validated_params, qw( lab_number )};
+
+        # ok to update the existing lab number
+        $lab_number->update( { 'lab_number' => $update_request->{ 'lab_number' } } );
+
+        $message = 'Update succeeded. Lab Number updated from ' . $previous . ' to ' . $lab_number->lab_number;
+    }
+    else {
+        # check that lab number has not already been used
+        my $existing_lab_number_rs = $self->schema->resultset('WellLabNumber')->search({
+            'lab_number' => $validated_params->{'lab_number'},
+        });
+
+        my $existing_lab_number = $existing_lab_number_rs->single;
+
+        if ( defined $existing_lab_number ) {
+            my $lab_num = $existing_lab_number->lab_number;
+            my $used_on_well_name = $existing_lab_number->well->as_string;
+
+            $self->throw( Validation => 'Create failed. Lab Number ' . $lab_num . ' has already been used in well ' . $used_on_well_name );
+        }
+
+        # ok to go ahead and create the related lab number
+        $lab_number = $well->create_related(
+            well_lab_number => {
+                slice_def $validated_params,
+                qw( lab_number )
+            }
+        );
+        $message = 'Create succeeded. Lab Number ' . $lab_number->lab_number . ' created for well ' . $well->as_string;
+    }
+
+    return wantarray ? ($lab_number, $message) : $lab_number ;
+}
+
+sub retrieve_well_lab_number {
+    my ( $self, $params ) = @_;
+
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
+    my $well = $self->retrieve_well( $params );
+    my $lab_number = $well->well_lab_number
+        or $self->throw( NotFound => { entity_class => 'WellLabNumber', search_params => $params } );
+    return $lab_number;
+}
+
+sub delete_well_lab_number {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $lab_number = $self->retrieve_well_lab_number( $params );
+
+    $lab_number->delete;
+    $self->log->debug( 'Delete successful. Lab Number deleted for well  ' . $lab_number->well->as_string );
+
+    return;
 }
 
 1;

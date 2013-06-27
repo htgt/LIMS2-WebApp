@@ -51,6 +51,7 @@ lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
 lib/LIMS2/Model/Schema/Result/Crispr.pm
 lib/LIMS2/Model/Schema/Result/CrisprLociType.pm
 lib/LIMS2/Model/Schema/Result/CrisprLocus.pm
+lib/LIMS2/Model/Schema/Result/CrisprOffTargetSummaries.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargets.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
@@ -59,6 +60,7 @@ lib/LIMS2/Model/Schema/Result/DesignCommentCategory.pm
 lib/LIMS2/Model/Schema/Result/DesignOligo.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
+lib/LIMS2/Model/Schema/Result/DesignTarget.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimer.pm
@@ -117,6 +119,7 @@ lib/LIMS2/Model/Schema/Result/WellComment.pm
 lib/LIMS2/Model/Schema/Result/WellDnaQuality.pm
 lib/LIMS2/Model/Schema/Result/WellDnaStatus.pm
 lib/LIMS2/Model/Schema/Result/WellGenotypingResult.pm
+lib/LIMS2/Model/Schema/Result/WellLabNumber.pm
 lib/LIMS2/Model/Schema/Result/WellPrimerBand.pm
 lib/LIMS2/Model/Schema/Result/WellQcSequencingResult.pm
 lib/LIMS2/Model/Schema/Result/WellRecombineeringResult.pm
@@ -131,6 +134,7 @@ lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
 lib/LIMS2/Model/Util/DataUpload.pm
 lib/LIMS2/Model/Util/DesignInfo.pm
+lib/LIMS2/Model/Util/DesignTargets.pm
 lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
@@ -1478,6 +1482,7 @@ root/static/extjs/resources/themes/images/gray/window/icon-warning.gif
 root/static/extjs/version.properties
 root/static/files/plate_upload/first_electroporation_template.csv
 root/static/files/plate_upload/gateway_template.csv
+root/static/files/plate_upload/piq_template.csv
 root/static/files/plate_upload/qc_template_plate_template.csv
 root/static/files/plate_upload/recombinase_template.csv
 root/static/files/plate_upload/recombineering_template.csv
@@ -1537,9 +1542,11 @@ t/40-model-util-createplate.t
 t/40-model-util-createprocess.t
 t/40-model-util-dataupload.t
 t/40-model-util-designinfo.t
+t/40-model-util-designtarget.t
 t/40-model-util-qcresults.t
 t/50-model-plugin-bac.t
 t/50-model-plugin-crispr.t
+t/50-model-plugin-design-targets.t
 t/50-model-plugin-design.t
 t/50-model-plugin-gene.t
 t/50-model-plugin-genotypingqc.t
@@ -1576,10 +1583,12 @@ t/data/clone_pool_process.yaml
 t/data/cre_bac_recom_process.yaml
 t/data/create_crispr.yaml
 t/data/create_crispr_process.yaml
+t/data/create_design_targets.yaml
 t/data/create_di_process.yaml
 t/data/csv_upload_linux.csv
 t/data/csv_upload_mac.csv
 t/data/csv_upload_win.csv
+t/data/design_targets_util.yaml
 t/data/dist_qc_process.yaml
 t/data/dna_prep_process.yaml
 t/data/dna_status.yaml

@@ -69,3 +69,26 @@ well_primer_bands_create_bad:
     primer_band_type: bad_primer_type
     pass: 1
     created_by: test_user@example.org
+piq_plate_create:
+    name: PIQTEST001
+    species: Mouse
+    type: PIQ
+    created_by: test_user@example.org
+piq_well_create_one:
+    plate_name: PIQTEST001
+    well_name: A01
+    created_by: test_user@example.org
+    process_data:
+        type: dist_qc
+        input_wells:
+            - plate_name: 1001
+              well_name: A01
+piq_well_create_two:
+    plate_name: PIQTEST001
+    well_name: A02
+    created_by: test_user@example.org
+    process_data:
+        type: dist_qc
+        input_wells:
+            - plate_name: 1002
+              well_name: A01

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.078';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.084';
 }
 ## use critic
 
@@ -404,23 +404,23 @@ sub generate_sub_report {
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Valid DNA'                         => {
             'display_stage'         => 'Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'Electroporations'            => {
             'display_stage'         => 'Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Accepted ES Clones'                => {
             'display_stage'         => 'Accepted ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
     };
 
@@ -433,8 +433,8 @@ sub generate_sub_report {
         },
         'Vectors'                   => {
             'display_stage'         => 'Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Vectors Neo and Bsd'       => {
             'display_stage'         => 'Vector pairs Neo and Bsd',
@@ -443,18 +443,18 @@ sub generate_sub_report {
         },
         'Vectors Neo'               => {
             'display_stage'         => 'Neomycin-resistant Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Vectors Bsd'               => {
             'display_stage'         => 'Blasticidin-resistant Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Valid DNA'                 => {
             'display_stage'         => 'Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'Valid DNA Neo and Bsd'     => {
             'display_stage'         => 'Valid DNA pairs Neo and Bsd',
@@ -463,53 +463,53 @@ sub generate_sub_report {
         },
         'Valid DNA Neo'             => {
             'display_stage'         => 'Neomycin-resistant Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'Valid DNA Bsd'             => {
             'display_stage'         => 'Blasticidin-resistant Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'First Electroporations'    => {
             'display_stage'         => 'First Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'First Electroporations Neo' => {
             'display_stage'         => 'First Electroporations Neo',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'First Electroporations Bsd' => {
             'display_stage'         => 'First Electroporations Bsd',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Accepted First ES Clones'  => {
             'display_stage'         => 'Accepted First ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Second Electroporations'   => {
             'display_stage'         => 'Second Electroporations',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'order', 'plate_name', 'well_name',  'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'resistance', 'electroporation order', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'electroporation order', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Second Electroporations Neo'   => {
             'display_stage'         => 'Second Electroporations Neo',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Second Electroporations Bsd'   => {
             'display_stage'         => 'Second Electroporations Bsd',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Accepted Second ES Clones' => {
             'display_stage'         => 'Accepted Second ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
-            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promotor', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
     };
 
@@ -783,22 +783,22 @@ sub refactor_vector_pairs_data {
 
         # update flags according to current row (NB same flag may be triggered
         # multiple times if different cassettes have same resistance/promotor type
-        if( defined $row->{ 'final_cassette_resistance' } ) {
-            if ( ($row->{ 'final_cassette_resistance' } eq 'bsd') && ($row->{ 'final_cassette_promoter' } == 1 ) ) {
+        if( defined $row->{ 'final_pick_cassette_resistance' } ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'bsd') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_bsd_promoter' } = 1;
             }
-            if ( ($row->{ 'final_cassette_resistance' } eq 'bsd') && ($row->{ 'final_cassette_promoter' } == 0 ) ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'bsd') && ($row->{ 'final_pick_cassette_promoter' } == 0 ) ) {
                $row_building{ 'have_bsd_promoterless' } = 1;
             }
-            if ( ($row->{ 'final_cassette_resistance' } eq 'neo') && ($row->{ 'final_cassette_promoter' } == 1 ) ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'neo') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_neo_promoter' } = 1;
             }
-            if ( ($row->{ 'final_cassette_resistance' } eq 'neo') && ($row->{ 'final_cassette_promoter' } == 0 ) ) {
+            if ( ($row->{ 'final_pick_cassette_resistance' } eq 'neo') && ($row->{ 'final_pick_cassette_promoter' } == 0 ) ) {
                $row_building{ 'have_neo_promoterless' } = 1;
             }
         }
         else {
-            DEBUG 'WARNING: No FINAL cassette resistance found for Neo and Bsd Vectors row for gene '.$row->{ 'design_gene_symbol' }.' id '.$row->{ 'design_gene_id' };
+            DEBUG 'WARNING: No FINAL_PICK cassette resistance found for Neo and Bsd Vectors row for gene '.$row->{ 'design_gene_symbol' }.' id '.$row->{ 'design_gene_id' };
         }
     }
 
@@ -1353,25 +1353,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1379,13 +1379,13 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
+AND s.final_pick_qc_seq_pass = true
 SQL_END
 
     return $sql_query;
@@ -1426,25 +1426,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1452,9 +1452,9 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
@@ -1499,25 +1499,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1525,9 +1525,9 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
@@ -1572,25 +1572,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1598,9 +1598,9 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
@@ -1641,32 +1641,34 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_plate_name AS plate_name, s.final_well_name AS well_name
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1674,15 +1676,16 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.final_plate_name, s.final_well_name
-ORDER BY s.design_gene_symbol, s.final_cassette_name, s.final_plate_name, s.final_well_name
+AND s.final_pick_qc_seq_pass = true
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name
+ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
 SQL_END
 
     return $sql_query;
@@ -1716,32 +1719,35 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_plate_name AS parent_plate_name, s.final_well_name AS parent_well_name, s.dna_plate_name AS plate_name, s.dna_well_name AS well_name, s.final_qc_seq_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
+, s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1749,14 +1755,16 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
 AND s.dna_status_pass = true
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.final_plate_name, s.final_well_name, s.dna_plate_name, s.dna_well_name, s.final_qc_seq_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name
+, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
@@ -1791,32 +1799,34 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1824,14 +1834,15 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
 AND s.ep_well_id > 0
-GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_cassette_name, s.final_cassette_promoter, s.final_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_pick_cassette_name
+, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
@@ -1866,32 +1877,35 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass
+, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1899,14 +1913,16 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
 AND s.ep_pick_well_accepted = true
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass
+, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_END
 
@@ -1951,25 +1967,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -1977,13 +1993,13 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
+AND s.final_pick_qc_seq_pass = true
 SQL_END
 
     return $sql_query;
@@ -2025,25 +2041,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -2051,14 +2067,14 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'neo' 
+AND s.final_pick_qc_seq_pass = true
+AND s.final_pick_cassette_resistance = 'neo' 
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
@@ -2069,25 +2085,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -2095,14 +2111,14 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'bsd'
+AND s.final_pick_qc_seq_pass = true
+AND s.final_pick_cassette_resistance = 'bsd'
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 SELECT count(distinct(nv.design_gene_id))
@@ -2149,25 +2165,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -2175,14 +2191,14 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = '$resistance_type'
+AND s.final_pick_qc_seq_pass = true
+AND s.final_pick_cassette_resistance = '$resistance_type'
 SQL_END
 
     return $sql_query;
@@ -2930,32 +2946,34 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_plate_name AS plate_name, s.final_well_name AS well_name
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -2963,15 +2981,16 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.final_plate_name, s.final_well_name
-ORDER BY s.design_gene_symbol, s.final_cassette_name, s.final_plate_name, s.final_well_name
+AND s.final_pick_qc_seq_pass = true
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name
+ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
 SQL_END
 
     return $sql_query;
@@ -3013,25 +3032,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -3039,14 +3058,14 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'neo' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
+AND s.final_pick_qc_seq_pass = true
+AND s.final_pick_cassette_resistance = 'neo' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
 SELECT pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
@@ -3056,25 +3075,25 @@ WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE muta
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -3082,14 +3101,14 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = 'bsd' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
+AND s.final_pick_qc_seq_pass = true
+AND s.final_pick_cassette_resistance = 'bsd' GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
  , vector_pairings AS (
 SELECT nv.project_id, nv.design_id, nv.design_gene_id, nv.design_gene_symbol
@@ -3098,13 +3117,15 @@ INNER JOIN bsd_vectors bv ON bv.project_id = nv.project_id
 AND bv.design_id = nv.design_id
 GROUP BY nv.project_id, nv.design_id, nv.design_gene_id, nv.design_gene_symbol
 )
-SELECT vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_cassette_resistance, s.final_cassette_promoter
+SELECT vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_pick_cassette_resistance
+, s.final_pick_cassette_promoter
 FROM summaries s
 INNER JOIN vector_pairings vp ON s.design_id = vp.design_id
 WHERE s.design_species_id = '$species_id'
-AND s.final_qc_seq_pass = true
-GROUP BY vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_cassette_resistance, s.final_cassette_promoter
-ORDER BY vp.design_gene_symbol, vp.project_id, vp.design_id, s.final_cassette_resistance, s.final_cassette_promoter
+AND s.final_pick_qc_seq_pass = true
+GROUP BY vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_pick_cassette_resistance
+, s.final_pick_cassette_promoter
+ORDER BY vp.design_gene_symbol, vp.project_id, vp.design_id, s.final_pick_cassette_resistance, s.final_pick_cassette_promoter
 SQL_END
 
     return $sql_query;
@@ -3138,32 +3159,34 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_cassette_name AS cassette_name, s.final_cassette_promoter AS cassette_promotor, s.final_plate_name AS plate_name, s.final_well_name AS well_name
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
     (pr.conditional IS NULL)
     OR
-    (pr.conditional IS NOT NULL AND s.final_cassette_conditional = pr.conditional)
+    (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
     (pr.promoter IS NULL)
     OR
-    (pr.promoter IS NOT NULL AND pr.promoter = s.final_cassette_promoter)
+    (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
     (pr.cre IS NULL)
     OR
-    (pr.cre IS NOT NULL AND s.final_cassette_cre = pr.cre)
+    (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
     (pr.well_has_cre IS NULL)
     OR
     (
-        (pr.well_has_cre = true AND s.final_recombinase_id = 'Cre')
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
         OR
-        (pr.well_has_cre = false AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+        (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
@@ -3171,16 +3194,17 @@ AND (
     OR
     (
      pr.well_has_no_recombinase IS NOT NULL AND (
-      (pr.well_has_no_recombinase = true AND (s.final_recombinase_id = '' OR s.final_recombinase_id IS NULL))
+      (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
        OR
-      (pr.well_has_no_recombinase = false AND s.final_recombinase_id IS NOT NULL)
+      (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
 )
-AND s.final_qc_seq_pass = true
-AND s.final_cassette_resistance = '$resistance_type'
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_cassette_name, s.final_cassette_promoter, s.final_plate_name, s.final_well_name
-ORDER BY s.design_gene_symbol, s.final_cassette_name, s.final_plate_name, s.final_well_name
+AND s.final_pick_qc_seq_pass = true
+AND s.final_pick_cassette_resistance = '$resistance_type'
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name
+ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
 SQL_END
 
     return $sql_query;
@@ -3214,7 +3238,10 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name, s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
+, s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3254,7 +3281,9 @@ AND (
     )
 )
 AND s.dna_status_pass = true
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name
+, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
@@ -3384,12 +3413,14 @@ INNER JOIN bsd_vectors bv ON bv.project_id = nv.project_id
 AND bv.design_id = nv.design_id
 GROUP BY nv.project_id, nv.design_id, nv.design_gene_id, nv.design_gene_symbol
 )
-SELECT vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_pick_cassette_resistance, s.final_pick_cassette_promoter
+SELECT vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_pick_cassette_resistance
+, s.final_pick_cassette_promoter
 FROM summaries s
 INNER JOIN vector_pairings vp ON s.design_id = vp.design_id
 WHERE s.design_species_id = '$species_id'
 AND s.dna_status_pass = true
-GROUP BY vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_pick_cassette_resistance, s.final_pick_cassette_promoter
+GROUP BY vp.project_id, vp.design_id, vp.design_gene_id, vp.design_gene_symbol, s.final_pick_cassette_resistance
+, s.final_pick_cassette_promoter
 ORDER BY vp.design_gene_symbol, vp.project_id, vp.design_id, s.final_pick_cassette_resistance, s.final_pick_cassette_promoter
 SQL_END
 
@@ -3424,7 +3455,10 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name, s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
+, s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3465,7 +3499,9 @@ AND (
 )
 AND s.dna_status_pass = true
 AND s.final_pick_cassette_resistance = '$resistance_type'
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name
+, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
@@ -3500,7 +3536,9 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3540,7 +3578,8 @@ AND (
     )
 )
 AND s.ep_well_id > 0
-GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_pick_cassette_name
+, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
@@ -3575,7 +3614,9 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
- SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+ SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name
+ , s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+ , s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3616,7 +3657,8 @@ AND (
 )
 AND s.ep_well_id > 0
 AND s.final_pick_cassette_resistance = '$resistance_type'
-GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name, s.final_pick_cassette_name
+, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
@@ -3651,7 +3693,9 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3691,7 +3735,9 @@ AND (
     )
 )
 AND s.ep_pick_well_accepted = true
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_END
 
@@ -3726,7 +3772,9 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance, s.ep_well_id, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_resistance AS cassette_resistance, s.ep_well_id, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3766,7 +3814,9 @@ AND (
     )
 )
 AND s.sep_well_id > 0
-GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.ep_well_id, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name, s.final_pick_cassette_name
+, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.ep_well_id, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.sep_plate_name, s.sep_well_name, s.ep_well_id
 SQL_END
 
@@ -3801,7 +3851,9 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3842,7 +3894,8 @@ AND (
 )
 AND s.sep_well_id > 0
 AND s.ep_well_id IS NULL AND s.final_pick_cassette_resistance = '$resistance_type'
-GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.sep_plate_name, s.sep_well_name, s.final_pick_cassette_name
+, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.sep_plate_name, s.sep_well_name
 SQL_END
 
@@ -3877,7 +3930,9 @@ WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
-SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor, s.sep_pick_plate_name AS plate_name, s.sep_pick_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.sep_pick_plate_name AS plate_name, s.sep_pick_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -3917,7 +3972,9 @@ AND (
     )
 )
 AND s.sep_pick_well_accepted = true
-GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter, s.sep_pick_plate_name, s.sep_pick_well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.sep_pick_plate_name, s.sep_pick_well_name, s.final_qc_seq_pass
+, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.sep_pick_plate_name, s.sep_pick_well_name
 SQL_END
 

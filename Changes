@@ -1,3 +1,29 @@
+0.084     2013-06-27 09:48:27 Europe/London
+
+    Added dashes as valid characters to qc_seq_read validation.
+
+0.083     2013-06-27 07:44:38 Europe/London
+
+    Modified way crispr off targets are stored and updated.
+
+0.082     2013-06-21 10:27:08 Europe/London
+
+    Added support for retrieving symbolic information for non-solr gene_ids
+
+0.081     2013-06-18 15:00:37 Europe/London
+	Added Lab Number to PIQ plate uploads
+
+0.080     2013-06-14 08:31:11 Europe/London
+
+    Modify design_targets table to add gene_id, rename gene_name to marker_symbol.
+    Add checks to make sure design_targets are unique on ensembl exon id for a given build.
+
+0.079     2013-06-13 08:00:40 Europe/London
+
+    Re-organised main menues.
+    Final Pick type plates now used for reports and summaries where projects are single targeted.
+    Added design_targets table.
+
 0.078     2013-06-11 16:01:16 Europe/London
     
     QC Bugfix: newer runs displayed valid primers multiple times.
