@@ -196,6 +196,7 @@ sub dump_database_definition
     # File to use for schema dump
     my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 1 );
     #my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 0 );
+    chmod 0664, $filename_schema;
     DEBUG(Data::Dumper->Dump([\$filename_schema],[qw(filename_schema)]));
 
     # Dump schema using pg_dump
@@ -423,16 +424,36 @@ sub clone_database
 	$ret = $self->load_fixture(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, role => $params{destination_role}, file => $source_data_dumpfile);
 #	$ret = $self->restore_database(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, schema => $source_data_dumpfile, role => $params{destination_role}, no_role => $params{no_destination_role}, overwrite => $params{overwrite});
 	die "Failed to restore the data" unless ($ret);
+
+	# Now truncate all audit tables after they have filled up with 'gunk'
+	$truncate_audit_command = <<'HERE_TARGET';
+	    set search_path = audit, pg_catalog;
+	    DO
+	    $func$
+	    BEGIN
+	       EXECUTE (
+		  SELECT 'TRUNCATE TABLE '
+			 || string_agg(quote_ident(t.tablename), ', ')
+			 || ' CASCADE'
+		  FROM   pg_tables t
+		  WHERE  t.schemaname = 'audit'
+	       );
+	    END
+	    $func$;
+HERE_TARGET
+
+	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, query => $truncate_audit_command);
+	die "Failed to truncate audit tables" unless ($ret);
     }
 
     # Restore a minimum set of test roles
     if ($params{create_test_role}) {
 	$role_structure = <<'HERE_TARGET';
 	    drop role if exists "lims2_test";
-	    create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
+	    create role if not exists "lims2_test" with encrypted password 'test_passwd' login noinherit;
 
 	    drop role if exists "test_user@example.org";
-	    create role "test_user@example.org" with nologin inherit;
+	    create role if not exists "test_user@example.org" with nologin inherit;
 	    grant lims2 to "test_user@example.org";
 
 	    -- test_db_add_fixture_md5.sql:
