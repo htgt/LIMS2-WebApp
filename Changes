@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.084     2013-06-27 09:48:27 Europe/London
+
+    Added dashes as valid characters to qc_seq_read validation.
+
 0.083     2013-06-27 07:44:38 Europe/London
 
     Modified way crispr off targets are stored and updated.
