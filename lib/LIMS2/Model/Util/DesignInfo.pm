@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignInfo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignInfo::VERSION = '0.082';
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.083';
 }
 ## use critic
 
@@ -63,7 +63,16 @@ has chr_name => (
 );
 
 has [
-    qw( target_region_start target_region_end )
+    qw( cassette_start cassette_end homology_arm_start homology_arm_end )
+] => (
+    is         => 'ro',
+    isa        => 'Int',
+    init_arg   => undef,
+    lazy_build => 1,
+);
+
+has [
+    qw( loxp_start loxp_end target_region_start target_region_end )
 ] => (
     is         => 'ro',
     isa        => 'Maybe[Int]',
@@ -158,6 +167,102 @@ sub _build_target_region_end {
         else {
             return $self->oligos->{U3}{end};
         }
+    }
+}
+
+sub _build_loxp_start {
+    my $self = shift;
+
+    return if $self->type eq 'deletion' || $self->type eq 'insertion';
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D5}{end} + 1;
+        }
+        else {
+            return $self->oligos->{D3}{end} + 1;
+        }
+    }
+}
+
+sub _build_loxp_end {
+    my $self = shift;
+
+    return if $self->type eq 'deletion' || $self->type eq 'insertion';
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D3}{start} - 1;
+        }
+        else {
+            return $self->oligos->{D5}{start} - 1;
+        }
+    }
+}
+
+sub _build_cassette_start {
+    my $self = shift;
+
+    if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U5}{end} + 1;
+        }
+        else {
+            return $self->oligos->{D3}{end} + 1;
+        }
+    }
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U5}{end} + 1;
+        }
+        else {
+            return $self->oligos->{U3}{end} + 1;
+        }
+    }
+}
+
+sub _build_cassette_end {
+    my $self = shift;
+
+    if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D3}{start} - 1;
+        }
+        else {
+            return $self->oligos->{U5}{start} - 1;
+        }
+    }
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U3}{start} - 1;
+        }
+        else {
+            return $self->oligos->{U5}{start} - 1;
+        }
+    }
+}
+
+sub _build_homology_arm_start {
+    my $self = shift;
+
+    if ( $self->chr_strand == 1 ) {
+        return $self->oligos->{G5}{start};
+    }
+    else {
+        return $self->oligos->{G3}{start};
+    }
+}
+
+sub _build_homology_arm_end {
+    my $self = shift;
+
+    if ( $self->chr_strand == 1 ) {
+        return $self->oligos->{G3}{end};
+    }
+    else {
+        return $self->oligos->{G5}{end};
     }
 }
 

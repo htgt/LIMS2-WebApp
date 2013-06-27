@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.082';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.083';
 }
 ## use critic
 
@@ -17,20 +17,22 @@ requires qw( schema check_params throw retrieve log trace );
 
 sub pspec_create_crispr {
     return {
-        type               => { validate => 'existing_crispr_loci_type', rename => 'crispr_loci_type_id' },
-        seq                => { validate =>  'dna_seq' },
-        species            => { validate => 'existing_species', rename => 'species_id' },
-        off_target_outlier => { validate => 'boolean', default => 0 },
-        comment            => { validate => 'non_empty_string', optional => 1 },
-        locus              => { validate => 'hashref' },
-        off_targets        => { optional => 1 },
+        type                 => { validate => 'existing_crispr_loci_type', rename => 'crispr_loci_type_id' },
+        seq                  => { validate =>  'dna_seq' },
+        species              => { validate => 'existing_species', rename => 'species_id' },
+        comment              => { validate => 'non_empty_string', optional => 1 },
+        off_target_summary   => { validate => 'non_empty_string', optional => 1 },
+        off_target_algorithm => { validate => 'non_empty_string' },
+        off_target_outlier   => { validate => 'boolean', default => 0 },
+        locus                => { validate => 'hashref' },
+        off_targets          => { optional => 1 },
     };
 }
 
 =head2 create_crispr
 
 Create a crispr record, along with its locus and off target information.
-If crispr with same sequence and locus already exists then just replace
+If crispr with same sequence and locus already exists then add or replace
 the off target information.
 
 =cut
@@ -50,26 +52,18 @@ sub create_crispr {
         }
     );
 
-    # If crispr with same seq and locus exists just drop off targets and create new ones
-    # otherwise create brand new crispr
+    # If crispr with same seq and locus exists we need to just deal with the crispr off target data
     if ( $crispr ) {
-        $self->log->debug( 'Found identical crispr site, just replacing off targets: ' . $crispr->id );
-        $crispr->off_targets->delete;
-        for my $o ( @{ $validated_params->{off_targets} || [] } ) {
-            $o->{crispr_id} = $crispr->id;
-            $self->create_crispr_off_target( $o, $crispr );
-        }
-    }
-    else {
-        $crispr = $self->_create_crispr( $validated_params );
+        $self->log->debug( 'Found identical crispr site, just updating off target data: ' . $crispr->id );
+        return $self->update_or_create_crispr_off_targets( $crispr, $validated_params );
     }
 
-    return $crispr;
+    return $self->_create_crispr( $validated_params );
 }
 
 =head2 _create_crispr
 
-Actually create the crispr record here.
+Actually create the brand new crispr record here.
 
 =cut
 sub _create_crispr {
@@ -79,7 +73,7 @@ sub _create_crispr {
         {   slice_def(
                 $validated_params,
                 qw( id species_id crispr_loci_type_id
-                    seq off_target_outlier comment
+                    seq comment
                     )
             )
         }
@@ -90,10 +84,7 @@ sub _create_crispr {
     $locus_params->{crispr_id} = $crispr->id;
     $self->create_crispr_locus( $locus_params, $crispr );
 
-    for my $o ( @{ $validated_params->{off_targets} || [] } ) {
-        $o->{crispr_id} = $crispr->id;
-        $self->create_crispr_off_target( $o, $crispr );
-    }
+    $self->add_crispr_off_target_data( $crispr, $validated_params );
 
     return $crispr;
 }
@@ -109,9 +100,62 @@ sub pspec_create_crispr_locus {
     };
 }
 
+=head2 update_or_create_crispr_off_targets
+
+If we already have off target data for crispr using same algorithm replace the data.
+If no off target data exists for the algorithm then insert data.
+
+=cut
+sub update_or_create_crispr_off_targets {
+    my ( $self, $crispr, $validated_params ) = @_;
+
+    my $existing_off_targets = $crispr->off_target_summaries->find(
+        {
+            algorithm => $validated_params->{off_target_algorithm}
+        }
+    );
+
+    # If we have existing off target data for this algorithm delete current data
+    if ( $existing_off_targets ) {
+        $existing_off_targets->delete;
+        $crispr->off_targets->search_rs(
+            { algorithm => $validated_params->{off_target_algorithm} } )->delete;
+    }
+
+    $self->add_crispr_off_target_data( $crispr, $validated_params );
+
+    return $crispr;
+
+}
+
+=head2 add_crispr_off_target_data
+
+Add data about off target hits for a crispr
+
+=cut
+sub add_crispr_off_target_data {
+    my ( $self, $crispr, $validated_params ) = @_;
+
+    for my $o ( @{ $validated_params->{off_targets} || [] } ) {
+        $o->{crispr_id} = $crispr->id;
+        $o->{algorithm} = $validated_params->{off_target_algorithm};
+        $self->create_crispr_off_target( $o, $crispr );
+    }
+
+    $crispr->create_related(
+        off_target_summaries => {
+            outlier    => $validated_params->{off_target_outlier},
+            algorithm  => $validated_params->{off_target_algorithm},
+            summary    => $validated_params->{off_target_summary},
+        }
+    );
+
+    return;
+}
+
 =head2 create_crispr_locus
 
-Create a locus row for a given crispr.
+Create locus record for a crisper, for a given assembly
 
 =cut
 sub create_crispr_locus {
@@ -151,6 +195,7 @@ sub pspec_create_crispr_off_target {
         chr_strand => { validate => 'strand' },
         crispr_id  => { validate => 'integer' },
         type       => { validate => 'existing_crispr_loci_type' },
+        algorithm  => { validate => 'non_empty_string' },
     };
 }
 
@@ -182,6 +227,7 @@ sub create_crispr_off_target {
             chr_end             => $validated_params->{chr_end},
             chr_strand          => $validated_params->{chr_strand},
             crispr_loci_type_id => $validated_params->{type},
+            algorithm           => $validated_params->{algorithm},
         }
     );
 
@@ -208,13 +254,14 @@ sub delete_crispr {
             }
         );
 
-    #TODO check this works sp12 Wed 22 May 2013 14:57:08 BST
     # Check that crispr is not allocated to a process and, if it is, refuse to delete
-    #if ( $crispr->process_cripers_rs->count > 0 ) {
-        #$self->throw( InvalidState => 'Crisper ' . $crisper->id . ' has been used in one or more processes' );
-    #}
+    if ( $crispr->process_crisprs->count > 0 ) {
+        $self->throw(
+            InvalidState => 'Crispr ' . $crispr->id . ' has been used in one or more processes' );
+    }
 
     $crispr->off_targets->delete;
+    $crispr->off_target_summaries->delete;
     $crispr->loci->delete;
     $crispr->delete;
 

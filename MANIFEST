@@ -51,6 +51,7 @@ lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
 lib/LIMS2/Model/Schema/Result/Crispr.pm
 lib/LIMS2/Model/Schema/Result/CrisprLociType.pm
 lib/LIMS2/Model/Schema/Result/CrisprLocus.pm
+lib/LIMS2/Model/Schema/Result/CrisprOffTargetSummaries.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargets.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
