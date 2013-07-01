@@ -84,25 +84,21 @@ sub reload_fixtures {
 sub _build_test_data {
     my ( $class, $name, $args ) = @_;
 
-    my $data_dir;
-    if ( $args->{dir} ) {
-        $data_dir = dir( $args->{dir} );
-    }
-    else {
-        $data_dir = dir($FindBin::Bin)->subdir('data');
-    }
-
     return sub {
-        my ( $filename, %opts ) = @_;
-
-        my $file = $data_dir->file($filename);
-
-        if ( $filename =~ m/\.yaml$/ and not $opts{raw} ) {
-            return YAML::Any::LoadFile($file);
-        }
-
-        return $file;
-    };
+	my ( $filename, %opts ) = @_;
+	my $mech = mech();
+	$mech->get( '/test/data' );
+	my @links = $mech->links();
+	for my $link (@links)
+	{
+	    if ($filename eq $link->text)
+	    {
+		$mech->get( $link );
+		return YAML::Any::Load($mech->content);
+	    }
+	}
+	return $filename;
+    }
 }
 
 sub _build_model {
@@ -141,15 +137,11 @@ sub _build_model {
 sub _load_fixtures {
     my ( $dbh, $args ) = @_;
 
-    my $fixtures_dir;
-    if ( $args->{fixtures_dir} ) {
-        $fixtures_dir = dir( $args->{fixtures_dir} );
-    }
-    else {
-        $fixtures_dir = dir($FindBin::Bin)->subdir('fixtures');
-    }
+    my $mech = mech();
+    $mech->get( '/test/fixtures' );
+    my @links = $mech->links();
 
-    my @fixtures = ( sort { $a cmp $b } grep { _is_fixture($_) } $fixtures_dir->children );
+    my @fixtures = ( sort { $a->text cmp $b->text } grep { _is_fixture($_->text) } @links );
 
     my $fixture_md5 = _calculate_md5(@fixtures);
 
@@ -165,13 +157,9 @@ sub _load_fixtures {
         $dbh->do( "SET ROLE lims2" );
 
     	foreach my $fixture (@fixtures){
-           DEBUG("Loading fixtures from $fixture");
-            DBIx::RunSQL->run_sql_file(
-                verbose         => 1,
-                verbose_handler => \&DEBUG,
-                dbh             => $dbh,
-                sql             => $fixture
-            );
+           DEBUG("Loading fixtures from " . $fixture->text);
+	    $mech->get( $fixture->url );
+	    $dbh->do( $mech->content );
     	}
 	print STDERR "Updating fixture md5\n";
     	_update_fixture_md5($dbh, $fixture_md5);
@@ -191,22 +179,20 @@ sub _load_fixtures {
 }
 
 sub _is_fixture {
-    my $obj = shift;
+    my $name = shift;
 
-    return if $obj->is_dir;
-
-    return $obj->basename =~ m/$FIXTURE_RX/;
+    return $name =~ m/$FIXTURE_RX/;
 }
 
 sub _calculate_md5{
-    my @files = @_;
+    my @links = @_;
 
     my $md5 = Digest::MD5->new;
 
-    foreach my $file (@files){
-    	open (my $fh, "<", $file) or die "Could not open $file for MD5 digest - $!";
-        $md5->addfile($fh);
-        close $fh;
+    my $mech = mech();
+    foreach my $link (@links){
+	$mech->get( $link->url );
+	$md5->add($mech->content);
     }
 
     return $md5->hexdigest;
