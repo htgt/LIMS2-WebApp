@@ -1,0 +1,61 @@
+[% META title="Design Target Report" %]
+
+<div class="page-header">
+  <h1>Design Target Report</h1>
+</div>
+
+
+<table id="design-target-report" class="table table-bordered table-condensed">
+  <thead>
+    <tr>
+      <th class="design-target group-header" colspan="5">Design Target</th>
+      <th class="design group-header" colspan="2">Design</th>
+      <th class="crispr group-header" colspan="6">Crispr</th>
+    </tr>
+    <tr>
+      <th class="design-target">Marker Symbol</th>
+      <th class="design-target">Gene ID</th>
+      <th class="design-target">Target Exon</th>
+      <th class="design-target">Exon Size</th>
+      <th class="design-target">Exon Rank</th>
+      <th class="design">Design ID</th>
+      <th class="design">Design Type</th>
+      <th class="crispr">Crispr ID</th>
+      <th class="crispr">Crispr Valid</th>
+      <th class="crispr">Crispr Off Targets</th>
+      <th class="crispr">Crispr Wells</th>
+      <th class="crispr">Pick Crispr</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    [%- FOR datum IN design_targets_data.rows %]
+      <tr>
+        <td class="design-target">[% datum.marker_symbol %]</td>
+        <td class="design-target">[% datum.gene_id %]</td>
+        <td class="design-target">[% datum.ensembl_exon_id %]</td>
+        <td class="design-target">[% datum.exon_size %]</td>
+        <td class="design-target">[% datum.exon_rank %]</td>
+        <td class="design">[% datum.design_id %]</td>
+        <td class="design">[% datum.design_type %]</td>
+        <td class="crispr">[% datum.crispr_id %]</td>
+        <td class="crispr">[% datum.outlier.join(', ') %]</td>
+        <td class="crispr">[% datum.summary.join(', ') %]</td>
+        <td class="crispr">[% datum.crispr_wells %]</td>
+        <td class="crispr">[% IF datum.crispr_id %]<input type="checkbox" />[% END %]</td>
+      </tr>
+    [%- END %]
+  </tbody>
+</table>
+
+<div class="row">
+
+  <div class="span4">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn btn-primary">
+    <i class="icon-hand-left icon-white"></i> Back to search </a>
+  </div>
+
+  <div class="span4 offset4">
+    <pre><strong>Search Terms</strong><br/>[% search_genes %]</pre>
+  </div>
+</div>
