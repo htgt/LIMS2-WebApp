@@ -103,7 +103,7 @@
       <td>[% pass_fail( r.pass ) %]</td>
       <td>[% r.score %]</td>
       <td>[% r.num_reads %]</td>
-      <td>[% r.valid_primers.size %]</td>
+      <td>[% r.num_valid_primers %]</td>
       <td>[% r.valid_primers_score %]</td>
       <td>[% r.valid_primers.join( "," ) %]</td>
       <td>
