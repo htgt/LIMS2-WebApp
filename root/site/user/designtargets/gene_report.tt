@@ -4,7 +4,6 @@
   <h1>Design Target Report</h1>
 </div>
 
-
 <table id="design-target-report" class="table table-bordered table-condensed">
   <thead>
     <tr>
@@ -29,21 +28,59 @@
   </thead>
 
   <tbody>
-    [%- FOR datum IN design_targets_data.rows %]
+    [%- FOR datum IN design_targets_data.data %]
+      [% dt_first_row = 1 %]
       <tr>
-        <td class="design-target">[% datum.marker_symbol %]</td>
-        <td class="design-target">[% datum.gene_id %]</td>
-        <td class="design-target">[% datum.ensembl_exon_id %]</td>
-        <td class="design-target">[% datum.exon_size %]</td>
-        <td class="design-target">[% datum.exon_rank %]</td>
-        <td class="design">[% datum.design_id %]</td>
-        <td class="design">[% datum.design_type %]</td>
-        <td class="crispr">[% datum.crispr_id %]</td>
-        <td class="crispr">[% datum.outlier.join(', ') %]</td>
-        <td class="crispr">[% datum.summary.join(', ') %]</td>
-        <td class="crispr">[% datum.crispr_wells %]</td>
-        <td class="crispr">[% IF datum.crispr_id %]<input type="checkbox" />[% END %]</td>
-      </tr>
+        <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.marker_symbol %]</td>
+        <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.gene_id %]</td>
+        <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.ensembl_exon_id %]</td>
+        <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.exon_size %]</td>
+        <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.exon_rank %]</td>
+
+        [% IF datum.designs.size == 0 && datum.crisprs.size == 0 %]
+          <td class="design" colspan="2"></td>
+          <td class="crispr" colspan="6"></td>
+          </tr>
+          [% NEXT %]
+        [% END %]
+
+        [% IF datum.designs.size == 0 %]
+          <td class="design" rowspan="[% datum.design_rowspan %]" colspan="2"></td>
+          [% FOR crispr IN datum.crisprs %]
+            [% IF dt_first_row == 0 %]<tr>[% END %]
+            <td class="crispr">[% crispr.crispr_id %]</td>
+            <td class="crispr">[% crispr.outlier.join(', ') %]</td>
+            <td class="crispr">[% crispr.summary.join(', ') %]</td>
+            <td class="crispr">[% crispr.crispr_wells %]</td>
+            <td class="crispr">[% IF crispr.crispr_id %]<input type="checkbox" />[% END %]</td>
+            [% dt_first_row = 0 IF dt_first_row == 1 %]
+            </tr>
+          [% END %]
+        [% ELSE %]
+          [% FOR design IN datum.designs %]
+            [% design_first_row = 1 %]
+            [% IF dt_first_row == 0 %]<tr>[% END %]
+            <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_id %]</td>
+            <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_type %]</td>
+            [% IF datum.crisprs.size == 0 %]
+              <td class="crispr" colspan="6"></td>
+              </tr>
+              [% dt_first_row = 0 IF dt_first_row == 1 %]
+            [% ELSE %]
+              [% FOR crispr IN datum.crisprs %]
+                [% UNLESS design_first_row %]<tr>[% END %]
+                <td class="crispr">[% crispr.crispr_id %]</td>
+                <td class="crispr">[% crispr.outlier.join(', ') %]</td>
+                <td class="crispr">[% crispr.summary.join(', ') %]</td>
+                <td class="crispr">[% crispr.crispr_wells %]</td>
+                <td class="crispr">[% IF crispr.crispr_id %]<input type="checkbox" />[% END %]</td>
+                </tr>
+                [% design_first_row = 0 IF design_first_row == 1 %]
+                [% dt_first_row = 0 IF dt_first_row == 1 %]
+              [% END %]
+            [% END %]
+          [% END %]
+        [% END %]
     [%- END %]
   </tbody>
 </table>
