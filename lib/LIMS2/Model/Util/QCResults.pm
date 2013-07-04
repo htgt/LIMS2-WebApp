@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.085';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.086';
 }
 ## use critic
 
@@ -13,6 +13,7 @@ use Sub::Exporter -setup => {
     exports => [
         qw(
             retrieve_qc_run_results
+            retrieve_qc_run_results_fast
             retrieve_qc_run_summary_results
             retrieve_qc_run_seq_well_results
             retrieve_qc_alignment_results
@@ -28,6 +29,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use Bio::SeqIO;
 use IO::String;
+use Try::Tiny;
 use List::Util qw(sum);
 use List::MoreUtils qw(uniq);
 use LIMS2::Exception::Validation;
@@ -35,10 +37,13 @@ use LIMS2::Model::Util::WellName qw ( to384 );
 use HTGT::QC::Config;
 use HTGT::QC::Util::Alignment qw( alignment_match );
 use HTGT::QC::Util::CigarParser;
+use LIMS2::Util::Solr;
+use JSON qw( decode_json );
+use Data::Dumper;
 
 sub retrieve_qc_run_results {
     my $qc_run = shift;
-print "running retrieve_qc_run_results\n";
+#print "running retrieve_qc_run_results\n";
     my $expected_design_loc = _design_loc_for_qc_template_plate($qc_run);
     my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
         { prefetch => ['qc_test_results'] } );
@@ -55,8 +60,136 @@ print "running retrieve_qc_run_results\n";
     return \@qc_run_results;
 }
 
+#this is functionally the same as retrieve_qc_run_results but with raw sql so pages don't time out.
+#eventually this should replace retrive_qc_run_results
+sub retrieve_qc_run_results_fast {
+    my ( $qc_run, $schema ) = @_;
+
+    my $expected_design_loc = _design_loc_for_qc_template_plate($qc_run);
+
+    #query to fetch all the data we need. we need left joins on alignments/test_results/engseqs
+    #because failed wells don't get a qc_test_result or qc_alignment, but we still need to show them.
+    #note that there can be multiple qc_test_results for a single seq well.
+    my $sql = <<'EOT';
+select qc_alignments.qc_eng_seq_id as qc_alignment_eng_seq_id, qc_eng_seqs.id as qc_eng_seq_id, qc_eng_seqs.params as params, 
+qc_run_seq_wells.plate_name, qc_run_seq_wells.well_name, qc_test_results.pass as overall_pass, 
+qc_seq_reads.primer_name, qc_alignments.score, qc_alignments.pass primer_valid, 
+qc_alignments.qc_run_id alignment_qc_run_id
+from qc_runs 
+join qc_run_seq_wells on qc_run_seq_wells.qc_run_id = qc_runs.id
+left join qc_test_results on qc_test_results.qc_run_seq_well_id = qc_run_seq_wells.id
+join qc_run_seq_well_qc_seq_read on qc_run_seq_well_qc_seq_read.qc_run_seq_well_id = qc_run_seq_wells.id
+join qc_seq_reads on qc_seq_reads.id = qc_run_seq_well_qc_seq_read.qc_seq_read_id
+left join qc_eng_seqs on qc_eng_seqs.id = qc_test_results.qc_eng_seq_id
+left join qc_alignments on qc_alignments.qc_seq_read_id = qc_seq_reads.id and qc_eng_seqs.id = qc_alignments.qc_eng_seq_id
+where qc_runs.id = ?
+order by plate_name, well_name, qc_eng_seq_id;
+EOT
+
+    #we need this to convert MGI accession ids -> marker symbols
+    my $solr = LIMS2::Util::Solr->new;
+
+    my @qc_run_results;
+    $schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            my $sth = $dbh->prepare( $sql );
+            $sth->execute( $qc_run->id );
+
+            my $r = $sth->fetchrow_hashref;
+            while ( $r ) {
+                my $plate_name = $r->{plate_name};
+                my $well_name  = $r->{well_name};
+                my $eng_seq_id = $r->{qc_eng_seq_id};
+
+                my $eng_seq_params = decode_json( $r->{params} || "{}" );
+
+                my %result = (
+                    plate_name         => $plate_name,
+                    well_name          => lc $well_name,
+                    well_name_384      => lc to384( $plate_name, $well_name ),
+                    design_id          => $eng_seq_params->{ design_id },
+                    expected_design_id => $expected_design_loc->{ uc $well_name },
+                    gene_symbol        => '-',
+                    pass               => $r->{overall_pass},
+                    primers            => []
+                );
+
+                #attempt to get a marker symbol if we have a design id.
+                #to do that we first get the mgi accession id, then use that as a lookup in the solr
+                if ( defined $eng_seq_params->{ design_id } ) {
+                    my $design = $schema->resultset('Design')->find( {
+                        id => $eng_seq_params->{ design_id }
+                    } );
+
+                    #we do this in a try just in case the design doesn't exist.
+                    try {
+                        #force the arrayref we get back from solr into an array so it can be appended,
+                        #and extract just the marker symbol from the hashref returned by solr.
+                        my @genes = map { $_->{marker_symbol} }
+                                        map { @{ $solr->query( [ mgi_accession_id => $_->gene_id ] ) } }
+                                            $design->genes;
+                        #there could be more than one, if so we just display them all
+                        $result{gene_symbol} = join ", ", @genes;
+                    }
+                }
+
+                #aggregate the primers into our hash, making sure that we only do this for results
+                #with the same eng seq id (IF we got one), so that we get separate entries for different
+                #qc test results.
+                while ( $r and $r->{plate_name}    eq $plate_name
+                           and $r->{well_name}     eq $well_name
+                           and (! defined $eng_seq_id || $r->{qc_eng_seq_id} eq $eng_seq_id) ) {
+                    #score, pass and qc_run_id will be empty for rows with no alignments
+                    #i.e. those that didn't have any valid reads
+                    my %primer = (
+                        name      => $r->{primer_name},
+                        score     => $r->{score} || 0, #0 instead of undef so the sum still works
+                        pass      => $r->{primer_valid},
+                        qc_run_id => $r->{alignment_qc_run_id},
+                    );
+
+                    #skip alignments that aren't for this run (not all alignments have a qc_run_id)
+                    if ( defined $primer{qc_run_id} ) {
+                        next unless $primer{qc_run_id} eq $qc_run->id;
+                    }
+
+                    push @{ $result{primers} }, \%primer;
+
+                    $r = $sth->fetchrow_hashref;
+                }
+
+                #before this was just the number of seq reads,
+                #which is functionally the same as the number of primers
+                $result{num_reads} = scalar @{ $result{primers} };
+
+                #we allow duplicate primers so as not to misreport broken runs
+                my @valid_primers = sort { $a->{name} cmp $b->{name} }
+                                        grep { $_->{pass} }
+                                            @{ $result{primers} };
+
+                $result{valid_primers}       = [ map { $_->{name} } @valid_primers ];
+                $result{num_valid_primers}   = scalar @valid_primers || undef;
+                $result{score}               = sum( 0, map { $_->{score} } @{ $result{primers} } ) || undef;
+                $result{valid_primers_score} = sum( 0, map { $_->{score} } @valid_primers ) || undef;
+
+                push @qc_run_results, \%result;
+            }
+        }
+    );
+
+    @qc_run_results = sort {
+               $a->{plate_name}          cmp $b->{plate_name}
+            || lc( $a->{well_name} )     cmp lc( $b->{well_name} )
+            || $b->{num_valid_primers}   <=> $a->{num_valid_primers}
+            || $b->{valid_primers_score} <=> $a->{valid_primers_score};
+    } @qc_run_results;
+
+    return \@qc_run_results;
+}
+
 sub retrieve_qc_run_summary_results {
-    my ($qc_run) = @_;
+    my ( $qc_run ) = @_;
 
     my $results = retrieve_qc_run_results($qc_run);
 
