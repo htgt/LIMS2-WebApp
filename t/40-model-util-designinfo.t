@@ -29,6 +29,13 @@ note('Test Valid Conditional -ve Stranded Design');
     # U3 end
     is $di->target_region_end, 53720128, 'correct target region end';
 
+    is $di->loxp_start, 53719367, 'correct loxp_start';
+    is $di->loxp_end, 53719452, 'correct loxp_end';
+    is $di->cassette_start, 53720129, 'correct cassette_start';
+    is $di->cassette_end, 53720171, 'correct cassette_end';
+    is $di->homology_arm_start, 53715716, 'correct homology_arm_start';
+    is $di->homology_arm_end, 53725854, 'correct homology_arm_end';
+
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
         ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
@@ -48,6 +55,13 @@ note('Test Valid Conditional +ve Stranded Design');
     is $di->target_region_start, 134595413, 'correct target region start';
     # D5 end
     is $di->target_region_end, 134596081, 'correct target region end';
+
+    is $di->loxp_start, 134596082, 'correct loxp_start';
+    is $di->loxp_end, 134596162, 'correct loxp_end';
+    is $di->cassette_start, 134595362, 'correct cassette_start';
+    is $di->cassette_end, 134595412, 'correct cassette_end';
+    is $di->homology_arm_start, 134590486, 'correct homology_arm_start';
+    is $di->homology_arm_end, 134601190, 'correct homology_arm_end';
 
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
@@ -69,6 +83,13 @@ note('Test Valid Conditional -ve Stranded Deletion');
     # U5 start
     is $di->target_region_end, 122096800, 'correct target region end';
 
+    is $di->loxp_start, undef, 'correct loxp_start';
+    is $di->loxp_end, undef, 'correct loxp_end';
+    is $di->cassette_start, 122093615, 'correct cassette_start';
+    is $di->cassette_end, 122096799, 'correct cassette_end';
+    is $di->homology_arm_start, 122090021, 'correct homology_arm_start';
+    is $di->homology_arm_end, 122103023, 'correct homology_arm_end';
+
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
         ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
@@ -88,6 +109,13 @@ note('Test Valid Conditional +ve Stranded Deletion');
     is $di->target_region_start, 60956803, 'correct target region start';
     # D3 start
     is $di->target_region_end, 60964117, 'correct target region end';
+
+    is $di->loxp_start, undef, 'correct loxp_start';
+    is $di->loxp_end, undef, 'correct loxp_end';
+    is $di->cassette_start, 60956804, 'correct cassette_start';
+    is $di->cassette_end, 60964116, 'correct cassette_end';
+    is $di->homology_arm_start, 60951494, 'correct homology_arm_start';
+    is $di->homology_arm_end, 60967893, 'correct homology_arm_end';
 
     ok my $oligos = $di->oligos, 'can grab oligos hash';
     for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
@@ -189,10 +217,21 @@ note ( 'Test target gene' );
     is $di->target_gene->stable_id, 'ENSMUSG00000024617', 'target gene correct';
 }
 
+note( 'Test design with more than one target gene' );
+
+{
+    ok my $design = model->retrieve_design( { id => 39977  } ), 'can grab design 39977';
+
+    ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+    isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+    is $di->target_gene->stable_id, 'ENSMUSG00000018899', 'target gene correct';
+}
+
 note( 'Test MGI Accession ID' );
 
 {
-    ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+    ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
     ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -217,7 +256,6 @@ note( 'Test design with target transcript' );
 note( 'Test design without target transcript' );
 
 {
-    #this design is identical to 81136 but the transcript has been removed
     ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
     #make sure we get the right transcript even if one isn't set.
@@ -231,7 +269,7 @@ note( 'Test design without target transcript' );
 
     is $transcript->stable_id, 'ENSMUST00000025519', 'target transcript correct';
 
-    $design->discard_changes; #we dont want to save the empty transcript.
+    $design->discard_changes; #we dont need to save the empty transcript.
 }
 
 note ( 'Test floxed exons' );

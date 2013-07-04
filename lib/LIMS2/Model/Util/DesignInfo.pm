@@ -3,6 +3,7 @@ package LIMS2::Model::Util::DesignInfo;
 use Moose;
 use LIMS2::Exception;
 use namespace::autoclean;
+use Try::Tiny;
 
 use List::MoreUtils qw( uniq all );
 
@@ -56,7 +57,16 @@ has chr_name => (
 );
 
 has [
-    qw( target_region_start target_region_end )
+    qw( cassette_start cassette_end homology_arm_start homology_arm_end )
+] => (
+    is         => 'ro',
+    isa        => 'Int',
+    init_arg   => undef,
+    lazy_build => 1,
+);
+
+has [
+    qw( loxp_start loxp_end target_region_start target_region_end )
 ] => (
     is         => 'ro',
     isa        => 'Maybe[Int]',
@@ -71,7 +81,8 @@ has ensembl_util => (
         #make all the functions accessible without having to do ensembl->slice_adaptor
         map { $_ => $_ }
             qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor 
-                constrained_element_adaptor repeat_feature_adaptor )
+                constrained_element_adaptor repeat_feature_adaptor
+                get_best_transcript get_exon_rank )
     }
 );
 
@@ -153,6 +164,102 @@ sub _build_target_region_end {
     }
 }
 
+sub _build_loxp_start {
+    my $self = shift;
+
+    return if $self->type eq 'deletion' || $self->type eq 'insertion';
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D5}{end} + 1;
+        }
+        else {
+            return $self->oligos->{D3}{end} + 1;
+        }
+    }
+}
+
+sub _build_loxp_end {
+    my $self = shift;
+
+    return if $self->type eq 'deletion' || $self->type eq 'insertion';
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D3}{start} - 1;
+        }
+        else {
+            return $self->oligos->{D5}{start} - 1;
+        }
+    }
+}
+
+sub _build_cassette_start {
+    my $self = shift;
+
+    if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U5}{end} + 1;
+        }
+        else {
+            return $self->oligos->{D3}{end} + 1;
+        }
+    }
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U5}{end} + 1;
+        }
+        else {
+            return $self->oligos->{U3}{end} + 1;
+        }
+    }
+}
+
+sub _build_cassette_end {
+    my $self = shift;
+
+    if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D3}{start} - 1;
+        }
+        else {
+            return $self->oligos->{U5}{start} - 1;
+        }
+    }
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U3}{start} - 1;
+        }
+        else {
+            return $self->oligos->{U5}{start} - 1;
+        }
+    }
+}
+
+sub _build_homology_arm_start {
+    my $self = shift;
+
+    if ( $self->chr_strand == 1 ) {
+        return $self->oligos->{G5}{start};
+    }
+    else {
+        return $self->oligos->{G3}{start};
+    }
+}
+
+sub _build_homology_arm_end {
+    my $self = shift;
+
+    if ( $self->chr_strand == 1 ) {
+        return $self->oligos->{G3}{end};
+    }
+    else {
+        return $self->oligos->{G5}{end};
+    }
+}
+
 sub _build_chr_strand {
     my $self = shift;
 
@@ -207,10 +314,6 @@ sub _build_ensembl_util {
     return LIMS2::Util::EnsEMBL->new( species => $self->design->species_id );
 }
 
-#
-#add actual things to call all of these builders
-#
-
 sub _build_target_region_slice {
     my $self = shift;
 
@@ -238,19 +341,45 @@ sub _build_target_gene {
         $genes_in_target_region{ $gene->stable_id } ||= $gene;
     }
 
-    #if we just got one thats ideal go ahead and return it.
+    #if we just got one thats ideal; go ahead and return it.
     my @genes = keys %genes_in_target_region;
     if ( @genes == 1 ) {
         #make sure the coordinates are relative to the chromosome like everything else.
         return $genes_in_target_region{ pop @genes }->transform( 'chromosome' );
     }
     elsif ( @genes > 1 ) {
-        #use _get_mgi_accession or whatever its called. 
-        confess "Found more than one gene for design " . $self->design->id . ": " . join ", ", @genes;
+        $self->log->warn("Found more than one gene for design "
+                         . $self->design->id . ": " . join ", ", @genes);
+
+        #get all mgi accession ids associated with this design (hopefully its 1)
+        my @design_gene_ids = uniq map { $_->gene_id } $self->design->genes->all;
+
+        #make sure there is only one gene associated with the design in the database
+        confess scalar @design_gene_ids . " ids associated to design " . $self->design->id
+            unless @design_gene_ids == 1;
+
+        my $db_id = pop @design_gene_ids;
+
+        #see if any of the genes we got from ensembl match the one we just got from the db
+        for my $gene ( values %genes_in_target_region ) {
+            my $ensembl_gene_id;
+            #only get mgi accession id for mouse, obviously.
+            if ( $self->design->species->id eq "Mouse" ) {
+                $ensembl_gene_id = $self->get_mgi_accession_id_for_gene( $gene );
+            }
+            else {
+                $ensembl_gene_id = $gene->external_name;
+            }
+
+            #if it matches then return it
+            return $gene->transform( 'chromosome' ) if $ensembl_gene_id eq $db_id;
+        }
+
+        #none of the mgi accession ids matched, so we can't really decide which gene to pick.
+        confess "Gene ID lims2 db (" . $db_id . ") not found in " . join ",", @genes;
     }
 
-    #if not we have to do something else to identify the appropriate gene.
-    #for now we'll just die. It could also be that no genes were found
+    #the design is probably broken if this happens
     confess "Couldnt find any genes for design " . $self->design->id;
 }
 
@@ -270,30 +399,15 @@ sub _build_target_transcript {
 
     #if we're here we didnt get a valid transcript, or one was not provided then find the transcript
     #with the longest translation and transcription length
+
     my $best_transcript;
-    for my $transcript ( @{ $self->target_gene->get_all_Transcripts } ) {
-        #skip non coding transcripts
-        next unless $transcript->translation;
-
-        #if we don't have a transcript already then we'll use the first coding one.
-        unless ( $best_transcript ) {
-            $best_transcript = $transcript;
-            next;
-        }
-
-        if ( $transcript->translation->length > $best_transcript->translation->length ) {
-            $best_transcript = $transcript;
-        }
-        elsif ( $transcript->translation->length == $best_transcript->translation->length ) {
-            #only replace transcripts of equal translation length if the transcript is longer
-            if ( $transcript->length > $best_transcript->length ) {
-                $best_transcript = $transcript;
-            }
-        }
+    #trap exception so we can give a more specific error 
+    try {
+        $best_transcript = $self->get_best_transcript( $self->target_gene );
     }
-
-    confess "Couldn't find a valid transcript for " . $self->target_gene->stable_id
-        unless $best_transcript;
+    catch {
+        confess "Error getting transcript for " . $self->target_gene->stable_id . ":\n" . $_;
+    };
 
     return $best_transcript;
 }
@@ -313,8 +427,6 @@ sub _build_floxed_exons {
 
 sub get_mgi_accession_id_for_gene {
     my ( $self, $gene ) = @_;
-
-    #add a cache here if this is slow.
 
     #this seems to be the recommended way to do this, i couldn't find how to get just the MGI xref
     for my $db_entry ( @{ $gene->get_all_DBEntries() } ) {

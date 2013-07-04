@@ -82,6 +82,13 @@ SELECT pg_catalog.setval('design_oligos_id_seq', 54774, true);
 
 
 --
+-- Name: design_targets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('design_targets_id_seq', 1, false);
+
+
+--
 -- Name: designs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
@@ -99,7 +106,7 @@ SELECT pg_catalog.setval('genotyping_primers_id_seq', 116764, true);
 -- Name: new_chromosomes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('new_chromosomes_id_seq', 3192, true);
+SELECT pg_catalog.setval('new_chromosomes_id_seq', 3216, true);
 
 
 --
@@ -113,8 +120,7 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 1010, true);
-
+SELECT pg_catalog.setval('plates_id_seq', 1011, true);
 
 --
 -- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
@@ -204,8 +210,7 @@ SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1866, true);
-
+SELECT pg_catalog.setval('wells_id_seq', 1868, true);
 
 --
 -- Data for Name: species; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -223,6 +228,7 @@ INSERT INTO assemblies VALUES ('NCBIM34', 'Mouse');
 INSERT INTO assemblies VALUES ('NCBIM36', 'Mouse');
 INSERT INTO assemblies VALUES ('NCBIM37', 'Mouse');
 INSERT INTO assemblies VALUES ('GRCm38', 'Mouse');
+INSERT INTO assemblies VALUES ('GRCh37', 'Human');
 
 
 --
@@ -631,6 +637,30 @@ INSERT INTO chromosomes VALUES (3189, 'Mouse', '18');
 INSERT INTO chromosomes VALUES (3190, 'Mouse', '19');
 INSERT INTO chromosomes VALUES (3191, 'Mouse', 'X');
 INSERT INTO chromosomes VALUES (3192, 'Mouse', 'Y');
+INSERT INTO chromosomes VALUES (3193, 'Human', '1');
+INSERT INTO chromosomes VALUES (3194, 'Human', '2');
+INSERT INTO chromosomes VALUES (3195, 'Human', '3');
+INSERT INTO chromosomes VALUES (3196, 'Human', '4');
+INSERT INTO chromosomes VALUES (3197, 'Human', '5');
+INSERT INTO chromosomes VALUES (3198, 'Human', '6');
+INSERT INTO chromosomes VALUES (3199, 'Human', '7');
+INSERT INTO chromosomes VALUES (3200, 'Human', '8');
+INSERT INTO chromosomes VALUES (3201, 'Human', '9');
+INSERT INTO chromosomes VALUES (3202, 'Human', '10');
+INSERT INTO chromosomes VALUES (3203, 'Human', '11');
+INSERT INTO chromosomes VALUES (3204, 'Human', '12');
+INSERT INTO chromosomes VALUES (3205, 'Human', '13');
+INSERT INTO chromosomes VALUES (3206, 'Human', '14');
+INSERT INTO chromosomes VALUES (3207, 'Human', '15');
+INSERT INTO chromosomes VALUES (3208, 'Human', '16');
+INSERT INTO chromosomes VALUES (3209, 'Human', '17');
+INSERT INTO chromosomes VALUES (3210, 'Human', '18');
+INSERT INTO chromosomes VALUES (3211, 'Human', '19');
+INSERT INTO chromosomes VALUES (3212, 'Human', '20');
+INSERT INTO chromosomes VALUES (3213, 'Human', '21');
+INSERT INTO chromosomes VALUES (3214, 'Human', '22');
+INSERT INTO chromosomes VALUES (3215, 'Human', 'X');
+INSERT INTO chromosomes VALUES (3216, 'Human', 'Y');
 
 
 --
@@ -1128,7 +1158,7 @@ INSERT INTO crispr_loci_types VALUES ('Intergenic');
 -- Data for Name: crisprs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', false, NULL);
+INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', NULL);
 
 
 --
@@ -1142,9 +1172,8 @@ INSERT INTO crispr_loci VALUES (93, 113, 'GRCm38', 3182, 102360192, 102360214, -
 -- Data for Name: crispr_off_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16');
-INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16');
-
+INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16', 'strict');
+INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16', 'strict');
 
 --
 -- Data for Name: design_comment_categories; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -3121,6 +3150,12 @@ INSERT INTO design_oligo_loci VALUES (54701, 'GRCm38', 113311516, 113311565, 1, 
 
 
 --
+-- Data for Name: design_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
 -- Data for Name: gene_design; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -4623,6 +4658,7 @@ INSERT INTO plate_types VALUES ('SEP_PICK', 'Second Allele ES Cells');
 INSERT INTO plate_types VALUES ('SEP_POOL', 'Second Allele Backup Vial');
 INSERT INTO plate_types VALUES ('SFP', 'Second Allele Freezer Plates');
 INSERT INTO plate_types VALUES ('FP', 'Freezer Plates');
+INSERT INTO plate_types VALUES ('PIQ', 'Pre-injection distribution QC plate type');
 
 
 --
@@ -4630,7 +4666,6 @@ INSERT INTO plate_types VALUES ('FP', 'Freezer Plates');
 --
 
 INSERT INTO plates VALUES (986, '98', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
-INSERT INTO plates VALUES (1010, 'CRISPR_1', '', 'CRISPR', 722, '2013-05-28 13:37:11.198121', 'Mouse', NULL);
 INSERT INTO plates VALUES (863, 'MOHFAQ0001_A_2', '', 'DNA', 1003, '2010-08-30 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (864, 'MOHFAS0001_A', 'Homozygote project first allele', 'FINAL', 751, '2010-03-22 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (865, 'MOHPCS0001_A', '', 'INT', 751, '2010-03-03 00:00:00', 'Mouse', NULL);
@@ -4775,7 +4810,9 @@ INSERT INTO plates VALUES (1005, '1005', 'Summaries test 02', 'FP', 1079, '2013-
 INSERT INTO plates VALUES (1006, '1006', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:56.681031', 'Mouse', NULL);
 INSERT INTO plates VALUES (1007, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:57.702485', 'Mouse', NULL);
 INSERT INTO plates VALUES (1008, 'FP1008', 'Final Pick tests', 'FINAL_PICK', 1079, '2013-02-25 15:30:00', 'Mouse', NULL);
-
+INSERT INTO plates VALUES (1009, 'CRISPR_1', '', 'CRISPR', 722, '2013-05-28 13:37:11.198121', 'Mouse', NULL);
+INSERT INTO plates VALUES (1010, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (1011, 'PIQ0002', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -4869,7 +4906,7 @@ INSERT INTO process_types VALUES ('freeze', 'Create freezer plate well');
 INSERT INTO process_types VALUES ('final_pick', 'Create Final Pick plate');
 INSERT INTO process_types VALUES ('xep_pool', 'Pool multiple EP_PICK wells into an XEP well');
 INSERT INTO process_types VALUES ('create_crispr', 'Create crispr');
-
+INSERT INTO process_types VALUES ('dist_qc', 'Pre-injection distribution QC PIQ create process');
 
 --
 -- Data for Name: processes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -6779,11 +6816,7 @@ INSERT INTO process_design VALUES (1273, 79991);
 -- Data for Name: wells; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO wells VALUES (1816, 986, 'A01', 722, '2008-06-02 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (845, 867, 'F02', 722, '2008-11-13 00:00:00', NULL, NULL, false);
-INSERT INTO wells VALUES (1864, 1010, 'A01', 722, '2013-05-28 13:37:34.155703', NULL, NULL, false);
-INSERT INTO wells VALUES (1865, 1010, 'A02', 722, '2013-05-28 13:43:53.556914', NULL, NULL, false);
-INSERT INTO wells VALUES (1866, 1010, 'A03', 722, '2013-05-28 13:43:53.556914', NULL, NULL, false);
 INSERT INTO wells VALUES (846, 866, 'F02', 751, '2009-03-03 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (847, 865, 'D04', 751, '2010-03-03 00:00:00', NULL, '2010-03-15 00:00:00', false);
 INSERT INTO wells VALUES (848, 864, 'D04', 751, '2010-03-22 00:00:00', NULL, '2010-04-08 00:00:00', false);
@@ -7754,6 +7787,7 @@ INSERT INTO wells VALUES (1812, 985, 'H09', 985, '2012-07-11 00:00:00', NULL, NU
 INSERT INTO wells VALUES (1813, 985, 'H10', 985, '2012-07-11 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1814, 985, 'H11', 985, '2012-07-11 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1815, 985, 'H12', 985, '2012-07-11 00:00:00', NULL, NULL, false);
+INSERT INTO wells VALUES (1816, 986, 'A01', 722, '2008-06-02 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1817, 935, 'A01', 722, '2012-08-13 08:23:11.17237', NULL, NULL, false);
 INSERT INTO wells VALUES (1818, 935, 'A02', 722, '2012-08-13 08:23:11.17237', NULL, NULL, false);
 INSERT INTO wells VALUES (1819, 935, 'A03', 722, '2012-08-13 08:23:11.17237', NULL, NULL, false);
@@ -7801,6 +7835,11 @@ INSERT INTO wells VALUES (1860, 1005, 'A01', 1079, '2013-02-18 15:52:59.006108',
 INSERT INTO wells VALUES (1861, 1006, 'A01', 1079, '2013-02-18 15:52:59.027906', NULL, NULL, false);
 INSERT INTO wells VALUES (1862, 1007, 'A01', 1079, '2013-02-18 15:52:59.04965', NULL, NULL, false);
 INSERT INTO wells VALUES (1863, 1008, 'A01', 1079, '2013-02-25 15:30:00', NULL, NULL, false);
+INSERT INTO wells VALUES (1864, 1009, 'A01', 722, '2013-05-28 13:37:34.155703', NULL, NULL, false);
+INSERT INTO wells VALUES (1865, 1009, 'A02', 722, '2013-05-28 13:43:53.556914', NULL, NULL, false);
+INSERT INTO wells VALUES (1866, 1009, 'A03', 722, '2013-05-28 13:43:53.556914', NULL, NULL, false);
+INSERT INTO wells VALUES (1867, 1010, 'A01', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
+INSERT INTO wells VALUES (1868, 1011, 'A01', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
 
 
 --

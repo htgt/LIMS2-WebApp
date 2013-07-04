@@ -39,6 +39,10 @@ sub retrieve_solr_gene {
     }
 
     if ( @{$genes} == 0 ) {
+        $genes = $model->check_for_local_symbol( $search_term );
+    }
+
+    if ( @{$genes} == 0 ) {
         LIMS2::Exception::NotFound->throw( { entity_class => 'Gene', search_params => $params } );
     }
 
@@ -80,11 +84,10 @@ sub retrieve_ensembl_gene {
 
 sub normalize_solr_result {
     my ( $solr_result ) = @_;
-
     my %normalized = %{ $solr_result };
 
-    $normalized{gene_id}     = delete $normalized{mgi_accession_id};
-    $normalized{gene_symbol} = delete $normalized{marker_symbol};
+    $normalized{gene_id}     = delete $normalized{mgi_accession_id} if $normalized{mgi_accession_id};
+    $normalized{gene_symbol} = delete $normalized{marker_symbol} if $normalized{marker_symbol};
 
     return \%normalized;
 }

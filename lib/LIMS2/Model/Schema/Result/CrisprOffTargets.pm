@@ -88,6 +88,11 @@ __PACKAGE__->table("crispr_off_targets");
   data_type: 'text'
   is_nullable: 1
 
+=head2 algorithm
+
+  data_type: 'text'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -114,6 +119,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 0 },
   "chromosome",
   { data_type => "text", is_nullable => 1 },
+  "algorithm",
+  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -176,8 +183,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-03 14:05:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+1pbuuIhxyfDomHJuO6xdw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-25 11:17:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:44G0EgiY1UKldoTm/NPANw
 
 sub as_hash {
     my $self = shift;
@@ -186,7 +193,7 @@ sub as_hash {
         assembly => $self->assembly_id,
         type     => $self->crispr_loci_type_id,
         build    => $self->build_id,
-        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand chromosome )
+        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand chromosome algorithm )
     };
 }
 
