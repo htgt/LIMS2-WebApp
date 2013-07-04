@@ -14,8 +14,10 @@ LIMS2::Model::Util::DesignTargets
 use Sub::Exporter -setup => {
     exports => [ qw( designs_matching_design_target_via_exon_name
                      designs_matching_design_target_via_coordinates
+                     crisprs_for_design_target
                      find_design_targets
                      design_target_report_for_genes
+                     bulk_designs_for_design_targets
                     ) ]
 };
 
@@ -218,22 +220,6 @@ sub design_target_report_for_genes {
     return _format_report_data( \@report_data );
 }
 
-=head2 _rank_crisprs
-
-sort crisprs by off target hits, ranking is weighted my importance of hit type:
-exon > intron > intergenic
-
-=cut
-sub _rank_crisprs {
-    my ( $crispr, $rank_algorithm ) = @_;
-
-    my $off_target_summary = first{ $_->algorithm eq $rank_algorithm } $crispr->off_target_summaries->all;
-    return 1000 unless $off_target_summary;
-    my $summary = Load($off_target_summary->summary);
-
-    return ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic};
-}
-
 =head2 _format_report_data
 
 Manipulate data into format we can easily display in a spreadsheet
@@ -241,8 +227,7 @@ Manipulate data into format we can easily display in a spreadsheet
 =cut
 sub _format_report_data {
     my ( $data ) = @_;
-    my @report_rows;
-    my %report_data;
+    my @report_row_data;
 
     for my $datum ( @{ $data } ) {
         my $dt = $datum->{'design_target'};
@@ -255,47 +240,22 @@ sub _format_report_data {
           exon_rank        => $dt->exon_rank,
         );
 
-        my $crispr_data = _format_crispr_data( $datum->{crisprs}, 'strict', 5 );
-        my $design_data = _format_design_data( $datum->{designs} );
+        $design_target_data{crisprs} = _format_crispr_data( $datum->{crisprs}, 'strict', 5 );
+        $design_target_data{designs} = _format_design_data( $datum->{designs} );
 
-        $design_target_data{crispr_num} = scalar( @{ $crispr_data } );
-        $design_target_data{design_num} = scalar( @{ $design_data } );
+        my $crispr_num = scalar( @{ $design_target_data{crisprs} } );
+        my $design_num = scalar( @{ $design_target_data{designs} } );
 
-        if ( @{ $design_data } ) {
-            for my $design ( @{ $design_data } ) {
-                if ( @{ $crispr_data } ) {
-                    for my $crispr ( @{ $crispr_data } ) {
-                        push @report_rows, {
-                            %design_target_data, %{ $design }, %{ $crispr }
-                        }
-                    }
-                }
-                else {
-                    push @report_rows, {
-                        %design_target_data, %{ $design }
-                    }
-                }
-            }
-        }
-        else {
-            if ( @{ $crispr_data } ) {
-                for my $crispr ( @{ $crispr_data } ) {
-                    push @report_rows, {
-                        %design_target_data, %{ $crispr }
-                    }
-                }
-            }
-            else {
-                push @report_rows, {
-                    %design_target_data
-                }
-            }
-        }
+        $design_target_data{dt_rowspan}
+            = ( $crispr_num ? $crispr_num : 1 ) * ( $design_num ? $design_num : 1 );
+        $design_target_data{design_rowspan} = $crispr_num ? $crispr_num : 1;
+
+        push @report_row_data, \%design_target_data;
     }
 
-
-    $report_data{rows} = \@report_rows;
-    return \%report_data;
+    return {
+        data => \@report_row_data,
+    };
 }
 
 =head2 _format_crispr_data
@@ -366,6 +326,22 @@ sub _format_design_data {
     }
 
     return \@design_data;
+}
+
+=head2 _rank_crisprs
+
+sort crisprs by off target hits, ranking is weighted my importance of hit type:
+exon > intron > intergenic
+
+=cut
+sub _rank_crisprs {
+    my ( $crispr, $rank_algorithm ) = @_;
+
+    my $off_target_summary = first{ $_->algorithm eq $rank_algorithm } $crispr->off_target_summaries->all;
+    return 1000 unless $off_target_summary;
+    my $summary = Load($off_target_summary->summary);
+
+    return ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic};
 }
 
 1;
