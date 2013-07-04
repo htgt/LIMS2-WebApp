@@ -183,6 +183,22 @@
   </div>
   [%- END %]
 
+  [%- SET well_type = "FINAL_PICK" %]
+  [%- IF wells.$well_type %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinalPick">Final Pick Vectors</a>
+      </h3>
+    </div>
+    <div id="collapseFinalPick" class="accordion-body collapse">
+      <div class="accordion-inner">
+        [%- vector_report( wells.$well_type ) | none %]
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
   [%- IF wells.DNA %]
   <div class="accordion-group">
     <div class="accordion-heading">
@@ -367,6 +383,44 @@
   </div>
   [%- END %]
 
+  [%- IF wells.FP %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFP">First Allele Freezer Instances</a>
+      </h3>
+    </div>
+    <div id="collapseFP" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>First Allele Electroporation</th>
+            <th>First Electroporation Pick</th>
+            <th>Accepted?</th>
+            <th>PIQ?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.FP %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.first_ep.as_string %]</td>
+              <td>[% well.first_ep_pick.as_string %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+              <td>[% well.descendant_piq.as_string %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
   [%- IF wells.SEP_PICK %]
   <div class="accordion-group">
     <div class="accordion-heading">
@@ -393,6 +447,80 @@
               <td>[% well.created_at.ymd %]</td>
               <td>[% well.first_ep.as_string %]</td>
               <td>[% well.second_ep.as_string %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF wells.SFP %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSFP">Second Allele Freezer Instances</a>
+      </h3>
+    </div>
+    <div id="collapseSFP" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>First Allele Electroporation</th>
+            <th>Second Allele Electroporation</th>
+            <th>Second Electroporation Pick</th>
+            <th>Accepted?</th>
+            <th>PIQ?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.SFP %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.first_ep.as_string %]</td>
+              <td>[% well.second_ep.as_string %]</td>
+              <td>[% well.second_ep_pick.as_string %]</td>
+              <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
+              <td>[% well.descendant_piq.as_string %]</td>
+            </tr>
+            [% END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF wells.PIQ %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Pre-Injection QC</a>
+      </h3>
+    </div>
+    <div id="collapsePIQ" class="acordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created at</th>
+            <th>Freezer Instance</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [%- FOR well IN wells.PIQ %]
+            <tr>
+              <td>[% plate_link(well) | none %]</td>
+              <td>[% well.name %]</td>
+              <td>[% well.created_at.ymd %]</td>
+              <td>[% well.freezer_instance.as_string %]</td>
               <td>[% IF well.is_accepted %]yes[% ELSE %]no[% END %]</td>
             </tr>
             [% END %]

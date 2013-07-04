@@ -131,12 +131,12 @@ override _build_columns => sub {
         'Gene ID',
         'Gene Symbol',
         'Design ID',
-        'First Vetcor Wells Count',
-        'First Vetcor Wells Accepted Count',
-        'First Vetcor Wells List',
-        'Second Vetcor Wells Count',
-        'Second Vetcor Wells Accepted Count',
-        'Second Vetcor Wells List',
+        'First Vector Wells Count',
+        'First Vector Wells Accepted Count',
+        'First Vector Wells List',
+        'Second Vector Wells Count',
+        'Second Vector Wells Accepted Count',
+        'Second Vector Wells List',
     ];
 };
 
@@ -182,10 +182,10 @@ sub _display_well_name{
 
 	# Filter by promoter status if specified
 	if ($self->promoter_status eq "promoter"){
-		return @names unless $summary->final_cassette_promoter;
+		return @names unless $summary->final_pick_cassette_promoter;
 	}
 	elsif($self->promoter_status eq "promoterless"){
-		return @names if $summary->final_cassette_promoter;
+		return @names if $summary->final_pick_cassette_promoter;
 	}
 
 	# FIXME: Filter by NEO and BSD status.. this info first needs adding to cassette
