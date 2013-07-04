@@ -23,6 +23,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use Bio::SeqIO;
 use IO::String;
+use Try::Tiny;
 use List::Util qw(sum);
 use List::MoreUtils qw(uniq);
 use LIMS2::Exception::Validation;
@@ -81,7 +82,7 @@ EOT
 
     #we need this to convert MGI accession ids -> marker symbols
     my $solr = LIMS2::Util::Solr->new;
-    
+
     my @qc_run_results;
     $schema->storage->dbh_do(
         sub {
@@ -111,23 +112,26 @@ EOT
                 #attempt to get a marker symbol if we have a design id.
                 #to do that we first get the mgi accession id, then use that as a lookup in the solr
                 if ( defined $eng_seq_params->{ design_id } ) {
-                    my $design = $schema->resultset('Design')->find( { 
-                        id => $eng_seq_params->{ design_id } 
+                    my $design = $schema->resultset('Design')->find( {
+                        id => $eng_seq_params->{ design_id }
                     } );
 
-                    #force the arrayref we get back from solr into an array so it can be appended,
-                    #and extract just the marker symbol from the hashref returned by solr.
-                    my @genes = map { $_->{marker_symbol} }
-                                    map { @{ $solr->query( [ mgi_accession_id => $_->gene_id ] ) } } 
-                                        $design->genes;
-                    #there could be more than one, if so we just display them all
-                    $result{gene_symbol} = join ", ", @genes;
+                    #we do this in a try just in case the design doesn't exist.
+                    try {
+                        #force the arrayref we get back from solr into an array so it can be appended,
+                        #and extract just the marker symbol from the hashref returned by solr.
+                        my @genes = map { $_->{marker_symbol} }
+                                        map { @{ $solr->query( [ mgi_accession_id => $_->gene_id ] ) } }
+                                            $design->genes;
+                        #there could be more than one, if so we just display them all
+                        $result{gene_symbol} = join ", ", @genes;
+                    }
                 }
 
                 #aggregate the primers into our hash, making sure that we only do this for results
                 #with the same eng seq id (IF we got one), so that we get separate entries for different
                 #qc test results.
-                while ( $r and $r->{plate_name}    eq $plate_name 
+                while ( $r and $r->{plate_name}    eq $plate_name
                            and $r->{well_name}     eq $well_name
                            and (! defined $eng_seq_id || $r->{qc_eng_seq_id} eq $eng_seq_id) ) {
                     #score, pass and qc_run_id will be empty for rows with no alignments
@@ -154,8 +158,8 @@ EOT
                 $result{num_reads} = scalar @{ $result{primers} };
 
                 #we allow duplicate primers so as not to misreport broken runs
-                my @valid_primers = sort { $a->{name} cmp $b->{name} } 
-                                        grep { $_->{pass} } 
+                my @valid_primers = sort { $a->{name} cmp $b->{name} }
+                                        grep { $_->{pass} }
                                             @{ $result{primers} };
 
                 $result{valid_primers}       = [ map { $_->{name} } @valid_primers ];
