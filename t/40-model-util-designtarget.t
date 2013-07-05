@@ -74,7 +74,9 @@ note('Search for design targets by gene ids');
 
 {
 
-    ok my $design_targets = find_design_targets( model->schema, [ 'MGI:1111111' ], 'Mouse' )
+    ok my $design_targets = find_design_targets( model->schema,
+        { gene_ids => [ 'MGI:1111111' ], marker_symbols => [], ensembl_gene_ids => [] },
+        'Mouse' )
         ,'can call find_design_targets';
 
     is scalar( @{ $design_targets } ), 1, '..we have one design target';
