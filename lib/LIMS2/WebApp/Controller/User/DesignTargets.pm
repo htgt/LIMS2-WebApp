@@ -58,6 +58,24 @@ sub gene_report : Path('/user/design_target_report') : Args(0) {
     return;
 }
 
+sub crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+    my $crispr_picks = $c->request->params->{crispr_pick};
+
+    my $csv_data = "crispr_id,design_id\n";
+    for my $pick ( @{ $crispr_picks } ) {
+        my ( $crispr_id, $design_id ) = split /:/, $pick;
+        $csv_data .= "$crispr_id,$design_id\n";
+    }
+
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=crispr_picks.csv" );
+    $c->response->body( $csv_data );
+    return;
+}
+
 =head1 AUTHOR
 
 Sajith Perera
