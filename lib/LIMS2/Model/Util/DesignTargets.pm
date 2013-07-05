@@ -176,15 +176,20 @@ Given a list of gene identifiers find any design targets
 
 =cut
 sub find_design_targets {
-    my ( $schema, $genes, $species_id ) = @_;
+    my ( $schema, $sorted_genes, $species_id ) = @_;
 
     my @design_targets = $schema->resultset('DesignTarget')->search(
         {
-            gene_id    => { 'IN' => $genes  },
+            -or => [
+                gene_id         => { 'IN' => $sorted_genes->{gene_ids}  },
+                marker_symbol   => { 'IN' => $sorted_genes->{marker_symbols} },
+                ensembl_gene_id => { 'IN' => $sorted_genes->{ensembl_gene_ids} },
+            ],
             species_id => $species_id,
         },
         {
-            order_by => 'gene_id'
+            order_by => 'gene_id',
+            distinct => 1,
         }
     );
 
@@ -202,7 +207,8 @@ Crisprs
 sub design_target_report_for_genes {
     my ( $schema, $genes, $species_id  ) = @_;
 
-    my $design_targets = find_design_targets( $schema, $genes, $species_id );
+    my $sorted_genes = _sort_gene_ids( $genes );
+    my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
     my $design_data = bulk_designs_for_design_targets( $schema, $design_targets, $species_id );
 
     my @report_data;
@@ -217,7 +223,8 @@ sub design_target_report_for_genes {
         push @report_data, \%data;
     }
 
-    return _format_report_data( \@report_data );
+    my $formated_report_data = _format_report_data( \@report_data );
+    return( $formated_report_data, $sorted_genes );
 }
 
 =head2 _format_report_data
@@ -342,6 +349,38 @@ sub _rank_crisprs {
     my $summary = Load($off_target_summary->summary);
 
     return ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic};
+}
+
+=head2 _sort_gene_ids
+
+Sort the input from the gene search box into gene id types
+
+=cut
+sub _sort_gene_ids {
+    my ( $genes ) = @_;
+    my %sorted_genes = (
+        gene_ids         => [],
+        marker_symbols   => [],
+        ensembl_gene_ids => [],
+    );
+
+    my @genes = grep { $_ } map{ chomp; $_; } split /\s/, $genes;
+
+    for my $gene ( @genes ) {
+        next unless $gene;
+        if ( $gene =~ /HGNC:\d{4}/ || $gene =~ /MGI:\d+/  ) {
+            push @{ $sorted_genes{gene_ids} }, $gene;
+        }
+        elsif ( $gene =~ /ENS(MUS)?G\d+/ ) {
+            push @{ $sorted_genes{ensembl_gene_ids} }, $gene;
+        }
+        else {
+            #assume its a marker symbol
+            push @{ $sorted_genes{marker_symbols} }, $gene;
+        }
+    }
+    
+    return \%sorted_genes;
 }
 
 1;
