@@ -87,12 +87,34 @@
 
 <div class="row">
 
-  <div class="span4">
-    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn btn-primary">
-    <i class="icon-hand-left icon-white"></i> Back to search </a>
+  <div class="span3">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn">
+    <i class="icon-hand-left"></i> Back to search </a>
   </div>
 
-  <div class="span4 offset4">
-    <pre><strong>Search Terms</strong><br/>[% search_genes %]</pre>
+  <div class="span6">
+    <h5>Search Terms</h5>
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>[% IF species == 'Human' %]HGNC IDs[% ELSE %]MGI IDs[% END %]</th>
+          <th>Ensembl Gene IDs</th>
+          <th>Marker Symbols</th>
+        </tr>
+        <tr>
+          <td>[% search_terms.gene_ids.join(', ') %]</td>
+          <td>[% search_terms.ensembl_gene_ids.join(', ') %]</td>
+          <td>[% search_terms.marker_symbols.join(', ') %]</td>
+        </tr>
+      </thead>
+
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="span3" align="right">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn btn-primary">
+    <i class="icon-file icon-white"></i> Download Crispr Picks</a>
   </div>
 </div>
