@@ -3,6 +3,9 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Plugin::User;
 
+use LIMS2::Test;
+use Hash::MoreUtils qw( slice );
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/User.pm - test class for LIMS2::Model::Plugin::User
@@ -78,10 +81,31 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Test(7)
 {
-    local $TODO = 'Test of LIMS2::Model::Plugin::User not implemented yet';
-    ok(0, "Test of LIMS2::Model::Plugin::User");
+
+    model->txn_do(
+	sub {
+	    my $model = shift;
+
+	    can_ok $model, 'create_user';
+
+	    ok my $u1 = $model->create_user( { name => 'TEST_foo', password => 'XXX' } ),
+		'create a user with no roles';
+
+	    ok my $u2 = $model->create_user( { name => 'TEST_bar', roles => [ 'read', 'edit' ], password => 'YYY' } ),
+		'create a user with two roles';
+
+	    can_ok $model, 'disable_user';
+
+	    ok $model->disable_user( { name => $u1->name } );
+
+	    can_ok $model, 'enable_user';
+
+	    ok $model->enable_user( { name => $u1->name } );
+	}
+    );
+
 }
 
 =head1 AUTHOR

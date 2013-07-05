@@ -1,7 +1,8 @@
 package LIMS2::t::Model::Util::CreateProcess;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Util::CreateProcess;
+use LIMS2::Model::Util::CreateProcess qw(process_plate_types);
+use LIMS2::Test;
 
 =head1 NAME
 
@@ -78,10 +79,20 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Test(4)
 {
-    local $TODO = 'Test of LIMS2::Model::Util::CreateProcess not implemented yet';
-    ok(0, "Test of LIMS2::Model::Util::CreateProcess");
+    note("Testing creation of process cell line list");
+
+    ok my $fields = model->get_process_fields( { process_type => 'first_electroporation'} ),
+       'fep fields generated';
+    is_deeply($fields->{'cell_line'}->{'values'}, ['oct4:puro iCre/iFlpO #11'], 'cell line list correct');
+
+    note("Testing plate type check for process which can have any plate type output");
+
+    ok my $process_plate_types = process_plate_types( model, 'rearray' );
+    my $all_plate_types = [ map{ $_->id } @{ model->list_plate_types } ];
+    is_deeply $process_plate_types, $all_plate_types, 'list all plate types for process not in hash';
+
 }
 
 =head1 AUTHOR

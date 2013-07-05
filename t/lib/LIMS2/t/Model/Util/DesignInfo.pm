@@ -3,6 +3,9 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Util::DesignInfo;
 
+use LIMS2::Test;
+use Try::Tiny;
+
 =head1 NAME
 
 LIMS2/t/Model/Util/DesignInfo.pm - test class for LIMS2::Model::Util::DesignInfo
@@ -78,10 +81,251 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Test(112)
 {
-    local $TODO = 'Test of LIMS2::Model::Util::DesignInfo not implemented yet';
-    ok(0, "Test of LIMS2::Model::Util::DesignInfo");
+    note('Test Valid Conditional -ve Stranded Design');
+
+    {   
+	ok my $design = model->retrieve_design( { id => 81136  } ), 'can grab design 81136';
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	is $di->chr_strand, -1, 'strand correct';
+	is $di->chr_name, 15, 'chromosome correct';
+	# D5 start
+	is $di->target_region_start, 53719453, 'correct target region start';
+	# U3 end
+	is $di->target_region_end, 53720128, 'correct target region end';
+
+	ok my $oligos = $di->oligos, 'can grab oligos hash';
+	for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
+	    ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
+	}
+    }
+
+    note('Test Valid Conditional +ve Stranded Design');
+
+    {   
+	ok my $design = model->retrieve_design( { id => 39833  } ), 'can grab design 39833';
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	is $di->chr_strand, 1, 'strand correct';
+	is $di->chr_name, 1, 'chromosome correct';
+	# U3 start
+	is $di->target_region_start, 134595413, 'correct target region start';
+	# D5 end
+	is $di->target_region_end, 134596081, 'correct target region end';
+
+	ok my $oligos = $di->oligos, 'can grab oligos hash';
+	for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
+	    ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
+	}
+    }
+
+    note('Test Valid Conditional -ve Stranded Deletion');
+
+    {   
+	ok my $design = model->retrieve_design( { id => 88505  } ), 'can grab design 88505';
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	is $di->chr_strand, -1, 'strand correct';
+	is $di->chr_name, 7, 'chromosome correct';
+	# D3 end
+	is $di->target_region_start, 122093614, 'correct target region start';
+	# U5 start
+	is $di->target_region_end, 122096800, 'correct target region end';
+
+	ok my $oligos = $di->oligos, 'can grab oligos hash';
+	for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
+	    ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
+	}
+    }
+
+    note('Test Valid Conditional +ve Stranded Deletion');
+
+    {
+	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	is $di->chr_strand, 1, 'strand correct';
+	is $di->chr_name, 18, 'chromosome correct';
+	# U5 end
+	is $di->target_region_start, 60956803, 'correct target region start';
+	# D3 start
+	is $di->target_region_end, 60964117, 'correct target region end';
+
+	ok my $oligos = $di->oligos, 'can grab oligos hash';
+	for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
+	    ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
+	}
+    }
+
+    note( 'Test Getting Info via Design Object' );
+
+    {   
+	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	is $design->chr_name, 18, 'chromosome correct';
+	is $design->chr_strand, 1, 'chromosome correct';
+	is $design->target_region_start, 60956803, 'correct target region start';
+	is $design->target_region_end, 60964117, 'correct target region end';
+    }
+
+    note( 'Test Invalid Design' );
+
+    {   
+	ok my $design = model->retrieve_design( { id => 81136  } ), 'can grab design 81136';
+	ok my $G5_oligo = model->schema->resultset( 'DesignOligo' )->find(
+	    {   
+		design_id => 81136,
+		design_oligo_type_id => 'G5',
+	    }
+	), 'can grab design 81136 G5 oligo';
+
+	ok my $default_assembly_id = $design->species->default_assembly->assembly_id
+	    , 'can grab designs default assembly';
+	ok my $g5_locus = $G5_oligo->search_related( 'loci', { assembly_id => $default_assembly_id } )->first
+	    , 'can grab g5 oligos current locus object';
+
+	ok $g5_locus->update( { chr_strand => 1, chr_id => 3172 } ), 'update G5 locus with incorrect info';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	throws_ok {
+	    $di->chr_strand
+	} qr/Design 81136 oligos have inconsistent strands/
+	    , 'throws error when getting design strand, we have mismatch';
+
+	throws_ok {
+	    $di->chr_name
+	} qr/Design 81136 oligos have inconsistent chromosomes/
+	    , 'throws error when getting design strand, we have mismatch';
+
+	ok $g5_locus->delete, 'can delete G5 oligo loci';
+	ok $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+
+	throws_ok {
+	    $di->oligos
+	} qr/No locus information for oligo: G5/
+	    , 'throws error when oligo missing locus info';
+
+
+    }
+
+    note( 'Test ensembl adapters' );
+
+    {   
+	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	isa_ok $di->slice_adaptor, 'Bio::EnsEMBL::DBSQL::SliceAdaptor';
+	isa_ok $di->gene_adaptor, 'Bio::EnsEMBL::DBSQL::GeneAdaptor';
+	isa_ok $di->transcript_adaptor, 'Bio::EnsEMBL::DBSQL::TranscriptAdaptor';
+	isa_ok $di->db_adaptor, 'Bio::EnsEMBL::DBSQL::DBAdaptor';
+    }
+
+    note( 'Test target region slice' );
+
+    {
+	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	ok my $slice = $di->target_region_slice, 'can get target region slice';
+	isa_ok $slice, 'Bio::EnsEMBL::Slice';
+
+	is $slice->start, $di->target_region_start, 'slice start is correct';
+	is $slice->end, $di->target_region_end, 'slice end is correct';
+	is $slice->seq_region_name, $di->chr_name, 'slice chromosome is correct';
+	is $slice->strand, $di->chr_strand, 'slice strand is correct';
+    }
+
+    note ( 'Test target gene' );
+
+    {
+	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	is $di->target_gene->stable_id, 'ENSMUSG00000024617', 'target gene correct';
+    }
+
+    note( 'Test MGI Accession ID' );
+
+    {
+	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	is $di->get_mgi_accession_id_for_gene( $di->target_gene ), 'MGI:88256', 'MGI Accession correct',
+    }
+
+    note( 'Test design with target transcript' );
+
+    {   
+	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	ok my $transcript = $di->target_transcript, 'can get target transcript';
+	isa_ok $transcript, 'Bio::EnsEMBL::Transcript';
+
+	is $transcript->stable_id, $design->target_transcript, 'target transcript correct';
+    }
+
+    note( 'Test design without target transcript' );
+
+    {
+	#this design is identical to 81136 but the transcript has been removed
+	ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
+
+	#make sure we get the right transcript even if one isn't set.
+	$design->target_transcript( "" );
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object without target transcript';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	ok my $transcript = $di->target_transcript, 'can get target transcript';
+	isa_ok $transcript, 'Bio::EnsEMBL::Transcript';
+
+	is $transcript->stable_id, 'ENSMUST00000025519', 'target transcript correct';
+
+	$design->discard_changes; #we dont want to save the empty transcript.
+    }
+
+    note ( 'Test floxed exons' );
+
+    {
+	ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	isa_ok $di->floxed_exons, 'ARRAY', 'floxed exons is an arrayref';
+
+	is scalar @{ $di->floxed_exons }, 6, 'correct number of floxed exons';
+
+	my @expected_exons = qw(ENSMUSE00000143835 
+				ENSMUSE00000493183 
+				ENSMUSE00000504553 
+				ENSMUSE00000572373 
+				ENSMUSE00000572372 
+				ENSMUSE00000507603);
+
+	my @got_exons = map { $_->stable_id } @{ $di->floxed_exons };
+
+	ok is_deeply( \@expected_exons, \@got_exons ), 'floxed exons are correct';
+    }
+
 }
 
 =head1 AUTHOR

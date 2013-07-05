@@ -3,6 +3,9 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::BrowsePlates;
 
+use LIMS2::Test;
+use File::Temp ':seekable';
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/BrowsePlates.pm - test class for LIMS2::WebApp::Controller::User::BrowsePlates
@@ -78,10 +81,19 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Test(3)
 {
-    local $TODO = 'Test of LIMS2::WebApp::Controller::User::BrowsePlates not implemented yet';
-    ok(0, "Test of LIMS2::WebApp::Controller::User::BrowsePlates");
+
+    my $mech = mech();
+
+    {   
+	note('Can view plate report');
+
+	$mech->get_ok( '/user/report/sync/DesignPlate?plate_id=939' );
+	$mech->content_contains('Design Plate 187');
+	$mech->content_contains('Baz2b');
+    }
+
 }
 
 =head1 AUTHOR
