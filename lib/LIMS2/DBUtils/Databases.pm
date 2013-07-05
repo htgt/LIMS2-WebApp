@@ -388,6 +388,8 @@ sub clone_database
 	$content =~ s/CREATE DATABASE $source_connection_details->{dbname}/CREATE DATABASE $params{destination_db}/g;
 	$content =~ s/\\connect $source_connection_details->{dbname}/\\connect $params{destination_db}/g;
 	$content =~ s/CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;/-- CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;/g;
+	$content =~ s/CREATE EXTENSION IF NOT EXISTS plpgsql/-- CREATE EXTENSION IF NOT EXISTS plpgsql/g;
+	$content =~ s/COMMENT ON EXTENSION plpgsql/-- COMMENT ON EXTENSION plpgsql/g;
 	seek(FH, 0, 0) or die "Seeking: $!";
 	print FH $content or die "Printing: $!";
 	truncate(FH, tell(FH)) or die "Truncating: $!";
