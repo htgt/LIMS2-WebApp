@@ -368,7 +368,7 @@ sub _sort_gene_ids {
 
     for my $gene ( @genes ) {
         next unless $gene;
-        if ( $gene =~ /HGNC:\d{4}/ || $gene =~ /MGI:\d+/  ) {
+        if ( $gene =~ /HGNC:\d+/ || $gene =~ /MGI:\d+/  ) {
             push @{ $sorted_genes{gene_ids} }, $gene;
         }
         elsif ( $gene =~ /ENS(MUS)?G\d+/ ) {
