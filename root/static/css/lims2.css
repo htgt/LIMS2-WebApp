@@ -10,25 +10,25 @@ ul.ui-autocomplete
 }
 
 #design-target-report th.design-target{
-    background: #D1F0FF;
+    background: #EFEFEF;
 }
 
 #design-target-report td.design-target{
-    background: #D1F0FF;
+    background: #EFEFEF;
 }
 
 #design-target-report th.design{
-    background: #E0F5FF;
+    background: #F7F7F7;
 }
 
 #design-target-report td.design{
-    background: #E0F5FF;
+    background: #F7F7F7;
 }
 
 #design-target-report th.crispr{
-    background: #F0FAFF;
+    background: #FCFCFC;
 }
 
 #design-target-report td.crispr{
-    background: #F0FAFF;
+    background: #FCFCFC;
 }
