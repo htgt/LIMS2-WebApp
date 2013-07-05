@@ -15,6 +15,7 @@ use Sub::Exporter -setup => {
     exports => [ qw( designs_matching_design_target_via_exon_name
                      designs_matching_design_target_via_coordinates
                      crisprs_for_design_target
+                     find_design_targets
                      design_target_report_for_genes
                      bulk_designs_for_design_targets
                     ) ]
