@@ -15,7 +15,6 @@ use Sub::Exporter -setup => {
     exports => [ qw( designs_matching_design_target_via_exon_name
                      designs_matching_design_target_via_coordinates
                      crisprs_for_design_target
-                     find_design_targets
                      design_target_report_for_genes
                      bulk_designs_for_design_targets
                     ) ]
@@ -111,7 +110,7 @@ sub designs_matching_design_target_via_coordinates {
 
 =head2 bulk_designs_for_design_targets
 
-Bulk lookup to speed things up, must specify species_id
+Bulk lookup of designs for multiple design targets, to speed things up, must specify species_id
 
 =cut
 sub bulk_designs_for_design_targets {
@@ -148,7 +147,7 @@ sub bulk_designs_for_design_targets {
 
 =head2 crisprs_for_design_target
 
-Find crisprs that correspond to given design target
+Find crisprs that match to a given design target
 
 =cut
 sub crisprs_for_design_target {

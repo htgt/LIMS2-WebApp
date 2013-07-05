@@ -38,6 +38,7 @@
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.exon_size %]</td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.exon_rank %]</td>
 
+          <!-- No designs or crisprs for design target, show empty cells -->
           [% IF datum.designs.size == 0 && datum.crisprs.size == 0 %]
             <td class="design" colspan="2"></td>
             <td class="crispr" colspan="6"></td>
@@ -45,6 +46,7 @@
             [% NEXT %]
           [% END %]
 
+          <!-- No designs for design target but we have crisprs, show all crisprs -->
           [% IF datum.designs.size == 0 %]
             <td class="design" rowspan="[% datum.design_rowspan %]" colspan="2"></td>
             [% FOR crispr IN datum.crisprs %]
@@ -58,6 +60,7 @@
               </tr>
             [% END %]
           [% ELSE %]
+            <!-- We have both designs and crisprs, for each design show all crisprs -->
             [% FOR design IN datum.designs %]
               [% design_first_row = 1 %]
               [% IF dt_first_row == 0 %]<tr>[% END %]
