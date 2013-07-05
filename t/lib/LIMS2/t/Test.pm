@@ -78,10 +78,14 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Test(6)
 {
-    local $TODO = 'Test of LIMS2::Test not implemented yet';
-    ok(0, "Test of LIMS2::Test");
+    for my $method ( qw( model mech unauthenticated_mech test_data reload_fixtures) ) {
+	can_ok __PACKAGE__, $method;
+    }
+
+    ok reload_fixtures;
+
 }
 
 =head1 AUTHOR
