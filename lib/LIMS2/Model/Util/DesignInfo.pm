@@ -299,8 +299,6 @@ sub _build_oligos {
     my %design_oligos_data;
     for my $oligo ( @oligos ) {
         my $locus = $oligo->loci->first;
-        LIMS2::Exception->throw( 'No locus information for oligo: ' . $oligo->design_oligo_type_id )
-            unless $locus;
 
         my %oligo_data = (
             start      => $locus->chr_start,
