@@ -188,7 +188,7 @@ sub find_design_targets {
             species_id => $species_id,
         },
         {
-            order_by => 'gene_id',
+            order_by => [ { -asc => 'gene_id' }, { -desc => 'exon_rank' } ],
             distinct => 1,
         }
     );
