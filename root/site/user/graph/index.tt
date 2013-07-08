@@ -1,4 +1,4 @@
-[%- META title = "View Well Relations" %]
+[%- META title = "View Well Relations"; META tab_name = 'Genes' %]
 <form method="GET" action="[% c.uri_for( '/user/graph' ) %]" class="well">
   <fieldset>
     <legend>Show Well Relations</legend>

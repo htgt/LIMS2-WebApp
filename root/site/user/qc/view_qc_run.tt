@@ -1,4 +1,4 @@
-[% META title = "View Qc Run" %]
+[% META title = "View Qc Run"; META tab_name = 'QC' %]
 [% MACRO yes_no(bool) IF bool == 1; "yes"; ELSE; "no"; END; -%]
 [% MACRO pass_fail(bool) IF bool == 1; "pass"; ELSE; "fail"; END; -%]
 

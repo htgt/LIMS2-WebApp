@@ -1,4 +1,4 @@
-[%- META title = 'DNA Status Update'; META tab_name = 'QC' %]
+[%- META title = 'DNA Status Update'; META tab_name = 'Cells' %]
 
 <div class="page-header">
   <h1>Plate DNA Status Update</h1>

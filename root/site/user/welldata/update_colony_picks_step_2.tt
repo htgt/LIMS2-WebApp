@@ -1,4 +1,4 @@
-[%- META title = "Colony Counts" %]
+[%- META title = "Colony Counts"; META tab_name = 'Cells' %]
 
 <div class="page-header">
   <h1>Add Colony Data</h1>

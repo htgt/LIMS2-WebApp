@@ -1,4 +1,4 @@
-[% META title = "Qc Test Result" %]
+[% META title = "Qc Test Result"; META tab_name = 'QC' %]
 <div class="page-header">
   <h1>QC Well Results <small>[% "${qc_seq_well.plate_name}[${qc_seq_well.well_name}]" %]</small></h1>
 </div>
