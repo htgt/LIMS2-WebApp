@@ -9,8 +9,8 @@
     <thead>
       <tr>
         <th class="design-target group-header" colspan="5">Design Target</th>
-        <th class="design group-header" colspan="2">Design</th>
-        <th class="crispr group-header" colspan="6">Crispr</th>
+        <th class="design group-header" colspan="2">Vector Design</th>
+        <th class="crispr group-header" colspan="6">Crispr Guide RNA</th>
       </tr>
       <tr>
         <th class="design-target">Marker Symbol</th>
