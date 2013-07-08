@@ -356,6 +356,7 @@ sub _rank_crisprs {
 Sort the input from the gene search box into gene id types
 
 =cut
+## no critic(BuiltinFunctions::ProhibitComplexMappings)
 sub _sort_gene_ids {
     my ( $genes ) = @_;
     my %sorted_genes = (
@@ -379,8 +380,9 @@ sub _sort_gene_ids {
             push @{ $sorted_genes{marker_symbols} }, $gene;
         }
     }
-    
+
     return \%sorted_genes;
 }
+## use critic
 
 1;
