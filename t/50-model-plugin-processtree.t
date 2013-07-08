@@ -74,4 +74,30 @@ note('Testing process tree design retrieval');
     is $design_data->{'854'}->{'gene_id'}, 'MGI:1917722', '.. gene_id is correct';
 }
 
+note('Testing process tree unique child well resultset from design well parent');
+{
+
+    my $design_well_id = 930;
+    ok my $rs = model->get_wells_for_design_well_id (
+    {
+       'well_id' => $design_well_id,
+    }), 'invoked get_wells_for_design_well_id for design well 930';
+
+    my $num_wells = scalar $rs;
+    is scalar $rs, 104, '.. 104 unique well objects were returned'; 
+    my @well_list;
+    while ( my $well = $rs->next ) {
+        push @well_list, $well->id;
+    }
+
+    @well_list = sort { $a <=> $b } @well_list;
+
+#    print join q{,}, @well_list ; 
+#    print "\n";
+
+    is $well_list[0], 930, 'first unique well is 930';
+    is $well_list[10], 1524, 'tenth unique well is 1524';
+    is $well_list[-1], 1617, 'last unique well is 1617';
+}
+
 done_testing();
