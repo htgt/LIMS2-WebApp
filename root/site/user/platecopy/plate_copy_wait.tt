@@ -1,4 +1,4 @@
-[%- META title = 'Plate Copy Wait'; META tab_name = 'Plates' %]
+[%- META title = 'Plate Copy Wait'; META tab_name = 'Cells' %]
 
 <div class="page-header">
   <h1>Creating Plate [% new_plate %] from [% parent_plate%]</h1>

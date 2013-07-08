@@ -1,4 +1,4 @@
-[% META title="Design Target Report" %]
+[% META title="Design Target Report"; META tab_name = "Designs" %]
 
 <div class="page-header">
   <h1>Design Target Report</h1>

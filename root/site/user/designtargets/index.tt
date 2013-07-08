@@ -1,4 +1,4 @@
-[% META title = "Design Target Report"; META tab_name = "Browse" %]
+[% META title = "Design Target Report"; META tab_name = "Designs" %]
 
 <form method="POST" action="[% c.uri_for( '/user/design_target_report' ) %]" class="well">
   <fieldset>
