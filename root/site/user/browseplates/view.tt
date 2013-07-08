@@ -1,4 +1,4 @@
-[%- META title="View Plate"; META tab_name = "Plates" %]
+[%- META title="View Plate" %]
 
 <div class="page-header">
   <h1>Plate <small>[% plate.name %]</small></h1>

@@ -1,3 +1,19 @@
+0.087     2013-07-08 08:40:26 Europe/London
+
+    Added design target gene / crispr report
+
+0.086     2013-07-04 11:40:00 Europe/London
+
+    Added try when looking up genes in QCResultsgenes in case the design doesn't exist.
+
+0.085     2013-07-03 16:20:01 Europe/London
+
+    Created fast version of retrieve_qc_run_results using SQL.
+
+0.084     2013-06-27 09:48:27 Europe/London
+
+    Added dashes as valid characters to qc_seq_read validation.
+
 0.083     2013-06-27 07:44:38 Europe/London
 
     Modified way crispr off targets are stored and updated.

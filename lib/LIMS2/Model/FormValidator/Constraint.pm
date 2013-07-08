@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.083';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.087';
 }
 ## use critic
 
@@ -395,7 +395,7 @@ sub software_version {
 }
 
 sub qc_seq_read_id {
-    return regexp_matches(qr/^[A-Za-z0-9_]+\.[A-Za-z0-9]+$/);
+    return regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9]+$/);
 }
 
 sub cigar_string {

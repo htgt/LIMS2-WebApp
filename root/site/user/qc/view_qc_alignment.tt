@@ -1,4 +1,4 @@
-[% META title => "View Alignment" -%]
+[% META title => "View Alignment" ; META tab_name = 'QC'-%]
 [% MACRO strand_name(strand) IF strand == 1; THEN; "forward strand"; ELSE; "reverse strand"; END %]
 
 <div class="page-header">

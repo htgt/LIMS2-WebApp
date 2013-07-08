@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprLocus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprLocus::VERSION = '0.083';
+    $LIMS2::Model::Schema::Result::CrisprLocus::VERSION = '0.087';
 }
 ## use critic
 
@@ -44,13 +44,6 @@ __PACKAGE__->table("crispr_loci");
 
 =head1 ACCESSORS
 
-=head2 id
-
-  data_type: 'integer'
-  is_auto_increment: 1
-  is_nullable: 0
-  sequence: 'crispr_loci_id_seq'
-
 =head2 crispr_id
 
   data_type: 'integer'
@@ -87,13 +80,6 @@ __PACKAGE__->table("crispr_loci");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "crispr_loci_id_seq",
-  },
   "crispr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "assembly_id",
@@ -112,13 +98,15 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</id>
+=item * L</crispr_id>
+
+=item * L</assembly_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id");
+__PACKAGE__->set_primary_key("crispr_id", "assembly_id");
 
 =head1 RELATIONS
 
@@ -168,8 +156,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-22 14:33:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8TREYjVgtBRcnsUxGJv4PQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-07-08 07:58:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fta0ditCvBjP9N8pYccF0w
 
 sub as_hash {
     my $self = shift;

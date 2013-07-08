@@ -1,4 +1,4 @@
-[%- META title = "Gene Summary" %]
+[%- META title = "Gene Summary"; META tab_name = 'Genes' %]
 
 <div class="page-header">
   <h1>[% template.title %]</h1>

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.083';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.087';
 }
 ## use critic
 
@@ -21,6 +21,7 @@ use LIMS2::Model::Util::CreateQC qw(
 );
 use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_run_results
+    retrieve_qc_run_results_fast
     retrieve_qc_run_summary_results
     retrieve_qc_run_seq_well_results
     retrieve_qc_alignment_results
@@ -546,7 +547,7 @@ sub qc_run_results {
 
     my $qc_run = $self->retrieve( 'QcRun' => { id => $validated_params->{qc_run_id} } );
 
-    my $results = retrieve_qc_run_results($qc_run);
+    my $results = retrieve_qc_run_results_fast($qc_run, $self->schema);
 
     return ( $qc_run, $results );
 }

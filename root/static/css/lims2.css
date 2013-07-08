@@ -3,3 +3,32 @@ ul.ui-autocomplete
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 100%
 }
+
+#design-target-report th.group-header{
+    text-align: center;
+    vertical-align: middle;
+}
+
+#design-target-report th.design-target{
+    background: #EFEFEF;
+}
+
+#design-target-report td.design-target{
+    background: #EFEFEF;
+}
+
+#design-target-report th.design{
+    background: #F7F7F7;
+}
+
+#design-target-report td.design{
+    background: #F7F7F7;
+}
+
+#design-target-report th.crispr{
+    background: #FCFCFC;
+}
+
+#design-target-report td.crispr{
+    background: #FCFCFC;
+}
