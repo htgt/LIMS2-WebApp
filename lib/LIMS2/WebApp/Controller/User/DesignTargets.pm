@@ -38,7 +38,7 @@ sub gene_report : Path('/user/design_target_report') : Args(0) {
 
     $c->assert_user_roles( 'read' );
     unless ( $c->request->param('genes') ) {
-        $c->stash( error_msg => "Please enter some gene names" );
+        $c->flash( error_msg => "Please enter some gene names" );
         return $c->go('index');
     }
 
@@ -47,6 +47,10 @@ sub gene_report : Path('/user/design_target_report') : Args(0) {
         $c->request->param('genes'),
         $c->session->{selected_species},
     );
+
+    unless ( @{ $design_targets_data->{data} } ) {
+        $c->stash( error_msg => "No design targets found matching search terms" );
+    }
 
     $c->stash(
         design_targets_data => $design_targets_data,
