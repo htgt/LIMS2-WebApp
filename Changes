@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.087     2013-07-08 08:40:26 Europe/London
+
+    Added design target gene / crispr report
+
 0.086     2013-07-04 11:40:00 Europe/London
 
     Added try when looking up genes in QCResultsgenes in case the design doesn't exist.
