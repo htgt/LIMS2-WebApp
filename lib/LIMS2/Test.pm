@@ -93,11 +93,18 @@ sub _build_test_data {
 	{
 	    if ($filename eq $link->text)
 	    {
+		my $ext;
+		($ext = $filename) =~ s/^.*\.//;
 		$mech->get( $link );
-		return YAML::Any::Load($mech->content);
+		my ($data_fh, $data_tmp_filename) = File::Temp::tempfile( 'testdata_XXXX', DIR => "/var/tmp", SUFFIX => '.' . $ext, UNLINK => 0 );
+		$data_fh->print($mech->content);
+		$data_fh->seek( 0, 0 );
+		if ($filename =~ m/\.yaml$/ and not $opts{raw} ) {
+		    return YAML::Any::LoadFile($data_tmp_filename);
+		}
+		return($data_fh);
 	    }
 	}
-	return $filename;
     }
 }
 
