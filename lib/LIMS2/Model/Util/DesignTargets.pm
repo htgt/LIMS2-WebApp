@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.087';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.088';
 }
 ## use critic
 
@@ -194,7 +194,7 @@ sub find_design_targets {
             species_id => $species_id,
         },
         {
-            order_by => 'gene_id',
+            order_by => [ { -asc => 'gene_id' }, { -desc => 'exon_rank' } ],
             distinct => 1,
         }
     );
@@ -282,23 +282,17 @@ sub _format_crispr_data {
     $rank_algorithm ||= 'strict';
     $num_crisprs ||= 5;
 
-    # rank crisprs if we have more than the maximum amount we want to show
-    my @ranked_crisprs;
-    if ( scalar( @{ $crisprs } ) > $num_crisprs ) {
-        @ranked_crisprs
+    my @ranked_crisprs
         = sort { _rank_crisprs( $a, $rank_algorithm ) <=> _rank_crisprs( $b, $rank_algorithm ) } @{$crisprs};
-    }
-    else {
-        @ranked_crisprs = @{ $crisprs };
-    }
 
     my $crispr_count = 0;
     for my $c ( @ranked_crisprs ) {
         my %data = ( crispr_id => $c->id );
         for my $summary ( $c->off_target_summaries->all ) {
+            next unless $summary->algorithm eq 'strict';
             my $valid = $summary->outlier ? 'no' : 'yes';
-            push @{ $data{outlier} }, $summary->algorithm . ': ' . $valid;
-            push @{ $data{summary} }, $summary->algorithm . ': ' . $summary->summary;
+            push @{ $data{outlier} }, $valid;
+            push @{ $data{summary} }, $summary->summary;
         }
         last if $crispr_count++ >= $num_crisprs;
 
@@ -349,12 +343,16 @@ exon > intron > intergenic
 =cut
 sub _rank_crisprs {
     my ( $crispr, $rank_algorithm ) = @_;
+    my $score = 0;
 
     my $off_target_summary = first{ $_->algorithm eq $rank_algorithm } $crispr->off_target_summaries->all;
-    return 1000 unless $off_target_summary;
+    # check this, not sumre it will work properly if sorting on weak algorithm
+    return 5000 unless $off_target_summary;
+
+    $score += 1000 if $off_target_summary->outlier;
     my $summary = Load($off_target_summary->summary);
 
-    return ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic};
+    return $score + ( ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic} );
 }
 
 =head2 _sort_gene_ids
