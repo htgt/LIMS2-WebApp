@@ -82,19 +82,18 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(99)
+sub all_tests  : Test(12)
 {
 
     note('Testing parse_csv_file');
 
-    {   
+    {
 	note('Test files with different newline endings are parsed correctly');
 
 	my @test_files = qw( csv_upload_linux csv_upload_win csv_upload_mac );
 
 	for my $test_file ( @test_files ) {
-	    my $data_file = test_data( $test_file . '.csv' );
-	    my $data_fh = $data_file->openr or die('Can not open file ' . $!);
+	    my $data_fh = test_data( $test_file . '.csv' );
 
 	    my $csv_data;
 	    lives_ok {
@@ -127,8 +126,7 @@ sub all_tests  : Test(99)
     note('Testing upload_plate_dna_status');
 
     {   
-	my $data_file = test_data('csv_upload_linux.csv');
-	my $data_fh = $data_file->openr or die( 'Can not open file ' . $! );
+	my $data_fh = test_data('csv_upload_linux.csv');
 
 	lives_ok {
 	    upload_plate_dna_status( model,
@@ -149,8 +147,7 @@ sub all_tests  : Test(99)
 	    );
 	} qr/Invalid plate type DESIGN for plate 111, expected plates of type\(s\) DNA/;
 
-	my $invalid_data_file = test_data('invalid_csv_upload.csv');
-	my $invalid_data_fh = $invalid_data_file->openr or die( 'Can not open file ' . $! );
+	my $invalid_data_fh = test_data('invalid_csv_upload.csv');
 	throws_ok {
 	    upload_plate_dna_status( model,
 		{   csv_fh     => $invalid_data_fh,
