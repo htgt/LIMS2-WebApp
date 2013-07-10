@@ -80,7 +80,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(99)
+sub all_tests  : Tests
 {
     # Force reload of fixture data
     reload_fixtures;
@@ -109,9 +109,6 @@ sub all_tests  : Test(99)
 	1                    => [1,"Message",undef,undef,undef], # unknown well to test error handling
 
     );
-
-    # determine total count of tests
-    plan tests => (keys(%wells_expecting_success) * 7) + (keys(%wells_expecting_other_behaviour) * 7);
 
     # loop of tests expected to be successful
     while( my($design_well_id, $expected_results) = each %wells_expecting_success ) {
