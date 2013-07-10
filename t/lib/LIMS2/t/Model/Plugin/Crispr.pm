@@ -4,6 +4,7 @@ use Test::Most;
 use LIMS2::Model::Plugin::Crispr;
 
 use LIMS2::Test;
+use Data::Dumper;
 
 =head1 NAME
 
@@ -80,7 +81,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(99)
+sub all_tests  : Test(58)
 {
 
     note('Testing the Creation crisprs');
@@ -103,23 +104,59 @@ sub all_tests  : Test(99)
 	is $off_target->assembly_id, 'GRCm38', '.. off target assembly correct';
 	is $off_target->build_id, 70, '.. off target build correct';
 	is $off_target->chromosome, 11, '.. off target chr correct';
+	is $off_target->algorithm, 'strict', '.. off target algorithm correct';
+
+	is $crispr->off_target_summaries->count, 1, 'We have only one off target summary';
+	my $off_target_summary = $crispr->off_target_summaries->first;
+	is $off_target_summary->algorithm, 'strict', '.. correct algorithm';
+	is $off_target_summary->outlier, 0, '.. correct outlier';
+	is $off_target_summary->summary, '{Exons: 5, Introns:10, Intergenic: 15}', '.. correct summary';
 
 	throws_ok {
 	    model->create_crispr( $create_crispr_data->{species_assembly_mismatch} )
 	} qr/Assembly GRCm38 does not belong to species Human/
 	    , 'throws error when species and assembly do not match';
+    }
 
-	# if we try to create duplicate crispr we just over-write the crisprs off targets
-	ok my $duplicate_crispr = model->create_crispr( $create_crispr_data->{duplicate_crispr} )
-	    , 'can create dupliate crispr';
+    note('Create dupliate crispr with same off target algorithm data' );
+    {   
+	# with same off target algorithm
+	ok my $duplicate_crispr = model->create_crispr(
+	    $create_crispr_data->{duplicate_crispr_same_off_target_algorithm} ),
+	    'can create dupliate crispr';
 	is $duplicate_crispr->id, $crispr->id, 'we have the same crispr';
 	ok my $new_off_targets = $duplicate_crispr->off_targets, 'can retrieve new off targets';
 	is $new_off_targets->count, 1, '.. only 1 off target now';
 	is $new_off_targets->first->chromosome, 15, '.. new off target has right chromosome';
+	is $new_off_targets->first->algorithm, 'strict', '.. new off target has same algorithm';
+
+	is $duplicate_crispr->off_target_summaries->count, 1, 'We still only have one off target summary';
+	my $off_target_summary = $duplicate_crispr->off_target_summaries->first;
+	is $off_target_summary->algorithm, 'strict', '.. correct algorithm';
+	is $off_target_summary->outlier, 1, '.. correct outlier';
+    }
+
+    note('Create dupliate crispr with different off target algorithm data');
+    {   
+
+	ok my $duplicate_crispr = model->create_crispr(
+	    $create_crispr_data->{duplicate_crispr_different_off_target_algorithm} ),
+	    'can create dupliate crispr';
+	is $duplicate_crispr->id, $crispr->id, 'we have the same crispr';
+	ok my $new_off_targets = $duplicate_crispr->off_targets, 'can retrieve new off targets';
+	is $new_off_targets->count, 2, '.. we have 2 off target now';
+	ok my $easy_off_target = $new_off_targets->find( { algorithm => 'easy' } )
+	    , '.. one of which uses the easy algorithm';
+
+	is $duplicate_crispr->off_target_summaries->count, 2, 'We have two off target summaries now';
+	ok my $easy_off_target_summary = $duplicate_crispr->off_target_summaries->find( { algorithm => 'easy' } )
+	    , 'can find off target summary for easy algorithm';
+	is $easy_off_target_summary->algorithm, 'easy', '.. correct algorithm';
+	is $easy_off_target_summary->outlier, 0, '.. correct outlier';
     }
 
     note('Testing retrival of crispr');
-    {   
+    {
 	ok my $crispr = model->retrieve_crispr( { id => $crispr->id } ), 'retrieve newly created crispr';
 	isa_ok $crispr, 'LIMS2::Model::Schema::Result::Crispr';
 	ok my $h = $crispr->as_hash(), 'can call as_hash';
@@ -152,6 +189,7 @@ sub all_tests  : Test(99)
 	    , 'can create new crispr off target';
 
 	is $crispr_off_target->chromosome, 16, '.. crispr off target chromosome is correct';
+	is $crispr_off_target->algorithm, 'strict', '.. crispr off target algorithm is correct';
 
 	my $crispr_off_target_data_2 = $create_crispr_data->{crispr_off_target_non_standard_chromosome};
 	$crispr_off_target_data_2->{crispr_id} = $crispr->id;
@@ -164,7 +202,7 @@ sub all_tests  : Test(99)
 
     note('Test finding crispr by sequence and locus');
     my $find_crispr_data= test_data( 'find_crispr_by_seq.yaml' );
-    {   
+    {
 	my $valid_crispr_data = $find_crispr_data->{valid_find_crispr_by_seq};
 	ok my $found_crispr = model->find_crispr_by_seq_and_locus( $valid_crispr_data )
 	    , 'can find crispr site by sequence and locus data';
@@ -192,7 +230,18 @@ sub all_tests  : Test(99)
     }
 
     note('Test deletion of cripr');
-    {
+    {  
+
+	#add process with crispr
+	my $process = model->schema->resultset('Process')->create( { type_id => 'create_crispr' } );
+	$process->create_related( process_crispr => { crispr_id => $crispr->id } );
+
+	throws_ok{
+	    model->delete_crispr( { id => $crispr->id } )
+	} qr/Crispr \d+ has been used in one or more processes/
+	    , 'fail to delete crispr that belongs to a create_crispr process';
+
+	ok $process->process_crispr->delete, 'can delete process crispr';
 	ok model->delete_crispr( { id => $crispr->id } ), 'can delete newly created crispr';
 
 	throws_ok{

@@ -83,16 +83,11 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(99)
+sub all_tests  : Tests
 {
     note( 'Testing Pipeline Summary reports' );
 
     my $species = 'Mouse'; # NB. need to add tests for human reports later
-
-    # Set up test plan
-    plan $@
-	? ( skip_all => 'Test::WWW::Mechanize::Catalyst required' )
-	: ( tests => 80 );
 
     ok( my $mech = mech(), 'Created mech object, empty front page' );
 

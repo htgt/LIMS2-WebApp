@@ -84,7 +84,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(315)
+sub all_tests  : Test(329)
 {
 
 
@@ -401,6 +401,7 @@ sub all_tests  : Test(315)
 	my $process = model->create_process( $process_data_3w_gateway->{invalid_output_well} );
     } qr/3w_gateway process output well should be type (FINAL|,|POSTINT)+ \(got DESIGN\)/;
 
+
     note( "Testing cre_bac_recom process creation" );
     my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
 
@@ -438,6 +439,7 @@ sub all_tests  : Test(315)
     throws_ok {
 	my $process = model->create_process( $cre_bac_recom_process_data->{invalid_output_well} );
     } qr/cre_bac_recom process output well should be type INT \(got EP\)/;
+
 
     note( "Testing recombinase process creation" );
     my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
@@ -612,6 +614,7 @@ sub all_tests  : Test(315)
 	my $process = model->create_process( $dna_prep_process_data->{invalid_output_well} );
     } qr/dna_prep process output well should be type DNA \(got INT\)/;
 
+
     note( "Testing first_electroporation process creation" );
     my $first_electroporation_data= test_data( 'first_electroporation.yaml' );
 
@@ -705,6 +708,7 @@ sub all_tests  : Test(315)
 	is $process_recombinases->next->recombinase->id, 'Flp', 'is Flp recombinase';
 	lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
     }
+
 
     note( "Testing clone_pick process creation" );
     my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
@@ -812,6 +816,43 @@ sub all_tests  : Test(315)
 	my $process = model->create_process( $freeze_process_data->{invalid_output_well} );
     } qr/freeze process output well should be type (FP|,|SFP)+ \(got SEP\)/;
 
+    note( "Testing dist_qc process creation" );
+    my $dist_qc_process_data= test_data( 'dist_qc_process.yaml' );
+
+    {   
+	# check normal create works
+	ok my $process = model->create_process( $dist_qc_process_data->{valid_input} ),
+	    'create_process for type dist_qc should succeed';
+	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+	is $process->type->id, 'dist_qc', 'process is of correct type';
+
+	# check process inputs are correct
+	ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+	is $input_wells->count, 1, 'only one input well';
+	my $input_well = $input_wells->next;
+	is $input_well->name, 'A01', 'input well has correct name';
+	is $input_well->plate->name, 'FFP0001', '..and is on correct plate';
+
+	# check process outputs are correct
+	ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+	is $output_wells->count, 1, 'only one output well';
+	my $output_well = $output_wells->next;
+	is $output_well->name, 'A01', 'output well has correct name';
+	is $output_well->plate->name, 'PIQ0001', '..and is on correct plate';
+
+	# check that additional process using same source well cannot be created
+	throws_ok {
+	    my $invalid_process = model->create_process( $dist_qc_process_data->{invalid_input} )
+	} qr/FP well FFP0001_A01 would be linked to PIQ wells PIQ0001_A01 and PIQ0002_A01/, 'correctly throws create failure when FP source well already used';
+
+	# check that process can be deleted
+	lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+
+	throws_ok {
+	    my $invalid_output_process = model->create_process( $dist_qc_process_data->{invalid_output} );
+	} qr/dist_qc process output well should be type (PIQ)+ \(got SEP\)/;
+    }
+
     note( "Testing xep_pool process creation" );
     my $xep_pool_process_data= test_data( 'xep_pool_process.yaml' );
     {   
@@ -853,6 +894,7 @@ sub all_tests  : Test(315)
     throws_ok {
 	my $process = model->create_process( $xep_pool_process_data->{invalid_output_well} );
     } qr/xep_pool process output well should be type (XEP)/;
+
 
 }
 
