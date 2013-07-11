@@ -1,4 +1,4 @@
-[% META title = "View Qc Runs" %]
+[% META title = "View Qc Runs"; META tab_name = 'QC' %]
 <form method="GET" class="well form-inline">
   <fieldset>
     <legend>Filter QC Runs</legend>

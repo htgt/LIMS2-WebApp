@@ -23,7 +23,7 @@ note('Test Valid Conditional -ve Stranded Design');
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
     is $di->chr_strand, -1, 'strand correct';
-    is $di->chr_name, 15, 'chromosome correct'; 
+    is $di->chr_name, 15, 'chromosome correct';
     # D5 start
     is $di->target_region_start, 53719453, 'correct target region start';
     # U3 end
@@ -50,7 +50,7 @@ note('Test Valid Conditional +ve Stranded Design');
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
     is $di->chr_strand, 1, 'strand correct';
-    is $di->chr_name, 1, 'chromosome correct'; 
+    is $di->chr_name, 1, 'chromosome correct';
     # U3 start
     is $di->target_region_start, 134595413, 'correct target region start';
     # D5 end
@@ -77,7 +77,7 @@ note('Test Valid Conditional -ve Stranded Deletion');
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
     is $di->chr_strand, -1, 'strand correct';
-    is $di->chr_name, 7, 'chromosome correct'; 
+    is $di->chr_name, 7, 'chromosome correct';
     # D3 end
     is $di->target_region_start, 122093614, 'correct target region start';
     # U5 start
@@ -104,7 +104,7 @@ note('Test Valid Conditional +ve Stranded Deletion');
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
     is $di->chr_strand, 1, 'strand correct';
-    is $di->chr_name, 18, 'chromosome correct'; 
+    is $di->chr_name, 18, 'chromosome correct';
     # U5 end
     is $di->target_region_start, 60956803, 'correct target region start';
     # D3 start
@@ -145,7 +145,7 @@ note( 'Test Invalid Design' );
     ), 'can grab design 81136 G5 oligo';
 
     ok my $default_assembly_id = $design->species->default_assembly->assembly_id
-        , 'can grab designs default assembly'; 
+        , 'can grab designs default assembly';
     ok my $g5_locus = $G5_oligo->search_related( 'loci', { assembly_id => $default_assembly_id } )->first
         , 'can grab g5 oligos current locus object';
 
@@ -164,22 +164,13 @@ note( 'Test Invalid Design' );
     } qr/Design 81136 oligos have inconsistent chromosomes/
         , 'throws error when getting design strand, we have mismatch';
 
-    ok $g5_locus->delete, 'can delete G5 oligo loci';
-    ok $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
-
-    throws_ok {
-        $di->oligos
-    } qr/No locus information for oligo: G5/
-        , 'throws error when oligo missing locus info';
-
-
 }
 
 note( 'Test ensembl adapters' );
 
 {
     ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
-    
+
     ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
@@ -236,7 +227,7 @@ note( 'Test MGI Accession ID' );
     ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
     isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
-    is $di->get_mgi_accession_id_for_gene( $di->target_gene ), 'MGI:88256', 'MGI Accession correct', 
+    is $di->get_mgi_accession_id_for_gene( $di->target_gene ), 'MGI:88256', 'MGI Accession correct',
 }
 
 note( 'Test design with target transcript' );
@@ -284,11 +275,11 @@ note ( 'Test floxed exons' );
 
     is scalar @{ $di->floxed_exons }, 6, 'correct number of floxed exons';
 
-    my @expected_exons = qw(ENSMUSE00000143835 
-                            ENSMUSE00000493183 
-                            ENSMUSE00000504553 
-                            ENSMUSE00000572373 
-                            ENSMUSE00000572372 
+    my @expected_exons = qw(ENSMUSE00000143835
+                            ENSMUSE00000493183
+                            ENSMUSE00000504553
+                            ENSMUSE00000572373
+                            ENSMUSE00000572372
                             ENSMUSE00000507603);
 
     my @got_exons = map { $_->stable_id } @{ $di->floxed_exons };
