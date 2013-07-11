@@ -285,15 +285,22 @@ sub _build_chr_name {
 # Build up oligos with information from current assembly
 sub _build_oligos {
     my $self = shift;
-    my %oligos;
 
-    for my $oligo ( $self->design->oligos ) {
-        my %oligo_data;
-        my $locus = $oligo->loci->find( { assembly_id => $self->default_assembly } );
-        LIMS2::Exception->throw( 'No locus information for oligo: ' . $oligo->design_oligo_type_id )
-            unless $locus;
+    my @oligos = $self->design->oligos(
+        {
+            'loci.assembly_id' => $self->default_assembly,
+        },
+        {
+            join => 'loci',
+            prefetch => { 'loci' => 'chr' },
+        },
+    );
 
-        %oligo_data = (
+    my %design_oligos_data;
+    for my $oligo ( @oligos ) {
+        my $locus = $oligo->loci->first;
+
+        my %oligo_data = (
             start      => $locus->chr_start,
             end        => $locus->chr_end,
             chromosome => $locus->chr->name,
@@ -301,10 +308,10 @@ sub _build_oligos {
         );
         $oligo_data{seq} = $oligo->seq;
 
-        $oligos{ $oligo->design_oligo_type_id } = \%oligo_data;
+        $design_oligos_data{ $oligo->design_oligo_type_id } = \%oligo_data;
     }
 
-    return \%oligos;
+    return \%design_oligos_data;
 }
 
 sub _build_ensembl_util {
