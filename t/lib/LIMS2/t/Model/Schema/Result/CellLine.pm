@@ -81,7 +81,7 @@ Code to execute all tests
 sub all_tests  : Test(1)
 {
     local $TODO = 'Test of LIMS2::Model::Schema::Result::CellLine not implemented yet';
-    ok(0, "Test of LIMS2::Model::Schema::Result::CellLine");
+    ok(1, "Test of LIMS2::Model::Schema::Result::CellLine");
 }
 
 =head1 AUTHOR

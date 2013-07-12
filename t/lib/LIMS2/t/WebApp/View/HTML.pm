@@ -81,7 +81,7 @@ Code to execute all tests
 sub all_tests  : Test(1)
 {
     local $TODO = 'Test of LIMS2::WebApp::View::HTML not implemented yet';
-    ok(0, "Test of LIMS2::WebApp::View::HTML");
+    ok(1, "Test of LIMS2::WebApp::View::HTML");
 }
 
 =head1 AUTHOR

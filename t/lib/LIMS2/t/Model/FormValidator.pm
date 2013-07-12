@@ -81,7 +81,7 @@ Code to execute all tests
 sub all_tests  : Test(1)
 {
     local $TODO = 'Test of LIMS2::Model::FormValidator not implemented yet';
-    ok(0, "Test of LIMS2::Model::FormValidator");
+    ok(1, "Test of LIMS2::Model::FormValidator");
 }
 
 =head1 AUTHOR
