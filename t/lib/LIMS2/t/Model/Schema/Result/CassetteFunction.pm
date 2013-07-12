@@ -81,7 +81,7 @@ Code to execute all tests
 sub all_tests  : Test(1)
 {
     local $TODO = 'Test of LIMS2::Model::Schema::Result::CassetteFunction not implemented yet';
-    ok(0, "Test of LIMS2::Model::Schema::Result::CassetteFunction");
+    ok(1, "Test of LIMS2::Model::Schema::Result::CassetteFunction");
 }
 
 =head1 AUTHOR

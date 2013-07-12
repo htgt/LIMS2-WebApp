@@ -1,6 +1,7 @@
 package LIMS2::t::Model::Plugin::ProcessTree;
 use base qw(Test::Class);
 use Test::Most;
+use LIMS2::Model qw(get_paths_for_well_id_depth_first);
 use LIMS2::Model::Plugin::ProcessTree;
 
 use LIMS2::Test;
@@ -83,7 +84,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(99)
+sub all_tests  : Test(29)
 {
 
     note("Testing process tree methods - descendants");

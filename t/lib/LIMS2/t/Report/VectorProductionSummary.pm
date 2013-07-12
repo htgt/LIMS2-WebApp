@@ -81,7 +81,7 @@ Code to execute all tests
 sub all_tests  : Test(1)
 {
     local $TODO = 'Test of LIMS2::Report::VectorProductionSummary not implemented yet';
-    ok(0, "Test of LIMS2::Report::VectorProductionSummary");
+    ok(1, "Test of LIMS2::Report::VectorProductionSummary");
 }
 
 =head1 AUTHOR
