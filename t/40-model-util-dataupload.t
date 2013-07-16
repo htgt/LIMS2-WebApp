@@ -26,11 +26,12 @@ note('Testing parse_csv_file');
 
     for my $test_file ( @test_files ) {
         my $data_file = test_data( $test_file . '.csv' );
-        my $data_fh = $data_file->openr or die('Can not open file ' . $!);
+        #my $data_fh = $data_file->openr or die('Can not open file ' . $!);
 
         my $csv_data;
         lives_ok {
-            $csv_data = parse_csv_file( $data_fh )
+            #$csv_data = parse_csv_file( $data_fh )
+            $csv_data = parse_csv_file( $data_file )
         } 'can parse csv file';
 
         is_deeply $csv_data, [
@@ -59,8 +60,9 @@ note('Testing parse_csv_file');
 note('Testing upload_plate_dna_status');
 
 {
-    my $data_file = test_data('csv_upload_linux.csv');
-    my $data_fh = $data_file->openr or die( 'Can not open file ' . $! );
+    #my $data_file = test_data('csv_upload_linux.csv');
+    my $data_fh = test_data('csv_upload_linux.csv');
+    #my $data_fh = $data_file->openr or die( 'Can not open file ' . $! );
 
     lives_ok {
         upload_plate_dna_status( model,
@@ -81,8 +83,9 @@ note('Testing upload_plate_dna_status');
         );
     } qr/Invalid plate type DESIGN for plate 111, expected plates of type\(s\) DNA/;
 
-    my $invalid_data_file = test_data('invalid_csv_upload.csv');
-    my $invalid_data_fh = $invalid_data_file->openr or die( 'Can not open file ' . $! );
+    #my $invalid_data_file = test_data('invalid_csv_upload.csv');
+    my $invalid_data_fh = test_data('invalid_csv_upload.csv');
+    #my $invalid_data_fh = $invalid_data_file->openr or die( 'Can not open file ' . $! );
     throws_ok {
         upload_plate_dna_status( model,
             {   csv_fh     => $invalid_data_fh,
