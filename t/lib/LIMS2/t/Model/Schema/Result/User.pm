@@ -50,16 +50,27 @@ sub after  : Test(teardown)
 };
 
 
+sub class { 'LIMS2::Model::Schema::Result::User' }
+
 =head2 startup
 
 Code to run before all tests for the whole test class
 
 =cut
 
-sub startup : Test(startup)
+sub startup : Test(startup => 1)
 {
-    #diag("running before all tests");
+    my $test = shift;
+    use_ok $test->class;
 };
+
+sub constructor : Tests(3) {
+    my $test = shift;
+    my $class = $test->class;
+    can_ok $class, 'new';
+    ok my $person = $class->new, '... and the constructor should succeed';
+    isa_ok $person, $class, '... and the object it returns';
+}
 
 =head2 shutdown
 
