@@ -81,8 +81,9 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(112)
+sub all_tests  : Tests
 {
+
     note('Test Valid Conditional -ve Stranded Design');
 
     {   
@@ -96,6 +97,13 @@ sub all_tests  : Test(112)
 	is $di->target_region_start, 53719453, 'correct target region start';
 	# U3 end
 	is $di->target_region_end, 53720128, 'correct target region end';
+
+	is $di->loxp_start, 53719367, 'correct loxp_start';
+	is $di->loxp_end, 53719452, 'correct loxp_end';
+	is $di->cassette_start, 53720129, 'correct cassette_start';
+	is $di->cassette_end, 53720171, 'correct cassette_end';
+	is $di->homology_arm_start, 53715716, 'correct homology_arm_start';
+	is $di->homology_arm_end, 53725854, 'correct homology_arm_end';
 
 	ok my $oligos = $di->oligos, 'can grab oligos hash';
 	for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
@@ -117,6 +125,13 @@ sub all_tests  : Test(112)
 	# D5 end
 	is $di->target_region_end, 134596081, 'correct target region end';
 
+	is $di->loxp_start, 134596082, 'correct loxp_start';
+	is $di->loxp_end, 134596162, 'correct loxp_end';
+	is $di->cassette_start, 134595362, 'correct cassette_start';
+	is $di->cassette_end, 134595412, 'correct cassette_end';
+	is $di->homology_arm_start, 134590486, 'correct homology_arm_start';
+	is $di->homology_arm_end, 134601190, 'correct homology_arm_end';
+
 	ok my $oligos = $di->oligos, 'can grab oligos hash';
 	for my $oligo_type ( qw( G5 U5 U3 D5 D3 G3 ) ) {
 	    ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
@@ -136,6 +151,13 @@ sub all_tests  : Test(112)
 	is $di->target_region_start, 122093614, 'correct target region start';
 	# U5 start
 	is $di->target_region_end, 122096800, 'correct target region end';
+
+	is $di->loxp_start, undef, 'correct loxp_start';
+	is $di->loxp_end, undef, 'correct loxp_end';
+	is $di->cassette_start, 122093615, 'correct cassette_start';
+	is $di->cassette_end, 122096799, 'correct cassette_end';
+	is $di->homology_arm_start, 122090021, 'correct homology_arm_start';
+	is $di->homology_arm_end, 122103023, 'correct homology_arm_end';
 
 	ok my $oligos = $di->oligos, 'can grab oligos hash';
 	for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
@@ -157,6 +179,13 @@ sub all_tests  : Test(112)
 	# D3 start
 	is $di->target_region_end, 60964117, 'correct target region end';
 
+	is $di->loxp_start, undef, 'correct loxp_start';
+	is $di->loxp_end, undef, 'correct loxp_end';
+	is $di->cassette_start, 60956804, 'correct cassette_start';
+	is $di->cassette_end, 60964116, 'correct cassette_end';
+	is $di->homology_arm_start, 60951494, 'correct homology_arm_start';
+	is $di->homology_arm_end, 60967893, 'correct homology_arm_end';
+
 	ok my $oligos = $di->oligos, 'can grab oligos hash';
 	for my $oligo_type ( qw( G5 U5 D3 G3 ) ) {
 	    ok exists $oligos->{$oligo_type}, "have $oligo_type oligo";
@@ -175,10 +204,10 @@ sub all_tests  : Test(112)
 
     note( 'Test Invalid Design' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 81136  } ), 'can grab design 81136';
 	ok my $G5_oligo = model->schema->resultset( 'DesignOligo' )->find(
-	    {   
+	    {  
 		design_id => 81136,
 		design_oligo_type_id => 'G5',
 	    }
@@ -204,20 +233,11 @@ sub all_tests  : Test(112)
 	} qr/Design 81136 oligos have inconsistent chromosomes/
 	    , 'throws error when getting design strand, we have mismatch';
 
-	ok $g5_locus->delete, 'can delete G5 oligo loci';
-	ok $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
-
-	throws_ok {
-	    $di->oligos
-	} qr/No locus information for oligo: G5/
-	    , 'throws error when oligo missing locus info';
-
-
     }
 
     note( 'Test ensembl adapters' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
@@ -231,7 +251,7 @@ sub all_tests  : Test(112)
 
     note( 'Test target region slice' );
 
-    {
+    {   
 	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
@@ -257,10 +277,21 @@ sub all_tests  : Test(112)
 	is $di->target_gene->stable_id, 'ENSMUSG00000024617', 'target gene correct';
     }
 
+    note( 'Test design with more than one target gene' );
+
+    {
+	ok my $design = model->retrieve_design( { id => 39977  } ), 'can grab design 39977';
+
+	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
+	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
+
+	is $di->target_gene->stable_id, 'ENSMUSG00000018899', 'target gene correct';
+    }
+
     note( 'Test MGI Accession ID' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -285,7 +316,6 @@ sub all_tests  : Test(112)
     note( 'Test design without target transcript' );
 
     {
-	#this design is identical to 81136 but the transcript has been removed
 	ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
 	#make sure we get the right transcript even if one isn't set.
@@ -299,7 +329,7 @@ sub all_tests  : Test(112)
 
 	is $transcript->stable_id, 'ENSMUST00000025519', 'target transcript correct';
 
-	$design->discard_changes; #we dont want to save the empty transcript.
+	$design->discard_changes; #we dont need to save the empty transcript.
     }
 
     note ( 'Test floxed exons' );
@@ -314,11 +344,11 @@ sub all_tests  : Test(112)
 
 	is scalar @{ $di->floxed_exons }, 6, 'correct number of floxed exons';
 
-	my @expected_exons = qw(ENSMUSE00000143835 
-				ENSMUSE00000493183 
-				ENSMUSE00000504553 
-				ENSMUSE00000572373 
-				ENSMUSE00000572372 
+	my @expected_exons = qw(ENSMUSE00000143835
+				ENSMUSE00000493183
+				ENSMUSE00000504553
+				ENSMUSE00000572373
+				ENSMUSE00000572372
 				ENSMUSE00000507603);
 
 	my @got_exons = map { $_->stable_id } @{ $di->floxed_exons };

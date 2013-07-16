@@ -83,7 +83,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(99)
+sub all_tests  : Tests
 {
 
     my $mech = mech();
@@ -373,7 +373,7 @@ sub all_tests  : Test(99)
     $run_data->{qc_template_name} = $template->{name};
     my $test_results = delete $run_data->{test_results};
 
-    {   
+    {
 	ok my $res = $mech->request( POST '/api/qc_run', 'Content-Type' => 'application/json', Content => encode_json( $run_data ) ), "POST qc_run $run_data->{id}";
 	ok $res->is_success, '...request should succeed';
 	is $res->code, HTTP_CREATED, '..status is created';
@@ -424,7 +424,7 @@ sub all_tests  : Test(99)
 	    like $res->header('location'), qr(\Q/api/qc_test_result?id=\E\d+$), '...location header is correct';
 	    ( $test_result_id ) = $res->header('location') =~ m/(\d+)$/;
 	}
-	{  
+	{
 	    my $url = "/api/qc_test_result?id=$test_result_id";
 	    ok my $res = $mech->request( GET $url, 'Content-Type' => 'application/json' ), "GET $url";
 	    ok $res->is_success, '...request should succeed';
