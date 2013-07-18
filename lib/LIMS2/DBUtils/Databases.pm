@@ -336,7 +336,7 @@ sub run_query
 
     DEBUG(Data::Dumper->Dump([\$run_query],[qw(run_query)]));
 
-    my $ret = system$run_query);
+    my $ret = system($run_query);
     print STDERR $ret if ($ret =~ m/ERROR/);
     return $ret =~ m/ERROR/ ? 0 : 1;
 }
@@ -389,7 +389,7 @@ sub clone_database
     # Amend the definition
     {
 	local $/ = undef;
-	open (my FH, "+<", $source_definition_dumpfile) or die "Opening: $!";
+	open (my $FH, "+<", $source_definition_dumpfile) or die "Opening: $!";
 	my $content = <FH>;
 	$content =~ s/Name: $source_connection_details->{dbname};/Name: $params{destination_db};/g;
 	$content =~ s/CREATE DATABASE $source_connection_details->{dbname}/CREATE DATABASE $params{destination_db}/g;
