@@ -7,6 +7,10 @@ use LIMS2::Test;
 use Try::Tiny;
 use IO::File;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Util/DataUpload.pm - test class for LIMS2::Model::Util::DataUpload
@@ -125,7 +129,7 @@ sub all_tests  : Test(12)
 
     note('Testing upload_plate_dna_status');
 
-    {   
+    {
 	my $data_fh = test_data('csv_upload_linux.csv');
 
 	lives_ok {
@@ -175,6 +179,8 @@ sub all_tests  : Test(12)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

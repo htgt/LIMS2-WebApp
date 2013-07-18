@@ -7,6 +7,10 @@ use LIMS2::Test;
 use Try::Tiny;
 use File::Temp ':seekable';
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/GenotypingQC.pm - test class for LIMS2::Model::Plugin::GenotypingQC
@@ -93,9 +97,9 @@ sub all_tests  : Test(20)
 	    my $plate = "SEP0006";
 	    my $well = "A01";
 
-	    $test_file->print(join ",", "well_name",      "targeting_pass", "targeting-puro_pass", "chromosome_fail", "random");   
+	    $test_file->print(join ",", "well_name",      "targeting_pass", "targeting-puro_pass", "chromosome_fail", "random");
 	    $test_file->print("\n");
-	    $test_file->print(join ",", $plate."_".$well, "pass"          , "pass b"             ,  "3"             , "nonsense"); 
+	    $test_file->print(join ",", $plate."_".$well, "pass"          , "pass b"             ,  "3"             , "nonsense");
 
 	    my $name = $test_file->filename;
 	    $test_file->close;
@@ -177,6 +181,8 @@ sub all_tests  : Test(20)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

@@ -6,6 +6,10 @@ use LIMS2::Model::Util::DesignInfo;
 use LIMS2::Test;
 use Try::Tiny;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Util/DesignInfo.pm - test class for LIMS2::Model::Util::DesignInfo
@@ -86,7 +90,7 @@ sub all_tests  : Tests
 
     note('Test Valid Conditional -ve Stranded Design');
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 81136  } ), 'can grab design 81136';
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -113,7 +117,7 @@ sub all_tests  : Tests
 
     note('Test Valid Conditional +ve Stranded Design');
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 39833  } ), 'can grab design 39833';
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -140,7 +144,7 @@ sub all_tests  : Tests
 
     note('Test Valid Conditional -ve Stranded Deletion');
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 88505  } ), 'can grab design 88505';
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -194,7 +198,7 @@ sub all_tests  : Tests
 
     note( 'Test Getting Info via Design Object' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
 	is $design->chr_name, 18, 'chromosome correct';
 	is $design->chr_strand, 1, 'chromosome correct';
@@ -207,7 +211,7 @@ sub all_tests  : Tests
     {
 	ok my $design = model->retrieve_design( { id => 81136  } ), 'can grab design 81136';
 	ok my $G5_oligo = model->schema->resultset( 'DesignOligo' )->find(
-	    {  
+	    {
 		design_id => 81136,
 		design_oligo_type_id => 'G5',
 	    }
@@ -251,7 +255,7 @@ sub all_tests  : Tests
 
     note( 'Test target region slice' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
@@ -301,7 +305,7 @@ sub all_tests  : Tests
 
     note( 'Test design with target transcript' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
@@ -363,6 +367,8 @@ sub all_tests  : Tests
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

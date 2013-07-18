@@ -6,6 +6,10 @@ use LIMS2::WebApp::Controller::User::BrowsePlates;
 use LIMS2::Test;
 use File::Temp ':seekable';
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/BrowsePlates.pm - test class for LIMS2::WebApp::Controller::User::BrowsePlates
@@ -86,7 +90,7 @@ sub all_tests  : Test(3)
 
     my $mech = mech();
 
-    {   
+    {
 	note('Can view plate report');
 
 	$mech->get_ok( '/user/report/sync/DesignPlate?plate_id=939' );
@@ -101,6 +105,8 @@ sub all_tests  : Test(3)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

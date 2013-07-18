@@ -6,6 +6,10 @@ use LIMS2::WebApp::Controller::User::RecombinaseUpload;
 use LIMS2::Test;
 use File::Temp ':seekable';
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/RecombinaseUpload.pm - test class for LIMS2::WebApp::Controller::User::RecombinaseUpload
@@ -86,7 +90,7 @@ sub all_tests  : Test(18)
 
     my $mech = mech();
 
-    {   
+    {
 	note( "set no data" );
 	$mech->get_ok( '/user/recombinase_upload' );
 	$mech->title_is('Add Recombinase');
@@ -100,7 +104,7 @@ sub all_tests  : Test(18)
 	like $res->content, qr/Data must be specified for all three fields; Plate Name, Well Name and Recombinase/, '... no data specified';
     }
 
-    {   
+    {
 	note( "set valid data" );
 	$mech->get_ok( '/user/recombinase_upload' );
 	$mech->title_is('Add Recombinase');
@@ -114,7 +118,7 @@ sub all_tests  : Test(18)
 	like $res->content, qr/Add Dre recombinase for well A01 on plate FEPD0006_1/, '... no data specified';
     }
 
-    {   
+    {
 	note( "Invalid well data csv file" );
 
 	$mech->get_ok( '/user/recombinase_upload' );
@@ -140,6 +144,8 @@ sub all_tests  : Test(18)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

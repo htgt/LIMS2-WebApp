@@ -3,6 +3,10 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Report::GenesToElectroporate;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Report/GenesToElectroporate.pm - test class for LIMS2::Report::GenesToElectroporate
@@ -89,6 +93,8 @@ sub all_tests  : Test(1)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

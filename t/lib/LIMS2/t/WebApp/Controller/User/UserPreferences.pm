@@ -5,6 +5,10 @@ use LIMS2::WebApp::Controller::User::UserPreferences;
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/UserPreferences.pm - test class for LIMS2::WebApp::Controller::User::UserPreferences
@@ -84,7 +88,7 @@ sub all_tests  : Test(38)
 {
     my $mech = mech();
 
-    {   
+    {
 	note( "Don't specify new password" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -102,7 +106,7 @@ sub all_tests  : Test(38)
 	like $res->content, qr/You must specify a new password/, '... no new password specified';
     }
 
-    {   
+    {
 	note( "Don't specify new password confirm field" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -120,7 +124,7 @@ sub all_tests  : Test(38)
 	like $res->content, qr/You must fill in password confirm box as well/, '... no new password confirm specified';
     }
 
-    {   
+    {
 	note( "New password and Password confirm values do not match" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -138,7 +142,7 @@ sub all_tests  : Test(38)
 	like $res->content, qr/new password and password confirm values do not match/, '... password and password confirm values do not match';
     }
 
-    {   
+    {
 	note( "Invalid password" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -184,7 +188,7 @@ sub all_tests  : Test(38)
 	), 'Login with changed password';
     }
 
-    {   
+    {
 	note( "Change password back" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -209,6 +213,8 @@ sub all_tests  : Test(38)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

@@ -5,6 +5,10 @@ use LIMS2::Model::Plugin::Design;
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/Design.pm - test class for LIMS2::Model::Plugin::Design
@@ -83,7 +87,7 @@ Code to execute all tests
 sub all_tests  : Test(59)
 {
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 84231 } ), 'retrieve design id=84231';
 	isa_ok $design, 'LIMS2::Model::Schema::Result::Design';
 	can_ok $design, 'as_hash';
@@ -94,14 +98,14 @@ sub all_tests  : Test(59)
 	ok !$h2->{genotyping_primers}, '...no genotyping primers';
     }
 
-    {   
+    {
 	ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912' } ), 'list assigned designs by MGI accession';
 	isa_ok $designs, ref [];
 	ok @{$designs} > 0, '...the list is not empty';
 	isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
     }
 
-    {   
+    {
 	ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:106032', type => 'conditional' } ),
 	    'list assigned designs by MGI accession and design type conditional';
 	isa_ok $designs, ref [];
@@ -109,14 +113,14 @@ sub all_tests  : Test(59)
 	isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
     }
 
-    {   
+    {
 	ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248', type => 'deletion' } ),
 	    'list assigned designs by MGI accession and design type deletion';
 	is @{$designs}, 0, 'returns no designs';
 
     }
 
-    {   
+    {
 	ok model->search_gene_designs( { search_term => 'lbl', page => 1, pagesize => 50 } ), 'list genes specifying a page and pagesize';
 	ok my ( $gene_designs, $pager ) = model->search_gene_designs( { search_term => 'lbl' } ), 'list matched genes';
 	isa_ok $gene_designs, ref [];
@@ -126,7 +130,7 @@ sub all_tests  : Test(59)
 
     }
 
-    {   
+    {
 	ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912', type => 'conditional' } ),
 	    'list candidate designs for MGI accession, gene on -ve strand';
 	isa_ok $designs, ref [];
@@ -146,7 +150,7 @@ sub all_tests  : Test(59)
     }
 
     note('Testing the Creation and Deletion of designs');
-    {   
+    {
 	my $design_data = build_design_data(84231);
 
 	ok my $new_design = model->create_design($design_data), 'can create new design';
@@ -200,7 +204,7 @@ sub all_tests  : Test(59)
     }
 
     note('Testing create design oligo');
-    {   
+    {
 	my $design_data = build_design_data(84231);
 
 	my $oligos = delete $design_data->{oligos};
@@ -245,9 +249,9 @@ sub all_tests  : Test(59)
     }
 
     note('Testing create design oligo locus');
-    {   
+    {
 	ok my $design_oligo_locus = model->create_design_oligo_locus(
-	    {   
+	    {
 		assembly   => 'NCBIM34',
 		chr_name   => 1,
 		chr_start  => 10,
@@ -258,7 +262,7 @@ sub all_tests  : Test(59)
 	    }
 	), 'can create design oligo locus';
 
-	ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } ) 
+	ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } )
 	    , 'can retrieve design_oligo';
 
 	ok my $loci = $design_oligo->loci->find( { assembly_id => 'GRCm38' } )
@@ -266,7 +270,7 @@ sub all_tests  : Test(59)
 
 	throws_ok{
 	     model->create_design_oligo_locus(
-		{  
+		{
 		    assembly   => 'GRCm38',
 		    chr_name   => 1,
 		    chr_start  => 10,
@@ -298,7 +302,7 @@ sub all_tests  : Test(59)
 
 	delete $design_data->{comments};
 	$design_data->{comments} = [
-	    {   
+	    {
 		category => 'Other',
 		comment_text => 'Test comment',
 		created_at => '2012-05-21T00:00:00',
@@ -327,6 +331,8 @@ sub all_tests  : Test(59)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

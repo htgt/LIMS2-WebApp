@@ -4,6 +4,10 @@ use Test::Most;
 use LIMS2::Model::Schema::Result::Summary;
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Schema/Result/Summary.pm - test class for LIMS2::Model::Schema::Result::Summary
@@ -115,6 +119,8 @@ sub all_tests  : Test(8)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

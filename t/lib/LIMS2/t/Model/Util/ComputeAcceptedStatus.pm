@@ -5,6 +5,10 @@ use LIMS2::Model::Util::ComputeAcceptedStatus qw(compute_accepted_status);
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Util/ComputeAcceptedStatus.pm - test class for LIMS2::Model::Util::ComputeAcceptedStatus
@@ -132,6 +136,8 @@ sub all_tests  : Test(13)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

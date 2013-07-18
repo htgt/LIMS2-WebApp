@@ -8,6 +8,10 @@ use JSON qw( encode_json decode_json );
 use HTTP::Request::Common;
 use HTTP::Status qw( :constants );
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/QC.pm - test class for LIMS2::WebApp::Controller::User::QC
@@ -137,7 +141,7 @@ sub all_tests  : Tests
 
     note "Testing creation of QC template from CSV upload";
 
-    {   
+    {
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print("well_name,source_plate,source_well\n"
 			  . "A01,MOHFAS0001_A,B01\n"
@@ -417,7 +421,7 @@ sub all_tests  : Tests
 	}
 	$test_result->{qc_run_id} = $run_data->{id};
 	my $test_result_id;
-	{   
+	{
 	    ok my $res = $mech->request( POST '/api/qc_test_result', 'Content-Type' => 'application/json', Content => encode_json( $test_result ) ), 'POST /api/qc_test_result';
 	    ok $res->is_success, '...request should succeed';
 	    is $res->code, HTTP_CREATED, '...status is created';
@@ -444,6 +448,8 @@ sub all_tests  : Tests
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

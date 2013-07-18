@@ -6,6 +6,10 @@ use LIMS2::Model::Util::BacsForDesign;
 use LIMS2::Test;
 use Try::Tiny;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Util/BacsForDesign.pm - test class for LIMS2::Model::Util::BacsForDesign
@@ -98,7 +102,7 @@ sub all_tests  : Test(35)
 
     note('Test bacs_for_design');
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $bacs = bacs_for_design( model, $design ), 'can call bacs_for_design';
 	my @expected_bacs = qw(
@@ -118,7 +122,7 @@ sub all_tests  : Test(35)
 
     note( 'Test get_bac_clones' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $bacs
 	    = LIMS2::Model::Util::BacsForDesign::get_bac_clones( model, $design, 'NCBIM37', 'black6' )
@@ -127,14 +131,14 @@ sub all_tests  : Test(35)
 	isa_ok $bacs->[0], 'LIMS2::Model::Schema::Result::BacClone';
 
 	ok my @expected_bacs = model->schema->resultset( 'BacClone' )->search(
-	    {  
+	    {
 	       bac_library_id     => 'black6',
 	       'loci.chr_id'      => 3182,
 	       'loci.chr_start'   => { '<=' => 100760042 },
 	       'loci.chr_end'     => { '>=' => 100773657 },
 	       'loci.assembly_id' => 'NCBIM37',
 	    },
-	    {   
+	    {
 		join => 'loci',
 	    }
 	), 'can grab expected bac clones';
@@ -170,7 +174,7 @@ sub all_tests  : Test(35)
     }
     note( 'Test sort_bacs_by_size' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $bacs
 	    = LIMS2::Model::Util::BacsForDesign::get_bac_clones( model, $design, 'NCBIM37', 'black6' )
@@ -192,7 +196,7 @@ sub all_tests  : Test(35)
 
     note( 'Test order_bacs' );
 
-    {   
+    {
 	my @bac_names = qw(
 	    RP24-359K20
 	    RP23-186E21
@@ -201,7 +205,7 @@ sub all_tests  : Test(35)
 	    RP24-78L21
 	);
 	ok my @expected_bacs = model->schema->resultset( 'BacClone' )->search(
-	    {   
+	    {
 		name => { 'IN' => \@bac_names }
 	    },
 	), 'can grab expected bac clones';
@@ -232,10 +236,10 @@ sub all_tests  : Test(35)
 
     note( 'Test Invalid Design' );
 
-    {   
+    {
 	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $U3_oligo = model->schema->resultset( 'DesignOligo' )->find(
-	    {   
+	    {
 		design_id => 94427,
 		design_oligo_type_id => 'U3',
 	    }
@@ -257,6 +261,8 @@ sub all_tests  : Test(35)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

@@ -4,6 +4,10 @@ use Test::Most;
 use LIMS2::Model::Util::CreateProcess qw(process_plate_types);
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Util/CreateProcess.pm - test class for LIMS2::Model::Util::CreateProcess
@@ -100,6 +104,8 @@ sub all_tests  : Test(4)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

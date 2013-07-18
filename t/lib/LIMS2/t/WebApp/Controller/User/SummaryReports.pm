@@ -8,6 +8,10 @@ use File::Temp ':seekable';
 use JSON;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/SummaryReports.pm - test class for LIMS2::WebApp::Controller::User::SummaryReports
@@ -95,7 +99,7 @@ sub all_tests  : Tests
     # load some table data here
 
     ok my $test_data= test_data( '70-pipeline_summary_reports_data.yaml' ), 'fetching test data yaml file should succeed';
-    {   
+    {
 	# fetch project data from yaml
 	ok my $project_rs = model('Golgi')->schema->resultset( 'Project' ),
 	    'fetching resultset for table projects should succeed';
@@ -257,6 +261,8 @@ sub all_tests  : Tests
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

@@ -5,6 +5,10 @@ use LIMS2::WebApp::Controller::User::Graph;
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/Graph.pm - test class for LIMS2::WebApp::Controller::User::Graph
@@ -85,7 +89,7 @@ sub all_tests  : Test(12)
 
     my $mech = mech();
 
-    {   
+    {
 	note( "Test well relations" );
 
 	$mech->get_ok( '/user/graph' );
@@ -101,7 +105,7 @@ sub all_tests  : Test(12)
 	$mech->content_contains('MOHSAQ0001_A_2_B04','graph contains well MOHSAQ0001_A_2_B04');
     }
 
-    {   
+    {
 	note( "Test plate relations" );
 
 	$mech->get_ok( '/user/graph' );
@@ -124,6 +128,8 @@ sub all_tests  : Test(12)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

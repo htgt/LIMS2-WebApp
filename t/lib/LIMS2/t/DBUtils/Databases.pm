@@ -3,6 +3,10 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::DBUtils::Databases;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/DBUtils/Databases.pm - test class for LIMS2::DBUtils::Databases
@@ -89,6 +93,8 @@ sub all_tests  : Test(1)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

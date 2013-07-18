@@ -3,6 +3,10 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::FormValidator::Constraint;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/FormValidator/Constraint.pm - test class for LIMS2::Model::FormValidator::Constraint
@@ -89,6 +93,8 @@ sub all_tests  : Test(1)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

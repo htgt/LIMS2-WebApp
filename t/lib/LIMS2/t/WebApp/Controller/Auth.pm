@@ -5,6 +5,10 @@ use LIMS2::WebApp::Controller::Auth;
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/Auth.pm - test class for LIMS2::WebApp::Controller::Auth
@@ -85,7 +89,7 @@ sub all_tests  : Test(15)
 
     my $mech = unauthenticated_mech();
 
-    {   
+    {
 	$mech->get_ok( '/login' );
 	ok my $res = $mech->submit_form(
 	    form_name => 'login_form',
@@ -98,7 +102,7 @@ sub all_tests  : Test(15)
 	like $res->content, qr/Incorrect username or password/, '...incorrect username/password error displayed';
     }
 
-    {   
+    {
 	$mech->get_ok( '/login' );
 	ok my $res = $mech->submit_form(
 	    form_name => 'login_form',
@@ -111,7 +115,7 @@ sub all_tests  : Test(15)
 	like $res->content, qr/Incorrect username or password/, '...incorrect username/password error displayed';
     }
 
-    {   
+    {
 	$mech->get_ok( '/login' );
 	ok my $res = $mech->submit_form(
 	    form_name => 'login_form',
@@ -131,6 +135,8 @@ sub all_tests  : Test(15)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

@@ -9,6 +9,10 @@ use Try::Tiny;
 use DateTime;
 use File::Temp ':seekable';
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/ProcessTree.pm - test class for LIMS2::Model::Plugin::ProcessTree
@@ -88,7 +92,7 @@ sub all_tests  : Test(29)
 {
 
     note("Testing process tree methods - descendants");
-    {   
+    {
 
 	ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>850, direction => 1} ), 'retrieved descendant paths for well_id 850';
 
@@ -105,7 +109,7 @@ sub all_tests  : Test(29)
 		is $well, $ref_paths[$check_path][$n], "path .. $n matches reference path $check_path:$n";
 		++$n;
 	    }
-	}   
+	}
 	    ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 930, direction => 1} ), 'retrieved descendant paths for well_id 930';
 	is scalar @{$paths}, 49, '.. 49 paths were returned';
 	    ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 935, direction => 1} ), 'retrieved descendant paths for well_id 935';
@@ -113,7 +117,7 @@ sub all_tests  : Test(29)
     }
 
     note("Testing process tree methods - ancestors");
-    {   
+    {
 	ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>854, direction => 0} ), 'retrieved ancestors paths for well_id  854';
 	my @ref_paths;
 	my @path_cmp = reverse ( 850, 851, 852, 853, 854 );
@@ -128,7 +132,7 @@ sub all_tests  : Test(29)
 		is $well, $ref_paths[$check_path][$n], "path .. $n matches reference path $check_path:$n";
 		++$n;
 	    }
-	}   
+	}
 	    ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 1623, direction => 0} ), 'retrieved ancestor paths for well_id 1623';
 	is scalar @{$paths}, 2, '.. 2 paths were returned';
 	    ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 939, direction => 0} ), 'retrieved ancestor paths for well_id 939';
@@ -152,6 +156,8 @@ sub all_tests  : Test(29)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

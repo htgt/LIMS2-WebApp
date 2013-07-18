@@ -8,6 +8,10 @@ use Test::Most;
 use Try::Tiny;
 use DateTime;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/QC.pm - test class for LIMS2::Model::Plugin::QC
@@ -87,7 +91,7 @@ sub all_tests  : Test(88)
 
     note "Testing creation of plate from QC results";
 
-    {   
+    {
 	my $params = {
 	    qc_run_id    => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7',
 	    plate_type   => 'FINAL',
@@ -119,7 +123,7 @@ sub all_tests  : Test(88)
     my $template_data = test_data( 'qc_template.yaml' );
     my $template_name = $template_data->{name};
 
-    {   
+    {
 	ok my $res = model->retrieve_qc_templates( { name => $template_name } ),
 	    'retrieve_qc_templates should succeed';
 	isa_ok $res, ref [],
@@ -137,7 +141,7 @@ sub all_tests  : Test(88)
     isa_ok $created_template, 'LIMS2::Model::Schema::Result::QcTemplate',
 	'find_or_create_qc_template return';
 
-    {   
+    {
 	ok my $res = model->retrieve_qc_templates( { id => $created_template->id } ),
 	    'retrieve_qc_templates by id should succeed';
 	is @{$res}, 1,
@@ -169,7 +173,7 @@ sub all_tests  : Test(88)
 	    'the modified template has a different id from the original';
     };
 
-    {   
+    {
 	ok my $res = model->retrieve_qc_templates( { name => $template_name, latest => 0 } ),
 	    'retrieve_qc_templates, latest=0, should succeed';
 	is @{$res}, 2,
@@ -242,7 +246,7 @@ sub all_tests  : Test(88)
 
     note( "Testing set QC run upload complete" );
 
-    {   
+    {
 	ok my $qc_run = model->update_qc_run( { id => $qc_run_data->{id}, upload_complete => 1 } ), 'update_qc_run';
 	is $qc_run->upload_complete, 1, 'the returned object has been updated';
     }
@@ -294,7 +298,7 @@ sub all_tests  : Test(88)
 
     note ( 'Qc Run Results Retrieval' );
 
-    {   
+    {
 	lives_ok {
 	    model->qc_run_results( { qc_run_id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8' } ),
 	} 'can retrieve Qc Run results';
@@ -345,7 +349,7 @@ sub all_tests  : Test(88)
 
     note( "Testing Qc Run Deletion" );
 
-    {   
+    {
 	ok my $qc_run = model->retrieve_qc_run( { id => '687EE35E-9DBF-11E1-8EF3-9484F3CB94C8'  } )
 	    , 'can retrieve single Qc Run';
 
@@ -379,6 +383,8 @@ sub all_tests  : Test(88)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

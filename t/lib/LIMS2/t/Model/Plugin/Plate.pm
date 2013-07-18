@@ -8,6 +8,10 @@ use Try::Tiny;
 use DateTime;
 use File::Temp ':seekable';
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/Plate.pm - test class for LIMS2::Model::Plugin::Plate
@@ -95,7 +99,7 @@ sub all_tests  : Test(61)
     my $plate_data= test_data( 'plate.yaml' );
     note( "Testing plate creation" );
 
-    {   
+    {
 	ok my $plate = model->create_plate( $plate_data->{plate_create} ),
 	    'create_plate should succeed';
 	isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
@@ -112,14 +116,14 @@ sub all_tests  : Test(61)
 
     note( "Testing plate retrieve" );
 
-    {   
+    {
 	ok my $plate = model->retrieve_plate( $plate_data->{plate_retrieve} ),
 	    'retrieve_plate by name should succeed';
 	isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
 	is $plate->name, 'PCS00075_A', 'retrieved correct plate';
     }
 
-    {   
+    {
 
 	throws_ok{
 	    model->create_plate( $plate_data->{plate_create_already_exists} )
@@ -129,7 +133,7 @@ sub all_tests  : Test(61)
 
     note( "Testing plate create with wells" );
 
-    {   
+    {
 	ok my $plate = model->create_plate( $plate_data->{plate_create_wells} ),
 	    'create_plate should succeed';
 	isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
@@ -174,7 +178,7 @@ sub all_tests  : Test(61)
 
     note( "Plate Create CSV Upload" );
 
-    {   
+    {
 	my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
 	$test_file->print( "well_name,parent_plate,parent_well,cell_line\n"
 		. "A01,MOHFAQ0001_A_2,A01\n"
@@ -230,7 +234,7 @@ sub all_tests  : Test(61)
 
     note( 'Plate Rename' );
 
-    {   
+    {
 	throws_ok{
 	    model->rename_plate( { name => 'EPTEST' } )
 	} 'LIMS2::Exception::Validation', 'must specify a new plate name';
@@ -257,7 +261,7 @@ sub all_tests  : Test(61)
 	    , 'throws error if trying to delete plate with child plates';
     }
 
-    {  
+    {
 
 	lives_ok {
 	    model->delete_plate( { name => 'PCS101' } )
@@ -283,6 +287,8 @@ sub all_tests  : Test(61)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 
