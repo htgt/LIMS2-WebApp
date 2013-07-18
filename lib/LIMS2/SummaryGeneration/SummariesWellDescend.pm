@@ -110,10 +110,10 @@ sub generate_summary_rows_for_all_trails {
             if (defined $curr_well) {
                 my $params = {
                     'summary_row_values' => \%summary_row_values,
-                    'done' => \%done,
-                    'curr_well' => $curr_well,
-                    'stored_values' => $stored_values,
-                    'model' => $model,
+                    'done'               => \%done,
+                    'curr_well'          => $curr_well,
+                    'stored_values'      => $stored_values,
+                    'model'              => $model,
                 };
 
                 # create the output array for this well
@@ -155,18 +155,21 @@ sub add_to_output_for_well {
 	my $dispatch_fetch_values = {
 		DESIGN     => \&fetch_values_for_type_DESIGN,
 		INT        => \&fetch_values_for_type_INT,
+        POST_INT   => \&fetch_values_for_type_POST_INT,
 		FINAL      => \&fetch_values_for_type_FINAL,
 		FINAL_PICK => \&fetch_values_for_type_FINAL_PICK,
 		DNA        => \&fetch_values_for_type_DNA,
 		EP         => \&fetch_values_for_type_EP,
 		EP_PICK    => \&fetch_values_for_type_EP_PICK,
+        XEP        => \&fetch_values_for_type_XEP,
 		SEP        => \&fetch_values_for_type_SEP,
 		SEP_PICK   => \&fetch_values_for_type_SEP_PICK,
 		FP         => \&fetch_values_for_type_FP,
+        PIQ        => \&fetch_values_for_type_PIQ,
 		SFP        => \&fetch_values_for_type_SFP,
 	};
 
-    my @include_types = ('DESIGN','INT','FINAL','FINAL_PICK','DNA','EP','EP_PICK','SEP','SEP_PICK','FP','SFP');
+    my @include_types = ('DESIGN','INT','POST_INT','FINAL','FINAL_PICK','DNA','EP','EP_PICK','XEP','SEP','SEP_PICK','FP','PIQ','SFP');
 
     # checks for recognised plate type, and if an instance of this plate type already processed
     return unless any { $curr_plate_type_id eq $_ } @include_types;
@@ -273,6 +276,21 @@ sub fetch_values_for_type_INT {
     # valid primers?    -> qc test result and valid primers are outputs of QC system and should be linked to each well for INT, FINAL, POSTINT, DNA, EP_PICK
     return;
 }
+
+# ------------POST_INT--------------
+# values specific to POST_INT wells
+# ----------------------------------
+sub fetch_values_for_type_POST_INT {
+    my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
+
+    ????
+
+    return;
+}
+
 # --------------FINAL-----------------
 # values specific to FINAL wells
 # ------------------------------------
@@ -480,6 +498,20 @@ sub fetch_values_for_type_EP_PICK {
     return;
 }
 
+# ------------XEP--------------
+# values specific to XEP wells
+# -----------------------------
+sub fetch_values_for_type_XEP {
+    my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
+
+    ????
+
+    return;
+}
+
 # --------------SEP-----------------
 # values specific to SEP wells
 # ----------------------------------
@@ -578,6 +610,20 @@ sub fetch_values_for_type_FP {
     $summary_row_values->{ 'fp_well_assay_complete' }   = $stored_values->{ stored_fp_well_assay_complete };
     $summary_row_values->{ 'fp_well_created_ts' }       = $stored_values->{ stored_fp_well_created_ts };
     $summary_row_values->{ 'fp_well_accepted' }         = $stored_values->{ stored_fp_well_accepted };
+    return;
+}
+
+# ------------PIQ--------------
+# values specific to PIQ wells
+# -----------------------------
+sub fetch_values_for_type_PIQ {
+    my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
+
+    ????
+
     return;
 }
 
