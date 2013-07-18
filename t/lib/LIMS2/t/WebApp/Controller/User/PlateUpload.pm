@@ -6,6 +6,10 @@ use LIMS2::WebApp::Controller::User::PlateUpload;
 use LIMS2::Test;
 use File::Temp ':seekable';
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/PlateUpload.pm - test class for LIMS2::WebApp::Controller::User::PlateUpload
@@ -86,7 +90,7 @@ sub all_tests  : Test(92)
 
     my $mech = mech();
 
-    {   
+    {
 	note( "set undef process type" );
 	$mech->get_ok( '/user/plate_upload_step1' );
 	$mech->title_is('Plate Upload');
@@ -100,7 +104,7 @@ sub all_tests  : Test(92)
 	like $res->content, qr/You must specify a process type/, '... no process type specified';
     }
 
-    {   
+    {
 	note( "set invalid process type" );
 	$mech->get_ok( '/user/plate_upload_step1' );
 	$mech->title_is('Plate Upload');
@@ -114,7 +118,7 @@ sub all_tests  : Test(92)
 	like $res->content, qr/is invalid: existing_process_type/, '...correct validation error';
     }
 
-    {   
+    {
 	note( "set process type to rearray" );
 	$mech->get_ok( '/user/plate_upload_step1' );
 	$mech->title_is('Plate Upload');
@@ -128,7 +132,7 @@ sub all_tests  : Test(92)
 	like $res->content, qr/rearray/, '...process type set to rearray';
     }
 
-    {   
+    {
 	note( "set process type to first_electroporation" );
 	$mech->get_ok( '/user/plate_upload_step1' );
 	$mech->title_is('Plate Upload');
@@ -194,7 +198,7 @@ sub all_tests  : Test(92)
 	like $res->content, qr/Must specify a plate name/, '...throws error must specify plate name';
     }
 
-    {   
+    {
 	note( "No plate_type set" );
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print('Test File');
@@ -236,7 +240,7 @@ sub all_tests  : Test(92)
 	    , '...throws error invalid well data csv file';
     }
 
-    {   
+    {
 	note( "No well data" );
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print('Test File');
@@ -284,7 +288,7 @@ sub all_tests  : Test(92)
 	    , '...throws error parameter validation failed for well_name';
     }
 
-    {   
+    {
 	note( "Invalid parent well" );
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print("well_name,parent_plate,parent_well,cell_line\n"
@@ -334,7 +338,7 @@ sub all_tests  : Test(92)
 	    , '...throws error invalid combination of plate type and process for virtual plate';
     }
 
-    {   
+    {
 	note( "Valid intermediate virtual plate" );
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print("well_name,parent_plate,parent_well\n"
@@ -398,6 +402,8 @@ sub all_tests  : Test(92)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

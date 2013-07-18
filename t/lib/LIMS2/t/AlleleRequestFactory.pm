@@ -7,6 +7,10 @@ use LIMS2::Test;
 use Const::Fast;
 use LIMS2::AlleleRequestFactory;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/AlleleRequestFactory.pm - test class for LIMS2::AlleleRequestFactory
@@ -97,7 +101,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 
     const my @TEST_DATA => (
 	# Expect everything up to SEP
-	{   
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:1914632',
 		targeting_type                  => 'double_targeted',
@@ -116,7 +120,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => [ 'SEP0006_C01' ]
 	},
 	# The first allele has a promoterless cassette - also expect everything up to SEP
-	{   
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:1914632',
 		targeting_type                  => 'double_targeted',
@@ -135,7 +139,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => [ 'SEP0006_C01' ]
 	},
 	# There's no first allele with promoter cassette
-	{   
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:1914632',
 		targeting_type                  => 'double_targeted',
@@ -154,7 +158,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => []
 	},
 	# This gene has no designs
-	{  
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:1914631',
 		targeting_type                  => 'double_targeted',
@@ -173,7 +177,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => []
 	},
 	# The second allele has a promoterless cassette - expect everything up to SEP
-	{  
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:1914632',
 		targeting_type                  => 'double_targeted',
@@ -192,7 +196,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => [ 'SEP0006_C01' ]
 	},
 	# There's no second allele with a promoter cassette
-	{   
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:1914632',
 		targeting_type                  => 'double_targeted',
@@ -211,7 +215,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => []
 	},
 	# No design instances
-	{  
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:2663588',
 		targeting_type                  => 'double_targeted',
@@ -230,7 +234,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => []
 	},
 	# Design instances but no final vector wells
-	{  
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:2444518',
 		targeting_type                  => 'double_targeted',
@@ -249,7 +253,7 @@ Negative tests as well - i.e. when nothing meets the allele spec
 	    second_electroporation_wells => []
 	},
 	# Final vector wells for first allele but not second electroporation wells
-	{   
+	{
 	    allele_request => {
 		gene_id                         => 'MGI:94912',
 		targeting_type                  => 'double_targeted',
@@ -331,6 +335,8 @@ Negative tests as well - i.e. when nothing meets the allele spec
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

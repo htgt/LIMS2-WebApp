@@ -5,6 +5,10 @@ use LIMS2::SummaryGeneration::SummariesWellDescend;
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/SummaryGeneration/SummariesWellDescend.pm - test class for LIMS2::SummaryGeneration::SummariesWellDescend
@@ -113,7 +117,7 @@ sub all_tests  : Tests
     # loop of tests expected to be successful
     while( my($design_well_id, $expected_results) = each %wells_expecting_success ) {
 
-	my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);  
+	my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
 
 	my $exit_code = $results->{exit_code};
 
@@ -161,6 +165,8 @@ sub all_tests  : Tests
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

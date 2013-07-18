@@ -9,6 +9,10 @@ use DateTime;
 use File::Temp ':seekable';
 use Data::Dumper;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/Process.pm - test class for LIMS2::Model::Plugin::Process
@@ -130,7 +134,7 @@ sub all_tests  : Test(329)
     note( "Testing create_di process creation" );
     my $create_di_process_data= test_data( 'create_di_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $create_di_process_data->{valid_input} ),
 	    'create_process for type create_di should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -168,7 +172,7 @@ sub all_tests  : Test(329)
     note( "Testing create_crispr process creation" );
     my $create_crispr_process_data= test_data( 'create_crispr_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $create_crispr_process_data->{valid_input} ),
 	    'create_process for type create_di should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -202,7 +206,7 @@ sub all_tests  : Test(329)
     note( "Testing int_recom process creation" );
     my $int_recom_process_data= test_data( 'int_recom_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $int_recom_process_data->{valid_input} ),
 	    'create_process for type int_recom should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -248,7 +252,7 @@ sub all_tests  : Test(329)
     note( "Testing 2w_gateway process creation" );
     my $process_data_2w_gateway= test_data( '2w_gateway_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $process_data_2w_gateway->{valid_input} ),
 	    'create_process for type 2w_gateway should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -357,7 +361,7 @@ sub all_tests  : Test(329)
     note( "Testing 3w_gateway process creation" );
     my $process_data_3w_gateway= test_data( '3w_gateway_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $process_data_3w_gateway->{valid_input} ),
 	    'create_process for type 3w_gateway should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -405,7 +409,7 @@ sub all_tests  : Test(329)
     note( "Testing cre_bac_recom process creation" );
     my $cre_bac_recom_process_data= test_data( 'cre_bac_recom_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $cre_bac_recom_process_data->{valid_input} ),
 	    'create_process for type cre_bac_recom should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -413,7 +417,7 @@ sub all_tests  : Test(329)
 	    'process is of correct type';
 
 	ok my $process_cassette = $process->process_cassette, 'process has a process_cassette';
-	is $process_cassette->cassette->name, 'pR6K_R1R2_ZP', 'process_cassette has correct cassette';   
+	is $process_cassette->cassette->name, 'pR6K_R1R2_ZP', 'process_cassette has correct cassette';
 	ok my $process_backbone = $process->process_backbone, 'process has a process_backbone';
 	is $process_backbone->backbone->name, 'R3R4_pBR_amp', 'process_backbone has correct backbone';
 
@@ -444,7 +448,7 @@ sub all_tests  : Test(329)
     note( "Testing recombinase process creation" );
     my $recombinase_process_data= test_data( 'recombinase_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $recombinase_process_data->{valid_input} ),
 	    'create_process for type recombinase should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -487,7 +491,7 @@ sub all_tests  : Test(329)
     } qr/invalid plate type; can only add recombinase to EP_PICK plates/;
 
     note( "Testing adding recombinase using upload" );
-    {   
+    {
 	my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
 	$test_file->print( "plate_name,well_name,recombinase\n"
 	      . "FEPD0006_1,A02,Dre\n"
@@ -526,7 +530,7 @@ sub all_tests  : Test(329)
     note( "Testing final_pick process creation" );
     my $final_pick_process_data= test_data( 'final_pick_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $final_pick_process_data->{valid_input} ),
 	    'create_process for type final_pick should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -618,7 +622,7 @@ sub all_tests  : Test(329)
     note( "Testing first_electroporation process creation" );
     my $first_electroporation_data= test_data( 'first_electroporation.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $first_electroporation_data->{valid_input} ),
 	    'create_process for type first_electroporation should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -663,7 +667,7 @@ sub all_tests  : Test(329)
     note( "Testing second_electroporation process creation" );
     my $second_electroporation_data= test_data( 'second_electroporation.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $second_electroporation_data->{valid_input} ),
 	    'create_process for type second_electroporation should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -713,7 +717,7 @@ sub all_tests  : Test(329)
     note( "Testing clone_pick process creation" );
     my $clone_pick_process_data= test_data( 'clone_pick_process.yaml' );
 
-    {   
+    {
 	ok my $process = model->create_process( $clone_pick_process_data->{valid_input} ),
 	    'create_process for type clone_pick should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -740,7 +744,7 @@ sub all_tests  : Test(329)
     } qr/clone_pick process output well should be type (EP_PICK|,|SEP_PICK|XEP_PICK)+ \(got SEP\)/;
 
     note( 'Testing clone_pick process with recombinase option' );
-    {   
+    {
 	ok my $process = model->create_process( $clone_pick_process_data->{'with_recombinase'} ),
 	    'create_process for type clone_pick with recombinase succeeds';
 	    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -761,7 +765,7 @@ sub all_tests  : Test(329)
     my $clone_pool_process_data= test_data( 'clone_pool_process.yaml' );
     #TODO add new wells to fixture data
 
-    {   
+    {
 	ok my $process = model->create_process( $clone_pool_process_data->{valid_input} ),
 	    'create_process for type clone_pool should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -819,7 +823,7 @@ sub all_tests  : Test(329)
     note( "Testing dist_qc process creation" );
     my $dist_qc_process_data= test_data( 'dist_qc_process.yaml' );
 
-    {   
+    {
 	# check normal create works
 	ok my $process = model->create_process( $dist_qc_process_data->{valid_input} ),
 	    'create_process for type dist_qc should succeed';
@@ -855,7 +859,7 @@ sub all_tests  : Test(329)
 
     note( "Testing xep_pool process creation" );
     my $xep_pool_process_data= test_data( 'xep_pool_process.yaml' );
-    {   
+    {
 	ok my $process = model->create_process( $xep_pool_process_data->{valid_input} ),
 	    'create_process for type xep_pool should succeed';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -879,7 +883,7 @@ sub all_tests  : Test(329)
 	lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
     }
 
-    {   
+    {
 	ok my $process = model->create_process( $xep_pool_process_data->{one_input_well} ),
 	    'create_process for type xep_pool with one input well succeeds';
 	isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
@@ -904,6 +908,8 @@ sub all_tests  : Test(329)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

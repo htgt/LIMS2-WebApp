@@ -6,6 +6,10 @@ use LIMS2::Model::Plugin::Gene;
 use LIMS2::Test;
 use Const::Fast;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/Gene.pm - test class for LIMS2::Model::Plugin::Gene
@@ -83,7 +87,7 @@ Code to execute all tests
 
 sub all_tests  : Test(17)
 {
-    {   
+    {
 	const my %GENE_DATA => ( gene_id => 'MGI:105369', gene_symbol => 'Cbx1' );
 	const my @SEARCHES => (
 	    { species => 'Mouse', search_term => 'Cbx1' },
@@ -98,13 +102,13 @@ sub all_tests  : Test(17)
 	}
     }
 
-    {   
+    {
 	throws_ok{
 	    model->search_genes( { species => 'Mouse', search_term => 'FooBarBaz' } )
 	} 'LIMS2::Exception::NotFound', 'not found genes for made up name';
     }
 
-    {   
+    {
 	const my %GENE_DATA => ( gene_id => 'ENSG00000108511', gene_symbol => 'HOXB6' );
 	for my $search_term ( values %GENE_DATA ) {
 	    is_deeply model->retrieve_gene( { species => 'Human', search_term => $search_term } ), \%GENE_DATA,
@@ -112,7 +116,7 @@ sub all_tests  : Test(17)
 	}
     }
 
-    {   
+    {
 	ok my $searched = model->search_genes( { species => 'Human', search_term => 'HOXB6' } ), 'search human gene';
 	is_deeply $searched, [ {  gene_id => 'ENSG00000108511', gene_symbol => 'HOXB6' } ],
 	    '.. returns expected results';
@@ -125,6 +129,8 @@ sub all_tests  : Test(17)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

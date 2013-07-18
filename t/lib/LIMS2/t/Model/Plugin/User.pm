@@ -6,6 +6,10 @@ use LIMS2::Model::Plugin::User;
 use LIMS2::Test;
 use Hash::MoreUtils qw( slice );
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/User.pm - test class for LIMS2::Model::Plugin::User
@@ -113,6 +117,8 @@ sub all_tests  : Test(7)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

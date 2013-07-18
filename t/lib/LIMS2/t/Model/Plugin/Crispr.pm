@@ -6,6 +6,10 @@ use LIMS2::Model::Plugin::Crispr;
 use LIMS2::Test;
 use Data::Dumper;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/Crispr.pm - test class for LIMS2::Model::Plugin::Crispr
@@ -87,7 +91,7 @@ sub all_tests  : Test(58)
     note('Testing the Creation crisprs');
     my $create_crispr_data= test_data( 'create_crispr.yaml' );
     my $crispr;
-    {   
+    {
 
 	ok $crispr = model->create_crispr( $create_crispr_data->{valid_crispr} )
 	    , 'can create new crispr';
@@ -119,7 +123,7 @@ sub all_tests  : Test(58)
     }
 
     note('Create dupliate crispr with same off target algorithm data' );
-    {   
+    {
 	# with same off target algorithm
 	ok my $duplicate_crispr = model->create_crispr(
 	    $create_crispr_data->{duplicate_crispr_same_off_target_algorithm} ),
@@ -137,7 +141,7 @@ sub all_tests  : Test(58)
     }
 
     note('Create dupliate crispr with different off target algorithm data');
-    {   
+    {
 
 	ok my $duplicate_crispr = model->create_crispr(
 	    $create_crispr_data->{duplicate_crispr_different_off_target_algorithm} ),
@@ -170,7 +174,7 @@ sub all_tests  : Test(58)
     }
 
     note('Testing create crispr locus');
-    {   
+    {
 	my $crispr_locus_data = $create_crispr_data->{valid_crispr_locus};
 	$crispr_locus_data->{crispr_id} = $crispr->id;
 
@@ -230,7 +234,7 @@ sub all_tests  : Test(58)
     }
 
     note('Test deletion of cripr');
-    {  
+    {
 
 	#add process with crispr
 	my $process = model->schema->resultset('Process')->create( { type_id => 'create_crispr' } );
@@ -255,6 +259,8 @@ sub all_tests  : Test(58)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

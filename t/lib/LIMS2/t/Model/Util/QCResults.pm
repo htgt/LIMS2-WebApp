@@ -15,6 +15,10 @@ use LIMS2::Test;
 use Try::Tiny;
 use IO::File;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Util/QCResults.pm - test class for LIMS2::Model::Util::QCResults
@@ -94,7 +98,7 @@ sub all_tests  : Test(48)
 {
 
     note('Test retrieve_qc_run_results');
-    {   
+    {
 	ok my $qc_run = model->retrieve_qc_run( { id => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7' } ),
 	    'retrieve qc run';
 
@@ -110,7 +114,7 @@ sub all_tests  : Test(48)
     }
 
     note('Test retrieve_qc_run_summary_results');
-    {   
+    {
 	ok my $qc_run = model->retrieve_qc_run( { id => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7' } ),
 	    'retrieve qc run';
 
@@ -125,7 +129,7 @@ sub all_tests  : Test(48)
     }
 
     note('Test retrieve_qc_run_seq_well_results');
-    {   
+    {
 	my $qc_run_id = '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7';
 	ok my $seq_well = model->retrieve_qc_run_seq_well(
 	    {   qc_run_id  => $qc_run_id,
@@ -176,7 +180,7 @@ sub all_tests  : Test(48)
     }
 
     note('Test retrieve_qc_seq_read_sequences');
-    {   
+    {
 	ok my $seq_well = model->retrieve_qc_run_seq_well(
 	    {   qc_run_id  => '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7',
 		plate_name => 'PCS05036_A_1',
@@ -231,7 +235,7 @@ sub all_tests  : Test(48)
     }
 
     note('Test build_qc_runs_search_params');
-    {   
+    {
 
 	ok my $params_show_all
 	    = build_qc_runs_search_params( { show_all => 1, species_id => 'Mouse' } ),
@@ -285,6 +289,8 @@ sub all_tests  : Test(48)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

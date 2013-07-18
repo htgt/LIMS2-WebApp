@@ -10,6 +10,10 @@ use Data::Dumper;
 use YAML::Any qw(DumpFile);
 use Hash::MoreUtils qw( slice_def );
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/Well.pm - test class for LIMS2::Model::Plugin::Well
@@ -91,7 +95,7 @@ sub all_tests  : Tests
     my $well_data= test_data( 'well.yaml' );
 
     note( "Testing well EngSeqParam generation");
-    {   
+    {
 	throws_ok {
 	    model->generate_well_eng_seq_params({ well_id => 850 });
 	} qr/No cassette found for well/;
@@ -117,7 +121,7 @@ sub all_tests  : Tests
 
     note( "Testing well creation" );
 
-    {   
+    {
 	ok my $well = model->create_well( $well_data->{well_create} ),
 	    'create_well should succeed';
 	isa_ok $well, 'LIMS2::Model::Schema::Result::Well';
@@ -130,7 +134,7 @@ sub all_tests  : Tests
 	is $well->id, $retrieve_well->id, 'has correct id';
     }
 
-    {   
+    {
 	note( "Testing well retrieve" );
 	ok my $well = model->retrieve_well( $well_data->{well_retrieve} ),
 	    'retrieve_plate by name should succeed';
@@ -164,7 +168,7 @@ sub all_tests  : Tests
 	ok $override->delete, 'can delete override';
     }
 
-    {   
+    {
 	note( "Testing set_well_assay_complete" );
 
 	my $date_time = DateTime->new(
@@ -187,7 +191,7 @@ sub all_tests  : Tests
 	is $well->assay_complete, $date_time, 'assay_complete has expected datetime';
 
 	ok model->create_well_qc_sequencing_result(
-	    {  
+	    {
 		well_id         => $well->id,
 		valid_primers   => 'LR,PNF,R1R',
 		pass            => 1,
@@ -220,7 +224,7 @@ sub all_tests  : Tests
 	} qr/No WellQcSequencingResult entity found/;
     }
 
-    {   
+    {
 	note("Testing well dna status create, retrieve and delete");
 
 	throws_ok {
@@ -375,7 +379,7 @@ sub all_tests  : Tests
 	is $well_cassette1,  'L1L2_gt2', 'well cassette phase match';
     }
 
-    {   
+    {
 	note("Testing well targeting_pass create, retrieve and delete");
 
 	throws_ok {
@@ -414,7 +418,7 @@ sub all_tests  : Tests
 	is $well->id, $new_targeting_pass->well_id , '.. and targeting_pass is for right well';
     }
 
-    {   
+    {
 	note("Testing well chromosome_fail create, retrieve and delete");
 
 	throws_ok {
@@ -449,7 +453,7 @@ sub all_tests  : Tests
 	is $well->id, $new_chromosome_fail->well_id , '.. and chromosome_fail result is for right well';
     }
 
-    {   
+    {
 
 	note("Testing well_genotyping_result create, update, retrieve and delete");
 
@@ -483,7 +487,7 @@ sub all_tests  : Tests
 	is $genotyping_result->copy_number, '2.4', '..updated copy_number attribute is now 2.4';
 	is $genotyping_result->copy_number_range, '0.2', '..updated copy_number_range is now 0.2';
 
-	ok $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',   
+	ok $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
 		    genotyping_result_type_id => 'loacrit',
 		    call => 'fail',
 		    copy_number => '3',
@@ -492,7 +496,7 @@ sub all_tests  : Tests
 	is $genotyping_result->call, 'pass', '..but result call is not updated';
 	is $genotyping_result->copy_number, '2.4', '..and copy number is not updated';
 
-	ok $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',   
+	ok $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
 		    genotyping_result_type_id => 'loacrit',
 		    call => 'fail',
 		    copy_number => '3',
@@ -522,7 +526,7 @@ sub all_tests  : Tests
 	is $well->id, $new_chromosome_fail->well_id , '.. and chromosome_fail result is for right well';
     }
 
-    {   
+    {
 	note("well lab number tests: create, retrieve, update and delete");
 
 	# create a PIQ plate and a well
@@ -601,7 +605,7 @@ sub all_tests  : Tests
 	note("end of well lab number tests");
     }
 
-    {   
+    {
 	note( "has_dre_been_applied" );
 
 	my $params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'fail' };
@@ -612,7 +616,7 @@ sub all_tests  : Tests
 	}
 
 	$params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'loacrit', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'Only add Dre to well for Cre project when genotyping_result_id is puro';   
+	ok model->has_dre_been_applied( $params ), 'Only add Dre to well for Cre project when genotyping_result_id is puro';
 	@recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
 	foreach my $rec (@{$recombinases[0]}){
 	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
@@ -641,7 +645,7 @@ sub all_tests  : Tests
     }
 
     note( "Add colony counts to a well" );
-    {   
+    {
 	my $colony_count_data = test_data( 'add_colony_count.yaml' );
 	lives_ok { model->update_well_colony_picks( $colony_count_data->{valid_input} ) }
 	    'should succeed for EP plate';
@@ -688,6 +692,8 @@ sub all_tests  : Tests
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

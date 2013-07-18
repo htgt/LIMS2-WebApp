@@ -5,6 +5,10 @@ use LIMS2::WebApp::Controller::User::PlateCopy;
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/PlateCopy.pm - test class for LIMS2::WebApp::Controller::User::PlateCopy
@@ -85,7 +89,7 @@ sub all_tests  : Test(27)
 
     my $mech = mech();
 
-    {   
+    {
 	note( "Copy DNA plate interface" );
 	$mech->get_ok( '/user/plate_from_copy' );
 	$mech->title_is('Plate Copy');
@@ -97,7 +101,7 @@ sub all_tests  : Test(27)
 	like $res->content, qr/Specify both \S+ plate name and \S+ plate name/, '... no to plate names specified';
     }
 
-    {   
+    {
 	note( "What if only input plate is specified?" );
 	$mech->get_ok( '/user/plate_from_copy' );
 	$mech->title_is('Plate Copy');
@@ -113,7 +117,7 @@ sub all_tests  : Test(27)
 	like $res->content, qr/Specify both \S+ plate name and \S+ plate name/, '... no "to" plate name specified';
     }
 
-    {   
+    {
 	note( "Copy a test plate through the web interface" );
 	my $plate_data = test_data( 'dna_test_plate.yaml' );
 	ok my $dna_plate = model->create_plate( $plate_data->{'dna_plate_create_params'} ),
@@ -134,7 +138,7 @@ sub all_tests  : Test(27)
 
     }
 
-    {   
+    {
 	note( "Copy a test plate through the web interface to an existing plate" );
 	$mech->get_ok( '/user/plate_from_copy' );
 	$mech->title_is('Plate Copy');
@@ -171,6 +175,8 @@ sub all_tests  : Test(27)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

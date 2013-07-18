@@ -5,6 +5,10 @@ use LIMS2::Model::Plugin::BAC;
 
 use LIMS2::Test;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Plugin/BAC.pm - test class for LIMS2::Model::Plugin::BAC
@@ -105,7 +109,7 @@ sub all_tests  : Test(11)
 	bac_library =>  'black6',
 	bac_name    =>  'CT7-156D9',
 	loci        => [
-	    {   
+	    {
 		assembly  => 'NCBIM37',
 		chr_end   => 194680061,
 		chr_start => 194454015,
@@ -131,7 +135,7 @@ sub all_tests  : Test(11)
     ok $model->delete_bac_clone( { bac_library => $bac2->bac_library_id,
 				   bac_name    => $bac2->name } ), 'delete bac with NCBIM37 locus';
 
-    {   
+    {
 	throws_ok{
 	    $model->_chr_id_for( 'NCBIM37', '99' );
 	} 'LIMS2::Exception::Validation', 'throw error with invalid chromosome name';
@@ -152,6 +156,8 @@ sub all_tests  : Test(11)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

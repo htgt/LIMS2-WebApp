@@ -5,6 +5,10 @@ use LIMS2::Model::Schema::Result::DesignOligo;
 use LIMS2::Test;
 use Try::Tiny;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Schema/Result/DesignOligo.pm - test class for LIMS2::Model::Schema::Result::DesignOligo
@@ -84,7 +88,7 @@ sub all_tests  : Test(26)
 {
     note('Test getting reverse complimented oligo sequence');
 
-    {   
+    {
 	ok my $design_oligo = model->schema->resultset( 'DesignOligo' )->find( { id => 54767 } )
 	    ,' can find design oligom, 54767, G5';
 
@@ -107,7 +111,7 @@ sub all_tests  : Test(26)
 
     note( 'Testing append_seq' );
 
-    {   
+    {
 	ok my $u5_design_oligo = model->schema->resultset( 'DesignOligo' )->find( { id => 54768 } )
 	    ,' can find design oligo, 54768, U5';
 
@@ -134,7 +138,7 @@ sub all_tests  : Test(26)
 
     note( 'Test oligo_order_seq, -ve stranded design' );
 
-    {   
+    {
 	# -ve Stranded design oligos, 88505
 	ok my $u5_design_oligo = model->schema->resultset( 'DesignOligo' )->find( { id => 54768 } )
 	    ,' can find design oligo, 54768, U5';
@@ -158,7 +162,7 @@ sub all_tests  : Test(26)
 
     note( 'Test oligo_order_seq, +ve stranded design' );
 
-    {   
+    {
 	# +ve Stranded design oligos, 85512
 	ok my $u5_design_oligo = model->schema->resultset( 'DesignOligo' )->find( { id => 54772 } )
 	    ,' can find design oligo, 54768, U5';
@@ -197,6 +201,8 @@ sub _revcomp_seq {
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

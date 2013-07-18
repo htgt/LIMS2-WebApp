@@ -3,6 +3,10 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Report::SEPPlate;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Report/SEPPlate.pm - test class for LIMS2::Report::SEPPlate
@@ -89,6 +93,8 @@ sub all_tests  : Test(1)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

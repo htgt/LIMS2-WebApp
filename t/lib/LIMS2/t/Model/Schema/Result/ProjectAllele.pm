@@ -3,6 +3,10 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Schema::Result::ProjectAllele;
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/Schema/Result/ProjectAllele.pm - test class for LIMS2::Model::Schema::Result::ProjectAllele
@@ -89,6 +93,8 @@ sub all_tests  : Test(1)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

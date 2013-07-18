@@ -1,13 +1,14 @@
 package LIMS2::DBUtils::Databases;
 use Moose;
 
-use strict;
-use warnings;
+#use strict;
+#use warnings;
 
 require LIMS2::Model::DBConnect;
 #require File::Temp qw(tempfile tempdir);
 require File::Temp;
 require Data::Dumper;
+require IPC::Open3;
 
 use Log::Log4perl qw( :easy );
 
@@ -102,6 +103,7 @@ has 'psql' => (
 
 =cut
 
+## no critic(RequireFinalReturn)
 sub BUILD {
     my $self = shift;
     $self->connection_params(LIMS2::Model::DBConnect->read_config);
@@ -110,6 +112,7 @@ sub BUILD {
     die unless ($self->source_role);
     die unless ($self->destination_role);
 }
+## use critic
 
 =head2 check_connection_details
 
@@ -160,7 +163,7 @@ sub database_exists
     my ($self, %params) = @_;
 
     # Do we have a source or target database
-    $ENV{PGPASSWORD} = $params{connection}->{password};
+    local $ENV{PGPASSWORD} = $params{connection}->{password};
     my $list_source_database_query =
 	$self->psql .
 	" -l" .
@@ -173,7 +176,8 @@ sub database_exists
 	" | wc -l"
     ;
 	#((exists($params{no_role}) && $params{no_role}) ?  '' : " --role=" . $params{role}) .
-    my $has_db = `$list_source_database_query`;
+    #my $has_db = `$list_source_database_query`;
+    my $has_db = system($list_source_database_query);
     chomp($has_db);
     DEBUG(Data::Dumper->Dump([\$list_source_database_query, \$has_db],[qw(list_source_database_query has_db)]));
 
@@ -194,13 +198,13 @@ sub dump_database_definition
     $self->check_connection_details(\%params);
 
     # File to use for schema dump
-    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 1 );
-    #my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 0 );
+    #my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 1 );
+    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 0 );
     chmod 0664, $filename_schema;
     DEBUG(Data::Dumper->Dump([\$filename_schema],[qw(filename_schema)]));
 
     # Dump schema using pg_dump
-    $ENV{PGPASSWORD} = $params{connection}->{password};
+    local $ENV{PGPASSWORD} = $params{connection}->{password};
     my $dump_query =
 	$self->postgres_dump .
 	($params{with_data} ? '' : " --schema-only") .
@@ -223,9 +227,9 @@ sub dump_database_definition
     ;
     DEBUG(Data::Dumper->Dump([\$dump_query],[qw(dump_query)]));
 
-    my $ret = `$dump_query`;
+    my $ret = system($dump_query);
     print STDERR $ret if ($ret =~ m/ERROR/);
-    return(($ret =~ m/ERROR/) ? '' : $filename_schema);
+    return $ret =~ m/ERROR/ ? '' : $filename_schema;
 }
 
 =head2 restore_database
@@ -242,7 +246,7 @@ sub restore_database
     $self->check_connection_details(\%params);
 
     # Restoring using pg_restore
-    $ENV{PGPASSWORD} = $params{connection}->{password};
+    local $ENV{PGPASSWORD} = $params{connection}->{password};
     my $restore_query =
 	$self->postgres_restore .
 	" --exit-on-error" .
@@ -259,9 +263,9 @@ sub restore_database
 
     DEBUG(Data::Dumper->Dump([\$restore_query],[qw(restore_query)]));
 
-    my $ret = `$restore_query`;
+    my $ret = system($restore_query);
     print STDERR $ret if ($ret =~ m/ERROR/);
-    return(($ret =~ m/ERROR/) ? 0 : 1);
+    return $ret =~ m/ERROR/ ? 0 : 1;
 }
 
 =head2 load_fixture
@@ -278,7 +282,7 @@ sub load_fixture
     $self->check_connection_details(\%params);
 
     # Load using psql
-    $ENV{PGPASSWORD} = $params{connection}->{password};
+    local $ENV{PGPASSWORD} = $params{connection}->{password};
     my $load_query =
 	$self->psql .
 	" -h " . $params{connection}->{host} .
@@ -292,9 +296,9 @@ sub load_fixture
 
     DEBUG(Data::Dumper->Dump([\$load_query],[qw(load_query)]));
 
-    my $ret = `$load_query`;
+    my $ret = system($load_query);
     print STDERR $ret if ($ret =~ m/ERROR/);
-    return(($ret =~ m/ERROR/) ? 0 : 1);
+    return $ret =~ m/ERROR/ ? 0 : 1;
 }
 
 =head2 run_query
@@ -303,6 +307,7 @@ Run a query in the database
 
 =cut
 
+## no critic(RequireFinalReturn)
 sub run_query
 {
     my ($self, %params) = @_;
@@ -317,7 +322,7 @@ sub run_query
     die "No connection details" unless (exists($params{connection}));
 
     # Run command using psql
-    $ENV{PGPASSWORD} = $params{connection}->{password};
+    local $ENV{PGPASSWORD} = $params{connection}->{password};
     my $run_query =
 	$self->psql .
 	" -h " . $params{connection}->{host} .
@@ -331,10 +336,11 @@ sub run_query
 
     DEBUG(Data::Dumper->Dump([\$run_query],[qw(run_query)]));
 
-    my $ret = `$run_query`;
+    my $ret = system$run_query);
     print STDERR $ret if ($ret =~ m/ERROR/);
-    return(($ret =~ m/ERROR/) ? 0 : 1);
+    return $ret =~ m/ERROR/ ? 0 : 1;
 }
+## use critic
 
 =head2 clone_database
 
@@ -348,6 +354,7 @@ Create a new database based on the content in a separate database.
 
 =cut
 
+## no critic(ProhibitExcessComplexity)
 sub clone_database
 {
     my ($self, %params) = @_;
@@ -381,8 +388,8 @@ sub clone_database
     die "Failed to create a database definition dump" unless ((-e $source_definition_dumpfile) && (-s $source_definition_dumpfile));
     # Amend the definition
     {
-	local $/;
-	open (FH, "+<", $source_definition_dumpfile) or die "Opening: $!";
+	local $/ = undef;
+	open (my FH, "+<", $source_definition_dumpfile) or die "Opening: $!";
 	my $content = <FH>;
 	$content =~ s/Name: $source_connection_details->{dbname};/Name: $params{destination_db};/g;
 	$content =~ s/CREATE DATABASE $source_connection_details->{dbname}/CREATE DATABASE $params{destination_db}/g;
@@ -451,11 +458,11 @@ HERE_TARGET
     # Restore a minimum set of test roles
     if ($params{create_test_role}) {
 	$role_structure = <<'HERE_TARGET';
-	    drop role if exists "lims2_test";
-	    create role "lims2_test" with encrypted password 'test_passwd' login noinherit;
+	    -- drop role if exists "lims2_test";
+	    create role if not exists "lims2_test" with encrypted password 'test_passwd' login noinherit;
 
-	    drop role if exists "test_user@example.org";
-	    create role "test_user@example.org" with nologin inherit;
+	    -- drop role if exists "test_user@example.org";
+	    create role if not exists "test_user@example.org" with nologin inherit;
 	    grant lims2 to "test_user@example.org";
 
 	    -- test_db_add_fixture_md5.sql:
@@ -475,7 +482,7 @@ HERE_TARGET
     return 1;
 
 }
-
+## use critic
 
 =head1 LICENSE
 
@@ -489,5 +496,4 @@ __PACKAGE__->meta->make_immutable( inline_constructor => 0 );
 1;
 
 __END__
-
 

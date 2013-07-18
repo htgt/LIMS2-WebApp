@@ -6,6 +6,10 @@ use LIMS2::WebApp::Controller::User::WellData;
 use LIMS2::Test;
 use File::Temp ':seekable';
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/WebApp/Controller/User/WellData.pm - test class for LIMS2::WebApp::Controller::User::WellData
@@ -86,7 +90,7 @@ sub all_tests  : Test(67)
 
     my $mech = mech();
 
-    {   
+    {
 	note( "No well data file set" );
 	$mech->get_ok( '/user/dna_status_update' );
 	$mech->title_is('DNA Status Update');
@@ -103,7 +107,7 @@ sub all_tests  : Test(67)
 	like $res->content, qr/No csv file with dna status data specified/, '...throws error saying no csv file specified';
     }
 
-    {   
+    {
 	note( "No plate_name set" );
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print('Test File');
@@ -123,7 +127,7 @@ sub all_tests  : Test(67)
 	like $res->content, qr/You must specify a plate name/, '...throws error must specify plate name';
     }
 
-    {   
+    {
 	note( "Invalid csv data" );
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print("well_name,dna_status_result\n"
@@ -178,7 +182,7 @@ sub all_tests  : Test(67)
 	is $dna_status->comment_text, 'this is a comment', 'has correct comment';
     }
 
-    {   
+    {
 	note( "Delete newly created dna status" );
 
 	lives_ok {
@@ -219,7 +223,7 @@ sub all_tests  : Test(67)
 
     }
 
-    {   
+    {
 	note( "set no data" );
 	$mech->get_ok( '/user/update_colony_picks_step_1' );
 	$mech->title_is('Colony Counts');
@@ -233,7 +237,7 @@ sub all_tests  : Test(67)
 	like $res->content, qr/id_or_name, is missing/, '... no data specified';
     }
 
-    {   
+    {
 	note( "select invalid plate type" );
 	$mech->get_ok( '/user/update_colony_picks_step_1' );
 	$mech->title_is('Colony Counts');
@@ -247,7 +251,7 @@ sub all_tests  : Test(67)
 	like $res->content, qr/invalid plate type; can only add colony data to EP, SEP and XEP plates/, '... invalid plate type';
     }
 
-    {   
+    {
 	note( "set valid plate type" );
 	$mech->get_ok( '/user/update_colony_picks_step_1' );
 	$mech->title_is('Colony Counts');
@@ -261,7 +265,7 @@ sub all_tests  : Test(67)
 	like $res->content, qr/total_colonies/, '... valid plate type';
     }
 
-    {   
+    {
 	note( "set valid plate type" );
 	$mech->get_ok( '/user/update_colony_picks_step_2' );
 	$mech->title_is('Colony Counts');
@@ -302,6 +306,8 @@ sub all_tests  : Test(67)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 

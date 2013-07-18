@@ -8,6 +8,10 @@ use Const::Fast;
 use YAML::Any;
 
 
+use strict;
+
+## no critic
+
 =head1 NAME
 
 LIMS2/t/Model/DBConnect.pm - test class for LIMS2::Model::DBConnect
@@ -116,7 +120,7 @@ sub all_tests  : Test(11)
     is_deeply $config, \%DB_CONNECT_PARAMS, 'config has expected values';
 
     can_ok 'LIMS2::Model::DBConnect', 'connect';
-    {   
+    {
 	my %expected = (
 	    schema_class => 'LIMS2::Model::Schema',
 	    dsn          => 'dbi:SQLite:dbname=:memory:',
@@ -161,6 +165,8 @@ sub all_tests  : Test(11)
 Lars G. Erlandsen
 
 =cut
+
+## use critic
 
 1;
 
