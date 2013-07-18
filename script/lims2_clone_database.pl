@@ -137,6 +137,7 @@ Lars G. Erlandsen
 
 =cut
 
+my ($help $man);
 
 my (%config) = (
     'source_defn' => $ENV{LIMS2_CLONEFROM_DB},
@@ -149,7 +150,6 @@ my (%config) = (
     'with_data' => 0,
     'create_test_role' => 0,
 );
-use vars qw($help $man);
 
 GetOptions(
     'help'                 => sub { $help = 1; pod2usage( -verbose => 1 ) },

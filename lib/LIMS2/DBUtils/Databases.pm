@@ -388,19 +388,21 @@ sub clone_database
     die "Failed to create a database definition dump" unless ((-e $source_definition_dumpfile) && (-s $source_definition_dumpfile));
     # Amend the definition
     {
+	## no critic(RequireBriefOpen)
 	local $/ = undef;
 	open (my $FH, "+<", $source_definition_dumpfile) or die "Opening: $!";
-	my $content = <FH>;
+	my $content = <$FH>;
 	$content =~ s/Name: $source_connection_details->{dbname};/Name: $params{destination_db};/g;
 	$content =~ s/CREATE DATABASE $source_connection_details->{dbname}/CREATE DATABASE $params{destination_db}/g;
 	$content =~ s/\\connect $source_connection_details->{dbname}/\\connect $params{destination_db}/g;
 	$content =~ s/CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;/-- CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;/g;
 	$content =~ s/CREATE EXTENSION IF NOT EXISTS plpgsql/-- CREATE EXTENSION IF NOT EXISTS plpgsql/g;
 	$content =~ s/COMMENT ON EXTENSION plpgsql/-- COMMENT ON EXTENSION plpgsql/g;
-	seek(FH, 0, 0) or die "Seeking: $!";
-	print FH $content or die "Printing: $!";
-	truncate(FH, tell(FH)) or die "Truncating: $!";
-	close(FH) or die "Closing: $!";
+	seek($FH, 0, 0) or die "Seeking: $!";
+	print $FH $content or die "Printing: $!";
+	truncate($FH, tell($FH)) or die "Truncating: $!";
+	close($FH) or die "Closing: $!";
+	## use critic
     }
 
 
