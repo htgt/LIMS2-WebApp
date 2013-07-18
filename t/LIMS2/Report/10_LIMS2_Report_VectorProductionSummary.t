@@ -11,7 +11,6 @@ BEGIN {
 
 use FindBin qw($Bin);
 use lib "$Bin/../../lib";
-#use lib "$Bin/../../../lib";
 
 use Test::Class;
 use LIMS2::t::Report::VectorProductionSummary;
