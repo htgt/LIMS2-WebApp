@@ -321,7 +321,7 @@ sub _htgt_api_call {
         #make the actual request 
         my $response = $ua->request( $req );
 
-        die "Request to $uri was not successful. Response: " . $response->status_line
+        die "Request to $uri was not successful. Response: ".$response->status_line."<br/>".$response->as_string
             unless $response->is_success;
 
         $content = decode_json( $response->content );
