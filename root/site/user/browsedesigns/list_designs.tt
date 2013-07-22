@@ -1,4 +1,4 @@
-[% META title = "List Designs" %]
+[% META title = "List Designs"; META tab_name = 'Designs' %]
 
 <p>
   <a href="[% c.uri_for( '/user/browse_designs' ) %]" class="btn btn-primary">

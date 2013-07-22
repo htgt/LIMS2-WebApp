@@ -40,13 +40,6 @@ SELECT pg_catalog.setval('cell_lines_id_seq', 1, true);
 
 
 --
--- Name: crispr_loci_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('crispr_loci_id_seq', 93, true);
-
-
---
 -- Name: crispr_off_targets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
@@ -1165,7 +1158,7 @@ INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', N
 -- Data for Name: crispr_loci; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO crispr_loci VALUES (93, 113, 'GRCm38', 3182, 102360192, 102360214, -1);
+INSERT INTO crispr_loci VALUES (113, 'GRCm38', 3182, 102360192, 102360214, -1);
 
 
 --

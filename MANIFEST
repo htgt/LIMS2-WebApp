@@ -197,6 +197,7 @@ lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
 lib/LIMS2/WebApp/Controller/User/CreateDesign.pm
+lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
@@ -237,6 +238,8 @@ root/site/user/browseplates/view.tt
 root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
 root/site/user/createdesign/index.tt
+root/site/user/designtargets/gene_report.tt
+root/site/user/designtargets/index.tt
 root/site/user/error.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
