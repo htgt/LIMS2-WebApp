@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.089     2013-07-22 12:24:51 Europe/London
+
+    Bugfix: QC runs with multiple alignments would cause an infinite loop.
+
 0.088     2013-07-09 07:18:32 Europe/London
 
     Improvements to design target crispr report
