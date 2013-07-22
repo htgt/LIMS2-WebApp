@@ -131,7 +131,6 @@ EOT
                 #aggregate the primers into our hash, making sure that we only do this for results
                 #with the same eng seq id (IF we got one), so that we get separate entries for different
                 #qc test results.
-                my $r_updated = 0;
                 while ( $r and $r->{plate_name}    eq $plate_name
                            and $r->{well_name}     eq $well_name
                            and (! defined $eng_seq_id || $r->{qc_eng_seq_id} eq $eng_seq_id) ) {
@@ -145,7 +144,6 @@ EOT
                     );
 
                     $r = $sth->fetchrow_hashref;
-                    $r_updated = 1;
 
                     #skip alignments that aren't for this run (not all alignments have a qc_run_id)
                     if ( defined $primer{qc_run_id} ) {
@@ -153,11 +151,6 @@ EOT
                     }
 
                     push @{ $result{primers} }, \%primer;
-                }
-
-                #make sure we don't loop infinitely.
-                unless ( $r_updated ) {
-                    $r = $sth->fetchrow_hashref;
                 }
 
                 #before this was just the number of seq reads,
