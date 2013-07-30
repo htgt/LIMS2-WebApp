@@ -29,14 +29,14 @@ SELECT pg_catalog.setval('backbones_id_seq', 1859, true);
 -- Name: cassettes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('cassettes_id_seq', 10478, true);
+SELECT pg_catalog.setval('cassettes_id_seq', 10488, true);
 
 
 --
 -- Name: cell_lines_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('cell_lines_id_seq', 1, true);
+SELECT pg_catalog.setval('cell_lines_id_seq', 9, true);
 
 
 --
@@ -1056,39 +1056,39 @@ INSERT INTO cassette_function VALUES ('cre_knock_in', NULL, NULL, true, NULL, NU
 -- Data for Name: cassettes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false, false, 'puro');
+INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false, true, 'puro');
 INSERT INTO cassettes VALUES (10426, 'L1L2_GT0_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', '', true, 'L1L2_GT?_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', 2, false, false, 'puro');
 INSERT INTO cassettes VALUES (10427, 'B1B2_frame2_Norcomm', '', false, 'B1B2_frame?_Norcomm', 2, false, false, NULL);
 INSERT INTO cassettes VALUES (10429, 'ZEN-Ub1', '', true, NULL, NULL, false, false, NULL);
 INSERT INTO cassettes VALUES (10430, 'L1L2_NorCOMM', '', false, NULL, NULL, false, false, NULL);
 INSERT INTO cassettes VALUES (10431, 'B1B2_framek_Norcomm', '', false, 'B1B2_frame?_Norcomm', -1, false, false, NULL);
 INSERT INTO cassettes VALUES (10432, 'L1L2_6XOspnEnh_Bact_P', '', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10433, 'pL1L2_GT2_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 2, false, false, 'puro');
+INSERT INTO cassettes VALUES (10433, 'pL1L2_GT2_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 2, false, true, 'puro');
 INSERT INTO cassettes VALUES (10434, 'L1L2_st1', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 1, false, false, 'neo');
 INSERT INTO cassettes VALUES (10436, 'pL1L2_GT0_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', NULL, false, false, 'puro');
 INSERT INTO cassettes VALUES (10437, 'L1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10439, 'L1L2_NTARU-2', '', false, 'L1L2_NTARU-?', 2, false, false, NULL);
 INSERT INTO cassettes VALUES (10441, 'L1L2_NTARU-K', '', false, 'L1L2_NTARU-?', -1, false, false, NULL);
 INSERT INTO cassettes VALUES (10442, 'B1B2_frame1_Norcomm', '', false, 'B1B2_frame?_Norcomm', 1, false, false, NULL);
-INSERT INTO cassettes VALUES (10445, 'pL1L2_GT0_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', NULL, false, false, 'puro');
+INSERT INTO cassettes VALUES (10445, 'pL1L2_GT0_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', NULL, false, true, 'puro');
 INSERT INTO cassettes VALUES (10446, 'L1L2_st2', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 2, false, false, 'neo');
 INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', -1, false, false, 'puro');
 INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false, 'neo');
 INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true, false, 'bsd');
 INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false, 'neo');
-INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, true, 'zeo');
+INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, false, 'zeo');
 INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false, false, 'puro');
+INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false, true, 'puro');
 INSERT INTO cassettes VALUES (10452, 'pL1L2_GT0_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', NULL, false, false, 'puro');
-INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false, false, 'puro');
+INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false, true, 'puro');
 INSERT INTO cassettes VALUES (10454, 'pL1L2_GT1_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false, 'puro');
 INSERT INTO cassettes VALUES (10455, 'L1L2_Pgk_P', 'PGK promoter driving WT neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10460, 'pL1L2_GT1_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 1, false, false, 'puro');
 INSERT INTO cassettes VALUES (10466, 'L1L2_Del_BactPneo_FFL_TAG1A', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10467, 'V5_Flag_biotin', '', true, NULL, NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false, false, 'puro');
+INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false, true, 'puro');
 INSERT INTO cassettes VALUES (10472, 'B1B2_frame0_Norcomm', '', false, 'B1B2_frame?_Norcomm', NULL, false, false, NULL);
 INSERT INTO cassettes VALUES (10473, 'pL1L2_GT2_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 2, false, false, 'puro');
 INSERT INTO cassettes VALUES (10474, 'pL1L2_GT2_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false, 'puro');
@@ -1104,7 +1104,7 @@ INSERT INTO cassettes VALUES (10440, 'L1L2_gtk', 'K frame contains Kozak/ATG for
 INSERT INTO cassettes VALUES (10443, 'pL1L2_GT1_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 1, true, false, 'bsd');
 INSERT INTO cassettes VALUES (10444, 'L1L2_gt0', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', NULL, true, false, 'neo');
 INSERT INTO cassettes VALUES (10456, 'L1L2_GT1_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 1, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10457, 'pL1L2_GT0_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', NULL, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10457, 'pL1L2_GT0_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', NULL, true, true, 'bsd');
 INSERT INTO cassettes VALUES (10458, 'pL1L2_frt15_BetactinBSD_frt14_neo_Rox', '', true, NULL, NULL, true, false, 'bsd');
 INSERT INTO cassettes VALUES (10459, 'Ifitm2_intron_L1L2_GTK_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', -1, true, false, 'neo');
 INSERT INTO cassettes VALUES (10461, 'Ifitm2_intron_L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true, false, 'neo');
@@ -1118,14 +1118,26 @@ INSERT INTO cassettes VALUES (10471, 'L1L2_gt1', 'Standard EUCOMM promoterless c
 INSERT INTO cassettes VALUES (10476, 'L1L2_gt2_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 2, true, false, 'neo');
 INSERT INTO cassettes VALUES (10477, 'L1L2_gt2', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 2, true, false, 'neo');
 INSERT INTO cassettes VALUES (10478, 'pL1L2_GT2_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 2, true, false, 'bsd');
-
+INSERT INTO cassettes VALUES (10479, 'pL1L2_frt_BetactP_neo_frt_lox', '', true, NULL, NULL, true, false, 'neo');
+INSERT INTO cassettes VALUES (10480, 'pL1L2_GT0_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd', NULL, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10481, 'pL1L2_GT1_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd',1, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10482, 'pL1L2_GT2_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd',2, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10483, 'pL1L2_frt_EF1a_BSD_frt_lox', '', true, NULL, NULL, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10484, 'pL1L2GT0_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', NULL, false, true, 'neo');
+INSERT INTO cassettes VALUES (10485, 'pL1L2GT1_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox',1, false, true, 'neo');
+INSERT INTO cassettes VALUES (10486, 'pL1L2GT2_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox',2, false, true, 'neo');
+INSERT INTO cassettes VALUES (10487, 'pL1L2GTK_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox',-1, false, true, 'neo');
+INSERT INTO cassettes VALUES (10488, 'pL1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false, false, 'neo');
 
 --
 -- Data for Name: cell_lines; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO cell_lines VALUES (1, 'oct4:puro iCre/iFlpO #11');
-
+INSERT INTO cell_lines VALUES (1, 'oct4:puro iCre/iFlpO #8');
+INSERT INTO cell_lines VALUES (2, 'oct4:puro iCre/iFlpO #11');
+INSERT INTO cell_lines VALUES (3, 'JM8.F6');
+INSERT INTO cell_lines VALUES (8, 'JM8.N4');
+INSERT INTO cell_lines VALUES (9, 'JM8A3.N1');
 
 --
 -- Data for Name: colony_count_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
