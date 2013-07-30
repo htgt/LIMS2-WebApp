@@ -39,29 +39,13 @@ CREATE TABLE public.summaries (
     int_recombinase_id text,                                  -- new
     int_qc_seq_pass boolean,
     int_cassette_name text,
-    int_cassette_cre boolean,                                 -- new, needed?
-    int_cassette_promoter boolean,                            -- new, needed?
-    int_cassette_conditional boolean,                         -- new, needed?
+    int_cassette_cre boolean,                                 -- new
+    int_cassette_promoter boolean,                            -- new
+    int_cassette_conditional boolean,                         -- new
     int_cassette_resistance text,                             -- new
     int_backbone_name text,
     int_well_assay_complete timestamp without time zone,
     int_well_accepted boolean,
--- POST_INT
-    post_int_plate_name text,                                 -- new
-    post_int_plate_id integer,                                -- new
-    post_int_well_name text,                                  -- new
-    post_int_well_id integer,                                 -- new
-    post_int_well_created_ts timestamp without time zone,     -- new
-    post_int_recombinase_id text,                             -- new
-    post_int_qc_seq_pass boolean,                             -- new
-    post_int_cassette_name text,                              -- new
-    post_int_cassette_cre boolean,                            -- new, needed?
-    post_int_cassette_promoter boolean,                       -- new, needed?
-    post_int_cassette_conditional boolean,                    -- new, needed?
-    post_int_cassette_resistance text,                        -- new
-    post_int_backbone_name text,                              -- new
-    post_int_well_assay_complete timestamp without time zone, -- new
-    post_int_well_accepted boolean,                           -- new
 -- FINAL
     final_plate_name text,
     final_plate_id integer,
@@ -135,7 +119,9 @@ CREATE TABLE public.summaries (
     xep_well_name text,                                    -- new
     xep_well_id integer,                                   -- new
     xep_well_created_ts timestamp without time zone,       -- new
-    xep_wwell_assay_complete timestamp without time zone,  -- new
+    xep_well_recombinase_id text,                          -- new
+    xep_qc_seq_pass boolean,                               -- new
+    xep_well_assay_complete timestamp without time zone,   -- new
     xep_well_accepted boolean,                             -- new
 -- SEP
     sep_plate_name text,
@@ -144,7 +130,6 @@ CREATE TABLE public.summaries (
     sep_well_id integer,
     sep_well_created_ts timestamp without time zone,
     sep_well_recombinase_id text,
-    sep_second_cell_line_name text,
     sep_well_assay_complete timestamp without time zone,
     sep_well_accepted boolean,
 -- SEP_PICK
@@ -171,7 +156,7 @@ CREATE TABLE public.summaries (
     piq_well_name text,                                   -- new
     piq_well_id integer,                                  -- new
     piq_well_created_ts timestamp without time zone,      -- new
-    piq_wwell_assay_complete timestamp without time zone, -- new
+    piq_well_assay_complete timestamp without time zone,  -- new
     piq_well_accepted boolean,                            -- new
 -- SFP
     sfp_plate_name text,
@@ -221,29 +206,13 @@ INSERT INTO summaries (
     int_recombinase_id,             -- new
     int_qc_seq_pass,
     int_cassette_name,
-    int_cassette_cre,               -- new, needed?
-    int_cassette_promoter,          -- new, needed?
-    int_cassette_conditional,       -- new, needed?
+    int_cassette_cre,               -- new
+    int_cassette_promoter,          -- new
+    int_cassette_conditional,       -- new
     int_cassette_resistance,        -- new
     int_backbone_name,
     int_well_assay_complete,
     int_well_accepted,
--- POST_INT
-    post_int_plate_name,            -- new
-    post_int_plate_id,              -- new
-    post_int_well_name,             -- new
-    post_int_well_id,               -- new
-    post_int_well_created_ts,       -- new
-    post_int_recombinase_id,        -- new
-    post_int_qc_seq_pass,           -- new
-    post_int_cassette_name,         -- new
-    post_int_cassette_cre,          -- new, needed?
-    post_int_cassette_promoter,     -- new, needed?
-    post_int_cassette_conditional,  -- new, needed?
-    post_int_cassette_resistance,   -- new
-    post_int_backbone_name,         -- new
-    post_int_well_assay_complete,   -- new
-    post_int_well_accepted,         -- new
 -- FINAL
     final_plate_name,
     final_plate_id,
@@ -317,7 +286,9 @@ INSERT INTO summaries (
     xep_well_name,              -- new
     xep_well_id,                -- new
     xep_well_created_ts,        -- new
-    xep_wwell_assay_complete,   -- new
+    xep_well_recombinase_id,    -- new
+    xep_qc_seq_pass,            -- new
+    xep_well_assay_complete,    -- new
     xep_well_accepted,          -- new
 -- SEP
     sep_plate_name,
@@ -326,7 +297,6 @@ INSERT INTO summaries (
     sep_well_id,
     sep_well_created_ts,
     sep_well_recombinase_id,
-    sep_second_cell_line_name,
     sep_well_assay_complete,
     sep_well_accepted,
 -- SEP_PICK
@@ -353,7 +323,7 @@ INSERT INTO summaries (
     piq_well_name,             -- new
     piq_well_id,               -- new
     piq_well_created_ts,       -- new
-    piq_wwell_assay_complete,  -- new
+    piq_well_assay_complete,   -- new
     piq_well_accepted,         -- new
 -- SFP
     sfp_plate_name,
@@ -391,29 +361,13 @@ SELECT
     null,                     -- new, int_recombinase_id
     int_qc_seq_pass,
     int_cassette_name,
-    null,                     -- new, needed? , int_cassette_cre
-    null,                     -- new, needed? , int_cassette_promoter
-    null,                     -- new, needed? , int_cassette_conditional
+    null,                     -- new, int_cassette_cre
+    null,                     -- new, int_cassette_promoter
+    null,                     -- new, int_cassette_conditional
     null,                     -- new, int_cassette_resistance
     int_backbone_name,
     int_well_assay_complete,
     int_well_accepted,
--- POST_INT
-    null,                     -- new, post_int_plate_name
-    null,                     -- new, post_int_plate_id
-    null,                     -- new, post_int_well_name
-    null,                     -- new, post_int_well_id
-    null,                     -- new, post_int_well_created_ts
-    null,                     -- new, post_int_recombinase_id
-    null,                     -- new, post_int_qc_seq_pass
-    null,                     -- new, post_int_cassette_name
-    null,                     -- new, post_int_cassette_cre
-    null,                     -- new, post_int_cassette_promoter
-    null,                     -- new, post_int_cassette_conditional
-    null,                     -- new, post_int_cassette_resistance
-    null,                     -- new, post_int_backbone_name
-    null,                     -- new, post_int_well_assay_complete
-    null,                     -- new, post_int_well_accepted
 -- FINAL
     final_plate_name,
     final_plate_id,
@@ -487,7 +441,9 @@ SELECT
     null,                     -- new, xep_well_name
     null,                     -- new, xep_well_id
     null,                     -- new, xep_well_created_ts
-    null,                     -- new, xep_wwell_assay_complete
+    null,                     -- new, xep_well_recombinase_id
+    null,                     -- new, xep_qc_seq_pass
+    null,                     -- new, xep_well_assay_complete
     null,                     -- new, xep_well_accepted
 -- SEP
     sep_plate_name,
@@ -496,7 +452,6 @@ SELECT
     sep_well_id,
     sep_well_created_ts,
     sep_well_recombinase_id,
-    sep_second_cell_line_name,
     sep_well_assay_complete,
     sep_well_accepted,
 -- SEP_PICK
@@ -523,7 +478,7 @@ SELECT
     null,                     -- new, piq_well_name
     null,                     -- new, piq_well_id
     null,                     -- new, piq_well_created_ts
-    null,                     -- new, piq_wwell_assay_complete
+    null,                     -- new, piq_well_assay_complete
     null,                     -- new, piq_well_accepted
 -- SFP
     sfp_plate_name,
