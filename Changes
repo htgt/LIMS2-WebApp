@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.090     2013-07-31 15:36:07 Europe/London
+	Modifications to summaries table and generation to add XEPs and PIQs.
+
 0.089     2013-07-22 12:24:51 Europe/London
 
     Bugfix: QC runs with multiple alignments would cause an infinite loop.
