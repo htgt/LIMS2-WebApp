@@ -16,20 +16,33 @@ use LIMS2::SummaryGeneration::SummariesWellDescend;
 reload_fixtures;
 
 # Design well ids used:
-# 1844 - basic example with 2 trails (one DESIGN to two INT's)
-# 930  - heterozygous example with DESIGN->INT->FINAL->DNA->EP->EP_PICK->FP - 49 rows total
+# 1844 - basic example with 2 trails (one DESIGN to two INT's)                   - 2 rows created
+# 1847 - basic example with multiple leaf nodes (two DNA, three EP_PICK, six FP) - 10 rows created
+# 1896 - heterozygous example with:                                              - 1 rows created
+#        DESIGN->INt->INT->FINAL->FINAL_PICK->DNA->FEP->FEPD->FP
+# 1883 and 1877 - homozygous example with two branches:                          - 3 + 1 rows created
+#        DESIGN->INT->INT->FINAL_PICK->DNA->FEP->FEPD(3)->XEP->SEP->SEPD->SFP
+#        DESIGN->INT->INT->FINAL->FINAL_PICK->DNA->(SEP->SEPD->SFP as above)
+# 995  - piq example with:                                                       - 3 rows created
+#        DESIGN->INT->INT->FINAL->FINAL_PICK->DNA->FEP->FEPD->FP->PIQ
+# 930  - heterozygous example with DESIGN->INT->FINAL->DNA->EP->EP_PICK->FP      - 49 rows created
 # 935  - homozygous example with two branches:
 #        DESIGN->INT->FINAL->DNA->EP->SEP->SEP_PICK->SFP
-#    and DESIGN->INT->FINAL->DNA->SEP->SEP_PICK->SFP      - 192 rows total
+#    and DESIGN->INT->FINAL->DNA->SEP->SEP_PICK->SFP                             - 192 rows created
+
+
 
 # hash of design wells where expecting clean successful inserts
 my %wells_expecting_success = (
     # A design well id    And the expected results; exit code, deletes, inserts, fails.
     1844                 => [0,undef,0,2,0], 
     1847                 => [0,undef,0,10,0],
+    1896                 => [0,undef,0,1,0],
+    1883                 => [0,undef,0,3,0],
+    1877                 => [0,undef,0,1,0],
+    995                  => [0,undef,0,3,0],
     930                  => [0,undef,0,49,0],
     935                  => [0,undef,0,192,0],
-
 );
 
 # hash of design wells where expecting other behaviour

@@ -271,7 +271,7 @@ sub fetch_values_for_type_INT {
     $summary_row_values->{ 'int_well_name' }            = $stored_values->{ stored_int_well_name };
     $summary_row_values->{ 'int_well_id' }              = $stored_values->{ stored_int_well_id };
     $summary_row_values->{ 'int_well_created_ts' }      = $stored_values->{ stored_int_well_created_ts };
-    $summary_row_values->{ 'int_recombinase_id' }       = $stored_values->{ stored_int_recombinase_id };    
+    $summary_row_values->{ 'int_recombinase_id' }       = $stored_values->{ stored_int_recombinase_id };
     $summary_row_values->{ 'int_qc_seq_pass' }          = $stored_values->{ stored_int_qc_seq_pass };
     $summary_row_values->{ 'int_cassette_name' }        = $stored_values->{ stored_int_cassette_name };
     $summary_row_values->{ 'int_cassette_promoter' }    = $stored_values->{ stored_int_cassette_promoter };
@@ -281,7 +281,7 @@ sub fetch_values_for_type_INT {
     $summary_row_values->{ 'int_backbone_name' }        = $stored_values->{ stored_int_backbone_name };
     $summary_row_values->{ 'int_well_assay_complete' }  = $stored_values->{ stored_int_well_assay_complete };
     $summary_row_values->{ 'int_well_accepted' }        = $stored_values->{ stored_int_well_accepted };
-    
+
     # valid primers?    -> qc test result and valid primers are outputs of QC system and should be linked to each well for INT, FINAL, POSTINT, DNA, EP_PICK
     return;
 }
