@@ -20,7 +20,7 @@ note("Testing creation of process cell line list");
 {
 	ok my $fields = model->get_process_fields( { process_type => 'first_electroporation'} ),
 	   'fep fields generated';
-	is_deeply($fields->{'cell_line'}->{'values'}, ['oct4:puro iCre/iFlpO #11'], 'cell line list correct');
+	is_deeply($fields->{'cell_line'}->{'values'}, ['oct4:puro iCre/iFlpO #8', 'oct4:puro iCre/iFlpO #11', 'JM8.F6', 'JM8.N4', 'JM8A3.N1'], 'cell line list correct');
 }
 
 note("Testing plate type check for process which can have any plate type output");

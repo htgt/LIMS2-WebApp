@@ -120,7 +120,6 @@ summaries:
     sep_well_id: '1623'
     sep_well_created_ts: '2012-06-15 00:00:00'
 #   sep_well_recombinase_id:
-    sep_second_cell_line_name: 'oct4:puro iCre/iFlpO #11'
     sep_well_assay_complete: '2011-08-11 00:00:00'
     sep_well_accepted: 't'
     sep_pick_plate_name: 'SEPD0006_1'
@@ -240,7 +239,6 @@ summaries:
     sep_well_id: '1623'
     sep_well_created_ts: '2012-06-15 00:00:00'
 #   sep_well_recombinase_id:
-    sep_second_cell_line_name: 'oct4:puro iCre/iFlpO #11'
     sep_well_assay_complete: '2012-06-15 00:00:00'
     sep_well_accepted: 't'
     sep_pick_plate_name: 'SEPD0006_1'
@@ -360,7 +358,6 @@ summaries:
 #    sep_well_id:
 #    sep_well_created_ts:
 #    sep_well_recombinase_id:
-#    sep_second_cell_line_name:
 #    sep_well_assay_complete:
 #    sep_well_accepted:
 #    sep_pick_plate_name:

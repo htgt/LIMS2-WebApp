@@ -148,8 +148,8 @@ note( 'List Plates' );
         ,'can list plates of type FP';
     isa_ok $pager, 'DBIx::Class::ResultSet::Pager';
     my @plate_names =  map{ $_->name } @{ $plate_list };
-    # AS28 - added extra FP plates from summaries test
-    is_deeply \@plate_names, [ '1007','1006','1005','1004','1003','1002','1001','FFP0001' ], '..and plate list is correct';
+    # AS28 - added extra FP plates from summaries tests
+    is_deeply \@plate_names, [ 'FP4734','FP4637','1007','1006','1005','1004','1003','1002','1001','FFP0001' ], '..and plate list is correct';
 
     ok my ( $plate_list2, $pager2 ) = model->list_plates( { species => 'Mouse', plate_name => 'FFP' } )
         ,'can list plates with name like FFP';

@@ -13,26 +13,25 @@ use Test::Most;
 use Try::Tiny;
 use DateTime;
 use File::Temp ':seekable';
+use Array::Compare;
 
 note("Testing process tree methods - descendants");
 {
 
     ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>850, direction => 1} ), 'retrieved descendant paths for well_id 850';
 
-    my @ref_paths;
-    my @path_cmp = ( 850, 851, 852, 853, 854 );
-    push @ref_paths, [@path_cmp];
+    my $paths_count = scalar ( @{$paths} );
+    ok $paths_count = 2, '..correct number of descendant paths';
 
-    @path_cmp = ( 850, 851, 852, 1503, 1504 );
-    push @ref_paths, [@path_cmp];
-    $paths = [sort @{$paths}];
+    my $path_cmp_1 = [ 850, 851, 852, 853, 854 ];
+    my $path_cmp_2 = [ 850, 851, 852, 1503, 1504 ];
 
-    foreach my $check_path ( 0 .. 1 ) {
+    my $comp = Array::Compare->new;
+    
+    foreach my $path ( @{ $paths } ) {
         my $n = 0;
-        foreach my $well ( @{$paths->[$check_path]} ) {
-            is $well, $ref_paths[$check_path][$n], "path .. $n matches reference path $check_path:$n";
-            ++$n;
-        }
+        ok $comp->compare( $path_cmp_1, $path ) || $comp->compare( $path_cmp_2, $path ), "path matches reference path";
+        ++$n;
     }
 	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 930, direction => 1} ), 'retrieved descendant paths for well_id 930';
     is scalar @{$paths}, 49, '.. 49 paths were returned'; 
@@ -43,21 +42,21 @@ note("Testing process tree methods - descendants");
 note("Testing process tree methods - ancestors");
 {
     ok my $paths = model->get_paths_for_well_id_depth_first( { well_id =>854, direction => 0} ), 'retrieved ancestors paths for well_id  854';
-    my @ref_paths;
-    my @path_cmp = reverse ( 850, 851, 852, 853, 854 );
-    push @ref_paths, [@path_cmp];
+    
+    my $paths_count = scalar ( @{$paths} );
+    ok $paths_count = 2, '..correct number of ancestor paths';
 
-    @path_cmp = reverse ( 850, 851, 852, 1503, 1504 );
-    push @ref_paths, [@path_cmp];
-    $paths = [sort @{$paths}];
+    my $path_cmp_1 = [ reverse ( 850, 851, 852, 853, 854 ) ];
+    my $path_cmp_2 = [ reverse ( 850, 851, 852, 1503, 1504 ) ];
 
-    foreach my $check_path ( 0 .. 1 ) {
+    my $comp = Array::Compare->new;
+    
+    foreach my $path ( @{ $paths } ) {
         my $n = 0;
-        foreach my $well ( @{$paths->[$check_path]} ) {
-            is $well, $ref_paths[$check_path][$n], "path .. $n matches reference path $check_path:$n";
-            ++$n;
-        }
+        ok $comp->compare( $path_cmp_1, $path ) || $comp->compare( $path_cmp_2, $path ), "path matches reference path";
+        ++$n;
     }
+
 	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 1623, direction => 0} ), 'retrieved ancestor paths for well_id 1623';
     is scalar @{$paths}, 2, '.. 2 paths were returned'; 
 	ok $paths = model->get_paths_for_well_id_depth_first( { well_id => 939, direction => 0} ), 'retrieved ancestor paths for well_id 939';
