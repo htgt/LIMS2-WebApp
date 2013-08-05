@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.091     2013-08-05 14:51:12 Europe/London
+
+Bugfix: take into account art intron designs when building eng-seq params
+
 0.090     2013-07-31 15:36:07 Europe/London
 	Modifications to summaries table and generation to add XEPs and PIQs.
 
