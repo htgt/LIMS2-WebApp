@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.090';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.091';
 }
 ## use critic
 
@@ -93,6 +93,7 @@ sub build_eng_seq_params_from_loci{
     return $params;
 }
 
+## no critic ( Subroutines::ProhibitExcessComplexity )
 sub fetch_well_eng_seq_params{
 	my ($well, $params) = @_;
 
@@ -132,7 +133,7 @@ sub fetch_well_eng_seq_params{
 	        $well_params->{u_insertion}->{name} = $params->{cassette};
 	        $method = 'targeted_trap_allele_seq';
 	    }
-	    elsif ( $design_type eq 'conditional') {
+	    elsif ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
 	        $method = 'conditional_allele_seq';
 	        $well_params->{u_insertion}->{name} = $params->{cassette};
 	        $well_params->{d_insertion}->{name} = 'LoxP' ;
@@ -156,7 +157,7 @@ sub fetch_well_eng_seq_params{
 		$well_params->{backbone}->{name} = $params->{backbone}
 		    or die "No backbone found for well ".$well->id;
 
-	    if ( $design_type eq 'conditional') {
+	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
 	        $method = 'conditional_vector_seq';
 	        $well_params->{u_insertion}->{name} = $params->{cassette};
 	        $well_params->{d_insertion}->{name} = 'LoxP' ;
@@ -176,6 +177,7 @@ sub fetch_well_eng_seq_params{
 
 	return $method,$well_params;
 }
+## use critic
 
 sub add_display_id{
 	my ($stage, $params) = @_;
