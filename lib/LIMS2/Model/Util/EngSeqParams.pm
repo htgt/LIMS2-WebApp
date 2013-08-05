@@ -87,6 +87,7 @@ sub build_eng_seq_params_from_loci{
     return $params;
 }
 
+## no critic ( Subroutines::ProhibitExcessComplexity )
 sub fetch_well_eng_seq_params{
 	my ($well, $params) = @_;
 
@@ -170,6 +171,7 @@ sub fetch_well_eng_seq_params{
 
 	return $method,$well_params;
 }
+## use critic
 
 sub add_display_id{
 	my ($stage, $params) = @_;
