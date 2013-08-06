@@ -12,200 +12,6 @@ SET escape_string_warning = off;
 SET search_path = public, pg_catalog;
 
 --
--- Name: bac_clones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('bac_clones_id_seq', 436043, true);
-
-
---
--- Name: backbones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('backbones_id_seq', 1859, true);
-
-
---
--- Name: cassettes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('cassettes_id_seq', 10478, true);
-
-
---
--- Name: cell_lines_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('cell_lines_id_seq', 1, true);
-
-
---
--- Name: crispr_off_targets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('crispr_off_targets_id_seq', 154, true);
-
-
---
--- Name: crisprs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('crisprs_id_seq', 113, true);
-
-
---
--- Name: design_comment_categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('design_comment_categories_id_seq', 12, true);
-
-
---
--- Name: design_comments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('design_comments_id_seq', 2478, true);
-
-
---
--- Name: design_oligos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('design_oligos_id_seq', 54774, true);
-
-
---
--- Name: design_targets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('design_targets_id_seq', 1, false);
-
-
---
--- Name: designs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('designs_id_seq', 1, false);
-
-
---
--- Name: genotyping_primers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('genotyping_primers_id_seq', 116764, true);
-
-
---
--- Name: new_chromosomes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('new_chromosomes_id_seq', 3216, true);
-
-
---
--- Name: plate_comments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
-
-
---
--- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('plates_id_seq', 1011, true);
-
---
--- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('processes_id_seq', 1288, true);
-
-
---
--- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('projects_id_seq', 1, false);
-
-
---
--- Name: qc_alignments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('qc_alignments_id_seq', 94, true);
-
-
---
--- Name: qc_eng_seqs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('qc_eng_seqs_id_seq', 2221, true);
-
-
---
--- Name: qc_run_seq_wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('qc_run_seq_wells_id_seq', 72, true);
-
-
---
--- Name: qc_template_wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('qc_template_wells_id_seq', 3266, true);
-
-
---
--- Name: qc_templates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('qc_templates_id_seq', 200, true);
-
-
---
--- Name: qc_test_results_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('qc_test_results_id_seq', 71, true);
-
-
---
--- Name: roles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('roles_id_seq', 504, true);
-
-
---
--- Name: summaries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('summaries_id_seq', 1972, true);
-
-
---
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('users_id_seq', 1079, true);
-
-
---
--- Name: well_comments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
-
-
---
--- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('wells_id_seq', 1868, true);
-
---
 -- Data for Name: species; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -1023,6 +829,13 @@ INSERT INTO bac_clone_loci VALUES (436005, 'NCBIM37', 31711221, 31872694, 3185);
 
 
 --
+-- Name: bac_clones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('bac_clones_id_seq', 436043, true);
+
+
+--
 -- Data for Name: backbones; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -1037,6 +850,13 @@ INSERT INTO backbones VALUES (1856, 'L3L4_pD223_DTA_spec', 'high copy number wit
 INSERT INTO backbones VALUES (1857, 'R3R4_pBR_DTA+_Bsd_amp', 'medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way');
 INSERT INTO backbones VALUES (1858, 'L3L4_pZero_DTA_kan', 'high copy number; standard backbone for promoterless vectors', 'KanR', '3-way');
 INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 Gateway Sites with Linearization close to DTA pA, potentially compromising negative selection', 'spec R', '3-way');
+
+
+--
+-- Name: backbones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('backbones_id_seq', 1859, true);
 
 
 --
@@ -1056,39 +876,39 @@ INSERT INTO cassette_function VALUES ('cre_knock_in', NULL, NULL, true, NULL, NU
 -- Data for Name: cassettes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false, false, 'puro');
+INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false, true, 'puro');
 INSERT INTO cassettes VALUES (10426, 'L1L2_GT0_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', '', true, 'L1L2_GT?_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', 2, false, false, 'puro');
 INSERT INTO cassettes VALUES (10427, 'B1B2_frame2_Norcomm', '', false, 'B1B2_frame?_Norcomm', 2, false, false, NULL);
 INSERT INTO cassettes VALUES (10429, 'ZEN-Ub1', '', true, NULL, NULL, false, false, NULL);
 INSERT INTO cassettes VALUES (10430, 'L1L2_NorCOMM', '', false, NULL, NULL, false, false, NULL);
 INSERT INTO cassettes VALUES (10431, 'B1B2_framek_Norcomm', '', false, 'B1B2_frame?_Norcomm', -1, false, false, NULL);
 INSERT INTO cassettes VALUES (10432, 'L1L2_6XOspnEnh_Bact_P', '', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10433, 'pL1L2_GT2_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 2, false, false, 'puro');
+INSERT INTO cassettes VALUES (10433, 'pL1L2_GT2_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 2, false, true, 'puro');
 INSERT INTO cassettes VALUES (10434, 'L1L2_st1', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 1, false, false, 'neo');
 INSERT INTO cassettes VALUES (10436, 'pL1L2_GT0_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', NULL, false, false, 'puro');
 INSERT INTO cassettes VALUES (10437, 'L1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10439, 'L1L2_NTARU-2', '', false, 'L1L2_NTARU-?', 2, false, false, NULL);
 INSERT INTO cassettes VALUES (10441, 'L1L2_NTARU-K', '', false, 'L1L2_NTARU-?', -1, false, false, NULL);
 INSERT INTO cassettes VALUES (10442, 'B1B2_frame1_Norcomm', '', false, 'B1B2_frame?_Norcomm', 1, false, false, NULL);
-INSERT INTO cassettes VALUES (10445, 'pL1L2_GT0_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', NULL, false, false, 'puro');
+INSERT INTO cassettes VALUES (10445, 'pL1L2_GT0_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', NULL, false, true, 'puro');
 INSERT INTO cassettes VALUES (10446, 'L1L2_st2', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 2, false, false, 'neo');
 INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', -1, false, false, 'puro');
 INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false, 'neo');
 INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true, false, 'bsd');
 INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false, 'neo');
-INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, true, 'zeo');
+INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, false, 'zeo');
 INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false, false, 'puro');
+INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false, true, 'puro');
 INSERT INTO cassettes VALUES (10452, 'pL1L2_GT0_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', NULL, false, false, 'puro');
-INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false, false, 'puro');
+INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false, true, 'puro');
 INSERT INTO cassettes VALUES (10454, 'pL1L2_GT1_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false, 'puro');
 INSERT INTO cassettes VALUES (10455, 'L1L2_Pgk_P', 'PGK promoter driving WT neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10460, 'pL1L2_GT1_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 1, false, false, 'puro');
 INSERT INTO cassettes VALUES (10466, 'L1L2_Del_BactPneo_FFL_TAG1A', '', true, NULL, NULL, false, false, 'neo');
 INSERT INTO cassettes VALUES (10467, 'V5_Flag_biotin', '', true, NULL, NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false, false, 'puro');
+INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false, true, 'puro');
 INSERT INTO cassettes VALUES (10472, 'B1B2_frame0_Norcomm', '', false, 'B1B2_frame?_Norcomm', NULL, false, false, NULL);
 INSERT INTO cassettes VALUES (10473, 'pL1L2_GT2_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 2, false, false, 'puro');
 INSERT INTO cassettes VALUES (10474, 'pL1L2_GT2_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false, 'puro');
@@ -1104,7 +924,7 @@ INSERT INTO cassettes VALUES (10440, 'L1L2_gtk', 'K frame contains Kozak/ATG for
 INSERT INTO cassettes VALUES (10443, 'pL1L2_GT1_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 1, true, false, 'bsd');
 INSERT INTO cassettes VALUES (10444, 'L1L2_gt0', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', NULL, true, false, 'neo');
 INSERT INTO cassettes VALUES (10456, 'L1L2_GT1_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 1, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10457, 'pL1L2_GT0_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', NULL, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10457, 'pL1L2_GT0_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', NULL, true, true, 'bsd');
 INSERT INTO cassettes VALUES (10458, 'pL1L2_frt15_BetactinBSD_frt14_neo_Rox', '', true, NULL, NULL, true, false, 'bsd');
 INSERT INTO cassettes VALUES (10459, 'Ifitm2_intron_L1L2_GTK_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', -1, true, false, 'neo');
 INSERT INTO cassettes VALUES (10461, 'Ifitm2_intron_L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true, false, 'neo');
@@ -1118,13 +938,41 @@ INSERT INTO cassettes VALUES (10471, 'L1L2_gt1', 'Standard EUCOMM promoterless c
 INSERT INTO cassettes VALUES (10476, 'L1L2_gt2_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 2, true, false, 'neo');
 INSERT INTO cassettes VALUES (10477, 'L1L2_gt2', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 2, true, false, 'neo');
 INSERT INTO cassettes VALUES (10478, 'pL1L2_GT2_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 2, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10479, 'pL1L2_frt_BetactP_neo_frt_lox', '', true, NULL, NULL, true, false, 'neo');
+INSERT INTO cassettes VALUES (10480, 'pL1L2_GT0_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd', NULL, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10481, 'pL1L2_GT1_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd', 1, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10482, 'pL1L2_GT2_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd', 2, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10483, 'pL1L2_frt_EF1a_BSD_frt_lox', '', true, NULL, NULL, true, false, 'bsd');
+INSERT INTO cassettes VALUES (10484, 'pL1L2GT0_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', NULL, false, true, 'neo');
+INSERT INTO cassettes VALUES (10485, 'pL1L2GT1_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', 1, false, true, 'neo');
+INSERT INTO cassettes VALUES (10486, 'pL1L2GT2_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', 2, false, true, 'neo');
+INSERT INTO cassettes VALUES (10487, 'pL1L2GTK_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', -1, false, true, 'neo');
+INSERT INTO cassettes VALUES (10488, 'pL1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false, false, 'neo');
+
+
+--
+-- Name: cassettes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('cassettes_id_seq', 10488, true);
 
 
 --
 -- Data for Name: cell_lines; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO cell_lines VALUES (1, 'oct4:puro iCre/iFlpO #11');
+INSERT INTO cell_lines VALUES (1, 'oct4:puro iCre/iFlpO #8');
+INSERT INTO cell_lines VALUES (2, 'oct4:puro iCre/iFlpO #11');
+INSERT INTO cell_lines VALUES (3, 'JM8.F6');
+INSERT INTO cell_lines VALUES (8, 'JM8.N4');
+INSERT INTO cell_lines VALUES (9, 'JM8A3.N1');
+
+
+--
+-- Name: cell_lines_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('cell_lines_id_seq', 9, true);
 
 
 --
@@ -1162,11 +1010,39 @@ INSERT INTO crispr_loci VALUES (113, 'GRCm38', 3182, 102360192, 102360214, -1);
 
 
 --
+-- Data for Name: crispr_off_target_summaries; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
+
+
+--
+-- Name: crispr_off_target_summaries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('crispr_off_target_summaries_id_seq', 1, false);
+
+
+--
 -- Data for Name: crispr_off_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
 INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16', 'strict');
 INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16', 'strict');
+
+
+--
+-- Name: crispr_off_targets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('crispr_off_targets_id_seq', 154, true);
+
+
+--
+-- Name: crisprs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('crisprs_id_seq', 113, true);
+
 
 --
 -- Data for Name: design_comment_categories; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -1184,6 +1060,13 @@ INSERT INTO design_comment_categories VALUES (9, 'No BACs available');
 INSERT INTO design_comment_categories VALUES (10, 'Warning!');
 INSERT INTO design_comment_categories VALUES (11, 'Upstream domain unaffected');
 INSERT INTO design_comment_categories VALUES (12, 'Overlapping locus');
+
+
+--
+-- Name: design_comment_categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('design_comment_categories_id_seq', 12, true);
 
 
 --
@@ -1233,6 +1116,7 @@ INSERT INTO users VALUES (1079, 'as28@sanger.ac.uk', '{SSHA}941OxYh6i8iSuE3+hIVJ
 -- Data for Name: designs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO designs VALUES (103, 'EUCTV00124', 1, '2007-03-02 00:00:00', 'conditional', 1, 'not done', 'ENSMUST00000006749', 'Mouse');
 INSERT INTO designs VALUES (88505, 'EUCTV8688', 958, '2008-04-09 00:00:00', 'deletion', NULL, 'yes', 'ENSMUST00000033157', 'Mouse');
 INSERT INTO designs VALUES (88512, 'EUCTV8697', 958, '2008-04-09 00:00:00', 'deletion', 1, 'yes', 'ENSMUST00000025519', 'Mouse');
 INSERT INTO designs VALUES (81136, 'EUCTV7865', 1058, '2008-02-28 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000078673', 'Mouse');
@@ -1308,6 +1192,7 @@ INSERT INTO designs VALUES (209241, 'EUCTV11052', 958, '2008-09-29 00:00:00', 'c
 INSERT INTO designs VALUES (42815, 'EUCTV02961', 722, '2007-04-04 00:00:00', 'conditional', -1, 'yes', 'ENSMUST00000052368', 'Mouse');
 INSERT INTO designs VALUES (34188, 'EUCTV3754', 722, '2007-03-02 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000113941', 'Mouse');
 INSERT INTO designs VALUES (236153, 'EUCTV15342', 740, '2009-04-14 00:00:00', 'conditional', -1, 'yes', 'ENSMUST00000106251', 'Mouse');
+INSERT INTO designs VALUES (42232, 'EUCTV02492', 1, '2007-03-13 00:00:00', 'conditional', 0, 'not done', 'ENSMUST00000023449', 'Mouse');
 INSERT INTO designs VALUES (211861, 'EUCTV12673', 740, '2008-11-11 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000105267', 'Mouse');
 INSERT INTO designs VALUES (47175, 'EUCTV4506', 722, '2007-10-11 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000112877', 'Mouse');
 INSERT INTO designs VALUES (45450, 'EUCTV3782', 722, '2007-08-02 00:00:00', 'conditional', -1, 'yes', 'ENSMUST00000110633', 'Mouse');
@@ -1354,6 +1239,13 @@ INSERT INTO design_comments VALUES (2473, 1, 237029, 'OTTMUST00000103837, but la
 INSERT INTO design_comments VALUES (2474, 8, 39699, 'D oligos lay in the middle of an exon in a NMD-predicted transcript: OTTMUST00000041916', false, 740, '2007-03-02 00:00:00');
 INSERT INTO design_comments VALUES (2475, 1, 95204, 'Design does not include 3'' transcript OTTMUST00000089396', false, 816, '2008-05-02 00:00:00');
 INSERT INTO design_comments VALUES (2476, 8, 55708, 'disrupts Znf_ZZ domain', false, 735, '2008-02-24 00:00:00');
+
+
+--
+-- Name: design_comments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('design_comments_id_seq', 2478, true);
 
 
 --
@@ -3143,15 +3035,37 @@ INSERT INTO design_oligo_loci VALUES (54701, 'GRCm38', 113311516, 113311565, 1, 
 
 
 --
+-- Name: design_oligos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('design_oligos_id_seq', 54774, true);
+
+
+--
 -- Data for Name: design_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
 
 
 --
+-- Name: design_targets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('design_targets_id_seq', 1, false);
+
+
+--
+-- Name: designs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('designs_id_seq', 1, false);
+
+
+--
 -- Data for Name: gene_design; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO gene_design VALUES ('MGI:109393', 103, 722, '2013-07-30 15:07:00.348924');
 INSERT INTO gene_design VALUES ('MGI:1917566', 88505, 722, '2013-03-28 11:55:16.264143');
 INSERT INTO gene_design VALUES ('MGI:88256', 88512, 722, '2013-03-28 11:55:47.523251');
 INSERT INTO gene_design VALUES ('MGI:2444518', 81136, 722, '2012-08-01 10:20:45.575557');
@@ -3238,6 +3152,7 @@ INSERT INTO gene_design VALUES ('MGI:109622', 103663, 722, '2012-07-26 07:19:03.
 INSERT INTO gene_design VALUES ('MGI:105084', 83411, 722, '2012-07-26 07:19:07.082638');
 INSERT INTO gene_design VALUES ('MGI:1277143', 189079, 722, '2012-07-26 07:19:10.177934');
 INSERT INTO gene_design VALUES ('MGI:109486', 40320, 722, '2012-07-26 07:19:13.46988');
+INSERT INTO gene_design VALUES ('MGI:1914724', 42232, 722, '2013-07-30 15:25:19.438273');
 INSERT INTO gene_design VALUES ('MGI:2137357', 94368, 722, '2012-07-26 07:19:16.726845');
 INSERT INTO gene_design VALUES ('MGI:894684', 43144, 722, '2012-07-26 07:19:19.908096');
 INSERT INTO gene_design VALUES ('MGI:2442355', 42798, 722, '2012-07-26 07:19:23.314544');
@@ -3289,6 +3204,7 @@ INSERT INTO genotyping_primers VALUES (116753, 'GF3', 88505, 'CAAGAGACTAGTGTCACA
 INSERT INTO genotyping_primers VALUES (116754, 'GF4', 88505, 'CAGAGGCAGGCAGATCTCTGAGTTC');
 INSERT INTO genotyping_primers VALUES (116755, 'EX52', 88505, 'CAAGGTAACAATTTACACTGTATTCATGC');
 INSERT INTO genotyping_primers VALUES (116756, 'EX32', 88505, 'CACATGCTGGCATGAATACAGTGTAAATTG');
+INSERT INTO genotyping_primers VALUES (115549, 'PNFLR2', 40682, 'GGCCAGTGAAGTCAAAGATGA');
 INSERT INTO genotyping_primers VALUES (116757, 'GR3', 88505, 'GAGACAAGGTCAAGGCCTGATGGCAGGCAC');
 INSERT INTO genotyping_primers VALUES (116758, 'GR4', 88505, 'GTCAAGGCCTGATGGCAGGCACTACTTAG');
 INSERT INTO genotyping_primers VALUES (116759, 'GF3', 88512, 'CTCTCAGTCTAGAAGCAGAGCGGAGACGTC');
@@ -3409,7 +3325,6 @@ INSERT INTO genotyping_primers VALUES (115545, 'EX32', 40682, 'CTGCTGGTGTTGTAGCC
 INSERT INTO genotyping_primers VALUES (115546, 'GR3', 40682, 'GCATTGACCTCATTCTGCAAGAGAG');
 INSERT INTO genotyping_primers VALUES (115547, 'GR4', 40682, 'CTCTACCAAGGAGCAGTGACATGC');
 INSERT INTO genotyping_primers VALUES (115548, 'PNFLR1', 40682, 'GATATGGACACTCGCACAGGT');
-INSERT INTO genotyping_primers VALUES (115549, 'PNFLR2', 40682, 'GGCCAGTGAAGTCAAAGATGA');
 INSERT INTO genotyping_primers VALUES (115550, 'PNFLR3', 40682, 'GGATTGAAGGGCATCACAAC');
 INSERT INTO genotyping_primers VALUES (115551, 'LR1', 40682, 'TGGCCATGTTTTGTGACACT');
 INSERT INTO genotyping_primers VALUES (115552, 'LR2', 40682, 'TGGTCCTCCTCATCCACTTC');
@@ -4007,6 +3922,7 @@ INSERT INTO genotyping_primers VALUES (116143, 'GF3', 50590, 'GAGCCATCTCCATAACTC
 INSERT INTO genotyping_primers VALUES (116144, 'GF4', 50590, 'CATCAATGAGGATGTATACTGGAAG');
 INSERT INTO genotyping_primers VALUES (116145, 'EX52', 50590, 'CTACAACATACTCCTTAAAGCTAATATCAG');
 INSERT INTO genotyping_primers VALUES (116146, 'EX32', 50590, 'GTCAGGAAGCTGACAACAGGAACGCTTACC');
+INSERT INTO genotyping_primers VALUES (116388, 'LR1', 42798, 'ACCTTGGGTGACTATGCAGC');
 INSERT INTO genotyping_primers VALUES (116147, 'GR3', 50590, 'GACATGCTGGCATACACTCTCAGGTGGC');
 INSERT INTO genotyping_primers VALUES (116148, 'GR4', 50590, 'CATGCTGGCATACACTCTCAGGTGGCAGC');
 INSERT INTO genotyping_primers VALUES (116149, 'GF3', 48673, 'GTATACCTATCTTCTGTACTAGATGGTC');
@@ -4248,7 +4164,6 @@ INSERT INTO genotyping_primers VALUES (116384, 'GR4', 42798, 'GCTTGGAGAACACAGAGC
 INSERT INTO genotyping_primers VALUES (116385, 'PNFLR1', 42798, 'GCCTCCAGGTCTCACAGAAA');
 INSERT INTO genotyping_primers VALUES (116386, 'PNFLR2', 42798, 'ACCTCACTCAGCCTCCAGGT');
 INSERT INTO genotyping_primers VALUES (116387, 'PNFLR3', 42798, 'GATTCTGCTGGCACCTCACT');
-INSERT INTO genotyping_primers VALUES (116388, 'LR1', 42798, 'ACCTTGGGTGACTATGCAGC');
 INSERT INTO genotyping_primers VALUES (116389, 'LR2', 42798, 'CTCCCACTGTGCCTTAGCTC');
 INSERT INTO genotyping_primers VALUES (116390, 'LR3', 42798, 'GAGTGTGGAGCCTAAGCAGC');
 INSERT INTO genotyping_primers VALUES (116391, 'LF1', 42798, 'ACAGGGAACTGAGCGTATGG');
@@ -4593,6 +4508,13 @@ INSERT INTO genotyping_primers VALUES (116729, 'GR4', 96830, 'GACGTGGCAGCTGAGACC
 
 
 --
+-- Name: genotyping_primers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('genotyping_primers_id_seq', 116764, true);
+
+
+--
 -- Data for Name: genotyping_result_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -4630,6 +4552,13 @@ INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'cre-bac');
 
 
 --
+-- Name: new_chromosomes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('new_chromosomes_id_seq', 3216, true);
+
+
+--
 -- Data for Name: plate_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -4658,6 +4587,31 @@ INSERT INTO plate_types VALUES ('PIQ', 'Pre-injection distribution QC plate type
 -- Data for Name: plates; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO plates VALUES (1012, 'PIQ_CRE_0001', '', 'PIQ', 1, '2013-07-30 14:50:16.499839', 'Mouse', NULL);
+INSERT INTO plates VALUES (1013, 'FP4637', '', 'FP', 1, '2013-07-30 14:50:16.620658', 'Mouse', NULL);
+INSERT INTO plates VALUES (1014, 'CEPD0011_2', '', 'EP_PICK', 1, '2013-07-30 14:50:16.697523', 'Mouse', NULL);
+INSERT INTO plates VALUES (1015, 'CEP00011', '', 'EP', 1, '2013-07-30 14:50:16.776705', 'Mouse', NULL);
+INSERT INTO plates VALUES (1016, 'ETGRQ0004_A_1', '', 'DNA', 1, '2013-07-30 14:50:16.849403', 'Mouse', NULL);
+INSERT INTO plates VALUES (1017, 'ETGRD0004_A_1', '', 'FINAL_PICK', 1, '2013-07-30 14:50:16.940894', 'Mouse', NULL);
+INSERT INTO plates VALUES (1018, 'ETPG0004_Z_8', '', 'FINAL', 1, '2013-07-30 14:50:17.023838', 'Mouse', NULL);
+INSERT INTO plates VALUES (1019, 'ETPCS0004_A', '', 'INT', 1, '2013-07-30 14:50:17.097529', 'Mouse', NULL);
+INSERT INTO plates VALUES (1020, 'SFP0017_A', '', 'SFP', 1, '2013-07-30 15:06:59.432273', 'Mouse', NULL);
+INSERT INTO plates VALUES (1021, 'SEPD0017_A', '', 'SEP_PICK', 1, '2013-07-30 15:06:59.562862', 'Mouse', NULL);
+INSERT INTO plates VALUES (1022, 'SEP0017_1', '', 'SEP', 1, '2013-07-30 15:06:59.650789', 'Mouse', NULL);
+INSERT INTO plates VALUES (1023, 'PMBEQ60002_B_1A', '', 'DNA', 1, '2013-07-30 15:06:59.766457', 'Mouse', NULL);
+INSERT INTO plates VALUES (1024, 'PSABS60002_B', '', 'FINAL_PICK', 1, '2013-07-30 15:06:59.842812', 'Mouse', NULL);
+INSERT INTO plates VALUES (1025, 'PSAB60002_B_2', '', 'FINAL', 1, '2013-07-30 15:06:59.911791', 'Mouse', NULL);
+INSERT INTO plates VALUES (1026, 'PCP10002_A', '', 'INT', 1, '2013-07-30 15:06:59.982168', 'Mouse', NULL);
+INSERT INTO plates VALUES (1027, 'PCS00005_A', '', 'INT', 1, '2013-07-30 15:07:00.051697', 'Mouse', NULL);
+INSERT INTO plates VALUES (1028, '5', 'Plate 5', 'DESIGN', 1, '2013-07-30 15:07:00.132681', 'Mouse', NULL);
+INSERT INTO plates VALUES (1029, 'XEP0017_4', '', 'XEP', 1, '2013-07-30 15:07:01.396664', 'Mouse', NULL);
+INSERT INTO plates VALUES (1030, 'FEPD0017_4', '', 'EP_PICK', 1, '2013-07-30 15:07:01.475678', 'Mouse', NULL);
+INSERT INTO plates VALUES (1031, 'FEP0017', '', 'EP', 1, '2013-07-30 15:07:01.549932', 'Mouse', NULL);
+INSERT INTO plates VALUES (1032, 'PATHPFQ0001_A_1', '', 'DNA', 1, '2013-07-30 15:07:01.637359', 'Mouse', NULL);
+INSERT INTO plates VALUES (1033, 'PATHP0001_A', '', 'FINAL_PICK', 1, '2013-07-30 15:07:01.725612', 'Mouse', NULL);
+INSERT INTO plates VALUES (1034, 'PGRS0004_A', '', 'FINAL_PICK', 1, '2013-07-30 15:07:01.830546', 'Mouse', NULL);
+INSERT INTO plates VALUES (1035, 'PCS00035_A', '', 'INT', 1, '2013-07-30 15:07:01.912749', 'Mouse', NULL);
+INSERT INTO plates VALUES (1036, '35', 'Plate 35', 'DESIGN', 1, '2013-07-30 15:07:01.988931', 'Mouse', NULL);
 INSERT INTO plates VALUES (986, '98', '', 'DESIGN', 722, '2008-06-02 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (863, 'MOHFAQ0001_A_2', '', 'DNA', 1003, '2010-08-30 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (864, 'MOHFAS0001_A', 'Homozygote project first allele', 'FINAL', 751, '2010-03-22 00:00:00', 'Mouse', NULL);
@@ -4740,6 +4694,13 @@ INSERT INTO plates VALUES (940, 'PCS00129_A', '', 'INT', 802, '2008-12-13 00:00:
 INSERT INTO plates VALUES (941, '129', '', 'DESIGN', 722, '2008-09-10 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (942, 'PCS00068_A', 'Pooled intermediate glycerol', 'INT', 802, '2008-04-23 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (943, '68', '', 'DESIGN', 722, '2008-04-22 00:00:00', 'Mouse', NULL);
+INSERT INTO plates VALUES (1037, 'FP4734', '', 'FP', 1, '2013-07-30 15:25:18.611774', 'Mouse', NULL);
+INSERT INTO plates VALUES (1038, 'CEPD0024_1', '', 'EP_PICK', 1, '2013-07-30 15:25:18.713232', 'Mouse', NULL);
+INSERT INTO plates VALUES (1039, 'CEP00024', '', 'EP', 1, '2013-07-30 15:25:18.801427', 'Mouse', NULL);
+INSERT INTO plates VALUES (1040, 'ETGRQ0007_A_1', '', 'DNA', 1, '2013-07-30 15:25:18.886663', 'Mouse', NULL);
+INSERT INTO plates VALUES (1041, 'ETGRD0007_A_1', '', 'FINAL_PICK', 1, '2013-07-30 15:25:18.947136', 'Mouse', NULL);
+INSERT INTO plates VALUES (1042, 'ETPG0007_Z_3', '', 'FINAL', 1, '2013-07-30 15:25:19.01179', 'Mouse', NULL);
+INSERT INTO plates VALUES (1043, 'ETPCS0007_A_1', '', 'INT', 1, '2013-07-30 15:25:19.092625', 'Mouse', NULL);
 INSERT INTO plates VALUES (944, 'PCS00184_A', 'BSD_DTA', 'INT', 751, '2010-01-05 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (945, '184', '', 'DESIGN', 740, '2009-05-30 00:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (946, 'PCS00054_A', '', 'INT', 802, '2009-02-20 00:00:00', 'Mouse', NULL);
@@ -4807,6 +4768,7 @@ INSERT INTO plates VALUES (1009, 'CRISPR_1', '', 'CRISPR', 722, '2013-05-28 13:3
 INSERT INTO plates VALUES (1010, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (1011, 'PIQ0002', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 
+
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
@@ -4864,6 +4826,20 @@ INSERT INTO plate_comments VALUES (43, 947, 'Production Gateway finished', 751, 
 
 
 --
+-- Name: plate_comments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
+
+
+--
+-- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('plates_id_seq', 1043, true);
+
+
+--
 -- Data for Name: primer_band_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -4901,10 +4877,19 @@ INSERT INTO process_types VALUES ('xep_pool', 'Pool multiple EP_PICK wells into 
 INSERT INTO process_types VALUES ('create_crispr', 'Create crispr');
 INSERT INTO process_types VALUES ('dist_qc', 'Pre-injection distribution QC PIQ create process');
 
+
 --
 -- Data for Name: processes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO processes VALUES (1289, 'rearray');
+INSERT INTO processes VALUES (1290, '3w_gateway');
+INSERT INTO processes VALUES (1291, 'final_pick');
+INSERT INTO processes VALUES (1292, 'dna_prep');
+INSERT INTO processes VALUES (1293, 'first_electroporation');
+INSERT INTO processes VALUES (1294, 'clone_pick');
+INSERT INTO processes VALUES (1295, 'freeze');
+INSERT INTO processes VALUES (1296, 'dist_qc');
 INSERT INTO processes VALUES (1269, 'create_di');
 INSERT INTO processes VALUES (298, 'create_di');
 INSERT INTO processes VALUES (299, 'int_recom');
@@ -5066,6 +5051,9 @@ INSERT INTO processes VALUES (454, 'int_recom');
 INSERT INTO processes VALUES (455, 'rearray');
 INSERT INTO processes VALUES (456, '2w_gateway');
 INSERT INTO processes VALUES (457, 'dna_prep');
+INSERT INTO processes VALUES (1297, 'create_di');
+INSERT INTO processes VALUES (1298, 'int_recom');
+INSERT INTO processes VALUES (1299, 'rearray');
 INSERT INTO processes VALUES (458, 'create_di');
 INSERT INTO processes VALUES (459, 'int_recom');
 INSERT INTO processes VALUES (460, 'rearray');
@@ -5251,6 +5239,31 @@ INSERT INTO processes VALUES (639, 'int_recom');
 INSERT INTO processes VALUES (640, 'rearray');
 INSERT INTO processes VALUES (641, '2w_gateway');
 INSERT INTO processes VALUES (642, 'dna_prep');
+INSERT INTO processes VALUES (1300, '3w_gateway');
+INSERT INTO processes VALUES (1301, 'final_pick');
+INSERT INTO processes VALUES (1302, 'dna_prep');
+INSERT INTO processes VALUES (1303, 'create_di');
+INSERT INTO processes VALUES (1304, 'int_recom');
+INSERT INTO processes VALUES (1305, 'legacy_gateway');
+INSERT INTO processes VALUES (1306, 'final_pick');
+INSERT INTO processes VALUES (1307, 'dna_prep');
+INSERT INTO processes VALUES (1308, 'first_electroporation');
+INSERT INTO processes VALUES (1309, 'clone_pick');
+INSERT INTO processes VALUES (1310, 'clone_pick');
+INSERT INTO processes VALUES (1311, 'clone_pick');
+INSERT INTO processes VALUES (1312, 'xep_pool');
+INSERT INTO processes VALUES (1313, 'second_electroporation');
+INSERT INTO processes VALUES (1314, 'clone_pick');
+INSERT INTO processes VALUES (1315, 'freeze');
+INSERT INTO processes VALUES (1316, 'create_di');
+INSERT INTO processes VALUES (1317, 'int_recom');
+INSERT INTO processes VALUES (1318, 'rearray');
+INSERT INTO processes VALUES (1319, '3w_gateway');
+INSERT INTO processes VALUES (1320, 'final_pick');
+INSERT INTO processes VALUES (1321, 'dna_prep');
+INSERT INTO processes VALUES (1322, 'first_electroporation');
+INSERT INTO processes VALUES (1323, 'clone_pick');
+INSERT INTO processes VALUES (1324, 'freeze');
 INSERT INTO processes VALUES (643, 'create_di');
 INSERT INTO processes VALUES (644, 'int_recom');
 INSERT INTO processes VALUES (645, 'rearray');
@@ -6283,6 +6296,13 @@ INSERT INTO process_bac VALUES (1273, 'd', 416192);
 -- Data for Name: process_backbone; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO process_backbone VALUES (1290, 1855);
+INSERT INTO process_backbone VALUES (1298, 1849);
+INSERT INTO process_backbone VALUES (1300, 1856);
+INSERT INTO process_backbone VALUES (1304, 1849);
+INSERT INTO process_backbone VALUES (1305, 1859);
+INSERT INTO process_backbone VALUES (1317, 1849);
+INSERT INTO process_backbone VALUES (1319, 1855);
 INSERT INTO process_backbone VALUES (299, 1849);
 INSERT INTO process_backbone VALUES (304, 1849);
 INSERT INTO process_backbone VALUES (309, 1849);
@@ -6389,6 +6409,7 @@ INSERT INTO process_backbone VALUES (1275, 1849);
 -- Data for Name: process_cassette; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO process_cassette VALUES (1290, 10433);
 INSERT INTO process_cassette VALUES (299, 10447);
 INSERT INTO process_cassette VALUES (301, 10464);
 INSERT INTO process_cassette VALUES (304, 10447);
@@ -6479,6 +6500,9 @@ INSERT INTO process_cassette VALUES (514, 10447);
 INSERT INTO process_cassette VALUES (516, 10464);
 INSERT INTO process_cassette VALUES (519, 10447);
 INSERT INTO process_cassette VALUES (521, 10464);
+INSERT INTO process_cassette VALUES (1298, 10447);
+INSERT INTO process_cassette VALUES (1300, 10483);
+INSERT INTO process_cassette VALUES (1304, 10447);
 INSERT INTO process_cassette VALUES (524, 10447);
 INSERT INTO process_cassette VALUES (526, 10476);
 INSERT INTO process_cassette VALUES (529, 10447);
@@ -6612,6 +6636,9 @@ INSERT INTO process_cassette VALUES (832, 10421);
 INSERT INTO process_cassette VALUES (834, 10421);
 INSERT INTO process_cassette VALUES (836, 10421);
 INSERT INTO process_cassette VALUES (838, 10421);
+INSERT INTO process_cassette VALUES (1305, 10468);
+INSERT INTO process_cassette VALUES (1317, 10447);
+INSERT INTO process_cassette VALUES (1319, 10445);
 INSERT INTO process_cassette VALUES (840, 10421);
 INSERT INTO process_cassette VALUES (842, 10421);
 INSERT INTO process_cassette VALUES (844, 10421);
@@ -6680,7 +6707,7 @@ INSERT INTO process_cassette VALUES (968, 10438);
 INSERT INTO process_cassette VALUES (1271, 10447);
 INSERT INTO process_cassette VALUES (1272, 10447);
 INSERT INTO process_cassette VALUES (1274, 10447);
-INSERT INTO process_cassette VALUES (1275, 10447);
+INSERT INTO process_cassette VALUES (1275, 10445);
 
 
 --
@@ -6692,6 +6719,9 @@ INSERT INTO process_cell_line VALUES (971, 1);
 INSERT INTO process_cell_line VALUES (972, 1);
 INSERT INTO process_cell_line VALUES (973, 1);
 INSERT INTO process_cell_line VALUES (974, 1);
+INSERT INTO process_cell_line VALUES (1293, 8);
+INSERT INTO process_cell_line VALUES (1308, 2);
+INSERT INTO process_cell_line VALUES (1322, 8);
 
 
 --
@@ -6704,6 +6734,9 @@ INSERT INTO process_cell_line VALUES (974, 1);
 -- Data for Name: process_design; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO process_design VALUES (1297, 103);
+INSERT INTO process_design VALUES (1303, 103);
+INSERT INTO process_design VALUES (1316, 42232);
 INSERT INTO process_design VALUES (1269, 81136);
 INSERT INTO process_design VALUES (298, 170606);
 INSERT INTO process_design VALUES (303, 84231);
@@ -6809,6 +6842,14 @@ INSERT INTO process_design VALUES (1273, 79991);
 -- Data for Name: wells; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO wells VALUES (1869, 1019, 'H03', 1, '2013-07-30 14:50:17.240699', NULL, NULL, false);
+INSERT INTO wells VALUES (1870, 1018, 'F08', 1, '2013-07-30 14:50:17.604509', NULL, NULL, false);
+INSERT INTO wells VALUES (1871, 1017, 'G09', 1, '2013-07-30 14:50:17.862914', NULL, NULL, false);
+INSERT INTO wells VALUES (1872, 1016, 'G09', 1, '2013-07-30 14:50:17.955856', NULL, NULL, false);
+INSERT INTO wells VALUES (1873, 1015, 'C01', 1, '2013-07-30 14:50:18.365944', NULL, NULL, false);
+INSERT INTO wells VALUES (1874, 1014, 'A11', 1, '2013-07-30 14:50:18.50843', NULL, NULL, false);
+INSERT INTO wells VALUES (1875, 1013, 'A11', 1, '2013-07-30 14:50:18.615811', NULL, NULL, false);
+INSERT INTO wells VALUES (1876, 1012, 'A01', 1, '2013-07-30 14:50:18.726736', NULL, NULL, false);
 INSERT INTO wells VALUES (845, 867, 'F02', 722, '2008-11-13 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (846, 866, 'F02', 751, '2009-03-03 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (847, 865, 'D04', 751, '2010-03-03 00:00:00', NULL, '2010-03-15 00:00:00', false);
@@ -6930,6 +6971,9 @@ INSERT INTO wells VALUES (962, 865, 'H03', 751, '2010-03-03 00:00:00', NULL, NUL
 INSERT INTO wells VALUES (963, 864, 'H03', 751, '2010-03-22 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (964, 863, 'H03', 1003, '2010-08-30 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (965, 908, 'A08', 722, '2008-10-20 00:00:00', NULL, NULL, false);
+INSERT INTO wells VALUES (1877, 1028, 'C04', 1, '2013-07-30 15:07:00.365109', NULL, NULL, false);
+INSERT INTO wells VALUES (1878, 1027, 'C04', 1, '2013-07-30 15:07:00.601863', NULL, NULL, false);
+INSERT INTO wells VALUES (1879, 1026, 'D09', 1, '2013-07-30 15:07:00.763071', NULL, NULL, false);
 INSERT INTO wells VALUES (966, 907, 'A08', 751, '2009-02-23 00:00:00', NULL, '2010-06-29 00:00:00', false);
 INSERT INTO wells VALUES (967, 865, 'D01', 751, '2010-03-03 00:00:00', NULL, '2010-03-15 00:00:00', false);
 INSERT INTO wells VALUES (968, 864, 'D01', 751, '2010-03-22 00:00:00', NULL, '2010-04-08 00:00:00', false);
@@ -7063,6 +7107,31 @@ INSERT INTO wells VALUES (1095, 933, 'G11', 740, '2009-04-02 00:00:00', NULL, NU
 INSERT INTO wells VALUES (1096, 932, 'G11', 751, '2010-01-05 00:00:00', NULL, '2010-06-29 00:00:00', false);
 INSERT INTO wells VALUES (1097, 865, 'H11', 751, '2010-03-03 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1098, 864, 'H11', 751, '2010-03-22 00:00:00', NULL, NULL, false);
+INSERT INTO wells VALUES (1880, 1025, 'E05', 1, '2013-07-30 15:07:01.079127', NULL, NULL, false);
+INSERT INTO wells VALUES (1881, 1024, 'B07', 1, '2013-07-30 15:07:01.270857', NULL, NULL, false);
+INSERT INTO wells VALUES (1882, 1023, 'B07', 1, '2013-07-30 15:07:01.350541', NULL, NULL, false);
+INSERT INTO wells VALUES (1883, 1036, 'C04', 1, '2013-07-30 15:07:02.146228', NULL, NULL, false);
+INSERT INTO wells VALUES (1884, 1035, 'C04', 1, '2013-07-30 15:07:02.341848', NULL, NULL, false);
+INSERT INTO wells VALUES (1885, 1034, 'A12', 1, '2013-07-30 15:07:02.617774', NULL, NULL, false);
+INSERT INTO wells VALUES (1886, 1033, 'B12', 1, '2013-07-30 15:07:02.777337', NULL, NULL, false);
+INSERT INTO wells VALUES (1887, 1032, 'B12', 1, '2013-07-30 15:07:02.889863', NULL, NULL, false);
+INSERT INTO wells VALUES (1888, 1031, 'C01', 1, '2013-07-30 15:07:03.263814', NULL, NULL, false);
+INSERT INTO wells VALUES (1889, 1030, 'E11', 1, '2013-07-30 15:07:03.389297', NULL, NULL, false);
+INSERT INTO wells VALUES (1890, 1030, 'E12', 1, '2013-07-30 15:07:03.546061', NULL, NULL, false);
+INSERT INTO wells VALUES (1891, 1030, 'H11', 1, '2013-07-30 15:07:03.761986', NULL, NULL, false);
+INSERT INTO wells VALUES (1892, 1029, 'A01', 1, '2013-07-30 15:07:03.874993', NULL, NULL, false);
+INSERT INTO wells VALUES (1893, 1022, 'A01', 1, '2013-07-30 15:07:04.043096', NULL, NULL, false);
+INSERT INTO wells VALUES (1894, 1021, 'F01', 1, '2013-07-30 15:07:04.183569', NULL, NULL, false);
+INSERT INTO wells VALUES (1895, 1020, 'F01', 1, '2013-07-30 15:07:04.292103', NULL, NULL, false);
+INSERT INTO wells VALUES (1896, 887, 'A03', 1, '2013-07-30 15:25:19.45916', NULL, NULL, false);
+INSERT INTO wells VALUES (1897, 886, 'A03', 1, '2013-07-30 15:25:19.697132', NULL, NULL, false);
+INSERT INTO wells VALUES (1898, 1043, 'C09', 1, '2013-07-30 15:25:19.861486', NULL, NULL, false);
+INSERT INTO wells VALUES (1899, 1042, 'C04', 1, '2013-07-30 15:25:20.193876', NULL, NULL, false);
+INSERT INTO wells VALUES (1900, 1041, 'C01', 1, '2013-07-30 15:25:20.321174', NULL, NULL, false);
+INSERT INTO wells VALUES (1901, 1040, 'C01', 1, '2013-07-30 15:25:20.428695', NULL, NULL, false);
+INSERT INTO wells VALUES (1902, 1039, 'B01', 1, '2013-07-30 15:25:20.793889', NULL, NULL, false);
+INSERT INTO wells VALUES (1903, 1038, 'F10', 1, '2013-07-30 15:25:20.900914', NULL, NULL, false);
+INSERT INTO wells VALUES (1904, 1037, 'F10', 1, '2013-07-30 15:25:21.006799', NULL, NULL, false);
 INSERT INTO wells VALUES (1099, 863, 'H11', 1003, '2010-08-30 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1100, 921, 'C09', 722, '2008-04-22 00:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1101, 920, 'C09', 751, '2008-04-23 00:00:00', NULL, '2010-06-29 00:00:00', false);
@@ -7839,6 +7908,688 @@ INSERT INTO wells VALUES (1868, 1011, 'A01', 1079, '2013-05-29 11:00:00', NULL, 
 -- Data for Name: process_input_well; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO process_input_well VALUES (1289, 996);
+INSERT INTO process_input_well VALUES (1290, 1869);
+INSERT INTO process_input_well VALUES (1291, 1870);
+INSERT INTO process_input_well VALUES (1292, 1871);
+INSERT INTO process_input_well VALUES (1293, 1872);
+INSERT INTO process_input_well VALUES (1294, 1873);
+INSERT INTO process_input_well VALUES (1295, 1874);
+INSERT INTO process_input_well VALUES (1296, 1875);
+INSERT INTO process_input_well VALUES (424, 970);
+INSERT INTO process_input_well VALUES (425, 971);
+INSERT INTO process_input_well VALUES (426, 972);
+INSERT INTO process_input_well VALUES (427, 973);
+INSERT INTO process_input_well VALUES (429, 975);
+INSERT INTO process_input_well VALUES (430, 976);
+INSERT INTO process_input_well VALUES (431, 977);
+INSERT INTO process_input_well VALUES (432, 978);
+INSERT INTO process_input_well VALUES (434, 980);
+INSERT INTO process_input_well VALUES (435, 981);
+INSERT INTO process_input_well VALUES (436, 982);
+INSERT INTO process_input_well VALUES (437, 983);
+INSERT INTO process_input_well VALUES (439, 985);
+INSERT INTO process_input_well VALUES (440, 986);
+INSERT INTO process_input_well VALUES (441, 987);
+INSERT INTO process_input_well VALUES (442, 988);
+INSERT INTO process_input_well VALUES (444, 990);
+INSERT INTO process_input_well VALUES (445, 991);
+INSERT INTO process_input_well VALUES (446, 992);
+INSERT INTO process_input_well VALUES (447, 993);
+INSERT INTO process_input_well VALUES (449, 995);
+INSERT INTO process_input_well VALUES (450, 996);
+INSERT INTO process_input_well VALUES (451, 997);
+INSERT INTO process_input_well VALUES (452, 998);
+INSERT INTO process_input_well VALUES (454, 1000);
+INSERT INTO process_input_well VALUES (455, 1001);
+INSERT INTO process_input_well VALUES (456, 1002);
+INSERT INTO process_input_well VALUES (457, 1003);
+INSERT INTO process_input_well VALUES (459, 1005);
+INSERT INTO process_input_well VALUES (460, 1006);
+INSERT INTO process_input_well VALUES (461, 1007);
+INSERT INTO process_input_well VALUES (462, 1008);
+INSERT INTO process_input_well VALUES (464, 1010);
+INSERT INTO process_input_well VALUES (465, 1011);
+INSERT INTO process_input_well VALUES (466, 1012);
+INSERT INTO process_input_well VALUES (467, 1013);
+INSERT INTO process_input_well VALUES (469, 1015);
+INSERT INTO process_input_well VALUES (470, 1016);
+INSERT INTO process_input_well VALUES (471, 1017);
+INSERT INTO process_input_well VALUES (472, 1018);
+INSERT INTO process_input_well VALUES (474, 1020);
+INSERT INTO process_input_well VALUES (475, 1021);
+INSERT INTO process_input_well VALUES (476, 1022);
+INSERT INTO process_input_well VALUES (477, 1023);
+INSERT INTO process_input_well VALUES (479, 1025);
+INSERT INTO process_input_well VALUES (480, 1026);
+INSERT INTO process_input_well VALUES (481, 1027);
+INSERT INTO process_input_well VALUES (482, 1028);
+INSERT INTO process_input_well VALUES (484, 1030);
+INSERT INTO process_input_well VALUES (485, 1031);
+INSERT INTO process_input_well VALUES (486, 1032);
+INSERT INTO process_input_well VALUES (487, 1033);
+INSERT INTO process_input_well VALUES (489, 1035);
+INSERT INTO process_input_well VALUES (490, 1036);
+INSERT INTO process_input_well VALUES (491, 1037);
+INSERT INTO process_input_well VALUES (492, 1038);
+INSERT INTO process_input_well VALUES (494, 1040);
+INSERT INTO process_input_well VALUES (495, 1041);
+INSERT INTO process_input_well VALUES (496, 1042);
+INSERT INTO process_input_well VALUES (497, 1043);
+INSERT INTO process_input_well VALUES (499, 1045);
+INSERT INTO process_input_well VALUES (500, 1046);
+INSERT INTO process_input_well VALUES (501, 1047);
+INSERT INTO process_input_well VALUES (502, 1048);
+INSERT INTO process_input_well VALUES (504, 1050);
+INSERT INTO process_input_well VALUES (505, 1051);
+INSERT INTO process_input_well VALUES (506, 1052);
+INSERT INTO process_input_well VALUES (507, 1053);
+INSERT INTO process_input_well VALUES (509, 1055);
+INSERT INTO process_input_well VALUES (510, 1056);
+INSERT INTO process_input_well VALUES (511, 1057);
+INSERT INTO process_input_well VALUES (512, 1058);
+INSERT INTO process_input_well VALUES (514, 1060);
+INSERT INTO process_input_well VALUES (515, 1061);
+INSERT INTO process_input_well VALUES (516, 1062);
+INSERT INTO process_input_well VALUES (517, 1063);
+INSERT INTO process_input_well VALUES (519, 1065);
+INSERT INTO process_input_well VALUES (520, 1066);
+INSERT INTO process_input_well VALUES (521, 1067);
+INSERT INTO process_input_well VALUES (522, 1068);
+INSERT INTO process_input_well VALUES (524, 1070);
+INSERT INTO process_input_well VALUES (525, 1071);
+INSERT INTO process_input_well VALUES (526, 1072);
+INSERT INTO process_input_well VALUES (527, 1073);
+INSERT INTO process_input_well VALUES (529, 1075);
+INSERT INTO process_input_well VALUES (530, 1076);
+INSERT INTO process_input_well VALUES (531, 1077);
+INSERT INTO process_input_well VALUES (532, 1078);
+INSERT INTO process_input_well VALUES (534, 1080);
+INSERT INTO process_input_well VALUES (535, 1081);
+INSERT INTO process_input_well VALUES (536, 1082);
+INSERT INTO process_input_well VALUES (537, 1083);
+INSERT INTO process_input_well VALUES (539, 1085);
+INSERT INTO process_input_well VALUES (540, 1086);
+INSERT INTO process_input_well VALUES (541, 1087);
+INSERT INTO process_input_well VALUES (542, 1088);
+INSERT INTO process_input_well VALUES (544, 1090);
+INSERT INTO process_input_well VALUES (545, 1091);
+INSERT INTO process_input_well VALUES (546, 1092);
+INSERT INTO process_input_well VALUES (547, 1093);
+INSERT INTO process_input_well VALUES (549, 1095);
+INSERT INTO process_input_well VALUES (550, 1096);
+INSERT INTO process_input_well VALUES (551, 1097);
+INSERT INTO process_input_well VALUES (552, 1098);
+INSERT INTO process_input_well VALUES (554, 1100);
+INSERT INTO process_input_well VALUES (555, 1101);
+INSERT INTO process_input_well VALUES (556, 1102);
+INSERT INTO process_input_well VALUES (557, 1103);
+INSERT INTO process_input_well VALUES (559, 1105);
+INSERT INTO process_input_well VALUES (560, 1106);
+INSERT INTO process_input_well VALUES (561, 1107);
+INSERT INTO process_input_well VALUES (562, 1108);
+INSERT INTO process_input_well VALUES (564, 1110);
+INSERT INTO process_input_well VALUES (565, 1111);
+INSERT INTO process_input_well VALUES (566, 1112);
+INSERT INTO process_input_well VALUES (567, 1113);
+INSERT INTO process_input_well VALUES (569, 1115);
+INSERT INTO process_input_well VALUES (570, 1116);
+INSERT INTO process_input_well VALUES (571, 1117);
+INSERT INTO process_input_well VALUES (572, 1118);
+INSERT INTO process_input_well VALUES (574, 1120);
+INSERT INTO process_input_well VALUES (575, 1121);
+INSERT INTO process_input_well VALUES (576, 1122);
+INSERT INTO process_input_well VALUES (577, 1123);
+INSERT INTO process_input_well VALUES (579, 1125);
+INSERT INTO process_input_well VALUES (580, 1126);
+INSERT INTO process_input_well VALUES (581, 1127);
+INSERT INTO process_input_well VALUES (582, 1128);
+INSERT INTO process_input_well VALUES (584, 1130);
+INSERT INTO process_input_well VALUES (585, 1131);
+INSERT INTO process_input_well VALUES (586, 1132);
+INSERT INTO process_input_well VALUES (587, 1133);
+INSERT INTO process_input_well VALUES (589, 1135);
+INSERT INTO process_input_well VALUES (590, 1136);
+INSERT INTO process_input_well VALUES (591, 1137);
+INSERT INTO process_input_well VALUES (592, 1138);
+INSERT INTO process_input_well VALUES (594, 1140);
+INSERT INTO process_input_well VALUES (595, 1141);
+INSERT INTO process_input_well VALUES (596, 1142);
+INSERT INTO process_input_well VALUES (597, 1143);
+INSERT INTO process_input_well VALUES (599, 1145);
+INSERT INTO process_input_well VALUES (600, 1146);
+INSERT INTO process_input_well VALUES (601, 1147);
+INSERT INTO process_input_well VALUES (602, 1148);
+INSERT INTO process_input_well VALUES (604, 1150);
+INSERT INTO process_input_well VALUES (605, 1151);
+INSERT INTO process_input_well VALUES (606, 1152);
+INSERT INTO process_input_well VALUES (607, 1153);
+INSERT INTO process_input_well VALUES (609, 1155);
+INSERT INTO process_input_well VALUES (610, 1156);
+INSERT INTO process_input_well VALUES (611, 1157);
+INSERT INTO process_input_well VALUES (612, 1158);
+INSERT INTO process_input_well VALUES (614, 1160);
+INSERT INTO process_input_well VALUES (615, 1161);
+INSERT INTO process_input_well VALUES (616, 1162);
+INSERT INTO process_input_well VALUES (617, 1163);
+INSERT INTO process_input_well VALUES (619, 1165);
+INSERT INTO process_input_well VALUES (620, 1166);
+INSERT INTO process_input_well VALUES (621, 1167);
+INSERT INTO process_input_well VALUES (622, 1168);
+INSERT INTO process_input_well VALUES (624, 1170);
+INSERT INTO process_input_well VALUES (625, 1171);
+INSERT INTO process_input_well VALUES (626, 1172);
+INSERT INTO process_input_well VALUES (627, 1173);
+INSERT INTO process_input_well VALUES (629, 1175);
+INSERT INTO process_input_well VALUES (630, 1176);
+INSERT INTO process_input_well VALUES (631, 1177);
+INSERT INTO process_input_well VALUES (632, 1178);
+INSERT INTO process_input_well VALUES (634, 1180);
+INSERT INTO process_input_well VALUES (635, 1181);
+INSERT INTO process_input_well VALUES (636, 1182);
+INSERT INTO process_input_well VALUES (637, 1183);
+INSERT INTO process_input_well VALUES (639, 1185);
+INSERT INTO process_input_well VALUES (640, 1186);
+INSERT INTO process_input_well VALUES (641, 1187);
+INSERT INTO process_input_well VALUES (642, 1188);
+INSERT INTO process_input_well VALUES (644, 1190);
+INSERT INTO process_input_well VALUES (645, 1191);
+INSERT INTO process_input_well VALUES (646, 1192);
+INSERT INTO process_input_well VALUES (647, 1193);
+INSERT INTO process_input_well VALUES (649, 1195);
+INSERT INTO process_input_well VALUES (650, 1196);
+INSERT INTO process_input_well VALUES (651, 1197);
+INSERT INTO process_input_well VALUES (652, 1198);
+INSERT INTO process_input_well VALUES (654, 1200);
+INSERT INTO process_input_well VALUES (655, 1201);
+INSERT INTO process_input_well VALUES (656, 1202);
+INSERT INTO process_input_well VALUES (657, 1203);
+INSERT INTO process_input_well VALUES (659, 1205);
+INSERT INTO process_input_well VALUES (660, 1206);
+INSERT INTO process_input_well VALUES (661, 1207);
+INSERT INTO process_input_well VALUES (662, 1208);
+INSERT INTO process_input_well VALUES (664, 1210);
+INSERT INTO process_input_well VALUES (665, 1211);
+INSERT INTO process_input_well VALUES (666, 1212);
+INSERT INTO process_input_well VALUES (667, 1213);
+INSERT INTO process_input_well VALUES (669, 1215);
+INSERT INTO process_input_well VALUES (670, 1216);
+INSERT INTO process_input_well VALUES (671, 1217);
+INSERT INTO process_input_well VALUES (672, 1218);
+INSERT INTO process_input_well VALUES (674, 1220);
+INSERT INTO process_input_well VALUES (675, 1221);
+INSERT INTO process_input_well VALUES (676, 1222);
+INSERT INTO process_input_well VALUES (677, 1223);
+INSERT INTO process_input_well VALUES (679, 1225);
+INSERT INTO process_input_well VALUES (680, 1226);
+INSERT INTO process_input_well VALUES (681, 1227);
+INSERT INTO process_input_well VALUES (682, 1228);
+INSERT INTO process_input_well VALUES (684, 1230);
+INSERT INTO process_input_well VALUES (685, 1231);
+INSERT INTO process_input_well VALUES (1298, 1877);
+INSERT INTO process_input_well VALUES (1299, 1878);
+INSERT INTO process_input_well VALUES (1300, 1879);
+INSERT INTO process_input_well VALUES (1301, 1880);
+INSERT INTO process_input_well VALUES (686, 1232);
+INSERT INTO process_input_well VALUES (687, 1233);
+INSERT INTO process_input_well VALUES (689, 1235);
+INSERT INTO process_input_well VALUES (690, 1236);
+INSERT INTO process_input_well VALUES (691, 1237);
+INSERT INTO process_input_well VALUES (692, 1238);
+INSERT INTO process_input_well VALUES (694, 1240);
+INSERT INTO process_input_well VALUES (695, 1241);
+INSERT INTO process_input_well VALUES (696, 1242);
+INSERT INTO process_input_well VALUES (697, 1243);
+INSERT INTO process_input_well VALUES (699, 1245);
+INSERT INTO process_input_well VALUES (700, 1246);
+INSERT INTO process_input_well VALUES (701, 1247);
+INSERT INTO process_input_well VALUES (702, 1248);
+INSERT INTO process_input_well VALUES (704, 1250);
+INSERT INTO process_input_well VALUES (705, 1251);
+INSERT INTO process_input_well VALUES (706, 1252);
+INSERT INTO process_input_well VALUES (707, 1253);
+INSERT INTO process_input_well VALUES (709, 1255);
+INSERT INTO process_input_well VALUES (710, 1256);
+INSERT INTO process_input_well VALUES (711, 1257);
+INSERT INTO process_input_well VALUES (712, 1258);
+INSERT INTO process_input_well VALUES (714, 1260);
+INSERT INTO process_input_well VALUES (715, 1261);
+INSERT INTO process_input_well VALUES (716, 1262);
+INSERT INTO process_input_well VALUES (717, 1263);
+INSERT INTO process_input_well VALUES (719, 1265);
+INSERT INTO process_input_well VALUES (720, 1266);
+INSERT INTO process_input_well VALUES (721, 1267);
+INSERT INTO process_input_well VALUES (722, 1268);
+INSERT INTO process_input_well VALUES (724, 1270);
+INSERT INTO process_input_well VALUES (725, 1271);
+INSERT INTO process_input_well VALUES (726, 1272);
+INSERT INTO process_input_well VALUES (727, 1273);
+INSERT INTO process_input_well VALUES (729, 1275);
+INSERT INTO process_input_well VALUES (730, 1276);
+INSERT INTO process_input_well VALUES (731, 1277);
+INSERT INTO process_input_well VALUES (732, 1278);
+INSERT INTO process_input_well VALUES (734, 1280);
+INSERT INTO process_input_well VALUES (735, 1281);
+INSERT INTO process_input_well VALUES (736, 1282);
+INSERT INTO process_input_well VALUES (737, 1283);
+INSERT INTO process_input_well VALUES (739, 1285);
+INSERT INTO process_input_well VALUES (740, 1286);
+INSERT INTO process_input_well VALUES (741, 1287);
+INSERT INTO process_input_well VALUES (742, 1288);
+INSERT INTO process_input_well VALUES (744, 1290);
+INSERT INTO process_input_well VALUES (745, 1291);
+INSERT INTO process_input_well VALUES (746, 1292);
+INSERT INTO process_input_well VALUES (747, 1293);
+INSERT INTO process_input_well VALUES (749, 1295);
+INSERT INTO process_input_well VALUES (750, 1296);
+INSERT INTO process_input_well VALUES (751, 1297);
+INSERT INTO process_input_well VALUES (752, 1298);
+INSERT INTO process_input_well VALUES (754, 1300);
+INSERT INTO process_input_well VALUES (755, 1301);
+INSERT INTO process_input_well VALUES (756, 1302);
+INSERT INTO process_input_well VALUES (757, 1303);
+INSERT INTO process_input_well VALUES (759, 1305);
+INSERT INTO process_input_well VALUES (760, 1306);
+INSERT INTO process_input_well VALUES (761, 1307);
+INSERT INTO process_input_well VALUES (762, 1308);
+INSERT INTO process_input_well VALUES (764, 1310);
+INSERT INTO process_input_well VALUES (765, 1311);
+INSERT INTO process_input_well VALUES (766, 1312);
+INSERT INTO process_input_well VALUES (767, 1313);
+INSERT INTO process_input_well VALUES (769, 1315);
+INSERT INTO process_input_well VALUES (770, 1316);
+INSERT INTO process_input_well VALUES (771, 1317);
+INSERT INTO process_input_well VALUES (772, 1318);
+INSERT INTO process_input_well VALUES (774, 1320);
+INSERT INTO process_input_well VALUES (775, 1321);
+INSERT INTO process_input_well VALUES (776, 1322);
+INSERT INTO process_input_well VALUES (777, 1323);
+INSERT INTO process_input_well VALUES (778, 1052);
+INSERT INTO process_input_well VALUES (779, 1325);
+INSERT INTO process_input_well VALUES (780, 927);
+INSERT INTO process_input_well VALUES (781, 1327);
+INSERT INTO process_input_well VALUES (782, 1282);
+INSERT INTO process_input_well VALUES (783, 1329);
+INSERT INTO process_input_well VALUES (784, 1132);
+INSERT INTO process_input_well VALUES (785, 1331);
+INSERT INTO process_input_well VALUES (786, 1007);
+INSERT INTO process_input_well VALUES (787, 1333);
+INSERT INTO process_input_well VALUES (788, 1077);
+INSERT INTO process_input_well VALUES (789, 1335);
+INSERT INTO process_input_well VALUES (790, 1142);
+INSERT INTO process_input_well VALUES (791, 1337);
+INSERT INTO process_input_well VALUES (792, 1137);
+INSERT INTO process_input_well VALUES (793, 1339);
+INSERT INTO process_input_well VALUES (794, 1027);
+INSERT INTO process_input_well VALUES (795, 1341);
+INSERT INTO process_input_well VALUES (796, 1062);
+INSERT INTO process_input_well VALUES (797, 1343);
+INSERT INTO process_input_well VALUES (798, 1092);
+INSERT INTO process_input_well VALUES (799, 1345);
+INSERT INTO process_input_well VALUES (800, 1307);
+INSERT INTO process_input_well VALUES (801, 1347);
+INSERT INTO process_input_well VALUES (802, 867);
+INSERT INTO process_input_well VALUES (803, 1349);
+INSERT INTO process_input_well VALUES (804, 902);
+INSERT INTO process_input_well VALUES (805, 1351);
+INSERT INTO process_input_well VALUES (806, 897);
+INSERT INTO process_input_well VALUES (807, 1353);
+INSERT INTO process_input_well VALUES (808, 1187);
+INSERT INTO process_input_well VALUES (809, 1355);
+INSERT INTO process_input_well VALUES (810, 932);
+INSERT INTO process_input_well VALUES (811, 1357);
+INSERT INTO process_input_well VALUES (812, 957);
+INSERT INTO process_input_well VALUES (813, 1359);
+INSERT INTO process_input_well VALUES (814, 907);
+INSERT INTO process_input_well VALUES (815, 1361);
+INSERT INTO process_input_well VALUES (816, 1107);
+INSERT INTO process_input_well VALUES (817, 1363);
+INSERT INTO process_input_well VALUES (818, 1232);
+INSERT INTO process_input_well VALUES (819, 1365);
+INSERT INTO process_input_well VALUES (820, 992);
+INSERT INTO process_input_well VALUES (821, 1367);
+INSERT INTO process_input_well VALUES (822, 1042);
+INSERT INTO process_input_well VALUES (823, 1369);
+INSERT INTO process_input_well VALUES (824, 1277);
+INSERT INTO process_input_well VALUES (825, 1371);
+INSERT INTO process_input_well VALUES (826, 977);
+INSERT INTO process_input_well VALUES (827, 1373);
+INSERT INTO process_input_well VALUES (828, 1237);
+INSERT INTO process_input_well VALUES (829, 1375);
+INSERT INTO process_input_well VALUES (830, 1017);
+INSERT INTO process_input_well VALUES (831, 1377);
+INSERT INTO process_input_well VALUES (832, 1212);
+INSERT INTO process_input_well VALUES (833, 1379);
+INSERT INTO process_input_well VALUES (834, 1022);
+INSERT INTO process_input_well VALUES (835, 1381);
+INSERT INTO process_input_well VALUES (836, 972);
+INSERT INTO process_input_well VALUES (837, 1383);
+INSERT INTO process_input_well VALUES (838, 1032);
+INSERT INTO process_input_well VALUES (839, 1385);
+INSERT INTO process_input_well VALUES (840, 1322);
+INSERT INTO process_input_well VALUES (841, 1387);
+INSERT INTO process_input_well VALUES (842, 1157);
+INSERT INTO process_input_well VALUES (843, 1389);
+INSERT INTO process_input_well VALUES (844, 1152);
+INSERT INTO process_input_well VALUES (845, 1391);
+INSERT INTO process_input_well VALUES (846, 872);
+INSERT INTO process_input_well VALUES (847, 1393);
+INSERT INTO process_input_well VALUES (848, 1002);
+INSERT INTO process_input_well VALUES (849, 1395);
+INSERT INTO process_input_well VALUES (850, 967);
+INSERT INTO process_input_well VALUES (851, 1397);
+INSERT INTO process_input_well VALUES (852, 922);
+INSERT INTO process_input_well VALUES (853, 1399);
+INSERT INTO process_input_well VALUES (854, 952);
+INSERT INTO process_input_well VALUES (855, 1401);
+INSERT INTO process_input_well VALUES (856, 847);
+INSERT INTO process_input_well VALUES (857, 1403);
+INSERT INTO process_input_well VALUES (858, 912);
+INSERT INTO process_input_well VALUES (859, 1405);
+INSERT INTO process_input_well VALUES (860, 1242);
+INSERT INTO process_input_well VALUES (861, 1407);
+INSERT INTO process_input_well VALUES (862, 1247);
+INSERT INTO process_input_well VALUES (863, 1409);
+INSERT INTO process_input_well VALUES (864, 1112);
+INSERT INTO process_input_well VALUES (865, 1411);
+INSERT INTO process_input_well VALUES (866, 1082);
+INSERT INTO process_input_well VALUES (867, 1413);
+INSERT INTO process_input_well VALUES (868, 1067);
+INSERT INTO process_input_well VALUES (869, 1415);
+INSERT INTO process_input_well VALUES (870, 1057);
+INSERT INTO process_input_well VALUES (871, 1417);
+INSERT INTO process_input_well VALUES (872, 1297);
+INSERT INTO process_input_well VALUES (873, 1419);
+INSERT INTO process_input_well VALUES (874, 1222);
+INSERT INTO process_input_well VALUES (875, 1421);
+INSERT INTO process_input_well VALUES (876, 1252);
+INSERT INTO process_input_well VALUES (877, 1423);
+INSERT INTO process_input_well VALUES (878, 1182);
+INSERT INTO process_input_well VALUES (879, 1425);
+INSERT INTO process_input_well VALUES (880, 1257);
+INSERT INTO process_input_well VALUES (881, 1427);
+INSERT INTO process_input_well VALUES (882, 1227);
+INSERT INTO process_input_well VALUES (883, 1429);
+INSERT INTO process_input_well VALUES (884, 877);
+INSERT INTO process_input_well VALUES (885, 1431);
+INSERT INTO process_input_well VALUES (886, 1102);
+INSERT INTO process_input_well VALUES (887, 1433);
+INSERT INTO process_input_well VALUES (888, 1012);
+INSERT INTO process_input_well VALUES (889, 1435);
+INSERT INTO process_input_well VALUES (890, 1287);
+INSERT INTO process_input_well VALUES (891, 1437);
+INSERT INTO process_input_well VALUES (892, 1262);
+INSERT INTO process_input_well VALUES (893, 1439);
+INSERT INTO process_input_well VALUES (894, 1117);
+INSERT INTO process_input_well VALUES (895, 1441);
+INSERT INTO process_input_well VALUES (896, 1197);
+INSERT INTO process_input_well VALUES (897, 1443);
+INSERT INTO process_input_well VALUES (898, 892);
+INSERT INTO process_input_well VALUES (899, 1445);
+INSERT INTO process_input_well VALUES (900, 1177);
+INSERT INTO process_input_well VALUES (901, 1447);
+INSERT INTO process_input_well VALUES (902, 1162);
+INSERT INTO process_input_well VALUES (903, 1449);
+INSERT INTO process_input_well VALUES (904, 862);
+INSERT INTO process_input_well VALUES (905, 1451);
+INSERT INTO process_input_well VALUES (906, 917);
+INSERT INTO process_input_well VALUES (907, 1453);
+INSERT INTO process_input_well VALUES (908, 857);
+INSERT INTO process_input_well VALUES (909, 1455);
+INSERT INTO process_input_well VALUES (910, 887);
+INSERT INTO process_input_well VALUES (911, 1457);
+INSERT INTO process_input_well VALUES (912, 1037);
+INSERT INTO process_input_well VALUES (913, 1459);
+INSERT INTO process_input_well VALUES (914, 987);
+INSERT INTO process_input_well VALUES (915, 1461);
+INSERT INTO process_input_well VALUES (916, 1167);
+INSERT INTO process_input_well VALUES (917, 1463);
+INSERT INTO process_input_well VALUES (1302, 1881);
+INSERT INTO process_input_well VALUES (1304, 1883);
+INSERT INTO process_input_well VALUES (1305, 1884);
+INSERT INTO process_input_well VALUES (1306, 1885);
+INSERT INTO process_input_well VALUES (1307, 1886);
+INSERT INTO process_input_well VALUES (1308, 1887);
+INSERT INTO process_input_well VALUES (1309, 1888);
+INSERT INTO process_input_well VALUES (1310, 1888);
+INSERT INTO process_input_well VALUES (1311, 1888);
+INSERT INTO process_input_well VALUES (1312, 1889);
+INSERT INTO process_input_well VALUES (1312, 1890);
+INSERT INTO process_input_well VALUES (1312, 1891);
+INSERT INTO process_input_well VALUES (1313, 1882);
+INSERT INTO process_input_well VALUES (1313, 1892);
+INSERT INTO process_input_well VALUES (1314, 1893);
+INSERT INTO process_input_well VALUES (1315, 1894);
+INSERT INTO process_input_well VALUES (1317, 1896);
+INSERT INTO process_input_well VALUES (1318, 1897);
+INSERT INTO process_input_well VALUES (1319, 1898);
+INSERT INTO process_input_well VALUES (1320, 1899);
+INSERT INTO process_input_well VALUES (1321, 1900);
+INSERT INTO process_input_well VALUES (1322, 1901);
+INSERT INTO process_input_well VALUES (1323, 1902);
+INSERT INTO process_input_well VALUES (1324, 1903);
+INSERT INTO process_input_well VALUES (918, 1292);
+INSERT INTO process_input_well VALUES (919, 1465);
+INSERT INTO process_input_well VALUES (920, 1302);
+INSERT INTO process_input_well VALUES (921, 1467);
+INSERT INTO process_input_well VALUES (922, 947);
+INSERT INTO process_input_well VALUES (923, 1469);
+INSERT INTO process_input_well VALUES (924, 1127);
+INSERT INTO process_input_well VALUES (925, 1471);
+INSERT INTO process_input_well VALUES (926, 882);
+INSERT INTO process_input_well VALUES (927, 1473);
+INSERT INTO process_input_well VALUES (928, 942);
+INSERT INTO process_input_well VALUES (929, 1475);
+INSERT INTO process_input_well VALUES (930, 1217);
+INSERT INTO process_input_well VALUES (931, 1477);
+INSERT INTO process_input_well VALUES (932, 1147);
+INSERT INTO process_input_well VALUES (933, 1479);
+INSERT INTO process_input_well VALUES (934, 1312);
+INSERT INTO process_input_well VALUES (935, 1481);
+INSERT INTO process_input_well VALUES (936, 1192);
+INSERT INTO process_input_well VALUES (937, 1483);
+INSERT INTO process_input_well VALUES (938, 1172);
+INSERT INTO process_input_well VALUES (939, 1485);
+INSERT INTO process_input_well VALUES (940, 1317);
+INSERT INTO process_input_well VALUES (941, 1487);
+INSERT INTO process_input_well VALUES (942, 997);
+INSERT INTO process_input_well VALUES (943, 1489);
+INSERT INTO process_input_well VALUES (944, 1272);
+INSERT INTO process_input_well VALUES (945, 1491);
+INSERT INTO process_input_well VALUES (946, 1122);
+INSERT INTO process_input_well VALUES (947, 1493);
+INSERT INTO process_input_well VALUES (948, 937);
+INSERT INTO process_input_well VALUES (949, 1495);
+INSERT INTO process_input_well VALUES (950, 962);
+INSERT INTO process_input_well VALUES (951, 1497);
+INSERT INTO process_input_well VALUES (952, 982);
+INSERT INTO process_input_well VALUES (953, 1499);
+INSERT INTO process_input_well VALUES (954, 1087);
+INSERT INTO process_input_well VALUES (955, 1501);
+INSERT INTO process_input_well VALUES (956, 852);
+INSERT INTO process_input_well VALUES (957, 1503);
+INSERT INTO process_input_well VALUES (958, 1207);
+INSERT INTO process_input_well VALUES (959, 1505);
+INSERT INTO process_input_well VALUES (960, 1202);
+INSERT INTO process_input_well VALUES (961, 1507);
+INSERT INTO process_input_well VALUES (962, 1072);
+INSERT INTO process_input_well VALUES (963, 1509);
+INSERT INTO process_input_well VALUES (964, 1267);
+INSERT INTO process_input_well VALUES (965, 1511);
+INSERT INTO process_input_well VALUES (966, 1097);
+INSERT INTO process_input_well VALUES (967, 1513);
+INSERT INTO process_input_well VALUES (968, 1047);
+INSERT INTO process_input_well VALUES (969, 1515);
+INSERT INTO process_input_well VALUES (970, 939);
+INSERT INTO process_input_well VALUES (971, 1009);
+INSERT INTO process_input_well VALUES (972, 1079);
+INSERT INTO process_input_well VALUES (973, 1189);
+INSERT INTO process_input_well VALUES (974, 934);
+INSERT INTO process_input_well VALUES (975, 1521);
+INSERT INTO process_input_well VALUES (976, 1521);
+INSERT INTO process_input_well VALUES (977, 1521);
+INSERT INTO process_input_well VALUES (978, 1521);
+INSERT INTO process_input_well VALUES (979, 1521);
+INSERT INTO process_input_well VALUES (1100, 1623);
+INSERT INTO process_input_well VALUES (1101, 1623);
+INSERT INTO process_input_well VALUES (1102, 1623);
+INSERT INTO process_input_well VALUES (1103, 1623);
+INSERT INTO process_input_well VALUES (1104, 1623);
+INSERT INTO process_input_well VALUES (1105, 1623);
+INSERT INTO process_input_well VALUES (1106, 1623);
+INSERT INTO process_input_well VALUES (1107, 1623);
+INSERT INTO process_input_well VALUES (1108, 1623);
+INSERT INTO process_input_well VALUES (1109, 1623);
+INSERT INTO process_input_well VALUES (1110, 1623);
+INSERT INTO process_input_well VALUES (1111, 1623);
+INSERT INTO process_input_well VALUES (1112, 1623);
+INSERT INTO process_input_well VALUES (1113, 1623);
+INSERT INTO process_input_well VALUES (1114, 1623);
+INSERT INTO process_input_well VALUES (1115, 1623);
+INSERT INTO process_input_well VALUES (1116, 1623);
+INSERT INTO process_input_well VALUES (1117, 1623);
+INSERT INTO process_input_well VALUES (1118, 1623);
+INSERT INTO process_input_well VALUES (1119, 1623);
+INSERT INTO process_input_well VALUES (1120, 1623);
+INSERT INTO process_input_well VALUES (1121, 1623);
+INSERT INTO process_input_well VALUES (1122, 1623);
+INSERT INTO process_input_well VALUES (1123, 1623);
+INSERT INTO process_input_well VALUES (1124, 1623);
+INSERT INTO process_input_well VALUES (1125, 1623);
+INSERT INTO process_input_well VALUES (1126, 1623);
+INSERT INTO process_input_well VALUES (1127, 1623);
+INSERT INTO process_input_well VALUES (1128, 1623);
+INSERT INTO process_input_well VALUES (1129, 1623);
+INSERT INTO process_input_well VALUES (1130, 1623);
+INSERT INTO process_input_well VALUES (1131, 1623);
+INSERT INTO process_input_well VALUES (1132, 1623);
+INSERT INTO process_input_well VALUES (1133, 1623);
+INSERT INTO process_input_well VALUES (1134, 1623);
+INSERT INTO process_input_well VALUES (1135, 1623);
+INSERT INTO process_input_well VALUES (1136, 1623);
+INSERT INTO process_input_well VALUES (1137, 1623);
+INSERT INTO process_input_well VALUES (1138, 1623);
+INSERT INTO process_input_well VALUES (1139, 1623);
+INSERT INTO process_input_well VALUES (1140, 1623);
+INSERT INTO process_input_well VALUES (1141, 1623);
+INSERT INTO process_input_well VALUES (1142, 1623);
+INSERT INTO process_input_well VALUES (1143, 1623);
+INSERT INTO process_input_well VALUES (1144, 1623);
+INSERT INTO process_input_well VALUES (1145, 1623);
+INSERT INTO process_input_well VALUES (1146, 1623);
+INSERT INTO process_input_well VALUES (1147, 1623);
+INSERT INTO process_input_well VALUES (1148, 1623);
+INSERT INTO process_input_well VALUES (1149, 1623);
+INSERT INTO process_input_well VALUES (1150, 1623);
+INSERT INTO process_input_well VALUES (1151, 1623);
+INSERT INTO process_input_well VALUES (1152, 1623);
+INSERT INTO process_input_well VALUES (1153, 1623);
+INSERT INTO process_input_well VALUES (1154, 1623);
+INSERT INTO process_input_well VALUES (1155, 1623);
+INSERT INTO process_input_well VALUES (1156, 1623);
+INSERT INTO process_input_well VALUES (1157, 1623);
+INSERT INTO process_input_well VALUES (1158, 1623);
+INSERT INTO process_input_well VALUES (1159, 1623);
+INSERT INTO process_input_well VALUES (1160, 1623);
+INSERT INTO process_input_well VALUES (1161, 1623);
+INSERT INTO process_input_well VALUES (1162, 1623);
+INSERT INTO process_input_well VALUES (1163, 1623);
+INSERT INTO process_input_well VALUES (1164, 1623);
+INSERT INTO process_input_well VALUES (1165, 1623);
+INSERT INTO process_input_well VALUES (1166, 1623);
+INSERT INTO process_input_well VALUES (1167, 1623);
+INSERT INTO process_input_well VALUES (1168, 1623);
+INSERT INTO process_input_well VALUES (1169, 1623);
+INSERT INTO process_input_well VALUES (1170, 1623);
+INSERT INTO process_input_well VALUES (1171, 1623);
+INSERT INTO process_input_well VALUES (1172, 1623);
+INSERT INTO process_input_well VALUES (1173, 1624);
+INSERT INTO process_input_well VALUES (1174, 1625);
+INSERT INTO process_input_well VALUES (1175, 1626);
+INSERT INTO process_input_well VALUES (1176, 1627);
+INSERT INTO process_input_well VALUES (1177, 1628);
+INSERT INTO process_input_well VALUES (1178, 1629);
+INSERT INTO process_input_well VALUES (1179, 1630);
+INSERT INTO process_input_well VALUES (1180, 1631);
+INSERT INTO process_input_well VALUES (1181, 1632);
+INSERT INTO process_input_well VALUES (1182, 1633);
+INSERT INTO process_input_well VALUES (1183, 1634);
+INSERT INTO process_input_well VALUES (1184, 1635);
+INSERT INTO process_input_well VALUES (1185, 1636);
+INSERT INTO process_input_well VALUES (1186, 1637);
+INSERT INTO process_input_well VALUES (1187, 1638);
+INSERT INTO process_input_well VALUES (1188, 1639);
+INSERT INTO process_input_well VALUES (1189, 1640);
+INSERT INTO process_input_well VALUES (1190, 1641);
+INSERT INTO process_input_well VALUES (1191, 1642);
+INSERT INTO process_input_well VALUES (1192, 1643);
+INSERT INTO process_input_well VALUES (1193, 1644);
+INSERT INTO process_input_well VALUES (1194, 1645);
+INSERT INTO process_input_well VALUES (1195, 1646);
+INSERT INTO process_input_well VALUES (1196, 1647);
+INSERT INTO process_input_well VALUES (1197, 1648);
+INSERT INTO process_input_well VALUES (1198, 1649);
+INSERT INTO process_input_well VALUES (1199, 1650);
+INSERT INTO process_input_well VALUES (1200, 1651);
+INSERT INTO process_input_well VALUES (1201, 1652);
+INSERT INTO process_input_well VALUES (1202, 1653);
+INSERT INTO process_input_well VALUES (1203, 1654);
+INSERT INTO process_input_well VALUES (1204, 1655);
+INSERT INTO process_input_well VALUES (1205, 1656);
+INSERT INTO process_input_well VALUES (1206, 1657);
+INSERT INTO process_input_well VALUES (1207, 1658);
+INSERT INTO process_input_well VALUES (1208, 1659);
+INSERT INTO process_input_well VALUES (1209, 1660);
+INSERT INTO process_input_well VALUES (1210, 1661);
+INSERT INTO process_input_well VALUES (1211, 1662);
+INSERT INTO process_input_well VALUES (1212, 1663);
+INSERT INTO process_input_well VALUES (1213, 1664);
+INSERT INTO process_input_well VALUES (1214, 1665);
+INSERT INTO process_input_well VALUES (1215, 1666);
+INSERT INTO process_input_well VALUES (1216, 1667);
+INSERT INTO process_input_well VALUES (1217, 1668);
+INSERT INTO process_input_well VALUES (1218, 1669);
+INSERT INTO process_input_well VALUES (1219, 1670);
+INSERT INTO process_input_well VALUES (1220, 1671);
+INSERT INTO process_input_well VALUES (1221, 1672);
+INSERT INTO process_input_well VALUES (1222, 1673);
+INSERT INTO process_input_well VALUES (1223, 1674);
+INSERT INTO process_input_well VALUES (1224, 1675);
+INSERT INTO process_input_well VALUES (1225, 1676);
+INSERT INTO process_input_well VALUES (1226, 1677);
+INSERT INTO process_input_well VALUES (1227, 1678);
+INSERT INTO process_input_well VALUES (1228, 1679);
+INSERT INTO process_input_well VALUES (1229, 1680);
+INSERT INTO process_input_well VALUES (1230, 1681);
+INSERT INTO process_input_well VALUES (1231, 1682);
+INSERT INTO process_input_well VALUES (1232, 1683);
+INSERT INTO process_input_well VALUES (1233, 1684);
+INSERT INTO process_input_well VALUES (1234, 1685);
+INSERT INTO process_input_well VALUES (1235, 1686);
+INSERT INTO process_input_well VALUES (1236, 1687);
+INSERT INTO process_input_well VALUES (1237, 1688);
+INSERT INTO process_input_well VALUES (1238, 1689);
+INSERT INTO process_input_well VALUES (1239, 1690);
+INSERT INTO process_input_well VALUES (1240, 1691);
+INSERT INTO process_input_well VALUES (1241, 1692);
+INSERT INTO process_input_well VALUES (1242, 1693);
+INSERT INTO process_input_well VALUES (1243, 1694);
+INSERT INTO process_input_well VALUES (1244, 1695);
+INSERT INTO process_input_well VALUES (1245, 1696);
+INSERT INTO process_input_well VALUES (1246, 1697);
+INSERT INTO process_input_well VALUES (1247, 1698);
+INSERT INTO process_input_well VALUES (1248, 1699);
+INSERT INTO process_input_well VALUES (1249, 1700);
+INSERT INTO process_input_well VALUES (1250, 1701);
+INSERT INTO process_input_well VALUES (1251, 1702);
+INSERT INTO process_input_well VALUES (1252, 1703);
+INSERT INTO process_input_well VALUES (1253, 1704);
+INSERT INTO process_input_well VALUES (1254, 1705);
+INSERT INTO process_input_well VALUES (1255, 1706);
+INSERT INTO process_input_well VALUES (1256, 1707);
+INSERT INTO process_input_well VALUES (1257, 1708);
+INSERT INTO process_input_well VALUES (1258, 1709);
+INSERT INTO process_input_well VALUES (1259, 1710);
 INSERT INTO process_input_well VALUES (980, 1521);
 INSERT INTO process_input_well VALUES (981, 1521);
 INSERT INTO process_input_well VALUES (982, 1521);
@@ -8062,652 +8813,6 @@ INSERT INTO process_input_well VALUES (419, 965);
 INSERT INTO process_input_well VALUES (420, 966);
 INSERT INTO process_input_well VALUES (421, 967);
 INSERT INTO process_input_well VALUES (422, 968);
-INSERT INTO process_input_well VALUES (424, 970);
-INSERT INTO process_input_well VALUES (425, 971);
-INSERT INTO process_input_well VALUES (426, 972);
-INSERT INTO process_input_well VALUES (427, 973);
-INSERT INTO process_input_well VALUES (429, 975);
-INSERT INTO process_input_well VALUES (430, 976);
-INSERT INTO process_input_well VALUES (431, 977);
-INSERT INTO process_input_well VALUES (432, 978);
-INSERT INTO process_input_well VALUES (434, 980);
-INSERT INTO process_input_well VALUES (435, 981);
-INSERT INTO process_input_well VALUES (436, 982);
-INSERT INTO process_input_well VALUES (437, 983);
-INSERT INTO process_input_well VALUES (439, 985);
-INSERT INTO process_input_well VALUES (440, 986);
-INSERT INTO process_input_well VALUES (441, 987);
-INSERT INTO process_input_well VALUES (442, 988);
-INSERT INTO process_input_well VALUES (444, 990);
-INSERT INTO process_input_well VALUES (445, 991);
-INSERT INTO process_input_well VALUES (446, 992);
-INSERT INTO process_input_well VALUES (447, 993);
-INSERT INTO process_input_well VALUES (449, 995);
-INSERT INTO process_input_well VALUES (450, 996);
-INSERT INTO process_input_well VALUES (451, 997);
-INSERT INTO process_input_well VALUES (452, 998);
-INSERT INTO process_input_well VALUES (454, 1000);
-INSERT INTO process_input_well VALUES (455, 1001);
-INSERT INTO process_input_well VALUES (456, 1002);
-INSERT INTO process_input_well VALUES (457, 1003);
-INSERT INTO process_input_well VALUES (459, 1005);
-INSERT INTO process_input_well VALUES (460, 1006);
-INSERT INTO process_input_well VALUES (461, 1007);
-INSERT INTO process_input_well VALUES (462, 1008);
-INSERT INTO process_input_well VALUES (464, 1010);
-INSERT INTO process_input_well VALUES (465, 1011);
-INSERT INTO process_input_well VALUES (466, 1012);
-INSERT INTO process_input_well VALUES (467, 1013);
-INSERT INTO process_input_well VALUES (469, 1015);
-INSERT INTO process_input_well VALUES (470, 1016);
-INSERT INTO process_input_well VALUES (471, 1017);
-INSERT INTO process_input_well VALUES (472, 1018);
-INSERT INTO process_input_well VALUES (474, 1020);
-INSERT INTO process_input_well VALUES (475, 1021);
-INSERT INTO process_input_well VALUES (476, 1022);
-INSERT INTO process_input_well VALUES (477, 1023);
-INSERT INTO process_input_well VALUES (479, 1025);
-INSERT INTO process_input_well VALUES (480, 1026);
-INSERT INTO process_input_well VALUES (481, 1027);
-INSERT INTO process_input_well VALUES (482, 1028);
-INSERT INTO process_input_well VALUES (484, 1030);
-INSERT INTO process_input_well VALUES (485, 1031);
-INSERT INTO process_input_well VALUES (486, 1032);
-INSERT INTO process_input_well VALUES (487, 1033);
-INSERT INTO process_input_well VALUES (489, 1035);
-INSERT INTO process_input_well VALUES (490, 1036);
-INSERT INTO process_input_well VALUES (491, 1037);
-INSERT INTO process_input_well VALUES (492, 1038);
-INSERT INTO process_input_well VALUES (494, 1040);
-INSERT INTO process_input_well VALUES (495, 1041);
-INSERT INTO process_input_well VALUES (496, 1042);
-INSERT INTO process_input_well VALUES (497, 1043);
-INSERT INTO process_input_well VALUES (499, 1045);
-INSERT INTO process_input_well VALUES (500, 1046);
-INSERT INTO process_input_well VALUES (501, 1047);
-INSERT INTO process_input_well VALUES (502, 1048);
-INSERT INTO process_input_well VALUES (504, 1050);
-INSERT INTO process_input_well VALUES (505, 1051);
-INSERT INTO process_input_well VALUES (506, 1052);
-INSERT INTO process_input_well VALUES (507, 1053);
-INSERT INTO process_input_well VALUES (509, 1055);
-INSERT INTO process_input_well VALUES (510, 1056);
-INSERT INTO process_input_well VALUES (511, 1057);
-INSERT INTO process_input_well VALUES (512, 1058);
-INSERT INTO process_input_well VALUES (514, 1060);
-INSERT INTO process_input_well VALUES (515, 1061);
-INSERT INTO process_input_well VALUES (516, 1062);
-INSERT INTO process_input_well VALUES (517, 1063);
-INSERT INTO process_input_well VALUES (519, 1065);
-INSERT INTO process_input_well VALUES (520, 1066);
-INSERT INTO process_input_well VALUES (521, 1067);
-INSERT INTO process_input_well VALUES (522, 1068);
-INSERT INTO process_input_well VALUES (524, 1070);
-INSERT INTO process_input_well VALUES (525, 1071);
-INSERT INTO process_input_well VALUES (526, 1072);
-INSERT INTO process_input_well VALUES (527, 1073);
-INSERT INTO process_input_well VALUES (529, 1075);
-INSERT INTO process_input_well VALUES (530, 1076);
-INSERT INTO process_input_well VALUES (531, 1077);
-INSERT INTO process_input_well VALUES (532, 1078);
-INSERT INTO process_input_well VALUES (534, 1080);
-INSERT INTO process_input_well VALUES (535, 1081);
-INSERT INTO process_input_well VALUES (536, 1082);
-INSERT INTO process_input_well VALUES (537, 1083);
-INSERT INTO process_input_well VALUES (539, 1085);
-INSERT INTO process_input_well VALUES (540, 1086);
-INSERT INTO process_input_well VALUES (541, 1087);
-INSERT INTO process_input_well VALUES (542, 1088);
-INSERT INTO process_input_well VALUES (544, 1090);
-INSERT INTO process_input_well VALUES (545, 1091);
-INSERT INTO process_input_well VALUES (546, 1092);
-INSERT INTO process_input_well VALUES (547, 1093);
-INSERT INTO process_input_well VALUES (549, 1095);
-INSERT INTO process_input_well VALUES (550, 1096);
-INSERT INTO process_input_well VALUES (551, 1097);
-INSERT INTO process_input_well VALUES (552, 1098);
-INSERT INTO process_input_well VALUES (554, 1100);
-INSERT INTO process_input_well VALUES (555, 1101);
-INSERT INTO process_input_well VALUES (556, 1102);
-INSERT INTO process_input_well VALUES (557, 1103);
-INSERT INTO process_input_well VALUES (559, 1105);
-INSERT INTO process_input_well VALUES (560, 1106);
-INSERT INTO process_input_well VALUES (561, 1107);
-INSERT INTO process_input_well VALUES (562, 1108);
-INSERT INTO process_input_well VALUES (564, 1110);
-INSERT INTO process_input_well VALUES (565, 1111);
-INSERT INTO process_input_well VALUES (566, 1112);
-INSERT INTO process_input_well VALUES (567, 1113);
-INSERT INTO process_input_well VALUES (569, 1115);
-INSERT INTO process_input_well VALUES (570, 1116);
-INSERT INTO process_input_well VALUES (571, 1117);
-INSERT INTO process_input_well VALUES (572, 1118);
-INSERT INTO process_input_well VALUES (574, 1120);
-INSERT INTO process_input_well VALUES (575, 1121);
-INSERT INTO process_input_well VALUES (576, 1122);
-INSERT INTO process_input_well VALUES (577, 1123);
-INSERT INTO process_input_well VALUES (579, 1125);
-INSERT INTO process_input_well VALUES (580, 1126);
-INSERT INTO process_input_well VALUES (581, 1127);
-INSERT INTO process_input_well VALUES (582, 1128);
-INSERT INTO process_input_well VALUES (584, 1130);
-INSERT INTO process_input_well VALUES (585, 1131);
-INSERT INTO process_input_well VALUES (586, 1132);
-INSERT INTO process_input_well VALUES (587, 1133);
-INSERT INTO process_input_well VALUES (589, 1135);
-INSERT INTO process_input_well VALUES (590, 1136);
-INSERT INTO process_input_well VALUES (591, 1137);
-INSERT INTO process_input_well VALUES (592, 1138);
-INSERT INTO process_input_well VALUES (594, 1140);
-INSERT INTO process_input_well VALUES (595, 1141);
-INSERT INTO process_input_well VALUES (596, 1142);
-INSERT INTO process_input_well VALUES (597, 1143);
-INSERT INTO process_input_well VALUES (599, 1145);
-INSERT INTO process_input_well VALUES (600, 1146);
-INSERT INTO process_input_well VALUES (601, 1147);
-INSERT INTO process_input_well VALUES (602, 1148);
-INSERT INTO process_input_well VALUES (604, 1150);
-INSERT INTO process_input_well VALUES (605, 1151);
-INSERT INTO process_input_well VALUES (606, 1152);
-INSERT INTO process_input_well VALUES (607, 1153);
-INSERT INTO process_input_well VALUES (609, 1155);
-INSERT INTO process_input_well VALUES (610, 1156);
-INSERT INTO process_input_well VALUES (611, 1157);
-INSERT INTO process_input_well VALUES (612, 1158);
-INSERT INTO process_input_well VALUES (614, 1160);
-INSERT INTO process_input_well VALUES (615, 1161);
-INSERT INTO process_input_well VALUES (616, 1162);
-INSERT INTO process_input_well VALUES (617, 1163);
-INSERT INTO process_input_well VALUES (619, 1165);
-INSERT INTO process_input_well VALUES (620, 1166);
-INSERT INTO process_input_well VALUES (621, 1167);
-INSERT INTO process_input_well VALUES (622, 1168);
-INSERT INTO process_input_well VALUES (624, 1170);
-INSERT INTO process_input_well VALUES (625, 1171);
-INSERT INTO process_input_well VALUES (626, 1172);
-INSERT INTO process_input_well VALUES (627, 1173);
-INSERT INTO process_input_well VALUES (629, 1175);
-INSERT INTO process_input_well VALUES (630, 1176);
-INSERT INTO process_input_well VALUES (631, 1177);
-INSERT INTO process_input_well VALUES (632, 1178);
-INSERT INTO process_input_well VALUES (634, 1180);
-INSERT INTO process_input_well VALUES (635, 1181);
-INSERT INTO process_input_well VALUES (636, 1182);
-INSERT INTO process_input_well VALUES (637, 1183);
-INSERT INTO process_input_well VALUES (639, 1185);
-INSERT INTO process_input_well VALUES (640, 1186);
-INSERT INTO process_input_well VALUES (641, 1187);
-INSERT INTO process_input_well VALUES (642, 1188);
-INSERT INTO process_input_well VALUES (644, 1190);
-INSERT INTO process_input_well VALUES (645, 1191);
-INSERT INTO process_input_well VALUES (646, 1192);
-INSERT INTO process_input_well VALUES (647, 1193);
-INSERT INTO process_input_well VALUES (649, 1195);
-INSERT INTO process_input_well VALUES (650, 1196);
-INSERT INTO process_input_well VALUES (651, 1197);
-INSERT INTO process_input_well VALUES (652, 1198);
-INSERT INTO process_input_well VALUES (654, 1200);
-INSERT INTO process_input_well VALUES (655, 1201);
-INSERT INTO process_input_well VALUES (656, 1202);
-INSERT INTO process_input_well VALUES (657, 1203);
-INSERT INTO process_input_well VALUES (659, 1205);
-INSERT INTO process_input_well VALUES (660, 1206);
-INSERT INTO process_input_well VALUES (661, 1207);
-INSERT INTO process_input_well VALUES (662, 1208);
-INSERT INTO process_input_well VALUES (664, 1210);
-INSERT INTO process_input_well VALUES (665, 1211);
-INSERT INTO process_input_well VALUES (666, 1212);
-INSERT INTO process_input_well VALUES (667, 1213);
-INSERT INTO process_input_well VALUES (669, 1215);
-INSERT INTO process_input_well VALUES (670, 1216);
-INSERT INTO process_input_well VALUES (671, 1217);
-INSERT INTO process_input_well VALUES (672, 1218);
-INSERT INTO process_input_well VALUES (674, 1220);
-INSERT INTO process_input_well VALUES (675, 1221);
-INSERT INTO process_input_well VALUES (676, 1222);
-INSERT INTO process_input_well VALUES (677, 1223);
-INSERT INTO process_input_well VALUES (679, 1225);
-INSERT INTO process_input_well VALUES (680, 1226);
-INSERT INTO process_input_well VALUES (681, 1227);
-INSERT INTO process_input_well VALUES (682, 1228);
-INSERT INTO process_input_well VALUES (684, 1230);
-INSERT INTO process_input_well VALUES (685, 1231);
-INSERT INTO process_input_well VALUES (686, 1232);
-INSERT INTO process_input_well VALUES (687, 1233);
-INSERT INTO process_input_well VALUES (689, 1235);
-INSERT INTO process_input_well VALUES (690, 1236);
-INSERT INTO process_input_well VALUES (691, 1237);
-INSERT INTO process_input_well VALUES (692, 1238);
-INSERT INTO process_input_well VALUES (694, 1240);
-INSERT INTO process_input_well VALUES (695, 1241);
-INSERT INTO process_input_well VALUES (696, 1242);
-INSERT INTO process_input_well VALUES (697, 1243);
-INSERT INTO process_input_well VALUES (699, 1245);
-INSERT INTO process_input_well VALUES (700, 1246);
-INSERT INTO process_input_well VALUES (701, 1247);
-INSERT INTO process_input_well VALUES (702, 1248);
-INSERT INTO process_input_well VALUES (704, 1250);
-INSERT INTO process_input_well VALUES (705, 1251);
-INSERT INTO process_input_well VALUES (706, 1252);
-INSERT INTO process_input_well VALUES (707, 1253);
-INSERT INTO process_input_well VALUES (709, 1255);
-INSERT INTO process_input_well VALUES (710, 1256);
-INSERT INTO process_input_well VALUES (711, 1257);
-INSERT INTO process_input_well VALUES (712, 1258);
-INSERT INTO process_input_well VALUES (714, 1260);
-INSERT INTO process_input_well VALUES (715, 1261);
-INSERT INTO process_input_well VALUES (716, 1262);
-INSERT INTO process_input_well VALUES (717, 1263);
-INSERT INTO process_input_well VALUES (719, 1265);
-INSERT INTO process_input_well VALUES (720, 1266);
-INSERT INTO process_input_well VALUES (721, 1267);
-INSERT INTO process_input_well VALUES (722, 1268);
-INSERT INTO process_input_well VALUES (724, 1270);
-INSERT INTO process_input_well VALUES (725, 1271);
-INSERT INTO process_input_well VALUES (726, 1272);
-INSERT INTO process_input_well VALUES (727, 1273);
-INSERT INTO process_input_well VALUES (729, 1275);
-INSERT INTO process_input_well VALUES (730, 1276);
-INSERT INTO process_input_well VALUES (731, 1277);
-INSERT INTO process_input_well VALUES (732, 1278);
-INSERT INTO process_input_well VALUES (734, 1280);
-INSERT INTO process_input_well VALUES (735, 1281);
-INSERT INTO process_input_well VALUES (736, 1282);
-INSERT INTO process_input_well VALUES (737, 1283);
-INSERT INTO process_input_well VALUES (739, 1285);
-INSERT INTO process_input_well VALUES (740, 1286);
-INSERT INTO process_input_well VALUES (741, 1287);
-INSERT INTO process_input_well VALUES (742, 1288);
-INSERT INTO process_input_well VALUES (744, 1290);
-INSERT INTO process_input_well VALUES (745, 1291);
-INSERT INTO process_input_well VALUES (746, 1292);
-INSERT INTO process_input_well VALUES (747, 1293);
-INSERT INTO process_input_well VALUES (749, 1295);
-INSERT INTO process_input_well VALUES (750, 1296);
-INSERT INTO process_input_well VALUES (751, 1297);
-INSERT INTO process_input_well VALUES (752, 1298);
-INSERT INTO process_input_well VALUES (754, 1300);
-INSERT INTO process_input_well VALUES (755, 1301);
-INSERT INTO process_input_well VALUES (756, 1302);
-INSERT INTO process_input_well VALUES (757, 1303);
-INSERT INTO process_input_well VALUES (759, 1305);
-INSERT INTO process_input_well VALUES (760, 1306);
-INSERT INTO process_input_well VALUES (761, 1307);
-INSERT INTO process_input_well VALUES (762, 1308);
-INSERT INTO process_input_well VALUES (764, 1310);
-INSERT INTO process_input_well VALUES (765, 1311);
-INSERT INTO process_input_well VALUES (766, 1312);
-INSERT INTO process_input_well VALUES (767, 1313);
-INSERT INTO process_input_well VALUES (769, 1315);
-INSERT INTO process_input_well VALUES (770, 1316);
-INSERT INTO process_input_well VALUES (771, 1317);
-INSERT INTO process_input_well VALUES (772, 1318);
-INSERT INTO process_input_well VALUES (774, 1320);
-INSERT INTO process_input_well VALUES (775, 1321);
-INSERT INTO process_input_well VALUES (776, 1322);
-INSERT INTO process_input_well VALUES (777, 1323);
-INSERT INTO process_input_well VALUES (778, 1052);
-INSERT INTO process_input_well VALUES (779, 1325);
-INSERT INTO process_input_well VALUES (780, 927);
-INSERT INTO process_input_well VALUES (781, 1327);
-INSERT INTO process_input_well VALUES (782, 1282);
-INSERT INTO process_input_well VALUES (783, 1329);
-INSERT INTO process_input_well VALUES (784, 1132);
-INSERT INTO process_input_well VALUES (785, 1331);
-INSERT INTO process_input_well VALUES (786, 1007);
-INSERT INTO process_input_well VALUES (787, 1333);
-INSERT INTO process_input_well VALUES (788, 1077);
-INSERT INTO process_input_well VALUES (789, 1335);
-INSERT INTO process_input_well VALUES (790, 1142);
-INSERT INTO process_input_well VALUES (791, 1337);
-INSERT INTO process_input_well VALUES (792, 1137);
-INSERT INTO process_input_well VALUES (793, 1339);
-INSERT INTO process_input_well VALUES (794, 1027);
-INSERT INTO process_input_well VALUES (795, 1341);
-INSERT INTO process_input_well VALUES (796, 1062);
-INSERT INTO process_input_well VALUES (797, 1343);
-INSERT INTO process_input_well VALUES (798, 1092);
-INSERT INTO process_input_well VALUES (799, 1345);
-INSERT INTO process_input_well VALUES (800, 1307);
-INSERT INTO process_input_well VALUES (801, 1347);
-INSERT INTO process_input_well VALUES (802, 867);
-INSERT INTO process_input_well VALUES (803, 1349);
-INSERT INTO process_input_well VALUES (804, 902);
-INSERT INTO process_input_well VALUES (805, 1351);
-INSERT INTO process_input_well VALUES (806, 897);
-INSERT INTO process_input_well VALUES (807, 1353);
-INSERT INTO process_input_well VALUES (808, 1187);
-INSERT INTO process_input_well VALUES (809, 1355);
-INSERT INTO process_input_well VALUES (810, 932);
-INSERT INTO process_input_well VALUES (811, 1357);
-INSERT INTO process_input_well VALUES (812, 957);
-INSERT INTO process_input_well VALUES (813, 1359);
-INSERT INTO process_input_well VALUES (814, 907);
-INSERT INTO process_input_well VALUES (815, 1361);
-INSERT INTO process_input_well VALUES (816, 1107);
-INSERT INTO process_input_well VALUES (817, 1363);
-INSERT INTO process_input_well VALUES (818, 1232);
-INSERT INTO process_input_well VALUES (819, 1365);
-INSERT INTO process_input_well VALUES (820, 992);
-INSERT INTO process_input_well VALUES (821, 1367);
-INSERT INTO process_input_well VALUES (822, 1042);
-INSERT INTO process_input_well VALUES (823, 1369);
-INSERT INTO process_input_well VALUES (824, 1277);
-INSERT INTO process_input_well VALUES (825, 1371);
-INSERT INTO process_input_well VALUES (826, 977);
-INSERT INTO process_input_well VALUES (827, 1373);
-INSERT INTO process_input_well VALUES (828, 1237);
-INSERT INTO process_input_well VALUES (829, 1375);
-INSERT INTO process_input_well VALUES (830, 1017);
-INSERT INTO process_input_well VALUES (831, 1377);
-INSERT INTO process_input_well VALUES (832, 1212);
-INSERT INTO process_input_well VALUES (833, 1379);
-INSERT INTO process_input_well VALUES (834, 1022);
-INSERT INTO process_input_well VALUES (835, 1381);
-INSERT INTO process_input_well VALUES (836, 972);
-INSERT INTO process_input_well VALUES (837, 1383);
-INSERT INTO process_input_well VALUES (838, 1032);
-INSERT INTO process_input_well VALUES (839, 1385);
-INSERT INTO process_input_well VALUES (840, 1322);
-INSERT INTO process_input_well VALUES (841, 1387);
-INSERT INTO process_input_well VALUES (842, 1157);
-INSERT INTO process_input_well VALUES (843, 1389);
-INSERT INTO process_input_well VALUES (844, 1152);
-INSERT INTO process_input_well VALUES (845, 1391);
-INSERT INTO process_input_well VALUES (846, 872);
-INSERT INTO process_input_well VALUES (847, 1393);
-INSERT INTO process_input_well VALUES (848, 1002);
-INSERT INTO process_input_well VALUES (849, 1395);
-INSERT INTO process_input_well VALUES (850, 967);
-INSERT INTO process_input_well VALUES (851, 1397);
-INSERT INTO process_input_well VALUES (852, 922);
-INSERT INTO process_input_well VALUES (853, 1399);
-INSERT INTO process_input_well VALUES (854, 952);
-INSERT INTO process_input_well VALUES (855, 1401);
-INSERT INTO process_input_well VALUES (856, 847);
-INSERT INTO process_input_well VALUES (857, 1403);
-INSERT INTO process_input_well VALUES (858, 912);
-INSERT INTO process_input_well VALUES (859, 1405);
-INSERT INTO process_input_well VALUES (860, 1242);
-INSERT INTO process_input_well VALUES (861, 1407);
-INSERT INTO process_input_well VALUES (862, 1247);
-INSERT INTO process_input_well VALUES (863, 1409);
-INSERT INTO process_input_well VALUES (864, 1112);
-INSERT INTO process_input_well VALUES (865, 1411);
-INSERT INTO process_input_well VALUES (866, 1082);
-INSERT INTO process_input_well VALUES (867, 1413);
-INSERT INTO process_input_well VALUES (868, 1067);
-INSERT INTO process_input_well VALUES (869, 1415);
-INSERT INTO process_input_well VALUES (870, 1057);
-INSERT INTO process_input_well VALUES (871, 1417);
-INSERT INTO process_input_well VALUES (872, 1297);
-INSERT INTO process_input_well VALUES (873, 1419);
-INSERT INTO process_input_well VALUES (874, 1222);
-INSERT INTO process_input_well VALUES (875, 1421);
-INSERT INTO process_input_well VALUES (876, 1252);
-INSERT INTO process_input_well VALUES (877, 1423);
-INSERT INTO process_input_well VALUES (878, 1182);
-INSERT INTO process_input_well VALUES (879, 1425);
-INSERT INTO process_input_well VALUES (880, 1257);
-INSERT INTO process_input_well VALUES (881, 1427);
-INSERT INTO process_input_well VALUES (882, 1227);
-INSERT INTO process_input_well VALUES (883, 1429);
-INSERT INTO process_input_well VALUES (884, 877);
-INSERT INTO process_input_well VALUES (885, 1431);
-INSERT INTO process_input_well VALUES (886, 1102);
-INSERT INTO process_input_well VALUES (887, 1433);
-INSERT INTO process_input_well VALUES (888, 1012);
-INSERT INTO process_input_well VALUES (889, 1435);
-INSERT INTO process_input_well VALUES (890, 1287);
-INSERT INTO process_input_well VALUES (891, 1437);
-INSERT INTO process_input_well VALUES (892, 1262);
-INSERT INTO process_input_well VALUES (893, 1439);
-INSERT INTO process_input_well VALUES (894, 1117);
-INSERT INTO process_input_well VALUES (895, 1441);
-INSERT INTO process_input_well VALUES (896, 1197);
-INSERT INTO process_input_well VALUES (897, 1443);
-INSERT INTO process_input_well VALUES (898, 892);
-INSERT INTO process_input_well VALUES (899, 1445);
-INSERT INTO process_input_well VALUES (900, 1177);
-INSERT INTO process_input_well VALUES (901, 1447);
-INSERT INTO process_input_well VALUES (902, 1162);
-INSERT INTO process_input_well VALUES (903, 1449);
-INSERT INTO process_input_well VALUES (904, 862);
-INSERT INTO process_input_well VALUES (905, 1451);
-INSERT INTO process_input_well VALUES (906, 917);
-INSERT INTO process_input_well VALUES (907, 1453);
-INSERT INTO process_input_well VALUES (908, 857);
-INSERT INTO process_input_well VALUES (909, 1455);
-INSERT INTO process_input_well VALUES (910, 887);
-INSERT INTO process_input_well VALUES (911, 1457);
-INSERT INTO process_input_well VALUES (912, 1037);
-INSERT INTO process_input_well VALUES (913, 1459);
-INSERT INTO process_input_well VALUES (914, 987);
-INSERT INTO process_input_well VALUES (915, 1461);
-INSERT INTO process_input_well VALUES (916, 1167);
-INSERT INTO process_input_well VALUES (917, 1463);
-INSERT INTO process_input_well VALUES (918, 1292);
-INSERT INTO process_input_well VALUES (919, 1465);
-INSERT INTO process_input_well VALUES (920, 1302);
-INSERT INTO process_input_well VALUES (921, 1467);
-INSERT INTO process_input_well VALUES (922, 947);
-INSERT INTO process_input_well VALUES (923, 1469);
-INSERT INTO process_input_well VALUES (924, 1127);
-INSERT INTO process_input_well VALUES (925, 1471);
-INSERT INTO process_input_well VALUES (926, 882);
-INSERT INTO process_input_well VALUES (927, 1473);
-INSERT INTO process_input_well VALUES (928, 942);
-INSERT INTO process_input_well VALUES (929, 1475);
-INSERT INTO process_input_well VALUES (930, 1217);
-INSERT INTO process_input_well VALUES (931, 1477);
-INSERT INTO process_input_well VALUES (932, 1147);
-INSERT INTO process_input_well VALUES (933, 1479);
-INSERT INTO process_input_well VALUES (934, 1312);
-INSERT INTO process_input_well VALUES (935, 1481);
-INSERT INTO process_input_well VALUES (936, 1192);
-INSERT INTO process_input_well VALUES (937, 1483);
-INSERT INTO process_input_well VALUES (938, 1172);
-INSERT INTO process_input_well VALUES (939, 1485);
-INSERT INTO process_input_well VALUES (940, 1317);
-INSERT INTO process_input_well VALUES (941, 1487);
-INSERT INTO process_input_well VALUES (942, 997);
-INSERT INTO process_input_well VALUES (943, 1489);
-INSERT INTO process_input_well VALUES (944, 1272);
-INSERT INTO process_input_well VALUES (945, 1491);
-INSERT INTO process_input_well VALUES (946, 1122);
-INSERT INTO process_input_well VALUES (947, 1493);
-INSERT INTO process_input_well VALUES (948, 937);
-INSERT INTO process_input_well VALUES (949, 1495);
-INSERT INTO process_input_well VALUES (950, 962);
-INSERT INTO process_input_well VALUES (951, 1497);
-INSERT INTO process_input_well VALUES (952, 982);
-INSERT INTO process_input_well VALUES (953, 1499);
-INSERT INTO process_input_well VALUES (954, 1087);
-INSERT INTO process_input_well VALUES (955, 1501);
-INSERT INTO process_input_well VALUES (956, 852);
-INSERT INTO process_input_well VALUES (957, 1503);
-INSERT INTO process_input_well VALUES (958, 1207);
-INSERT INTO process_input_well VALUES (959, 1505);
-INSERT INTO process_input_well VALUES (960, 1202);
-INSERT INTO process_input_well VALUES (961, 1507);
-INSERT INTO process_input_well VALUES (962, 1072);
-INSERT INTO process_input_well VALUES (963, 1509);
-INSERT INTO process_input_well VALUES (964, 1267);
-INSERT INTO process_input_well VALUES (965, 1511);
-INSERT INTO process_input_well VALUES (966, 1097);
-INSERT INTO process_input_well VALUES (967, 1513);
-INSERT INTO process_input_well VALUES (968, 1047);
-INSERT INTO process_input_well VALUES (969, 1515);
-INSERT INTO process_input_well VALUES (970, 939);
-INSERT INTO process_input_well VALUES (971, 1009);
-INSERT INTO process_input_well VALUES (972, 1079);
-INSERT INTO process_input_well VALUES (973, 1189);
-INSERT INTO process_input_well VALUES (974, 934);
-INSERT INTO process_input_well VALUES (975, 1521);
-INSERT INTO process_input_well VALUES (976, 1521);
-INSERT INTO process_input_well VALUES (977, 1521);
-INSERT INTO process_input_well VALUES (978, 1521);
-INSERT INTO process_input_well VALUES (979, 1521);
-INSERT INTO process_input_well VALUES (1100, 1623);
-INSERT INTO process_input_well VALUES (1101, 1623);
-INSERT INTO process_input_well VALUES (1102, 1623);
-INSERT INTO process_input_well VALUES (1103, 1623);
-INSERT INTO process_input_well VALUES (1104, 1623);
-INSERT INTO process_input_well VALUES (1105, 1623);
-INSERT INTO process_input_well VALUES (1106, 1623);
-INSERT INTO process_input_well VALUES (1107, 1623);
-INSERT INTO process_input_well VALUES (1108, 1623);
-INSERT INTO process_input_well VALUES (1109, 1623);
-INSERT INTO process_input_well VALUES (1110, 1623);
-INSERT INTO process_input_well VALUES (1111, 1623);
-INSERT INTO process_input_well VALUES (1112, 1623);
-INSERT INTO process_input_well VALUES (1113, 1623);
-INSERT INTO process_input_well VALUES (1114, 1623);
-INSERT INTO process_input_well VALUES (1115, 1623);
-INSERT INTO process_input_well VALUES (1116, 1623);
-INSERT INTO process_input_well VALUES (1117, 1623);
-INSERT INTO process_input_well VALUES (1118, 1623);
-INSERT INTO process_input_well VALUES (1119, 1623);
-INSERT INTO process_input_well VALUES (1120, 1623);
-INSERT INTO process_input_well VALUES (1121, 1623);
-INSERT INTO process_input_well VALUES (1122, 1623);
-INSERT INTO process_input_well VALUES (1123, 1623);
-INSERT INTO process_input_well VALUES (1124, 1623);
-INSERT INTO process_input_well VALUES (1125, 1623);
-INSERT INTO process_input_well VALUES (1126, 1623);
-INSERT INTO process_input_well VALUES (1127, 1623);
-INSERT INTO process_input_well VALUES (1128, 1623);
-INSERT INTO process_input_well VALUES (1129, 1623);
-INSERT INTO process_input_well VALUES (1130, 1623);
-INSERT INTO process_input_well VALUES (1131, 1623);
-INSERT INTO process_input_well VALUES (1132, 1623);
-INSERT INTO process_input_well VALUES (1133, 1623);
-INSERT INTO process_input_well VALUES (1134, 1623);
-INSERT INTO process_input_well VALUES (1135, 1623);
-INSERT INTO process_input_well VALUES (1136, 1623);
-INSERT INTO process_input_well VALUES (1137, 1623);
-INSERT INTO process_input_well VALUES (1138, 1623);
-INSERT INTO process_input_well VALUES (1139, 1623);
-INSERT INTO process_input_well VALUES (1140, 1623);
-INSERT INTO process_input_well VALUES (1141, 1623);
-INSERT INTO process_input_well VALUES (1142, 1623);
-INSERT INTO process_input_well VALUES (1143, 1623);
-INSERT INTO process_input_well VALUES (1144, 1623);
-INSERT INTO process_input_well VALUES (1145, 1623);
-INSERT INTO process_input_well VALUES (1146, 1623);
-INSERT INTO process_input_well VALUES (1147, 1623);
-INSERT INTO process_input_well VALUES (1148, 1623);
-INSERT INTO process_input_well VALUES (1149, 1623);
-INSERT INTO process_input_well VALUES (1150, 1623);
-INSERT INTO process_input_well VALUES (1151, 1623);
-INSERT INTO process_input_well VALUES (1152, 1623);
-INSERT INTO process_input_well VALUES (1153, 1623);
-INSERT INTO process_input_well VALUES (1154, 1623);
-INSERT INTO process_input_well VALUES (1155, 1623);
-INSERT INTO process_input_well VALUES (1156, 1623);
-INSERT INTO process_input_well VALUES (1157, 1623);
-INSERT INTO process_input_well VALUES (1158, 1623);
-INSERT INTO process_input_well VALUES (1159, 1623);
-INSERT INTO process_input_well VALUES (1160, 1623);
-INSERT INTO process_input_well VALUES (1161, 1623);
-INSERT INTO process_input_well VALUES (1162, 1623);
-INSERT INTO process_input_well VALUES (1163, 1623);
-INSERT INTO process_input_well VALUES (1164, 1623);
-INSERT INTO process_input_well VALUES (1165, 1623);
-INSERT INTO process_input_well VALUES (1166, 1623);
-INSERT INTO process_input_well VALUES (1167, 1623);
-INSERT INTO process_input_well VALUES (1168, 1623);
-INSERT INTO process_input_well VALUES (1169, 1623);
-INSERT INTO process_input_well VALUES (1170, 1623);
-INSERT INTO process_input_well VALUES (1171, 1623);
-INSERT INTO process_input_well VALUES (1172, 1623);
-INSERT INTO process_input_well VALUES (1173, 1624);
-INSERT INTO process_input_well VALUES (1174, 1625);
-INSERT INTO process_input_well VALUES (1175, 1626);
-INSERT INTO process_input_well VALUES (1176, 1627);
-INSERT INTO process_input_well VALUES (1177, 1628);
-INSERT INTO process_input_well VALUES (1178, 1629);
-INSERT INTO process_input_well VALUES (1179, 1630);
-INSERT INTO process_input_well VALUES (1180, 1631);
-INSERT INTO process_input_well VALUES (1181, 1632);
-INSERT INTO process_input_well VALUES (1182, 1633);
-INSERT INTO process_input_well VALUES (1183, 1634);
-INSERT INTO process_input_well VALUES (1184, 1635);
-INSERT INTO process_input_well VALUES (1185, 1636);
-INSERT INTO process_input_well VALUES (1186, 1637);
-INSERT INTO process_input_well VALUES (1187, 1638);
-INSERT INTO process_input_well VALUES (1188, 1639);
-INSERT INTO process_input_well VALUES (1189, 1640);
-INSERT INTO process_input_well VALUES (1190, 1641);
-INSERT INTO process_input_well VALUES (1191, 1642);
-INSERT INTO process_input_well VALUES (1192, 1643);
-INSERT INTO process_input_well VALUES (1193, 1644);
-INSERT INTO process_input_well VALUES (1194, 1645);
-INSERT INTO process_input_well VALUES (1195, 1646);
-INSERT INTO process_input_well VALUES (1196, 1647);
-INSERT INTO process_input_well VALUES (1197, 1648);
-INSERT INTO process_input_well VALUES (1198, 1649);
-INSERT INTO process_input_well VALUES (1199, 1650);
-INSERT INTO process_input_well VALUES (1200, 1651);
-INSERT INTO process_input_well VALUES (1201, 1652);
-INSERT INTO process_input_well VALUES (1202, 1653);
-INSERT INTO process_input_well VALUES (1203, 1654);
-INSERT INTO process_input_well VALUES (1204, 1655);
-INSERT INTO process_input_well VALUES (1205, 1656);
-INSERT INTO process_input_well VALUES (1206, 1657);
-INSERT INTO process_input_well VALUES (1207, 1658);
-INSERT INTO process_input_well VALUES (1208, 1659);
-INSERT INTO process_input_well VALUES (1209, 1660);
-INSERT INTO process_input_well VALUES (1210, 1661);
-INSERT INTO process_input_well VALUES (1211, 1662);
-INSERT INTO process_input_well VALUES (1212, 1663);
-INSERT INTO process_input_well VALUES (1213, 1664);
-INSERT INTO process_input_well VALUES (1214, 1665);
-INSERT INTO process_input_well VALUES (1215, 1666);
-INSERT INTO process_input_well VALUES (1216, 1667);
-INSERT INTO process_input_well VALUES (1217, 1668);
-INSERT INTO process_input_well VALUES (1218, 1669);
-INSERT INTO process_input_well VALUES (1219, 1670);
-INSERT INTO process_input_well VALUES (1220, 1671);
-INSERT INTO process_input_well VALUES (1221, 1672);
-INSERT INTO process_input_well VALUES (1222, 1673);
-INSERT INTO process_input_well VALUES (1223, 1674);
-INSERT INTO process_input_well VALUES (1224, 1675);
-INSERT INTO process_input_well VALUES (1225, 1676);
-INSERT INTO process_input_well VALUES (1226, 1677);
-INSERT INTO process_input_well VALUES (1227, 1678);
-INSERT INTO process_input_well VALUES (1228, 1679);
-INSERT INTO process_input_well VALUES (1229, 1680);
-INSERT INTO process_input_well VALUES (1230, 1681);
-INSERT INTO process_input_well VALUES (1231, 1682);
-INSERT INTO process_input_well VALUES (1232, 1683);
-INSERT INTO process_input_well VALUES (1233, 1684);
-INSERT INTO process_input_well VALUES (1234, 1685);
-INSERT INTO process_input_well VALUES (1235, 1686);
-INSERT INTO process_input_well VALUES (1236, 1687);
-INSERT INTO process_input_well VALUES (1237, 1688);
-INSERT INTO process_input_well VALUES (1238, 1689);
-INSERT INTO process_input_well VALUES (1239, 1690);
-INSERT INTO process_input_well VALUES (1240, 1691);
-INSERT INTO process_input_well VALUES (1241, 1692);
-INSERT INTO process_input_well VALUES (1242, 1693);
-INSERT INTO process_input_well VALUES (1243, 1694);
-INSERT INTO process_input_well VALUES (1244, 1695);
-INSERT INTO process_input_well VALUES (1245, 1696);
-INSERT INTO process_input_well VALUES (1246, 1697);
-INSERT INTO process_input_well VALUES (1247, 1698);
-INSERT INTO process_input_well VALUES (1248, 1699);
-INSERT INTO process_input_well VALUES (1249, 1700);
-INSERT INTO process_input_well VALUES (1250, 1701);
-INSERT INTO process_input_well VALUES (1251, 1702);
-INSERT INTO process_input_well VALUES (1252, 1703);
-INSERT INTO process_input_well VALUES (1253, 1704);
-INSERT INTO process_input_well VALUES (1254, 1705);
-INSERT INTO process_input_well VALUES (1255, 1706);
-INSERT INTO process_input_well VALUES (1256, 1707);
-INSERT INTO process_input_well VALUES (1257, 1708);
-INSERT INTO process_input_well VALUES (1258, 1709);
-INSERT INTO process_input_well VALUES (1259, 1710);
 INSERT INTO process_input_well VALUES (1260, 1711);
 INSERT INTO process_input_well VALUES (1261, 1712);
 INSERT INTO process_input_well VALUES (1262, 1713);
@@ -8740,6 +8845,14 @@ INSERT INTO process_input_well VALUES (1288, 1855);
 -- Data for Name: process_output_well; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO process_output_well VALUES (1289, 1869);
+INSERT INTO process_output_well VALUES (1290, 1870);
+INSERT INTO process_output_well VALUES (1291, 1871);
+INSERT INTO process_output_well VALUES (1292, 1872);
+INSERT INTO process_output_well VALUES (1293, 1873);
+INSERT INTO process_output_well VALUES (1294, 1874);
+INSERT INTO process_output_well VALUES (1295, 1875);
+INSERT INTO process_output_well VALUES (1296, 1876);
 INSERT INTO process_output_well VALUES (1269, 1816);
 INSERT INTO process_output_well VALUES (298, 845);
 INSERT INTO process_output_well VALUES (299, 846);
@@ -8950,6 +9063,9 @@ INSERT INTO process_output_well VALUES (503, 1050);
 INSERT INTO process_output_well VALUES (504, 1051);
 INSERT INTO process_output_well VALUES (505, 1052);
 INSERT INTO process_output_well VALUES (506, 1053);
+INSERT INTO process_output_well VALUES (1297, 1877);
+INSERT INTO process_output_well VALUES (1298, 1878);
+INSERT INTO process_output_well VALUES (1299, 1879);
 INSERT INTO process_output_well VALUES (507, 1054);
 INSERT INTO process_output_well VALUES (508, 1055);
 INSERT INTO process_output_well VALUES (509, 1056);
@@ -9173,6 +9289,31 @@ INSERT INTO process_output_well VALUES (726, 1273);
 INSERT INTO process_output_well VALUES (727, 1274);
 INSERT INTO process_output_well VALUES (728, 1275);
 INSERT INTO process_output_well VALUES (729, 1276);
+INSERT INTO process_output_well VALUES (1300, 1880);
+INSERT INTO process_output_well VALUES (1301, 1881);
+INSERT INTO process_output_well VALUES (1302, 1882);
+INSERT INTO process_output_well VALUES (1303, 1883);
+INSERT INTO process_output_well VALUES (1304, 1884);
+INSERT INTO process_output_well VALUES (1305, 1885);
+INSERT INTO process_output_well VALUES (1306, 1886);
+INSERT INTO process_output_well VALUES (1307, 1887);
+INSERT INTO process_output_well VALUES (1308, 1888);
+INSERT INTO process_output_well VALUES (1309, 1889);
+INSERT INTO process_output_well VALUES (1310, 1890);
+INSERT INTO process_output_well VALUES (1311, 1891);
+INSERT INTO process_output_well VALUES (1312, 1892);
+INSERT INTO process_output_well VALUES (1313, 1893);
+INSERT INTO process_output_well VALUES (1314, 1894);
+INSERT INTO process_output_well VALUES (1315, 1895);
+INSERT INTO process_output_well VALUES (1316, 1896);
+INSERT INTO process_output_well VALUES (1317, 1897);
+INSERT INTO process_output_well VALUES (1318, 1898);
+INSERT INTO process_output_well VALUES (1319, 1899);
+INSERT INTO process_output_well VALUES (1320, 1900);
+INSERT INTO process_output_well VALUES (1321, 1901);
+INSERT INTO process_output_well VALUES (1322, 1902);
+INSERT INTO process_output_well VALUES (1323, 1903);
+INSERT INTO process_output_well VALUES (1324, 1904);
 INSERT INTO process_output_well VALUES (730, 1277);
 INSERT INTO process_output_well VALUES (731, 1278);
 INSERT INTO process_output_well VALUES (732, 1279);
@@ -9746,6 +9887,7 @@ INSERT INTO recombinases VALUES ('Dre');
 -- Data for Name: process_recombinase; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+INSERT INTO process_recombinase VALUES (1300, 'Cre', 1);
 INSERT INTO process_recombinase VALUES (778, 'Cre', 1);
 INSERT INTO process_recombinase VALUES (780, 'Cre', 1);
 INSERT INTO process_recombinase VALUES (782, 'Cre', 1);
@@ -9849,6 +9991,13 @@ INSERT INTO process_recombinase VALUES (1281, 'Dre', 1);
 
 
 --
+-- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('processes_id_seq', 1324, true);
+
+
+--
 -- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -9870,6 +10019,13 @@ INSERT INTO sponsors VALUES ('Human', 'Homozygous - Human');
 -- Data for Name: project_alleles; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+
+
+--
+-- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('projects_id_seq', 1, false);
 
 
 --
@@ -9927,6 +10083,20 @@ INSERT INTO qc_alignment_regions VALUES (94, 'target-region-rev-72-80', 992, 560
 
 
 --
+-- Name: qc_alignments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('qc_alignments_id_seq', 94, true);
+
+
+--
+-- Name: qc_eng_seqs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('qc_eng_seqs_id_seq', 2221, true);
+
+
+--
 -- Data for Name: qc_run_seq_project; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -9948,6 +10118,13 @@ INSERT INTO qc_run_seq_wells VALUES (72, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7',
 
 INSERT INTO qc_run_seq_well_qc_seq_read VALUES (70, 'PCS05036_A_1b02.p1kLR');
 INSERT INTO qc_run_seq_well_qc_seq_read VALUES (71, 'PCS05036_A_1g12.p1kLR');
+
+
+--
+-- Name: qc_run_seq_wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('qc_run_seq_wells_id_seq', 72, true);
 
 
 --
@@ -9979,11 +10156,32 @@ INSERT INTO qc_template_well_cassette VALUES (3266, 10468);
 
 
 --
+-- Name: qc_template_wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('qc_template_wells_id_seq', 3266, true);
+
+
+--
+-- Name: qc_templates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('qc_templates_id_seq', 200, true);
+
+
+--
 -- Data for Name: qc_test_results; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
 INSERT INTO qc_test_results VALUES (70, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 2221, 2605, false, 70);
 INSERT INTO qc_test_results VALUES (71, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 2220, 2836, true, 71);
+
+
+--
+-- Name: qc_test_results_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('qc_test_results_id_seq', 71, true);
 
 
 --
@@ -10010,6 +10208,13 @@ INSERT INTO roles VALUES (504, 'read');
 
 
 --
+-- Name: roles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('roles_id_seq', 504, true);
+
+
+--
 -- Data for Name: species_default_assembly; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -10017,9 +10222,16 @@ INSERT INTO species_default_assembly VALUES ('Mouse', 'GRCm38');
 
 
 --
--- Data for Name: summaries; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+-- Data for Name: summaries; Type: TABLE DATA; Schema: public; Owner: as28
 --
 
+
+
+--
+-- Name: summaries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: as28
+--
+
+SELECT pg_catalog.setval('summaries_id_seq', 1972, true);
 
 
 --
@@ -10038,6 +10250,13 @@ INSERT INTO user_role VALUES (1, 504);
 INSERT INTO user_role VALUES (2, 502);
 INSERT INTO user_role VALUES (2, 503);
 INSERT INTO user_role VALUES (2, 504);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('users_id_seq', 1079, true);
 
 
 --
@@ -10327,6 +10546,13 @@ INSERT INTO well_accepted_override VALUES (1515, true, 722, '2010-04-08 00:00:00
 
 
 --
+-- Name: well_comments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('well_comments_id_seq', 1, false);
+
+
+--
 -- Data for Name: well_dna_quality; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -10489,6 +10715,12 @@ INSERT INTO well_dna_status VALUES (1516, true, '', '2012-06-25 00:00:00', 985);
 --
 
 INSERT INTO well_genotyping_results VALUES (1621, 'lacz', 'passb', 1.20999999999999996, 0.0500000000000000028, '>0.98', '2013-01-28 00:00:00', 953);
+
+
+--
+-- Data for Name: well_lab_number; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
+--
+
 
 
 --
@@ -11588,6 +11820,13 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', 
 -- Data for Name: well_targeting_puro_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
+
+
+--
+-- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
+--
+
+SELECT pg_catalog.setval('wells_id_seq', 1904, true);
 
 
 --

@@ -460,21 +460,68 @@ HERE_TARGET
     # Restore a minimum set of test roles
     if ($params{create_test_role}) {
 	$role_structure = <<'HERE_TARGET';
-	    -- drop role if exists "lims2_test";
-	    create role if not exists "lims2_test" with encrypted password 'test_passwd' login noinherit;
+	    DO 
+	    \$func\$
+	    declare 
+		num_users_lims2 integer;
+		num_users_testuser integer;
+		num_assignments_test_user integer;
+	    begin
+		SELECT count(*) 
+		into num_users_lims2
+		FROM pg_roles
+		WHERE rolname = 'lims2_test';
 
-	    -- drop role if exists "test_user@example.org";
-	    create role if not exists "test_user@example.org" with nologin inherit;
-	    grant lims2 to "test_user@example.org";
+		IF num_users_lims2 = 0 THEN
+		    CREATE ROLE "lims2_test" with encrypted password 'test_passwd' login noinherit;
+		END IF;
 
-	    -- test_db_add_fixture_md5.sql:
-	    CREATE TABLE fixture_md5 (
-	       md5         TEXT NOT NULL,
-	       created_at  TIMESTAMP NOT NULL
-	    );
-	    GRANT SELECT ON fixture_md5 TO "lims2_test";
-	    GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
-	    grant all on fixture_md5 to "lims2";
+		SELECT count(*) 
+		into num_users_testuser
+		FROM pg_roles
+		WHERE rolname = 'test_user@example.org';
+
+		IF num_users_testuser = 0 THEN
+		    CREATE ROLE "test_user@example.org" with nologin inherit;
+		END IF;
+
+		create temporary table tmp_role as (
+		WITH RECURSIVE is_member_of(member, roleid) AS
+		   (SELECT oid, oid
+		    FROM pg_roles
+		    UNION
+		    SELECT m.member, r.roleid
+		    FROM is_member_of m JOIN
+			 pg_auth_members r ON (m.roleid = r.member))
+		SELECT u.rolname, r.rolname AS belongs_to
+		FROM is_member_of m JOIN
+		     pg_roles u ON (m.member = u.oid) JOIN
+		     pg_roles r ON (m.roleid = r.oid)
+		where u.rolname = 'test_user@example.org'
+		and r.rolname = 'lims2'
+		GROUP BY u.rolname, r.rolname
+		)
+		;
+
+		SELECT count(*) 
+		into num_assignments_test_user
+		FROM tmp_role
+		;
+
+		IF num_assignments_test_user = 0 THEN
+		    grant lims2 to "test_user@example.org";
+		END IF;
+
+		-- test_db_add_fixture_md5.sql:
+		CREATE TABLE fixture_md5 (
+		   md5         TEXT NOT NULL,
+		   created_at  TIMESTAMP NOT NULL
+		);
+		GRANT SELECT ON fixture_md5 TO "lims2_test";
+		GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
+		grant all on fixture_md5 to "lims2";
+	    end
+	    \$func\$
 HERE_TARGET
 
 	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, query => $role_structure);

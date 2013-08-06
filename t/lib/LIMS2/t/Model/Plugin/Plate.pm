@@ -89,17 +89,15 @@ Code to execute all tests
 
 sub all_tests  : Test(61)
 {
-
     note ( "Testing EngSeq param generation for plate");
     {
 	    ok my $template = model->create_qc_template_from_plate({ id => 864, template_name => 'template_864' }),
 	       'create_qc_template_from_plate should succeed';
     }
 
-    my $plate_data= test_data( 'plate.yaml' );
-    note( "Testing plate creation" );
+    my $plate_data= test_data( 'plate.yaml' );                                                                                                 note( "Testing plate creation" );
 
-    {
+    {   
 	ok my $plate = model->create_plate( $plate_data->{plate_create} ),
 	    'create_plate should succeed';
 	isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
@@ -116,14 +114,14 @@ sub all_tests  : Test(61)
 
     note( "Testing plate retrieve" );
 
-    {
+    {   
 	ok my $plate = model->retrieve_plate( $plate_data->{plate_retrieve} ),
 	    'retrieve_plate by name should succeed';
 	isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
 	is $plate->name, 'PCS00075_A', 'retrieved correct plate';
     }
 
-    {
+    {   
 
 	throws_ok{
 	    model->create_plate( $plate_data->{plate_create_already_exists} )
@@ -133,7 +131,7 @@ sub all_tests  : Test(61)
 
     note( "Testing plate create with wells" );
 
-    {
+    {   
 	ok my $plate = model->create_plate( $plate_data->{plate_create_wells} ),
 	    'create_plate should succeed';
 	isa_ok $plate, 'LIMS2::Model::Schema::Result::Plate';
@@ -176,6 +174,7 @@ sub all_tests  : Test(61)
 	is $well->assay_complete,'2012-05-21T00:00:00', 'assay complete is correct';
     }
 
+
     note( "Plate Create CSV Upload" );
 
     {
@@ -205,7 +204,7 @@ sub all_tests  : Test(61)
 
     note( 'Create Plate by Copy' );
 
-    {
+    {   
 	ok my $copy_plate = model->create_plate_by_copy( $plate_data->{create_plate_by_copy} ),
 	    'create_plate_by_copy should succeed';
 	isa_ok $copy_plate, 'LIMS2::Model::Schema::Result::Plate';
@@ -223,8 +222,8 @@ sub all_tests  : Test(61)
 	    ,'can list plates of type FP';
 	isa_ok $pager, 'DBIx::Class::ResultSet::Pager';
 	my @plate_names =  map{ $_->name } @{ $plate_list };
-	# AS28 - added extra FP plates from summaries test
-	is_deeply \@plate_names, [ '1007','1006','1005','1004','1003','1002','1001','FFP0001' ], '..and plate list is correct';
+	# AS28 - added extra FP plates from summaries tests
+	is_deeply \@plate_names, [ 'FP4734','FP4637','1007','1006','1005','1004','1003','1002','1001','FFP0001' ], '..and plate list is correct'; 
 
 	ok my ( $plate_list2, $pager2 ) = model->list_plates( { species => 'Mouse', plate_name => 'FFP' } )
 	    ,'can list plates with name like FFP';
@@ -261,7 +260,7 @@ sub all_tests  : Test(61)
 	    , 'throws error if trying to delete plate with child plates';
     }
 
-    {
+    {  
 
 	lives_ok {
 	    model->delete_plate( { name => 'PCS101' } )
