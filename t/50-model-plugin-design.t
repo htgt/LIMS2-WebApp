@@ -40,6 +40,13 @@ use Test::Most;
 }
 
 {
+    ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912', gene_type => 'MGI' } ), 'list assigned designs by MGI accession, specify id is MGI';
+    isa_ok $designs, ref [];
+    ok @{$designs} > 0, '...the list is not empty';
+    isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
+}
+
+{
     ok model->search_gene_designs( { search_term => 'lbl', page => 1, pagesize => 50 } ), 'list genes specifying a page and pagesize';
     ok my ( $gene_designs, $pager ) = model->search_gene_designs( { search_term => 'lbl' } ), 'list matched genes';
     isa_ok $gene_designs, ref [];
@@ -47,6 +54,16 @@ use Test::Most;
 
     isa_ok $pager, 'Data::Page';
 
+}
+
+{
+    ok my ( $gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'MGI' } ), 'list matched genes, specify gene type';
+    isa_ok $gene_designs, ref [];
+    is scalar( @{ $gene_designs } ), 1, 'return 1 design';
+
+    ok my ( $no_gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'marker-symbol' } ), 'list matched genes, specify wrong gene type';
+    isa_ok $no_gene_designs, ref [];
+    is scalar( @{ $no_gene_designs } ), 0, 'returns 0 design';
 }
 
 {
@@ -77,7 +94,10 @@ note('Testing the Creation and Deletion of designs');
     is $new_design->id, 99999999, '..and new design has correct id';
     ok my $design_comment = $new_design->comments->first, 'can retrieve design comment';
     is $design_comment->comment_text, 'Test comment', '.. has write comment text';
+
     ok my $design_gene = $new_design->genes->first, 'can grab gene linked to design';
+    is $design_gene->gene_id, 'MGI:1917722', 'design gene is correct';
+    is $design_gene->gene_type_id, 'MGI', 'gene type is correct';
 
     throws_ok {
         model->delete_design( { id => 99999999, cascade => 1 } );
@@ -231,7 +251,7 @@ sub build_design_data{
         }
     ];
 
-    $design_data->{gene_ids} = [ 'MGI:1917722' ];
+    $design_data->{gene_ids} = [ { gene_id => 'MGI:1917722', gene_type_id => 'MGI' } ];
 
     my $oligos = delete $design_data->{oligos};
     for my $oligo ( @{ $oligos } ) {
