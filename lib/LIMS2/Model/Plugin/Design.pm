@@ -52,7 +52,7 @@ sub pspec_create_design {
         oligos                  => { optional => 1 },
         comments                => { optional => 1 },
         genotyping_primers      => { optional => 1 },
-        gene_ids                => { optional => 1 }
+        gene_ids                => { validate => 'hashref', optional => 1 }
     };
 }
 
@@ -89,7 +89,7 @@ sub create_design {
     );
     $self->log->debug( 'Create design ' . $design->id );
 
-    for my $g ( @{ $validated_params->{gene_ids} } || [] ) {
+    for my $g ( @{ $validated_params->{gene_ids} || [] } ) {
         $self->trace( "Create gene_design " . $g->{gene_id} );
         $design->create_related(
             genes => {
