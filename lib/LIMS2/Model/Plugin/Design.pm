@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.091';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.092';
 }
 ## use critic
 
@@ -58,7 +58,7 @@ sub pspec_create_design {
         oligos                  => { optional => 1 },
         comments                => { optional => 1 },
         genotyping_primers      => { optional => 1 },
-        gene_ids                => { validate => 'non_empty_string', optional => 1 }
+        gene_ids                => { validate => 'hashref', optional => 1 }
     };
 }
 
@@ -95,9 +95,15 @@ sub create_design {
     );
     $self->log->debug( 'Create design ' . $design->id );
 
-    for my $g ( @{ $validated_params->{gene_ids} } ) {
-        $self->trace( "Create gene_design $g" );
-        $design->create_related( genes => { gene_id => $g, created_by => $self->user_id_for( 'unknown' ) } );
+    for my $g ( @{ $validated_params->{gene_ids} || [] } ) {
+        $self->trace( "Create gene_design " . $g->{gene_id} );
+        $design->create_related(
+            genes => {
+                gene_id      => $g->{gene_id},
+                gene_type_id => $g->{gene_type_id},
+                created_by   => $self->user_id_for('unknown')
+            }
+        );
     }
 
     for my $c ( @{ $validated_params->{comments} || [] } ) {
@@ -279,9 +285,10 @@ sub retrieve_design_oligo {
 
 sub pspec_list_assigned_designs_for_gene {
     return {
-        gene_id => { validate => 'non_empty_string' },
-        species => { validate => 'existing_species', rename => 'species_id' },
-        type    => { validate => 'existing_design_type', optional => 1 }
+        gene_id   => { validate => 'non_empty_string' },
+        species   => { validate => 'existing_species', rename => 'species_id' },
+        type      => { validate => 'existing_design_type', optional => 1 },
+        gene_type => { validate => 'existing_gene_type', optional => 1 },
     }
 }
 
@@ -298,6 +305,11 @@ sub list_assigned_designs_for_gene {
 
     if ( defined $validated_params->{type} ) {
         $search{'me.design_type_id'} = $validated_params->{type};
+    }
+
+    # can optionally search just amoungst a specific gene id type ( e.g. MGI ID or HGNC ID )
+    if ( defined $validated_params->{gene_type} ) {
+        $search{'genes.gene_type_id'} = $validated_params->{gene_type};
     }
 
     #genes is the GeneDesign table
@@ -350,7 +362,8 @@ sub pspec_search_gene_designs {
     return {
         search_term => { validate => 'non_empty_string' },
         page        => { validate => 'integer', optional => 1, default => 1 },
-        pagesize    => { validate => 'integer', optional => 1, default => 50 }
+        pagesize    => { validate => 'integer', optional => 1, default => 50 },
+        gene_type   => { validate => 'existing_gene_type', optional => 1 },
     };
 }
 
@@ -359,15 +372,24 @@ sub pspec_search_gene_designs {
 sub search_gene_designs {
     my ( $self, $params ) = @_;
 
-    $params = $self->check_params( $params, $self->pspec_search_gene_designs );
+    my $validated_params = $self->check_params( $params, $self->pspec_search_gene_designs );
+
+    my %search = (
+        gene_id => { ilike => sanitize_like_expr( $validated_params->{ search_term } ) . "%" },
+    );
+
+    # can optionally search just amoungst a specific gene id type ( e.g. MGI ID or HGNC ID )
+    if ( defined $validated_params->{gene_type} ) {
+        $search{gene_type_id} = $validated_params->{gene_type};
+    }
 
     #find all gene_ids like the search term
     my $gene_designs = $self->schema->resultset( 'GeneDesign' )->search(
-        { gene_id => { ilike => sanitize_like_expr( $params->{ search_term } ) . "%" } },
+        \%search,
         {
             join     => 'design',
-            page     => $params->{ page },
-            rows     => $params->{ pagesize },
+            page     => $validated_params->{ page },
+            rows     => $validated_params->{ pagesize },
         }
     );
 

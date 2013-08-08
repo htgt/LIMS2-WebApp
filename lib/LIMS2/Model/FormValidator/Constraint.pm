@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.091';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.092';
 }
 ## use critic
 
@@ -372,6 +372,11 @@ sub existing_crispr_loci_type {
 sub existing_crispr_id {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Crispr', 'id' );
+}
+
+sub existing_gene_type {
+	my ( $class, $model ) = @_;
+	return in_resultset( $model, 'GeneType', 'id' );
 }
 
 sub comma_separated_list {

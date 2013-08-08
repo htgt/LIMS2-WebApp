@@ -63,6 +63,7 @@ lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
 lib/LIMS2/Model/Schema/Result/DesignTarget.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
+lib/LIMS2/Model/Schema/Result/GeneType.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimer.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimerType.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
