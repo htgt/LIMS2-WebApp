@@ -15,7 +15,7 @@ VALUES ( 'MGI', 'MGI Accession ID ( Mouse Genome Informatics )', 'f' ),
        ( 'marker-symbol', 'Gene marker symbol', 'f');
 
 -- can only set column to NOT NULL once I have filled in data
-ALTER TABLE gene_design ALTER COLUMN local SET NOT NULL;
+ALTER TABLE gene_types ALTER COLUMN local SET NOT NULL;
 
 ALTER TABLE gene_design ADD gene_type_id TEXT REFERENCES gene_types(id);
 
