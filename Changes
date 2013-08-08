@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.092     2013-08-08 07:55:48 Europe/London
+
+    Add gene_type_id to gene_design table to show what type of identifier is in the gene_id column
+
 0.091     2013-08-05 14:51:12 Europe/London
 
 Bugfix: take into account art intron designs when building eng-seq params
