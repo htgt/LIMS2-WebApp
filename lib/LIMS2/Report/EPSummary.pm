@@ -1,4 +1,4 @@
-package LIMS2::Report::Summary;
+package LIMS2::Report::EPSummary;
 
 use Moose;
 use Log::Log4perl qw(:easy);
@@ -78,7 +78,7 @@ extends qw( LIMS2::ReportGenerator );
 
 
 override _build_name => sub {
-    return 'Test Report';
+    return 'Electroporation Summary';
 };
 
 
@@ -250,6 +250,7 @@ sub build_summary_data {
 
 
 		my @line = 	( [
+					"$$value{'gene'}",
 					"$$value{'project'}",
 					"$key",
 					"$$value{'fepd_targeted_clones'}",
