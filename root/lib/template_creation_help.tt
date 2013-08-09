@@ -38,7 +38,7 @@
               <dd>The name of the well on the new QC template, e.g. A01</dd>
               <dt>source_plate</dt>
               <dd>The name of the source plate</dd>
-              <dt>source_plate</dt>
+              <dt>source_well</dt>
               <dd>The name of the source well</dd>              
             </dl>
           <p>

@@ -137,7 +137,7 @@ Lars G. Erlandsen
 
 =cut
 
-my ($help, $man);
+my ($help $man);
 
 my (%config) = (
     'source_defn' => $ENV{LIMS2_CLONEFROM_DB},
