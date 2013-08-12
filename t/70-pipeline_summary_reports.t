@@ -68,7 +68,7 @@ ok my $test_data= test_data( '70-pipeline_summary_reports_data.yaml' ), 'fetchin
 
 note( 'Testing Pipeline Summary reports - Mouse double-targeted front page' );
 # Mouse double-targeted - Front page
-$mech->get_ok( '/user/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data');
+$mech->get_ok( '/user/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data');
 
 $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
 $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
@@ -148,7 +148,7 @@ $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Second ES Clon
 
 note( 'Testing Pipeline Summary reports - Mouse single-targeted drilldowns' );
 # Mouse single-targeted - Front page
-$mech->get_ok( '/user/single_targeted' , 'Requested Mouse single-targeted front page after loading pipeline test data');
+$mech->get_ok( '/user/sponsor_report/single_targeted' , 'Requested Mouse single-targeted front page after loading pipeline test data');
 
 $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
 $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
