@@ -197,9 +197,9 @@ sub dump_database_definition
     # resolve connection parameters ({entry, role} => {host, port, database, name, password})
     $self->check_connection_details(\%params);
 
+    my $unlink = $params{keep_temporary_files} ? 0 : 1;
     # File to use for schema dump
-    #my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 1 );
-    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => 0 );
+    my ($fh_schema, $filename_schema) = File::Temp::tempfile( 'schema_XXXXXXXX', DIR => "/var/tmp", SUFFIX => '.dump', UNLINK => $unlink );
     chmod 0664, $filename_schema;
     DEBUG(Data::Dumper->Dump([\$filename_schema],[qw(filename_schema)]));
 
@@ -342,6 +342,262 @@ sub run_query
 }
 ## use critic
 
+
+=head2 create_testroles
+
+Create test roles in the database
+
+=cut
+
+## no critic(RequireFinalReturn)
+sub create_testroles
+{
+    my ($self, %params) = @_;
+    my $ret;
+
+    # resolve connection parameters ({entry, role} => {host, port, database, name, password})
+    $self->check_connection_details(\%params);
+
+    my $role_structure = <<'HERE_TARGET';
+	DO 
+	\$func\$
+	declare 
+	    num_users_lims2 integer;
+	    num_users_testuser integer;
+	    num_assignments_test_user integer;
+	begin
+	    SELECT count(*) 
+	    into num_users_lims2
+	    FROM pg_roles
+	    WHERE rolname = 'lims2_test';
+
+	    IF num_users_lims2 = 0 THEN
+		CREATE ROLE "lims2_test" with encrypted password 'test_passwd' login noinherit;
+	    END IF;
+
+	    SELECT count(*) 
+	    into num_users_testuser
+	    FROM pg_roles
+	    WHERE rolname = 'test_user@example.org';
+
+	    IF num_users_testuser = 0 THEN
+		CREATE ROLE "test_user@example.org" with nologin inherit;
+	    END IF;
+
+	    create temporary table tmp_role as (
+	    WITH RECURSIVE is_member_of(member, roleid) AS
+	       (SELECT oid, oid
+		FROM pg_roles
+		UNION
+		SELECT m.member, r.roleid
+		FROM is_member_of m JOIN
+		     pg_auth_members r ON (m.roleid = r.member))
+	    SELECT u.rolname, r.rolname AS belongs_to
+	    FROM is_member_of m JOIN
+		 pg_roles u ON (m.member = u.oid) JOIN
+		 pg_roles r ON (m.roleid = r.oid)
+	    where u.rolname = 'test_user@example.org'
+	    and r.rolname = 'lims2'
+	    GROUP BY u.rolname, r.rolname
+	    )
+	    ;
+
+	    SELECT count(*) 
+	    into num_assignments_test_user
+	    FROM tmp_role
+	    ;
+
+	    IF num_assignments_test_user = 0 THEN
+		grant lims2 to "test_user@example.org";
+	    END IF;
+
+	    -- test_db_add_fixture_md5.sql:
+	    CREATE TABLE fixture_md5 (
+	       md5         TEXT NOT NULL,
+	       created_at  TIMESTAMP NOT NULL
+	    );
+	    GRANT SELECT ON fixture_md5 TO "lims2_test";
+	    GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
+	    grant all on fixture_md5 to "lims2";
+	end
+	\$func\$
+HERE_TARGET
+
+    $ret = $self->run_query(connection => { %{$params{connection}} }, query => $role_structure);
+    die "Failed to create test roles" unless ($ret);
+
+}
+
+## use critic
+
+=head2 truncate_audit_tables
+
+Truncate all records in the audit schema
+
+=cut
+
+## no critic(RequireFinalReturn)
+sub truncate_audit_tables
+{
+    my ($self, %params) = @_;
+    my $ret;
+
+    # resolve connection parameters ({entry, role} => {host, port, database, name, password})
+    $self->check_connection_details(\%params);
+
+    my $truncate_audit_command = <<'HERE_TARGET';
+	set search_path = audit, pg_catalog;
+	DO
+	\$func\$
+	BEGIN
+	   EXECUTE (
+	      SELECT 'TRUNCATE TABLE '
+		     || string_agg('audit.' || quote_ident(t.tablename), ', ')
+		     || ' CASCADE'
+	      FROM   pg_tables t
+	      WHERE  t.schemaname = 'audit'
+	   );
+	END
+	\$func\$;
+HERE_TARGET
+
+    $ret = $self->run_query(connection => { %{$params{connection}} }, query => $truncate_audit_command);
+    die "Failed to create test roles" unless ($ret);
+
+}
+
+## use critic
+
+=head2 create_application_role_structure
+
+Set up all the necessary roles and relationships in a newly created database
+
+=cut
+
+## no critic(RequireFinalReturn)
+sub create_application_role_structure
+{
+    my ($self, %params) = @_;
+    my $ret;
+
+    # resolve connection parameters ({entry, role} => {host, port, database, name, password})
+    $self->check_connection_details(\%params);
+
+    my $temporary_password = $self->generate_password();
+    my $create_role_structure_command = <<'HERE_TARGET';
+	DO
+	\$func\$
+	DECLARE
+	    tc record;
+	    num_users_lims2_webapp integer;
+	BEGIN
+
+	    -- ------------------------------
+	    -- Create role 'lims2_webapp' if needed
+	    -- ------------------------------
+
+	    SELECT count(*)
+	    INTO num_users_lims2_webapp
+	    FROM pg_roles
+	    WHERE rolname = 'lims2_webapp';
+
+	    IF num_users_lims2_webapp = 0 THEN
+		CREATE ROLE "lims2_webapp" WITH ENCRYPTED PASSWORD '{temporary_password}' LOGIN NOINHERIT;
+	    END IF;
+
+	    -- ------------------------------
+	    -- Save all current role relationships
+	    -- ------------------------------
+
+	    CREATE TEMPORARY TABLE tmp_role_relationship as (
+		WITH RECURSIVE is_member_of(member, roleid) AS
+		    (SELECT oid, oid
+			FROM pg_roles
+		    UNION
+		    SELECT m.member, r.roleid
+		    FROM is_member_of m JOIN
+			pg_auth_members r ON (m.roleid = r.member))
+		SELECT u.rolname, u.rolcanlogin, r.rolname AS belongs_to
+		FROM is_member_of m JOIN
+		    pg_roles u ON (m.member = u.oid) JOIN
+		    pg_roles r ON (m.roleid = r.oid)
+		-- WHERE r.rolname LIKE 'lims2%'
+		-- AND u.rolname ~ '@'
+		GROUP BY u.rolname, u.rolcanlogin, r.rolname
+	    )
+	    ;
+
+	    CREATE TEMPORARY TABLE tmp_applicable_users as (
+		SELECT users.name
+		FROM users
+		JOIN pg_roles
+		    ON users.name = pg_roles.rolname
+		WHERE users.name ~ '@'
+	    )
+	    ;
+
+	    -- ------------------------------
+	    -- Grant membershit to 'lims2' for all users
+	    -- who haven't yet got it
+	    -- ------------------------------
+
+	    FOR tc IN
+		SELECT tmp_applicable_users.name FROM tmp_applicable_users
+		JOIN tmp_role_relationship
+		ON tmp_applicable_users.name = tmp_role_relationship.rolname
+		WHERE tmp_applicable_users.name NOT IN (
+		    SELECT rolname
+		    FROM tmp_role_relationship
+		    WHERE belongs_to = 'lims2'
+		)
+		LOOP
+		    EXECUTE 'GRANT "lims2" TO "' || tc.name || '" ;'
+		    ;
+		END LOOP
+	    ;
+
+
+	    -- ------------------------------
+	    -- Grant membershit from 'lims2_webapp' for all users
+	    -- who haven't yet got it
+	    -- ------------------------------
+
+	    FOR tc IN
+		SELECT DISTINCT tmp_applicable_users.name FROM tmp_applicable_users
+		JOIN tmp_role_relationship
+		ON tmp_applicable_users.name = tmp_role_relationship.belongs_to
+		WHERE tmp_applicable_users.name NOT IN (
+		    SELECT belongs_to
+		    FROM tmp_role_relationship
+		    WHERE rolname = 'lims2_webapp'
+		)
+		LOOP
+		    EXECUTE 'GRANT "' || tc.name || '" TO lims2_webapp ;'
+		    ;
+		END LOOP
+	    ;
+
+	   EXECUTE (
+	      SELECT 'TRUNCATE TABLE '
+		     || string_agg('audit.' || quote_ident(t.tablename), ', ')
+		     || ' CASCADE'
+	      FROM   pg_tables t
+	      WHERE  t.schemaname = 'audit'
+	   );
+	END
+	\$func\$;
+HERE_TARGET
+
+    $create_role_structure_command =~ s/{temporary_password}/$temporary_password/g;
+    $ret = $self->run_query(connection => { %{$params{connection}} }, query => $create_role_structure_command);
+    die "Failed to create test roles" unless ($ret);
+
+}
+
+## use critic
+
+
+
 =head2 clone_database
 
 Create a new database based on the content in a separate database.
@@ -368,6 +624,11 @@ sub clone_database
     $params{destination_defn} ||= $self->destination_defn;
     $params{destination_role} ||= $self->destination_role;
     $params{overwrite} ||= $self->overwrite;
+    if (!exists($params{keep_temporary_files}))
+    {
+	$params{keep_temporary_files} = 0;
+    }
+    $params{keep_temporary_files} ||= $self->overwrite;
 
     my $source_connection_details = $self->connection_parameters(definition => $params{source_defn}, role => $params{source_role});
     my $destination_connection_details = $self->connection_parameters(definition => $params{destination_defn}, role => $params{destination_role});
@@ -384,7 +645,7 @@ sub clone_database
     #die "Not allowed to overwrite the destination database" if (($has_destination_db) && (!$params{overwrite});
 
     # Dump database definition to disk
-    $source_definition_dumpfile = $self->dump_database_definition(connection => $source_connection_details, role => $params{source_role}, no_role => $params{no_source_role}, with_data => 0 );
+    $source_definition_dumpfile = $self->dump_database_definition(connection => $source_connection_details, role => $params{source_role}, no_role => $params{no_source_role}, with_data => 0, keep_temporary_files => $params{keep_temporary_files} );
     die "Failed to create a database definition dump" unless ((-e $source_definition_dumpfile) && (-s $source_definition_dumpfile));
     # Amend the definition
     {
@@ -437,103 +698,46 @@ sub clone_database
 	die "Failed to restore the data" unless ($ret);
 
 	# Now truncate all audit tables after they have filled up with 'gunk'
-	my $truncate_audit_command = <<'HERE_TARGET';
-	    set search_path = audit, pg_catalog;
-	    DO
-	    \$func\$
-	    BEGIN
-	       EXECUTE (
-		  SELECT 'TRUNCATE TABLE '
-			 || string_agg('audit.' || quote_ident(t.tablename), ', ')
-			 || ' CASCADE'
-		  FROM   pg_tables t
-		  WHERE  t.schemaname = 'audit'
-	       );
-	    END
-	    \$func\$;
-HERE_TARGET
-
-	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, query => $truncate_audit_command);
+	$ret = $self->truncate_audit_tables(connection => { %{$destination_connection_details}, dbname => $params{destination_db}});
 	die "Failed to truncate audit tables" unless ($ret);
+
     }
 
     # Restore a minimum set of test roles
     if ($params{create_test_role}) {
-	$role_structure = <<'HERE_TARGET';
-	    DO 
-	    \$func\$
-	    declare 
-		num_users_lims2 integer;
-		num_users_testuser integer;
-		num_assignments_test_user integer;
-	    begin
-		SELECT count(*) 
-		into num_users_lims2
-		FROM pg_roles
-		WHERE rolname = 'lims2_test';
-
-		IF num_users_lims2 = 0 THEN
-		    CREATE ROLE "lims2_test" with encrypted password 'test_passwd' login noinherit;
-		END IF;
-
-		SELECT count(*) 
-		into num_users_testuser
-		FROM pg_roles
-		WHERE rolname = 'test_user@example.org';
-
-		IF num_users_testuser = 0 THEN
-		    CREATE ROLE "test_user@example.org" with nologin inherit;
-		END IF;
-
-		create temporary table tmp_role as (
-		WITH RECURSIVE is_member_of(member, roleid) AS
-		   (SELECT oid, oid
-		    FROM pg_roles
-		    UNION
-		    SELECT m.member, r.roleid
-		    FROM is_member_of m JOIN
-			 pg_auth_members r ON (m.roleid = r.member))
-		SELECT u.rolname, r.rolname AS belongs_to
-		FROM is_member_of m JOIN
-		     pg_roles u ON (m.member = u.oid) JOIN
-		     pg_roles r ON (m.roleid = r.oid)
-		where u.rolname = 'test_user@example.org'
-		and r.rolname = 'lims2'
-		GROUP BY u.rolname, r.rolname
-		)
-		;
-
-		SELECT count(*) 
-		into num_assignments_test_user
-		FROM tmp_role
-		;
-
-		IF num_assignments_test_user = 0 THEN
-		    grant lims2 to "test_user@example.org";
-		END IF;
-
-		-- test_db_add_fixture_md5.sql:
-		CREATE TABLE fixture_md5 (
-		   md5         TEXT NOT NULL,
-		   created_at  TIMESTAMP NOT NULL
-		);
-		GRANT SELECT ON fixture_md5 TO "lims2_test";
-		GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
-		grant all on fixture_md5 to "lims2";
-	    end
-	    \$func\$
-HERE_TARGET
-
-	$ret = $self->run_query(connection => { %{$destination_connection_details}, dbname => $params{destination_db}}, query => $role_structure);
-	die "Failed to create test roles" unless ($ret);
+	$self->create_testroles(connection => { %{$destination_connection_details}, dbname => $params{destination_db}});
     }
+
+    # Finally, set up a set of roles
+    $ret = $self->create_application_role_structure(connection => { %{$destination_connection_details}, dbname => $params{destination_db}});
 
     return 1;
 
 }
 ## use critic
 
+=head2 generate_password
+
+Create a temporary password.
+Used in the setting up of new database environment,
+where we need an initial password that can later be overriden.
+( cut down version of LIMS2::Template::Plugin::PasswordGenerator )
+
+=cut
+
+sub generate_password {
+    my ($self) = @_;
+    my $pw_len = 12;
+    my $pw_chars = [ "A" .. "Z", "a" .. "z", "0" .. "9" ];
+
+    return join '', map { $pw_chars->[ int rand @{$pw_chars} ] } 1 .. $pw_len;
+}
+
+1;
+
 =head1 LICENSE
+
+package LIMS2::Template::Plugin::PasswordGenerator;
 
 This library is free software, you can redistribute it and/or modify
 it under the same terms as Perl itself.
