@@ -21,7 +21,7 @@ use JSON;
 use Data::Dumper;
 
 sub fetch_design_eng_seq_params{
-	my ($design, $loxp) = @_;
+	my ($design) = @_;
 
 	my %locus_for;
     my @not_found;
@@ -35,14 +35,14 @@ sub fetch_design_eng_seq_params{
     	die "No design oligo loci found for design ".$design->{id}." oilgos ".(join ", ", @not_found);
     }
 
-	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type}, $loxp);
+	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type});
 	$params->{design_id} = $design->{id};
 
     return $params;
 }
 
 sub build_eng_seq_params_from_loci{
-	my ($loci, $type, $loxp) = @_;
+	my ($loci, $type) = @_;
 
     my $params;
 
@@ -68,20 +68,10 @@ sub build_eng_seq_params_from_loci{
     if ( $params->{strand} == 1 ) {
     	$params->{target_region_start} = $loci->{U3}->{chr_start};
     	$params->{target_region_end} = $loci->{D5}->{chr_end};
-
-    	return $params unless $loxp;
-
-    	$params->{loxp_start} = $loci->{D5}->{chr_end} + 1;
-    	$params->{loxp_end} = $loci->{D3}->{chr_start} - 1;
     }
     else{
     	$params->{target_region_start} = $loci->{D5}->{chr_start};
     	$params->{target_region_end} = $loci->{U3}->{chr_end};
-
-    	return $params unless $loxp;
-
-    	$params->{loxp_start} = $loci->{D3}->{chr_end} + 1;
-    	$params->{loxp_end} = $loci->{D5}->{chr_start} - 1;
     }
 
     return $params;
@@ -123,11 +113,7 @@ sub fetch_well_eng_seq_params{
 
 		## no critic (ProhibitCascadingIfElse)
 
-	    if ($params->{targeted_trap}) {
-	        $well_params->{u_insertion}->{name} = $params->{cassette};
-	        $method = 'targeted_trap_allele_seq';
-	    }
-	    elsif ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
+	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
 	        $method = 'conditional_allele_seq';
 	        $well_params->{u_insertion}->{name} = $params->{cassette};
 	        $well_params->{d_insertion}->{name} = 'LoxP' ;
