@@ -53,7 +53,7 @@ sub pspec_create_design {
         comments                => { optional => 1 },
         genotyping_primers      => { optional => 1 },
         gene_ids                => { validate => 'hashref', optional => 1 },
-        design_parameters       => { optional => 1 },
+        design_parameters       => { validate => 'json', optional => 1 },
     };
 }
 
