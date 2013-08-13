@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplateWellBackbone;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplateWellBackbone::VERSION = '0.092';
+    $LIMS2::Model::Schema::Result::QcTemplateWellBackbone::VERSION = '0.093';
 }
 ## use critic
 
