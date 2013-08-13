@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.093     2013-08-13 08:25:08 Europe/London
+
+    Move sponsor progress report from front page to its own page.
+    Add google analytics code.
+    Remove surplus eng seq params code.
+
 0.092     2013-08-08 07:55:48 Europe/London
 
     Add gene_type_id to gene_design table to show what type of identifier is in the gene_id column
