@@ -394,5 +394,18 @@ sub oligo_order_seqs {
     return \%oligo_order_seqs;
 }
 
+sub design_parameters_hash {
+    my $self = shift;
+
+    require JSON;
+    use Try::Tiny;
+
+    if ( my $design_param_string = $self->design_parameters ) {
+        return try{ JSON->new->utf8->decode( $design_param_string ); };
+    }
+
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

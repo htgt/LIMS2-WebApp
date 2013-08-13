@@ -155,6 +155,16 @@ note('Test adding design parameter data in design creation');
     is_deeply decode_json( $new_design->design_parameters ), $design_parameters
         , 'design parameters json string is correct';
 
+    ok my $decoded_design_params = $new_design->design_parameters_hash
+        , 'can decode design parameters data though resultset method';
+    is_deeply $decoded_design_params, $design_parameters
+        , 'design parameters json string is correct';
+
+    $design_data->{design_parameters} = 'this is not json data';
+    throws_ok {
+        model->create_design($design_data)
+    } qr/design_parameters, is invalid: json/
+        , 'throws error for non json data';
 }
 
 note('Testing create design oligo');
