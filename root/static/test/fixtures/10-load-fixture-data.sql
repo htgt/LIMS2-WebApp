@@ -11810,6 +11810,17 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_ns', 'pass', '', '200
 INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', '2008-12-10 00:00:00', 800);
 
 
+
+-- Included data for summary testing
+
+INSERT INTO projects VALUES (11, 'Syboss', '{"gene_id":"MGI:1914632","second_allele_cassette_function":"reporter_only","first_allele_mutation_type":"ko_first","second_allele_mutation_type":"ko_first","first_allele_cassette_function":"ko_first","targeting_type":"double_targeted"}', 'MGI:1914632', 'double_targeted', 'Mouse');
+INSERT INTO projects VALUES (12, 'Syboss', '{"gene_id":"MGI:109393","second_allele_cassette_function":"reporter_only","first_allele_mutation_type":"ko_first","second_allele_mutation_type":"ko_first","first_allele_cassette_function":"ko_first","targeting_type":"double_targeted"}', 'MGI:109393', 'double_targeted', 'Mouse');
+INSERT INTO project_alleles VALUES (11, 'first', 'ko_first', 'ko_first');
+INSERT INTO project_alleles VALUES (11, 'second', 'reporter_only', 'ko_first');
+INSERT INTO project_alleles VALUES (12, 'first', 'ko_first', 'ko_first');
+INSERT INTO project_alleles VALUES (12, 'second', 'reporter_only', 'ko_first');
+
+
 --
 -- Data for Name: well_targeting_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
