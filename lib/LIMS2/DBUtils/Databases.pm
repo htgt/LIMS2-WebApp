@@ -368,6 +368,7 @@ sub create_testroles
 	$func$
 	declare 
 	    num_users_lims2 integer;
+	    num_users_webapp integer;
 	    num_users_testuser integer;
 	    num_assignments_test_user integer;
 	begin
@@ -378,6 +379,15 @@ sub create_testroles
 
 	    IF num_users_lims2 = 0 THEN
 		CREATE ROLE "lims2_test" with encrypted password 'test_passwd' login noinherit;
+	    END IF;
+
+	    SELECT count(*) 
+	    into num_users_webapp
+	    FROM pg_roles
+	    WHERE rolname = 'lims2_webapp';
+
+	    IF num_users_lims2 = 0 THEN
+		-- CREATE ROLE "lims2_webapp" with encrypted password 'test_passwd' login noinherit;
 	    END IF;
 
 	    SELECT count(*) 
@@ -402,18 +412,30 @@ sub create_testroles
 		 pg_roles u ON (m.member = u.oid) JOIN
 		 pg_roles r ON (m.roleid = r.oid)
 	    where u.rolname = 'test_user@example.org'
-	    and r.rolname = 'lims2'
-	    GROUP BY u.rolname, r.rolname
+	    or r.rolname = 'test_user@example.org'
 	    )
 	    ;
 
 	    SELECT count(*) 
 	    into num_assignments_test_user
 	    FROM tmp_role
+	    where rolname = 'test_user@example.org'
+	    and belongs_to = 'lims2'
 	    ;
 
 	    IF num_assignments_test_user = 0 THEN
 		grant lims2 to "test_user@example.org";
+	    END IF;
+
+	    SELECT count(*) 
+	    into num_assignments_test_user
+	    FROM tmp_role
+	    where rolname = 'lims2_webapp'
+	    and belongs_to = 'test_user@example.org'
+	    ;
+
+	    IF num_assignments_test_user = 0 THEN
+		grant "test_user@example.org" to lims2_webapp;
 	    END IF;
 
 	    -- test_db_add_fixture_md5.sql:
