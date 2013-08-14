@@ -12,6 +12,7 @@ use LIMS2::Model::Util::PgUserRole qw( db_name );
 use Data::Dump qw( pp );
 use CHI;
 use Scalar::Util qw( blessed );
+use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
 # XXX TODO: authorization checks?
@@ -45,7 +46,8 @@ sub _build_schema {
         $schema->storage->dbh_do(
             sub {
                 my ( $storage, $dbh ) = @_;
-                #$dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($audit_user) );
+                DEBUG("LIMS2::Model::_build_schema() - Switching to session role: '" . $audit_user . "'");
+                $dbh->do( 'SET SESSION ROLE ' . $dbh->quote_identifier($audit_user) );
             }
         );
     }
