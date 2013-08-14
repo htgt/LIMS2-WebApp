@@ -224,7 +224,8 @@ sub revcomp_seq {
     require LIMS2::Exception;
 
     try{
-        my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->seq );
+        # -verbose -1 turns of warning / error messages
+        my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->seq, -verbose => -1 );
         $revcomp_seq = $bio_seq->revcom->seq;
     }
     catch {
