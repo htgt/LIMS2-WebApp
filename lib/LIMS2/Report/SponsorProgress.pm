@@ -8,8 +8,6 @@ use Readonly;
 use namespace::autoclean;
 use Log::Log4perl qw(:easy);
 
-Log::Log4perl->easy_init($DEBUG);
-
 extends qw( LIMS2::ReportGenerator );
 
 Readonly my %REPORT_CATAGORIES => (
