@@ -27,7 +27,7 @@ sub create_pg_user {
     #my $whoami      = $dbh->{Username};
     #DEBUG("Logged in as '$whoami'");
     my $admin_role  = $dbh->quote_identifier( 'lims2' );
-    my $webapp_role = $dbh->quote_identifier( $db_name . 'lims2_webapp' );
+    my $webapp_role = $dbh->quote_identifier( 'lims2_webapp' );
     my $new_role    = $dbh->quote_identifier($user_name);
 
     $dbh->do("SET LOCAL ROLE $admin_role");
