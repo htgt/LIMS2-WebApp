@@ -1078,6 +1078,7 @@ INSERT INTO design_types VALUES ('insertion');
 INSERT INTO design_types VALUES ('artificial-intron');
 INSERT INTO design_types VALUES ('intron-replacement');
 INSERT INTO design_types VALUES ('cre-bac');
+INSERT INTO design_types VALUES ('gibson');
 
 
 --
