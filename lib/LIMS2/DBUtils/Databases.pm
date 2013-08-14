@@ -8,7 +8,7 @@ require LIMS2::Model::DBConnect;
 #require File::Temp qw(tempfile tempdir);
 require File::Temp;
 require Data::Dumper;
-require IPC::Open3;
+use IPC::Run qw( run timeout );
 
 use Log::Log4perl qw( :easy );
 
@@ -161,27 +161,33 @@ Check if a database exists on a postgres server
 sub database_exists
 {
     my ($self, %params) = @_;
+    my ($input, $output, $error);
 
     # Do we have a source or target database
     local $ENV{PGPASSWORD} = $params{connection}->{password};
-    my $list_source_database_query =
-	$self->psql .
-	" -l" .
-	" -A" .
-	" -h " . $params{connection}->{host} .
-	" -p " . $params{connection}->{port} .
-	" --username=" . $params{connection}->{user} .
-	" --no-password" .
-	" | egrep '^" . $params{connection}->{dbname} . "\\b'" .
-	" | wc -l"
-    ;
-	#((exists($params{no_role}) && $params{no_role}) ?  '' : " --role=" . $params{role}) .
-    #my $has_db = `$list_source_database_query`;
-    my $has_db = system($list_source_database_query);
-    chomp($has_db);
-    DEBUG(Data::Dumper->Dump([\$list_source_database_query, \$has_db],[qw(list_source_database_query has_db)]));
+    my @list_source_database_query = (
+	$self->psql,
+	'-l',
+	'-A',
+	'-h', $params{connection}->{host},
+	'-p', $params{connection}->{port},
+	'-U', $params{connection}->{user},
+	'--no-password',
+    );
+    my $query = join(' ', @list_source_database_query );
 
-    return($has_db);
+    DEBUG('Running query: ' . $query);
+    run \@list_source_database_query, \$input, \$output, \$error, timeout(10) or die "psql: $?";
+    #DEBUG(Data::Dumper->Dump([\$output],[qw(output)]));
+    DEBUG("Query '$query' produced error output '$error'") if ($error);
+
+    my $matched = 0;
+    if ($output =~ m/^$params{connection}->{dbname}\b/m) {
+	$matched = 1;
+    }
+    DEBUG("Matched is : $matched");
+
+    return($matched);
 }
 
 =head2 dump_database_definition
@@ -311,10 +317,9 @@ Run a query in the database
 sub run_query
 {
     my ($self, %params) = @_;
+    my ($input, $output, $error);
 
-    # Safeguard query from quotes
-    my $query = $params{query};
-    $query =~ s/"/\\"/g;
+    $input = $params{query};
 
     # resolve connection parameters ({entry, role} => {host, port, database, name, password})
     $self->check_connection_details(\%params);
@@ -323,22 +328,22 @@ sub run_query
 
     # Run command using psql
     local $ENV{PGPASSWORD} = $params{connection}->{password};
-    my $run_query =
-	$self->psql .
-	" -h " . $params{connection}->{host} .
-	" -p " . $params{connection}->{port} .
-	" --username=" . $params{connection}->{user} .
-	" --no-password " .
-	" -c " . "\"" . $query . "\"" .
-	" " . $params{connection}->{dbname} .
-	' 2>&1'
-    ;
+    my @run_query = (
+	$self->psql,
+	'-h', $params{connection}->{host},
+	'-p', $params{connection}->{port},
+	'-U', $params{connection}->{user},
+	'--no-password',
+	$params{connection}->{dbname}
+    );
+    my $query = join(' ', @run_query);
 
-    DEBUG(Data::Dumper->Dump([\$run_query],[qw(run_query)]));
+    DEBUG(Data::Dumper->Dump([\$input],[qw(query)]));
 
-    my $ret = system($run_query);
-    print STDERR $ret if ($ret =~ m/ERROR/);
-    return $ret =~ m/ERROR/ ? 0 : 1;
+    run \@run_query, \$input, \$output, \$error, timeout(10) or die "psql: $?";
+    DEBUG("Query '$input' produced error output '$error'") if ($error);
+
+    return $error =~ m/ERROR/ ? 0 : 1;
 }
 ## use critic
 
@@ -360,7 +365,7 @@ sub create_testroles
 
     my $role_structure = <<'HERE_TARGET';
 	DO 
-	\$func\$
+	$func$
 	declare 
 	    num_users_lims2 integer;
 	    num_users_testuser integer;
@@ -381,7 +386,7 @@ sub create_testroles
 	    WHERE rolname = 'test_user@example.org';
 
 	    IF num_users_testuser = 0 THEN
-		CREATE ROLE "test_user@example.org" with nologin inherit;
+		CREATE ROLE "test_user@example.org" with encrypted password 'ahdooS1e' nologin inherit;
 	    END IF;
 
 	    create temporary table tmp_role as (
@@ -420,7 +425,7 @@ sub create_testroles
 	    GRANT SELECT, INSERT, UPDATE, DELETE ON fixture_md5 TO "lims2_test";
 	    grant all on fixture_md5 to "lims2";
 	end
-	\$func\$
+	$func$
 HERE_TARGET
 
     $ret = $self->run_query(connection => { %{$params{connection}} }, query => $role_structure);
@@ -448,7 +453,7 @@ sub truncate_audit_tables
     my $truncate_audit_command = <<'HERE_TARGET';
 	set search_path = audit, pg_catalog;
 	DO
-	\$func\$
+	$func$
 	BEGIN
 	   EXECUTE (
 	      SELECT 'TRUNCATE TABLE '
@@ -458,7 +463,7 @@ sub truncate_audit_tables
 	      WHERE  t.schemaname = 'audit'
 	   );
 	END
-	\$func\$;
+	$func$;
 HERE_TARGET
 
     $ret = $self->run_query(connection => { %{$params{connection}} }, query => $truncate_audit_command);
@@ -486,7 +491,7 @@ sub create_application_role_structure
     my $temporary_password = $self->generate_password();
     my $create_role_structure_command = <<'HERE_TARGET';
 	DO
-	\$func\$
+	$func$
 	DECLARE
 	    tc record;
 	    num_users_lims2_webapp integer;
@@ -502,7 +507,7 @@ sub create_application_role_structure
 	    WHERE rolname = 'lims2_webapp';
 
 	    IF num_users_lims2_webapp = 0 THEN
-		CREATE ROLE "lims2_webapp" WITH ENCRYPTED PASSWORD '{temporary_password}' LOGIN NOINHERIT;
+		CREATE ROLE "lims2_webapp" WITH ENCRYPTED PASSWORD '{temporary_password}' LOGIN INHERIT;
 	    END IF;
 
 	    -- ------------------------------
@@ -577,15 +582,8 @@ sub create_application_role_structure
 		END LOOP
 	    ;
 
-	   EXECUTE (
-	      SELECT 'TRUNCATE TABLE '
-		     || string_agg('audit.' || quote_ident(t.tablename), ', ')
-		     || ' CASCADE'
-	      FROM   pg_tables t
-	      WHERE  t.schemaname = 'audit'
-	   );
 	END
-	\$func\$;
+	$func$;
 HERE_TARGET
 
     $create_role_structure_command =~ s/{temporary_password}/$temporary_password/g;
