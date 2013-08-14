@@ -1258,6 +1258,12 @@ INSERT INTO design_oligo_types VALUES ('U3');
 INSERT INTO design_oligo_types VALUES ('D5');
 INSERT INTO design_oligo_types VALUES ('D3');
 INSERT INTO design_oligo_types VALUES ('G3');
+INSERT INTO design_oligo_types VALUES ('5F');
+INSERT INTO design_oligo_types VALUES ('5R');
+INSERT INTO design_oligo_types VALUES ('EF');
+INSERT INTO design_oligo_types VALUES ('ER');
+INSERT INTO design_oligo_types VALUES ('3F');
+INSERT INTO design_oligo_types VALUES ('3R');
 
 
 --
