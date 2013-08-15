@@ -125,9 +125,9 @@ note "Testing creation of QC template from CSV upload";
     $mech->link_content_like(\@gbk_links, qr/LOCUS/, 'genbank file download links work');
     
     # Delete the new template
-    $mech->get_ok('/user/delete_template?id='.$created_id, 'can delete template');
+    $mech->get_ok('/user/delete_template?id='.$created_id . "&name=test_template_csv", 'can delete template');
     $mech->title_is('Browse Templates', 'delete redirects to browse templates');
-    $mech->content_lacks($template, 'new template is no longer listed');
+    $mech->content_like( qr/Deleted template $template/, 'see message for deletion');
      
 }
 
