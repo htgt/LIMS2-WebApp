@@ -34,6 +34,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -143,7 +145,7 @@ sub all_tests  : Tests
 
     note( 'Testing Pipeline Summary reports - Mouse double-targeted front page' );
     # Mouse double-targeted - Front page
-    $mech->get_ok( '/user/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data');
+    $mech->get_ok( '/user/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data'); 
 
     $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
     $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
@@ -254,7 +256,7 @@ sub all_tests  : Tests
 
     note( 'Testing Pipeline Summary reports - COMPLETED' );
 
-    }
+}
 
 =head1 AUTHOR
 

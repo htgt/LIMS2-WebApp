@@ -31,6 +31,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -88,7 +90,7 @@ sub all_tests  : Test(38)
 {
     my $mech = mech();
 
-    {
+    {   
 	note( "Don't specify new password" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -106,7 +108,7 @@ sub all_tests  : Test(38)
 	like $res->content, qr/You must specify a new password/, '... no new password specified';
     }
 
-    {
+    {   
 	note( "Don't specify new password confirm field" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -124,7 +126,7 @@ sub all_tests  : Test(38)
 	like $res->content, qr/You must fill in password confirm box as well/, '... no new password confirm specified';
     }
 
-    {
+    {   
 	note( "New password and Password confirm values do not match" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -142,7 +144,7 @@ sub all_tests  : Test(38)
 	like $res->content, qr/new password and password confirm values do not match/, '... password and password confirm values do not match';
     }
 
-    {
+    {   
 	note( "Invalid password" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
@@ -188,7 +190,7 @@ sub all_tests  : Test(38)
 	), 'Login with changed password';
     }
 
-    {
+    {   
 	note( "Change password back" );
 	$mech->get_ok( '/user/change_password' );
 	$mech->title_is('Change Password');
