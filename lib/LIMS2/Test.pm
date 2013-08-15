@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.093';
+    $LIMS2::Test::VERSION = '0.094';
 }
 ## use critic
 
@@ -44,9 +44,14 @@ sub unauthenticated_mech {
 	my $name = db_name($dbh);
 	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
 
-	# This warns "commit ineffective with AutoCommit enabled"
-	# but it seems to be necessary...
+    # Calling commit warns "commit ineffective with AutoCommit enabled"
+    # but it seems to be necessary...
+    # turning of warnings briefly to suppress this message
+    $dbh->{PrintWarn} = 0;
+    $dbh->{Warn} = 0;
     $dbh->commit;
+    $dbh->{PrintWarn} = 1;
+    $dbh->{Warn} = 1;
 
     return Test::WWW::Mechanize::Catalyst->new( catalyst_app => 'LIMS2::WebApp' );
 }
@@ -159,7 +164,7 @@ sub _load_fixtures {
     # If we find any new/modified files then reload all fixtures
     if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
 
-    	print STDERR "loading fixture data";
+        note "loading fixture data";
 
         my $dbname = db_name( $dbh );
 
@@ -178,9 +183,14 @@ sub _load_fixtures {
     	}
     	_update_fixture_md5($dbh, $fixture_md5);
 
-	    # This warns "commit ineffective with AutoCommit enabled"
+	    # Calling commit warns "commit ineffective with AutoCommit enabled"
 	    # but it seems to be necessary...
+        # turning of warnings briefly to suppress this message
+        $dbh->{PrintWarn} = 0;
+        $dbh->{Warn} = 0;
     	$dbh->commit;
+        $dbh->{PrintWarn} = 1;
+        $dbh->{Warn} = 1;
 
     	$dbh->do( "RESET ROLE" );
     }

@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use LIMS2::Test;
 use Test::Most;
+use JSON qw( encode_json decode_json );
 
 {
     ok my $design = model->retrieve_design( { id => 84231 } ), 'retrieve design id=84231';
@@ -141,6 +142,29 @@ note('Testing the Creation and Deletion of designs');
         model->create_design($design_data)
     } qr/Assembly GRCm38 does not belong to species Human/
         ,'throws error for species assembly mismatch';
+}
+
+note('Test adding design parameter data in design creation');
+{
+    my $design_data = build_design_data(84231);
+    $design_data->{id} = 8888888;
+    my $design_parameters = { param_1 => 5, param_2 => 10 };
+    $design_data->{design_parameters} = encode_json( $design_parameters );
+
+    ok my $new_design = model->create_design($design_data), 'can create new design';
+    is_deeply decode_json( $new_design->design_parameters ), $design_parameters
+        , 'design parameters json string is correct';
+
+    ok my $decoded_design_params = $new_design->design_parameters_hash
+        , 'can decode design parameters data though resultset method';
+    is_deeply $decoded_design_params, $design_parameters
+        , 'design parameters json string is correct';
+
+    $design_data->{design_parameters} = 'this is not json data';
+    throws_ok {
+        model->create_design($design_data)
+    } qr/design_parameters, is invalid: json/
+        , 'throws error for non json data';
 }
 
 note('Testing create design oligo');

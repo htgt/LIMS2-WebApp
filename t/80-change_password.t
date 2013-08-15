@@ -6,6 +6,11 @@ use warnings FATAL => 'all';
 use LIMS2::Test;
 use Test::Most;
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+}
+
 my $mech = mech();
 
 {

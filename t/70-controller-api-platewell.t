@@ -8,6 +8,11 @@ use Test::Most;
 use File::Temp ':seekable';
 use JSON;
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+}
+
 my $mech = mech();
 
 

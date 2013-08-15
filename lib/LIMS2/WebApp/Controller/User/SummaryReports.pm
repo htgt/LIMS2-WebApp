@@ -1,14 +1,11 @@
 package LIMS2::WebApp::Controller::User::SummaryReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.093';
+    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.094';
 }
 ## use critic
 
 use Moose;
-use TryCatch;
-use Data::Dump 'pp';
-use Const::Fast;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -69,8 +66,6 @@ sub view : Path( '/user/view_summary_report' ) : Args(3) {
 
     return;
 }
-
-=head2 view_design
 
 =head1 AUTHOR
 

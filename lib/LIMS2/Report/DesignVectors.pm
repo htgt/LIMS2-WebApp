@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignVectors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignVectors::VERSION = '0.093';
+    $LIMS2::Report::DesignVectors::VERSION = '0.094';
 }
 ## use critic
 
@@ -16,8 +16,6 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
-
-Log::Log4perl->easy_init($DEBUG);
 
 has species => (
     is       => 'ro',

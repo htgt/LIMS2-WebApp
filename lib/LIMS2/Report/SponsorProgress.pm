@@ -1,7 +1,7 @@
 package LIMS2::Report::SponsorProgress;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SponsorProgress::VERSION = '0.093';
+    $LIMS2::Report::SponsorProgress::VERSION = '0.094';
 }
 ## use critic
 
@@ -13,8 +13,6 @@ use JSON qw( decode_json );
 use Readonly;
 use namespace::autoclean;
 use Log::Log4perl qw(:easy);
-
-Log::Log4perl->easy_init($DEBUG);
 
 extends qw( LIMS2::ReportGenerator );
 

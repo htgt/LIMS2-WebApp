@@ -27,7 +27,7 @@ note('Test getting reverse complimented oligo sequence');
 
     is $design_oligo->revcomp_seq, 'NCGAT', 'correct reverse complimented seq with N';
 
-    ok $design_oligo->update( { seq => 'XXX1123' } ), 'can update design oligo seq with nonsense data';
+    ok $design_oligo->update( { seq => '23' } ), 'can update design oligo seq with nonsense data';
 
     throws_ok{
         $design_oligo->revcomp_seq

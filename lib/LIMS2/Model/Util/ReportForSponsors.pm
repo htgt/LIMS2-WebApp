@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.093';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.094';
 }
 ## use critic
 
@@ -18,8 +18,6 @@ use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use DateTime;
 use Readonly;
-
-Log::Log4perl->easy_init($DEBUG);
 
 extends qw( LIMS2::ReportGenerator );
 

@@ -9,6 +9,11 @@ use File::Temp ':seekable';
 use JSON;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+}
+
 note( 'Testing Pipeline Summary reports' );
 
 my $species = 'Mouse'; # NB. need to add tests for human reports later

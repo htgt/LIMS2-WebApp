@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.093';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.094';
 }
 ## use critic
 
@@ -230,7 +230,8 @@ sub revcomp_seq {
     require LIMS2::Exception;
 
     try{
-        my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->seq );
+        # -verbose -1 turns of warning / error messages
+        my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->seq, -verbose => -1 );
         $revcomp_seq = $bio_seq->revcom->seq;
     }
     catch {
