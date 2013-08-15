@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.094     2013-08-15 08:34:32 Europe/London
+
+    Bugfix: get logging working again
+    Add design_parameters column to designs table
+    Remove surplus messages from tests
+
 0.093     2013-08-13 08:25:08 Europe/London
 
     Move sponsor progress report from front page to its own page.

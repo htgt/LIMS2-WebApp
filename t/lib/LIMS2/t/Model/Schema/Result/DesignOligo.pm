@@ -88,7 +88,7 @@ sub all_tests  : Test(26)
 {
     note('Test getting reverse complimented oligo sequence');
 
-    {
+    {   
 	ok my $design_oligo = model->schema->resultset( 'DesignOligo' )->find( { id => 54767 } )
 	    ,' can find design oligom, 54767, G5';
 
@@ -102,7 +102,7 @@ sub all_tests  : Test(26)
 
 	is $design_oligo->revcomp_seq, 'NCGAT', 'correct reverse complimented seq with N';
 
-	ok $design_oligo->update( { seq => 'XXX1123' } ), 'can update design oligo seq with nonsense data';
+	ok $design_oligo->update( { seq => '23' } ), 'can update design oligo seq with nonsense data';
 
 	throws_ok{
 	    $design_oligo->revcomp_seq
@@ -111,7 +111,7 @@ sub all_tests  : Test(26)
 
     note( 'Testing append_seq' );
 
-    {
+    {   
 	ok my $u5_design_oligo = model->schema->resultset( 'DesignOligo' )->find( { id => 54768 } )
 	    ,' can find design oligo, 54768, U5';
 
@@ -138,7 +138,7 @@ sub all_tests  : Test(26)
 
     note( 'Test oligo_order_seq, -ve stranded design' );
 
-    {
+    {   
 	# -ve Stranded design oligos, 88505
 	ok my $u5_design_oligo = model->schema->resultset( 'DesignOligo' )->find( { id => 54768 } )
 	    ,' can find design oligo, 54768, U5';
@@ -182,6 +182,15 @@ sub all_tests  : Test(26)
 	$expected_d3_order_seq .= $d3_append_seq;
 	is $d3_design_oligo->oligo_order_seq, $expected_d3_order_seq, 'got expected D3 order seq';
 
+    }
+
+    sub _revcomp_seq {
+	my $seq = shift;
+
+	my $revcomp_oligo_seq = reverse( $seq );
+	$revcomp_oligo_seq =~ tr/ATCG/TAGC/;
+
+	return $revcomp_oligo_seq;
     }
 
 }

@@ -34,6 +34,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -89,7 +91,6 @@ Code to execute all tests
 
 sub all_tests  : Tests
 {
-
     my $mech = mech();
 
     note "Testing creation of QC template from plate";
@@ -141,7 +142,7 @@ sub all_tests  : Tests
 
     note "Testing creation of QC template from CSV upload";
 
-    {
+    {   
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print("well_name,source_plate,source_well\n"
 			  . "A01,MOHFAS0001_A,B01\n"
@@ -202,9 +203,9 @@ sub all_tests  : Tests
 	$mech->link_content_like(\@gbk_links, qr/LOCUS/, 'genbank file download links work');
 
 	# Delete the new template
-	$mech->get_ok('/user/delete_template?id='.$created_id, 'can delete template');
+	$mech->get_ok('/user/delete_template?id='.$created_id . "&name=test_template_csv", 'can delete template');
 	$mech->title_is('Browse Templates', 'delete redirects to browse templates');
-	$mech->content_lacks($template, 'new template is no longer listed');
+	$mech->content_like( qr/Deleted template $template/, 'see message for deletion');
 
     }
 
@@ -356,7 +357,7 @@ sub all_tests  : Tests
 
     my $template;
 
-    {
+    {   
 	my $template_data = test_data( 'qc_template.yaml' );
 	my $template_name = $template_data->{name};
 
@@ -377,8 +378,8 @@ sub all_tests  : Tests
     $run_data->{qc_template_name} = $template->{name};
     my $test_results = delete $run_data->{test_results};
 
-    {
-	ok my $res = $mech->request( POST '/api/qc_run', 'Content-Type' => 'application/json', Content => encode_json( $run_data ) ), "POST qc_run $run_data->{id}";
+    {   
+	ok my $res = $mech->request( POST '/api/qc_run', 'Content-Type' => 'application/json', Content => encode_json( $run_data ) ), "POST qc_run $run_data->{id}"; 
 	ok $res->is_success, '...request should succeed';
 	is $res->code, HTTP_CREATED, '..status is created';
 	like $res->header('location'), qr(\Q/api/qc_run?id=$run_data->{id}\E$), '...location header is correct';
@@ -386,7 +387,7 @@ sub all_tests  : Tests
 
     note "Testing creation and retrieval of QC sequencing reads";
 
-    {
+    {   
 	my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
 
 	for my $s ( @seq_reads_data ) {
@@ -421,14 +422,14 @@ sub all_tests  : Tests
 	}
 	$test_result->{qc_run_id} = $run_data->{id};
 	my $test_result_id;
-	{
+	{  
 	    ok my $res = $mech->request( POST '/api/qc_test_result', 'Content-Type' => 'application/json', Content => encode_json( $test_result ) ), 'POST /api/qc_test_result';
 	    ok $res->is_success, '...request should succeed';
 	    is $res->code, HTTP_CREATED, '...status is created';
 	    like $res->header('location'), qr(\Q/api/qc_test_result?id=\E\d+$), '...location header is correct';
 	    ( $test_result_id ) = $res->header('location') =~ m/(\d+)$/;
 	}
-	{
+	{  
 	    my $url = "/api/qc_test_result?id=$test_result_id";
 	    ok my $res = $mech->request( GET $url, 'Content-Type' => 'application/json' ), "GET $url";
 	    ok $res->is_success, '...request should succeed';

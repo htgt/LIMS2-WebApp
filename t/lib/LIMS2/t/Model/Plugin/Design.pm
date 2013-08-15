@@ -2,6 +2,7 @@ package LIMS2::t::Model::Plugin::Design;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Plugin::Design;
+use JSON qw( encode_json decode_json );
 
 use LIMS2::Test;
 
@@ -86,7 +87,7 @@ Code to execute all tests
 
 sub all_tests  : Tests
 {
-    {
+    {   
 	ok my $design = model->retrieve_design( { id => 84231 } ), 'retrieve design id=84231';
 	isa_ok $design, 'LIMS2::Model::Schema::Result::Design';
 	can_ok $design, 'as_hash';
@@ -146,7 +147,7 @@ sub all_tests  : Tests
 	is scalar( @{ $no_gene_designs } ), 0, 'returns 0 design';
     }
 
-    {   
+    {
 	ok my $designs = model->list_candidate_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912', type => 'conditional' } ),
 	    'list candidate designs for MGI accession, gene on -ve strand';
 	isa_ok $designs, ref [];
@@ -167,7 +168,7 @@ sub all_tests  : Tests
 
 
     note('Testing the Creation and Deletion of designs');
-    {
+    {   
 	my $design_data = build_design_data(84231);
 
 	ok my $new_design = model->create_design($design_data), 'can create new design';
@@ -223,8 +224,31 @@ sub all_tests  : Tests
 	    ,'throws error for species assembly mismatch';
     }
 
-    note('Testing create design oligo');
+    note('Test adding design parameter data in design creation');
     {   
+	my $design_data = build_design_data(84231);
+	$design_data->{id} = 8888888;
+	my $design_parameters = { param_1 => 5, param_2 => 10 };
+	$design_data->{design_parameters} = encode_json( $design_parameters );
+
+	ok my $new_design = model->create_design($design_data), 'can create new design';
+	is_deeply decode_json( $new_design->design_parameters ), $design_parameters
+	    , 'design parameters json string is correct';
+
+	ok my $decoded_design_params = $new_design->design_parameters_hash
+	    , 'can decode design parameters data though resultset method';
+	is_deeply $decoded_design_params, $design_parameters
+	    , 'design parameters json string is correct';
+
+	$design_data->{design_parameters} = 'this is not json data';
+	throws_ok {
+	    model->create_design($design_data)
+	} qr/design_parameters, is invalid: json/
+	    , 'throws error for non json data';
+    }
+
+    note('Testing create design oligo');
+    {
 	my $design_data = build_design_data(84231);
 
 	my $oligos = delete $design_data->{oligos};
@@ -259,7 +283,7 @@ sub all_tests  : Tests
     }
 
     note('Testing retrieve design oligo');
-    {
+    {   
 	ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } )
 	    , 'can retrieve design oligo by design_id and oligo_type';
 
@@ -269,9 +293,9 @@ sub all_tests  : Tests
     }
 
     note('Testing create design oligo locus');
-    {   
+    {
 	ok my $design_oligo_locus = model->create_design_oligo_locus(
-	    {   
+	    {  
 		assembly   => 'NCBIM34',
 		chr_name   => 1,
 		chr_start  => 10,
@@ -290,7 +314,7 @@ sub all_tests  : Tests
 
 	throws_ok{
 	     model->create_design_oligo_locus(
-		{   
+		{  
 		    assembly   => 'GRCm38',
 		    chr_name   => 1,
 		    chr_start  => 10,
@@ -343,7 +367,6 @@ sub all_tests  : Tests
 
 	return $design_data;
     }
-
 
 }
 
