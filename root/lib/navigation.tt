@@ -1,4 +1,4 @@
-<div class="navbar navbar-fixed-top navbar-inverse">
+<div class="navbar navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
   <div class="navbar-inner">
     <div class="container">
       <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
@@ -16,6 +16,9 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
             </li>
           </ul>
         </li>

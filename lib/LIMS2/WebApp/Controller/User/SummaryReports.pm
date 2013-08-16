@@ -1,8 +1,5 @@
 package LIMS2::WebApp::Controller::User::SummaryReports;
 use Moose;
-use TryCatch;
-use Data::Dump 'pp';
-use Const::Fast;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -63,8 +60,6 @@ sub view : Path( '/user/view_summary_report' ) : Args(3) {
 
     return;
 }
-
-=head2 view_design
 
 =head1 AUTHOR
 
