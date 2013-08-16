@@ -13,8 +13,6 @@ use namespace::autoclean;
 use DateTime;
 use Readonly;
 
-Log::Log4perl->easy_init($DEBUG);
-
 extends qw( LIMS2::ReportGenerator );
 
 # Rows on report view
@@ -398,22 +396,22 @@ sub generate_sub_report {
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Valid DNA'                         => {
             'display_stage'         => 'Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'Electroporations'            => {
             'display_stage'         => 'Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Accepted ES Clones'                => {
             'display_stage'         => 'Accepted ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
     };
@@ -427,7 +425,7 @@ sub generate_sub_report {
         },
         'Vectors'                   => {
             'display_stage'         => 'Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Vectors Neo and Bsd'       => {
@@ -437,17 +435,17 @@ sub generate_sub_report {
         },
         'Vectors Neo'               => {
             'display_stage'         => 'Neomycin-resistant Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Vectors Bsd'               => {
             'display_stage'         => 'Blasticidin-resistant Vectors',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
         'Valid DNA'                 => {
             'display_stage'         => 'Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'Valid DNA Neo and Bsd'     => {
@@ -457,52 +455,52 @@ sub generate_sub_report {
         },
         'Valid DNA Neo'             => {
             'display_stage'         => 'Neomycin-resistant Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'Valid DNA Bsd'             => {
             'display_stage'         => 'Blasticidin-resistant Valid DNA',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
         'First Electroporations'    => {
             'display_stage'         => 'First Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'First Electroporations Neo' => {
             'display_stage'         => 'First Electroporations Neo',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'First Electroporations Bsd' => {
             'display_stage'         => 'First Electroporations Bsd',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Accepted First ES Clones'  => {
             'display_stage'         => 'Accepted First ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Second Electroporations'   => {
             'display_stage'         => 'Second Electroporations',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'order', 'plate_name', 'well_name',  'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'order', 'plate_name', 'well_name',  'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'electroporation order', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Second Electroporations Neo'   => {
             'display_stage'         => 'Second Electroporations Neo',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Second Electroporations Bsd'   => {
             'display_stage'         => 'Second Electroporations Bsd',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
         'Accepted Second ES Clones' => {
             'display_stage'         => 'Accepted Second ES Clones',
-            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promotor', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
+            'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
     };
@@ -723,7 +721,7 @@ sub refactor_vector_pairs_data {
 
     # now have a resultset with multiple rows per gene, one per combination of
     # neo/bsd and promoter/promoterless
-    # e.g. project id, design id, gene, resistance, promotor
+    # e.g. project id, design id, gene, resistance, promoter
     # 232   40416   Akt2    bsd  1
     # 232   40416   Akt2    neo    0
     # 232   40416   Akt2    neo    1
@@ -776,7 +774,7 @@ sub refactor_vector_pairs_data {
         }
 
         # update flags according to current row (NB same flag may be triggered
-        # multiple times if different cassettes have same resistance/promotor type
+        # multiple times if different cassettes have same resistance/promoter type
         if( defined $row->{ 'final_pick_cassette_resistance' } ) {
             if ( ($row->{ 'final_pick_cassette_resistance' } eq 'bsd') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_bsd_promoter' } = 1;
@@ -914,7 +912,7 @@ sub refactor_dna_pairs_data {
 
     # now have a resultset with multiple rows per gene, one per combination of
     # neo/bsd and promoter/promoterless
-    # e.g. project id, design id, gene, resistance, promotor
+    # e.g. project id, design id, gene, resistance, promoter
     # 232   40416   Akt2    bsd  1
     # 232   40416   Akt2    neo    0
     # 232   40416   Akt2    neo    1
@@ -967,7 +965,7 @@ sub refactor_dna_pairs_data {
         }
 
         # update flags according to current row (NB same flag may be triggered
-        # multiple times if different cassettes have same resistance/promotor type
+        # multiple times if different cassettes have same resistance/promoter type
         if( defined $row->{ 'final_pick_cassette_resistance' } ) {
             if ( ($row->{ 'final_pick_cassette_resistance' } eq 'bsd') && ($row->{ 'final_pick_cassette_promoter' } == 1 ) ) {
                $row_building{ 'have_bsd_promoter' } = 1;
@@ -1636,7 +1634,7 @@ AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -1714,7 +1712,7 @@ AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
 , s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 FROM summaries s
@@ -1794,7 +1792,7 @@ AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name
-, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promoter
 , s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -1872,7 +1870,7 @@ AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass
 , s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
@@ -2941,7 +2939,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -3154,7 +3152,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -3233,7 +3231,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
 , s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 FROM summaries s
@@ -3450,7 +3448,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
 , s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
 FROM summaries s
@@ -3531,7 +3529,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name
-, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promoter
 , s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -3609,7 +3607,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
  SELECT s.design_gene_id, s.design_gene_symbol, s.ep_plate_name AS plate_name, s.ep_well_name AS well_name
- , s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+ , s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promoter
  , s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -3688,7 +3686,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -3767,7 +3765,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name
-, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promoter
 , s.final_pick_cassette_resistance AS cassette_resistance, s.ep_well_id, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -3846,7 +3844,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.sep_plate_name AS plate_name, s.sep_well_name AS well_name
-, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promotor
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promoter
 , s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
@@ -3925,7 +3923,7 @@ AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
 SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
-, s.final_pick_cassette_promoter AS cassette_promotor, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
 , s.sep_pick_plate_name AS plate_name, s.sep_pick_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
