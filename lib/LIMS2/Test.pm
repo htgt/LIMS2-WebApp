@@ -162,6 +162,7 @@ sub _load_fixtures {
     if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
 
         note "loading fixture data";
+
         my $dbname = db_name( $dbh );
 
         my $admin_role = $dbname . '_admin';
