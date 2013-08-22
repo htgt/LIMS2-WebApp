@@ -32,8 +32,7 @@ sub unauthenticated_mech {
 
 	# Reset the fixture data checksum because webapp
 	# may change the database content
-#       my $model = LIMS2::Model->new( { user => 'tests' } );
-	my $model = LIMS2::Model->new( { user => 'lims2' } );
+    my $model = LIMS2::Model->new( { user => 'tests' } );
 
 	my $dbh = $model->schema->storage->dbh;
 	my $name = db_name($dbh);
@@ -67,8 +66,7 @@ sub mech {
 
 sub reload_fixtures {
 
-#    my $model = LIMS2::Model->new( { user => 'tests' } );
-    my $model = LIMS2::Model->new( { user => 'lims2' } );
+    my $model = LIMS2::Model->new( { user => 'tests' } );
     my $args = { force => 1 };
 
     try {
@@ -117,8 +115,7 @@ sub _build_test_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
 
-#    my $user = $args->{user} || 'tests';
-    my $user = $args->{user} || 'lims2';
+    my $user = $args->{user} || 'tests';
 
     my $model = LIMS2::Model->new( { user => $user } );
 
