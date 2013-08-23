@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.096     2013-08-23 06:58:01 Europe/London
+
+    Make sure tests login with tests role to databases
+
 0.095     2013-08-16 14:12:35 Europe/London
 
 0.094     2013-08-15 08:34:32 Europe/London
