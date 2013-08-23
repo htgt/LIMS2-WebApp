@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PgUserRole;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PgUserRole::VERSION = '0.094';
+    $LIMS2::Model::Util::PgUserRole::VERSION = '0.096';
 }
 ## use critic
 
@@ -30,8 +30,10 @@ sub create_pg_user {
 
     my $db_name = db_name($dbh);
 
-    my $admin_role  = $dbh->quote_identifier( $db_name . '_admin' );
-    my $webapp_role = $dbh->quote_identifier( $db_name . '_webapp' );
+    #my $whoami      = $dbh->{Username};
+    #DEBUG("Logged in as '$whoami'");
+    my $admin_role  = $dbh->quote_identifier( 'lims2' );
+    my $webapp_role = $dbh->quote_identifier( 'lims2_webapp' );
     my $new_role    = $dbh->quote_identifier($user_name);
 
     $dbh->do("SET LOCAL ROLE $admin_role");
@@ -42,13 +44,15 @@ sub create_pg_user {
     }
     else {
         DEBUG("Creating role $new_role");
-        $dbh->do("CREATE ROLE $new_role WITH NOLOGIN INHERIT");
+        $dbh->do("CREATE ROLE $new_role INHERIT");
     }
 
-    DEBUG("Granting $new_role to $webapp_role");
-    $dbh->do("GRANT $new_role TO $webapp_role");
+    DEBUG("Granting $admin_role to $new_role");
+    $dbh->do("GRANT $admin_role TO $new_role");
+    DEBUG("Granting $webapp_role to $new_role");
+    $dbh->do("GRANT $webapp_role TO $new_role");
 
-    set_pg_roles( $dbh, $user_name, $user_roles );
+    #set_pg_roles( $dbh, $user_name, $user_roles );
 
     return;
 }
@@ -65,34 +69,34 @@ sub set_pg_roles {
     my $admin_role = $dbh->quote_identifier( $db_name . '_admin' );
     my $inter_role = $dbh->quote_identifier( $db_name . '_inter_admin' );
 
-    $dbh->do("SET LOCAL ROLE $admin_role");
-
-    if ( grep { $_ eq 'read' } @{$user_roles} ) {
-        DEBUG("Granting $ro_role to $user_name");
-        $dbh->do("GRANT $ro_role TO $user_name");
-    }
-    else {
-        DEBUG("Revoking $ro_role from $user_name");
-        $dbh->do("REVOKE $ro_role FROM $user_name");
-    }
-
-    if ( grep { $_ eq 'edit' } @{$user_roles} ) {
-        DEBUG("Granting $rw_role to $user_name");
-        $dbh->do("GRANT $rw_role TO $user_name");
-    }
-    else {
-        DEBUG("Revoking $rw_role from $user_name");
-        $dbh->do("REVOKE $rw_role FROM $user_name");
-    }
-
-    if ( grep { $_ eq 'admin' } @{$user_roles} ) {
-        DEBUG("Granting $inter_role to $user_name");
-        $dbh->do("GRANT $inter_role TO $user_name");
-    }
-    else {
-        DEBUG("Revoking $inter_role from $user_name");
-        $dbh->do("REVOKE $inter_role FROM $user_name");
-    }
+#    $dbh->do("SET LOCAL ROLE $admin_role");
+#
+#    if ( grep { $_ eq 'read' } @{$user_roles} ) {
+#        DEBUG("Granting $ro_role to $user_name");
+#        $dbh->do("GRANT $ro_role TO $user_name");
+#    }
+#    else {
+#        DEBUG("Revoking $ro_role from $user_name");
+#        $dbh->do("REVOKE $ro_role FROM $user_name");
+#    }
+#
+#    if ( grep { $_ eq 'edit' } @{$user_roles} ) {
+#        DEBUG("Granting $rw_role to $user_name");
+#        $dbh->do("GRANT $rw_role TO $user_name");
+#    }
+#    else {
+#        DEBUG("Revoking $rw_role from $user_name");
+#        $dbh->do("REVOKE $rw_role FROM $user_name");
+#    }
+#
+#    if ( grep { $_ eq 'admin' } @{$user_roles} ) {
+#        DEBUG("Granting $inter_role to $user_name");
+#        $dbh->do("GRANT $inter_role TO $user_name");
+#    }
+#    else {
+#        DEBUG("Revoking $inter_role from $user_name");
+#        $dbh->do("REVOKE $inter_role FROM $user_name");
+#    }
 
     return;
 }

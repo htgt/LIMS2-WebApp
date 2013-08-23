@@ -1,0 +1,18 @@
+---
+valid_design_target:
+    species: Human
+    marker_symbol: ABL1
+    gene_id: HGNC:76
+    ensembl_gene_id: ENSG00000097007
+    ensembl_exon_id: ENSE00002690665
+    exon_size: 296
+    exon_rank: 3
+    canonical_transcript: ENST00000318560
+    assembly: GRCh37
+    build: 70
+    chr_name: 12
+    chr_start: 123456
+    chr_end: 123468
+    chr_strand: 1
+    automatically_picked: 1
+    comment: Test design target

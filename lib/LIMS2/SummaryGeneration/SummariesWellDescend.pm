@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.094';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.096';
 }
 ## use critic
 
@@ -28,7 +28,9 @@ sub generate_summary_rows_for_design_well {
 
     # initialise variables
     # TODO: be better if model was passed in from calling module, same as other LIMS2 modules
-    my $model = LIMS2::Model->new( user => 'tasks' );  # DB connection
+#    my $model = LIMS2::Model->new( user => 'tasks' );  # DB connection
+    my $model = LIMS2::Model->new( user => 'lims2' );  # DB connection
+
     my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
     my $wells_deleted = 0; # count of deleted wells
     my $well_inserts_succeeded = 0; # count of inserts

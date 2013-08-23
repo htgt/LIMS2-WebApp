@@ -16,7 +16,8 @@ my $csv = Text::CSV->new( { eol => "\n" } );
 
 $csv->print( \*STDOUT, \@COLUMNS );
 
-my $model = LIMS2::Model->new( user => 'tasks' );
+#my $model = LIMS2::Model->new( user => 'tasks' );
+my $model = LIMS2::Model->new( user => 'lims2' );
 
 my $gene_design_rs = $model->schema->resultset( 'GeneDesign' )->search_rs(
     { 'well.id' => { '!=', undef } },
