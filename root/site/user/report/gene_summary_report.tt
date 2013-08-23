@@ -1,0 +1,599 @@
+[%- META title = "Gene Summary"; META tab_name = 'Genes' %]
+
+<div class="page-header">
+  <h1>[% template.title %]</h1>
+</div>
+
+<form id="gene_report_form" class="well form-horizontal">
+  <input type="text" class="span3" id="gene_id_input" name="gene_id" placeholder="Gene identifier" autocomplete="off" />
+  <button type="submit" class="btn">Show Summary</button>
+</form>
+
+[% MACRO plate_link(well) BLOCK -%]
+<a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate.name %]</a>
+[%- END -%]
+
+[%- IF info.defined %]
+<h2>Showing details for [% info.gene_symbol %] ([% info.gene_id %])</h2>
+<div class="accordion" id="gene_report_accordion">
+[%- END %]
+
+[%- IF designs.defined %]
+<div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesigns">Designs</a>
+      </h3>
+    </div>
+    <div id="collapseDesigns" class="accordion-body collapse in">
+      <div class="accordion-inner">
+        [%- IF designs.defined AND designs.size > 0 %]
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Created by</th>
+              <th>Created on</th>
+              <th>Validated by annotation</th>
+              <th>Target transcript</th>
+              <th>Assigned genes</th>
+            </tr>
+          </thead>
+          <tbody>
+            [% FOREACH skey IN designs.keys.nsort %]
+            <tr>
+              <td><a href="[% c.uri_for( '/user/view_design', { design_id => skey } ) %]">[% skey %]</a></td>
+              <td>[% designs.item(skey).design_details.name %]</td>
+              <td>[% designs.item(skey).design_details.design_type_id %]</td>
+              <td>[% designs.item(skey).design_details.created_by_name %]</td>
+              <td>[% designs.item(skey).design_details.created_at %]</td>
+              <td>[% designs.item(skey).design_details.validated_by_annotation %]</td>
+              <td>[% designs.item(skey).design_details.target_transcript %]</td>
+              <td>[% genes = [];
+                FOR genekey IN designs.item(skey).design_details.genes.keys;
+                genes.push( genekey );
+                END;
+                genes.join(", ");
+                %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+        [%- ELSE %]
+        <p><em>No assigned designs<em></p>
+        [%- END %]
+      </div>
+    </div>
+  </div>
+  [% END %]
+
+[%- IF wells.defined %]
+  [%- IF sorted_wells.design %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesignInstances">Design Instances</a>
+      </h3>
+    </div>
+    <div id="collapseDesignInstances" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Design ID</th>
+            <th>Recombineering Result</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.design %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.design_id %]</td>
+              <td>[% well.recombineering_result %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.int %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseIntermediateVectors">Intermediate Vectors</a>
+      </h3>
+    </div>
+    <div id="collapseIntermediateVectors" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Cassette</th>
+            <th>Backbone</th>
+            <th>Recombinase</th>
+            <th>Sequencing QC pass?</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.int %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.cassette_name %]</td>
+              <td>[% well.backbone_name %]</td>
+              <td>[% well.recombinases %]</td>
+              <td>[% well.qc_seq_pass %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.final %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinal">Final Vectors</a>
+      </h3>
+    </div>
+    <div id="collapseFinal" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Cassette</th>
+            <th>Backbone</th>
+            <th>Recombinase</th>
+            <th>Sequencing QC pass?</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.final %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.cassette_name %]</td>
+              <td>[% well.backbone_name %]</td>
+              <td>[% well.recombinases %]</td>
+              <td>[% well.qc_seq_pass %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.final_pick %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinalPick">Final Pick Vectors</a>
+      </h3>
+    </div>
+    <div id="collapseFinalPick" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Cassette</th>
+            <th>Backbone</th>
+            <th>Recombinase</th>
+            <th>Sequencing QC pass?</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.final_pick %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.cassette_name %]</td>
+              <td>[% well.backbone_name %]</td>
+              <td>[% well.recombinases %]</td>
+              <td>[% well.qc_seq_pass %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.dna %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDNA">DNA Preparations</a>
+      </h3>
+    </div>
+    <div id="collapseDNA" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Final Pick Vector</th>
+            <th>DNA Quality</th>
+            <th>DNA Quality Comment</th>
+            <th>DNA Status</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.dna %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.final_pick_well %]</td>
+              <td>[% well.quality %]</td>
+              <td>[% well.quality_comment %]</td>
+              <td>[% well.status_pass %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.ep %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEP">First Electroporations</a>
+      </h3>
+    </div>
+    <div id="collapseEP" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Final Pick Vector Well</th>
+            <th>DNA Well</th>
+            <th>Recombinase</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.ep %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.final_pick_well %]</td>
+              <td>[% well.dna_well %]</td>
+              <td>[% well.recombinases %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.ep_pick %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEpPick">First Electroporation Picks</a>
+      </h3>
+    </div>
+    <div id="collapseEpPick" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>First Electroporation Well</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.ep_pick %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.ep_well %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.xep %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseXEP">XEP Pools</a>
+      </h3>
+    </div>
+    <div id="collapseXEP" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>EP Parents</th>
+            <th>FEPD Parents</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.xep %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => sorted_wells.xep.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>
+                [% FOR parent IN well.ep_parents.keys %]
+                  [% parent %]<br style="line-height:50%;" />
+                [% END %]
+                </td>
+              <td>
+                [% FOR parent IN well.fepd_parents.keys %]
+                  [% parent %]<br style="line-height:50%;" />
+                [% END %]
+              </td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.sep %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSEP">Second Electroporations</a>
+      </h3>
+    </div>
+    <div id="collapseSEP" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Well ID</th>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>First Allele Vector</th>
+            <th>Second Allele Vector</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.sep %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td>[% well.well_id %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.first_fpick %]</td>
+              <td>[% well.second_fpick %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.sep_pick %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSepPick">Second Electroporation Picks</a>
+      </h3>
+    </div>
+    <div id="collapseSepPick" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Second Electroporation Well</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.sep_pick %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.sep_well %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.fp %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFP">First Electroporation Freezer Instances</a>
+      </h3>
+    </div>
+    <div id="collapseFP" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>First Allele Electroporation</th>
+            <th>First Electroporation Pick</th>
+            <th>Accepted?</th>
+            <th>PIQ?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.fp %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.ep_well %]</td>
+              <td>[% well.ep_pick_well %]</td>
+              <td>[% well.is_accepted %]</td>
+              <td>[% well.piq_well %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.piq %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Pre-Injection QCs</a>
+      </h3>
+    </div>
+    <div id="collapsePIQ" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>First Allele Freezer Instance</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.piq %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.fp_well %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.sfp %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSFP">Second Electroporation Freezes</a>
+      </h3>
+    </div>
+    <div id="collapseSFP" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>First Allele Electroporation</th>
+            <th>Second Allele Electroporation</th>
+            <th>Second Electroporation Pick</th>
+            <th>Accepted?</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.sfp %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.ep_well %]</td>
+              <td>[% well.sep_well %]</td>
+              <td>[% well.sepd_well %]</td>
+              <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+</div>
+[%- END %]
+
+<script type="text/javascript">
+$("#gene_id_input").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+  minLength: 2,
+});
+</script>

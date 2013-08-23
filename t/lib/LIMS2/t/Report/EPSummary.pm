@@ -93,12 +93,12 @@ sub all_tests  : Tests
   	my @design_wells = ('1883','1877','935');
 
   	foreach my $design_well_id (@design_wells) {
-		my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
-		my $exit_code = $results->{exit_code};
-		ok( defined $results,                "Returned results hash defined for design well id : ".$design_well_id );
-		ok( defined $results->{exit_code},   "Returned exit code defined for design well id : ".$design_well_id );
-		is( $results->{exit_code},      0,     "Exit code for design well id : ".$design_well_id );
-	}
+  		my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
+  		my $exit_code = $results->{exit_code};
+  		ok( defined $results,                "Returned results hash defined for design well id : ".$design_well_id );
+  		ok( defined $results->{exit_code},   "Returned exit code defined for design well id : ".$design_well_id );
+  		is( $results->{exit_code},      0,     "Exit code for design well id : ".$design_well_id );
+	  }
 
 
 
@@ -122,8 +122,7 @@ sub all_tests  : Tests
     # note( 'Testing Pipeline Summary reports - Mouse double-targeted front page' );
     #  Mouse double-targeted - Front page
     $mech->get_ok( '/user/report/sync/EPSummary' , 'Page requested');
-    $mech->content_like(qr'
-      <th>Gene</th>
+    $mech->content_like(qr^<th>Gene</th>
       <th>Project</th>
       <th>ID</th>
       <th>FEPD Targeted Clones</th>
@@ -137,7 +136,7 @@ sub all_tests  : Tests
       <th>2nd allele targeting drug resistance</th>
       <th>2nd allele targeting promotor</th>
       <th>2nd allele targeting vector plate</th>
-      <th>SEPD Number</th>', 'Checked header');
+      <th>SEPD Number</th>^, 'Checked header');
  
     $mech->content_like(qr'<tbody>
     <tr>
