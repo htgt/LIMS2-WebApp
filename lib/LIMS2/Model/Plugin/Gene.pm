@@ -68,7 +68,7 @@ sub search_genes {
 =head
 check_for_local_symbol
 
-With some designs, the id that theya re rooted to is not a gene_id that can be translated
+With some designs, the id that they are rooted to is not a gene_id that can be translated
 using the indices. So we have an alternative strategy for finding something appropriate to
 put in the gene symbol field.
 

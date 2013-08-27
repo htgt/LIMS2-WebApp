@@ -2,6 +2,7 @@ package LIMS2::t::Model::Plugin::Design;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Plugin::Design;
+use JSON qw( encode_json decode_json );
 
 use LIMS2::Test;
 
@@ -84,10 +85,9 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(59)
+sub all_tests  : Tests
 {
-
-    {
+    {   
 	ok my $design = model->retrieve_design( { id => 84231 } ), 'retrieve design id=84231';
 	isa_ok $design, 'LIMS2::Model::Schema::Result::Design';
 	can_ok $design, 'as_hash';
@@ -98,14 +98,14 @@ sub all_tests  : Test(59)
 	ok !$h2->{genotyping_primers}, '...no genotyping primers';
     }
 
-    {
+    {   
 	ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912' } ), 'list assigned designs by MGI accession';
 	isa_ok $designs, ref [];
 	ok @{$designs} > 0, '...the list is not empty';
 	isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
     }
 
-    {
+    {   
 	ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:106032', type => 'conditional' } ),
 	    'list assigned designs by MGI accession and design type conditional';
 	isa_ok $designs, ref [];
@@ -113,14 +113,21 @@ sub all_tests  : Test(59)
 	isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
     }
 
-    {
+    {   
 	ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:1915248', type => 'deletion' } ),
 	    'list assigned designs by MGI accession and design type deletion';
 	is @{$designs}, 0, 'returns no designs';
 
     }
 
-    {
+    {   
+	ok my $designs = model->list_assigned_designs_for_gene( { species => 'Mouse', gene_id => 'MGI:94912', gene_type => 'MGI' } ), 'list assigned designs by MGI accession, specify id is MGI';
+	isa_ok $designs, ref [];
+	ok @{$designs} > 0, '...the list is not empty';
+	isa_ok $_, 'LIMS2::Model::Schema::Result::Design' for @{$designs};
+    }
+
+    {   
 	ok model->search_gene_designs( { search_term => 'lbl', page => 1, pagesize => 50 } ), 'list genes specifying a page and pagesize';
 	ok my ( $gene_designs, $pager ) = model->search_gene_designs( { search_term => 'lbl' } ), 'list matched genes';
 	isa_ok $gene_designs, ref [];
@@ -128,6 +135,16 @@ sub all_tests  : Test(59)
 
 	isa_ok $pager, 'Data::Page';
 
+    }
+
+    {   
+	ok my ( $gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'MGI' } ), 'list matched genes, specify gene type';
+	isa_ok $gene_designs, ref [];
+	is scalar( @{ $gene_designs } ), 1, 'return 1 design';
+
+	ok my ( $no_gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'marker-symbol' } ), 'list matched genes, specify wrong gene type';
+	isa_ok $no_gene_designs, ref [];
+	is scalar( @{ $no_gene_designs } ), 0, 'returns 0 design';
     }
 
     {
@@ -149,15 +166,19 @@ sub all_tests  : Test(59)
 	ok my $design_types = model->list_design_types(), 'can list design types';
     }
 
+
     note('Testing the Creation and Deletion of designs');
-    {
+    {   
 	my $design_data = build_design_data(84231);
 
 	ok my $new_design = model->create_design($design_data), 'can create new design';
 	is $new_design->id, 99999999, '..and new design has correct id';
 	ok my $design_comment = $new_design->comments->first, 'can retrieve design comment';
 	is $design_comment->comment_text, 'Test comment', '.. has write comment text';
+
 	ok my $design_gene = $new_design->genes->first, 'can grab gene linked to design';
+	is $design_gene->gene_id, 'MGI:1917722', 'design gene is correct';
+	is $design_gene->gene_type_id, 'MGI', 'gene type is correct';
 
 	throws_ok {
 	    model->delete_design( { id => 99999999, cascade => 1 } );
@@ -203,6 +224,29 @@ sub all_tests  : Test(59)
 	    ,'throws error for species assembly mismatch';
     }
 
+    note('Test adding design parameter data in design creation');
+    {   
+	my $design_data = build_design_data(84231);
+	$design_data->{id} = 8888888;
+	my $design_parameters = { param_1 => 5, param_2 => 10 };
+	$design_data->{design_parameters} = encode_json( $design_parameters );
+
+	ok my $new_design = model->create_design($design_data), 'can create new design';
+	is_deeply decode_json( $new_design->design_parameters ), $design_parameters
+	    , 'design parameters json string is correct';
+
+	ok my $decoded_design_params = $new_design->design_parameters_hash
+	    , 'can decode design parameters data though resultset method';
+	is_deeply $decoded_design_params, $design_parameters
+	    , 'design parameters json string is correct';
+
+	$design_data->{design_parameters} = 'this is not json data';
+	throws_ok {
+	    model->create_design($design_data)
+	} qr/design_parameters, is invalid: json/
+	    , 'throws error for non json data';
+    }
+
     note('Testing create design oligo');
     {
 	my $design_data = build_design_data(84231);
@@ -239,7 +283,7 @@ sub all_tests  : Test(59)
     }
 
     note('Testing retrieve design oligo');
-    {
+    {   
 	ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } )
 	    , 'can retrieve design oligo by design_id and oligo_type';
 
@@ -251,7 +295,7 @@ sub all_tests  : Test(59)
     note('Testing create design oligo locus');
     {
 	ok my $design_oligo_locus = model->create_design_oligo_locus(
-	    {
+	    {  
 		assembly   => 'NCBIM34',
 		chr_name   => 1,
 		chr_start  => 10,
@@ -270,7 +314,7 @@ sub all_tests  : Test(59)
 
 	throws_ok{
 	     model->create_design_oligo_locus(
-		{
+		{  
 		    assembly   => 'GRCm38',
 		    chr_name   => 1,
 		    chr_start  => 10,
@@ -302,7 +346,7 @@ sub all_tests  : Test(59)
 
 	delete $design_data->{comments};
 	$design_data->{comments} = [
-	    {
+	    {  
 		category => 'Other',
 		comment_text => 'Test comment',
 		created_at => '2012-05-21T00:00:00',
@@ -311,7 +355,7 @@ sub all_tests  : Test(59)
 	    }
 	];
 
-	$design_data->{gene_ids} = [ 'MGI:1917722' ];
+	$design_data->{gene_ids} = [ { gene_id => 'MGI:1917722', gene_type_id => 'MGI' } ];
 
 	my $oligos = delete $design_data->{oligos};
 	for my $oligo ( @{ $oligos } ) {

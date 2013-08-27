@@ -11,6 +11,7 @@ use Config::Any;
 use Const::Fast;
 use DBIx::Connector;
 use Hash::MoreUtils qw( slice_def );
+use Log::Log4perl qw( :easy );
 
 BEGIN {
     __PACKAGE__->mk_classdata( 'ConfigFile' => $ENV{LIMS2_DBCONNECT_CONFIG} );
@@ -116,6 +117,7 @@ sub connect {
 
     my $conn = $class->_connector_for( $dbname, $role, $params );
 
+    DEBUG("LIMS2::Model::DBConnect::connect() - Connecting to database as role '$role' using settings from \$ENV{$dbname} = '$ENV{$dbname}'");
     return $schema_class->connect( sub { $conn->dbh }, $params );
 }
 

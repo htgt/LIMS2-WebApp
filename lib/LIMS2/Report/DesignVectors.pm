@@ -11,8 +11,6 @@ use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
 
-Log::Log4perl->easy_init($DEBUG);
-
 has species => (
     is       => 'ro',
     isa      => 'Str',

@@ -13,8 +13,6 @@ use namespace::autoclean;
 use DateTime;
 use Readonly;
 
-Log::Log4perl->easy_init($DEBUG);
-
 extends qw( LIMS2::ReportGenerator );
 
 # Rows on report view

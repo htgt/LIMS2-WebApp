@@ -31,6 +31,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -86,13 +88,12 @@ Code to execute all tests
 
 sub all_tests  : Test(18)
 {
-
     my $mech = mech();
 
     my $plate_without_children = model->retrieve_plate( { name => 'FFP0001' } );
     my $plate_with_children = model->retrieve_plate( { name => 'PCS00097_A' } );
 
-    {
+    {   
 	note( "Visit plate edit page" );
 
 	$mech->get_ok( '/user/view_plate?id=' . $plate_without_children->id );
@@ -104,7 +105,7 @@ sub all_tests  : Test(18)
 	$mech->content_unlike( qr/delete_plate_button/, '..has no delete plate button');
     }
 
-    {
+    {   
 	note( "Test rename plate" );
 	my $plate = model->retrieve_plate( { name => 'SEP0006' } );
 
@@ -117,7 +118,7 @@ sub all_tests  : Test(18)
 	$mech->content_like( qr/Renamed plate from SEP0006 to FOOBAR/, '...correct plate rename message');
     }
 
-    {
+    {   
 	note( "Test plate delete" );
 
 	$mech->get_ok( '/user/delete_plate?id=' . $plate_without_children->id . '&name=' . $plate_without_children->name );

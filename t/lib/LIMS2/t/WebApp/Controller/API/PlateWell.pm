@@ -33,6 +33,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -88,7 +90,6 @@ Code to execute all tests
 
 sub all_tests  : Test(38)
 {
-
     my $mech = mech();
 
 
@@ -114,13 +115,13 @@ sub all_tests  : Test(38)
 		 );
 
     note('Testing update of confidence value');
-    {
+    {   
 	ok my ($new_well_data) = model->get_genotyping_qc_well_data( \@well_list, $plate, $species ), 'retrieved new well genotyping data';
 	is $new_well_data->{'lacz#confidence'}, '>0.96', 'lacz revised confidence level is correct';
     }
 
     note('Testing reset of assay call value');
-    {
+    {   
 	ok exists($well_data->{'lacz#call'}), 'lacz call retrieved';
 	is $well_data->{'lacz#call'}, 'passb', 'lacz call is correct';
 	$mech->put_ok('/api/well/genotyping_qc/'.$well_data->{id}.'?plate_name='.$plate,
@@ -131,7 +132,7 @@ sub all_tests  : Test(38)
     }
 
     note("Testing update of assay to 'na'");
-    {
+    {   
 	$mech->put_ok('/api/well/genotyping_qc/'.$well_data->{id}.'?plate_name='.$plate,
 		     {'content-type' => 'application/json', 'content' => '{"lacz#call":"na"}'},
 	);
@@ -140,7 +141,7 @@ sub all_tests  : Test(38)
     }
 
     note("Testing update of assay to 'pass' in violation of ranking rule");
-    {
+    {   
 	$mech->put_ok('/api/well/genotyping_qc/'.$well_data->{id}.'?plate_name='.$plate,
 		     {'content-type' => 'application/json', 'content' => '{"lacz#call":"pass"}'},
 	);
@@ -176,6 +177,7 @@ sub all_tests  : Test(38)
 	is ($new_well_data->{'lacz#copy_number_range'}, '0.06', 'lacz copy_number_range is now 0.06') ;
 
     }
+
 
     note('Testing well targeting pass update');
     {

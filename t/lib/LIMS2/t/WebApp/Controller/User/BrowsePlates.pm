@@ -32,6 +32,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -87,10 +89,9 @@ Code to execute all tests
 
 sub all_tests  : Test(3)
 {
-
     my $mech = mech();
 
-    {
+    {   
 	note('Can view plate report');
 
 	$mech->get_ok( '/user/report/sync/DesignPlate?plate_id=939' );

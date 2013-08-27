@@ -34,6 +34,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -99,7 +101,7 @@ sub all_tests  : Tests
     # load some table data here
 
     ok my $test_data= test_data( '70-pipeline_summary_reports_data.yaml' ), 'fetching test data yaml file should succeed';
-    {
+    {   
 	# fetch project data from yaml
 	ok my $project_rs = model('Golgi')->schema->resultset( 'Project' ),
 	    'fetching resultset for table projects should succeed';
@@ -143,7 +145,7 @@ sub all_tests  : Tests
 
     note( 'Testing Pipeline Summary reports - Mouse double-targeted front page' );
     # Mouse double-targeted - Front page
-    $mech->get_ok( '/user/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data');
+    $mech->get_ok( '/user/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data'); 
 
     $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
     $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
@@ -223,7 +225,7 @@ sub all_tests  : Tests
 
     note( 'Testing Pipeline Summary reports - Mouse single-targeted drilldowns' );
     # Mouse single-targeted - Front page
-    $mech->get_ok( '/user/single_targeted' , 'Requested Mouse single-targeted front page after loading pipeline test data');
+    $mech->get_ok( '/user/sponsor_report/single_targeted' , 'Requested Mouse single-targeted front page after loading pipeline test data');
 
     $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
     $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
