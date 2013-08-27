@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::SponsorReport;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::SponsorReport::VERSION = '0.097';
+}
+## use critic
+
 use Moose;
 use LIMS2::Model::Util::ReportForSponsors;
 use namespace::autoclean;

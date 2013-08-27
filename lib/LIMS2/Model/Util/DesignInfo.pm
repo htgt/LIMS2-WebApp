@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::DesignInfo;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.097';
+}
+## use critic
+
 
 use Moose;
 use LIMS2::Exception;
