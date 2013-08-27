@@ -69,6 +69,10 @@ Must be set to '1' to also copy the content of the source database across.
 
 Must be set to '1' to also create the necessary test roles and MD5 tables for system testing
 
+=item --keep_temporary_files
+
+Must be set to '1' to preserve any temporary files that the utility generates, for debugging etc.
+
 =back
 
 
@@ -137,7 +141,7 @@ Lars G. Erlandsen
 
 =cut
 
-my ($help, $man);
+my($help, $man);
 
 my (%config) = (
     'source_defn' => $ENV{LIMS2_CLONEFROM_DB},
@@ -149,6 +153,7 @@ my (%config) = (
     'overwrite' => 0,
     'with_data' => 0,
     'create_test_role' => 0,
+    'keep_temporary_files' => 0,
 );
 
 GetOptions(
@@ -163,6 +168,7 @@ GetOptions(
     'overwrite=i'          => \$config{overwrite},
     'with_data=i'          => \$config{with_data},
     'create_test_role=i'   => \$config{create_test_role},
+    'keep_temporary_files=i'   => \$config{keep_temporary_files},
 ) or (pod2usage(2) && exit(1));
 
 exit(0) if ($help || $man);
@@ -189,7 +195,8 @@ my $ret = $obj->clone_database(
     with_data => $config{with_data},
     no_source_role => $config{no_source_role},
     destination_db => $config{destination_db},
-    create_test_role => $config{create_test_role}
+    create_test_role => $config{create_test_role},
+    keep_temporary_files => $config{keep_temporary_files}
 );
 exit($ret ? 0 : 1);
 

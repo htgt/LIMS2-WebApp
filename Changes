@@ -1,5 +1,31 @@
 {{$NEXT}}
 
+0.096     2013-08-23 06:58:01 Europe/London
+
+    Make sure tests login with tests role to databases
+
+0.095     2013-08-16 14:12:35 Europe/London
+
+0.094     2013-08-15 08:34:32 Europe/London
+
+    Bugfix: get logging working again
+    Add design_parameters column to designs table
+    Remove surplus messages from tests
+
+0.093     2013-08-13 08:25:08 Europe/London
+
+    Move sponsor progress report from front page to its own page.
+    Add google analytics code.
+    Remove surplus eng seq params code.
+
+0.092     2013-08-08 07:55:48 Europe/London
+
+    Add gene_type_id to gene_design table to show what type of identifier is in the gene_id column
+
+0.091     2013-08-05 14:51:12 Europe/London
+
+Bugfix: take into account art intron designs when building eng-seq params
+
 0.090     2013-07-31 15:36:07 Europe/London
 	Modifications to summaries table and generation to add XEPs and PIQs.
 

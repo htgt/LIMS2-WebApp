@@ -233,7 +233,7 @@ sub all_tests  : Test(58)
 	    , 'throws correct error when multiple crispr sites with same sequence and locus';
     }
 
-    note('Test deletion of cripr');
+    note('Test deletion of crispr');
     {
 
 	#add process with crispr

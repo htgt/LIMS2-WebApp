@@ -31,6 +31,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -86,7 +88,6 @@ Code to execute all tests
 
 sub all_tests  : Test(12)
 {
-
     my $mech = mech();
 
     {
@@ -105,7 +106,7 @@ sub all_tests  : Test(12)
 	$mech->content_contains('MOHSAQ0001_A_2_B04','graph contains well MOHSAQ0001_A_2_B04');
     }
 
-    {
+    {   
 	note( "Test plate relations" );
 
 	$mech->get_ok( '/user/graph' );
