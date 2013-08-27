@@ -39,7 +39,7 @@ sub build_summary_data {
 
     my $sponsor = shift(@_);
     my %report_data;
- 
+
     my @projects = $self->model->schema->resultset('Project')->search({
         sponsor_id     => $sponsor,
         targeting_type => 'double_targeted',
@@ -66,7 +66,7 @@ sub build_summary_data {
                      },
                 ],
             });
-            
+
 
 
 
@@ -75,10 +75,10 @@ sub build_summary_data {
             # This is the actual summaries table rows
             foreach my $data (@design_rows) {
 
-                my $plate = $data->ep_plate_name;
-                my $well = $data->ep_well_name;
-                my $EP_well_name = "$plate"."_"."$well" unless (!defined $plate || !defined $well);
-                if (defined $EP_well_name && !exists $report_data{$EP_well_name}) { 
+                my $plate = $data->ep_plate_name // '';
+                my $well = $data->ep_well_name // '';
+                my $EP_well_name = $plate.'_'.$well;
+                if (defined $EP_well_name && !exists $report_data{$EP_well_name}) {
                     $report_data{$EP_well_name} = \%current_well unless ($EP_well_name eq '_');
                     # print "###### $EP_well_name created\n";
                 };
@@ -89,10 +89,10 @@ sub build_summary_data {
                 my $gene = $data->design_gene_symbol;
                 $current_well{gene} = $gene;
                 $current_well{project} = $sponsor;
-                
+
                 # FEPD Targeted Clones
                 if ($data->ep_pick_plate_name) {
-                    my $fepd_well_name = $data->ep_pick_plate_name."_".$data->ep_pick_well_name;
+                    my $fepd_well_name = $data->ep_pick_plate_name.'_'.$data->ep_pick_well_name;
                     my $fepd_plate = $data->ep_pick_plate_name;
                     $fepd_wells{$fepd_well_name} = $data->ep_pick_well_accepted;
                     $fepd_plates{$fepd_plate} = 1;
@@ -105,7 +105,7 @@ sub build_summary_data {
 
                 # SEPD Targeted Clones
                 if ($data->sep_pick_plate_name) {
-                    my $sepd_well_name = $data->sep_pick_plate_name."_".$data->sep_pick_well_name;
+                    my $sepd_well_name = $data->sep_pick_plate_name.'_'.$data->sep_pick_well_name;
                     my $sepd_plate = $data->sep_pick_plate_name;
                     $sepd_wells{$sepd_well_name} = $data->sep_pick_well_accepted;
                     $sepd_plates{$sepd_plate} = 1;
@@ -123,7 +123,7 @@ sub build_summary_data {
                 $current_well{$allele_number."_drug_resistance"} = $data->final_pick_cassette_resistance;
                 if (!$data->final_pick_cassette_promoter) {
                     $current_well{$allele_number."_targeting_promoter"} = "Promoterless";
-                } 
+                }
                 else {
                     $current_well{$allele_number."_targeting_promoter"} = $data->final_pick_cassette_name;
                 }
@@ -137,12 +137,12 @@ sub build_summary_data {
             $current_well{'sepd_targeted_clones'} =  scalar grep { $_ } values %sepd_wells;
         }
     }
-    
+
 
     my @output;
 
     while ( my ($key, $value) = each %report_data ) {
-    # print "$key\n";       
+    # print "$key\n";
 
         # use Smart::Comments;
         # ## %report_data

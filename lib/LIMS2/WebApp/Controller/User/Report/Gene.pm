@@ -77,15 +77,15 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
         # for each design fetch all rows from summaries table
         my $design_summaries_rs = $c->model('Golgi')->schema->resultset('Summary')->search(
-           { 
+           {
                'me.design_id'        => $design_id,
-           }, 
+           },
         );
 
         if ($design_summaries_rs->count() > 0) {
-            
+
             while ( my $summary_row = $design_summaries_rs->next ) {
-        
+
                 my $summary_id = $summary_row->id;
 
                 # for each summary row append well data to hash rows depending on plate type, do not add if already exists in hash
@@ -101,9 +101,9 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     my %sorted_wells;
     foreach my $type (@plate_types) {
         if ($wells_hash{$type}) {
-            my @sorted = sort { $a->{created_at} cmp $b->{created_at} || 
-                                $a->{plate_name} cmp $b->{plate_name} || 
-                                $a->{well_name} cmp $b->{well_name} } 
+            my @sorted = sort { $a->{created_at} cmp $b->{created_at} ||
+                                $a->{plate_name} cmp $b->{plate_name} ||
+                                $a->{well_name} cmp $b->{well_name} }
                             values %{$wells_hash{$type}};
             $sorted_wells{$type} = \@sorted;
         }
@@ -142,6 +142,8 @@ sub _add_design_details {
     }
 
     $designs_hash->{ $design_id }->{ 'design_details' }->{ 'genes' } = \%genes_in_design;
+
+    return;
 }
 
 sub fetch_values_for_type_design {
@@ -155,7 +157,7 @@ sub fetch_values_for_type_design {
         my $well_is_accepted;
         if ( $summary_row->design_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
@@ -176,6 +178,7 @@ sub fetch_values_for_type_design {
             $wells_hash->{ 'design' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 
@@ -195,7 +198,7 @@ sub fetch_values_for_type_int {
         my $well_is_accepted;
         if ( $summary_row->int_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
@@ -203,7 +206,7 @@ sub fetch_values_for_type_int {
         if (defined $summary_row->int_qc_seq_pass){
             if ( $summary_row->int_qc_seq_pass ) {
                 $qc_seq_pass = 'pass';
-            } 
+            }
             else {
                 $qc_seq_pass = 'fail';
             }
@@ -224,10 +227,11 @@ sub fetch_values_for_type_int {
                 'qc_seq_pass'    => $qc_seq_pass,
                 'is_accepted'    => $well_is_accepted,
             };
-        
+
             $wells_hash->{ 'int' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_final {
@@ -241,7 +245,7 @@ sub fetch_values_for_type_final {
         my $well_is_accepted;
         if ( $summary_row->final_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
@@ -249,7 +253,7 @@ sub fetch_values_for_type_final {
         if (defined $summary_row->final_qc_seq_pass){
             if ( $summary_row->final_qc_seq_pass ) {
                 $qc_seq_pass = 'pass';
-            } 
+            }
             else {
                 $qc_seq_pass = 'fail';
             }
@@ -270,10 +274,11 @@ sub fetch_values_for_type_final {
                 'qc_seq_pass'    => $qc_seq_pass,
                 'is_accepted'    => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'final' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_final_pick {
@@ -287,7 +292,7 @@ sub fetch_values_for_type_final_pick {
         my $well_is_accepted;
         if ( $summary_row->final_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
@@ -295,7 +300,7 @@ sub fetch_values_for_type_final_pick {
         if (defined $summary_row->final_pick_qc_seq_pass){
             if ( $summary_row->final_pick_qc_seq_pass ) {
                 $qc_seq_pass = 'pass';
-            } 
+            }
             else {
                 $qc_seq_pass = 'fail';
             }
@@ -316,10 +321,11 @@ sub fetch_values_for_type_final_pick {
                 'qc_seq_pass'    => $qc_seq_pass,
                 'is_accepted'    => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'final_pick' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_dna {
@@ -333,7 +339,7 @@ sub fetch_values_for_type_dna {
         my $well_is_accepted;
         if ( $summary_row->dna_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
@@ -341,7 +347,7 @@ sub fetch_values_for_type_dna {
         if (defined $summary_row->dna_status_pass){
             if ( $summary_row->dna_status_pass ) {
                 $dna_status_pass = 'pass';
-            } 
+            }
             else {
                 $dna_status_pass = 'fail';
             }
@@ -365,10 +371,11 @@ sub fetch_values_for_type_dna {
                 'status_pass'       => $dna_status_pass,
                 'is_accepted'       => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'dna' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_ep {
@@ -382,16 +389,16 @@ sub fetch_values_for_type_ep {
         my $well_is_accepted;
         if ( $summary_row->ep_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
         my $final_pick_plate_name     = $summary_row->final_pick_plate_name ? $summary_row->final_pick_plate_name : '';
         my $final_pick_well_name      = $summary_row->final_pick_well_name ? $summary_row->final_pick_well_name : '';
-        my $final_pick_well = $final_pick_plate_name . '_' . $final_pick_well_name; 
+        my $final_pick_well = $final_pick_plate_name . '_' . $final_pick_well_name;
         my $dna_plate_name     = $summary_row->dna_plate_name;
         my $dna_well_name      = $summary_row->dna_well_name;
-        my $dna_well = $dna_plate_name . '_' . $dna_well_name;         
+        my $dna_well = $dna_plate_name . '_' . $dna_well_name;
         unless ( exists $wells_hash->{ 'ep' }->{ $well_id_string } ) {
             my $well_hash = {
                 'well_id'           => $summary_row->ep_well_id,
@@ -405,10 +412,11 @@ sub fetch_values_for_type_ep {
                 'dna_well'          => $dna_well,
                 'is_accepted'       => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_ep_pick {
@@ -422,14 +430,14 @@ sub fetch_values_for_type_ep_pick {
         my $well_is_accepted;
         if ( $summary_row->ep_pick_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
         my $ep_plate_name     = $summary_row->ep_plate_name;
         my $ep_well_name      = $summary_row->ep_well_name;
-        my $ep_well = $ep_plate_name . '_' . $ep_well_name; 
-       
+        my $ep_well = $ep_plate_name . '_' . $ep_well_name;
+
         unless ( exists $wells_hash->{ 'ep_pick' }->{ $well_id_string } ) {
             my $well_hash = {
                 'well_id'           => $summary_row->ep_pick_well_id,
@@ -442,10 +450,11 @@ sub fetch_values_for_type_ep_pick {
                 'ep_well'           => $ep_well,
                 'is_accepted'       => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'ep_pick' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 
@@ -486,6 +495,7 @@ sub fetch_values_for_type_xep {
         };
 
     }
+    return;
 }
 
 sub fetch_values_for_type_sep {
@@ -500,7 +510,7 @@ sub fetch_values_for_type_sep {
         my $well_is_accepted;
         if ( $summary_row->sep_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
@@ -529,7 +539,7 @@ sub fetch_values_for_type_sep {
                 'second_fpick'   => $second_fpick_id_string,
                 'is_accepted'    => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'sep' }->{ $well_id_string } = $well_hash;
 
         } else {
@@ -541,6 +551,7 @@ sub fetch_values_for_type_sep {
             }
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_sep_pick {
@@ -554,14 +565,14 @@ sub fetch_values_for_type_sep_pick {
         my $well_is_accepted;
         if ( $summary_row->sep_pick_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
         my $sep_plate_name     = $summary_row->sep_plate_name;
         my $sep_well_name      = $summary_row->sep_well_name;
-        my $sep_well = $sep_plate_name . '_' . $sep_well_name; 
-       
+        my $sep_well = $sep_plate_name . '_' . $sep_well_name;
+
         unless ( exists $wells_hash->{ 'sep_pick' }->{ $well_id_string } ) {
             my $well_hash = {
                 'well_id'           => $summary_row->sep_pick_well_id,
@@ -574,10 +585,11 @@ sub fetch_values_for_type_sep_pick {
                 'sep_well'          => $sep_well,
                 'is_accepted'       => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'sep_pick' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_fp {
@@ -591,22 +603,22 @@ sub fetch_values_for_type_fp {
         my $well_is_accepted;
         if ( $summary_row->fp_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
         my $ep_plate_name     = $summary_row->ep_plate_name;
         my $ep_well_name      = $summary_row->ep_well_name;
-        my $ep_well = $ep_plate_name . '_' . $ep_well_name; 
+        my $ep_well = $ep_plate_name . '_' . $ep_well_name;
         my $ep_pick_plate_name     = $summary_row->ep_pick_plate_name;
         my $ep_pick_well_name      = $summary_row->ep_pick_well_name;
-        my $ep_pick_well = $ep_pick_plate_name . '_' . $ep_pick_well_name;   
+        my $ep_pick_well = $ep_pick_plate_name . '_' . $ep_pick_well_name;
 
         my $piq_well = '';
         if ( defined $summary_row->piq_plate_name ) {
             my $piq_plate_name     = $summary_row->piq_plate_name;
             my $piq_well_name      = $summary_row->piq_well_name;
-            $piq_well = $piq_plate_name . '_' . $piq_well_name;   
+            $piq_well = $piq_plate_name . '_' . $piq_well_name;
         }
         unless ( exists $wells_hash->{ 'fp' }->{ $well_id_string } ) {
             my $well_hash = {
@@ -621,11 +633,12 @@ sub fetch_values_for_type_fp {
                 'is_accepted'       => $well_is_accepted,
                 'piq_well'          => $piq_well,
             };
-            
-            
+
+
             $wells_hash->{ 'fp' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_piq {
@@ -640,14 +653,14 @@ sub fetch_values_for_type_piq {
         my $well_is_accepted;
         if ( $summary_row->piq_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
         my $fp_plate_name     = $summary_row->fp_plate_name;
         my $fp_well_name      = $summary_row->fp_well_name;
-        my $fp_well = $fp_plate_name . '_' . $fp_well_name; 
-       
+        my $fp_well = $fp_plate_name . '_' . $fp_well_name;
+
         unless ( exists $wells_hash->{ 'piq' }->{ $well_id_string } ) {
             my $well_hash = {
                 'well_id'           => $summary_row->piq_well_id,
@@ -659,10 +672,11 @@ sub fetch_values_for_type_piq {
                 'fp_well'           => $fp_well,
                 'is_accepted'       => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'piq' }->{ $well_id_string } = $well_hash;
         }
     }
+    return;
 }
 
 sub fetch_values_for_type_sfp {
@@ -686,7 +700,7 @@ sub fetch_values_for_type_sfp {
         my $well_is_accepted;
         if ( $summary_row->sfp_well_accepted ) {
             $well_is_accepted = 'yes';
-        } 
+        }
         else {
             $well_is_accepted = 'no';
         }
@@ -697,7 +711,7 @@ sub fetch_values_for_type_sfp {
             my $ep_plate_name     = $summary_row->ep_plate_name;
             my $ep_well_name      = $summary_row->ep_well_name;
             $ep_id_string = $ep_plate_name . '_' . $ep_well_name;
-        } 
+        }
 
 
         if ( !exists $wells_hash->{ 'sfp' }->{ $well_id_string } ) {
@@ -713,17 +727,15 @@ sub fetch_values_for_type_sfp {
                 'sepd_well'      => $sepd_well_id_string,
                 'is_accepted'    => $well_is_accepted,
             };
-            
+
             $wells_hash->{ 'sfp' }->{ $well_id_string } = $well_hash;
         } else {
             if ($ep_id_string) {
                 $wells_hash->{ 'sfp' }->{ $well_id_string }->{'ep_well'} = $ep_id_string;
             }
         }
-
-
-
     }
+    return;
 }
 
 =head1 AUTHOR
