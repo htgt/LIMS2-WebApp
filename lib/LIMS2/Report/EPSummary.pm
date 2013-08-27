@@ -6,7 +6,6 @@ use strict;
 use Moose;
 use Log::Log4perl qw(:easy);
 use namespace::autoclean;
-use Smart::Comments;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -80,10 +79,7 @@ sub build_summary_data {
                 my $EP_well_name = $plate.'_'.$well;
                 if (defined $EP_well_name && !exists $report_data{$EP_well_name}) {
                     $report_data{$EP_well_name} = \%current_well unless ($EP_well_name eq '_');
-                    # print "###### $EP_well_name created\n";
                 };
-
-
 
                 # print "# current row: $EP_well_name \n";
                 my $gene = $data->design_gene_symbol;
@@ -98,11 +94,6 @@ sub build_summary_data {
                     $fepd_plates{$fepd_plate} = 1;
                 }
 
-
-                #$current_well{'fepd_number'} = join ":", keys %fepd_plates;
-                #$current_well{'fepd_targeted_clones'} = scalar keys (%accepted_fepd_wells);
-                # undef %fepd_plates;
-
                 # SEPD Targeted Clones
                 if ($data->sep_pick_plate_name) {
                     my $sepd_well_name = $data->sep_pick_plate_name.'_'.$data->sep_pick_well_name;
@@ -110,11 +101,6 @@ sub build_summary_data {
                     $sepd_wells{$sepd_well_name} = $data->sep_pick_well_accepted;
                     $sepd_plates{$sepd_plate} = 1;
                 }
-
-
-                #$current_well{'sepd_number'} = join ":", keys %sepd_plates;
-                #$current_well{'sepd_targeted_clones'} = scalar keys (%accepted_sepd_wells);
-                # undef %sepd_plates;
 
                 my $allele_number = ($data->ep_well_name) ? 1 : 2;
 
@@ -143,13 +129,6 @@ sub build_summary_data {
 
     while ( my ($key, $value) = each %report_data ) {
     # print "$key\n";
-
-        # use Smart::Comments;
-        # ## %report_data
-
-        # trick to print out key
-        #$$value{'key'} = $key;
-
 
         push(@output, [
             $value->{'gene'},

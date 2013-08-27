@@ -2,8 +2,6 @@ package LIMS2::WebApp::Controller::User::Report::Gene;
 use Moose;
 use namespace::autoclean;
 
-use Smart::Comments;
-
 BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -108,10 +106,6 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
             $sorted_wells{$type} = \@sorted;
         }
     }
-
-    ## %designs_hash
-    ## %wells_hash
-    ## %sorted_wells
 
 
     $c->stash(
