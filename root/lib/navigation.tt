@@ -132,6 +132,11 @@
               </a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/report/sync/EPSummary' ) %]">
+                Electroporation Summary
+              </a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
                 Electroporation Production Summary
               </a>
