@@ -89,6 +89,7 @@ requires:
   LIMS2::Exception::Validation: 0
   LIMS2::Util: 0
   LIMS2::Util::EnsEMBL: 0
+  LIMS2::Util::Errbit: 0
   LIMS2::Util::FarmJobRunner: 0
   LIMS2::Util::Solr: 0
   LWP::UserAgent: 0
@@ -128,4 +129,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.097
+version: 0.098

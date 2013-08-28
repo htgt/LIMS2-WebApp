@@ -1,16 +1,18 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.097';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.098';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Model::Util::ReportForSponsors;
 use Text::CSV;
+use Try::Tiny;
 use namespace::autoclean;
+use LIMS2::Util::Errbit;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
 
@@ -63,6 +65,16 @@ sub end :Private {
         $c->log->error( $_ ) for @errors;
         $c->clear_errors;
         $c->stash( errors => \@errors );
+
+        #try to log an errbit error
+        try {
+            my $errbit = LIMS2::Util::Errbit->new_with_config;
+            $errbit->submit_errors( $c, \@errors );
+        }
+        catch {
+            $c->log->error( @_ );
+        };
+
         return $c->go( 'error' );
     }
 
