@@ -506,7 +506,7 @@ sub build_qc_runs_search_params {
 }
 
 sub infer_qc_process_type{
-	my ($params) = @_;
+	my ( $params, $new_plate_type, $source_plate_type ) = @_;
 
 	my $process_type;
 	my $reagent_count = 0;
@@ -514,19 +514,173 @@ sub infer_qc_process_type{
 	$reagent_count++ if $params->{cassette};
 	$reagent_count++ if $params->{backbone};
 
-    # Infer process type from combination of reagents
-    if ($reagent_count == 0){
-        $process_type = $params->{recombinase} ? 'recombinase'
-            	                               : 'rearray' ;
+    if ( $source_plate_type eq 'DESIGN' ) {
+        $process_type = _design_source_plate( $new_plate_type, $reagent_count, $params );
     }
-    elsif ($reagent_count == 1){
-        $process_type = '2w_gateway';
+    elsif ( $source_plate_type eq 'INT' ) {
+        $process_type = _int_source_plate( $new_plate_type, $reagent_count, $params );
     }
-    else{
-        $process_type = '3w_gateway';
+    elsif ( $source_plate_type eq 'POSTINT' ) {
+        $process_type = _postint_source_plate( $new_plate_type, $reagent_count, $params );
     }
+    elsif ( $source_plate_type eq 'FINAL' ) {
+        $process_type = _final_source_plate( $new_plate_type, $reagent_count, $params );
+    }
+    #TODO FINAL_PICK source plate? sp12 Thu 29 Aug 2013 08:18:28 BST
+    else {
+        LIMS2::Exception->throw( "infer_qc_process_type can not handle a $source_plate_type source plate" );
+    }
+
     return $process_type;
 }
+
+=head2 _design_source_plate
+
+Help infer process type where the template well is derived from a DESIGN plate
+
+=cut
+sub _design_source_plate {
+    my ( $new_plate_type, $reagent_count, $params ) = @_;
+
+    unless ( $new_plate_type eq 'INT' ) {
+        LIMS2::Exception->throw(
+            "Can only create INT plate from a DESIGN template plate, not a $new_plate_type plate");
+    }
+
+    #TODO what about recombinase sp12 Thu 29 Aug 2013 07:34:16 BST
+    if ( $reagent_count == 2 ) {
+        return 'int_recom';
+    }
+    else {
+        LIMS2::Exception->throw(
+            'A cassette and backbone were not specified when the DESIGN template plate was created, '
+            . ' this information is required when creating a INT plate from a DESIGN template plate'
+        );
+    }
+
+    return;
+}
+
+=head2 _int_source_plate
+
+Help infer process type where the template well is derived from a INT plate
+
+=cut
+sub _int_source_plate {
+    my ( $new_plate_type, $reagent_count, $params ) = @_;
+
+    if ( $new_plate_type eq 'INT' ) {
+        if ( $reagent_count == 0 ) {
+            return $params->{recombinase} ? 'recombinase'
+                                          : 'rearray' ;
+        }
+        else {
+            LIMS2::Exception->throw(
+                'Cassette / backbone was specified when the INT template plate was created, '
+                . ' this does not fit in with creating a INT plate here'
+            );
+        }
+    }
+    elsif ( $new_plate_type eq 'POSTINT' || $new_plate_type eq 'FINAL' ) {
+        if ($reagent_count == 0){
+            LIMS2::Exception->throw(
+                'A cassette and or backbone were not specified when the INT template plate was created, '
+                . " this information is required when creating a $new_plate_type plate from a INT template plate"
+            );
+        }
+        elsif ($reagent_count == 1){
+            return '2w_gateway';
+        }
+        else{
+            return '3w_gateway';
+        }
+    }
+    elsif ( $new_plate_type eq 'FINAL_PICK' ) {
+        LIMS2::Exception->throw( "Can not create FINAL_PICK plate from INT template plate" );
+
+    }
+    else {
+        LIMS2::Exception->throw( "Can not handle $new_plate_type plate type" );
+    }
+
+    return;
+}
+
+=head2 _postint_source_plate
+
+Help infer process type where the template well is derived from a POSTINT plate
+
+=cut
+sub _postint_source_plate {
+    my ( $new_plate_type, $reagent_count, $params ) = @_;
+
+    if ( $new_plate_type eq 'INT' ) {
+        LIMS2::Exception->throw( 'Can not create INT plate from POSTINT template plate');
+    }
+    elsif ( $new_plate_type eq 'POSTINT' || $new_plate_type eq 'FINAL' ) {
+        if ($reagent_count == 0){
+            return $params->{recombinase} ? 'recombinase'
+                                          : 'rearray' ;
+        }
+        elsif ($reagent_count == 1){
+            return '2w_gateway';
+        }
+        else{
+            return '3w_gateway';
+        }
+    }
+    elsif ( $new_plate_type eq 'FINAL_PICK' ) {
+        LIMS2::Exception->throw( "Can not create FINAL_PICK plate from POSTINT template plate" );
+    }
+    else {
+        LIMS2::Exception->throw( "Can not handle $new_plate_type plate type" );
+    }
+
+    return;
+}
+
+=head2 _final_source_plate
+
+Help infer process type where the template well is derived from a FINAL plate
+
+=cut
+sub _final_source_plate {
+    my ( $new_plate_type, $reagent_count, $params ) = @_;
+
+    if ( $new_plate_type eq 'FINAL' ) {
+        if ($reagent_count == 0){
+            return $params->{recombinase} ? 'recombinase'
+                                          : 'rearray' ;
+        }
+        else {
+            #TODO maybe just rearray here sp12 Thu 29 Aug 2013 11:48:14 BST
+            LIMS2::Exception->throw(
+                'Cassette / backbone was specified when the FINAL template plate was created, '
+                . ' this does not fit in with creating a FINAL plate here'
+            );
+        }
+    }
+    elsif ( $new_plate_type eq 'FINAL_PICK' ) {
+        #TODO what about recombinase? sp12 Thu 29 Aug 2013 08:13:57 BST
+        if ($reagent_count == 0) {
+            return 'final_pick';
+        }
+        else {
+            LIMS2::Exception->throw(
+                'Cassette / backbone was specified when the FINAL template plate was created, '
+                . ' this does not fit in with creating a FINAL_PICK plate here'
+            );
+        }
+    }
+    else {
+        LIMS2::Exception->throw(
+            "Can not create $new_plate_type plate from FINAL template plate"
+        );
+    }
+
+    return;
+}
+
 1;
 
 __END__
