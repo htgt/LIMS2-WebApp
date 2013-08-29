@@ -2,9 +2,11 @@ package LIMS2::WebApp::Controller::User;
 use Moose;
 use LIMS2::Model::Util::ReportForSponsors;
 use Text::CSV;
+use Try::Tiny;
 use namespace::autoclean;
+use LIMS2::Util::Errbit;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
 
@@ -57,6 +59,16 @@ sub end :Private {
         $c->log->error( $_ ) for @errors;
         $c->clear_errors;
         $c->stash( errors => \@errors );
+
+        #try to log an errbit error
+        try {
+            my $errbit = LIMS2::Util::Errbit->new_with_config;
+            $errbit->submit_errors( $c, \@errors );
+        }
+        catch {
+            $c->log->error( @_ );
+        };
+
         return $c->go( 'error' );
     }
 
@@ -67,49 +79,8 @@ sub end :Private {
 
 =cut
 
-sub index :Path :Args(1) {
-    my ( $self, $c, $targeting_type ) = @_;
-
-    if ( defined $targeting_type ) {
-        # show report for the requested targeting type
-        $self->_generate_front_page_report ( $c, $targeting_type );
-    }
-    else {
-        # by default show the double-targeted page
-        $self->_generate_front_page_report ( $c, 'double_targeted' );
-    }
-
-    return;
-}
-
-sub _generate_front_page_report {
-    my ( $self, $c, $targeting_type ) = @_;
-
-    $c->assert_user_roles( 'read' );
-
-    my $species = $c->session->{selected_species};
-
-    # Call ReportForSponsors plugin to generate report 
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
-
-    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
-
-    # Fetch details from returned report parameters
-    my $report_id   = $report_params->{ report_id };
-    my $title       = $report_params->{ title };
-    my $columns     = $report_params->{ columns };
-    my $rows        = $report_params->{ rows };
-    my $data        = $report_params->{ data };
-
-    # Store report values in stash for display onscreen
-    $c->stash(
-        'report_id'      => $report_id,
-        'title'          => $title,
-        'targeting_type' => $targeting_type,
-        'columns'        => $columns,
-        'rows'           => $rows,
-        'data'           => $data,
-    );
+sub index :Path :Args(0) {
+    my ( $self, $c ) = @_;
 
     return;
 }

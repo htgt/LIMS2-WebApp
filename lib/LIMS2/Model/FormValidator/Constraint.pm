@@ -368,6 +368,11 @@ sub existing_crispr_id {
     return in_resultset( $model, 'Crispr', 'id' );
 }
 
+sub existing_gene_type {
+	my ( $class, $model ) = @_;
+	return in_resultset( $model, 'GeneType', 'id' );
+}
+
 sub comma_separated_list {
     my $csv = Text::CSV->new;
     return sub {

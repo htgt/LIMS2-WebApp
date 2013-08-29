@@ -9,7 +9,8 @@ use JSON;
 
 Log::Log4perl->easy_init($DEBUG);
 
-my $model = LIMS2::Model->new( user => 'tasks' );
+#my $model = LIMS2::Model->new( user => 'tasks' );
+my $model = LIMS2::Model->new( user => 'lims2' );
 my $schema = $model->schema;
 
 my @projects = $schema->resultset('Project')->all;

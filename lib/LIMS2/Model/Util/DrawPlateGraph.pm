@@ -46,7 +46,9 @@ sub draw_plate_graph{
                                   },
 	                         );
 
-    my $model = LIMS2::Model->new( user => 'tasks' );
+#    my $model = LIMS2::Model->new( user => 'tasks' );
+    my $model = LIMS2::Model->new( user => 'lims2' );
+
 
     my $plate = $model->retrieve_plate({ name => $plate_name });
 
