@@ -592,11 +592,6 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 			view_uri     => $c->uri_for("/user/view_qc_result"),
 		};
 
-		# acs 11/03/13 - if plate type is Final_Pick add process type to final_pick
-		if($plate_from_qc->{'plate_type'} eq 'FINAL_PICK') {
-			$plate_from_qc->{'process_type'} = 'final_pick';
-		}
-
 		$c->model('Golgi')->txn_do(
 		    sub{
 		    	try{
