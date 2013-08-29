@@ -579,6 +579,11 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 		# if creation of any individual plate fails
 		my @new_plates;
 
+        unless ( $c->req->param('plate_type') ) {
+            $c->flash->{error_msg} = "You must specify a plate type";
+            return;
+        }
+
         my $plate_from_qc = {
 			qc_run_id    => $run_id,
 			plate_type   => $c->req->param('plate_type'),
