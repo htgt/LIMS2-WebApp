@@ -150,12 +150,37 @@ __PACKAGE__->table("summaries");
   data_type: 'timestamp'
   is_nullable: 1
 
+=head2 int_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 int_qc_seq_pass
 
   data_type: 'boolean'
   is_nullable: 1
 
 =head2 int_cassette_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 int_cassette_cre
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 int_cassette_promoter
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 int_cassette_conditional
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 int_cassette_resistance
 
   data_type: 'text'
   is_nullable: 1
@@ -367,6 +392,11 @@ __PACKAGE__->table("summaries");
   data_type: 'text'
   is_nullable: 1
 
+=head2 dna_quality_comment
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 dna_well_assay_complete
 
   data_type: 'timestamp'
@@ -482,6 +512,51 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 xep_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 xep_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 xep_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 xep_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 xep_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 xep_well_recombinase_id
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 xep_qc_seq_pass
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 xep_well_assay_complete
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 xep_well_accepted
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =head2 sep_plate_name
 
   data_type: 'text'
@@ -508,11 +583,6 @@ __PACKAGE__->table("summaries");
   is_nullable: 1
 
 =head2 sep_well_recombinase_id
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 sep_second_cell_line_name
 
   data_type: 'text'
   is_nullable: 1
@@ -607,6 +677,41 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 piq_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 piq_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 piq_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 piq_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 piq_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 piq_well_assay_complete
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 piq_well_accepted
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =head2 sfp_plate_name
 
   data_type: 'text'
@@ -694,9 +799,19 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "int_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
+  "int_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
   "int_qc_seq_pass",
   { data_type => "boolean", is_nullable => 1 },
   "int_cassette_name",
+  { data_type => "text", is_nullable => 1 },
+  "int_cassette_cre",
+  { data_type => "boolean", is_nullable => 1 },
+  "int_cassette_promoter",
+  { data_type => "boolean", is_nullable => 1 },
+  "int_cassette_conditional",
+  { data_type => "boolean", is_nullable => 1 },
+  "int_cassette_resistance",
   { data_type => "text", is_nullable => 1 },
   "int_backbone_name",
   { data_type => "text", is_nullable => 1 },
@@ -780,6 +895,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "dna_quality",
   { data_type => "text", is_nullable => 1 },
+  "dna_quality_comment",
+  { data_type => "text", is_nullable => 1 },
   "dna_well_assay_complete",
   { data_type => "timestamp", is_nullable => 1 },
   "dna_well_accepted",
@@ -826,6 +943,24 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "ep_pick_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
+  "xep_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "xep_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "xep_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "xep_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "xep_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "xep_well_recombinase_id",
+  { data_type => "text", is_nullable => 1 },
+  "xep_qc_seq_pass",
+  { data_type => "boolean", is_nullable => 1 },
+  "xep_well_assay_complete",
+  { data_type => "timestamp", is_nullable => 1 },
+  "xep_well_accepted",
+  { data_type => "boolean", is_nullable => 1 },
   "sep_plate_name",
   { data_type => "text", is_nullable => 1 },
   "sep_plate_id",
@@ -837,8 +972,6 @@ __PACKAGE__->add_columns(
   "sep_well_created_ts",
   { data_type => "timestamp", is_nullable => 1 },
   "sep_well_recombinase_id",
-  { data_type => "text", is_nullable => 1 },
-  "sep_second_cell_line_name",
   { data_type => "text", is_nullable => 1 },
   "sep_well_assay_complete",
   { data_type => "timestamp", is_nullable => 1 },
@@ -876,6 +1009,20 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "fp_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
+  "piq_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "piq_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "piq_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "piq_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "piq_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "piq_well_assay_complete",
+  { data_type => "timestamp", is_nullable => 1 },
+  "piq_well_accepted",
+  { data_type => "boolean", is_nullable => 1 },
   "sfp_plate_name",
   { data_type => "text", is_nullable => 1 },
   "sfp_plate_id",
@@ -905,8 +1052,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-04 13:31:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FkFuerX0xhS2xWmDqsmwoA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-07-30 14:16:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VDa7glKdEw9Y2XWo2nagWQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

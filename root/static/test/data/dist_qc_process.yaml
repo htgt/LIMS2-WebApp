@@ -1,0 +1,25 @@
+---
+valid_input:
+    type: dist_qc
+    input_wells:
+        - plate_name: FFP0001
+          well_name: A01
+    output_wells:
+        - plate_name: PIQ0001
+          well_name: A01
+invalid_input:
+    type: dist_qc
+    input_wells:
+        - plate_name: FFP0001
+          well_name: A01
+    output_wells:
+        - plate_name: PIQ0002
+          well_name: A01
+invalid_output:
+    type: dist_qc
+    input_wells:
+        - plate_name: FFP0001
+          well_name: A02
+    output_wells:
+        - plate_name: SEP0006
+          well_name: A01

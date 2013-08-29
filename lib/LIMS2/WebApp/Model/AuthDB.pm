@@ -9,7 +9,8 @@ require LIMS2::Model::DBConnect;
 
 __PACKAGE__->config(
     schema_class => 'LIMS2::Model::AuthDB',
-    connect_info => LIMS2::Model::DBConnect->params_for( 'LIMS2_DB', 'webapp_ro' )
+    #connect_info => LIMS2::Model::DBConnect->params_for( 'LIMS2_DB', 'webapp_ro' )
+    connect_info => LIMS2::Model::DBConnect->params_for( 'LIMS2_DB', 'lims2' )
 );
 
 =head1 NAME

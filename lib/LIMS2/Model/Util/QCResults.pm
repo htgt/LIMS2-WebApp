@@ -143,14 +143,14 @@ EOT
                         qc_run_id => $r->{alignment_qc_run_id},
                     );
 
+                    $r = $sth->fetchrow_hashref;
+
                     #skip alignments that aren't for this run (not all alignments have a qc_run_id)
                     if ( defined $primer{qc_run_id} ) {
                         next unless $primer{qc_run_id} eq $qc_run->id;
                     }
 
                     push @{ $result{primers} }, \%primer;
-
-                    $r = $sth->fetchrow_hashref;
                 }
 
                 #before this was just the number of seq reads,

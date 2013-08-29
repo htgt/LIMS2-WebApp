@@ -9,8 +9,8 @@
     <thead>
       <tr>
         <th class="design-target group-header" colspan="5">Design Target</th>
-        <th class="design group-header" colspan="2">Design</th>
-        <th class="crispr group-header" colspan="6">Crispr</th>
+        <th class="design group-header" colspan="2">Vector Design</th>
+        <th class="crispr group-header" colspan="6">Crispr Guide RNA (strict off target algorithm)</th>
       </tr>
       <tr>
         <th class="design-target">Marker Symbol</th>
@@ -53,7 +53,7 @@
               [% IF dt_first_row == 0 %]<tr>[% END %]
               <td class="crispr">[% crispr.crispr_id %]</td>
               <td class="crispr">[% crispr.outlier.join(', ') %]</td>
-              <td class="crispr">[% crispr.summary.join(', ') %]</td>
+              <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
               <td class="crispr">[% crispr.crispr_wells %]</td>
               <td class="crispr"></td>
               [% dt_first_row = 0 IF dt_first_row == 1 %]
@@ -75,7 +75,7 @@
                   [% UNLESS design_first_row %]<tr>[% END %]
                   <td class="crispr">[% crispr.crispr_id %]</td>
                   <td class="crispr">[% crispr.outlier.join(', ') %]</td>
-                  <td class="crispr">[% crispr.summary.join(', ') %]</td>
+                  <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
                   <td class="crispr">[% crispr.crispr_wells %]</td>
                   <td class="crispr">
                     [% IF crispr.crispr_id %]

@@ -16,7 +16,7 @@ override prepare_arguments => sub {
         };
     }
     else {
-        return { user => 'webapp_ro' };
+        return { user => 'lims2' };
     }
 };
 
