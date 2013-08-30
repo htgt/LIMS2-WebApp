@@ -147,7 +147,7 @@ sub all_tests  : Tests
     # Mouse double-targeted - Front page
     $mech->get_ok( '/user/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data'); 
 
-    $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
+    $mech->content_like(qr/Targeted Genes">2</, 'Checked content Targeted Genes');
     $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
     $mech->content_like(qr/Vectors Neo and Bsd">1</, 'Checked content Vectors Neo and Bsd');
     $mech->content_like(qr/Vectors Neo">1</, 'Checked content Vectors Neo');
