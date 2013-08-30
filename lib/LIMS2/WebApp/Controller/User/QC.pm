@@ -1,9 +1,4 @@
 package LIMS2::WebApp::Controller::User::QC;
-## no critic(RequireUseStrict,RequireUseWarnings)
-{
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.061';
-}
-## use critic
 
 use Moose;
 use namespace::autoclean;
