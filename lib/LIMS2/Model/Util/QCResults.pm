@@ -526,7 +526,6 @@ sub infer_qc_process_type{
     elsif ( $source_plate_type eq 'FINAL' ) {
         $process_type = _final_source_plate( $new_plate_type, $reagent_count, $params );
     }
-    #TODO FINAL_PICK source plate? sp12 Thu 29 Aug 2013 08:18:28 BST
     else {
         LIMS2::Exception->throw( "infer_qc_process_type can not handle a $source_plate_type source plate" );
     }
@@ -653,7 +652,6 @@ sub _final_source_plate {
                                           : 'rearray' ;
         }
         else {
-            #TODO maybe just rearray here sp12 Thu 29 Aug 2013 11:48:14 BST
             LIMS2::Exception->throw(
                 'Cassette / backbone was specified when the FINAL template plate was created, '
                 . ' this does not fit in with creating a FINAL plate here'
