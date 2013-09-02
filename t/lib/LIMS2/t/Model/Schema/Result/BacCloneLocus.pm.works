@@ -1,7 +1,7 @@
-package LIMS2::t::Model::Schema::Result::BacClone;
+package LIMS2::t::Model::Schema::Result::BacCloneLocus;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Schema::Result::BacClone;
+use LIMS2::Model::Schema::Result::BacCloneLocus;
 use LIMS2::Model::DBConnect;
 
 use strict;
@@ -10,7 +10,7 @@ use strict;
 
 =head1 NAME
 
-LIMS2/t/Model/Schema/Result/BacClone.pm - test class for LIMS2::Model::Schema::Result::BacClone
+LIMS2/t/Model/Schema/Result/BacCloneLocus.pm - test class for LIMS2::Model::Schema::Result::BacCloneLocus
 
 =head1 DESCRIPTION
 
@@ -87,31 +87,39 @@ sub all_tests  : Tests
 {
     my $user = 'lims2';
     my $connect_entry = 'LIMS2_DB';
+    my $rs = 'BacCloneLocus';
     my $rs_assembly = 'Assembly';
     my $rs_species = 'Species';
-    my $rs = 'BacClone';
+    my $rs_bac_clone = 'BacClone';
     my $rs_chromosomes = 'Chromosome';
     my $rs_bac_library = 'BacLibrary';
     my (%species_record) = (
-	'id' => 'Alien',
+	'id' => 'Mouse',
     );
     my (%assembly_record) = (
 	'id' => 'NZB999',
-	'species_id' => 'Alien',
+	'species_id' => 'Mouse',
     );
     my (%chromosome_record) = (
 	'id' => 9999,
-	'species_id' => 'Alien',
+	'species_id' => 'Mouse',
 	'name' => 'Test',
     );
     my (%bac_library_record) = (
 	'id' => 'aaa',
-	'species_id' => 'Alien',
+	'species_id' => 'Mouse',
     );
-    my (%record) = (
+    my (%bac_clone_record) = (
 	'id' => 999999,
 	'name' => 'Test',
 	'bac_library_id' => 'aaa',
+    );
+    my %record = (
+	bac_clone_id => 999999,
+	assembly_id => 'NZB999',
+	chr_start => 99999990,
+	chr_end => 99999999,
+	chr_id => 9999,
     );
 
 
@@ -130,11 +138,14 @@ sub all_tests  : Tests
     ok ($species_resultset, 'LIMS2::Model::DBConnect obtained result set');
     my $assembly_resultset = $schema->resultset( $rs_assembly );
     ok ($assembly_resultset, 'LIMS2::Model::DBConnect obtained result set');
+    my $bac_clone_resultset = $schema->resultset( $rs_bac_clone );
+    ok ($bac_clone_resultset, 'LIMS2::Model::DBConnect obtained result set');
     my $chromosome_resultset = $schema->resultset( $rs_chromosomes );
     ok ($chromosome_resultset, 'LIMS2::Model::DBConnect obtained result set');
 
     note("Cleanup before the tests");
     lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
+    lives_ok { $bac_clone_resultset->search(\%bac_clone_record)->delete() } 'Deleting the existing test records';
     lives_ok { $bac_library_resultset->search(\%bac_library_record)->delete() } 'Deleting the existing test records';
     lives_ok { $assembly_resultset->search(\%assembly_record)->delete() } 'Deleting the existing test records';
     lives_ok { $chromosome_resultset->search(\%chromosome_record)->delete() } 'Deleting the existing test records';
@@ -156,6 +167,10 @@ sub all_tests  : Tests
     lives_ok { $chromosome_resultset->search(\%chromosome_record)->delete() } 'Deleting any existing test records';
     lives_ok { $chromosome_resultset->create(\%chromosome_record) } 'Inserting new record';
 
+    note("Generating reference data BacClone record");
+    lives_ok { $bac_clone_resultset->search(\%bac_clone_record)->delete() } 'Deleting any existing test records';
+    lives_ok { $bac_clone_resultset->create(\%bac_clone_record) } 'Inserting new record';
+
     note("CRUD tests");
     lives_ok { $resultset->search(\%record)->delete() } 'Deleting any existing test records';
     lives_ok { $resultset->create(\%record) } 'Inserting new record';
@@ -166,6 +181,7 @@ sub all_tests  : Tests
 
     note("Teardown after the tests");
     lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
+    lives_ok { $bac_clone_resultset->search(\%bac_clone_record)->delete() } 'Deleting the existing test records';
     lives_ok { $bac_library_resultset->search(\%bac_library_record)->delete() } 'Deleting the existing test records';
     lives_ok { $assembly_resultset->search(\%assembly_record)->delete() } 'Deleting the existing test records';
     lives_ok { $chromosome_resultset->search(\%chromosome_record)->delete() } 'Deleting the existing test records';
