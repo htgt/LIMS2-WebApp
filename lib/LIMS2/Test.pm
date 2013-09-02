@@ -12,7 +12,6 @@ use LIMS2::Model;
 use Log::Log4perl qw( :easy );
 use DBIx::RunSQL;
 use Const::Fast;
-use FindBin;
 use YAML::Any;
 use Path::Class;
 use Test::More;
@@ -20,7 +19,6 @@ use Test::WWW::Mechanize::Catalyst;
 use File::Temp;
 use Try::Tiny;
 use Digest::MD5;
-use LIMS2::Model::Util::PgUserRole qw( db_name );
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
@@ -29,13 +27,16 @@ const my $TEST_USER   => 'test_user@example.org';
 const my $TEST_PASSWD => 'ahdooS1e';
 
 sub unauthenticated_mech {
+    my $no_reload = shift;
 
     my $model = LIMS2::Model->new( { user => 'tests' } );
 
 	my $dbh = $model->schema->storage->dbh;
 	# Reset the fixture data checksum because webapp
 	# may change the database content
-	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
+    unless ( $no_reload ) {
+        $dbh->do("delete from fixture_md5") or die $dbh->errstr;
+    }
 
     # Calling commit warns "commit ineffective with AutoCommit enabled"
     # but it seems to be necessary...
@@ -50,7 +51,8 @@ sub unauthenticated_mech {
 }
 
 sub mech {
-    my $mech = unauthenticated_mech();
+    my $no_reload = shift;
+    my $mech = unauthenticated_mech( $no_reload );
 
     $mech->get( '/login' );
 
@@ -88,7 +90,7 @@ sub _build_test_data {
 
     return sub {
 	my ( $filename, %opts ) = @_;
-	my $mech = mech();
+	my $mech = mech( 1 );
 	$mech->get( '/test/data' );
 	my @links = $mech->links();
 	for my $link (@links)
@@ -146,16 +148,16 @@ sub _build_model {
 sub _load_fixtures {
     my ( $dbh, $args ) = @_;
 
-    my $mech = mech();
+    my $mech = mech( 1 );
     $mech->get( '/test/fixtures' );
     my @links = $mech->links();
 
     my @fixtures = ( sort { $a->text cmp $b->text } grep { _is_fixture($_->text) } @links );
 
-    my $fixture_md5 = _calculate_md5(@fixtures);
+    my $fixture_md5 = _calculate_md5( $mech, @fixtures);
 
     # If we find any new/modified files then reload all fixtures
-    if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
+    if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ) {
 
         note "loading fixture data";
 
@@ -179,9 +181,8 @@ sub _load_fixtures {
         $dbh->{PrintWarn} = 1;
         $dbh->{Warn} = 1;
     }
-    else
-    {
-	print STDERR "No fixtures to load\n";
+    else {
+        note "No fixtures to load";
     }
 
     return;
@@ -194,11 +195,10 @@ sub _is_fixture {
 }
 
 sub _calculate_md5{
-    my @links = @_;
+    my ( $mech, @links ) = @_;
 
     my $md5 = Digest::MD5->new;
 
-    my $mech = mech();
     foreach my $link (@links){
 	$mech->get( $link->url );
 	$md5->add($mech->content);
