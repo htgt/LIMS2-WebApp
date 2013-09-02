@@ -4,6 +4,7 @@ use Test::Most;
 use LIMS2::Model::Schema::Result::DesignOligo;
 use LIMS2::Test;
 use Try::Tiny;
+use LIMS2::Model::DBConnect;
 
 use strict;
 

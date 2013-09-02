@@ -3,6 +3,7 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Schema::Result::Summary;
 use LIMS2::Test;
+use LIMS2::Model::DBConnect;
 
 use strict;
 
