@@ -176,14 +176,5 @@ sub as_hash {
     };
 }
 
-sub process_type{
-    my $self = shift;
-
-    # We have to assume that all wells on the template have been
-    # created with the same combination of cassette, backbone and recombinase
-    my $well = $self->qc_template_wells->first or return;
-
-    return $well->process_type;
-}
 __PACKAGE__->meta->make_immutable;
 1;
