@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.096';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.099';
 }
 ## use critic
 
@@ -83,19 +83,31 @@ sub check_plate_type {
 }
 
 sub parse_csv_file {
-    my ( $fh ) = @_;
-
+    my ( $fh, $optional_header_check ) = @_;
     my $cleaned_fh = _clean_newline( $fh );
-
     my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
     my $csv_data;
     try {
         $csv->column_names( $csv->getline($cleaned_fh) );
         $csv_data = $csv->getline_hr_all($cleaned_fh);
+        # Check headers
+        if ($optional_header_check) {
+            # get the hash for the first row
+            my $header = @{$csv_data}[0];
+            # get the header names in the hash (keys)
+            my @keys = keys %{$header};
+            # check if required headers are there, if not raise exception
+            for my $header_field (@{$optional_header_check}) {
+                if ( !grep { $_ =~ /^$header_field$/ } @keys ) {
+                    print "found it: $header_field\n";
+                    LIMS2::Exception::Validation->throw( ", missing column \'$header_field\'" );
+                }
+            }
+        }
     }
     catch {
         DEBUG( sprintf( "Error parsing csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
-        LIMS2::Exception::Validation->throw( "Invalid csv file" );
+        LIMS2::Exception::Validation->throw( "Invalid csv file".$_ );
     };
 
     LIMS2::Exception::Validation->throw( "No data in csv file")
@@ -121,6 +133,9 @@ sub _clean_csv_data {
     my $data = shift;
 
     for my $datum ( @{ $data } ) {
+        # trim leading and trailing whitespace on values
+        # for (values %{$datum}) { s/^\s+|\s+$//g };
+
         #delete keys from each hash where we have no value
         my @empty_keys = grep{ not defined $datum->{$_} } keys %{ $datum };
         delete @{ $datum }{ @empty_keys };

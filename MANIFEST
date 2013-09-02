@@ -154,6 +154,7 @@ lib/LIMS2/Report/DesignPlate.pm
 lib/LIMS2/Report/DesignPlateOrderSheet.pm
 lib/LIMS2/Report/DesignVectors.pm
 lib/LIMS2/Report/EPPlate.pm
+lib/LIMS2/Report/EPSummary.pm
 lib/LIMS2/Report/ElectroporationProductionSummary.pm
 lib/LIMS2/Report/FPPlate.pm
 lib/LIMS2/Report/FinalPickVectorPlate.pm
@@ -264,6 +265,7 @@ root/site/user/qc/view_qc_run.tt
 root/site/user/recombinaseupload/recombinase_upload.tt
 root/site/user/report/await_report.tt
 root/site/user/report/gene_report.tt
+root/site/user/report/gene_summary_report.tt
 root/site/user/report/select_sponsor.tt
 root/site/user/report/select_vector_params.tt
 root/site/user/report/simple_table.tt
@@ -1722,6 +1724,7 @@ t/LIMS2/Report/10_LIMS2_Report_DesignPlate.t
 t/LIMS2/Report/10_LIMS2_Report_DesignPlateOrderSheet.t
 t/LIMS2/Report/10_LIMS2_Report_DesignVectors.t
 t/LIMS2/Report/10_LIMS2_Report_EPPlate.t
+t/LIMS2/Report/10_LIMS2_Report_EPSummary.t
 t/LIMS2/Report/10_LIMS2_Report_ElectroporationProductionSummary.t
 t/LIMS2/Report/10_LIMS2_Report_FPPlate.t
 t/LIMS2/Report/10_LIMS2_Report_FinalPickVectorPlate.t
@@ -1919,6 +1922,7 @@ t/lib/LIMS2/t/Report/DesignPlate.pm
 t/lib/LIMS2/t/Report/DesignPlateOrderSheet.pm
 t/lib/LIMS2/t/Report/DesignVectors.pm
 t/lib/LIMS2/t/Report/EPPlate.pm
+t/lib/LIMS2/t/Report/EPSummary.pm
 t/lib/LIMS2/t/Report/ElectroporationProductionSummary.pm
 t/lib/LIMS2/t/Report/FPPlate.pm
 t/lib/LIMS2/t/Report/FinalPickVectorPlate.pm
