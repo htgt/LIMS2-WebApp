@@ -200,8 +200,8 @@ sub _calculate_md5{
     my $md5 = Digest::MD5->new;
 
     foreach my $link (@links){
-	$mech->get( $link->url );
-	$md5->add($mech->content);
+        $mech->get( $link->url );
+        $md5->add($mech->content);
     }
 
     return $md5->hexdigest;
