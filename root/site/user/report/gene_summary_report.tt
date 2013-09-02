@@ -84,9 +84,9 @@
             <th>Well name</td>
             <th>Plate</th>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>Design ID</th>
-            <th>Recombineering Result</th>
+<!--            <th>Recombineering Result</th>    -->
             <th>Accepted?</th>
           </thead>
           <tbody>
@@ -97,7 +97,7 @@
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.design_id %]</td>
-              <td>[% well.recombineering_result %]</td>
+<!--              <td>[% well.recombineering_result %]</td>    -->
               <td>[% well.is_accepted %]</td>
             </tr>
             [%- END %]
@@ -122,11 +122,11 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>Cassette</th>
             <th>Backbone</th>
             <th>Recombinase</th>
-            <th>Sequencing QC pass?</th>
+            <th>Sequencing QC</th>
             <th>Accepted?</th>
           </thead>
           <tbody>
@@ -164,11 +164,11 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>Cassette</th>
             <th>Backbone</th>
             <th>Recombinase</th>
-            <th>Sequencing QC pass?</th>
+            <th>Sequencing QC</th>
             <th>Accepted?</th>
           </thead>
           <tbody>
@@ -206,11 +206,11 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>Cassette</th>
             <th>Backbone</th>
             <th>Recombinase</th>
-            <th>Sequencing QC pass?</th>
+            <th>Sequencing QC</th>
             <th>Accepted?</th>
           </thead>
           <tbody>
@@ -248,7 +248,7 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>Final Pick Vector</th>
             <th>DNA Quality</th>
             <th>DNA Quality Comment</th>
@@ -290,7 +290,7 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>Final Pick Vector Well</th>
             <th>DNA Well</th>
             <th>Recombinase</th>
@@ -330,7 +330,7 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>First Electroporation Well</th>
             <th>Accepted?</th>
           </thead>
@@ -366,7 +366,7 @@
             <th>Well name</td>
             <th>Plate</th>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>EP Parents</th>
             <th>FEPD Parents</th>
           </thead>
@@ -411,7 +411,7 @@
             <th>Well ID</th>
             <th>Plate</th>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>First Allele Vector</th>
             <th>Second Allele Vector</th>
             <th>Accepted?</th>
@@ -450,7 +450,7 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>Second Electroporation Well</th>
             <th>Accepted?</th>
           </thead>
@@ -486,7 +486,7 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>First Allele Electroporation</th>
             <th>First Electroporation Pick</th>
             <th>Accepted?</th>
@@ -526,7 +526,7 @@
             <th>Well name</td>
             <th>Plate</td>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>First Allele Freezer Instance</th>
             <th>Accepted?</th>
           </thead>
@@ -562,7 +562,7 @@
             <th>Well name</td>
             <th>Plate</th>
             <th>Well</th>
-            <th>Created on</th>
+            <th>Created</th>
             <th>First Allele Electroporation</th>
             <th>Second Allele Electroporation</th>
             <th>Second Electroporation Pick</th>
