@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+    Plate upload templates updated. Error message when column header is missing.
+
 0.098     2013-08-28 11:34:10 Europe/London
 
     Added EPSummary link to the Cells menu.
