@@ -15,6 +15,7 @@
   <thead>
     <tr>
       <th>Template Name</th>
+      <th>Parent Plate Type</th>
       <th>Created At</th>
     </tr>
   </thead>
@@ -24,6 +25,7 @@
       <td>
         <a href="[% c.uri_for( '/user/view_template', { id => qc_template.id } ) %]">[% qc_template.name %]</a>
       </td>
+      <td>[% qc_template.parent_plate_type %]</td>
       <td>[% qc_template.created_at.ymd %]</td>
     </tr>
     [%- END %]

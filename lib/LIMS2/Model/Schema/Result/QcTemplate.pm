@@ -176,5 +176,20 @@ sub as_hash {
     };
 }
 
+=head2 parent_plate_type
+
+Work out plate type of parent plate(s) for template wells.
+Its a educated guess, just checks one well and assumes the rest
+should be the same, which they probably are.
+
+=cut
+sub parent_plate_type {
+    my ( $self ) = @_;
+
+    my $first_well = $self->qc_template_wells->first;
+
+    return $first_well->source_well->plate->type_id;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
