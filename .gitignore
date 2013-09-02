@@ -13,3 +13,4 @@ app.psgi
 tmp
 .project
 ddl/lims2_af11/
+t/test_manifest
