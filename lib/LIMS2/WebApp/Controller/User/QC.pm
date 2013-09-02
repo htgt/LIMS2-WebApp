@@ -511,14 +511,15 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 sub _populate_create_template_menus{
 	my ($self, $c) = @_;
 
-    my $cassettes = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette');
+    my @cassettes = @{ $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette') };
+    push @cassettes, @{ $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'intermediate-cassette') };
 
     my $schema = $c->model('Golgi')->schema;
 
     my (@phase_cassettes, @non_phase_cassettes);
 
     # Filter cassette list into non-phase matched cassettes, and phase match groups
-    foreach my $cass (@$cassettes){
+    foreach my $cass ( @cassettes ) {
     	my $cassette_name = $cass->{name};
     	my $cassette = $schema->resultset('Cassette')->find({ name => $cassette_name});
     	if ($cassette and defined $cassette->phase_match_group){
