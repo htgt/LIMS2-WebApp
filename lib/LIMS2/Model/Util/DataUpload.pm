@@ -128,9 +128,6 @@ sub _clean_csv_data {
     my $data = shift;
 
     for my $datum ( @{ $data } ) {
-        # trim leading and trailing whitespace on values
-        # for (values %{$datum}) { s/^\s+|\s+$//g };
-
         #delete keys from each hash where we have no value
         my @empty_keys = grep{ not defined $datum->{$_} } keys %{ $datum };
         delete @{ $datum }{ @empty_keys };
