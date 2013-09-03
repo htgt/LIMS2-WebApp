@@ -329,7 +329,8 @@ sub as_hash {
         validated_by_annotation => $self->validated_by_annotation,
         target_transcript       => $self->target_transcript,
         species                 => $self->species_id,
-        assigned_genes          => [ map { $_->gene_id } $self->genes ]
+        assigned_genes          => [ map { $_->gene_id } $self->genes ],
+        cassette_first          => $self->cassette_first,
     );
 
     if ( ! $suppress_relations ) {
