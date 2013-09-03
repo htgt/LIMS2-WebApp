@@ -14,3 +14,4 @@ tmp
 .project
 ddl/lims2_af11/
 .prove
+t/test_manifest
