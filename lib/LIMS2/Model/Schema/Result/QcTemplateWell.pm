@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.099';
+    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.100';
 }
 ## use critic
 
@@ -254,27 +254,6 @@ sub design_id {
     my $self = shift;
 
     return $self->qc_eng_seq->design_id;
-}
-
-use LIMS2::Model::Util::QCResults qw(infer_qc_process_type);
-
-sub process_type{
-	my $self = shift;
-
-	my %params;
-    if ( my $cassette = $self->qc_template_well_cassette){
-        $params{cassette} = $cassette->cassette->name;
-    }
-
-    if ( my $backbone = $self->qc_template_well_backbone){
-        $params{backbone} = $backbone->backbone->name;
-    }
-
-    if ( my @recombinases = $self->qc_template_well_recombinases->all ){
-        $params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
-    }
-
-    return infer_qc_process_type(\%params);
 }
 
 __PACKAGE__->meta->make_immutable;

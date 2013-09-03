@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.099';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.100';
 }
 ## use critic
 
@@ -746,11 +746,11 @@ sub get_well_colony_pick_fields_values {
 
 sub pspec_generate_eng_seq_params {
 	return {
-        plate_name  => { validate => 'existing_plate_name',     optional => 1 },
-        well_name   => { validate => 'well_name',               optional => 1 },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
         well_id     => { validate => 'integer', rename => 'id', optional => 1 },
-        cassette    => { validate => 'existing_final_cassette', optional => 1 },
-        backbone    => { validate => 'existing_backbone',       optional => 1 },
+        cassette    => { validate => 'existing_cassette', optional => 1 },
+        backbone    => { validate => 'existing_backbone', optional => 1 },
         recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
 	}
 }

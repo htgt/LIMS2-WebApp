@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.099';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.100';
 }
 ## use critic
 
@@ -362,6 +362,13 @@ sub existing_backbone {
     my ( $class, $model ) = @_;
 
     return existing_row( $model, 'Backbone', 'name' );
+}
+
+# all cassettes, regardless of type, for validated cassette names sent to generate_eng_seq_params
+sub existing_cassette {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'Cassette', 'name' );
 }
 
 sub existing_crispr_loci_type {
