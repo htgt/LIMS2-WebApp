@@ -176,14 +176,20 @@ sub as_hash {
     };
 }
 
-sub process_type{
-    my $self = shift;
+=head2 parent_plate_type
 
-    # We have to assume that all wells on the template have been
-    # created with the same combination of cassette, backbone and recombinase
-    my $well = $self->qc_template_wells->first or return;
+Work out plate type of parent plate(s) for template wells.
+Its a educated guess, just checks one well and assumes the rest
+should be the same, which they probably are.
 
-    return $well->process_type;
+=cut
+sub parent_plate_type {
+    my ( $self ) = @_;
+
+    my $first_well = $self->qc_template_wells->first;
+
+    return $first_well->source_well->plate->type_id;
 }
+
 __PACKAGE__->meta->make_immutable;
 1;
