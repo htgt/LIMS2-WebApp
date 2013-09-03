@@ -137,7 +137,6 @@ sub all_tests  : Tests
 	ok my $res = model->retrieve_qc_templates( { name => $template } ), 'retrieved qc template';
 	is @{$res}, 1, 'one qc template found';
 	is (scalar $res->[0]->qc_template_wells, 96, '96 qc_template_wells found for template');
-	is $res->[0]->process_type, 'rearray', 'process for new template without overrides is rearray';
     }
 
     note "Testing creation of QC template from CSV upload";
@@ -177,7 +176,6 @@ sub all_tests  : Tests
 	is @{$res}, 1, 'one qc template found';
 	is (scalar $res->[0]->qc_template_wells, 2, '2 qc_template_wells found for template');
 	my $created_id = $res->[0]->id;
-	is $res->[0]->process_type, 'rearray', 'process for new template without overrides is rearray';
 
 	$mech->back;
 	ok $mech->submit_form(
@@ -249,7 +247,6 @@ sub all_tests  : Tests
 	$mech->content_like(qr/$cassette/,'cassette override value used in new template');
 	$mech->content_like(qr/$backbone/,'backbone override value used in new template');
 	$mech->content_like(qr/$recom/i,'recombinase override value used in new template');
-	$mech->content_like(qr/3w_gateway/i,'new template has process type 3w_gateway');
 
 	$template = "test_overrides_csv";
 
@@ -274,7 +271,6 @@ sub all_tests  : Tests
 	$mech->content_like(qr/$cassette/,'cassette override value used in new template');
 	$mech->content_like(qr/$backbone/,'backbone override value used in new template');
 	$mech->content_like(qr/$recom/i,'recombinase override value used in new template');
-	$mech->content_like(qr/3w_gateway/i,'new template has process type 3w_gateway');
     }
 
     note "Testing creation of QC template with phase matched cassette";
@@ -319,7 +315,6 @@ sub all_tests  : Tests
 	ok $mech->success, 'response is success';
 	ok $mech->follow_link( url_regex => qr/view_template/), 'can view new qc template';
 	$mech->content_like(qr/L1L2_st/,'phased cassette used in new template');
-	$mech->content_like(qr/3w_gateway/i,'new template has process type 3w_gateway');
     }
 
     note "Testing creation of plates from QC run";
