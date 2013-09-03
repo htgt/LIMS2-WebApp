@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.100     2013-09-03 08:23:36 Europe/London
+
+    Added more robust code to infer the process type when creating plates from qc.
+    Show the parent plate type of qc template plates, not the process type.
+
 0.099     2013-09-02 14:15:08 Europe/London
 
     Plate upload templates updated. Error message when column header is missing.
