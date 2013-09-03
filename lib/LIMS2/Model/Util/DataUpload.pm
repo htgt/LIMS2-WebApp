@@ -81,9 +81,15 @@ sub parse_csv_file {
     my $cleaned_fh = _clean_newline( $fh );
     my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
     my $csv_data;
+
+    my $column_names = $csv->getline($cleaned_fh);
+    LIMS2::Exception::Validation->throw( "No data in csv file")
+        if !$column_names || !@{$column_names};
+    $csv->column_names( $column_names );
+    $csv_data = $csv->getline_hr_all($cleaned_fh);
+    LIMS2::Exception::Validation->throw( "No data in csv file")
+        unless @{$csv_data};
     try {
-        $csv->column_names( $csv->getline($cleaned_fh) );
-        $csv_data = $csv->getline_hr_all($cleaned_fh);
         # Check headers
         if ($optional_header_check) {
             # get the hash for the first row
@@ -100,12 +106,8 @@ sub parse_csv_file {
     }
     catch {
         DEBUG( sprintf( "Error parsing csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
-        LIMS2::Exception::Validation->throw( "Invalid csv file$_" );
+        LIMS2::Exception::Validation->throw( "Invalid csv file" . $_ );
     };
-
-    LIMS2::Exception::Validation->throw( "No data in csv file")
-        unless @{$csv_data};
-
     return _clean_csv_data( $csv_data );
 }
 

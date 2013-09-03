@@ -1,5 +1,27 @@
 {{$NEXT}}
 
+0.101     2013-09-03 11:49:26 Europe/London
+
+    Added plate upload header check and tests.
+
+0.100     2013-09-03 08:23:36 Europe/London
+
+    Added more robust code to infer the process type when creating plates from qc.
+    Show the parent plate type of qc template plates, not the process type.
+
+0.099     2013-09-02 14:15:08 Europe/London
+
+    Plate upload templates updated. Error message when column header is missing.
+
+0.098     2013-08-28 11:34:10 Europe/London
+
+    Added EPSummary link to the Cells menu.
+    Added automatic logging to errbit for exceptions.
+
+0.097     2013-08-27 14:50:53 Europe/London
+
+    Added EPSummary reports and faster version of Gene reports.
+
 0.096     2013-08-23 06:58:01 Europe/London
 
     Make sure tests login with tests role to databases

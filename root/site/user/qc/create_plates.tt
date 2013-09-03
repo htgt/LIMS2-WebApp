@@ -28,6 +28,7 @@
        
        <label>Plate Type</label>
        <select name="plate_type" id="plate_type">
+           <option value="">-</option>
          [% FOR pl_type IN plate_types %]
            <option [% IF pl_type == plate_type %] selected="selected"[% END %]>[% pl_type %]</option>
          [%- END %]
@@ -42,4 +43,4 @@
      </form>
   </div>
   
-</div>    
+</div>

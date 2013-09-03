@@ -30,12 +30,11 @@ const my $TEST_PASSWD => 'ahdooS1e';
 
 sub unauthenticated_mech {
 
-	# Reset the fixture data checksum because webapp
-	# may change the database content
     my $model = LIMS2::Model->new( { user => 'tests' } );
 
 	my $dbh = $model->schema->storage->dbh;
-	my $name = db_name($dbh);
+	# Reset the fixture data checksum because webapp
+	# may change the database content
 	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
 
     # Calling commit warns "commit ineffective with AutoCommit enabled"
@@ -160,20 +159,15 @@ sub _load_fixtures {
 
         note "loading fixture data";
 
-        my $dbname = db_name( $dbh );
-
-        my $admin_role = $dbname . '_admin';
-
-        #$dbh->do( "SET ROLE $admin_role" );
-        #$dbh->do( "SET ROLE lims2_test" ); #Errors: "Bail out!  load fixtures failed: DBI Exception: DBD::Pg::db do failed: ERROR:  relation "fixture_md5" does not exist"
-        $dbh->do( "SET ROLE lims2" );
+        # This is not needed, but its nice as a sanity check
+        $dbh->do( "SET ROLE lims2_test" );
 
     	foreach my $fixture (@fixtures){
-           DEBUG("Loading fixtures from " . $fixture->text);
-	    $mech->get( $fixture->url );
-	    $dbh->do( $mech->content );
+            DEBUG("Loading fixtures from " . $fixture->text);
+            $mech->get( $fixture->url );
+            $dbh->do( $mech->content );
     	}
-	print STDERR "Updating fixture md5\n";
+        note "Updating fixture md5";
     	_update_fixture_md5($dbh, $fixture_md5);
 
 	    # Calling commit warns "commit ineffective with AutoCommit enabled"
@@ -184,8 +178,6 @@ sub _load_fixtures {
     	$dbh->commit;
         $dbh->{PrintWarn} = 1;
         $dbh->{Warn} = 1;
-
-    	#$dbh->do( "RESET ROLE" );
     }
     else
     {
@@ -208,8 +200,8 @@ sub _calculate_md5{
 
     my $mech = mech();
     foreach my $link (@links){
-	$mech->get( $link->url );
-	$md5->add($mech->content);
+        $mech->get( $link->url );
+        $md5->add($mech->content);
     }
 
     return $md5->hexdigest;
