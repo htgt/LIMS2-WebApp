@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.100';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.101';
 }
 ## use critic
 
@@ -374,7 +374,7 @@ sub create_plate_csv_upload {
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
 
-    my $well_data = parse_csv_file( $well_data_fh );
+    my $well_data = parse_csv_file( $well_data_fh, ['well_name', 'parent_plate', 'parent_well'] );
 
     for my $datum ( @{$well_data} ) {
         merge_plate_process_data( $datum, \%plate_process_data );

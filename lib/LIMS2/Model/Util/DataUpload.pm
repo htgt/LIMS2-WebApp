@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.100';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.101';
 }
 ## use critic
 
@@ -87,9 +87,15 @@ sub parse_csv_file {
     my $cleaned_fh = _clean_newline( $fh );
     my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
     my $csv_data;
+
+    my $column_names = $csv->getline($cleaned_fh);
+    LIMS2::Exception::Validation->throw( "No data in csv file")
+        if !$column_names || !@{$column_names};
+    $csv->column_names( $column_names );
+    $csv_data = $csv->getline_hr_all($cleaned_fh);
+    LIMS2::Exception::Validation->throw( "No data in csv file")
+        unless @{$csv_data};
     try {
-        $csv->column_names( $csv->getline($cleaned_fh) );
-        $csv_data = $csv->getline_hr_all($cleaned_fh);
         # Check headers
         if ($optional_header_check) {
             # get the hash for the first row
@@ -99,7 +105,6 @@ sub parse_csv_file {
             # check if required headers are there, if not raise exception
             for my $header_field (@{$optional_header_check}) {
                 if ( !grep { $_ =~ /^$header_field$/ } @keys ) {
-                    print "found it: $header_field\n";
                     LIMS2::Exception::Validation->throw( ", missing column \'$header_field\'" );
                 }
             }
@@ -107,12 +112,8 @@ sub parse_csv_file {
     }
     catch {
         DEBUG( sprintf( "Error parsing csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
-        LIMS2::Exception::Validation->throw( "Invalid csv file".$_ );
+        LIMS2::Exception::Validation->throw( "Invalid csv file" . $_ );
     };
-
-    LIMS2::Exception::Validation->throw( "No data in csv file")
-        unless @{$csv_data};
-
     return _clean_csv_data( $csv_data );
 }
 
@@ -133,9 +134,6 @@ sub _clean_csv_data {
     my $data = shift;
 
     for my $datum ( @{ $data } ) {
-        # trim leading and trailing whitespace on values
-        # for (values %{$datum}) { s/^\s+|\s+$//g };
-
         #delete keys from each hash where we have no value
         my @empty_keys = grep{ not defined $datum->{$_} } keys %{ $datum };
         delete @{ $datum }{ @empty_keys };
