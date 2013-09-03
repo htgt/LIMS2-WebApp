@@ -514,6 +514,7 @@ sub infer_qc_process_type{
 	$reagent_count++ if $params->{cassette};
 	$reagent_count++ if $params->{backbone};
 
+    ## no critic (ProhibitCascadingIfElse)
     if ( $source_plate_type eq 'DESIGN' ) {
         $process_type = _design_source_plate( $new_plate_type, $reagent_count, $params );
     }
@@ -529,6 +530,7 @@ sub infer_qc_process_type{
     else {
         LIMS2::Exception->throw( "infer_qc_process_type can not handle a $source_plate_type source plate" );
     }
+    ## use critic
 
     return $process_type;
 }
