@@ -285,7 +285,7 @@ sub almost_all_tests  : Test(48)
 
 }
 
-sub test_infer_qc_process_type : Test(no_plan) {
+sub test_infer_qc_process_type : Test(25) {
     note( 'DESIGN source plates' );
     throws_ok {
         infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'POSTINT', 'DESIGN' )
@@ -296,6 +296,11 @@ sub test_infer_qc_process_type : Test(no_plan) {
         infer_qc_process_type( { cassette => 'foo' }, 'INT', 'DESIGN' )
     } qr/A cassette and backbone were not specified when the DESIGN template plate was created/
         , 'throws error for missing cassette and backbone';
+
+    throws_ok {
+        infer_qc_process_type( { recombinase => 'foo' }, 'INT', 'DESIGN' )
+    } qr/A recombinase was specified when the DESIGN template plate was created/
+        , 'throws error for unwanted recombinase';
 
     is infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'INT', 'DESIGN' ), 'int_recom',
         'correctly infers int_recom process for DESIGN to INT';
@@ -374,6 +379,11 @@ sub test_infer_qc_process_type : Test(no_plan) {
         infer_qc_process_type( { cassette => 'foo' }, 'FINAL_PICK', 'FINAL' )
     } qr/Cassette \/ backbone was specified when the FINAL template plate was created/
         , 'throws error when trying to create FINAL_PICK plate while specifying cassette';
+
+    throws_ok {
+        infer_qc_process_type( { recombinase => 'foo' }, 'FINAL_PICK', 'FINAL' )
+    } qr/A recombinase was specified when the FINAL template plate was created/
+        , 'throws error when trying to create FINAL_PICK plate while specifying recombinase';
 
     is infer_qc_process_type( {}, 'FINAL', 'FINAL' ), 'rearray',
         'correctly infers rearray process for FINAL plate';

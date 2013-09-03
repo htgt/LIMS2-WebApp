@@ -546,8 +546,13 @@ sub _design_source_plate {
             "Can only create INT plate from a DESIGN template plate, not a $new_plate_type plate");
     }
 
-    #TODO what about recombinase sp12 Thu 29 Aug 2013 07:34:16 BST
-    if ( $reagent_count == 2 ) {
+    if ( $params->{recombinase} ) {
+        LIMS2::Exception->throw(
+            'A recombinase was specified when the DESIGN template plate was created, '
+            . ' this does not fit with creating a INT plate here'
+        );
+    }
+    elsif ( $reagent_count == 2 ) {
         return 'int_recom';
     }
     else {
@@ -659,8 +664,13 @@ sub _final_source_plate {
         }
     }
     elsif ( $new_plate_type eq 'FINAL_PICK' ) {
-        #TODO what about recombinase? sp12 Thu 29 Aug 2013 08:13:57 BST
-        if ($reagent_count == 0) {
+        if ( $params->{recombinase} ) {
+            LIMS2::Exception->throw(
+                'A recombinase was specified when the FINAL template plate was created, '
+                . ' this does not fit with creating a FINAL_PICK plate here'
+            );
+        }
+        elsif ($reagent_count == 0) {
             return 'final_pick';
         }
         else {
