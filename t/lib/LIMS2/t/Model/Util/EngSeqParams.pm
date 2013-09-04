@@ -93,7 +93,7 @@ sub all_tests  : Test(1)
 #NOTE I modified the fetch_well_eng_seq_params subroutine so I decided to test it
 #     fully, I have not tested the other subroutines
 #     sp12 Wed 04 Sep 2013 07:37:49 BST
-sub fetch_well_eng_seq_params_test : Test(37) {
+sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my $design_well = model->retrieve_well( { well_name => 'F02', plate_name => '148' } )
         ,'can grab design well';
@@ -186,17 +186,7 @@ sub fetch_well_eng_seq_params_test : Test(37) {
     is_deeply $params4->{d_insertion}, { name => 'foo' }, '.. have specified cassette in d_insertion slot';
     is_deeply $params4->{backbone}, { name => 'bar' }, '.. have backbone information';
 
-    ok my ( $method3 , $params3 ) = fetch_well_eng_seq_params(
-        $well,
-        {   is_allele             => 0,
-            design_type           => 'conditional',
-            design_cassette_first => 1,
-            recombinase           => [],
-            cassette              => 'foo'
-        }
-    ), 'call fetch_well_eng_seq_params for standard conditional vector';
-
-     ok my ( $method5 , $params5 ) = fetch_well_eng_seq_params(
+    ok my ( $method5 , $params5 ) = fetch_well_eng_seq_params(
         $well,
         {   is_allele             => 1,
             design_type           => 'deletion',
