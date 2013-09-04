@@ -16,16 +16,6 @@
             [% qc_template.name %]
           </td>
         </tr>
-
-        <tr>
-          <td>
-            <strong>Process Type</strong>
-          </td>
-          <td>
-            [% qc_template.process_type %]
-          </td>
-          <td></td>
-        </tr>
         
         <tr>
           <td>
