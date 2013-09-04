@@ -3,7 +3,7 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Report::EPSummary;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
-#use LIMS2::Test;
+use LIMS2::Test;
 
 use strict;
 
@@ -64,8 +64,7 @@ Code to run before all tests for the whole test class
 
 sub startup : Test(startup)
 {
-    diag("running before all tests");
-    use LIMS2::Test;
+    #diag("running before all tests");
 };
 
 =head2 shutdown
