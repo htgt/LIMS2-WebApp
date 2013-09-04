@@ -23,7 +23,7 @@ override _build_columns => sub {
         $self->base_columns,
         "Cassette", "Cassette Resistance", "Backbone", "Recombinases",
         "Final Pick Vector Well", "Final Pick Vector QC Test Result", "Final Pick Vector Valid Primers", "Final Pick Vector Mixed Reads?", "Final Pick Vector Sequencing QC Pass?",
-        "DNA Quality", "DNA Quality Comment", "DNA Pass?"
+        "DNA Quality", "DNA Quality Comment", "DNA Pass?", "Child well list", "Well Name"
     ];
 };
 
@@ -46,6 +46,10 @@ override iterator => sub {
 
         my $dna_status = $well->well_dna_status;
         my $dna_quality = $well->well_dna_quality;
+use Smart::Comments;
+## $self
+## $well
+
 
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
@@ -56,7 +60,9 @@ override iterator => sub {
             join( q{/}, @{ $well->vector_recombinases } ),
             $self->ancestor_cols( $well, 'FINAL_PICK' ),
             ( $dna_quality ? ( $dna_quality->quality, $dna_quality->comment_text ) : ('')x2 ),
-            ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' )
+            ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' ),
+            $well->get_output_wells_as_string,
+            $well->name,
         ];
     };
 };
