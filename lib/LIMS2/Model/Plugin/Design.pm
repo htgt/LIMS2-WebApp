@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.101';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.102';
 }
 ## use critic
 
@@ -60,6 +60,7 @@ sub pspec_create_design {
         genotyping_primers      => { optional => 1 },
         gene_ids                => { validate => 'hashref', optional => 1 },
         design_parameters       => { validate => 'json', optional => 1 },
+        cassette_first          => { validate => 'boolean', default => 1 },
     };
 }
 
@@ -90,8 +91,9 @@ sub create_design {
     my $design = $self->schema->resultset( 'Design' )->create(
         {
             slice_def( $validated_params,
-                       qw( id species_id name created_by created_at design_type_id phase
-                           validated_by_annotation target_transcript design_parameters ) )
+                       qw( id species_id name created_by created_at design_type_id
+                           phase validated_by_annotation target_transcript
+                           design_parameters cassette_first ) )
         }
     );
     $self->log->debug( 'Create design ' . $design->id );

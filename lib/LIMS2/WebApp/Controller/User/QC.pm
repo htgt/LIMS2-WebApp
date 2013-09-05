@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.101';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.102';
 }
 ## use critic
 
@@ -235,7 +235,6 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 
             # fetch the template type to display to user
             my $template = $c->model('Golgi')->retrieve_qc_template({ name => $c->req->param('template_plate') });
-            $c->stash->{template_type} = $template->process_type;
 
 		    my $plate_map = create_suggested_plate_map(
 		        $c->stash->{sequencing_project},

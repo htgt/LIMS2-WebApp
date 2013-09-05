@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.101';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.102';
 }
 ## use critic
 
@@ -775,6 +775,7 @@ sub generate_well_eng_seq_params{
     my $input_params = {slice_def $validated_params, qw( cassette backbone recombinase targeted_trap)};
     $input_params->{is_allele} = 1 if $stage eq 'allele';
     $input_params->{design_type} = $design->{type};
+    $input_params->{design_cassette_first} = $design->{cassette_first};
 
     my ($method,$well_params) = fetch_well_eng_seq_params($well, $input_params );
 
