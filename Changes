@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.102     2013-09-05 07:34:35 Europe/London
+
+    Bugfix: error when submitting qc
+    Add cassette_first column to designs table
+    Generation of eng seq params respects cassette_first flag
+    Add htgt_project_id column to projects table
+
 0.101     2013-09-03 11:49:26 Europe/London
 
     Added plate upload header check and tests.
