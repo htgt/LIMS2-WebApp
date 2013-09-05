@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.101     2013-09-03 11:49:26 Europe/London
+
+    Added plate upload header check and tests.
+
 0.100     2013-09-03 08:23:36 Europe/London
 
     Added more robust code to infer the process type when creating plates from qc.
