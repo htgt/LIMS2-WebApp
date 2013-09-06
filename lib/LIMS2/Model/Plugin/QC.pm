@@ -799,7 +799,6 @@ sub pspec_create_plates_from_qc{
         created_by   => { validate => 'existing_user' },
         rename_plate => { validate => 'hashref', optional => 1 },
         view_uri     => { validate => 'absolute_url' },
-        process_type => { validate => 'existing_process_type', optional => 1 },
     };
 }
 
@@ -839,11 +838,6 @@ sub create_plates_from_qc{
 		    qc_run_id       => $validated_params->{qc_run_id},
 		};
 
-		# acs 11/03/13 - if plate type is Final_Pick add process type to final_pick
-		if($plate_from_qc->{'plate_type'} eq 'FINAL_PICK') {
-			$plate_from_qc->{'process_type'} = $validated_params->{process_type};
-		}
-
 		my $plate = $self->create_plate_from_qc($plate_from_qc,);
 
 		push @created_plates, $plate;
@@ -862,7 +856,6 @@ sub pspec_create_plate_from_qc{
         created_by   => { validate => 'existing_user'},
         view_uri     => { validate => 'absolute_url'},
         qc_run_id    => { validate => 'uuid'},
-		process_type => { validate => 'existing_process_type', optional => 1 },
     };
 }
 
@@ -921,13 +914,11 @@ sub create_plate_from_qc{
             	$well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
             }
 
-            # If process_type has been passed in, use it, otherwise infer it
-            if (exists $params->{process_type}) {
-                $well_params{process_type} = $params->{process_type};
-            }
-            else {
-                $well_params{process_type} = infer_qc_process_type(\%well_params);
-            }
+            $well_params{process_type} = infer_qc_process_type(
+                \%well_params,
+                $validated_params->{plate_type},
+                $source_well->plate->type_id,
+            );
 
             push @new_wells, \%well_params;
 		}

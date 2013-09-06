@@ -86,7 +86,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(12)
+sub all_tests  : Test(14)
 {
 
     note('Testing parse_csv_file');
@@ -112,11 +112,22 @@ sub all_tests  : Test(12)
 
 	}
 
+	my $data_fh_hc = test_data( 'csv_upload_linux.csv' );
+	lives_ok {
+		parse_csv_file( $data_fh_hc, ['well_name', 'dna_status_result', 'comments'] );
+	} 'can parse csv file with header check';
+
+	$data_fh_hc = test_data( 'csv_upload_linux.csv' );
+	throws_ok {
+		parse_csv_file( $data_fh_hc, ['well_name', 'parent_plate', 'parent_w'] );
+	} qr/Invalid csv file, missing column/,
+	'throws error on header check fail';
+
 	my $empty_test_file = IO::File->new_tmpfile or die('Could not create temp test file ' . $!);
 
 	throws_ok {
 	    parse_csv_file( $empty_test_file )
-	} qr/Invalid csv file/;
+	} qr/No data in csv file/;
 
 	my $no_data_test_file = IO::File->new_tmpfile or die('Could not create temp test file ' . $!);
 	$no_data_test_file->print('Test File');

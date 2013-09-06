@@ -184,15 +184,6 @@ sub all_tests  : Test(26)
 
     }
 
-    sub _revcomp_seq {
-	my $seq = shift;
-
-	my $revcomp_oligo_seq = reverse( $seq );
-	$revcomp_oligo_seq =~ tr/ATCG/TAGC/;
-
-	return $revcomp_oligo_seq;
-    }
-
 }
 
 sub _revcomp_seq {

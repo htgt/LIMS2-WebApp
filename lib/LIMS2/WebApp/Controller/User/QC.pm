@@ -229,7 +229,6 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 
             # fetch the template type to display to user
             my $template = $c->model('Golgi')->retrieve_qc_template({ name => $c->req->param('template_plate') });
-            $c->stash->{template_type} = $template->process_type;
 
 		    my $plate_map = create_suggested_plate_map(
 		        $c->stash->{sequencing_project},
@@ -511,14 +510,15 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 sub _populate_create_template_menus{
 	my ($self, $c) = @_;
 
-    my $cassettes = $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette');
+    my @cassettes = @{ $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'final-cassette') };
+    push @cassettes, @{ $c->model('Golgi')->eng_seq_builder->list_seqs( type => 'intermediate-cassette') };
 
     my $schema = $c->model('Golgi')->schema;
 
     my (@phase_cassettes, @non_phase_cassettes);
 
     # Filter cassette list into non-phase matched cassettes, and phase match groups
-    foreach my $cass (@$cassettes){
+    foreach my $cass ( @cassettes ) {
     	my $cassette_name = $cass->{name};
     	my $cassette = $schema->resultset('Cassette')->find({ name => $cassette_name});
     	if ($cassette and defined $cassette->phase_match_group){
@@ -574,6 +574,11 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 		# if creation of any individual plate fails
 		my @new_plates;
 
+        unless ( $c->req->param('plate_type') ) {
+            $c->flash->{error_msg} = "You must specify a plate type";
+            return;
+        }
+
         my $plate_from_qc = {
 			qc_run_id    => $run_id,
 			plate_type   => $c->req->param('plate_type'),
@@ -581,11 +586,6 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 			created_by   => $c->user->name,
 			view_uri     => $c->uri_for("/user/view_qc_result"),
 		};
-
-		# acs 11/03/13 - if plate type is Final_Pick add process type to final_pick
-		if($plate_from_qc->{'plate_type'} eq 'FINAL_PICK') {
-			$plate_from_qc->{'process_type'} = 'final_pick';
-		}
 
 		$c->model('Golgi')->txn_do(
 		    sub{

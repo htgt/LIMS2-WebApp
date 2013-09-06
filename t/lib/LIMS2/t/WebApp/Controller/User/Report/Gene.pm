@@ -3,6 +3,7 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::Report::Gene;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
+use LIMS2::Test;
 
 use strict;
 
@@ -41,8 +42,6 @@ Code to run before every test
 sub before : Test(setup)
 {
     #diag("running before test");
-    diag("running before all tests");
-    use LIMS2::Test;
 };
 
 =head2 after

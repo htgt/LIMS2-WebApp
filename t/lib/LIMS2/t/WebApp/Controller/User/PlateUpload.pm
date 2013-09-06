@@ -236,7 +236,7 @@ sub all_tests  : Test(112)
 
 	ok $res->is_success, '...response is_success';
 	is $res->base->path, '/user/plate_upload_step2', '... stays on same page';
-	like $res->content, qr/Error encountered while creating plate: Invalid csv file/
+	like $res->content, qr/Error encountered while creating plate: No data in csv file/
 	    , '...throws error invalid well data csv file';
     }
 
