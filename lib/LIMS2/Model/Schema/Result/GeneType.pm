@@ -51,7 +51,6 @@ __PACKAGE__->table("gene_types");
 =head2 local
 
   data_type: 'boolean'
-  default_value: false
   is_nullable: 0
 
 =cut
@@ -62,7 +61,7 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "text", is_nullable => 1 },
   "local",
-  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  { data_type => "boolean", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -95,8 +94,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-08-06 12:10:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9or2IM9ZGSPk4i9wblsMPg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-08-30 09:30:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kb1vbu5bRPvdLlZKk2xYLg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
