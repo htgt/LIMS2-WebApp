@@ -4,8 +4,8 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ model => \'_build_model', test_data => \'_build_test_data', 'mech', 'unauthenticated_mech', 'reload_fixtures' ],
-    groups => { default => [qw( model mech unauthenticated_mech test_data reload_fixtures)] }
+    exports => [ model => \'_build_model', test_data => \'_build_test_data', fixture_data => \'_build_fixture_data', 'mech', 'unauthenticated_mech', 'reload_fixtures' ],
+    groups => { default => [qw( model mech unauthenticated_mech test_data fixture_data reload_fixtures)] }
 };
 
 use LIMS2::Model;
@@ -30,11 +30,13 @@ const my $TEST_PASSWD => 'ahdooS1e';
 
 sub unauthenticated_mech {
 
-    my $model = LIMS2::Model->new( { user => 'tests' } );
-
-	my $dbh = $model->schema->storage->dbh;
 	# Reset the fixture data checksum because webapp
 	# may change the database content
+#       my $model = LIMS2::Model->new( { user => 'tests' } );
+	my $model = LIMS2::Model->new( { user => 'lims2' } );
+
+	my $dbh = $model->schema->storage->dbh;
+	my $name = db_name($dbh);
 	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
 
     # Calling commit warns "commit ineffective with AutoCommit enabled"
@@ -65,7 +67,8 @@ sub mech {
 
 sub reload_fixtures {
 
-    my $model = LIMS2::Model->new( { user => 'tests' } );
+#    my $model = LIMS2::Model->new( { user => 'tests' } );
+    my $model = LIMS2::Model->new( { user => 'lims2' } );
     my $args = { force => 1 };
 
     try {
@@ -88,12 +91,16 @@ sub _build_test_data {
 
     return sub {
 	my ( $filename, %opts ) = @_;
+	my $fixture_filename = file($filename);
+	my $fixture_dirname = $fixture_filename->dir->stringify; $fixture_dirname = '' if ($fixture_dirname eq '.');
+	my $fixture_basename = $fixture_filename->basename;
 	my $mech = mech();
-	$mech->get( '/test/data' );
+	my $final_path = join('/', '/test/data', $fixture_dirname );
+	$mech->get( $final_path );
 	my @links = $mech->links();
 	for my $link (@links)
 	{
-	    if ($filename eq $link->text)
+	    if ($fixture_basename eq $link->text)
 	    {
 		$mech->get( $link );
 		if ($filename =~ m/\.yaml$/ and not $opts{raw} ) {
@@ -101,7 +108,39 @@ sub _build_test_data {
 		} else {
 		    my $ext;
 		    ($ext = $filename) =~ s/^.*\.//;
-		    my ($data_fh, $data_tmp_filename) = File::Temp::tempfile( 'testdata_XXXX', DIR => "/var/tmp", SUFFIX => '.' . $ext, UNLINK => 0 );
+		    my ($data_fh, $data_tmp_filename) = File::Temp::tempfile( 'testdata_XXXX', DIR => "/var/tmp", SUFFIX => '.' . $ext, UNLINK => 1 );
+		    $data_fh->print($mech->content);
+		    $data_fh->seek( 0, 0 );
+		    return($data_fh);
+		}
+	    }
+	}
+    }
+}
+
+sub _build_fixture_data {
+    my ( $class, $name, $args ) = @_;
+
+    return sub {
+	my ( $filename, %opts ) = @_;
+	my $fixture_filename = file($filename);
+	my $fixture_dirname = $fixture_filename->dir->stringify; $fixture_dirname = '' if ($fixture_dirname eq '.');
+	my $fixture_basename = $fixture_filename->basename;
+	my $mech = mech();
+	my $final_path = join('/', '/test/fixtures', $fixture_dirname );
+	$mech->get( $final_path );
+	my @links = $mech->links();
+	for my $link (@links)
+	{
+	    if ($fixture_basename eq $link->text)
+	    {
+		$mech->get( $link );
+		if ($filename =~ m/\.yaml$/ and not $opts{raw} ) {
+		    return YAML::Any::Load($mech->content);
+		} else {
+		    my $ext;
+		    ($ext = $filename) =~ s/^.*\.//;
+		    my ($data_fh, $data_tmp_filename) = File::Temp::tempfile( 'testdata_XXXX', DIR => "/var/tmp", SUFFIX => '.' . $ext, UNLINK => 1 );
 		    $data_fh->print($mech->content);
 		    $data_fh->seek( 0, 0 );
 		    return($data_fh);
@@ -114,7 +153,8 @@ sub _build_test_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
 
-    my $user = $args->{user} || 'tests';
+#    my $user = $args->{user} || 'tests';
+    my $user = $args->{user} || 'lims2';
 
     my $model = LIMS2::Model->new( { user => $user } );
 
@@ -158,16 +198,20 @@ sub _load_fixtures {
     if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
 
         note "loading fixture data";
+        my $dbname = db_name( $dbh );
 
-        # This is not needed, but its nice as a sanity check
-        $dbh->do( "SET ROLE lims2_test" );
+        my $admin_role = $dbname . '_admin';
+
+        #$dbh->do( "SET ROLE $admin_role" );
+        #$dbh->do( "SET ROLE lims2_test" ); #Errors: "Bail out!  load fixtures failed: DBI Exception: DBD::Pg::db do failed: ERROR:  relation "fixture_md5" does not exist"
+        $dbh->do( "SET ROLE lims2" );
 
     	foreach my $fixture (@fixtures){
-            DEBUG("Loading fixtures from " . $fixture->text);
-            $mech->get( $fixture->url );
-            $dbh->do( $mech->content );
+           DEBUG("Loading fixtures from " . $fixture->text);
+	    $mech->get( $fixture->url );
+	    $dbh->do( $mech->content );
     	}
-        note "Updating fixture md5";
+	print STDERR "Updating fixture md5\n";
     	_update_fixture_md5($dbh, $fixture_md5);
 
 	    # Calling commit warns "commit ineffective with AutoCommit enabled"
@@ -178,6 +222,8 @@ sub _load_fixtures {
     	$dbh->commit;
         $dbh->{PrintWarn} = 1;
         $dbh->{Warn} = 1;
+
+    	#$dbh->do( "RESET ROLE" );
     }
     else
     {
@@ -200,8 +246,8 @@ sub _calculate_md5{
 
     my $mech = mech();
     foreach my $link (@links){
-        $mech->get( $link->url );
-        $md5->add($mech->content);
+	$mech->get( $link->url );
+	$md5->add($mech->content);
     }
 
     return $md5->hexdigest;
