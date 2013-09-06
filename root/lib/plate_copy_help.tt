@@ -11,7 +11,7 @@
     <div id="collapseOne" class="accordion-body collapse">
       <div class="accordion-inner">
         <p>
-          This form is used to create DNA plates by copy operation from another plate.
+          This form is used to create DNA plates by copy operation from a FINAL or FINAL_PICK plate.
         </p>
 
         <div class="well">
