@@ -116,7 +116,6 @@ sub all_tests  : Test(329)
 	    );
 
 	    my @model_process_types = sort map {$_->id} @{ model->list_process_types };
-	    print STDERR Data::Dumper->Dump([\@model_process_types, \@process_types], [qw(*model_process_types *process_types)]);
 
 	    is_deeply([sort map {$_->id} @{ model->list_process_types }], [sort @process_types], 'process type list correct');
 

@@ -16,6 +16,7 @@ use Sub::Exporter -setup => {
 
 use Log::Log4perl qw( :easy );
 use LIMS2::Model::ProcessGraph;
+use LIMS2::Exception;
 use EngSeqBuilder;
 use JSON;
 use Data::Dumper;
@@ -105,9 +106,11 @@ sub fetch_well_eng_seq_params{
     $well_params->{recombinase} = \@recom;
 
     # We always need a cassette
-    die "No cassette found for well ".$well->id unless $params->{cassette};
+    LIMS2::Exception->throw( "No cassette found for well ". $well->id )
+        unless $params->{cassette};
 
 	my $design_type = $params->{design_type};
+    my $cassette_first = $params->{design_cassette_first};
 
 	if ($params->{is_allele}){
 
@@ -115,8 +118,14 @@ sub fetch_well_eng_seq_params{
 
 	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
 	        $method = 'conditional_allele_seq';
-	        $well_params->{u_insertion}->{name} = $params->{cassette};
-	        $well_params->{d_insertion}->{name} = 'LoxP' ;
+            if ( $cassette_first ) {
+                $well_params->{u_insertion}->{name} = $params->{cassette};
+                $well_params->{d_insertion}->{name} = 'LoxP' ;
+            }
+            else {
+                $well_params->{u_insertion}->{name} = 'LoxP';
+                $well_params->{d_insertion}->{name} = $params->{cassette};
+            }
 	    }
 	    elsif ( $design_type eq 'insertion' ) {
 	        $method = 'insertion_allele_seq';
@@ -127,7 +136,7 @@ sub fetch_well_eng_seq_params{
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
 	    else {
-	        die( "Don't know how to generate allele seq for design of type $design_type" );
+            LIMS2::Exception->throw( "Don't know how to generate allele seq for design of type $design_type" );
 	    }
 
         ## use critic
@@ -139,8 +148,14 @@ sub fetch_well_eng_seq_params{
 
 	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
 	        $method = 'conditional_vector_seq';
-	        $well_params->{u_insertion}->{name} = $params->{cassette};
-	        $well_params->{d_insertion}->{name} = 'LoxP' ;
+            if ( $cassette_first ) {
+                $well_params->{u_insertion}->{name} = $params->{cassette};
+                $well_params->{d_insertion}->{name} = 'LoxP' ;
+            }
+            else {
+                $well_params->{u_insertion}->{name} = 'LoxP';
+                $well_params->{d_insertion}->{name} = $params->{cassette};
+            }
 	    }
 	    elsif ( $design_type eq 'insertion' ) {
 	        $method = 'insertion_vector_seq';
@@ -151,7 +166,7 @@ sub fetch_well_eng_seq_params{
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
 	    else {
-	        die( "Don't know how to generate vector seq for design of type $design_type" );
+            LIMS2::Exception->throw( "Don't know how to generate vector seq for design of type $design_type" );
 	    }
 	}
 
