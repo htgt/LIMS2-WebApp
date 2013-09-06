@@ -1,0 +1,7 @@
+"id","description","local"
+"MGI","MGI Accession ID ( Mouse Genome Informatics )","0"
+"HGNC","HGNC ID ( HUGO Gene Nomenclature Committee )","0"
+"enhancer-region","Enhancer Region ID","1"
+"CPG-island","CPG Island ID","1"
+"miRBase","miRNA id ( miRBase )","0"
+"marker-symbol","Gene marker symbol","0"
