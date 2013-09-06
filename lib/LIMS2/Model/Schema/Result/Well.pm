@@ -904,17 +904,17 @@ sub get_input_wells_as_string {
 sub get_output_wells_as_string {
     my $well = shift;
 
-  my $childs;
+  my $children;
 
     foreach my $process ($well->child_processes){
         foreach my $output ($process->output_wells){
           my $plate_name = $output->plate->name;
                 my $well_name = $output->name;
                 my $specification = $plate_name . '[' . $well_name . ']';
-                $childs = !$childs ? $specification : join q{ }, ( $childs, $specification );
+                $children = !$children ? $specification : join q{ }, ( $children, $specification );
         }
     }
-    return ( $childs );
+    return ( $children );
 }
 
 ## no critic(RequireFinalReturn)
