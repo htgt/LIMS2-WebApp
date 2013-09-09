@@ -172,6 +172,7 @@ sub all_tests  : Tests
 	my $design_data = build_design_data(84231);
 
 	ok my $new_design = model->create_design($design_data), 'can create new design';
+    is $new_design->cassette_first, 1, 'default cassette_first value of true';
 	is $new_design->id, 99999999, '..and new design has correct id';
 	ok my $design_comment = $new_design->comments->first, 'can retrieve design comment';
 	is $design_comment->comment_text, 'Test comment', '.. has write comment text';

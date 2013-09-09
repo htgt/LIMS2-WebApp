@@ -95,6 +95,12 @@ __PACKAGE__->table("designs");
   data_type: 'text'
   is_nullable: 1
 
+=head2 cassette_first
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -128,6 +134,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "design_parameters",
   { data_type => "text", is_nullable => 1 },
+  "cassette_first",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -265,8 +273,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-08-13 10:26:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Q6A0Xhm2tHN775CPftFsGg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-09-02 14:04:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nqcz9bRkM0A8bk218z/9NQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -321,7 +329,8 @@ sub as_hash {
         validated_by_annotation => $self->validated_by_annotation,
         target_transcript       => $self->target_transcript,
         species                 => $self->species_id,
-        assigned_genes          => [ map { $_->gene_id } $self->genes ]
+        assigned_genes          => [ map { $_->gene_id } $self->genes ],
+        cassette_first          => $self->cassette_first,
     );
 
     if ( ! $suppress_relations ) {
