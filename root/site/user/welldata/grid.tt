@@ -82,6 +82,7 @@
                 {"call_label":"fa"},
                 {"call_label":"potential"}, 
                 {"call_label":"present"},
+                {"call_label":"absent"},
                 {"call_label":"na"},
                 {"call_label":"reset"}
                 ]
