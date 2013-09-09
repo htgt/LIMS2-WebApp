@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.103     2013-09-09 16:36:57 Europe/London
+
+    Added to DNA plate view the already electroporated and child well list fieds and tests.
+
 0.102     2013-09-05 07:34:35 Europe/London
 
     Bugfix: error when submitting qc
