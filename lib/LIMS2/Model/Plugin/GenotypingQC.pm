@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.102';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.103';
 }
 ## use critic
 
@@ -39,7 +39,6 @@ sub update_genotyping_qc_data{
     # Build a hash of all valid col names so we can report anything not recognized
     my $recognized = $self->_valid_column_names(\@assay_types, \@primer_bands);
     my $not_recognized = {};
-
     my $counter;
     foreach my $datum (@$data){
         $counter++;
@@ -47,6 +46,8 @@ sub update_genotyping_qc_data{
         # Store unrecognized columns to report to user
         # Perlcritic rejects use of grep in a void context and recommends a for loop
         # grep { $not_recognized->{$_} = 1 } grep { not $recognized->{$_} } keys %$datum;
+        # Convert column names to lower case to avoid unnecessary upload failures on mixed case
+        $datum = $self->hash_keys_to_lc( $datum);
         my @nr = grep { not $recognized->{$_} } keys %$datum;
         foreach my $nr_datum ( @nr ) {
             $not_recognized->{$nr_datum} = 1;
@@ -118,11 +119,22 @@ sub update_genotyping_qc_data{
     return \@messages;
 }
 
+
+sub hash_keys_to_lc {
+    my $self = shift;
+    my $hash_ref = shift;
+
+    my $hash_copy_ref;
+    foreach my $key ( keys %{$hash_ref} ) {
+        $hash_copy_ref->{ lc( $key ) } = $hash_ref->{ $key };
+    }
+    return $hash_copy_ref;
+}
+
 sub _valid_column_names{
     my ($self, $assay_types, $primer_bands) = @_;
-
     # Overall results including primer bands
-    my %recognized = map { $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail),
+    my %recognized = map { lc $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail),
                                      @$primer_bands;
 
     # Assay specific results
@@ -370,7 +382,7 @@ sub delete_plate_genotyping_qc_data {
     my @qc_ref = $self->get_genotyping_qc_plate_data( $plate_name, $species );
 
     foreach my $qc_row ( @qc_ref ) {
-        $self->delete_genotyping_qc_data( $qc_row );
+        $self->delete_genotyping_qc_data( $qc_row, $user );
     }
 
     return;
