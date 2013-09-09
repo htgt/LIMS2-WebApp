@@ -2,7 +2,7 @@ package LIMS2::t::Model::Schema::Result::Well;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Schema::Result::Well;
-
+use LIMS2::Model;
 use strict;
 
 ## no critic
@@ -82,10 +82,17 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Tests
 {
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::Well not implemented yet';
-    ok(1, "Test of LIMS2::Model::Schema::Result::Well");
+    my $model = LIMS2::Model->new( user => 'lims2' );
+    ok($model, 'Creating model');
+
+    my $well = $model->retrieve_well( { plate_name => 'PMBEQ60002_B_1A', well_name => 'B07' } );
+    ok($well, "Retrieving well $well");
+
+    my $children = $well->get_output_wells_as_string;
+    ok($children, "Retrieving well data $children");
+    is($children, 'SEP0017_1[A01]', "Checking well child");
 }
 
 =head1 AUTHOR
