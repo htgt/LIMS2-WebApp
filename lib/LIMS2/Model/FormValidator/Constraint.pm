@@ -91,7 +91,7 @@ sub validated_by_annotation {
 }
 
 sub genotyping_result_text {
-    return in_set( 'potential', 'present', 'pass', 'passb', 'fail', 'fa', 'na' );
+    return in_set( 'potential', 'present', 'absent', 'pass', 'passb', 'fail', 'fa', 'na' );
 }
 
 sub chromosome_fail_text {
