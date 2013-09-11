@@ -263,6 +263,7 @@ sub upload_genotyping_qc : Path( '/user/upload_genotyping_qc') : Args(0){
 =head1 AUTHOR
 
 Sajith Perera
+David Parry-Smith
 
 =head1 LICENSE
 
