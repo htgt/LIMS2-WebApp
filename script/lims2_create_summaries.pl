@@ -63,7 +63,8 @@ if($design_well_id) {
     #------------------------------------------------------------------
 
     # select well row objects into an array
-    my $model = LIMS2::Model->new( user => 'tasks');
+    #my $model = LIMS2::Model->new( user => 'tasks');
+    my $model = LIMS2::Model->new( user => 'lims2');
     my $well_rows_rs = $model->schema->resultset( 'Well' )->search(
         {
             'plate.type_id'     => 'DESIGN'             # where clause, select wells where plates.type_id = 'DESIGN'

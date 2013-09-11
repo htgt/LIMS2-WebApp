@@ -740,18 +740,16 @@ sub get_well_colony_pick_fields_values {
 
 sub pspec_generate_eng_seq_params {
 	return {
-        plate_name  => { validate => 'existing_plate_name',     optional => 1 },
-        well_name   => { validate => 'well_name',               optional => 1 },
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
         well_id     => { validate => 'integer', rename => 'id', optional => 1 },
-        cassette    => { validate => 'existing_final_cassette', optional => 1 },
-        backbone    => { validate => 'existing_backbone',       optional => 1 },
+        cassette    => { validate => 'existing_cassette', optional => 1 },
+        backbone    => { validate => 'existing_backbone', optional => 1 },
         recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
-        targeted_trap => { validate => 'boolean', default => 0, optional => 1 },
 	}
 }
 
 sub generate_well_eng_seq_params{
-
     my ( $self, $params ) = @_;
 
 	my $validated_params = $self->check_params( $params, $self->pspec_generate_eng_seq_params );
@@ -766,14 +764,12 @@ sub generate_well_eng_seq_params{
     my $plate_type_descr = $well->plate->type->description;
     my $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
 
-    my $loxp;
-    $loxp = 1 if ($design->{type} eq 'conditional' and $params->{targeted_trap} and $stage ne 'allele');
-
-    my $design_params = fetch_design_eng_seq_params($design, $loxp);
+    my $design_params = fetch_design_eng_seq_params($design);
 
     my $input_params = {slice_def $validated_params, qw( cassette backbone recombinase targeted_trap)};
     $input_params->{is_allele} = 1 if $stage eq 'allele';
     $input_params->{design_type} = $design->{type};
+    $input_params->{design_cassette_first} = $design->{cassette_first};
 
     my ($method,$well_params) = fetch_well_eng_seq_params($well, $input_params );
 

@@ -33,7 +33,6 @@ sub update_genotyping_qc_data{
     # Build a hash of all valid col names so we can report anything not recognized
     my $recognized = $self->_valid_column_names(\@assay_types, \@primer_bands);
     my $not_recognized = {};
-
     my $counter;
     foreach my $datum (@$data){
         $counter++;
@@ -41,6 +40,8 @@ sub update_genotyping_qc_data{
         # Store unrecognized columns to report to user
         # Perlcritic rejects use of grep in a void context and recommends a for loop
         # grep { $not_recognized->{$_} = 1 } grep { not $recognized->{$_} } keys %$datum;
+        # Convert column names to lower case to avoid unnecessary upload failures on mixed case
+        $datum = $self->hash_keys_to_lc( $datum);
         my @nr = grep { not $recognized->{$_} } keys %$datum;
         foreach my $nr_datum ( @nr ) {
             $not_recognized->{$nr_datum} = 1;
@@ -112,11 +113,22 @@ sub update_genotyping_qc_data{
     return \@messages;
 }
 
+
+sub hash_keys_to_lc {
+    my $self = shift;
+    my $hash_ref = shift;
+
+    my $hash_copy_ref;
+    foreach my $key ( keys %{$hash_ref} ) {
+        $hash_copy_ref->{ lc( $key ) } = $hash_ref->{ $key };
+    }
+    return $hash_copy_ref;
+}
+
 sub _valid_column_names{
     my ($self, $assay_types, $primer_bands) = @_;
-
     # Overall results including primer bands
-    my %recognized = map { $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail),
+    my %recognized = map { lc $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail),
                                      @$primer_bands;
 
     # Assay specific results
@@ -257,6 +269,9 @@ sub update_genotyping_qc_value {
 }
 
 # TODO: Update these methods to use the 'params' and slice_def technique. However, the code works as is.
+# DP-S: Actually not sure that is wise as validation takes too much time. Validation is for forms where users can
+# enter potentially invalid data.
+#
 sub well_assay_update{
     my $self = shift;
     my $assay_name = shift;
@@ -347,11 +362,114 @@ sub generic_assay_update{
     return $well_genotyping_result;
 }
 
+=head
+delete_plate_genotyping_qc_data - deletes all the data associated with a plate
+This is a rather slow but sure way!
+=cut
+
+sub delete_plate_genotyping_qc_data {
+    my $self = shift;
+    my $plate_name = shift;
+    my $species = shift;
+    my $user = shift;
+
+    my @qc_ref = $self->get_genotyping_qc_plate_data( $plate_name, $species );
+
+    foreach my $qc_row ( @qc_ref ) {
+        $self->delete_genotyping_qc_data( $qc_row, $user );
+    }
+
+    return;
+}
+
+sub delete_well_genotyping_qc_data {
+    my $self = shift;
+    my $well_list = shift;
+    my $plate_name = shift;
+    my $species = shift;
+    my $user = shift;
+
+    my @qc_ref = $self->get_genotyping_qc_well_data( $well_list, $plate_name, $species);
+
+    foreach my $qc_row ( @qc_ref ) {
+        $self->delete_genotyping_qc_data( $qc_row, $user );
+    }
+
+    return;
+}
+
+sub delete_genotyping_qc_data {
+    my $self = shift;
+    my $qc_row = shift;
+    my $user = shift;
+
+    $self->log->debug('deleting data for well id ' . $qc_row->{'id'} . $qc_row->{'well'} . $qc_row->{'gene_name'} );
+    my $params->{'well_id'} = $qc_row->{'id'};
+    $params->{'created_by'} = $user;
+    $params->{'assay_value'} = 'reset';
+
+    if ( $qc_row->{'chromosome_fail'} ne '-' ) {
+        $params->{'assay_name'} = 'chromosome_fail';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'targeting_pass'} ne '-' ) {
+        $params->{'assay_name'} = 'targeting_pass';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'targeting_puro_pass'} ne '-' ) {
+        $params->{'assay_name'} = 'targeting_puro_pass';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'accepted_override'} ne '-' ) {
+        $params->{'assay_name'} = 'accepted_override';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'tr_pcr'} ne '-' ) {
+        $params->{'assay_name'} = 'tr_pcr';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'gr3'} ne '-' ) {
+        $params->{'assay_name'} = 'gr3';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'gr4'} ne '-' ) {
+        $params->{'assay_name'} = 'gr4';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'gf3'} ne '-' ) {
+        $params->{'assay_name'} = 'gf3';
+        $self->update_genotyping_qc_value( $params );
+    }
+    if ( $qc_row->{'gf4'} ne '-' ) {
+        $params->{'assay_name'} = 'gf4';
+        $self->update_genotyping_qc_value( $params );
+    }
+
+    # Now for the generic assays
+
+    my @assay_keys = grep { /#call/ } keys %$qc_row;
+
+    foreach my $assay ( @assay_keys ) {
+        $params->{'assay_name'} = $assay;
+        $self->update_genotyping_qc_value ( $params );
+    }
+
+    return 1;
+}
+
+sub fast_delete_gqc_data {
+    my $self = shift;
+    my $qc_row = shift;
+
+    $self->log->info( 'fast_delete_gqc_data not yet implemented, use the standard method');
+    return;
+}
+
 # Use a direct SQL query to return data quickly to the browser. This means we do not use the model
 # to populate the interface.
 # However, the model must be used for the database updates.
 
-# The next two methods are used by the caller to return a plate of data or a set of wells' data
+# The next two methods are used by the caller to return a plate of data or a set of well data
 
 sub get_genotyping_qc_plate_data {
     my $self = shift;
@@ -366,7 +484,6 @@ sub get_genotyping_qc_well_data {
     my $well_list = shift;
     my $plate_name = shift;
     my $species = shift;
-
     my $sql_query = $self->sql_well_qc_query( $plate_name, $well_list );
     return $self->get_genotyping_qc_browser_data( $sql_query, $species );
 }

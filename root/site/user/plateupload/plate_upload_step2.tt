@@ -1,4 +1,4 @@
-[%- META title = 'Plate Upload 2'; META tab_name = 'Plates' %]
+[%- META title = 'Plate Upload 2' %]
 
 <div class="page-header">
   <h1>Upload Plate <small> Step 2</small></h1>

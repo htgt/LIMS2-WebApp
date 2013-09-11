@@ -1,4 +1,4 @@
-[% META title = "View Qc Run" %]
+[% META title = "View Qc Run"; META tab_name = 'QC' %]
 [% MACRO yes_no(bool) IF bool == 1; "yes"; ELSE; "no"; END; -%]
 [% MACRO pass_fail(bool) IF bool == 1; "pass"; ELSE; "fail"; END; -%]
 
@@ -103,7 +103,7 @@
       <td>[% pass_fail( r.pass ) %]</td>
       <td>[% r.score %]</td>
       <td>[% r.num_reads %]</td>
-      <td>[% r.valid_primers.size %]</td>
+      <td>[% r.num_valid_primers %]</td>
       <td>[% r.valid_primers_score %]</td>
       <td>[% r.valid_primers.join( "," ) %]</td>
       <td>

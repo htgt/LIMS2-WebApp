@@ -30,7 +30,8 @@ Log::Log4perl->easy_init(
 
 my ( $plate_name, $well_name ) = @ARGV;
 
-my $model = LIMS2::Model->new( user => 'tasks' );
+#my $model = LIMS2::Model->new( user => 'tasks' );
+my $model = LIMS2::Model->new( user => 'lims2' );
 
 my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
 

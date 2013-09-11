@@ -82,6 +82,7 @@
                 {"call_label":"fa"},
                 {"call_label":"potential"}, 
                 {"call_label":"present"},
+                {"call_label":"absent"},
                 {"call_label":"na"},
                 {"call_label":"reset"}
                 ]
@@ -142,6 +143,7 @@
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true },
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
                 {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
+                {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo}, 
                 {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
                 {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo },
                 {header: "LRPCR bands", columns: [
@@ -152,23 +154,25 @@
                 ]},
 //                {header: "TRPCR<br>Seq", editor: { xtype: 'textfield' }},
                 [% FOR assay IN assay_types %]
-                  {header: "[% assay %]", columns: [
-                    [% FOR name IN value_names %]
-                        [% IF name.title == "Call" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                            editor: call_types_targeting_combo, hideable: true},
-                        [% ELSIF name.title == "Copy Number" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                            editor: { xtype: 'numberfield' }, hidden: true},
-                        [% ELSIF name.title == "Range" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                            editor: { xtype: 'numberfield' }, hidden: true},
-                        [% ELSIF name.title == "Confidence" %]
-                            {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                            editor: { xtype: 'textfield' }, hidden: true},
+                    [% IF assay != 'targeting_control' %]
+                      {header: "[% assay %]", columns: [
+                        [% FOR name IN value_names %]
+                            [% IF name.title == "Call" %]
+                                {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                                editor: call_types_targeting_combo, hideable: true},
+                            [% ELSIF name.title == "Copy Number" %]
+                                {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                                editor: { xtype: 'numberfield' }, hidden: true},
+                            [% ELSIF name.title == "Range" %]
+                                {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                                editor: { xtype: 'numberfield' }, hidden: true},
+                            [% ELSIF name.title == "Confidence" %]
+                                {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                                editor: { xtype: 'textfield' }, hidden: true},
+                            [% END %]
                         [% END %]
+                      ]},
                     [% END %]
-                  ]},
                 [% END %]
             ];
 

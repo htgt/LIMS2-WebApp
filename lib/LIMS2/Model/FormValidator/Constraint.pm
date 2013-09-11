@@ -91,7 +91,7 @@ sub validated_by_annotation {
 }
 
 sub genotyping_result_text {
-    return in_set( 'potential', 'present', 'pass', 'passb', 'fail', 'fa', 'na' );
+    return in_set( 'potential', 'present', 'absent', 'pass', 'passb', 'fail', 'fa', 'na' );
 }
 
 sub chromosome_fail_text {
@@ -358,6 +358,13 @@ sub existing_backbone {
     return existing_row( $model, 'Backbone', 'name' );
 }
 
+# all cassettes, regardless of type, for validated cassette names sent to generate_eng_seq_params
+sub existing_cassette {
+    my ( $class, $model ) = @_;
+
+    return existing_row( $model, 'Cassette', 'name' );
+}
+
 sub existing_crispr_loci_type {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'CrisprLociType', 'id' );
@@ -366,6 +373,11 @@ sub existing_crispr_loci_type {
 sub existing_crispr_id {
     my ( $class, $model ) = @_;
     return in_resultset( $model, 'Crispr', 'id' );
+}
+
+sub existing_gene_type {
+	my ( $class, $model ) = @_;
+	return in_resultset( $model, 'GeneType', 'id' );
 }
 
 sub comma_separated_list {
@@ -389,7 +401,7 @@ sub software_version {
 }
 
 sub qc_seq_read_id {
-    return regexp_matches(qr/^[A-Za-z0-9_]+\.[A-Za-z0-9]+$/);
+    return regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9]+$/);
 }
 
 sub cigar_string {

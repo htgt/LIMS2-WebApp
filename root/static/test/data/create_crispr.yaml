@@ -1,0 +1,119 @@
+---
+valid_crispr:
+    type: Exonic
+    species: Mouse
+    seq: ATCGGCACACAGAGAG
+    comment: Test_crispr
+    off_target_algorithm: strict
+    off_target_summary: "{Exons: 5, Introns:10, Intergenic: 15}"
+    locus:
+       assembly: GRCm38
+       chr_name: 12
+       chr_start: 123456
+       chr_end: 123468
+       chr_strand: 1
+    off_targets:
+        - assembly: GRCm38
+          build: 70
+          chr_name: 11
+          chr_start: 234234
+          chr_end: 234255
+          chr_strand: -1
+          type: Intronic
+        - assembly: GRCm38
+          build: 70
+          chr_name: 3
+          chr_start: 234234
+          chr_end: 234255
+          chr_strand: -1
+          type: Intergenic
+species_assembly_mismatch:
+    type: Exonic
+    species: Human
+    seq: ATCGGCACACAGAGAG
+    comment: Test_crispr
+    off_target_algorithm: strict
+    locus:
+       assembly: GRCm38
+       chr_name: 12
+       chr_start: 123456
+       chr_end: 123468
+       chr_strand: 1
+    off_targets:
+        - assembly: GRCm38
+          build: 70
+          chr_name: 11
+          chr_start: 234234
+          chr_end: 234255
+          chr_strand: -1
+          type: Intronic
+        - assembly: GRCm38
+          build: 70
+          chr_name: 3
+          chr_start: 234234
+          chr_end: 234255
+          chr_strand: -1
+          type: Intergenic
+duplicate_crispr_same_off_target_algorithm:
+    type: Exonic
+    species: Mouse
+    seq: ATCGGCACACAGAGAG
+    off_target_algorithm: strict
+    off_target_outlier: 1
+    locus:
+       assembly: GRCm38
+       chr_name: 12
+       chr_start: 123456
+       chr_end: 123468
+       chr_strand: 1
+    off_targets:
+        - assembly: GRCm38
+          build: 70
+          chr_name: 15
+          chr_start: 234234
+          chr_end: 234255
+          chr_strand: -1
+          type: Intronic
+duplicate_crispr_different_off_target_algorithm:
+    type: Exonic
+    species: Mouse
+    seq: ATCGGCACACAGAGAG
+    off_target_algorithm: easy
+    locus:
+       assembly: GRCm38
+       chr_name: 12
+       chr_start: 123456
+       chr_end: 123468
+       chr_strand: 1
+    off_targets:
+        - assembly: GRCm38
+          build: 70
+          chr_name: 15
+          chr_start: 234234
+          chr_end: 234255
+          chr_strand: -1
+          type: Intronic
+valid_crispr_locus:
+   assembly: NCBIM37
+   chr_name: 12
+   chr_start: 123446
+   chr_end: 123458
+   chr_strand: 1
+valid_crispr_off_target:
+   assembly: GRCm38
+   build: 70
+   chr_name: 16
+   chr_start: 123446
+   chr_end: 123458
+   chr_strand: -1
+   type: Intronic
+   algorithm: strict
+crispr_off_target_non_standard_chromosome:
+   assembly: GRCm38
+   build: 70
+   chr_name: JL154.1
+   chr_start: 123446
+   chr_end: 123458
+   chr_strand: -1
+   type: Intronic
+   algorithm: strict

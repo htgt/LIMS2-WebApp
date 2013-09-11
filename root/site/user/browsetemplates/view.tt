@@ -1,4 +1,4 @@
-[%- META title="View Template"; META tab_name = "Browse" %]
+[%- META title="View Template"; META tab_name = "QC" %]
 
 <div class="page-header">
   <h1>QC Template <small>[% qc_template.name %]</small></h1>
@@ -15,16 +15,6 @@
           <td>
             [% qc_template.name %]
           </td>
-        </tr>
-
-        <tr>
-          <td>
-            <strong>Process Type</strong>
-          </td>
-          <td>
-            [% qc_template.process_type %]
-          </td>
-          <td></td>
         </tr>
         
         <tr>

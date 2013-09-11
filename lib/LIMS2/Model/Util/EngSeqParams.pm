@@ -16,12 +16,13 @@ use Sub::Exporter -setup => {
 
 use Log::Log4perl qw( :easy );
 use LIMS2::Model::ProcessGraph;
+use LIMS2::Exception;
 use EngSeqBuilder;
 use JSON;
 use Data::Dumper;
 
 sub fetch_design_eng_seq_params{
-	my ($design, $loxp) = @_;
+	my ($design) = @_;
 
 	my %locus_for;
     my @not_found;
@@ -35,14 +36,14 @@ sub fetch_design_eng_seq_params{
     	die "No design oligo loci found for design ".$design->{id}." oilgos ".(join ", ", @not_found);
     }
 
-	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type}, $loxp);
+	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type});
 	$params->{design_id} = $design->{id};
 
     return $params;
 }
 
 sub build_eng_seq_params_from_loci{
-	my ($loci, $type, $loxp) = @_;
+	my ($loci, $type) = @_;
 
     my $params;
 
@@ -68,25 +69,16 @@ sub build_eng_seq_params_from_loci{
     if ( $params->{strand} == 1 ) {
     	$params->{target_region_start} = $loci->{U3}->{chr_start};
     	$params->{target_region_end} = $loci->{D5}->{chr_end};
-
-    	return $params unless $loxp;
-
-    	$params->{loxp_start} = $loci->{D5}->{chr_end} + 1;
-    	$params->{loxp_end} = $loci->{D3}->{chr_start} - 1;
     }
     else{
     	$params->{target_region_start} = $loci->{D5}->{chr_start};
     	$params->{target_region_end} = $loci->{U3}->{chr_end};
-
-    	return $params unless $loxp;
-
-    	$params->{loxp_start} = $loci->{D3}->{chr_end} + 1;
-    	$params->{loxp_end} = $loci->{D5}->{chr_start} - 1;
     }
 
     return $params;
 }
 
+## no critic ( Subroutines::ProhibitExcessComplexity )
 sub fetch_well_eng_seq_params{
 	my ($well, $params) = @_;
 
@@ -114,22 +106,26 @@ sub fetch_well_eng_seq_params{
     $well_params->{recombinase} = \@recom;
 
     # We always need a cassette
-    die "No cassette found for well ".$well->id unless $params->{cassette};
+    LIMS2::Exception->throw( "No cassette found for well ". $well->id )
+        unless $params->{cassette};
 
 	my $design_type = $params->{design_type};
+    my $cassette_first = $params->{design_cassette_first};
 
 	if ($params->{is_allele}){
 
 		## no critic (ProhibitCascadingIfElse)
 
-	    if ($params->{targeted_trap}) {
-	        $well_params->{u_insertion}->{name} = $params->{cassette};
-	        $method = 'targeted_trap_allele_seq';
-	    }
-	    elsif ( $design_type eq 'conditional') {
+	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
 	        $method = 'conditional_allele_seq';
-	        $well_params->{u_insertion}->{name} = $params->{cassette};
-	        $well_params->{d_insertion}->{name} = 'LoxP' ;
+            if ( $cassette_first ) {
+                $well_params->{u_insertion}->{name} = $params->{cassette};
+                $well_params->{d_insertion}->{name} = 'LoxP' ;
+            }
+            else {
+                $well_params->{u_insertion}->{name} = 'LoxP';
+                $well_params->{d_insertion}->{name} = $params->{cassette};
+            }
 	    }
 	    elsif ( $design_type eq 'insertion' ) {
 	        $method = 'insertion_allele_seq';
@@ -140,7 +136,7 @@ sub fetch_well_eng_seq_params{
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
 	    else {
-	        die( "Don't know how to generate allele seq for design of type $design_type" );
+            LIMS2::Exception->throw( "Don't know how to generate allele seq for design of type $design_type" );
 	    }
 
         ## use critic
@@ -150,10 +146,16 @@ sub fetch_well_eng_seq_params{
 		$well_params->{backbone}->{name} = $params->{backbone}
 		    or die "No backbone found for well ".$well->id;
 
-	    if ( $design_type eq 'conditional') {
+	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
 	        $method = 'conditional_vector_seq';
-	        $well_params->{u_insertion}->{name} = $params->{cassette};
-	        $well_params->{d_insertion}->{name} = 'LoxP' ;
+            if ( $cassette_first ) {
+                $well_params->{u_insertion}->{name} = $params->{cassette};
+                $well_params->{d_insertion}->{name} = 'LoxP' ;
+            }
+            else {
+                $well_params->{u_insertion}->{name} = 'LoxP';
+                $well_params->{d_insertion}->{name} = $params->{cassette};
+            }
 	    }
 	    elsif ( $design_type eq 'insertion' ) {
 	        $method = 'insertion_vector_seq';
@@ -164,12 +166,13 @@ sub fetch_well_eng_seq_params{
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
 	    else {
-	        die( "Don't know how to generate vector seq for design of type $design_type" );
+            LIMS2::Exception->throw( "Don't know how to generate vector seq for design of type $design_type" );
 	    }
 	}
 
 	return $method,$well_params;
 }
+## use critic
 
 sub add_display_id{
 	my ($stage, $params) = @_;

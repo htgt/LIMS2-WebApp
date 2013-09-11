@@ -197,13 +197,33 @@ sub get_paths_for_well_id_depth_first {
     return \@paths;
 }
 
-=heading1 get_well_paths_for_well_id
 
-Returns well objects.
-=cut
+sub pspec_get_wells_for_design_well_id {
+    return {
+        well_id           => { validate   => 'integer', },
+    };
+}
 
-#TODO:
-=head
+sub get_wells_for_design_well_id {
+    my $self = shift;
+    my ($params) = @_;
+    my $validated_params;
+    $validated_params = $self->check_params( $params, $self->pspec_get_wells_for_design_well_id );
+
+    my $paths = $self->get_paths_for_well_id_depth_first(
+        {
+            'well_id' => $validated_params->{'well_id'},
+            'direction' => 1
+        }
+    );
+
+    my %uniq_wells;
+    foreach my $path ( @{$paths} ) {
+        foreach my $well_id ( @{$path} ) {
+            $uniq_wells{$well_id} += 1;
+        }
+    }
+    my @well_ids = keys %uniq_wells;
     my $rs = $self->schema->resultset( 'Well' )->search(
         {
             'me.id' => { '-in' => \@well_ids }
@@ -212,7 +232,10 @@ Returns well objects.
             prefetch => [ 'plate' ]
         }
     );
-=cut
+
+    return $rs;
+}
+
 
 sub pspec_design_wells_for_well_id {
     return {

@@ -8,7 +8,6 @@ use Sub::Exporter -setup => {
     groups => { default => [qw( model mech unauthenticated_mech test_data reload_fixtures)] }
 };
 
-use FindBin;
 use LIMS2::Model;
 use Log::Log4perl qw( :easy );
 use DBIx::RunSQL;
@@ -31,16 +30,21 @@ const my $TEST_PASSWD => 'ahdooS1e';
 
 sub unauthenticated_mech {
 
+    my $model = LIMS2::Model->new( { user => 'tests' } );
+
+	my $dbh = $model->schema->storage->dbh;
 	# Reset the fixture data checksum because webapp
 	# may change the database content
-	my $model = LIMS2::Model->new( { user => 'tests' } );
-	my $dbh = $model->schema->storage->dbh;
-	my $name = db_name($dbh);
 	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
 
-	# This warns "commit ineffective with AutoCommit enabled"
-	# but it seems to be necessary...
+    # Calling commit warns "commit ineffective with AutoCommit enabled"
+    # but it seems to be necessary...
+    # turning of warnings briefly to suppress this message
+    $dbh->{PrintWarn} = 0;
+    $dbh->{Warn} = 0;
     $dbh->commit;
+    $dbh->{PrintWarn} = 1;
+    $dbh->{Warn} = 1;
 
     return Test::WWW::Mechanize::Catalyst->new( catalyst_app => 'LIMS2::WebApp' );
 }
@@ -82,25 +86,29 @@ sub reload_fixtures {
 sub _build_test_data {
     my ( $class, $name, $args ) = @_;
 
-    my $data_dir;
-    if ( $args->{dir} ) {
-        $data_dir = dir( $args->{dir} );
-    }
-    else {
-        $data_dir = dir($FindBin::Bin)->subdir('data');
-    }
-
     return sub {
-        my ( $filename, %opts ) = @_;
-
-        my $file = $data_dir->file($filename);
-
-        if ( $filename =~ m/\.yaml$/ and not $opts{raw} ) {
-            return YAML::Any::LoadFile($file);
-        }
-
-        return $file;
-    };
+	my ( $filename, %opts ) = @_;
+	my $mech = mech();
+	$mech->get( '/test/data' );
+	my @links = $mech->links();
+	for my $link (@links)
+	{
+	    if ($filename eq $link->text)
+	    {
+		$mech->get( $link );
+		if ($filename =~ m/\.yaml$/ and not $opts{raw} ) {
+		    return YAML::Any::Load($mech->content);
+		} else {
+		    my $ext;
+		    ($ext = $filename) =~ s/^.*\.//;
+		    my ($data_fh, $data_tmp_filename) = File::Temp::tempfile( 'testdata_XXXX', DIR => "/var/tmp", SUFFIX => '.' . $ext, UNLINK => 0 );
+		    $data_fh->print($mech->content);
+		    $data_fh->seek( 0, 0 );
+		    return($data_fh);
+		}
+	    }
+	}
+    }
 }
 
 sub _build_model {
@@ -138,67 +146,62 @@ sub _build_model {
 sub _load_fixtures {
     my ( $dbh, $args ) = @_;
 
-    my $fixtures_dir;
-    if ( $args->{fixtures_dir} ) {
-        $fixtures_dir = dir( $args->{fixtures_dir} );
-    }
-    else {
-        $fixtures_dir = dir($FindBin::Bin)->subdir('fixtures');
-    }
+    my $mech = mech();
+    $mech->get( '/test/fixtures' );
+    my @links = $mech->links();
 
-    my @fixtures = ( sort { $a cmp $b } grep { _is_fixture($_) } $fixtures_dir->children );
+    my @fixtures = ( sort { $a->text cmp $b->text } grep { _is_fixture($_->text) } @links );
 
     my $fixture_md5 = _calculate_md5(@fixtures);
 
     # If we find any new/modified files then reload all fixtures
     if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
 
-    	print STDERR "loading fixture data";
+        note "loading fixture data";
 
-        my $dbname = db_name( $dbh );
-
-        my $admin_role = $dbname . '_admin';
-
-        $dbh->do( "SET ROLE $admin_role" );
+        # This is not needed, but its nice as a sanity check
+        $dbh->do( "SET ROLE lims2_test" );
 
     	foreach my $fixture (@fixtures){
-            DEBUG("Loading fixtures from $fixture");
-            DBIx::RunSQL->run_sql_file(
-                verbose         => 1,
-                verbose_handler => \&DEBUG,
-                dbh             => $dbh,
-                sql             => $fixture
-            );
+            DEBUG("Loading fixtures from " . $fixture->text);
+            $mech->get( $fixture->url );
+            $dbh->do( $mech->content );
     	}
+        note "Updating fixture md5";
     	_update_fixture_md5($dbh, $fixture_md5);
 
-	    # This warns "commit ineffective with AutoCommit enabled"
+	    # Calling commit warns "commit ineffective with AutoCommit enabled"
 	    # but it seems to be necessary...
+        # turning of warnings briefly to suppress this message
+        $dbh->{PrintWarn} = 0;
+        $dbh->{Warn} = 0;
     	$dbh->commit;
-
-    	$dbh->do( "RESET ROLE" );
+        $dbh->{PrintWarn} = 1;
+        $dbh->{Warn} = 1;
+    }
+    else
+    {
+	print STDERR "No fixtures to load\n";
     }
 
     return;
 }
 
 sub _is_fixture {
-    my $obj = shift;
+    my $name = shift;
 
-    return if $obj->is_dir;
-
-    return $obj->basename =~ m/$FIXTURE_RX/;
+    return $name =~ m/$FIXTURE_RX/;
 }
 
 sub _calculate_md5{
-    my @files = @_;
+    my @links = @_;
 
     my $md5 = Digest::MD5->new;
 
-    foreach my $file (@files){
-    	open (my $fh, "<", $file) or die "Could not open $file for MD5 digest - $!";
-        $md5->addfile($fh);
-        close $fh;
+    my $mech = mech();
+    foreach my $link (@links){
+        $mech->get( $link->url );
+        $md5->add($mech->content);
     }
 
     return $md5->hexdigest;

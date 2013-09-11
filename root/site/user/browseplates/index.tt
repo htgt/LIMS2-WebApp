@@ -1,4 +1,4 @@
-[%- META title = 'Browse Plates'; META tab_name = 'Browse' %]
+[%- META title = 'Browse Plates' %]
 <form method="GET" action="[% c.uri_for( '/user/browse_plates' ) %]" class="well">
   <fieldset>
     <legend>List Plates</legend>

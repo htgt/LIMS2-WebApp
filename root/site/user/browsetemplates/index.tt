@@ -1,4 +1,4 @@
-[%- META title = "Browse Templates"; META tab_name = "Browse" %]
+[%- META title = "Browse Templates"; META tab_name = "QC" %]
 <form method="GET" action="[% c.uri_for( '/user/browse_templates' ) %]" class="well">
   <fieldset>
     <legend>List QC Templates</legend>
@@ -15,7 +15,7 @@
   <thead>
     <tr>
       <th>Template Name</th>
-      <th>Process Type</th>
+      <th>Parent Plate Type</th>
       <th>Created At</th>
     </tr>
   </thead>
@@ -25,7 +25,7 @@
       <td>
         <a href="[% c.uri_for( '/user/view_template', { id => qc_template.id } ) %]">[% qc_template.name %]</a>
       </td>
-      <td>[% qc_template.process_type %]</td>
+      <td>[% qc_template.parent_plate_type %]</td>
       <td>[% qc_template.created_at.ymd %]</td>
     </tr>
     [%- END %]

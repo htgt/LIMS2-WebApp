@@ -1,5 +1,91 @@
 {{$NEXT}}
 
+0.102     2013-09-05 07:34:35 Europe/London
+
+    Bugfix: error when submitting qc
+    Add cassette_first column to designs table
+    Generation of eng seq params respects cassette_first flag
+    Add htgt_project_id column to projects table
+
+0.101     2013-09-03 11:49:26 Europe/London
+
+    Added plate upload header check and tests.
+
+0.100     2013-09-03 08:23:36 Europe/London
+
+    Added more robust code to infer the process type when creating plates from qc.
+    Show the parent plate type of qc template plates, not the process type.
+
+0.099     2013-09-02 14:15:08 Europe/London
+
+    Plate upload templates updated. Error message when column header is missing.
+
+0.098     2013-08-28 11:34:10 Europe/London
+
+    Added EPSummary link to the Cells menu.
+    Added automatic logging to errbit for exceptions.
+
+0.097     2013-08-27 14:50:53 Europe/London
+
+    Added EPSummary reports and faster version of Gene reports.
+
+0.096     2013-08-23 06:58:01 Europe/London
+
+    Make sure tests login with tests role to databases
+
+0.095     2013-08-16 14:12:35 Europe/London
+
+0.094     2013-08-15 08:34:32 Europe/London
+
+    Bugfix: get logging working again
+    Add design_parameters column to designs table
+    Remove surplus messages from tests
+
+0.093     2013-08-13 08:25:08 Europe/London
+
+    Move sponsor progress report from front page to its own page.
+    Add google analytics code.
+    Remove surplus eng seq params code.
+
+0.092     2013-08-08 07:55:48 Europe/London
+
+    Add gene_type_id to gene_design table to show what type of identifier is in the gene_id column
+
+0.091     2013-08-05 14:51:12 Europe/London
+
+Bugfix: take into account art intron designs when building eng-seq params
+
+0.090     2013-07-31 15:36:07 Europe/London
+	Modifications to summaries table and generation to add XEPs and PIQs.
+
+0.089     2013-07-22 12:24:51 Europe/London
+
+    Bugfix: QC runs with multiple alignments would cause an infinite loop.
+
+0.088     2013-07-09 07:18:32 Europe/London
+
+    Improvements to design target crispr report
+
+0.087     2013-07-08 08:40:26 Europe/London
+
+    Added design target gene / crispr report
+
+0.086     2013-07-04 11:40:00 Europe/London
+
+    Added try when looking up genes in QCResultsgenes in case the design doesn't exist.
+
+0.085     2013-07-03 16:20:01 Europe/London
+
+    Created fast version of retrieve_qc_run_results using SQL.
+
+0.084     2013-06-27 09:48:27 Europe/London
+
+    Added dashes as valid characters to qc_seq_read validation.
+
+0.083     2013-06-27 07:44:38 Europe/London
+
+    Modified way crispr off targets are stored and updated.
+
 0.082     2013-06-21 10:27:08 Europe/London
 
     Added support for retrieving symbolic information for non-solr gene_ids

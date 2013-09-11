@@ -1,0 +1,10 @@
+[% META title = "Design Target Report"; META tab_name = "Designs" %]
+
+<form method="POST" action="[% c.uri_for( '/user/design_target_report' ) %]" class="well">
+  <fieldset>
+    <legend>Design Target Gene Search</legend>
+    <textarea class="input-xxlarge" rows="6" name="genes" placeholder="genes" value="[% genes %]"></textarea>
+    <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols</span>
+    <input type="submit" name="action" class="btn btn-primary" value="Generate Report" />
+  </fieldset>
+</form>

@@ -1,7 +1,7 @@
-[%- META title = 'Plate Copy'; META tab_name = 'Plates' %]
+[%- META title = 'Plate Copy'; META tab_name = 'Cells' %]
 
 <div class="page-header">
-  <h1>Create Copy Plate <small>Copy a DNA plate to a new DNA plate using dna_prep process</small></h1>
+  <h1>Create Copy Plate <small>Copy a FINAL or FINAL PICK plate to a new DNA plate using dna_prep process</small></h1>
 </div>
 
 <div class="row">
