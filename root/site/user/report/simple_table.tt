@@ -10,7 +10,7 @@
 
 [%- MACRO linkify(v) BLOCK %]
 [% IF v.match( '^https?:' ) %]
-<a href="[% v %]">[% v %]</a>
+<a href="[% v %]">Test result</a>
 [% ELSE %]
 [% v %]
 [% END %]
