@@ -46,8 +46,8 @@ sub load_csv_file {
         }
     }
     catch {
-        DEBUG( "Error inserting csv data'" . $_ . "'" );
-        print STDERR "Error inserting csv data'" . $_ . "'\n" ;
+        DEBUG( "Error inserting csv data ('" . $_ . "')" );
+        print STDERR "Error inserting csv data: '" . $_ . "'\n" ;
         LIMS2::Exception::Validation->throw( $_ );
     }
 }

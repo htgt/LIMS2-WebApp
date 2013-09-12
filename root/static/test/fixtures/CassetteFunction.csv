@@ -1,8 +1,0 @@
-"id","promoter","conditional","cre","well_has_cre","well_has_no_recombinase"
-"ko_first",,"1",,,"1"
-"ko_first_promoter","1","1",,,"1"
-"ko_first_promoterless","0","1",,,"1"
-"reporter_only",,"1",,"1",
-"reporter_only_promoter","1","1",,"1",
-"reporter_only_promoterless","0","1",,"1",
-"cre_knock_in",,,"1",,
