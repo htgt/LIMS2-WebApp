@@ -176,8 +176,41 @@ sub all_tests  : Test(20)
 
 }
 
+sub more_tests : Test(6)
+{
+    note( 'Testing more aspects of Genotyping QC data update');
+    my $hash_ref;
+    $hash_ref->{'Keys Should be Lowercase'} = 1;
+    ok my $hash_ref_returned = model->hash_keys_to_lc( $hash_ref ), 'converting hash keys to lowercase';
+    my @key = keys(%{$hash_ref_returned});
+
+    is $key[0], 'keys should be lowercase', 'hash keys converted to lowercase';
+
+    my $plate = 'SEP0006';
+    my $well  = 'A01';
+    my $well_params = { plate_name => $plate, well_name => $well };
+
+    ok my $test_file = (File::Temp->new or die('Could not create temp test file ' . $!)), 'temporary test file created';
+	    $test_file->print(join ',', 'well_name',      'Neo_pass', 'Neo_copy_number', 'Neo_copy_number_range');
+	    $test_file->print("\n");
+	    $test_file->print(join ',', $plate.'_'.$well, 'absent'  , '2.1'            , '0.5'                  );
+	my $name = $test_file->filename;
+	    $test_file->close;
+	open (my $fh, '<', $name);
+
+	ok my $messages = model->update_genotyping_qc_data({ csv_fh => $fh, created_by => 'test_user@example.org'}),
+	    'Neo genotyping results updated from CSV file';
+    close $fh;
+	ok my $neo = model->retrieve_well_genotyping_result({ %$well_params, genotyping_result_type_id => "neo"}),
+	    'neo genotyping result exists';
+	is $neo->call, 'absent', "neo pass value is 'absent'";
+
+
+}
 =head1 AUTHOR
 
+Anna Farne
+David Parry-Smith
 Lars G. Erlandsen
 
 =cut

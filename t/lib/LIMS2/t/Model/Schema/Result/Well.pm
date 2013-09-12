@@ -3,7 +3,7 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Schema::Result::Well;
 use LIMS2::Model::DBConnect;
-
+use LIMS2::Model;
 use strict;
 
 ## no critic
@@ -91,9 +91,6 @@ sub all_tests  : Tests
     my %record = (
     );
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::Well not implemented yet';
-    ok(1, "Test of LIMS2::Model::Schema::Result::Well");
-
     #note("Accessing the schema");
     #ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
     #like($ENV{$connect_entry}, qr/test/i, '$ENV{LIMS2_DB} is accessing a test database');
@@ -111,6 +108,15 @@ sub all_tests  : Tests
     #cmp_deeply(\%record, \%inflated, 'Verifying retrieved record matches inserted values');
     #lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
 
+    my $model = LIMS2::Model->new( user => 'lims2' );
+    ok($model, 'Creating model');
+
+    my $well = $model->retrieve_well( { plate_name => 'PMBEQ60002_B_1A', well_name => 'B07' } );
+    ok($well, "Retrieving well $well");
+
+    my $children = $well->get_output_wells_as_string;
+    ok($children, "Retrieving well data $children");
+    is($children, 'SEP0017_1[A01]', "Checking well child");
 }
 
 =head1 AUTHOR
