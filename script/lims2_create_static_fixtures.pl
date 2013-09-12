@@ -51,6 +51,10 @@ The destination directory where the fixture files are written to. It defaults to
 
 The schema classes that will be used to generate the test files. See inside this program if you need to change these.
 
+=item --set
+
+Choose one of the (built-in) fixture sets to use: 'static' or 'dynamic'
+
 =back
 
 
@@ -108,52 +112,35 @@ my (%config) = (
     'fixtures' => [ ],
 );
 
-GetOptions(
-    'help'                 => sub { $help = 1; pod2usage( -verbose => 1 ) },
-    'man'                  => sub { $man = 1; pod2usage( -verbose => 2 ) },
-    'source_defn=s'        => \$config{source_defn},
-    'source_role=s'        => \$config{source_role},
-    'destination=s'          => \$config{destination},
-    'fixtures=s@'          => \$config{fixtures},
-) or (pod2usage(2) && exit(1));
-
-exit(0) if ($help || $man);
-
-syntax("Option 'source_defn' cannot be blank") unless ($config{source_defn});
-syntax("Option 'source_role' cannot be blank") unless ($config{source_role});
-
-# Standard set of fixtures to use where none have been provided
-if (scalar(@{$config{fixtures}}) == 0)
-{
-    print "No schema fixtures supplied -- using default set.\n";
-#    $config{fixtures} = [ qw(
-#	Assembly
-#	BacLibrary
-#	Backbone
-#	CassetteFunction
-#	Cassette
-#	CellLine
-#	Chromosome
-#	ColonyCountType
-#	CrisprLociType
-#	DesignCommentCategory
-#	DesignOligoType
-#	DesignType
-#	GeneType
-#	GenotypingPrimerType
-#	GenotypingResultType
-#	MutationDesignType
-#	PlateType
-#	PrimerBandType
-#	ProcessType
-#	Recombinase
-#	RecombineeringResultType
-#	Role
-#	Species
-#	SpeciesDefaultAssembly
-#	Sponsor
-#    ) ];
-    $config{fixtures} = [ qw(
+my %fixturesets = (
+    'static' => [ qw(
+	Assembly
+	BacLibrary
+	Backbone
+	CassetteFunction
+	Cassette
+	CellLine
+	Chromosome
+	ColonyCountType
+	CrisprLociType
+	DesignCommentCategory
+	DesignOligoType
+	DesignType
+	GeneType
+	GenotypingPrimerType
+	GenotypingResultType
+	MutationDesignType
+	PlateType
+	PrimerBandType
+	ProcessType
+	Recombinase
+	RecombineeringResultType
+	Role
+	Species
+	SpeciesDefaultAssembly
+	Sponsor
+    ) ],
+    'dynamic' => [ qw(
 	User
 	Design
 	GeneDesign
@@ -167,7 +154,32 @@ if (scalar(@{$config{fixtures}}) == 0)
 	ProcessOutputWell
 	ProcessRecombinase
 	Well
-    ) ];
+    ) ],
+);
+
+GetOptions(
+    'help'                 => sub { $help = 1; pod2usage( -verbose => 1 ) },
+    'man'                  => sub { $man = 1; pod2usage( -verbose => 2 ) },
+    'source_defn=s'        => \$config{source_defn},
+    'source_role=s'        => \$config{source_role},
+    'destination=s'          => \$config{destination},
+    'fixtures=s@'          => \$config{fixtures},
+    'set=s'          => \$config{fixtureset},
+) or (pod2usage(2) && exit(1));
+
+exit(0) if ($help || $man);
+
+syntax("Option 'source_defn' cannot be blank") unless ($config{source_defn});
+syntax("Option 'source_role' cannot be blank") unless ($config{source_role});
+
+# Standard set of fixtures to use where none have been provided
+if ($config{fixtureset}) {
+    $config{fixtures} = $fixturesets{$config{fixtureset}};
+}
+if (scalar(@{$config{fixtures}}) == 0)
+{
+    print "No schema fixtures supplied -- using default set.\n";
+    $config{fixtures} = $fixturesets{static};
 }
 
 # Handles
