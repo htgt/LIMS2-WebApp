@@ -3,7 +3,7 @@
 # Lars G. Erlandsen, 'Viking'
 #
 
-for i in `(cd ../../lib && find . -type f -name '*.pm' -print) | egrep -v '^\.$'`
+for i in `(cd ./lib && find . -type f -name '*.pm' -print) | egrep -v '^\.$'`
 do
     echo "========================================================================================"
     PACKAGE_NAME="`echo ${i} | sed 's,^./,,'`"
@@ -31,52 +31,16 @@ do
     echo "mkdir -p ../lib/${TESTPACKAGE_DIR}"
     mkdir -p ../lib/${TESTPACKAGE_DIR}
     echo "========================================================================================"
-    cat ./skeleton_package.txt | sed -e "s,{PACKAGE_NAME},${PACKAGE_NAME},g" -e "s,{PACKAGE_DIR},${PACKAGE_DIR},g" -e "s,{PACKAGE_MODULENAME},${PACKAGE_MODULENAME},g" -e "s,{TESTPACKAGE},${TESTPACKAGE},g" -e "s,{TESTPACKAGE_DIR},${TESTPACKAGE_DIR},g" -e "s,{TESTPACKAGE_MODULENAME},${TESTPACKAGE_MODULENAME},g" -e "s,{TESTFILENAME},${TESTFILENAME},g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g"
     echo "Generating output file '${TESTPACKAGE}'"
-    #cat ./skeleton_package.txt | sed -e "s,{PACKAGE_NAME},${PACKAGE_NAME},g" -e "s,{PACKAGE_DIR},${PACKAGE_DIR},g" -e "s,{PACKAGE_MODULENAME},${PACKAGE_MODULENAME},g" -e "s,{TESTPACKAGE},${TESTPACKAGE},g" -e "s,{TESTPACKAGE_DIR},${TESTPACKAGE_DIR},g" -e "s,{TESTPACKAGE_MODULENAME},${TESTPACKAGE_MODULENAME},g" -e "s,{TESTFILENAME},${TESTFILENAME},g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g" > ${TESTPACKAGE}
+    if [ ! -f ${TESTPACKAGE} ]
+    then
+	cat ./lims2_skeleton_package.txt | sed -e "s,{PACKAGE_NAME},${PACKAGE_NAME},g" -e "s,{PACKAGE_DIR},${PACKAGE_DIR},g" -e "s,{PACKAGE_MODULENAME},${PACKAGE_MODULENAME},g" -e "s,{TESTPACKAGE},${TESTPACKAGE},g" -e "s,{TESTPACKAGE_DIR},${TESTPACKAGE_DIR},g" -e "s,{TESTPACKAGE_MODULENAME},${TESTPACKAGE_MODULENAME},g" -e "s,{TESTFILENAME},${TESTFILENAME},g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g" > ${TESTPACKAGE}
+    fi
     echo "========================================================================================"
-    cat ./skeleton_t_file.txt | sed -e "s,{PACKAGE_NAME},${PACKAGE_NAME},g" -e "s,{PACKAGE_DIR},${PACKAGE_DIR},g" -e "s,{PACKAGE_MODULENAME},${PACKAGE_MODULENAME},g" -e "s,{TESTPACKAGE},${TESTPACKAGE},g" -e "s,{TESTPACKAGE_DIR},${TESTPACKAGE_DIR},g" -e "s,{TESTPACKAGE_MODULENAME},${TESTPACKAGE_MODULENAME},g" -e "s,{TESTFILENAME},${TESTFILENAME},g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g"
     echo "Generating output file '../${PACKAGE_DIR}/${TESTFILENAME}'"
-    #cat ./skeleton_t_file.txt | sed -e "s,{PACKAGE_NAME},${PACKAGE_NAME},g" -e "s,{PACKAGE_DIR},${PACKAGE_DIR},g" -e "s,{PACKAGE_MODULENAME},${PACKAGE_MODULENAME},g" -e "s,{TESTPACKAGE},${TESTPACKAGE},g" -e "s,{TESTPACKAGE_DIR},${TESTPACKAGE_DIR},g" -e "s,{TESTPACKAGE_MODULENAME},${TESTPACKAGE_MODULENAME},g" -e "s,{TESTFILENAME},${TESTFILENAME},g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g" > ../${PACKAGE_DIR}/${TESTFILENAME}
+    if [ ! -f ../${PACKAGE_DIR}/${TESTFILENAME} ]
+	cat ./lims2_skeleton_t_file.txt | sed -e "s,{PACKAGE_NAME},${PACKAGE_NAME},g" -e "s,{PACKAGE_DIR},${PACKAGE_DIR},g" -e "s,{PACKAGE_MODULENAME},${PACKAGE_MODULENAME},g" -e "s,{TESTPACKAGE},${TESTPACKAGE},g" -e "s,{TESTPACKAGE_DIR},${TESTPACKAGE_DIR},g" -e "s,{TESTPACKAGE_MODULENAME},${TESTPACKAGE_MODULENAME},g" -e "s,{TESTFILENAME},${TESTFILENAME},g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g" > ../${PACKAGE_DIR}/${TESTFILENAME}
+    fi
     echo "========================================================================================"
 done
-
-#for i in `find . -type d -print | egrep -v '^\.$' | sed 's/^..//'`
-#do
-#    echo "Processing ${i}/Test.pm ..."
-#    BASE_PACKAGE="`echo ${i} | sed 's/\//::/g'`"
-#    PACKAGE_NAME="${BASE_PACKAGE}::Test"
-#    PARENT_DIR="`dirname ${i}`"
-#    if [ "${PARENT_DIR}" = "." ]
-#    then
-#	PARENT_PACKAGE_NAME=""
-#	REQUIRE_PARENT=""
-#	LIB_TEST_DIR="../lib"
-#	LIB_DIR="../../lib"
-#    else
-#	PARENT_PACKAGE_NAME="`dirname ${i} | sed 's/\//::/g' | sed 's/$/::Test/'`"
-#	REQUIRE_PARENT="require ${PARENT_PACKAGE_NAME};"
-#	LIB_TEST_DIR="`echo ${i} | sed 's/\w\w*/../g' | sed 's/$/\/lib/'`"
-#	LIB_DIR="`echo ${i} | sed 's/\w\w*/../g' | sed 's/$/\/..\/lib/'`"
-#    fi
-#    TESTFILENAME="`echo ${i} | sed -e 's/\//_/g' -e 's/^/10_/' -e 's/$/.t/'`"
-#    echo "Base package = ${BASE_PACKAGE}"
-#    echo "Package name = ${PACKAGE_NAME}"
-#    echo "Parent directory = ${PARENT_DIR}"
-#    echo "Library directory = ${LIB_DIR}"
-#    echo "Parent package name = ${PARENT_PACKAGE_NAME}"
-#    echo "Testfile name = ${TESTFILENAME}"
-#    echo "========================================================================================"
-#    #cat ./skeleton_package.txt | sed -e "s/{BASE_PACKAGE}/${BASE_PACKAGE}/g" -e "s/{PACKAGE_NAME}/${PACKAGE_NAME}/g" -e "s/{TESTFILENAME}/${TESTFILENAME}/g" -e "s/{REQUIRE_PARENT}/${REQUIRE_PARENT}/g"
-#    cat ./skeleton_package.txt | sed -e "s/{BASE_PACKAGE}/${BASE_PACKAGE}/g" -e "s/{PACKAGE_NAME}/${PACKAGE_NAME}/g" -e "s/{TESTFILENAME}/${TESTFILENAME}/g" -e "s/{REQUIRE_PARENT}/${REQUIRE_PARENT}/g" > ${i}/Test.pm
-#    echo "========================================================================================"
-#    echo "mkdir -p ../${i}"
-#    #mkdir -p ../${i}
-#    echo "========================================================================================"
-#    #cat ./skeleton_t_file.txt | sed -e "s/{BASE_PACKAGE}/${BASE_PACKAGE}/g" -e "s/{PACKAGE_NAME}/${PACKAGE_NAME}/g" -e "s/{TESTFILENAME}/${TESTFILENAME}/g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g"
-#    cat ./skeleton_t_file.txt | sed -e "s/{BASE_PACKAGE}/${BASE_PACKAGE}/g" -e "s/{PACKAGE_NAME}/${PACKAGE_NAME}/g" -e "s/{TESTFILENAME}/${TESTFILENAME}/g" -e "s,{LIB_TEST_DIR},${LIB_TEST_DIR},g" -e "s,{LIB_DIR},${LIB_DIR},g" > ../${i}/${TESTFILENAME}
-#    echo "========================================================================================"
-#
-#done
-
 
