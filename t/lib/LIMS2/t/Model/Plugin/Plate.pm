@@ -95,7 +95,8 @@ sub all_tests  : Test(61)
 	       'create_qc_template_from_plate should succeed';
     }
 
-    my $plate_data= test_data( 'plate.yaml' );                                                                                                 note( "Testing plate creation" );
+    my $plate_data= test_data( 'plate.yaml' );
+    note( "Testing plate creation" );
 
     {   
 	ok my $plate = model->create_plate( $plate_data->{plate_create} ),

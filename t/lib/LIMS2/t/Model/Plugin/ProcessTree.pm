@@ -69,6 +69,9 @@ Code to run before all tests for the whole test class
 sub startup : Test(startup)
 {
     #diag("running before all tests");
+#    load_files('/static/test/fixtures/00-clean-db.sql');
+#    load_static_files();
+#    load_files('/static/test/fixtures/legacy/10-load-fixture-data.sql');
 };
 
 =head2 shutdown
