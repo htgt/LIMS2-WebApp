@@ -67,6 +67,8 @@ Code to run before all tests for the whole test class
 sub startup : Test(startup)
 {
     #diag("running before all tests");
+    LIMS2::Test::load_files('/test/fixtures/legacy');
+
 };
 
 =head2 shutdown
