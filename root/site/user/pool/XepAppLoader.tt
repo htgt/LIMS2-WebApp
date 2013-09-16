@@ -4,15 +4,17 @@
     from Catalyst that are used in the pure javascript that is loaded
     in the script tag.
 %]
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-dev.js') %]"></script>
 
 <script type="text/javascript" charset="utf-8">
 console.log("We are now in XepAppLoader" );
 </script>
 
- 
 <div class="page-header">
   <h1>Plate Editor <small>Choose plate first<small></h1>
 </div>
 
 <div id="XepAppDiv"></div>
+ 
 <script src=[% c.uri_for('/static/appjs/XepApp.js') %]></script>
