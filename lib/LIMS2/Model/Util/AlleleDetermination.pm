@@ -249,12 +249,30 @@ sub is_wt_wt {
 
     #print "is wt_wt?\n";
 
-    if( $self->workflow eq 'Ne1a') {
+    if( $self->workflow eq 'Ne1a' ) {
 		if ( $self->stage eq 'EP_PICK' ) {
 			return (
                 $self->is_loacrit_rng(1.6, 2.4) &&
                 $self->is_loatam_rng(1.6, 2.4) &&
                 !$self->is_neo_present(0.3)
+			);
+		}
+		elsif ( $self->stage eq 'SEP_PICK' ) {
+			return (
+                $self->is_loacrit_rng(1.6, 2.4) &&
+                $self->is_loatam_rng(1.6, 2.4) &&
+                $self->is_loadel_rng(1.6, 2.4) &&
+                !$self->is_neo_present(0.3) &&
+                !$self->is_bsd_present(0.5)
+			);
+		}
+	}
+	elsif( $self->workflow eq 'Ne1' ) {
+		if ( $self->stage eq 'EP_PICK' ) {
+			return (
+                $self->is_loacrit_rng(1.6, 2.4) &&
+                $self->is_loadel_rng(1.6, 2.4) &&
+                !$self->is_bsd_present(0.3)
 			);
 		}
 		elsif ( $self->stage eq 'SEP_PICK' ) {
@@ -291,6 +309,24 @@ sub is_tm1a_wt {
                 $self->is_loadel_rng(0.6, 1.4) &&
                 $self->is_neo_present(0.3) &&
                 !$self->is_bsd_present(0.5)
+			);
+		}
+	}
+	elsif( $self->workflow eq 'Ne1' ) {
+		if ( $self->stage eq 'EP_PICK' ) {
+			return (
+                $self->is_loacrit_rng(0.6, 1.4) &&
+                $self->is_loadel_rng(0.6, 1.4) &&
+                $self->is_bsd_present(0.3)
+			);
+		}
+		elsif ( $self->stage eq 'SEP_PICK' ) {
+			return (
+                $self->is_loacrit_rng(0.6, 1.4) &&
+                $self->is_loatam_rng(0.6, 1.4) &&
+                $self->is_loadel_rng(0.6, 1.4) &&
+                !$self->is_neo_present(0.3) &&
+                $self->is_bsd_present(0.5)
 			);
 		}
 	}
