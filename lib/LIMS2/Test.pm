@@ -23,7 +23,6 @@ use Digest::MD5;
 use LIMS2::Model::Util::PgUserRole qw( db_name );
 use LIMS2::Model::Util::RefdataUpload;
 use File::Basename;
-#use Smart::Comments;
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
@@ -126,6 +125,24 @@ sub _build_test_data {
 
 sub _build_model {
     my ( $class, $name, $args ) = @_;
+    my ($fixture_directory, $new);
+
+    # Fixture data processing
+    if ($args->{classdata}) {
+	# Fixture data is derived from the caller's classname, i.e
+	#  if the caller package is "A::B::C::D", we look for files in '/data/fixtures/A/B/C/D'
+	my $classname = (caller(0))[0];
+	my $classdir;
+	($classdir = $classname) =~ s/::/\//g;
+	$fixture_directory = '/test/fixtures/' . $classdir;
+	$new = 1;
+    } elsif ($args->{classdir}) {
+	$fixture_directory = $args->{classdir};
+	$new = 1;
+    } else {
+	$fixture_directory = '/test/fixtures/legacy';
+	$new = 0;
+    }
 
 #    my $user = $args->{user} || 'tests';
     my $user = $args->{user} || 'lims2';
@@ -141,11 +158,18 @@ sub _build_model {
 
     unless ( $ENV{SKIP_LOAD_FIXTURES} ) {
 	# Base fixture data (only file remaining is 'delete all data' file)
-	load_files('/static/test/fixtures/');
+	load_files('/static/test/fixtures/00-clean-db.sql');
 	# Reference data (part of every test)
-	# Need to be loaded in this particular order!!
+	#  (Need to be loaded in this particular order!!)
 	load_static_files();
-
+	# Finally load the test data
+	if ($new) {
+	    # A complete set of csv files, to be loaded in a specific order
+	    load_dynamic_files($fixture_directory);
+	} else {
+	    # Test data delivered in the form of a legacy sql file
+	    load_files($fixture_directory);
+	}
     }
 
     $model->schema->storage->txn_begin;
@@ -153,6 +177,10 @@ sub _build_model {
 }
 
 sub load_static_files {
+    my ($path) = @_;
+
+    # Default path
+    $path ||= '/static/test/fixtures/reference_data';
 
     # Reference data (part of every test)
     # NB!NB!NB! Need to be loaded in this particular order (database dependencies)!!
@@ -184,9 +212,37 @@ sub load_static_files {
 	Sponsor
     ) );
     for my $table (@reference_tables) {
-	load_files('/static/test/fixtures/reference_data/' . $table . '.csv');
+	load_files($path . '/' . $table . '.csv');
     };
 
+}
+
+sub load_dynamic_files {
+    my ($path) = @_;
+
+    # Default path
+    $path ||= '/static/test/fixtures';
+
+    # Dynamic fixture data (not necessarily part of every test)
+    # NB!NB!NB! Need to be loaded in this particular order (database dependencies)!!
+    my @reference_tables = ( qw(
+	User
+	Process
+	ProcessBackbone
+	ProcessCassette
+	ProcessCellLine
+	Plate
+	Well
+	ProcessInputWell
+	ProcessOutputWell
+	Design
+	GeneDesign
+	ProcessDesign
+	ProcessRecombinase
+    ) );
+    for my $table (@reference_tables) {
+	load_files($path . '/' . $table . '.csv');
+    };
 }
 
 sub load_files {
@@ -221,7 +277,7 @@ sub load_files {
 	my $content = $mech->content;
 	if ($ext eq '.sql') {
 	    DEBUG("Loading sql from " . $file->{url});
-	    print STDERR "Loading sql from " . $file->{url} . "\n";
+	    #print STDERR "Loading sql from " . $file->{url} . "\n";
 	    $dbh->do( $content );
 	} elsif ($ext eq '.csv') {
 	    DEBUG("Loading csv from " . $file->{url});
