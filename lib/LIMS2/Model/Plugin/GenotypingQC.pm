@@ -472,7 +472,7 @@ sub get_genotyping_qc_well_data {
     my $well_list = shift;
     my $plate_name = shift;
     my $species = shift;
-    my $sql_query = $self->sql_well_qc_query( $plate_name, $well_list );
+    my $sql_query = $self->sql_well_qc_query( $well_list );
     return $self->get_genotyping_qc_browser_data( $sql_query, $species );
 }
 
@@ -490,6 +490,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
          $sth->fetchall_arrayref({
              'Well ID' => 1,
              'plate' => 1,
+             'plate_type' => 1,
              'well' => 1,
              'Chr fail' => 1,
              'Tgt pass' => 1,
@@ -583,6 +584,7 @@ sub populate_well_attributes {
 
     $datum->{'id'} = $row->{'Well ID'};
     $datum->{'plate_name'} = $row->{'plate'};
+    $datum->{'plate_type'} = $row->{'plate_type'};
     $datum->{'well'} = $row->{'well'};
     if (defined $row->{'Accepted'} ) {
         $datum->{'accepted'} = ($row->{'Accepted'} ? 'yes' : 'no') // '-';
@@ -720,7 +722,6 @@ SQL_END
 
 sub sql_well_qc_query {
     my $self = shift;
-    my $plate_name = shift;
     my $well_list = shift;
     # create a comma separated list for SQL
 
@@ -730,6 +731,7 @@ sub sql_well_qc_query {
 with wd as (
     select p.id "Plate ID"
     , p.name "plate"
+    , p.type_id "plate_type"
     , w.name "well"
     , w.id "Well ID"
     , w.accepted "Accepted"
@@ -742,10 +744,9 @@ with wd as (
         left join well_genotyping_results wgt
         on wgt.well_id = w.id
         where w.id IN ($well_list)
-        and p.name = '$plate_name'
         and w.plate_id = p.id
     order by w.name, wgt.genotyping_result_type_id )
-select wd."Plate ID", wd."plate", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
+select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
     wd."Accepted",
     wd.copy_number, wd.copy_number_range, wd.confidence,
     well_chromosome_fail.result "Chr fail",
