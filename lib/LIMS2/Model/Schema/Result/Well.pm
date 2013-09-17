@@ -895,10 +895,26 @@ sub get_input_wells_as_string {
 	    		my $plate_name = $input->plate->name;
                 my $well_name = $input->name;
                 my $specification = $plate_name . '[' . $well_name . ']';
-                $parents = !$parents ? $specification : join q{ - }, ( $parents, $specification );
+                $parents = !$parents ? $specification : join q{ }, ( $parents, $specification );
         }
     }
     return ( $parents );
+}
+
+sub get_output_wells_as_string {
+    my $well = shift;
+
+  my $children;
+
+    foreach my $process ($well->child_processes){
+        foreach my $output ($process->output_wells){
+          my $plate_name = $output->plate->name;
+                my $well_name = $output->name;
+                my $specification = $plate_name . '[' . $well_name . ']';
+                $children = !$children ? $specification : join q{ }, ( $children, $specification );
+        }
+    }
+    return ( $children );
 }
 
 ## no critic(RequireFinalReturn)
