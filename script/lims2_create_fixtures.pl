@@ -17,11 +17,11 @@ use LIMS2::Model::DBConnect;
 
 =head1 NAME
 
-lims2_create_static_fixtures.pl - LIMS2 utility to create static fixture files from a database
+lims2_create_fixtures.pl - LIMS2 utility to create static fixture files from a database
 
 =head1 SYNOPSIS
 
-lims2_create_static_fixtures.pl [-switch] [ [-switch] .. ]
+lims2_create_fixtures.pl [-switch] [ [-switch] .. ]
 
 =head2 Switches
 
@@ -91,7 +91,7 @@ Assume the following I<dbconnect.yaml> file:
 To create fixture files from B<LIMS2_LIVE>,
 using source role lims2 (logging in as <withheld_user>), use the command:
 
-lims2_create_static_fixtures.pl \
+lims2_create_fixtures.pl \
     --source_defn LIMS2_LIVE \
     --source_role lims2
 
