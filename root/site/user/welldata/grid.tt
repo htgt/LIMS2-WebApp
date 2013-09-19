@@ -92,7 +92,7 @@
                 fields: ['call_label'],
                 data: [
                 {"call_label":"-"},
-                {"call_label":"pass_lrpcr},
+                {"call_label":"pass_lrpcr"},
                 {"call_label":"pass"},
                 {"call_label":"passb"},
                 {"call_label":"fail"},
