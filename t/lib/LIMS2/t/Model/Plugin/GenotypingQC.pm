@@ -207,6 +207,31 @@ sub more_tests : Test(6)
 
 
 }
+
+
+sub lrpcr_tests : Tests
+{
+    note( 'Testing LRPCR aspects of Genotyping QC data update');
+
+    my $plate = 'SEP0006';
+    my $well  = 'A01';
+    my $well_params = { plate_name => $plate, well_name => $well };
+
+    ok my $test_file = (File::Temp->new or die('Could not create temp test file ' . $!)), 'temporary test file created';
+        $test_file->print(join ",", "well_name",      "targeting_pass", "targeting-puro_pass", "chromosome_fail", "random");
+        $test_file->print("\n");
+        $test_file->print(join ",", $plate."_".$well, "pass_lrpcr"          , "pass b"             ,  "3"             , "nonsense");
+    my $name = $test_file->filename;
+        $test_file->close;
+    open (my $fh, '<', $name);
+
+    ok my $messages = model->update_genotyping_qc_data({ csv_fh => $fh, created_by => 'test_user@example.org'}),
+        'pass_lrpcr genotyping results updated from CSV file';
+    close $fh;
+    ok my $targ_pass = model->retrieve_well_targeting_pass($well_params), "targeting pass exists";
+    is $targ_pass->result, "pass_lrpcr", "targeting pass result == pass_lrpcr";
+
+}
 =head1 AUTHOR
 
 Anna Farne
