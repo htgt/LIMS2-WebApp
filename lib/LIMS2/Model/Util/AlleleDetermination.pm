@@ -5,7 +5,6 @@ use warnings FATAL => 'all';
 
 use Moose;
 use Try::Tiny;
-use Smart::Comments;
 use LIMS2::Exception;
 
 # hashref of well gentoyping results keyed by well_id
@@ -86,8 +85,9 @@ sub determine_workflow_for_wells {
 		  		my $well_id                        = $sql_result->{ 'well_id' };
 		  		my $final_pick_recombinase_id      = $sql_result->{ 'final_pick_recombinase_id' };
 		        my $final_pick_cassette_resistance = $sql_result->{ 'final_pick_cassette_resistance' };
+		        my $ep_well_recombinase_id         = $sql_result->{ 'ep_well_recombinase_id' };
 
-				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->get_workflow( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance );
+				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->get_workflow( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id );
 			}
 
 			last WELL_LOOP;
@@ -98,24 +98,29 @@ sub determine_workflow_for_wells {
 }
 
 sub get_workflow {
-    my ( $self, $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance ) = @_;
+    my ( $self, $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id ) = @_;
 
     my $workflow = 'unknown';
 
-	if ( $final_pick_recombinase_id eq 'Flp' ) {
-	    if ( $final_pick_cassette_resistance eq 'neo' ) {
-		    # Means Dox has been applied causing excision from Flp sites
-		    $workflow = 'E'; # Essential genes workflow
-	    }
-	}
-	else {
+	# For the non-essential pathway they apply Cre to the vector to remove the critical region in the bsd cassette
+	if ( $final_pick_recombinase_id eq 'Cre' ) {
 		if ( $final_pick_cassette_resistance eq 'bsd' ) {
 	        # Means standard workflow for non-essential genes using Bsd cassette first
 	        $workflow = 'Ne1'; # Non-essential Bsd first
 		}
-		elsif ( $final_pick_cassette_resistance = 'neo' ) {
-		    # Means alternate workflow for non-essential genes using Neo cassette first      
-		    $workflow = 'Ne1a'; # Non-essential Neo first
+	}
+	else {
+    	# For the essential pathway they apply Flp to remove the neo cassette after the first electroporation
+		if ( $ep_well_recombinase_id eq 'Flp' ) {
+		    if ( $final_pick_cassette_resistance eq 'neo' ) {
+			    $workflow = 'E'; # Essential genes workflow
+		    }
+		}
+		else {
+			if ( $final_pick_cassette_resistance eq 'neo' ) {
+			    # Means alternate workflow for non-essential genes using Neo cassette first      
+			    $workflow = 'Ne1a'; # Non-essential Neo first
+			}
 		}
 	}
 
@@ -136,6 +141,12 @@ sub determine_allele_types_for_wells {
 
 	# TODO: get workflow calculation into summaries generation
 	$self->determine_workflow_for_wells( $well_ids );
+
+    return $self->determine_allele_types_for_wells_with_data( $well_ids );
+}
+
+sub determine_allele_types_for_wells_with_data {
+    my ( $self, $well_ids ) = @_;
 
 	my $genotyping_allele_results = {};
 
@@ -330,7 +341,7 @@ sub is_wt_wt {
 			return (
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loadel' ) &&
-                !$self->is_marker_present( 0.5, 'bsd' )
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' )
 			);
 		}
 		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
@@ -338,6 +349,7 @@ sub is_wt_wt {
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' ) &&
                 !$self->is_marker_present( 0.3, 'neo' ) &&
                 !$self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -345,11 +357,9 @@ sub is_wt_wt {
 	}
 	elsif( $self->current_well_workflow eq 'E' ) {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
-			#TODO: which assays to check here?
 			return (
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loatam' ) &&
-                $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loadel' ) &&
                 !$self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -390,11 +400,9 @@ sub is_tm1a_wt {
 	}
 	elsif( $self->current_well_workflow eq 'E' ) {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
-			#TODO: what tests to check here?
 			return (
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loatam' ) &&
-                $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
                 $self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -438,7 +446,6 @@ sub is_tm1e_wt {
 			return (
 				$self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
 				$self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loatam' ) &&
-				$self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
                 $self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -587,7 +594,7 @@ sub is_tm1_wt {
 			return (
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
-                $self->is_marker_present( 0.5, 'bsd' )
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' )
 			);
 		}
 		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
@@ -595,6 +602,7 @@ sub is_tm1_wt {
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' ) &&
                 !$self->is_marker_present( 0.3, 'neo' ) &&
                 $self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -613,6 +621,7 @@ sub is_tm1_tm1a {
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.0, 0.4, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.0, 0.4, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 $self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -631,6 +640,7 @@ sub is_wt_tm1a {
                 $self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 !$self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -649,6 +659,7 @@ sub is_tm1_tm1e {
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.0, 0.4, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 $self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -667,6 +678,7 @@ sub is_wt_tm1e {
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.6, 3.4, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 !$self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -681,11 +693,9 @@ sub is_tm1c_wt {
 
     if( $self->current_well_workflow eq 'E') {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
-			#TODO: which tests here?
 			return (
 				$self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
 				$self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loatam' ) &&
-				$self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
                 !$self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -708,11 +718,9 @@ sub is_tm1f_wt {
 
     if( $self->current_well_workflow eq 'E') {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
-			#TODO: which tests here?
 			return (
 				$self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loacrit' ) &&
 				$self->is_assay_copy_number_in_rng( 1.6, 2.4, 'loatam' ) &&
-				$self->is_assay_copy_number_in_rng( 0.6, 1.4, 'loadel' ) &&
                 !$self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -792,7 +800,7 @@ sub is_potential_wt_wt {
 			return (
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loadel' ) &&
-                !$self->is_marker_present( 0.5, 'bsd' )
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' )
 			);
 		}
 		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
@@ -800,6 +808,7 @@ sub is_potential_wt_wt {
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' ) &&
                 !$self->is_marker_present( 0.3, 'neo' ) &&
                 !$self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -807,11 +816,9 @@ sub is_potential_wt_wt {
 	}
 	elsif( $self->current_well_workflow eq 'E' ) {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
-			#TODO: which assays to check here?
 			return (
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loatam' ) &&
-                $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loadel' ) &&
                 !$self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -855,7 +862,7 @@ sub is_potential_tm1a_wt {
 			return (
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
-                $self->is_marker_present( 0.5, 'bsd' )
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' )
 			);
 		}
 		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
@@ -863,6 +870,7 @@ sub is_potential_tm1a_wt {
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' ) &&
                 !$self->is_marker_present( 0.3, 'neo' ) &&
                 $self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -874,7 +882,6 @@ sub is_potential_tm1a_wt {
 			return (
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
-                $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
                 $self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -918,7 +925,6 @@ sub is_potential_tm1e_wt {
 			return (
 				$self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
 				$self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loatam' ) &&
-				$self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
                 $self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -952,6 +958,31 @@ sub is_potential_wt_tm1 {
 	}
 	elsif( $self->current_well_workflow eq 'E') {
 		if ( $self->current_well_stage eq 'SEP_PICK' ) {
+			return (
+                $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
+                $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
+                $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
+                !$self->is_marker_present( 0.3, 'neo' ) &&
+                $self->is_marker_present( 0.5, 'bsd' )
+			);
+		}
+	}
+
+	return 0;
+}
+
+sub is_potential_tm1_wt {
+	my ( $self ) = @_;
+
+    if( $self->current_well_workflow eq 'Ne1' ) {
+		if ( $self->current_well_stage eq 'EP_PICK' ) {
+			return (
+                $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
+                $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
+                $self->is_marker_present( 0.5, 'bsd' )
+			);
+		}
+		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
 			return (
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
@@ -1032,6 +1063,7 @@ sub is_potential_tm1_tm1a {
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.0, 0.7, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.0, 0.7, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 $self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -1050,6 +1082,7 @@ sub is_potential_wt_tm1a {
                 $self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 !$self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -1068,6 +1101,7 @@ sub is_potential_tm1_tm1e {
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.0, 0.7, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 $self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -1086,6 +1120,7 @@ sub is_potential_wt_tm1e {
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loacrit' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
                 $self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
+                $self->is_assay_copy_number_in_rng( 2.3, 3.7, 'en2-int' ) &&
                 $self->is_marker_present( 0.3, 'neo' ) &&
                 !$self->is_marker_present( 0.5, 'bsd' )
 			);
@@ -1100,11 +1135,9 @@ sub is_potential_tm1c_wt {
 
     if( $self->current_well_workflow eq 'E') {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
-			#TODO: which tests here?
 			return (
 				$self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
 				$self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loatam' ) &&
-				$self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
                 !$self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -1127,11 +1160,9 @@ sub is_potential_tm1f_wt {
 
     if( $self->current_well_workflow eq 'E') {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
-			#TODO: which tests here?
 			return (
 				$self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loacrit' ) &&
 				$self->is_assay_copy_number_in_rng( 1.3, 2.7, 'loatam' ) &&
-				$self->is_assay_copy_number_in_rng( 0.3, 1.7, 'loadel' ) &&
                 !$self->is_marker_present( 0.3, 'neo' )
 			);
 		}
@@ -1247,13 +1278,14 @@ sub validate_assays {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
             return ( $self->validate_assay ( 'loacrit' ) &&
             	     $self->validate_assay ( 'loadel' ) &&
-            	     $self->validate_assay ( 'bsd' )
+            	     $self->validate_assay ( 'en2-int' )
             );
 		}
 		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
 			return ( $self->validate_assay ( 'loacrit' ) &&
             	     $self->validate_assay ( 'loatam' ) &&
             	     $self->validate_assay ( 'loadel' ) &&
+            	     $self->validate_assay ( 'en2-int' ) &&
             	     $self->validate_assay ( 'neo' ) &&
             	     $self->validate_assay ( 'bsd' )
             );
@@ -1263,7 +1295,6 @@ sub validate_assays {
 		if ( $self->current_well_stage eq 'EP_PICK' ) {
             return ( $self->validate_assay ( 'loacrit' ) &&
             	     $self->validate_assay ( 'loatam' ) &&
-            	     $self->validate_assay ( 'loadel' ) &&
             	     $self->validate_assay ( 'neo' )
             );
 		}
@@ -1330,7 +1361,7 @@ sub create_sql_select_summaries_fep {
     $well_ids = join q{,}, @{ $well_ids };
 
 my $sql_query =  <<"SQL_END";
-select distinct ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance
+select distinct ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
 from summaries
 where ep_pick_well_id IN ($well_ids)
 SQL_END
@@ -1345,7 +1376,7 @@ sub create_sql_select_summaries_sep {
     $well_ids = join q{,}, @{ $well_ids };
 
 my $sql_query =  <<"SQL_END";
-select distinct sep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance
+select distinct sep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
 from summaries
 where sep_pick_well_id IN ($well_ids)
 and ep_pick_well_id > 0
