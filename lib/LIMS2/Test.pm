@@ -4,8 +4,8 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ model => \'_build_model', test_data => \'_build_test_data', 'load_files', 'load_static_files', 'mech', 'unauthenticated_mech', 'reload_fixtures' ],
-    groups => { default => [qw( model mech unauthenticated_mech test_data load_files load_static_files reload_fixtures)] }
+    exports => [ model => \'_build_model', test_data => \'_build_test_data', fixture_data => \'_build_fixture_data', 'load_static_files', 'load_dynamic_files', 'load_files', 'mech', 'unauthenticated_mech', 'reload_fixtures', ],
+    groups => { default => [ qw( model mech unauthenticated_mech test_data fixture_data load_static_files load_dynamic_files load_files reload_fixtures) ] }
 };
 
 use LIMS2::Model;
@@ -23,6 +23,7 @@ use Digest::MD5;
 use LIMS2::Model::Util::PgUserRole qw( db_name );
 use LIMS2::Model::Util::RefdataUpload;
 use File::Basename;
+#use Smart::Comments;
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
@@ -123,6 +124,38 @@ sub _build_test_data {
     }
 }
 
+sub _build_fixture_data {
+    my ( $class, $name, $args ) = @_;
+
+    return sub {
+	my ( $filename, %opts ) = @_;
+	my $fixture_filename = file($filename);
+	my $fixture_dirname = $fixture_filename->dir->stringify; $fixture_dirname = '' if ($fixture_dirname eq '.');
+	my $fixture_basename = $fixture_filename->basename;
+	my $mech = mech();
+	my $final_path = join('/', '/test/fixtures', $fixture_dirname );
+	$mech->get( $final_path );
+	my @links = $mech->links();
+	for my $link (@links)
+	{
+	    if ($fixture_basename eq $link->text)
+	    {
+		$mech->get( $link );
+		if ($filename =~ m/\.yaml$/ and not $opts{raw} ) {
+		    return YAML::Any::Load($mech->content);
+		} else {
+		    my $ext;
+		    ($ext = $filename) =~ s/^.*\.//;
+		    my ($data_fh, $data_tmp_filename) = File::Temp::tempfile( 'testdata_XXXX', DIR => "/var/tmp", SUFFIX => '.' . $ext, UNLINK => 1 );
+		    $data_fh->print($mech->content);
+		    $data_fh->seek( 0, 0 );
+		    return($data_fh);
+		}
+	    }
+	}
+    }
+}
+
 sub _build_model {
     my ( $class, $name, $args ) = @_;
     my ($fixture_directory, $new);
@@ -179,6 +212,8 @@ sub _build_model {
 sub load_static_files {
     my ($path) = @_;
 
+    ### load_static_files()
+
     # Default path
     $path ||= '/static/test/fixtures/reference_data';
 
@@ -220,6 +255,8 @@ sub load_static_files {
 sub load_dynamic_files {
     my ($path) = @_;
 
+    ### load_dynamic_files()
+
     # Default path
     $path ||= '/static/test/fixtures';
 
@@ -249,6 +286,8 @@ sub load_files {
     my ($path) = @_;
     my @files;
 
+    ### load_files()
+
     my $user = 'lims2';
     my $model = LIMS2::Model->new( { user => $user } );
     my $schema = $model->schema;
@@ -256,6 +295,7 @@ sub load_files {
     my $mech = mech();
     $mech->get( $path );
     my @links = $mech->links();
+    ### @links
     if (@links) {
 	# We were given a directory name (identified by finding an array of links)
 	for my $link (@links)
@@ -271,16 +311,22 @@ sub load_files {
     for my $file (@files) {
 	my ($base, $dir, $ext);
 	($base, $dir, $ext) = fileparse($file->{url}, '\..*');
-	if ($file->{reload}) {
+    ### $file
+	### $base
+    ### $dir
+    ### $ext
+    if ($file->{reload}) {
 	    $mech->get( $file->{url} );
 	}
 	my $content = $mech->content;
 	if ($ext eq '.sql') {
 	    DEBUG("Loading sql from " . $file->{url});
 	    #print STDERR "Loading sql from " . $file->{url} . "\n";
+        ### loading sql
 	    $dbh->do( $content );
 	} elsif ($ext eq '.csv') {
 	    DEBUG("Loading csv from " . $file->{url});
+        ### loading csv
 	    my $rs = $schema->resultset( $base );
 	    # $rs
 
@@ -394,3 +440,4 @@ sub _update_fixture_md5{
 1;
 
 __END__
+
