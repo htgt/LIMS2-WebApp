@@ -161,13 +161,13 @@ sub _build_model {
     my ($fixture_directory, $new);
 
     # Fixture data processing
-    if ($args->{classdata}) {
+    if ($args->{classname}) {
 	# Fixture data is derived from the caller's classname, i.e
 	#  if the caller package is "A::B::C::D", we look for files in '/data/fixtures/A/B/C/D'
-	my $classname = (caller(0))[0];
+	my $classname = ($args->{classname});
 	my $classdir;
 	($classdir = $classname) =~ s/::/\//g;
-	$fixture_directory = '/test/fixtures/' . $classdir;
+	$fixture_directory = '/static/test/fixtures/' . $classdir;
 	$new = 1;
     } elsif ($args->{classdir}) {
 	$fixture_directory = $args->{classdir};
