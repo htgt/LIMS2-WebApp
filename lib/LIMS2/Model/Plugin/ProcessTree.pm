@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::ProcessTree;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.103';
+    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.104';
 }
 ## use critic
 

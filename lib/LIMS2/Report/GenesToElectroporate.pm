@@ -1,7 +1,7 @@
 package LIMS2::Report::GenesToElectroporate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GenesToElectroporate::VERSION = '0.103';
+    $LIMS2::Report::GenesToElectroporate::VERSION = '0.104';
 }
 ## use critic
 
