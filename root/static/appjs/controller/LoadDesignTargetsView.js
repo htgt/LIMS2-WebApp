@@ -1,4 +1,4 @@
-Ext.define('DesignTargets.controller.LoadDesignTargetsView', {
+Ext.define('DesignTargetsApp.controller.LoadDesignTargetsView', {
     extend: 'Ext.app.Controller',
 
     views: ['DesignTargetsView'],
