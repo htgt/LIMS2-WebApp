@@ -2,6 +2,7 @@ Ext.define('DesignTargetsApp.store.DesignTargets', {
     extend: 'Ext.data.Store',
     requires: 'DesignTargetsApp.model.DesignTarget',
     model: 'DesignTargetsApp.model.DesignTarget',
+    autoLoad: true,
 
 
            
@@ -27,5 +28,21 @@ Ext.define('DesignTargetsApp.store.DesignTargets', {
                 ]
                 // sorters: ['marker_symbol', 'ensembl_gene_id', 'ensembl_exon_id', 'build_id']
             },
+
+
+            // proxy: {
+            //     type: 'ajax',
+            //     api: {
+            //         read: 'data/departments.json'
+            //     },
+            //     reader: {
+            //         type: 'json',
+            //         root: 'departments',
+            //         successProperty: 'success'
+            //     }
+            // }
+
+
+
 
 });
