@@ -5,8 +5,12 @@ use LIMS2::Model::Schema::Result::Well;
 use LIMS2::Model::DBConnect;
 use LIMS2::Model;
 use strict;
+use LIMS2::Test
+    model => { classname => __PACKAGE__ }
+    ;
+use Smart::Comments;
 
-## no critic
+##  critic
 
 =head1 NAME
 
@@ -108,15 +112,17 @@ sub all_tests  : Tests
     #cmp_deeply(\%record, \%inflated, 'Verifying retrieved record matches inserted values');
     #lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
 
+    my $test_model = model();
+
     my $model = LIMS2::Model->new( user => 'lims2' );
     ok($model, 'Creating model');
 
-    my $well = $model->retrieve_well( { plate_name => 'PMBEQ60002_B_1A', well_name => 'B07' } );
+    my $well = $model->retrieve_well( { plate_name => 'CEPD0024_1', well_name => 'F08' } );
     ok($well, "Retrieving well $well");
 
     my $children = $well->get_output_wells_as_string;
     ok($children, "Retrieving well data $children");
-    is($children, 'SEP0017_1[A01]', "Checking well child");
+    is($children, 'FP4734[F08]', "Checking well child");
 }
 
 =head1 AUTHOR
