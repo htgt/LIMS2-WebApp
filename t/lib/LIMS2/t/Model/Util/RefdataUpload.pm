@@ -2,7 +2,7 @@ package LIMS2::t::Model::Util::RefdataUpload;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Util::RefdataUpload;
-use Smart::Comments;
+#use Smart::Comments;
 use Perl6::Slurp;
 
 use LIMS2::Test;
@@ -141,46 +141,6 @@ sub a00_reference_data  : Tests
     }
 }
 
-sub a10_dynamic_data  : Tests
-{
-
-    my $user = 'lims2';
-    my $connect_entry = 'LIMS2_DB';
-    my $schema;
-    my @fixtures = (
-	{ file => 'andrew/User.csv', schema => 'User' },
-	{ file => 'andrew/Process.csv', schema => 'Process' },
-	{ file => 'andrew/ProcessBackbone.csv', schema => 'ProcessBackbone' },
-	{ file => 'andrew/ProcessCassette.csv', schema => 'ProcessCassette' },
-	{ file => 'andrew/ProcessCellLine.csv', schema => 'ProcessCellLine' },
-	{ file => 'andrew/Plate.csv', schema => 'Plate' },
-	{ file => 'andrew/Well.csv', schema => 'Well' },
-	{ file => 'andrew/ProcessInputWell.csv', schema => 'ProcessInputWell' },
-	{ file => 'andrew/ProcessOutputWell.csv', schema => 'ProcessOutputWell' },
-	{ file => 'andrew/Design.csv', schema => 'Design' },
-	{ file => 'andrew/GeneDesign.csv', schema => 'GeneDesign' },
-	{ file => 'andrew/ProcessDesign.csv', schema => 'ProcessDesign' },
-	{ file => 'andrew/ProcessRecombinase.csv', schema => 'ProcessRecombinase' },
-    );
-
-    note('Connecting to database');
-
-    ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
-    like($ENV{$connect_entry}, qr/test/i, '$ENV{LIMS2_DB} is accessing a test database');
-    $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
-    ok ($schema, 'LIMS2::Model::DBConnect connected to the database');
-
-    note('Loading dynamic files');
-
-    my $fixture;
-    for my $test (@fixtures) {      ### Loading ===>    done
-	### file: $test->{file}
-	lives_ok { $fixture = fixture_data( $test->{file} ) } 'Expecting to live';
-	my $rs = $schema->resultset( $test->{schema} );
-	ok ($rs, 'LIMS2::Model::DBConnect obtained result set');
-	lives_ok { LIMS2::Model::Util::RefdataUpload::load_csv_file( $fixture, $rs ) } 'Loading up csv file';
-    }
-}
 
 =head1 AUTHOR
 
