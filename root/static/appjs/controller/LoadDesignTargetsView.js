@@ -14,5 +14,6 @@ Ext.define('DesignTargetsApp.controller.LoadDesignTargetsView', {
 
     onPanelRendered: function() {
         console.log('The panel was rendered');
+        console.log(url_for_json);
     }
 });

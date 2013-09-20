@@ -19,13 +19,12 @@ Ext.define('DesignTargetsApp.model.DesignTarget', {
         'comment',
         'gene_id'
     ],
-
-    proxy: {
-        type: 'ajax',
-        url: 'data/DesignTargetsExample.json',
-        reader: {
-            type: 'json',
-            root: 'results'
-        }
-    }
+    // proxy: {
+    //     type: 'ajax',
+    //     url: url_for_json,
+    //     reader: {
+    //         type: 'json',
+    //         root: 'results'
+    //     }
+    // }
 });

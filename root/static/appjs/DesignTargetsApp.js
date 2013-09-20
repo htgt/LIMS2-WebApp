@@ -10,9 +10,10 @@ Ext.application({
     launch: function() {
         // This is fired as soon as the page is ready
         Ext.create('Ext.grid.Panel', {
-            store: 'DesignTargets',
+            // store: 'DesignTargets',
+            store: Ext.data.StoreManager.lookup('DesignTargets'),
             layout: 'fit',
-            height: 750,
+            height: 400,
             width: 1200,
 
             columns: [
@@ -36,6 +37,9 @@ Ext.application({
             ],
 
             columnLines: true,
+            viewConfig: {
+                stripeRows: true
+            },
 
             // items: 
             //     {

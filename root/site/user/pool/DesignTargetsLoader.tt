@@ -16,5 +16,8 @@ console.log("We are now in DesignTargetsApp" );
 </div>
 
 <div id="DesignTargetsDiv"></div>
- 
+<script>
+var url_for_json = "[% c.uri_for('/static/appjs/data/DesignTargetsExample.json') %]"; 
+console.log("url for json:" + url_for_json );
+</script>
 <script src=[% c.uri_for('/static/appjs/DesignTargetsApp.js') %]></script>
