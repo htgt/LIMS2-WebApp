@@ -88,9 +88,33 @@
                 ]
             });
 
+            var call_types_lrpcr = Ext.create('Ext.data.Store', {
+                fields: ['call_label'],
+                data: [
+                {"call_label":"-"},
+                {"call_label":"pass_lrpcr"},
+                {"call_label":"pass"},
+                {"call_label":"passb"},
+                {"call_label":"fail"},
+                {"call_label":"fa"},
+                {"call_label":"potential"}, 
+                {"call_label":"present"},
+                {"call_label":"absent"},
+                {"call_label":"na"},
+                {"call_label":"reset"}
+                ]
+            });
+
             var call_types_targeting_combo = Ext.create('Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: call_types_targeting,
+                displayField: 'call_label',
+                forceSelection: true
+            });
+
+            var call_types_lrpcr_combo = Ext.create('Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: call_types_lrpcr,
                 displayField: 'call_label',
                 forceSelection: true
             });
@@ -142,7 +166,7 @@
                 {header: "Distribute", dataIndex: 'accepted', locked: true },
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true },
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
-                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
+                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_lrpcr_combo},
                 {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo}, 
                 {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
                 {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo },
