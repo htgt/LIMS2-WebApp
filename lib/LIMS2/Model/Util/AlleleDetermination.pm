@@ -7,6 +7,8 @@ use Moose;
 use Try::Tiny;
 use LIMS2::Exception;
 
+use Smart::Comments;
+
 # hashref of well gentoyping results keyed by well_id
 has well_genotyping_results => (
     is         => 'rw',
@@ -54,50 +56,74 @@ sub BUILD{
 sub determine_workflow_for_wells {
 	my ( $self, $well_ids ) = @_;
 
-    WELL_LOOP:
+    my @fepd_well_ids = ();
+    my @sepd_well_ids = ();
+
+    # SQL for selecting the fields for determining workflows differs for EP_PICK and SEP_PICK plate types
+    # so need to identify which wells are of which type
+    PLATE_TYPE_WELL_LOOP:
     foreach my $well_id ( @{ $well_ids } ) {
-        unless ( defined $self->well_genotyping_results->{ $well_id } ) { next WELL_LOOP; }
+        unless ( defined $self->well_genotyping_results->{ $well_id } ) { next PLATE_TYPE_WELL_LOOP; }
 
     	my $curr_well_plate_type = $self->well_genotyping_results->{ $well_id }->{ 'plate_type' };
 
-        unless ( ( $curr_well_plate_type eq 'EP_PICK' ) || ( $curr_well_plate_type eq 'SEP_PICK' ) ) { next; }
+        if ( $curr_well_plate_type eq 'EP_PICK' ) {
+        	push ( @fepd_well_ids, $well_id );
+        }
+        elsif ( $curr_well_plate_type eq 'SEP_PICK' ) {
+        	push ( @sepd_well_ids, $well_id );
+        }
+        else {
+        	next PLATE_TYPE_WELL_LOOP;
+        }
+    }
 
-		my $sql_results;
-		#TODO: add try catch
-		# for first well we get to with a plate type, we are assuming all wells in list have same plate type
-	    if ( $curr_well_plate_type eq 'EP_PICK' ) {
-	        my $sql_query = $self->create_sql_select_summaries_fep( ( $well_ids ) );
-	        $sql_results = $self->run_select_query( $sql_query );
-		}
-		elsif ( $curr_well_plate_type eq 'SEP_PICK' ) {
-	        my $sql_query = $self->create_sql_select_summaries_sep( ( $well_ids ) );
-	        $sql_results = $self->run_select_query( $sql_query );
-	  	}
+    my $count_fepd_wells = scalar @fepd_well_ids;
 
-	  	my $count_rows = scalar @$sql_results;
+    if ( $count_fepd_wells > 0 ) {
+		my $sql_query_fepd = $self->create_sql_select_summaries_fep( ( \@fepd_well_ids ) );
+        $self->select_workflow_data( \@fepd_well_ids, $sql_query_fepd )
+    }
 
-	  	if ( $count_rows == 0 ) {
-	  		# cannot determine workflow type
-	  		next WELL_LOOP;
-	  	}
-	  	else {
+    my $count_sepd_wells = scalar @sepd_well_ids;
+
+    if ( $count_sepd_wells > 0 ) {
+		my $sql_query_sepd = $self->create_sql_select_summaries_sep( ( \@sepd_well_ids ) );
+        $self->select_workflow_data( \@sepd_well_ids, $sql_query_sepd )
+    }
+
+    return;
+}
+
+sub select_workflow_data {
+    my ( $self, $well_ids, $sql_query ) = @_;
+
+    try {
+    	my $sql_results = $self->run_select_query( $sql_query );
+
+  		my $count_results = scalar @$sql_results;
+
+	  	if ( $count_results > 0 ) {
+	  		# Calculate and set workflow for each well
 		  	foreach my $sql_result ( @{ $sql_results } ) {
 		  		my $well_id                        = $sql_result->{ 'well_id' };
 		  		my $final_pick_recombinase_id      = $sql_result->{ 'final_pick_recombinase_id' };
 		        my $final_pick_cassette_resistance = $sql_result->{ 'final_pick_cassette_resistance' };
 		        my $ep_well_recombinase_id         = $sql_result->{ 'ep_well_recombinase_id' };
 
-				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->get_workflow( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id );
+				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->calculate_workflow_for_well( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id );
 			}
-
-			last WELL_LOOP;
 		}
-    }
+	}
+	catch {
+		my $exception_message = $_;
+		LIMS2::Exception::Implementation->throw( "Failed workflow determination select for wells: $exception_message" );
+	};
 
-    return;
+	return;
 }
 
-sub get_workflow {
+sub calculate_workflow_for_well {
     my ( $self, $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id ) = @_;
 
     my $workflow = 'unknown';
@@ -141,6 +167,9 @@ sub determine_allele_types_for_wells {
 
 	# TODO: get workflow calculation into summaries generation
 	$self->determine_workflow_for_wells( $well_ids );
+
+	my $temp = $self->well_genotyping_results;
+	### $temp
 
     return $self->determine_allele_types_for_wells_with_data( $well_ids );
 }
@@ -213,7 +242,6 @@ sub determine_allele_type_for_well {
 	else {
 		return 'Failed: unrecognised workflow type ' . $self->current_well_workflow . ' for well ' . $self->current_well_id;
 	}
-
 }
 
 sub determine_allele_type_for_well_workflow_Ne1a {
