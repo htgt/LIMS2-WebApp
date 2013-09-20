@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.103';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.105';
 }
 ## use critic
 
@@ -97,7 +97,7 @@ sub validated_by_annotation {
 }
 
 sub genotyping_result_text {
-    return in_set( 'potential', 'present', 'absent', 'pass', 'passb', 'fail', 'fa', 'na' );
+    return in_set( 'potential', 'present', 'absent', 'pass', 'passb', 'fail', 'fa', 'na', 'pass_lrpcr' );
 }
 
 sub chromosome_fail_text {

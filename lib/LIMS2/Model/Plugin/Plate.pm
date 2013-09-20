@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.103';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.105';
 }
 ## use critic
 
@@ -206,7 +206,6 @@ sub check_xep_pool_wells {
     return \@revised_wells;
 }
 
-
 sub pspec_retrieve_plate {
     return {
         name => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
@@ -374,7 +373,11 @@ sub create_plate_csv_upload {
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
 
-    my $well_data = parse_csv_file( $well_data_fh, ['well_name', 'parent_plate', 'parent_well'] );
+    my $expected_csv_headers = $plate_data{type} eq 'SEP'
+        ? [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ]
+        : [ 'well_name', 'parent_plate', 'parent_well' ];
+
+    my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
 
     for my $datum ( @{$well_data} ) {
         merge_plate_process_data( $datum, \%plate_process_data );
