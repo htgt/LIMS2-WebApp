@@ -4,4 +4,5 @@ Ext.define('DesignTargetsApp.view.DesignTargetsList', {
 
     title: 'title here',
     html: 'html here'
+
 });
