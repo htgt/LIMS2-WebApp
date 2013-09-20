@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.105     2013-09-20 11:31:32 Europe/London
+
+    Added pass_lrpcr option on the dropdown of the targeting pass column.
+
 0.104     2013-09-19 07:13:33 Europe/London
 
     Bugfix: fixed error when creating SEP plate via csv upload.
