@@ -405,6 +405,9 @@ sub all_tests  : Tests
 	ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
 	is $targeting_pass->result, 'pass', '..updated result is now pass';
 
+	ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass_lrpcr' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
+	is $targeting_pass->result, 'pass_lrpcr', '..updated result is now pass_lrpcr';
+
 	lives_ok {
 	    model->delete_well_targeting_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )
 	 } 'delete well targeting pass';
