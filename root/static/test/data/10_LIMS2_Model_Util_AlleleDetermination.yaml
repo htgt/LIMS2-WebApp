@@ -7,9 +7,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -32,9 +29,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -57,9 +51,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -82,9 +73,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -107,9 +95,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -132,9 +117,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -157,9 +139,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -182,9 +161,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -207,9 +183,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -232,9 +205,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -257,9 +227,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -282,9 +249,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -307,9 +271,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -332,9 +293,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -357,9 +315,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -382,9 +337,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -407,9 +359,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -432,9 +381,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -457,9 +403,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -482,9 +425,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -507,9 +447,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -532,9 +469,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '-'
     loacrit#copy_number_range: '0.1'
@@ -557,9 +491,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '-'
@@ -582,9 +513,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.5'
@@ -607,9 +535,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -632,9 +557,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -657,9 +579,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -682,9 +601,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -707,9 +623,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -732,9 +645,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -757,9 +667,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -782,9 +689,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -807,9 +711,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -832,9 +733,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -857,9 +755,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -882,9 +777,6 @@ workflow_ne1a_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1a
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -908,9 +800,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -933,9 +822,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -958,9 +844,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -983,9 +866,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -1008,9 +888,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -1033,9 +910,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1058,9 +932,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -1083,9 +954,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -1108,9 +976,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -1133,9 +998,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -1158,9 +1020,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -1183,9 +1042,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -1208,9 +1064,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -1233,9 +1086,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -1258,9 +1108,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -1283,9 +1130,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -1308,9 +1152,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -1333,9 +1174,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '-'
     loacrit#copy_number_range: '0.1'
@@ -1358,9 +1196,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '-'
@@ -1383,9 +1218,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.5'
@@ -1408,9 +1240,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1433,9 +1262,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1458,9 +1284,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1483,9 +1306,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1508,9 +1328,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1533,9 +1350,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1558,9 +1372,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1583,9 +1394,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1608,9 +1416,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1633,9 +1438,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1658,9 +1460,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1683,9 +1482,6 @@ workflow_ne1_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.1'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1701,81 +1497,6 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.5'
-  - id: 33
-    well: C09
-    plate_name: SEPD0001
-    plate_type: SEP_PICK
-    gene_id: MGI:1349475
-    gene_name: Ppp2r5c
-    workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '0.1'
-    loacrit#confidence: '0.99'
-    loacrit#copy_number: '2.1'
-    loacrit#copy_number_range: '0.1'
-    loatam#confidence: '0.99'
-    loatam#copy_number: '2.1'
-    loatam#copy_number_range: '0.1'
-    loadel#confidence: '0.99'
-    loadel#copy_number: '2.1'
-    loadel#copy_number_range: '0.1'
-    neo#confidence: '0.99'
-    neo#copy_number: '0.1'
-    neo#copy_number_range: '0.1'
-    bsd#confidence: '0.99'
-    bsd#copy_number: '0.1'
-    bsd#copy_number_range: '0.1'
-  - id: 34
-    well: C10
-    plate_name: SEPD0001
-    plate_type: SEP_PICK
-    gene_id: MGI:1349475
-    gene_name: Ppp2r5c
-    workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '-'
-    loacrit#confidence: '0.99'
-    loacrit#copy_number: '2.1'
-    loacrit#copy_number_range: '0.1'
-    loatam#confidence: '0.99'
-    loatam#copy_number: '2.1'
-    loatam#copy_number_range: '0.1'
-    loadel#confidence: '0.99'
-    loadel#copy_number: '2.1'
-    loadel#copy_number_range: '0.1'
-    neo#confidence: '0.99'
-    neo#copy_number: '0.1'
-    neo#copy_number_range: '0.1'
-    bsd#confidence: '0.99'
-    bsd#copy_number: '0.1'
-    bsd#copy_number_range: '0.1'
-  - id: 35
-    well: C11
-    plate_name: SEPD0001
-    plate_type: SEP_PICK
-    gene_id: MGI:1349475
-    gene_name: Ppp2r5c
-    workflow: Ne1
-    en2-int#confidence: '0.99'
-    en2-int#copy_number: '3.1'
-    en2-int#copy_number_range: '0.5'
-    loacrit#confidence: '0.99'
-    loacrit#copy_number: '2.1'
-    loacrit#copy_number_range: '0.1'
-    loatam#confidence: '0.99'
-    loatam#copy_number: '2.1'
-    loatam#copy_number_range: '0.1'
-    loadel#confidence: '0.99'
-    loadel#copy_number: '2.1'
-    loadel#copy_number_range: '0.1'
-    neo#confidence: '0.99'
-    neo#copy_number: '0.1'
-    neo#copy_number_range: '0.1'
-    bsd#confidence: '0.99'
-    bsd#copy_number: '0.1'
-    bsd#copy_number_range: '0.1'
 workflow_e_gc_results:
   - id: 1
     well: A01
@@ -1784,9 +1505,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1809,9 +1527,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1834,9 +1549,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1859,9 +1571,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1884,9 +1593,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1909,9 +1615,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1934,9 +1637,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1959,9 +1659,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -1984,9 +1681,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2009,9 +1703,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2034,9 +1725,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -2059,9 +1747,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -2084,9 +1769,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -2109,9 +1791,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -2134,9 +1813,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -2159,9 +1835,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2184,9 +1857,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2209,9 +1879,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2234,9 +1901,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2259,9 +1923,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2284,9 +1945,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2309,9 +1967,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2334,9 +1989,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2359,9 +2011,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2384,9 +2033,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.45'
     loacrit#copy_number_range: '0.1'
@@ -2409,9 +2055,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -2434,9 +2077,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -2459,9 +2099,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -2484,9 +2121,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -2509,9 +2143,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.45'
     loacrit#copy_number_range: '0.1'
@@ -2534,9 +2165,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '1.1'
     loacrit#copy_number_range: '0.1'
@@ -2559,9 +2187,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '-'
     loacrit#copy_number_range: '0.1'
@@ -2584,9 +2209,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '-'
@@ -2609,9 +2231,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.5'
@@ -2634,9 +2253,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2659,9 +2275,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2684,9 +2297,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2709,9 +2319,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2734,9 +2341,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2759,9 +2363,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2784,9 +2385,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2809,9 +2407,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2834,9 +2429,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2859,9 +2451,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2884,9 +2473,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'
@@ -2909,9 +2495,6 @@ workflow_e_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: E
-    en2-int#confidence: '-'
-    en2-int#copy_number: '-'
-    en2-int#copy_number_range: '-'
     loacrit#confidence: '0.99'
     loacrit#copy_number: '2.1'
     loacrit#copy_number_range: '0.1'

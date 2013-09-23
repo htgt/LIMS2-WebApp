@@ -84,7 +84,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(132)
+sub all_tests  : Test(129)
 {
     ok(1, "Test of LIMS2::Model::Util::AlleleDetermination");
 
@@ -241,7 +241,7 @@ sub all_tests  : Test(132)
     ok $ne1_AD->well_genotyping_results ( $ne1_well_gc_results ), 'setting well gc results hash in module instance should succeed';
 
     # Create well ids hash
-    my @ne1_well_ids = ( 1..35 );
+    my @ne1_well_ids = ( 1..32 );
 
     note( 'Testing AlleleDetermination Logic - step 3b - determining Ne1 workflow allele types' );
     
@@ -301,15 +301,15 @@ sub all_tests  : Test(132)
 	ok $ne1_gc_allele_types->{ '7' }  eq 'tm1/tm1e', 'well 7 should be allele type < tm1/tm1e > for stage SEP_PICK';
 	ok $ne1_gc_allele_types->{ '8' }  eq 'wt/tm1e', 'well 8 should be allele type < wt/tm1e > for stage SEP_PICK';
 
-	ok $ne1_gc_allele_types->{ '9' } eq 'potential wt/wt', 'well 9 should be allele type < potential wt/wt > for stage EP_PICK';
+	ok $ne1_gc_allele_types->{ '9' }  eq 'potential wt/wt', 'well 9 should be allele type < potential wt/wt > for stage EP_PICK';
 	ok $ne1_gc_allele_types->{ '10' } eq 'potential tm1/wt', 'well 10 should be allele type < potential tm1/wt > for stage EP_PICK';
 
-	ok $ne1_gc_allele_types->{ '11' }  eq 'potential wt/wt', 'well 11 should be allele type < potential wt/wt > for stage SEP_PICK';
-	ok $ne1_gc_allele_types->{ '12' }  eq 'potential tm1/wt', 'well 12 should be allele type < potential tm1/wt > for stage SEP_PICK';
-	ok $ne1_gc_allele_types->{ '13' }  eq 'potential tm1/tm1a', 'well 13 should be allele type < potential tm1/tm1a > for stage SEP_PICK';
-	ok $ne1_gc_allele_types->{ '14' }  eq 'potential wt/tm1a', 'well 14 should be allele type < potential wt/tm1a > for stage SEP_PICK';
-	ok $ne1_gc_allele_types->{ '15' }  eq 'potential tm1/tm1e', 'well 15 should be allele type < potential tm1/tm1e > for stage SEP_PICK';
-	ok $ne1_gc_allele_types->{ '16' }  eq 'potential wt/tm1e', 'well 16 should be allele type < potential wt/tm1e > for stage SEP_PICK';
+	ok $ne1_gc_allele_types->{ '11' } eq 'potential wt/wt', 'well 11 should be allele type < potential wt/wt > for stage SEP_PICK';
+	ok $ne1_gc_allele_types->{ '12' } eq 'potential tm1/wt', 'well 12 should be allele type < potential tm1/wt > for stage SEP_PICK';
+	ok $ne1_gc_allele_types->{ '13' } eq 'potential tm1/tm1a', 'well 13 should be allele type < potential tm1/tm1a > for stage SEP_PICK';
+	ok $ne1_gc_allele_types->{ '14' } eq 'potential wt/tm1a', 'well 14 should be allele type < potential wt/tm1a > for stage SEP_PICK';
+	ok $ne1_gc_allele_types->{ '15' } eq 'potential tm1/tm1e', 'well 15 should be allele type < potential tm1/tm1e > for stage SEP_PICK';
+	ok $ne1_gc_allele_types->{ '16' } eq 'potential wt/tm1e', 'well 16 should be allele type < potential wt/tm1e > for stage SEP_PICK';
 
     ok $ne1_gc_allele_types->{ '17' } eq 'Failed: unknown allele pattern', 'well 17 should give an unknown allele pattern error';
 
@@ -348,16 +348,16 @@ sub all_tests  : Test(132)
     ok $ne1_gc_allele_types->{ '32' } eq 'Failed allele determination for 32: bsd assay validation: Copy Number Range above threshold',
     								'well 32 should give a validation error for above threshold bsd copy number range';
 
-    ok $ne1_gc_allele_types->{ '33' } eq 'Failed allele determination for 33: en2-int assay validation: Copy Number not present',
-    								'well 33 should give a validation error for missing en2-int copy number';
-    ok $ne1_gc_allele_types->{ '34' } eq 'Failed allele determination for 34: en2-int assay validation: Copy Number Range not present',
-    								'well 34 should give a validation error for missing en2-int copy number range';
-    ok $ne1_gc_allele_types->{ '35' } eq 'Failed allele determination for 35: en2-int assay validation: Copy Number Range above threshold',
-    								'well 35 should give a validation error for above threshold en2-int copy number range';
+    # ok $ne1_gc_allele_types->{ '33' } eq 'Failed allele determination for 33: en2-int assay validation: Copy Number not present',
+    # 								'well 33 should give a validation error for missing en2-int copy number';
+    # ok $ne1_gc_allele_types->{ '34' } eq 'Failed allele determination for 34: en2-int assay validation: Copy Number Range not present',
+    # 								'well 34 should give a validation error for missing en2-int copy number range';
+    # ok $ne1_gc_allele_types->{ '35' } eq 'Failed allele determination for 35: en2-int assay validation: Copy Number Range above threshold',
+    # 								'well 35 should give a validation error for above threshold en2-int copy number range';
 
 
     # fetch workflow E data
-    note( 'Testing AlleleDetermination Logic - step 4a - extracting E workflow data' );
+    note( 'Testing AlleleDetermination Logic - step 4a - extracting Essential workflow data' );
 	ok my $workflow_e_gc_data = $test_data->{ 'workflow_e_gc_results' }, 'fetching E test data from yaml should succeed';
 
 	# create hashref from data to send into AlleleDetermination
@@ -375,7 +375,7 @@ sub all_tests  : Test(132)
     # Create well ids hash
     my @e_well_ids = ( 1..46 );
 
-    note( 'Testing AlleleDetermination Logic - step 4b - determining E workflow allele types' );
+    note( 'Testing AlleleDetermination Logic - step 4b - determining Essential workflow allele types' );
     
     # calculate the allele types
 	ok my $e_gc_allele_types = $e_AD->determine_allele_types_for_wells_with_data ( \@e_well_ids ), 'calculating E allele types should succeed';
@@ -433,7 +433,7 @@ sub all_tests  : Test(132)
 	# 	46	'failed: bsd assay validation: Copy Number Range above threshold'
 
 	# check each allele type returned matches the expected types
-    note( 'Testing AlleleDetermination Logic - step 4c - checking E workflow allele types' );
+    note( 'Testing AlleleDetermination Logic - step 4c - checking Essential workflow allele types' );
 
     ok $e_gc_allele_types->{ '1' }  eq 'wt/wt, tm1f/wt', 'well 1 should be allele type < wt/wt, tm1f/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '2' }  eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
