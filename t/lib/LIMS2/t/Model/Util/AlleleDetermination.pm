@@ -187,7 +187,7 @@ sub all_tests  : Test(129)
     ok $ne1a_gc_allele_types->{ '19' } eq 'potential tm1e/tm1', 'well 19 should be allele type < potential tm1e/tm1 > for stage SEP_PICK';
     ok $ne1a_gc_allele_types->{ '20' } eq 'potential tm1a/tm1', 'well 20 should be allele type < potential tm1a/tm1 > for stage SEP_PICK';
  
-    ok $ne1a_gc_allele_types->{ '21' } eq 'Failed: unknown allele pattern', 'well 21 should give an unknown allele pattern error';
+    ok $ne1a_gc_allele_types->{ '21' } eq 'Failed: unknown allele pattern : Ne1a SEP_PICK 1.1, 0.1, 1.1, 1.1, 1.1', 'well 21 should give an unknown allele pattern error';
 
     ok $ne1a_gc_allele_types->{ '22' } eq 'Failed allele determination for 22: loacrit assay validation: Copy Number not present',
     								'well 22 should give a validation error for missing loacrit copy number';
@@ -311,7 +311,7 @@ sub all_tests  : Test(129)
 	ok $ne1_gc_allele_types->{ '15' } eq 'potential tm1/tm1e', 'well 15 should be allele type < potential tm1/tm1e > for stage SEP_PICK';
 	ok $ne1_gc_allele_types->{ '16' } eq 'potential wt/tm1e', 'well 16 should be allele type < potential wt/tm1e > for stage SEP_PICK';
 
-    ok $ne1_gc_allele_types->{ '17' } eq 'Failed: unknown allele pattern', 'well 17 should give an unknown allele pattern error';
+    ok $ne1_gc_allele_types->{ '17' } eq 'Failed: unknown allele pattern : Ne1 SEP_PICK 1.1, 0.1, 1.1, 1.1, 1.1', 'well 17 should give an unknown allele pattern error';
 
     ok $ne1_gc_allele_types->{ '18' } eq 'Failed allele determination for 18: loacrit assay validation: Copy Number not present',
     								'well 18 should give a validation error for missing loacrit copy number';
@@ -435,11 +435,11 @@ sub all_tests  : Test(129)
 	# check each allele type returned matches the expected types
     note( 'Testing AlleleDetermination Logic - step 4c - checking Essential workflow allele types' );
 
-    ok $e_gc_allele_types->{ '1' }  eq 'wt/wt, tm1f/wt', 'well 1 should be allele type < wt/wt, tm1f/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '1' }  eq 'tm1f/wt, wt/wt', 'well 1 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '2' }  eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '3' }  eq 'tm1c/wt', 'well 3 should be allele type < tm1c/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '4' }  eq 'tm1e/wt', 'well 4 should be allele type < tm1e/wt > for stage EP_PICK';
-    ok $e_gc_allele_types->{ '5' }  eq 'wt/wt, tm1f/wt', 'well 5 should be allele type < wt/wt, tm1f/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '5' }  eq 'tm1f/wt, wt/wt', 'well 5 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
 
     ok $e_gc_allele_types->{ '6' }  eq 'wt/wt', 'well 6 should be allele type < wt/wt > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '7' }  eq 'tm1a/wt', 'well 7 should be allele type < tm1a/wt > for stage SEP_PICK';
@@ -452,11 +452,11 @@ sub all_tests  : Test(129)
     ok $e_gc_allele_types->{ '14' } eq 'tm1e/tm1', 'well 14 should be allele type < tm1e/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '15' } eq 'tm1f/tm1', 'well 15 should be allele type < tm1f/tm1 > for stage SEP_PICK';
 
-    ok $e_gc_allele_types->{ '16' } eq 'potential wt/wt, potential tm1f/wt', 'well 16 should be allele type < potential wt/wt, potential tm1f/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '16' } eq 'potential tm1f/wt, potential wt/wt', 'well 16 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '17' } eq 'potential tm1a/wt', 'well 17 should be allele type < potential tm1a/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '18' } eq 'potential tm1c/wt', 'well 18 should be allele type < potential tm1c/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '19' } eq 'potential tm1e/wt', 'well 19 should be allele type < potential tm1e/wt > for stage EP_PICK';
-    ok $e_gc_allele_types->{ '20' } eq 'potential wt/wt, potential tm1f/wt', 'well 20 should be allele type < potential wt/wt, potential tm1f/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '20' } eq 'potential tm1f/wt, potential wt/wt', 'well 20 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
 
     ok $e_gc_allele_types->{ '21' } eq 'potential wt/wt', 'well 21 should be allele type < potential wt/wt > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '22' } eq 'potential tm1a/wt', 'well 22 should be allele type < potential tm1a/wt > for stage SEP_PICK';
@@ -469,7 +469,7 @@ sub all_tests  : Test(129)
     ok $e_gc_allele_types->{ '29' } eq 'potential tm1e/tm1', 'well 29 should be allele type < potential tm1e/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '30' } eq 'potential tm1f/tm1', 'well 30 should be allele type < potential tm1f/tm1 > for stage SEP_PICK';
 
-    ok $e_gc_allele_types->{ '31' } eq 'Failed: unknown allele pattern', 'well 31 should give an unknown allele pattern error';
+    ok $e_gc_allele_types->{ '31' } eq 'Failed: unknown allele pattern : E SEP_PICK 1.1, 0.1, 1.1, 1.1, 1.1', 'well 31 should give an unknown allele pattern error';
 
     ok $e_gc_allele_types->{ '32' } eq 'Failed allele determination for 32: loacrit assay validation: Copy Number not present',
     								'well 32 should give a validation error for missing loacrit copy number';
