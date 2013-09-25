@@ -46,16 +46,34 @@ has current_well_stage => (
     required => 0,
 );
 
+has current_well_validation_msg => (
+    is       => 'rw',
+    isa      => 'Str',
+    required => 0,
+);
+
 has allele_config => (
     is       => 'rw',
     isa      => 'HashRef',
     builder   => '_build_allele_config',
 );
 
-has dispatches => (
+has assay_dispatches => (
     is       => 'rw',
     isa      => 'HashRef',
     lazy_build => 1,
+);
+
+has validation_dispatches => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    lazy_build => 1,
+);
+
+has allele_translation => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    builder  => '_build_allele_translation',
 );
 
 sub BUILD{
@@ -78,10 +96,10 @@ sub _build_allele_config {
 	return $allele_config;
 }
 
-sub _build_dispatches {
+sub _build_assay_dispatches {
     my ( $self ) = @_;
 
-	my $dispatches = {
+	my $assay_dispatches = {
 		'is_loacrit_0'                => sub { $self->is_loacrit_0 },
 		'is_loacrit_1'                => sub { $self->is_loacrit_1 },
 		'is_loacrit_2'                => sub { $self->is_loacrit_2 },
@@ -106,7 +124,29 @@ sub _build_dispatches {
 		'is_potential_loadel_2'       => sub { $self->is_potential_loadel_2 },
 	};
 
-	return $dispatches;
+	return $assay_dispatches;
+}
+
+sub _build_validation_dispatches {
+    my ( $self ) = @_;
+
+	my $validation_dispatches = {
+		'loacrit'    => sub { $self->validate_assay( 'loacrit' ) },
+		'loatam'     => sub { $self->validate_assay( 'loatam' ) },
+		'loadel'     => sub { $self->validate_assay( 'loadel' ) },
+		'neo'        => sub { $self->validate_assay( 'neo' ) },
+		'bsd'        => sub { $self->validate_assay( 'bsd' ) },
+	};
+
+	return $validation_dispatches;
+}
+
+sub _build_allele_translation {
+	my ( $self ) = @_;
+
+	my $allele_translation = $self->allele_config->{ 'allele_translation' };
+
+	return $allele_translation;
 }
 
 sub determine_workflow_for_wells {
@@ -163,11 +203,19 @@ sub select_workflow_data {
 	  		# Calculate and set workflow for each well
 	  		# Requires specific fields from summaries table
 		  	foreach my $sql_result ( @{ $sql_results } ) {
+
+		  		# NB $self->current_well_id not set yet
 		  		my $well_id                        = $sql_result->{ 'well_id' };
 		  		my $final_pick_recombinase_id      = $sql_result->{ 'final_pick_recombinase_id' };
 		        my $final_pick_cassette_resistance = $sql_result->{ 'final_pick_cassette_resistance' };
 		        my $ep_well_recombinase_id         = $sql_result->{ 'ep_well_recombinase_id' };
 
+	            # store fields in main hash (or blank if not set)
+		        $self->well_genotyping_results->{ $well_id }->{ 'final_pick_recombinase_id' }      = $sql_result->{ 'final_pick_recombinase_id' } // '';
+		        $self->well_genotyping_results->{ $well_id }->{ 'final_pick_cassette_resistance' } = $sql_result->{ 'final_pick_cassette_resistance' } // '';
+		        $self->well_genotyping_results->{ $well_id }->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
+
+	            # calculate workflow for well
 				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->calculate_workflow_for_well( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id );
 			}
 		}
@@ -182,6 +230,11 @@ sub select_workflow_data {
 
 sub calculate_workflow_for_well {
     my ( $self, $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id ) = @_;
+
+ #    print "well id : " . $well_id . "\n" if ( defined $well_id );
+ #    print "final_pick_recombinase_id : " . $final_pick_recombinase_id . "\n" if ( defined $final_pick_recombinase_id );
+ #    print "final_pick_cassette_resistance : " . $final_pick_cassette_resistance . "\n" if ( defined $final_pick_cassette_resistance );
+	# print "ep_well_recombinase_id : " . $ep_well_recombinase_id . "\n" if ( defined $ep_well_recombinase_id );
 
     my $workflow = 'unknown';
 
@@ -245,14 +298,15 @@ sub determine_allele_types_for_wells_with_data {
 		}
 		catch {
 			my $exception_message = $_;
-			$current_allele_type = "Failed allele determination for $well_id: $exception_message";
+			$current_allele_type = "Failed allele determination, Exception: $exception_message";
         };
 
+        # store message in main hash
+		$self->well_genotyping_results->{ $self->current_well_id }->{ 'allele_determination' } = $current_allele_type;
+
+		# add result to minimal well / result hash
         $genotyping_allele_results->{ $well_id } = $current_allele_type;
 	}
-
-	# TOD:remove
-	# $genotyping_allele_results
 
 	return $genotyping_allele_results;
 }
@@ -283,185 +337,51 @@ sub determine_allele_type_for_well {
 
     $self->current_well_workflow ( $self->well_genotyping_results->{ $self->current_well_id }->{ 'workflow' } );
 
+    $self->current_well_validation_msg ( '' );
     unless ( $self->validate_assays() ) {
-    	return 'Failed: validate assays';
+    	return 'Failed: validate assays : ' . $self->current_well_validation_msg;
     }
 
-    if ( $self->current_well_workflow eq 'Ne1a' ) {
-	   	return $self->determine_allele_type_for_well_workflow_Ne1a();
-	}
-	elsif ( $self->current_well_workflow eq 'Ne1' ) {
-        return $self->determine_allele_type_for_well_workflow_Ne1();
-	}
-	elsif ( $self->current_well_workflow eq 'E' ) {
-	   	return $self->determine_allele_type_for_well_workflow_E();
+	my @allele_types;
+
+	# Attempt to find a matching allele type using normal constraints
+   	my $normal_assays = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'normal' };
+
+   	foreach my $normal_key ( keys %{ $normal_assays } ) {
+   		push ( @allele_types, ( $self->allele_translation->{ $normal_key } ) )    if ( $self->is_allele_test( 'normal', $normal_key ) );
+   	}
+
+	return join ( '; ', ( sort @allele_types ) ) if ( scalar @allele_types > 0 );
+
+	# Failed to find a match, so now retry with looser thresholds
+	my $loose_assays = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'loose' };
+
+ 	foreach my $loose_key ( keys %{ $loose_assays } ) {
+   		push ( @allele_types, ( $self->allele_translation->{ $loose_key } ) )   if ( $self->is_allele_test( 'loose', $loose_key ) );
+   	}
+
+   	if ( scalar @allele_types > 0 ) {
+		return join ( '; ', ( sort @allele_types ) );
 	}
 	else {
-		return 'Failed: unrecognised workflow type ' . $self->current_well_workflow . ' for well ' . $self->current_well_id;
+		my @pattern;
+		# pull out the assay values for display
+		foreach my $assay_name ( 'bsd','loacrit','loadel','loatam','neo' ) {
+			push ( @pattern, ( $assay_name . "=" . ( $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#copy_number' } // '-' ) ) );
+		}
+		my $pattern_string = join ( ' ', ( @pattern ) );
+    	return 'Failed: unknown allele pattern : ' . $self->current_well_workflow . " " . $self->current_well_stage . " " . $pattern_string;
 	}
-}
-
-sub determine_allele_type_for_well_workflow_Ne1a {
-    my ( $self ) = @_;
-
-    my @allele_types;
-
-    if ( $self->current_well_stage eq 'EP_PICK' ) {
-	    # Attempt to find a matching allele type using tight constraints
-	    push (@allele_types, 'wt/wt' )    if ( $self->is_allele_test( 'wt_wt' ) );
-	    push (@allele_types, 'tm1a/wt' )  if ( $self->is_allele_test( 'tm1a_wt' ) );
-	   	push (@allele_types, 'tm1e/wt' )  if ( $self->is_allele_test( 'tm1e_wt' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-
-		# Failed to find a match, so now retry with looser thresholds
-	   	push (@allele_types, 'potential wt/wt' )    if ( $self->is_allele_test( 'potential_wt_wt' ) );
-		push (@allele_types, 'potential tm1a/wt' )  if ( $self->is_allele_test( 'potential_tm1a_wt' ) );
-		push (@allele_types, 'potential tm1e/wt' )  if ( $self->is_allele_test( 'potential_tm1e_wt' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-    }
-    else {
-   	    # Attempt to find a matching allele type using tight constraints
-	    push (@allele_types, 'wt/wt' )    if ( $self->is_allele_test( 'wt_wt' ) );
-	    push (@allele_types, 'tm1a/wt' )  if ( $self->is_allele_test( 'tm1a_wt' ) );
-	   	push (@allele_types, 'tm1e/wt' )  if ( $self->is_allele_test( 'tm1e_wt' ) );
-
-	    push (@allele_types, 'wt/tm1' )   if ( $self->is_allele_test( 'wt_tm1' ) );
-	   	push (@allele_types, 'tm1e/tm1' ) if ( $self->is_allele_test( 'tm1e_tm1' ) );
-	    push (@allele_types, 'tm1a/tm1' ) if ( $self->is_allele_test( 'tm1a_tm1' ) );
-
-	    push (@allele_types, 'tm1a/wt+bsd_offtarg' ) if ( $self->is_allele_test( 'tm1a_wt_bsd_off_targ' ) );
-	    push (@allele_types, 'wt+neo_offtarg/tm1' ) if ( $self->is_allele_test( 'wt_neo_off_targ_tm1' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-
-		# Failed to find a match, so now retry with looser thresholds
-		push (@allele_types, 'potential wt/wt' )    if ( $self->is_allele_test( 'potential_wt_wt' ) );
-		push (@allele_types, 'potential tm1a/wt' )  if ( $self->is_allele_test( 'potential_tm1a_wt' ) );
-		push (@allele_types, 'potential tm1e/wt' )  if ( $self->is_allele_test( 'potential_tm1e_wt' ) );
-		push (@allele_types, 'potential wt/tm1' )   if ( $self->is_allele_test( 'potential_wt_tm1' ) );
-		push (@allele_types, 'potential tm1e/tm1' ) if ( $self->is_allele_test( 'potential_tm1e_tm1' ) );
-		push (@allele_types, 'potential tm1a/tm1' ) if ( $self->is_allele_test( 'potential_tm1a_tm1' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-    }
-
-    return 'Failed: unknown allele pattern';
-}
-
-sub determine_allele_type_for_well_workflow_Ne1 {
-    my ( $self ) = @_;
-
-    my @allele_types;
-
-    if ( $self->current_well_stage eq 'EP_PICK' ) {
-	    # Attempt to find a matching allele type using tight constraints
-	   	push (@allele_types, 'wt/wt' )    if ( $self->is_allele_test( 'wt_wt' ) );
-	   	push (@allele_types, 'tm1/wt' )   if ( $self->is_allele_test( 'tm1_wt' ) );
-
-	    return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-
-	   	# Failed to find a match, so now retry with looser thresholds
-	   	push (@allele_types, 'potential wt/wt' )    if ( $self->is_allele_test( 'potential_wt_wt' ) );
-	   	push (@allele_types, 'potential tm1/wt' )   if ( $self->is_allele_test( 'potential_tm1_wt' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-    }
-    else {
-	    # Attempt to find a matching allele type using tight constraints
-	   	push (@allele_types, 'wt/wt' )    if ( $self->is_allele_test( 'wt_wt' ) );
-	   	push (@allele_types, 'tm1/wt' )   if ( $self->is_allele_test( 'tm1_wt' ) );
-	   	push (@allele_types, 'tm1/tm1a' ) if ( $self->is_allele_test( 'tm1_tm1a' ) );
-	   	push (@allele_types, 'wt/tm1a' )  if ( $self->is_allele_test( 'wt_tm1a' ) );
-	   	push (@allele_types, 'tm1/tm1e' ) if ( $self->is_allele_test( 'tm1_tm1e' ) );
-	   	push (@allele_types, 'wt/tm1e' )  if ( $self->is_allele_test( 'wt_tm1e' ) );
-
-	   	#TODO: any off target types here?
-
-	    return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-
-		# Failed to find a match, so now retry with looser thresholds
-	   	push (@allele_types, 'potential wt/wt' )    if ( $self->is_allele_test( 'potential_wt_wt' ) );
-	   	push (@allele_types, 'potential tm1/wt' )   if ( $self->is_allele_test( 'potential_tm1_wt' ) );
-	   	push (@allele_types, 'potential tm1/tm1a' ) if ( $self->is_allele_test( 'potential_tm1_tm1a' ) );
-	   	push (@allele_types, 'potential wt/tm1a' )  if ( $self->is_allele_test( 'potential_wt_tm1a' ) );
-	   	push (@allele_types, 'potential tm1/tm1e' ) if ( $self->is_allele_test( 'potential_tm1_tm1e' ) );
-	   	push (@allele_types, 'potential wt/tm1e' )  if ( $self->is_allele_test( 'potential_wt_tm1e' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-	}
-
-    return 'Failed: unknown allele pattern';
-}
-
-sub determine_allele_type_for_well_workflow_E {
-    my ( $self ) = @_;
-
-    my @allele_types;
-
-    if ( $self->current_well_stage eq 'EP_PICK' ) {
-	    # Attempt to find a matching allele type using tight constraints
-	   	push (@allele_types, 'wt/wt' )    if ( $self->is_allele_test( 'wt_wt' ) );
-		push (@allele_types, 'tm1a/wt' )  if ( $self->is_allele_test( 'tm1a_wt' ) );
-		push (@allele_types, 'tm1c/wt' )  if ( $self->is_allele_test( 'tm1c_wt' ) );
-		push (@allele_types, 'tm1e/wt' )  if ( $self->is_allele_test( 'tm1e_wt' ) );
-		push (@allele_types, 'tm1f/wt' )  if ( $self->is_allele_test( 'tm1f_wt' ) );
-
-	    return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-
-		# Failed to find a match, so now retry with looser thresholds
-	   	push (@allele_types, 'potential wt/wt' )    if ( $self->is_allele_test( 'potential_wt_wt' ) );
-		push (@allele_types, 'potential tm1a/wt' )  if ( $self->is_allele_test( 'potential_tm1a_wt' ) );
-		push (@allele_types, 'potential tm1c/wt' )  if ( $self->is_allele_test( 'potential_tm1c_wt' ) );
-		push (@allele_types, 'potential tm1e/wt' )  if ( $self->is_allele_test( 'potential_tm1e_wt' ) );
-		push (@allele_types, 'potential tm1f/wt' )  if ( $self->is_allele_test( 'potential_tm1f_wt' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-    }
-    else {
-	    # Attempt to find a matching allele type using tight constraints
-	   	push (@allele_types, 'wt/wt' )    if ( $self->is_allele_test( 'wt_wt' ) );
-		push (@allele_types, 'tm1a/wt' )  if ( $self->is_allele_test( 'tm1a_wt' ) );
-		push (@allele_types, 'tm1c/wt' )  if ( $self->is_allele_test( 'tm1c_wt' ) );
-		push (@allele_types, 'tm1e/wt' )  if ( $self->is_allele_test( 'tm1e_wt' ) );
-		push (@allele_types, 'tm1f/wt' )  if ( $self->is_allele_test( 'tm1f_wt' ) );
-	   	push (@allele_types, 'wt/tm1' )   if ( $self->is_allele_test( 'wt_tm1' ) );
-		push (@allele_types, 'tm1a/tm1' ) if ( $self->is_allele_test( 'tm1a_tm1' ) );
-		push (@allele_types, 'tm1c/tm1' ) if ( $self->is_allele_test( 'tm1c_tm1' ) );
-		push (@allele_types, 'tm1e/tm1' ) if ( $self->is_allele_test( 'tm1e_tm1' ) );
-		push (@allele_types, 'tm1f/tm1' ) if ( $self->is_allele_test( 'tm1f_tm1' ) );
-
-	   	#TODO: any off target types here?
-
-	    return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-
-		# Failed to find a match, so now retry with looser thresholds
-	   	push (@allele_types, 'potential wt/wt' )    if ( $self->is_allele_test( 'potential_wt_wt' ) );
-		push (@allele_types, 'potential tm1a/wt' )  if ( $self->is_allele_test( 'potential_tm1a_wt' ) );
-		push (@allele_types, 'potential tm1c/wt' )  if ( $self->is_allele_test( 'potential_tm1c_wt' ) );
-		push (@allele_types, 'potential tm1e/wt' )  if ( $self->is_allele_test( 'potential_tm1e_wt' ) );
-		push (@allele_types, 'potential tm1f/wt' )  if ( $self->is_allele_test( 'potential_tm1f_wt' ) );
-	   	push (@allele_types, 'potential wt/tm1' )   if ( $self->is_allele_test( 'potential_wt_tm1' ) );
-		push (@allele_types, 'potential tm1a/tm1' ) if ( $self->is_allele_test( 'potential_tm1a_tm1' ) );
-		push (@allele_types, 'potential tm1c/tm1' ) if ( $self->is_allele_test( 'potential_tm1c_tm1' ) );
-		push (@allele_types, 'potential tm1e/tm1' ) if ( $self->is_allele_test( 'potential_tm1e_tm1' ) );
-		push (@allele_types, 'potential tm1f/tm1' ) if ( $self->is_allele_test( 'potential_tm1f_tm1' ) );
-
-		return join ( ', ', @allele_types ) if ( scalar @allele_types > 0 );
-	}
-
-    return 'Failed: unknown allele pattern';
 }
 
 sub is_allele_test {
-    my ( $self, $test_name ) = @_;
+    my ( $self, $range_type, $test_name ) = @_;
 
 	# Get the specific logic for this particular workflow and scope into this method:
-	my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $test_name };
+	my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $range_type }->{ $test_name };
 
 	# if ( defined $logic_string ) {
-	# 	print "Logic string for workflow " . $self->current_well_workflow . " stage " . $self->current_well_stage . " is " . $test_name . " : " . $logic_string . "\n";
+	# 	print "Logic string for workflow = " . $self->current_well_workflow . ", stage = " . $self->current_well_stage . ", range type = " . $range_type . ", test = " . $test_name . " : " . $logic_string . "\n";
 	# }
 
 	LIMS2::Exception->throw( "allele checking: no logic string defined" ) unless ( defined $logic_string );
@@ -474,7 +394,7 @@ sub is_allele_test {
 	my $callback = sub {
 		my $self    = pop;
 		my $operand = $_[0]->{ 'operand' };
-		my $method  = $self->dispatches->{ $operand };
+		my $method  = $self->assay_dispatches->{ $operand };
 		return $method->();
 	};
 
@@ -717,127 +637,36 @@ sub validate_assays {
 	LIMS2::Exception->throw( "validate assays: no current well workflow set" ) unless $self->current_well_workflow;
 	LIMS2::Exception->throw( "validate assays: no current well stage set" )    unless $self->current_well_stage;
 
-	if( $self->current_well_workflow eq 'Ne1a') {
-		if ( $self->current_well_stage eq 'EP_PICK' ) {
-            return ( $self->validate_assay ( 'loacrit' ) &&
-            	     $self->validate_assay ( 'loatam' ) &&
-            	     $self->validate_assay ( 'neo' )
-            );
-		}
-		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
-			return ( $self->validate_assay ( 'loacrit' ) &&
-            	     $self->validate_assay ( 'loatam' ) &&
-            	     $self->validate_assay ( 'loadel' ) &&
-            	     $self->validate_assay ( 'neo' ) &&
-            	     $self->validate_assay ( 'bsd' )
-            );
-		}
-	}
-	elsif( $self->current_well_workflow eq 'Ne1') {
-		if ( $self->current_well_stage eq 'EP_PICK' ) {
-            return ( $self->validate_assay ( 'loacrit' ) &&
-            	     $self->validate_assay ( 'loadel' ) &&
-            	     $self->validate_assay ( 'bsd' )
-            );
-		}
-		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
-			return ( $self->validate_assay ( 'loacrit' ) &&
-            	     $self->validate_assay ( 'loatam' ) &&
-            	     $self->validate_assay ( 'loadel' ) &&
-            	     $self->validate_assay ( 'neo' ) &&
-            	     $self->validate_assay ( 'bsd' )
-            );
-		}
-	}
-	elsif( $self->current_well_workflow eq 'E') {
-		if ( $self->current_well_stage eq 'EP_PICK' ) {
-            return ( $self->validate_assay ( 'loacrit' ) &&
-            	     $self->validate_assay ( 'loatam' ) &&
-            	     $self->validate_assay ( 'neo' )
-            );
-		}
-		elsif ( $self->current_well_stage eq 'SEP_PICK' ) {
-			return ( $self->validate_assay ( 'loacrit' ) &&
-            	     $self->validate_assay ( 'loatam' ) &&
-            	     $self->validate_assay ( 'loadel' ) &&
-            	     $self->validate_assay ( 'neo' ) &&
-            	     $self->validate_assay ( 'bsd' )
-            );
-		}
-	}
+	# Get the specific logic for this particular workflow and scope into this method:
+	my $validation_logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'validation' }->{ 'assays' };
 
-	LIMS2::Exception->throw( "validate assays: workflow and stage combination not found" );
-	return 0;
+	 # if ( defined $validation_logic_string ) {
+	 # 	print "Logic string for validation " . $self->current_well_workflow . " stage " . $self->current_well_stage . " : " . $validation_logic_string . "\n";
+	 # }
+
+	LIMS2::Exception->throw( "validation: no logic string defined" ) unless ( defined $validation_logic_string );
+
+	# logic string looks like this: 'loacrit AND loatam AND neo'
+	# Get the parser to read this, interpret logic and run correct validate assay methods
+	my $parser = Parse::BooleanLogic->new();
+	my $tree   = $parser->as_array( $validation_logic_string );
+
+	my $callback = sub {
+		my $self    = pop;
+		my $operand = $_[0]->{ 'operand' };
+		my $method  = $self->validation_dispatches->{ $operand };
+		return $method->();
+	};
+
+	my $result = $parser->solve( $tree, $callback, $self );
+
+	return $result;
 }
-
-# sub validate_assays {
-# 	my ( $self ) = @_;
-
-# 	LIMS2::Exception->throw( "validate assays: no current well set" )          unless $self->current_well_id;
-# 	LIMS2::Exception->throw( "validate assays: no current well workflow set" ) unless $self->current_well_workflow;
-# 	LIMS2::Exception->throw( "validate assays: no current well stage set" )    unless $self->current_well_stage;
-
-# 	my $workflow = $self->current_well_workflow;
-# 	my $stage    = $self->current_well_stage;
-
-
-
-# 	if( ( $workflow eq 'Ne1a' ) && ( $stage eq 'EP_PICK' ) ) {
-#         return ( $self->validate_assay ( 'loacrit' ) &&
-#         	     $self->validate_assay ( 'loatam' ) &&
-#         	     $self->validate_assay ( 'neo' )
-#         );
-# 	}
-
-
-# 	if( ( $workflow eq 'Ne1a' ) && ( $stage eq 'SEP_PICK' ) ) {
-# 		return ( $self->validate_assay ( 'loacrit' ) &&
-#         	     $self->validate_assay ( 'loatam' ) &&
-#         	     $self->validate_assay ( 'loadel' ) &&
-#         	     $self->validate_assay ( 'neo' ) &&
-#         	     $self->validate_assay ( 'bsd' )
-#         );
-# 	}
-
-
-# 	if( ( $workflow eq 'Ne1' ) && ( $stage eq 'EP_PICK' ) ) {
-#         return ( $self->validate_assay ( 'loacrit' ) &&
-#         	     $self->validate_assay ( 'loadel' ) &&
-#         	     $self->validate_assay ( 'bsd' )
-#         );
-# 	}
-
-# 	if( ( $workflow eq 'Ne1' ) && ( $stage eq 'SEP_PICK' ) ) {
-# 		return ( $self->validate_assay ( 'loacrit' ) &&
-#         	     $self->validate_assay ( 'loatam' ) &&
-#         	     $self->validate_assay ( 'loadel' ) &&
-#         	     $self->validate_assay ( 'neo' ) &&
-#         	     $self->validate_assay ( 'bsd' )
-#         );
-# 	}
-
-# 	if( ( $workflow eq 'E' ) && ( $stage eq 'EP_PICK' ) ) {
-#         return ( $self->validate_assay ( 'loacrit' ) &&
-#         	     $self->validate_assay ( 'loatam' ) &&
-#         	     $self->validate_assay ( 'neo' )
-#         );
-# 	}
-
-# 	if( ( $workflow eq 'E' ) && ( $stage eq 'SEP_PICK' ) ) {
-# 		return ( $self->validate_assay ( 'loacrit' ) &&
-#         	     $self->validate_assay ( 'loatam' ) &&
-#         	     $self->validate_assay ( 'loadel' ) &&
-#         	     $self->validate_assay ( 'neo' ) &&
-#         	     $self->validate_assay ( 'bsd' )
-#         );
-# 	}
-
-# 	LIMS2::Exception->throw( "validate assays: workflow and stage combination not found" );
-#   return 0;
-# }
 
 sub validate_assay {
 	my ( $self, $assay_name ) = @_;
+
+	# print "validating assay : $assay_name\n";
 
 	my $cn = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#copy_number' };
 	my $cnr = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#copy_number_range' };
@@ -846,15 +675,21 @@ sub validate_assay {
 	#my $vic = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#vic' };
 
     unless ( defined $cn && $cn ne '-' ) {
-    	LIMS2::Exception->throw( "$assay_name assay validation: Copy Number not present" );
+    	# LIMS2::Exception->throw( "$assay_name assay validation: Copy Number not present" );
+    	$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number not present. " );
+    	return 0;
 	}
 
 	unless ( defined $cnr && $cnr ne '-' ) {
-		LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range not present" );
+		# LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range not present" );
+		$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range not present. " );
+    	return 0;
 	}
 
 	unless ( $cnr <= 0.4 ) {
-		LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range above threshold" );
+		# LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range above threshold" );
+		$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range above threshold. " );
+    	return 0;
 	}
 
 	# TODO: add validations for confidence and vic
