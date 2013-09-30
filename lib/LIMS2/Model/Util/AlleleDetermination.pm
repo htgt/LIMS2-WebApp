@@ -8,8 +8,6 @@ use Try::Tiny;
 use LIMS2::Exception;
 use Parse::BooleanLogic;
 
-use Smart::Comments;
-
 # hashref of well gentoyping results keyed by well_id
 has well_genotyping_results => (
     is         => 'rw',
@@ -676,19 +674,19 @@ sub validate_assay {
 
     unless ( defined $cn && $cn ne '-' ) {
     	# LIMS2::Exception->throw( "$assay_name assay validation: Copy Number not present" );
-    	$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number not present. " );
+    	$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number not present" );
     	return 0;
 	}
 
 	unless ( defined $cnr && $cnr ne '-' ) {
 		# LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range not present" );
-		$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range not present. " );
+		$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range not present" );
     	return 0;
 	}
 
 	unless ( $cnr <= 0.4 ) {
 		# LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range above threshold" );
-		$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range above threshold. " );
+		$self->current_well_validation_msg ( $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range above threshold" );
     	return 0;
 	}
 

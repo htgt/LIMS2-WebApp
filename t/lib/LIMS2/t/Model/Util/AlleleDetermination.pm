@@ -187,41 +187,41 @@ sub all_tests  : Test(129)
     ok $ne1a_gc_allele_types->{ '19' } eq 'potential tm1e/tm1', 'well 19 should be allele type < potential tm1e/tm1 > for stage SEP_PICK';
     ok $ne1a_gc_allele_types->{ '20' } eq 'potential tm1a/tm1', 'well 20 should be allele type < potential tm1a/tm1 > for stage SEP_PICK';
  
-    ok $ne1a_gc_allele_types->{ '21' } eq 'Failed: unknown allele pattern : Ne1a SEP_PICK 1.1, 0.1, 1.1, 1.1, 1.1', 'well 21 should give an unknown allele pattern error';
+    ok $ne1a_gc_allele_types->{ '21' } eq 'Failed: unknown allele pattern : Ne1a SEP_PICK bsd=1.1 loacrit=1.1 loadel=1.1 loatam=0.1 neo=1.1', 'well 21 should give an unknown allele pattern error';
 
-    ok $ne1a_gc_allele_types->{ '22' } eq 'Failed allele determination for 22: loacrit assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_types->{ '22' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
     								'well 22 should give a validation error for missing loacrit copy number';
-    ok $ne1a_gc_allele_types->{ '23' } eq 'Failed allele determination for 23: loacrit assay validation: Copy Number Range not present',
+    ok $ne1a_gc_allele_types->{ '23' } eq 'Failed: validate assays : loacrit assay validation: Copy Number Range not present',
     								'well 23 should give a validation error for missing loacrit copy number range';
-    ok $ne1a_gc_allele_types->{ '24' } eq 'Failed allele determination for 24: loacrit assay validation: Copy Number Range above threshold', 
+    ok $ne1a_gc_allele_types->{ '24' } eq 'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold', 
     								'well 24 should give a validation error for above threshold loacrit copy number range';
 
-    ok $ne1a_gc_allele_types->{ '25' } eq 'Failed allele determination for 25: loatam assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_types->{ '25' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present',
     								'well 25 should give a validation error for missing loatam copy number';
-    ok $ne1a_gc_allele_types->{ '26' } eq 'Failed allele determination for 26: loatam assay validation: Copy Number Range not present',
+    ok $ne1a_gc_allele_types->{ '26' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range not present',
     								'well 26 should give a validation error for missing loatam copy number range';
-    ok $ne1a_gc_allele_types->{ '27' } eq 'Failed allele determination for 27: loatam assay validation: Copy Number Range above threshold',
+    ok $ne1a_gc_allele_types->{ '27' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range above threshold',
     								'well 27 should give a validation error for above threshold loatam copy number range';
 
-    ok $ne1a_gc_allele_types->{ '28' } eq 'Failed allele determination for 28: loadel assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_types->{ '28' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
     								'well 28 should give a validation error for missing loadel copy number';
-    ok $ne1a_gc_allele_types->{ '29' } eq 'Failed allele determination for 29: loadel assay validation: Copy Number Range not present',
+    ok $ne1a_gc_allele_types->{ '29' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
     								'well 29 should give a validation error for missing loadel copy number range';
-    ok $ne1a_gc_allele_types->{ '30' } eq 'Failed allele determination for 30: loadel assay validation: Copy Number Range above threshold',
+    ok $ne1a_gc_allele_types->{ '30' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
     								'well 30 should give a validation error for above threshold loadel copy number range';
 
-    ok $ne1a_gc_allele_types->{ '31' } eq 'Failed allele determination for 31: neo assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_types->{ '31' } eq 'Failed: validate assays : neo assay validation: Copy Number not present',
     								'well 31 should give a validation error for missing neo copy number';
-    ok $ne1a_gc_allele_types->{ '32' } eq 'Failed allele determination for 32: neo assay validation: Copy Number Range not present',
+    ok $ne1a_gc_allele_types->{ '32' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present',
     								'well 32 should give a validation error for missing neo copy number range';
-    ok $ne1a_gc_allele_types->{ '33' } eq 'Failed allele determination for 33: neo assay validation: Copy Number Range above threshold',
+    ok $ne1a_gc_allele_types->{ '33' } eq 'Failed: validate assays : neo assay validation: Copy Number Range above threshold',
     								'well 33 should give a validation error for above threshold neo copy number range';
 
-    ok $ne1a_gc_allele_types->{ '34' } eq 'Failed allele determination for 34: bsd assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_types->{ '34' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present',
     								'well 34 should give a validation error for missing bsd copy number';
-    ok $ne1a_gc_allele_types->{ '35' } eq 'Failed allele determination for 35: bsd assay validation: Copy Number Range not present',
+    ok $ne1a_gc_allele_types->{ '35' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present',
     								'well 35 should give a validation error for missing bsd copy number range';
-    ok $ne1a_gc_allele_types->{ '36' } eq 'Failed allele determination for 36: bsd assay validation: Copy Number Range above threshold',
+    ok $ne1a_gc_allele_types->{ '36' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range above threshold',
     								'well 36 should give a validation error for above threshold bsd copy number range';
 
     # fetch workflow Ne1 data
@@ -311,41 +311,41 @@ sub all_tests  : Test(129)
 	ok $ne1_gc_allele_types->{ '15' } eq 'potential tm1/tm1e', 'well 15 should be allele type < potential tm1/tm1e > for stage SEP_PICK';
 	ok $ne1_gc_allele_types->{ '16' } eq 'potential wt/tm1e', 'well 16 should be allele type < potential wt/tm1e > for stage SEP_PICK';
 
-    ok $ne1_gc_allele_types->{ '17' } eq 'Failed: unknown allele pattern : Ne1 SEP_PICK 1.1, 0.1, 1.1, 1.1, 1.1', 'well 17 should give an unknown allele pattern error';
+    ok $ne1_gc_allele_types->{ '17' } eq 'Failed: unknown allele pattern : Ne1 SEP_PICK bsd=1.1 loacrit=1.1 loadel=1.1 loatam=0.1 neo=1.1', 'well 17 should give an unknown allele pattern error';
 
-    ok $ne1_gc_allele_types->{ '18' } eq 'Failed allele determination for 18: loacrit assay validation: Copy Number not present',
+    ok $ne1_gc_allele_types->{ '18' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
     								'well 18 should give a validation error for missing loacrit copy number';
-    ok $ne1_gc_allele_types->{ '19' } eq 'Failed allele determination for 19: loacrit assay validation: Copy Number Range not present',
+    ok $ne1_gc_allele_types->{ '19' } eq 'Failed: validate assays : loacrit assay validation: Copy Number Range not present',
     								'well 19 should give a validation error for missing loacrit copy number range';
-    ok $ne1_gc_allele_types->{ '20' } eq 'Failed allele determination for 20: loacrit assay validation: Copy Number Range above threshold', 
+    ok $ne1_gc_allele_types->{ '20' } eq 'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold', 
     								'well 20 should give a validation error for above threshold loacrit copy number range';
 
-    ok $ne1_gc_allele_types->{ '21' } eq 'Failed allele determination for 21: loatam assay validation: Copy Number not present',
+    ok $ne1_gc_allele_types->{ '21' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present',
     								'well 21 should give a validation error for missing loatam copy number';
-    ok $ne1_gc_allele_types->{ '22' } eq 'Failed allele determination for 22: loatam assay validation: Copy Number Range not present',
+    ok $ne1_gc_allele_types->{ '22' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range not present',
     								'well 22 should give a validation error for missing loatam copy number range';
-    ok $ne1_gc_allele_types->{ '23' } eq 'Failed allele determination for 23: loatam assay validation: Copy Number Range above threshold',
+    ok $ne1_gc_allele_types->{ '23' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range above threshold',
     								'well 23 should give a validation error for above threshold loatam copy number range';
 
-    ok $ne1_gc_allele_types->{ '24' } eq 'Failed allele determination for 24: loadel assay validation: Copy Number not present',
+    ok $ne1_gc_allele_types->{ '24' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
     								'well 24 should give a validation error for missing loadel copy number';
-    ok $ne1_gc_allele_types->{ '25' } eq 'Failed allele determination for 25: loadel assay validation: Copy Number Range not present',
+    ok $ne1_gc_allele_types->{ '25' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
     								'well 25 should give a validation error for missing loadel copy number range';
-    ok $ne1_gc_allele_types->{ '26' } eq 'Failed allele determination for 26: loadel assay validation: Copy Number Range above threshold',
+    ok $ne1_gc_allele_types->{ '26' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
     								'well 26 should give a validation error for above threshold loadel copy number range';
 
-    ok $ne1_gc_allele_types->{ '27' } eq 'Failed allele determination for 27: neo assay validation: Copy Number not present',
+    ok $ne1_gc_allele_types->{ '27' } eq 'Failed: validate assays : neo assay validation: Copy Number not present',
     								'well 27 should give a validation error for missing neo copy number';
-    ok $ne1_gc_allele_types->{ '28' } eq 'Failed allele determination for 28: neo assay validation: Copy Number Range not present',
+    ok $ne1_gc_allele_types->{ '28' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present',
     								'well 28 should give a validation error for missing neo copy number range';
-    ok $ne1_gc_allele_types->{ '29' } eq 'Failed allele determination for 29: neo assay validation: Copy Number Range above threshold',
+    ok $ne1_gc_allele_types->{ '29' } eq 'Failed: validate assays : neo assay validation: Copy Number Range above threshold',
     								'well 29 should give a validation error for above threshold neo copy number range';
 
-    ok $ne1_gc_allele_types->{ '30' } eq 'Failed allele determination for 30: bsd assay validation: Copy Number not present',
+    ok $ne1_gc_allele_types->{ '30' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present',
     								'well 30 should give a validation error for missing bsd copy number';
-    ok $ne1_gc_allele_types->{ '31' } eq 'Failed allele determination for 31: bsd assay validation: Copy Number Range not present',
+    ok $ne1_gc_allele_types->{ '31' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present',
     								'well 31 should give a validation error for missing bsd copy number range';
-    ok $ne1_gc_allele_types->{ '32' } eq 'Failed allele determination for 32: bsd assay validation: Copy Number Range above threshold',
+    ok $ne1_gc_allele_types->{ '32' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range above threshold',
     								'well 32 should give a validation error for above threshold bsd copy number range';
 
     # ok $ne1_gc_allele_types->{ '33' } eq 'Failed allele determination for 33: en2-int assay validation: Copy Number not present',
@@ -435,11 +435,11 @@ sub all_tests  : Test(129)
 	# check each allele type returned matches the expected types
     note( 'Testing AlleleDetermination Logic - step 4c - checking Essential workflow allele types' );
 
-    ok $e_gc_allele_types->{ '1' }  eq 'tm1f/wt, wt/wt', 'well 1 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '1' }  eq 'tm1f/wt; wt/wt', 'well 1 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '2' }  eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '3' }  eq 'tm1c/wt', 'well 3 should be allele type < tm1c/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '4' }  eq 'tm1e/wt', 'well 4 should be allele type < tm1e/wt > for stage EP_PICK';
-    ok $e_gc_allele_types->{ '5' }  eq 'tm1f/wt, wt/wt', 'well 5 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '5' }  eq 'tm1f/wt; wt/wt', 'well 5 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
 
     ok $e_gc_allele_types->{ '6' }  eq 'wt/wt', 'well 6 should be allele type < wt/wt > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '7' }  eq 'tm1a/wt', 'well 7 should be allele type < tm1a/wt > for stage SEP_PICK';
@@ -452,11 +452,11 @@ sub all_tests  : Test(129)
     ok $e_gc_allele_types->{ '14' } eq 'tm1e/tm1', 'well 14 should be allele type < tm1e/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '15' } eq 'tm1f/tm1', 'well 15 should be allele type < tm1f/tm1 > for stage SEP_PICK';
 
-    ok $e_gc_allele_types->{ '16' } eq 'potential tm1f/wt, potential wt/wt', 'well 16 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '16' } eq 'potential tm1f/wt; potential wt/wt', 'well 16 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '17' } eq 'potential tm1a/wt', 'well 17 should be allele type < potential tm1a/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '18' } eq 'potential tm1c/wt', 'well 18 should be allele type < potential tm1c/wt > for stage EP_PICK';
     ok $e_gc_allele_types->{ '19' } eq 'potential tm1e/wt', 'well 19 should be allele type < potential tm1e/wt > for stage EP_PICK';
-    ok $e_gc_allele_types->{ '20' } eq 'potential tm1f/wt, potential wt/wt', 'well 20 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_types->{ '20' } eq 'potential tm1f/wt; potential wt/wt', 'well 20 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
 
     ok $e_gc_allele_types->{ '21' } eq 'potential wt/wt', 'well 21 should be allele type < potential wt/wt > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '22' } eq 'potential tm1a/wt', 'well 22 should be allele type < potential tm1a/wt > for stage SEP_PICK';
@@ -469,41 +469,41 @@ sub all_tests  : Test(129)
     ok $e_gc_allele_types->{ '29' } eq 'potential tm1e/tm1', 'well 29 should be allele type < potential tm1e/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '30' } eq 'potential tm1f/tm1', 'well 30 should be allele type < potential tm1f/tm1 > for stage SEP_PICK';
 
-    ok $e_gc_allele_types->{ '31' } eq 'Failed: unknown allele pattern : E SEP_PICK 1.1, 0.1, 1.1, 1.1, 1.1', 'well 31 should give an unknown allele pattern error';
+    ok $e_gc_allele_types->{ '31' } eq 'Failed: unknown allele pattern : E SEP_PICK bsd=1.1 loacrit=1.1 loadel=1.1 loatam=0.1 neo=1.1', 'well 31 should give an unknown allele pattern error';
 
-    ok $e_gc_allele_types->{ '32' } eq 'Failed allele determination for 32: loacrit assay validation: Copy Number not present',
+    ok $e_gc_allele_types->{ '32' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
     								'well 32 should give a validation error for missing loacrit copy number';
-    ok $e_gc_allele_types->{ '33' } eq 'Failed allele determination for 33: loacrit assay validation: Copy Number Range not present',
+    ok $e_gc_allele_types->{ '33' } eq 'Failed: validate assays : loacrit assay validation: Copy Number Range not present',
     								'well 33 should give a validation error for missing loacrit copy number range';
-    ok $e_gc_allele_types->{ '34' } eq 'Failed allele determination for 34: loacrit assay validation: Copy Number Range above threshold', 
+    ok $e_gc_allele_types->{ '34' } eq 'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold', 
     								'well 34 should give a validation error for above threshold loacrit copy number range';
 
-    ok $e_gc_allele_types->{ '35' } eq 'Failed allele determination for 35: loatam assay validation: Copy Number not present',
+    ok $e_gc_allele_types->{ '35' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present',
     								'well 35 should give a validation error for missing loatam copy number';
-    ok $e_gc_allele_types->{ '36' } eq 'Failed allele determination for 36: loatam assay validation: Copy Number Range not present',
+    ok $e_gc_allele_types->{ '36' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range not present',
     								'well 36 should give a validation error for missing loatam copy number range';
-    ok $e_gc_allele_types->{ '37' } eq 'Failed allele determination for 37: loatam assay validation: Copy Number Range above threshold',
+    ok $e_gc_allele_types->{ '37' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range above threshold',
     								'well 37 should give a validation error for above threshold loatam copy number range';
 
-    ok $e_gc_allele_types->{ '38' } eq 'Failed allele determination for 38: loadel assay validation: Copy Number not present',
+    ok $e_gc_allele_types->{ '38' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
     								'well 38 should give a validation error for missing loadel copy number';
-    ok $e_gc_allele_types->{ '39' } eq 'Failed allele determination for 39: loadel assay validation: Copy Number Range not present',
+    ok $e_gc_allele_types->{ '39' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
     								'well 39 should give a validation error for missing loadel copy number range';
-    ok $e_gc_allele_types->{ '40' } eq 'Failed allele determination for 40: loadel assay validation: Copy Number Range above threshold',
+    ok $e_gc_allele_types->{ '40' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
     								'well 40 should give a validation error for above threshold loadel copy number range';
 
-    ok $e_gc_allele_types->{ '41' } eq 'Failed allele determination for 41: neo assay validation: Copy Number not present',
+    ok $e_gc_allele_types->{ '41' } eq 'Failed: validate assays : neo assay validation: Copy Number not present',
     								'well 41 should give a validation error for missing neo copy number';
-    ok $e_gc_allele_types->{ '42' } eq 'Failed allele determination for 42: neo assay validation: Copy Number Range not present',
+    ok $e_gc_allele_types->{ '42' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present',
     								'well 42 should give a validation error for missing neo copy number range';
-    ok $e_gc_allele_types->{ '43' } eq 'Failed allele determination for 43: neo assay validation: Copy Number Range above threshold',
+    ok $e_gc_allele_types->{ '43' } eq 'Failed: validate assays : neo assay validation: Copy Number Range above threshold',
     								'well 43 should give a validation error for above threshold neo copy number range';
 
-    ok $e_gc_allele_types->{ '44' } eq 'Failed allele determination for 44: bsd assay validation: Copy Number not present',
+    ok $e_gc_allele_types->{ '44' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present',
     								'well 44 should give a validation error for missing bsd copy number';
-    ok $e_gc_allele_types->{ '45' } eq 'Failed allele determination for 45: bsd assay validation: Copy Number Range not present',
+    ok $e_gc_allele_types->{ '45' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present',
     								'well 45 should give a validation error for missing bsd copy number range';
-    ok $e_gc_allele_types->{ '46' } eq 'Failed allele determination for 46: bsd assay validation: Copy Number Range above threshold',
+    ok $e_gc_allele_types->{ '46' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range above threshold',
     								'well 46 should give a validation error for above threshold bsd copy number range';
 
     note( 'Testing AlleleDetermination Logic - Complete' );
