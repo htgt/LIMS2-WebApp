@@ -129,11 +129,11 @@ sub _build_validation_dispatches {
     my ( $self ) = @_;
 
 	my $validation_dispatches = {
-		'loacrit'    => sub { $self->validate_assay( 'loacrit' ) },
-		'loatam'     => sub { $self->validate_assay( 'loatam' ) },
-		'loadel'     => sub { $self->validate_assay( 'loadel' ) },
-		'neo'        => sub { $self->validate_assay( 'neo' ) },
-		'bsd'        => sub { $self->validate_assay( 'bsd' ) },
+		'loacrit'    => sub { $self->_validate_assay( 'loacrit' ) },
+		'loatam'     => sub { $self->_validate_assay( 'loatam' ) },
+		'loadel'     => sub { $self->_validate_assay( 'loadel' ) },
+		'neo'        => sub { $self->_validate_assay( 'neo' ) },
+		'bsd'        => sub { $self->_validate_assay( 'bsd' ) },
 	};
 
 	return $validation_dispatches;
@@ -147,7 +147,7 @@ sub _build_allele_translation {
 	return $allele_translation;
 }
 
-sub determine_workflow_for_wells {
+sub _determine_workflow_for_wells {
 	my ( $self, $well_ids ) = @_;
 
     my @fepd_well_ids = ();
@@ -176,20 +176,20 @@ sub determine_workflow_for_wells {
 
     if ( $count_fepd_wells > 0 ) {
 		my $sql_query_fepd = $self->create_sql_select_summaries_fep( ( \@fepd_well_ids ) );
-        $self->select_workflow_data( \@fepd_well_ids, $sql_query_fepd )
+        $self->_select_workflow_data( \@fepd_well_ids, $sql_query_fepd )
     }
 
     my $count_sepd_wells = scalar @sepd_well_ids;
 
     if ( $count_sepd_wells > 0 ) {
 		my $sql_query_sepd = $self->create_sql_select_summaries_sep( ( \@sepd_well_ids ) );
-        $self->select_workflow_data( \@sepd_well_ids, $sql_query_sepd )
+        $self->_select_workflow_data( \@sepd_well_ids, $sql_query_sepd )
     }
 
     return;
 }
 
-sub select_workflow_data {
+sub _select_workflow_data {
     my ( $self, $well_ids, $sql_query ) = @_;
 
     try {
@@ -214,7 +214,7 @@ sub select_workflow_data {
 		        $self->well_genotyping_results->{ $well_id }->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
 
 	            # calculate workflow for well
-				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->calculate_workflow_for_well( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id );
+				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->_calculate_workflow_for_well( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id );
 			}
 		}
 	}
@@ -226,13 +226,8 @@ sub select_workflow_data {
 	return;
 }
 
-sub calculate_workflow_for_well {
+sub _calculate_workflow_for_well {
     my ( $self, $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id ) = @_;
-
- #    print "well id : " . $well_id . "\n" if ( defined $well_id );
- #    print "final_pick_recombinase_id : " . $final_pick_recombinase_id . "\n" if ( defined $final_pick_recombinase_id );
- #    print "final_pick_cassette_resistance : " . $final_pick_cassette_resistance . "\n" if ( defined $final_pick_cassette_resistance );
-	# print "ep_well_recombinase_id : " . $ep_well_recombinase_id . "\n" if ( defined $ep_well_recombinase_id );
 
     my $workflow = 'unknown';
 
@@ -274,7 +269,7 @@ sub determine_allele_types_for_wells {
 	}
 
 	# TODO: get workflow calculation into summaries generation
-	$self->determine_workflow_for_wells( $well_ids );
+	$self->_determine_workflow_for_wells( $well_ids );
 
     return $self->determine_allele_types_for_wells_with_data( $well_ids );
 }
@@ -335,31 +330,14 @@ sub determine_allele_type_for_well {
 
     $self->current_well_workflow ( $self->well_genotyping_results->{ $self->current_well_id }->{ 'workflow' } );
 
-    $self->current_well_validation_msg ( '' );
-    unless ( $self->validate_assays() ) {
-    	return 'Failed: validate assays : ' . $self->current_well_validation_msg;
-    }
-
-	my @allele_types;
-
-	# Attempt to find a matching allele type using normal constraints
-   	my $normal_assays = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'normal' };
-
-   	foreach my $normal_key ( keys %{ $normal_assays } ) {
-   		push ( @allele_types, ( $self->allele_translation->{ $normal_key } ) )    if ( $self->is_allele_test( 'normal', $normal_key ) );
-   	}
-
-	return join ( '; ', ( sort @allele_types ) ) if ( scalar @allele_types > 0 );
+    # Attempt to find a match using normal copy number constraints
+	my $allele_types_normal = $self->_determine_allele_type_for_well_with_constraints( 'normal' );
+	return $allele_types_normal if ( defined $allele_types_normal && ( $allele_types_normal ne '' ) );
 
 	# Failed to find a match, so now retry with looser thresholds
-	my $loose_assays = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'loose' };
-
- 	foreach my $loose_key ( keys %{ $loose_assays } ) {
-   		push ( @allele_types, ( $self->allele_translation->{ $loose_key } ) )   if ( $self->is_allele_test( 'loose', $loose_key ) );
-   	}
-
-   	if ( scalar @allele_types > 0 ) {
-		return join ( '; ', ( sort @allele_types ) );
+	my $allele_types_loose = $self->_determine_allele_type_for_well_with_constraints( 'loose' );
+	if ( defined $allele_types_loose && ( $allele_types_loose ne '' ) ) {
+		return $allele_types_loose;
 	}
 	else {
 		my @pattern;
@@ -372,17 +350,38 @@ sub determine_allele_type_for_well {
 	}
 }
 
-sub is_allele_test {
-    my ( $self, $range_type, $test_name ) = @_;
+sub _determine_allele_type_for_well_with_constraints {
+	my ( $self, $constraint_name ) = @_;
+
+	$self->current_well_validation_msg ( '' );
+    unless ( $self->_validate_assays( $constraint_name ) ) {
+    	return 'Failed: validate assays : ' . $self->current_well_validation_msg;
+    }
+
+	my @allele_types;
+
+	# Attempt to find a matching allele type using normal constraints
+   	my $tests = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $constraint_name }->{ 'tests' };
+
+   	foreach my $key ( keys %{ $tests } ) {
+   		push ( @allele_types, ( $self->allele_translation->{ $key } ) ) if ( $self->_is_allele_test( $constraint_name, $key ) );
+   	}
+
+   	if ( scalar @allele_types > 0 ) {
+   		return join ( '; ', ( sort @allele_types ) );
+   	}
+   	else {
+   		return '';
+   	}
+}
+
+sub _is_allele_test {
+    my ( $self, $constraint_name, $test_name ) = @_;
 
 	# Get the specific logic for this particular workflow and scope into this method:
-	my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $range_type }->{ $test_name };
+	my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $constraint_name }->{ 'tests' }->{ $test_name };
 
-	# if ( defined $logic_string ) {
-	# 	print "Logic string for workflow = " . $self->current_well_workflow . ", stage = " . $self->current_well_stage . ", range type = " . $range_type . ", test = " . $test_name . " : " . $logic_string . "\n";
-	# }
-
-	LIMS2::Exception->throw( "allele checking: no logic string defined" ) unless ( defined $logic_string );
+	LIMS2::Exception->throw( "allele checking: no tests logic string defined" ) unless ( defined $logic_string );
 
 	# logic string looks like this: 'is_loacrit_1 AND is_loatam_1 AND is_loadel_0 AND is_neo_present AND is_bsd_present'
 	# Get the parser to read this, interpret logic and run our coded methods "is_loacrit_1" etc
@@ -628,21 +627,21 @@ sub is_value_in_range {
     }
 }
 
-sub validate_assays {
-	my ( $self ) = @_;
+sub _validate_assays {
+	my ( $self, $constraint_name ) = @_;
 
 	LIMS2::Exception->throw( "validate assays: no current well set" )          unless $self->current_well_id;
 	LIMS2::Exception->throw( "validate assays: no current well workflow set" ) unless $self->current_well_workflow;
 	LIMS2::Exception->throw( "validate assays: no current well stage set" )    unless $self->current_well_stage;
 
 	# Get the specific logic for this particular workflow and scope into this method:
-	my $validation_logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'validation' }->{ 'assays' };
+	my $validation_logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $constraint_name }->{ 'validation' }->{ 'assays' };
 
 	 # if ( defined $validation_logic_string ) {
 	 # 	print "Logic string for validation " . $self->current_well_workflow . " stage " . $self->current_well_stage . " : " . $validation_logic_string . "\n";
 	 # }
 
-	LIMS2::Exception->throw( "validation: no logic string defined" ) unless ( defined $validation_logic_string );
+	LIMS2::Exception->throw( "validation: no validation logic string defined" ) unless ( defined $validation_logic_string );
 
 	# logic string looks like this: 'loacrit AND loatam AND neo'
 	# Get the parser to read this, interpret logic and run correct validate assay methods
@@ -661,7 +660,7 @@ sub validate_assays {
 	return $result;
 }
 
-sub validate_assay {
+sub _validate_assay {
 	my ( $self, $assay_name ) = @_;
 
 	# print "validating assay : $assay_name\n";
