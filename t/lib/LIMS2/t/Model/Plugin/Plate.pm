@@ -87,7 +87,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(61)
+sub all_tests  : Test(67)
 {
     note ( "Testing EngSeq param generation for plate");
     {
@@ -95,7 +95,8 @@ sub all_tests  : Test(61)
 	       'create_qc_template_from_plate should succeed';
     }
 
-    my $plate_data= test_data( 'plate.yaml' );                                                                                                 note( "Testing plate creation" );
+    my $plate_data= test_data( 'plate.yaml' );
+    note( "Testing plate creation" );
 
     {   
 	ok my $plate = model->create_plate( $plate_data->{plate_create} ),
@@ -201,6 +202,36 @@ sub all_tests  : Test(61)
 	is $wells->count, 2, '..there are 2 wells';
 
     }
+
+    note( "Plate Create CSV Upload - SEP plate" );
+
+    {
+        my $test_file = File::Temp->new or die( 'Could not create temp test file ' . $! );
+        $test_file->print( "well_name,xep_plate,xep_well,dna_plate,dna_well\n"
+            . "A01,XEP0006,A01,MOHFAQ0001_A_2,H11\n" );
+        $test_file->seek( 0, 0 );
+
+        my $plate_params = {
+            plate_name   => 'SEPTEST',
+            species      => 'Mouse',
+            plate_type   => 'SEP',
+            process_type => 'second_electroporation',
+            created_by   => 'test_user@example.org',
+        };
+
+        ok my $plate = model->create_plate_csv_upload( $plate_params, $test_file ),
+            'called create_plate_csv_upload';
+        is $plate->name,    'SEPTEST', '...expected plate name';
+        is $plate->type_id, 'SEP',     '...expected plate type';
+        ok my $wells = $plate->wells, '..plate has wells';
+        is $wells->count, 1, '..there are 2 wells';
+
+        lives_ok{
+            model->delete_plate( { id => $plate->id } )
+        } 'can delete plate we just created';
+
+    }
+
 
     note( 'Create Plate by Copy' );
 
