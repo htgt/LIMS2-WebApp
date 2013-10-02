@@ -682,6 +682,16 @@ sub design {
     return $process_design ? $process_design->design : undef;
 }
 
+sub crispr {
+    my $self = shift;
+
+    #TODO what if we have 2 crisprs applied? sp12 Tue 01 Oct 2013 09:26:47 BST
+
+    my $process_crispr = $self->ancestors->find_process( $self, 'process_crispr' );
+
+    return $process_crispr ? $process_crispr->crispr : undef;
+}
+
 sub designs{
 	my $self = shift;
 
