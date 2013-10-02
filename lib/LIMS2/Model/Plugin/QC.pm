@@ -639,6 +639,49 @@ sub pass_to_boolean {
     return $pass_or_fail =~ /^pass$/i ? '1' : $pass_or_fail =~ /^fail$/i ? '0' : undef;
 }
 
+sub pspec_qc_template_from_plate{
+	return{
+		name                   => { validate => 'existing_plate_name', optional => 1},
+		id                     => { validate => 'integer', optional => 1},
+		species                => { validate => 'existing_species', optional => 1},
+		template_name          => { validate => 'plate_name'},
+		cassette               => { validate => 'existing_final_cassette', optional => 1},
+		backbone               => { validate => 'existing_backbone', optional => 1},
+		recombinase            => { validate => 'existing_recombinase', optional => 1},
+		phase_matched_cassette => { optional => 1 },
+	};
+}
+
+sub create_qc_template_from_plate {
+	my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
+    $self->log->info( 'Creating qc template plate: ' . $validated_params->{template_name} );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+
+	my $well_hash;
+
+	foreach my $well ($plate->wells->all){
+		my $name = $well->name;
+        $well_hash->{$name}->{well_id} = $well->id;
+        foreach my $override qw(cassette recombinase backbone phase_matched_cassette) {
+            $well_hash->{$name}->{$override} = $validated_params->{$override}
+                if exists $validated_params->{$override};
+        }
+	}
+
+    my $template = create_qc_template_from_wells(
+        $self,
+        {   template_name => $validated_params->{template_name},
+            species       => $plate->species_id,
+            wells         => $well_hash,
+        }
+    );
+
+	return $template;
+}
+
 sub pspec_qc_template_from_csv{
 	return{
 		template_name => { validate => 'plate_name'},
