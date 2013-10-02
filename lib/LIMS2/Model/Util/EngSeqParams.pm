@@ -10,6 +10,7 @@ use Sub::Exporter -setup => {
             fetch_well_eng_seq_params
             add_display_id
             generate_genbank_for_qc_well
+            fetch_crispr_vector_eng_seq_params
           )
     ]
 };
@@ -211,6 +212,28 @@ sub generate_genbank_for_qc_well{
     $seq_io->write_seq( $seq );
 
     return;
+}
+
+sub fetch_crispr_vector_eng_seq_params {
+    my ( $crispr, $well, $backbone ) = @_;
+    my $method = 'crispr_vector_seq';
+
+	unless ($backbone) {
+		my $well_backbone = $well->backbone;
+        LIMS2::Exception->throw( "No backbone found for well $well" ) unless $well_backbone;
+        $backbone = $well_backbone;
+	}
+
+    my $display_id = $crispr->id . '#' . $backbone;
+    my %eng_seq_params = (
+        crispr_seq => $crispr->vector_seq,
+        backbone   => { name => $backbone },
+        display_id => $display_id,
+        crispr_id  => $crispr->id,
+        species    => lc($crispr->species_id),
+    );
+
+    return $method, \%eng_seq_params;
 }
 
 1;
