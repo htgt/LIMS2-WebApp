@@ -2,10 +2,33 @@ package LIMS2::t::Model::Util::AlleleDetermination;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Util::AlleleDetermination;
-
 use LIMS2::Test;
-
 use strict;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## no critic
 
@@ -94,13 +117,13 @@ sub all_tests  : Test(129)
     
     # fetch workflow Ne1a data
     note( 'Testing AlleleDetermination Logic - step 2a - extracting Ne1a workflow data' );
-	ok my $workflow_Ne1a_gc_data = $test_data->{ 'workflow_ne1a_gc_results' }, 'fetching Ne1a test data from yaml should succeed';
+	ok my $ne1a_gqc_yaml_data = $test_data->{ 'workflow_ne1a_gc_results' }, 'fetching Ne1a test data from yaml should succeed';
 
-	# create hashref from data to send into AlleleDetermination
-	my $ne1a_well_gc_results = {};
-	for my $well_hash ( @$workflow_Ne1a_gc_data ) {
-	    $ne1a_well_gc_results->{ $well_hash->{ 'id' } } = $well_hash;
-	}
+	# # create hashref from data to send into AlleleDetermination
+	# my $ne1a_well_gc_results = {};
+	# for my $well_hash ( @$ne1a_gqc_yaml_data ) {
+	#     $ne1a_well_gc_results->{ $well_hash->{ 'id' } } = $well_hash;
+	# }
 
 	# Create a new connection Model to link to DB
     ok my $model = LIMS2::Model->new( user => 'tests' ), 'creating a new DB model connection should succeed';
@@ -109,15 +132,13 @@ sub all_tests  : Test(129)
     ok my $ne1a_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ), 'creating instance of module should succeed';
 
     # Set the genotyping results hash in the module instance
-    ok $ne1a_AD->well_genotyping_results ( $ne1a_well_gc_results ), 'setting well gc results hash in module instance should succeed';
-
-    # Create well ids hash
-    my @ne1a_well_ids = ( 1..36 );
+    # ok $ne1a_AD->well_genotyping_results ( $ne1a_well_gc_results ), 'setting well gc results hash in module instance should succeed';
+    ok $ne1a_AD->well_genotyping_results_array ( $ne1a_gqc_yaml_data ), 'setting well gc results array in module instance should succeed';
 
     note( 'Testing AlleleDetermination Logic - step 2b - determining Ne1a workflow allele types' );
     
     # calculate the allele types
-	ok my $ne1a_gc_allele_types = $ne1a_AD->determine_allele_types_for_wells_with_data ( \@ne1a_well_ids ), 'calculating Ne1a allele types should succeed'; 
+    ok my $ne1a_gc_allele_types = $ne1a_AD->test_determine_allele_types_logic (), 'calculating Ne1a allele types should succeed';
 
     #	id	 Ne1a workflow:			stage    	pattern (crit, tam, del, neo, bsd):
 	#	1	 'wt/wt'				EP_PICK		22200
@@ -226,27 +247,25 @@ sub all_tests  : Test(129)
 
     # fetch workflow Ne1 data
     note( 'Testing AlleleDetermination Logic - step 3a - extracting Ne1 workflow data' );
-	ok my $workflow_ne1_gc_data = $test_data->{ 'workflow_ne1_gc_results' }, 'fetching Ne1 test data from yaml should succeed';
+	ok my $ne1_gqc_yaml_data = $test_data->{ 'workflow_ne1_gc_results' }, 'fetching Ne1 test data from yaml should succeed';
 
 	# create hashref from data to send into AlleleDetermination
-	my $ne1_well_gc_results = {};
-	for my $well_hash ( @$workflow_ne1_gc_data ) {
-	    $ne1_well_gc_results->{ $well_hash->{ 'id' } } = $well_hash;
-	}
+	# my $ne1_well_gc_results = {};
+	# for my $well_hash ( @$ne1_gqc_yaml_data ) {
+	#     $ne1_well_gc_results->{ $well_hash->{ 'id' } } = $well_hash;
+	# }
 
     # Create AlleleDetermination module instance
     ok my $ne1_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ), 'creating instance of module should succeed';
 
     # Set the genotyping results hash in the module instance
-    ok $ne1_AD->well_genotyping_results ( $ne1_well_gc_results ), 'setting well gc results hash in module instance should succeed';
-
-    # Create well ids hash
-    my @ne1_well_ids = ( 1..32 );
+    # ok $ne1_AD->well_genotyping_results ( $ne1_well_gc_results ), 'setting well gc results hash in module instance should succeed';
+    ok $ne1_AD->well_genotyping_results_array ( $ne1_gqc_yaml_data ), 'setting well gc results array in module instance should succeed';
 
     note( 'Testing AlleleDetermination Logic - step 3b - determining Ne1 workflow allele types' );
     
     # calculate the allele types
-	ok my $ne1_gc_allele_types = $ne1_AD->determine_allele_types_for_wells_with_data ( \@ne1_well_ids ), 'calculating Ne1 allele types should succeed';
+    ok my $ne1_gc_allele_types = $ne1_AD->test_determine_allele_types_logic (), 'calculating Ne1 allele types should succeed';
 
     #	id	 Ne1 workflow:			stage    	pattern (crit, tam, del, neo, bsd, en2-int):
 	# 	1	'wt/wt'					EP_PICK 	222000
@@ -358,27 +377,25 @@ sub all_tests  : Test(129)
 
     # fetch workflow E data
     note( 'Testing AlleleDetermination Logic - step 4a - extracting Essential workflow data' );
-	ok my $workflow_e_gc_data = $test_data->{ 'workflow_e_gc_results' }, 'fetching E test data from yaml should succeed';
+	ok my $e_gqc_yaml_data = $test_data->{ 'workflow_e_gc_results' }, 'fetching E test data from yaml should succeed';
 
 	# create hashref from data to send into AlleleDetermination
-	my $e_well_gc_results = {};
-	for my $well_hash ( @$workflow_e_gc_data ) {
-	    $e_well_gc_results->{ $well_hash->{ 'id' } } = $well_hash;
-	}
+	# my $e_well_gc_results = {};
+	# for my $well_hash ( @$e_gqc_yaml_data ) {
+	#     $e_well_gc_results->{ $well_hash->{ 'id' } } = $well_hash;
+	# }
 
     # Create AlleleDetermination module instance
     ok my $e_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ), 'creating instance of module should succeed';
 
     # Set the genotyping results hash in the module instance
-    ok $e_AD->well_genotyping_results ( $e_well_gc_results ), 'setting well gc results hash in module instance should succeed';
-
-    # Create well ids hash
-    my @e_well_ids = ( 1..46 );
+    # ok $e_AD->well_genotyping_results ( $e_well_gc_results ), 'setting well gc results hash in module instance should succeed';
+    ok $e_AD->well_genotyping_results_array ( $e_gqc_yaml_data ), 'setting well gc results array in module instance should succeed';
 
     note( 'Testing AlleleDetermination Logic - step 4b - determining Essential workflow allele types' );
     
     # calculate the allele types
-	ok my $e_gc_allele_types = $e_AD->determine_allele_types_for_wells_with_data ( \@e_well_ids ), 'calculating E allele types should succeed';
+    ok my $e_gc_allele_types = $e_AD->test_determine_allele_types_logic (), 'calculating E allele types should succeed';
 
     #	id	 E workflow:			stage    	pattern (crit, tam, del, neo, bsd):
 	# 	1   'wt/wt'					EP_PICK		22200 		shows as wt/wt, tm1f/wt when only crit, tam and neo tests done
