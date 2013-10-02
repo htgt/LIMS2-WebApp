@@ -8,12 +8,6 @@ use Try::Tiny;
 use LIMS2::Exception;
 use Parse::BooleanLogic;
 
-# hashref of well gentoyping results keyed by well_id
-has well_genotyping_results => (
-    is         => 'rw',
-    isa        => 'HashRef',
-);
-
 has species => (
     is       => 'ro',
     isa      => 'Str',
@@ -24,6 +18,29 @@ has model => (
     is       => 'ro',
     isa      => 'LIMS2::Model',
     required => 1,
+);
+
+# array of hashrefs of well genotyping results
+has well_genotyping_results_array => (
+    is         => 'rw',
+    isa        => 'ArrayRef[HashRef]',
+);
+
+# ordered array of well ids
+has well_ids => (
+    is         => 'rw',
+    isa        => 'ArrayRef[Int]',
+);
+
+# results hash (key = well id, value = allele type)
+has well_allele_type_results => (
+    is         => 'rw',
+    isa        => 'HashRef',
+);
+
+has current_well => (
+    is         => 'rw',
+    isa        => 'HashRef',
 );
 
 has current_well_id => (
@@ -81,8 +98,6 @@ sub BUILD{
 
 sub _build_allele_config {
 	my ( $self ) = @_;
-
-	#$self->log->debug( 'Reading configuration from ' . $self->conffile);
 
 	my $conf_parser = Config::Scoped->new (
 		file => 'conf/allele_determination.conf',
@@ -147,188 +162,204 @@ sub _build_allele_translation {
 	return $allele_translation;
 }
 
-sub _determine_workflow_for_wells {
-	my ( $self, $well_ids ) = @_;
-
-    my @fepd_well_ids = ();
-    my @sepd_well_ids = ();
-
-    # SQL for selecting the fields for determining workflows differs for EP_PICK and SEP_PICK plate types
-    # so need to identify which wells are of which type
-    PLATE_TYPE_WELL_LOOP:
-    foreach my $well_id ( @{ $well_ids } ) {
-        unless ( defined $self->well_genotyping_results->{ $well_id } ) { next PLATE_TYPE_WELL_LOOP; }
-
-    	my $curr_well_plate_type = $self->well_genotyping_results->{ $well_id }->{ 'plate_type' };
-
-        if ( $curr_well_plate_type eq 'EP_PICK' ) {
-        	push ( @fepd_well_ids, $well_id );
-        }
-        elsif ( $curr_well_plate_type eq 'SEP_PICK' ) {
-        	push ( @sepd_well_ids, $well_id );
-        }
-        else {
-        	next PLATE_TYPE_WELL_LOOP;
-        }
-    }
-
-    my $count_fepd_wells = scalar @fepd_well_ids;
-
-    if ( $count_fepd_wells > 0 ) {
-		my $sql_query_fepd = $self->create_sql_select_summaries_fep( ( \@fepd_well_ids ) );
-        $self->_select_workflow_data( \@fepd_well_ids, $sql_query_fepd )
-    }
-
-    my $count_sepd_wells = scalar @sepd_well_ids;
-
-    if ( $count_sepd_wells > 0 ) {
-		my $sql_query_sepd = $self->create_sql_select_summaries_sep( ( \@sepd_well_ids ) );
-        $self->_select_workflow_data( \@sepd_well_ids, $sql_query_sepd )
-    }
-
-    return;
-}
-
-sub _select_workflow_data {
-    my ( $self, $well_ids, $sql_query ) = @_;
-
-    try {
-    	my $sql_results = $self->run_select_query( $sql_query );
-
-  		my $count_results = scalar @$sql_results;
-
-	  	if ( $count_results > 0 ) {
-	  		# Calculate and set workflow for each well
-	  		# Requires specific fields from summaries table
-		  	foreach my $sql_result ( @{ $sql_results } ) {
-
-		  		# NB $self->current_well_id not set yet
-		  		my $well_id                        = $sql_result->{ 'well_id' };
-		  		my $final_pick_recombinase_id      = $sql_result->{ 'final_pick_recombinase_id' };
-		        my $final_pick_cassette_resistance = $sql_result->{ 'final_pick_cassette_resistance' };
-		        my $ep_well_recombinase_id         = $sql_result->{ 'ep_well_recombinase_id' };
-
-	            # store fields in main hash (or blank if not set)
-		        $self->well_genotyping_results->{ $well_id }->{ 'final_pick_recombinase_id' }      = $sql_result->{ 'final_pick_recombinase_id' } // '';
-		        $self->well_genotyping_results->{ $well_id }->{ 'final_pick_cassette_resistance' } = $sql_result->{ 'final_pick_cassette_resistance' } // '';
-		        $self->well_genotyping_results->{ $well_id }->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
-
-	            # calculate workflow for well
-				$self->well_genotyping_results->{ $well_id }->{ 'workflow' } = $self->_calculate_workflow_for_well( $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id );
-			}
-		}
-	}
-	catch {
-		my $exception_message = $_;
-		LIMS2::Exception::Implementation->throw( "Failed workflow determination select for wells: $exception_message" );
-	};
-
-	return;
-}
-
-sub _calculate_workflow_for_well {
-    my ( $self, $well_id, $final_pick_recombinase_id, $final_pick_cassette_resistance, $ep_well_recombinase_id ) = @_;
-
-    my $workflow = 'unknown';
-
-	# For the non-essential pathway they apply Cre to the vector to remove the critical region in the bsd cassette
-	if ( $final_pick_recombinase_id eq 'Cre' ) {
-		if ( $final_pick_cassette_resistance eq 'bsd' ) {
-	        # Means standard workflow for non-essential genes using Bsd cassette first
-	        $workflow = 'Ne1'; # Non-essential Bsd first
-		}
-	}
-	else {
-    	# For the essential pathway they apply Flp to remove the neo cassette after the first electroporation
-		if ( $ep_well_recombinase_id eq 'Flp' ) {
-		    if ( $final_pick_cassette_resistance eq 'neo' ) {
-			    $workflow = 'E'; # Essential genes workflow
-		    }
-		}
-		else {
-			if ( $final_pick_cassette_resistance eq 'neo' ) {
-			    # Means alternate workflow for non-essential genes using Neo cassette first      
-			    $workflow = 'Ne1a'; # Non-essential Neo first
-			}
-		}
-	}
-
-	return $workflow;
-}
-
-sub determine_allele_types_for_wells {
+# this entry point is for where we just have an array of well ids
+sub determine_allele_types_for_well_ids {
     my ( $self, $well_ids ) = @_;
 
-	# fetch genotyping qc results for list of well ids
-	my @gc_results = $self->model->get_genotyping_qc_well_data( \@{ $well_ids }, 'dummy', $self->species );
+    $self->well_ids ( $well_ids );
 
-	# create a hash keyed on well id copying results across from array returned from genotyping qc
-	$self->well_genotyping_results ( {} );
-	foreach my $well_gc_result( @gc_results ){
-		$self->well_genotyping_results->{ $well_gc_result->{ 'id' } } = $well_gc_result;
-	}
+	# fetch array of well hashes from genotyping QC
+	my @gqc_results = $self->model->get_genotyping_qc_well_data( \@{ $well_ids }, 'dummy', $self->species );
+	$self->well_genotyping_results_array ( \@gqc_results );
 
 	# TODO: get workflow calculation into summaries generation
-	$self->_determine_workflow_for_wells( $well_ids );
+	$self->_determine_workflow_for_wells( );
 
-    return $self->determine_allele_types_for_wells_with_data( $well_ids );
+    $self->_determine_allele_types();
+
+    # return array of well hashes which contains the allele-type results
+    return $self->well_genotyping_results_array;
 }
 
-sub determine_allele_types_for_wells_with_data {
-    my ( $self, $well_ids ) = @_;
+# this entry point is for where we have a array of hashrefs of genotyping results (one hashref per well)
+sub determine_allele_types_for_genotyping_results_array {
+	my ( $self, $genotyping_results_array ) = @_;
 
-	my $genotyping_allele_results = {};
+	# store the genotyping results array of hashrefs
+	$self->well_genotyping_results_array ( $genotyping_results_array );
 
-	foreach my $well_id ( @{ $well_ids } ) {
+	# TODO: get workflow calculation into summaries generation
+	$self->_determine_workflow_for_wells();
 
-		$self->current_well_id ( $well_id );
+	# determine allele types
+	$self->_determine_allele_types();
 
-		my $current_allele_type;
+	# return array of well hashes which contains the allele-type results
+	return $self->well_genotyping_results_array;
+}
+
+# this entry point is for testing the logic, where the genotyping results array of well hashes is already 
+# set up and contains workflow and summaries table data
+sub test_determine_allele_types_logic {
+	my ( $self, $well_ids ) = @_;
+
+	# determine allele types
+	$self->_determine_allele_types();
+
+	# return basic results hash
+    return $self->well_allele_type_results;
+}
+
+sub _determine_allele_types {
+    my ( $self ) = @_;
+
+	$self->well_allele_type_results ( {} );
+
+	foreach my $well ( @{ $self->well_genotyping_results_array } ) {
+
+		$self->current_well ( $well );
+		$self->current_well_id ( $well->{ id } );
+
+		my $current_allele_type = '';
 
 		# attempt tp determine the allele type for this well and add the result into the output hashref
 		try {
-			$current_allele_type = $self->determine_allele_type_for_well();
+			$current_allele_type = $self->_determine_allele_type_for_well();
 		}
 		catch {
 			my $exception_message = $_;
 			$current_allele_type = "Failed allele determination, Exception: $exception_message";
         };
 
-        # store message in main hash
-		$self->well_genotyping_results->{ $self->current_well_id }->{ 'allele_determination' } = $current_allele_type;
+        # store full allele determination in well hash
+		$well->{ 'allele_determination' } = $current_allele_type;
+
+		# also reformat and store minimal version of allele determination for display in grids
+		$well->{ 'allele_type' } = $self->_minimised_allele_type ( $current_allele_type );
 
 		# add result to minimal well / result hash
-        $genotyping_allele_results->{ $well_id } = $current_allele_type;
+        $self->well_allele_type_results->{ $self->current_well_id } = $current_allele_type;
 	}
 
-	return $genotyping_allele_results;
+	return;
 }
 
-sub determine_allele_type_for_well {
+sub _determine_workflow_for_wells {
 	my ( $self ) = @_;
 
-	unless ( defined $self->current_well_id ) {
+    # SQL for selecting the fields for determining workflows differs for EP_PICK and SEP_PICK plate types
+    # so need to identify which wells are of which type
+    WELL_LOOP:
+    foreach my $current_well ( @{ $self->well_genotyping_results_array } ) {
+
+    	my $current_well_id = $current_well->{ 'id' };
+
+        unless ( defined $current_well_id ) { next WELL_LOOP; }
+
+    	my $curr_well_plate_type = $current_well->{ 'plate_type' };
+
+        if ( defined $curr_well_plate_type && $curr_well_plate_type eq 'EP_PICK' ) {
+        	my $sql_query_fepd = $self->create_sql_select_summaries_fepd( ( $current_well_id ) );
+        	$self->_select_workflow_data( $current_well, $sql_query_fepd );
+        }
+        elsif ( defined $curr_well_plate_type && $curr_well_plate_type eq 'SEP_PICK' ) {
+        	my $sql_query_sepd = $self->create_sql_select_summaries_sepd( ( $current_well_id ) );
+        	$self->_select_workflow_data( $current_well, $sql_query_sepd );
+        }
+        else {
+        	# unusable plate type
+        	next WELL_LOOP;
+        }
+    }
+
+    return;
+}
+
+sub _select_workflow_data {
+    my ( $self, $current_well, $sql_query ) = @_;
+
+    try {
+    	my $sql_results = $self->run_select_query( $sql_query );
+
+	  	if ( defined $sql_results ) {
+	  		# Calculate and set workflow for well
+	  		# Requires specific fields from summaries table
+	  		my $sql_result = @{ $sql_results }[0];
+
+            # store fields in well hash (or blank if not set)
+	        $current_well->{ 'final_pick_recombinase_id' }      = $sql_result->{ 'final_pick_recombinase_id' } // '';
+	        $current_well->{ 'final_pick_cassette_resistance' } = $sql_result->{ 'final_pick_cassette_resistance' } // '';
+	        $current_well->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
+
+            # calculate workflow for well
+			$self->_calculate_workflow_for_well( $current_well );
+		}
+	}
+	catch {
+		my $exception_message = $_;
+		LIMS2::Exception::Implementation->throw( "Failed workflow determination select for well id " . $current_well->{ 'id' } . " : $exception_message" );
+	};
+
+	return;
+}
+
+sub _calculate_workflow_for_well {
+    my ( $self, $current_well ) = @_;
+
+    $current_well->{ 'workflow' } = 'unknown';
+
+	# For the non-essential pathway they apply Cre to the vector to remove the critical region in the bsd cassette
+	if ( $current_well->{ 'final_pick_recombinase_id' } eq 'Cre' ) {
+		if ( $current_well->{ 'final_pick_cassette_resistance' } eq 'bsd' ) {
+	        # Means standard workflow for non-essential genes using Bsd cassette first
+	        $current_well->{ 'workflow' } = 'Ne1'; # Non-essential Bsd first
+		}
+	}
+	else {
+    	# For the essential pathway they apply Flp to remove the neo cassette after the first electroporation
+		if ( $current_well->{ 'ep_well_recombinase_id' } eq 'Flp' ) {
+		    if ( $current_well->{ 'final_pick_cassette_resistance' } eq 'neo' ) {
+			    $current_well->{ 'workflow' } = 'E'; # Essential genes workflow
+		    }
+		}
+		else {
+			if ( $current_well->{ 'final_pick_cassette_resistance' } eq 'neo' ) {
+			    # Means alternate workflow for non-essential genes using Neo cassette first      
+			    $current_well->{ 'workflow' } = 'Ne1a'; # Non-essential Neo first
+			}
+		}
+	}
+
+	return;
+}
+
+sub _determine_allele_type_for_well {
+	my ( $self ) = @_;
+
+	unless ( defined $self->current_well ) {
 		return 'Failed: no current well set';
 	}
 
-    unless ( defined $self->well_genotyping_results->{ $self->current_well_id } ) {
-        return 'Failed: no hash entry for well ' . $self->current_well_id;
-    }
-
-    unless ( defined $self->well_genotyping_results->{ $self->current_well_id }->{ 'plate_type' } ) {
-	    return 'Failed: plate type not present for well ' . $self->current_well_id;
+	unless ( defined $self->current_well_id ) {
+		return 'Failed: no current well id set';
 	}
 
-    $self->current_well_stage ( $self->well_genotyping_results->{ $self->current_well_id }->{ 'plate_type' } );
+    unless ( defined $self->current_well->{ 'plate_type' } ) {
+	    return 'Failed: plate type not present for well id : ' . $self->current_well_id;
+	}
+
+    $self->current_well_stage ( $self->current_well->{ 'plate_type' } );
 	unless ( ( $self->current_well_stage eq 'EP_PICK' ) || ( $self->current_well_stage eq 'SEP_PICK' ) ) {
 		return 'Failed: stage type must be EP_PICK or SEP_PICK, found type ' . $self->current_well_stage . ' for well ' . $self->current_well_id;
 	}
 
-	unless ( defined $self->well_genotyping_results->{ $self->current_well_id }->{ 'workflow' } ) {
-	    return 'Failed: workflow not present for well ' . $self->current_well_id;
+	unless ( defined $self->current_well->{ 'workflow' } ) {
+	    return 'Failed: workflow not present for well id : ' . $self->current_well_id;
 	}
 
-    $self->current_well_workflow ( $self->well_genotyping_results->{ $self->current_well_id }->{ 'workflow' } );
+    $self->current_well_workflow ( $self->current_well->{ 'workflow' } );
+
+    $self->_create_assay_copy_number_string();
 
     # Attempt to find a match using normal copy number constraints
 	my $allele_types_normal = $self->_determine_allele_type_for_well_with_constraints( 'normal' );
@@ -340,14 +371,26 @@ sub determine_allele_type_for_well {
 		return $allele_types_loose;
 	}
 	else {
-		my @pattern;
-		# pull out the assay values for display
-		foreach my $assay_name ( 'bsd','loacrit','loadel','loatam','neo' ) {
-			push ( @pattern, ( $assay_name . "=" . ( $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#copy_number' } // '-' ) ) );
-		}
-		my $pattern_string = join ( ' ', ( @pattern ) );
-    	return 'Failed: unknown allele pattern : ' . $self->current_well_workflow . " " . $self->current_well_stage . " " . $pattern_string;
+		my $pattern = $self->current_well->{ 'assay_pattern' };
+    	return 'Failed: unknown allele pattern : ' . $self->current_well_workflow . " " . $self->current_well_stage . " " . $pattern;
 	}
+}
+
+sub _create_assay_copy_number_string {
+	my ( $self ) = @_;
+
+	my @pattern;
+
+	# pull out the assay values
+	foreach my $assay_name ( 'bsd','loacrit','loadel','loatam','neo' ) {
+		push ( @pattern, ( $assay_name . "<" . ( $self->current_well->{ $assay_name . '#copy_number' } // '-' ) . ">" ) );
+	}
+
+	my $pattern_string = join ( ' ', ( @pattern ) );
+
+	$self->current_well->{ 'assay_pattern' } = $pattern_string;
+
+	return;
 }
 
 sub _determine_allele_type_for_well_with_constraints {
@@ -398,6 +441,32 @@ sub _is_allele_test {
 	my $result = $parser->solve( $tree, $callback, $self );
 
 	return $result;
+}
+
+sub _minimised_allele_type {
+	my ( $self, $current_allele_type ) = @_;
+
+	# if string starts with Failed return fail
+	if ( index( $current_allele_type, 'Failed: unknown allele pattern') != -1) {
+    	return 'unknown';
+	}
+
+	if ( index( $current_allele_type, 'Failed: validate assays') != -1) {
+    	return 'fail';
+	}
+
+	# if string contains 'potential ' replace with 'p'
+	if ( index( $current_allele_type, 'potential ') != -1) {
+		$current_allele_type =~ s/potential/p/g;
+	}
+
+	# off target types
+	if ( index( $current_allele_type, 'offtarg ') != -1) {
+		$current_allele_type =~ s/offtarg/ot/g;
+	}
+
+	# else return unchanged
+	return $current_allele_type;
 }
 
 sub is_loacrit_0 {
@@ -593,7 +662,7 @@ sub is_bsd_absent {
 sub is_assay_copy_number_in_rng {
     my ( $self, $min, $max, $assay_name ) = @_;
 
-    my $value = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#copy_number' };
+    my $value = $self->current_well->{ $assay_name . '#copy_number' };
 
     if ( defined $value && $value ne '-' ) {
         return $self->is_value_in_range ( $min, $max, $value );
@@ -606,7 +675,7 @@ sub is_assay_copy_number_in_rng {
 sub is_marker_present {
     my ( $self, $threshold, $marker ) = @_;
 
-    my $value = $self->well_genotyping_results->{ $self->current_well_id }->{ $marker . '#copy_number' };
+    my $value = $self->current_well->{ $marker . '#copy_number' };
 
     if ( ( defined $value ) && ( $value ne '-' ) && ( $value >= $threshold ) ) {
     	return 1;
@@ -665,8 +734,8 @@ sub _validate_assay {
 
 	# print "validating assay : $assay_name\n";
 
-	my $cn = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#copy_number' };
-	my $cnr = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#copy_number_range' };
+	my $cn = $self->current_well->{ $assay_name . '#copy_number' };
+	my $cnr = $self->current_well->{ $assay_name . '#copy_number_range' };
 	#TODO: add checks on confidence and vic
 	#my $conf = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#confidence' };
 	#my $vic = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#vic' };
@@ -712,30 +781,25 @@ sub run_select_query {
     return $sql_result;
 }
 
-sub create_sql_select_summaries_fep {
-    my ( $self, $well_ids ) = @_;
-    # create a comma separated list for SQL
-    $well_ids = join q{,}, @{ $well_ids };
+sub create_sql_select_summaries_fepd {
+    my ( $self, $well_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
 select distinct ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
 from summaries
-where ep_pick_well_id IN ($well_ids)
+where ep_pick_well_id = $well_id
 SQL_END
 
     return $sql_query;
 }
 
 sub create_sql_select_summaries_sep {
-    my ( $self, $well_ids ) = @_;
-
-    # create a comma separated list for SQL
-    $well_ids = join q{,}, @{ $well_ids };
+    my ( $self, $well_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
 select distinct sep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
 from summaries
-where sep_pick_well_id IN ($well_ids)
+where sep_pick_well_id = $well_id
 and ep_pick_well_id > 0
 SQL_END
 

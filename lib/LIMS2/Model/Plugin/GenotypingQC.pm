@@ -7,9 +7,12 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
+use LIMS2::Model::Util::AlleleDetermination qw( determine_allele_types_for_genotyping_results );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
+
+use Smart::Comments;
 
 requires qw( schema check_params throw );
 
@@ -476,7 +479,10 @@ sub get_genotyping_qc_plate_data {
     my $plate_name = shift;
     my $species = shift;
     my $sql_query = $self->sql_plate_qc_query( $plate_name );
-    return $self->get_genotyping_qc_browser_data( $sql_query, $species );
+    my @gqc_data = $self->get_genotyping_qc_browser_data( $sql_query, $species );
+    my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
+    my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
+    return @{ $gqc_data_with_allele_types };
 }
 
 sub get_genotyping_qc_well_data {
@@ -687,6 +693,7 @@ sub sql_plate_qc_query {
 with wd as (
     select p.id "Plate ID"
     , p.name "plate"
+    , p.type_id "plate_type"
     , w.name "well"
     , w.id "Well ID"
     , w.accepted "Accepted"
@@ -701,7 +708,7 @@ with wd as (
         where p.name = '$plate_name'
         and w.plate_id = p.id
     order by w.name, wgt.genotyping_result_type_id )
-select wd."Plate ID", wd."plate", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
+select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
     wd."Accepted",
     wd.copy_number, wd.copy_number_range, wd.confidence,
     well_chromosome_fail.result "Chr fail",
