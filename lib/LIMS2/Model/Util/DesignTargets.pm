@@ -2,6 +2,7 @@ package LIMS2::Model::Util::DesignTargets;
 use strict;
 use warnings FATAL => 'all';
 
+
 =head1 NAME
 
 LIMS2::Model::Util::DesignTargets
@@ -18,6 +19,7 @@ use Sub::Exporter -setup => {
                      find_design_targets
                      design_target_report_for_genes
                      bulk_designs_for_design_targets
+                     get_design_targets_data
                     ) ]
 };
 
@@ -381,6 +383,78 @@ sub _sort_gene_ids {
 
     return \%sorted_genes;
 }
+
+# =head2 get_design_targets_data
+
+# Get all design_targets data to build the summary grid.
+
+# =cut
+sub get_design_targets_data {
+    my $schema = shift;
+    my $species = shift;
+
+    use Smart::Comments;
+    ## $species
+
+    # need to import the gene list to use
+    my @gene_list = ['Ggt1', 'Ggt2', 'Ggt3', 'Ggt4', 'Ggt5', 'Ggt6', 'Ggt7', 'Ggt8', 'Ggt9', 'Ggt10'];
+
+    my @dt_results = $schema->resultset('DesignTarget')->search({
+            species_id        => "$species",
+            marker_symbol     => {
+                '-in' => @gene_list
+            }
+    });
+
+     my $design_data = bulk_designs_for_design_targets( $schema, \@dt_results, $species );
+
+
+    my @report_data;
+    for my $dt ( @{ \@dt_results } ) {
+        my %data;
+        my $crisprs = crisprs_for_design_target( $schema, $dt );
+
+        $data{'design_target'} = $dt;
+        $data{'designs'} = $design_data->{ $dt->id };
+        $data{'crisprs'} = $crisprs;
+
+        push @report_data, \%data;
+    }
+
+    ### @report_data
+
+    my @dt;
+    foreach my $row (@dt_results) {
+        push(@dt, {
+            id => $row->id,
+            marker_symbol => $row->marker_symbol,
+            ensembl_gene_id => $row->ensembl_gene_id,
+            ensembl_exon_id => $row->ensembl_exon_id,
+            exon_size => $row->exon_size,
+            exon_rank => $row->exon_rank,
+            canonical_transcript => $row->canonical_transcript,
+            # species_id => $row->species_id,
+            assembly_id => $row->assembly_id,
+            build_id => $row->build_id,
+            chr_id => $row->chr_id,
+            chr_start => $row->chr_start,
+            chr_end => $row->chr_end,
+            chr_strand => $row->chr_strand,
+            automatically_picked => $row->automatically_picked,
+            comment => $row->comment,
+            gene_id => $row->gene_id,
+        } );
+
+    }
+
+    ## @dt
+        
+    return @dt;
+}
+
+
+
+
 ## use critic
 
 1;

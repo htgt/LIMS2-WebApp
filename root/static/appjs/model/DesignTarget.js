@@ -1,7 +1,7 @@
 Ext.define('DesignTargetsApp.model.DesignTarget', {
     extend: 'Ext.data.Model',
     fields: [
-        'id',
+        // 'id',
         'marker_symbol',
         'ensembl_gene_id',
         'ensembl_exon_id',
@@ -9,7 +9,7 @@ Ext.define('DesignTargetsApp.model.DesignTarget', {
         'exon_rank',
         'canonical_transcript',
         'species_id',
-        'assembly_id',
+        // 'assembly_id',
         'build_id',
         'chr_id',
         'chr_start',
