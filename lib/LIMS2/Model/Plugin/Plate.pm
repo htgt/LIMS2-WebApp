@@ -9,6 +9,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status parse_csv_file );
 use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_data );
+use LIMS2::Model::Util::QCTemplates qw( create_qc_template_from_wells );
 use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
 use Const::Fast;
@@ -459,7 +460,7 @@ sub create_qc_template_from_plate {
     my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
     $self->log->info( 'Creating qc template plate: ' . $validated_params->{template_name} );
 
-    my $plate = $self->retrieve_plate( { slice_def( $params, qw( name id species ) ) } );
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
 
 	my $well_hash;
 
@@ -472,11 +473,13 @@ sub create_qc_template_from_plate {
         }
 	}
 
-    my $template = $self->create_qc_template_from_wells({
-		template_name => $params->{template_name},
-		species       => $plate->species_id,
-		wells         => $well_hash,
-	});
+    my $template = create_qc_template_from_wells(
+        $self,
+        {   template_name => $validated_params->{template_name},
+            species       => $plate->species_id,
+            wells         => $well_hash,
+        }
+    );
 
 	return $template;
 }
