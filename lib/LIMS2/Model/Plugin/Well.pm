@@ -9,7 +9,12 @@ use List::MoreUtils qw (any uniq);
 use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 use LIMS2::Model::ProcessGraph;
-use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params add_display_id);
+use LIMS2::Model::Util::EngSeqParams qw(
+    fetch_design_eng_seq_params
+    fetch_well_eng_seq_params
+    add_display_id
+    fetch_crispr_vector_eng_seq_params
+);
 use LIMS2::Model::Util::RankQCResults qw( rank );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util::CreateProcess qw( create_process_aux_data_recombinase );
@@ -749,6 +754,7 @@ sub pspec_generate_eng_seq_params {
 	}
 }
 
+#TODO maybe move bulk of this into Util::EngSeqParams?
 sub generate_well_eng_seq_params{
     my ( $self, $params ) = @_;
 
@@ -758,23 +764,45 @@ sub generate_well_eng_seq_params{
     $self->throw( NotFound => { entity_class => 'Well', search_params => $params })
         unless $well;
 
-    my $design = $well->design->as_hash;
+    my $design = $well->design;
+    unless ( $design ) {
+        my $crispr = $well->crispr;
+        unless ($crispr) {
+            $self->throw( Implementation => 'Can not produce eng seq params for well that has'
+                                          . ' neither a design or crispr ancestor' )
+        }
+
+        return $self->_generate_crispr_eng_seq_params( $well, $crispr, $validated_params );
+    }
+
+    my $design_data = $design->as_hash;
 
     # Infer stage from plate type information
     my $plate_type_descr = $well->plate->type->description;
     my $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
 
-    my $design_params = fetch_design_eng_seq_params($design);
+    my $design_params = fetch_design_eng_seq_params($design_data);
 
     my $input_params = {slice_def $validated_params, qw( cassette backbone recombinase targeted_trap)};
     $input_params->{is_allele} = 1 if $stage eq 'allele';
-    $input_params->{design_type} = $design->{type};
-    $input_params->{design_cassette_first} = $design->{cassette_first};
+    $input_params->{design_type} = $design_data->{type};
+    $input_params->{design_cassette_first} = $design_data->{cassette_first};
 
     my ($method,$well_params) = fetch_well_eng_seq_params($well, $input_params );
 
     my $eng_seq_params = { %$design_params, %$well_params };
     add_display_id($stage, $eng_seq_params);
+
+    return $method, $well->id, $eng_seq_params;
+}
+
+sub _generate_crispr_eng_seq_params {
+    my ( $self, $well, $crispr, $validated_params ) = @_;
+    my $params = {slice_def $validated_params, qw( cassette backbone )};
+    my $backbone = $params->{backbone};
+    $self->throw( Validation => 'Can not specify a cassette for crispr well' ) if $params->{cassette};
+
+    my ($method,$eng_seq_params) = fetch_crispr_vector_eng_seq_params( $crispr, $well, $backbone );
 
     return $method, $well->id, $eng_seq_params;
 }
