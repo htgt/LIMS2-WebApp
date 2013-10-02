@@ -79,6 +79,7 @@ sub view :Path( '/user/view_template' ) :Args(0) {
     	return;
     }
 
+    #TODO move this code into model or util somewhere sp12 Tue 01 Oct 2013 15:27:08 BST
     my $template = $c->model('Golgi')->retrieve_qc_template( $c->request->params );
     my @related_runs = $template->qc_runs;
     my @run_ids = map { $_->id } @related_runs;
@@ -90,8 +91,9 @@ sub view :Path( '/user/view_template' ) :Args(0) {
         $info->{well_name} = $well->name;
 
         my $es_params = decode_json($well->qc_eng_seq->params);
-        $info->{cassette} = $es_params->{insertion} ? $es_params->{insertion}->{name}
-                                                    : $es_params->{u_insertion}->{name};
+        $info->{cassette} = $es_params->{insertion}   ? $es_params->{insertion}->{name}
+                          : $es_params->{u_insertion} ? $es_params->{u_insertion}->{name}
+                          :                             undef;
 
         $info->{backbone} = $es_params->{backbone} ? $es_params->{backbone}->{name}
                                                    : undef;
@@ -113,20 +115,33 @@ sub view :Path( '/user/view_template' ) :Args(0) {
 	    }
 
 	    my $genes;
-        if (my $source = $well->source_well){
+        if ( my $source = $well->source_well ) {
         	$info->{source_plate} = $source->plate->name;
         	$info->{source_well} = $source->name;
-        	$info->{design_id} = $source->design->id;
-        	my @gene_ids      = uniq map { $_->gene_id } $source->design->genes;
-		my @gene_symbols;
-		foreach my $gene_id ( @gene_ids ) {
-			$genes = $c->model('Golgi')->search_genes(
-                { search_term => $gene_id, species =>  $c->session->{selected_species} } );
 
-            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
-		}
-        	$info->{gene_ids} = join q{/}, @gene_ids;
-            $info->{gene_symbols} = join q{/}, @gene_symbols;
+            my $design = $source->design;
+            if ( $design ) {
+                $info->{design_id} = $design->id;
+                my @gene_ids = uniq map { $_->gene_id } $design->genes;
+
+                my @gene_symbols;
+                foreach my $gene_id ( @gene_ids ) {
+                    $genes = $c->model('Golgi')->search_genes(
+                        { search_term => $gene_id, species =>  $c->session->{selected_species} } );
+
+                    push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+                }
+
+                $info->{gene_ids} = join q{/}, @gene_ids;
+                $info->{gene_symbols} = join q{/}, @gene_symbols;
+            }
+            else {
+                my $crispr = $source->crispr;
+                if ( $crispr ) {
+                    $info->{crispr_id} = $crispr->id;
+                    $info->{crispr_seq} = $crispr->seq;
+                }
+            }
         }
 
         push @well_info, $info;
