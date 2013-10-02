@@ -1,7 +1,7 @@
 package LIMS2::t::Model::Util::EngSeqParams;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Util::EngSeqParams qw( fetch_well_eng_seq_params );
+use LIMS2::Model::Util::EngSeqParams qw( fetch_well_eng_seq_params generate_well_eng_seq_params );
 
 use LIMS2::Test;
 
@@ -90,9 +90,6 @@ sub all_tests  : Test(1)
     ok(1, "Test of LIMS2::Model::Util::EngSeqParams");
 }
 
-#NOTE I modified the fetch_well_eng_seq_params subroutine so I decided to test it
-#     fully, I have not tested the other subroutines
-#     sp12 Wed 04 Sep 2013 07:37:49 BST
 sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my $design_well = model->retrieve_well( { well_name => 'F02', plate_name => '148' } )
@@ -235,8 +232,43 @@ sub fetch_well_eng_seq_params_test : Test(36) {
     is_deeply $params8->{insertion}, { name => 'pR6K_R1R2_ZP' }, '.. have cassette in insertion slot';
 }
 
+sub generate_well_eng_seq_params_test : Test(10) {
+    throws_ok {
+        generate_well_eng_seq_params( model, { well_id => 850 } );
+    }
+    qr/No cassette found for well/;
+
+    ok my ( $method, $well_id, $params )
+        = generate_well_eng_seq_params( model, { well_id => 1522 } ),
+        'generate_well_eng_seq_params for well 1522 should succeed';
+    is $well_id, 1522, 'correct source well id returned';
+    is $method, 'conditional_allele_seq', 'engseq method correct for well 1522';
+    is_deeply( $params, test_data('well_1522.yaml'),
+        'engseq params as expected for well 1522' );
+
+    my %user_params = ( cassette => 'L1L2_GT2_LacZ_BSD', backbone => 'R3R4_pBR_amp',
+        recombinase => ['Cre'] );
+    ok my ( $method2, $well_id2, $params2 )
+        = generate_well_eng_seq_params( model, { well_id => 850, %user_params } ),
+        'generate well_eng_seq_params for well 850 with user specified details should succeed';
+    is_deeply(
+        $params2,
+        test_data("well_850_user_params.yaml"),
+        'engseq params as expected for well 850 with user specified params'
+    );
+    is $method2, 'conditional_vector_seq', 'engseq method correct for well 850';
+
+    ok my ( $method3, $well_id3, $params3 )
+        = generate_well_eng_seq_params( model, { well_id => 848, %user_params } ),
+        'generate_well_eng_seq_params for well 848 should succeed';
+    is_deeply( $params3, test_data('well_848.yaml'), 'engseq params as expected for well 848' );
+}
+
+#TODO fetch_crispr_vector_eng_seq_params test sp12 Wed 02 Oct 2013 07:42:36 BST
+
 =head1 AUTHOR
 
+Sajith Perera
 Lars G. Erlandsen
 
 =cut
