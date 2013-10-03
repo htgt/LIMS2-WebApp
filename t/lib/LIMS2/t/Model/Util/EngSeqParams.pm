@@ -1,7 +1,11 @@
 package LIMS2::t::Model::Util::EngSeqParams;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Util::EngSeqParams qw( fetch_well_eng_seq_params generate_well_eng_seq_params );
+use LIMS2::Model::Util::EngSeqParams qw(
+    fetch_well_eng_seq_params
+    generate_well_eng_seq_params
+    generate_crispr_eng_seq_params
+);
 
 use LIMS2::Test;
 
@@ -262,18 +266,37 @@ sub generate_well_eng_seq_params_test : Test(10) {
     is_deeply( $params3, test_data('well_848.yaml'), 'engseq params as expected for well 848' );
 }
 
-#TODO fetch_crispr_vector_eng_seq_params test sp12 Wed 02 Oct 2013 07:42:36 BST
+sub generate_crispr_eng_seq_params_test : Test(no_plan) {
 
-=head1 AUTHOR
+    ok my $crispr = model->retrieve_crispr( { id => 113 } ), 'can grab a crispr';
+    ok my $well = model->retrieve_well( { plate_name => 'CRISPR_1', well_name => 'A01' } ),
+        'can grab crispr well';
 
-Sajith Perera
-Lars G. Erlandsen
+    ok my( $method, $well_id, $eng_seq_params ) = generate_crispr_eng_seq_params( $well, $crispr, { backbone => 'blah' } ), 'can call generate_crispr_eng_seq_params';
 
-=cut
+    is $method, 'crispr_vector_seq', 'correct eng seq method';
+    is $well_id, $well->id, 'correct well_id';
+    is_deeply $eng_seq_params, {
+        crispr_seq => 'GTCTGTGGCTGTTTGCTCTG',
+        backbone => { name => 'blah' },
+        display_id => 'blah#113',
+        crispr_id => $crispr->id,
+        species => 'mouse',
+    }, 'eng seq params are correct';
+
+    throws_ok{
+        generate_crispr_eng_seq_params( $well, $crispr, { backbone => 'blah', cassette => 'foo' } )
+    } qr/Can not specify a cassette for crispr well/
+        ,'throws error if you pass in a cassette';
+
+    throws_ok{
+        generate_crispr_eng_seq_params( $well, $crispr, { } )
+    } qr/No backbone found for well/
+        ,'throws error if you do not specify a backbone override and the well has no backbone';
+}
 
 ## use critic
 
 1;
 
 __END__
-
