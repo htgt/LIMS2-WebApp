@@ -119,12 +119,6 @@ sub all_tests  : Test(129)
     note( 'Testing AlleleDetermination Logic - step 2a - extracting Ne1a workflow data' );
 	ok my $ne1a_gqc_yaml_data = $test_data->{ 'workflow_ne1a_gc_results' }, 'fetching Ne1a test data from yaml should succeed';
 
-	# # create hashref from data to send into AlleleDetermination
-	# my $ne1a_well_gc_results = {};
-	# for my $well_hash ( @$ne1a_gqc_yaml_data ) {
-	#     $ne1a_well_gc_results->{ $well_hash->{ 'id' } } = $well_hash;
-	# }
-
 	# Create a new connection Model to link to DB
     ok my $model = LIMS2::Model->new( user => 'tests' ), 'creating a new DB model connection should succeed';
 
@@ -208,7 +202,7 @@ sub all_tests  : Test(129)
     ok $ne1a_gc_allele_types->{ '19' } eq 'potential tm1e/tm1', 'well 19 should be allele type < potential tm1e/tm1 > for stage SEP_PICK';
     ok $ne1a_gc_allele_types->{ '20' } eq 'potential tm1a/tm1', 'well 20 should be allele type < potential tm1a/tm1 > for stage SEP_PICK';
  
-    ok $ne1a_gc_allele_types->{ '21' } eq 'Failed: unknown allele pattern : Ne1a SEP_PICK bsd=1.1 loacrit=1.1 loadel=1.1 loatam=0.1 neo=1.1', 'well 21 should give an unknown allele pattern error';
+    ok $ne1a_gc_allele_types->{ '21' } eq 'Failed: unknown allele pattern : Ne1a SEP_PICK bsd<1.1> loacrit<1.1> loadel<1.1> loatam<0.1> neo<1.1>', 'well 21 should give an unknown allele pattern error';
 
     ok $ne1a_gc_allele_types->{ '22' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
     								'well 22 should give a validation error for missing loacrit copy number';
@@ -330,7 +324,7 @@ sub all_tests  : Test(129)
 	ok $ne1_gc_allele_types->{ '15' } eq 'potential tm1/tm1e', 'well 15 should be allele type < potential tm1/tm1e > for stage SEP_PICK';
 	ok $ne1_gc_allele_types->{ '16' } eq 'potential wt/tm1e', 'well 16 should be allele type < potential wt/tm1e > for stage SEP_PICK';
 
-    ok $ne1_gc_allele_types->{ '17' } eq 'Failed: unknown allele pattern : Ne1 SEP_PICK bsd=1.1 loacrit=1.1 loadel=1.1 loatam=0.1 neo=1.1', 'well 17 should give an unknown allele pattern error';
+    ok $ne1_gc_allele_types->{ '17' } eq 'Failed: unknown allele pattern : Ne1 SEP_PICK bsd<1.1> loacrit<1.1> loadel<1.1> loatam<0.1> neo<1.1>', 'well 17 should give an unknown allele pattern error';
 
     ok $ne1_gc_allele_types->{ '18' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
     								'well 18 should give a validation error for missing loacrit copy number';
@@ -486,7 +480,7 @@ sub all_tests  : Test(129)
     ok $e_gc_allele_types->{ '29' } eq 'potential tm1e/tm1', 'well 29 should be allele type < potential tm1e/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_types->{ '30' } eq 'potential tm1f/tm1', 'well 30 should be allele type < potential tm1f/tm1 > for stage SEP_PICK';
 
-    ok $e_gc_allele_types->{ '31' } eq 'Failed: unknown allele pattern : E SEP_PICK bsd=1.1 loacrit=1.1 loadel=1.1 loatam=0.1 neo=1.1', 'well 31 should give an unknown allele pattern error';
+    ok $e_gc_allele_types->{ '31' } eq 'Failed: unknown allele pattern : E SEP_PICK bsd<1.1> loacrit<1.1> loadel<1.1> loatam<0.1> neo<1.1>', 'well 31 should give an unknown allele pattern error';
 
     ok $e_gc_allele_types->{ '32' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
     								'well 32 should give a validation error for missing loacrit copy number';

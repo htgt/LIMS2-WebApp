@@ -8,6 +8,8 @@ use Try::Tiny;
 use LIMS2::Exception;
 use Parse::BooleanLogic;
 
+# use Smart::Comments;
+
 has species => (
     is       => 'ro',
     isa      => 'Str',
@@ -235,7 +237,8 @@ sub _determine_allele_types {
 		$well->{ 'allele_determination' } = $current_allele_type;
 
 		# also reformat and store minimal version of allele determination for display in grids
-		$well->{ 'allele_type' } = $self->_minimised_allele_type ( $current_allele_type );
+		my $minimal_allele_type = $self->_minimised_allele_type ( $current_allele_type );
+		$well->{ 'allele_type' } = $minimal_allele_type;
 
 		# add result to minimal well / result hash
         $self->well_allele_type_results->{ $self->current_well_id } = $current_allele_type;
@@ -248,7 +251,13 @@ sub _determine_workflow_for_wells {
 	my ( $self ) = @_;
 
     # SQL for selecting the fields for determining workflows differs for EP_PICK and SEP_PICK plate types
-    # so need to identify which wells are of which type
+
+    my @fepd_well_ids = ();
+    my @sepd_well_ids = ();
+
+    # first, group the well ids into FEPD and SEPD sets (will usually all be one type) so not
+    # running the query multiple times
+
     WELL_LOOP:
     foreach my $current_well ( @{ $self->well_genotyping_results_array } ) {
 
@@ -259,12 +268,10 @@ sub _determine_workflow_for_wells {
     	my $curr_well_plate_type = $current_well->{ 'plate_type' };
 
         if ( defined $curr_well_plate_type && $curr_well_plate_type eq 'EP_PICK' ) {
-        	my $sql_query_fepd = $self->create_sql_select_summaries_fepd( ( $current_well_id ) );
-        	$self->_select_workflow_data( $current_well, $sql_query_fepd );
+        	push ( @fepd_well_ids, $current_well_id );
         }
         elsif ( defined $curr_well_plate_type && $curr_well_plate_type eq 'SEP_PICK' ) {
-        	my $sql_query_sepd = $self->create_sql_select_summaries_sepd( ( $current_well_id ) );
-        	$self->_select_workflow_data( $current_well, $sql_query_sepd );
+        	push ( @sepd_well_ids, $current_well_id );
         }
         else {
         	# unusable plate type
@@ -272,32 +279,67 @@ sub _determine_workflow_for_wells {
         }
     }
 
+    # select and write FEPD well data
+    if( scalar @fepd_well_ids > 0 ) {
+    	my $sql_query_fepd = $self->create_sql_select_summaries_fepd( ( \@fepd_well_ids ) );
+     	$self->_select_workflow_data( $sql_query_fepd );
+    }
+
+    # select and write SEPD well data
+    if( scalar @sepd_well_ids > 0 ) {
+    	my $sql_query_sepd = $self->create_sql_select_summaries_sepd( ( \@sepd_well_ids ) );
+        $self->_select_workflow_data( $sql_query_sepd );
+    }
+
     return;
 }
 
 sub _select_workflow_data {
-    my ( $self, $current_well, $sql_query ) = @_;
+    my ( $self, $sql_query ) = @_;
 
     try {
     	my $sql_results = $self->run_select_query( $sql_query );
 
 	  	if ( defined $sql_results ) {
-	  		# Calculate and set workflow for well
+	  		# Calculate and set workflow for each well
 	  		# Requires specific fields from summaries table
-	  		my $sql_result = @{ $sql_results }[0];
 
-            # store fields in well hash (or blank if not set)
-	        $current_well->{ 'final_pick_recombinase_id' }      = $sql_result->{ 'final_pick_recombinase_id' } // '';
-	        $current_well->{ 'final_pick_cassette_resistance' } = $sql_result->{ 'final_pick_cassette_resistance' } // '';
-	        $current_well->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
+	  		my $well_results = {};
 
-            # calculate workflow for well
-			$self->_calculate_workflow_for_well( $current_well );
+	  		# transfer results into hash
+	  		foreach my $sql_result ( @{ $sql_results } ) {
+
+	  			my $curr_well_id = $sql_result->{ 'well_id' };
+	  			$well_results->{ $curr_well_id }->{ 'final_pick_recombinase_id' }      = $sql_result->{ 'final_pick_recombinase_id' } // '';
+				$well_results->{ $curr_well_id }->{ 'final_pick_cassette_resistance' } = $sql_result->{ 'final_pick_cassette_resistance' } // '';
+				$well_results->{ $curr_well_id }->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
+	  		}
+
+	  		# loop through genotyping results array and copy across any results from the well_results hash
+	  		# where there is a match of well id, and also calculate the workflow
+			WELL_LOOP:
+		    foreach my $curr_well ( @{ $self->well_genotyping_results_array } ) {
+
+		    	my $curr_well_id = $curr_well->{ 'id' };
+
+		        unless ( defined $curr_well_id ) { next WELL_LOOP; }
+
+		        # check if we have a result for this well id
+		        unless ( defined $well_results->{ $curr_well_id } ) { next WELL_LOOP; }
+
+	            # store fields in well hash (or blank if not set)
+		        $curr_well->{ 'final_pick_recombinase_id' }      = $well_results->{ $curr_well_id }->{ 'final_pick_recombinase_id' };
+		        $curr_well->{ 'final_pick_cassette_resistance' } = $well_results->{ $curr_well_id }->{ 'final_pick_cassette_resistance' };
+		        $curr_well->{ 'ep_well_recombinase_id' }         = $well_results->{ $curr_well_id }->{ 'ep_well_recombinase_id' };
+
+	            # calculate workflow for well
+				$self->_calculate_workflow_for_well( $curr_well );
+			}
 		}
 	}
 	catch {
 		my $exception_message = $_;
-		LIMS2::Exception::Implementation->throw( "Failed workflow determination select for well id " . $current_well->{ 'id' } . " : $exception_message" );
+		LIMS2::Exception::Implementation->throw( "Failed workflow determination for wells, exception : " . " : $exception_message" );
 	};
 
 	return;
@@ -451,7 +493,7 @@ sub _minimised_allele_type {
     	return 'unknown';
 	}
 
-	if ( index( $current_allele_type, 'Failed: validate assays') != -1) {
+	if ( index( $current_allele_type, 'Failed:') != -1) {
     	return 'fail';
 	}
 
@@ -781,25 +823,54 @@ sub run_select_query {
     return $sql_result;
 }
 
+# sub create_sql_select_summaries_fepd {
+#     my ( $self, $well_id ) = @_;
+
+# my $sql_query =  <<"SQL_END";
+# select distinct ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
+# from summaries
+# where ep_pick_well_id = $well_id
+# SQL_END
+
+#     return $sql_query;
+# }
+
+# sub create_sql_select_summaries_sep {
+#     my ( $self, $well_id ) = @_;
+
+# my $sql_query =  <<"SQL_END";
+# select distinct sep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
+# from summaries
+# where sep_pick_well_id = $well_id
+# and ep_pick_well_id > 0
+# SQL_END
+
+#     return $sql_query;
+# }
+
 sub create_sql_select_summaries_fepd {
-    my ( $self, $well_id ) = @_;
+    my ( $self, $well_ids ) = @_;
+
+    $well_ids = join ( ',', @{ $well_ids } );
 
 my $sql_query =  <<"SQL_END";
 select distinct ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
 from summaries
-where ep_pick_well_id = $well_id
+where ep_pick_well_id in ( $well_ids )
 SQL_END
 
     return $sql_query;
 }
 
-sub create_sql_select_summaries_sep {
-    my ( $self, $well_id ) = @_;
+sub create_sql_select_summaries_sepd {
+    my ( $self, $well_ids ) = @_;
+
+    $well_ids = join ( ',', @{ $well_ids } );
 
 my $sql_query =  <<"SQL_END";
 select distinct sep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
 from summaries
-where sep_pick_well_id = $well_id
+where sep_pick_well_id in ( $well_ids )
 and ep_pick_well_id > 0
 SQL_END
 
