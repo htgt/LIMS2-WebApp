@@ -480,6 +480,7 @@ sub get_genotyping_qc_plate_data {
     my $species = shift;
     my $sql_query = $self->sql_plate_qc_query( $plate_name );
     my @gqc_data = $self->get_genotyping_qc_browser_data( $sql_query, $species );
+    # append the allele determination and workflow information for each well
     my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
     my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
     return @{ $gqc_data_with_allele_types };
@@ -491,7 +492,11 @@ sub get_genotyping_qc_well_data {
     my $plate_name = shift;
     my $species = shift;
     my $sql_query = $self->sql_well_qc_query( $well_list );
-    return $self->get_genotyping_qc_browser_data( $sql_query, $species );
+    my @gqc_data = $self->get_genotyping_qc_browser_data( $sql_query, $species );
+    # append the allele determination and workflow information for each well
+    my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
+    my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
+    return @{ $gqc_data_with_allele_types };
 }
 
 sub get_genotyping_qc_browser_data {
@@ -894,9 +899,18 @@ sub create_csv_header_array {
         'Gene Name',
         'Gene ID',
         'Design ID',
+        'Allele Type',
         'Distribute',
         'Override',
         'Chromosome Fail',
+        'Allele Info#Type',
+        'Allele Info#Full allele determination',
+        'Allele Info#Stage',
+        'Allele Info#Workflow',
+        'Allele Info#Assay pattern',
+        'Allele Info#Vector cass resist',
+        'Allele Info#Vector recombinase',
+        'Allele Info#First EP recombinase',
         'Targeting Pass',
         'Targeting Puro Pass',
         'TRPCR band',
@@ -923,17 +937,26 @@ sub translate_header_items {
     my $item = shift;
 
     my %tr_headers = (
-        'Plate' => 'plate_name',
-        'Well' => 'well',
-        'Gene Name' => 'gene_name',
-        'Gene ID' => 'gene_id',
-        'Design ID' => 'design_id',
-        'Distribute' => 'accepted',
-        'Override' => 'accepted_override',
-        'Chromosome Fail' => 'chromosome_fail',
-        'Targeting Pass' => 'targeting_pass',
-        'Targeting Puro Pass' => 'targeting_puro_pass',
-        'TRPCR band' => 'trpcr',
+        'Plate'                                 => 'plate_name',
+        'Well'                                  => 'well',
+        'Gene Name'                             => 'gene_name',
+        'Gene ID'                               => 'gene_id',
+        'Design ID'                             => 'design_id',
+        'Allele Type'                           => 'allele_type',
+        'Distribute'                            => 'accepted',
+        'Override'                              => 'accepted_override',
+        'Chromosome Fail'                       => 'chromosome_fail',
+        'Allele Info#Type'                      => 'allele_type',
+        'Allele Info#Full allele determination' => 'allele_determination',
+        'Allele Info#Stage'                     => 'plate_type',
+        'Allele Info#Workflow'                  => 'workflow',
+        'Allele Info#Assay pattern'             => 'assay_pattern',
+        'Allele Info#Vector cass resist'        => 'final_pick_cassette_resistance',
+        'Allele Info#Vector recombinase'        => 'final_pick_recombinase_id',
+        'Allele Info#First EP recombinase'      => 'ep_well_recombinase_id',
+        'Targeting Pass'                        => 'targeting_pass',
+        'Targeting Puro Pass'                   => 'targeting_puro_pass',
+        'TRPCR band'                            => 'trpcr',
     );
 
     return $tr_headers{$item} // $item;
