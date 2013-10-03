@@ -116,6 +116,7 @@ sub all_tests  : Tests
 	'target_transcript' => 'ENSMUST00000085065',
 	'species_id' => 'Alien',
 	'design_parameters' => 'design_parameters',
+    'cassette_first' => 1,
     );
 
     note("Accessing the schema");
