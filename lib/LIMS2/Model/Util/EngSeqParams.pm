@@ -9,6 +9,7 @@ use Sub::Exporter -setup => {
             generate_well_eng_seq_params
             generate_genbank_for_qc_well
             fetch_well_eng_seq_params
+            generate_crispr_eng_seq_params
           )
     ]
 };
@@ -40,6 +41,8 @@ sub generate_well_eng_seq_params{
     DEBUG("Generate eng seq params for well: $well ");
 
     my $design = $well->design;
+    # If there is no design then the well may be linked to a crispr well
+    # in that case call a seperate method to generate this type of eng seq
     unless ( $design ) {
         my $crispr = $well->crispr;
         LIMS2::Exception->throw( 'Can not produce eng seq params for well that has'
@@ -262,9 +265,16 @@ sub generate_genbank_for_qc_well{
     return;
 }
 
+=head2 generate_crispr_eng_seq_params
+
+Generate eng seq params for a crispr vector.
+The vector is just a backbone with a crispr, nothing more.
+The source well will be linked to a crispr, and not a design.
+
+=cut
 sub generate_crispr_eng_seq_params {
-    my ( $well, $crispr, $validated_params ) = @_;
-    my $params = {slice_def $validated_params, qw( cassette backbone )};
+    my ( $well, $crispr, $input_params ) = @_;
+    my $params = {slice_def $input_params, qw( cassette backbone )};
     LIMS2::Exception->throw( 'Can not specify a cassette for crispr well' ) if $params->{cassette};
 
     my $backbone = $params->{backbone};
@@ -275,7 +285,7 @@ sub generate_crispr_eng_seq_params {
 	}
 
     my $method = 'crispr_vector_seq';
-    my $display_id = $crispr->id . '#' . $backbone;
+    my $display_id = $backbone . '#' . $crispr->id;
     my %eng_seq_params = (
         crispr_seq => $crispr->vector_seq,
         backbone   => { name => $backbone },
