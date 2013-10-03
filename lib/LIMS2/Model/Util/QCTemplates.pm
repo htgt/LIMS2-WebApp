@@ -112,7 +112,7 @@ Generate data for display of qc_template plates.
 sub qc_template_display_data {
     my ( $model, $template, $species ) = @_;
 
-    my $crispr_data;
+    my $has_crispr_data;
     my @well_info;
     foreach my $well ( $template->qc_template_wells ) {
         my %info;
@@ -139,7 +139,7 @@ sub qc_template_display_data {
 
                 if ( $crispr ) {
                     crispr_data( \%info, $crispr );
-                    $crispr_data ||= 1;
+                    $has_crispr_data ||= 1;
                 }
             }
         }
@@ -151,7 +151,7 @@ sub qc_template_display_data {
 
     my @sorted_well_data = sort { $a->{well_name} cmp $b->{well_name} } @well_info;
 
-    return ( \@sorted_well_data, $crispr_data );
+    return ( \@sorted_well_data, $has_crispr_data );
 }
 
 sub design_data {
