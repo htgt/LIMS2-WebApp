@@ -26,11 +26,11 @@ Loading other test classes at compile time
 
 =cut
 
-BEGIN
-{
+BEGIN {
+
     # compile time requirements
     #{REQUIRE_PARENT}
-};
+}
 
 =head2 before
 
@@ -82,16 +82,10 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1) {
+sub all_tests : Test(1) {
     local $TODO = 'Test of LIMS2::Model::Util::QCTemplates not implemented yet';
-    ok(1, "Test of LIMS2::Model::Util::QCTemplates");
+    ok( 1, "Test of LIMS2::Model::Util::QCTemplates" );
 }
-
-=head1 AUTHOR
-
-Sajith Perera
-
-=cut
 
 ## use critic
 
