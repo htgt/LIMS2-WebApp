@@ -7,6 +7,7 @@ use Sub::Exporter -setup => {
         qw(
             create_qc_template_from_wells
             qc_template_display_data
+            eng_seq_data
             )
     ]
 };
@@ -186,10 +187,18 @@ sub crispr_data {
 sub eng_seq_data {
     my ( $well, $info, $cassette_first, $es_params ) = @_;
 
-    #TODO cassette first flag sp12 Thu 03 Oct 2013 07:48:36 BST
-    $info->{cassette} = $es_params->{insertion}   ? $es_params->{insertion}->{name}
-                      : $es_params->{u_insertion} ? $es_params->{u_insertion}->{name}
-                      :                             undef;
+    if ( $es_params->{insertion} ) {
+        $info->{cassette} = $es_params->{insertion}->{name};
+    }
+    elsif ( $cassette_first && $es_params->{u_insertion} ) {
+        $info->{cassette} = $es_params->{u_insertion}->{name};
+    }
+    elsif ( !$cassette_first && $es_params->{d_insertion} ) {
+        $info->{cassette} = $es_params->{d_insertion}->{name};
+    }
+    else {
+        $info->{cassette} = undef;
+    }
 
     $info->{backbone} = $es_params->{backbone} ? $es_params->{backbone}->{name}
                                                : undef;
