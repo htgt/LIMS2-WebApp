@@ -6,6 +6,7 @@ use Sub::Exporter -setup => {
     exports => [
         qw(
             create_qc_template_from_wells
+            qc_template_display_data
             )
     ]
 };
@@ -14,6 +15,9 @@ use LIMS2::Exception;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use Log::Log4perl qw( :easy );
 use Hash::MoreUtils qw( slice_def );
+use JSON;
+use List::MoreUtils qw( uniq );
+use Try::Tiny;
 
 sub pspec_qc_template_from_wells {
     return {
@@ -92,6 +96,110 @@ sub create_qc_template_from_wells {
     INFO( 'Created qc template plate: ' . $validated_params->{template_name} );
 
     return $template;
+}
+
+sub qc_template_display_data {
+    my ( $model, $template, $species ) = @_;
+
+    my $crispr_data;
+    my @well_info;
+    foreach my $well ( $template->qc_template_wells ) {
+        my %info;
+        $info{id} = $well->id;
+        $info{well_name} = $well->name;
+        my $es_params = decode_json($well->qc_eng_seq->params);
+
+        my $cassette_first;
+        if ( my $source = $well->source_well ) {
+            $info{source_plate} = $source->plate->name;
+            $info{source_well} = $source->name;
+
+            if ( my $design_id = $es_params->{design_id} ) {
+                my $design = try{ $model->retrieve_design( { id => $design_id } ) };
+
+                if ( $design ) {
+                    design_data( $model, \%info, $design, $species );
+                    $cassette_first = $design->cassette_first;
+                }
+            }
+
+            if ( my $crispr_id = $es_params->{crispr_id} ) {
+                my $crispr = try{ $model->retrieve_crispr( { id => $crispr_id } ) };
+
+                if ( $crispr ) {
+                    crispr_data( \%info, $crispr );
+                    $crispr_data ||= 1;
+                }
+            }
+        }
+
+        eng_seq_data( $well, \%info, $cassette_first, $es_params );
+
+        push @well_info, \%info;
+    }
+
+    my @sorted_well_data = sort { $a->{well_name} cmp $b->{well_name} } @well_info;
+
+    return ( \@sorted_well_data, $crispr_data );
+}
+
+sub design_data {
+    my ( $model, $info, $design, $species ) = @_;
+
+    $info->{design_id} = $design->id;
+    my @gene_ids = uniq map { $_->gene_id } $design->genes;
+
+    my @gene_symbols;
+    foreach my $gene_id ( @gene_ids ) {
+        my $genes = $model->search_genes(
+            { search_term => $gene_id, species =>  $species } );
+
+        push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+    }
+
+    $info->{gene_ids} = join q{/}, @gene_ids;
+    $info->{gene_symbols} = join q{/}, @gene_symbols;
+
+    return;
+}
+
+sub crispr_data {
+    my ( $info, $crispr ) = @_;
+
+    $info->{crispr_id} = $crispr->id;
+    $info->{crispr_seq} = $crispr->seq;
+
+    return;
+}
+
+sub eng_seq_data {
+    my ( $well, $info, $cassette_first, $es_params ) = @_;
+
+    #TODO cassette first flag sp12 Thu 03 Oct 2013 07:48:36 BST
+    $info->{cassette} = $es_params->{insertion}   ? $es_params->{insertion}->{name}
+                      : $es_params->{u_insertion} ? $es_params->{u_insertion}->{name}
+                      :                             undef;
+
+    $info->{backbone} = $es_params->{backbone} ? $es_params->{backbone}->{name}
+                                               : undef;
+
+    $info->{recombinase} = $es_params->{recombinase} ? join ", ", @{$es_params->{recombinase}}
+                                                     : undef;
+
+    # Store as *_new the cassette, backbone and recombinases that
+    # were specified for the qc template (rather than taken from source well)
+    if (my $cassette = $well->qc_template_well_cassette) {
+        $info->{cassette_new} = $cassette->cassette->name;
+    }
+    if (my $backbone = $well->qc_template_well_backbone) {
+        $info->{backbone_new} = $backbone->backbone->name;
+    }
+    if (my @recombinases = $well->qc_template_well_recombinases->all) {
+        # FIXME: what if some recombinases from source and some from template?
+        $info->{recombinase_new} = join ", ", map { $_->recombinase_id } @recombinases;
+    }
+
+    return;
 }
 
 1;
