@@ -27,6 +27,12 @@ sub pspec_qc_template_from_wells {
     };
 }
 
+=head2 create_qc_template_wells
+
+Create a qc_template plate along with its wells.
+Insert eng_seq_params for each qc template well.
+
+=cut
 sub create_qc_template_from_wells {
 	my ( $model, $params ) = @_;
 
@@ -98,6 +104,11 @@ sub create_qc_template_from_wells {
     return $template;
 }
 
+=head2 qc_template_display_data
+
+Generate data for display of qc_template plates.
+
+=cut
 sub qc_template_display_data {
     my ( $model, $template, $species ) = @_;
 
