@@ -3,8 +3,6 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Util::QCTemplates qw( create_qc_template_from_wells );
 use LIMS2::Test;
-use Try::Tiny;
-use IO::File;
 
 use strict;
 
@@ -40,10 +38,10 @@ Code to run before every test
 
 =cut
 
-sub before : Test(setup)
-{
+sub before : Test(setup) {
+
     #diag("running before test");
-};
+}
 
 =head2 after
 
@@ -51,11 +49,10 @@ Code to run after every test
 
 =cut
 
-sub after  : Test(teardown)
-{
-    #diag("running after test");
-};
+sub after : Test(teardown) {
 
+    #diag("running after test");
+}
 
 =head2 startup
 
@@ -63,10 +60,10 @@ Code to run before all tests for the whole test class
 
 =cut
 
-sub startup : Test(startup)
-{
+sub startup : Test(startup) {
+
     #diag("running before all tests");
-};
+}
 
 =head2 shutdown
 
@@ -74,10 +71,10 @@ Code to run after all tests for the whole test class
 
 =cut
 
-sub shutdown  : Test(shutdown)
-{
+sub shutdown : Test(shutdown) {
+
     #diag("running after all tests");
-};
+}
 
 =head2 all_tests
 
@@ -101,4 +98,3 @@ Sajith Perera
 1;
 
 __END__
-
