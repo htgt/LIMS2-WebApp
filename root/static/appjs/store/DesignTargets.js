@@ -20,6 +20,7 @@ Ext.define('DesignTargetsApp.store.DesignTargets', {
 
 
     proxy: {
+        timeout : 300000,
         type: 'rest',
         url: url_for_data,
         headers: {'Content-Type': 'application/json'},

@@ -396,19 +396,52 @@ sub get_design_targets_data {
     use Smart::Comments;
     ## $species
 
+
+    # WARN('start get data');
+
+    my $project = "Core";
+    my @genes_list_results = $schema->resultset('Project')->search({
+            sponsor_id        => "$project",
+    });
+
+    my @genes_list;
+    foreach my $row (@genes_list_results) {
+        my $gene = $row->gene_id;
+        push(@genes_list, $gene);
+    };
+
+    # print "GENE COUNT: ". scalar(@genes_list) . "\n";
+
+    my $genes_list_ref = \@genes_list;
+
+    # WARN('end get data');
+
+
+
+
     # need to import the gene list to use
-    my @gene_list = ['Ggt1', 'Ggt2', 'Ggt3', 'Ggt4', 'Ggt5', 'Ggt6', 'Ggt7', 'Ggt8', 'Ggt9', 'Ggt10'];
+    # my $genes_list_ref  = ['MGI:3647788', 'MGI:2385184', 'MGI:1913321', 'MGI:2181366', 'MGI:1913317', 'MGI:1918932', 'MGI:103241', 'MGI:1921720', 'MGI:1914453', 'MGI:3779175', 'MGI:1916376', 'MGI:103250', 'MGI:3608324', 'MGI:1916222', 'MGI:3712219', 'MGI:1915776', 'MGI:1915229', 'MGI:1347064', 'MGI:1859607', 'MGI:1913570'];
+
+
+
+
 
     my @dt_results = $schema->resultset('DesignTarget')->search({
             species_id        => "$species",
-            marker_symbol     => {
-                '-in' => @gene_list
+            gene_id     => {
+                '-in' => $genes_list_ref
             }
     });
 
-     my $design_data = bulk_designs_for_design_targets( $schema, \@dt_results, $species );
+
+    # WARN('start design_data');
+
+    my $design_data = bulk_designs_for_design_targets( $schema, \@dt_results, $species );
+
+    # WARN('end design_data');
 
 
+    # WARN('start crispr_data');
     my @report_data;
     for my $dt ( @{ \@dt_results } ) {
         my %data;
@@ -420,35 +453,68 @@ sub get_design_targets_data {
 
         push @report_data, \%data;
     }
-
-    ### @report_data
+    # WARN('end crispr_data');
+    ## @report_data
 
     my @dt;
-    foreach my $row (@dt_results) {
+    foreach my $row (@report_data) {
+        my $designs = $row->{'designs'};
+        my $design_count = scalar @$designs;
+        my $crisprs = $row->{'crisprs'};
+        my $crisprs_count = scalar @$crisprs;
         push(@dt, {
-            id => $row->id,
-            marker_symbol => $row->marker_symbol,
-            ensembl_gene_id => $row->ensembl_gene_id,
-            ensembl_exon_id => $row->ensembl_exon_id,
-            exon_size => $row->exon_size,
-            exon_rank => $row->exon_rank,
-            canonical_transcript => $row->canonical_transcript,
-            # species_id => $row->species_id,
-            assembly_id => $row->assembly_id,
-            build_id => $row->build_id,
-            chr_id => $row->chr_id,
-            chr_start => $row->chr_start,
-            chr_end => $row->chr_end,
-            chr_strand => $row->chr_strand,
-            automatically_picked => $row->automatically_picked,
-            comment => $row->comment,
-            gene_id => $row->gene_id,
+            id => $row->{'design_target'}->id,
+            marker_symbol => $row->{'design_target'}->marker_symbol,
+            ensembl_gene_id => $row->{'design_target'}->ensembl_gene_id,
+            ensembl_exon_id => $row->{'design_target'}->ensembl_exon_id,
+            exon_size => $row->{'design_target'}->exon_size,
+            exon_rank => $row->{'design_target'}->exon_rank,
+            canonical_transcript => $row->{'design_target'}->canonical_transcript,
+            species_id => $row->{'design_target'}->species_id,
+            assembly_id => $row->{'design_target'}->assembly_id,
+            build_id => $row->{'design_target'}->build_id,
+            chr_id => $row->{'design_target'}->chr_id,
+            chr_start => $row->{'design_target'}->chr_start,
+            chr_end => $row->{'design_target'}->chr_end,
+            chr_strand => $row->{'design_target'}->chr_strand,
+            automatically_picked => $row->{'design_target'}->automatically_picked,
+            comment => $row->{'design_target'}->comment,
+            gene_id => $row->{'design_target'}->gene_id,
+            design_count => $design_count,
+            designs => join( q{, }, @$designs),
+            crisprs => $crisprs_count,
         } );
-
+            # print "@$crisprs\n";
     }
 
+
+
+    # my @dt;
+    # foreach my $row (@dt_results) {
+    #     push(@dt, {
+    #         id => $row->id,
+    #         marker_symbol => $row->marker_symbol,
+    #         ensembl_gene_id => $row->ensembl_gene_id,
+    #         ensembl_exon_id => $row->ensembl_exon_id,
+    #         exon_size => $row->exon_size,
+    #         exon_rank => $row->exon_rank,
+    #         canonical_transcript => $row->canonical_transcript,
+    #         # species_id => $row->species_id,
+    #         assembly_id => $row->assembly_id,
+    #         build_id => $row->build_id,
+    #         chr_id => $row->chr_id,
+    #         chr_start => $row->chr_start,
+    #         chr_end => $row->chr_end,
+    #         chr_strand => $row->chr_strand,
+    #         automatically_picked => $row->automatically_picked,
+    #         comment => $row->comment,
+    #         gene_id => $row->gene_id,
+    #     } );
+
+    # }
+
     ## @dt
-        
+
     return @dt;
 }
 

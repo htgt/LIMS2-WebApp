@@ -21,6 +21,7 @@ sub view_design_targets :Path( '/user/view_design_targets' ) :Args(0) {
 
     $c->stash( template => 'user/pool/DesignTargetsLoader.tt');
 #    return $c->res->redirect( $c->uri_for('/user/XepAppLoader') );
+    return;
 }
 
 =head1 AUTHOR
