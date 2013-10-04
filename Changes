@@ -1,5 +1,15 @@
 {{$NEXT}}
 
+0.106     2013-10-04 08:25:44 Europe/London
+
+    Added ability to create qc_template plates from crispr plates.
+    Added code to generate eng_seq_params for crispr template wells.
+    Modified view of qc_template plates to show crispr data where appropriate.
+    Refactored code dealing with qc_template plates into util module.
+    Bugfix: error when looking at qc_template plate where its wells do not have a source well.
+    Speed up loading of qc_template pages.
+
+
 0.105     2013-09-20 11:31:32 Europe/London
 
     Added pass_lrpcr option on the dropdown of the targeting pass column.
