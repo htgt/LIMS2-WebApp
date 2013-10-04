@@ -27,6 +27,9 @@ sub design_targets_list_GET {
     use Smart::Comments;
     my ( $self, $c ) = @_;
 
+    # $c->log->warn('start');
+
+
     ## $self
     $c->assert_user_roles('read');
 
@@ -37,17 +40,13 @@ sub design_targets_list_GET {
     # my $species = shift;
     ## $species
 
-    my (@dt_data) = get_design_targets_data(
+    my @dt_data = get_design_targets_data(
         $model,
         $c->session->{selected_species}
     );
 
-    # my @plate_well_data = $model->get_design_targets_data(
-    #     $plate_name,
-    #     $c->session->{selected_species}
-    # );
-    ## @dt_data
 
+    # $c->log->warn('end');
 
     return $self->status_ok( $c, entity => \@dt_data );
 

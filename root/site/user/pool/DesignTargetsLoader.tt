@@ -6,7 +6,6 @@
 %]
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
 <script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
-
 <script type="text/javascript" charset="utf-8">
 console.log("We are now in DesignTargetsApp" );
 </script>
@@ -15,6 +14,7 @@ console.log("We are now in DesignTargetsApp" );
   <h1>Design Targets Report</h1>
 </div>
 
+<div id="SelectProjectDiv"></div>
 <div id="DesignTargetsDiv"></div>
 
 <!--

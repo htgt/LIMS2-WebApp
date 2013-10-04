@@ -8,7 +8,7 @@ Ext.define('DesignTargetsApp.model.DesignTarget', {
         'exon_size',
         'exon_rank',
         'canonical_transcript',
-        'species_id',
+        // 'species_id',
         // 'assembly_id',
         'build_id',
         'chr_id',
@@ -16,8 +16,11 @@ Ext.define('DesignTargetsApp.model.DesignTarget', {
         'chr_end',
         'chr_strand',
         'automatically_picked',
-        'comment',
-        'gene_id'
+        // 'comment',
+        'gene_id',
+        'design_count',
+        'designs',
+        'crisprs'
     ],
     // proxy: {
     //     type: 'ajax',

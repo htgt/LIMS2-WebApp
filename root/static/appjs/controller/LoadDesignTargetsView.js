@@ -6,9 +6,9 @@ Ext.define('DesignTargetsApp.controller.LoadDesignTargetsView', {
     init: function() {
         console.log('Controller: Initialized Design Targets View');
         this.control({
-        'container > panel': {
-            render: this.onPanelRendered
-        }
+            'container > panel': {
+                render: this.onPanelRendered
+            }
         });
     },
 
