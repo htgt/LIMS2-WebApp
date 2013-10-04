@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.104';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.106';
 }
 ## use critic
 
@@ -12,10 +12,10 @@ use warnings FATAL => 'all';
 use Sub::Exporter -setup => {
     exports => [
         qw(
-            fetch_design_eng_seq_params
-            fetch_well_eng_seq_params
-            add_display_id
+            generate_well_eng_seq_params
             generate_genbank_for_qc_well
+            fetch_well_eng_seq_params
+            generate_crispr_eng_seq_params
           )
     ]
 };
@@ -26,10 +26,61 @@ use LIMS2::Exception;
 use EngSeqBuilder;
 use JSON;
 use Data::Dumper;
+use Hash::MoreUtils qw( slice_def );
+
+sub pspec_generate_eng_seq_params {
+	return {
+        plate_name  => { validate => 'existing_plate_name', optional => 1 },
+        well_name   => { validate => 'well_name', optional => 1 },
+        well_id     => { validate => 'integer', rename => 'id', optional => 1 },
+        cassette    => { validate => 'existing_cassette', optional => 1 },
+        backbone    => { validate => 'existing_backbone', optional => 1 },
+        recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
+	}
+}
+
+sub generate_well_eng_seq_params{
+    my ( $model, $params ) = @_;
+	my $validated_params = $model->check_params( $params, pspec_generate_eng_seq_params );
+
+    my $well = $model->retrieve_well( { slice_def $validated_params, qw( plate_name well_name id ) } );
+    DEBUG("Generate eng seq params for well: $well ");
+
+    my $design = $well->design;
+    # If there is no design then the well may be linked to a crispr well
+    # in that case call a seperate method to generate this type of eng seq
+    unless ( $design ) {
+        my $crispr = $well->crispr;
+        LIMS2::Exception->throw( 'Can not produce eng seq params for well that has'
+                . ' neither a design or crispr ancestor' )
+            unless $crispr;
+
+        return generate_crispr_eng_seq_params( $well, $crispr, $validated_params );
+    }
+
+    my $design_data = $design->as_hash;
+
+    # Infer stage from plate type information
+    my $plate_type_descr = $well->plate->type->description;
+    my $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
+
+    my $design_params = fetch_design_eng_seq_params($design_data);
+
+    my $input_params = {slice_def $validated_params, qw( cassette backbone recombinase targeted_trap)};
+    $input_params->{is_allele} = 1 if $stage eq 'allele';
+    $input_params->{design_type} = $design_data->{type};
+    $input_params->{design_cassette_first} = $design_data->{cassette_first};
+
+    my ($method,$well_params) = fetch_well_eng_seq_params($well, $input_params );
+
+    my $eng_seq_params = { %$design_params, %$well_params };
+    add_display_id($stage, $eng_seq_params);
+
+    return $method, $well->id, $eng_seq_params;
+}
 
 sub fetch_design_eng_seq_params{
-	my ($design) = @_;
-
+	my $design = shift;
 	my %locus_for;
     my @not_found;
 
@@ -38,8 +89,9 @@ sub fetch_design_eng_seq_params{
 		$locus_for{$locus_type} = $oligo->{locus} or push @not_found ,$locus_type;
 	}
 
-    if(@not_found){
-    	die "No design oligo loci found for design ".$design->{id}." oilgos ".(join ", ", @not_found);
+    if( @not_found ) {
+        LIMS2::Exception->throw( "No design oligo loci found for design "
+                . $design->{id} . " oilgos " . ( join ", ", @not_found ) );
     }
 
 	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type});
@@ -217,6 +269,38 @@ sub generate_genbank_for_qc_well{
     $seq_io->write_seq( $seq );
 
     return;
+}
+
+=head2 generate_crispr_eng_seq_params
+
+Generate eng seq params for a crispr vector.
+The vector is just a backbone with a crispr, nothing more.
+The source well will be linked to a crispr, and not a design.
+
+=cut
+sub generate_crispr_eng_seq_params {
+    my ( $well, $crispr, $input_params ) = @_;
+    my $params = {slice_def $input_params, qw( cassette backbone )};
+    LIMS2::Exception->throw( 'Can not specify a cassette for crispr well' ) if $params->{cassette};
+
+    my $backbone = $params->{backbone};
+	unless ($backbone) {
+		my $well_backbone = $well->backbone;
+        LIMS2::Exception->throw( "No backbone found for well $well" ) unless $well_backbone;
+        $backbone = $well_backbone;
+	}
+
+    my $method = 'crispr_vector_seq';
+    my $display_id = $backbone . '#' . $crispr->id;
+    my %eng_seq_params = (
+        crispr_seq => $crispr->vector_seq,
+        backbone   => { name => $backbone },
+        display_id => $display_id,
+        crispr_id  => $crispr->id,
+        species    => lc($crispr->species_id),
+    );
+
+    return $method, $well->id, \%eng_seq_params;
 }
 
 1;

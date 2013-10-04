@@ -1,16 +1,15 @@
 package LIMS2::WebApp::Controller::User::BrowseTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseTemplates::VERSION = '0.104';
+    $LIMS2::WebApp::Controller::User::BrowseTemplates::VERSION = '0.106';
 }
 ## use critic
 
 use Moose;
 use LIMS2::WebApp::Pageset;
-use JSON;
 use Try::Tiny;
-use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::EngSeqParams qw(generate_genbank_for_qc_well);
+use LIMS2::Model::Util::QCTemplates qw(qc_template_display_data);
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -86,64 +85,16 @@ sub view :Path( '/user/view_template' ) :Args(0) {
     }
 
     my $template = $c->model('Golgi')->retrieve_qc_template( $c->request->params );
-    my @related_runs = $template->qc_runs;
-    my @run_ids = map { $_->id } @related_runs;
+    my @run_ids = map{ $_->id } $template->qc_runs->all;
 
-    my @well_info;
-    foreach my $well ($template->qc_template_wells){
-        my $info;
-        $info->{id} = $well->id;
-        $info->{well_name} = $well->name;
-
-        my $es_params = decode_json($well->qc_eng_seq->params);
-        $info->{cassette} = $es_params->{insertion} ? $es_params->{insertion}->{name}
-                                                    : $es_params->{u_insertion}->{name};
-
-        $info->{backbone} = $es_params->{backbone} ? $es_params->{backbone}->{name}
-                                                   : undef;
-
-        $info->{recombinase} = $es_params->{recombinase} ? join ", ", @{$es_params->{recombinase}}
-                                                         : undef;
-
-        # Store as *_new the cassette, backbone and recombinases that
-        # were specified for the qc template (rather than taken from source well)
-	    if (my $cassette = $well->qc_template_well_cassette){
-	    	$info->{cassette_new} = $cassette->cassette->name;
-	    }
-	    if (my $backbone = $well->qc_template_well_backbone){
-	    	$info->{backbone_new} = $backbone->backbone->name;
-	    }
-	    if (my @recombinases = $well->qc_template_well_recombinases->all){
-	    	# FIXME: what if some recombinases from source and some from template?
-	    	$info->{recombinase_new} = join ", ", map { $_->recombinase_id } @recombinases;
-	    }
-
-	    my $genes;
-        if (my $source = $well->source_well){
-        	$info->{source_plate} = $source->plate->name;
-        	$info->{source_well} = $source->name;
-        	$info->{design_id} = $source->design->id;
-        	my @gene_ids      = uniq map { $_->gene_id } $source->design->genes;
-		my @gene_symbols;
-		foreach my $gene_id ( @gene_ids ) {
-			$genes = $c->model('Golgi')->search_genes(
-                { search_term => $gene_id, species =>  $c->session->{selected_species} } );
-
-            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
-		}
-        	$info->{gene_ids} = join q{/}, @gene_ids;
-            $info->{gene_symbols} = join q{/}, @gene_symbols;
-        }
-
-        push @well_info, $info;
-    }
-
-    my @sorted = sort { $a->{well_name} cmp $b->{well_name} } @well_info;
+    my ( $well_data, $crispr )
+        = qc_template_display_data( $c->model('Golgi'), $template, $c->session->{selected_species} );
 
     $c->stash(
-        qc_template  => $template,
-        wells        => \@sorted,
-        qc_run_ids   => \@run_ids,
+        qc_template => $template,
+        wells       => $well_data,
+        qc_run_ids  => \@run_ids,
+        crispr      => $crispr,
     );
 
     return;

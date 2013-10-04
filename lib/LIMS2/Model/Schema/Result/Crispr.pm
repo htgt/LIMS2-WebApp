@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.104';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.106';
 }
 ## use critic
 
@@ -238,6 +238,12 @@ sub reverse_order_seq {
     my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => substr( $self->seq, 1,19) );
     my $revcomp_seq = $bio_seq->revcom->seq;
     return "AAAC" . $revcomp_seq;
+}
+
+sub vector_seq {
+    my ( $self ) = @_;
+
+    return substr( $self->seq, 0, 20 );
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

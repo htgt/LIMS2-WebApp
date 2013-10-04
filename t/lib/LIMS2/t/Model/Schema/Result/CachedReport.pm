@@ -2,6 +2,8 @@ package LIMS2::t::Model::Schema::Result::CachedReport;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Schema::Result::CachedReport;
+use LIMS2::Model::DBConnect;
+use DateTime;
 
 use strict;
 
@@ -82,10 +84,37 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Tests
 {
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::CachedReport not implemented yet';
-    ok(1, "Test of LIMS2::Model::Schema::Result::CachedReport");
+    my $user = 'lims2';
+    my $connect_entry = 'LIMS2_DB';
+    my $rs = 'CachedReport';
+    my $now = DateTime->now();
+    my $expiry = DateTime->now(); $expiry->add(hours => 8);
+    my %record = (
+	'id' => 'Cached Report 1                     ',
+	'report_class' => 'class',
+	'params' => 'param1, param2',
+	'complete' => 1,
+    );
+
+    note("Accessing the schema");
+    ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
+    like($ENV{$connect_entry}, qr/test/i, '$ENV{LIMS2_DB} is accessing a test database');
+    my $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
+    ok ($schema, 'LIMS2::Model::DBConnect connected to the database');
+    my $resultset = $schema->resultset( $rs );
+    ok ($resultset, 'LIMS2::Model::DBConnect obtained result set');
+
+    note("CRUD tests");
+    lives_ok { $resultset->search(\%record)->delete() } 'Deleting any existing test records';
+    lives_ok { $resultset->create( { %record, 'expires' => $expiry } ) } 'Inserting new record'; # only add in 'expires' on insert
+    my $stored = $resultset->search(\%record)->single();
+    ok ($stored, 'Obtained record from the database');
+    my %inflated = $stored->get_columns();
+    cmp_deeply( \%inflated, { %record, expires => ignore() }, 'Verifying retrieved record matches inserted values');
+    lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
+
 }
 
 =head1 AUTHOR

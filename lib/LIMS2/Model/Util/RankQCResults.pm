@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::RankQCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::RankQCResults::VERSION = '0.104';
+    $LIMS2::Model::Util::RankQCResults::VERSION = '0.106';
 }
 ## use critic
 
@@ -17,14 +17,15 @@ use Sub::Exporter -setup => {
 # Higher score = "better" result
 
 my %RANKING = (
-    'na'        => 8, #na should never be overwritten
-    'pass'      => 7,
-    'passb'     => 6,
-    'fail'      => 5,
-    'present'   => 4,
-    'absent'    => 3,
-    'potential' => 2,
-    'fa'        => 1, #Failed Assay
+    'na'            => 9, #na should never be overwritten
+    'pass_lrpcr'    => 8,
+    'pass'          => 7,
+    'passb'         => 6,
+    'fail'          => 5,
+    'present'       => 4,
+    'absent'        => 3,
+    'potential'     => 2,
+    'fa'            => 1, #Failed Assay
 );
 
 # Fetch rank for a string, WellGenotypingResult or WellTargetingPass
