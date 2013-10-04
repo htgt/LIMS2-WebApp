@@ -102,7 +102,7 @@ sub _build_allele_config {
     my ($self) = @_;
 
     my $conf_parser = Config::Scoped->new(
-        file     => 'conf/allele_determination.conf',
+        file     => $ENV{LIMS2_ALLELE_DET_CONFIG},
         warnings => { permissions => 'off' }
     );
 
