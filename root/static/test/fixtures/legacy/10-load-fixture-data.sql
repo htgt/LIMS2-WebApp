@@ -942,6 +942,7 @@ INSERT INTO designs VALUES (39779, 'EUCTV01416', 722, '2007-03-02 00:00:00', 'co
 INSERT INTO designs VALUES (36279, 'EUCTV01134', 722, '2007-03-02 00:00:00', 'conditional', -1, 'yes', 'ENSMUST00000030102', 'Mouse');
 INSERT INTO designs VALUES (238810, 'EUCTV16157', 971, '2009-06-05 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000045633', 'Mouse');
 INSERT INTO designs VALUES (192872, 'EUCTV10804', 800, '2008-08-30 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000003527', 'Mouse');
+INSERT INTO designs VALUES (372441, 'MEH', 800, '2008-08-30 00:00:00', 'conditional', -1, 'not done', '', 'Mouse' );
 
 
 --

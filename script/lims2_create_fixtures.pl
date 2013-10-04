@@ -190,12 +190,12 @@ print STDERR "Connected to database...\n";
 for my $resultsource_name (@{$config{fixtures}})
 {
     print "Dumping result source '$resultsource_name'\n";
-    dump_table($schema, $resultsource_name);
+    dump_table($resultsource_name);
 }
 
 sub dump_table
 {
-    my ($schema, $resultsource_name) = @_;
+    my ($resultsource_name) = @_;
     my $filename = $config{destination} . '/' . $resultsource_name . '.csv';
 
     my $schemasource = $schema->source( $resultsource_name );
@@ -211,13 +211,14 @@ sub dump_table
 
     # Open output file
     print "Opening file '$filename' for output\n";
+    ## no critic(RequireBriefOpen)
     open my $fh, ">:encoding(utf8)", $filename or die 'Open error for ' . $filename . ": $!";
     # Column names
     $csv->print ($fh, \@column_names);
 
-    while (my $record = $rs->next) {
+    while (my $rec = $rs->next) {
 	my @row;
-	my %inflated = $record->get_columns();
+	my %inflated = $rec->get_columns();
 	print Data::Dumper->Dump([\%inflated], [qw(*inflated)]);
 	for my $key (@column_names) {
 	    push(@row, $inflated{$key});
@@ -225,6 +226,9 @@ sub dump_table
 	$csv->print ($fh, \@row);
     }
     close $fh or die 'Close error for ' . $filename . ": $!";
+    ## use critic
+
+    return;
 }
 
 sub syntax {
