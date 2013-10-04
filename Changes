@@ -1,3 +1,6 @@
+0.107     2013-10-04 14:50:11 Europe/London
+	Added Allele determination module in Model Utils and displayed output in genotyping QC grid.
+
 0.106     2013-10-04 08:25:44 Europe/London
 
     Added ability to create qc_template plates from crispr plates.
