@@ -30,26 +30,26 @@ sub load_csv_file {
             LIMS2::Exception::Validation->throw( "Invalid csv file: $_" );
         }
     };
+
     try {
         for my $csv_record (@{$csv_data}) {
-            #print STDERR Data::Dumper->Dump([\$csv_record], [qw(csv_record)]);
-            my $record = $rs->update_or_new({%{$csv_record}});
-            #print STDERR Data::Dumper->Dump([\$record], [qw(record)]);
+            my $rec = $rs->update_or_new({%{$csv_record}});
 
-            if ($record->in_storage) {
+            if ($rec->in_storage) {
                 # the record was updated
             }
             else {
                 # the record is not yet in the database, let's insert it
-                $record->insert;
+                $rec->insert;
             }
         }
     }
     catch {
         DEBUG( "Error inserting csv data ('" . $_ . "')" );
-        print STDERR "Error inserting csv data: '" . $_ . "'\n" ;
-        LIMS2::Exception::Validation->throw( $_ );
-    }
+        LIMS2::Exception::Validation->throw( "Error inserting csv data: " $_ );
+    };
+
+    return;
 }
 
 1;

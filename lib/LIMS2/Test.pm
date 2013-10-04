@@ -277,6 +277,7 @@ sub load_static_files {
         load_files( $path . '/' . $table . '.csv' );
     }
 
+    return;
 }
 
 sub load_dynamic_files {
@@ -310,6 +311,8 @@ sub load_dynamic_files {
     for my $table (@reference_tables) {
         load_files( $path . '/' . $table . '.csv' );
     }
+
+    return;
 }
 
 sub load_files {
@@ -372,6 +375,8 @@ sub load_files {
             BAIL_OUT( "Unhandled file extension '." . $ext . "'" );
         }
     }
+
+    return;
 }
 
 sub _load_fixtures {
