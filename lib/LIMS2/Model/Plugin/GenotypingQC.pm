@@ -12,8 +12,6 @@ use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
-use Smart::Comments;
-
 requires qw( schema check_params throw );
 
 sub pspec_update_genotyping_qc_data{
