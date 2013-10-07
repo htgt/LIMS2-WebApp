@@ -1,3 +1,6 @@
+0.108     2013-10-07 10:00:41 Europe/London
+	Moved allele determination config into opt/t87/global/conf
+
 0.107     2013-10-04 14:50:11 Europe/London
 	Added Allele determination module in Model Utils and displayed output in genotyping QC grid.
 

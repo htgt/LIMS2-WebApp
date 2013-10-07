@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::AlleleDetermination;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::AlleleDetermination::VERSION = '0.107';
+    $LIMS2::Model::Util::AlleleDetermination::VERSION = '0.108';
 }
 ## use critic
 
@@ -108,7 +108,7 @@ sub _build_allele_config {
     my ($self) = @_;
 
     my $conf_parser = Config::Scoped->new(
-        file     => 'conf/allele_determination.conf',
+        file     => $ENV{LIMS2_ALLELE_DET_CONFIG},
         warnings => { permissions => 'off' }
     );
 
