@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.108';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.109';
 }
 ## use critic
 
@@ -651,7 +651,7 @@ sub pspec_qc_template_from_plate{
 		id                     => { validate => 'integer', optional => 1},
 		species                => { validate => 'existing_species', optional => 1},
 		template_name          => { validate => 'plate_name'},
-		cassette               => { validate => 'existing_final_cassette', optional => 1},
+		cassette               => { validate => 'existing_cassette', optional => 1},
 		backbone               => { validate => 'existing_backbone', optional => 1},
 		recombinase            => { validate => 'existing_recombinase', optional => 1},
 		phase_matched_cassette => { optional => 1 },
