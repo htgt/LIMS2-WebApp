@@ -11,33 +11,6 @@ SET client_min_messages = warning;
 SET search_path = public, pg_catalog;
 
 --
--- Data for Name: species; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO species VALUES ('Mouse');
-INSERT INTO species VALUES ('Human');
-
-
---
--- Data for Name: assemblies; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO assemblies VALUES ('NCBIM34', 'Mouse');
-INSERT INTO assemblies VALUES ('NCBIM36', 'Mouse');
-INSERT INTO assemblies VALUES ('NCBIM37', 'Mouse');
-INSERT INTO assemblies VALUES ('GRCm38', 'Mouse');
-INSERT INTO assemblies VALUES ('GRCh37', 'Human');
-
-
---
--- Data for Name: bac_libraries; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO bac_libraries VALUES ('129', 'Mouse');
-INSERT INTO bac_libraries VALUES ('black6', 'Mouse');
-
-
---
 -- Data for Name: bac_clones; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -408,57 +381,6 @@ INSERT INTO bac_clones VALUES (432844, 'RP24-90F9', 'black6');
 INSERT INTO bac_clones VALUES (435031, 'RP24-96N8', 'black6');
 INSERT INTO bac_clones VALUES (435886, 'RP24-99I18', 'black6');
 INSERT INTO bac_clones VALUES (436005, 'RP24-99O15', 'black6');
-
-
---
--- Data for Name: chromosomes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO chromosomes VALUES (3172, 'Mouse', '1');
-INSERT INTO chromosomes VALUES (3173, 'Mouse', '2');
-INSERT INTO chromosomes VALUES (3174, 'Mouse', '3');
-INSERT INTO chromosomes VALUES (3175, 'Mouse', '4');
-INSERT INTO chromosomes VALUES (3176, 'Mouse', '5');
-INSERT INTO chromosomes VALUES (3177, 'Mouse', '6');
-INSERT INTO chromosomes VALUES (3178, 'Mouse', '7');
-INSERT INTO chromosomes VALUES (3179, 'Mouse', '8');
-INSERT INTO chromosomes VALUES (3180, 'Mouse', '9');
-INSERT INTO chromosomes VALUES (3181, 'Mouse', '10');
-INSERT INTO chromosomes VALUES (3182, 'Mouse', '11');
-INSERT INTO chromosomes VALUES (3183, 'Mouse', '12');
-INSERT INTO chromosomes VALUES (3184, 'Mouse', '13');
-INSERT INTO chromosomes VALUES (3185, 'Mouse', '14');
-INSERT INTO chromosomes VALUES (3186, 'Mouse', '15');
-INSERT INTO chromosomes VALUES (3187, 'Mouse', '16');
-INSERT INTO chromosomes VALUES (3188, 'Mouse', '17');
-INSERT INTO chromosomes VALUES (3189, 'Mouse', '18');
-INSERT INTO chromosomes VALUES (3190, 'Mouse', '19');
-INSERT INTO chromosomes VALUES (3191, 'Mouse', 'X');
-INSERT INTO chromosomes VALUES (3192, 'Mouse', 'Y');
-INSERT INTO chromosomes VALUES (3193, 'Human', '1');
-INSERT INTO chromosomes VALUES (3194, 'Human', '2');
-INSERT INTO chromosomes VALUES (3195, 'Human', '3');
-INSERT INTO chromosomes VALUES (3196, 'Human', '4');
-INSERT INTO chromosomes VALUES (3197, 'Human', '5');
-INSERT INTO chromosomes VALUES (3198, 'Human', '6');
-INSERT INTO chromosomes VALUES (3199, 'Human', '7');
-INSERT INTO chromosomes VALUES (3200, 'Human', '8');
-INSERT INTO chromosomes VALUES (3201, 'Human', '9');
-INSERT INTO chromosomes VALUES (3202, 'Human', '10');
-INSERT INTO chromosomes VALUES (3203, 'Human', '11');
-INSERT INTO chromosomes VALUES (3204, 'Human', '12');
-INSERT INTO chromosomes VALUES (3205, 'Human', '13');
-INSERT INTO chromosomes VALUES (3206, 'Human', '14');
-INSERT INTO chromosomes VALUES (3207, 'Human', '15');
-INSERT INTO chromosomes VALUES (3208, 'Human', '16');
-INSERT INTO chromosomes VALUES (3209, 'Human', '17');
-INSERT INTO chromosomes VALUES (3210, 'Human', '18');
-INSERT INTO chromosomes VALUES (3211, 'Human', '19');
-INSERT INTO chromosomes VALUES (3212, 'Human', '20');
-INSERT INTO chromosomes VALUES (3213, 'Human', '21');
-INSERT INTO chromosomes VALUES (3214, 'Human', '22');
-INSERT INTO chromosomes VALUES (3215, 'Human', 'X');
-INSERT INTO chromosomes VALUES (3216, 'Human', 'Y');
 
 
 --
@@ -835,166 +757,6 @@ SELECT pg_catalog.setval('bac_clones_id_seq', 436043, true);
 
 
 --
--- Data for Name: backbones; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO backbones VALUES (1849, 'R3R4_pBR_amp', 'medium copy number vector backbone from gap repair plasmid from recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way');
-INSERT INTO backbones VALUES (1850, 'L3L4_pZero_DTA_spec', '', '', '');
-INSERT INTO backbones VALUES (1851, 'L3L4_pZero_DTA_kan_for_norcomm', '', '', '');
-INSERT INTO backbones VALUES (1852, 'L3L4_pZero_kan', 'high copy number, no DTA', 'KanR', '3-way');
-INSERT INTO backbones VALUES (1853, 'L3L4_pD223_spec', 'high copy number with DTA', 'spec R', '3-way');
-INSERT INTO backbones VALUES (1854, 'R3R4_pBR_DTA _Bsd_amp', 'medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way');
-INSERT INTO backbones VALUES (1855, 'L3L4_pD223_DTA_T_spec', 'high copy number with DTA', 'spec R', '3-way');
-INSERT INTO backbones VALUES (1856, 'L3L4_pD223_DTA_spec', 'high copy number with DTA; version w/o E. Coli transcription terminator on L4 side; used in a ver limited number of experiments', 'spec R', '3-way');
-INSERT INTO backbones VALUES (1857, 'R3R4_pBR_DTA+_Bsd_amp', 'medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.', 'AmpR', '2-way');
-INSERT INTO backbones VALUES (1858, 'L3L4_pZero_DTA_kan', 'high copy number; standard backbone for promoterless vectors', 'KanR', '3-way');
-INSERT INTO backbones VALUES (1859, 'L4L3_pD223_DTA_spec', 'INVERTED R3 and R4 Gateway Sites with Linearization close to DTA pA, potentially compromising negative selection', 'spec R', '3-way');
-
-
---
--- Name: backbones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('backbones_id_seq', 1859, true);
-
-
---
--- Data for Name: cassette_function; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO cassette_function VALUES ('ko_first', NULL, true, NULL, NULL, true);
-INSERT INTO cassette_function VALUES ('ko_first_promoter', true, true, NULL, NULL, true);
-INSERT INTO cassette_function VALUES ('ko_first_promoterless', false, true, NULL, NULL, true);
-INSERT INTO cassette_function VALUES ('reporter_only', NULL, true, NULL, true, NULL);
-INSERT INTO cassette_function VALUES ('reporter_only_promoter', true, true, NULL, true, NULL);
-INSERT INTO cassette_function VALUES ('reporter_only_promoterless', false, true, NULL, true, NULL);
-INSERT INTO cassette_function VALUES ('cre_knock_in', NULL, NULL, true, NULL, NULL);
-
-
---
--- Data for Name: cassettes; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO cassettes VALUES (10424, 'pL1L2_GT2_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 2, false, true, 'puro');
-INSERT INTO cassettes VALUES (10426, 'L1L2_GT0_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', '', true, 'L1L2_GT?_T2A_H2BVenus_PGKPuro_delRsrII_NO_DTA', 2, false, false, 'puro');
-INSERT INTO cassettes VALUES (10427, 'B1B2_frame2_Norcomm', '', false, 'B1B2_frame?_Norcomm', 2, false, false, NULL);
-INSERT INTO cassettes VALUES (10429, 'ZEN-Ub1', '', true, NULL, NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10430, 'L1L2_NorCOMM', '', false, NULL, NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10431, 'B1B2_framek_Norcomm', '', false, 'B1B2_frame?_Norcomm', -1, false, false, NULL);
-INSERT INTO cassettes VALUES (10432, 'L1L2_6XOspnEnh_Bact_P', '', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10433, 'pL1L2_GT2_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 2, false, true, 'puro');
-INSERT INTO cassettes VALUES (10434, 'L1L2_st1', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 1, false, false, 'neo');
-INSERT INTO cassettes VALUES (10436, 'pL1L2_GT0_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', NULL, false, false, 'puro');
-INSERT INTO cassettes VALUES (10437, 'L1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10439, 'L1L2_NTARU-2', '', false, 'L1L2_NTARU-?', 2, false, false, NULL);
-INSERT INTO cassettes VALUES (10441, 'L1L2_NTARU-K', '', false, 'L1L2_NTARU-?', -1, false, false, NULL);
-INSERT INTO cassettes VALUES (10442, 'B1B2_frame1_Norcomm', '', false, 'B1B2_frame?_Norcomm', 1, false, false, NULL);
-INSERT INTO cassettes VALUES (10445, 'pL1L2_GT0_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', NULL, false, true, 'puro');
-INSERT INTO cassettes VALUES (10446, 'L1L2_st2', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', 2, false, false, 'neo');
-INSERT INTO cassettes VALUES (10475, 'pL1L2_GTK_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', -1, false, false, 'puro');
-INSERT INTO cassettes VALUES (10418, 'Ifitm2_intron_L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false, 'neo');
-INSERT INTO cassettes VALUES (10421, 'L1L2_GT0_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', NULL, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10422, 'L1L2_GT2_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 2, true, false, 'neo');
-INSERT INTO cassettes VALUES (10447, 'pR6K_R1R2_ZP', 'Standard intermediate vector cassette', false, NULL, NULL, false, false, 'zeo');
-INSERT INTO cassettes VALUES (10448, 'L1L2_hubi_P', '', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10449, 'L1L2_GOHANU', '', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10450, 'L1L2_Pgk_PM', 'PGK promoter driving mutant  neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10451, 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro', '', false, 'pL1L2_GT?_LF2A_nEGFPO_T2A_CreERT_puro', 1, false, true, 'puro');
-INSERT INTO cassettes VALUES (10452, 'pL1L2_GT0_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', NULL, false, false, 'puro');
-INSERT INTO cassettes VALUES (10453, 'pL1L2_GT0_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', NULL, false, true, 'puro');
-INSERT INTO cassettes VALUES (10454, 'pL1L2_GT1_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false, 'puro');
-INSERT INTO cassettes VALUES (10455, 'L1L2_Pgk_P', 'PGK promoter driving WT neo.  Frame indendent IRES driven lacZ reporter', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10460, 'pL1L2_GT1_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 1, false, false, 'puro');
-INSERT INTO cassettes VALUES (10466, 'L1L2_Del_BactPneo_FFL_TAG1A', '', true, NULL, NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10467, 'V5_Flag_biotin', '', true, NULL, NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10469, 'pL1L2_GT1_T2A_iCre_KI_Puro', '', true, 'pL1L2_GT?_T2A_iCre_KI_Puro', 1, false, true, 'puro');
-INSERT INTO cassettes VALUES (10472, 'B1B2_frame0_Norcomm', '', false, 'B1B2_frame?_Norcomm', NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10473, 'pL1L2_GT2_T2A_H2BCherry_Puro_delRsrll_NO_DTA', '', true, 'pL1L2_GT?_T2A_H2BCherry_Puro_delRsrll_NO_DTA', 2, false, false, 'puro');
-INSERT INTO cassettes VALUES (10474, 'pL1L2_GT2_LF2A_H2BCherry_Puro', '', true, 'pL1L2_GT?_LF2A_H2BCherry_Puro', 1, false, false, 'puro');
-INSERT INTO cassettes VALUES (10417, 'Ty1_EGFP', '', true, NULL, NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10419, 'L1L2_st0', 'Secretory Trap versions  of EUCOMM vector with CD4 Tm domain for targeting secreted/TM loci', false, 'L1L2_st?', NULL, false, false, 'neo');
-INSERT INTO cassettes VALUES (10420, 'L1L2_NTARU-1', '', false, 'L1L2_NTARU-?', 1, false, false, NULL);
-INSERT INTO cassettes VALUES (10423, 'L1L2_NTARU-0', '', false, 'L1L2_NTARU-?', NULL, false, false, NULL);
-INSERT INTO cassettes VALUES (10425, 'Ifitm2_intron_L1L2_GT1_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', 1, true, false, 'neo');
-INSERT INTO cassettes VALUES (10428, 'Ifitm2_intron_R1_ZeoPheS_R2', '', false, NULL, NULL, true, false, 'zeo');
-INSERT INTO cassettes VALUES (10435, 'L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true, false, 'neo');
-INSERT INTO cassettes VALUES (10438, 'L1L2_GT2_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 2, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10440, 'L1L2_gtk', 'K frame contains Kozak/ATG for insertions after 5'' UTR''s', false, 'L1L2_gt?', -1, true, false, 'neo');
-INSERT INTO cassettes VALUES (10443, 'pL1L2_GT1_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 1, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10444, 'L1L2_gt0', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', NULL, true, false, 'neo');
-INSERT INTO cassettes VALUES (10456, 'L1L2_GT1_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', 1, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10457, 'pL1L2_GT0_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', NULL, true, true, 'bsd');
-INSERT INTO cassettes VALUES (10458, 'pL1L2_frt15_BetactinBSD_frt14_neo_Rox', '', true, NULL, NULL, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10459, 'Ifitm2_intron_L1L2_GTK_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', -1, true, false, 'neo');
-INSERT INTO cassettes VALUES (10461, 'Ifitm2_intron_L1L2_GT0_LF2A_LacZ_BetactP_neo', '', true, 'Ifitm2_intron_L1L2_GT?_LF2A_LacZ_BetactP_neo', NULL, true, false, 'neo');
-INSERT INTO cassettes VALUES (10462, 'L1L2_GT1_LF2A_LacZ_BetactP_neo', '', true, 'L1L2_GT?_LF2A_LacZ_BetactP_neo', 1, true, false, 'neo');
-INSERT INTO cassettes VALUES (10463, 'L1L2_GTK_LacZ_BSD', '', false, 'L1L2_GT?_LacZ_BSD', -1, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10464, 'L1L2_gt0_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', NULL, true, false, 'neo');
-INSERT INTO cassettes VALUES (10465, 'L1L2_Bact_EM7', '', true, NULL, NULL, true, false, 'neo');
-INSERT INTO cassettes VALUES (10468, 'L1L2_Bact_P', 'Human beta actin promoter driving WT neo.  Frame independent IRES driven LacZ reporter', true, NULL, NULL, true, false, 'neo');
-INSERT INTO cassettes VALUES (10470, 'L1L2_gt1_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 1, true, false, 'neo');
-INSERT INTO cassettes VALUES (10471, 'L1L2_gt1', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 1, true, false, 'neo');
-INSERT INTO cassettes VALUES (10476, 'L1L2_gt2_Del_LacZ', '', false, 'L1L2_gt?_Del_LacZ', 2, true, false, 'neo');
-INSERT INTO cassettes VALUES (10477, 'L1L2_gt2', 'Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo', false, 'L1L2_gt?', 2, true, false, 'neo');
-INSERT INTO cassettes VALUES (10478, 'pL1L2_GT2_bsd_frt15_neo_barcode', '', true, 'pL1L2_GT?_bsd_frt15_neo_barcode', 2, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10479, 'pL1L2_frt_BetactP_neo_frt_lox', '', true, NULL, NULL, true, false, 'neo');
-INSERT INTO cassettes VALUES (10480, 'pL1L2_GT0_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd', NULL, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10481, 'pL1L2_GT1_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd', 1, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10482, 'pL1L2_GT2_DelLacZ_bsd', '', false, 'pL1L2_GT?_DelLacZ_bsd', 2, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10483, 'pL1L2_frt_EF1a_BSD_frt_lox', '', true, NULL, NULL, true, false, 'bsd');
-INSERT INTO cassettes VALUES (10484, 'pL1L2GT0_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', NULL, false, true, 'neo');
-INSERT INTO cassettes VALUES (10485, 'pL1L2GT1_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', 1, false, true, 'neo');
-INSERT INTO cassettes VALUES (10486, 'pL1L2GT2_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', 2, false, true, 'neo');
-INSERT INTO cassettes VALUES (10487, 'pL1L2GTK_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', '', true, 'pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox', -1, false, true, 'neo');
-INSERT INTO cassettes VALUES (10488, 'pL1L2_Del_BactPneo_FFL', '', true, NULL, NULL, false, false, 'neo');
-
-
---
--- Name: cassettes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('cassettes_id_seq', 10488, true);
-
-
---
--- Data for Name: cell_lines; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO cell_lines VALUES (1, 'oct4:puro iCre/iFlpO #8');
-INSERT INTO cell_lines VALUES (2, 'oct4:puro iCre/iFlpO #11');
-INSERT INTO cell_lines VALUES (3, 'JM8.F6');
-INSERT INTO cell_lines VALUES (8, 'JM8.N4');
-INSERT INTO cell_lines VALUES (9, 'JM8A3.N1');
-
-
---
--- Name: cell_lines_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('cell_lines_id_seq', 9, true);
-
-
---
--- Data for Name: colony_count_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO colony_count_types VALUES ('blue_colonies');
-INSERT INTO colony_count_types VALUES ('white_colonies');
-INSERT INTO colony_count_types VALUES ('picked_colonies');
-INSERT INTO colony_count_types VALUES ('total_colonies');
-INSERT INTO colony_count_types VALUES ('remaining_unstained_colonies');
-
-
---
--- Data for Name: crispr_loci_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO crispr_loci_types VALUES ('Exonic');
-INSERT INTO crispr_loci_types VALUES ('Intronic');
-INSERT INTO crispr_loci_types VALUES ('Intergenic');
-
-
---
 -- Data for Name: crisprs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -1041,44 +803,6 @@ SELECT pg_catalog.setval('crispr_off_targets_id_seq', 154, true);
 --
 
 SELECT pg_catalog.setval('crisprs_id_seq', 113, true);
-
-
---
--- Data for Name: design_comment_categories; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO design_comment_categories VALUES (1, 'Alternative variant not targeted');
-INSERT INTO design_comment_categories VALUES (2, 'NMD rescue');
-INSERT INTO design_comment_categories VALUES (3, 'Possible reinitiation');
-INSERT INTO design_comment_categories VALUES (4, 'Non protein coding locus');
-INSERT INTO design_comment_categories VALUES (5, 'Conserved elements');
-INSERT INTO design_comment_categories VALUES (6, 'Recovery design');
-INSERT INTO design_comment_categories VALUES (7, 'No NMD');
-INSERT INTO design_comment_categories VALUES (8, 'Other');
-INSERT INTO design_comment_categories VALUES (9, 'No BACs available');
-INSERT INTO design_comment_categories VALUES (10, 'Warning!');
-INSERT INTO design_comment_categories VALUES (11, 'Upstream domain unaffected');
-INSERT INTO design_comment_categories VALUES (12, 'Overlapping locus');
-
-
---
--- Name: design_comment_categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('design_comment_categories_id_seq', 12, true);
-
-
---
--- Data for Name: design_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO design_types VALUES ('conditional');
-INSERT INTO design_types VALUES ('deletion');
-INSERT INTO design_types VALUES ('insertion');
-INSERT INTO design_types VALUES ('artificial-intron');
-INSERT INTO design_types VALUES ('intron-replacement');
-INSERT INTO design_types VALUES ('cre-bac');
-INSERT INTO design_types VALUES ('gibson');
 
 
 --
@@ -1218,6 +942,7 @@ INSERT INTO designs VALUES (39779, 'EUCTV01416', 722, '2007-03-02 00:00:00', 'co
 INSERT INTO designs VALUES (36279, 'EUCTV01134', 722, '2007-03-02 00:00:00', 'conditional', -1, 'yes', 'ENSMUST00000030102', 'Mouse');
 INSERT INTO designs VALUES (238810, 'EUCTV16157', 971, '2009-06-05 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000045633', 'Mouse');
 INSERT INTO designs VALUES (192872, 'EUCTV10804', 800, '2008-08-30 00:00:00', 'conditional', -1, 'not done', 'ENSMUST00000003527', 'Mouse');
+INSERT INTO designs VALUES (372441, 'MEH', 800, '2008-08-30 00:00:00', 'conditional', -1, 'not done', '', 'Mouse' );
 
 
 --
@@ -1246,24 +971,6 @@ INSERT INTO design_comments VALUES (2476, 8, 55708, 'disrupts Znf_ZZ domain', fa
 --
 
 SELECT pg_catalog.setval('design_comments_id_seq', 2478, true);
-
-
---
--- Data for Name: design_oligo_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO design_oligo_types VALUES ('G5');
-INSERT INTO design_oligo_types VALUES ('U5');
-INSERT INTO design_oligo_types VALUES ('U3');
-INSERT INTO design_oligo_types VALUES ('D5');
-INSERT INTO design_oligo_types VALUES ('D3');
-INSERT INTO design_oligo_types VALUES ('G3');
-INSERT INTO design_oligo_types VALUES ('5F');
-INSERT INTO design_oligo_types VALUES ('5R');
-INSERT INTO design_oligo_types VALUES ('EF');
-INSERT INTO design_oligo_types VALUES ('ER');
-INSERT INTO design_oligo_types VALUES ('3F');
-INSERT INTO design_oligo_types VALUES ('3R');
 
 
 --
@@ -3068,18 +2775,6 @@ SELECT pg_catalog.setval('designs_id_seq', 1, false);
 
 
 --
--- Data for Name: gene_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO gene_types VALUES ('MGI', 'MGI Accession ID ( Mouse Genome Informatics )', false);
-INSERT INTO gene_types VALUES ('HGNC', 'HGNC ID ( HUGO Gene Nomenclature Committee )', false);
-INSERT INTO gene_types VALUES ('enhancer-region', 'Enhancer Region ID', true);
-INSERT INTO gene_types VALUES ('CPG-island', 'CPG Island ID', true);
-INSERT INTO gene_types VALUES ('miRBase', 'miRNA id ( miRBase )', false);
-INSERT INTO gene_types VALUES ('marker-symbol', 'Gene marker symbol', false);
-
-
---
 -- Data for Name: gene_design; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -3185,33 +2880,6 @@ INSERT INTO gene_design VALUES ('MGI:1891374', 44475, 722, '2012-07-26 07:19:47.
 INSERT INTO gene_design VALUES ('MGI:1344380', 48412, 722, '2012-07-26 07:19:51.027614', 'MGI');
 INSERT INTO gene_design VALUES ('MGI:1923531', 51049, 722, '2012-07-26 07:19:54.283557', 'MGI');
 INSERT INTO gene_design VALUES ('MGI:1915861', 221035, 722, '2012-07-26 07:19:57.644492', 'MGI');
-
-
---
--- Data for Name: genotyping_primer_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO genotyping_primer_types VALUES ('GF1');
-INSERT INTO genotyping_primer_types VALUES ('GF2');
-INSERT INTO genotyping_primer_types VALUES ('GF3');
-INSERT INTO genotyping_primer_types VALUES ('GF4');
-INSERT INTO genotyping_primer_types VALUES ('GR1');
-INSERT INTO genotyping_primer_types VALUES ('GR2');
-INSERT INTO genotyping_primer_types VALUES ('GR3');
-INSERT INTO genotyping_primer_types VALUES ('GR4');
-INSERT INTO genotyping_primer_types VALUES ('LF1');
-INSERT INTO genotyping_primer_types VALUES ('LF2');
-INSERT INTO genotyping_primer_types VALUES ('LF3');
-INSERT INTO genotyping_primer_types VALUES ('LR1');
-INSERT INTO genotyping_primer_types VALUES ('LR2');
-INSERT INTO genotyping_primer_types VALUES ('LR3');
-INSERT INTO genotyping_primer_types VALUES ('PNFLR1');
-INSERT INTO genotyping_primer_types VALUES ('PNFLR2');
-INSERT INTO genotyping_primer_types VALUES ('PNFLR3');
-INSERT INTO genotyping_primer_types VALUES ('EX3');
-INSERT INTO genotyping_primer_types VALUES ('EX32');
-INSERT INTO genotyping_primer_types VALUES ('EX5');
-INSERT INTO genotyping_primer_types VALUES ('EX52');
 
 
 --
@@ -4533,72 +4201,10 @@ SELECT pg_catalog.setval('genotyping_primers_id_seq', 116764, true);
 
 
 --
--- Data for Name: genotyping_result_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO genotyping_result_types VALUES ('loadel');
-INSERT INTO genotyping_result_types VALUES ('loacrit');
-INSERT INTO genotyping_result_types VALUES ('loatam');
-INSERT INTO genotyping_result_types VALUES ('loxp');
-INSERT INTO genotyping_result_types VALUES ('lacz');
-INSERT INTO genotyping_result_types VALUES ('neo');
-INSERT INTO genotyping_result_types VALUES ('en2-int');
-INSERT INTO genotyping_result_types VALUES ('cre');
-INSERT INTO genotyping_result_types VALUES ('puro');
-INSERT INTO genotyping_result_types VALUES ('chry');
-INSERT INTO genotyping_result_types VALUES ('chr1');
-INSERT INTO genotyping_result_types VALUES ('chr8a');
-INSERT INTO genotyping_result_types VALUES ('chr11b');
-INSERT INTO genotyping_result_types VALUES ('bsd');
-
-
---
--- Data for Name: mutation_design_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO mutation_design_types VALUES ('ko_first', 'conditional');
-INSERT INTO mutation_design_types VALUES ('ko_first', 'artificial-intron');
-INSERT INTO mutation_design_types VALUES ('ko_first', 'intron-replacement');
-INSERT INTO mutation_design_types VALUES ('deletion', 'deletion');
-INSERT INTO mutation_design_types VALUES ('insertion', 'insertion');
-INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'conditional');
-INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'artificial-intron');
-INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'intron-replacement');
-INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'deletion');
-INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'insertion');
-INSERT INTO mutation_design_types VALUES ('cre_knock_in', 'cre-bac');
-
-
---
 -- Name: new_chromosomes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
 SELECT pg_catalog.setval('new_chromosomes_id_seq', 3216, true);
-
-
---
--- Data for Name: plate_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO plate_types VALUES ('CRISPR', 'Crisprs');
-INSERT INTO plate_types VALUES ('DESIGN', 'Design Instances');
-INSERT INTO plate_types VALUES ('INT', 'Intermediate Vectors');
-INSERT INTO plate_types VALUES ('POSTINT', 'Post-intermediate Vectors');
-INSERT INTO plate_types VALUES ('FINAL', 'Final Vectors');
-INSERT INTO plate_types VALUES ('FINAL_PICK', 'Final vector picks');
-INSERT INTO plate_types VALUES ('CREBAC', 'Cre/BAC Vectors');
-INSERT INTO plate_types VALUES ('DNA', 'DNA QC');
-INSERT INTO plate_types VALUES ('EP', 'Electroporation');
-INSERT INTO plate_types VALUES ('EP_PICK', 'ES Cells');
-INSERT INTO plate_types VALUES ('XEP', 'Electroporation With Recombinase Applied');
-INSERT INTO plate_types VALUES ('XEP_PICK', 'ES Cells With Recombinase Applied');
-INSERT INTO plate_types VALUES ('XEP_POOL', 'ES Cells Backup Vial');
-INSERT INTO plate_types VALUES ('SEP', 'Second Allele Electroporation');
-INSERT INTO plate_types VALUES ('SEP_PICK', 'Second Allele ES Cells');
-INSERT INTO plate_types VALUES ('SEP_POOL', 'Second Allele Backup Vial');
-INSERT INTO plate_types VALUES ('SFP', 'Second Allele Freezer Plates');
-INSERT INTO plate_types VALUES ('FP', 'Freezer Plates');
-INSERT INTO plate_types VALUES ('PIQ', 'Pre-injection distribution QC plate type');
 
 
 --
@@ -4855,45 +4461,6 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 --
 
 SELECT pg_catalog.setval('plates_id_seq', 1043, true);
-
-
---
--- Data for Name: primer_band_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO primer_band_types VALUES ('gr1');
-INSERT INTO primer_band_types VALUES ('gr2');
-INSERT INTO primer_band_types VALUES ('gr3');
-INSERT INTO primer_band_types VALUES ('gr4');
-INSERT INTO primer_band_types VALUES ('gf1');
-INSERT INTO primer_band_types VALUES ('gf2');
-INSERT INTO primer_band_types VALUES ('gf3');
-INSERT INTO primer_band_types VALUES ('gf4');
-INSERT INTO primer_band_types VALUES ('tr_pcr');
-
-
---
--- Data for Name: process_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO process_types VALUES ('create_di', 'Create design instance');
-INSERT INTO process_types VALUES ('cre_bac_recom', 'Cre/BAC recombineering');
-INSERT INTO process_types VALUES ('int_recom', 'Intermediate recombineering');
-INSERT INTO process_types VALUES ('2w_gateway', 'Two-way gateway');
-INSERT INTO process_types VALUES ('3w_gateway', 'Three-way gateway');
-INSERT INTO process_types VALUES ('legacy_gateway', 'Legacy gateway, model old data from HTGT');
-INSERT INTO process_types VALUES ('rearray', 'rearray wells');
-INSERT INTO process_types VALUES ('dna_prep', 'dna prep');
-INSERT INTO process_types VALUES ('recombinase', 'apply recombinase');
-INSERT INTO process_types VALUES ('clone_pick', 'Pick from EP plate');
-INSERT INTO process_types VALUES ('clone_pool', 'Pool es cells into backup vial');
-INSERT INTO process_types VALUES ('first_electroporation', 'First (standard) electroporation');
-INSERT INTO process_types VALUES ('second_electroporation', 'Second electroporation in double targetted cells');
-INSERT INTO process_types VALUES ('freeze', 'Create freezer plate well');
-INSERT INTO process_types VALUES ('final_pick', 'Create Final Pick plate');
-INSERT INTO process_types VALUES ('xep_pool', 'Pool multiple EP_PICK wells into an XEP well');
-INSERT INTO process_types VALUES ('create_crispr', 'Create crispr');
-INSERT INTO process_types VALUES ('dist_qc', 'Pre-injection distribution QC PIQ create process');
 
 
 --
@@ -9893,15 +9460,6 @@ INSERT INTO process_output_well VALUES (1288, 1862);
 
 
 --
--- Data for Name: recombinases; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO recombinases VALUES ('Cre');
-INSERT INTO recombinases VALUES ('Flp');
-INSERT INTO recombinases VALUES ('Dre');
-
-
---
 -- Data for Name: process_recombinase; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
@@ -10013,18 +9571,6 @@ INSERT INTO process_recombinase VALUES (1281, 'Dre', 1);
 --
 
 SELECT pg_catalog.setval('processes_id_seq', 1324, true);
-
-
---
--- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO sponsors VALUES ('Core', 'Homozygous - Core');
-INSERT INTO sponsors VALUES ('Syboss', 'Homozygous - Syboss');
-INSERT INTO sponsors VALUES ('Pathogens', 'Homozygous - Pathogens');
-INSERT INTO sponsors VALUES ('Cre Knockin', 'EUCOMMTools-Cre Knockin');
-INSERT INTO sponsors VALUES ('Cre BAC', 'EUCOMMTools-Cre BAC');
-INSERT INTO sponsors VALUES ('Human', 'Homozygous - Human');
 
 
 --
@@ -10200,43 +9746,6 @@ INSERT INTO qc_test_results VALUES (71, '534EE22E-3DBF-22E4-5EF2-1234F5CB64C7', 
 --
 
 SELECT pg_catalog.setval('qc_test_results_id_seq', 71, true);
-
-
---
--- Data for Name: recombineering_result_types; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO recombineering_result_types VALUES ('pcr_u');
-INSERT INTO recombineering_result_types VALUES ('pcr_d');
-INSERT INTO recombineering_result_types VALUES ('pcr_g');
-INSERT INTO recombineering_result_types VALUES ('rec_u');
-INSERT INTO recombineering_result_types VALUES ('rec_d');
-INSERT INTO recombineering_result_types VALUES ('rec_g');
-INSERT INTO recombineering_result_types VALUES ('rec_ns');
-INSERT INTO recombineering_result_types VALUES ('rec_result');
-
-
---
--- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO roles VALUES (502, 'admin');
-INSERT INTO roles VALUES (503, 'edit');
-INSERT INTO roles VALUES (504, 'read');
-
-
---
--- Name: roles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
---
-
-SELECT pg_catalog.setval('roles_id_seq', 504, true);
-
-
---
--- Data for Name: species_default_assembly; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
---
-
-INSERT INTO species_default_assembly VALUES ('Mouse', 'GRCm38');
 
 
 --

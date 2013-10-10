@@ -34,21 +34,36 @@ Using this type of view we can present more data more quickly. There is no pagin
         The first section of assay data comprises the following columns:
 
         <pre>
-        chromosome fail
-        targeting pass
-        targeting puro pass
+        Allele Info
+        Chromosome fail
+        Targeting pass
+        Targeting puro pass
         TRPCR band
         LRPCR bands (gr3, gr4, gf3, gf4) </pre>
+    <p>
+        The Allele Info column is further sub-divided; displaying the additional fields used to make the workflow and allele type determinations.
+        Only the Workflow column is displayed initially, the remainder are hidden but can be revealed by the user. The columns are:
+
+        <pre>
+        Type
+        Full allele determination
+        Stage
+        Workflow
+        Assay pattern
+        Vector cassette resistance
+        Vector recombinase id
+        First EP recombinase id
+        </pre>
     <p>
         The remaining assay data is presented as a single column for each assay, listing the call for that well.
         If you want to drill down to the underlying data you can reveal the hidden columns. The columns available for each assay are:
     </p>
 
         <pre>
-        call
-        copy number
-        range
-        confidence </pre>
+        Call
+        Copy number
+        Range
+        Confidence </pre>
 
     <p>
     To reveal columns hover over a column heading (any one will do) until a menu arrow appears towards the right of the column. Click the arrow and select the assay you want to drill down into. On the submenu, check the columns you want to reveal. Please be patient - depending on you browser the reveal may take a second or two per column.

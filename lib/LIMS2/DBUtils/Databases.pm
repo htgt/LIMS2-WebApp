@@ -564,7 +564,7 @@ sub create_application_role_structure
 	    ;
 
 	    -- ------------------------------
-	    -- Grant membershit to 'lims2' for all users
+	    -- Grant membership to 'lims2' for all users
 	    -- who haven't yet got it
 	    -- ------------------------------
 
@@ -585,7 +585,7 @@ sub create_application_role_structure
 
 
 	    -- ------------------------------
-	    -- Grant membershit from 'lims2_webapp' for all users
+	    -- Grant membership from 'lims2_webapp' for all users
 	    -- who haven't yet got it
 	    -- ------------------------------
 
