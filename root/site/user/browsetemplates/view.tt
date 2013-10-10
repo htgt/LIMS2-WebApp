@@ -16,7 +16,7 @@
             [% qc_template.name %]
           </td>
         </tr>
-        
+
         <tr>
           <td>
             <strong>Created At</strong>
@@ -57,7 +57,7 @@
          [% FOR run IN qc_run_ids %]
          <strong>[% run %]</strong> <br>
          [% END %]
-        Are you sure you want to delete template <strong>[% qc_template.name %]</strong> 
+        Are you sure you want to delete template <strong>[% qc_template.name %]</strong>
         and all related QC runs?
         [% ELSE %]
         Are you sure you want to delete template <strong>[% qc_template.name %]</strong>?
@@ -75,7 +75,7 @@
 
 
 <h2>Wells</h2>
-<p> Cassettes, backbones and recombinases that were applied to create this template are shown 
+<p> Cassettes, backbones and recombinases that were applied to create this template are shown
 in bold </p>
 <table class="table table-striped table-bordered">
   <thead>
@@ -86,10 +86,14 @@ in bold </p>
       <th>Design ID</th>
       <th>Gene ID</th>
       <th>Gene Name</th>
+      [% IF crispr %]
+        <th>Crispr ID</th>
+        <th>Crispr Seq</th>
+      [% END %]
       <th>Cassette</th>
       <th>Backbone</th>
       <th>Recombinase</th>
-      <th>Genbank File</th>            
+      <th>Genbank File</th>
     </tr>
   </thead>
   <tbody>
@@ -101,27 +105,32 @@ in bold </p>
       <td>[% well.design_id %]</td>
       <td>[% well.gene_ids %]</td>
       <td>[% well.gene_symbols %]</td>
-      
+
+      [% IF crispr %]
+        <td>[% well.crispr_id %]</td>
+        <td>[% well.crispr_seq %]</td>
+      [% END %]
+
       [% IF well.cassette_new %]
       <td><strong>[% well.cassette_new %]</strong></td>
       [% ELSE %]
       <td>[% well.cassette %]</td>
       [% END %]
-      
+
       [% IF well.backbone_new %]
       <td><strong>[% well.backbone_new %]</strong></td>
       [% ELSE %]
       <td>[% well.backbone %]</td>
       [% END %]
-      
+
       [% IF well.recombinase_new %]
       <td><strong>[% well.recombinase_new %]</strong></td>
       [% ELSE %]
       <td>[% well.recombinase %]</td>
       [% END %]
-      
+
       <td>  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/view_template', { genbank_well_id => well.id, id => qc_template.id } ) %]">
-            <i class="icon-download-alt icon-white"></i>Download</a> </td>          
+            <i class="icon-download-alt icon-white"></i>Download</a> </td>
     </tr>
     [%- END %]
   </tbody>
