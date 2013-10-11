@@ -18,6 +18,7 @@ BEGIN {
         %STANDARD_INS_DEL_OLIGO_APPENDS
         %GIBSON_OLIGO_APPENDS
         %ADDITIONAL_PLATE_REPORTS
+        %UCSC_BLAT_DB
     );
     our %EXPORT_TAGS = ();
 }
@@ -193,6 +194,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             name   => 'Crispr Plate Order Sheet',
         }
     ],
+);
+
+const our %UCSC_BLAT_DB => (
+    mouse => 'mm10',
+    human => 'hg19',
 );
 
 1;
