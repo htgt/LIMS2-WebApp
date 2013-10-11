@@ -16,6 +16,7 @@ BEGIN {
         %ARTIFICIAL_INTRON_OLIGO_APPENDS
         %STANDARD_KO_OLIGO_APPENDS
         %STANDARD_INS_DEL_OLIGO_APPENDS
+        %GIBSON_OLIGO_APPENDS
         %ADDITIONAL_PLATE_REPORTS
     );
     our %EXPORT_TAGS = ();
@@ -165,6 +166,15 @@ const our %STANDARD_INS_DEL_OLIGO_APPENDS => (
     "G3" => "CCACTGGCCGTCGTTTTACA",
     "U5" => "AAGGCGCATAACGATACCAC",
     "D3" => "CCGCCTACTGCGACTATAGA",
+);
+
+const our %GIBSON_OLIGO_APPENDS => (
+    "5F" => "AACGACGGCCAGTGAATTCGAT",
+    "5R" => "TATCGTTATGCGCCTTGAT",
+    "EF" => "TAGTCGCAGTAGGCGGAAGA",
+    "ER" => "AGCCAATTGGCGGCCGAAGA",
+    "3F" => "CTGAGCTAGCCATCAGTGAT",
+    "3R" => "CCATGATTACGCCAAGCTTGAT",
 );
 
 # When creating additional report classes override the additional_report sub to return 1
