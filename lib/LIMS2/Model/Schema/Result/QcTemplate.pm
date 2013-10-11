@@ -188,7 +188,11 @@ sub parent_plate_type {
 
     my $first_well = $self->qc_template_wells->first;
 
-    return $first_well->source_well->plate->type_id;
+    if ( my $source_well = $first_well->source_well ) {
+        return $source_well->plate->type_id;
+    }
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

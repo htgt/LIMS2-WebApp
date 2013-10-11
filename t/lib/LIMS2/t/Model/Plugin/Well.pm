@@ -94,31 +94,6 @@ sub all_tests  : Tests
 
     my $well_data= test_data( 'well.yaml' );
 
-    note( "Testing well EngSeqParam generation");
-    {
-	throws_ok {
-	    model->generate_well_eng_seq_params({ well_id => 850 });
-	} qr/No cassette found for well/;
-
-	ok my ($method, $well_id, $params) = model->generate_well_eng_seq_params({ well_id => 1522 }),
-	    'generate_well_eng_seq_params for well 1522 should succeed';
-	is $well_id, 1522, 'correct source well id returned';
-	is $method, 'conditional_allele_seq', 'engseq method correct for well 1522';
-	is_deeply ($params, test_data('well_1522.yaml'), 'engseq params as expected for well 1522');
-
-	my %user_params = ( cassette => 'L1L2_GT2_LacZ_BSD', backbone => 'R3R4_pBR_amp', recombinase => ['Cre']);
-	ok my ($method2, $well_id2, $params2) = model->generate_well_eng_seq_params({ well_id => 850, %user_params }),
-	    'generate well_eng_seq_params for well 850 with user specified details should succeed';
-	is_deeply ($params2, test_data("well_850_user_params.yaml"),
-	    'engseq params as expected for well 850 with user specified params');
-	is $method2, 'conditional_vector_seq', 'engseq method correct for well 850';
-
-	ok my ($method3, $well_id3, $params3) = model->generate_well_eng_seq_params({ well_id => 848, %user_params }),
-	    'generate_well_eng_seq_params for well 848 should succeed';
-	is_deeply ($params3, test_data('well_848.yaml'), 'engseq params as expected for well 848');
-
-    }
-
     note( "Testing well creation" );
 
     {
@@ -404,6 +379,9 @@ sub all_tests  : Tests
 
 	ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
 	is $targeting_pass->result, 'pass', '..updated result is now pass';
+
+	ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass_lrpcr' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
+	is $targeting_pass->result, 'pass_lrpcr', '..updated result is now pass_lrpcr';
 
 	lives_ok {
 	    model->delete_well_targeting_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )

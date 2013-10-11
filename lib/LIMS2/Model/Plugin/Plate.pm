@@ -9,6 +9,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status parse_csv_file );
 use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_data );
+use LIMS2::Model::Util::QCTemplates qw( create_qc_template_from_wells );
 use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
 use Const::Fast;
@@ -200,7 +201,6 @@ sub check_xep_pool_wells {
     return \@revised_wells;
 }
 
-
 sub pspec_retrieve_plate {
     return {
         name => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
@@ -368,7 +368,11 @@ sub create_plate_csv_upload {
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
 
-    my $well_data = parse_csv_file( $well_data_fh, ['well_name', 'parent_plate', 'parent_well'] );
+    my $expected_csv_headers = $plate_data{type} eq 'SEP'
+        ? [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ]
+        : [ 'well_name', 'parent_plate', 'parent_well' ];
+
+    my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
 
     for my $datum ( @{$well_data} ) {
         merge_plate_process_data( $datum, \%plate_process_data );
@@ -435,47 +439,6 @@ sub rename_plate {
         if try { $self->retrieve_plate( { name => $validated_params->{new_name} } ) };
 
     return $plate->update( { name => $validated_params->{new_name} } );
-}
-
-sub pspec_qc_template_from_plate{
-	return{
-		name          => { validate => 'existing_plate_name', optional => 1},
-		id            => { validate => 'integer',             optional => 1},
-		species       => { validate => 'existing_species',    optional => 1},
-		template_name => { validate => 'plate_name'},
-		cassette      => { validate => 'existing_final_cassette',   optional => 1},
-		backbone      => { validate => 'existing_backbone',   optional => 1},
-		recombinase   => { validate => 'existing_recombinase', optional => 1},
-		phase_matched_cassette => { optional => 1 },
-	};
-}
-
-sub create_qc_template_from_plate {
-	my ( $self, $params ) = @_;
-
-    my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
-    $self->log->info( 'Creating qc template plate: ' . $validated_params->{template_name} );
-
-    my $plate = $self->retrieve_plate( { slice_def( $params, qw( name id species ) ) } );
-
-	my $well_hash;
-
-	foreach my $well ($plate->wells->all){
-		my $name = $well->name;
-        $well_hash->{$name}->{well_id} = $well->id;
-        foreach my $override qw(cassette recombinase backbone phase_matched_cassette) {
-        	$well_hash->{$name}->{$override} = $validated_params->{$override}
-                if exists $validated_params->{$override};
-        }
-	}
-
-    my $template = $self->create_qc_template_from_wells({
-		template_name => $params->{template_name},
-		species       => $plate->species_id,
-		wells         => $well_hash,
-	});
-
-	return $template;
 }
 
 1;
