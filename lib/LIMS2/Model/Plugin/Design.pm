@@ -358,6 +358,7 @@ sub list_candidate_designs_for_gene {
 sub pspec_search_gene_designs {
     return {
         search_term => { validate => 'non_empty_string' },
+        species     => { validate => 'existing_species' },
         page        => { validate => 'integer', optional => 1, default => 1 },
         pagesize    => { validate => 'integer', optional => 1, default => 50 },
         gene_type   => { validate => 'existing_gene_type', optional => 1 },
@@ -372,7 +373,8 @@ sub search_gene_designs {
     my $validated_params = $self->check_params( $params, $self->pspec_search_gene_designs );
 
     my %search = (
-        gene_id => { ilike => sanitize_like_expr( $validated_params->{ search_term } ) . "%" },
+        gene_id             => { ilike => sanitize_like_expr( $validated_params->{ search_term } ) . "%" },
+        'design.species_id' => $validated_params->{species},
     );
 
     # can optionally search just amoungst a specific gene id type ( e.g. MGI ID or HGNC ID )
