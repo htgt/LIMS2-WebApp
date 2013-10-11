@@ -2,6 +2,7 @@ package LIMS2::t::Model::Schema::Result::Cassette;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Schema::Result::Cassette;
+use LIMS2::Model::DBConnect;
 
 use strict;
 
@@ -82,10 +83,40 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Tests
 {
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::Cassette not implemented yet';
-    ok(1, "Test of LIMS2::Model::Schema::Result::Cassette");
+    my $user = 'lims2';
+    my $connect_entry = 'LIMS2_DB';
+    my $rs = 'Cassette';
+    my %record = (
+	'id' => 9999,
+	'name' => 'B1B2_alien',
+	'description' => '',
+	'promoter' => 1,
+	'phase_match_group' => 'L1L2_ALIEN',
+	'phase' => 1,
+	'conditional' => 1,
+	'cre' => 1,
+	'resistance' => 'no',
+    );
+
+    note("Accessing the schema");
+    ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
+    like($ENV{$connect_entry}, qr/test/i, '$ENV{LIMS2_DB} is accessing a test database');
+    my $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
+    ok ($schema, 'LIMS2::Model::DBConnect connected to the database');
+    my $resultset = $schema->resultset( $rs );
+    ok ($resultset, 'LIMS2::Model::DBConnect obtained result set');
+
+    note("CRUD tests");
+    lives_ok { $resultset->search(\%record)->delete() } 'Deleting any existing test records';
+    lives_ok { $resultset->create(\%record) } 'Inserting new record';
+    my $stored = $resultset->search(\%record)->single();
+    ok ($stored, 'Obtained record from the database');
+    my %inflated = $stored->get_columns();
+    cmp_deeply(\%record, \%inflated, 'Verifying retrieved record matches inserted values');
+    lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
+
 }
 
 =head1 AUTHOR

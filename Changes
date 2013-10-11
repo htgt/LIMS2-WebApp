@@ -1,5 +1,37 @@
 {{$NEXT}}
 
+0.109     2013-10-09 11:38:41 Europe/London
+
+    When making qc template plates you can specify a intermediate cassette, not just final cassette
+
+0.108     2013-10-07 10:00:41 Europe/London
+	Moved allele determination config into opt/t87/global/conf
+
+0.107     2013-10-04 14:50:11 Europe/London
+	Added Allele determination module in Model Utils and displayed output in genotyping QC grid.
+
+0.106     2013-10-04 08:25:44 Europe/London
+
+    Added ability to create qc_template plates from crispr plates.
+    Added code to generate eng_seq_params for crispr template wells.
+    Modified view of qc_template plates to show crispr data where appropriate.
+    Refactored code dealing with qc_template plates into util module.
+    Bugfix: error when looking at qc_template plate where its wells do not have a source well.
+    Speed up loading of qc_template pages.
+
+
+0.105     2013-09-20 11:31:32 Europe/London
+
+    Added pass_lrpcr option on the dropdown of the targeting pass column.
+
+0.104     2013-09-19 07:13:33 Europe/London
+
+    Bugfix: fixed error when creating SEP plate via csv upload.
+
+0.103     2013-09-09 16:36:57 Europe/London
+
+    Added to DNA plate view the already electroporated and child well list fieds and tests.
+
 0.102     2013-09-05 07:34:35 Europe/London
 
     Bugfix: error when submitting qc

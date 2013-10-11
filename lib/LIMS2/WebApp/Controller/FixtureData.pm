@@ -24,27 +24,28 @@ Catalyst Controller.
 
 =cut
 
-sub index :Path( '/test/fixtures' ) :Args(0) {
-    my ( $self, $c ) = @_;
+sub index :Path( '/test/fixtures' ) :Args() {
+    my ( $self, $c, @components ) = @_;
 
-    my $projectdir = $c->path_to('');
-    my $dir = $projectdir->subdir('root', 'static', 'test', 'fixtures');
-
-    my $files_ref = directory_listing($dir, '/static/test/fixtures');
-
-    $c->res->content_type('text/text-plain');
-    $c->res->body(join("\n", @{$files_ref}));
-
-    return;
+    my $base = '/static/test/fixtures';
+    return $self->generate_index($c, $base, @components );
 }
 
-sub index2 :Path( '/test/data' ) :Args(0) {
-    my ( $self, $c ) = @_;
+sub index2 :Path( '/test/data' ) :Args() {
+    my ( $self, $c, @components ) = @_;
+
+    my $base = '/static/test/data';
+    return $self->generate_index($c, $base, @components );
+}
+
+sub generate_index {
+    my ($self, $c, $base, @components ) = @_;
 
     my $projectdir = $c->path_to('');
-    my $dir = $projectdir->subdir('root', 'static', 'test', 'data');
-
-    my $files_ref = directory_listing($dir, '/static/test/data');
+    my $abs_dir = $projectdir->subdir('root', $base, @components);
+    my $path = join('/', $base, @components);
+    #print STDERR Data::Dumper->Dump([\@components], [qw(*components)]);
+    my $files_ref = directory_listing($abs_dir, $path);
 
     $c->res->content_type('text/text-plain');
     $c->res->body(join("\n", @{$files_ref}));

@@ -234,6 +234,12 @@ sub reverse_order_seq {
     return "AAAC" . $revcomp_seq;
 }
 
+sub vector_seq {
+    my ( $self ) = @_;
+
+    return substr( $self->seq, 0, 20 );
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

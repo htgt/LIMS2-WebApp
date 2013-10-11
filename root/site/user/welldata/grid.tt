@@ -8,6 +8,14 @@
                     {name: 'plate_name', type: 'string'},
                     {name: 'well', type: 'string'},
                     {name: 'gene_name', type: 'string'},
+                    {name: 'allele_type', type: 'string'},
+                    {name: 'allele_determination', type: 'string'},
+                    {name: 'ep_well_recombinase_id', type: 'string'},
+                    {name: 'final_pick_cassette_resistance', type: 'string'},
+                    {name: 'final_pick_recombinase_id', type: 'string'},
+                    {name: 'plate_type', type: 'string'},
+                    {name: 'workflow', type: 'string'},
+                    {name: 'assay_pattern', type: 'string'},
                     {name: 'accepted', type: 'string'},
                     {name: 'accepted_override', type: 'string'},
                     {name: 'gene_id', type: 'string'},
@@ -88,9 +96,33 @@
                 ]
             });
 
+            var call_types_lrpcr = Ext.create('Ext.data.Store', {
+                fields: ['call_label'],
+                data: [
+                {"call_label":"-"},
+                {"call_label":"pass_lrpcr"},
+                {"call_label":"pass"},
+                {"call_label":"passb"},
+                {"call_label":"fail"},
+                {"call_label":"fa"},
+                {"call_label":"potential"}, 
+                {"call_label":"present"},
+                {"call_label":"absent"},
+                {"call_label":"na"},
+                {"call_label":"reset"}
+                ]
+            });
+
             var call_types_targeting_combo = Ext.create('Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: call_types_targeting,
+                displayField: 'call_label',
+                forceSelection: true
+            });
+
+            var call_types_lrpcr_combo = Ext.create('Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: call_types_lrpcr,
                 displayField: 'call_label',
                 forceSelection: true
             });
@@ -139,10 +171,21 @@
                 {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true },
+                {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true },
                 {header: "Distribute", dataIndex: 'accepted', locked: true },
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true },
+                {header: "Allele Info", columns: [
+                    {header: "Type",                             dataIndex: 'allele_type',                    hidden: true },
+                    {header: "Full allele determination",        dataIndex: 'allele_determination',           hidden: true },
+                    {header: "Stage",                            dataIndex: 'plate_type',                     hidden: true },
+                    {header: "Workflow",                         dataIndex: 'workflow',                       hidden: false },
+                    {header: "Assay pattern",                    dataIndex: 'assay_pattern',                  hidden: true },
+                    {header: "Vector<br>cass resist",            dataIndex: 'final_pick_cassette_resistance', hidden: true },
+                    {header: "Vector<br>recombinase",            dataIndex: 'final_pick_recombinase_id',      hidden: true },
+                    {header: "First EP<br>recombinase",          dataIndex: 'ep_well_recombinase_id',         hidden: true },
+                ]},
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
-                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_targeting_combo},
+                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_lrpcr_combo},
                 {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo}, 
                 {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
                 {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo },
