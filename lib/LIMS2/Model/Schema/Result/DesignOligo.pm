@@ -170,6 +170,7 @@ use LIMS2::Model::Constants qw(
 %ARTIFICIAL_INTRON_OLIGO_APPENDS
 %STANDARD_KO_OLIGO_APPENDS
 %STANDARD_INS_DEL_OLIGO_APPENDS
+%GIBSON_OLIGO_APPENDS
 );
 
 sub as_hash {
@@ -209,6 +210,12 @@ my %OLIGO_STRAND_VS_DESIGN_STRAND = (
     "D5" => 1,
     "D3" => -1,
     "G3" => 1,
+    "5F" => 1,
+    "5R" => -1,
+    "EF" => 1,
+    "ER" => -1,
+    "3F" => 1,
+    "3R" => -1,
 );
 
 =head2 revcomp_seq
@@ -261,6 +268,10 @@ sub append_seq {
     elsif ( $design_type eq 'artificial-intron' || $design_type eq 'intron-replacement' ) {
         $append_seq = $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type }
             if exists $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type };
+    }
+    elsif ( $design_type eq 'gibson' ) {
+        $append_seq = $GIBSON_OLIGO_APPENDS{ $oligo_type }
+            if exists $GIBSON_OLIGO_APPENDS{ $oligo_type };
     }
     else {
         LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
