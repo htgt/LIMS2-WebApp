@@ -26,11 +26,11 @@ Loading other test classes at compile time
 
 =cut
 
-BEGIN
-{
+BEGIN {
+
     # compile time requirements
     #{REQUIRE_PARENT}
-};
+}
 
 =head2 before
 
@@ -38,10 +38,10 @@ Code to run before every test
 
 =cut
 
-sub before : Test(setup)
-{
+sub before : Test(setup) {
+
     #diag("running before test");
-};
+}
 
 =head2 after
 
@@ -49,11 +49,10 @@ Code to run after every test
 
 =cut
 
-sub after  : Test(teardown)
-{
-    #diag("running after test");
-};
+sub after : Test(teardown) {
 
+    #diag("running after test");
+}
 
 =head2 startup
 
@@ -61,10 +60,10 @@ Code to run before all tests for the whole test class
 
 =cut
 
-sub startup : Test(startup)
-{
+sub startup : Test(startup) {
+
     #diag("running before all tests");
-};
+}
 
 =head2 shutdown
 
@@ -72,10 +71,10 @@ Code to run after all tests for the whole test class
 
 =cut
 
-sub shutdown  : Test(shutdown)
-{
+sub shutdown : Test(shutdown) {
+
     #diag("running after all tests");
-};
+}
 
 =head2 all_tests
 
@@ -83,20 +82,17 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
-    my $user = 'lims2';
+sub all_tests : Tests {
+    my $user          = 'lims2';
     my $connect_entry = 'LIMS2_DB';
-    my $rs = 'QcTemplate';
-    my %record = (
-    );
+    my $rs            = 'QcTemplate';
+    my %record        = ();
 
     local $TODO = 'Test of LIMS2::Model::Schema::Result::QcTemplate not implemented yet';
-    ok(1, "Test of LIMS2::Model::Schema::Result::QcTemplate");
+    ok( 1, "Test of LIMS2::Model::Schema::Result::QcTemplate" );
 
     #note("Accessing the schema");
     #ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
-    #like($ENV{$connect_entry}, qr/test/i, '$ENV{LIMS2_DB} is accessing a test database');
     #my $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
     #ok ($schema, 'LIMS2::Model::DBConnect connected to the database');
     #my $resultset = $schema->resultset( $rs );
@@ -112,12 +108,6 @@ sub all_tests  : Tests
     #lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
 
 }
-
-=head1 AUTHOR
-
-Lars G. Erlandsen
-
-=cut
 
 ## use critic
 

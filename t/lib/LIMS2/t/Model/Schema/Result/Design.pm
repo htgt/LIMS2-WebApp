@@ -114,7 +114,6 @@ sub all_tests : Tests {
 
     note("Accessing the schema");
     ok( $ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up' );
-    like( $ENV{$connect_entry}, qr/test/i, '$ENV{LIMS2_DB} is accessing a test database' );
     my $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
     ok( $schema, 'LIMS2::Model::DBConnect connected to the database' );
 
