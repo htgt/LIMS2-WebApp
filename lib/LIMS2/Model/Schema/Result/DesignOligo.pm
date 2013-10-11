@@ -299,7 +299,16 @@ sub oligo_order_seq {
     my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $self->design_oligo_type_id };
     my $seq = $design_strand != $oligo_strand ? $self->revcomp_seq : $self->seq;
 
-    return $seq . $self->append_seq( $design_type );
+    my $oligo_seq;
+
+    # gibson oligos have the append on the 5' end
+    if ( $design_type eq 'gibson' ) {
+        $oligo_seq = $self->append_seq( $design_type ) . $seq;
+    }
+    # all other designs have appends on the 3' end of the oligo
+    else {
+        $oligo_seq = $seq . $self->append_seq( $design_type );
+    }
 }
 
 __PACKAGE__->meta->make_immutable;
