@@ -294,6 +294,7 @@ Send in optional design strand and design type to avoid extra DB calls.
 sub oligo_order_seq {
     my ( $self, $design_strand, $design_type ) = @_;
     $design_strand ||= $self->design->chr_strand;
+    $design_type   ||= $self->design->design_type_id;
 
     # See comment above %OLIGO_STRAND_VS_DESIGN_STRAND for explanation
     my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $self->design_oligo_type_id };
