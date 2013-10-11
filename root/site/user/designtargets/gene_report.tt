@@ -20,6 +20,7 @@
         <th class="design-target">Exon Rank</th>
         <th class="design">Design ID</th>
         <th class="design">Design Type</th>
+        <th class="design">UCSC Blat</th>
         <th class="crispr">Crispr ID</th>
         <th class="crispr">Crispr Valid</th>
         <th class="crispr">Crispr Off Targets</th>
@@ -64,8 +65,15 @@
             [% FOR design IN datum.designs %]
               [% design_first_row = 1 %]
               [% IF dt_first_row == 0 %]<tr>[% END %]
-              <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_id %]</td>
+              <td rowspan="[% datum.design_rowspan %]" class="design">
+                <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]">
+                  [% design.design_id %]
+                </a>
+              </td>
               <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_type %]</td>
+              <td rowspan="[% datum.design_rowspan %]" class="design">
+                <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-mini">blat</a>
+              </td>
               [% IF datum.crisprs.size == 0 %]
                 <td class="crispr" colspan="6"></td>
                 </tr>
