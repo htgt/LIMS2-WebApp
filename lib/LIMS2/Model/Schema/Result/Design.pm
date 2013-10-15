@@ -358,12 +358,7 @@ sub _sort_oligos {
             map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }
                 map { $_->as_hash } $self->oligos;
 
-    if ( $oligos[0]{locus} and $oligos[0]{locus}{chr_strand} == -1 ) {
-        return [ reverse @oligos ];
-    }
-    else {
-        return \@oligos;
-    }
+    return \@oligos;
 }
 
 sub _oligos_fasta {
