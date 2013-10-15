@@ -2,6 +2,7 @@ package LIMS2::Model::Util::DesignTargets;
 use strict;
 use warnings FATAL => 'all';
 
+
 =head1 NAME
 
 LIMS2::Model::Util::DesignTargets
@@ -18,6 +19,7 @@ use Sub::Exporter -setup => {
                      find_design_targets
                      design_target_report_for_genes
                      bulk_designs_for_design_targets
+                     get_design_targets_data
                     ) ]
 };
 
@@ -381,6 +383,87 @@ sub _sort_gene_ids {
 
     return \%sorted_genes;
 }
+
+# =head2 get_design_targets_data
+
+# Get all design_targets data to build the summary grid.
+
+# =cut
+sub get_design_targets_data {
+    my $schema = shift;
+    my $species = shift;
+
+    my $project = "Core";
+    my @genes_list_results = $schema->resultset('Project')->search({
+            sponsor_id        => "$project",
+    });
+
+    my @genes_list;
+    foreach my $row (@genes_list_results) {
+        my $gene = $row->gene_id;
+        push(@genes_list, $gene);
+    };
+
+    my $genes_list_ref = \@genes_list;
+
+
+    my @dt_results = $schema->resultset('DesignTarget')->search({
+            species_id        => "$species",
+            gene_id     => {
+                '-in' => $genes_list_ref
+            }
+    });
+
+    my $design_data = bulk_designs_for_design_targets( $schema, \@dt_results, $species );
+
+    my @report_data;
+    for my $dt ( @{ \@dt_results } ) {
+        my %data;
+        my $crisprs = crisprs_for_design_target( $schema, $dt );
+
+        $data{'design_target'} = $dt;
+        $data{'designs'} = $design_data->{ $dt->id };
+        $data{'crisprs'} = $crisprs;
+
+        push @report_data, \%data;
+    }
+
+    my @dt;
+    foreach my $row (@report_data) {
+        my $designs = $row->{'designs'};
+        my $design_count = scalar @$designs;
+        my $crisprs = $row->{'crisprs'};
+        my $crisprs_count = scalar @$crisprs;
+        push(@dt, {
+            id => $row->{'design_target'}->id,
+            marker_symbol => $row->{'design_target'}->marker_symbol,
+            ensembl_gene_id => $row->{'design_target'}->ensembl_gene_id,
+            ensembl_exon_id => $row->{'design_target'}->ensembl_exon_id,
+            exon_size => $row->{'design_target'}->exon_size,
+            exon_rank => $row->{'design_target'}->exon_rank,
+            canonical_transcript => $row->{'design_target'}->canonical_transcript,
+            species_id => $row->{'design_target'}->species_id,
+            assembly_id => $row->{'design_target'}->assembly_id,
+            build_id => $row->{'design_target'}->build_id,
+            chr_id => $row->{'design_target'}->chr_id,
+            chr_start => $row->{'design_target'}->chr_start,
+            chr_end => $row->{'design_target'}->chr_end,
+            chr_strand => $row->{'design_target'}->chr_strand,
+            automatically_picked => $row->{'design_target'}->automatically_picked,
+            comment => $row->{'design_target'}->comment,
+            gene_id => $row->{'design_target'}->gene_id,
+            design_count => $design_count,
+            designs => join( q{, }, @$designs),
+            crisprs => $crisprs_count,
+        } );
+    }
+
+    return @dt;
+}
+
+
+
+
 ## use critic
 
 1;
