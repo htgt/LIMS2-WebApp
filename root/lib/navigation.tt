@@ -36,6 +36,9 @@
             <li>
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
+            </li>
           </ul>
         </li>
 
