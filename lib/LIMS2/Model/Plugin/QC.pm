@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.105';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.110';
 }
 ## use critic
 
@@ -30,6 +30,7 @@ use LIMS2::Model::Util::QCResults qw(
     build_qc_runs_search_params
     infer_qc_process_type
 );
+use LIMS2::Model::Util::QCTemplates qw( create_qc_template_from_wells );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use List::MoreUtils qw( uniq );
@@ -644,6 +645,49 @@ sub pass_to_boolean {
     return $pass_or_fail =~ /^pass$/i ? '1' : $pass_or_fail =~ /^fail$/i ? '0' : undef;
 }
 
+sub pspec_qc_template_from_plate{
+	return{
+		name                   => { validate => 'existing_plate_name', optional => 1},
+		id                     => { validate => 'integer', optional => 1},
+		species                => { validate => 'existing_species', optional => 1},
+		template_name          => { validate => 'plate_name'},
+		cassette               => { validate => 'existing_cassette', optional => 1},
+		backbone               => { validate => 'existing_backbone', optional => 1},
+		recombinase            => { validate => 'existing_recombinase', optional => 1},
+		phase_matched_cassette => { optional => 1 },
+	};
+}
+
+sub create_qc_template_from_plate {
+	my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
+    $self->log->info( 'Creating qc template plate: ' . $validated_params->{template_name} );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+
+	my $well_hash;
+
+	foreach my $well ($plate->wells->all){
+		my $name = $well->name;
+        $well_hash->{$name}->{well_id} = $well->id;
+        foreach my $override qw(cassette recombinase backbone phase_matched_cassette) {
+            $well_hash->{$name}->{$override} = $validated_params->{$override}
+                if exists $validated_params->{$override};
+        }
+	}
+
+    my $template = create_qc_template_from_wells(
+        $self,
+        {   template_name => $validated_params->{template_name},
+            species       => $plate->species_id,
+            wells         => $well_hash,
+        }
+    );
+
+	return $template;
+}
+
 sub pspec_qc_template_from_csv{
 	return{
 		template_name => { validate => 'plate_name'},
@@ -678,88 +722,13 @@ sub create_qc_template_from_csv{
         }
 	}
 
-	my $template = $self->create_qc_template_from_wells({
-		template_name => $params->{template_name},
-		species       => $params->{species},
-		wells         => $well_hash,
-	});
-
-    return $template;
-}
-
-sub pspec_qc_template_from_wells {
-    return {
-        template_name => { validate => 'plate_name' },
-        species       => { validate => 'existing_species' },
-        wells         => { validate => 'hashref' },
-    };
-}
-
-sub create_qc_template_from_wells{
-	my ($self, $params) = @_;
-
-	my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_wells );
-
-	# die if template name already exists
-	my $existing = $self->retrieve_qc_templates({ name => $params->{template_name} });
-	if (@$existing){
-		die "QC template ".$params->{template_name}." already exists. Cannot use this plate name.";
-	}
-
-	my $wells;
-
-	for my $name (keys %{ $validated_params->{wells} }){
-
-        my $datum = $validated_params->{wells}->{$name};
-
-		my $well_params = { slice_def( $datum, qw( plate_name well_name well_id cassette backbone) ) };
-
-        # If we have a phase matched cassette group then handle it here
-        if (my $phase_match_group = $datum->{phase_matched_cassette}){
-        	if ($datum->{cassette}){
-        		die "A new cassette AND phase matched cassette have been provided for well $name";
-        	}
-        	TRACE "Attempting to fetch phase matched cassette for well $name";
-        	my $new_cassette = $self->retrieve_well_phase_matched_cassette({
-        		slice_def( $datum, qw(plate_name well_name well_id phase_matched_cassette ) )
-        	});
-        	if($new_cassette){
-        	     $well_params->{cassette} = $new_cassette;
-        	}
-        	else{
-        		die "No suitable phase matched cassette found for well $name";
-        	}
-        	TRACE "Phase matched cassette: $new_cassette";
+    my $template = create_qc_template_from_wells(
+        $self,
+        {   template_name => $validated_params->{template_name},
+            species       => $validated_params->{species},
+            wells         => $well_hash,
         }
-
-		# Recombinase, if defined, must be an arrayref
-		my $recombinase = $datum->{recombinase};
-        if ($recombinase and ref $recombinase eq ref []){
-        	$well_params->{recombinase} = $recombinase;
-        }
-        elsif($recombinase){
-        	$well_params->{recombinase} = [ $recombinase ];
-        }
-
-		my ($method, $source_well_id, $esb_params) = $self->generate_well_eng_seq_params($well_params);
-
-		$wells->{$name}->{eng_seq_id}     = $esb_params->{display_id};
-		$wells->{$name}->{well_name}      = $params->{template_name}."_$name";
-		$wells->{$name}->{eng_seq_method} = $method;
-		$wells->{$name}->{eng_seq_params} = $esb_params;
-		$wells->{$name}->{source_well_id} = $source_well_id;
-
-		# We also need to store the overrides for each QC template well
-		$wells->{$name}->{cassette} = $well_params->{cassette};
-		$wells->{$name}->{backbone} = $well_params->{backbone};
-		$wells->{$name}->{recombinase} = $well_params->{recombinase};
-	}
-
-	my $template = $self->find_or_create_qc_template({
-		name    => $params->{template_name},
-		species => $params->{species},
-		wells   => $wells,
-	});
+    );
 
     return $template;
 }

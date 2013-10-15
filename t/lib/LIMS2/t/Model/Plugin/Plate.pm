@@ -42,10 +42,10 @@ Code to run before every test
 
 =cut
 
-sub before : Test(setup)
-{
+sub before : Test(setup) {
+
     #diag("running before test");
-};
+}
 
 =head2 after
 
@@ -53,11 +53,10 @@ Code to run after every test
 
 =cut
 
-sub after  : Test(teardown)
-{
-    #diag("running after test");
-};
+sub after : Test(teardown) {
 
+    #diag("running after test");
+}
 
 =head2 startup
 
@@ -65,10 +64,10 @@ Code to run before all tests for the whole test class
 
 =cut
 
-sub startup : Test(startup)
-{
+sub startup : Test(startup) {
+
     #diag("running before all tests");
-};
+}
 
 =head2 shutdown
 
@@ -76,10 +75,10 @@ Code to run after all tests for the whole test class
 
 =cut
 
-sub shutdown  : Test(shutdown)
-{
+sub shutdown : Test(shutdown) {
+
     #diag("running after all tests");
-};
+}
 
 =head2 all_tests
 
@@ -87,15 +86,10 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(67)
-{
-    note ( "Testing EngSeq param generation for plate");
-    {
-	    ok my $template = model->create_qc_template_from_plate({ id => 864, template_name => 'template_864' }),
-	       'create_qc_template_from_plate should succeed';
-    }
+sub all_tests  : Test(66) {
 
-    my $plate_data= test_data( 'plate.yaml' );                                                                                                 note( "Testing plate creation" );
+    my $plate_data= test_data( 'plate.yaml' );
+    note( "Testing plate creation" );
 
     {   
 	ok my $plate = model->create_plate( $plate_data->{plate_create} ),
