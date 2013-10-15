@@ -176,6 +176,32 @@ sub crisprs_for_design_target {
     return \@crisprs;
 }
 
+=head2 bulk_crisprs_for_design_targets
+
+desc
+
+=cut
+sub bulk_crisprs_for_design_targets {
+    my ( $schema, $design_targets  ) = @_;
+
+    my @dt_crisprs = $schema->resultset('DesignTargetCrisprs')->search(
+        {
+            design_target_id => { 'IN' => [ map{ $_->id } @{ $design_targets } ] },
+        },
+        {
+            prefetch => { 'crispr' => 'off_target_summaries' }
+        },
+    );
+
+    my %data;
+    for my $dt ( @{ $design_targets } ) {
+        my @matching_crisprs =  map{ $_->crispr } grep{ $_->design_target_id eq $dt->id } @dt_crisprs;
+        $data{ $dt->id } = \@matching_crisprs;
+    }
+
+    return \%data;
+}
+
 =head2 find_design_targets
 
 Given a list of gene identifiers find any design targets
@@ -217,15 +243,15 @@ sub design_target_report_for_genes {
     my $sorted_genes = _sort_gene_ids( $genes );
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
     my $design_data = bulk_designs_for_design_targets( $schema, $design_targets, $species_id );
+    my $crispr_data = bulk_crisprs_for_design_targets( $schema, $design_targets );
 
     my @report_data;
     for my $dt ( @{ $design_targets } ) {
         my %data;
-        my $crisprs = crisprs_for_design_target( $schema, $dt );
 
         $data{'design_target'} = $dt;
         $data{'designs'} = $design_data->{ $dt->id };
-        $data{'crisprs'} = $crisprs;
+        $data{'crisprs'} = $crispr_data->{ $dt->id };
 
         push @report_data, \%data;
     }
