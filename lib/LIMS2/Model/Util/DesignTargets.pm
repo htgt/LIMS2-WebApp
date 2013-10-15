@@ -128,14 +128,20 @@ sub bulk_designs_for_design_targets {
         },
     );
 
+    my $default_assembly = $schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species_id } )->assembly_id;
     my %data;
     for my $dt ( @{ $design_targets } ) {
         my @matching_designs;
         my @dt_designs = map{ $_->design } grep{ $_->gene_id eq $dt->gene_id } @gene_designs;
         for my $design ( @dt_designs ) {
-            my $di = LIMS2::Model::Util::DesignInfo->new( design => $design );
+            my $di = LIMS2::Model::Util::DesignInfo->new(
+                design           => $design,
+                default_assembly => $default_assembly
+            );
             if ( $dt->chr_start > $di->target_region_start
                 && $dt->chr_end < $di->target_region_end
+                && $dt->chr->name eq $di->chr_name
             ) {
                 push @matching_designs, $design;
             }
@@ -185,11 +191,12 @@ sub find_design_targets {
                 marker_symbol   => { 'IN' => $sorted_genes->{marker_symbols} },
                 ensembl_gene_id => { 'IN' => $sorted_genes->{ensembl_gene_ids} },
             ],
-            species_id => $species_id,
+            'me.species_id' => $species_id,
         },
         {
             order_by => [ { -asc => 'gene_id' }, { -desc => 'exon_rank' } ],
             distinct => 1,
+            prefetch => 'chr',
         }
     );
 
