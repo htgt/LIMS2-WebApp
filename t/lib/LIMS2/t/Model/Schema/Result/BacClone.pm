@@ -179,6 +179,8 @@ sub all_tests : Tests {
 
 }
 
+## use critic
+
 1;
 
 __END__
