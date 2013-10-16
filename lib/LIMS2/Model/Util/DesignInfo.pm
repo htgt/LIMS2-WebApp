@@ -38,7 +38,6 @@ sub _build_default_assembly {
 has oligos => (
     is         => 'ro',
     isa        => 'HashRef',
-    init_arg   => undef,
     lazy_build => 1,
 );
 
