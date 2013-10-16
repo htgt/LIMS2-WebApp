@@ -21,6 +21,7 @@ use EngSeqBuilder;
 use JSON;
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
+use List::MoreUtils qw( uniq );
 
 sub pspec_generate_eng_seq_params {
 	return {
@@ -154,7 +155,7 @@ sub fetch_well_eng_seq_params{
 	}
 
     # Always store recombinase (in lower case)
-    my @recom = map { lc $_ } @{ $params->{recombinase} };
+    my @recom = uniq map { lc $_ } @{ $params->{recombinase} };
     $well_params->{recombinase} = \@recom;
 
     # We always need a cassette
