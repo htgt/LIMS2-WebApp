@@ -126,7 +126,7 @@ sub bulk_designs_for_design_targets {
         },
         {
             join     => 'design',
-            prefetch => 'design'
+            prefetch => { 'design' => { 'oligos' => { 'loci' => 'chr' } } },
         },
     );
 
@@ -139,7 +139,8 @@ sub bulk_designs_for_design_targets {
         for my $design ( @dt_designs ) {
             my $di = LIMS2::Model::Util::DesignInfo->new(
                 design           => $design,
-                default_assembly => $default_assembly
+                default_assembly => $default_assembly,
+                oligos           => prebuild_oligos( $design, $default_assembly ),
             );
             if ( $dt->chr_start > $di->target_region_start
                 && $dt->chr_end < $di->target_region_end
@@ -152,6 +153,32 @@ sub bulk_designs_for_design_targets {
     }
 
     return \%data;
+}
+
+=head2 prebuild_oligos
+
+desc
+
+=cut
+sub prebuild_oligos {
+    my ( $design, $default_assembly ) = @_;
+
+    my %design_oligos_data;
+    for my $oligo ( $design->oligos ) {
+        my ( $locus ) = grep{ $_->assembly_id eq $default_assembly } $oligo->loci;
+
+        my %oligo_data = (
+            start      => $locus->chr_start,
+            end        => $locus->chr_end,
+            chromosome => $locus->chr->name,
+            strand     => $locus->chr_strand,
+        );
+        $oligo_data{seq} = $oligo->seq;
+
+        $design_oligos_data{ $oligo->design_oligo_type_id } = \%oligo_data;
+    }
+
+    return \%design_oligos_data;
 }
 
 =head2 crisprs_for_design_target
@@ -180,7 +207,8 @@ sub crisprs_for_design_target {
 
 =head2 bulk_crisprs_for_design_targets
 
-desc
+Using the custom DesignTargetCrisprs view find all the crisprs for a set of
+design targets.
 
 =cut
 sub bulk_crisprs_for_design_targets {
@@ -191,7 +219,7 @@ sub bulk_crisprs_for_design_targets {
             design_target_id => { 'IN' => [ map{ $_->id } @{ $design_targets } ] },
         },
         {
-            prefetch => { 'crispr' => 'off_target_summaries' }
+            prefetch => { 'crispr' => [ 'off_target_summaries', 'process_crisprs' ] }
         },
     );
 
@@ -240,7 +268,7 @@ Crisprs
 
 =cut
 sub design_target_report_for_genes {
-    my ( $schema, $genes, $species_id  ) = @_;
+    my ( $schema, $genes, $species_id, $report_type ) = @_;
 
     my $sorted_genes = _sort_gene_ids( $genes );
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
@@ -258,7 +286,7 @@ sub design_target_report_for_genes {
         push @report_data, \%data;
     }
 
-    my $formated_report_data = _format_report_data( \@report_data );
+    my $formated_report_data = _format_report_data( \@report_data, $report_type );
     return( $formated_report_data, $sorted_genes );
 }
 
@@ -268,7 +296,8 @@ Manipulate data into format we can easily display in a spreadsheet
 
 =cut
 sub _format_report_data {
-    my ( $data ) = @_;
+    my ( $data, $report_type ) = @_;
+    $report_type ||= 'standard';
     my @report_row_data;
 
     for my $datum ( @{ $data } ) {
@@ -280,24 +309,29 @@ sub _format_report_data {
           ensembl_exon_id  => $dt->ensembl_exon_id,
           exon_size        => $dt->exon_size,
           exon_rank        => $dt->exon_rank,
+          chromosome       => $dt->chr->name,
         );
 
-        $design_target_data{crisprs} = _format_crispr_data( $datum->{crisprs}, 'strict', 5 );
-        $design_target_data{designs} = _format_design_data( $datum->{designs} );
+        if ( $report_type eq 'simple' ) {
+            $design_target_data{designs} = scalar( @{ $datum->{designs} } );
+            $design_target_data{crisprs} = scalar( @{ $datum->{crisprs} } );
+        }
+        elsif ( $report_type eq 'standard' ) {
+            $design_target_data{crisprs} = _format_crispr_data( $datum->{crisprs}, 'strict', 5 );
+            $design_target_data{designs} = _format_design_data( $datum->{designs} );
 
-        my $crispr_num = scalar( @{ $design_target_data{crisprs} } );
-        my $design_num = scalar( @{ $design_target_data{designs} } );
+            my $crispr_num = scalar( @{ $design_target_data{crisprs} } );
+            my $design_num = scalar( @{ $design_target_data{designs} } );
 
-        $design_target_data{dt_rowspan}
-            = ( $crispr_num ? $crispr_num : 1 ) * ( $design_num ? $design_num : 1 );
-        $design_target_data{design_rowspan} = $crispr_num ? $crispr_num : 1;
+            $design_target_data{dt_rowspan}
+                = ( $crispr_num ? $crispr_num : 1 ) * ( $design_num ? $design_num : 1 );
+            $design_target_data{design_rowspan} = $crispr_num ? $crispr_num : 1;
+        }
 
         push @report_row_data, \%design_target_data;
     }
 
-    return {
-        data => \@report_row_data,
-    };
+    return \@report_row_data;
 }
 
 =head2 _format_crispr_data
@@ -416,12 +450,13 @@ sub _sort_gene_ids {
 
     return \%sorted_genes;
 }
+## use critic
 
-# =head2 get_design_targets_data
+=head2 get_design_targets_data
 
-# Get all design_targets data to build the summary grid.
+Get all design_targets data to build the summary grid.
 
-# =cut
+=cut
 sub get_design_targets_data {
     my $schema = shift;
     my $species = shift;
@@ -494,9 +529,5 @@ sub get_design_targets_data {
     return @dt;
 }
 
-
-
-
-## use critic
 
 1;
