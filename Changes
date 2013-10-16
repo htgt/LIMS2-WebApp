@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.110     2013-10-15 08:57:39 Europe/London
+
+    Included pleliminary version of Design Target Report grid.
+
 0.109     2013-10-09 11:38:41 Europe/London
 
     When making qc template plates you can specify a intermediate cassette, not just final cassette
