@@ -23,38 +23,22 @@ sub design_targets_list :Path('/api/design_targets') :Args(0) :ActionClass('REST
 sub design_targets_list_GET {
 
 
-
-    use Smart::Comments;
     my ( $self, $c ) = @_;
 
-    # $c->log->warn('start');
-
-
-    ## $self
     $c->assert_user_roles('read');
 
-
     my $model = $c->model('Golgi')->schema;
-
-
-    # my $species = shift;
-    ## $species
 
     my @dt_data = get_design_targets_data(
         $model,
         $c->session->{selected_species}
     );
 
-
-    # $c->log->warn('end');
-
     return $self->status_ok( $c, entity => \@dt_data );
-
 
 }
 
 sub design_targets :Path('/api/design_targets') :ActionClass('REST') {
 }
-
 
 1;
