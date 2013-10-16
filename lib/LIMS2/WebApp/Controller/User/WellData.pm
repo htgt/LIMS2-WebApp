@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.110';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.111';
 }
 ## use critic
 
@@ -269,6 +269,7 @@ sub upload_genotyping_qc : Path( '/user/upload_genotyping_qc') : Args(0){
 =head1 AUTHOR
 
 Sajith Perera
+David Parry-Smith
 
 =head1 LICENSE
 

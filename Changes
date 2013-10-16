@@ -1,3 +1,10 @@
+0.111     2013-10-16 15:06:15 Europe/London
+
+    Modified EngSeq to make the list of recombinases unique.
+    Removed has_dre tests.
+    Fixed issue on basepath in extjs grid.
+    Added extjs-all to genotyping_qc tt because it was removed from wrapper.tt
+
 0.110     2013-10-15 08:57:39 Europe/London
 
     Included pleliminary version of Design Target Report grid.

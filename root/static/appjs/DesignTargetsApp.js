@@ -3,7 +3,7 @@ Ext.application({
     name: 'DesignTargetsApp',
     frame: false,
     autoCreateViewport: false,
-    appFolder: '/static/appjs',
+    appFolder: '../static/appjs',
     models: ['DesignTarget'],
     stores: ['DesignTargets'],
     controllers: ['LoadDesignTargetsView'],
