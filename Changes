@@ -1,4 +1,4 @@
-0.110     2013-10-17 14:21:59 Europe/London
+0.112     2013-10-17 14:21:59 Europe/London
 
     Added dbix classes for new crispr_designs table to link a crispr and a design. 
     Added dbix classes for new  crispr_pairs table for storing paired crispr information. 
