@@ -67,6 +67,11 @@ __PACKAGE__->table("crisprs");
   data_type: 'text'
   is_nullable: 1
 
+=head2 pam_right
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -85,6 +90,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "comment",
   { data_type => "text", is_nullable => 1 },
+  "pam_right",
+  { data_type => "boolean", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -101,6 +108,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 crispr_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_designs",
+  "LIMS2::Model::Schema::Result::CrisprDesign",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_loci_type
 
 Type: belongs_to
@@ -114,6 +136,36 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::CrisprLociType",
   { id => "crispr_loci_type_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 crispr_pairs_left_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPair>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_pairs_left_crisprs",
+  "LIMS2::Model::Schema::Result::CrisprPair",
+  { "foreign.left_crispr" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 crispr_pairs_right_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPair>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_pairs_right_crisprs",
+  "LIMS2::Model::Schema::Result::CrisprPair",
+  { "foreign.right_crispr" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 loci
@@ -192,8 +244,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-25 11:22:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YvyxDr0ts1rErR4xy0Lp/g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-10-16 16:17:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4Sefu+Z9sDQhiAklt0OJZQ
 
 sub as_hash {
     my ( $self ) = @_;
