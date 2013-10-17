@@ -583,45 +583,6 @@ sub all_tests  : Tests
 	note("end of well lab number tests");
     }
 
-    {
-	note( "has_dre_been_applied" );
-
-	my $params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'fail' };
-	ok model->has_dre_been_applied( $params ), 'remove Dre to well for Cre project';
-	my @recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-	$params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'loacrit', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'Only add Dre to well for Cre project when genotyping_result_id is puro';
-	@recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-	$params = { plate_name =>'997', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'fail to add Dre to well for Cre project when plate type is not EP_PICK';
-	@recombinases = model->retrieve_well({ plate_name =>'997', well_name => 'A01' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-	$params = { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04', genotyping_result_type_id => 'puro', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'Do nothing for non Cre project';
-	@recombinases = model->retrieve_well({ plate_name =>'MOHFAQ0001_A_2', well_name => 'A04' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-
-	$params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'can add Dre to well for Cre project';
-	@recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
-	is $recombinases[0][-1], 'Dre', '.. has Dre recombinase';
-
-    }
-
     note( "Add colony counts to a well" );
     {
 	my $colony_count_data = test_data( 'add_colony_count.yaml' );

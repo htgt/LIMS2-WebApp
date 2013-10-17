@@ -12,6 +12,7 @@ use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use DateTime;
 use Readonly;
+use Try::Tiny;                              # Exception handling
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -78,8 +79,6 @@ sub _build_sponsors {
     # select sponsors for the selected species that have projects
     my $sponsor_ids_rs = $self->select_sponsors_with_projects( );
 
-    ### $sponsor_ids_rs
-
     my @sponsor_ids;
 
     foreach my $sponsor ( @$sponsor_ids_rs ) {
@@ -88,11 +87,7 @@ sub _build_sponsors {
        push( @sponsor_ids, $sponsor_id );
     }
 
-    DEBUG "Sponsors = ";
-    ### @sponsor_ids
-
     return [ @sponsor_ids ];
-
 }
 
 has sponsor_data => (
@@ -106,9 +101,6 @@ sub _build_sponsor_data {
     my %sponsor_data;
 
     my @sponsor_ids = @{ $self->sponsors };
-
-    DEBUG "Sponsor ids:";
-    ### @sponsor_ids
 
     foreach my $sponsor_id ( @sponsor_ids ) {
         DEBUG "Building data for sponsor id = ".$sponsor_id;
@@ -652,7 +644,15 @@ sub genes {
     foreach my $gene_row ( @$sql_results ) {
         my $gene_id = $gene_row->{ 'gene_id' };
 
-        my $gene_symbol = $self->model->retrieve_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{gene_symbol};
+        my $gene_symbol;
+        try {
+            $gene_symbol = $self->model->retrieve_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{ 'gene_symbol' };
+        }
+        catch {
+            INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
+        };
+
+        unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
 
         push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol };
     }
