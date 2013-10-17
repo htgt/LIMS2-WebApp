@@ -92,10 +92,11 @@ sub all_tests : Tests {
     my $rs                         = 'Crispr';
     my %record                     = (
         'id'                  => 9999,
-        'seq'                 => 'CATTAGCATTAGCATTAG',
+        'seq'                 => 'CCAGGTTATGACCTTGATTTATT',
         'species_id'          => 'Alien',
         'crispr_loci_type_id' => 'Alionic',
         'comment'             => 'comment',
+        'pam_right'           => 1,
     );
 
     note("Accessing the schema");
