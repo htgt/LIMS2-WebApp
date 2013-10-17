@@ -10,7 +10,7 @@
       <tr>
         <th class="design-target group-header" colspan="6">Design Target</th>
         <th class="design group-header" colspan="3">Vector Design</th>
-        <th class="crispr group-header" colspan="6">Crispr Guide RNA (strict off target algorithm)</th>
+        <th class="crispr group-header" colspan="7">Crispr Guide RNA (strict off target algorithm)</th>
       </tr>
       <tr>
         <th class="design-target">Marker Symbol</th>
@@ -26,6 +26,7 @@
         <th class="crispr">Crispr Valid</th>
         <th class="crispr">Crispr Off Targets</th>
         <th class="crispr">Crispr Wells</th>
+        <th class="crispr">UCSC Blat</th>
         <th class="crispr">Pick Crispr</th>
       </tr>
     </thead>
@@ -44,7 +45,7 @@
           <!-- No designs or crisprs for design target, show empty cells -->
           [% IF datum.designs.size == 0 && datum.crisprs.size == 0 %]
             <td class="design" colspan="3"></td>
-            <td class="crispr" colspan="6"></td>
+            <td class="crispr" colspan="7"></td>
             </tr>
             [% NEXT %]
           [% END %]
@@ -58,6 +59,9 @@
               <td class="crispr">[% crispr.outlier.join(', ') %]</td>
               <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
               <td class="crispr">[% crispr.crispr_wells %]</td>
+              <td class="crispr">
+                <a href="[% c.uri_for( '/user/crisprs_ucsc_blat', { sequence => datum.crisprs_blat_seq } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+              </td>
               <td class="crispr"></td>
               [% dt_first_row = 0 IF dt_first_row == 1 %]
               </tr>
@@ -77,7 +81,7 @@
                 <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
               </td>
               [% IF datum.crisprs.size == 0 %]
-                <td class="crispr" colspan="6"></td>
+                <td class="crispr" colspan="7"></td>
                 </tr>
                 [% dt_first_row = 0 IF dt_first_row == 1 %]
               [% ELSE %]
@@ -87,6 +91,9 @@
                   <td class="crispr">[% crispr.outlier.join(', ') %]</td>
                   <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
                   <td class="crispr">[% crispr.crispr_wells %]</td>
+                  <td class="crispr">
+                    <a href="[% c.uri_for( '/user/crisprs_ucsc_blat', { sequence => crispr.seq } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+                  </td>
                   <td class="crispr">
                     [% IF crispr.crispr_id %]
                       <input type="checkbox" name="crispr_pick" value="[% crispr.crispr_id %]:[% design.design_id %]" />
