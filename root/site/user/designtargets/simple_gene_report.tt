@@ -1,0 +1,39 @@
+[% META title="Simple Design Target Report"; META tab_name = "Designs" %]
+
+<div class="page-header">
+  <h1>Design Target Report</h1>
+</div>
+
+<table id="design-target-report" class="table table-bordered table-condensed table-striped">
+  <thead>
+    <tr>
+      <th>Marker Symbol</th>
+      <th>Gene ID</th>
+      <th>Target Exon</th>
+      <th>Chromosome</th>
+      <th>Exon Size</th>
+      <th>Exon Rank</th>
+      <th>Designs</th>
+      <th>Cripsrs</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    [% FOR datum IN design_targets_data %]
+      <tr>
+        <td>[% datum.marker_symbol %]</td>
+        <td>[% datum.gene_id %]</td>
+        <td>[% datum.ensembl_exon_id %]</td>
+        <td>[% datum.chromosome %]</td>
+        <td>[% datum.exon_size %]</td>
+        <td>[% datum.exon_rank %]</td>
+        <td>[% datum.designs %]</td>
+        <td>[% datum.crisprs %]</td>
+        <td>
+          <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol ) %]" target="_blank" class="btn btn-info btn-mini btn-block">details</a>
+        </td>
+      </tr>
+    [% END %]
+  </tbody>
+</table>
