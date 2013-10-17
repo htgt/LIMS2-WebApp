@@ -317,7 +317,9 @@ sub _format_report_data {
             $design_target_data{crisprs} = scalar( @{ $datum->{crisprs} } );
         }
         elsif ( $report_type eq 'standard' ) {
-            $design_target_data{crisprs} = _format_crispr_data( $datum->{crisprs}, 'strict', 5 );
+            my ( $crispr_data, $crisprs_blat_seq ) = _format_crispr_data( $datum->{crisprs}, 'strict', 5 );
+            $design_target_data{crisprs} = $crispr_data;
+            $design_target_data{crisprs_blat_seq} = $crisprs_blat_seq;
             $design_target_data{designs} = _format_design_data( $datum->{designs} );
 
             my $crispr_num = scalar( @{ $design_target_data{crisprs} } );
@@ -349,8 +351,15 @@ sub _format_crispr_data {
         = sort { _rank_crisprs( $a, $rank_algorithm ) <=> _rank_crisprs( $b, $rank_algorithm ) } @{$crisprs};
 
     my $crispr_count = 0;
+    my $crispr_blat_seq;
     for my $c ( @ranked_crisprs ) {
-        my %data = ( crispr_id => $c->id );
+        my %data = (
+            crispr_id => $c->id,
+            seq       => $c->seq,
+        );
+        #TODO fix the crispr blat sequence sp12 Thu 17 Oct 2013 07:45:08 BST
+        $crispr_blat_seq .= '>' . $c->id . "\n";
+        $crispr_blat_seq .=  $c->seq . "\n";
         for my $summary ( $c->off_target_summaries->all ) {
             next unless $summary->algorithm eq 'strict';
             my $valid = $summary->outlier ? 'no' : 'yes';
@@ -376,7 +385,7 @@ sub _format_crispr_data {
         push @crispr_data, \%data;
     }
 
-    return \@crispr_data;
+    return ( \@crispr_data, $crispr_blat_seq );
 }
 
 =head2 _format_design_data
