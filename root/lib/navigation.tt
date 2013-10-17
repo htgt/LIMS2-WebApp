@@ -36,6 +36,9 @@
             <li>
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
+            </li>
           </ul>
         </li>
 
@@ -174,10 +177,8 @@
             [% IF c.check_user_roles( 'admin' ) %]
             <li><a href="[% c.uri_for( '/admin' ) %]"><i class="icon-user"></i> User Admin</a></li>
             [% END %]
-            [% IF c.check_user_roles( 'edit' ) %]
             <li><a href="[% c.uri_for('/user/change_password') %]"><i class="icon-pencil"></i> Change Password</a></li>
             <li class="divider"></li>
-            [% END %]
             <li><a href="[% c.uri_for('/logout') %]"><i class="icon-off"></i> Logout</a></li>
           </ul>
         </li>

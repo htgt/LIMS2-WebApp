@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::UserPreferences;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::UserPreferences::VERSION = '0.109';
+    $LIMS2::WebApp::Controller::User::UserPreferences::VERSION = '0.110';
 }
 ## use critic
 
@@ -22,16 +22,6 @@ Catalyst Controller.
 =head1 METHODS
 
 =cut
-
-# Need to have edit writes to make any changes in db, including password
-# so users with only the read role can not change their password at the moment
-# TODO: see if there is a way to get around this if its worth doing
-sub begin :Private {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles( 'edit' );
-    return;
-}
 
 sub change_password :Path( '/user/change_password' ) :Args(0) {
     my ( $self, $c ) = @_;

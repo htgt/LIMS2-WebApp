@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PgUserRole;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PgUserRole::VERSION = '0.109';
+    $LIMS2::Model::Util::PgUserRole::VERSION = '0.110';
 }
 ## use critic
 
@@ -49,8 +49,8 @@ sub create_pg_user {
 
     DEBUG("Granting $admin_role to $new_role");
     $dbh->do("GRANT $admin_role TO $new_role");
-    DEBUG("Granting $webapp_role to $new_role");
-    $dbh->do("GRANT $webapp_role TO $new_role");
+    DEBUG("Granting $new_role to $webapp_role");
+    $dbh->do("GRANT $new_role TO $webapp_role");
 
     #set_pg_roles( $dbh, $user_name, $user_roles );
 
