@@ -193,8 +193,8 @@ sub crisprs_for_design_target {
         {
             'loci.assembly_id' => $design_target->assembly_id,
             'loci.chr_id'      => $design_target->chr_id,
-            'loci.chr_start'   => { '>' => $design_target->chr_start },
-            'loci.chr_end'     => { '<' => $design_target->chr_end },
+            'loci.chr_start'   => { '>' => $design_target->chr_start - 200 },
+            'loci.chr_end'     => { '<' => $design_target->chr_end + 200 },
         },
         {
             join     => 'loci',
