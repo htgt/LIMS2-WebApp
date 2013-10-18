@@ -77,20 +77,17 @@ sub crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
+    my $crispr_picks = $c->request->params->{crispr_pick};
 
-    try {
-        crispr_pick(
-            $c->model('Golgi'),
-            $c->request->params->{crispr_pick},
-            $c->request->params->{crispr_design_link},
-            $c->session->{selected_species}
-        );
-        $c->flash( success_msg => "" );
+    my $csv_data = "crispr_id,design_id\n";
+    for my $pick ( @{ $crispr_picks } ) {
+        my ( $crispr_id, $design_id ) = split /:/, $pick;
+        $csv_data .= "$crispr_id,$design_id\n";
     }
-    catch {
-        $c->flash( error_msg => "" );
-    };
 
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=crispr_picks.csv" );
+    $c->response->body( $csv_data );
     return;
 }
 
