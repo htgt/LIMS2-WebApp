@@ -2,6 +2,8 @@ package LIMS2::WebApp::Controller::User::DesignTargets;
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
+use LIMS2::Model::Util::Crisprs qw( crispr_pick );
+use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -78,18 +80,21 @@ sub crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
-    my $crispr_picks = $c->request->params->{crispr_pick};
 
-    my $csv_data = "crispr_id,design_id\n";
-    for my $pick ( @{ $crispr_picks } ) {
-        my ( $crispr_id, $design_id ) = split /:/, $pick;
-        $csv_data .= "$crispr_id,$design_id\n";
+    try {
+        crispr_pick(
+            $c->model('Golgi'),
+            $c->request->params->{crispr_pick},
+            $c->request->params->{design_crispr_link},
+            $c->session->{selected_species},
+        );
+        $c->flash( success_msg => "You picked some crisprs, well done" );
     }
+    catch {
+        $c->flash( error_msg => "You screwed up" . $_ );
+    };
 
-    $c->response->content_type( 'text/csv' );
-    $c->response->header( 'Content-Disposition' => "attachment; filename=crispr_picks.csv" );
-    $c->response->body( $csv_data );
-    return;
+    return $c->go('index');
 }
 
 =head2 crisprs_ucsc_blat
