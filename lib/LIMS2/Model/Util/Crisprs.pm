@@ -33,10 +33,10 @@ We then validate the selection and persist the link between the design and crisp
 
 =cut
 sub crispr_pick {
-    my ( $model, $crispr_picks, $species_id ) = @_;
+    my ( $model, $crispr_picks, $design_crispr_link, $species_id ) = @_;
     my %design_crisprs;
 
-    my $default_assembly = $schema->resultset('SpeciesDefaultAssembly')->find(
+    my $default_assembly = $model->schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species_id } )->assembly_id;
 
     for my $pick ( @{ $crispr_picks } ) {
@@ -69,7 +69,7 @@ sub crispr_pick {
         }
         # got a pair of crisprs
         elsif ( scalar(@crisprs) == 2 ) {
-            my $crispr_pair = check_crispr_pair( \@crisprs );
+            my $crispr_pair = check_crispr_pair( $model, \@crisprs );
             my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
                 {
                     design_id      => $design->id,
@@ -114,7 +114,7 @@ Return a crispr_pair object.
 
 =cut
 sub check_crispr_pair {
-    my ( $crisprs ) = @_;
+    my ( $model, $crisprs ) = @_;
 
     if ( none{ $_->pam_right } @{ $crisprs } && none{ !$_->pam_right } @{ $crisprs } ) {
         LIMS2::Exception->throw( "Must pick both a left and right crispr to get a valid crispr pair" );
