@@ -99,7 +99,19 @@
                   </td>
                   <td class="crispr">
                     [% IF crispr.crispr_id %]
-                      <input type="checkbox" name="crispr_pick" value="[% crispr.crispr_id %]:[% design.design_id %]" />
+                      [% linked = 0 %]
+                      [% FOR crispr_id IN design.linked_crispr_ids %]
+                        <!-- we have a crispr already linked to a design -->
+                        [% IF crispr.crispr_id == crispr_id %]
+                          [% linked = 1 %]
+                          <input type="checkbox" name="crispr_pick" value="[% crispr.crispr_id %]:[% design.design_id %]" checked />
+                          <input type="hidden"  name="design_crispr_link" value="[% crispr.crispr_id %]:[% design.design_id %]" />
+                        [% END %]
+                      [% END %]
+
+                      [% IF linked == 0 %]
+                        <input type="checkbox" name="crispr_pick" value="[% crispr.crispr_id %]:[% design.design_id %]" />
+                      [% END %]
                     [% END %]
                   </td>
                   </tr>
@@ -119,7 +131,7 @@
     <i class="icon-hand-left"></i> Back to search </a>
   </div>
   <div class="span3 offset6" align="right">
-    <input type="submit" name="action" class="btn btn-primary" value="Download Crispr Picks" />
+    <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" />
   </div>
 </div>
 
