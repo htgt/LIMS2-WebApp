@@ -268,7 +268,7 @@ Crisprs
 
 =cut
 sub design_target_report_for_genes {
-    my ( $schema, $genes, $species_id, $report_type ) = @_;
+    my ( $schema, $genes, $species_id, $report_type, $off_target_algorithm ) = @_;
 
     my $sorted_genes = _sort_gene_ids( $genes );
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
@@ -286,7 +286,7 @@ sub design_target_report_for_genes {
         push @report_data, \%data;
     }
 
-    my $formated_report_data = _format_report_data( \@report_data, $report_type );
+    my $formated_report_data = _format_report_data( \@report_data, $report_type, $off_target_algorithm );
     return( $formated_report_data, $sorted_genes );
 }
 
@@ -296,7 +296,7 @@ Manipulate data into format we can easily display in a spreadsheet
 
 =cut
 sub _format_report_data {
-    my ( $data, $report_type ) = @_;
+    my ( $data, $report_type, $off_target_algorithm ) = @_;
     $report_type ||= 'standard';
     my @report_row_data;
 
@@ -317,7 +317,7 @@ sub _format_report_data {
             $design_target_data{crisprs} = scalar( @{ $datum->{crisprs} } );
         }
         elsif ( $report_type eq 'standard' ) {
-            my ( $crispr_data, $crisprs_blat_seq ) = _format_crispr_data( $datum->{crisprs}, 'strict', 5 );
+            my ( $crispr_data, $crisprs_blat_seq ) = _format_crispr_data( $datum->{crisprs}, $off_target_algorithm, 5 );
             $design_target_data{crisprs} = $crispr_data;
             $design_target_data{crisprs_blat_seq} = $crisprs_blat_seq;
             $design_target_data{designs} = _format_design_data( $datum->{designs} );
@@ -342,26 +342,29 @@ Format the crispr data, add information about crisprs presense on Crispr plates.
 
 =cut
 sub _format_crispr_data {
-    my ( $crisprs, $rank_algorithm, $num_crisprs ) = @_;
+    my ( $crisprs, $off_target_algorithm, $num_crisprs ) = @_;
     my @crispr_data;
-    $rank_algorithm ||= 'strict';
+    $off_target_algorithm ||= 'strict';
     $num_crisprs ||= 5;
 
     my @ranked_crisprs
-        = sort { _rank_crisprs( $a, $rank_algorithm ) <=> _rank_crisprs( $b, $rank_algorithm ) } @{$crisprs};
+        = sort { _rank_crisprs( $a, $off_target_algorithm ) <=> _rank_crisprs( $b, $off_target_algorithm ) } @{$crisprs};
 
     my $crispr_count = 0;
     my $crispr_blat_seq;
     for my $c ( @ranked_crisprs ) {
+        my $crispr_direction = $c->pam_right ? 'right' : 'left';
         my %data = (
             crispr_id => $c->id,
             seq       => $c->seq,
+            blat_seq  => '>' . $c->id . "\n" . $c->seq,
+            direction => $crispr_direction,
         );
         #TODO fix the crispr blat sequence sp12 Thu 17 Oct 2013 07:45:08 BST
         $crispr_blat_seq .= '>' . $c->id . "\n";
         $crispr_blat_seq .=  $c->seq . "\n";
         for my $summary ( $c->off_target_summaries->all ) {
-            next unless $summary->algorithm eq 'strict';
+            next unless $summary->algorithm eq $off_target_algorithm;
             my $valid = $summary->outlier ? 'no' : 'yes';
             push @{ $data{outlier} }, $valid;
             push @{ $data{summary} }, $summary->summary;
@@ -414,10 +417,10 @@ exon > intron > intergenic
 
 =cut
 sub _rank_crisprs {
-    my ( $crispr, $rank_algorithm ) = @_;
+    my ( $crispr, $off_target_algorithm ) = @_;
     my $score = 0;
 
-    my $off_target_summary = first{ $_->algorithm eq $rank_algorithm } $crispr->off_target_summaries->all;
+    my $off_target_summary = first{ $_->algorithm eq $off_target_algorithm } $crispr->off_target_summaries->all;
     # check this, not sumre it will work properly if sorting on weak algorithm
     return 5000 unless $off_target_summary;
 

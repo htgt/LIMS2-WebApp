@@ -7,13 +7,24 @@
     <textarea class="input-xxlarge" rows="10" name="genes" placeholder="genes" value="[% genes %]"></textarea>
     <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols</span>
 
+    <label><strong>Report Type</strong></label>
     <label class="radio">
       <input type="radio" name="report_type" value="standard" checked>
-      Detailed Report
+      Detailed
     </label>
     <label class="radio">
       <input type="radio" name="report_type" value="simple">
-      Simple Report
+      Simple
+    </label>
+
+    <label><strong>Algorithm Type</strong></label>
+    <label class="radio">
+      <input type="radio" name="off_target_algorithm" value="strict" checked>
+      Strict
+    </label>
+    <label class="radio">
+      <input type="radio" name="off_target_algorithm" value="bwa">
+      BWA
     </label>
 
     <br>
