@@ -65,6 +65,7 @@ lib/LIMS2/Model/Schema/Result/DesignOligo.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
 lib/LIMS2/Model/Schema/Result/DesignTarget.pm
+lib/LIMS2/Model/Schema/Result/DesignTargetCrisprs.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
 lib/LIMS2/Model/Schema/Result/GeneType.pm
@@ -138,6 +139,7 @@ lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
 lib/LIMS2/Model/Util/CreatePlate.pm
 lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
+lib/LIMS2/Model/Util/Crisprs.pm
 lib/LIMS2/Model/Util/DataUpload.pm
 lib/LIMS2/Model/Util/DesignInfo.pm
 lib/LIMS2/Model/Util/DesignTargets.pm
@@ -242,6 +244,7 @@ root/site/admin/create_user.tt
 root/site/admin/index.tt
 root/site/admin/update_user.tt
 root/site/auth/login.tt
+root/site/user/browsedesigns/design_ucsc_blat.tt
 root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
 root/site/user/browsedesigns/list_designs_compact.tt
@@ -251,8 +254,10 @@ root/site/user/browseplates/view.tt
 root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
 root/site/user/createdesign/index.tt
+root/site/user/designtargets/crisprs_ucsc_blat.tt
 root/site/user/designtargets/gene_report.tt
 root/site/user/designtargets/index.tt
+root/site/user/designtargets/simple_gene_report.tt
 root/site/user/error.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
@@ -2372,8 +2377,10 @@ t/LIMS2/Model/Util/10_LIMS2_Model_Util_ComputeAcceptedStatus.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreatePlate.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreateProcess.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreateQC.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_Crisprs.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DataUpload.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DesignInfo.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_DesignTargets.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DrawPlateGraph.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_EngSeqParams.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GeneSearch.t
@@ -2433,6 +2440,7 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseDesigns.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesign.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_DesignTargets.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Graph.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateCopy.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateEdit.t
@@ -2575,8 +2583,10 @@ t/lib/LIMS2/t/Model/Util/ComputeAcceptedStatus.pm
 t/lib/LIMS2/t/Model/Util/CreatePlate.pm
 t/lib/LIMS2/t/Model/Util/CreateProcess.pm
 t/lib/LIMS2/t/Model/Util/CreateQC.pm
+t/lib/LIMS2/t/Model/Util/Crisprs.pm
 t/lib/LIMS2/t/Model/Util/DataUpload.pm
 t/lib/LIMS2/t/Model/Util/DesignInfo.pm
+t/lib/LIMS2/t/Model/Util/DesignTargets.pm
 t/lib/LIMS2/t/Model/Util/DrawPlateGraph.pm
 t/lib/LIMS2/t/Model/Util/EngSeqParams.pm
 t/lib/LIMS2/t/Model/Util/GeneSearch.pm
@@ -2639,6 +2649,7 @@ t/lib/LIMS2/t/WebApp/Controller/User/BrowseDesigns.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowsePlates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesign.pm
+t/lib/LIMS2/t/WebApp/Controller/User/DesignTargets.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Graph.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateCopy.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateEdit.pm

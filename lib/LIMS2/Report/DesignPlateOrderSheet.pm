@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignPlateOrderSheet;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.110';
+    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.113';
 }
 ## use critic
 
@@ -23,7 +23,6 @@ use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
-const my @OLIGO_TYPES => qw( G5 G3 U5 U3 D5 D3 );
 
 override additional_report => sub {
     return 1;
@@ -79,17 +78,58 @@ has bac_data => (
     default => sub{ {} },
 );
 
+# gibson designs do not neen bacs, assume if one well is gibson all are
+# so check first well to see if its a gibson design
+has is_gibson => (
+    is         => 'ro',
+    isa        => 'Bool',
+    lazy_build => 1,
+);
+
+sub _build_is_gibson {
+    my $self = shift;
+
+    my $design_type = $self->plate->wells->first->design->design_type_id;
+    my $is_gibson = $design_type eq 'gibson' ? 1 : 0;
+
+    return $is_gibson;
+}
+
+has oligo_types => (
+    is         => 'ro',
+    isa        => 'ArrayRef',
+    lazy_build => 1,
+);
+
+sub _build_oligo_types {
+    my $self = shift;
+    my @oligo_types;
+
+    if ( $self->is_gibson ) {
+        @oligo_types = qw( 5F 5R EF ER 3F 3R );
+    }
+    else {
+        @oligo_types = qw( G5 G3 U5 U3 D5 D3 );
+    }
+
+    return \@oligo_types;
+}
+
 =head2 generate_design_plate_order_sheet_data
 
+Generate the data we need to display in the order sheet.
+Gibson design plates do not have bac data.
 
 =cut
 sub generate_design_plate_order_sheet_data {
     my ( $self ) = @_;
 
-    $self->build_base_report_data;
+    $self->build_base_report_data();
     $self->oligo_seq_data;
-    $self->bac_plate_data;
-    $self->bac_list;
+    unless ( $self->is_gibson ) {
+        $self->bac_plate_data;
+        $self->bac_list;
+    }
 
     return;
 }
@@ -111,10 +151,10 @@ sub build_base_report_data{
                 prefetch => { 'oligos' => 'loci' },
             }
         );
-        $self->set_design_well_bacs( $well, $parent_process );
+        $self->set_design_well_bacs( $well, $parent_process) unless $self->is_gibson;
 
         my $oligo_seqs = $design->oligo_order_seqs;
-        for my $oligo_type ( @OLIGO_TYPES ) {
+        for my $oligo_type ( @{ $self->oligo_types } ) {
             push @{ $self->oligo_data->{ $oligo_type } }, {
                 well      => $well->name,
                 design_id => $design_id,
@@ -142,7 +182,7 @@ sub set_design_well_bacs {
 sub oligo_seq_data {
     my ( $self ) = @_;
 
-    for my $oligo_type ( @OLIGO_TYPES ) {
+    for my $oligo_type ( @{ $self->oligo_types } ) {
         my $plate_name = 'plate_' . $self->plate->name . '_' . $oligo_type;
         $self->add_report_row( [ 'Temp_' . $plate_name ] );
         $self->oligo_type_seq_data( $oligo_type, $plate_name );

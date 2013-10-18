@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.110';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.113';
 }
 ## use critic
 
@@ -379,12 +379,7 @@ sub _sort_oligos {
             map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }
                 map { $_->as_hash } $self->oligos;
 
-    if ( $oligos[0]{locus} and $oligos[0]{locus}{chr_strand} == -1 ) {
-        return [ reverse @oligos ];
-    }
-    else {
-        return \@oligos;
-    }
+    return \@oligos;
 }
 
 sub _oligos_fasta {

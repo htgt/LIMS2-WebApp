@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.110';
+    $LIMS2::Model::Constants::VERSION = '0.113';
 }
 ## use critic
 
@@ -22,7 +22,9 @@ BEGIN {
         %ARTIFICIAL_INTRON_OLIGO_APPENDS
         %STANDARD_KO_OLIGO_APPENDS
         %STANDARD_INS_DEL_OLIGO_APPENDS
+        %GIBSON_OLIGO_APPENDS
         %ADDITIONAL_PLATE_REPORTS
+        %UCSC_BLAT_DB
     );
     our %EXPORT_TAGS = ();
 }
@@ -173,6 +175,15 @@ const our %STANDARD_INS_DEL_OLIGO_APPENDS => (
     "D3" => "CCGCCTACTGCGACTATAGA",
 );
 
+const our %GIBSON_OLIGO_APPENDS => (
+    "5F" => "AACGACGGCCAGTGAATTCGAT",
+    "5R" => "TATCGTTATGCGCCTTGAT",
+    "EF" => "TAGTCGCAGTAGGCGGAAGA",
+    "ER" => "AGCCAATTGGCGGCCGAAGA",
+    "3F" => "CTGAGCTAGCCATCAGTGAT",
+    "3R" => "CCATGATTACGCCAAGCTTGAT",
+);
+
 # When creating additional report classes override the additional_report sub to return 1
 const our %ADDITIONAL_PLATE_REPORTS => (
     DESIGN => [
@@ -189,6 +200,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             name   => 'Crispr Plate Order Sheet',
         }
     ],
+);
+
+const our %UCSC_BLAT_DB => (
+    mouse => 'mm10',
+    human => 'hg19',
 );
 
 1;

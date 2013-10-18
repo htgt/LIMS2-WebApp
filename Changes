@@ -1,3 +1,16 @@
+0.113     2013-10-18 13:53:15 Europe/London
+
+Updated design target crispr report:
+    - works with human gibson designs
+    - speeded up loading of report
+    - added link to design oligos and crispr blat
+    - added simple view of report
+Can now search on non MGI or HGNC gene ids linked to a design on gene summary page
+Bugfix: browse designs be gene name now filters correctly on species
+Bugfix: UCSC blat of -ve stranded designs now works correctly
+Can now download oligo order sheet for gibson design plates.
+Added pam_right field to crispr insert functions, and corrected fixture data. 
+
 0.112     2013-10-17 14:21:59 Europe/London
 
     Added dbix classes for new crispr_designs table to link a crispr and a design. 

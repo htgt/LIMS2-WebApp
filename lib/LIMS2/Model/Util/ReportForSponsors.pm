@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.110';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.113';
 }
 ## use critic
 
