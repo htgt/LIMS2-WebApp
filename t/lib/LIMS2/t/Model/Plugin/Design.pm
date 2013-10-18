@@ -128,8 +128,8 @@ sub all_tests  : Tests
     }
 
     {   
-	ok model->search_gene_designs( { search_term => 'lbl', page => 1, pagesize => 50 } ), 'list genes specifying a page and pagesize';
-	ok my ( $gene_designs, $pager ) = model->search_gene_designs( { search_term => 'lbl' } ), 'list matched genes';
+	ok model->search_gene_designs( { search_term => 'lbl', page => 1, pagesize => 50, species => 'Mouse' } ), 'list genes specifying a page and pagesize';
+	ok my ( $gene_designs, $pager ) = model->search_gene_designs( { search_term => 'lbl', species => 'Mouse' } ), 'list matched genes';
 	isa_ok $gene_designs, ref [];
 	isa_ok $_, 'LIMS2::Model::Schema::Result::GeneDesign' for @{ $gene_designs };
 
@@ -138,11 +138,11 @@ sub all_tests  : Tests
     }
 
     {   
-	ok my ( $gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'MGI' } ), 'list matched genes, specify gene type';
+	ok my ( $gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'MGI', species => 'Mouse' } ), 'list matched genes, specify gene type';
 	isa_ok $gene_designs, ref [];
 	is scalar( @{ $gene_designs } ), 1, 'return 1 design';
 
-	ok my ( $no_gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'marker-symbol' } ), 'list matched genes, specify wrong gene type';
+	ok my ( $no_gene_designs ) = model->search_gene_designs( { search_term => 'MGI:109393', gene_type => 'marker-symbol', species => 'Mouse' } ), 'list matched genes, specify wrong gene type';
 	isa_ok $no_gene_designs, ref [];
 	is scalar( @{ $no_gene_designs } ), 0, 'returns 0 design';
     }
