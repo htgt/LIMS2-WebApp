@@ -393,7 +393,7 @@ sub get_design_targets_data {
     my $schema = shift;
     my $species = shift;
 
-    my $project = "Core";
+    my $project = "Pathogens";
     my @genes_list_results = $schema->resultset('Project')->search({
             sponsor_id        => "$project",
     });
