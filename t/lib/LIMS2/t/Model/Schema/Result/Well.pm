@@ -5,9 +5,7 @@ use LIMS2::Model::Schema::Result::Well;
 use LIMS2::Model::DBConnect;
 use LIMS2::Model;
 use strict;
-use LIMS2::Test
-    model => { classname => __PACKAGE__ }
-    ;
+use LIMS2::Test model => { classname => __PACKAGE__ };
 use Smart::Comments;
 
 ##  critic
@@ -30,11 +28,11 @@ Loading other test classes at compile time
 
 =cut
 
-BEGIN
-{
+BEGIN {
+
     # compile time requirements
     #{REQUIRE_PARENT}
-};
+}
 
 =head2 before
 
@@ -42,10 +40,10 @@ Code to run before every test
 
 =cut
 
-sub before : Test(setup)
-{
+sub before : Test(setup) {
+
     #diag("running before test");
-};
+}
 
 =head2 after
 
@@ -53,11 +51,10 @@ Code to run after every test
 
 =cut
 
-sub after  : Test(teardown)
-{
-    #diag("running after test");
-};
+sub after : Test(teardown) {
 
+    #diag("running after test");
+}
 
 =head2 startup
 
@@ -65,10 +62,10 @@ Code to run before all tests for the whole test class
 
 =cut
 
-sub startup : Test(startup)
-{
+sub startup : Test(startup) {
+
     #diag("running before all tests");
-};
+}
 
 =head2 shutdown
 
@@ -76,10 +73,10 @@ Code to run after all tests for the whole test class
 
 =cut
 
-sub shutdown  : Test(shutdown)
-{
+sub shutdown : Test(shutdown) {
+
     #diag("running after all tests");
-};
+}
 
 =head2 all_tests
 
@@ -87,17 +84,14 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
-    my $user = 'lims2';
+sub all_tests : Tests {
+    my $user          = 'lims2';
     my $connect_entry = 'LIMS2_DB';
-    my $rs = 'Well';
-    my %record = (
-    );
+    my $rs            = 'Well';
+    my %record        = ();
 
     #note("Accessing the schema");
     #ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
-    #like($ENV{$connect_entry}, qr/test/i, '$ENV{LIMS2_DB} is accessing a test database');
     #my $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
     #ok ($schema, 'LIMS2::Model::DBConnect connected to the database');
     #my $resultset = $schema->resultset( $rs );
@@ -115,21 +109,15 @@ sub all_tests  : Tests
     my $test_model = model();
 
     my $model = LIMS2::Model->new( user => 'lims2' );
-    ok($model, 'Creating model');
+    ok( $model, 'Creating model' );
 
     my $well = $model->retrieve_well( { plate_name => 'CEPD0024_1', well_name => 'F08' } );
-    ok($well, "Retrieving well $well");
+    ok( $well, "Retrieving well $well" );
 
     my $children = $well->get_output_wells_as_string;
-    ok($children, "Retrieving well data $children");
-    is($children, 'FP4734[F08]', "Checking well child");
+    ok( $children, "Retrieving well data $children" );
+    is( $children, 'FP4734[F08]', "Checking well child" );
 }
-
-=head1 AUTHOR
-
-Lars G. Erlandsen
-
-=cut
 
 ## use critic
 
