@@ -50,6 +50,7 @@ sub gene_report : Path('/user/design_target_report') {
         $c->request->param('genes') || $gene,
         $c->session->{selected_species},
         $report_type,
+        $c->request->param('off_target_algorithm'),
     );
 
     unless ( @{ $design_targets_data } ) {
