@@ -256,6 +256,7 @@ sub append_seq {
     $design_type ||= $self->design->design_type_id;
     my $oligo_type = $self->design_oligo_type_id;
 
+    ## no critic (ProhibitCascadingIfElse)
     if ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
         $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type }
             if exists $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };
@@ -276,6 +277,7 @@ sub append_seq {
     else {
         LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
     }
+    ## use critic
 
     LIMS2::Exception->throw( "Undefined append sequence for $oligo_type oligo on $design_type design" )
         unless $append_seq;
@@ -310,6 +312,8 @@ sub oligo_order_seq {
     else {
         $oligo_seq = $seq . $self->append_seq( $design_type );
     }
+
+    return $oligo_seq;
 }
 
 __PACKAGE__->meta->make_immutable;
