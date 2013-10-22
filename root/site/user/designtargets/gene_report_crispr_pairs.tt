@@ -1,7 +1,7 @@
 [% META title="Design Target Report"; META tab_name = "Designs" %]
 
 <div class="page-header">
-  <h1>Design Target Report</h1>
+  <h1>Design Target Report <small>off target algorithm: [% params.off_target_algorithm %]</small></h1>
 </div>
 
 <form method"POST" id="crispr_pick" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
