@@ -91,7 +91,21 @@
                   <td class="crispr">[% crispr_pair.left_crispr %]</td>
                   <td class="crispr">[% crispr_pair.right_crispr %]</td>
                   <td class="crispr">
-                    <input type="checkbox" name="crispr_pick" value="[% crispr_pair.crispr_pair_id %]:[% design.design_id %]" />
+                    [% IF crispr_pair.crispr_pair_id %]
+                      [% linked = 0 %]
+                      [% FOR crispr_id IN design.linked_crispr_ids %]
+                        <!-- we have a crispr already linked to a design -->
+                        [% IF crispr_pair.crispr_pair_id == crispr_id %]
+                          [% linked = 1 %]
+                          <input type="checkbox" name="crispr_pick" value="[% crispr_pair.crispr_pair_id %]:[% design.design_id %]" checked />
+                          <input type="hidden"  name="design_crispr_link" value="[% crispr_pair.crispr_pair_id %]:[% design.design_id %]" />
+                        [% END %]
+                      [% END %]
+
+                      [% IF linked == 0 %]
+                        <input type="checkbox" name="crispr_pick" value="[% crispr_pair.crispr_pair_id %]:[% design.design_id %]" />
+                      [% END %]
+                    [% END %]
                   </td>
                   </tr>
                   [% design_first_row = 0 IF design_first_row == 1 %]
