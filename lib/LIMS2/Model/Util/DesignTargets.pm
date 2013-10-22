@@ -263,11 +263,12 @@ design targets.
 
 =cut
 sub bulk_crisprs_for_design_targets {
-    my ( $schema, $design_targets  ) = @_;
+    my ( $schema, $design_targets, $off_target_algorithm  ) = @_;
 
     my @dt_crisprs = $schema->resultset('DesignTargetCrisprs')->search(
         {
             design_target_id => { 'IN' => [ map{ $_->id } @{ $design_targets } ] },
+            'off_target_summaries.algorithm' => $off_target_algorithm,
         },
         {
             prefetch => { 'crispr' => 'off_target_summaries' },
@@ -340,8 +341,11 @@ sub design_target_report_for_genes {
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
     my ( $design_data, $design_crispr_links )
         = bulk_designs_for_design_targets( $schema, $design_targets, $species_id );
-    my ( $crispr_data, $crispr_pair_data )
-        = bulk_crisprs_for_design_targets( $schema, $design_targets );
+    my ( $crispr_data, $crispr_pair_data ) = bulk_crisprs_for_design_targets(
+        $schema,
+        $design_targets,
+        $report_parameters->{off_target_algorithm},
+    );
 
     #TODO gather crispr and design wells sp12 Tue 22 Oct 2013 08:14:19 BST
 
@@ -389,6 +393,7 @@ sub _format_report_data {
         if ( $report_parameters->{type} eq 'simple' ) {
             $design_target_data{designs} = scalar( @{ $datum->{designs} } );
             $design_target_data{crisprs} = scalar( keys %{ $datum->{crisprs} } );
+            $design_target_data{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
         }
         else {
             my $crispr_num;
