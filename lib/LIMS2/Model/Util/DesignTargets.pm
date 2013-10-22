@@ -411,7 +411,7 @@ sub _format_report_data {
                 LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
             }
 
-            $design_target_data{designs} = _format_design_data( $datum->{designs}, $design_crispr_links );
+            $design_target_data{designs} = _format_design_data( $datum->{designs}, $design_crispr_links, $report_parameters->{crispr_types} );
             my $design_num = scalar( @{ $design_target_data{designs} } );
 
             $design_target_data{dt_rowspan}
@@ -517,7 +517,7 @@ Format design data to show in reports.
 
 =cut
 sub _format_design_data {
-    my ( $designs, $design_crispr_links ) = @_;
+    my ( $designs, $design_crispr_links, $crispr_types ) = @_;
     my @design_data;
 
     for my $design ( @{ $designs } ) {
@@ -526,8 +526,8 @@ sub _format_design_data {
             design_type => $design->design_type_id,
         );
 
-        if ( exists $design_crispr_links->{ $design->id } ) {
-            $data{linked_crispr_ids} = $design_crispr_links->{ $design->id };
+        if ( exists $design_crispr_links->{ $design->id }{ $crispr_types } ) {
+            $data{linked_crispr_ids} = $design_crispr_links->{ $design->id }{ $crispr_types };
         }
 
         push @design_data, \%data;
