@@ -45,25 +45,31 @@ sub gene_report : Path('/user/design_target_report') {
         return $c->go('index');
     }
 
-    my $report_type = $c->request->param( 'report_type' );
+    my %report_parameters = (
+        type                 => $c->request->param('report_type') || 'standard',
+        off_target_algorithm => $c->request->param('off_target_algorithm') || 'bwa',
+        crispr_types         => $c->request->param('crispr_types') || 'pair',
+    );
 
     my ( $design_targets_data, $search_terms ) = design_target_report_for_genes(
         $c->model('Golgi')->schema,
         $c->request->param('genes') || $gene,
         $c->session->{selected_species},
-        $report_type,
-        $c->request->param('off_target_algorithm'),
+        \%report_parameters,
     );
 
     unless ( @{ $design_targets_data } ) {
         $c->flash( error_msg => "No design targets found matching search terms" );
     }
 
-    if ( $report_type eq 'simple' ) {
+    if ( $report_parameters{type} eq 'simple' ) {
         $c->stash( template => 'user/designtargets/simple_gene_report.tt');
     }
-    else {
-        $c->stash( template => 'user/designtargets/gene_report.tt');
+    elsif ( $report_parameters{crispr_types} eq 'single' ) {
+        $c->stash( template => 'user/designtargets/gene_report_single_crisprs.tt');
+    }
+    elsif ( $report_parameters{crispr_types} eq 'pair' ) {
+        $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
     }
 
     $c->stash(
@@ -71,30 +77,32 @@ sub gene_report : Path('/user/design_target_report') {
         genes               => $c->request->param('genes') || $gene,
         search_terms        => $search_terms,
         species             => $c->session->{selected_species},
+        params              => \%report_parameters,
     );
 
     return;
 }
 
-sub crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
+sub design_target_report_crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
 
     try {
-        crispr_pick(
+        my $update_log = crispr_pick(
             $c->model('Golgi'),
             $c->request->params->{crispr_pick},
             $c->request->params->{design_crispr_link},
             $c->session->{selected_species},
         );
-        $c->flash( success_msg => "You picked some crisprs, well done" );
+        $c->flash( success_msg => "You picked some crisprs, well done: " . $update_log );
     }
     catch {
-        $c->flash( error_msg => "You screwed up" . $_ );
+        $c->flash( error_msg => "You screwed up: " . $_ );
     };
 
-    return $c->go('index');
+    $c->res->redirect( $c->uri_for('/user/design_target_gene_search') );
+    return;
 }
 
 =head2 crisprs_ucsc_blat
