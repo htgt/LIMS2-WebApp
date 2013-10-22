@@ -31,7 +31,8 @@
         <td>[% datum.designs %]</td>
         <td>[% datum.crisprs %]</td>
         <td>
-          <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol ) %]" target="_blank" class="btn btn-info btn-mini btn-block">details</a>
+          <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => params.crispr_types, 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm } ) %]" target="_blank" class="btn btn-info btn-mini btn-block">
+          details</a>
         </td>
       </tr>
     [% END %]
