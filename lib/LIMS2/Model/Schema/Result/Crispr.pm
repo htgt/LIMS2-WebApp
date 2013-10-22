@@ -149,7 +149,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprPair>
 __PACKAGE__->has_many(
   "crispr_pairs_left_crisprs",
   "LIMS2::Model::Schema::Result::CrisprPair",
-  { "foreign.left_crispr" => "self.id" },
+  { "foreign.left_crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -164,7 +164,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprPair>
 __PACKAGE__->has_many(
   "crispr_pairs_right_crisprs",
   "LIMS2::Model::Schema::Result::CrisprPair",
-  { "foreign.right_crispr" => "self.id" },
+  { "foreign.right_crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -244,8 +244,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-10-16 16:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4Sefu+Z9sDQhiAklt0OJZQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-10-18 10:29:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pdNIJm3kemCP2eckVXjSGg
 
 sub as_hash {
     my ( $self ) = @_;

@@ -19,6 +19,7 @@ sub pspec_create_crispr {
         off_target_algorithm => { validate => 'non_empty_string' },
         off_target_outlier   => { validate => 'boolean', default => 0 },
         locus                => { validate => 'hashref' },
+        pam_right            => { validate => 'boolean' },
         off_targets          => { optional => 1 },
     };
 }
@@ -37,8 +38,9 @@ sub create_crispr {
 
     my $crispr = $self->find_crispr_by_seq_and_locus(
         {
-            seq     => $validated_params->{seq},
-            species => $validated_params->{species_id},
+            seq       => $validated_params->{seq},
+            species   => $validated_params->{species_id},
+            pam_right => $validated_params->{pam_right},
             slice_def(
                 $validated_params->{locus},
                 qw( chr_start chr_end chr_name chr_strand assembly )
@@ -67,7 +69,7 @@ sub _create_crispr {
         {   slice_def(
                 $validated_params,
                 qw( id species_id crispr_loci_type_id
-                    seq comment
+                    seq comment pam_right
                     )
             )
         }
@@ -288,6 +290,7 @@ sub pspec_find_crispr_by_seq_and_locus {
         chr_end    => { validate => 'integer' },
         chr_strand => { validate => 'strand' },
         seq        => { validate => 'dna_seq' },
+        pam_right  => { validate => 'boolean' },
     };
 }
 
@@ -306,6 +309,7 @@ sub find_crispr_by_seq_and_locus {
         {
             seq        => $validated_params->{seq},
             species_id => $validated_params->{species_id},
+            pam_right  => $validated_params->{pam_right},
         }
     );
 
