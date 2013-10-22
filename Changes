@@ -1,3 +1,58 @@
+0.114     2013-10-22 16:36:18 Europe/London
+
+    Added Electroporation Print report.
+
+0.113     2013-10-18 13:53:15 Europe/London
+
+Updated design target crispr report:
+    - works with human gibson designs
+    - speeded up loading of report
+    - added link to design oligos and crispr blat
+    - added simple view of report
+Can now search on non MGI or HGNC gene ids linked to a design on gene summary page
+Bugfix: browse designs be gene name now filters correctly on species
+Bugfix: UCSC blat of -ve stranded designs now works correctly
+Can now download oligo order sheet for gibson design plates.
+Added pam_right field to crispr insert functions, and corrected fixture data. 
+
+0.112     2013-10-17 14:21:59 Europe/London
+
+    Added dbix classes for new crispr_designs table to link a crispr and a design. 
+    Added dbix classes for new  crispr_pairs table for storing paired crispr information. 
+    Moved generate-pg-audit-ddl from HTGT-Admin-Utils to scripts folder.
+    Added pam_right field to crispr table for easier searching of paired crisprs
+
+0.111     2013-10-16 15:06:15 Europe/London
+
+    Modified EngSeq to make the list of recombinases unique.
+    Removed has_dre tests.
+    Fixed issue on basepath in extjs grid.
+    Added extjs-all to genotyping_qc tt because it was removed from wrapper.tt
+
+0.110     2013-10-15 08:57:39 Europe/London
+
+    Included pleliminary version of Design Target Report grid.
+
+0.109     2013-10-09 11:38:41 Europe/London
+
+    When making qc template plates you can specify a intermediate cassette, not just final cassette
+
+0.108     2013-10-07 10:00:41 Europe/London
+	Moved allele determination config into opt/t87/global/conf
+
+0.107     2013-10-04 14:50:11 Europe/London
+	Added Allele determination module in Model Utils and displayed output in genotyping QC grid.
+
+0.106     2013-10-04 08:25:44 Europe/London
+
+    Added ability to create qc_template plates from crispr plates.
+    Added code to generate eng_seq_params for crispr template wells.
+    Modified view of qc_template plates to show crispr data where appropriate.
+    Refactored code dealing with qc_template plates into util module.
+    Bugfix: error when looking at qc_template plate where its wells do not have a source well.
+    Speed up loading of qc_template pages.
+
+
 0.105     2013-09-20 11:31:32 Europe/London
 
     Added pass_lrpcr option on the dropdown of the targeting pass column.

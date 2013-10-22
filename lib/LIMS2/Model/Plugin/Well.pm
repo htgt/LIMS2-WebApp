@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.105';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.114';
 }
 ## use critic
 
@@ -15,7 +15,6 @@ use List::MoreUtils qw (any uniq);
 use LIMS2::Model::Util::ComputeAcceptedStatus qw( compute_accepted_status );
 use namespace::autoclean;
 use LIMS2::Model::ProcessGraph;
-use LIMS2::Model::Util::EngSeqParams qw( fetch_design_eng_seq_params fetch_well_eng_seq_params add_display_id);
 use LIMS2::Model::Util::RankQCResults qw( rank );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util::CreateProcess qw( create_process_aux_data_recombinase );
@@ -154,7 +153,6 @@ sub delete_well_accepted_override {
 
     return;
 }
-
 
 sub pspec_create_well_accepted_override {
     return {
@@ -744,47 +742,6 @@ sub get_well_colony_pick_fields_values {
     return \%fields;
 }
 
-sub pspec_generate_eng_seq_params {
-	return {
-        plate_name  => { validate => 'existing_plate_name', optional => 1 },
-        well_name   => { validate => 'well_name', optional => 1 },
-        well_id     => { validate => 'integer', rename => 'id', optional => 1 },
-        cassette    => { validate => 'existing_cassette', optional => 1 },
-        backbone    => { validate => 'existing_backbone', optional => 1 },
-        recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
-	}
-}
-
-sub generate_well_eng_seq_params{
-    my ( $self, $params ) = @_;
-
-	my $validated_params = $self->check_params( $params, $self->pspec_generate_eng_seq_params );
-
-    my $well = $self->retrieve_well( { slice_def $validated_params, qw( plate_name well_name id ) } );
-    $self->throw( NotFound => { entity_class => 'Well', search_params => $params })
-        unless $well;
-
-    my $design = $well->design->as_hash;
-
-    # Infer stage from plate type information
-    my $plate_type_descr = $well->plate->type->description;
-    my $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
-
-    my $design_params = fetch_design_eng_seq_params($design);
-
-    my $input_params = {slice_def $validated_params, qw( cassette backbone recombinase targeted_trap)};
-    $input_params->{is_allele} = 1 if $stage eq 'allele';
-    $input_params->{design_type} = $design->{type};
-    $input_params->{design_cassette_first} = $design->{cassette_first};
-
-    my ($method,$well_params) = fetch_well_eng_seq_params($well, $input_params );
-
-    my $eng_seq_params = { %$design_params, %$well_params };
-    add_display_id($stage, $eng_seq_params);
-
-    return $method, $well->id, $eng_seq_params;
-}
-
 sub pspec_retrieve_well_phase_matched_cassette {
 	return {
         plate_name  => { validate => 'existing_plate_name',     optional => 1 },
@@ -1106,7 +1063,6 @@ sub create_well_genotyping_result {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
         });
-        $self->has_dre_been_applied ($validated_params);
     }
     return $genotyping_result;
 }
@@ -1144,7 +1100,6 @@ sub update_or_create_well_genotyping_result {
                    $update_request->{confidence} = undef;
                }
                $genotyping_result->update( $update_request );
-               $self->has_dre_been_applied ($validated_params);
                $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                          ." updated from ".$previous." to ".$genotyping_result->call;
            }
@@ -1158,11 +1113,9 @@ sub update_or_create_well_genotyping_result {
             my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
             my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
 
-#            my $previous = defined ($genotyping_result->$assay_field) ? $genotyping_result->$assay_field : 'undefined';
             my $previous = $genotyping_result->$assay_field // 'undefined';
 
             $genotyping_result->update( $update_request );
-            $self->has_dre_been_applied ($validated_params);
             $message = 'Genotyping result for ' . $validated_params->{genotyping_result_type_id} . '/' . $assay_field
                 . ' updated from ' . $previous . ' to ' . $genotyping_result->$assay_field;
        }
@@ -1174,7 +1127,6 @@ sub update_or_create_well_genotyping_result {
             slice_def $validated_params,
             qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
         });
-        $self->has_dre_been_applied ($validated_params);
         $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                   ." created with result ".$genotyping_result->call;
     }
@@ -1213,40 +1165,9 @@ sub delete_well_genotyping_result {
 
     $genotyping_result->delete;
     $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
-    # last line necessary because has_dre_been_applied relies on retrieve_well too
-    $self->has_dre_been_applied($params);
     $self->log->debug( 'Well genotyping_results deleted for well  ' . $genotyping_result->well_id );
 
     return;
-}
-
-sub has_dre_been_applied {
-# params have always been validated before entering this method
-    my ( $self, $params ) = @_;
-
-    my $well = $self->retrieve_well( {slice_def $params, qw( plate_name well_name id)} );
-    return unless (! $well->is_double_targeted);
-    my @process = $well->parent_processes;
-    return unless scalar(@process) == 1 or (! well->is_double_targeted);
-
-    if ($well->cassette->cre and $params->{genotyping_result_type_id} eq 'puro' and $well->plate->type_id eq 'EP_PICK') {
-        # check for existing dre recombinase
-        my $dre_process = $process[0]->search_related('process_recombinases', {'recombinase_id' => 'Dre'})->first;
-        if (($params->{call} =~ 'pass') && ! defined($dre_process)) {
-            # add dre to wells parent process
-            my %recombinase_params = (
-                   plate_name  => $well->plate->name,
-                   well_name   => $well->name,
-                   recombinase => ['Dre'],
-               );
-            create_process_aux_data_recombinase( $self, \%recombinase_params, $process[0] );
-        }
-        elsif ( ( ! ($params->{call} =~ 'pass')) and $dre_process) {
-            # remove dre from parent process
-            $dre_process->delete;
-        }
-    }
-    return 1;
 }
 
 sub pspec_create_well_lab_number {

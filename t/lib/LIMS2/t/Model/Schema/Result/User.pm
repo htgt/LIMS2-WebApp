@@ -2,6 +2,7 @@ package LIMS2::t::Model::Schema::Result::User;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Schema::Result::User;
+use LIMS2::Model::DBConnect;
 
 use strict;
 
@@ -25,11 +26,11 @@ Loading other test classes at compile time
 
 =cut
 
-BEGIN
-{
+BEGIN {
+
     # compile time requirements
     #{REQUIRE_PARENT}
-};
+}
 
 =head2 before
 
@@ -37,10 +38,10 @@ Code to run before every test
 
 =cut
 
-sub before : Test(setup)
-{
+sub before : Test(setup) {
+
     #diag("running before test");
-};
+}
 
 =head2 after
 
@@ -48,13 +49,14 @@ Code to run after every test
 
 =cut
 
-sub after  : Test(teardown)
-{
+sub after : Test(teardown) {
+
     #diag("running after test");
-};
+}
 
-
-sub class { 'LIMS2::Model::Schema::Result::User' }
+sub class {
+    'LIMS2::Model::Schema::Result::User'
+}
 
 =head2 startup
 
@@ -62,14 +64,13 @@ Code to run before all tests for the whole test class
 
 =cut
 
-sub startup : Test(startup => 1)
-{
+sub startup : Test(startup => 1) {
     my $test = shift;
     use_ok $test->class;
-};
+}
 
 sub constructor : Tests(3) {
-    my $test = shift;
+    my $test  = shift;
     my $class = $test->class;
     can_ok $class, 'new';
     ok my $person = $class->new, '... and the constructor should succeed';
@@ -82,10 +83,10 @@ Code to run after all tests for the whole test class
 
 =cut
 
-sub shutdown  : Test(shutdown)
-{
+sub shutdown : Test(shutdown) {
+
     #diag("running after all tests");
-};
+}
 
 =head2 all_tests
 
@@ -93,17 +94,32 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
-{
+sub all_tests : Tests {
+    my $user          = 'lims2';
+    my $connect_entry = 'LIMS2_DB';
+    my $rs            = 'User';
+    my %record        = ();
+
     local $TODO = 'Test of LIMS2::Model::Schema::Result::User not implemented yet';
-    ok(1, "Test of LIMS2::Model::Schema::Result::User");
+    ok( 1, "Test of LIMS2::Model::Schema::Result::User" );
+
+    #note("Accessing the schema");
+    #ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
+    #my $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
+    #ok ($schema, 'LIMS2::Model::DBConnect connected to the database');
+    #my $resultset = $schema->resultset( $rs );
+    #ok ($resultset, 'LIMS2::Model::DBConnect obtained result set');
+
+    #note("CRUD tests");
+    #lives_ok { $resultset->search(\%record)->delete() } 'Deleting any existing test records';
+    #lives_ok { $resultset->create(\%record) } 'Inserting new record';
+    #my $stored = $resultset->search(\%record)->single();
+    #ok ($stored, 'Obtained record from the database');
+    #my %inflated = $stored->get_columns();
+    #cmp_deeply(\%record, \%inflated, 'Verifying retrieved record matches inserted values');
+    #lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
+
 }
-
-=head1 AUTHOR
-
-Lars G. Erlandsen
-
-=cut
 
 ## use critic
 

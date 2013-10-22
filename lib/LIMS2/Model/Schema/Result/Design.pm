@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.105';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.114';
 }
 ## use critic
 
@@ -188,6 +188,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_designs",
+  "LIMS2::Model::Schema::Result::CrisprDesign",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 genes
 
 Type: has_many
@@ -279,8 +294,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-09-02 14:04:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nqcz9bRkM0A8bk218z/9NQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-10-16 16:17:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pXWuDaaPAbtrspIPA+plvw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -364,12 +379,7 @@ sub _sort_oligos {
             map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }
                 map { $_->as_hash } $self->oligos;
 
-    if ( $oligos[0]{locus} and $oligos[0]{locus}{chr_strand} == -1 ) {
-        return [ reverse @oligos ];
-    }
-    else {
-        return \@oligos;
-    }
+    return \@oligos;
 }
 
 sub _oligos_fasta {

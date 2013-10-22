@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.105';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.114';
 }
 ## use critic
 
@@ -176,6 +176,7 @@ use LIMS2::Model::Constants qw(
 %ARTIFICIAL_INTRON_OLIGO_APPENDS
 %STANDARD_KO_OLIGO_APPENDS
 %STANDARD_INS_DEL_OLIGO_APPENDS
+%GIBSON_OLIGO_APPENDS
 );
 
 sub as_hash {
@@ -215,6 +216,12 @@ my %OLIGO_STRAND_VS_DESIGN_STRAND = (
     "D5" => 1,
     "D3" => -1,
     "G3" => 1,
+    "5F" => 1,
+    "5R" => -1,
+    "EF" => 1,
+    "ER" => -1,
+    "3F" => 1,
+    "3R" => -1,
 );
 
 =head2 revcomp_seq
@@ -255,6 +262,7 @@ sub append_seq {
     $design_type ||= $self->design->design_type_id;
     my $oligo_type = $self->design_oligo_type_id;
 
+    ## no critic (ProhibitCascadingIfElse)
     if ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
         $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type }
             if exists $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };
@@ -268,9 +276,14 @@ sub append_seq {
         $append_seq = $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type }
             if exists $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type };
     }
+    elsif ( $design_type eq 'gibson' ) {
+        $append_seq = $GIBSON_OLIGO_APPENDS{ $oligo_type }
+            if exists $GIBSON_OLIGO_APPENDS{ $oligo_type };
+    }
     else {
         LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
     }
+    ## use critic
 
     LIMS2::Exception->throw( "Undefined append sequence for $oligo_type oligo on $design_type design" )
         unless $append_seq;
@@ -289,12 +302,24 @@ Send in optional design strand and design type to avoid extra DB calls.
 sub oligo_order_seq {
     my ( $self, $design_strand, $design_type ) = @_;
     $design_strand ||= $self->design->chr_strand;
+    $design_type   ||= $self->design->design_type_id;
 
     # See comment above %OLIGO_STRAND_VS_DESIGN_STRAND for explanation
     my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $self->design_oligo_type_id };
     my $seq = $design_strand != $oligo_strand ? $self->revcomp_seq : $self->seq;
 
-    return $seq . $self->append_seq( $design_type );
+    my $oligo_seq;
+
+    # gibson oligos have the append on the 5' end
+    if ( $design_type eq 'gibson' ) {
+        $oligo_seq = $self->append_seq( $design_type ) . $seq;
+    }
+    # all other designs have appends on the 3' end of the oligo
+    else {
+        $oligo_seq = $seq . $self->append_seq( $design_type );
+    }
+
+    return $oligo_seq;
 }
 
 __PACKAGE__->meta->make_immutable;

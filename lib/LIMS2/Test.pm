@@ -1,17 +1,26 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.105';
+    $LIMS2::Test::VERSION = '0.114';
 }
 ## use critic
-
 
 use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ model => \'_build_model', test_data => \'_build_test_data', 'mech', 'unauthenticated_mech', 'reload_fixtures' ],
-    groups => { default => [qw( model mech unauthenticated_mech test_data reload_fixtures)] }
+    exports => [
+        model        => \'_build_model',
+        test_data    => \'_build_test_data',
+        fixture_data => \'_build_fixture_data',
+        'load_static_files', 'load_dynamic_files', 'load_files', 'mech', 'unauthenticated_mech',
+        'reload_fixtures',
+    ],
+    groups => {
+        default => [
+            qw( model mech unauthenticated_mech test_data fixture_data load_static_files load_dynamic_files load_files reload_fixtures)
+        ]
+    }
 };
 
 use LIMS2::Model;
@@ -27,6 +36,8 @@ use File::Temp;
 use Try::Tiny;
 use Digest::MD5;
 use LIMS2::Model::Util::PgUserRole qw( db_name );
+use LIMS2::Model::Util::RefdataUpload;
+use File::Basename;
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
@@ -36,12 +47,15 @@ const my $TEST_PASSWD => 'ahdooS1e';
 
 sub unauthenticated_mech {
 
-    my $model = LIMS2::Model->new( { user => 'tests' } );
 
-	my $dbh = $model->schema->storage->dbh;
-	# Reset the fixture data checksum because webapp
-	# may change the database content
-	$dbh->do("delete from fixture_md5") or die $dbh->errstr;
+    # Reset the fixture data checksum because webapp
+    # may change the database content
+#   my $model = LIMS2::Model->new( { user => 'tests' } );
+    my $model = LIMS2::Model->new( { user => 'lims2' } );
+
+    my $dbh = $model->schema->storage->dbh;
+    my $name = db_name($dbh);
+    $dbh->do("delete from fixture_md5") or die $dbh->errstr;
 
     # Calling commit warns "commit ineffective with AutoCommit enabled"
     # but it seems to be necessary...
@@ -71,7 +85,8 @@ sub mech {
 
 sub reload_fixtures {
 
-    my $model = LIMS2::Model->new( { user => 'tests' } );
+#    my $model = LIMS2::Model->new( { user => 'tests' } );
+    my $model = LIMS2::Model->new( { user => 'lims2' } );
     my $args = { force => 1 };
 
     try {
@@ -93,34 +108,106 @@ sub _build_test_data {
     my ( $class, $name, $args ) = @_;
 
     return sub {
-	my ( $filename, %opts ) = @_;
-	my $mech = mech();
-	$mech->get( '/test/data' );
-	my @links = $mech->links();
-	for my $link (@links)
-	{
-	    if ($filename eq $link->text)
-	    {
-		$mech->get( $link );
-		if ($filename =~ m/\.yaml$/ and not $opts{raw} ) {
-		    return YAML::Any::Load($mech->content);
-		} else {
-		    my $ext;
-		    ($ext = $filename) =~ s/^.*\.//;
-		    my ($data_fh, $data_tmp_filename) = File::Temp::tempfile( 'testdata_XXXX', DIR => "/var/tmp", SUFFIX => '.' . $ext, UNLINK => 0 );
-		    $data_fh->print($mech->content);
-		    $data_fh->seek( 0, 0 );
-		    return($data_fh);
-		}
-	    }
-	}
+        my ( $filename, %opts ) = @_;
+        my $fixture_filename = file($filename);
+        my $fixture_dirname  = $fixture_filename->dir->stringify;
+        $fixture_dirname = '' if ( $fixture_dirname eq '.' );
+        my $fixture_basename = $fixture_filename->basename;
+        my $mech             = mech();
+        my $final_path       = join( '/', '/test/data', $fixture_dirname );
+
+        #print STDERR "\$final_path = '$final_path'\n";
+        $mech->get($final_path);
+        my @links = $mech->links();
+
+        #print STDERR Data::Dumper->Dump([\@links], [qw(*links)]);
+        for my $link (@links) {
+            if ( $fixture_basename eq $link->text ) {
+                $mech->get($link);
+                if ( $filename =~ m/\.yaml$/ and not $opts{raw} ) {
+                    return YAML::Any::Load( $mech->content );
+                }
+                else {
+                    my $ext;
+                    ( $ext = $filename ) =~ s/^.*\.//;
+                    my ( $data_fh, $data_tmp_filename ) = File::Temp::tempfile(
+                        'testdata_XXXX',
+                        DIR    => "/var/tmp",
+                        SUFFIX => '.' . $ext,
+                        UNLINK => 1
+                    );
+                    $data_fh->print( $mech->content );
+                    $data_fh->seek( 0, 0 );
+                    return ($data_fh);
+                }
+            }
+        }
+    }
+}
+
+sub _build_fixture_data {
+    my ( $class, $name, $args ) = @_;
+
+    return sub {
+        my ( $filename, %opts ) = @_;
+        my $fixture_filename = file($filename);
+        my $fixture_dirname  = $fixture_filename->dir->stringify;
+        $fixture_dirname = '' if ( $fixture_dirname eq '.' );
+        my $fixture_basename = $fixture_filename->basename;
+        my $mech             = mech();
+        my $final_path       = join( '/', '/test/fixtures', $fixture_dirname );
+        $mech->get($final_path);
+        my @links = $mech->links();
+
+        for my $link (@links) {
+            if ( $fixture_basename eq $link->text ) {
+                $mech->get($link);
+                if ( $filename =~ m/\.yaml$/ and not $opts{raw} ) {
+                    return YAML::Any::Load( $mech->content );
+                }
+                else {
+                    my $ext;
+                    ( $ext = $filename ) =~ s/^.*\.//;
+                    my ( $data_fh, $data_tmp_filename ) = File::Temp::tempfile(
+                        'testdata_XXXX',
+                        DIR    => "/var/tmp",
+                        SUFFIX => '.' . $ext,
+                        UNLINK => 1
+                    );
+                    $data_fh->print( $mech->content );
+                    $data_fh->seek( 0, 0 );
+                    return ($data_fh);
+                }
+            }
+        }
     }
 }
 
 sub _build_model {
     my ( $class, $name, $args ) = @_;
+    my ( $fixture_directory, $new );
 
-    my $user = $args->{user} || 'tests';
+    # Fixture data processing
+    if ( $args->{classname} ) {
+        # Fixture data is derived from the caller's classname, i.e
+        #  if the caller package is "A::B::C::D", we look for files in '/data/fixtures/A/B/C/D'
+        my $classname = ( $args->{classname} );
+        my $classdir;
+        ( $classdir = $classname ) =~ s/::/\//g;
+        $fixture_directory = '/static/test/fixtures/' . $classdir;
+        $new               = 1;
+    }
+    elsif ( $args->{classdir} ) {
+        $fixture_directory = $args->{classdir};
+        $new               = 1;
+    }
+    else {
+        $fixture_directory = '/test/fixtures/legacy';
+        $new               = 0;
+    }
+
+    #    my $user = $args->{user} || 'tests';
+    my $user = $args->{user} || 'lims2';
 
     my $model = LIMS2::Model->new( { user => $user } );
 
@@ -132,62 +219,215 @@ sub _build_model {
     };
 
     unless ( $ENV{SKIP_LOAD_FIXTURES} ) {
-        try {
-            $model->schema->storage->dbh_do(
-                sub {
-                    my ( $storage, $dbh ) = @_;
-                    _load_fixtures( $dbh, $args );
-                }
-            );
+        # Base fixture data (only file remaining is 'delete all data' file)
+        load_files('/static/test/fixtures/00-clean-db.sql');
+
+        # Reference data (part of every test)
+        #  (Need to be loaded in this particular order!!)
+        load_static_files();
+
+        # Finally load the test data
+        if ($new) {
+            # A complete set of csv files, to be loaded in a specific order
+            load_dynamic_files($fixture_directory);
         }
-        catch {
-            BAIL_OUT( "load fixtures failed: " . ( $_ || '(unknown failure)' ) );
-        };
+        else {
+            # Test data delivered in the form of a legacy sql file
+            load_files($fixture_directory);
+        }
     }
 
     $model->schema->storage->txn_begin;
     return sub {$model};
 }
 
+sub load_static_files {
+    my ($path) = @_;
+
+    # Default path
+    $path ||= '/static/test/fixtures/reference_data';
+
+    # Reference data (part of every test)
+    # NB!NB!NB! Need to be loaded in this particular order (database dependencies)!!
+    my @reference_tables = (
+        qw(
+            Backbone
+            Cassette
+            CassetteFunction
+            CellLine
+            ColonyCountType
+            CrisprLociType
+            DesignCommentCategory
+            DesignOligoType
+            DesignType
+            GeneType
+            GenotypingPrimerType
+            GenotypingResultType
+            MutationDesignType
+            PlateType
+            PrimerBandType
+            ProcessType
+            Recombinase
+            RecombineeringResultType
+            Role
+            Species
+            Chromosome
+            Assembly
+            BacLibrary
+            SpeciesDefaultAssembly
+            Sponsor
+            )
+    );
+
+    for my $table (@reference_tables) {
+        load_files( $path . '/' . $table . '.csv' );
+    }
+
+    return;
+}
+
+sub load_dynamic_files {
+    my ($path) = @_;
+
+    ### load_dynamic_files()
+
+    # Default path
+    $path ||= '/static/test/fixtures';
+
+    # Dynamic fixture data (not necessarily part of every test)
+    # NB!NB!NB! Need to be loaded in this particular order (database dependencies)!!
+    my @reference_tables = (
+        qw(
+            User
+            Process
+            ProcessBackbone
+            ProcessCassette
+            ProcessCellLine
+            Plate
+            Well
+            ProcessInputWell
+            ProcessOutputWell
+            Design
+            GeneDesign
+            ProcessDesign
+            ProcessRecombinase
+            )
+    );
+
+    for my $table (@reference_tables) {
+        load_files( $path . '/' . $table . '.csv' );
+    }
+
+    return;
+}
+
+sub load_files {
+    my ($path) = @_;
+    my @files;
+
+    my $user   = 'lims2';
+    my $model  = LIMS2::Model->new( { user => $user } );
+    my $schema = $model->schema;
+    my $dbh    = $schema->storage->dbh;
+    my $mech   = mech();
+    $mech->get($path);
+    my @links = $mech->links();
+
+    if (@links) {
+        # We were given a directory name (identified by finding an array of links)
+        for my $link (@links) {
+            push( @files, { url => $link->url, filename => $link->text, reload => 1 } );
+        }
+    }
+    else {
+        # We were given a filename
+        my ( $base, $dir, $ext ) = fileparse( $path, '\..*' );
+
+        #push(@files, { url => $mech->uri(), filename => $mech->base(), reload => 0 } );
+        push( @files, { url => $path, filename => $base, reload => 0 } );
+    }
+
+    for my $file (@files) {
+        my ( $base, $dir, $ext );
+        ( $base, $dir, $ext ) = fileparse( $file->{url}, '\..*' );
+
+        if ( $file->{reload} ) {
+            $mech->get( $file->{url} );
+        }
+        my $content = $mech->content;
+        if ( $ext eq '.sql' ) {
+            DEBUG( "Loading sql from " . $file->{url} );
+
+            $dbh->do($content);
+        }
+        elsif ( $ext eq '.csv' ) {
+            DEBUG( "Loading csv from " . $file->{url} );
+            my $rs = $schema->resultset($base);
+
+            my ( $data_fh, $data_tmp_filename ) = File::Temp::tempfile(
+                'testdata_XXXX',
+                DIR    => "/var/tmp",
+                SUFFIX => $ext,
+                UNLINK => 1
+            );
+            $data_fh->print($content);
+            $data_fh->seek( 0, 0 );
+            LIMS2::Model::Util::RefdataUpload::load_csv_file( $data_fh, $rs );
+        }
+        elsif ( $ext eq '' ) {
+            # Empty extension - Take it as a directory link and ignore
+        }
+        else {
+            BAIL_OUT( "Unhandled file extension '." . $ext . "'" );
+        }
+    }
+
+    return;
+}
+
 sub _load_fixtures {
     my ( $dbh, $args ) = @_;
 
     my $mech = mech();
-    $mech->get( '/test/fixtures' );
+    my $dir = $args->{dir} || '/static/test/fixtures';
+    $mech->get($dir);
     my @links = $mech->links();
 
-    my @fixtures = ( sort { $a->text cmp $b->text } grep { _is_fixture($_->text) } @links );
+    my @fixtures = ( sort { $a->text cmp $b->text } grep { _is_fixture( $_->text ) } @links );
 
     my $fixture_md5 = _calculate_md5(@fixtures);
 
     # If we find any new/modified files then reload all fixtures
-    if ( _has_new_fixtures($dbh, $fixture_md5) or $args->{force} ){
+    if ( _has_new_fixtures( $dbh, $fixture_md5 ) or $args->{force} ) {
 
         note "loading fixture data";
+        my $dbname = db_name($dbh);
 
-        # This is not needed, but its nice as a sanity check
-        $dbh->do( "SET ROLE lims2_test" );
+        my $admin_role = $dbname . '_admin';
 
-    	foreach my $fixture (@fixtures){
-            DEBUG("Loading fixtures from " . $fixture->text);
+        #$dbh->do( "SET ROLE lims2_test" );
+        #Errors: "Bail out!  load fixtures failed: DBI Exception: DBD::Pg::db do failed: ERROR:  relation "fixture_md5" does not exist"
+        $dbh->do("SET ROLE lims2");
+
+        foreach my $fixture (@fixtures) {
+            DEBUG( "Loading fixtures from " . $fixture->text );
             $mech->get( $fixture->url );
             $dbh->do( $mech->content );
-    	}
-        note "Updating fixture md5";
-    	_update_fixture_md5($dbh, $fixture_md5);
+        }
+        DEBUG("Updating fixture md5");
+        _update_fixture_md5( $dbh, $fixture_md5 );
 
-	    # Calling commit warns "commit ineffective with AutoCommit enabled"
-	    # but it seems to be necessary...
-        # turning of warnings briefly to suppress this message
+        # Calling commit warns "commit ineffective with AutoCommit enabled"
+        # but it seems to be necessary...
+        # turning off warnings briefly to suppress this message
         $dbh->{PrintWarn} = 0;
-        $dbh->{Warn} = 0;
-    	$dbh->commit;
+        $dbh->{Warn}      = 0;
+        $dbh->commit;
         $dbh->{PrintWarn} = 1;
-        $dbh->{Warn} = 1;
+        $dbh->{Warn}      = 1;
     }
-    else
-    {
-	print STDERR "No fixtures to load\n";
+    else {
+        print STDERR "No fixtures to load\n";
     }
 
     return;
@@ -199,43 +439,44 @@ sub _is_fixture {
     return $name =~ m/$FIXTURE_RX/;
 }
 
-sub _calculate_md5{
+sub _calculate_md5 {
     my @links = @_;
 
     my $md5 = Digest::MD5->new;
 
     my $mech = mech();
-    foreach my $link (@links){
+    foreach my $link (@links) {
         $mech->get( $link->url );
-        $md5->add($mech->content);
+        $md5->add( $mech->content );
     }
 
     return $md5->hexdigest;
 }
 
 sub _has_new_fixtures {
-    my ($dbh, $md5) = @_;
+    my ( $dbh, $md5 ) = @_;
 
     my $existing_md5 = $dbh->selectrow_array("select md5 from fixture_md5");
 
-    if($existing_md5 and $existing_md5 eq $md5){
-    	return 0;
+    if ( $existing_md5 and $existing_md5 eq $md5 ) {
+        return 0;
     }
 
     return 1;
 }
 
-sub _update_fixture_md5{
-	my ($dbh, $md5) = @_;
+sub _update_fixture_md5 {
+    my ( $dbh, $md5 ) = @_;
 
-	$dbh->do("delete from fixture_md5");
-	my $sth = $dbh->prepare("insert into fixture_md5 values ( ?, now() )")
-	    or die $dbh->errstr;
-	$sth->execute($md5);
+    $dbh->do("delete from fixture_md5");
+    my $sth = $dbh->prepare("insert into fixture_md5 values ( ?, now() )")
+        or die $dbh->errstr;
+    $sth->execute($md5);
 
-	return;
+    return;
 }
 
 1;
 
 __END__
+

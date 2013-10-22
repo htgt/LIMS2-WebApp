@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.105';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.114';
 }
 ## use critic
 
@@ -686,6 +686,16 @@ sub design {
     my $process_design = $self->ancestors->find_process( $self, 'process_design' );
 
     return $process_design ? $process_design->design : undef;
+}
+
+sub crispr {
+    my $self = shift;
+
+    #TODO what if we have 2 crisprs applied? sp12 Tue 01 Oct 2013 09:26:47 BST
+
+    my $process_crispr = $self->ancestors->find_process( $self, 'process_crispr' );
+
+    return $process_crispr ? $process_crispr->crispr : undef;
 }
 
 sub designs{

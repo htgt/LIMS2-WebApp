@@ -94,31 +94,6 @@ sub all_tests  : Tests
 
     my $well_data= test_data( 'well.yaml' );
 
-    note( "Testing well EngSeqParam generation");
-    {
-	throws_ok {
-	    model->generate_well_eng_seq_params({ well_id => 850 });
-	} qr/No cassette found for well/;
-
-	ok my ($method, $well_id, $params) = model->generate_well_eng_seq_params({ well_id => 1522 }),
-	    'generate_well_eng_seq_params for well 1522 should succeed';
-	is $well_id, 1522, 'correct source well id returned';
-	is $method, 'conditional_allele_seq', 'engseq method correct for well 1522';
-	is_deeply ($params, test_data('well_1522.yaml'), 'engseq params as expected for well 1522');
-
-	my %user_params = ( cassette => 'L1L2_GT2_LacZ_BSD', backbone => 'R3R4_pBR_amp', recombinase => ['Cre']);
-	ok my ($method2, $well_id2, $params2) = model->generate_well_eng_seq_params({ well_id => 850, %user_params }),
-	    'generate well_eng_seq_params for well 850 with user specified details should succeed';
-	is_deeply ($params2, test_data("well_850_user_params.yaml"),
-	    'engseq params as expected for well 850 with user specified params');
-	is $method2, 'conditional_vector_seq', 'engseq method correct for well 850';
-
-	ok my ($method3, $well_id3, $params3) = model->generate_well_eng_seq_params({ well_id => 848, %user_params }),
-	    'generate_well_eng_seq_params for well 848 should succeed';
-	is_deeply ($params3, test_data('well_848.yaml'), 'engseq params as expected for well 848');
-
-    }
-
     note( "Testing well creation" );
 
     {
@@ -606,45 +581,6 @@ sub all_tests  : Tests
 	ok my $lab_number_two = model->update_or_create_well_lab_number( {  well_id => $piq_well_two->id , lab_number => 'LAB 004' } ), 'can insert a second well lab number';
 
 	note("end of well lab number tests");
-    }
-
-    {
-	note( "has_dre_been_applied" );
-
-	my $params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'fail' };
-	ok model->has_dre_been_applied( $params ), 'remove Dre to well for Cre project';
-	my @recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-	$params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'loacrit', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'Only add Dre to well for Cre project when genotyping_result_id is puro';
-	@recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-	$params = { plate_name =>'997', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'fail to add Dre to well for Cre project when plate type is not EP_PICK';
-	@recombinases = model->retrieve_well({ plate_name =>'997', well_name => 'A01' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-	$params = { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04', genotyping_result_type_id => 'puro', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'Do nothing for non Cre project';
-	@recombinases = model->retrieve_well({ plate_name =>'MOHFAQ0001_A_2', well_name => 'A04' })->recombinases;
-	foreach my $rec (@{$recombinases[0]}){
-	    isnt $rec, 'Dre', '.. does not have Dre recombinase';
-	}
-
-
-	$params = { plate_name =>'1000', well_name => 'A01', genotyping_result_type_id => 'puro', call => 'pass' };
-	ok model->has_dre_been_applied( $params ), 'can add Dre to well for Cre project';
-	@recombinases = model->retrieve_well({ plate_name =>'1000', well_name => 'A01' })->recombinases;
-	is $recombinases[0][-1], 'Dre', '.. has Dre recombinase';
-
     }
 
     note( "Add colony counts to a well" );

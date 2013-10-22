@@ -1,12 +1,13 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.105';
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.114';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
+use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -39,28 +40,39 @@ sub index :Path('/user/design_target_gene_search') :Args(0) {
     return;
 }
 
-sub gene_report : Path('/user/design_target_report') : Args(0) {
-    my ( $self, $c ) = @_;
+sub gene_report : Path('/user/design_target_report') {
+    my ( $self, $c, $gene ) = @_;
 
     $c->assert_user_roles( 'read' );
-    unless ( $c->request->param('genes') ) {
+    if ( !$c->request->param('genes') && !$gene ) {
         $c->flash( error_msg => "Please enter some gene names" );
         return $c->go('index');
     }
 
+    my $report_type = $c->request->param( 'report_type' );
+
     my ( $design_targets_data, $search_terms ) = design_target_report_for_genes(
         $c->model('Golgi')->schema,
-        $c->request->param('genes'),
+        $c->request->param('genes') || $gene,
         $c->session->{selected_species},
+        $report_type,
+        $c->request->param('off_target_algorithm'),
     );
 
-    unless ( @{ $design_targets_data->{data} } ) {
-        $c->stash( error_msg => "No design targets found matching search terms" );
+    unless ( @{ $design_targets_data } ) {
+        $c->flash( error_msg => "No design targets found matching search terms" );
+    }
+
+    if ( $report_type eq 'simple' ) {
+        $c->stash( template => 'user/designtargets/simple_gene_report.tt');
+    }
+    else {
+        $c->stash( template => 'user/designtargets/gene_report.tt');
     }
 
     $c->stash(
         design_targets_data => $design_targets_data,
-        genes               => $c->request->param('genes'),
+        genes               => $c->request->param('genes') || $gene,
         search_terms        => $search_terms,
         species             => $c->session->{selected_species},
     );
@@ -86,16 +98,33 @@ sub crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
     return;
 }
 
-=head1 AUTHOR
+=head2 crisprs_ucsc_blat
 
-Sajith Perera
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+Link to UCSC Blat page for set for crisprs for a design target.
 
 =cut
+sub crisprs_ucsc_blat : Path( '/user/crisprs_ucsc_blat' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    unless ( $c->request->param('sequence') ) {
+        $c->stash( error_msg => "Must specify a fasta sequence string" );
+        return;
+    }
+
+    my $ucsc_db = $UCSC_BLAT_DB{ lc($species_id) };
+
+    $c->stash(
+        sequence => $c->request->param('sequence'),
+        species  => $species_id,
+        uscs_db  => $ucsc_db,
+    );
+
+    return;
+}
 
 __PACKAGE__->meta->make_immutable;
 

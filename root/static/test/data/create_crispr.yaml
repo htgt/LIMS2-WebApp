@@ -4,6 +4,7 @@ valid_crispr:
     species: Mouse
     seq: ATCGGCACACAGAGAG
     comment: Test_crispr
+    pam_right: 0
     off_target_algorithm: strict
     off_target_summary: "{Exons: 5, Introns:10, Intergenic: 15}"
     locus:
@@ -31,6 +32,7 @@ species_assembly_mismatch:
     type: Exonic
     species: Human
     seq: ATCGGCACACAGAGAG
+    pam_right: 0
     comment: Test_crispr
     off_target_algorithm: strict
     locus:
@@ -58,6 +60,7 @@ duplicate_crispr_same_off_target_algorithm:
     type: Exonic
     species: Mouse
     seq: ATCGGCACACAGAGAG
+    pam_right: 0
     off_target_algorithm: strict
     off_target_outlier: 1
     locus:
@@ -78,6 +81,7 @@ duplicate_crispr_different_off_target_algorithm:
     type: Exonic
     species: Mouse
     seq: ATCGGCACACAGAGAG
+    pam_right: 0
     off_target_algorithm: easy
     locus:
        assembly: GRCm38

@@ -6,6 +6,7 @@ build_requires:
   English: 0
   File::Find: 0
   HTTP::Request::Common: 0
+  Smart::Comments: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -60,6 +61,7 @@ requires:
   EngSeqBuilder: 0
   Exporter: 0
   Fcntl: 0
+  File::Basename: 0
   File::Temp: 0
   File::stat: 0
   FindBin: 0
@@ -106,6 +108,7 @@ requires:
   MooseX::NonMoose: 0
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
+  Parse::BooleanLogic: 0
   Path::Class: 0
   Perl6::Slurp: 0
   Readonly: 0
@@ -129,4 +132,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.105
+version: 0.114
