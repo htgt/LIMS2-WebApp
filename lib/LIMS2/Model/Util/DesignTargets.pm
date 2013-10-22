@@ -283,22 +283,16 @@ sub bulk_crisprs_for_design_targets {
 
     my %crispr_pairs;
     for my $dt_id ( keys %crisprs ) {
-        my %pairs;
-        my @left_crisprs = grep{ !$_->pam_right } values %{ $crisprs{ $dt_id } };
-        my @right_crisprs = grep{ $_->pam_right } values %{ $crisprs{ $dt_id } };
+        my @left_crisprs  = map{ $_->id } grep{ !$_->pam_right } values %{ $crisprs{ $dt_id } };
+        my @right_crisprs = map { $_->id } grep{ $_->pam_right } values %{ $crisprs{ $dt_id } };
 
-        for my $left_crispr ( @left_crisprs ) {
-            for my $right_crispr ( @right_crisprs ) {
-                my $crispr_pair = $schema->resultset( 'CrisprPair' )->search(
-                    {
-                        left_crispr_id  => $left_crispr->id,
-                        right_crispr_id => $right_crispr->id,
-                    }
-                )->first;
-                $pairs{ $dt_id } = $crispr_pair if $crispr_pair;
+        my @crispr_pairs = $schema->resultset( 'CrisprPair' )->search(
+            {
+                left_crispr_id  => { 'IN' => \@left_crisprs },
+                right_crispr_id => { 'IN' => \@right_crisprs },
             }
-        }
-        $crispr_pairs{ $dt_id } = \%pairs;
+        );
+        $crispr_pairs{ $dt_id } = { map{ $_->id => $_ } @crispr_pairs };
     }
 
     return ( \%crisprs, \%crispr_pairs );
