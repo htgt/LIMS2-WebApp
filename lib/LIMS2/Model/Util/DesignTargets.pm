@@ -490,6 +490,11 @@ sub _rank_crisprs {
     $score += 1000 if $off_target_summary->outlier;
     my $summary = Load($off_target_summary->summary);
 
+    #temporary fix to stop error on new bwa off target summaries that don't have these fields
+    unless ( defined $summary->{Exons} ) {
+        return $score;
+    }
+
     return $score + ( ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic} );
 }
 
