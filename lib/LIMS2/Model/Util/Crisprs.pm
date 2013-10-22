@@ -35,6 +35,7 @@ We then validate the selection and persist the link between the design and crisp
 sub crispr_pick {
     my ( $model, $crispr_picks, $design_crispr_link, $species_id ) = @_;
     my %design_crisprs;
+    my %existing_design_crisprs;
 
     my $default_assembly = $model->schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species_id } )->assembly_id;
@@ -42,6 +43,11 @@ sub crispr_pick {
     for my $pick ( @{ $crispr_picks } ) {
         my ( $crispr_id, $design_id ) = split /:/, $pick;
         push @{ $design_crisprs{ $design_id } }, $crispr_id;
+    }
+
+    for my $pick ( @{ $design_crispr_link } ) {
+        my ( $crispr_id, $design_id ) = split /:/, $pick;
+        push @{ $existing_design_crisprs{ $design_id } }, $crispr_id;
     }
 
     for my $design_id ( keys %design_crisprs ) {
