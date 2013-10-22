@@ -4,13 +4,13 @@
   <h1>Design Target Report</h1>
 </div>
 
-<form method"POST" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
+<form method"POST" id="crispr_pick" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
   <table id="design-target-report" class="table table-bordered table-condensed">
     <thead>
       <tr>
         <th class="design-target group-header" colspan="6">Design Target</th>
         <th class="design group-header" colspan="3">Vector Design</th>
-        <th class="crispr group-header" colspan="8">Crispr Guide RNA (strict off target algorithm)</th>
+        <th class="crispr group-header" colspan="8">Crispr Guide RNA</th>
       </tr>
       <tr>
         <th class="design-target">Marker Symbol</th>
