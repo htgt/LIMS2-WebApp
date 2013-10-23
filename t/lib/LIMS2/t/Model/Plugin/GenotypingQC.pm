@@ -86,7 +86,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(20)
+sub all_tests  : Test(21)
 {
 
     note( "Testing Genotyping QC data update");
