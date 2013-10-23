@@ -179,6 +179,7 @@ lib/LIMS2/Report/QcRunSummary.pm
 lib/LIMS2/Report/SEPPICKPlate.pm
 lib/LIMS2/Report/SEPPOOLPlate.pm
 lib/LIMS2/Report/SEPPlate.pm
+lib/LIMS2/Report/SFPPlate.pm
 lib/LIMS2/Report/SecondElectroporationProductionDetail.pm
 lib/LIMS2/Report/SponsorProgress.pm
 lib/LIMS2/Report/VectorProductionDetail.pm

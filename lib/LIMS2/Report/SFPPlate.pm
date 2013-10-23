@@ -1,7 +1,7 @@
-package LIMS2::Report::DesignPlate;
+package LIMS2::Report::SFPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignPlate::VERSION = '0.115';
+    $LIMS2::Report::SFPPlate::VERSION = '0.115';
 }
 ## use critic
 
@@ -9,22 +9,24 @@ package LIMS2::Report::DesignPlate;
 use Moose;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
+extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
 
 override plate_types => sub {
-    return [ 'DESIGN' ];
+    return [ 'SFP' ];
 };
 
 override _build_name => sub {
     my $self = shift;
 
-    return 'Design Plate ' . $self->plate_name;
+    return 'SFP Plate ' . $self->plate_name;
 };
 
+# Basic columns, will need to add more
 override _build_columns => sub {
+    my $self = shift;
+
     return [
-        shift->base_columns,
-        "PCR U", "PCR D", "PCR G", "Rec U", "Rec D", "Rec G", "Rec NS", "Rec Result",
+        $self->base_columns,
     ];
 };
 
@@ -35,7 +37,7 @@ override iterator => sub {
         wells => {},
         {
             prefetch => [
-                'well_accepted_override', 'well_recombineering_results'
+                'well_accepted_override', 'well_qc_sequencing_result'
             ],
             order_by => { -asc => 'me.name' }
         }
@@ -45,11 +47,8 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
-        my %recombineering_results = map { $_->result_type_id => $_->result } $well->well_recombineering_results;
-
         return [
             $self->base_data( $well ),
-            @recombineering_results{ qw( pcr_u pcr_d pcr_g rec_u rec_d rec_g rec_ns rec_result ) },
         ];
     };
 };

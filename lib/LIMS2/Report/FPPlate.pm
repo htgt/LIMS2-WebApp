@@ -1,7 +1,7 @@
 package LIMS2::Report::FPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FPPlate::VERSION = '0.114';
+    $LIMS2::Report::FPPlate::VERSION = '0.115';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
-    return [ 'FP', 'SFP' ];
+    return [ 'FP' ];
 };
 
 override _build_name => sub {

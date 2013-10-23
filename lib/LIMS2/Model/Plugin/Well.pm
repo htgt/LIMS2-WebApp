@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.114';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.115';
 }
 ## use critic
 
@@ -572,7 +572,6 @@ sub update_or_create_well_primer_bands {
     my ( $self, $params ) = @_;
     my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_primer_bands );
-
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $requested_row = {

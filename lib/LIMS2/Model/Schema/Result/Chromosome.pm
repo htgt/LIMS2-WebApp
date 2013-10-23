@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Chromosome;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.114';
+    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.115';
 }
 ## use critic
 
