@@ -379,50 +379,65 @@ sub _format_report_data {
     my @report_row_data;
 
     for my $datum ( @{ $data } ) {
-        my $dt = $datum->{'design_target'};
-        my %design_target_data = (
-          design_target_id => $dt->id,
-          marker_symbol    => $dt->marker_symbol,
-          gene_id          => $dt->gene_id,
-          ensembl_exon_id  => $dt->ensembl_exon_id,
-          exon_size        => $dt->exon_size,
-          exon_rank        => $dt->exon_rank,
-          chromosome       => $dt->chr->name,
-        );
+        my $design_target_data = _format_design_target_data( $datum->{design_target} );
 
         if ( $report_parameters->{type} eq 'simple' ) {
-            $design_target_data{designs} = scalar( @{ $datum->{designs} } );
-            $design_target_data{crisprs} = scalar( keys %{ $datum->{crisprs} } );
-            $design_target_data{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
+            $design_target_data->{designs} = scalar( @{ $datum->{designs} } );
+            $design_target_data->{crisprs} = scalar( keys %{ $datum->{crisprs} } );
+            $design_target_data->{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
         }
         else {
             my $crispr_num;
             if ( $report_parameters->{crispr_types} eq 'single' ) {
-                $design_target_data{crisprs} = _format_crispr_data(
+                $design_target_data->{crisprs} = _format_crispr_data(
                     $datum->{crisprs}, $report_parameters->{off_target_algorithm}, 5 );
-                $crispr_num = scalar( @{ $design_target_data{crisprs} } );
+                $crispr_num = scalar( @{ $design_target_data->{crisprs} } );
             }
             elsif ( $report_parameters->{crispr_types} eq 'pair' ) {
-                $design_target_data{crispr_pairs} = _format_crispr_pair_data(
-                    $datum->{crispr_pairs}, $report_parameters->{off_target_algorithm}, 5 );
-                $crispr_num = scalar( @{ $design_target_data{crispr_pairs} } );
+                $design_target_data->{crispr_pairs} = _format_crispr_pair_data(
+                    $datum->{crispr_pairs}, $datum->{crisprs},
+                    $report_parameters->{off_target_algorithm}, 5 );
+                $crispr_num = scalar( @{ $design_target_data->{crispr_pairs} } );
             }
             else {
                 LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
             }
 
-            $design_target_data{designs} = _format_design_data( $datum->{designs}, $design_crispr_links, $report_parameters->{crispr_types} );
-            my $design_num = scalar( @{ $design_target_data{designs} } );
+            $design_target_data->{designs}
+                = _format_design_data( $datum->{designs}, $design_crispr_links,
+                $report_parameters->{crispr_types} );
+            my $design_num = scalar( @{ $design_target_data->{designs} } );
 
-            $design_target_data{dt_rowspan}
+            $design_target_data->{dt_rowspan}
                 = ( $crispr_num ? $crispr_num : 1 ) * ( $design_num ? $design_num : 1 );
-            $design_target_data{design_rowspan} = $crispr_num ? $crispr_num : 1;
+            $design_target_data->{design_rowspan} = $crispr_num ? $crispr_num : 1;
         }
 
-        push @report_row_data, \%design_target_data;
+        push @report_row_data, $design_target_data;
     }
 
     return \@report_row_data;
+}
+
+=head2 _format_design_target_data
+
+Format the design target data into something we can show in the report
+
+=cut
+sub _format_design_target_data {
+    my ( $design_target ) = @_;
+
+    my %design_target_data = (
+      design_target_id => $design_target->id,
+      marker_symbol    => $design_target->marker_symbol,
+      gene_id          => $design_target->gene_id,
+      ensembl_exon_id  => $design_target->ensembl_exon_id,
+      exon_size        => $design_target->exon_size,
+      exon_rank        => $design_target->exon_rank,
+      chromosome       => $design_target->chr->name,
+    );
+
+    return \%design_target_data;
 }
 
 =head2 _format_crispr_data
@@ -480,11 +495,11 @@ sub _format_crispr_data {
 =head2 _format_crispr_pair_data
 
 Format the crispr pair data.
+Get the first 5 pairs ( ranked according to _rank_crisp_pair )
 
 =cut
 sub _format_crispr_pair_data {
-    my ( $crispr_pairs, $off_target_algorithm, $num_crispr_pairs ) = @_;
-    #TODO can send in crispr hash as well sp12 Tue 22 Oct 2013 10:12:49 BST
+    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $num_crispr_pairs ) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
     $num_crispr_pairs ||= 5;
@@ -495,12 +510,15 @@ sub _format_crispr_pair_data {
 
     my $crispr_pair_count = 0;
     for my $c ( @ranked_crispr_pairs ) {
+        my $left_crispr = $crisprs->{ $c->left_crispr_id };
+        my $right_crispr = $crisprs->{ $c->right_crispr_id };
+
         my %data = (
-            crispr_pair_id     => $c->id,
-            spacer             => $c->spacer,
-            off_target_summary => $c->off_target_summary,
-            left_crispr        => $c->left_crispr_id,
-            right_crispr       => $c->right_crispr_id,
+            crispr_pair_id   => $c->id,
+            spacer           => $c->spacer,
+            pair_off_target  => $c->off_target_summary,
+            left_off_target  => _get_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
+            right_off_target => _get_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
         );
         last if $crispr_pair_count++ >= $num_crispr_pairs;
 
@@ -514,6 +532,8 @@ sub _format_crispr_pair_data {
 =head2 _format_design_data
 
 Format design data to show in reports.
+Also grab pre-existing link information between a design and a crispr / crispr pair,
+this is so we can tick the checkboxes in the report where needed.
 
 =cut
 sub _format_design_data {
@@ -538,8 +558,8 @@ sub _format_design_data {
 
 =head2 _rank_crisprs
 
-sort crisprs by off target hits, ranking is weighted my importance of hit type:
-exon > intron > intergenic
+Sort crisprs by off target hits.
+The ranking depends on the off target algorithm used
 
 =cut
 sub _rank_crisprs {
@@ -580,6 +600,23 @@ sub _rank_crispr_pairs {
     my $score = 0;
 
     return 1;
+}
+
+=head2 _get_crispr_off_target_summary
+
+Grab the correct crispr off target summary, one that matches with the specified
+off target algorithm.
+
+=cut
+sub _get_crispr_off_target_summary {
+    my ( $crispr, $off_target_algorithm ) = @_;
+
+    for my $summary ( $crispr->off_target_summaries->all ) {
+        next unless $summary->algorithm eq $off_target_algorithm;
+        return $summary->summary;
+    }
+
+    return;
 }
 
 =head2 _sort_gene_ids
