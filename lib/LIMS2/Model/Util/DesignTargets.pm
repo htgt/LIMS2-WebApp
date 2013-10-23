@@ -361,7 +361,7 @@ sub design_target_report_for_genes {
         push @report_data, \%data;
     }
 
-    my $formated_report_data = _format_report_data(
+    my $formated_report_data = format_report_data(
         \@report_data,
         $design_crispr_links,
         $report_parameters,
@@ -369,12 +369,12 @@ sub design_target_report_for_genes {
     return( $formated_report_data, $sorted_genes );
 }
 
-=head2 _format_report_data
+=head2 format_report_data
 
 Manipulate data into format we can easily display in a spreadsheet
 
 =cut
-sub _format_report_data {
+sub format_report_data {
     my ( $data, $design_crispr_links, $report_parameters ) = @_;
     my @report_row_data;
 
@@ -387,34 +387,23 @@ sub _format_report_data {
             $design_target_data->{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
         }
         else {
-            my $crispr_num;
-            if ( $report_parameters->{crispr_types} eq 'single' ) {
-                $design_target_data->{crisprs} = _format_crispr_data(
-                    $datum->{crisprs}, $report_parameters->{off_target_algorithm}, 5 );
-                $crispr_num = scalar( @{ $design_target_data->{crisprs} } );
-            }
-            elsif ( $report_parameters->{crispr_types} eq 'pair' ) {
-                $design_target_data->{crispr_pairs} = _format_crispr_pair_data(
-                    $datum->{crispr_pairs}, $datum->{crisprs},
-                    $report_parameters->{off_target_algorithm}, 5 );
-                $crispr_num = scalar( @{ $design_target_data->{crispr_pairs} } );
-            }
-            else {
-                LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
-            }
+            my ( $crispr_data, $display_crispr_num ) = format_crispr_data( $datum, $report_parameters );
+            $design_target_data->{crisprs} = $crispr_data;
 
-            $design_target_data->{designs}
-                = _format_design_data( $datum->{designs}, $design_crispr_links,
-                $report_parameters->{crispr_types} );
-            my $design_num = scalar( @{ $design_target_data->{designs} } );
+            my ( $design_data, $display_design_num )
+                = format_design_data( $datum, $report_parameters, $design_crispr_links );
+            $design_target_data->{designs} = $design_data;
 
+            # work out rowspan attributes for design target and design section of report
             $design_target_data->{dt_rowspan}
-                = ( $crispr_num ? $crispr_num : 1 ) * ( $design_num ? $design_num : 1 );
-            $design_target_data->{design_rowspan} = $crispr_num ? $crispr_num : 1;
+                = ( $display_crispr_num ? $display_crispr_num : 1 ) * ( $display_design_num ? $display_design_num : 1 );
+            $design_target_data->{design_rowspan} = $display_crispr_num ? $display_crispr_num : 1;
         }
 
         push @report_row_data, $design_target_data;
     }
+    use Smart::Comments;
+    ### @report_row_data
 
     return \@report_row_data;
 }
@@ -438,6 +427,33 @@ sub _format_design_target_data {
     );
 
     return \%design_target_data;
+}
+
+=head2 format_crispr_data
+
+Format the crispr / crispr pair data.
+
+=cut
+sub format_crispr_data {
+    my ( $datum, $report_parameters ) = @_;
+    my $num_show_crisprs = $report_parameters->{num_crisprs} || 5;
+    
+    my $crispr_data;
+    if ( $report_parameters->{crispr_types} eq 'single' ) {
+        $crispr_data = _format_crispr_data(
+            $datum->{crisprs}, $report_parameters->{off_target_algorithm}, $num_show_crisprs );
+    }
+    elsif ( $report_parameters->{crispr_types} eq 'pair' ) {
+        $crispr_data = _format_crispr_pair_data(
+            $datum->{crispr_pairs}, $datum->{crisprs},
+            $report_parameters->{off_target_algorithm}, $num_show_crisprs );
+    }
+    else {
+        LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
+    }
+    my $display_crispr_num = scalar( @{ $crispr_data } );
+
+    return ( $crispr_data, $display_crispr_num );
 }
 
 =head2 _format_crispr_data
@@ -529,18 +545,19 @@ sub _format_crispr_pair_data {
     return \@crispr_data;
 }
 
-=head2 _format_design_data
+=head2 format_design_data
 
 Format design data to show in reports.
 Also grab pre-existing link information between a design and a crispr / crispr pair,
 this is so we can tick the checkboxes in the report where needed.
 
 =cut
-sub _format_design_data {
-    my ( $designs, $design_crispr_links, $crispr_types ) = @_;
+sub format_design_data {
+    my ( $datum, $report_parameters, $design_crispr_links ) = @_;
     my @design_data;
+    my $crispr_types = $report_parameters->{crispr_types};
 
-    for my $design ( @{ $designs } ) {
+    for my $design ( @{ $datum->{designs} } ) {
         my %data = (
             design_id   => $design->id,
             design_type => $design->design_type_id,
@@ -552,8 +569,9 @@ sub _format_design_data {
 
         push @design_data, \%data;
     }
+    my $display_design_num = scalar( @design_data );
 
-    return \@design_data;
+    return ( \@design_data, $display_design_num );
 }
 
 =head2 _rank_crisprs
@@ -682,6 +700,14 @@ sub get_design_targets_data {
                 '-in' => $genes_list_ref
             }
     });
+
+    #my $gene_list_rs = $schema->resultset('Project')->search( { sponsor_id => $project } );
+    #my @dt_results = $schema->resultset('DesignTarget')->search(
+        #{
+            #species_id => $species,
+            #gene_id => { '-in' => $gene_list_rs->get_column('gene_id')->as_query },
+        #}
+    #);
 
     my $design_data = bulk_designs_for_design_targets( $schema, \@dt_results, $species );
 
