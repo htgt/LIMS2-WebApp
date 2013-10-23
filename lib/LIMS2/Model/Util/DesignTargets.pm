@@ -395,15 +395,13 @@ sub format_report_data {
             $design_target_data->{designs} = $design_data;
 
             # work out rowspan attributes for design target and design section of report
-            $design_target_data->{dt_rowspan}
-                = ( $display_crispr_num ? $display_crispr_num : 1 ) * ( $display_design_num ? $display_design_num : 1 );
+            $design_target_data->{dt_rowspan} = ( $display_crispr_num ? $display_crispr_num : 1 )
+                * ( $display_design_num ? $display_design_num : 1 );
             $design_target_data->{design_rowspan} = $display_crispr_num ? $display_crispr_num : 1;
         }
 
         push @report_row_data, $design_target_data;
     }
-    use Smart::Comments;
-    ### @report_row_data
 
     return \@report_row_data;
 }
