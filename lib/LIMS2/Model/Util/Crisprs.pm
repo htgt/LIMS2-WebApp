@@ -25,6 +25,7 @@ use List::MoreUtils qw( none );
 use LIMS2::Exception;
 use LIMS2::Model::Util::DesignInfo;
 use Try::Tiny;
+use Data::Printer;
 
 =head2 crispr_pick
 
@@ -34,8 +35,7 @@ We then validate the selection and persist the link between the design and crisp
 =cut
 sub crispr_pick {
     my ( $model, $request_params, $species_id ) = @_;
-
-    ### $request_params
+    my %logs;
 
     my $default_assembly = $model->schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species_id } )->assembly_id;
@@ -53,15 +53,19 @@ sub crispr_pick {
         my $delete_links = compare_design_crispr_links( $existing_design_crispr_links,
             $checked_design_crispr_links, 'crispr_pair_id' );
 
-        create_crispr_pair_design_links( $model, $create_links, $default_assembly );
-        delete_crispr_pair_design_links( $model, $delete_links );
+        my ( $create_log, $create_fail_log )
+            = create_crispr_pair_design_links( $model, $create_links, $default_assembly );
+        my ( $delete_log, $delete_fail_log ) = delete_crispr_pair_design_links( $model, $delete_links );
+        $logs{'create'} = $create_log;
+        $logs{'delete'} = $delete_log;
+        $logs{'create_fail'} = $create_fail_log;
+        $logs{'delete_fail'} = $delete_fail_log;
     }
     elsif ( $request_params->{crispr_types} eq 'single' ) {
         #TODO single crisprs sp12 Wed 23 Oct 2013 11:01:31 BST
     }
 
-
-    return 'blah';
+    return \%logs;
 }
 
 =head2 parse_request_param
@@ -132,11 +136,13 @@ sub compare_design_crispr_links {
 
 =head2 create_crispr_pair_design_links
 
-desc
+Create a link between a design and a crispr pair after validating that the
+crispr pair and design hit the same location.
 
 =cut
 sub create_crispr_pair_design_links {
     my ( $model, $create_links, $default_assembly ) = @_;
+    my ( @create_log, @fail_log );
 
     for my $datum ( @{ $create_links } ) {
         my $design = $model->retrieve_design( { id => $datum->{design_id} } );
@@ -144,47 +150,59 @@ sub create_crispr_pair_design_links {
             { id => $datum->{crispr_pair_id} },
             { prefetch => [ 'left_crispr', 'right_crispr' ] },
         );
-        #TODO check i have a  crispr_pair sp12 Wed 23 Oct 2013 15:19:53 BST
+        LIMS2::Exception->throw( 'Can not find crispr pair: ' . $datum->{crispr_pair_id} )
+            unless $crispr_pair;
 
-        #TODO better invocation of this sp12 Wed 23 Oct 2013 15:20:06 BST
-        crispr_pair_hits_design( $design, $crispr_pair, $default_assembly );
+        try{
+            crispr_pair_hits_design( $design, $crispr_pair, $default_assembly );
+        }
+        catch {
+            ERROR( 'Crispr pair cannot be linked to design: ' . $_ );
+            push @fail_log,
+                  'Additional validation failed between design & crispr pair ' . p(%$datum);
+        };
 
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->create(
+        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
             {
                 design_id      => $design->id,
                 crispr_pair_id => $crispr_pair->id,
             }
         );
+        INFO('Crispr design record created: ' . $crispr_design->id );
 
-        #TODO store new id sp12 Wed 23 Oct 2013 15:20:25 BST
+        push @create_log, 'Linked design & crispr pair ' . p(%$datum);
     }
-    # todo return log? of what was done
 
-    return;
+    return ( \@create_log, \@fail_log );
 }
 
 =head2 delete_crispr_pair_design_links
 
-desc
+Delete a link between a crispr pair and a design.
 
 =cut
 sub delete_crispr_pair_design_links {
     my ( $model, $delete_links ) = @_;
+    my ( @delete_log, @fail_log );
 
     for my $datum ( @{ $delete_links } ) {
         my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find( $datum );
         unless ( $crispr_design ) {
-            ERROR( 'Can not find crispr pair (' . $datum->{crispr_pair_id}
-                   . ') design (' . $datum->{design_id} . ') link' );
-            #TODO log this sp12 Wed 23 Oct 2013 15:20:38 BST
+            ERROR( 'Unable to find crispr_design link ' . p(%$datum) );
+            push @fail_log, 'Failed to find design & crispr pair link: ' . p(%$datum);
             next;
         }
-        $crispr_design->delete;
+        if ( $crispr_design->delete ) {
+            INFO( 'Deleted crispr_design record ' . $crispr_design->id );
+            push @delete_log, 'Deleted link between design & crispr_pair: ' . p(%$datum);
+        }
+        else {
+            ERROR( 'Failed to delete crispr_design record ' . $crispr_design->id );
+            push @fail_log, 'Failed to delete design & crispr_pair link ' . p(%$datum);
+        }
     }
 
-    # todo return log? of what was done
-
-    return;
+    return ( \@delete_log, \@fail_log );
 }
 
 =head2 crispr_pair_hits_design
