@@ -516,7 +516,7 @@ sub _format_crispr_pair_data {
     my ( $crispr_pairs, $crisprs, $off_target_algorithm, $num_crispr_pairs ) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
-    $num_crispr_pairs ||= 5;
+    $num_crispr_pairs ||= 10;
 
     my @ranked_crispr_pairs = sort {
         _rank_crispr_pairs( $a, $off_target_algorithm ) <=> _rank_crispr_pairs( $b, $off_target_algorithm )
