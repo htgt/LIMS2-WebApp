@@ -435,7 +435,7 @@ Format the crispr / crispr pair data.
 sub format_crispr_data {
     my ( $datum, $report_parameters ) = @_;
     my $num_show_crisprs = $report_parameters->{num_crisprs} || 5;
-    
+
     my $crispr_data;
     if ( $report_parameters->{crispr_types} eq 'single' ) {
         $crispr_data = _format_crispr_data(
