@@ -1,18 +1,18 @@
-package LIMS2::Report::FPPlate;
+package LIMS2::Report::SFPPlate;
 
 use Moose;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
+extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
 
 override plate_types => sub {
-    return [ 'FP' ];
+    return [ 'SFP' ];
 };
 
 override _build_name => sub {
     my $self = shift;
 
-    return 'FP Plate ' . $self->plate_name;
+    return 'SFP Plate ' . $self->plate_name;
 };
 
 # Basic columns, will need to add more
