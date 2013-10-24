@@ -131,6 +131,7 @@
     <i class="icon-hand-left"></i> Back to search </a>
   </div>
   <div class="span3 offset6" align="right">
+    <input type="hidden"  name="crispr_types" value="[% params.crispr_types %]" />
     <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" />
   </div>
 </div>
