@@ -86,22 +86,20 @@ sub gene_report : Path('/user/design_target_report') {
 sub design_target_report_crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles( 'read' );
+    $c->assert_user_roles( 'edit' );
 
     try {
-        my $update_log = crispr_pick(
+        my $logs = crispr_pick(
             $c->model('Golgi'),
-            $c->request->params->{crispr_pick},
-            $c->request->params->{design_crispr_link},
+            $c->request->params,
             $c->session->{selected_species},
         );
-        $c->flash( success_msg => "You picked some crisprs, well done: " . $update_log );
+        $c->stash->{logs} = $logs;
     }
     catch {
-        $c->flash( error_msg => "You screwed up: " . $_ );
+        $c->flash( error_msg => "Something went wrong: " . $_ );
     };
 
-    $c->res->redirect( $c->uri_for('/user/design_target_gene_search') );
     return;
 }
 
