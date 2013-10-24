@@ -194,6 +194,13 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             name   => 'Crispr Plate Order Sheet',
         }
     ],
+    EP => [
+        {
+            class => 'EPPrint',
+            method => 'sync',
+            name   => 'EP Print',
+        }
+    ],
 );
 
 const our %UCSC_BLAT_DB => (
