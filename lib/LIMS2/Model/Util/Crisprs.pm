@@ -55,14 +55,31 @@ sub crispr_pick {
 
         my ( $create_log, $create_fail_log )
             = create_crispr_pair_design_links( $model, $create_links, $default_assembly );
-        my ( $delete_log, $delete_fail_log ) = delete_crispr_pair_design_links( $model, $delete_links );
+        my ( $delete_log, $delete_fail_log ) = delete_crispr_design_links( $model, $delete_links );
         $logs{'create'} = $create_log;
         $logs{'delete'} = $delete_log;
         $logs{'create_fail'} = $create_fail_log;
         $logs{'delete_fail'} = $delete_fail_log;
     }
     elsif ( $request_params->{crispr_types} eq 'single' ) {
-        #TODO single crisprs sp12 Wed 23 Oct 2013 11:01:31 BST
+        my $checked_design_crispr_links = parse_request_param( $request_params, 'crispr_pick' );
+        my $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_link' );
+
+        # create new links
+        my $create_links = compare_design_crispr_links( $checked_design_crispr_links,
+            $existing_design_crispr_links, 'crispr_id' );
+
+        # delete links
+        my $delete_links = compare_design_crispr_links( $existing_design_crispr_links,
+            $checked_design_crispr_links, 'crispr_id' );
+
+        my ( $create_log, $create_fail_log )
+            = create_crispr_design_links( $model, $create_links, $default_assembly );
+        my ( $delete_log, $delete_fail_log ) = delete_crispr_design_links( $model, $delete_links );
+        $logs{'create'} = $create_log;
+        $logs{'delete'} = $delete_log;
+        $logs{'create_fail'} = $create_fail_log;
+        $logs{'delete_fail'} = $delete_fail_log;
     }
 
     return \%logs;
@@ -176,12 +193,50 @@ sub create_crispr_pair_design_links {
     return ( \@create_log, \@fail_log );
 }
 
-=head2 delete_crispr_pair_design_links
+=head2 create_crispr_design_links
 
-Delete a link between a crispr pair and a design.
+Create a link between a design and a crispr after validating that the
+crispr and design hit the same location.
 
 =cut
-sub delete_crispr_pair_design_links {
+sub create_crispr_design_links {
+    my ( $model, $create_links, $default_assembly ) = @_;
+    my ( @create_log, @fail_log );
+
+    for my $datum ( @{ $create_links } ) {
+        my $design = $model->retrieve_design( { id => $datum->{design_id} } );
+        my $crispr = $model->schema->resultset( 'Crispr' )->find(
+            { id => $datum->{crispr_id} },
+            { prefetch => 'loci' },
+        );
+        LIMS2::Exception->throw( 'Can not find crispr: ' . $datum->{crispr_id} )
+            unless $crispr;
+
+        unless ( crispr_hits_design( $design, $crispr, $default_assembly ) ) {
+            ERROR( 'Crispr does not hit same target as design : ' . p($datum) );
+            push @fail_log,
+                  'Additional validation failed between design & crispr ' . p(%$datum);
+        }
+
+        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+            {
+                design_id => $design->id,
+                crispr_id => $crispr->id,
+            }
+        );
+        INFO('Crispr design record created: ' . $crispr_design->id );
+        push @create_log, 'Linked design & crispr ' . p(%$datum);
+    }
+
+    return ( \@create_log, \@fail_log );
+}
+
+=head2 delete_crispr_design_links
+
+Delete a link between a crispr or crispr pair and a design.
+
+=cut
+sub delete_crispr_design_links {
     my ( $model, $delete_links ) = @_;
     my ( @delete_log, @fail_log );
 
@@ -189,16 +244,16 @@ sub delete_crispr_pair_design_links {
         my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find( $datum );
         unless ( $crispr_design ) {
             ERROR( 'Unable to find crispr_design link ' . p(%$datum) );
-            push @fail_log, 'Failed to find design & crispr pair link: ' . p(%$datum);
+            push @fail_log, 'Failed to find design & crispr link: ' . p(%$datum);
             next;
         }
         if ( $crispr_design->delete ) {
             INFO( 'Deleted crispr_design record ' . $crispr_design->id );
-            push @delete_log, 'Deleted link between design & crispr_pair: ' . p(%$datum);
+            push @delete_log, 'Deleted link between design & crispr: ' . p(%$datum);
         }
         else {
             ERROR( 'Failed to delete crispr_design record ' . $crispr_design->id );
-            push @fail_log, 'Failed to delete design & crispr_pair link ' . p(%$datum);
+            push @fail_log, 'Failed to delete design & crisprlink ' . p(%$datum);
         }
     }
 
