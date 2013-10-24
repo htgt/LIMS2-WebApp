@@ -31,9 +31,6 @@ __PACKAGE__->result_source_instance->is_virtual(1);
 __PACKAGE__->result_source_instance->view_definition( <<'EOT' );
 SELECT DISTINCT
     dt.id as design_target_id,
-    dt.gene_id as gene_id,
-    dt.ensembl_gene_id as ensembl_gene_id,
-    dt.ensembl_exon_id as ensembl_exon_id,
     c.id as crispr_id
 FROM design_targets dt
 INNER JOIN crispr_loci cl
@@ -46,7 +43,7 @@ ON c.id = cl.crispr_id
 EOT
 
 __PACKAGE__->add_columns(
-    qw( design_target_id gene_id ensembl_gene_id ensembl_exon_id crispr_id )
+    qw( design_target_id crispr_id )
 );
 
 __PACKAGE__->set_primary_key( "design_target_id", "crispr_id" );
