@@ -40,47 +40,46 @@ sub crispr_pick {
     my $default_assembly = $model->schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species_id } )->assembly_id;
 
-    # Pairs
-    if ( $request_params->{crispr_types} eq 'pair' ) {
-        my $checked_design_crispr_links = parse_request_param( $request_params, 'crispr_pair_pick' );
-        my $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_pair_link' );
+    my $crispr_types = $request_params->{crispr_types};
+    LIMS2::Exception->throw('No crispr_type set') unless $crispr_types;
 
-        # create new links
-        my $create_links = compare_design_crispr_links( $checked_design_crispr_links,
-            $existing_design_crispr_links, 'crispr_pair_id' );
+    my $crispr_id_column;
+    my ( $checked_design_crispr_links, $existing_design_crispr_links );
+    if ( $crispr_types eq 'pair' ) {
+        $checked_design_crispr_links = parse_request_param( $request_params, 'crispr_pair_pick' );
+        $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_pair_link' );
+        $crispr_id_column = 'crispr_pair_id';
+    }
+    elsif ( $crispr_types eq 'single' ) {
+        $checked_design_crispr_links = parse_request_param( $request_params, 'crispr_pick' );
+        $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_link' );
+        $crispr_id_column = 'crispr_id';
+    }
+    else {
+        LIMS2::Exception->throw("Unknown crispr type $crispr_types");
+    }
 
-        # delete links
-        my $delete_links = compare_design_crispr_links( $existing_design_crispr_links,
-            $checked_design_crispr_links, 'crispr_pair_id' );
+    # find new crispr_design links to create
+    my $create_links = compare_design_crispr_links( $checked_design_crispr_links,
+        $existing_design_crispr_links, $crispr_id_column );
 
-        my ( $create_log, $create_fail_log )
+    # file existing crispr_design links to delete
+    my $delete_links = compare_design_crispr_links( $existing_design_crispr_links,
+        $checked_design_crispr_links, $crispr_id_column );
+
+    my ( $create_log, $create_fail_log );
+    if ( $crispr_types eq 'pair' ) {
+        ( $create_log, $create_fail_log )
             = create_crispr_pair_design_links( $model, $create_links, $default_assembly );
-        my ( $delete_log, $delete_fail_log ) = delete_crispr_design_links( $model, $delete_links );
-        $logs{'create'} = $create_log;
-        $logs{'delete'} = $delete_log;
-        $logs{'create_fail'} = $create_fail_log;
-        $logs{'delete_fail'} = $delete_fail_log;
     }
-    elsif ( $request_params->{crispr_types} eq 'single' ) {
-        my $checked_design_crispr_links = parse_request_param( $request_params, 'crispr_pick' );
-        my $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_link' );
-
-        # create new links
-        my $create_links = compare_design_crispr_links( $checked_design_crispr_links,
-            $existing_design_crispr_links, 'crispr_id' );
-
-        # delete links
-        my $delete_links = compare_design_crispr_links( $existing_design_crispr_links,
-            $checked_design_crispr_links, 'crispr_id' );
-
-        my ( $create_log, $create_fail_log )
+    elsif ( $crispr_types eq 'single' ) {
+        ( $create_log, $create_fail_log )
             = create_crispr_design_links( $model, $create_links, $default_assembly );
-        my ( $delete_log, $delete_fail_log ) = delete_crispr_design_links( $model, $delete_links );
-        $logs{'create'} = $create_log;
-        $logs{'delete'} = $delete_log;
-        $logs{'create_fail'} = $create_fail_log;
-        $logs{'delete_fail'} = $delete_fail_log;
     }
+    my ( $delete_log, $delete_fail_log ) = delete_crispr_design_links( $model, $delete_links );
+
+    @logs{qw( create delete create_fail delete_fail )}
+        = ( $create_log, $delete_log, $create_fail_log, $delete_fail_log );
 
     return \%logs;
 }
@@ -121,6 +120,13 @@ sub parse_request_param {
 
 =head2 compare_design_crispr_links
 
+We have two hashes, original and new, whose keys are design ids and values arrays of crispr ids.
+
+For each design id key in the original hash, find all the crispr ids in the original hash 
+that are not present in the new hash.
+
+For each of these values store the crispr id against the design
+id and return a array of these.
 
 =cut
 sub compare_design_crispr_links {
