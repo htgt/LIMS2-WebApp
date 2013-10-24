@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.113';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.116';
 }
 ## use critic
 
@@ -138,7 +138,9 @@ sub bulk_designs_for_design_targets {
 
     my $default_assembly = $schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species_id } )->assembly_id;
+
     my %data;
+    my @design_ids;
     for my $dt ( @{ $design_targets } ) {
         my @matching_designs;
         my @dt_designs = map{ $_->design } grep{ $_->gene_id eq $dt->gene_id } @gene_designs;
@@ -153,17 +155,66 @@ sub bulk_designs_for_design_targets {
                 && $dt->chr->name eq $di->chr_name
             ) {
                 push @matching_designs, $design;
+                push @design_ids, $design->id;
             }
         }
         $data{ $dt->id } = \@matching_designs;
     }
 
-    return \%data;
+    my $design_crispr_links = fetch_existing_design_crispr_links( $schema, \@design_ids );
+
+    return ( \%data, $design_crispr_links );
+}
+
+=head2 fetch_existing_design_crispr_links
+
+Find all the pre-existing links between the designs and crisprs
+for a list of designs.
+
+=cut
+sub fetch_existing_design_crispr_links {
+    my ( $schema, $design_ids ) = @_;
+    my %design_crispr_links;
+
+    my @crispr_designs = $schema->resultset( 'CrisprDesign' )->search(
+        {
+            design_id => { 'IN' => $design_ids },
+        },
+        {
+            prefetch => 'crispr_pair',
+        }
+    );
+
+    # there is nothing stopping a record having a link to both a crispr_id and
+    # a crispr_pair_id so check for both
+    for my $crispr_design ( @crispr_designs ) {
+        # if we have a single crispr linked to a design store that id
+        if ( $crispr_design->crispr_id ) {
+            push @{ $design_crispr_links{ $crispr_design->design_id }{single} }, $crispr_design->crispr_id;
+        }
+
+        # if we have a crispr pair linked to a design store both ids
+        if ( $crispr_design->crispr_pair_id ) {
+            push @{ $design_crispr_links{ $crispr_design->design_id }{pair} },
+                $crispr_design->crispr_pair_id;
+            #my $crispr_pair = $crispr_design->crispr_pair;
+            #push @{ $design_crispr_links{ $crispr_design->design_id } }, (
+                #$crispr_pair->left_crispr_id,
+                #$crispr_pair->right_crispr_id,
+            #);
+        }
+    }
+
+    #TODO uniq the list of crisprs? sp12 Fri 18 Oct 2013 08:12:53 BST
+
+    return \%design_crispr_links;
 }
 
 =head2 prebuild_oligos
 
-desc
+Pre-build oligo hash for design from pre-fetched data to feed into design info object.
+This stops the design info object making its own database queries and speeds up the
+overall data retrieval.
 
 =cut
 sub prebuild_oligos {
@@ -218,24 +269,40 @@ design targets.
 
 =cut
 sub bulk_crisprs_for_design_targets {
-    my ( $schema, $design_targets  ) = @_;
+    my ( $schema, $design_targets, $off_target_algorithm  ) = @_;
 
     my @dt_crisprs = $schema->resultset('DesignTargetCrisprs')->search(
         {
             design_target_id => { 'IN' => [ map{ $_->id } @{ $design_targets } ] },
+            'off_target_summaries.algorithm' => $off_target_algorithm,
         },
         {
-            prefetch => { 'crispr' => [ 'off_target_summaries', 'process_crisprs' ] }
+            prefetch => { 'crispr' => 'off_target_summaries' },
         },
     );
 
-    my %data;
+    my %crisprs;
     for my $dt ( @{ $design_targets } ) {
-        my @matching_crisprs =  map{ $_->crispr } grep{ $_->design_target_id eq $dt->id } @dt_crisprs;
-        $data{ $dt->id } = \@matching_crisprs;
+        my %matching_crisprs = map { $_->crispr_id => $_->crispr }
+            grep { $_->design_target_id eq $dt->id } @dt_crisprs;
+        $crisprs{ $dt->id } = \%matching_crisprs;
     }
 
-    return \%data;
+    my %crispr_pairs;
+    for my $dt_id ( keys %crisprs ) {
+        my @left_crisprs  = map{ $_->id } grep{ !$_->pam_right } values %{ $crisprs{ $dt_id } };
+        my @right_crisprs = map { $_->id } grep{ $_->pam_right } values %{ $crisprs{ $dt_id } };
+
+        my @crispr_pairs = $schema->resultset( 'CrisprPair' )->search(
+            {
+                left_crispr_id  => { 'IN' => \@left_crisprs },
+                right_crispr_id => { 'IN' => \@right_crisprs },
+            }
+        );
+        $crispr_pairs{ $dt_id } = { map{ $_->id => $_ } @crispr_pairs };
+    }
+
+    return ( \%crisprs, \%crispr_pairs );
 }
 
 =head2 find_design_targets
@@ -274,12 +341,19 @@ Crisprs
 
 =cut
 sub design_target_report_for_genes {
-    my ( $schema, $genes, $species_id, $report_type, $off_target_algorithm ) = @_;
+    my ( $schema, $genes, $species_id, $report_parameters ) = @_;
 
     my $sorted_genes = _sort_gene_ids( $genes );
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
-    my $design_data = bulk_designs_for_design_targets( $schema, $design_targets, $species_id );
-    my $crispr_data = bulk_crisprs_for_design_targets( $schema, $design_targets );
+    my ( $design_data, $design_crispr_links )
+        = bulk_designs_for_design_targets( $schema, $design_targets, $species_id );
+    my ( $crispr_data, $crispr_pair_data ) = bulk_crisprs_for_design_targets(
+        $schema,
+        $design_targets,
+        $report_parameters->{off_target_algorithm},
+    );
+
+    #TODO gather crispr and design wells sp12 Tue 22 Oct 2013 08:14:19 BST
 
     my @report_data;
     for my $dt ( @{ $design_targets } ) {
@@ -288,58 +362,102 @@ sub design_target_report_for_genes {
         $data{'design_target'} = $dt;
         $data{'designs'} = $design_data->{ $dt->id };
         $data{'crisprs'} = $crispr_data->{ $dt->id };
+        $data{'crispr_pairs'} = $crispr_pair_data->{ $dt->id };
 
         push @report_data, \%data;
     }
 
-    my $formated_report_data = _format_report_data( \@report_data, $report_type, $off_target_algorithm );
+    my $formated_report_data = format_report_data(
+        \@report_data,
+        $design_crispr_links,
+        $report_parameters,
+    );
     return( $formated_report_data, $sorted_genes );
 }
 
-=head2 _format_report_data
+=head2 format_report_data
 
 Manipulate data into format we can easily display in a spreadsheet
 
 =cut
-sub _format_report_data {
-    my ( $data, $report_type, $off_target_algorithm ) = @_;
-    $report_type ||= 'standard';
+sub format_report_data {
+    my ( $data, $design_crispr_links, $report_parameters ) = @_;
     my @report_row_data;
 
     for my $datum ( @{ $data } ) {
-        my $dt = $datum->{'design_target'};
-        my %design_target_data = (
-          design_target_id => $dt->id,
-          marker_symbol    => $dt->marker_symbol,
-          gene_id          => $dt->gene_id,
-          ensembl_exon_id  => $dt->ensembl_exon_id,
-          exon_size        => $dt->exon_size,
-          exon_rank        => $dt->exon_rank,
-          chromosome       => $dt->chr->name,
-        );
+        my $design_target_data = _format_design_target_data( $datum->{design_target} );
 
-        if ( $report_type eq 'simple' ) {
-            $design_target_data{designs} = scalar( @{ $datum->{designs} } );
-            $design_target_data{crisprs} = scalar( @{ $datum->{crisprs} } );
+        if ( $report_parameters->{type} eq 'simple' ) {
+            $design_target_data->{designs} = scalar( @{ $datum->{designs} } );
+            $design_target_data->{crisprs} = scalar( keys %{ $datum->{crisprs} } );
+            $design_target_data->{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
         }
-        elsif ( $report_type eq 'standard' ) {
-            my ( $crispr_data, $crisprs_blat_seq ) = _format_crispr_data( $datum->{crisprs}, $off_target_algorithm, 5 );
-            $design_target_data{crisprs} = $crispr_data;
-            $design_target_data{crisprs_blat_seq} = $crisprs_blat_seq;
-            $design_target_data{designs} = _format_design_data( $datum->{designs} );
+        else {
+            my ( $crispr_data, $display_crispr_num ) = format_crispr_data( $datum, $report_parameters );
+            $design_target_data->{crisprs} = $crispr_data;
 
-            my $crispr_num = scalar( @{ $design_target_data{crisprs} } );
-            my $design_num = scalar( @{ $design_target_data{designs} } );
+            my ( $design_data, $display_design_num )
+                = format_design_data( $datum, $report_parameters, $design_crispr_links );
+            $design_target_data->{designs} = $design_data;
 
-            $design_target_data{dt_rowspan}
-                = ( $crispr_num ? $crispr_num : 1 ) * ( $design_num ? $design_num : 1 );
-            $design_target_data{design_rowspan} = $crispr_num ? $crispr_num : 1;
+            # work out rowspan attributes for design target and design section of report
+            $design_target_data->{dt_rowspan} = ( $display_crispr_num ? $display_crispr_num : 1 )
+                * ( $display_design_num ? $display_design_num : 1 );
+            $design_target_data->{design_rowspan} = $display_crispr_num ? $display_crispr_num : 1;
         }
 
-        push @report_row_data, \%design_target_data;
+        push @report_row_data, $design_target_data;
     }
 
     return \@report_row_data;
+}
+
+=head2 _format_design_target_data
+
+Format the design target data into something we can show in the report
+
+=cut
+sub _format_design_target_data {
+    my ( $design_target ) = @_;
+
+    my %design_target_data = (
+      design_target_id => $design_target->id,
+      marker_symbol    => $design_target->marker_symbol,
+      gene_id          => $design_target->gene_id,
+      ensembl_exon_id  => $design_target->ensembl_exon_id,
+      exon_size        => $design_target->exon_size,
+      exon_rank        => $design_target->exon_rank,
+      chromosome       => $design_target->chr->name,
+    );
+
+    return \%design_target_data;
+}
+
+=head2 format_crispr_data
+
+Format the crispr / crispr pair data.
+
+=cut
+sub format_crispr_data {
+    my ( $datum, $report_parameters ) = @_;
+    my $num_show_crisprs = $report_parameters->{num_crisprs} || 5;
+
+    my $crispr_data;
+    if ( $report_parameters->{crispr_types} eq 'single' ) {
+        $crispr_data = _format_crispr_data(
+            $datum->{crisprs}, $report_parameters->{off_target_algorithm}, $num_show_crisprs );
+    }
+    elsif ( $report_parameters->{crispr_types} eq 'pair' ) {
+        $crispr_data = _format_crispr_pair_data(
+            $datum->{crispr_pairs}, $datum->{crisprs},
+            $report_parameters->{off_target_algorithm}, $num_show_crisprs );
+    }
+    else {
+        LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
+    }
+    my $display_crispr_num = scalar( @{ $crispr_data } );
+
+    return ( $crispr_data, $display_crispr_num );
 }
 
 =head2 _format_crispr_data
@@ -353,11 +471,11 @@ sub _format_crispr_data {
     $off_target_algorithm ||= 'strict';
     $num_crisprs ||= 5;
 
-    my @ranked_crisprs
-        = sort { _rank_crisprs( $a, $off_target_algorithm ) <=> _rank_crisprs( $b, $off_target_algorithm ) } @{$crisprs};
+    my @ranked_crisprs = sort {
+        _rank_crisprs( $a, $off_target_algorithm ) <=> _rank_crisprs( $b, $off_target_algorithm )
+    } values %{ $crisprs };
 
     my $crispr_count = 0;
-    my $crispr_blat_seq;
     for my $c ( @ranked_crisprs ) {
         my $crispr_direction = $c->pam_right ? 'right' : 'left';
         my %data = (
@@ -366,9 +484,6 @@ sub _format_crispr_data {
             blat_seq  => '>' . $c->id . "\n" . $c->seq,
             direction => $crispr_direction,
         );
-        #TODO fix the crispr blat sequence sp12 Thu 17 Oct 2013 07:45:08 BST
-        $crispr_blat_seq .= '>' . $c->id . "\n";
-        $crispr_blat_seq .=  $c->seq . "\n";
         for my $summary ( $c->off_target_summaries->all ) {
             next unless $summary->algorithm eq $off_target_algorithm;
             my $valid = $summary->outlier ? 'no' : 'yes';
@@ -377,49 +492,96 @@ sub _format_crispr_data {
         }
         last if $crispr_count++ >= $num_crisprs;
 
-        my @process_crisprs = $c->process_crisprs->all;
-        unless ( @process_crisprs ) {
-            push @crispr_data, \%data;
-            next;
-        }
+        #my @process_crisprs = $c->process_crisprs->all;
+        #unless ( @process_crisprs ) {
+            #push @crispr_data, \%data;
+            #next;
+        #}
 
-        my @crispr_well_data;
-        for my $crispr_process ( @process_crisprs ) {
-            my $process_output_well = $crispr_process->process->process_output_wells->first;
-            next unless $process_output_well;
-            my $crispr_well = $process_output_well->well;
-            push @crispr_well_data, "$crispr_well";
-        }
-        $data{crispr_wells} = join( ',', @crispr_well_data );
+        #my @crispr_well_data;
+        #for my $crispr_process ( @process_crisprs ) {
+            #my $process_output_well = $crispr_process->process->process_output_wells->first;
+            #next unless $process_output_well;
+            #my $crispr_well = $process_output_well->well;
+            #push @crispr_well_data, "$crispr_well";
+        #}
+        #$data{crispr_wells} = join( ',', @crispr_well_data );
         push @crispr_data, \%data;
     }
 
-    return ( \@crispr_data, $crispr_blat_seq );
+    return \@crispr_data;
 }
 
-=head2 _format_design_data
+=head2 _format_crispr_pair_data
 
-Format design data to show in reports.
+Format the crispr pair data.
+Get the first 5 pairs ( ranked according to _rank_crisp_pair )
 
 =cut
-sub _format_design_data {
-    my ( $designs ) = @_;
-    my @design_data;
+sub _format_crispr_pair_data {
+    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $num_crispr_pairs ) = @_;
+    my @crispr_data;
+    $off_target_algorithm ||= 'strict';
+    $num_crispr_pairs ||= 10;
 
-    for my $design ( @{ $designs } ) {
-        push @design_data, {
-            design_id => $design->id,
-            design_type => $design->design_type_id,
-        }
+    my @ranked_crispr_pairs = sort {
+        _rank_crispr_pairs( $a, $off_target_algorithm ) <=> _rank_crispr_pairs( $b, $off_target_algorithm )
+    } values %{ $crispr_pairs };
+
+    my $crispr_pair_count = 0;
+    for my $c ( @ranked_crispr_pairs ) {
+        my $left_crispr = $crisprs->{ $c->left_crispr_id };
+        my $right_crispr = $crisprs->{ $c->right_crispr_id };
+
+        my %data = (
+            crispr_pair_id   => $c->id,
+            spacer           => $c->spacer,
+            pair_off_target  => $c->off_target_summary,
+            left_off_target  => _get_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
+            right_off_target => _get_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
+        );
+        last if $crispr_pair_count++ >= $num_crispr_pairs;
+
+        #TODO crispr well data??
+        push @crispr_data, \%data;
     }
 
-    return \@design_data;
+    return \@crispr_data;
+}
+
+=head2 format_design_data
+
+Format design data to show in reports.
+Also grab pre-existing link information between a design and a crispr / crispr pair,
+this is so we can tick the checkboxes in the report where needed.
+
+=cut
+sub format_design_data {
+    my ( $datum, $report_parameters, $design_crispr_links ) = @_;
+    my @design_data;
+    my $crispr_types = $report_parameters->{crispr_types};
+
+    for my $design ( @{ $datum->{designs} } ) {
+        my %data = (
+            design_id   => $design->id,
+            design_type => $design->design_type_id,
+        );
+
+        if ( exists $design_crispr_links->{ $design->id }{ $crispr_types } ) {
+            $data{linked_crispr_ids} = $design_crispr_links->{ $design->id }{ $crispr_types };
+        }
+
+        push @design_data, \%data;
+    }
+    my $display_design_num = scalar( @design_data );
+
+    return ( \@design_data, $display_design_num );
 }
 
 =head2 _rank_crisprs
 
-sort crisprs by off target hits, ranking is weighted my importance of hit type:
-exon > intron > intergenic
+Sort crisprs by off target hits.
+The ranking depends on the off target algorithm used
 
 =cut
 sub _rank_crisprs {
@@ -427,13 +589,56 @@ sub _rank_crisprs {
     my $score = 0;
 
     my $off_target_summary = first{ $_->algorithm eq $off_target_algorithm } $crispr->off_target_summaries->all;
-    # check this, not sumre it will work properly if sorting on weak algorithm
+    # check this, not sure it will work properly if sorting on weak algorithm
     return 5000 unless $off_target_summary;
 
     $score += 1000 if $off_target_summary->outlier;
     my $summary = Load($off_target_summary->summary);
 
-    return $score + ( ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic} );
+    #temporary fix to stop error on new bwa off target summaries that don't have these fields
+    if ( $off_target_algorithm eq 'strict' ) {
+        return $score + ( ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic} );
+    }
+    elsif ( $off_target_algorithm eq 'bwa' ) {
+        my %multiplier = ( 0 => 1000, 1 => 500, 2 => 300, 3 => 200, 4 => 100, 5 => 10, 6 => 1 );
+        for my $num_mismatch ( keys %{ $summary } ) {
+            if ( my $num_hits = $summary->{$num_mismatch} ) {
+                $score += $num_hits * $multiplier{ $num_mismatch };
+            }
+        }
+    }
+
+    return $score;
+}
+
+=head2 _rank_crispr_pairs
+
+Placeholder for ranking crispr pairs
+
+=cut
+#TODO write this sub sp12 Tue 22 Oct 2013 10:13:33 BST
+sub _rank_crispr_pairs {
+    my ( $crispr_pair, $off_target_algorithm ) = @_;
+    my $score = 0;
+
+    return 1;
+}
+
+=head2 _get_crispr_off_target_summary
+
+Grab the correct crispr off target summary, one that matches with the specified
+off target algorithm.
+
+=cut
+sub _get_crispr_off_target_summary {
+    my ( $crispr, $off_target_algorithm ) = @_;
+
+    for my $summary ( $crispr->off_target_summaries->all ) {
+        next unless $summary->algorithm eq $off_target_algorithm;
+        return $summary->summary;
+    }
+
+    return;
 }
 
 =head2 _sort_gene_ids
@@ -499,6 +704,14 @@ sub get_design_targets_data {
                 '-in' => $genes_list_ref
             }
     });
+
+    #my $gene_list_rs = $schema->resultset('Project')->search( { sponsor_id => $project } );
+    #my @dt_results = $schema->resultset('DesignTarget')->search(
+        #{
+            #species_id => $species,
+            #gene_id => { '-in' => $gene_list_rs->get_column('gene_id')->as_query },
+        #}
+    #);
 
     my $design_data = bulk_designs_for_design_targets( $schema, \@dt_results, $species );
 

@@ -1,13 +1,15 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.113';
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.116';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
+use LIMS2::Model::Util::Crisprs qw( crispr_pick );
+use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -49,25 +51,31 @@ sub gene_report : Path('/user/design_target_report') {
         return $c->go('index');
     }
 
-    my $report_type = $c->request->param( 'report_type' );
+    my %report_parameters = (
+        type                 => $c->request->param('report_type') || 'standard',
+        off_target_algorithm => $c->request->param('off_target_algorithm') || 'bwa',
+        crispr_types         => $c->request->param('crispr_types') || 'pair',
+    );
 
     my ( $design_targets_data, $search_terms ) = design_target_report_for_genes(
         $c->model('Golgi')->schema,
         $c->request->param('genes') || $gene,
         $c->session->{selected_species},
-        $report_type,
-        $c->request->param('off_target_algorithm'),
+        \%report_parameters,
     );
 
     unless ( @{ $design_targets_data } ) {
         $c->flash( error_msg => "No design targets found matching search terms" );
     }
 
-    if ( $report_type eq 'simple' ) {
+    if ( $report_parameters{type} eq 'simple' ) {
         $c->stash( template => 'user/designtargets/simple_gene_report.tt');
     }
-    else {
-        $c->stash( template => 'user/designtargets/gene_report.tt');
+    elsif ( $report_parameters{crispr_types} eq 'single' ) {
+        $c->stash( template => 'user/designtargets/gene_report_single_crisprs.tt');
+    }
+    elsif ( $report_parameters{crispr_types} eq 'pair' ) {
+        $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
     }
 
     $c->stash(
@@ -75,26 +83,29 @@ sub gene_report : Path('/user/design_target_report') {
         genes               => $c->request->param('genes') || $gene,
         search_terms        => $search_terms,
         species             => $c->session->{selected_species},
+        params              => \%report_parameters,
     );
 
     return;
 }
 
-sub crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
+sub design_target_report_crispr_pick : Path('/user/design_target_report_crispr_pick') : Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles( 'read' );
-    my $crispr_picks = $c->request->params->{crispr_pick};
+    $c->assert_user_roles( 'edit' );
 
-    my $csv_data = "crispr_id,design_id\n";
-    for my $pick ( @{ $crispr_picks } ) {
-        my ( $crispr_id, $design_id ) = split /:/, $pick;
-        $csv_data .= "$crispr_id,$design_id\n";
+    try {
+        my $logs = crispr_pick(
+            $c->model('Golgi'),
+            $c->request->params,
+            $c->session->{selected_species},
+        );
+        $c->stash->{logs} = $logs;
     }
+    catch {
+        $c->flash( error_msg => "Something went wrong: " . $_ );
+    };
 
-    $c->response->content_type( 'text/csv' );
-    $c->response->header( 'Content-Disposition' => "attachment; filename=crispr_picks.csv" );
-    $c->response->body( $csv_data );
     return;
 }
 

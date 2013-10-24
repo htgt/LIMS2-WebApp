@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.113';
+    $LIMS2::Model::Constants::VERSION = '0.116';
 }
 ## use critic
 
@@ -198,6 +198,13 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             class => 'CrisprPlateOrderSheet',
             method => 'async',
             name   => 'Crispr Plate Order Sheet',
+        }
+    ],
+    EP => [
+        {
+            class => 'EPPrint',
+            method => 'sync',
+            name   => 'EP Print',
         }
     ],
 );

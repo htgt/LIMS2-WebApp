@@ -161,6 +161,7 @@ lib/LIMS2/Report/DesignPlate.pm
 lib/LIMS2/Report/DesignPlateOrderSheet.pm
 lib/LIMS2/Report/DesignVectors.pm
 lib/LIMS2/Report/EPPlate.pm
+lib/LIMS2/Report/EPPrint.pm
 lib/LIMS2/Report/EPSummary.pm
 lib/LIMS2/Report/ElectroporationProductionSummary.pm
 lib/LIMS2/Report/FPPlate.pm
@@ -178,6 +179,7 @@ lib/LIMS2/Report/QcRunSummary.pm
 lib/LIMS2/Report/SEPPICKPlate.pm
 lib/LIMS2/Report/SEPPOOLPlate.pm
 lib/LIMS2/Report/SEPPlate.pm
+lib/LIMS2/Report/SFPPlate.pm
 lib/LIMS2/Report/SecondElectroporationProductionDetail.pm
 lib/LIMS2/Report/SponsorProgress.pm
 lib/LIMS2/Report/VectorProductionDetail.pm
@@ -255,7 +257,9 @@ root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
 root/site/user/createdesign/index.tt
 root/site/user/designtargets/crisprs_ucsc_blat.tt
-root/site/user/designtargets/gene_report.tt
+root/site/user/designtargets/design_target_report_crispr_pick.tt
+root/site/user/designtargets/gene_report_crispr_pairs.tt
+root/site/user/designtargets/gene_report_single_crisprs.tt
 root/site/user/designtargets/index.tt
 root/site/user/designtargets/simple_gene_report.tt
 root/site/user/error.tt

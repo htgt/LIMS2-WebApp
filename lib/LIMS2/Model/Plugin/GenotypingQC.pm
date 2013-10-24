@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.113';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.116';
 }
 ## use critic
 
@@ -34,7 +34,7 @@ sub update_genotyping_qc_data{
     my $data = parse_csv_file( $val_params->{csv_fh});
 
     my @assay_types = sort map { $_->id } $self->schema->resultset('GenotypingResultType')->all;
-    my @primer_bands = qw(tr_pcr lr_pcr gr3 gr4 gf3 gf4);
+    my @primer_bands = qw(tr_pcr lr_pcr gr3 gr4 gf3 gf4 lr_pcr_pass);
     my @messages;
 
     # Build a hash of all valid col names so we can report anything not recognized
@@ -230,6 +230,7 @@ sub update_genotyping_qc_value {
         'gr4'                   => \&primer_band_update,
         'gf3'                   => \&primer_band_update,
         'gf4'                   => \&primer_band_update,
+        'lr_pcr_pass'           => \&primer_band_update,
     };
 
 #  The more generic assay, call, copy_number, copy_range, confidence call is easier to handle.
@@ -243,8 +244,9 @@ sub update_genotyping_qc_value {
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
     if ( $assay_name =~ /
-            (g[r|f]) |
-            tr_pcr   |
+            (g[r|f])    |
+            tr_pcr      |
+            lr_pcr_pass |
             accepted_override
             /xgms ){
         $assay_value = $self->convert_bool( $assay_value );

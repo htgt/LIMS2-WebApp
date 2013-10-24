@@ -28,6 +28,7 @@
                     {name: 'gr4', type: 'string'},
                     {name: 'gf3', type: 'string'},
                     {name: 'gf4', type: 'string'},
+                    {name: 'lr_pcr_pass', type: 'string'},
 //                    {name: 'TRPCR_seq', type: 'string'},
                   [% FOR assay IN assay_types %]
                     [% FOR name IN value_names %]
@@ -92,6 +93,7 @@
                 {"call_label":"present"},
                 {"call_label":"absent"},
                 {"call_label":"na"},
+                {"call_label":"nd"},
                 {"call_label":"reset"}
                 ]
             });
@@ -109,6 +111,7 @@
                 {"call_label":"present"},
                 {"call_label":"absent"},
                 {"call_label":"na"},
+                {"call_label":"nd"},
                 {"call_label":"reset"}
                 ]
             });
@@ -167,33 +170,34 @@
             });
 
             var columns = [
-                {header: "Well", dataIndex: 'well', locked: true, columnWidth: 3 },
-                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true },
-                {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true },
-                {header: "Design<br>ID", dataIndex: 'design_id', locked: true },
-                {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true },
-                {header: "Distribute", dataIndex: 'accepted', locked: true },
-                {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true },
+                {header: "Well", dataIndex: 'well', locked: true, columnWidth: 3, width: 40 },
+                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true, width: 50 },
+                {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true, width: 50 },
+                {header: "Design<br>ID", dataIndex: 'design_id', locked: true, width: 50 },
+                {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
+                {header: "Distribute", dataIndex: 'accepted', locked: true, width: 55 },
+                {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
                 {header: "Allele Info", columns: [
-                    {header: "Type",                             dataIndex: 'allele_type',                    hidden: true },
-                    {header: "Full allele determination",        dataIndex: 'allele_determination',           hidden: true },
-                    {header: "Stage",                            dataIndex: 'plate_type',                     hidden: true },
-                    {header: "Workflow",                         dataIndex: 'workflow',                       hidden: false },
-                    {header: "Assay pattern",                    dataIndex: 'assay_pattern',                  hidden: true },
-                    {header: "Vector<br>cass resist",            dataIndex: 'final_pick_cassette_resistance', hidden: true },
-                    {header: "Vector<br>recombinase",            dataIndex: 'final_pick_recombinase_id',      hidden: true },
-                    {header: "First EP<br>recombinase",          dataIndex: 'ep_well_recombinase_id',         hidden: true },
+                    {header: "Type",                             dataIndex: 'allele_type',                    hidden: true, width: 60 },
+                    {header: "Full allele determination",        dataIndex: 'allele_determination',           hidden: true, width: 120 },
+                    {header: "Stage",                            dataIndex: 'plate_type',                     hidden: true, width: 60 },
+                    {header: "Workflow",                         dataIndex: 'workflow',                       hidden: false, width: 60 },
+                    {header: "Assay pattern",                    dataIndex: 'assay_pattern',                  hidden: true, width: 60 },
+                    {header: "Vector<br>cass resist",            dataIndex: 'final_pick_cassette_resistance', hidden: true, width: 60 },
+                    {header: "Vector<br>recombinase",            dataIndex: 'final_pick_recombinase_id',      hidden: true, width: 60 },
+                    {header: "First EP<br>recombinase",          dataIndex: 'ep_well_recombinase_id',         hidden: true, width: 60 },
                 ]},
-                {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo},
-                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_lrpcr_combo},
-                {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo}, 
-                {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo},
-                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo },
+                {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo, width: 85},
+                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_lrpcr_combo, width: 85},
+                {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo, width: 85}, 
+                {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo, width: 85 },
+                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo, width: 85 },
                 {header: "LRPCR bands", columns: [
-                    {header: "gr3", dataIndex: 'gr3', editor: pcr_combo },
-                    {header: "gr4", dataIndex: 'gr4', editor: pcr_combo },
-                    {header: "gf3", dataIndex: 'gf3', editor: pcr_combo },
-                    {header: "gf4", dataIndex: 'gf4', editor: pcr_combo }
+                    {header: "gr3", dataIndex: 'gr3', editor: pcr_combo, width: 50 },
+                    {header: "gr4", dataIndex: 'gr4', editor: pcr_combo, width: 50 },
+                    {header: "gf3", dataIndex: 'gf3', editor: pcr_combo, width: 50 },
+                    {header: "gf4", dataIndex: 'gf4', editor: pcr_combo, width: 50 },
+                    {header: "Pass", dataIndex: 'lr_pcr_pass', editor: pcr_combo, width: 50 }
                 ]},
 //                {header: "TRPCR<br>Seq", editor: { xtype: 'textfield' }},
                 [% FOR assay IN assay_types %]
@@ -202,16 +206,16 @@
                         [% FOR name IN value_names %]
                             [% IF name.title == "Call" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: call_types_targeting_combo, hideable: true},
+                                editor: call_types_targeting_combo, hideable: true, width: 85 },
                             [% ELSIF name.title == "Copy Number" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: { xtype: 'numberfield' }, hidden: true},
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
                             [% ELSIF name.title == "Range" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: { xtype: 'numberfield' }, hidden: true},
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
                             [% ELSIF name.title == "Confidence" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: { xtype: 'textfield' }, hidden: true},
+                                editor: { xtype: 'textfield' }, hidden: true, width: 85 },
                             [% END %]
                         [% END %]
                       ]},

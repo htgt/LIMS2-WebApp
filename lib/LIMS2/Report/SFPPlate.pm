@@ -1,7 +1,7 @@
-package LIMS2::Report::XEPPOOLPlate;
+package LIMS2::Report::SFPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::XEPPOOLPlate::VERSION = '0.116';
+    $LIMS2::Report::SFPPlate::VERSION = '0.116';
 }
 ## use critic
 
@@ -9,16 +9,16 @@ package LIMS2::Report::XEPPOOLPlate;
 use Moose;
 use namespace::autoclean;
 
-extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
+extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
 
 override plate_types => sub {
-    return [ 'XEP_POOL' ];
+    return [ 'SFP' ];
 };
 
 override _build_name => sub {
     my $self = shift;
 
-    return 'XEP Pool Plate ' . $self->plate_name;
+    return 'SFP Plate ' . $self->plate_name;
 };
 
 # Basic columns, will need to add more

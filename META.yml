@@ -51,6 +51,7 @@ requires:
   Data::Dumper: 0
   Data::FormValidator: 0
   Data::Pageset: 0
+  Data::Printer: 0
   Data::UUID: 0
   DateTime: 0
   DateTime::Duration: 0
@@ -132,4 +133,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.113
+version: 0.116
