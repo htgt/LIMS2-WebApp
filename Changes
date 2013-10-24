@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.116     2013-10-24 11:57:07 Europe/London
+
+    Update design target crispr pick report:
+        - Choose between picking single or paired crisprs
+        - Choice of design linked to crispr / crispr pair is now stored
+
 0.115     2013-10-23 17:01:16 Europe/London
 
     Added SFP plate reports.
