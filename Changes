@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.117     2013-10-25 14:00:48 Europe/London
+
+    Update simple design target crispr report, add links to detailed views
+        of either single crisprs or crispr pairs.
+    Add constraints to the crispr_pair and design_crispr table.
+    Fix audit table for crispr_pair
+    Add SFP report.
+
 0.116     2013-10-24 11:57:07 Europe/London
 
     Update design target crispr pick report:
