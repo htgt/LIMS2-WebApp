@@ -21,11 +21,13 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
+        'Parent Well',
     ];
 };
 
 override iterator => sub {
     my $self = shift;
+
 
     my $wells_rs = $self->plate->search_related(
         wells => {},
@@ -43,6 +45,7 @@ override iterator => sub {
 
         return [
             $self->base_data( $well ),
+            $well->get_input_wells_as_string,
         ];
     };
 };
