@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.116';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.117';
 }
 ## use critic
 
@@ -492,6 +492,7 @@ sub _format_crispr_data {
         }
         last if $crispr_count++ >= $num_crisprs;
 
+        #TODO add back crispr well information? sp12 Fri 25 Oct 2013 12:54:04 BST
         #my @process_crisprs = $c->process_crisprs->all;
         #unless ( @process_crisprs ) {
             #push @crispr_data, \%data;
@@ -522,11 +523,9 @@ sub _format_crispr_pair_data {
     my ( $crispr_pairs, $crisprs, $off_target_algorithm, $num_crispr_pairs ) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
-    $num_crispr_pairs ||= 10;
 
     my @ranked_crispr_pairs = sort {
-        _rank_crispr_pairs( $a, $off_target_algorithm ) <=> _rank_crispr_pairs( $b, $off_target_algorithm )
-    } values %{ $crispr_pairs };
+        _rank_crispr_pairs($b) <=> _rank_crispr_pairs($a) } values %{ $crispr_pairs };
 
     my $crispr_pair_count = 0;
     for my $c ( @ranked_crispr_pairs ) {
@@ -581,7 +580,8 @@ sub format_design_data {
 =head2 _rank_crisprs
 
 Sort crisprs by off target hits.
-The ranking depends on the off target algorithm used
+The ranking depends on the off target algorithm used.
+The lower the score the better.
 
 =cut
 sub _rank_crisprs {
@@ -595,7 +595,6 @@ sub _rank_crisprs {
     $score += 1000 if $off_target_summary->outlier;
     my $summary = Load($off_target_summary->summary);
 
-    #temporary fix to stop error on new bwa off target summaries that don't have these fields
     if ( $off_target_algorithm eq 'strict' ) {
         return $score + ( ($summary->{Exons} * 100) + ($summary->{Introns} * 10) + $summary->{Intergenic} );
     }
@@ -613,15 +612,29 @@ sub _rank_crisprs {
 
 =head2 _rank_crispr_pairs
 
-Placeholder for ranking crispr pairs
+Sort crispr pairs by off target score.
+We use the distance value, the higher the distance value the better.
+Therefore higher the score the better.
 
 =cut
-#TODO write this sub sp12 Tue 22 Oct 2013 10:13:33 BST
 sub _rank_crispr_pairs {
-    my ( $crispr_pair, $off_target_algorithm ) = @_;
+    my ( $crispr_pair ) = @_;
     my $score = 0;
 
-    return 1;
+    # return a really bad score if there is no off target information
+    return -10 unless $crispr_pair->off_target_summary;
+
+    my $summary = Load($crispr_pair->off_target_summary);
+
+    if ( my $distance = $summary->{distance} ) {
+        $distance =~ s/\+//;
+        return $distance;
+    }
+    else {
+        return -1;
+    }
+
+    return;
 }
 
 =head2 _get_crispr_off_target_summary

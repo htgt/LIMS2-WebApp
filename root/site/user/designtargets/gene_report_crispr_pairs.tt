@@ -57,7 +57,7 @@
               [% IF dt_first_row == 0 %]<tr>[% END %]
               <td class="crispr">[% crispr_pair.crispr_pair_id %]</td>
               <td class="crispr">[% crispr_pair.spacer %]</td>
-              <td class="crispr">[% crispr_pair.off_target_summary.remove('\{|\}') %]</td>
+              <td class="crispr">[% crispr_pair.pair_off_target.remove('\{|\}') %]</td>
               <td class="crispr">[% crispr_pair.left_off_target.remove('\{|\}') %]</td>
               <td class="crispr">[% crispr_pair.right_off_target.remove('\{|\}') %]</td>
               <td class="crispr"></td>
@@ -87,7 +87,7 @@
                   [% UNLESS design_first_row %]<tr>[% END %]
                   <td class="crispr">[% crispr_pair.crispr_pair_id %]</td>
                   <td class="crispr">[% crispr_pair.spacer %]</td>
-                  <td class="crispr">[% crispr_pair.off_target_summary.remove('\{|\}') %]</td>
+                  <td class="crispr">[% crispr_pair.pair_off_target.remove('\{|\}') %]</td>
                   <td class="crispr">[% crispr_pair.left_off_target.remove('\{|\}') %]</td>
                   <td class="crispr">[% crispr_pair.right_off_target.remove('\{|\}') %]</td>
                   <td class="crispr">

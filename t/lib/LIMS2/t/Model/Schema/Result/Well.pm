@@ -6,7 +6,6 @@ use LIMS2::Model::DBConnect;
 use LIMS2::Model;
 use strict;
 use LIMS2::Test model => { classname => __PACKAGE__ };
-use Smart::Comments;
 
 ##  critic
 
@@ -90,25 +89,7 @@ sub all_tests : Tests {
     my $rs            = 'Well';
     my %record        = ();
 
-    #note("Accessing the schema");
-    #ok($ENV{$connect_entry} ne '', '$ENV{LIMS2_DB} has been set up');
-    #my $schema = LIMS2::Model::DBConnect->connect( $connect_entry, $user );
-    #ok ($schema, 'LIMS2::Model::DBConnect connected to the database');
-    #my $resultset = $schema->resultset( $rs );
-    #ok ($resultset, 'LIMS2::Model::DBConnect obtained result set');
-
-    #note("CRUD tests");
-    #lives_ok { $resultset->search(\%record)->delete() } 'Deleting any existing test records';
-    #lives_ok { $resultset->create(\%record) } 'Inserting new record';
-    #my $stored = $resultset->search(\%record)->single();
-    #ok ($stored, 'Obtained record from the database');
-    #my %inflated = $stored->get_columns();
-    #cmp_deeply(\%record, \%inflated, 'Verifying retrieved record matches inserted values');
-    #lives_ok { $resultset->search(\%record)->delete() } 'Deleting the existing test records';
-
-    my $test_model = model();
-
-    my $model = LIMS2::Model->new( user => 'lims2' );
+    my $model = model();
     ok( $model, 'Creating model' );
 
     my $well = $model->retrieve_well( { plate_name => 'CEPD0024_1', well_name => 'F08' } );
