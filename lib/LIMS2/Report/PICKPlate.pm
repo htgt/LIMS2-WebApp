@@ -28,12 +28,13 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
-        "Cassette", "Cassette Resistance", "Recombinases", "Cell Line",
+        "Cassette", "Cassette Resistance", "Recombinases", "Cell Line", "Clone ID",
     ];
 };
 
 override iterator => sub {
     my $self = shift;
+    my $plate = $self->plate_name;
 
     my $wells_rs = $self->plate->search_related(
         wells => {},
@@ -49,6 +50,7 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
+        my $well_id = $well->name;
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
         my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
 
@@ -59,6 +61,7 @@ override iterator => sub {
             $well->cassette->resistance,
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,
+            $plate.'_'.$well_id,
         ];
     };
 };
