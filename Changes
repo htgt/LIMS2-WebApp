@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.119     2013-10-29 15:23:09 Europe/London
+
+    Cre Knockin project added to the Genes to Electroporate reporting system.
+    Users can now add/remove comments in the Plate View page.
+    Added template specific for DNA plates.
+
 0.118     2013-10-29 14:21:58 Europe/London
 
 0.117     2013-10-25 14:00:48 Europe/London
