@@ -138,7 +138,7 @@ sub unflag_virtual_plate :Path( '/user/unflag_virtual_plate' ) :Args(0) {
     return;
 }
 
-sub rename_plate :Path( '/user/add_comment_plate' ) :Args(0) {
+sub add_comment_plate :Path( '/user/add_comment_plate' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my $timestamp = scalar localtime;
@@ -175,6 +175,31 @@ sub rename_plate :Path( '/user/add_comment_plate' ) :Args(0) {
     return;
 }
 
+sub delete_comment_plate :Path( '/user/delete_comment_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->schema->resultset('PlateComment')->find(
+                    {
+                         id    => $params->{comment_id}
+                    })->delete;
+
+                $c->flash->{success_msg} = 'Comment deleted for plate ' . $params->{name};
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while deleting comment: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
 =head1 AUTHOR
 
 Sajith Perera

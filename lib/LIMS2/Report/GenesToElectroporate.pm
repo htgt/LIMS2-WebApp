@@ -7,7 +7,7 @@ use JSON qw( decode_json );
 use List::Util qw( max );
 use Log::Log4perl qw(:easy);
 use namespace::autoclean;
-# use Smart::Comments;
+use LIMS2::Model::Schema::Result::Well;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -91,17 +91,12 @@ override _build_columns => sub {
     my $self = shift;
 
     my $sponsor = $self->sponsor;
-
-### $self 
-
-print "!!!$sponsor!!!\n";
-
     if ($sponsor eq 'Cre Knockin') {
         return [
             'Gene ID',
             'Marker Symbol',
-            '1st Allele Promoter DNA Well',
-            '1st Allele Promoterless DNA Well',
+            'Promoter DNA Well',
+            'Promoterless DNA Well',
             'FEP Well',
         ];
     } else {
@@ -114,7 +109,7 @@ print "!!!$sponsor!!!\n";
             '2nd Allele Promoterless DNA Well',
             'FEP Well',
             'SEP Well',
-        ];      
+        ];
     }
 };
 
@@ -128,13 +123,7 @@ override iterator => sub {
 
     my $result = shift @sorted_electroporate_list;
 
-
     my $sponsor = $self->sponsor;
-
-### $self 
-
-print "!!!$sponsor!!!\n";
-
     if ($sponsor eq 'Cre Knockin') {
         return Iterator::Simple::iter(
             sub {

@@ -92,7 +92,13 @@
       [% IF plate.plate_comments.size %]
       <dl>
         [% FOR comment IN plate.plate_comments %]
-        <dt>[% comment.created_by.name %], [% comment.created_at.ymd %]</dt>
+        <dt>[% comment.created_by.name %], [% comment.created_at.ymd %] 
+          [% IF comment.created_by.name == username %]
+            <a class="btn btn-danger" role="button" href="#DeleteCommentModal" data-toggle="modal">
+              <i class="icon-remove icon-white"></i> <span style="font-weight: normal;">Delete</span>
+            </a>
+          [% END %]
+        </dt>
         <dd>
           <p>[% comment.comment_text %]</p>
         </dd>
@@ -180,7 +186,7 @@
       <h3 id="myModalLabel">Comments</h3>
     </div>
 
-    <div class="modal-body">
+    <div class="modal-body" align="center">
       <input type="hidden" name="id" value="[% plate.id %]" />
       <input type="hidden" name="name" value="[% plate.name %]" />
       Comment on plate <strong>[% plate.name %]</strong>: <input name="comment" id="comment" type="text" />
@@ -194,6 +200,29 @@
     </div>
   </form>
 </div>
+
+  <div class="modal hide fade" id="DeleteCommentModal">
+    <form method="POST" id="delete_comment" action="[% c.uri_for( '/user/delete_comment_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Comments</h3>
+      </div>
+
+      <div class="modal-body" align="center">
+        <input type="hidden" name="id" value="[% plate.id %]" />
+        <input type="hidden" name="name" value="[% plate.name %]" />
+        <input type="hidden" name="comment_id" value="[% comment.id %]" />
+        Are you sure you want to delete the comment "[% comment.comment_text %]" of plate <strong>[% plate.name %]</strong>?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger" >
+          <i class="icon-remove icon-white"></i> Confirm Delete
+        </button>
+      </div>
+    </form>
+  </div>
 
 [% UNLESS plate.has_child_wells %]
   <div class="row">
