@@ -11,6 +11,7 @@
       <option value="Core">Core</option>
       <option value="Syboss">Syboss</option>
       <option value="Pathogens">Pathogens</option>
+      <option value="Cre Knockin">Cre Knockin</option>
     </select>
     <br />
     <input type="submit" name="list_assigned_designs" class="btn btn-primary" value="View report" />
