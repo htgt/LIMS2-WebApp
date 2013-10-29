@@ -6,7 +6,6 @@ build_requires:
   English: 0
   File::Find: 0
   HTTP::Request::Common: 0
-  Smart::Comments: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -51,6 +50,7 @@ requires:
   Data::Dumper: 0
   Data::FormValidator: 0
   Data::Pageset: 0
+  Data::Printer: 0
   Data::UUID: 0
   DateTime: 0
   DateTime::Duration: 0
@@ -132,4 +132,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.115
+version: 0.118

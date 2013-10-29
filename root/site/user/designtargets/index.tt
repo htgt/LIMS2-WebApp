@@ -17,14 +17,24 @@
       Simple
     </label>
 
-    <label><strong>Algorithm Type</strong></label>
+    <label><strong>Off Target Algorithm Type</strong></label>
     <label class="radio">
-      <input type="radio" name="off_target_algorithm" value="strict" checked>
-      Strict
+      <input type="radio" name="off_target_algorithm" value="bwa" checked>
+      BWA
     </label>
     <label class="radio">
-      <input type="radio" name="off_target_algorithm" value="bwa">
-      BWA
+      <input type="radio" name="off_target_algorithm" value="strict">
+      Strict
+    </label>
+
+    <label><strong>Show Crispr Type</strong></label>
+    <label class="radio">
+      <input type="radio" name="crispr_types" value="pair" checked>
+      Pairs
+    </label>
+    <label class="radio">
+      <input type="radio" name="crispr_types" value="single">
+      Single
     </label>
 
     <br>

@@ -1,7 +1,7 @@
 package LIMS2::Report::SFPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SFPPlate::VERSION = '0.115';
+    $LIMS2::Report::SFPPlate::VERSION = '0.118';
 }
 ## use critic
 
@@ -27,11 +27,13 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
+        'Parent Well',
     ];
 };
 
 override iterator => sub {
     my $self = shift;
+
 
     my $wells_rs = $self->plate->search_related(
         wells => {},
@@ -49,6 +51,7 @@ override iterator => sub {
 
         return [
             $self->base_data( $well ),
+            $well->get_input_wells_as_string,
         ];
     };
 };
