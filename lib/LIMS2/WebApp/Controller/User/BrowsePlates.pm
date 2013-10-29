@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.118';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.119';
 }
 ## use critic
 
@@ -96,6 +96,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
         plate           => $plate,
         well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
         additional_plate_reports => $additional_plate_reports,
+        username  => $c->user->name,
     );
 
     return;

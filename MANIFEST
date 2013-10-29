@@ -2105,6 +2105,7 @@ root/static/extjs/src/view/View.js
 root/static/extjs/src/window/MessageBox.js
 root/static/extjs/src/window/Window.js
 root/static/extjs/version.properties
+root/static/files/plate_upload/dna_template.csv
 root/static/files/plate_upload/first_electroporation_template.csv
 root/static/files/plate_upload/gateway_template.csv
 root/static/files/plate_upload/piq_template.csv
