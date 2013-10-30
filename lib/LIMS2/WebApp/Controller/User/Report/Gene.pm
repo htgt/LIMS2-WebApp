@@ -1,5 +1,6 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 use Moose;
+use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -33,10 +34,17 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
 
-    my $gene_info = $c->model('Golgi')->retrieve_gene( { search_term => $gene, species => $species_id } );
+    my $gene_info = try{ $c->model('Golgi')->retrieve_gene( { search_term => $gene, species => $species_id } ) };
 
-    my $gene_id = $gene_info->{gene_id}
-        or $self->throw( MissingData => "Unable to determine gene id for $gene" );
+    # if we dont find a gene via solr index just search directly against the gene_design table
+    my $gene_id;
+    if ( $gene_info ) {
+        $gene_id = $gene_info->{gene_id};
+    }
+    else {
+        $gene_id = $gene;
+        $gene_info->{gene_symbol} = $gene;
+    }
 
     # fetch designs for this gene
     my $designs = $c->model('Golgi')->list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
@@ -174,12 +182,6 @@ sub fetch_values_for_type_design {
     }
     return;
 }
-
-
-
-
-
-
 
 sub fetch_values_for_type_int {
     my ( $self, $summary_row, $wells_hash ) = @_;
@@ -450,7 +452,6 @@ sub fetch_values_for_type_ep_pick {
     }
     return;
 }
-
 
 sub fetch_values_for_type_xep {
     my ( $self, $summary_row, $wells_hash ) = @_;

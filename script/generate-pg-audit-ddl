@@ -1,0 +1,255 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings FATAL => 'all';
+
+use DBI;
+use Getopt::Long;
+use Const::Fast;
+use Term::ReadPassword;
+use Template;
+use Getopt::Long;
+
+const my %IGNORE_TABLE => (
+    cached_reports              => 1,
+    crispr_off_targets          => 1,
+    summaries                   => 1,
+    fixture_md5                 => 1,
+    crispr_off_target_summaries => 1,
+);
+
+const my $MAIN_SCHEMA  => 'public';
+const my $AUDIT_SCHEMA => 'audit';
+
+const my $CREATE_AUDIT_TABLE_TT => <<'EOT';
+CREATE TABLE [% audit_schema %].[% table_name %] (
+audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
+audit_user TEXT NOT NULL,
+audit_stamp TIMESTAMP NOT NULL,
+audit_txid INTEGER NOT NULL,
+[% column_spec.join(",\n") %]
+);
+EOT
+
+const my $CREATE_AUDIT_FUNCTION_TT => <<'EOT';
+CREATE OR REPLACE FUNCTION [% main_schema %].process_[% table_name %]_audit()
+RETURNS TRIGGER AS $[% table_name %]_audit$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+           INSERT INTO [% audit_schema %].[% table_name %] SELECT 'D', user, now(), txid_current(), OLD.*;
+        ELSIF (TG_OP = 'UPDATE') THEN
+           INSERT INTO [% audit_schema %].[% table_name %] SELECT 'U', user, now(), txid_current(), NEW.*;
+        ELSIF (TG_OP = 'INSERT') THEN
+           INSERT INTO [% audit_schema %].[% table_name %] SELECT 'I', user, now(), txid_current(), NEW.*;
+        END IF;
+        RETURN NULL;
+    END;
+$[% table_name %]_audit$ LANGUAGE plpgsql;
+EOT
+
+const my $CREATE_AUDIT_TRIGGER_TT => <<'EOT';
+CREATE TRIGGER [% table_name %]_audit
+AFTER INSERT OR UPDATE OR DELETE ON [% main_schema %].[% table_name %]
+    FOR EACH ROW EXECUTE PROCEDURE [% main_schema %].process_[% table_name %]_audit();
+EOT
+
+const my $DROP_AUDIT_TABLE_COLUMN_TT => <<'EOT';
+ALTER TABLE [% audit_schema %].[% table_name %] DROP COLUMN [% column_name %];
+EOT
+
+const my $ADD_AUDIT_TABLE_COLUMN_TT => <<'EOT';
+ALTER TABLE [% audit_schema %].[% table_name %] ADD COLUMN [% column_name %] [% column_type %];
+EOT
+
+const my $DROP_AUDIT_TABLE_TT => <<'EOT';
+DROP TABLE [% audit_schema %].[% table_name %];
+EOT
+
+const my %IS_AUDIT_COL => map { $_ => 1 } qw( audit_op audit_user audit_stamp audit_txid );
+
+const my %NEEDS_SIZE => map { $_ => 1 } qw( char character varchar );
+
+{
+
+    my $pg_host   = $ENV{PGHOST};
+    my $pg_port   = $ENV{PGPORT};
+    my $pg_dbname = $ENV{PGDATABASE};
+    my $pg_user   = 'lims2';
+
+    GetOptions(
+        'host=s'   => \$pg_host,
+        'port=s'   => \$pg_port,
+        'dbname=s' => \$pg_dbname,
+        'user=s'   => \$pg_user
+    ) or die "Usage: $0 [OPTIONS]\n";
+
+    my $pg_password;
+    while ( not defined $pg_password ) {
+        $pg_password = read_password("Enter PostgreSQL password for $pg_user: ");
+    }
+
+    my $dsn = 'dbi:Pg:dbname=' . $pg_dbname;
+
+    if ( defined $pg_host ) {
+        $dsn .= ";host=" . $pg_host;
+    }
+
+    if ( defined $pg_port ) {
+        $dsn .= ";port=" . $pg_port;
+    }
+
+    my $dbh = DBI->connect( $dsn, $pg_user, $pg_password, { AutoCommit => 1, RaiseError => 1, PrintError => 0 } )
+        or die "Failed to connect to $dsn: $DBI::errstr\n";
+
+    const my %VARS => (
+        main_schema  => $MAIN_SCHEMA,
+        audit_schema => $AUDIT_SCHEMA,
+    );
+
+    my $tt = Template->new;
+
+    my $main_tables  = get_tables( $dbh, $MAIN_SCHEMA );
+    my $audit_tables = get_tables( $dbh, $AUDIT_SCHEMA );
+
+    while ( my ( $table_name, $main_table ) = each %{$main_tables} ) {
+        next if exists $IGNORE_TABLE{$table_name};
+        my $audit_table = $audit_tables->{$table_name};
+        if ($audit_table) {
+            diff_tables( $table_name, $main_table, $audit_table, $tt, \%VARS );
+        }
+        else {
+            initialize_auditing( $table_name, $main_table, $tt, \%VARS );
+        }
+    }
+
+    for my $table_name ( keys %{$audit_tables} ) {
+        unless ( $main_tables->{$table_name} ) {
+            $tt->process( \$DROP_AUDIT_TABLE_TT, { %VARS, table_name => $table_name } );
+        }
+    }
+}
+
+sub diff_tables {
+    my ( $table_name, $col_spec, $audit_col_spec, $tt, $VARS ) = @_;
+
+    my %vars = ( %{$VARS}, table_name => $table_name );
+
+    my %cols       = map { @{$_} } @{$col_spec};
+    my %audit_cols = map { @{$_} } @{$audit_col_spec};
+
+    for my $cs ( @{$col_spec} ) {
+        my ( $column_name, $column_type ) = @{$cs};
+        my $audit_column_type = $audit_cols{$column_name};
+        if ($audit_column_type) {
+            if ( $audit_column_type ne $column_type ) {
+                warn "Table $table_name column $column_name type mismatch ($column_type vs $audit_column_type)\n";
+            }
+        }
+        else {
+            $tt->process( \$ADD_AUDIT_TABLE_COLUMN_TT,
+                { %vars, column_name => $column_name, column_type => $column_type } );
+        }
+    }
+
+    for my $audit_column_name ( keys %audit_cols ) {
+        unless ( $cols{$audit_column_name} or exists $IS_AUDIT_COL{$audit_column_name} ) {
+            $tt->process( \$DROP_AUDIT_TABLE_COLUMN_TT, { %vars, column_name => $audit_column_name } );
+        }
+    }
+
+    return;
+}
+
+sub initialize_auditing {
+    my ( $table_name, $col_spec, $tt, $VARS ) = @_;
+
+    my %vars = (
+        %{$VARS},
+        table_name  => $table_name,
+        column_spec => [ map { join q{ }, @{$_} } @{$col_spec} ]
+    );
+
+    $tt->process( \$CREATE_AUDIT_TABLE_TT,    \%vars );
+    $tt->process( \$CREATE_AUDIT_FUNCTION_TT, \%vars );
+    $tt->process( \$CREATE_AUDIT_TRIGGER_TT,  \%vars );
+
+    return;
+}
+
+sub get_tables {
+    my ( $dbh, $schema_name ) = @_;
+
+    my $sth = $dbh->table_info( undef, $schema_name, undef, 'TABLE' );
+
+    my %tables;
+
+    while ( my $r = $sth->fetchrow_hashref ) {
+        $tables{ $r->{TABLE_NAME} } = get_column_info( $dbh, $schema_name, $r->{TABLE_NAME} );
+    }
+
+    return \%tables;
+}
+
+sub get_column_info {
+    my ( $dbh, $schema_name, $table_name ) = @_;
+
+    my @column_info;
+
+    my $sth = $dbh->column_info( undef, $schema_name, $table_name, undef );
+    while ( my $r = $sth->fetchrow_hashref ) {
+        my $type = $r->{TYPE_NAME};
+        if ( exists $NEEDS_SIZE{$type} ) {
+            $type = $type . '(' . $r->{COLUMN_SIZE} . ')';
+        }
+        push @column_info, [ $r->{COLUMN_NAME}, $type ];
+    }
+
+    return \@column_info;
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+generate-pg-audit-ddl
+
+=head1 SYNOPSIS
+
+  generate-pg-audit-ddl --host pgsrv5 --port 5437 --dbname lims2_devel --user lims2
+
+=head1 DESCRIPTION
+
+This script interrogates the database specified by the C<--dbname>
+command-line option and compares the I<public> schema with the
+I<audit> schema. It emits SQL to create a table in the I<audit> schema
+shadowing each table in the B<public> schema, a function to insert a
+row in the corresponding I<audit> table for each C<INSERT>, C<UPDATE>
+or C<DELETE> in the I<public> schema, and a trigger that calls this
+function.
+
+=head1 LIMITATIONS
+
+This script assumes that the I<audit> schema already exists. It
+attempts to create SQL that will transition the current state of the
+I<audit> schema to the desired state (shadowing the current state of
+the I<public> schema). Note, however, that it cannot accurately detect
+column and table renames.
+
+If you have renamed a column or table in the main schema, this script
+will emit C<DROP> and C<CREATE> statements that will B<delete data
+from your audit schema>. Please review the generated SQL carefully in
+case this is not what you intended.
+
+=head1 SEE ALSO
+
+The I<audit> tables, functions, and triggers are derived from an
+example described here:
+L<http://www.postgresql.org/docs/9.0/static/plpgsql-trigger.html>
+
+=head1 AUTHOR
+
+Ray Miller E<lt>rm7@sanger.ac.ukE<gt>
+
+=cut

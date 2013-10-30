@@ -2,6 +2,7 @@ valid_find_crispr_by_seq:
     species: Mouse
     seq: ATCGGCACACAGAGAG
     assembly: GRCm38
+    pam_right: 0
     chr_name: 12
     chr_start: 123456
     chr_end: 123468
@@ -10,6 +11,7 @@ non_existatant_locus:
     species: Mouse
     seq: ATCGGCACACAGAGAG
     assembly: NCBIM36
+    pam_right: 0
     chr_name: 12
     chr_start: 123456
     chr_end: 123468

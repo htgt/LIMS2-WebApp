@@ -38,7 +38,6 @@ sub _build_default_assembly {
 has oligos => (
     is         => 'ro',
     isa        => 'HashRef',
-    init_arg   => undef,
     lazy_build => 1,
 );
 
@@ -119,7 +118,9 @@ has floxed_exons => (
         num_floxed_exons  => 'count',
     },
 );
-
+#TODO We are assuming that gibson designs are being treated as conditionals
+#     If the design is being used as a deletion the coordinates will be different
+#     Need to pass a flag in to this object if we know the design in a deletion
 sub _build_target_region_start {
     my $self = shift;
 
@@ -138,6 +139,16 @@ sub _build_target_region_start {
         }
         else {
             return $self->oligos->{D5}{start}
+        }
+    }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{EF}{end};
+        }
+        else {
+            return $self->oligos->{ER}{end}
         }
     }
 }
@@ -162,6 +173,16 @@ sub _build_target_region_end {
             return $self->oligos->{U3}{end};
         }
     }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{ER}{start};
+        }
+        else {
+            return $self->oligos->{EF}{start}
+        }
+    }
 }
 
 sub _build_loxp_start {
@@ -177,6 +198,16 @@ sub _build_loxp_start {
             return $self->oligos->{D3}{end} + 1;
         }
     }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{ER}{end} + 1;
+        }
+        else {
+            return $self->oligos->{EF}{end} + 1;
+        }
+    }
 }
 
 sub _build_loxp_end {
@@ -190,6 +221,16 @@ sub _build_loxp_end {
         }
         else {
             return $self->oligos->{D5}{start} - 1;
+        }
+    }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'3F'}{start} - 1;
+        }
+        else {
+            return $self->oligos->{'5R'}{start} - 1;
         }
     }
 }
@@ -214,6 +255,16 @@ sub _build_cassette_start {
             return $self->oligos->{U3}{end} + 1;
         }
     }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'5R'}{start} + 1;
+        }
+        else {
+            return $self->oligos->{'3F'}{start} + 1;
+        }
+    }
 }
 
 sub _build_cassette_end {
@@ -236,27 +287,57 @@ sub _build_cassette_end {
             return $self->oligos->{U5}{start} - 1;
         }
     }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{EF}{end} - 1;
+        }
+        else {
+            return $self->oligos->{ER}{end} - 1;
+        }
+    }
 }
 
 sub _build_homology_arm_start {
     my $self = shift;
 
-    if ( $self->chr_strand == 1 ) {
-        return $self->oligos->{G5}{start};
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'5F'}{start};
+        }
+        else {
+            return $self->oligos->{'3R'}{start};
+        }
     }
     else {
-        return $self->oligos->{G3}{start};
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{G5}{start};
+        }
+        else {
+            return $self->oligos->{G3}{start};
+        }
     }
 }
 
 sub _build_homology_arm_end {
     my $self = shift;
 
-    if ( $self->chr_strand == 1 ) {
-        return $self->oligos->{G3}{end};
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'3R'}{end};
+        }
+        else {
+            return $self->oligos->{'5F'}{end};
+        }
     }
     else {
-        return $self->oligos->{G5}{end};
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{G3}{end};
+        }
+        else {
+            return $self->oligos->{G5}{end};
+        }
     }
 }
 
@@ -291,7 +372,7 @@ sub _build_oligos {
             'loci.assembly_id' => $self->default_assembly,
         },
         {
-            join => 'loci',
+            join     => 'loci',
             prefetch => { 'loci' => 'chr' },
         },
     );
@@ -332,7 +413,6 @@ sub _build_target_region_slice {
         $self->chr_strand
     );
 }
-
 
 sub _build_target_gene {
     my $self = shift;
