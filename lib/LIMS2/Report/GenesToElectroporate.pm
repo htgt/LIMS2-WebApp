@@ -7,6 +7,7 @@ use JSON qw( decode_json );
 use List::Util qw( max );
 use Log::Log4perl qw(:easy);
 use namespace::autoclean;
+use LIMS2::Model::Schema::Result::Well;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -89,16 +90,27 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    return [
-        'Gene ID',
-        'Marker Symbol',
-        '1st Allele Promoter DNA Well',
-        '1st Allele Promoterless DNA Well',
-        '2nd Allele Promoter DNA Well',
-        '2nd Allele Promoterless DNA Well',
-        'FEP Well',
-        'SEP Well',
-    ];
+    my $sponsor = $self->sponsor;
+    if ($sponsor eq 'Cre Knockin') {
+        return [
+            'Gene ID',
+            'Marker Symbol',
+            'Promoter DNA Well',
+            'Promoterless DNA Well',
+            'FEP Well',
+        ];
+    } else {
+        return [
+            'Gene ID',
+            'Marker Symbol',
+            '1st Allele Promoter DNA Well',
+            '1st Allele Promoterless DNA Well',
+            '2nd Allele Promoter DNA Well',
+            '2nd Allele Promoterless DNA Well',
+            'FEP Well',
+            'SEP Well',
+        ];
+    }
 };
 
 override iterator => sub {
@@ -111,22 +123,40 @@ override iterator => sub {
 
     my $result = shift @sorted_electroporate_list;
 
-    return Iterator::Simple::iter(
-        sub {
-            return unless $result;
-            my @data = ( $result->{gene_id}, $result->{marker_symbol} );
+    my $sponsor = $self->sponsor;
+    if ($sponsor eq 'Cre Knockin') {
+        return Iterator::Simple::iter(
+            sub {
+                return unless $result;
+                my @data = ( $result->{gene_id}, $result->{marker_symbol} );
 
-            $self->print_wells( \@data, $result, 'first_allele_promoter_dna_wells');
-            $self->print_wells( \@data, $result, 'first_allele_promoterless_dna_wells');
-            $self->print_wells( \@data, $result, 'second_allele_promoter_dna_wells');
-            $self->print_wells( \@data, $result, 'second_allele_promoterless_dna_wells');
-            $self->print_electroporation_wells( \@data, $result, 'fep_wells');
-            $self->print_electroporation_wells( \@data, $result, 'sep_wells');
+                $self->print_wells( \@data, $result, 'first_allele_promoter_dna_wells');
+                $self->print_wells( \@data, $result, 'first_allele_promoterless_dna_wells');
+                $self->print_electroporation_wells( \@data, $result, 'fep_wells');
 
-            $result = shift @sorted_electroporate_list;
-            return \@data;
-        }
-    );
+                $result = shift @sorted_electroporate_list;
+                return \@data;
+            }
+        );
+    } else {
+        return Iterator::Simple::iter(
+            sub {
+                return unless $result;
+                my @data = ( $result->{gene_id}, $result->{marker_symbol} );
+
+                $self->print_wells( \@data, $result, 'first_allele_promoter_dna_wells');
+                $self->print_wells( \@data, $result, 'first_allele_promoterless_dna_wells');
+                $self->print_wells( \@data, $result, 'second_allele_promoter_dna_wells');
+                $self->print_wells( \@data, $result, 'second_allele_promoterless_dna_wells');
+                $self->print_electroporation_wells( \@data, $result, 'fep_wells');
+                $self->print_electroporation_wells( \@data, $result, 'sep_wells');
+
+                $result = shift @sorted_electroporate_list;
+                return \@data;
+            }
+        );
+
+    }
 };
 
 sub print_wells{

@@ -86,7 +86,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(20)
+sub all_tests  : Test(21)
 {
 
     note( "Testing Genotyping QC data update");
@@ -156,9 +156,9 @@ sub all_tests  : Test(20)
 
 	    # test well primer band update
 	    ok my $test_file4 = File::Temp->new or die('Could not create temp test file ' . $!);
-	    $test_file4->print(join ",", "well_name",      "gf4", "gr3");
+	    $test_file4->print(join ",", "well_name",      "gf4", "gr3", "lr_pcr_pass");
 	    $test_file4->print("\n");
-	    $test_file4->print(join ",", $plate."_".$well, "yes", "yes"       );
+	    $test_file4->print(join ",", $plate."_".$well, "yes", "yes", "yes");
 
 	    my $name4 = $test_file4->filename;
 	    $test_file4->close;
@@ -169,8 +169,10 @@ sub all_tests  : Test(20)
 	ok my $bands = model->retrieve_well_primer_bands($well_params), "primer bands found";
 	my ($gf4) = grep { $_->primer_band_type_id eq "gf4" } @$bands;
 	my ($gr3) = grep { $_->primer_band_type_id eq "gr3" } @$bands;
+    my ($lr_pcr_pass) = grep { $_->primer_band_type_id eq "lr_pcr_pass" } @$bands;
 	is $gf4->pass, 1, "gf4 primer band created";
 	is $gr3->pass, 1, "gr3 primer band created";
+    is $lr_pcr_pass->pass, 1, "lr_pcr_pass created";
 
     }
 

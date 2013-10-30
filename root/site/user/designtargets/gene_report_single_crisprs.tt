@@ -4,57 +4,66 @@
   <h1>Design Target Report</h1>
 </div>
 
-<form method"POST" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
+<form method"POST" id="crispr_pick" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
   <table id="design-target-report" class="table table-bordered table-condensed">
     <thead>
       <tr>
-        <th class="design-target group-header" colspan="5">Design Target</th>
-        <th class="design group-header" colspan="2">Vector Design</th>
-        <th class="crispr group-header" colspan="6">Crispr Guide RNA (strict off target algorithm)</th>
+        <th class="design-target group-header" colspan="6">Design Target</th>
+        <th class="design group-header" colspan="3">Vector Design</th>
+        <th class="crispr group-header" colspan="8">Crispr Guide RNA</th>
       </tr>
       <tr>
         <th class="design-target">Marker Symbol</th>
         <th class="design-target">Gene ID</th>
         <th class="design-target">Target Exon</th>
+        <th class="design-target">Chromosome</th>
         <th class="design-target">Exon Size</th>
         <th class="design-target">Exon Rank</th>
         <th class="design">Design ID</th>
         <th class="design">Design Type</th>
+        <th class="design">UCSC Blat</th>
         <th class="crispr">Crispr ID</th>
+        <th class="crispr">Crispr Direction</th>
         <th class="crispr">Crispr Valid</th>
         <th class="crispr">Crispr Off Targets</th>
         <th class="crispr">Crispr Wells</th>
+        <th class="crispr">UCSC Blat</th>
         <th class="crispr">Pick Crispr</th>
       </tr>
     </thead>
 
     <tbody>
-      [%- FOR datum IN design_targets_data.data %]
+      [%- FOR datum IN design_targets_data %]
         [% dt_first_row = 1 %]
         <tr>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.marker_symbol %]</td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.gene_id %]</td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.ensembl_exon_id %]</td>
+          <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.chromosome %]</td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.exon_size %]</td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.exon_rank %]</td>
 
           <!-- No designs or crisprs for design target, show empty cells -->
           [% IF datum.designs.size == 0 && datum.crisprs.size == 0 %]
-            <td class="design" colspan="2"></td>
-            <td class="crispr" colspan="6"></td>
+            <td class="design" colspan="3"></td>
+            <td class="crispr" colspan="8"></td>
             </tr>
             [% NEXT %]
           [% END %]
 
           <!-- No designs for design target but we have crisprs, show all crisprs -->
           [% IF datum.designs.size == 0 %]
-            <td class="design" rowspan="[% datum.design_rowspan %]" colspan="2"></td>
+            <td class="design" rowspan="[% datum.design_rowspan %]" colspan="3"></td>
             [% FOR crispr IN datum.crisprs %]
               [% IF dt_first_row == 0 %]<tr>[% END %]
               <td class="crispr">[% crispr.crispr_id %]</td>
+              <td class="crispr">[% crispr.direction %]</td>
               <td class="crispr">[% crispr.outlier.join(', ') %]</td>
               <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
               <td class="crispr">[% crispr.crispr_wells %]</td>
+              <td class="crispr">
+                <a href="[% c.uri_for( '/user/crisprs_ucsc_blat', { sequence => crispr.blat_seq } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+              </td>
               <td class="crispr"></td>
               [% dt_first_row = 0 IF dt_first_row == 1 %]
               </tr>
@@ -64,22 +73,45 @@
             [% FOR design IN datum.designs %]
               [% design_first_row = 1 %]
               [% IF dt_first_row == 0 %]<tr>[% END %]
-              <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_id %]</td>
+              <td rowspan="[% datum.design_rowspan %]" class="design">
+                <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]">
+                  [% design.design_id %]
+                </a>
+              </td>
               <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_type %]</td>
+              <td rowspan="[% datum.design_rowspan %]" class="design">
+                <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+              </td>
               [% IF datum.crisprs.size == 0 %]
-                <td class="crispr" colspan="6"></td>
+                <td class="crispr" colspan="8"></td>
                 </tr>
                 [% dt_first_row = 0 IF dt_first_row == 1 %]
               [% ELSE %]
                 [% FOR crispr IN datum.crisprs %]
                   [% UNLESS design_first_row %]<tr>[% END %]
                   <td class="crispr">[% crispr.crispr_id %]</td>
+                  <td class="crispr">[% crispr.direction %]</td>
                   <td class="crispr">[% crispr.outlier.join(', ') %]</td>
                   <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
                   <td class="crispr">[% crispr.crispr_wells %]</td>
                   <td class="crispr">
+                    <a href="[% c.uri_for( '/user/crisprs_ucsc_blat', { sequence => crispr.blat_seq } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+                  </td>
+                  <td class="crispr">
                     [% IF crispr.crispr_id %]
-                      <input type="checkbox" name="crispr_pick" value="[% crispr.crispr_id %]:[% design.design_id %]" />
+                      [% linked = 0 %]
+                      [% FOR crispr_id IN design.linked_crispr_ids %]
+                        <!-- we have a crispr already linked to a design -->
+                        [% IF crispr.crispr_id == crispr_id %]
+                          [% linked = 1 %]
+                          <input type="checkbox" name="crispr_pick" value="[% crispr.crispr_id %]:[% design.design_id %]" checked />
+                          <input type="hidden"  name="design_crispr_link" value="[% crispr.crispr_id %]:[% design.design_id %]" />
+                        [% END %]
+                      [% END %]
+
+                      [% IF linked == 0 %]
+                        <input type="checkbox" name="crispr_pick" value="[% crispr.crispr_id %]:[% design.design_id %]" />
+                      [% END %]
                     [% END %]
                   </td>
                   </tr>
@@ -99,7 +131,8 @@
     <i class="icon-hand-left"></i> Back to search </a>
   </div>
   <div class="span3 offset6" align="right">
-    <input type="submit" name="action" class="btn btn-primary" value="Download Crispr Picks" />
+    <input type="hidden"  name="crispr_types" value="[% params.crispr_types %]" />
+    <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" />
   </div>
 </div>
 
