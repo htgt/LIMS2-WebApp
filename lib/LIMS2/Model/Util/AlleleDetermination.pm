@@ -230,7 +230,7 @@ sub _determine_allele_types {
         }
         catch {
             my $exception_message = $_;
-            $current_allele_type = "Failed allele determination, Exception: $exception_message";
+            $current_allele_type = "Failed allele determination. Exception: $exception_message";
         };
 
         # store full allele determination in well hash
@@ -347,7 +347,7 @@ sub _select_workflow_data {
     catch {
         my $exception_message = $_;
         LIMS2::Exception::Implementation->throw(
-            "Failed workflow determination for wells, exception : " . " : $exception_message" );
+            "Failed workflow determination for wells. Exception : " . " : $exception_message" );
     };
 
     return;
@@ -404,7 +404,7 @@ sub _determine_allele_type_for_well {
     $self->current_well_stage( $self->current_well->{'plate_type'} );
     unless ( ( $self->current_well_stage eq 'EP_PICK' ) || ( $self->current_well_stage eq 'SEP_PICK' ) ) {
         return
-              'Failed: stage type must be EP_PICK or SEP_PICK, found type '
+              'Failed: stage type must be EP_PICK or SEP_PICK and found type '
             . $self->current_well_stage
             . ' for well '
             . $self->current_well_id;
@@ -518,7 +518,7 @@ sub _minimised_allele_type {
         return 'unknown';
     }
 
-    if ( index( $current_allele_type, 'Failed:' ) != -1 ) {
+    if ( index( $current_allele_type, 'Failed' ) != -1 ) {
         return 'fail';
     }
 
