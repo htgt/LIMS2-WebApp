@@ -42,6 +42,9 @@ const our %PROCESS_PLATE_TYPES => (
     'freeze'                 => [qw( FP SFP )],
     'xep_pool'               => [qw( XEP )],
     'dist_qc'                => [qw( PIQ )],
+    'crispr_vector'          => [qw( CRISPR_V )],
+    'crispr_single_ep'       => [qw( CRISPR_EP )],
+    'crispr_paired_ep'       => [qw( CRISPR_EP )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -64,7 +67,7 @@ const our %PROCESS_TEMPLATE => (
     '2w_gateway'             => 'gateway_template.csv',
     '3w_gateway'             => 'gateway_template.csv',
     'final_pick'             => 'standard_template.csv',
-    'dna_prep'               => 'dna_template.csv',
+    'dna_prep'               => 'standard_template.csv',
     'recombinase'            => 'recombinase_template.csv',
     'first_electroporation'  => 'first_electroporation_template.csv',
     'second_electroporation' => 'second_electroporation_template.csv',
@@ -141,6 +144,18 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'dist_qc' => {
         type   => [qw( FP SFP )],
         number => 1,
+    },
+    'crispr_vector' => {
+        type   => [qw( CRISPR )],
+        number => 1,
+    },
+    'crispr_single_ep' => {
+        type   => [qw( CRISPR_V FINAL_PICK )],
+        number => 2,
+    },
+    'crispr_paired_ep' => {
+        type   => [qw( CRISPR_V FINAL_PICK )],
+        number => 3,
     },
 );
 
