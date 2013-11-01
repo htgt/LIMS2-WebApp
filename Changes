@@ -1,5 +1,25 @@
 {{$NEXT}}
 
+0.120     2013-10-31 12:20:30 Europe/London
+
+    Plate DNA Status Update template updated
+
+0.119     2013-10-29 15:23:09 Europe/London
+
+    Cre Knockin project added to the Genes to Electroporate reporting system.
+    Users can now add/remove comments in the Plate View page.
+    Added template specific for DNA plates.
+
+0.118     2013-10-29 14:21:58 Europe/London
+
+0.117     2013-10-25 14:00:48 Europe/London
+
+    Update simple design target crispr report, add links to detailed views
+        of either single crisprs or crispr pairs.
+    Add constraints to the crispr_pair and design_crispr table.
+    Fix audit table for crispr_pair
+    Add SFP report.
+
 0.116     2013-10-24 11:57:07 Europe/London
 
     Update design target crispr pick report:
