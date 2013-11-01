@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.117';
+    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.121';
 }
 ## use critic
 
@@ -233,8 +233,8 @@ Composing rels: L</qc_template_well_recombinases> -> recombinase
 __PACKAGE__->many_to_many("recombinases", "qc_template_well_recombinases", "recombinase");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-12-03 17:14:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ttJw+Eo0ppn6zOr1p3jjaw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tuwqkWBGklY7gpGFObfS+w
 
 use JSON qw( decode_json );
 

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcAlignment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcAlignment::VERSION = '0.117';
+    $LIMS2::Model::Schema::Result::QcAlignment::VERSION = '0.121';
 }
 ## use critic
 
@@ -253,8 +253,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-23 13:32:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Lf9t1Qfmv4NdtWNwhxYxCw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2xIY6L2vpqqEl3DjgF3T1w
 
 sub align_length {
     my $self = shift;

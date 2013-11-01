@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellPrimerBand;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellPrimerBand::VERSION = '0.117';
+    $LIMS2::Model::Schema::Result::WellPrimerBand::VERSION = '0.121';
 }
 ## use critic
 
@@ -157,8 +157,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:50:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tv+ghDkyaLq6QkC+nQJXfw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fySlbzoTRJgCShV7FaWIRA
 sub as_hash {
     my $self = shift;
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.117';
+    $LIMS2::Model::Constants::VERSION = '0.121';
 }
 ## use critic
 
@@ -70,7 +70,7 @@ const our %PROCESS_TEMPLATE => (
     '2w_gateway'             => 'gateway_template.csv',
     '3w_gateway'             => 'gateway_template.csv',
     'final_pick'             => 'standard_template.csv',
-    'dna_prep'               => 'standard_template.csv',
+    'dna_prep'               => 'dna_template.csv',
     'recombinase'            => 'recombinase_template.csv',
     'first_electroporation'  => 'first_electroporation_template.csv',
     'second_electroporation' => 'second_electroporation_template.csv',

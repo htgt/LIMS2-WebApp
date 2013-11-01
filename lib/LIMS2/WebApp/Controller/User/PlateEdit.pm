@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateEdit;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.117';
+    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.121';
 }
 ## use critic
 
@@ -144,6 +144,68 @@ sub unflag_virtual_plate :Path( '/user/unflag_virtual_plate' ) :Args(0) {
     return;
 }
 
+sub add_comment_plate :Path( '/user/add_comment_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $timestamp = scalar localtime;
+    my $user = $c->user->id;
+    my $params = $c->request->params;
+
+    unless ( $params->{comment} ) {
+         $c->flash->{error_msg} = "Comments can't be empty";
+         $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+         return;
+    }
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->schema->resultset('PlateComment')->create(
+                    {
+                         plate_id      => $params->{id},
+                         comment_text  => $params->{comment},
+                         created_by_id => $user,
+                         created_at    => $timestamp,
+                    });
+
+                $c->flash->{success_msg} = 'Comment created for plate ' . $params->{name};
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while creating comment: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
+
+sub delete_comment_plate :Path( '/user/delete_comment_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->schema->resultset('PlateComment')->find(
+                    {
+                         id    => $params->{comment_id}
+                    })->delete;
+
+                $c->flash->{success_msg} = 'Comment deleted for plate ' . $params->{name};
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while deleting comment: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
 =head1 AUTHOR
 
 Sajith Perera
