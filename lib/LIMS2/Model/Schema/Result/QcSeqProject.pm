@@ -128,8 +128,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_run
 __PACKAGE__->many_to_many("qc_runs", "qc_run_seq_projects", "qc_run");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 16:47:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2p61P7N3AdwRWGHz2S15ZA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jFzzq3YClZ06tBnSbNU2vQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

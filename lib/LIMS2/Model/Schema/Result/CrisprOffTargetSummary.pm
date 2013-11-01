@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::CrisprOffTargetSummaries;
+package LIMS2::Model::Schema::Result::CrisprOffTargetSummary;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::CrisprOffTargetSummaries
+LIMS2::Model::Schema::Result::CrisprOffTargetSummary
 
 =cut
 
@@ -116,8 +116,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-26 08:25:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:31LEKuXIuwXDLgRCA+8eiA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vZbfH0m3KP+U3dPsbfg7WQ
 
 sub as_hash {
     my $self = shift;

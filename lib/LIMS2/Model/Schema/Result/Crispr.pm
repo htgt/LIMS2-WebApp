@@ -187,13 +187,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargetSummaries>
+Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargetSummary>
 
 =cut
 
 __PACKAGE__->has_many(
   "off_target_summaries",
-  "LIMS2::Model::Schema::Result::CrisprOffTargetSummaries",
+  "LIMS2::Model::Schema::Result::CrisprOffTargetSummary",
   { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -244,8 +244,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-10-18 10:29:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pdNIJm3kemCP2eckVXjSGg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VJREFU/RuYm4fILRP417vA
 
 sub as_hash {
     my ( $self ) = @_;

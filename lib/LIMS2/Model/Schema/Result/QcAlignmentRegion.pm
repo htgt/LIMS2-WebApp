@@ -133,8 +133,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Urjoqnrt6rmdAKqhawUwhg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rlO+BrctsXIqfdSScKBKTw
 
 use HTGT::QC::Util::Alignment;
 

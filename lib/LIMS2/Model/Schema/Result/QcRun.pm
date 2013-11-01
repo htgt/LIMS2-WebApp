@@ -218,8 +218,8 @@ Composing rels: L</qc_run_seq_projects> -> qc_seq_project
 __PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-05-23 13:32:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lMdV4qDuS0UzyZxLfFLsLg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:arxB+ah8TnB01l/dCHP+Ug
 
 use List::MoreUtils qw( uniq );
 
