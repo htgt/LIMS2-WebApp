@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.121     2013-11-01 14:40:21 Europe/London
+
+    Re-generated schema files to get unique constraint from CrisprPair table
+    Renamed CrisprOffTargetSummaries resultset to CrisprOffTargetSummary to match other table names
+
 0.120     2013-10-31 12:20:30 Europe/London
 
     Plate DNA Status Update template updated
