@@ -57,20 +57,29 @@ sub create_plate_well {
 
 sub pspec_find_parent_well_ids {
     return {
-        parent_plate      => { validate => 'plate_name', optional => 1 },
-        parent_well       => { validate => 'well_name',  optional => 1 },
-        xep_plate         => { validate => 'plate_name', optional => 1 },
-        xep_well          => { validate => 'well_name',  optional => 1 },
-        dna_plate         => { validate => 'plate_name', optional => 1 },
-        dna_well          => { validate => 'well_name',  optional => 1 },
-        DEPENDENCY_GROUPS => { parent   => [qw( parent_plate parent_well )] },
-        DEPENDENCY_GROUPS => { vector   => [qw( vector_plate vector_well )] },
-        DEPENDENCY_GROUPS => { allele   => [qw( allele_plate allele_well )] },
+        parent_plate         => { validate => 'plate_name', optional => 1 },
+        parent_well          => { validate => 'well_name',  optional => 1 },
+        xep_plate            => { validate => 'plate_name', optional => 1 },
+        xep_well             => { validate => 'well_name',  optional => 1 },
+        dna_plate            => { validate => 'plate_name', optional => 1 },
+        dna_well             => { validate => 'well_name',  optional => 1 },
+        final_pick_plate     => { validate => 'plate_name', optional => 1 },
+        final_pick_well      => { validate => 'well_name',  optional => 1 },
+        crispr_vector_plate  => { validate => 'plate_name', optional => 1 },
+        crispr_vector_well   => { validate => 'well_name',  optional => 1 },
+        crispr_vector1_plate => { validate => 'plate_name', optional => 1 },
+        crispr_vector1_well  => { validate => 'well_name',  optional => 1 },
+        crispr_vector2_plate => { validate => 'plate_name', optional => 1 },
+        crispr_vector2_well  => { validate => 'well_name',  optional => 1 },
+        DEPENDENCY_GROUPS    => { parent   => [qw( parent_plate parent_well )] },
+        DEPENDENCY_GROUPS    => { vector   => [qw( vector_plate vector_well )] },
+        DEPENDENCY_GROUPS    => { allele   => [qw( allele_plate allele_well )] },
     };
 }
 
 sub find_parent_well_ids {
     my ( $model, $params ) = @_;
+
 
     my $validated_params
         = $model->check_params( $params, pspec_find_parent_well_ids, ignore_unknown => 1 );
@@ -84,14 +93,48 @@ sub find_parent_well_ids {
                 well_name  => substr( $validated_params->{xep_well}, -3 )
             }
         );
-
         push @parent_well_ids, well_id_for(
             $model, {
                 plate_name => $validated_params->{dna_plate},
                 well_name  => substr( $validated_params->{dna_well}, -3 )
             }
         );
-
+        delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
+    }
+    elsif ( $params->{process_type} eq 'crispr_single_ep' ) {
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{final_pick_plate},
+                well_name  => substr( $validated_params->{final_pick_well}, -3 )
+            }
+        );
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{crispr_vector_plate},
+                well_name  => substr( $validated_params->{crispr_vector_well}, -3 )
+            }
+        );
+        delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
+    }
+    elsif ( $params->{process_type} eq 'crispr_paired_ep' ) {
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{final_pick_plate},
+                well_name  => substr( $validated_params->{final_pick_well}, -3 )
+            }
+        );
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{crispr_vector1_plate},
+                well_name  => substr( $validated_params->{crispr_vector1_well}, -3 )
+            }
+        );
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $validated_params->{crispr_vector2_plate},
+                well_name  => substr( $validated_params->{crispr_vector2_well}, -3 )
+            }
+        );
         delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
     }
     elsif ( $params->{process_type} eq 'create_di' || $params->{process_type} eq 'create_crispr' ) {

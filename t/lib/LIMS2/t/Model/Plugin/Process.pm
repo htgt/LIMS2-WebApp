@@ -112,6 +112,9 @@ sub all_tests  : Test(329)
 	    freeze
 	    xep_pool
 	    dist_qc
+        crispr_vector
+        crispr_single_ep
+        crispr_paired_ep
 	    );
 
 	    my @model_process_types = sort map {$_->id} @{ model->list_process_types };
@@ -898,9 +901,14 @@ sub all_tests  : Test(329)
     } qr/xep_pool process output well should be type (XEP)/;
 
 
-note( "Testing crispr process creation" );
-# TODO
+    note( "Testing crispr_vector process creation" );
+    # TODO
 
+    note( "Testing crispr_single_ep process creation" );
+    # TODO
+
+    note( "Testing crispr_paired_ep process creation" );
+    # TODO
 
 }
 
