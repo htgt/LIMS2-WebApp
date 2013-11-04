@@ -360,12 +360,16 @@ sub load_files {
     }
 
     for my $file (@files) {
+
         my ( $base, $dir, $ext );
         ( $base, $dir, $ext ) = fileparse( $file->{url}, '\..*' );
 
         if ( $file->{reload} ) {
             $mech->get( $file->{url} );
         }
+        # we do not always have test data for all the tables
+        next unless $mech->success;
+
         my $content = $mech->content;
         if ( $ext eq '.sql' ) {
             DEBUG( "Loading sql from " . $file->{url} );
