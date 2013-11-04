@@ -76,6 +76,8 @@ const our %PROCESS_TEMPLATE => (
     'freeze'                 => 'standard_template.csv',
     'xep_pool'               => 'standard_template.csv',
     'dist_qc'                => 'piq_template.csv',
+    'crispr_single_ep'       => 'crispr_single_ep_template.csv',
+    'crispr_paired_ep'       => 'crispr_paired_ep_template.csv',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)

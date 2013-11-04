@@ -530,7 +530,7 @@ sub _check_wells_crispr_paired_ep {
     check_output_wells( $model, $process);
 
     #three input wells, two must be CRISPR_V, other FINAL_PICK
-    my @input_well = map{ $_->plate->type_id } $process->input_wells;
+    my @input_well = $process->input_wells;
 
     my $crispr_v,
     my $final_pick;
