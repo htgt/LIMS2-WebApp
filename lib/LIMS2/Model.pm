@@ -1,7 +1,7 @@
 package LIMS2::Model;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::VERSION = '0.121';
+    $LIMS2::Model::VERSION = '0.122';
 }
 ## use critic
 
@@ -102,7 +102,7 @@ has form_validator => (
     is         => 'ro',
     isa        => 'LIMS2::Model::FormValidator',
     lazy_build => 1,
-    handles    => ['check_params']
+    handles    => ['check_params', 'clear_cached_constraint_method']
 );
 
 sub _build_form_validator {

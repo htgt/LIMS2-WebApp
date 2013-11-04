@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.121';
+    $LIMS2::Test::VERSION = '0.122';
 }
 ## use critic
 
@@ -14,11 +14,11 @@ use Sub::Exporter -setup => {
         test_data    => \'_build_test_data',
         fixture_data => \'_build_fixture_data',
         'load_static_files', 'load_dynamic_files', 'load_files', 'mech', 'unauthenticated_mech',
-        'reload_fixtures',
+        'reload_fixtures', 'wipe_test_data'
     ],
     groups => {
         default => [
-            qw( model mech unauthenticated_mech test_data fixture_data load_static_files load_dynamic_files load_files reload_fixtures)
+            qw( model mech unauthenticated_mech test_data fixture_data load_static_files load_dynamic_files load_files reload_fixtures wipe_test_data )
         ]
     }
 };
@@ -46,12 +46,9 @@ const my $TEST_USER   => 'test_user@example.org';
 const my $TEST_PASSWD => 'ahdooS1e';
 
 sub unauthenticated_mech {
-
-
     # Reset the fixture data checksum because webapp
     # may change the database content
-#   my $model = LIMS2::Model->new( { user => 'tests' } );
-    my $model = LIMS2::Model->new( { user => 'lims2' } );
+    my $model = LIMS2::Model->new( { user => 'tests' } );
 
     my $dbh = $model->schema->storage->dbh;
     my $name = db_name($dbh);
@@ -83,10 +80,10 @@ sub mech {
     return $mech;
 }
 
+#TODO could remove this, only test that uses this is SummariesWellDescend
+#     and there are better ways to reload fixture data
 sub reload_fixtures {
-
-#    my $model = LIMS2::Model->new( { user => 'tests' } );
-    my $model = LIMS2::Model->new( { user => 'lims2' } );
+    my $model = LIMS2::Model->new( { user => 'tests' } );
     my $args = { force => 1 };
 
     try {
@@ -111,7 +108,7 @@ sub _build_test_data {
         my ( $filename, %opts ) = @_;
         my $fixture_filename = file($filename);
         my $fixture_dirname  = $fixture_filename->dir->stringify;
-        $fixture_dirname = '' if ( $fixture_dirname eq '.' );
+        $fixture_dirname     = '' if ( $fixture_dirname eq '.' );
         my $fixture_basename = $fixture_filename->basename;
         my $mech             = mech();
         my $final_path       = join( '/', '/test/data', $fixture_dirname );
@@ -152,7 +149,7 @@ sub _build_fixture_data {
         my ( $filename, %opts ) = @_;
         my $fixture_filename = file($filename);
         my $fixture_dirname  = $fixture_filename->dir->stringify;
-        $fixture_dirname = '' if ( $fixture_dirname eq '.' );
+        $fixture_dirname     = '' if ( $fixture_dirname eq '.' );
         my $fixture_basename = $fixture_filename->basename;
         my $mech             = mech();
         my $final_path       = join( '/', '/test/fixtures', $fixture_dirname );
@@ -206,10 +203,7 @@ sub _build_model {
         $new               = 0;
     }
 
-    #    my $user = $args->{user} || 'tests';
-    my $user = $args->{user} || 'lims2';
-
-    my $model = LIMS2::Model->new( { user => $user } );
+    my $model = LIMS2::Model->new( { user => 'tests'} );
 
     try {
         $model->schema;
@@ -219,21 +213,20 @@ sub _build_model {
     };
 
     unless ( $ENV{SKIP_LOAD_FIXTURES} ) {
-        # Base fixture data (only file remaining is 'delete all data' file)
-        load_files('/static/test/fixtures/00-clean-db.sql');
+        my $mech = mech();
+        wipe_test_data( $model, $mech );
 
         # Reference data (part of every test)
-        #  (Need to be loaded in this particular order!!)
-        load_static_files();
+        load_static_files( $model, $mech );
 
         # Finally load the test data
-        if ($new) {
+        if ( $new ) {
             # A complete set of csv files, to be loaded in a specific order
-            load_dynamic_files($fixture_directory);
+            load_dynamic_files( $model, $mech, $fixture_directory);
         }
         else {
             # Test data delivered in the form of a legacy sql file
-            load_files($fixture_directory);
+            load_files( $model, $mech, $fixture_directory);
         }
     }
 
@@ -241,8 +234,18 @@ sub _build_model {
     return sub {$model};
 }
 
+# wipe the test database by running spl file that truncates all
+# the non reference data
+sub wipe_test_data {
+    my ( $model, $mech );
+
+    load_files( $model, $mech, '/static/test/fixtures/00-clean-db.sql');
+
+    return;
+}
+
 sub load_static_files {
-    my ($path) = @_;
+    my ( $model, $mech, $path ) = @_;
 
     # Default path
     $path ||= '/static/test/fixtures/reference_data';
@@ -280,16 +283,14 @@ sub load_static_files {
     );
 
     for my $table (@reference_tables) {
-        load_files( $path . '/' . $table . '.csv' );
+        load_files( $model, $mech, $path . '/' . $table . '.csv' );
     }
 
     return;
 }
 
 sub load_dynamic_files {
-    my ($path) = @_;
-
-    ### load_dynamic_files()
+    my ( $model, $mech, $path ) = @_;
 
     # Default path
     $path ||= '/static/test/fixtures';
@@ -299,37 +300,55 @@ sub load_dynamic_files {
     my @reference_tables = (
         qw(
             User
+            Design
+            DesignOligo
+            DesignOligoLocus
+            GeneDesign
+            Crispr
+            CrisprOffTargets
+            CrisprOffTargetSummary
+            CrisprLocus
+            CrisprPair
+            CrisprDesign
+            BacClone
+            BacCloneLocus
             Process
             ProcessBackbone
             ProcessCassette
             ProcessCellLine
+            ProcessBac
+            ProcessRecombinase
+            ProcessDesign
+            ProcessCrispr
             Plate
             Well
             ProcessInputWell
             ProcessOutputWell
-            Design
-            GeneDesign
             ProcessDesign
             ProcessRecombinase
-            )
+        )
     );
 
-    for my $table (@reference_tables) {
-        load_files( $path . '/' . $table . '.csv' );
+    for my $table ( @reference_tables ) {
+        load_files( $model, $mech, $path . '/' . $table . '.csv' );
     }
 
     return;
 }
 
 sub load_files {
-    my ($path) = @_;
+    my ( $model, $mech, $path ) = @_;
     my @files;
 
-    my $user   = 'lims2';
-    my $model  = LIMS2::Model->new( { user => $user } );
+    $model ||= LIMS2::Model->new( { user => 'tests'} );
+    $mech  ||= mech();
+
+    if ( $model->user ne 'tests' ) {
+        die( "Model user is not 'tests', will not load files into database: " . $model->user );
+    }
+
     my $schema = $model->schema;
     my $dbh    = $schema->storage->dbh;
-    my $mech   = mech();
     $mech->get($path);
     my @links = $mech->links();
 
@@ -343,7 +362,6 @@ sub load_files {
         # We were given a filename
         my ( $base, $dir, $ext ) = fileparse( $path, '\..*' );
 
-        #push(@files, { url => $mech->uri(), filename => $mech->base(), reload => 0 } );
         push( @files, { url => $path, filename => $base, reload => 0 } );
     }
 
