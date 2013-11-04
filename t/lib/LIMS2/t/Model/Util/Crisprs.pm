@@ -1,11 +1,11 @@
 package LIMS2::t::Model::Util::Crisprs;
-use base qw(Test::Class);
+use strict;
+use warnings FATAL => 'all';
+
+use base qw( Test::Class );
 use Test::Most;
 use LIMS2::Model::Util::Crisprs;
-
-use LIMS2::Test;
-
-use strict;
+use LIMS2::Test model => { classname => __PACKAGE__ };
 
 ## no critic
 
@@ -13,79 +13,234 @@ use strict;
 
 LIMS2/t/Model/Util/Crisprs.pm - test class for LIMS2::Model::Util::Crisprs
 
-=head1 DESCRIPTION
-
-Test module structured for running under Test::Class
-
-=head1 METHODS
-
 =cut
 
-=head2 BEGIN
+sub crispr_hits_design : Test(5) {
 
-Loading other test classes at compile time
+    ok my $design = model->retrieve_design( { id => 1002582 } ), 'can grab design';
+    ok my $matching_crispr = model->retrieve_crispr( { id => 69844 } ), 'can grab a crispr';
+    ok my $non_matching_crispr = model->retrieve_crispr( { id => 69907 } ), 'can grab a crispr';
+    my $default_assembly = 'GRCm38';
 
-=cut
+    ok LIMS2::Model::Util::Crisprs::crispr_hits_design( $design, $matching_crispr,
+        $default_assembly ), 'crispr hits design';
+    ok !LIMS2::Model::Util::Crisprs::crispr_hits_design( $design, $non_matching_crispr,
+        $default_assembly ), 'crispr does not hit design';
 
-BEGIN {
-
-    # compile time requirements
-    #{REQUIRE_PARENT}
 }
 
-=head2 before
+sub crispr_pair_hits_design : Test(5) {
 
-Code to run before every test
+    ok my $design = model->retrieve_design( { id => 1002582 } ), 'can grab design';
+    ok my $matching_crispr_pair = model->schema->resultset('CrisprPair')->find( { id => 4423 } )
+        , 'can grab a crispr_pair';
+    ok my $non_matching_crispr_pair = model->schema->resultset('CrisprPair')->find( { id => 4475 } )
+        , 'can grab a crispr_pair';
+    my $default_assembly = 'GRCm38';
 
-=cut
+    ok LIMS2::Model::Util::Crisprs::crispr_pair_hits_design( $design, $matching_crispr_pair,
+        $default_assembly ), 'crispr_pair hits design';
 
-sub before : Test(setup) {
+    ok !LIMS2::Model::Util::Crisprs::crispr_pair_hits_design( $design, $non_matching_crispr_pair,
+            $default_assembly ), 'crispr_pair does not hit design';
 
-    #diag("running before test");
 }
 
-=head2 after
+sub create_crispr_design_links : Test(6) {
 
-Code to run after every test
+    my $default_assembly = 'GRCm38';
 
-=cut
+    throws_ok {
+        LIMS2::Model::Util::Crisprs::create_crispr_design_links(
+            model,
+            [ { crispr_id => 123, design_id => 1002582 } ],
+            $default_assembly
+        );
+    } qr/Can not find crispr: \d+/, 'throws error if non existant crispr sent in';
 
-sub after : Test(teardown) {
+    ok my ( $create_log, $fail_log ) = LIMS2::Model::Util::Crisprs::create_crispr_design_links(
+        model,
+        [ { crispr_id => 69907, design_id => 1002582 } ],
+        $default_assembly
+    );
+    like(
+        $fail_log->[0],
+        qr/Additional validation failed between design & crispr/,
+        'link fails if crispr does not hit design'
+    );
+    is model->schema->resultset('CrisprDesign')
+        ->search( { design_id => 1002582, crispr_id => 69907 } )->count, 0,
+        'no link created between crispr and design';
 
-    #diag("running after test");
+    ok LIMS2::Model::Util::Crisprs::create_crispr_design_links(
+        model,
+        [ { crispr_id => 69844, design_id => 1002582 } ],
+        $default_assembly
+    ), 'can create new crispr design link';
+
+    ok my $crispr_design = model->schema->resultset( 'CrisprDesign' )->find(
+        {
+            design_id => 1002582,
+            crispr_id => 69844
+        }
+    ), 'can grab newly created crispr_design link';
+
 }
 
-=head2 startup
+sub create_crispr_pair_design_links : Test(6) {
 
-Code to run before all tests for the whole test class
+    my $default_assembly = 'GRCm38';
 
-=cut
+    throws_ok {
+        LIMS2::Model::Util::Crisprs::create_crispr_pair_design_links(
+            model,
+            [ { crispr_pair_id => 123, design_id => 1002582 } ],
+            $default_assembly
+        );
+    } qr/Can not find crispr pair: \d+/, 'throws error if non existant crispr_pair sent in';
 
-sub startup : Test(startup) {
+    ok my ( $create_log, $fail_log ) = LIMS2::Model::Util::Crisprs::create_crispr_pair_design_links(
+        model,
+        [ { crispr_pair_id => 4475, design_id => 1002582 } ],
+        $default_assembly
+    );
+    like(
+        $fail_log->[0],
+        qr/Additional validation failed between design: \d+ & crispr pair: \d+/,
+        'link fails if crispr_pair does not hit design'
+    );
+    is model->schema->resultset('CrisprDesign')
+        ->search( { design_id => 1002582, crispr_pair_id => 4475 } )->count, 0,
+        'no link created between crispr pair and design';
 
-    #diag("running before all tests");
+    ok LIMS2::Model::Util::Crisprs::create_crispr_pair_design_links(
+        model,
+        [ { crispr_pair_id => 4423, design_id => 1002582 } ],
+        $default_assembly
+    ), 'can create new crispr_pair design link';
+
+    ok my $crispr_design = model->schema->resultset( 'CrisprDesign' )->find(
+        {
+            design_id => 1002582,
+            crispr_pair_id => 4423
+        }
+    ), 'can grab newly created crispr_design link';
+
 }
 
-=head2 shutdown
+sub delete_crispr_design_links : Test(7) {
 
-Code to run after all tests for the whole test class
+    my $default_assembly = 'GRCm38';
 
-=cut
+    ok LIMS2::Model::Util::Crisprs::create_crispr_pair_design_links(
+        model,
+        [ { crispr_pair_id => 4423, design_id => 1002582 } ],
+        $default_assembly
+    ), 'can create new crispr_pair design link';
+    ok LIMS2::Model::Util::Crisprs::create_crispr_design_links(
+        model,
+        [ { crispr_id => 69844, design_id => 1002582 } ],
+        $default_assembly
+    ), 'can create new crispr design link';
 
-sub shutdown : Test(shutdown) {
+    is model->schema->resultset('CrisprDesign')->search( { design_id => 1002582 } )->count, 2,
+        'we have 2 links with design 1002582';
 
-    #diag("running after all tests");
+    ok my ( $delete_log, $fail_log ) = LIMS2::Model::Util::Crisprs::delete_crispr_design_links(
+        model,
+        [   { crispr_pair_id => 4423,  design_id => 1002582 },
+            { crispr_id      => 69844, design_id => 1002582 }
+        ],
+    ), 'can call delete_crispr_design_links';
+
+    like( $delete_log->[0], qr/Deleted link between design & crispr/, 'log message says first link deleted' );
+    like( $delete_log->[1], qr/Deleted link between design & crispr/, 'log message says second link deleted' );
+
+    is model->schema->resultset('CrisprDesign')->search( { design_id => 1002582 } )->count, 0,
+        'we no longer have any links with design 1002582';
+
 }
 
-=head2 all_tests
+sub compare_design_crispr_links : Test(2) {
 
-Code to execute all tests
+    my %orig = (
+        123 => { 1 => undef, 2 => undef },
+        124 => { 3 => undef, 4 => undef },
+        125 => { 5 => undef, 8 => undef },
+    );
 
-=cut
+    my %new = (
+        123 => { 1 => undef },
+        124 => { 3 => undef, 9 => undef },
+        126 => { 6 => undef, 7 => undef },
+    );
 
-sub all_tests : Test(1) {
-    local $TODO = 'Complete testing of LIMS2::Model::Util::Crisprs not implemented yet';
-    ok( 1, "Test of LIMS2::Model::Util::Crisprs" );
+    ok my $change_links
+        = LIMS2::Model::Util::Crisprs::compare_design_crispr_links( \%orig, \%new, 'crispr_pair' ),
+        'can call compare_design_crispr_links';
+
+    is_deeply $change_links, [
+        {
+          crispr_pair => '2',
+          design_id => '123'
+        },
+        {
+          crispr_pair => '4',
+          design_id => '124'
+        },
+        {
+          crispr_pair => '5',
+          design_id => '125'
+        },
+        {
+          crispr_pair => '8',
+          design_id => '125'
+        }
+    ], 'got expected change links data';
+
+}
+
+sub crispr_pick : Test(8) {
+
+    my $species_id = 'Mouse';
+
+    my $crispr_design_rs = model->schema->resultset('CrisprDesign');
+    ok $crispr_design_rs->search_rs( {} )->delete, 'delete all existing links';
+    ok $crispr_design_rs->create( { design_id => 1002582, crispr_id => 69854 } ), 'create crispr design link';
+
+    throws_ok{
+        LIMS2::Model::Util::Crisprs::crispr_pick( model, {  }, $species_id ),
+    } qr/No crispr_type set/, 'throws error when no crispr type set';
+
+    throws_ok{
+        LIMS2::Model::Util::Crisprs::crispr_pick( model, { crispr_types => 'foo'  }, $species_id ),
+    } qr/Unknown crispr type foo/, 'throws error when unknown crispr type set';
+
+    # should delete the one existing link and create one new one
+    my $crispr_request_params = {
+        crispr_pick        => [ '69844:1002582' ],
+        crispr_types       => 'single',
+        design_crispr_link => [ '69854:1002582' ]
+    };
+
+    ok LIMS2::Model::Util::Crisprs::crispr_pick( model, $crispr_request_params, $species_id ),
+        'can call crispr_pick';
+
+    ok my $crispr_design = $crispr_design_rs->find(
+        {
+            design_id => 1002582,
+            crispr_id => 69844
+        }
+    ), 'can grab newly created crispr_design link';
+
+    ok !$crispr_design_rs->find(
+        {
+            design_id => 1002582,
+            crispr_id => 69854
+        }
+    ), 'design crispr link has been deleted';
+
+    ok $crispr_design_rs->search_rs( {} )->delete, 'delete all existing links';
 }
 
 ## use critic
