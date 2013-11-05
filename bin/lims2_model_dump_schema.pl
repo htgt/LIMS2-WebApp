@@ -11,11 +11,12 @@ use Term::ReadPassword qw( read_password );
 
 my %MONIKER_MAP = (
     # Singular problems
-    bac_clone_loci    => 'BacCloneLocus',
-    design_oligo_loci => 'DesignOligoLocus',
-    crispr_loci       => 'CrisprLocus',
-    qc_seq_reads      => 'QcSeqRead',
-    qc_runs           => 'QcRun',
+    bac_clone_loci              => 'BacCloneLocus',
+    design_oligo_loci           => 'DesignOligoLocus',
+    crispr_loci                 => 'CrisprLocus',
+    qc_seq_reads                => 'QcSeqRead',
+    qc_runs                     => 'QcRun',
+    crispr_off_target_summaries => 'CrisprOffTargetSummary',
 );
 
 my %REL_NAME_MAP = (
