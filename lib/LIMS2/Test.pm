@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.122';
+    $LIMS2::Test::VERSION = '0.123';
 }
 ## use critic
 
@@ -46,9 +46,10 @@ const my $TEST_USER   => 'test_user@example.org';
 const my $TEST_PASSWD => 'ahdooS1e';
 
 sub unauthenticated_mech {
+    my $model = shift;
     # Reset the fixture data checksum because webapp
     # may change the database content
-    my $model = LIMS2::Model->new( { user => 'tests' } );
+    $model ||= LIMS2::Model->new( { user => 'tests' } );
 
     my $dbh = $model->schema->storage->dbh;
     my $name = db_name($dbh);
@@ -67,7 +68,9 @@ sub unauthenticated_mech {
 }
 
 sub mech {
-    my $mech = unauthenticated_mech();
+    my $model = shift;
+
+    my $mech = unauthenticated_mech( $model );
 
     $mech->get( '/login' );
 
@@ -213,7 +216,7 @@ sub _build_model {
     };
 
     unless ( $ENV{SKIP_LOAD_FIXTURES} ) {
-        my $mech = mech();
+        my $mech = mech( $model );
         wipe_test_data( $model, $mech );
 
         # Reference data (part of every test)
@@ -237,7 +240,7 @@ sub _build_model {
 # wipe the test database by running spl file that truncates all
 # the non reference data
 sub wipe_test_data {
-    my ( $model, $mech );
+    my ( $model, $mech ) = @_;
 
     load_files( $model, $mech, '/static/test/fixtures/00-clean-db.sql');
 
@@ -341,7 +344,7 @@ sub load_files {
     my @files;
 
     $model ||= LIMS2::Model->new( { user => 'tests'} );
-    $mech  ||= mech();
+    $mech  ||= mech( $model );
 
     if ( $model->user ne 'tests' ) {
         die( "Model user is not 'tests', will not load files into database: " . $model->user );
@@ -366,12 +369,16 @@ sub load_files {
     }
 
     for my $file (@files) {
+
         my ( $base, $dir, $ext );
         ( $base, $dir, $ext ) = fileparse( $file->{url}, '\..*' );
 
         if ( $file->{reload} ) {
             $mech->get( $file->{url} );
         }
+        # we do not always have test data for all the tables
+        next unless $mech->success;
+
         my $content = $mech->content;
         if ( $ext eq '.sql' ) {
             DEBUG( "Loading sql from " . $file->{url} );

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ColonyCountType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ColonyCountType::VERSION = '0.122';
+    $LIMS2::Model::Schema::Result::ColonyCountType::VERSION = '0.123';
 }
 ## use critic
 
