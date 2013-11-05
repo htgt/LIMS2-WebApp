@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.123     2013-11-05 07:34:22 Europe/London
+
+    Minor bugfix and performance improvement to LIMS2::Test module
+
 0.122     2013-11-04 07:41:30 Europe/London
 
     Added tests for LIMS2::Model::Util::Crisprs
