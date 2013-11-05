@@ -79,8 +79,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("version", "deployed_at");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07014 @ 2012-01-05 09:46:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hk7mLYaMY/NvPkZJWFHZPw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tzz4VPhssprpotQt+As5pw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

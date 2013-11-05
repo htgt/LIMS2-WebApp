@@ -1,5 +1,35 @@
 {{$NEXT}}
 
+0.122     2013-11-04 07:41:30 Europe/London
+
+    Added tests for LIMS2::Model::Util::Crisprs
+    Cleaned up LIMS2::Test a little
+
+0.121     2013-11-01 14:40:21 Europe/London
+
+    Re-generated schema files to get unique constraint from CrisprPair table
+    Renamed CrisprOffTargetSummaries resultset to CrisprOffTargetSummary to match other table names
+
+0.120     2013-10-31 12:20:30 Europe/London
+
+    Plate DNA Status Update template updated
+
+0.119     2013-10-29 15:23:09 Europe/London
+
+    Cre Knockin project added to the Genes to Electroporate reporting system.
+    Users can now add/remove comments in the Plate View page.
+    Added template specific for DNA plates.
+
+0.118     2013-10-29 14:21:58 Europe/London
+
+0.117     2013-10-25 14:00:48 Europe/London
+
+    Update simple design target crispr report, add links to detailed views
+        of either single crisprs or crispr pairs.
+    Add constraints to the crispr_pair and design_crispr table.
+    Fix audit table for crispr_pair
+    Add SFP report.
+
 0.116     2013-10-24 11:57:07 Europe/London
 
     Update design target crispr pick report:

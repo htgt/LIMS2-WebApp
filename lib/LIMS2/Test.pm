@@ -303,7 +303,7 @@ sub load_dynamic_files {
             GeneDesign
             Crispr
             CrisprOffTargets
-            CrisprOffTargetSummaries
+            CrisprOffTargetSummary
             CrisprLocus
             CrisprPair
             CrisprDesign

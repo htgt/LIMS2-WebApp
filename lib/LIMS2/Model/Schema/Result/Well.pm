@@ -437,8 +437,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-13 10:41:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dACVHLmQ9GOFfFwBQDa8vg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QbXZA5S0PCM6d9pr1/qC5A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
