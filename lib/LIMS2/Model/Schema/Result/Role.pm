@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Role;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Role::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::Role::VERSION = '0.124';
 }
 ## use critic
 
@@ -124,8 +124,8 @@ Composing rels: L</user_roles> -> user
 __PACKAGE__->many_to_many("users", "user_roles", "user");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-10 09:34:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uumBlrhfH+BMqB+tge67iw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zaM+paniKzIv2m206a9x8Q
 
 sub as_hash {
     my $self = shift;

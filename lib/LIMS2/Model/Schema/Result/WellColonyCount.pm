@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellColonyCount;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellColonyCount::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::WellColonyCount::VERSION = '0.124';
 }
 ## use critic
 
@@ -156,8 +156,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-20 15:56:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ha2y0rgmzDeZ4IKf0cY4OA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J+oH6LOQ6+NfsnGMkSiHPQ
 
 sub as_hash {
     my $self = shift;

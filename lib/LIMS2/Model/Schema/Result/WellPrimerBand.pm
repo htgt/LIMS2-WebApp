@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellPrimerBand;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellPrimerBand::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::WellPrimerBand::VERSION = '0.124';
 }
 ## use critic
 
@@ -58,9 +58,9 @@ __PACKAGE__->table("well_primer_bands");
 
 =head2 pass
 
-  data_type: 'boolean'
-  default_value: true
-  is_nullable: 1
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 16
 
 =head2 created_at
 
@@ -83,7 +83,7 @@ __PACKAGE__->add_columns(
   "primer_band_type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "pass",
-  { data_type => "boolean", default_value => \"true", is_nullable => 1 },
+  { data_type => "varchar", is_nullable => 0, size => 16 },
   "created_at",
   {
     data_type     => "timestamp",
@@ -157,8 +157,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:50:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tv+ghDkyaLq6QkC+nQJXfw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-07 14:44:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:d04iRCugQhzAhJeRNwE0jw
 sub as_hash {
     my $self = shift;
 

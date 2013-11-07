@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.120';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.124';
 }
 ## use critic
 
@@ -18,12 +18,7 @@ LIMS2::Model::Util::Crisprs
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [
-        qw(
-            crispr_pick
-            crispr_hits_design
-            )
-    ]
+    exports => [ 'crispr_pick' ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -126,12 +121,13 @@ sub parse_request_param {
 
 =head2 compare_design_crispr_links
 
-We have two hashes, original and new, whose keys are design ids and values arrays of crispr ids.
+We have two hashes, original and new, whose keys are design ids and values
+hashes of crispr crispr_pair ids.
 
-For each design id key in the original hash, find all the crispr ids in the original hash 
-that are not present in the new hash.
+For each design id key in the original hash, find all the crispr ids in the
+original hash that are not present in the new hash.
 
-For each of these values store the crispr id against the design
+For each of these values store the crispr / crispr_pair id against the design
 id and return a array of these.
 
 =cut
@@ -139,12 +135,12 @@ sub compare_design_crispr_links {
     my ( $orig, $new, $crispr_id_type ) = @_;
 
     my @change_links;
-    for my $design_id ( keys %{ $orig } ) {
+    for my $design_id ( sort keys %{ $orig } ) {
         my $orig_links = $orig->{ $design_id };
 
         if ( my $new_links = $new->{ $design_id } ) {
             # we have both orig and new links, compare
-            for my $crispr_id ( keys %{ $orig_links } ) {
+            for my $crispr_id ( sort keys %{ $orig_links } ) {
                 unless ( exists $new_links->{ $crispr_id } ) {
                     push @change_links,
                         { design_id => $design_id, $crispr_id_type => $crispr_id };
@@ -153,7 +149,7 @@ sub compare_design_crispr_links {
         }
         # no new links, change all specified links
         else {
-            for my $crispr_id ( keys %{ $orig_links } ) {
+            for my $crispr_id ( sort keys %{ $orig_links } ) {
                 push @change_links,
                     { design_id => $design_id, $crispr_id_type => $crispr_id };
             }
@@ -182,14 +178,7 @@ sub create_crispr_pair_design_links {
         LIMS2::Exception->throw( 'Can not find crispr pair: ' . $datum->{crispr_pair_id} )
             unless $crispr_pair;
 
-        try{
-            crispr_pair_hits_design( $design, $crispr_pair, $default_assembly );
-        }
-        catch {
-            ERROR( 'Crispr pair cannot be linked to design: ' . $_ );
-            push @fail_log,
-                  'Additional validation failed between design & crispr pair ' . p(%$datum);
-        };
+        next unless crispr_pair_hits_design( $design, $crispr_pair, $default_assembly, \@fail_log );
 
         my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
             {
@@ -228,6 +217,7 @@ sub create_crispr_design_links {
             ERROR( 'Crispr does not hit same target as design : ' . p($datum) );
             push @fail_log,
                   'Additional validation failed between design & crispr ' . p(%$datum);
+            next;
         }
 
         my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
@@ -278,7 +268,7 @@ Check that the crispr pairs 2 crisprs location matches with the designs target r
 
 =cut
 sub crispr_pair_hits_design {
-    my ( $design, $crispr_pair, $default_assembly ) = @_;
+    my ( $design, $crispr_pair, $default_assembly, $fail_log ) = @_;
 
     my $design_info = LIMS2::Model::Util::DesignInfo->new(
         design           => $design,
@@ -288,17 +278,25 @@ sub crispr_pair_hits_design {
     unless (
         crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) )
     {
-        LIMS2::Exception->throw( 'Left crispr ' . $crispr_pair->left_crispr->id
+        ERROR( 'Left crispr ' . $crispr_pair->left_crispr->id
                 . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
                 . $design->id );
+        push @{$fail_log},
+              'Additional validation failed between design: ' . $design->id
+            . ' & crispr pair: ' . $crispr_pair->id;
+        return 0;
     }
 
     unless (
         crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info ) )
     {
-        LIMS2::Exception->throw( 'Right crispr ' . $crispr_pair->right_crispr->id
+        ERROR( 'Right crispr ' . $crispr_pair->right_crispr->id
                 . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
                 . $design->id );
+        push @{$fail_log},
+              'Additional validation failed between design: ' . $design->id
+            . ' & crispr pair: ' . $crispr_pair->id;
+        return 0;
     }
 
     return 1;

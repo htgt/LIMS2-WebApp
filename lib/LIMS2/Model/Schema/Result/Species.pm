@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Species;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Species::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::Species::VERSION = '0.124';
 }
 ## use critic
 
@@ -233,8 +233,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-04 13:23:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7vq36g8fQFaIwgJZlbZe8A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vw5dmQb+hFNaB/CAizaavA
 
 sub check_assembly_belongs {
     my ( $self, $assembly ) = @_;

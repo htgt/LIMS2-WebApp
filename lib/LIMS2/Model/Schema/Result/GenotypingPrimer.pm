@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GenotypingPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.124';
 }
 ## use critic
 
@@ -131,8 +131,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-05-30 12:46:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NN0tVo/XxP49OAGMKQ70qA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:s/D2sf7MJ9TL0I3FzwhWlg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

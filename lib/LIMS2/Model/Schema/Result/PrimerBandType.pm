@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::PrimerBandType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::PrimerBandType::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::PrimerBandType::VERSION = '0.124';
 }
 ## use critic
 
@@ -83,8 +83,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:50:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YkL94l9PVjiqptPAokEA9A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KkDF4LqwcdcJiXdZEqTU4g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

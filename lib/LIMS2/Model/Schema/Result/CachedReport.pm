@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CachedReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CachedReport::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::CachedReport::VERSION = '0.124';
 }
 ## use critic
 
@@ -104,8 +104,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-31 16:36:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:++CtoB4pjLtlShaOGgBGdA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:X0CnO7t9pC0YhuRE764QJw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

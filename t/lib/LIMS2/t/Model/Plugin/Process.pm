@@ -1,9 +1,8 @@
 package LIMS2::t::Model::Plugin::Process;
 use base qw(Test::Class);
 use Test::Most;
-#use LIMS2::Model::Plugin::Process;
 
-use LIMS2::Test;
+use LIMS2::Test model => { classname => __PACKAGE__ }, 'test_data';
 use Try::Tiny;
 use DateTime;
 use File::Temp ':seekable';

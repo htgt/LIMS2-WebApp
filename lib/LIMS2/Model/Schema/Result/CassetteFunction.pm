@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CassetteFunction;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CassetteFunction::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::CassetteFunction::VERSION = '0.124';
 }
 ## use critic
 
@@ -121,8 +121,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-01-23 11:51:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vv9clLy/oDD7i4sJp8VIRA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:te8aUWICOWKdUnwxgl7FEg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
