@@ -166,3 +166,5 @@ id,name,description,type_id,created_by_id,created_at,species_id,is_virtual
 1009,CRISPR_1,"",CRISPR,722,2013-05-28 13:37:11.198121,Mouse,
 1010,PIQ0001,Dist QC tests,PIQ,1079,2013-05-29 11:00:00,Mouse,
 1011,PIQ0002,Dist QC tests,PIQ,1079,2013-05-29 11:00:00,Mouse,
+6000,CRV0001,comment,CRISPR_V,1079,2013-05-29 11:00:00,Mouse,
+6001,CREP001,comment,CRISPR_EP,1079,2013-05-29 11:00:00,Mouse,

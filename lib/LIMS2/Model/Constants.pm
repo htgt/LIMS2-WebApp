@@ -156,7 +156,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 2,
     },
     'crispr_paired_ep' => {
-        type   => [qw( CRISPR_V FINAL_PICK )],
+        type   => [qw( CRISPR_V CRISPR_V FINAL_PICK )],
         number => 3,
     },
 );
