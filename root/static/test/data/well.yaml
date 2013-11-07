@@ -61,13 +61,13 @@ well_primer_bands_create:
     plate_name: PCS00177_A
     well_name: B01
     primer_band_type: gr1
-    pass: 1
+    pass: pass
     created_by: test_user@example.org
 well_primer_bands_create_bad:
     plate_name: PCS00177_A
     well_name: B01
     primer_band_type: bad_primer_type
-    pass: 1
+    pass: pass
     created_by: test_user@example.org
 piq_plate_create:
     name: PIQTEST001
