@@ -291,7 +291,6 @@ sub well_genotyping_qc_PUT{
         }
     ); # end transaction
     # and finish here.
-
     # The session species is required for the gene symbol lookup
     my @well_list;
     push @well_list, $well_id;
