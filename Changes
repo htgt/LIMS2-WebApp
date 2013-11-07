@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.124     2013-11-07 16:18:32 Europe/London
+
+    Well primer band updates for the genotyping qc grid
+
 0.123     2013-11-05 07:34:22 Europe/London
 
     Minor bugfix and performance improvement to LIMS2::Test module
