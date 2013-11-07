@@ -12,7 +12,7 @@ use Sub::Exporter -setup => {
 
 my %RANKING = (
     'na'            => 10, #na should never be overwritten
-    'pass_lrpcr'    => 9,
+    'lrpcr_pass'    => 9,
     'pass'          => 8,
     'passb'         => 7,
     'fail'          => 6,
