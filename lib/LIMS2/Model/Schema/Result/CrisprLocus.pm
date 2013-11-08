@@ -150,8 +150,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-07-08 07:58:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fta0ditCvBjP9N8pYccF0w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MvTFD2FpuKrcMn/zfuw6Ew
 
 sub as_hash {
     my $self = shift;

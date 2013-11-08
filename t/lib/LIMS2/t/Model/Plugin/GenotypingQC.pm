@@ -158,7 +158,7 @@ sub all_tests  : Test(21)
 	    ok my $test_file4 = File::Temp->new or die('Could not create temp test file ' . $!);
 	    $test_file4->print(join ",", "well_name",      "gf4", "gr3", "lr_pcr_pass");
 	    $test_file4->print("\n");
-	    $test_file4->print(join ",", $plate."_".$well, "yes", "yes", "yes");
+	    $test_file4->print(join ",", $plate."_".$well, "pass", "pass", "pass");
 
 	    my $name4 = $test_file4->filename;
 	    $test_file4->close;
@@ -170,9 +170,9 @@ sub all_tests  : Test(21)
 	my ($gf4) = grep { $_->primer_band_type_id eq "gf4" } @$bands;
 	my ($gr3) = grep { $_->primer_band_type_id eq "gr3" } @$bands;
     my ($lr_pcr_pass) = grep { $_->primer_band_type_id eq "lr_pcr_pass" } @$bands;
-	is $gf4->pass, 1, "gf4 primer band created";
-	is $gr3->pass, 1, "gr3 primer band created";
-    is $lr_pcr_pass->pass, 1, "lr_pcr_pass created";
+	is $gf4->pass, 'pass', "gf4 primer band created";
+	is $gr3->pass, 'pass', "gr3 primer band created";
+    is $lr_pcr_pass->pass, 'pass', "lr_pcr_pass created";
 
     }
 
@@ -222,16 +222,16 @@ sub lrpcr_tests : Tests
     ok my $test_file = (File::Temp->new or die('Could not create temp test file ' . $!)), 'temporary test file created';
         $test_file->print(join ",", "well_name",      "targeting_pass", "targeting-puro_pass", "chromosome_fail", "random");
         $test_file->print("\n");
-        $test_file->print(join ",", $plate."_".$well, "pass_lrpcr"          , "pass b"             ,  "3"             , "nonsense");
+        $test_file->print(join ",", $plate."_".$well, "lrpcr_pass"          , "pass b"             ,  "3"             , "nonsense");
     my $name = $test_file->filename;
         $test_file->close;
     open (my $fh, '<', $name);
 
     ok my $messages = model->update_genotyping_qc_data({ csv_fh => $fh, created_by => 'test_user@example.org'}),
-        'pass_lrpcr genotyping results updated from CSV file';
+        'lrpcr_pass genotyping results updated from CSV file';
     close $fh;
     ok my $targ_pass = model->retrieve_well_targeting_pass($well_params), "targeting pass exists";
-    is $targ_pass->result, "pass_lrpcr", "targeting pass result == pass_lrpcr";
+    is $targ_pass->result, "lrpcr_pass", "targeting pass result == lrpcr_pass";
 
 }
 =head1 AUTHOR

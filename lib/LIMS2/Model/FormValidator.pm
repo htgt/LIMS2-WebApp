@@ -22,9 +22,10 @@ has cached_constraint_methods => (
     traits  => ['Hash'],
     default => sub { {} },
     handles => {
-        has_cached_constraint_method => 'exists',
-        get_cached_constraint_method => 'get',
-        set_cached_constraint_method => 'set'
+        has_cached_constraint_method    => 'exists',
+        get_cached_constraint_method    => 'get',
+        set_cached_constraint_method    => 'set',
+        delete_cached_constraint_method => 'delete',
     }
 );
 
@@ -139,6 +140,21 @@ sub dfv_profile {
         dependency_groups  => $dependency_groups,
         require_some       => $require_some,
     };
+}
+
+=head2 clear_cached_constraint_method
+
+If you want to delete a cached constraint method use this function.
+
+=cut
+sub clear_cached_constraint_method {
+    my ( $self, $constraint_name ) = @_;
+
+    if ( $self->has_cached_constraint_method($constraint_name) ) {
+        $self->delete_cached_constraint_method($constraint_name);
+    }
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

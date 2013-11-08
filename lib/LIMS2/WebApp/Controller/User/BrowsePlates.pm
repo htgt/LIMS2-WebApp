@@ -90,6 +90,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
         plate           => $plate,
         well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
         additional_plate_reports => $additional_plate_reports,
+        username  => $c->user->name,
     );
 
     return;

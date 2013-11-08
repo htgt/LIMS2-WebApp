@@ -96,7 +96,7 @@ has form_validator => (
     is         => 'ro',
     isa        => 'LIMS2::Model::FormValidator',
     lazy_build => 1,
-    handles    => ['check_params']
+    handles    => ['check_params', 'clear_cached_constraint_method']
 );
 
 sub _build_form_validator {
