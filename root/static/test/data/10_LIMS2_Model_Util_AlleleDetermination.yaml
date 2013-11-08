@@ -2510,3 +2510,57 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.5'
+workflow_creki_gc_results:
+  - id: 1
+    well: A01
+    plate_name: PIQ0001
+    plate_type: PIQ
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '-'
+    cre#copy_number: '-'
+    cre#copy_number_range: '-'
+    loadel#confidence: '-'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '-'
+    puro#confidence: '-'
+    puro#copy_number: '-'
+    puro#copy_number_range: '-'
+    chry#confidence: '-'
+    chry#copy_number: '-'
+    chry#copy_number_range: '-'
+    chr8a#confidence: '-'
+    chr8a#copy_number: '-'
+    chr8a#copy_number_range: '-'
+    lrpcr#gr3: 'pass'
+    lrpcr#gf3: 'pass'
+    lrpcr#gr4: 'pass'
+    lrpcr#gf4: 'pass'
+workflow_crekidre_gc_results:
+  - id: 1
+    well: A01
+    plate_name: PIQ0001
+    plate_type: PIQ
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKiDre
+    cre#confidence: '-'
+    cre#copy_number: '-'
+    cre#copy_number_range: '-'
+    loadel#confidence: '-'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '-'
+    puro#confidence: '-'
+    puro#copy_number: '-'
+    puro#copy_number_range: '-'
+    chry#confidence: '-'
+    chry#copy_number: '-'
+    chry#copy_number_range: '-'
+    chr8a#confidence: '-'
+    chr8a#copy_number: '-'
+    chr8a#copy_number_range: '-'
+    lrpcr#gr3: 'pass'
+    lrpcr#gf3: 'pass'
+    lrpcr#gr4: 'pass'
+    lrpcr#gf4: 'pass'

@@ -209,7 +209,10 @@ sub test_determine_allele_types_logic {
     $self->_determine_allele_types();
 
     # return basic results hash
-    return $self->well_allele_type_results;
+    #return $self->well_allele_type_results;
+
+    # return array of well hashes which contains the allele-type results
+    return $self->well_genotyping_results_array;
 }
 
 sub _determine_allele_types {
