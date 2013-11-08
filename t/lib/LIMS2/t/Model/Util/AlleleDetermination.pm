@@ -246,6 +246,8 @@ sub all_tests : Test(129) {
         'well 36 should give a validation error for above threshold bsd copy number range';
 
     # ----------------------------------------------------------------------------------------------
+    # TODO: test genotyping Pass logic here
+    # ----------------------------------------------------------------------------------------------
 
     # fetch workflow Ne1 data
     note('Testing AlleleDetermination Logic - step 3a - extracting Ne1 workflow data');
@@ -390,6 +392,8 @@ sub all_tests : Test(129) {
         'Failed: validate assays : bsd assay validation: Copy Number Range above threshold',
         'well 32 should give a validation error for above threshold bsd copy number range';
 
+    # ----------------------------------------------------------------------------------------------
+    # TODO: test genotyping Pass logic here
     # ----------------------------------------------------------------------------------------------
 
     # fetch workflow E data
@@ -567,6 +571,8 @@ sub all_tests : Test(129) {
         'well 46 should give a validation error for above threshold bsd copy number range';
 
     # ----------------------------------------------------------------------------------------------
+    # TODO: test genotyping Pass logic here
+    # ----------------------------------------------------------------------------------------------
 
     # fetch CreKiDre workflow data
     note('Testing AlleleDetermination Logic - step 5a - extracting CreKi workflow data');
@@ -585,23 +591,35 @@ sub all_tests : Test(129) {
     # calculate the allele types
     ok my $creki_gc_allele_results_array = $creki_AD->test_determine_allele_types_logic(), 'calculating CreKi allele types should succeed';
 
-    #   id   CreKi workflow:        stage       pattern (cre, loa del, puro):
-    #   1   'wt/wt'                 PIQ         020
-    #   2   'tm1/wt'                PIQ         111
+    #   id   CreKi workflow:         stage       pattern (cre, puro, loa del, lrpcr pass):
+    #   1   'wt/wt'                  EP_PICK     002*
+    #   2   'tm1/wt'                 EP_PICK     111*
+    #   3   'tm1/wt lrpcr'           EP_PICK     11*1
+
+    #   4   'wt/wt'                  PIQ         002*
+    #   5   'tm1/wt'                 PIQ         111*
+    #   6   'tm1/wt lrpcr'           PIQ         11*1
     
-    #   3   'potential wt/wt'       PIQ         020
-    #   4   'potential tm1/wt'      PIQ         111
-    
-    #   5  'unknown'
-    #   6  'failed: Cre assay validation: Copy Number not present'
-    #   7  'failed: Cre assay validation: Copy Number Range not present'
-    #   8  'failed: Cre assay validation: Copy Number Range above threshold'
-    #   9  'failed: loadel assay validation: Copy Number not present'
-    #   10  'failed: loadel assay validation: Copy Number Range not present'
-    #   11  'failed: loadel assay validation: Copy Number Range above threshold'
-    #   12  'failed: Puro assay validation: Copy Number not present'
-    #   13  'failed: Puro assay validation: Copy Number Range not present'
-    #   14  'failed: Puro assay validation: Copy Number Range above threshold'
+    #   7   'potential wt/wt'        EP_PICK     002*
+    #   8   'potential tm1/wt'       EP_PICK     111*
+    #   9   'potential tm1/wt lrpcr' EP_PICK     11*1
+
+    #   10  'potential wt/wt'        PIQ         020*
+    #   11  'potential tm1/wt'       PIQ         111*
+    #   12  'potential tm1/wt lrpcr' PIQ         11*1
+
+    #   13 'unknown'
+    #   14  'failed: Cre assay validation: Copy Number not present'
+    #   15  'failed: Cre assay validation: Copy Number Range not present'
+    #   16  'failed: Cre assay validation: Copy Number Range above threshold'
+    #   17  'failed: loadel assay validation: Copy Number not present'
+    #   18  'failed: loadel assay validation: Copy Number Range not present'
+    #   19  'failed: loadel assay validation: Copy Number Range above threshold'
+    #   20  'failed: Puro assay validation: Copy Number not present'
+    #   21  'failed: Puro assay validation: Copy Number Range not present'
+    #   22  'failed: Puro assay validation: Copy Number Range above threshold'
+
+    #TODO: lrpcr fails
 
     # check each allele type returned matches the expected types
     note('Testing AlleleDetermination Logic - 5c - checking CreKI workflow allele types');
@@ -611,38 +629,52 @@ sub all_tests : Test(129) {
         $creki_gc_allele_results->{ $creki_well_result_hash->{ 'id' } } = $creki_well_result_hash;
     }
 
-    ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage PIQ';
-    ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 3 should be allele type < tm1/wt lrpcr > for stage EP_PICK';
 
-    ok $creki_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 3 should be allele type < potential wt/wt > for stage PIQ';
-    ok $creki_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 4 should be allele type < potential tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'wt/wt', 'well 4 should be allele type < wt/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1/wt', 'well 5 should be allele type < tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 6 should be allele type < tm1/wt lrpcr > for stage PIQ';
 
-    ok $creki_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 5 should give an unknown allele pattern error';
+    ok $creki_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 7 should be allele type < potential wt/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 8 should be allele type < potential tm1/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 9 should be allele type < potential tm1/wt lrpcr > for stage EP_PICK';
 
-    ok $creki_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
-        'well 6 should give a validation error for missing Cre copy number';
-    ok $creki_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
-        'well 7 should give a validation error for missing Cre copy number range';
-    ok $creki_gc_allele_results->{ '8' }->{ 'allele_determination' } eq
+    ok $creki_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 10 should be allele type < potential wt/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 11 should be allele type < potential tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 12 should be allele type < potential tm1/wt lrpcr > for stage PIQ';
+
+    ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 13 should give an unknown allele pattern error';
+
+    ok $creki_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
+        'well 14 should give a validation error for missing Cre copy number';
+    ok $creki_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
+        'well 15 should give a validation error for missing Cre copy number range';
+    ok $creki_gc_allele_results->{ '16' }->{ 'allele_determination' } eq
         'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
-        'well 8 should give a validation error for above threshold Cre copy number range';
+        'well 16 should give a validation error for above threshold Cre copy number range';
 
-    ok $creki_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
-        'well 9 should give a validation error for missing loadel copy number';
-    ok $creki_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
-        'well 10 should give a validation error for missing loadel copy number range';
-    ok $creki_gc_allele_results->{ '11' }->{ 'allele_determination' } eq
+    ok $creki_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
+        'well 17 should give a validation error for missing loadel copy number';
+    ok $creki_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
+        'well 18 should give a validation error for missing loadel copy number range';
+    ok $creki_gc_allele_results->{ '19' }->{ 'allele_determination' } eq
         'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
-        'well 11 should give a validation error for above threshold loadel copy number range';
+        'well 19 should give a validation error for above threshold loadel copy number range';
 
-    ok $creki_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
-        'well 12 should give a validation error for missing Puro copy number';
-    ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
-        'well 13 should give a validation error for missing Puro copy number range';
-    ok $creki_gc_allele_results->{ '14' }->{ 'allele_determination' } eq
+    ok $creki_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
+        'well 20 should give a validation error for missing Puro copy number';
+    ok $creki_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
+        'well 21 should give a validation error for missing Puro copy number range';
+    ok $creki_gc_allele_results->{ '22' }->{ 'allele_determination' } eq
         'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
-        'well 14 should give a validation error for above threshold Puro copy number range';
+        'well 22 should give a validation error for above threshold Puro copy number range';
 
+    #TODO: lrpcr fails
+
+    # ----------------------------------------------------------------------------------------------
+    # TODO: test genotyping Pass logic here
     # ----------------------------------------------------------------------------------------------
 
     # fetch CreKiDre workflow data
@@ -662,25 +694,43 @@ sub all_tests : Test(129) {
     # calculate the allele types
     ok my $crekidre_gc_allele_results_array = $crekidre_AD->test_determine_allele_types_logic(), 'calculating CreKiDre allele types should succeed';
 
-    #   id  CreKiDre workflow:      stage       pattern (cre, loa del, puro):
-    #   1   'wt/wt'                 PIQ         020
-    #   2   'tm1/wt'                PIQ         111
-    #   3   'tm1.1/wt'              PIQ         110
-        
-    #   4   'potential wt/wt'       PIQ         020
-    #   5   'potential tm1/wt'      PIQ         111
-    #   6   'potential tm1.1/wt'    PIQ         110
+    #   id   CreKiDre workflow:         stage       pattern (cre, puro, loa del, lrpcr pass):
+    #   1   'wt/wt'                     EP_PICK     002*
+    #   2   'tm1/wt'                    EP_PICK     111*
+    #   3   'tm1/wt lrpcr'              EP_PICK     11*1
+    #   4   'tm1.1/wt'                  EP_PICK     101*
+    #   5   'tm1.1/wt lrpcr'            EP_PICK     10*1
+
+    #   6   'wt/wt'                     PIQ         002*
+    #   7   'tm1/wt'                    PIQ         111*
+    #   8   'tm1/wt lrpcr'              PIQ         11*1
+    #   9   'tm1.1/wt'                  PIQ         101*
+    #   10  'tm1.1/wt lrpcr'            PIQ         10*1
     
-    #   7   'unknown'
-    #   8   'failed: Cre assay validation: Copy Number not present'
-    #   9   'failed: Cre assay validation: Copy Number Range not present'
-    #   10  'failed: Cre assay validation: Copy Number Range above threshold'
-    #   11  'failed: loadel assay validation: Copy Number not present'
-    #   12  'failed: loadel assay validation: Copy Number Range not present'
-    #   13  'failed: loadel assay validation: Copy Number Range above threshold'
-    #   14  'failed: Puro assay validation: Copy Number not present'
-    #   15  'failed: Puro assay validation: Copy Number Range not present'
-    #   16  'failed: Puro assay validation: Copy Number Range above threshold'
+    #   11  'potential wt/wt'           EP_PICK     002*
+    #   12  'potential tm1/wt'          EP_PICK     111*
+    #   13  'potential tm1/wt lrpcr'    EP_PICK     11*1
+    #   14  'potential tm1.1/wt'        EP_PICK     101*
+    #   15  'potential tm1.1/wt lrpcr'  EP_PICK     10*1
+
+    #   16  'potential wt/wt'           PIQ         020*
+    #   17  'potential tm1/wt'          PIQ         111*
+    #   18  'potential tm1/wt lrpcr'    PIQ         11*1
+    #   19  'potential tm1.1/wt'        PIQ         101*
+    #   20  'potential tm1.1/wt lrpcr'  PIQ         10*1
+  
+    #   21  'unknown'
+    #   22  'failed: Cre assay validation: Copy Number not present'
+    #   23  'failed: Cre assay validation: Copy Number Range not present'
+    #   24  'failed: Cre assay validation: Copy Number Range above threshold'
+    #   25  'failed: loadel assay validation: Copy Number not present'
+    #   26  'failed: loadel assay validation: Copy Number Range not present'
+    #   27  'failed: loadel assay validation: Copy Number Range above threshold'
+    #   28  'failed: Puro assay validation: Copy Number not present'
+    #   29  'failed: Puro assay validation: Copy Number Range not present'
+    #   30  'failed: Puro assay validation: Copy Number Range above threshold'
+
+    #TODO: lrpcr fails
 
     # check each allele type returned matches the expected types
     note('Testing AlleleDetermination Logic - 6c - checking CreKiDre workflow allele types');
@@ -690,39 +740,58 @@ sub all_tests : Test(129) {
         $ne1a_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
     }
 
-    ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1.1/wt', 'well 3 should be allele type < tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 3 should be allele type < tm1/wt lrpcr > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'tm1.1/wt', 'well 4 should be allele type < tm1.1/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1.1/wt lrpcr', 'well 5 should be allele type < tm1.1/wt lrpcr > for stage EP_PICK';
 
-    ok $crekidre_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 4 should be allele type < potential wt/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 5 should be allele type < potential tm1/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 6 should be allele type < potential tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'wt/wt', 'well 6 should be allele type < wt/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'tm1/wt', 'well 7 should be allele type < tm1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 8 should be allele type < tm1/wt lrpcr > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'tm1.1/wt', 'well 9 should be allele type < tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'tm1.1/wt lrpcr', 'well 10 should be allele type < tm1.1/wt lrpcr > for stage PIQ';
 
-    ok $crekidre_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 7 should give an unknown allele pattern error';
+    ok $crekidre_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 11 should be allele type < potential wt/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 12 should be allele type < potential tm1/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 13 should be allele type < potential tm1/wt lrpcr > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 14 should be allele type < potential tm1.1/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'potential tm1.1/wt lrpcr', 'well 15 should be allele type < potential tm1.1/wt lrpcr > for stage EP_PICK';
 
-    ok $crekidre_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
-        'well 8 should give a validation error for missing Cre copy number';
-    ok $crekidre_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
-        'well 9 should give a validation error for missing Cre copy number range';
-    ok $crekidre_gc_allele_results->{ '10' }->{ 'allele_determination' } eq
+    ok $crekidre_gc_allele_results->{ '16' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 16 should be allele type < potential wt/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 17 should be allele type < potential tm1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 18 should be allele type < potential tm1/wt lrpcr > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 19 should be allele type < potential tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'potential tm1.1/wt lrpcr', 'well 20 should be allele type < potential tm1.1/wt lrpcr > for stage PIQ';
+
+    ok $crekidre_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 21 should give an unknown allele pattern error';
+
+    ok $crekidre_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
+        'well 22 should give a validation error for missing Cre copy number';
+    ok $crekidre_gc_allele_results->{ '23' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
+        'well 23 should give a validation error for missing Cre copy number range';
+    ok $crekidre_gc_allele_results->{ '24' }->{ 'allele_determination' } eq
         'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
-        'well 10 should give a validation error for above threshold Cre copy number range';
+        'well 24 should give a validation error for above threshold Cre copy number range';
 
-    ok $crekidre_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
-        'well 11 should give a validation error for missing loadel copy number';
-    ok $crekidre_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
-        'well 12 should give a validation error for missing loadel copy number range';
-    ok $crekidre_gc_allele_results->{ '13' }->{ 'allele_determination' } eq
+    ok $crekidre_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
+        'well 25 should give a validation error for missing loadel copy number';
+    ok $crekidre_gc_allele_results->{ '26' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
+        'well 26 should give a validation error for missing loadel copy number range';
+    ok $crekidre_gc_allele_results->{ '27' }->{ 'allele_determination' } eq
         'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
-        'well 13 should give a validation error for above threshold loadel copy number range';
+        'well 27 should give a validation error for above threshold loadel copy number range';
 
-    ok $crekidre_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
-        'well 14 should give a validation error for missing Puro copy number';
-    ok $crekidre_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
-        'well 15 should give a validation error for missing Puro copy number range';
-    ok $crekidre_gc_allele_results->{ '16' }->{ 'allele_determination' } eq
-        'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
-        'well 16 should give a validation error for above threshold Puro copy number range';
+    ok $crekidre_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
+        'well 28 should give a validation error for missing Puro copy number';
+    ok $crekidre_gc_allele_results->{ '29' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
+        'well 29 should give a validation error for missing Puro copy number range';
+    ok $crekidre_gc_allele_results->{ '30' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
+        'well 30 should give a validation error for above threshold Puro copy number range';
+
+    # ----------------------------------------------------------------------------------------------
+    # TODO: test genotyping Pass logic here
+    # ----------------------------------------------------------------------------------------------
 
     note('Testing AlleleDetermination Logic - Complete');
 }

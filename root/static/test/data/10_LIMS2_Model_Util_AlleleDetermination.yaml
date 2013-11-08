@@ -2511,33 +2511,402 @@ workflow_e_gc_results:
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.5'
 workflow_creki_gc_results:
+    #   id   CreKi workflow:        stage       pattern (cre, loa del, puro):
+    #   1   'wt/wt'                 EP_PICK     020
   - id: 1
+    well: A01
+    plate_name: EPD0001
+    plate_type: EP_PICK
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '0.1'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '2.1'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '0.1'
+    puro#copy_number_range: '0.1'
+    #   2   'tm1/wt'                EP_PICK     111
+  - id: 2
+    well: A01
+    plate_name: EPD0001
+    plate_type: EP_PICK
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '1.1'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '1.1'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '1.1'
+    puro#copy_number_range: '0.1'
+    #   3   'wt/wt'                 PIQ         020
+  - id: 3
     well: A01
     plate_name: PIQ0001
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: CreKi
-    cre#confidence: '-'
+    cre#confidence: '0.99'
+    cre#copy_number: '0.1'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '2.1'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '0.1'
+    puro#copy_number_range: '0.1'
+    #   4   'tm1/wt'                PIQ         111
+  - id: 4
+    well: A01
+    plate_name: PIQ0001
+    plate_type: PIQ
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '1.1'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '1.1'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '1.1'
+    puro#copy_number_range: '0.1'
+    #   5   'potential wt/wt'       EP_PICK     020
+  - id: 5
+    well: A01
+    plate_name: EPD0001
+    plate_type: EP_PICK
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '0.1'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '2.1'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '0.1'
+    puro#copy_number_range: '0.1'
+    #   6   'potential tm1/wt'      EP_PICK     111
+  - id: 6
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
     cre#copy_number: '-'
-    cre#copy_number_range: '-'
-    loadel#confidence: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
     loadel#copy_number: '-'
-    loadel#copy_number_range: '-'
-    puro#confidence: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
     puro#copy_number: '-'
-    puro#copy_number_range: '-'
-    chry#confidence: '-'
+    puro#copy_number_range: '0.1'
+    chry#confidence: '0.99'
     chry#copy_number: '-'
-    chry#copy_number_range: '-'
-    chr8a#confidence: '-'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
     chr8a#copy_number: '-'
-    chr8a#copy_number_range: '-'
+    chr8a#copy_number_range: '0.1'
+    lrpcr#gr3: 'pass'
+    lrpcr#gf3: 'pass'
+    lrpcr#gr4: 'pass'
+    lrpcr#gf4: 'pass'
+    #   7   'potential wt/wt'       PIQ         020
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   8   'potential tm1/wt'      PIQ         111
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   9  'unknown'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   10  'failed: Cre assay validation: Copy Number not present'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   11  'failed: Cre assay validation: Copy Number Range not present'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   12  'failed: Cre assay validation: Copy Number Range above threshold'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   13  'failed: loadel assay validation: Copy Number not present'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   14  'failed: loadel assay validation: Copy Number Range not present'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   15  'failed: loadel assay validation: Copy Number Range above threshold'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   16  'failed: Puro assay validation: Copy Number not present'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   17  'failed: Puro assay validation: Copy Number Range not present'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    #   18  'failed: Puro assay validation: Copy Number Range above threshold'
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+
+  - id: ?
+    well: A01
+    plate_name: ???0001
+    plate_type: ???
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    chry#confidence: '0.99'
+    chry#copy_number: '-'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
+    chr8a#copy_number: '-'
+    chr8a#copy_number_range: '0.1'
+    lrpcr#gr3: 'pass'
+    lrpcr#gf3: 'pass'
+    lrpcr#gr4: 'pass'
+    lrpcr#gf4: 'pass'
+  - id: 1
+    well: A01
+    plate_name: EPD0001
+    plate_type: EP_PICK
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '-'
+    puro#copy_number_range: '0.1'
+    chry#confidence: '0.99'
+    chry#copy_number: '-'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
+    chr8a#copy_number: '-'
+    chr8a#copy_number_range: '0.1'
     lrpcr#gr3: 'pass'
     lrpcr#gf3: 'pass'
     lrpcr#gr4: 'pass'
     lrpcr#gf4: 'pass'
 workflow_crekidre_gc_results:
+    #   id  CreKiDre workflow:      stage       pattern (cre, loa del, puro):
+    #   1   'wt/wt'                 EP_PICK     020
+    #   2   'tm1/wt'                EP_PICK     111
+    #   3   'tm1.1/wt'              EP_PICK     110
+    #   4   'wt/wt'                 PIQ         020
+    #   5   'tm1/wt'                PIQ         111
+    #   6   'tm1.1/wt'              PIQ         110
+        
+    #   7   'potential wt/wt'       EP_PICK     020
+    #   8   'potential tm1/wt'      EP_PICK     111
+    #   9   'potential tm1.1/wt'    EP_PICK     110
+    #   10  'potential wt/wt'       PIQ         020
+    #   11  'potential tm1/wt'      PIQ         111
+    #   12  'potential tm1.1/wt'    PIQ         110
+    
+    #   13  'unknown'
+    #   14  'failed: Cre assay validation: Copy Number not present'
+    #   15  'failed: Cre assay validation: Copy Number Range not present'
+    #   16  'failed: Cre assay validation: Copy Number Range above threshold'
+    #   17  'failed: loadel assay validation: Copy Number not present'
+    #   18  'failed: loadel assay validation: Copy Number Range not present'
+    #   19  'failed: loadel assay validation: Copy Number Range above threshold'
+    #   20  'failed: Puro assay validation: Copy Number not present'
+    #   21  'failed: Puro assay validation: Copy Number Range not present'
+    #   22  'failed: Puro assay validation: Copy Number Range above threshold'
   - id: 1
     well: A01
     plate_name: PIQ0001
@@ -2545,21 +2914,21 @@ workflow_crekidre_gc_results:
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
     workflow: CreKiDre
-    cre#confidence: '-'
+    cre#confidence: '0.99'
     cre#copy_number: '-'
-    cre#copy_number_range: '-'
-    loadel#confidence: '-'
+    cre#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
     loadel#copy_number: '-'
-    loadel#copy_number_range: '-'
-    puro#confidence: '-'
+    loadel#copy_number_range: '0.1'
+    puro#confidence: '0.99'
     puro#copy_number: '-'
-    puro#copy_number_range: '-'
-    chry#confidence: '-'
+    puro#copy_number_range: '0.1'
+    chry#confidence: '0.99'
     chry#copy_number: '-'
-    chry#copy_number_range: '-'
-    chr8a#confidence: '-'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
     chr8a#copy_number: '-'
-    chr8a#copy_number_range: '-'
+    chr8a#copy_number_range: '0.1'
     lrpcr#gr3: 'pass'
     lrpcr#gf3: 'pass'
     lrpcr#gr4: 'pass'
