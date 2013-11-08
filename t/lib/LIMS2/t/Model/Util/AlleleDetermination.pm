@@ -568,161 +568,161 @@ sub all_tests : Test(129) {
 
     # ----------------------------------------------------------------------------------------------
 
-    # # fetch CreKiDre workflow data
-    # note('Testing AlleleDetermination Logic - step 5a - extracting CreKi workflow data');
-    # ok my $creki_gqc_yaml_data = $test_data->{'workflow_creki_gc_results'}, 'fetching CreKi test data from yaml should succeed';
+    # fetch CreKiDre workflow data
+    note('Testing AlleleDetermination Logic - step 5a - extracting CreKi workflow data');
+    ok my $creki_gqc_yaml_data = $test_data->{ 'workflow_creki_gc_results' }, 'fetching CreKi test data from yaml should succeed';
 
-    # # Create AlleleDetermination module instance
-    # ok my $creki_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ),
-    #     'creating instance of module should succeed';
+    # Create AlleleDetermination module instance
+    ok my $creki_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ),
+        'creating instance of module should succeed';
 
-    # # Set the genotyping results hash in the module instance
-    # ok $creki_AD->well_genotyping_results_array($creki_gqc_yaml_data),
-    #     'setting well gc results array in module instance should succeed';
+    # Set the genotyping results hash in the module instance
+    ok $creki_AD->well_genotyping_results_array($creki_gqc_yaml_data),
+        'setting well gc results array in module instance should succeed';
 
-    # note('Testing AlleleDetermination Logic - 5b - determining CreKi workflow allele types');
+    note('Testing AlleleDetermination Logic - 5b - determining CreKi workflow allele types');
 
-    # # calculate the allele types
-    # ok my $creki_gc_allele_results_array = $creki_AD->test_determine_allele_types_logic(), 'calculating CreKi allele types should succeed';
+    # calculate the allele types
+    ok my $creki_gc_allele_results_array = $creki_AD->test_determine_allele_types_logic(), 'calculating CreKi allele types should succeed';
 
-    # #   id   CreKi workflow:        stage       pattern (cre, loa del, puro):
-    # #   1   'wt/wt'                 PIQ         020
-    # #   2   'tm1/wt'                PIQ         111
+    #   id   CreKi workflow:        stage       pattern (cre, loa del, puro):
+    #   1   'wt/wt'                 PIQ         020
+    #   2   'tm1/wt'                PIQ         111
     
-    # #   3   'potential wt/wt'       PIQ         020
-    # #   4   'potential tm1/wt'      PIQ         111
+    #   3   'potential wt/wt'       PIQ         020
+    #   4   'potential tm1/wt'      PIQ         111
     
-    # #   5  'unknown'
-    # #   6  'failed: Cre assay validation: Copy Number not present'
-    # #   7  'failed: Cre assay validation: Copy Number Range not present'
-    # #   8  'failed: Cre assay validation: Copy Number Range above threshold'
-    # #   9  'failed: loadel assay validation: Copy Number not present'
-    # #   10  'failed: loadel assay validation: Copy Number Range not present'
-    # #   11  'failed: loadel assay validation: Copy Number Range above threshold'
-    # #   12  'failed: Puro assay validation: Copy Number not present'
-    # #   13  'failed: Puro assay validation: Copy Number Range not present'
-    # #   14  'failed: Puro assay validation: Copy Number Range above threshold'
+    #   5  'unknown'
+    #   6  'failed: Cre assay validation: Copy Number not present'
+    #   7  'failed: Cre assay validation: Copy Number Range not present'
+    #   8  'failed: Cre assay validation: Copy Number Range above threshold'
+    #   9  'failed: loadel assay validation: Copy Number not present'
+    #   10  'failed: loadel assay validation: Copy Number Range not present'
+    #   11  'failed: loadel assay validation: Copy Number Range above threshold'
+    #   12  'failed: Puro assay validation: Copy Number not present'
+    #   13  'failed: Puro assay validation: Copy Number Range not present'
+    #   14  'failed: Puro assay validation: Copy Number Range above threshold'
 
-    # # check each allele type returned matches the expected types
-    # note('Testing AlleleDetermination Logic - 5c - checking CreKI workflow allele types');
+    # check each allele type returned matches the expected types
+    note('Testing AlleleDetermination Logic - 5c - checking CreKI workflow allele types');
 
-    # my $creki_gc_allele_results = {};
-    # foreach my $creki_well_result_hash ( @{ $creki_gc_allele_results_array } ) {
-    #     $creki_gc_allele_results->{ $creki_well_result_hash->{ 'id' } } = $creki_well_result_hash;
-    # }
+    my $creki_gc_allele_results = {};
+    foreach my $creki_well_result_hash ( @{ $creki_gc_allele_results_array } ) {
+        $creki_gc_allele_results->{ $creki_well_result_hash->{ 'id' } } = $creki_well_result_hash;
+    }
 
-    # ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage PIQ';
-    # ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage PIQ';
 
-    # ok $creki_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 3 should be allele type < potential wt/wt > for stage PIQ';
-    # ok $creki_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 4 should be allele type < potential tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 3 should be allele type < potential wt/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 4 should be allele type < potential tm1/wt > for stage PIQ';
 
-    # ok $creki_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 5 should give an unknown allele pattern error';
+    ok $creki_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 5 should give an unknown allele pattern error';
 
-    # ok $creki_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
-    #     'well 6 should give a validation error for missing Cre copy number';
-    # ok $creki_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
-    #     'well 7 should give a validation error for missing Cre copy number range';
-    # ok $creki_gc_allele_results->{ '8' }->{ 'allele_determination' } eq
-    #     'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
-    #     'well 8 should give a validation error for above threshold Cre copy number range';
+    ok $creki_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
+        'well 6 should give a validation error for missing Cre copy number';
+    ok $creki_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
+        'well 7 should give a validation error for missing Cre copy number range';
+    ok $creki_gc_allele_results->{ '8' }->{ 'allele_determination' } eq
+        'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
+        'well 8 should give a validation error for above threshold Cre copy number range';
 
-    # ok $creki_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
-    #     'well 9 should give a validation error for missing loadel copy number';
-    # ok $creki_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
-    #     'well 10 should give a validation error for missing loadel copy number range';
-    # ok $creki_gc_allele_results->{ '11' }->{ 'allele_determination' } eq
-    #     'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
-    #     'well 11 should give a validation error for above threshold loadel copy number range';
+    ok $creki_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
+        'well 9 should give a validation error for missing loadel copy number';
+    ok $creki_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
+        'well 10 should give a validation error for missing loadel copy number range';
+    ok $creki_gc_allele_results->{ '11' }->{ 'allele_determination' } eq
+        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
+        'well 11 should give a validation error for above threshold loadel copy number range';
 
-    # ok $creki_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
-    #     'well 12 should give a validation error for missing Puro copy number';
-    # ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
-    #     'well 13 should give a validation error for missing Puro copy number range';
-    # ok $creki_gc_allele_results->{ '14' }->{ 'allele_determination' } eq
-    #     'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
-    #     'well 14 should give a validation error for above threshold Puro copy number range';
+    ok $creki_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
+        'well 12 should give a validation error for missing Puro copy number';
+    ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
+        'well 13 should give a validation error for missing Puro copy number range';
+    ok $creki_gc_allele_results->{ '14' }->{ 'allele_determination' } eq
+        'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
+        'well 14 should give a validation error for above threshold Puro copy number range';
 
     # ----------------------------------------------------------------------------------------------
 
-    # # fetch CreKiDre workflow data
-    # note('Testing AlleleDetermination Logic - step 6a - extracting CreKiDre workflow data');
-    # ok my $crekidre_gqc_yaml_data = $test_data->{'workflow_creki_gc_results'}, 'fetching CreKiDre test data from yaml should succeed';
+    # fetch CreKiDre workflow data
+    note('Testing AlleleDetermination Logic - step 6a - extracting CreKiDre workflow data');
+    ok my $crekidre_gqc_yaml_data = $test_data->{'workflow_creki_gc_results'}, 'fetching CreKiDre test data from yaml should succeed';
 
-    # # Create AlleleDetermination module instance
-    # ok my $crekidre_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ),
-    #     'creating instance of module should succeed';
+    # Create AlleleDetermination module instance
+    ok my $crekidre_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ),
+        'creating instance of module should succeed';
 
-    # # Set the genotyping results hash in the module instance
-    # ok $crekidre_AD->well_genotyping_results_array($crekidre_gqc_yaml_data),
-    #     'setting well gc results array in module instance should succeed';
+    # Set the genotyping results hash in the module instance
+    ok $crekidre_AD->well_genotyping_results_array($crekidre_gqc_yaml_data),
+        'setting well gc results array in module instance should succeed';
 
-    # note('Testing AlleleDetermination Logic - 6b - determining CreKiDre workflow allele types');
+    note('Testing AlleleDetermination Logic - 6b - determining CreKiDre workflow allele types');
 
-    # # calculate the allele types
-    # ok my $crekidre_gc_allele_results_array = $crekidre_AD->test_determine_allele_types_logic(), 'calculating CreKiDre allele types should succeed';
+    # calculate the allele types
+    ok my $crekidre_gc_allele_results_array = $crekidre_AD->test_determine_allele_types_logic(), 'calculating CreKiDre allele types should succeed';
 
-    # #   id  CreKiDre workflow:      stage       pattern (cre, loa del, puro):
-    # #   1   'wt/wt'                 PIQ         020
-    # #   2   'tm1/wt'                PIQ         111
-    # #   3   'tm1.1/wt'              PIQ         110
+    #   id  CreKiDre workflow:      stage       pattern (cre, loa del, puro):
+    #   1   'wt/wt'                 PIQ         020
+    #   2   'tm1/wt'                PIQ         111
+    #   3   'tm1.1/wt'              PIQ         110
         
-    # #   4   'potential wt/wt'       PIQ         020
-    # #   5   'potential tm1/wt'      PIQ         111
-    # #   6   'potential tm1.1/wt'    PIQ         110
+    #   4   'potential wt/wt'       PIQ         020
+    #   5   'potential tm1/wt'      PIQ         111
+    #   6   'potential tm1.1/wt'    PIQ         110
     
-    # #   7   'unknown'
-    # #   8   'failed: Cre assay validation: Copy Number not present'
-    # #   9   'failed: Cre assay validation: Copy Number Range not present'
-    # #   10  'failed: Cre assay validation: Copy Number Range above threshold'
-    # #   11  'failed: loadel assay validation: Copy Number not present'
-    # #   12  'failed: loadel assay validation: Copy Number Range not present'
-    # #   13  'failed: loadel assay validation: Copy Number Range above threshold'
-    # #   14  'failed: Puro assay validation: Copy Number not present'
-    # #   15  'failed: Puro assay validation: Copy Number Range not present'
-    # #   16  'failed: Puro assay validation: Copy Number Range above threshold'
+    #   7   'unknown'
+    #   8   'failed: Cre assay validation: Copy Number not present'
+    #   9   'failed: Cre assay validation: Copy Number Range not present'
+    #   10  'failed: Cre assay validation: Copy Number Range above threshold'
+    #   11  'failed: loadel assay validation: Copy Number not present'
+    #   12  'failed: loadel assay validation: Copy Number Range not present'
+    #   13  'failed: loadel assay validation: Copy Number Range above threshold'
+    #   14  'failed: Puro assay validation: Copy Number not present'
+    #   15  'failed: Puro assay validation: Copy Number Range not present'
+    #   16  'failed: Puro assay validation: Copy Number Range above threshold'
 
-    # # check each allele type returned matches the expected types
-    # note('Testing AlleleDetermination Logic - 6c - checking CreKiDre workflow allele types');
+    # check each allele type returned matches the expected types
+    note('Testing AlleleDetermination Logic - 6c - checking CreKiDre workflow allele types');
 
-    # my $crekidre_gc_allele_results = {};
-    # foreach my $crekidre_well_result_hash ( @{ $crekidre_gc_allele_results_array } ) {
-    #     $ne1a_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
-    # }
+    my $crekidre_gc_allele_results = {};
+    foreach my $crekidre_well_result_hash ( @{ $crekidre_gc_allele_results_array } ) {
+        $ne1a_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
+    }
 
-    # ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage PIQ';
-    # ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage PIQ';
-    # ok $crekidre_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1.1/wt', 'well 3 should be allele type < tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1.1/wt', 'well 3 should be allele type < tm1.1/wt > for stage PIQ';
 
-    # ok $crekidre_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 4 should be allele type < potential wt/wt > for stage PIQ';
-    # ok $crekidre_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 5 should be allele type < potential tm1/wt > for stage PIQ';
-    # ok $crekidre_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 6 should be allele type < potential tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 4 should be allele type < potential wt/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 5 should be allele type < potential tm1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 6 should be allele type < potential tm1.1/wt > for stage PIQ';
 
-    # ok $crekidre_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 7 should give an unknown allele pattern error';
+    ok $crekidre_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 7 should give an unknown allele pattern error';
 
-    # ok $crekidre_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
-    #     'well 8 should give a validation error for missing Cre copy number';
-    # ok $crekidre_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
-    #     'well 9 should give a validation error for missing Cre copy number range';
-    # ok $crekidre_gc_allele_results->{ '10' }->{ 'allele_determination' } eq
-    #     'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
-    #     'well 10 should give a validation error for above threshold Cre copy number range';
+    ok $crekidre_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
+        'well 8 should give a validation error for missing Cre copy number';
+    ok $crekidre_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
+        'well 9 should give a validation error for missing Cre copy number range';
+    ok $crekidre_gc_allele_results->{ '10' }->{ 'allele_determination' } eq
+        'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
+        'well 10 should give a validation error for above threshold Cre copy number range';
 
-    # ok $crekidre_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
-    #     'well 11 should give a validation error for missing loadel copy number';
-    # ok $crekidre_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
-    #     'well 12 should give a validation error for missing loadel copy number range';
-    # ok $crekidre_gc_allele_results->{ '13' }->{ 'allele_determination' } eq
-    #     'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
-    #     'well 13 should give a validation error for above threshold loadel copy number range';
+    ok $crekidre_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
+        'well 11 should give a validation error for missing loadel copy number';
+    ok $crekidre_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
+        'well 12 should give a validation error for missing loadel copy number range';
+    ok $crekidre_gc_allele_results->{ '13' }->{ 'allele_determination' } eq
+        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
+        'well 13 should give a validation error for above threshold loadel copy number range';
 
-    # ok $crekidre_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
-    #     'well 14 should give a validation error for missing Puro copy number';
-    # ok $crekidre_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
-    #     'well 15 should give a validation error for missing Puro copy number range';
-    # ok $crekidre_gc_allele_results->{ '16' }->{ 'allele_determination' } eq
-    #     'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
-    #     'well 16 should give a validation error for above threshold Puro copy number range';
+    ok $crekidre_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
+        'well 14 should give a validation error for missing Puro copy number';
+    ok $crekidre_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
+        'well 15 should give a validation error for missing Puro copy number range';
+    ok $crekidre_gc_allele_results->{ '16' }->{ 'allele_determination' } eq
+        'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
+        'well 16 should give a validation error for above threshold Puro copy number range';
 
     note('Testing AlleleDetermination Logic - Complete');
 }

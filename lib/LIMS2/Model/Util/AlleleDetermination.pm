@@ -279,6 +279,7 @@ WELL_LOOP:
         else {
 
             # unusable plate type
+            # TODO: could set workflow type to unknown here ??
             next WELL_LOOP;
         }
     }
@@ -406,6 +407,7 @@ sub _determine_allele_type_for_well {
 
     $self->current_well_stage( $self->current_well->{'plate_type'} );
     unless ( ( $self->current_well_stage eq 'EP_PICK' ) || ( $self->current_well_stage eq 'SEP_PICK' ) ) {
+        # TODO : could change this to set allele type to n/a for this well if plate type inappropriate
         return
               'Failed: stage type must be EP_PICK or SEP_PICK, found type '
             . $self->current_well_stage
@@ -414,6 +416,7 @@ sub _determine_allele_type_for_well {
     }
 
     unless ( defined $self->current_well->{'workflow'} ) {
+        # TODO: if workflow nk or unknown could set allele type to nk
         return 'Failed: workflow not present for well id : ' . $self->current_well_id;
     }
 
