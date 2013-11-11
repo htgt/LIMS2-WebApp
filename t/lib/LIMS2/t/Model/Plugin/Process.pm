@@ -940,20 +940,60 @@ sub all_tests  : Tests
 
 
     note( "Testing crispr_single_ep process creation" );
-    # my $crispr_ep_process_data = test_data( 'crispr_ep_process.yaml' );
-    # {
-    # ok my $process = model->create_process( $crispr_ep_process_data->{valid_input} ),
-    #     'create_process for type crispr_single_ep should succeed';
+    my $crispr_ep_process_data = test_data( 'crispr_ep_process.yaml' );
+    {
+    ok my $process = model->create_process( $crispr_ep_process_data->{single_ep_valid_input} ),
+        'create_process for type crispr_single_ep should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'crispr_single_ep',
+        'process is of correct type (crispr_single_ep)';
+
+    ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 2, '...two input wells';
+    # check the names of the input wells
+    my $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'first input well has correct name';
+    is $input_well->plate->name, 'FP1008', '...and is on correct plate';
+    $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'second input well has correct name';
+    is $input_well->plate->name, 'CRV0001', '...and is on correct plate';
+
+    ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    my $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'CREP001', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+    }
+
+    throws_ok {
+    my $process = model->create_process( $crispr_ep_process_data->{single_ep_invalid_output_well} );
+    } qr/crispr_single_ep process output well should be type (CRISPR_EP)/;
+
+    throws_ok {
+    my $process = model->create_process( $crispr_ep_process_data->{single_ep_invalid_input_well} );
+    } qr/crispr_single_ep process should have 2 input well\(s\) \(got 1\)/;
+
+
+
+    note( "Testing crispr_paired_ep process creation" );
+    # TODO
+    {
+    # ok my $process = model->create_process( $crispr_ep_process_data->{paired_ep_valid_input} ),
+    #     'create_process for type crispr_paired_ep should succeed';
     # isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    # is $process->type->id, 'crispr_single_ep',
-    #     'process is of correct type (crispr_single_ep)';
+    # is $process->type->id, 'crispr_paired_ep',
+    #     'process is of correct type (crispr_paired_ep)';
 
     # ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
-    # is $input_wells->count, 1, '...one input well';
-    # my $input_well = $input_wells->next;
+    # is $input_wells->count, 2, '...two input wells';
     # # check the names of the input wells
+    # my $input_well = $input_wells->next;
     # is $input_well->name, 'A01', 'first input well has correct name';
-    # # ...
+    # is $input_well->plate->name, 'FP1008', '...and is on correct plate';
+    # $input_well = $input_wells->next;
+    # is $input_well->name, 'A01', 'second input well has correct name';
     # is $input_well->plate->name, 'CRV0001', '...and is on correct plate';
 
     # ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
@@ -963,20 +1003,7 @@ sub all_tests  : Tests
     # is $output_well->plate->name, 'CREP001', '..and is on correct plate';
 
     # lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
-    # }
-
-    # throws_ok {
-    # my $process = model->create_process( $crispr_ep_process_data->{invalid_output_well} );
-    # } qr/crispr_single_ep process output well should be type (CRISPR_EP)/;
-
-    # throws_ok {
-    # my $process = model->create_process( $crispr_ep_process_data->{invalid_input_well} );
-    # } qr/crispr_single_ep process input well should be type (CRISPR)/;
-
-
-
-    note( "Testing crispr_paired_ep process creation" );
-    # TODO
+    }
 
 }
 
