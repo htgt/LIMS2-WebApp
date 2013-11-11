@@ -83,13 +83,15 @@ Code to execute all tests
 
 =cut
 
-sub all_tests : Test(129) {
+sub all_tests : Test(189) {
     ok( 1, "Test of LIMS2::Model::Util::AlleleDetermination" );
 
     note('Testing AlleleDetermination Logic - step 1 - loading test data from yaml file');
 
     ok my $test_data = test_data('10_LIMS2_Model_Util_AlleleDetermination.yaml'),
         'fetching test data yaml file should succeed';
+
+### $test_data
 
     # fetch workflow Ne1a data
     note('Testing AlleleDetermination Logic - step 2a - extracting Ne1a workflow data');
@@ -604,7 +606,7 @@ sub all_tests : Test(129) {
     #   8   'potential tm1/wt'       EP_PICK     111*
     #   9   'potential tm1/wt lrpcr' EP_PICK     11*1
 
-    #   10  'potential wt/wt'        PIQ         020*
+    #   10  'potential wt/wt'        PIQ         002*
     #   11  'potential tm1/wt'       PIQ         111*
     #   12  'potential tm1/wt lrpcr' PIQ         11*1
 
@@ -655,13 +657,13 @@ sub all_tests : Test(129) {
         'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
         'well 16 should give a validation error for above threshold Cre copy number range';
 
-    ok $creki_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
-        'well 17 should give a validation error for missing loadel copy number';
-    ok $creki_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
-        'well 18 should give a validation error for missing loadel copy number range';
+    ok $creki_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present and no lrpcr results',
+        'well 17 should give a validation error for missing loadel copy number and no lrprc results';
+    ok $creki_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present and no lrpcr results',
+        'well 18 should give a validation error for missing loadel copy number range and no lrprc results';
     ok $creki_gc_allele_results->{ '19' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
-        'well 19 should give a validation error for above threshold loadel copy number range';
+        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold and no lrpcr results',
+        'well 19 should give a validation error for above threshold loadel copy number range and no lrprc results';
 
     ok $creki_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
         'well 20 should give a validation error for missing Puro copy number';
@@ -713,7 +715,7 @@ sub all_tests : Test(129) {
     #   14  'potential tm1.1/wt'        EP_PICK     101*
     #   15  'potential tm1.1/wt lrpcr'  EP_PICK     10*1
 
-    #   16  'potential wt/wt'           PIQ         020*
+    #   16  'potential wt/wt'           PIQ         002*
     #   17  'potential tm1/wt'          PIQ         111*
     #   18  'potential tm1/wt lrpcr'    PIQ         11*1
     #   19  'potential tm1.1/wt'        PIQ         101*
@@ -774,13 +776,13 @@ sub all_tests : Test(129) {
         'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
         'well 24 should give a validation error for above threshold Cre copy number range';
 
-    ok $crekidre_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
-        'well 25 should give a validation error for missing loadel copy number';
-    ok $crekidre_gc_allele_results->{ '26' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
-        'well 26 should give a validation error for missing loadel copy number range';
+    ok $crekidre_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present and no lrpcr results',
+        'well 25 should give a validation error for missing loadel copy number and no lrprc results';
+    ok $crekidre_gc_allele_results->{ '26' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present and no lrpcr results',
+        'well 26 should give a validation error for missing loadel copy number range and no lrprc results';
     ok $crekidre_gc_allele_results->{ '27' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
-        'well 27 should give a validation error for above threshold loadel copy number range';
+        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold and no lrpcr results',
+        'well 27 should give a validation error for above threshold loadel copy number range and no lrprc results';
 
     ok $crekidre_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
         'well 28 should give a validation error for missing Puro copy number';
