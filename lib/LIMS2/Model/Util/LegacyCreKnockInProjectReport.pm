@@ -16,7 +16,6 @@ Cre KnockIn projects.
 use Moose;
 use Try::Tiny;
 use LIMS2::Util::Tarmits;
-use Lingua::EN::Inflect qw( PL );
 use namespace::autoclean;
 
 with qw( MooseX::Log::Log4perl );
@@ -57,10 +56,15 @@ sub _build_projects {
 }
 
 has project_well_summary_data => (
-    is => 'ro',
-    isa => 'HashRef',
+    is         => 'ro',
+    isa        => 'HashRef',
+    traits     => [ 'Hash' ],
     lazy_build => 1,
-)
+    handles    => {
+        have_project_data => 'exists',
+        get_project_data => 'get',
+    }
+);
 
 sub _build_project_well_summary_data {
     my $self = shift;
@@ -84,23 +88,36 @@ sub generate_report_data {
     my ( $self ) = @_;
     my @report_data;
 
-    for my $project( @{ $self->projects }  ) {
+    for my $project ( @{ $self->projects }  ) {
+        Log::Log4perl::NDC->remove;
+        Log::Log4perl::NDC->push( $project->id );
+        $self->log->debug('Working on project');
+        my ( $project_data, $marker_symbol );
+        if ( $self->have_project_data( $project->id ) ) {
+            $project_data = $self->get_project_data( $project->id );
+            $marker_symbol = $project_data->{gene};
+        }
+        else {
+            #TODO what to do here? sp12 Mon 11 Nov 2013 08:17:27 GMT
+            $self->log->warn('Project has no summary rows' );
+            my $gene = try {
+                $self->model->retrieve_gene(
+                    { species => $project->species_id, search_term => $project->gene_id } );
+            };
+            $marker_symbol = $gene ? $gene->{gene_symbol} : undef;
+        }
 
-        my $gene = try {
-            $self->model->retrieve_gene(
-                { species => $project->species_id, search_term => $project->gene_id } );
-        };
-        my $marker_symbol = $gene ? $gene->{gene_symbol} : undef;
-
-        my $project_status = $self->find_project_status( $project );
+        my $project_status = $project_data ? $self->find_project_status( $project, $project_data ) : 'unknown';
+        $self->log->warn( "Status: $project_status" );
 
         push @report_data, [
              $project->htgt_project_id,
              $project->id,
              $marker_symbol,
-             'foo',
+             $project_status,
         ]
     };
+    Log::Log4perl::NDC->remove;
 
     $self->report_data( \@report_data );
 }
@@ -111,162 +128,133 @@ work out status of project
 
 =cut
 sub find_project_status {
-    my ( $self, $project ) = @_;
+    my ( $self, $project, $project_data ) = @_;
 
-    #my @ws_rows
-        #= $self->eucomm_vector_schema->resultset('NewWellSummary')->search( { project_id => $project->project_id } );
-    my @ws_rows = ;
+    my $ws_rows = $project_data->{ws};
 
-    $self->log->debug( 'Project has ' . @ws_rows . ' new_well_summary ' . PL( 'row', scalar @ws_rows ) );
+    $self->log->debug( 'Project has ' . scalar(@{ $ws_rows }) . ' summary row(s)' );
 
-    # No update needed if project has no new_well_summary rows
-    # (but warn about orphaned projects in status TVIP or better)
-    if ( @ws_rows == 0 ) {
-        if ( $project->status->order_by >= $self->project_status_order_for('TVIP') ) {
-            $self->log->warn('Project has no new_well_summary rows');
-        }
-        return;
+    my @dist_es_cells      = @{ $self->distributable_es_cells( $ws_rows ) };
+    #TODO targeted trap ?? sp12 Mon 11 Nov 2013 08:59:37 GMT
+    #my @targ_trap_es_cells = @{ $self->targ_trap_es_cells( $ws_rows ) };
+
+    $self->log->debug('Considering status: Mice - genotype confirmed');
+    $self->log->debug('Considering status: Mice - Microinjection in progress');
+
+    my $tarmits_status = $self->tarmits_status( $ws_rows );
+    if ( $tarmits_status ) {
+        return $tarmits_status;
     }
-
-    my @dist_es_cells      = @{ $self->distributable_es_cells( \@ws_rows ) };
-    my @targ_trap_es_cells = @{ $self->targ_trap_es_cells( \@ws_rows ) };
-
-    #TODO do I use lims or htgt project id here? sp12 Fri 08 Nov 2013 08:44:46 GMT
-    #my @emi_attempts       = @{ $self->emi_attempts( $project->project_id ) };
-
-    #$self->log->debug('Considering status: Mice - genotype confirmed');
-
-    ## Status is 'Mice - genotype confirmed' if there are any EMI attempts
-    ## with status 'Genotype confirmed'
-    #if ( any { $_->{status_name} eq 'Genotype confirmed' } @emi_attempts ) {
-        #$self->set_status_mice_genotype_confirmed(
-            #{   project      => $project,
-                #ws_rows      => \@ws_rows,
-                #emi_attempts => \@emi_attempts
-            #}
-        #);
-        #return;
-    #}
-
-    #$self->log->debug('Considering status: Mice - Microinjection in progress');
-
-    ## Status is 'Mice - Microinjection in progress' if there ane any
-    ## EMI attempts
-    #if (@emi_attempts) {
-        #$self->set_status_mice_microinjection_in_progress(
-            #{   project      => $project,
-                #ws_rows      => \@ws_rows,
-                #emi_attempts => \@emi_attempts
-            #}
-        #);
-        #return;
-    #}
 
     $self->log->debug('Considering status: ES Cells - Targeting Confirmed');
 
     # Status is 'ES Cells - Targeting Confirmed' if there are any EPD wells
     # flagged distribute or targeted_trap
-    if ( @dist_es_cells or @targ_trap_es_cells ) {
-        $self->set_status_es_cells_targeting_confirmed(
-            {   project => $project,
-                ws_rows => \@ws_rows
-            }
-        );
-        return;
+    if ( @dist_es_cells ) {
+        return 'ES Cells - Targeting Confirmed';
     }
 
-    my @ep_plates  = @{ $self->sorted_plate_list( 'EP',  \@ws_rows ) };
-    my @epd_plates = @{ $self->sorted_plate_list( 'EPD', \@ws_rows ) };
-
-    my $latest_ep_plate = $ep_plates[-1];
+    my @ep_plates = @{ $self->sorted_plate_list( 'EP',  $ws_rows ) };
 
     $self->log->debug('Considering status: ES Cells - Electroporation in Progress');
 
-    # Status is 'ES Cells - Electroporation in Progress' if there is
-    # at least 1 EP plate
+    # Status is 'ES Cells - Electroporation in Progress' if there is at least 1 EP plate
     if (@ep_plates) {
-        $self->set_status_es_cells_electroporation_in_progress(
-            {   project   => $project,
-                ws_rows   => \@ws_rows,
-                ep_plates => \@ep_plates
-            }
-        );
-        return;
+        return 'ES Cells - Electroporation in Progress';
     }
 
-    my @dist_targ_vecs = grep { defined $_->pgdgr_distribute and $_->pgdgr_distribute eq 'yes' } @ws_rows;
+    my @dist_targ_vecs = @{ $self->distributable_targeting_vectors( $ws_rows ) };
     $self->log->debug('Considering status: Vector Complete');
 
     # Status is 'Vector Complete' if there is a distributable targeting vector
     if (@dist_targ_vecs) {
-        $self->set_status_vector_complete(
-            {   project        => $project,
-                ws_rows        => \@ws_rows,
-                dist_targ_vecs => \@dist_targ_vecs
-            }
-        );
-        return;
+        return 'Vector Complete';
     }
-    
+
+    #TODO what status to be fall back to sp12 Mon 11 Nov 2013 09:15:19 GMT
+    return 'Unknown';
 }
 
 =head2 distributable_es_cells
 
-Return a list of EPD well names for clones flagged I<epd_distribute>.
+Return a list of ep_pick well names for clones flagged accepted.
 
 =cut
 sub distributable_es_cells {
     my ( $self, $ws_rows ) = @_;
 
-    my @dist_es_cells = map { $_->epd_well_name }
-        grep { defined $_->epd_distribute and $_->epd_distribute eq 'yes' }
-        @{ $self->uniq_ws_rows_by( 'epd_well_id', $ws_rows ) };
+    my @dist_es_cells = map { $_->{clone_well_id} }
+        grep { $_->{clone_accepted} }
+        @{ $self->uniq_ws_rows_by( 'clone_well_id', $ws_rows ) };
 
-    $self->log->debug( 'Project has ' . @dist_es_cells . ' distributable ES ' . PL( 'cell', scalar @dist_es_cells ) );
+    $self->log->debug( 'Project has ' . @dist_es_cells . ' distributable ES cell(s)' );
 
     return \@dist_es_cells;
 }
 
-=head2 targ_trap_es_cells
+=head2 distributable_targeting_vectors
 
-Return a list of EPD well name for clones flagged I<targeted_trap>.
+Return a list of targeting vector well names for vectors flagged accepted.
 
 =cut
-sub targ_trap_es_cells {
+sub distributable_targeting_vectors {
     my ( $self, $ws_rows ) = @_;
 
-    my @targ_trap_es_cells = map { $_->epd_well_name }
-        grep { defined $_->targeted_trap and $_->targeted_trap eq 'yes' }
-        @{ $self->uniq_ws_rows_by( 'epd_well_id', $ws_rows ) };
+    my @dist_targ_vecs = map { $_->{tv_well_id} }
+        grep { $_->{tv_accepted} }
+        @{ $self->uniq_ws_rows_by( 'tv_well_id', $ws_rows ) };
 
-    $self->log->debug(
-        'Project has ' . @targ_trap_es_cells . ' targeted trap ES ' . PL( 'cell', scalar @targ_trap_es_cells ) );
+    $self->log->debug( 'Project has ' . @dist_targ_vecs . ' distributable targeting vector(s)' );
 
-    return \@targ_trap_es_cells;
+    return \@dist_targ_vecs;
 }
 
-=head2 emi_attempts
+=head2 tarmits_status
 
 Retrieve any EMI attempts for the distributable and targeted trap ES
 cells from Tarmits.
 
+If we have emi attempts with status of genotype confirmed then the project
+status is Mice - genotype confirmed
+
+If we have emi attempts but none are genotype confirmed then the projects
+status is Mice - microinjection in progress
+
+If there are no emi attempts return undef
+
 =cut
-sub emi_attempts {
-    my ( $self, $project_id ) = @_;
+sub tarmits_status {
+    my ( $self, $ws_rows ) = @_;
+    my $status;
 
-    return [] unless $project_id;
+    my @es_cell_names = map { $_->{clone_plate_name} . '_' . $_->{clone_well_name} }
+        grep { $_->{clone_well_id} } @{$ws_rows};
 
-    my $emi_attempts = $self->tarmits_client->find_mi_attempt(
-        {
-            'es_cell_ikmc_project_id_eq' => $project_id,
-            'is_active_eq'               => 'true',
-            'report_to_public_eq'        => 'true',
+    my $emi_attempt_count = 0;
+    for my $es_cell_name ( @es_cell_names ) {
+        my $es_cell = $self->tarmits_client->find_es_cell( { name_eq => $es_cell_name } );
+
+        if ( $es_cell->[0] ) {
+            my $emi_attempt = $self->tarmits_client->find_mi_attempt(
+                es_cell_id_eq       => $es_cell->[0]{id},
+                is_active_eq        => 'true',
+                report_to_public_eq => 'true',
+            );
+            my $emi = shift @{ $emi_attempt };
+            if ( $emi ) {
+                $emi_attempt_count++;
+                if ( $emi->{status_name} eq 'Genotype confirmed' ) {
+                    return 'Mice - genotype confirmed';
+                }
+            }
         }
-    );
+    }
 
-    $self->log->debug( 'Project has ' . @{$emi_attempts} . ' emi ' . PL( 'attempt', scalar @{$emi_attempts} ) );
+    if ( $emi_attempt_count ) {
+        $status = 'Mice - Microinjection in progress';
+    }
 
-    return $emi_attempts;
+    return $status;
 }
 
 sub uniq_ws_rows_by {
@@ -274,7 +262,7 @@ sub uniq_ws_rows_by {
 
     my ( %seen, @uniq );
     for my $row ( @{$ws_rows} ) {
-        my $key_val = $row->$key_col;
+        my $key_val = $row->{$key_col};
         next unless defined $key_val and not $seen{$key_val}++;
         push @uniq, $row;
     }
@@ -284,20 +272,17 @@ sub uniq_ws_rows_by {
 
 =head2 sorted_plate_list
 
-Return a list of plates (C<HTGTDB::NewWellSummary> objects) of the requested
-type sorted on created_date.
+Return a list of plates names of the requested type.
 
 =cut
 sub sorted_plate_list {
     my ( $self, $type, $ws_rows ) = @_;
 
     my $well_id_col = lc($type) . '_well_id';
-    my $date_col    = lc($type) . '_plate_created_date';
 
-    my @plates = sort { $a->$date_col <=> $b->$date_col }
-        @{ $self->uniq_ws_rows_by( $well_id_col, $ws_rows ) };
+    my @plates = map{ $_->{ep_plate_name} } @{ $self->uniq_ws_rows_by( $well_id_col, $ws_rows ) };
 
-    $self->log->debug( 'Found ' . @plates . " distinct $type " . PL( 'plate', scalar @plates ) );
+    $self->log->debug( 'Found ' . @plates . " distinct $type plate(s)" );
 
     return \@plates;
 }
@@ -313,13 +298,11 @@ sub project_well_summary_query {
 
 my $sql_query =  <<"SQL";
 WITH project_requests AS (
-SELECT p.id AS project_id,
+SELECT
+ p.id AS project_id,
  p.htgt_project_id,
- p.sponsor_id,
  p.gene_id,
  p.targeting_type,
- pa.allele_type,
- pa.cassette_function,
  pa.mutation_type,
  cf.id AS cassette_function_id,
  cf.promoter,
@@ -331,39 +314,24 @@ FROM projects p
 INNER JOIN project_alleles pa ON pa.project_id = p.id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 WHERE p.sponsor_id   = 'Cre Knockin'
-AND p.targeting_type = 'single_targeted'
 AND p.species_id     = 'Mouse'
 )
-SELECT pr.project_id
-, pr.htgt_project_id
-, s.design_id
-, s.design_name
-, s.design_type
-, s.design_phase
-, s.design_plate_name
-, s.design_plate_id
-, s.design_well_name
-, s.design_well_id
-, s.design_gene_id
-, s.design_gene_symbol
-, s.int_plate_name
-, s.int_plate_id
-, s.int_well_name
-, s.int_well_id
-, s.final_pick_plate_name AS targeting_vector_plate_name
-, s.final_pick_plate_id AS targeting_vector_plate_id
-, s.final_pick_well_name AS targeting_vector_well_name
-, s.final_pick_well_id AS targeting_vector_well_id
-, s.final_pick_cassette_name AS vector_cassette_name
-, s.final_pick_cassette_promoter AS vector_cassette_promotor
-, s.final_pick_backbone_name AS vector_backbone_name
-, s.ep_first_cell_line_name AS cell_line
-, s.ep_well_recombinase_id AS ep_recombinase
-, s.ep_pick_plate_name AS clone_plate_name
-, s.ep_pick_plate_id AS clone_plate_id
-, s.ep_pick_well_name AS clone_well_name
-, s.ep_pick_well_id AS clone_well_id
-, s.ep_pick_well_accepted AS clone_accepted
+SELECT
+ pr.project_id,
+ pr.htgt_project_id,
+ s.design_gene_id AS gene_id,
+ s.design_gene_symbol AS gene_symbol,
+ s.final_pick_plate_name AS tv_plate_name,
+ s.final_pick_well_name AS tv_well_name,
+ s.final_pick_well_id AS tv_well_id,
+ s.final_pick_well_accepted AS tv_accepted,
+ s.ep_plate_name AS ep_plate_name,
+ s.ep_well_name AS ep_well_name,
+ s.ep_well_id AS ep_well_id,
+ s.ep_pick_plate_name AS clone_plate_name,
+ s.ep_pick_well_name AS clone_well_name,
+ s.ep_pick_well_id AS clone_well_id,
+ s.ep_pick_well_accepted AS clone_accepted
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
@@ -402,42 +370,28 @@ AND (
      )
     )
 )
-AND s.ep_pick_well_id > 0
-GROUP by pr.project_id
-, pr.htgt_project_id
-, s.design_id
-, s.design_name
-, s.design_type
-, s.design_phase
-, s.design_plate_name
-, s.design_plate_id
-, s.design_well_name
-, s.design_well_id
-, s.design_gene_id
-, s.design_gene_symbol
-, s.int_plate_name
-, s.int_plate_id
-, s.int_well_name
-, s.int_well_id
-, s.final_pick_plate_name
-, s.final_pick_plate_id
-, s.final_pick_well_name
-, s.final_pick_well_id
-, s.final_pick_cassette_name
-, s.final_pick_cassette_promoter
-, s.final_pick_backbone_name
-, s.ep_first_cell_line_name
-, s.ep_well_recombinase_id
-, s.ep_pick_plate_name
-, s.ep_pick_plate_id 
-, s.ep_pick_well_name
-, s.ep_pick_well_id
-, s.ep_pick_well_accepted
-ORDER BY pr.project_id
-, s.design_id
-, s.design_gene_id
-, s.final_pick_well_id
-, s.ep_pick_well_id
+AND s.final_pick_well_id > 0
+GROUP BY
+ pr.project_id,
+ pr.htgt_project_id,
+ s.design_gene_id,
+ s.design_gene_symbol,
+ s.final_pick_plate_name,
+ s.final_pick_well_name,
+ s.final_pick_well_id,
+ s.final_pick_well_accepted,
+ s.ep_plate_name,
+ s.ep_well_name,
+ s.ep_well_id,
+ s.ep_pick_plate_name,
+ s.ep_pick_well_name,
+ s.ep_pick_well_id,
+ s.ep_pick_well_accepted
+ORDER BY
+ pr.project_id,
+ s.design_gene_id,
+ s.final_pick_well_id,
+ s.ep_pick_well_id
 SQL
 
     my $sql_result = $self->model->schema->storage->dbh_do(
@@ -460,7 +414,24 @@ linked to each project.
 =cut
 sub parse_project_well_summary_results {
     my ( $self, $query_results  ) = @_;
-    
+
+    my %project_well_data;
+
+    for my $datum ( @{ $query_results } ) {
+        my $project_id = $datum->{project_id };
+        push @{ $project_well_data{$project_id}{ws} }, $datum;
+
+        if ( $datum->{htgt_project_id} && !exists $project_well_data{$project_id}{htgt_project_id} ) {
+            $project_well_data{$project_id}{htgt_project_id} = $datum->{htgt_project_id};
+        }
+
+        if ( $datum->{gene_symbol} && !exists $project_well_data{$project_id}{gene} ) {
+            $project_well_data{$project_id}{gene} = $datum->{gene_symbol};
+        }
+
+    }
+
+    return \%project_well_data;
 }
 
 __PACKAGE__->meta->make_immutable;
