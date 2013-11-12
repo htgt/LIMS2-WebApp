@@ -83,7 +83,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests : Test(189) {
+sub all_tests : Test(191) {
     ok( 1, "Test of LIMS2::Model::Util::AlleleDetermination" );
 
     note('Testing AlleleDetermination Logic - step 1 - loading test data from yaml file');
@@ -618,8 +618,11 @@ sub all_tests : Test(189) {
     #   20  'failed: Puro assay validation: Copy Number not present'
     #   21  'failed: Puro assay validation: Copy Number Range not present'
     #   22  'failed: Puro assay validation: Copy Number Range above threshold'
+    #   23  'failed: LRPCR assay validation: gr3 primer not present'
 
-    #TODO: lrpcr fails
+    #TODO: chry and ch8a passes and fails
+
+    #TODO: overall pass tests
 
     # check each allele type returned matches the expected types
     note('Testing AlleleDetermination Logic - 5c - checking CreKI workflow allele types');
@@ -670,8 +673,13 @@ sub all_tests : Test(189) {
         'well 21 should give a validation error for missing Puro copy number range';
     ok $creki_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range above threshold. ',
         'well 22 should give a validation error for above threshold Puro copy number range';
+ 
+    ok $creki_gc_allele_results->{ '23' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
+        'well 23 should give a error for a failed lrpcr test';
 
-    #TODO: lrpcr fails
+    #TODO: chry and ch8a passes and fails
+
+    #TODO: overall pass tests
 
     # ----------------------------------------------------------------------------------------------
     # TODO: test genotyping Pass logic here
@@ -729,8 +737,11 @@ sub all_tests : Test(189) {
     #   28  'failed: Puro assay validation: Copy Number not present'
     #   29  'failed: Puro assay validation: Copy Number Range not present'
     #   30  'failed: Puro assay validation: Copy Number Range above threshold'
+    #   31  'failed: LRPCR assay validation: gr3 primer not present'
 
-    #TODO: lrpcr fails
+    #TODO: chry and ch8a passes and fails
+
+    #TODO: overall pass tests
 
     # check each allele type returned matches the expected types
     note('Testing AlleleDetermination Logic - 6c - checking CreKiDre workflow allele types');
@@ -788,10 +799,13 @@ sub all_tests : Test(189) {
         'well 29 should give a validation error for missing Puro copy number range';
     ok $crekidre_gc_allele_results->{ '30' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range above threshold. ',
         'well 30 should give a validation error for above threshold Puro copy number range';
+ 
+    ok $crekidre_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
+        'well 31 should give an LRPCR error for gf3';
 
-    # ----------------------------------------------------------------------------------------------
-    # TODO: test genotyping Pass logic here
-    # ----------------------------------------------------------------------------------------------
+    #TODO: chry and ch8a passes and fails
+
+    #TODO: overall pass tests
 
     note('Testing AlleleDetermination Logic - Complete');
 }

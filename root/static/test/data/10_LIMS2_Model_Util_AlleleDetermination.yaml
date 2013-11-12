@@ -2879,6 +2879,26 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+  - id: 23
+    well: A01
+    plate_name: EPD0001
+    plate_type: EP_PICK
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '1.1'
+    cre#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '1.1'
+    puro#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '1.1'
+    loadel#copy_number_range: '0.7'
+    lrpcr#gr3: 'pass'
+    lrpcr#gf3: '-'
+    lrpcr#gr4: 'pass'
+    lrpcr#gf4: 'pass'
 workflow_crekidre_gc_results:
   - id: 1
     well: A01
@@ -3392,3 +3412,23 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+  - id: 31
+    well: A01
+    plate_name: EPD0001
+    plate_type: EP_PICK
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKiDre
+    cre#confidence: '0.99'
+    cre#copy_number: '1.1'
+    cre#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '1.1'
+    puro#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '1.1'
+    loadel#copy_number_range: '0.7'
+    lrpcr#gr3: 'pass'
+    lrpcr#gf3: '-'
+    lrpcr#gr4: 'pass'
+    lrpcr#gf4: 'pass'
