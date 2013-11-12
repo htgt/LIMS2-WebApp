@@ -16,11 +16,10 @@ Cre KnockIn projects.
 use Moose;
 use Try::Tiny;
 use LIMS2::Util::Tarmits;
+use List::MoreUtils qw( any part );
 use namespace::autoclean;
 
 with qw( MooseX::Log::Log4perl );
-
-use Smart::Comments;
 
 has model => (
     is       => 'ro',
@@ -37,8 +36,6 @@ has tarmits_client => (
 sub _build_tarmits_client {
     LIMS2::Util::Tarmits->new_with_config;
 }
-
-#TODO species? sp12 Fri 08 Nov 2013 08:47:35 GMT
 
 has projects => (
     is         => 'ro',
@@ -98,7 +95,6 @@ sub generate_report_data {
             $marker_symbol = $project_data->{gene};
         }
         else {
-            #TODO what to do here? sp12 Mon 11 Nov 2013 08:17:27 GMT
             $self->log->warn('Project has no summary rows' );
             my $gene = try {
                 $self->model->retrieve_gene(
@@ -106,12 +102,14 @@ sub generate_report_data {
             };
             $marker_symbol = $gene ? $gene->{gene_symbol} : undef;
         }
+        my $htgt_project_id = $project->htgt_project_id ? $project->htgt_project_id : '';
 
-        my $project_status = $project_data ? $self->find_project_status( $project, $project_data ) : 'unknown';
-        $self->log->warn( "Status: $project_status" );
+        my $project_status
+            = $project_data ? $self->find_project_status( $project, $project_data ) : '';
+        $self->log->info( "Status: $project_status" );
 
         push @report_data, [
-             $project->htgt_project_id,
+             $htgt_project_id,
              $project->id,
              $marker_symbol,
              $project_status,
@@ -135,15 +133,23 @@ sub find_project_status {
     $self->log->debug( 'Project has ' . scalar(@{ $ws_rows }) . ' summary row(s)' );
 
     my @dist_es_cells      = @{ $self->distributable_es_cells( $ws_rows ) };
-    #TODO targeted trap ?? sp12 Mon 11 Nov 2013 08:59:37 GMT
-    #my @targ_trap_es_cells = @{ $self->targ_trap_es_cells( $ws_rows ) };
+
+    my @emi_attempts = @{ $self->emi_attempts( $ws_rows ) };
 
     $self->log->debug('Considering status: Mice - genotype confirmed');
+
+    # Status is 'Mice - genotype confirmed' if there are any EMI attempts
+    # with status 'Genotype confirmed'
+    if ( any { $_->{status_name} eq 'Genotype confirmed' } @emi_attempts ) {
+        return 'Mice - genotype confirmed';
+    }
+
     $self->log->debug('Considering status: Mice - Microinjection in progress');
 
-    my $tarmits_status = $self->tarmits_status( $ws_rows );
-    if ( $tarmits_status ) {
-        return $tarmits_status;
+    # Status is 'Mice - Microinjection in progress' if there ane any
+    # EMI attempts
+    if (@emi_attempts) {
+        return 'Mice - Microinjection in progress';
     }
 
     $self->log->debug('Considering status: ES Cells - Targeting Confirmed');
@@ -166,13 +172,21 @@ sub find_project_status {
     my @dist_targ_vecs = @{ $self->distributable_targeting_vectors( $ws_rows ) };
     $self->log->debug('Considering status: Vector Complete');
 
-    # Status is 'Vector Complete' if there is a distributable targeting vector
+    # Status is 'Vector Complete' if there is a accepted targeting vector
     if (@dist_targ_vecs) {
         return 'Vector Complete';
     }
 
-    #TODO what status to be fall back to sp12 Mon 11 Nov 2013 09:15:19 GMT
-    return 'Unknown';
+    $self->log->debug('Considering status: Vector Construction in Progress');
+    my @targ_vecs = @{ $self->targeting_vectors( $ws_rows ) };
+
+    # Status us 'Vector Construction in Progress' if we have non accepted
+    # targeting vectors
+    if ( @targ_vecs ) {
+        return 'Vector Construction in Progress';
+    }
+
+    return '';
 }
 
 =head2 distributable_es_cells
@@ -194,7 +208,7 @@ sub distributable_es_cells {
 
 =head2 distributable_targeting_vectors
 
-Return a list of targeting vector well names for vectors flagged accepted.
+Return a list of targeting vector well ids for vectors flagged accepted.
 
 =cut
 sub distributable_targeting_vectors {
@@ -209,54 +223,73 @@ sub distributable_targeting_vectors {
     return \@dist_targ_vecs;
 }
 
-=head2 tarmits_status
+=head2 targeting_vectors
 
-Retrieve any EMI attempts for the distributable and targeted trap ES
-cells from Tarmits.
-
-If we have emi attempts with status of genotype confirmed then the project
-status is Mice - genotype confirmed
-
-If we have emi attempts but none are genotype confirmed then the projects
-status is Mice - microinjection in progress
-
-If there are no emi attempts return undef
+Return a list of targeting vector well ids.
 
 =cut
-sub tarmits_status {
+sub targeting_vectors {
     my ( $self, $ws_rows ) = @_;
-    my $status;
+
+    my @targ_vecs = map { $_->{tv_well_id} } @{ $self->uniq_ws_rows_by( 'tv_well_id', $ws_rows ) };
+
+    $self->log->debug( 'Project has ' . @targ_vecs . ' targeting vector(s)' );
+
+    return \@targ_vecs;
+}
+
+=head2 emi_attempts
+
+Retrieve any EMI attempts for the ES cells from Tarmits.
+
+=cut
+sub emi_attempts {
+    my ( $self, $ws_rows ) = @_;
+    my $status = 'foo';
 
     my @es_cell_names = map { $_->{clone_plate_name} . '_' . $_->{clone_well_name} }
         grep { $_->{clone_well_id} } @{$ws_rows};
 
-    my $emi_attempt_count = 0;
-    for my $es_cell_name ( @es_cell_names ) {
-        my $es_cell = $self->tarmits_client->find_es_cell( { name_eq => $es_cell_name } );
+    my @es_cell_name_arrays = $self->chunk_array( \@es_cell_names );
 
-        if ( $es_cell->[0] ) {
-            my $emi_attempt = $self->tarmits_client->find_mi_attempt(
-                es_cell_id_eq       => $es_cell->[0]{id},
-                is_active_eq        => 'true',
-                report_to_public_eq => 'true',
-            );
-            my $emi = shift @{ $emi_attempt };
-            if ( $emi ) {
-                $emi_attempt_count++;
-                if ( $emi->{status_name} eq 'Genotype confirmed' ) {
-                    return 'Mice - genotype confirmed';
-                }
-            }
+    my @emi_attempts;
+    for my $name_array ( @es_cell_name_arrays ) {
+        my @query;
+        for my $es_cell_name ( @{ $name_array } ) {
+            push @query, ( 'es_cell_name_in[]' => $es_cell_name );
         }
+
+        my $emi_attempts = try{
+            $self->tarmits_client->find_mi_attempt( \@query );
+        }
+        catch {
+            $self->log->error( "Error querying tarmits: $_" );
+            return [];
+        };
+        push @emi_attempts, @{ $emi_attempts };
     }
 
-    if ( $emi_attempt_count ) {
-        $status = 'Mice - Microinjection in progress';
-    }
-
-    return $status;
+    return \@emi_attempts;
 }
 
+=head2 chunk_array
+
+Split up a array into seperate arrays of specific max size
+
+=cut
+sub chunk_array {
+    my ( $self, $array ) = @_;
+    my $size = 50;
+    my $i = 0;
+
+    return part{ int( $i++ / $size ) } @{ $array };
+}
+
+=head2 uniq_ws_rows_by
+
+Return one row for each unique value of the specified column
+
+=cut
 sub uniq_ws_rows_by {
     my ( $self, $key_col, $ws_rows ) = @_;
 
