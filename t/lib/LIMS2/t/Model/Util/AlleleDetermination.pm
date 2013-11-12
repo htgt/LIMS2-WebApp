@@ -91,8 +91,6 @@ sub all_tests : Test(189) {
     ok my $test_data = test_data('10_LIMS2_Model_Util_AlleleDetermination.yaml'),
         'fetching test data yaml file should succeed';
 
-### $test_data
-
     # fetch workflow Ne1a data
     note('Testing AlleleDetermination Logic - step 2a - extracting Ne1a workflow data');
     ok my $ne1a_gqc_yaml_data = $test_data->{'workflow_ne1a_gc_results'},
@@ -204,47 +202,47 @@ sub all_tests : Test(189) {
         'Failed: unknown allele pattern : Ne1a SEP_PICK bsd<1.1> loacrit<1.1> loadel<1.1> loatam<0.1> neo<1.1>',
         'well 21 should give an unknown allele pattern error';
 
-    ok $ne1a_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present. ',
         'well 22 should give a validation error for missing loacrit copy number';
     ok $ne1a_gc_allele_results->{ '23' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loacrit assay validation: Copy Number Range not present',
+        'Failed: validate assays : loacrit assay validation: Copy Number Range not present. ',
         'well 23 should give a validation error for missing loacrit copy number range';
     ok $ne1a_gc_allele_results->{ '24' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold. ',
         'well 24 should give a validation error for above threshold loacrit copy number range';
 
-    ok $ne1a_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present. ',
         'well 25 should give a validation error for missing loatam copy number';
     ok $ne1a_gc_allele_results->{ '26' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loatam assay validation: Copy Number Range not present',
+        'Failed: validate assays : loatam assay validation: Copy Number Range not present. ',
         'well 26 should give a validation error for missing loatam copy number range';
     ok $ne1a_gc_allele_results->{ '27' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loatam assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loatam assay validation: Copy Number Range above threshold. ',
         'well 27 should give a validation error for above threshold loatam copy number range';
 
-    ok $ne1a_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. ',
         'well 28 should give a validation error for missing loadel copy number';
     ok $ne1a_gc_allele_results->{ '29' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range not present',
+        'Failed: validate assays : loadel assay validation: Copy Number Range not present. ',
         'well 29 should give a validation error for missing loadel copy number range';
     ok $ne1a_gc_allele_results->{ '30' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. ',
         'well 30 should give a validation error for above threshold loadel copy number range';
 
-    ok $ne1a_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number not present. ',
         'well 31 should give a validation error for missing neo copy number';
-    ok $ne1a_gc_allele_results->{ '32' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present',
+    ok $ne1a_gc_allele_results->{ '32' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present. ',
         'well 32 should give a validation error for missing neo copy number range';
     ok $ne1a_gc_allele_results->{ '33' }->{ 'allele_determination' } eq
-        'Failed: validate assays : neo assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : neo assay validation: Copy Number Range above threshold. ',
         'well 33 should give a validation error for above threshold neo copy number range';
 
-    ok $ne1a_gc_allele_results->{ '34' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present',
+    ok $ne1a_gc_allele_results->{ '34' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present. ',
         'well 34 should give a validation error for missing bsd copy number';
-    ok $ne1a_gc_allele_results->{ '35' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present',
+    ok $ne1a_gc_allele_results->{ '35' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present. ',
         'well 35 should give a validation error for missing bsd copy number range';
     ok $ne1a_gc_allele_results->{ '36' }->{ 'allele_determination' } eq
-        'Failed: validate assays : bsd assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : bsd assay validation: Copy Number Range above threshold. ',
         'well 36 should give a validation error for above threshold bsd copy number range';
 
     # ----------------------------------------------------------------------------------------------
@@ -351,47 +349,47 @@ sub all_tests : Test(189) {
         'Failed: unknown allele pattern : Ne1 SEP_PICK bsd<1.1> loacrit<1.1> loadel<1.1> loatam<0.1> neo<1.1>',
         'well 17 should give an unknown allele pattern error';
 
-    ok $ne1_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
+    ok $ne1_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present. ',
         'well 18 should give a validation error for missing loacrit copy number';
     ok $ne1_gc_allele_results->{ '19' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loacrit assay validation: Copy Number Range not present',
+        'Failed: validate assays : loacrit assay validation: Copy Number Range not present. ',
         'well 19 should give a validation error for missing loacrit copy number range';
     ok $ne1_gc_allele_results->{ '20' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold. ',
         'well 20 should give a validation error for above threshold loacrit copy number range';
 
-    ok $ne1_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present',
+    ok $ne1_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present. ',
         'well 21 should give a validation error for missing loatam copy number';
     ok $ne1_gc_allele_results->{ '22' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loatam assay validation: Copy Number Range not present',
+        'Failed: validate assays : loatam assay validation: Copy Number Range not present. ',
         'well 22 should give a validation error for missing loatam copy number range';
     ok $ne1_gc_allele_results->{ '23' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loatam assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loatam assay validation: Copy Number Range above threshold. ',
         'well 23 should give a validation error for above threshold loatam copy number range';
 
-    ok $ne1_gc_allele_results->{ '24' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
+    ok $ne1_gc_allele_results->{ '24' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. ',
         'well 24 should give a validation error for missing loadel copy number';
     ok $ne1_gc_allele_results->{ '25' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range not present',
+        'Failed: validate assays : loadel assay validation: Copy Number Range not present. ',
         'well 25 should give a validation error for missing loadel copy number range';
     ok $ne1_gc_allele_results->{ '26' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. ',
         'well 26 should give a validation error for above threshold loadel copy number range';
 
-    ok $ne1_gc_allele_results->{ '27' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number not present',
+    ok $ne1_gc_allele_results->{ '27' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number not present. ',
         'well 27 should give a validation error for missing neo copy number';
-    ok $ne1_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present',
+    ok $ne1_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present. ',
         'well 28 should give a validation error for missing neo copy number range';
     ok $ne1_gc_allele_results->{ '29' }->{ 'allele_determination' } eq
-        'Failed: validate assays : neo assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : neo assay validation: Copy Number Range above threshold. ',
         'well 29 should give a validation error for above threshold neo copy number range';
 
-    ok $ne1_gc_allele_results->{ '30' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present',
+    ok $ne1_gc_allele_results->{ '30' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present. ',
         'well 30 should give a validation error for missing bsd copy number';
-    ok $ne1_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present',
+    ok $ne1_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present. ',
         'well 31 should give a validation error for missing bsd copy number range';
     ok $ne1_gc_allele_results->{ '32' }->{ 'allele_determination' } eq
-        'Failed: validate assays : bsd assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : bsd assay validation: Copy Number Range above threshold. ',
         'well 32 should give a validation error for above threshold bsd copy number range';
 
     # ----------------------------------------------------------------------------------------------
@@ -531,45 +529,45 @@ sub all_tests : Test(189) {
         'Failed: unknown allele pattern : E SEP_PICK bsd<1.1> loacrit<1.1> loadel<1.1> loatam<0.1> neo<1.1>',
         'well 31 should give an unknown allele pattern error';
 
-    ok $e_gc_allele_results->{ '32' }->{ 'allele_determination' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present',
+    ok $e_gc_allele_results->{ '32' }->{ 'allele_determination' } eq 'Failed: validate assays : loacrit assay validation: Copy Number not present. ',
         'well 32 should give a validation error for missing loacrit copy number';
     ok $e_gc_allele_results->{ '33' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loacrit assay validation: Copy Number Range not present',
+        'Failed: validate assays : loacrit assay validation: Copy Number Range not present. ',
         'well 33 should give a validation error for missing loacrit copy number range';
     ok $e_gc_allele_results->{ '34' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loacrit assay validation: Copy Number Range above threshold. ',
         'well 34 should give a validation error for above threshold loacrit copy number range';
 
-    ok $e_gc_allele_results->{ '35' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present',
+    ok $e_gc_allele_results->{ '35' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number not present. ',
         'well 35 should give a validation error for missing loatam copy number';
-    ok $e_gc_allele_results->{ '36' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range not present',
+    ok $e_gc_allele_results->{ '36' }->{ 'allele_determination' } eq 'Failed: validate assays : loatam assay validation: Copy Number Range not present. ',
         'well 36 should give a validation error for missing loatam copy number range';
     ok $e_gc_allele_results->{ '37' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loatam assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loatam assay validation: Copy Number Range above threshold. ',
         'well 37 should give a validation error for above threshold loatam copy number range';
 
-    ok $e_gc_allele_results->{ '38' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present',
+    ok $e_gc_allele_results->{ '38' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. ',
         'well 38 should give a validation error for missing loadel copy number';
-    ok $e_gc_allele_results->{ '39' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present',
+    ok $e_gc_allele_results->{ '39' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present. ',
         'well 39 should give a validation error for missing loadel copy number range';
     ok $e_gc_allele_results->{ '40' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. ',
         'well 40 should give a validation error for above threshold loadel copy number range';
 
-    ok $e_gc_allele_results->{ '41' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number not present',
+    ok $e_gc_allele_results->{ '41' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number not present. ',
         'well 41 should give a validation error for missing neo copy number';
-    ok $e_gc_allele_results->{ '42' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present',
+    ok $e_gc_allele_results->{ '42' }->{ 'allele_determination' } eq 'Failed: validate assays : neo assay validation: Copy Number Range not present. ',
         'well 42 should give a validation error for missing neo copy number range';
     ok $e_gc_allele_results->{ '43' }->{ 'allele_determination' } eq
-        'Failed: validate assays : neo assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : neo assay validation: Copy Number Range above threshold. ',
         'well 43 should give a validation error for above threshold neo copy number range';
 
-    ok $e_gc_allele_results->{ '44' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present',
+    ok $e_gc_allele_results->{ '44' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number not present. ',
         'well 44 should give a validation error for missing bsd copy number';
-    ok $e_gc_allele_results->{ '45' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present',
+    ok $e_gc_allele_results->{ '45' }->{ 'allele_determination' } eq 'Failed: validate assays : bsd assay validation: Copy Number Range not present. ',
         'well 45 should give a validation error for missing bsd copy number range';
     ok $e_gc_allele_results->{ '46' }->{ 'allele_determination' } eq
-        'Failed: validate assays : bsd assay validation: Copy Number Range above threshold',
+        'Failed: validate assays : bsd assay validation: Copy Number Range above threshold. ',
         'well 46 should give a validation error for above threshold bsd copy number range';
 
     # ----------------------------------------------------------------------------------------------
@@ -631,46 +629,46 @@ sub all_tests : Test(189) {
         $creki_gc_allele_results->{ $creki_well_result_hash->{ 'id' } } = $creki_well_result_hash;
     }
 
-    ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
-    ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
-    ok $creki_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 3 should be allele type < tm1/wt lrpcr > for stage EP_PICK';
+    # $creki_gc_allele_results
 
-    ok $creki_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'wt/wt', 'well 4 should be allele type < wt/wt > for stage PIQ';
-    ok $creki_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1/wt', 'well 5 should be allele type < tm1/wt > for stage PIQ';
-    ok $creki_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 6 should be allele type < tm1/wt lrpcr > for stage PIQ';
+    ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '3' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 3 should be allele type < tm1/wt lrpcr only > for stage EP_PICK';
 
-    ok $creki_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 7 should be allele type < potential wt/wt > for stage EP_PICK';
-    ok $creki_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 8 should be allele type < potential tm1/wt > for stage EP_PICK';
-    ok $creki_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 9 should be allele type < potential tm1/wt lrpcr > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '4' }->{ 'allele_determination' }  eq 'wt/wt', 'well 4 should be allele type < wt/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '5' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 5 should be allele type < tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '6' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 6 should be allele type < tm1/wt lrpcr only > for stage PIQ';
+
+    ok $creki_gc_allele_results->{ '7' }->{ 'allele_determination' }  eq 'potential wt/wt', 'well 7 should be allele type < potential wt/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '8' }->{ 'allele_determination' }  eq 'potential tm1/wt', 'well 8 should be allele type < potential tm1/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '9' }->{ 'allele_determination' }  eq 'potential tm1/wt lrpcr only', 'well 9 should be allele type < potential tm1/wt lrpcr only > for stage EP_PICK';
 
     ok $creki_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 10 should be allele type < potential wt/wt > for stage PIQ';
     ok $creki_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 11 should be allele type < potential tm1/wt > for stage PIQ';
-    ok $creki_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 12 should be allele type < potential tm1/wt lrpcr > for stage PIQ';
+    ok $creki_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr only', 'well 12 should be allele type < potential tm1/wt lrpcr only > for stage PIQ';
 
-    ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 13 should give an unknown allele pattern error';
+    ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi PIQ cre<2.1> puro<2.1> loadel<2.1> gr3<-> gf3<-> gr4<-> gf4<->',
+        'well 13 should give an unknown allele pattern error';
 
-    ok $creki_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
+    ok $creki_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number not present. ',
         'well 14 should give a validation error for missing Cre copy number';
-    ok $creki_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
+    ok $creki_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number Range not present. ',
         'well 15 should give a validation error for missing Cre copy number range';
-    ok $creki_gc_allele_results->{ '16' }->{ 'allele_determination' } eq
-        'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
+    ok $creki_gc_allele_results->{ '16' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number Range above threshold. ',
         'well 16 should give a validation error for above threshold Cre copy number range';
 
-    ok $creki_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present and no lrpcr results',
+    ok $creki_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 17 should give a validation error for missing loadel copy number and no lrprc results';
-    ok $creki_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present and no lrpcr results',
+    ok $creki_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present. lrpcr assay validation: gf3 value not present. ',
         'well 18 should give a validation error for missing loadel copy number range and no lrprc results';
-    ok $creki_gc_allele_results->{ '19' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold and no lrpcr results',
+    ok $creki_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
         'well 19 should give a validation error for above threshold loadel copy number range and no lrprc results';
 
-    ok $creki_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
+    ok $creki_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number not present. ',
         'well 20 should give a validation error for missing Puro copy number';
-    ok $creki_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
+    ok $creki_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range not present. ',
         'well 21 should give a validation error for missing Puro copy number range';
-    ok $creki_gc_allele_results->{ '22' }->{ 'allele_determination' } eq
-        'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
+    ok $creki_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range above threshold. ',
         'well 22 should give a validation error for above threshold Puro copy number range';
 
     #TODO: lrpcr fails
@@ -681,7 +679,7 @@ sub all_tests : Test(189) {
 
     # fetch CreKiDre workflow data
     note('Testing AlleleDetermination Logic - step 6a - extracting CreKiDre workflow data');
-    ok my $crekidre_gqc_yaml_data = $test_data->{'workflow_creki_gc_results'}, 'fetching CreKiDre test data from yaml should succeed';
+    ok my $crekidre_gqc_yaml_data = $test_data->{'workflow_crekidre_gc_results'}, 'fetching CreKiDre test data from yaml should succeed';
 
     # Create AlleleDetermination module instance
     ok my $crekidre_AD = LIMS2::Model::Util::AlleleDetermination->new( model => $model, species => 'Mouse' ),
@@ -739,56 +737,56 @@ sub all_tests : Test(189) {
 
     my $crekidre_gc_allele_results = {};
     foreach my $crekidre_well_result_hash ( @{ $crekidre_gc_allele_results_array } ) {
-        $ne1a_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
+        $crekidre_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
     }
 
-    ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
-    ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
-    ok $crekidre_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 3 should be allele type < tm1/wt lrpcr > for stage EP_PICK';
-    ok $crekidre_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'tm1.1/wt', 'well 4 should be allele type < tm1.1/wt > for stage EP_PICK';
-    ok $crekidre_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1.1/wt lrpcr', 'well 5 should be allele type < tm1.1/wt lrpcr > for stage EP_PICK';
+    # $crekidre_gc_allele_results
 
-    ok $crekidre_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'wt/wt', 'well 6 should be allele type < wt/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'tm1/wt', 'well 7 should be allele type < tm1/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'tm1/wt lrpcr', 'well 8 should be allele type < tm1/wt lrpcr > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'tm1.1/wt', 'well 9 should be allele type < tm1.1/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'tm1.1/wt lrpcr', 'well 10 should be allele type < tm1.1/wt lrpcr > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '3' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 3 should be allele type < tm1/wt lrpcr only > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '4' }->{ 'allele_determination' }  eq 'tm1.1/wt', 'well 4 should be allele type < tm1.1/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '5' }->{ 'allele_determination' }  eq 'tm1.1/wt lrpcr only', 'well 5 should be allele type < tm1.1/wt lrpcr only > for stage EP_PICK';
+
+    ok $crekidre_gc_allele_results->{ '6' }->{ 'allele_determination' }  eq 'wt/wt', 'well 6 should be allele type < wt/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '7' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 7 should be allele type < tm1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '8' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 8 should be allele type < tm1/wt lrpcr only > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '9' }->{ 'allele_determination' }  eq 'tm1.1/wt', 'well 9 should be allele type < tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'tm1.1/wt lrpcr only', 'well 10 should be allele type < tm1.1/wt lrpcr only > for stage PIQ';
 
     ok $crekidre_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 11 should be allele type < potential wt/wt > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 12 should be allele type < potential tm1/wt > for stage EP_PICK';
-    ok $crekidre_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 13 should be allele type < potential tm1/wt lrpcr > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr only', 'well 13 should be allele type < potential tm1/wt lrpcr only > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 14 should be allele type < potential tm1.1/wt > for stage EP_PICK';
-    ok $crekidre_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'potential tm1.1/wt lrpcr', 'well 15 should be allele type < potential tm1.1/wt lrpcr > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'potential tm1.1/wt lrpcr only', 'well 15 should be allele type < potential tm1.1/wt lrpcr only > for stage EP_PICK';
 
     ok $crekidre_gc_allele_results->{ '16' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 16 should be allele type < potential wt/wt > for stage PIQ';
     ok $crekidre_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 17 should be allele type < potential tm1/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr', 'well 18 should be allele type < potential tm1/wt lrpcr > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr only', 'well 18 should be allele type < potential tm1/wt lrpcr only > for stage PIQ';
     ok $crekidre_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 19 should be allele type < potential tm1.1/wt > for stage PIQ';
-    ok $crekidre_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'potential tm1.1/wt lrpcr', 'well 20 should be allele type < potential tm1.1/wt lrpcr > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'potential tm1.1/wt lrpcr only', 'well 20 should be allele type < potential tm1.1/wt lrpcr only > for stage PIQ';
 
-    ok $crekidre_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi ???>', 'well 21 should give an unknown allele pattern error';
+    ok $crekidre_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKiDre PIQ cre<2.1> puro<2.1> loadel<2.1> gr3<-> gf3<-> gr4<-> gf4<->', 'well 21 should give an unknown allele pattern error';
 
-    ok $crekidre_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number not present',
+    ok $crekidre_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number not present. ',
         'well 22 should give a validation error for missing Cre copy number';
-    ok $crekidre_gc_allele_results->{ '23' }->{ 'allele_determination' } eq 'Failed: validate assays : Cre assay validation: Copy Number Range not present',
+    ok $crekidre_gc_allele_results->{ '23' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number Range not present. ',
         'well 23 should give a validation error for missing Cre copy number range';
-    ok $crekidre_gc_allele_results->{ '24' }->{ 'allele_determination' } eq
-        'Failed: validate assays : Cre assay validation: Copy Number Range above threshold',
+    ok $crekidre_gc_allele_results->{ '24' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number Range above threshold. ',
         'well 24 should give a validation error for above threshold Cre copy number range';
 
-    ok $crekidre_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present and no lrpcr results',
+    ok $crekidre_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 25 should give a validation error for missing loadel copy number and no lrprc results';
-    ok $crekidre_gc_allele_results->{ '26' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present and no lrpcr results',
+    ok $crekidre_gc_allele_results->{ '26' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present. lrpcr assay validation: gf3 value not present. ',
         'well 26 should give a validation error for missing loadel copy number range and no lrprc results';
-    ok $crekidre_gc_allele_results->{ '27' }->{ 'allele_determination' } eq
-        'Failed: validate assays : loadel assay validation: Copy Number Range above threshold and no lrpcr results',
+    ok $crekidre_gc_allele_results->{ '27' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
         'well 27 should give a validation error for above threshold loadel copy number range and no lrprc results';
 
-    ok $crekidre_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number not present',
+    ok $crekidre_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number not present. ',
         'well 28 should give a validation error for missing Puro copy number';
-    ok $crekidre_gc_allele_results->{ '29' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range not present',
+    ok $crekidre_gc_allele_results->{ '29' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range not present. ',
         'well 29 should give a validation error for missing Puro copy number range';
-    ok $crekidre_gc_allele_results->{ '30' }->{ 'allele_determination' } eq 'Failed: validate assays : Puro assay validation: Copy Number Range above threshold',
+    ok $crekidre_gc_allele_results->{ '30' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range above threshold. ',
         'well 30 should give a validation error for above threshold Puro copy number range';
 
     # ----------------------------------------------------------------------------------------------

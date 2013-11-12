@@ -2623,13 +2623,13 @@ workflow_creki_gc_results:
     gene_name: Ppp2r5c
     workflow: CreKi
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
-    loadel#copy_number: '2.1'
+    loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
   - id: 8
     well: A01
@@ -2639,10 +2639,10 @@ workflow_creki_gc_results:
     gene_name: Ppp2r5c
     workflow: CreKi
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '1.5'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
-    puro#copy_number: '0.1'
+    puro#copy_number: '1.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
@@ -2655,10 +2655,10 @@ workflow_creki_gc_results:
     gene_name: Ppp2r5c
     workflow: CreKi
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '1.5'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
-    puro#copy_number: '0.1'
+    puro#copy_number: '1.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
@@ -2675,13 +2675,13 @@ workflow_creki_gc_results:
     gene_name: Ppp2r5c
     workflow: CreKi
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
-    loadel#copy_number: '2.1'
+    loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
   - id: 11
     well: A01
@@ -2734,7 +2734,7 @@ workflow_creki_gc_results:
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
-    loadel#copy_number_range: '0.6'
+    loadel#copy_number_range: '0.1'
   - id: 14
     well: A01
     plate_name: EPD0001
@@ -2842,10 +2842,10 @@ workflow_creki_gc_results:
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
-    puro#copy_number: '0.1'
+    puro#copy_number: '-'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
-    loadel#copy_number: '-'
+    loadel#copy_number: '0.1'
     loadel#copy_number_range: '0.1'
   - id: 21
     well: A01
@@ -2859,10 +2859,10 @@ workflow_creki_gc_results:
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
-    puro#copy_number_range: '0.1'
+    puro#copy_number_range: '-'
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
-    loadel#copy_number_range: '-'
+    loadel#copy_number_range: '0.1'
   - id: 22
     well: A01
     plate_name: EPD0001
@@ -2875,10 +2875,10 @@ workflow_creki_gc_results:
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
-    puro#copy_number_range: '0.1'
+    puro#copy_number_range: '0.7'
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
-    loadel#copy_number_range: '0.7'
+    loadel#copy_number_range: '0.1'
 workflow_crekidre_gc_results:
   - id: 1
     well: A01
@@ -2886,7 +2886,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
@@ -2902,7 +2902,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -2918,7 +2918,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -2938,7 +2938,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -2954,7 +2954,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -2974,7 +2974,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
@@ -2990,7 +2990,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -3006,7 +3006,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -3026,7 +3026,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -3042,7 +3042,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.1'
     cre#copy_number_range: '0.1'
@@ -3062,15 +3062,15 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
-    loadel#copy_number: '2.1'
+    loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
   - id: 12
     well: A01
@@ -3078,12 +3078,12 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '1.5'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
-    puro#copy_number: '0.1'
+    puro#copy_number: '1.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
@@ -3094,12 +3094,12 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '1.5'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
-    puro#copy_number: '0.1'
+    puro#copy_number: '1.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
@@ -3114,9 +3114,9 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '1.5'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
@@ -3130,9 +3130,9 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '1.5'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
@@ -3150,15 +3150,15 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
-    cre#copy_number: '0.6'
+    cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
-    loadel#copy_number: '2.1'
+    loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
   - id: 17
     well: A01
@@ -3166,7 +3166,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.6'
     cre#copy_number_range: '0.1'
@@ -3182,7 +3182,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.6'
     cre#copy_number_range: '0.1'
@@ -3202,7 +3202,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.6'
     cre#copy_number_range: '0.1'
@@ -3218,7 +3218,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '1.6'
     cre#copy_number_range: '0.1'
@@ -3238,7 +3238,7 @@ workflow_crekidre_gc_results:
     plate_type: PIQ
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '2.1'
     cre#copy_number_range: '0.1'
@@ -3247,14 +3247,14 @@ workflow_crekidre_gc_results:
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
-    loadel#copy_number_range: '0.6'
+    loadel#copy_number_range: '0.1'
   - id: 22
     well: A01
     plate_name: EPD0001
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '-'
     cre#copy_number_range: '0.1'
@@ -3270,7 +3270,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '-'
@@ -3286,7 +3286,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.7'
@@ -3302,7 +3302,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
@@ -3318,7 +3318,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
@@ -3334,7 +3334,7 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
@@ -3350,15 +3350,15 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
-    puro#copy_number: '0.1'
+    puro#copy_number: '-'
     puro#copy_number_range: '0.1'
     loadel#confidence: '0.99'
-    loadel#copy_number: '-'
+    loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
   - id: 29
     well: A01
@@ -3366,29 +3366,29 @@ workflow_crekidre_gc_results:
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
-    puro#copy_number_range: '0.1'
+    puro#copy_number_range: '-'
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
-    loadel#copy_number_range: '-'
+    loadel#copy_number_range: '0.1'
   - id: 30
     well: A01
     plate_name: EPD0001
     plate_type: EP_PICK
     gene_id: MGI:1349475
     gene_name: Ppp2r5c
-    workflow: CreKi
+    workflow: CreKiDre
     cre#confidence: '0.99'
     cre#copy_number: '0.1'
     cre#copy_number_range: '0.1'
     puro#confidence: '0.99'
     puro#copy_number: '0.1'
-    puro#copy_number_range: '0.1'
+    puro#copy_number_range: '0.7'
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
-    loadel#copy_number_range: '0.7'
+    loadel#copy_number_range: '0.1'
