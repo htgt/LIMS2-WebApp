@@ -20,8 +20,11 @@ override _build_columns => sub {
 
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
-        "Well Name",#"Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
-        "Created By","Created At",
+        'Well Name',
+        'Crispr Plate', 'Crispr Well',
+        # "Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
+        'Created By','Created At',
+        # 'Accepted?',
     ];
 };
 
@@ -42,17 +45,20 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
+        my $crispr = $well->parent_crispr;
+
         my ( $crispr_data, $locus_data );
-        my $process_crispr = $well->process_output_wells->first->process->process_crispr;
+        my $process_crispr = $crispr->process_output_wells->first->process->process_crispr;
         if ( $process_crispr ) {
             $crispr_data = $process_crispr->crispr->as_hash;
             $locus_data = $crispr_data->{locus} if $crispr_data->{locus};
         }
 
-
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $well->name,
+            $crispr->plate,
+            $crispr->name,
             # $crispr_data ? $crispr_data->{id}        : '-',
             # $crispr_data ? $crispr_data->{seq}       : '-',
             # $crispr_data ? $crispr_data->{type}      : '-',
@@ -63,6 +69,7 @@ override iterator => sub {
             # $locus_data  ? $locus_data->{assembly}   : '-',
             $well->created_by->name,
             $well->created_at->ymd,
+            # $self->boolean_str( $well->is_accepted ),
         ];
     }
 };

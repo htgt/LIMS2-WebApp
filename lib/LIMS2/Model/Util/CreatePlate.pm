@@ -2,6 +2,7 @@ package LIMS2::Model::Util::CreatePlate;
 
 use strict;
 use warnings FATAL => 'all';
+use feature "switch";
 
 use Sub::Exporter -setup => {
     exports => [
@@ -86,80 +87,82 @@ sub find_parent_well_ids {
 
     my @parent_well_ids;
 
-    if ( $params->{process_type} eq 'second_electroporation' ) {
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{xep_plate},
-                well_name  => substr( $validated_params->{xep_well}, -3 )
-            }
-        );
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{dna_plate},
-                well_name  => substr( $validated_params->{dna_well}, -3 )
-            }
-        );
-        delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
-    }
-    elsif ( $params->{process_type} eq 'crispr_single_ep' ) {
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{final_pick_plate},
-                well_name  => substr( $validated_params->{final_pick_well}, -3 )
-            }
-        );
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{crispr_vector_plate},
-                well_name  => substr( $validated_params->{crispr_vector_well}, -3 )
-            }
-        );
-        delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
-    }
-    elsif ( $params->{process_type} eq 'crispr_paired_ep' ) {
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{final_pick_plate},
-                well_name  => substr( $validated_params->{final_pick_well}, -3 )
-            }
-        );
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{crispr_vector1_plate},
-                well_name  => substr( $validated_params->{crispr_vector1_well}, -3 )
-            }
-        );
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{crispr_vector2_plate},
-                well_name  => substr( $validated_params->{crispr_vector2_well}, -3 )
-            }
-        );
-        delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
-    }
-    elsif ( $params->{process_type} eq 'create_di' || $params->{process_type} eq 'create_crispr' ) {
-        return [];
-    }
-    elsif ( $params->{process_type} eq 'xep_pool' ) {
-        foreach my $well_name ( @{$params->{'parent_well_list'}} ) {
+    for ( $params->{process_type} ) {
+        when ( 'second_electroporation' ) {
             push @parent_well_ids, well_id_for(
                 $model, {
-                    plate_name => $validated_params->{'parent_plate'},
-                    well_name => $well_name
+                    plate_name => $validated_params->{xep_plate},
+                    well_name  => substr( $validated_params->{xep_well}, -3 )
                 }
             );
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{dna_plate},
+                    well_name  => substr( $validated_params->{dna_well}, -3 )
+                }
+            );
+            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
-        delete @{$params}{'parent_well_list'};
-    }
-    else {
-        push @parent_well_ids, well_id_for(
-            $model, {
-                plate_name => $validated_params->{parent_plate},
-                well_name  => substr( $validated_params->{parent_well}, -3 )
+        when ( 'crispr_single_ep' ) {
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{final_pick_plate},
+                    well_name  => substr( $validated_params->{final_pick_well}, -3 )
+                }
+            );
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{crispr_vector_plate},
+                    well_name  => substr( $validated_params->{crispr_vector_well}, -3 )
+                }
+            );
+            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
+        }
+        when ( 'crispr_paired_ep' ) {
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{final_pick_plate},
+                    well_name  => substr( $validated_params->{final_pick_well}, -3 )
+                }
+            );
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{crispr_vector1_plate},
+                    well_name  => substr( $validated_params->{crispr_vector1_well}, -3 )
+                }
+            );
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{crispr_vector2_plate},
+                    well_name  => substr( $validated_params->{crispr_vector2_well}, -3 )
+                }
+            );
+            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
+        }
+        when ( 'create_di' || $params->{process_type} eq 'create_crispr' ) {
+            return [];
+        }
+        when ( 'xep_pool' ) {
+            foreach my $well_name ( @{$params->{'parent_well_list'}} ) {
+                push @parent_well_ids, well_id_for(
+                    $model, {
+                        plate_name => $validated_params->{'parent_plate'},
+                        well_name => $well_name
+                    }
+                );
             }
-        );
+            delete @{$params}{'parent_well_list'};
+        }
+        default {
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{parent_plate},
+                    well_name  => substr( $validated_params->{parent_well}, -3 )
+                }
+            );
 
-        delete @{$params}{qw( parent_plate parent_well )};
+            delete @{$params}{qw( parent_plate parent_well )};
+        }
     }
 
     return \@parent_well_ids;
