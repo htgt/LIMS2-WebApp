@@ -206,14 +206,14 @@ const our %ADDITIONAL_PLATE_REPORTS => (
     ],
     CRISPR => [
         {
-            class => 'CrisprPlateOrderSheet',
+            class  => 'CrisprPlateOrderSheet',
             method => 'async',
             name   => 'Crispr Plate Order Sheet',
         }
     ],
     EP => [
         {
-            class => 'EPPrint',
+            class  => 'EPPrint',
             method => 'sync',
             name   => 'EP Print',
         }

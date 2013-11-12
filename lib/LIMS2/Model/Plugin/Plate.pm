@@ -374,12 +374,12 @@ sub create_plate_csv_upload {
     } elsif ($params->{process_type} eq 'crispr_single_ep') {
         $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector_plate', 'crispr_vector_well' ];
     } elsif ($params->{process_type} eq 'crispr_paired_ep') {
-        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well', 
+        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
                                 'crispr_vector2_plate', 'crispr_vector2_well' ];
     } else {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
-   
+
     my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
 
     for my $datum ( @{$well_data} ) {

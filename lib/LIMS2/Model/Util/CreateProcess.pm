@@ -534,16 +534,16 @@ sub _check_wells_crispr_paired_ep {
 
     my $crispr_v,
     my $final_pick;
-    my $right;
-    my $left;
+    my $pamright;
+    my $pamleft;
 
     foreach (@input_well) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
             if ($_->crispr->pam_right) {
-                $right = 1;
+                $pamright = 1;
             } else {
-                $left = 1;
+                $pamleft = 1;
             }
         }
         if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
@@ -555,7 +555,7 @@ sub _check_wells_crispr_paired_ep {
             . 'and the other of type FINAL_PICK.'
         );
     }
-    unless ($right && $left ) {
+    unless ($pamright && $pamleft ) {
         LIMS2::Exception::Validation->throw(
             'crispr_paired_ep process types requires paired CRISPR_V. '
             . 'The provided pair is not valid.'

@@ -20,8 +20,10 @@ override _build_columns => sub {
 
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
-        "Well Name",#"Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
-        "Created By","Created At",
+        'Well Name',
+        'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
+        'Crispr Plate', 'Crispr Well',
+        'Created By','Created At',
     ];
 };
 
@@ -42,6 +44,9 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
+        my $final_vector = $well->final_vector;
+        my $crispr = $well->parent_crispr_v->parent_crispr;
+
         my ( $crispr_data, $locus_data );
         my $process_crispr = $well->process_output_wells->first->process->process_crispr;
         if ( $process_crispr ) {
@@ -53,14 +58,13 @@ override iterator => sub {
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $well->name,
-            # $crispr_data ? $crispr_data->{id}        : '-',
-            # $crispr_data ? $crispr_data->{seq}       : '-',
-            # $crispr_data ? $crispr_data->{type}      : '-',
-            # $locus_data  ? $locus_data->{chr_name}   : '-',
-            # $locus_data  ? $locus_data->{chr_start}  : '-',
-            # $locus_data  ? $locus_data->{chr_end}    : '-',
-            # $locus_data  ? $locus_data->{chr_strand} : '-',
-            # $locus_data  ? $locus_data->{assembly}   : '-',
+            $final_vector->cassette->name,
+            $final_vector->cassette->resistance,
+            ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
+            $final_vector->backbone->name,
+            $crispr->plate,
+            $crispr->name,
+            # join( q{/}, @{ $final_vector->recombinases } ),
             $well->created_by->name,
             $well->created_at->ymd,
         ];
