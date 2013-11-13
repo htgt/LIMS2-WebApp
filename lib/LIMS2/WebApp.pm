@@ -49,7 +49,10 @@ __PACKAGE__->config(
     'Plugin::Session' => {
         expires => 28800,                                # 8 hours
         storage => $ENV{LIMS2_SESSION_STORE}
-    }
+    },
+    'static' => {
+        ignore_extensions => [ qw{ tt } ],
+    },
 );
 
 # Configure Log4perl
