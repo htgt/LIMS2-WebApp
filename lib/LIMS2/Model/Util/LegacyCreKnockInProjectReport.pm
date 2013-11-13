@@ -43,11 +43,28 @@ has projects => (
     lazy_build => 1,
 );
 
+has project_id => (
+    is => 'ro',
+    isa => 'Int',
+);
+
 sub _build_projects {
     my $self = shift;
+    my @projects;
 
-    my @projects
-        = $self->model->schema->resultset('Project')->search( { sponsor_id => 'Cre Knockin' } );
+    if ( $self->project_id ) {
+        my $project = $self->model->schema->resultset('Project')->find(
+            {
+                sponsor_id => 'Cre Knockin',
+                id => $self->project_id,
+            }
+        );
+        push @projects, $project;
+
+    }
+    else {
+        @projects = $self->model->schema->resultset('Project')->search( { sponsor_id => 'Cre Knockin' } );
+    }
 
     return \@projects;
 }
@@ -112,6 +129,7 @@ sub generate_report_data {
              $htgt_project_id,
              $project->id,
              $marker_symbol,
+             $project->gene_id,
              $project_status,
         ]
     };
