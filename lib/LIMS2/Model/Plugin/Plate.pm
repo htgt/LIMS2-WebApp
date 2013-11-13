@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.124';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.125';
 }
 ## use critic
 
@@ -374,9 +374,17 @@ sub create_plate_csv_upload {
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
 
-    my $expected_csv_headers = $plate_data{type} eq 'SEP'
-        ? [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ]
-        : [ 'well_name', 'parent_plate', 'parent_well' ];
+    my $expected_csv_headers;
+    if ($params->{process_type} eq 'second_electroporation') {
+        $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];
+    } elsif ($params->{process_type} eq 'crispr_single_ep') {
+        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector_plate', 'crispr_vector_well' ];
+    } elsif ($params->{process_type} eq 'crispr_paired_ep') {
+        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
+                                'crispr_vector2_plate', 'crispr_vector2_well' ];
+    } else {
+        $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
+    }
 
     my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
 

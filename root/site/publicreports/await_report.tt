@@ -1,0 +1,40 @@
+<div class="page-header">
+  <h1>Generating report...</h1>
+</div>
+
+<div id="report_pending">
+  <p>
+    Reports may take several minutes to generate. <em>Please be patient.</em>
+  </p>
+  <img alt="Waiting" src="[% c.uri_for( '/static/images/spinner-circle.gif' ) %]">
+</div>
+
+<div id="report_complete" class="alert alert-success hide">
+  <p>
+    Report ready. <a href="[% c.uri_for( '/public_reports/download', report_id ) %]">Download</a>
+  </p>
+</div>
+
+<div id="report_failed" class="alert alert-error hide">
+  <p>
+    Report generation failed. Please try again later.
+  </p>
+</div>
+
+<script type="text/javascript">
+  $.smartPoller( function(retry){
+    $.getJSON( "[% c.uri_for( '/public_reports/ready', report_id ) %]", function(response){
+      if( response.status == "DONE" ) {
+         $("#report_pending").hide();
+         $("#report_complete").show();
+      }
+      else if ( response.status == "PENDING" ) {
+        retry();
+      }
+      else {
+        $("#report_pending").hide();
+        $("#report_failed").show();
+      }
+    });
+  });
+</script>

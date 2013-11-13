@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.124';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.125';
 }
 ## use critic
 
@@ -97,9 +97,12 @@ sub update_genotyping_qc_data{
         foreach my $primer (@primer_bands){
             my $value = $datum->{$primer};
             if (defined $value){
-                #die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless $value eq "yes";
-                die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless ($value eq 'pass' || $value eq 'fail');
-
+                    if( $primer eq 'lr_pcr_pass' ) {
+                    die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless ($value eq 'pass' || $value eq 'passb' || $value eq 'fail');
+                }
+                else {
+                    die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless ($value eq 'pass' || $value eq 'fail');
+                }
                 # FIXME: need an update or create method
                 # update_or_create_well_primer_band now implemented and this code should be updated to use it
                 $self->create_well_primer_bands({
@@ -241,13 +244,13 @@ sub update_genotyping_qc_value {
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
-    # if ( $assay_name =~ /
-    #         (g[r|f])    |
-    #         tr_pcr      |
-    #         accepted_override
-    #         /xgms ){
-    #     # $assay_value = $self->convert_bool( $assay_value );
-    # }
+     if ( $assay_name =~ /
+#             (g[r|f])    |
+#             tr_pcr      |
+             accepted_override
+             /xgms ){
+          $assay_value = $self->convert_bool( $assay_value );
+     }
     my $genotyping_qc_result;
 
     if (exists $assays_dispatch->{$assay_name} ) {
@@ -802,25 +805,25 @@ order by wd."Well ID"
 SQL_END
 }
 
-# sub convert_bool {
-#     my $self = shift;
-#     my $string_value = shift;
+ sub convert_bool {
+     my $self = shift;
+     my $string_value = shift;
 
-#     my %lookup_boolean = (
-#         'true'  => 1,
-#         'yes'   => 1,
-#         '1'     => 1,
-#         'false' => 0,
-#         'no'    => 0,
-#         '0'     => 0,
-#     );
+     my %lookup_boolean = (
+         'true'  => 1,
+         'yes'   => 1,
+         '1'     => 1,
+         'false' => 0,
+         'no'    => 0,
+         '0'     => 0,
+     );
 
-#     # Return the boolean as an integer, otherwise return the original string
-#     # This is because other strings like 'reset' or '-' might be present in
-#     # addition to 'yes', 'no', etc.
-#     return exists $lookup_boolean{$string_value} ? $lookup_boolean{$string_value}
-#             : $string_value ;
-# }
+     # Return the boolean as an integer, otherwise return the original string
+     # This is because other strings like 'reset' or '-' might be present in
+     # addition to 'yes', 'no', etc.
+     return exists $lookup_boolean{$string_value} ? $lookup_boolean{$string_value}
+             : $string_value ;
+}
 
 
 sub get_uniq_wells {
