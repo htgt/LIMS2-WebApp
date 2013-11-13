@@ -91,14 +91,15 @@ sub update_genotyping_qc_data{
         foreach my $primer (@primer_bands){
             my $value = $datum->{$primer};
             if (defined $value){
-                die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless $value eq "yes";
+                #die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless $value eq "yes";
+                die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless ($value eq 'pass' || $value eq 'fail');
 
                 # FIXME: need an update or create method
                 # update_or_create_well_primer_band now implemented and this code should be updated to use it
                 $self->create_well_primer_bands({
                     well_id          => $well->id,
                     primer_band_type => $primer,
-                    pass             => 1,
+                    pass             => $value,
                     created_by       => $val_params->{created_by},
                 });
 
@@ -113,7 +114,6 @@ sub update_genotyping_qc_data{
     }
     return \@messages;
 }
-
 
 sub hash_keys_to_lc {
     my $self = shift;
@@ -140,8 +140,6 @@ sub _valid_column_names{
     }
     return \%recognized;
 }
-
-
 
 sub create_assay{
     my ($self, $datum, $val_params, $assay, $well, $messages ) = @_;
@@ -237,14 +235,13 @@ sub update_genotyping_qc_value {
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
-    if ( $assay_name =~ /
-            (g[r|f])    |
-            tr_pcr      |
-            lr_pcr_pass |
-            accepted_override
-            /xgms ){
-        $assay_value = $self->convert_bool( $assay_value );
-    }
+    # if ( $assay_name =~ /
+    #         (g[r|f])    |
+    #         tr_pcr      |
+    #         accepted_override
+    #         /xgms ){
+    #     # $assay_value = $self->convert_bool( $assay_value );
+    # }
     my $genotyping_qc_result;
 
     if (exists $assays_dispatch->{$assay_name} ) {
@@ -326,11 +323,11 @@ sub primer_band_update {
     }
     else {
         $well_primer_band = $self->update_or_create_well_primer_bands({
-                primer_band_type => $assay_name,
-                pass => $assay_value,
-                created_by => $user,
-                well_id    => $well_id,
-            });
+            primer_band_type => $assay_name,
+            pass => $assay_value,
+            created_by => $user,
+            well_id    => $well_id,
+        });
     }
     return $well_primer_band;
 
@@ -627,7 +624,7 @@ sub fill_out_genotyping_results {
     my $datum = shift;
 
         if ($row->{'Primer band type'} ) {
-            $datum->{$row->{'Primer band type'}} = ($row->{'Primer pass?'} ? 'true' : 'false') // '-' ;
+            $datum->{$row->{'Primer band type'}} = $row->{'Primer pass?'} // '-' ;
         }
 
         if ( $row->{'genotyping_result_type_id'}) {
@@ -799,25 +796,25 @@ order by wd."Well ID"
 SQL_END
 }
 
-sub convert_bool {
-    my $self = shift;
-    my $string_value = shift;
+# sub convert_bool {
+#     my $self = shift;
+#     my $string_value = shift;
 
-    my %lookup_boolean = (
-        'true'  => 1,
-        'yes'   => 1,
-        '1'     => 1,
-        'false' => 0,
-        'no'    => 0,
-        '0'     => 0,
-    );
+#     my %lookup_boolean = (
+#         'true'  => 1,
+#         'yes'   => 1,
+#         '1'     => 1,
+#         'false' => 0,
+#         'no'    => 0,
+#         '0'     => 0,
+#     );
 
-    # Return the boolean as an integer, otherwise return the original string
-    # This is because other strings like 'reset' or '-' might be present in
-    # addition to 'yes', 'no', etc.
-    return exists $lookup_boolean{$string_value} ? $lookup_boolean{$string_value}
-            : $string_value ;
-}
+#     # Return the boolean as an integer, otherwise return the original string
+#     # This is because other strings like 'reset' or '-' might be present in
+#     # addition to 'yes', 'no', etc.
+#     return exists $lookup_boolean{$string_value} ? $lookup_boolean{$string_value}
+#             : $string_value ;
+# }
 
 
 sub get_uniq_wells {

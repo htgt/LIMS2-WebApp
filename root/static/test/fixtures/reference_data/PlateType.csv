@@ -18,3 +18,5 @@
 "SFP","Second Allele Freezer Plates"
 "FP","Freezer Plates"
 "PIQ","Pre-injection distribution QC plate type"
+"CRISPR_V","Crispr Vectors"
+"CRISPR_EP","Crispr Electroporation"
