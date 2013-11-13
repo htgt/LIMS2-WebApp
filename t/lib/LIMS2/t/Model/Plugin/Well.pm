@@ -269,9 +269,9 @@ sub all_tests  : Tests
 
 	    ok my $primer_bands = model->create_well_primer_bands( $well_data->{well_primer_bands_create} ),
 		'create_well_primer bands should succeed';
-	    isa_ok $primer_bands, 'LIMS2::Model::Schema::Result::WellPrimerBand';
+	    # isa_ok $primer_bands, 'LIMS2::Model::Schema::Result::WellPrimerBand';
 	    is $primer_bands->primer_band_type_id, 'gr1', 'primer band type correct';
-	    is $primer_bands->pass, 1, 'primer band correct';
+	    is $primer_bands->pass, 'pass', 'primer band correct';
 
 	    ok my $rec_primer_bands = model->retrieve_well_primer_bands( $well_data->{well_primer_bands_create} ),
 		'can retrieve primer_bands by name';
@@ -282,20 +282,20 @@ sub all_tests  : Tests
 		   plate_name => 'MOHFAQ0001_A_2',
 		   well_name => 'D04',
 		   primer_band_type => 'gf3',
-		   pass => 0,
+		   pass => 'fail',
 		   created_by => 'test_user@example.org',
 		}), 'can create well primer band as part of update_or_create';
-	    is $primer_bands->pass, 0, 'well primer band pass is FALSE';
+	    is $primer_bands->pass, 'fail', 'well primer band pass is FAIL';
 	    ok $primer_bands = model->update_or_create_well_primer_bands( {
 		   plate_name => 'MOHFAQ0001_A_2',
 		   well_name => 'D04',
 		   primer_band_type => 'gf3',
-		   pass => 1,
+		   pass => 'pass',
 		   created_by => 'test_user@example.org',
 		}), 'can update well primer band';
 	    isa_ok($primer_bands, 'ARRAY');
 	    isa_ok($primer_bands->[0], 'LIMS2::Model::Schema::Result::WellPrimerBand');
-	    is $primer_bands->[0]->pass, 1, 'well primer band pass is now TRUE';
+	    is $primer_bands->[0]->pass, 'pass', 'well primer band pass is now PASS';
 	    ok my $primer_band = model->delete_well_primer_band( {
 		   plate_name => 'MOHFAQ0001_A_2',
 		   well_name => 'D04',
@@ -380,8 +380,8 @@ sub all_tests  : Tests
 	ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
 	is $targeting_pass->result, 'pass', '..updated result is now pass';
 
-	ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass_lrpcr' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
-	is $targeting_pass->result, 'pass_lrpcr', '..updated result is now pass_lrpcr';
+	ok $targeting_pass = model->update_or_create_well_targeting_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'lrpcr_pass' , created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
+	is $targeting_pass->result, 'lrpcr_pass', '..updated result is now lrpcr_pass';
 
 	lives_ok {
 	    model->delete_well_targeting_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } )

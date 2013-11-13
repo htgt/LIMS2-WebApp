@@ -7,6 +7,10 @@ use Log::Log4perl qw( :easy );
 
 extends qw( LIMS2::ReportGenerator::Plate::SimpleColumns );
 
+override additional_report => sub {
+    return 1;
+};
+
 override plate_types => sub {
     return [ 'EP' ];
 };
