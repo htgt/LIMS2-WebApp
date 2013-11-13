@@ -150,12 +150,12 @@
                 Electroporation Summary
               </a>
             </li>
-            <li>
+<!--        <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
                 Electroporation Production Summary
               </a>
             </li>
-          </ul>
+-->       </ul>
         </li>
       </ul>
       [% IF c.user %]
