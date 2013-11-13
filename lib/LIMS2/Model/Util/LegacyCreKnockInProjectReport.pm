@@ -34,7 +34,7 @@ has tarmits_client => (
 );
 
 sub _build_tarmits_client {
-    LIMS2::Util::Tarmits->new_with_config;
+    return LIMS2::Util::Tarmits->new_with_config;
 }
 
 has projects => (
@@ -136,6 +136,8 @@ sub generate_report_data {
     Log::Log4perl::NDC->remove;
 
     $self->report_data( \@report_data );
+
+    return;
 }
 
 =head2 find_project_status
@@ -300,7 +302,7 @@ sub chunk_array {
     my $size = 50;
     my $i = 0;
 
-    return part{ int( $i++ / $size ) } @{ $array };
+    return part{ $i++; int( $i / $size ) } @{ $array };
 }
 
 =head2 uniq_ws_rows_by
