@@ -320,7 +320,9 @@ sub _determine_workflow_for_wells {
 
     # select and write PIQ well data (if any)
     if ( scalar @piq_well_ids > 0 ) {
+        print "piq wells for SQL:\n";
         my $sql_query_piq = $self->create_sql_select_summaries_piq( ( \@piq_well_ids ) );
+        print $sql_query_piq . "\n";
         $self->_select_workflow_data($sql_query_piq);
     }
 
@@ -342,12 +344,13 @@ sub _select_workflow_data {
                 $well_results->{ $current_sql_well_id }->{ 'final_pick_recombinase_id' }      = $sql_result->{ 'final_pick_recombinase_id' } // '';
                 $well_results->{ $current_sql_well_id }->{ 'final_pick_cassette_resistance' } = $sql_result->{ 'final_pick_cassette_resistance' } // '';
                 $well_results->{ $current_sql_well_id }->{ 'final_pick_cassette_cre' }        = $sql_result->{ 'final_pick_cassette_cre' } // '';
-                $well_results->{ $current_sql_well_id }->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';   
+                $well_results->{ $current_sql_well_id }->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
             }
 
             # now loop through genotyping results array and copy across any results from the well_results hash, and calculate workflow
             foreach my $current_gr_well ( @{ $self->well_genotyping_results_array } ) {
                 my $current_gr_well_id = $current_gr_well->{'id'};
+
                 # check for whether there is a result for this well ID
                 unless ( defined $current_gr_well_id && defined $well_results->{ $current_gr_well_id } ) { next; }
 
@@ -381,9 +384,9 @@ sub _calculate_workflow_for_well {
     my $fpick_cass_cre = $current_well->{'final_pick_cassette_cre'};
     my $ep_recomb      = $current_well->{'ep_well_recombinase_id'};
 
-    if ( $fpick_cass_cre eq 't' ) {
+    if ( $fpick_cass_cre eq '1' ) {
         # Heterozygous Cre knockin workflows
-        if ( $fpick_recomb eq 'Dre' ) {
+        if ( $ep_recomb eq 'Dre' ) {
             # For the workflow for Dre'd Cre Knockin genes they apply Dre to the cassette to excise the puromycin resistance and promoter
             $current_well->{'workflow'} = 'CreKiDre';
             return;
@@ -1143,7 +1146,7 @@ sub create_sql_select_summaries_piq {
     $well_ids = join( ',', @{$well_ids} );
 
     my $sql_query = <<"SQL_END";
-SELECT DISTINCT ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, final_pick_cassette_cre, ep_well_recombinase_id
+SELECT DISTINCT piq_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, final_pick_cassette_cre, ep_well_recombinase_id
 FROM summaries
 WHERE piq_well_id IN ( $well_ids )
 SQL_END
