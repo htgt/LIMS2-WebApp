@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.125     2013-11-13 12:21:21 Europe/London
+
+    Corrected the override column boolean update on the genotyping qc grid
+    Added a public reports section
+    Added CRISPR_V and CRISPR_EP plates and associated processes 
+
 0.124     2013-11-07 16:18:32 Europe/London
 
     Well primer band updates for the genotyping qc grid
