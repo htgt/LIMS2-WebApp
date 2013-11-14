@@ -1,4 +1,5 @@
 package LIMS2::Model::Util::DesignTargets;
+=head2 _get_crispr_off_target_summary
 use strict;
 use warnings FATAL => 'all';
 
@@ -122,7 +123,8 @@ sub bulk_designs_for_design_targets {
     my @gene_designs = $schema->resultset('GeneDesign')->search(
         {
             gene_id => { 'IN' => [ map{ $_->gene_id } @{ $design_targets } ] },
-            'design.species_id' => $species_id,
+            'design.species_id'     => $species_id,
+            'design.design_type_id' => 'gibson',
         },
         {
             join     => 'design',
@@ -444,7 +446,7 @@ sub format_crispr_data {
     elsif ( $report_parameters->{crispr_types} eq 'pair' ) {
         $crispr_data = _format_crispr_pair_data(
             $datum->{crispr_pairs}, $datum->{crisprs},
-            $report_parameters->{off_target_algorithm}, $num_show_crisprs );
+            $report_parameters->{off_target_algorithm} );
     }
     else {
         LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
@@ -471,6 +473,7 @@ sub _format_crispr_data {
 
     my $crispr_count = 0;
     for my $c ( @ranked_crisprs ) {
+        #TODO wrong if undef it hasnt got a direction  sp12 Wed 13 Nov 2013 15:19:50 GMT
         my $crispr_direction = $c->pam_right ? 'right' : 'left';
         my %data = (
             crispr_id => $c->id,
@@ -514,26 +517,28 @@ Get the first 5 pairs ( ranked according to _rank_crisp_pair )
 
 =cut
 sub _format_crispr_pair_data {
-    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $num_crispr_pairs ) = @_;
+    my ( $crispr_pairs, $crisprs, $off_target_algorithm ) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
 
     my @ranked_crispr_pairs = sort {
         _rank_crispr_pairs($b) <=> _rank_crispr_pairs($a) } values %{ $crispr_pairs };
 
-    my $crispr_pair_count = 0;
     for my $c ( @ranked_crispr_pairs ) {
         my $left_crispr = $crisprs->{ $c->left_crispr_id };
         my $right_crispr = $crisprs->{ $c->right_crispr_id };
 
         my %data = (
             crispr_pair_id   => $c->id,
+            left_crispr_id   => $left_crispr->id,
+            right_crispr_id  => $right_crispr->id,
+            left_crispr_seq  => $left_crispr->seq,
+            right_crispr_seq => $right_crispr->seq,
             spacer           => $c->spacer,
             pair_off_target  => $c->off_target_summary,
             left_off_target  => _get_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
             right_off_target => _get_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
         );
-        last if $crispr_pair_count++ >= $num_crispr_pairs;
 
         #TODO crispr well data??
         push @crispr_data, \%data;
