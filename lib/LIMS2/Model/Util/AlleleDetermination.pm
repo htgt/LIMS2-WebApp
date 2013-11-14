@@ -75,13 +75,7 @@ has allele_config => (
     builder => '_build_allele_config',
 );
 
-has assay_dispatches => (
-    is         => 'rw',
-    isa        => 'HashRef',
-    lazy_build => 1,
-);
-
-has validation_dispatches => (
+has dispatches => (
     is         => 'rw',
     isa        => 'HashRef',
     lazy_build => 1,
@@ -111,63 +105,68 @@ sub _build_allele_config {
     return $allele_config;
 }
 
-sub _build_assay_dispatches {
+sub _build_dispatches {
     my ($self) = @_;
 
-    my $assay_dispatches = {
+    my $dispatches = {
         'is_loacrit_0'           => sub { $self->_is_loacrit_0 },
-        'is_loacrit_1'           => sub { $self->_is_loacrit_1 },
-        'is_loacrit_2'           => sub { $self->_is_loacrit_2 },
-        'is_loatam_0'            => sub { $self->_is_loatam_0 },
-        'is_loatam_1'            => sub { $self->_is_loatam_1 },
-        'is_loatam_2'            => sub { $self->_is_loatam_2 },
-        'is_loadel_0'            => sub { $self->_is_loadel_0 },
-        'is_loadel_1'            => sub { $self->_is_loadel_1 },
-        'is_loadel_2'            => sub { $self->_is_loadel_2 },
-        'is_cre_0'               => sub { $self->_is_cre_0 },
-        'is_cre_1'               => sub { $self->_is_cre_1 },
-        'is_puro_0'              => sub { $self->_is_puro_0 },
-        'is_puro_1'              => sub { $self->_is_puro_1 },
-        'is_neo_present'         => sub { $self->_is_neo_present },
-        'is_neo_absent'          => sub { $self->_is_neo_absent },
-        'is_bsd_present'         => sub { $self->_is_bsd_present },
-        'is_bsd_absent'          => sub { $self->_is_bsd_absent },
-        'is_lrpcr_pass'          => sub { $self->_is_lrpcr_pass },
         'is_potential_loacrit_0' => sub { $self->_is_potential_loacrit_0 },
+        'is_loacrit_1'           => sub { $self->_is_loacrit_1 },
         'is_potential_loacrit_1' => sub { $self->_is_potential_loacrit_1 },
+        'is_loacrit_2'           => sub { $self->_is_loacrit_2 },
         'is_potential_loacrit_2' => sub { $self->_is_potential_loacrit_2 },
+        'is_loatam_0'            => sub { $self->_is_loatam_0 },
         'is_potential_loatam_0'  => sub { $self->_is_potential_loatam_0 },
+        'is_loatam_1'            => sub { $self->_is_loatam_1 },
         'is_potential_loatam_1'  => sub { $self->_is_potential_loatam_1 },
+        'is_loatam_2'            => sub { $self->_is_loatam_2 },
         'is_potential_loatam_2'  => sub { $self->_is_potential_loatam_2 },
+        'is_loadel_0'            => sub { $self->_is_loadel_0 },
         'is_potential_loadel_0'  => sub { $self->_is_potential_loadel_0 },
+        'is_loadel_1'            => sub { $self->_is_loadel_1 },
         'is_potential_loadel_1'  => sub { $self->_is_potential_loadel_1 },
+        'is_loadel_2'            => sub { $self->_is_loadel_2 },
         'is_potential_loadel_2'  => sub { $self->_is_potential_loadel_2 },
+        'is_cre_0'               => sub { $self->_is_cre_0 },
         'is_potential_cre_0'     => sub { $self->_is_potential_cre_0 },
+        'is_cre_1'               => sub { $self->_is_cre_1 },
         'is_potential_cre_1'     => sub { $self->_is_potential_cre_1 },
+        'is_puro_0'              => sub { $self->_is_puro_0 },
         'is_potential_puro_0'    => sub { $self->_is_potential_puro_0 },
+        'is_puro_1'              => sub { $self->_is_puro_1 },
         'is_potential_puro_1'    => sub { $self->_is_potential_puro_1 },
-        'loadel'                 => sub { $self->_validate_assay('loadel') },
-        'not_loadel'             => sub { !$self->_validate_assay('loadel') },
+        'is_chry_0'              => sub { $self->_is_chry_0 },
+        'is_potential_chry_0'    => sub { $self->_is_potential_chry_0 },
+        'is_chry_1'              => sub { $self->_is_chry_1 },
+        'is_potential_chry_1'    => sub { $self->_is_potential_chry_1 },
+        'is_chry_2'              => sub { $self->_is_chry_2 },
+        'is_potential_chry_2'    => sub { $self->_is_potential_chry_2 },
+        'is_chr8a_0'             => sub { $self->_is_chr8a_0 },
+        'is_potential_chr8a_0'   => sub { $self->_is_potential_chr8a_0 },
+        'is_chr8a_2'             => sub { $self->_is_chr8a_2 },
+        'is_potential_chr8a_1'   => sub { $self->_is_potential_chr8a_1 },
+        'is_chr8a_1'             => sub { $self->_is_chr8a_1 },
+        'is_potential_chr8a_2'   => sub { $self->_is_potential_chr8a_2 },
+        'not_is_chr8a_2'         => sub { !$self->_is_chr8a_2 },
+        'is_neo_present'         => sub { $self->_is_neo_present },
+        'is_neo_absent'          => sub { !$self->_is_neo_present },
+        'is_bsd_present'         => sub { $self->_is_bsd_present },
+        'is_bsd_absent'          => sub { !$self->_is_bsd_present },
+        'is_lrpcr_pass'          => sub { $self->_is_lrpcr_pass },
+        'valid_loacrit'          => sub { $self->_validate_assay('loacrit') },
+        'valid_loatam'           => sub { $self->_validate_assay('loatam') },
+        'valid_loadel'           => sub { $self->_validate_assay('loadel') },
+        'not_valid_loadel'       => sub { !$self->_validate_assay('loadel') },
+        'valid_neo'              => sub { $self->_validate_assay('neo') },
+        'valid_bsd'              => sub { $self->_validate_assay('bsd') },
+        'valid_cre'              => sub { $self->_validate_assay('cre') },
+        'valid_puro'             => sub { $self->_validate_assay('puro') },
+        'valid_lrpcr'            => sub { $self->_validate_primers('lrpcr') },
+        'valid_chry'             => sub { $self->_validate_assay('chry') },
+        'valid_chr8a'            => sub { $self->_validate_assay('chr8a') },
     };
 
-    return $assay_dispatches;
-}
-
-sub _build_validation_dispatches {
-    my ($self) = @_;
-
-    my $validation_dispatches = {
-        'loacrit' => sub { $self->_validate_assay('loacrit') },
-        'loatam'  => sub { $self->_validate_assay('loatam') },
-        'loadel'  => sub { $self->_validate_assay('loadel') },
-        'neo'     => sub { $self->_validate_assay('neo') },
-        'bsd'     => sub { $self->_validate_assay('bsd') },
-        'cre'     => sub { $self->_validate_assay('cre') },
-        'puro'    => sub { $self->_validate_assay('puro') },
-        'lrpcr'   => sub { $self->_validate_primers('lrpcr') },
-    };
-
-    return $validation_dispatches;
+    return $dispatches;
 }
 
 sub _build_allele_translation {
@@ -193,8 +192,7 @@ sub determine_allele_types_for_well_ids {
 
     $self->_determine_allele_types();
 
-    #TODO: pass
-    #$self->_determine_is_genotyping_pass();
+    $self->_determine_is_genotyping_pass();
 
     # return array of well hashes which contains the allele-type results
     return $self->well_genotyping_results_array;
@@ -213,8 +211,7 @@ sub determine_allele_types_for_genotyping_results_array {
     # determine allele types
     $self->_determine_allele_types();
 
-    #TODO: is result a pass
-    #$self->_determine_is_genotyping_pass();
+    $self->_determine_is_genotyping_pass();
 
     # return array of well hashes which contains the allele-type results
     return $self->well_genotyping_results_array;
@@ -228,8 +225,7 @@ sub test_determine_allele_types_logic {
     # determine allele types
     $self->_determine_allele_types();
 
-    #TODO: is result a pass
-    #$self->_determine_is_genotyping_pass();
+    $self->_determine_is_genotyping_pass();
 
     # return array of well hashes which contains the allele-type results
     return $self->well_genotyping_results_array;
@@ -285,7 +281,7 @@ sub _determine_workflow_for_wells {
 
         my $current_well_id         = $current_well->{'id'};
         my $current_well_plate_type = $current_well->{'plate_type'};
-        unless ( defined $current_well_id && defined $current_well_plate_type ) { 
+        unless ( defined $current_well_id && defined $current_well_plate_type ) {
             # no plate type found, cannot determine workflow for this well
             $current_well->{'workflow'} = 'unknown';
             next;
@@ -406,7 +402,6 @@ sub _calculate_workflow_for_well {
             }
         }
         else {
-            
             if ( $fpick_cass_res eq 'neo' ) {
                 if ( $ep_recomb eq 'Flp' ) {
                     # For the workflow for essential homozygous genes they apply Flp to remove the neo cassette after the first electroporation
@@ -507,7 +502,7 @@ sub _create_assay_summary_string {
             push( @pattern,
                 ( $assay_name . "<" . ( $self->current_well->{ $assay_name . '#copy_number' } // '-' ) . ">" ) );
         }
-    }    
+    }
 
     my $pattern_string = join( ' ', (@pattern) );
 
@@ -569,7 +564,7 @@ sub _is_allele_test {
 
         # print 'curr_well_id = ' . $self->current_well_id . ' tst operand = ' . $operand . "\n";
 
-        my $method  = $self->assay_dispatches->{ $operand };
+        my $method  = $self->dispatches->{ $operand };
         return $method->();
     };
 
@@ -604,7 +599,7 @@ sub _minimised_allele_type {
     return $current_allele_type;
 }
 
-sub _determine_if_genotyping_pass {
+sub _determine_is_genotyping_pass {
     my ($self) = @_;
 
     # this has to decide if the overall result is a pass (distribute) or fail
@@ -622,7 +617,7 @@ sub _is_loacrit_0 {
 
     unless ( defined $lower && defined $upper ) { return 0 };
 
-    return $self->( $lower, $upper, 'loacrit' );
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
 sub _is_loacrit_1 {
@@ -755,6 +750,72 @@ sub _is_puro_1 {
     unless ( defined $lower && defined $upper ) { return 0 };
 
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
+}
+
+sub _is_chry_0 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chry_0_lower_bound'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chry_0_upper_bound'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_chry_1 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chry_1_lower_bound'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chry_1_upper_bound'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_chry_2 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chry_2_lower_bound'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chry_2_upper_bound'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_chr8a_0 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chr8a_0_lower_bound'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chr8a_0_upper_bound'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_chr8a_1 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chr8a_1_lower_bound'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chr8a_1_upper_bound'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_chr8a_2 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chr8a_2_lower_bound'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chr8a_2_upper_bound'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
 sub _is_potential_loacrit_0 {
@@ -900,18 +961,78 @@ sub _is_potential_puro_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
 }
 
+sub _is_potential_chry_0 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chry_0_lower_bound_loose'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chry_0_upper_bound_loose'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_potential_chry_1 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chry_1_lower_bound_loose'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chry_1_upper_bound_loose'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_potential_chry_2 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chry_2_lower_bound_loose'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chry_2_upper_bound_loose'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_potential_chr8a_0 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chr8a_0_lower_bound_loose'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chr8a_0_upper_bound_loose'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_potential_chr8a_1 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chr8a_1_lower_bound_loose'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chr8a_1_upper_bound_loose'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_potential_chr8a_2 {
+    my ($self) = @_;
+
+    my $lower = $self->allele_config->{'thresholds'}->{'chr8a_2_lower_bound_loose'};
+    my $upper = $self->allele_config->{'thresholds'}->{'chr8a_2_upper_bound_loose'};
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
 sub _is_neo_present {
     my ($self) = @_;
 
     my $neo_threshold = $self->allele_config->{'thresholds'}->{'neo_threshold'};
 
     return $self->_is_marker_present( $neo_threshold, 'neo' );
-}
-
-sub _is_neo_absent {
-    my ($self) = @_;
-
-    return !$self->_is_neo_present();
 }
 
 sub _is_bsd_present {
@@ -922,12 +1043,6 @@ sub _is_bsd_present {
     return $self->_is_marker_present( $bsd_threshold, 'bsd' );
 }
 
-sub _is_bsd_absent {
-    my ($self) = @_;
-
-    return !$self->_is_bsd_present();
-}
-
 sub _is_lrpcr_pass {
     my ($self) = @_;
 
@@ -935,7 +1050,7 @@ sub _is_lrpcr_pass {
     my $gr3 = $self->current_well->{ 'lrpcr#gr3' };
     my $gf4 = $self->current_well->{ 'lrpcr#gf4' };
     my $gr4 = $self->current_well->{ 'lrpcr#gr4' };
-    
+
     # expecting 'pass' in all four fields
     unless ( defined $gf3 && $gf3 eq 'pass' ) { return 0; }
     unless ( defined $gr3 && $gr3 eq 'pass' ) { return 0; }
@@ -1007,7 +1122,7 @@ sub _validate_assays {
 
         # print 'curr_well_id = ' . $self->current_well_id . ' val operand = ' . $operand . "\n";
 
-        my $method  = $self->validation_dispatches->{ $operand };
+        my $method  = $self->dispatches->{ $operand };
         return $method->();
     };
 
@@ -1066,7 +1181,7 @@ sub _validate_primers {
     my $gr3 = $self->current_well->{ $assay_name . '#gr3' };
     my $gf4 = $self->current_well->{ $assay_name . '#gf4' };
     my $gr4 = $self->current_well->{ $assay_name . '#gr4' };
-    
+
     # expecting 'pass','fail' (or blank if not done)
     unless ( defined $gf3 && ( $gf3 ~~ [ qw( pass fail ) ] ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gf3 value not present. " );
@@ -1087,7 +1202,7 @@ sub _validate_primers {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gr4 value not present. " );
         return 0;
     }
-    
+
     return 1;
 }
 
