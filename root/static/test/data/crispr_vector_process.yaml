@@ -2,23 +2,47 @@
 valid_input:
     type: crispr_vector
     output_wells:
-        - plate_name: CRV0001
+        - plate_name: CRISPR_V_T1
           well_name: A01
     input_wells:
-        - plate_name: CRISPR_1
+        - plate_name: CRISPR_T1
           well_name: A01
+valid_input1:
+    type: crispr_vector
+    output_wells:
+        - plate_name: CRISPR_V_T1
+          well_name: A01
+    input_wells:
+        - plate_name: CRISPR_T1
+          well_name: A01
+valid_input2:
+    type: crispr_vector
+    output_wells:
+        - plate_name: CRISPR_V_T1
+          well_name: A02
+    input_wells:
+        - plate_name: CRISPR_T1
+          well_name: A02
+valid_input3:
+    type: crispr_vector
+    output_wells:
+        - plate_name: CRISPR_V_T1
+          well_name: A03
+    input_wells:
+        - plate_name: CRISPR_T1
+          well_name: A03
 invalid_output_well:
     type: crispr_vector
     output_wells:
         - plate_name: XEP0006
           well_name: A01
     input_wells:
-        - plate_name: CRISPR_1
+        - plate_name: CRISPR_T1
           well_name: A01
 invalid_input_well:
     type: crispr_vector
     output_wells:
-        - plate_name: CRV0001
+        - plate_name: CRISPR_V_T1
           well_name: A01
     input_wells:
         - plate_name: XEP0006
