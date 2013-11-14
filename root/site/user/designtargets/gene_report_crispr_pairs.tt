@@ -4,13 +4,17 @@
   <h1>Design Target Report <small>off target algorithm: [% params.off_target_algorithm %]</small></h1>
 </div>
 
+[% crispr_col_span = 10 %]
+
 <form method"POST" id="crispr_pick" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
-  <table id="design-target-report" class="table table-bordered table-condensed">
+<div class="row">
+<div class="span12" >
+  <table id="design-target-report" class="table table-bordered table-condensed" style="max-width: none">
     <thead>
       <tr>
         <th class="design-target group-header" colspan="6">Design Target</th>
         <th class="design group-header" colspan="3">Vector Design</th>
-        <th class="crispr group-header" colspan="6">Crispr Pair Guide RNA</th>
+        <th class="crispr group-header" colspan="[% crispr_col_span %]">Crispr Pair Guide RNA</th>
       </tr>
       <tr>
         <th class="design-target">Marker Symbol</th>
@@ -23,6 +27,10 @@
         <th class="design">Design Type</th>
         <th class="design">UCSC Blat</th>
         <th class="crispr">Crispr Pair ID</th>
+        <th class="crispr">Left Crispr ID</th>
+        <th class="crispr">Left Crispr Seq</th>
+        <th class="crispr">Right Crispr ID</th>
+        <th class="crispr">Right Crispr Seq</th>
         <th class="crispr">Spacer</th>
         <th class="crispr">Pair Off Targets</th>
         <th class="crispr">Left Off Targets</th>
@@ -45,7 +53,7 @@
           <!-- No designs or crisprs for design target, show empty cells -->
           [% IF datum.designs.size == 0 && datum.crisprs.size == 0 %]
             <td class="design" colspan="3"></td>
-            <td class="crispr" colspan="6"></td>
+            <td class="crispr" colspan="[% crispr_col_span %]"></td>
             </tr>
             [% NEXT %]
           [% END %]
@@ -56,6 +64,10 @@
             [% FOR crispr_pair IN datum.crisprs %]
               [% IF dt_first_row == 0 %]<tr>[% END %]
               <td class="crispr">[% crispr_pair.crispr_pair_id %]</td>
+              <td class="crispr">[% crispr_pair.left_crispr_id %]</td>
+              <td class="crispr">[% crispr_pair.left_crispr_seq %]</td>
+              <td class="crispr">[% crispr_pair.right_crispr_id %]</td>
+              <td class="crispr">[% crispr_pair.right_crispr_seq %]</td>
               <td class="crispr">[% crispr_pair.spacer %]</td>
               <td class="crispr">[% crispr_pair.pair_off_target.remove('\{|\}') %]</td>
               <td class="crispr">[% crispr_pair.left_off_target.remove('\{|\}') %]</td>
@@ -79,13 +91,17 @@
                 <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
               </td>
               [% IF datum.crisprs.size == 0 %]
-                <td class="crispr" colspan="6"></td>
+                <td class="crispr" colspan="[% crispr_col_span %]"></td>
                 </tr>
                 [% dt_first_row = 0 IF dt_first_row == 1 %]
               [% ELSE %]
                 [% FOR crispr_pair IN datum.crisprs %]
                   [% UNLESS design_first_row %]<tr>[% END %]
                   <td class="crispr">[% crispr_pair.crispr_pair_id %]</td>
+                  <td class="crispr">[% crispr_pair.left_crispr_id %]</td>
+                  <td class="crispr">[% crispr_pair.left_crispr_seq %]</td>
+                  <td class="crispr">[% crispr_pair.right_crispr_id %]</td>
+                  <td class="crispr">[% crispr_pair.right_crispr_seq %]</td>
                   <td class="crispr">[% crispr_pair.spacer %]</td>
                   <td class="crispr">[% crispr_pair.pair_off_target.remove('\{|\}') %]</td>
                   <td class="crispr">[% crispr_pair.left_off_target.remove('\{|\}') %]</td>
@@ -117,6 +133,8 @@
       [%- END %]
     </tbody>
   </table>
+</div>
+</div>
 
 <div class="row">
   <div class="span3">
@@ -155,3 +173,33 @@
   </div>
 
 </div>
+
+# pass in crispr_pair, design
+[% BLOCK display_crisprs %]
+  <td class="crispr">[% crispr_pair.crispr_pair_id %]</td>
+  <td class="crispr">[% crispr_pair.left_crispr_id %]</td>
+  <td class="crispr">[% crispr_pair.left_crispr_seq %]</td>
+  <td class="crispr">[% crispr_pair.right_crispr_id %]</td>
+  <td class="crispr">[% crispr_pair.right_crispr_seq %]</td>
+  <td class="crispr">[% crispr_pair.spacer %]</td>
+  <td class="crispr">[% crispr_pair.pair_off_target.remove('\{|\}') %]</td>
+  <td class="crispr">[% crispr_pair.left_off_target.remove('\{|\}') %]</td>
+  <td class="crispr">[% crispr_pair.right_off_target.remove('\{|\}') %]</td>
+  <td class="crispr">
+    [% IF crispr_pair.crispr_pair_id %]
+      [% linked = 0 %]
+      [% FOR crispr_id IN design.linked_crispr_ids %]
+        <!-- we have a crispr already linked to a design -->
+        [% IF crispr_pair.crispr_pair_id == crispr_id %]
+          [% linked = 1 %]
+          <input type="checkbox" name="crispr_pair_pick" value="[% crispr_pair.crispr_pair_id %]:[% design.design_id %]" checked />
+          <input type="hidden"  name="design_crispr_pair_link" value="[% crispr_pair.crispr_pair_id %]:[% design.design_id %]" />
+        [% END %]
+      [% END %]
+
+      [% IF linked == 0 %]
+        <input type="checkbox" name="crispr_pair_pick" value="[% crispr_pair.crispr_pair_id %]:[% design.design_id %]" />
+      [% END %]
+    [% END %]
+  </td>
+[% END %]
