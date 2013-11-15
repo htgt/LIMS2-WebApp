@@ -17,3 +17,6 @@
 "xep_pool","Pool multiple EP_PICK wells into an XEP well"
 "create_crispr","Create crispr"
 "dist_qc","Pre-injection distribution QC PIQ create process"
+"crispr_vector","Create crispr vector"
+"crispr_single_ep","Single crispr electroporation"
+"crispr_paired_ep","Paired crispr electroporation"

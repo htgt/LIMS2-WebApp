@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::RankQCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::RankQCResults::VERSION = '0.120';
+    $LIMS2::Model::Util::RankQCResults::VERSION = '0.126';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ use Sub::Exporter -setup => {
 
 my %RANKING = (
     'na'            => 10, #na should never be overwritten
-    'pass_lrpcr'    => 9,
+    'lrpcr_pass'    => 9,
     'pass'          => 8,
     'passb'         => 7,
     'fail'          => 6,

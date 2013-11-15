@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplate::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::QcTemplate::VERSION = '0.126';
 }
 ## use critic
 
@@ -168,8 +168,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-18 13:31:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8d5bfBNvCdHRa9wmV/yA4A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wD5+VruNZe3N7yTC5pSXvA
 
 sub as_hash {
     my $self = shift;

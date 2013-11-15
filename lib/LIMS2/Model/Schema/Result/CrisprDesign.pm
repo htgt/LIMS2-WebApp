@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprDesign::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::CrisprDesign::VERSION = '0.126';
 }
 ## use critic
 
@@ -107,6 +107,36 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<unique_crispr_design>
+
+=over 4
+
+=item * L</design_id>
+
+=item * L</crispr_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("unique_crispr_design", ["design_id", "crispr_id"]);
+
+=head2 C<unique_crispr_pair_design>
+
+=over 4
+
+=item * L</design_id>
+
+=item * L</crispr_pair_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("unique_crispr_pair_design", ["design_id", "crispr_pair_id"]);
+
 =head1 RELATIONS
 
 =head2 crispr
@@ -165,8 +195,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-10-16 16:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p3bu2Uq75/DPvHSa4XcZQg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Wv8x5NGVFGkoJosPqJzRuw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

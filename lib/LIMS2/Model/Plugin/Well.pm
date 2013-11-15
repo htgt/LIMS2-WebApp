@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.120';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.126';
 }
 ## use critic
 
@@ -496,13 +496,14 @@ sub set_well_assay_complete {
     return $well;
 }
 
+# lr_pcr_pass was original pass, but required (pass, passb, fail) values, so it had to be changed from a boolean to a new type
 sub pspec_create_well_primer_bands {
     return {
         well_id           => { validate => 'integer', optional => 1, rename => 'id' },
         plate_name        => { validate => 'existing_plate_name', optional => 1 },
         well_name         => { validate => 'well_name', optional => 1 },
         primer_band_type  => { validate => 'existing_primer_band_type', rename => 'primer_band_type_id' },
-        pass              => { validate => 'boolean' },
+        pass              => { validate => 'passorfail' },
         created_by        => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at        => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
     }
@@ -571,6 +572,9 @@ sub delete_well_primer_band {
 sub update_or_create_well_primer_bands {
     my ( $self, $params ) = @_;
     my $message;
+
+
+
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_primer_bands );
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.120';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.126';
 }
 ## use critic
 
@@ -443,8 +443,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-06-13 10:41:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dACVHLmQ9GOFfFwBQDa8vg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QbXZA5S0PCM6d9pr1/qC5A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -978,6 +978,44 @@ sub descendant_piq {
   		}
     }
     return;
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub parent_crispr {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'CRISPR' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine crispr plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub parent_crispr_v {
+    my $self = shift;
+
+    my @parents;
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
+            push ( @parents, $ancestor );
+            # return $ancestor;
+        }
+    }
+
+    if (scalar @parents) {
+      return @parents;
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine crispr vector plate/well for $self" );
 }
 ## use critic
 

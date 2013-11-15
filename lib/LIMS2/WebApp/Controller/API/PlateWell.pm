@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.120';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.126';
 }
 ## use critic
 
@@ -297,7 +297,6 @@ sub well_genotyping_qc_PUT{
         }
     ); # end transaction
     # and finish here.
-
     # The session species is required for the gene symbol lookup
     my @well_list;
     push @well_list, $well_id;
