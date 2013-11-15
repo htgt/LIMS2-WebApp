@@ -3,8 +3,6 @@ package LIMS2::Report::CrisprVectorPlate;
 use Moose;
 use namespace::autoclean;
 
-use Smart::Comments;
-
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
