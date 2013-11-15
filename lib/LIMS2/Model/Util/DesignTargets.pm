@@ -1,5 +1,4 @@
 package LIMS2::Model::Util::DesignTargets;
-=head2 _get_crispr_off_target_summary
 use strict;
 use warnings FATAL => 'all';
 
@@ -118,7 +117,7 @@ Bulk lookup of designs for multiple design targets, to speed things up, must spe
 
 =cut
 sub bulk_designs_for_design_targets {
-    my ( $schema, $design_targets, $species_id ) = @_;
+    my ( $schema, $design_targets, $species_id, $default_assembly ) = @_;
 
     my @gene_designs = $schema->resultset('GeneDesign')->search(
         {
@@ -131,9 +130,6 @@ sub bulk_designs_for_design_targets {
             prefetch => { 'design' => { 'oligos' => { 'loci' => 'chr' } } },
         },
     );
-
-    my $default_assembly = $schema->resultset('SpeciesDefaultAssembly')->find(
-        { species_id => $species_id } )->assembly_id;
 
     my %data;
     my @design_ids;
@@ -339,10 +335,13 @@ Crisprs
 sub design_target_report_for_genes {
     my ( $schema, $genes, $species_id, $report_parameters ) = @_;
 
+    my $default_assembly = $schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species_id } )->assembly_id;
+
     my $sorted_genes = _sort_gene_ids( $genes );
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
     my ( $design_data, $design_crispr_links )
-        = bulk_designs_for_design_targets( $schema, $design_targets, $species_id );
+        = bulk_designs_for_design_targets( $schema, $design_targets, $species_id, $default_assembly );
     my ( $crispr_data, $crispr_pair_data ) = bulk_crisprs_for_design_targets(
         $schema,
         $design_targets,
@@ -367,6 +366,7 @@ sub design_target_report_for_genes {
         \@report_data,
         $design_crispr_links,
         $report_parameters,
+        $default_assembly,
     );
     return( $formated_report_data, $sorted_genes );
 }
@@ -377,7 +377,7 @@ Manipulate data into format we can easily display in a spreadsheet
 
 =cut
 sub format_report_data {
-    my ( $data, $design_crispr_links, $report_parameters ) = @_;
+    my ( $data, $design_crispr_links, $report_parameters, $default_assembly ) = @_;
     my @report_row_data;
 
     for my $datum ( @{ $data } ) {
@@ -389,7 +389,7 @@ sub format_report_data {
             $design_target_data->{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
         }
         else {
-            my ( $crispr_data, $display_crispr_num ) = format_crispr_data( $datum, $report_parameters );
+            my ( $crispr_data, $display_crispr_num ) = format_crispr_data( $datum, $report_parameters, $default_assembly );
             $design_target_data->{crisprs} = $crispr_data;
 
             my ( $design_data, $display_design_num )
@@ -435,7 +435,7 @@ Format the crispr / crispr pair data.
 
 =cut
 sub format_crispr_data {
-    my ( $datum, $report_parameters ) = @_;
+    my ( $datum, $report_parameters, $default_assembly ) = @_;
     my $num_show_crisprs = $report_parameters->{num_crisprs} || 5;
 
     my $crispr_data;
@@ -445,8 +445,11 @@ sub format_crispr_data {
     }
     elsif ( $report_parameters->{crispr_types} eq 'pair' ) {
         $crispr_data = _format_crispr_pair_data(
-            $datum->{crispr_pairs}, $datum->{crisprs},
-            $report_parameters->{off_target_algorithm} );
+            $datum->{crispr_pairs},
+            $datum->{crisprs},
+            $report_parameters->{off_target_algorithm},
+            $default_assembly,
+        );
     }
     else {
         LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
@@ -517,7 +520,7 @@ Get the first 5 pairs ( ranked according to _rank_crisp_pair )
 
 =cut
 sub _format_crispr_pair_data {
-    my ( $crispr_pairs, $crisprs, $off_target_algorithm ) = @_;
+    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $default_assembly ) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
 
@@ -531,13 +534,15 @@ sub _format_crispr_pair_data {
         my %data = (
             crispr_pair_id   => $c->id,
             left_crispr_id   => $left_crispr->id,
-            right_crispr_id  => $right_crispr->id,
             left_crispr_seq  => $left_crispr->seq,
+            left_crispr_locus => _formated_crispr_locus( $left_crispr, $default_assembly ),
+            right_crispr_id  => $right_crispr->id,
             right_crispr_seq => $right_crispr->seq,
+            right_crispr_locus => _formated_crispr_locus( $right_crispr, $default_assembly ),
             spacer           => $c->spacer,
             pair_off_target  => $c->off_target_summary,
-            left_off_target  => _get_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
-            right_off_target => _get_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
+            left_off_target  => _format_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
+            right_off_target => _format_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
         );
 
         #TODO crispr well data??
@@ -636,21 +641,49 @@ sub _rank_crispr_pairs {
     return;
 }
 
-=head2 _get_crispr_off_target_summary
+=head2 _format_crispr_off_target_summary
 
 Grab the correct crispr off target summary, one that matches with the specified
 off target algorithm.
 
 =cut
-sub _get_crispr_off_target_summary {
+sub _format_crispr_off_target_summary {
     my ( $crispr, $off_target_algorithm ) = @_;
 
     for my $summary ( $crispr->off_target_summaries->all ) {
         next unless $summary->algorithm eq $off_target_algorithm;
-        return $summary->summary;
+        my $summary_details = Load($summary->summary);
+        return $summary_details;
     }
 
     return;
+}
+
+=head2 _format_crispr_pair_off_target_summary
+
+Grab the correct crispr off target summary, one that matches with the specified
+off target algorithm.
+
+=cut
+sub _format_crispr_pair_off_target_summary {
+    my ( $crispr_pair ) = @_;
+
+    my $summary_details = Load($crispr_pair->off_target_summary);
+
+    return;
+}
+
+=head2 _formated_crispr_locus
+
+desc
+
+=cut
+sub _formated_crispr_locus {
+    my ( $crispr, $default_assembly ) = @_;
+
+    my $locus = $crispr->search_related( 'loci', { assembly_id => $default_assembly } )->first;
+
+    my $locus_string =  $locus->chr->name . ': ' . $locus->chr_start . ' - ' . $locus->chr_end;
 }
 
 =head2 _sort_gene_ids
