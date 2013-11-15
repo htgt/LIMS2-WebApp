@@ -1,7 +1,6 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
-use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
 use LIMS2::Model::Util::Crisprs qw( crispr_pick );
 use Try::Tiny;
 use namespace::autoclean;
@@ -99,34 +98,6 @@ sub design_target_report_crispr_pick : Path('/user/design_target_report_crispr_p
     catch {
         $c->flash( error_msg => "Something went wrong: " . $_ );
     };
-
-    return;
-}
-
-=head2 crisprs_ucsc_blat
-
-Link to UCSC Blat page for set for crisprs for a design target.
-
-=cut
-sub crisprs_ucsc_blat : Path( '/user/crisprs_ucsc_blat' ) : Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles( 'read' );
-
-    my $species_id = $c->request->param('species') || $c->session->{selected_species};
-
-    unless ( $c->request->param('sequence') ) {
-        $c->stash( error_msg => "Must specify a fasta sequence string" );
-        return;
-    }
-
-    my $ucsc_db = $UCSC_BLAT_DB{ lc($species_id) };
-
-    $c->stash(
-        sequence => $c->request->param('sequence'),
-        species  => $species_id,
-        uscs_db  => $ucsc_db,
-    );
 
     return;
 }
