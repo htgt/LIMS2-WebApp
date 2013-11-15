@@ -56,13 +56,17 @@
             <td class="design" rowspan="[% datum.design_rowspan %]" colspan="3"></td>
             [% FOR crispr IN datum.crisprs %]
               [% IF dt_first_row == 0 %]<tr>[% END %]
-              <td class="crispr">[% crispr.crispr_id %]</td>
+              <td class="crispr">
+                <a href="[% c.uri_for( '/user/crispr' , crispr.crispr_id , 'view' ) %]" target="_blank">
+                  [% crispr.crispr_id %]
+                </a>
+              </td>
               <td class="crispr">[% crispr.direction %]</td>
               <td class="crispr">[% crispr.outlier.join(', ') %]</td>
               <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
               <td class="crispr">[% crispr.crispr_wells %]</td>
               <td class="crispr">
-                <a href="[% c.uri_for( '/user/crisprs_ucsc_blat', { sequence => crispr.blat_seq } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+                <a href="[% c.uri_for( '/user/crispr', crispr.crispr_id , 'blat' ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
               </td>
               <td class="crispr"></td>
               [% dt_first_row = 0 IF dt_first_row == 1 %]
@@ -74,7 +78,7 @@
               [% design_first_row = 1 %]
               [% IF dt_first_row == 0 %]<tr>[% END %]
               <td rowspan="[% datum.design_rowspan %]" class="design">
-                <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]">
+                <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]" target="_blank">
                   [% design.design_id %]
                 </a>
               </td>
@@ -89,13 +93,17 @@
               [% ELSE %]
                 [% FOR crispr IN datum.crisprs %]
                   [% UNLESS design_first_row %]<tr>[% END %]
-                  <td class="crispr">[% crispr.crispr_id %]</td>
+                  <td class="crispr">
+                    <a href="[% c.uri_for( '/user/crispr' , crispr.crispr_id , 'view' ) %]" target="_blank">
+                      [% crispr.crispr_id %]
+                    </a>
+                  </td>
                   <td class="crispr">[% crispr.direction %]</td>
                   <td class="crispr">[% crispr.outlier.join(', ') %]</td>
                   <td class="crispr">[% crispr.summary.join(', ').remove('\{|\}') %]</td>
                   <td class="crispr">[% crispr.crispr_wells %]</td>
                   <td class="crispr">
-                    <a href="[% c.uri_for( '/user/crisprs_ucsc_blat', { sequence => crispr.blat_seq } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+                    <a href="[% c.uri_for( '/user/crispr', crispr.crispr_id , 'blat' ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
                   </td>
                   <td class="crispr">
                     [% IF crispr.crispr_id %]
