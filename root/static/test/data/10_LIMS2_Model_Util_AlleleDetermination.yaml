@@ -2559,10 +2559,10 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 4
     well: A01
     plate_name: PIQ0001
@@ -2611,10 +2611,10 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 7
     well: A01
     plate_name: EPD0001
@@ -2663,10 +2663,10 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.6'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 10
     well: A01
     plate_name: PIQ0001
@@ -2715,10 +2715,10 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.6'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 13
     well: A01
     plate_name: PIQ0001
@@ -2895,10 +2895,10 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: '-'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: '-'
+    gr4: 'pass'
+    gf4: 'pass'
 workflow_crekidre_gc_results:
   - id: 1
     well: A01
@@ -2948,10 +2948,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 4
     well: A01
     plate_name: EPD0001
@@ -2984,10 +2984,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 6
     well: A01
     plate_name: PIQ0001
@@ -3036,10 +3036,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 9
     well: A01
     plate_name: PIQ0001
@@ -3072,10 +3072,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 11
     well: A01
     plate_name: EPD0001
@@ -3124,10 +3124,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.6'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 14
     well: A01
     plate_name: EPD0001
@@ -3160,10 +3160,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.6'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 16
     well: A01
     plate_name: PIQ0001
@@ -3212,10 +3212,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.6'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 19
     well: A01
     plate_name: PIQ0001
@@ -3248,10 +3248,10 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.6'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: 'pass'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: 'pass'
+    gr4: 'pass'
+    gf4: 'pass'
   - id: 21
     well: A01
     plate_name: PIQ0001
@@ -3428,7 +3428,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.7'
-    lrpcr#gr3: 'pass'
-    lrpcr#gf3: '-'
-    lrpcr#gr4: 'pass'
-    lrpcr#gf4: 'pass'
+    gr3: 'pass'
+    gf3: '-'
+    gr4: 'pass'
+    gf4: 'pass'

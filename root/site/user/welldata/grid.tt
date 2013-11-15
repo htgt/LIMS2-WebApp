@@ -9,6 +9,7 @@
                     {name: 'well', type: 'string'},
                     {name: 'gene_name', type: 'string'},
                     {name: 'allele_type', type: 'string'},
+                    {name: 'genotyping_pass', type: 'string' },
                     {name: 'allele_determination', type: 'string'},
                     {name: 'ep_well_recombinase_id', type: 'string'},
                     {name: 'final_pick_cassette_resistance', type: 'string'},
@@ -192,6 +193,7 @@
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true, width: 50 },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true, width: 50 },
                 {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
+                {header: "Calculated<br>Pass", dataIndex: 'genotyping_pass', locked:true, width: 60 },
                 {header: "Distribute", dataIndex: 'accepted', locked: true, width: 55 },
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
                 {header: "Allele Info", columns: [
