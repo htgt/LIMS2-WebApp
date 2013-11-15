@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+    CRISPR_EP plate report updated, crispr_paired_ep process working
+    TODO: crispr_paired_ep process tests
+
 0.125     2013-11-13 12:21:21 Europe/London
 
     Corrected the override column boolean update on the genotyping qc grid
