@@ -40,7 +40,6 @@
         <th class="design-target">Exon Rank</th>
         <th class="design">Design ID</th>
         <th class="design">Design Type</th>
-        <th class="design">UCSC Blat</th>
         <th class="crispr">Crispr Pair ID</th>
         <th class="crispr">Spacer</th>
         <th class="crispr">Min OT Pair Distance</th>
@@ -65,7 +64,10 @@
         [% dt_first_row = 1 %]
         <tr>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.marker_symbol %]</td>
-          <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.gene_id %]</td>
+          <td rowspan="[% datum.dt_rowspan %]" class="design-target">
+            [% datum.gene_id %]
+            <a href="[% datum.ensembl_gene_link %]" target="_blank" class="btn btn-mini btn-info">[% datum.ensembl_gene_id %]</a>
+          </td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.ensembl_exon_id %]</td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.chromosome %]</td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">[% datum.exon_size %]</td>
@@ -100,11 +102,9 @@
                 <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]">
                   [% design.design_id %]
                 </a>
-              </td>
-              <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_type %]</td>
-              <td rowspan="[% datum.design_rowspan %]" class="design">
                 <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
               </td>
+              <td rowspan="[% datum.design_rowspan %]" class="design">[% design.design_type %]</td>
               [% IF datum.crisprs.size == 0 %]
                 <td class="crispr" colspan="[% crispr_col_span %]"></td>
                 </tr>
@@ -178,9 +178,12 @@ $('.crispr-off-targets').popover();
     <a href="[% c.uri_for( '/user/crispr_pair' , crispr_pair.crispr_pair_id , 'view' ) %]" target="_blank">
       [% crispr_pair.crispr_pair_id %]
     </a>
+    <a href="[% c.uri_for( '/user/crispr_pair' , crispr_pair.crispr_pair_id , 'blat' ) %]" target="_blank" class="btn btn-mini btn-block">
+    blat
+    </a>
   </td>
   <td class="crispr">[% crispr_pair.spacer %]</td>
-  <td class="crispr">[% crispr_pair.pair_off_target.remove('\{|\}') %]</td>
+  <td class="crispr">[% crispr_pair.pair_off_target %]</td>
   <td class="crispr">
     <a href="[% c.uri_for( '/user/crispr' , crispr_pair.left_crispr_id , 'view' ) %]" target="_blank">
       [% crispr_pair.left_crispr_id %]
