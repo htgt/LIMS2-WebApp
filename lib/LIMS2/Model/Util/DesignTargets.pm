@@ -524,25 +524,25 @@ sub _format_crispr_pair_data {
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
 
-    my @ranked_crispr_pairs = sort {
-        _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) } values %{ $crispr_pairs };
+    my @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
+        grep { _valid_crispr_pair($_) } values %{$crispr_pairs};
 
-    for my $c ( @ranked_crispr_pairs ) {
+    for my $c ( @valid_ranked_crispr_pairs ) {
         my $left_crispr = $crisprs->{ $c->left_crispr_id };
         my $right_crispr = $crisprs->{ $c->right_crispr_id };
 
         my %data = (
-            crispr_pair_id   => $c->id,
-            left_crispr_id   => $left_crispr->id,
-            left_crispr_seq  => $left_crispr->seq,
-            left_crispr_locus => _formated_crispr_locus( $left_crispr, $default_assembly ),
-            right_crispr_id  => $right_crispr->id,
-            right_crispr_seq => $right_crispr->seq,
+            crispr_pair_id     => $c->id,
+            left_crispr_id     => $left_crispr->id,
+            left_crispr_seq    => $left_crispr->seq,
+            left_crispr_locus  => _formated_crispr_locus( $left_crispr, $default_assembly ),
+            right_crispr_id    => $right_crispr->id,
+            right_crispr_seq   => $right_crispr->seq,
             right_crispr_locus => _formated_crispr_locus( $right_crispr, $default_assembly ),
-            spacer           => $c->spacer,
-            pair_off_target  => $c->off_target_summary,
-            left_off_target  => _format_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
-            right_off_target => _format_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
+            spacer             => $c->spacer,
+            pair_off_target    => $c->off_target_summary,
+            left_off_target    => _format_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
+            right_off_target   => _format_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
         );
 
         #TODO crispr well data??
@@ -646,6 +646,26 @@ sub _rank_crispr_pairs {
     }
 
     return $score - $ot_pair_distance;
+}
+
+=head2 _valid_crispr_pair
+
+A crispr pair is invalid if the distance between its 'worst' off target
+pair is less than 105 bases.
+
+=cut
+sub _valid_crispr_pair {
+    my ( $crispr_pair  ) = @_;
+
+    if ( $crispr_pair->off_target_summary ) {
+        my $summary = Load($crispr_pair->off_target_summary);
+        if ( my $distance = $summary->{distance} ) {
+            return 1 if $distance >= 105;
+        }
+    }
+
+    #TODO should we make pair invalid if no off target summary data? sp12 Mon 18 Nov 2013 08:34:03 GMT
+    return;
 }
 
 =head2 _format_crispr_off_target_summary
