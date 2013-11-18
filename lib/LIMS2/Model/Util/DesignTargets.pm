@@ -455,12 +455,14 @@ Format the crispr / crispr pair data.
 =cut
 sub format_crispr_data {
     my ( $datum, $report_parameters, $default_assembly ) = @_;
-    my $num_show_crisprs = $report_parameters->{num_crisprs} || 5;
 
     my $crispr_data;
     if ( $report_parameters->{crispr_types} eq 'single' ) {
         $crispr_data = _format_crispr_data(
-            $datum->{crisprs}, $report_parameters->{off_target_algorithm}, $num_show_crisprs );
+            $datum->{crisprs},
+            $report_parameters->{off_target_algorithm},
+            $default_assembly
+        );
     }
     elsif ( $report_parameters->{crispr_types} eq 'pair' ) {
         $crispr_data = _format_crispr_pair_data(
@@ -484,24 +486,22 @@ Format the crispr data, add information about crisprs presense on Crispr plates.
 
 =cut
 sub _format_crispr_data {
-    my ( $crisprs, $off_target_algorithm, $num_crisprs ) = @_;
+    my ( $crisprs, $off_target_algorithm, $default_assembly ) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
-    $num_crisprs ||= 5;
 
     my @ranked_crisprs = sort {
         _rank_crisprs( $a, $off_target_algorithm ) <=> _rank_crisprs( $b, $off_target_algorithm )
     } values %{ $crisprs };
 
-    my $crispr_count = 0;
     for my $c ( @ranked_crisprs ) {
-        #TODO wrong if undef it hasnt got a direction  sp12 Wed 13 Nov 2013 15:19:50 GMT
-        my $crispr_direction = $c->pam_right ? 'right' : 'left';
+        my $crispr_direction = $c->pam_right ? 'right' : $c->pam_right == 0 ? 'left' : undef;
         my %data = (
             crispr_id => $c->id,
             seq       => $c->seq,
             blat_seq  => '>' . $c->id . "\n" . $c->seq,
             direction => $crispr_direction,
+            locus     => _formated_crispr_locus( $c, $default_assembly ),
         );
         for my $summary ( $c->off_target_summaries->all ) {
             next unless $summary->algorithm eq $off_target_algorithm;
@@ -509,7 +509,6 @@ sub _format_crispr_data {
             push @{ $data{outlier} }, $valid;
             push @{ $data{summary} }, $summary->summary;
         }
-        last if $crispr_count++ >= $num_crisprs;
 
         #TODO add back crispr well information? sp12 Fri 25 Oct 2013 12:54:04 BST
         #my @process_crisprs = $c->process_crisprs->all;
