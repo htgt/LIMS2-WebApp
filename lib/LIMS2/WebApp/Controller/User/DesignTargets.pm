@@ -44,6 +44,9 @@ sub gene_report : Path('/user/design_target_report') {
         return $c->go('index');
     }
 
+    my $species = $c->session->{selected_species};
+    my $build   = $species eq 'Mouse' ? 70 : $species eq 'Human' ? 73 : undef;
+
     my %report_parameters = (
         type                 => $c->request->param('report_type') || 'standard',
         off_target_algorithm => $c->request->param('off_target_algorithm') || 'bwa',
@@ -54,6 +57,7 @@ sub gene_report : Path('/user/design_target_report') {
         $c->model('Golgi')->schema,
         $c->request->param('genes') || $gene,
         $c->session->{selected_species},
+        $build,
         \%report_parameters,
     );
 
@@ -71,11 +75,16 @@ sub gene_report : Path('/user/design_target_report') {
         $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
     }
 
+    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species } )->assembly_id;
+
     $c->stash(
         design_targets_data => $design_targets_data,
         genes               => $c->request->param('genes') || $gene,
         search_terms        => $search_terms,
-        species             => $c->session->{selected_species},
+        species             => $species,
+        assembly            => $default_assembly,
+        build               => $build,
         params              => \%report_parameters,
     );
 

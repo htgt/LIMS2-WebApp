@@ -117,7 +117,7 @@ Bulk lookup of designs for multiple design targets, to speed things up, must spe
 
 =cut
 sub bulk_designs_for_design_targets {
-    my ( $schema, $design_targets, $species_id, $default_assembly ) = @_;
+    my ( $schema, $design_targets, $species_id, $assembly ) = @_;
 
     my @gene_designs = $schema->resultset('GeneDesign')->search(
         {
@@ -137,10 +137,13 @@ sub bulk_designs_for_design_targets {
         my @matching_designs;
         my @dt_designs = map{ $_->design } grep{ $_->gene_id eq $dt->gene_id } @gene_designs;
         for my $design ( @dt_designs ) {
+            my $oligo_data = prebuild_oligos( $design, $assembly );
+            # if no oligo data then design does not have oligos on assembly
+            next unless $oligo_data;
             my $di = LIMS2::Model::Util::DesignInfo->new(
                 design           => $design,
-                default_assembly => $default_assembly,
-                oligos           => prebuild_oligos( $design, $default_assembly ),
+                default_assembly => $assembly,
+                oligos           => $oligo_data,
             );
             if ( $dt->chr_start > $di->target_region_start
                 && $dt->chr_end < $di->target_region_end
@@ -215,6 +218,7 @@ sub prebuild_oligos {
     my %design_oligos_data;
     for my $oligo ( $design->oligos ) {
         my ( $locus ) = grep{ $_->assembly_id eq $default_assembly } $oligo->loci;
+        return unless $locus;
 
         my %oligo_data = (
             start      => $locus->chr_start,
@@ -303,7 +307,7 @@ Given a list of gene identifiers find any design targets
 
 =cut
 sub find_design_targets {
-    my ( $schema, $sorted_genes, $species_id ) = @_;
+    my ( $schema, $sorted_genes, $species_id, $assembly, $build ) = @_;
 
     my @design_targets = $schema->resultset('DesignTarget')->search(
         {
@@ -312,7 +316,9 @@ sub find_design_targets {
                 marker_symbol   => { 'IN' => $sorted_genes->{marker_symbols} },
                 ensembl_gene_id => { 'IN' => $sorted_genes->{ensembl_gene_ids} },
             ],
-            'me.species_id' => $species_id,
+            'me.species_id'  => $species_id,
+            'me.assembly_id' => $assembly,
+            'me.build_id'    => $build,
         },
         {
             order_by => [ { -asc => 'gene_id' }, { -desc => 'exon_rank' } ],
@@ -333,15 +339,15 @@ Crisprs
 
 =cut
 sub design_target_report_for_genes {
-    my ( $schema, $genes, $species_id, $report_parameters ) = @_;
+    my ( $schema, $genes, $species_id, $build, $report_parameters ) = @_;
 
-    my $default_assembly = $schema->resultset('SpeciesDefaultAssembly')->find(
+    my $assembly = $schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species_id } )->assembly_id;
 
     my $sorted_genes = _sort_gene_ids( $genes );
-    my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id );
+    my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id, $assembly, $build );
     my ( $design_data, $design_crispr_links )
-        = bulk_designs_for_design_targets( $schema, $design_targets, $species_id, $default_assembly );
+        = bulk_designs_for_design_targets( $schema, $design_targets, $species_id, $assembly );
     my ( $crispr_data, $crispr_pair_data ) = bulk_crisprs_for_design_targets(
         $schema,
         $design_targets,
@@ -366,7 +372,7 @@ sub design_target_report_for_genes {
         \@report_data,
         $design_crispr_links,
         $report_parameters,
-        $default_assembly,
+        $assembly,
     );
     return( $formated_report_data, $sorted_genes );
 }
