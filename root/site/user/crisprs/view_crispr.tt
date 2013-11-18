@@ -17,7 +17,7 @@
   <tr><th>Comment</th> <td>[% crispr_data.comment %]</td></tr>
 </table>
 
-<a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'crispr_ucsc_blat' ) %]" target="_blank" class="btn btn-primary">UCSC BLAT</a>
+<a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-primary">UCSC BLAT</a>
 
 <h2>Off Target Summaries</h2>
 [% IF ots.size > 0 %]
