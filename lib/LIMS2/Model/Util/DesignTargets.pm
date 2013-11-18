@@ -321,7 +321,7 @@ sub find_design_targets {
             'me.build_id'    => $build,
         },
         {
-            order_by => [ { -asc => 'gene_id' }, { -desc => 'exon_rank' } ],
+            order_by => [ { -asc => 'gene_id' }, { -asc => 'exon_rank' } ],
             distinct => 1,
             prefetch => 'chr',
         }
@@ -395,7 +395,8 @@ sub format_report_data {
             $design_target_data->{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
         }
         else {
-            my ( $crispr_data, $display_crispr_num ) = format_crispr_data( $datum, $report_parameters, $default_assembly );
+            my ( $crispr_data, $display_crispr_num )
+                = format_crispr_data( $datum, $report_parameters, $default_assembly );
             $design_target_data->{crisprs} = $crispr_data;
 
             my ( $design_data, $display_design_num )
@@ -422,14 +423,26 @@ Format the design target data into something we can show in the report
 sub _format_design_target_data {
     my ( $design_target ) = @_;
 
+    my $ensembl_gene_link;
+    if ( $design_target->species_id eq 'Human' ) {
+        $ensembl_gene_link = 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?g='
+            . $design_target->ensembl_gene_id;
+    }
+    elsif ( $design_target->species_id eq 'Mouse' ) {
+        $ensembl_gene_link = 'http://www.ensembl.org/Mus_musculus/Gene/Summary?g='
+            . $design_target->ensembl_gene_id;
+    }
+
     my %design_target_data = (
-      design_target_id => $design_target->id,
-      marker_symbol    => $design_target->marker_symbol,
-      gene_id          => $design_target->gene_id,
-      ensembl_exon_id  => $design_target->ensembl_exon_id,
-      exon_size        => $design_target->exon_size,
-      exon_rank        => $design_target->exon_rank,
-      chromosome       => $design_target->chr->name,
+      design_target_id  => $design_target->id,
+      marker_symbol     => $design_target->marker_symbol,
+      gene_id           => $design_target->gene_id,
+      ensembl_exon_id   => $design_target->ensembl_exon_id,
+      ensembl_gene_id   => $design_target->ensembl_gene_id,
+      exon_size         => $design_target->exon_size,
+      exon_rank         => $design_target->exon_rank,
+      chromosome        => $design_target->chr->name,
+      ensembl_gene_link => $ensembl_gene_link,
     );
 
     return \%design_target_data;
@@ -546,7 +559,7 @@ sub _format_crispr_pair_data {
             right_crispr_seq   => $right_crispr->seq,
             right_crispr_locus => _formated_crispr_locus( $right_crispr, $default_assembly ),
             spacer             => $c->spacer,
-            pair_off_target    => $c->off_target_summary,
+            pair_off_target    => _format_crispr_pair_off_target_summary( $c ),
             left_off_target    => _format_crispr_off_target_summary( $left_crispr, $off_target_algorithm ),
             right_off_target   => _format_crispr_off_target_summary( $right_crispr, $off_target_algorithm ),
         );
@@ -701,7 +714,12 @@ off target algorithm.
 sub _format_crispr_pair_off_target_summary {
     my ( $crispr_pair ) = @_;
 
-    my $summary_details = Load($crispr_pair->off_target_summary);
+    if ( $crispr_pair->off_target_summary ) {
+        my $summary = Load($crispr_pair->off_target_summary);
+        if ( my $distance = $summary->{distance} ) {
+            return $distance;
+        }
+    }
 
     return;
 }
