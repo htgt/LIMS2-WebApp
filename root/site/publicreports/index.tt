@@ -1,0 +1,13 @@
+<div class="page-header">
+<h2>Public Reports</h2>
+</div>
+
+<div class="row">
+  <div class="span8 offset1">
+    <ul>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/cre_knockin_project_status' ) %]">Cre KnockIn Project Status</a>
+      </li>
+    </ul>
+  </div>
+</div>

@@ -235,6 +235,9 @@
                             [% ELSIF name.title == "Confidence" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
                                 editor: { xtype: 'textfield' }, hidden: true, width: 85 },
+                            [% ELSIF name.title == "VIC" %]
+                                {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
                             [% END %]
                         [% END %]
                       ]},

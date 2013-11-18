@@ -975,5 +975,43 @@ sub descendant_piq {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub parent_crispr {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'CRISPR' ) {
+            return $ancestor;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine crispr plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub parent_crispr_v {
+    my $self = shift;
+
+    my @parents;
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
+            push ( @parents, $ancestor );
+            # return $ancestor;
+        }
+    }
+
+    if (scalar @parents) {
+      return @parents;
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine crispr vector plate/well for $self" );
+}
+## use critic
+
 __PACKAGE__->meta->make_immutable;
 1;

@@ -63,7 +63,9 @@ Using this type of view we can present more data more quickly. There is no pagin
         Call
         Copy number
         Range
-        Confidence </pre>
+        Confidence
+        VIC
+        </pre>
 
     <p>
     To reveal columns hover over a column heading (any one will do) until a menu arrow appears towards the right of the column. Click the arrow and select the assay you want to drill down into. On the submenu, check the columns you want to reveal. Please be patient - depending on you browser the reveal may take a second or two per column.

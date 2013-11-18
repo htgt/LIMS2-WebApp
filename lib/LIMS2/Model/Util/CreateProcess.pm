@@ -142,6 +142,9 @@ my %process_check_well = (
     'freeze'                 => \&_check_wells_freeze,
     'xep_pool'               => \&_check_wells_xep_pool,
     'dist_qc'                => \&_check_wells_dist_qc,
+    'crispr_vector'          => \&_check_wells_crispr_vector,
+    'crispr_single_ep'       => \&_check_wells_crispr_single_ep,
+    'crispr_paired_ep'       => \&_check_wells_crispr_paired_ep,
 );
 
 sub check_process_wells {
@@ -487,6 +490,82 @@ sub _check_wells_dist_qc {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_crispr_vector {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_crispr_single_ep {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    #two input wells, one must be CRISPR_V, other FINAL_PICK
+    my @input_well_types = map{ $_->plate->type_id } $process->input_wells;
+
+    if ( ( none { $_ eq 'CRISPR_V' } @input_well_types ) || ( none { $_ eq 'FINAL_PICK' } @input_well_types ) ) {
+        LIMS2::Exception::Validation->throw(
+            'crispr_single_ep process types require two input wells, one of type CRISPR_V '
+            . 'and the other of type FINAL_PICK'
+            . ' (got ' . join( ',', @input_well_types ) . ')'
+        );
+    }
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_crispr_paired_ep {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    #three input wells, two must be CRISPR_V, other FINAL_PICK
+    my @input_well = $process->input_wells;
+
+    my $crispr_v,
+    my $final_pick;
+    my $pamright;
+    my $pamleft;
+
+    foreach (@input_well) {
+        if ($_->plate->type_id eq 'CRISPR_V') {
+            $crispr_v++;
+            if ( defined($_->crispr) && defined($_->crispr->pam_right) && ($_->crispr->pam_right) ) {
+                $pamright = 1;
+            } else {
+                $pamleft = 1;
+            }
+        }
+        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+    }
+
+    unless ($crispr_v == 2 && $final_pick == 1 ) {
+        LIMS2::Exception::Validation->throw(
+            'crispr_paired_ep process types require three input wells, two of type CRISPR_V '
+            . 'and the other of type FINAL_PICK.'
+        );
+    }
+    unless ($pamright && $pamleft ) {
+        LIMS2::Exception::Validation->throw(
+            'crispr_paired_ep process types requires paired CRISPR_V. '
+            . 'The provided pair is not valid.'
+        );
+    }
+
+    return;
+}
+## use critic
+
 my %process_aux_data = (
     'create_di'              => \&_create_process_aux_data_create_di,
     'create_crispr'          => \&_create_process_aux_data_create_crispr,
@@ -506,6 +585,9 @@ my %process_aux_data = (
     'freeze'                 => \&_create_process_aux_data_freeze,
     'xep_pool'               => \&_create_process_aux_data_xep_pool,
     'dist_qc'                => \&_create_process_aux_data_dist_qc,
+    'crispr_vector'          => \&_create_process_aux_data_crispr_vector,
+    'crispr_single_ep'       => \&_create_process_aux_data_crispr_single_ep,
+    'crispr_paired_ep'       => \&_create_process_aux_data_crispr_paired_ep,
 );
 
 sub create_process_aux_data {
@@ -866,6 +948,24 @@ sub _create_process_aux_data_xep_pool {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_dist_qc {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_crispr_vector {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_crispr_single_ep {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_crispr_paired_ep {
     return;
 }
 ## use critic
