@@ -525,7 +525,7 @@ sub _format_crispr_pair_data {
     $off_target_algorithm ||= 'strict';
 
     my @ranked_crispr_pairs = sort {
-        _rank_crispr_pairs($b) <=> _rank_crispr_pairs($a) } values %{ $crispr_pairs };
+        _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) } values %{ $crispr_pairs };
 
     for my $c ( @ranked_crispr_pairs ) {
         my $left_crispr = $crisprs->{ $c->left_crispr_id };
@@ -616,29 +616,36 @@ sub _rank_crisprs {
 
 =head2 _rank_crispr_pairs
 
-Sort crispr pairs by off target score.
-We use the distance value, the higher the distance value the better.
-Therefore higher the score the better.
+Sort crispr pairs by:
+* spacer, the closer to 20 the better
+* then on off target pair distance ( the larger the better )
+
+The lower the score the better
 
 =cut
 sub _rank_crispr_pairs {
     my ( $crispr_pair ) = @_;
-    my $score = 0;
+
+    my $score = abs( 20 - $crispr_pair->spacer );
 
     # return a really bad score if there is no off target information
-    return -10 unless $crispr_pair->off_target_summary;
-
-    my $summary = Load($crispr_pair->off_target_summary);
-
-    if ( my $distance = $summary->{distance} ) {
-        $distance =~ s/\+//;
-        return $distance;
+    my $ot_pair_distance;
+    if ( $crispr_pair->off_target_summary ) {
+        my $summary = Load($crispr_pair->off_target_summary);
+        if ( my $distance = $summary->{distance} ) {
+            $distance =~ s/\+//;
+            # max distance currently 9000
+            $ot_pair_distance = $distance / 10000;
+        }
+        else {
+            $ot_pair_distance = 0.0001;
+        }
     }
     else {
-        return -1;
+        $ot_pair_distance = 0.0001;
     }
 
-    return;
+    return $score - $ot_pair_distance;
 }
 
 =head2 _format_crispr_off_target_summary
