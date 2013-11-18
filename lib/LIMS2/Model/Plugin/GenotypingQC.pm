@@ -137,7 +137,7 @@ sub _valid_column_names{
 
     # Assay specific results
     foreach my $assay (@$assay_types){
-        foreach my $colname qw( pass confidence copy_number copy_number_range){
+        foreach my $colname qw( pass confidence copy_number copy_number_range vic){
             $recognized{$assay."_".$colname} = 1;
         }
     }
@@ -177,6 +177,11 @@ sub create_assay{
             # confidence is optional
             if (defined (my $conf = $datum->{$assay."_confidence"}) ){
                 $new_values{'confidence'} = $conf;
+            }
+
+            # VIC is optional
+            if (defined (my $conf = $datum->{$assay."_vic"}) ){
+                $new_values{'vic'} = $conf;
             }
 
             ($result, $message) = $self->update_or_create_well_genotyping_result({
@@ -238,13 +243,10 @@ sub update_genotyping_qc_value {
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
-     if ( $assay_name =~ /
-#             (g[r|f])    |
-#             tr_pcr      |
-             accepted_override
-             /xgms ){
-          $assay_value = $self->convert_bool( $assay_value );
-     }
+    # /(g[r|f])|tr_pcr|accepted_override/ Obsolete, updated for accepted_override only
+    if ( $assay_name =~ /accepted_override/xgms ) {
+        $assay_value = $self->convert_bool( $assay_value );
+    }
     my $genotyping_qc_result;
 
     if (exists $assays_dispatch->{$assay_name} ) {
@@ -525,6 +527,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
              'copy_number' => 1,
              'confidence' => 1,
              'copy_number_range' => 1,
+             'vic' => 1,
              'Accepted' => 1,
              'Override' => 1,
          });
@@ -635,6 +638,7 @@ sub fill_out_genotyping_results {
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'vic'} =  $row->{'vic'} // '-';
         }
     return;
 }
@@ -707,6 +711,7 @@ with wd as (
     , wgt.copy_number
     , wgt.copy_number_range
     , wgt.confidence
+    , wgt.vic
     from plates p, wells w
         left join well_genotyping_results wgt
         on wgt.well_id = w.id
@@ -715,7 +720,7 @@ with wd as (
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
     wd."Accepted",
-    wd.copy_number, wd.copy_number_range, wd.confidence,
+    wd.copy_number, wd.copy_number_range, wd.confidence, wd.vic,
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
@@ -764,6 +769,7 @@ with wd as (
     , wgt.copy_number
     , wgt.copy_number_range
     , wgt.confidence
+    , wgt.vic
     from plates p, wells w
         left join well_genotyping_results wgt
         on wgt.well_id = w.id
@@ -772,7 +778,7 @@ with wd as (
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
     wd."Accepted",
-    wd.copy_number, wd.copy_number_range, wd.confidence,
+    wd.copy_number, wd.copy_number_range, wd.confidence, wd.vic,
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
@@ -799,24 +805,23 @@ order by wd."Well ID"
 SQL_END
 }
 
- sub convert_bool {
-     my $self = shift;
-     my $string_value = shift;
+sub convert_bool {
+    my $self = shift;
+    my $string_value = shift;
+    my %lookup_boolean = (
+        'true'  => 1,
+        'yes'   => 1,
+        '1'     => 1,
+        'false' => 0,
+        'no'    => 0,
+        '0'     => 0,
+    );
 
-     my %lookup_boolean = (
-         'true'  => 1,
-         'yes'   => 1,
-         '1'     => 1,
-         'false' => 0,
-         'no'    => 0,
-         '0'     => 0,
-     );
-
-     # Return the boolean as an integer, otherwise return the original string
-     # This is because other strings like 'reset' or '-' might be present in
-     # addition to 'yes', 'no', etc.
-     return exists $lookup_boolean{$string_value} ? $lookup_boolean{$string_value}
-             : $string_value ;
+    # Return the boolean as an integer, otherwise return the original string
+    # This is because other strings like 'reset' or '-' might be present in
+    # addition to 'yes', 'no', etc.
+    return exists $lookup_boolean{$string_value} ?
+    $lookup_boolean{$string_value} : $string_value ;
 }
 
 
@@ -861,6 +866,7 @@ sub csv_genotyping_qc_plate_data {
         { 'copy_number' => 'Copy Number' },
         { 'copy_number_range' => 'Range' },
         { 'confidence' => 'Confidence' },
+        { 'vic' => 'VIC' },
     );
     my @assay_types = sort map { $_->id } $self->schema->resultset('GenotypingResultType')->all;
     my @csv_header_array = $self->create_csv_header_array( \@assay_types );
@@ -926,7 +932,8 @@ sub create_csv_header_array {
             $assay_name . '#call',
             $assay_name . '#copy_number',
             $assay_name . '#copy_number_range',
-            $assay_name . '#confidence' ;
+            $assay_name . '#confidence' ,
+            $assay_name . '#vic' ;
     }
 
     return @header_words;
