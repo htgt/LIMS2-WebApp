@@ -83,7 +83,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests : Test(191) {
+sub all_tests : Test(217) {
     ok( 1, "Test of LIMS2::Model::Util::AlleleDetermination" );
 
     note('Testing AlleleDetermination Logic - step 1 - loading test data from yaml file');
@@ -164,15 +164,19 @@ sub all_tests : Test(191) {
     }
 
     ok $ne1a_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt',   'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $ne1a_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $ne1a_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
+    ok $ne1a_gc_allele_results->{ '2' }->{ 'genotyping_pass' } eq 'pass', 'well 2 should be an EP_PICK genotyping pass';
     ok $ne1a_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1e/wt', 'well 3 should be allele type < tm1e/wt > for stage EP_PICK';
 
     ok $ne1a_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'wt/wt',    'well 4 should be allele type < wt/wt > for stage SEP_PICK';
+    ok $ne1a_gc_allele_results->{ '4' }->{ 'genotyping_pass' } eq 'fail', 'well 4 should be an SEP_PICK genotyping pass failure as not wanted genotype';
     ok $ne1a_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1a/wt',  'well 5 should be allele type < tm1a/wt > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'tm1e/wt',  'well 6 should be allele type < tm1e/wt > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'wt/tm1',   'well 7 should be allele type < wt/tm1 > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'tm1e/tm1', 'well 8 should be allele type < tm1e/tm1 > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'tm1a/tm1', 'well 9 should be allele type < tm1a/tm1 > for stage SEP_PICK';
+    ok $ne1a_gc_allele_results->{ '9' }->{ 'genotyping_pass' } eq 'pass', 'well 9 should be an SEP_PICK genotyping pass';
     ok $ne1a_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'tm1a/wt+bsd_offtarg',
         'well 10 should be allele type < tm1a/wt+bsd_offtarg > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'wt+neo_offtarg/tm1',
@@ -318,11 +322,15 @@ sub all_tests : Test(191) {
     }
 
     ok $ne1_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt',  'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $ne1_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $ne1_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
-
+    ok $ne1_gc_allele_results->{ '2' }->{ 'genotyping_pass' } eq 'pass', 'well 2 should be an EP_PICK genotyping pass';
+    
     ok $ne1_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'wt/wt',    'well 3 should be allele type < wt/wt > for stage SEP_PICK';
+    ok $ne1_gc_allele_results->{ '3' }->{ 'genotyping_pass' } eq 'fail', 'well 3 should be an SEP_PICK genotyping pass failure as not wanted genotype';
     ok $ne1_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'tm1/wt',   'well 4 should be allele type < tm1/wt > for stage SEP_PICK';
     ok $ne1_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1/tm1a', 'well 5 should be allele type < tm1/tm1a > for stage SEP_PICK';
+    ok $ne1_gc_allele_results->{ '5' }->{ 'genotyping_pass' } eq 'pass', 'well 5 should be an SEP_PICK genotyping pass';
     ok $ne1_gc_allele_results->{ '6' }->{ 'allele_determination' } eq 'wt/tm1a',  'well 6 should be allele type < wt/tm1a > for stage SEP_PICK';
     ok $ne1_gc_allele_results->{ '7' }->{ 'allele_determination' } eq 'tm1/tm1e', 'well 7 should be allele type < tm1/tm1e > for stage SEP_PICK';
     ok $ne1_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'wt/tm1e',  'well 8 should be allele type < wt/tm1e > for stage SEP_PICK';
@@ -474,15 +482,16 @@ sub all_tests : Test(191) {
         $e_gc_allele_results->{ $e_well_result_hash->{ 'id' } } = $e_well_result_hash;
     }
 
-    ok $e_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'tm1f/wt; wt/wt',
-        'well 1 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'tm1f/wt; wt/wt', 'well 1 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $e_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
     ok $e_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1c/wt', 'well 3 should be allele type < tm1c/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '3' }->{ 'genotyping_pass' } eq 'pass', 'well 3 should be an EP_PICK genotyping pass';
     ok $e_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'tm1e/wt', 'well 4 should be allele type < tm1e/wt > for stage EP_PICK';
-    ok $e_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1f/wt; wt/wt',
-        'well 5 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '5' }->{ 'allele_determination' } eq 'tm1f/wt; wt/wt', 'well 5 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
 
     ok $e_gc_allele_results->{ '6'}->{ 'allele_determination' } eq 'wt/wt',    'well 6 should be allele type < wt/wt > for stage SEP_PICK';
+    ok $e_gc_allele_results->{ '6' }->{ 'genotyping_pass' } eq 'fail', 'well 6 should be an SEP_PICK genotyping pass failure as not wanted genotype';
     ok $e_gc_allele_results->{ '7'}->{ 'allele_determination' } eq 'tm1a/wt',  'well 7 should be allele type < tm1a/wt > for stage SEP_PICK';
     ok $e_gc_allele_results->{ '8'}->{ 'allele_determination' } eq 'tm1c/wt',  'well 8 should be allele type < tm1c/wt > for stage SEP_PICK';
     ok $e_gc_allele_results->{ '9'}->{ 'allele_determination' } eq 'tm1e/wt',  'well 9 should be allele type < tm1e/wt > for stage SEP_PICK';
@@ -490,6 +499,7 @@ sub all_tests : Test(191) {
     ok $e_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'wt/tm1',   'well 11 should be allele type < wt/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'tm1a/tm1', 'well 12 should be allele type < tm1a/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'tm1c/tm1', 'well 13 should be allele type < tm1c/tm1 > for stage SEP_PICK';
+    ok $e_gc_allele_results->{ '13' }->{ 'genotyping_pass' } eq 'pass', 'well 13 should be an SEP_PICK genotyping pass';
     ok $e_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'tm1e/tm1', 'well 14 should be allele type < tm1e/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'tm1f/tm1', 'well 15 should be allele type < tm1f/tm1 > for stage SEP_PICK';
 
@@ -619,10 +629,7 @@ sub all_tests : Test(191) {
     #   21  'failed: Puro assay validation: Copy Number Range not present'
     #   22  'failed: Puro assay validation: Copy Number Range above threshold'
     #   23  'failed: LRPCR assay validation: gr3 primer not present'
-
-    #TODO: chry and ch8a passes and fails
-
-    #TODO: overall pass tests
+    #   24  test for 'passb_chr8a' genotyping pass result
 
     # check each allele type returned matches the expected types
     note('Testing AlleleDetermination Logic - 5c - checking CreKI workflow allele types');
@@ -635,13 +642,19 @@ sub all_tests : Test(191) {
     # $creki_gc_allele_results
 
     ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '2' }->{ 'genotyping_pass' } eq 'pass', 'well 2 should be an EP_PICK genotyping pass';
     ok $creki_gc_allele_results->{ '3' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 3 should be allele type < tm1/wt lrpcr only > for stage EP_PICK';
+    ok $creki_gc_allele_results->{ '3' }->{ 'genotyping_pass' } eq 'pass', 'well 3 should be an EP_PICK (lrpcr) genotyping pass';
 
     ok $creki_gc_allele_results->{ '4' }->{ 'allele_determination' }  eq 'wt/wt', 'well 4 should be allele type < wt/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '4' }->{ 'genotyping_pass' } eq 'fail', 'well 4 should be a PIQ genotyping pass failure as not wanted genotype';
     ok $creki_gc_allele_results->{ '5' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 5 should be allele type < tm1/wt > for stage PIQ';
+    ok $creki_gc_allele_results->{ '5' }->{ 'genotyping_pass' } eq 'pass', 'well 5 should be a PIQ genotyping pass';
     ok $creki_gc_allele_results->{ '6' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 6 should be allele type < tm1/wt lrpcr only > for stage PIQ';
-
+    ok $creki_gc_allele_results->{ '6' }->{ 'genotyping_pass' } eq 'pass', 'well 6 should be a PIQ (lrpcr) genotyping pass';
+    
     ok $creki_gc_allele_results->{ '7' }->{ 'allele_determination' }  eq 'potential wt/wt', 'well 7 should be allele type < potential wt/wt > for stage EP_PICK';
     ok $creki_gc_allele_results->{ '8' }->{ 'allele_determination' }  eq 'potential tm1/wt', 'well 8 should be allele type < potential tm1/wt > for stage EP_PICK';
     ok $creki_gc_allele_results->{ '9' }->{ 'allele_determination' }  eq 'potential tm1/wt lrpcr only', 'well 9 should be allele type < potential tm1/wt lrpcr only > for stage EP_PICK';
@@ -677,9 +690,7 @@ sub all_tests : Test(191) {
     ok $creki_gc_allele_results->{ '23' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
         'well 23 should give a error for a failed lrpcr test';
 
-    #TODO: chry and ch8a passes and fails
-
-    #TODO: overall pass tests
+    ok $creki_gc_allele_results->{ '24' }->{ 'genotyping_pass' } eq 'passb_chr8a', 'well 24 should be a PIQ genotyping passb_chr8a';
 
     # ----------------------------------------------------------------------------------------------
     # TODO: test genotyping Pass logic here
@@ -739,10 +750,6 @@ sub all_tests : Test(191) {
     #   30  'failed: Puro assay validation: Copy Number Range above threshold'
     #   31  'failed: LRPCR assay validation: gr3 primer not present'
 
-    #TODO: chry and ch8a passes and fails
-
-    #TODO: overall pass tests
-
     # check each allele type returned matches the expected types
     note('Testing AlleleDetermination Logic - 6c - checking CreKiDre workflow allele types');
 
@@ -754,17 +761,23 @@ sub all_tests : Test(191) {
     # $crekidre_gc_allele_results
 
     ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '3' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 3 should be allele type < tm1/wt lrpcr only > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '4' }->{ 'allele_determination' }  eq 'tm1.1/wt', 'well 4 should be allele type < tm1.1/wt > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '4' }->{ 'genotyping_pass' } eq 'pass', 'well 4 should be an EP_PICK genotyping pass';
     ok $crekidre_gc_allele_results->{ '5' }->{ 'allele_determination' }  eq 'tm1.1/wt lrpcr only', 'well 5 should be allele type < tm1.1/wt lrpcr only > for stage EP_PICK';
+    ok $crekidre_gc_allele_results->{ '5' }->{ 'genotyping_pass' } eq 'pass', 'well 5 should be an EP_PICK genotyping pass';
 
     ok $crekidre_gc_allele_results->{ '6' }->{ 'allele_determination' }  eq 'wt/wt', 'well 6 should be allele type < wt/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '6' }->{ 'genotyping_pass' } eq 'fail', 'well 6 should be a PIQ genotyping pass failure as not wanted genotype';
     ok $crekidre_gc_allele_results->{ '7' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 7 should be allele type < tm1/wt > for stage PIQ';
     ok $crekidre_gc_allele_results->{ '8' }->{ 'allele_determination' }  eq 'tm1/wt lrpcr only', 'well 8 should be allele type < tm1/wt lrpcr only > for stage PIQ';
     ok $crekidre_gc_allele_results->{ '9' }->{ 'allele_determination' }  eq 'tm1.1/wt', 'well 9 should be allele type < tm1.1/wt > for stage PIQ';
+    ok $crekidre_gc_allele_results->{ '9' }->{ 'genotyping_pass' } eq 'fail', 'well 9 should be a PIQ genotyping pass';
     ok $crekidre_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'tm1.1/wt lrpcr only', 'well 10 should be allele type < tm1.1/wt lrpcr only > for stage PIQ';
-
+    ok $crekidre_gc_allele_results->{ '10' }->{ 'genotyping_pass' } eq 'fail', 'well 10 should be a PIQ genotyping pass (lrpcr)';
+    
     ok $crekidre_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 11 should be allele type < potential wt/wt > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 12 should be allele type < potential tm1/wt > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr only', 'well 13 should be allele type < potential tm1/wt lrpcr only > for stage EP_PICK';
@@ -803,9 +816,7 @@ sub all_tests : Test(191) {
     ok $crekidre_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
         'well 31 should give an LRPCR error for gf3';
 
-    #TODO: chry and ch8a passes and fails
-
-    #TODO: overall pass tests
+    ok $crekidre_gc_allele_results->{ '32' }->{ 'genotyping_pass' } eq 'passb_chr8a', 'well 32 should be a PIQ genotyping passb_chr8a';
 
     note('Testing AlleleDetermination Logic - Complete');
 }

@@ -2595,6 +2595,12 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    chry#confidence: '0.99'
+    chry#copy_number: '1.0'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
+    chr8a#copy_number: '2.0'
+    chr8a#copy_number_range: '0.1'
   - id: 6
     well: A01
     plate_name: PIQ0001
@@ -2615,6 +2621,12 @@ workflow_creki_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    chry#confidence: '0.99'
+    chry#copy_number: '1.0'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
+    chr8a#copy_number: '2.0'
+    chr8a#copy_number_range: '0.1'
   - id: 7
     well: A01
     plate_name: EPD0001
@@ -2899,6 +2911,28 @@ workflow_creki_gc_results:
     gf3: '-'
     gr4: 'pass'
     gf4: 'pass'
+  - id: 24
+    well: A01
+    plate_name: PIQ0001
+    plate_type: PIQ
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKi
+    cre#confidence: '0.99'
+    cre#copy_number: '1.1'
+    cre#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '1.1'
+    puro#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '1.1'
+    loadel#copy_number_range: '0.1'
+    chry#confidence: '0.99'
+    chry#copy_number: '1.0'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
+    chr8a#copy_number: '2.5'
+    chr8a#copy_number_range: '0.1'
 workflow_crekidre_gc_results:
   - id: 1
     well: A01
@@ -3432,3 +3466,25 @@ workflow_crekidre_gc_results:
     gf3: '-'
     gr4: 'pass'
     gf4: 'pass'
+  - id: 32
+    well: A01
+    plate_name: PIQ0001
+    plate_type: PIQ
+    gene_id: MGI:1349475
+    gene_name: Ppp2r5c
+    workflow: CreKiDre
+    cre#confidence: '0.99'
+    cre#copy_number: '1.1'
+    cre#copy_number_range: '0.1'
+    puro#confidence: '0.99'
+    puro#copy_number: '0.1'
+    puro#copy_number_range: '0.1'
+    loadel#confidence: '0.99'
+    loadel#copy_number: '1.1'
+    loadel#copy_number_range: '0.1'
+    chry#confidence: '0.99'
+    chry#copy_number: '1.0'
+    chry#copy_number_range: '0.1'
+    chr8a#confidence: '0.99'
+    chr8a#copy_number: '2.5'
+    chr8a#copy_number_range: '0.1'
