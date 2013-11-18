@@ -94,7 +94,7 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
     return;
 }
 
-=head2 crisprs_ucsc_blat
+=head2 crispr_ucsc_blat
 
 Link to UCSC Blat page for set for crisprs for a design target.
 
@@ -161,6 +161,26 @@ sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
     $c->stash(
         ots     => $off_target_summary,
         designs => [ $crispr_pair->crispr_designs->all ],
+    );
+
+    return;
+}
+
+=head2 crispr_pair_ucsc_blat
+
+Link to UCSC Blat page for set for crisprs for a design target.
+
+=cut
+sub crispr_pair_ucsc_blat : PathPart('blat') Chained('crispr_pair') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $cp = $c->stash->{cp};
+    my $ucsc_db = $UCSC_BLAT_DB{ lc($c->stash->{species}) };
+    my $blat_seq = '>' . $cp->id . "\n" . $cp->left_crispr->seq . $cp->right_crispr->seq;
+
+    $c->stash(
+        sequence => $blat_seq,
+        uscs_db  => $ucsc_db,
     );
 
     return;
