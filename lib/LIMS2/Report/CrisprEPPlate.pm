@@ -22,7 +22,7 @@ override _build_columns => sub {
     return [
         'Well Name',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
-        'Crispr Plate', 'Crispr Well',
+        'Left Crispr', 'Right Crispr',
         'Created By','Created At',
     ];
 };
@@ -45,15 +45,21 @@ override iterator => sub {
             or return;
 
         my $final_vector = $well->final_vector;
-        my $crispr = $well->parent_crispr_v->parent_crispr;
+        my ($crispr1, $crispr2) = $well->parent_crispr_v;#->parent_crispr;
 
-        my ( $crispr_data, $locus_data );
-        my $process_crispr = $well->process_output_wells->first->process->process_crispr;
-        if ( $process_crispr ) {
-            $crispr_data = $process_crispr->crispr->as_hash;
-            $locus_data = $crispr_data->{locus} if $crispr_data->{locus};
+        my ($right_crispr, $left_crispr);
+        if (defined $crispr2) {
+            if ($crispr2->crispr->pam_right) {
+                $right_crispr = $crispr2->parent_crispr->plate . '[' . $crispr2->parent_crispr->name . ']';
+                $left_crispr = $crispr1->parent_crispr->plate . '[' . $crispr1->parent_crispr->name . ']';
+            } else {
+                $right_crispr = $crispr1->parent_crispr->plate . '[' . $crispr1->parent_crispr->name . ']';
+                $left_crispr = $crispr2->parent_crispr->plate . '[' . $crispr2->parent_crispr->name . ']';
+            }
+        } elsif (defined $crispr1) {
+            $right_crispr = '';
+            $left_crispr = $crispr1->parent_crispr->plate . '[' . $crispr1->parent_crispr->name . ']';
         }
-
 
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
@@ -62,8 +68,8 @@ override iterator => sub {
             $final_vector->cassette->resistance,
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
             $final_vector->backbone->name,
-            $crispr->plate,
-            $crispr->name,
+            $left_crispr,
+            $right_crispr,
             # join( q{/}, @{ $final_vector->recombinases } ),
             $well->created_by->name,
             $well->created_at->ymd,

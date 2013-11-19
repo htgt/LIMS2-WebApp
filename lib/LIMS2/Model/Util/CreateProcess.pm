@@ -540,7 +540,7 @@ sub _check_wells_crispr_paired_ep {
     foreach (@input_well) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            if ($_->crispr->pam_right) {
+            if ( defined($_->crispr) && defined($_->crispr->pam_right) && ($_->crispr->pam_right) ) {
                 $pamright = 1;
             } else {
                 $pamleft = 1;
