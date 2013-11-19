@@ -506,8 +506,9 @@ sub _format_crispr_data {
         for my $summary ( $c->off_target_summaries->all ) {
             next unless $summary->algorithm eq $off_target_algorithm;
             my $valid = $summary->outlier ? 'no' : 'yes';
-            push @{ $data{outlier} }, $valid;
-            push @{ $data{summary} }, $summary->summary;
+            $data{outlier} = $valid;
+            $data{summary} = Load( $summary->summary );
+            last;
         }
 
         #TODO add back crispr well information? sp12 Fri 25 Oct 2013 12:54:04 BST
