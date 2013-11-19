@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.128     2013-11-19 07:47:33 Europe/London
+
+    Updated design target crispr report to show more useful information.
+    Added detail pages for crisprs and crispr pairs.
+
 0.127     2013-11-18 11:05:36 Europe/London
 
     Added VIC to genoptyping QC upload
