@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.129     2013-11-19 08:24:33 Europe/London
+
+    Bugfix, tried to treat 9000+ as a number, needed to strip + sign from value.
+
 0.128     2013-11-19 07:47:33 Europe/London
 
     Updated design target crispr report to show more useful information.
