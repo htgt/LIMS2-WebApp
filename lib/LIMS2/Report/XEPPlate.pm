@@ -1,7 +1,7 @@
 package LIMS2::Report::XEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::XEPPlate::VERSION = '0.128';
+    $LIMS2::Report::XEPPlate::VERSION = '0.129';
 }
 ## use critic
 

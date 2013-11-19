@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.128';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.129';
 }
 ## use critic
 
@@ -685,6 +685,7 @@ sub _valid_crispr_pair {
     if ( $crispr_pair->off_target_summary ) {
         my $summary = Load($crispr_pair->off_target_summary);
         if ( my $distance = $summary->{distance} ) {
+            $distance =~ s/\+//;
             return 1 if $distance >= 105;
         }
     }
