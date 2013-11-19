@@ -292,6 +292,12 @@ sub vector_seq {
     return substr( $self->seq, 0, 20 );
 }
 
+sub pairs {
+  my $self = shift;
+
+  return ($self->pam_right) ? $self->crispr_pairs_right_crisprs : $self->crispr_pairs_left_crisprs;
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
