@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPrint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPrint::VERSION = '0.123';
+    $LIMS2::Report::EPPrint::VERSION = '0.128';
 }
 ## use critic
 
@@ -12,6 +12,10 @@ use namespace::autoclean;
 use Log::Log4perl qw( :easy );
 
 extends qw( LIMS2::ReportGenerator::Plate::SimpleColumns );
+
+override additional_report => sub {
+    return 1;
+};
 
 override plate_types => sub {
     return [ 'EP' ];

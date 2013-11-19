@@ -102,7 +102,7 @@
                 fields: ['call_label'],
                 data: [
                 {"call_label":"-"},
-                {"call_label":"pass_lrpcr"},
+                {"call_label":"lrpcr_pass"},
                 {"call_label":"pass"},
                 {"call_label":"passb"},
                 {"call_label":"fail"},
@@ -113,6 +113,16 @@
                 {"call_label":"na"},
                 {"call_label":"nd"},
                 {"call_label":"reset"}
+                ]
+            });
+
+            var call_types_lr_pcr_pass = Ext.create('Ext.data.Store', {
+                fields: ['call_label'],
+                data: [
+                {"call_label":"-"},
+                {"call_label":"pass"},
+                {"call_label":"passb"},
+                {"call_label":"fail"},
                 ]
             });
 
@@ -140,8 +150,8 @@
             var pcr_select_values = Ext.create('Ext.data.Store', {
                 fields: ['pcr_sel'],
                 data: [
-                {"pcr_sel":"true"},
-                {"pcr_sel":"false"},
+                {"pcr_sel":"pass"},
+                {"pcr_sel":"fail"},
                 {"pcr_sel":"-"}
                 ]
             });
@@ -159,6 +169,13 @@
                 queryMode: 'local',
                 store: pcr_select_values,
                 displayField: 'pcr_sel',
+                forceSelection: true
+            });
+
+            var lr_pcr_pass_combo = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: call_types_lr_pcr_pass,
+                displayField: 'call_label',
                 forceSelection: true
             });
 
@@ -197,7 +214,7 @@
                     {header: "gr4", dataIndex: 'gr4', editor: pcr_combo, width: 50 },
                     {header: "gf3", dataIndex: 'gf3', editor: pcr_combo, width: 50 },
                     {header: "gf4", dataIndex: 'gf4', editor: pcr_combo, width: 50 },
-                    {header: "Pass", dataIndex: 'lr_pcr_pass', editor: pcr_combo, width: 50 }
+                    {header: "Pass", dataIndex: 'lr_pcr_pass', editor: lr_pcr_pass_combo, width: 50 }
                 ]},
 //                {header: "TRPCR<br>Seq", editor: { xtype: 'textfield' }},
                 [% FOR assay IN assay_types %]
@@ -216,6 +233,9 @@
                             [% ELSIF name.title == "Confidence" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
                                 editor: { xtype: 'textfield' }, hidden: true, width: 85 },
+                            [% ELSIF name.title == "VIC" %]
+                                {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
                             [% END %]
                         [% END %]
                       ]},

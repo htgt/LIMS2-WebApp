@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.123';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.128';
 }
 ## use critic
 
@@ -110,6 +110,7 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
         { title => 'Copy Number', field => 'copy_number'},
         { title => 'Range', field => 'copy_number_range'},
         { title => 'Confidence', field => 'confidence' },
+        { title => 'VIC', field => 'vic' },
     );
     my @assay_types = sort map { $_->id } $model->schema->resultset('GenotypingResultType')->all;
 

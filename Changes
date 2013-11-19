@@ -1,3 +1,27 @@
+0.128     2013-11-19 07:47:33 Europe/London
+
+    Updated design target crispr report to show more useful information.
+    Added detail pages for crisprs and crispr pairs.
+
+0.127     2013-11-18 11:05:36 Europe/London
+
+    Added VIC to genoptyping QC upload
+
+0.126     2013-11-15 10:22:26 Europe/London
+
+    CRISPR_EP plate report updated, crispr_paired_ep process working
+    TODO: crispr_paired_ep process tests
+
+0.125     2013-11-13 12:21:21 Europe/London
+
+    Corrected the override column boolean update on the genotyping qc grid
+    Added a public reports section
+    Added CRISPR_V and CRISPR_EP plates and associated processes 
+
+0.124     2013-11-07 16:18:32 Europe/London
+
+    Well primer band updates for the genotyping qc grid
+
 0.123     2013-11-05 07:34:22 Europe/London
 
     Minor bugfix and performance improvement to LIMS2::Test module

@@ -146,6 +146,7 @@ lib/LIMS2/Model/Util/DesignTargets.pm
 lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
+lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/QCResults.pm
 lib/LIMS2/Model/Util/QCTemplates.pm
@@ -154,8 +155,10 @@ lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
+lib/LIMS2/Report/CrisprEPPlate.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
+lib/LIMS2/Report/CrisprVectorPlate.pm
 lib/LIMS2/Report/DNAPlate.pm
 lib/LIMS2/Report/DesignPlate.pm
 lib/LIMS2/Report/DesignPlateOrderSheet.pm
@@ -170,6 +173,7 @@ lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/FirstElectroporationProductionDetail.pm
 lib/LIMS2/Report/GenesToElectroporate.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
+lib/LIMS2/Report/LegacyCreKnockInProjects.pm
 lib/LIMS2/Report/PICKPlate.pm
 lib/LIMS2/Report/PIQPlate.pm
 lib/LIMS2/Report/PlateList.pm
@@ -206,12 +210,15 @@ lib/LIMS2/WebApp/Controller/API/Report.pm
 lib/LIMS2/WebApp/Controller/Admin.pm
 lib/LIMS2/WebApp/Controller/Auth.pm
 lib/LIMS2/WebApp/Controller/FixtureData.pm
+lib/LIMS2/WebApp/Controller/PublicReports.pm
+lib/LIMS2/WebApp/Controller/PublicReports/API.pm
 lib/LIMS2/WebApp/Controller/Root.pm
 lib/LIMS2/WebApp/Controller/User.pm
 lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
 lib/LIMS2/WebApp/Controller/User/CreateDesign.pm
+lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargetsReport.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
@@ -246,6 +253,8 @@ root/site/admin/create_user.tt
 root/site/admin/index.tt
 root/site/admin/update_user.tt
 root/site/auth/login.tt
+root/site/publicreports/await_report.tt
+root/site/publicreports/index.tt
 root/site/user/browsedesigns/design_ucsc_blat.tt
 root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
@@ -256,7 +265,10 @@ root/site/user/browseplates/view.tt
 root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
 root/site/user/createdesign/index.tt
-root/site/user/designtargets/crisprs_ucsc_blat.tt
+root/site/user/crisprs/crispr_pair_ucsc_blat.tt
+root/site/user/crisprs/crispr_ucsc_blat.tt
+root/site/user/crisprs/view_crispr.tt
+root/site/user/crisprs/view_crispr_pair.tt
 root/site/user/designtargets/design_target_report_crispr_pick.tt
 root/site/user/designtargets/gene_report_crispr_pairs.tt
 root/site/user/designtargets/gene_report_single_crisprs.tt
@@ -298,6 +310,7 @@ root/site/user/welldata/update_colony_picks_step_1.tt
 root/site/user/welldata/update_colony_picks_step_2.tt
 root/site/user/welldata/upload_genotyping_qc.tt
 root/static/appjs/DesignTargetsApp.js
+root/static/appjs/DesignTargetsApp_dev.js
 root/static/appjs/controller/LoadDesignTargetsView.js
 root/static/appjs/model/DesignTarget.js
 root/static/appjs/store/DesignTargets.js
@@ -2105,6 +2118,8 @@ root/static/extjs/src/view/View.js
 root/static/extjs/src/window/MessageBox.js
 root/static/extjs/src/window/Window.js
 root/static/extjs/version.properties
+root/static/files/plate_upload/crispr_paired_ep_template.csv
+root/static/files/plate_upload/crispr_single_ep_template.csv
 root/static/files/plate_upload/dna_template.csv
 root/static/files/plate_upload/first_electroporation_template.csv
 root/static/files/plate_upload/gateway_template.csv
@@ -2160,6 +2175,8 @@ root/static/test/data/create_crispr.yaml
 root/static/test/data/create_crispr_process.yaml
 root/static/test/data/create_design_targets.yaml
 root/static/test/data/create_di_process.yaml
+root/static/test/data/crispr_ep_process.yaml
+root/static/test/data/crispr_vector_process.yaml
 root/static/test/data/csv_upload_linux.csv
 root/static/test/data/csv_upload_mac.csv
 root/static/test/data/csv_upload_win.csv
@@ -2190,12 +2207,15 @@ root/static/test/data/xep_pool_process.yaml
 root/static/test/fixtures/00-clean-db.sql
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/BacClone.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/Crispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/CrisprLocus.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/CrisprOffTargetSummaries.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/GeneDesign.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/Plate.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/Process.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessBackbone.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessCassette.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessCrispr.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessDesign.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessInputWell.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessOutputWell.csv

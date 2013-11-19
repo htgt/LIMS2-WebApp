@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.123';
+    $LIMS2::Model::Constants::VERSION = '0.128';
 }
 ## use critic
 
@@ -48,6 +48,9 @@ const our %PROCESS_PLATE_TYPES => (
     'freeze'                 => [qw( FP SFP )],
     'xep_pool'               => [qw( XEP )],
     'dist_qc'                => [qw( PIQ )],
+    'crispr_vector'          => [qw( CRISPR_V )],
+    'crispr_single_ep'       => [qw( CRISPR_EP )],
+    'crispr_paired_ep'       => [qw( CRISPR_EP )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -70,7 +73,7 @@ const our %PROCESS_TEMPLATE => (
     '2w_gateway'             => 'gateway_template.csv',
     '3w_gateway'             => 'gateway_template.csv',
     'final_pick'             => 'standard_template.csv',
-    'dna_prep'               => 'dna_template.csv',
+    'dna_prep'               => 'standard_template.csv',
     'recombinase'            => 'recombinase_template.csv',
     'first_electroporation'  => 'first_electroporation_template.csv',
     'second_electroporation' => 'second_electroporation_template.csv',
@@ -79,6 +82,8 @@ const our %PROCESS_TEMPLATE => (
     'freeze'                 => 'standard_template.csv',
     'xep_pool'               => 'standard_template.csv',
     'dist_qc'                => 'piq_template.csv',
+    'crispr_single_ep'       => 'crispr_single_ep_template.csv',
+    'crispr_paired_ep'       => 'crispr_paired_ep_template.csv',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -148,6 +153,18 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( FP SFP )],
         number => 1,
     },
+    'crispr_vector' => {
+        type   => [qw( CRISPR )],
+        number => 1,
+    },
+    'crispr_single_ep' => {
+        type   => [qw( CRISPR_V FINAL_PICK )],
+        number => 2,
+    },
+    'crispr_paired_ep' => {
+        type   => [qw( CRISPR_V CRISPR_V FINAL_PICK )],
+        number => 3,
+    },
 );
 
 const our %ARTIFICIAL_INTRON_OLIGO_APPENDS => (
@@ -195,14 +212,14 @@ const our %ADDITIONAL_PLATE_REPORTS => (
     ],
     CRISPR => [
         {
-            class => 'CrisprPlateOrderSheet',
+            class  => 'CrisprPlateOrderSheet',
             method => 'async',
             name   => 'Crispr Plate Order Sheet',
         }
     ],
     EP => [
         {
-            class => 'EPPrint',
+            class  => 'EPPrint',
             method => 'sync',
             name   => 'EP Print',
         }
