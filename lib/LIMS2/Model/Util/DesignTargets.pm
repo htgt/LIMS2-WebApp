@@ -735,6 +735,8 @@ sub _formated_crispr_locus {
     my $locus = $crispr->search_related( 'loci', { assembly_id => $default_assembly } )->first;
 
     my $locus_string =  $locus->chr->name . ': ' . $locus->chr_start . ' - ' . $locus->chr_end;
+
+    return $locus_string;
 }
 
 =head2 _sort_gene_ids
