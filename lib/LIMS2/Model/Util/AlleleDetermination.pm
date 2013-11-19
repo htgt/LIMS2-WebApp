@@ -9,9 +9,6 @@ use LIMS2::Exception;
 use Parse::BooleanLogic;
 use Log::Log4perl qw( :easy );
 
-# use Smart::Comments;
-use Data::Dumper;
-
 has species => (
     is       => 'ro',
     isa      => 'Str',
@@ -90,12 +87,12 @@ has allele_translation => (
 );
 
 sub BUILD {
-    my ($self) = @_;
+    my ( $self ) = @_;
     return;
 }
 
 sub _build_allele_config {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $conf_parser = Config::Scoped->new(
         file     => $ENV{LIMS2_ALLELE_DET_CONFIG},
@@ -108,7 +105,7 @@ sub _build_allele_config {
 }
 
 sub _build_dispatches {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $dispatches = {
         'is_loacrit_0'           => sub { $self->_is_loacrit_0 },
@@ -172,7 +169,7 @@ sub _build_dispatches {
 }
 
 sub _build_allele_translation {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $allele_translation = $self->allele_config->{ 'allele_translation' };
 
@@ -234,7 +231,7 @@ sub test_determine_allele_types_logic {
 }
 
 sub _determine_allele_types_for_wells {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     $self->well_allele_type_results( {} );
 
@@ -271,7 +268,7 @@ sub _determine_allele_types_for_wells {
 }
 
 sub _determine_workflow_for_wells {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     # SQL for selecting the fields for determining workflows differs for EP_PICK, SEP_PICK and PIQ plate types
     # First group the well ids into FEPD, SEPD and PIQ arrays (will usually all be one type) so not
@@ -425,7 +422,7 @@ sub _calculate_workflow_for_well {
 }
 
 sub _determine_allele_type_for_well {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     unless ( defined $self->current_well ) { return 'Failed: no current well set'; }
     unless ( defined $self->current_well_id ) { return 'Failed: no current well id set'; }
@@ -461,7 +458,7 @@ sub _determine_allele_type_for_well {
 }
 
 sub _create_assay_summary_string {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my @pattern;
 
@@ -473,7 +470,7 @@ sub _create_assay_summary_string {
         }
         foreach my $lrpcr_val ( 'gr3', 'gf3', 'gr4', 'gf4' ) {
             my $lrpcr_val_string = $lrpcr_val . ':' . ( $self->current_well->{ $lrpcr_val } // '-' );
-            DEBUG( 'curr well id= ' . $self->current_well_id() . ' lrpcr_val_string=' . $lrpcr_val_string );
+            # DEBUG( 'curr well id= ' . $self->current_well_id() . ' lrpcr_val_string=' . $lrpcr_val_string );
             push( @pattern, $lrpcr_val_string );
         }
     }
@@ -487,7 +484,7 @@ sub _create_assay_summary_string {
 
     my $pattern_string = join( ' ', (@pattern) );
 
-    DEBUG('pattern= ' . $pattern_string );
+    # DEBUG('pattern= ' . $pattern_string );
 
     $self->current_well->{ 'assay_pattern' } = $pattern_string;
 
@@ -537,7 +534,7 @@ sub _is_allele_test {
 
     LIMS2::Exception->throw( "allele test: no tests logic string defined" ) unless ( defined $logic_string && $logic_string ne '' );
 
-    DEBUG ( 'Allele test logic string = ' . $logic_string );
+    # DEBUG ( 'Allele test logic string = ' . $logic_string );
 
     # logic string looks like this: 'is_loacrit_1 AND is_loatam_1 AND is_loadel_0 AND ( is_neo_present OR is_bsd_present )'
     # Get the parser to read this, interpret logic and run our coded methods "is_loacrit_1" etc
@@ -548,7 +545,7 @@ sub _is_allele_test {
         my $self    = pop;
         my $operand = $_[0]->{ 'operand' };
 
-        DEBUG ( 'operand = <' . $operand . '>' );
+        # DEBUG ( 'operand = <' . $operand . '>' );
 
         my $method  = $self->dispatches->{ $operand };
         return $method->();
@@ -586,7 +583,7 @@ sub _minimised_allele_type {
 }
 
 sub _determine_genotyping_pass_for_wells {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     # this has to decide if the overall result is a pass (distribute) or fail
     # for EP plate types this is a check on whether the allele type is the expected allele type
@@ -612,16 +609,17 @@ sub _determine_genotyping_pass_for_wells {
 
         # store calculated genotyping pass in well hash
         $well->{ 'genotyping_pass' } = $current_genotyping_pass;
-        DEBUG( Dumper( $well ) );
+
+        DEBUG ( "well id " . $self->current_well_id . " well genotyping pass = " . $well->{ 'genotyping_pass' } );
     }
 
     return;
 }
 
 sub _determine_genotyping_pass_for_well {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    DEBUG ( 'In _determine_genotyping_pass_for_well method' );
+    # DEBUG ( 'In _determine_genotyping_pass_for_well method' );
 
     LIMS2::Exception->throw( 'Failed: no current well set' ) unless ( defined $self->current_well );
     LIMS2::Exception->throw( 'Failed: no current well id set' ) unless ( defined $self->current_well_id );
@@ -638,7 +636,7 @@ sub _determine_genotyping_pass_for_well {
 
     # If the well allele type is a 'fail' return false
     my $curr_well_allele_det = $self->current_well->{ 'allele_type' };
-    DEBUG ( 'curr_well_allele_det = ' . $curr_well_allele_det );
+    # DEBUG ( 'curr_well_allele_det = ' . $curr_well_allele_det );
     if ( !defined $curr_well_allele_det || $curr_well_allele_det eq 'fail' || $curr_well_allele_det eq 'unknown' ) { return 'fail'; }
 
     # Check if the allele type matches one of the allowed types according to the config file
@@ -647,16 +645,18 @@ sub _determine_genotyping_pass_for_well {
     # Attempt to find a pass result using the test criteria from the config file
     my $genotyping_pass = $self->_apply_additional_genotyping_pass_criteria();
 
-    # set the well accepted flag to true if a pass
-    unless ( $genotyping_pass eq 'fail' || $genotyping_pass eq '' ) { $self->current_well->{ 'accepted' } = 'yes' }
+    DEBUG ( "well id " . $self->current_well_id . " genotyping pass = " . $genotyping_pass );
+
+    # update the well accepted value
+    $self->_set_calculated_well_accepted_value( $genotyping_pass );
 
     return $genotyping_pass;
 }
 
 sub _is_allele_type_valid_for_genotyping_pass {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    DEBUG ( 'In _is_allele_type_valid_for_genotyping_pass method' );
+    # DEBUG ( 'In _is_allele_type_valid_for_genotyping_pass method' );
 
     # Fetch the list of genotyping pass allowed allele types from the config
     # e.g. 'tm1_wt OR tm1_wt_lrpcr OR tm1_1_wt OR tm1_1_wt_lrpcr OR potential_tm1_wt OR potential_tm1_wt_lrpcr OR potential_tm1_1_wt OR potential_tm1_1_wt_lrpcr'
@@ -669,9 +669,9 @@ sub _is_allele_type_valid_for_genotyping_pass {
 
     LIMS2::Exception->throw( 'Failed: No allowed allele types returned from config, cannot determine genotyping pass' ) unless ( scalar @conv_allowed_types_array > 0 );
 
-    DEBUG( 'config string = ' . $allowed_types_string );
-    DEBUG( 'config as array = ' . join( ", ", @allowed_types_array ) );
-    DEBUG( 'converted config as array = ' . join( ", ", @conv_allowed_types_array ) );
+    # DEBUG( 'config string = ' . $allowed_types_string );
+    # DEBUG( 'config as array = ' . join( ", ", @allowed_types_array ) );
+    # DEBUG( 'converted config as array = ' . join( ", ", @conv_allowed_types_array ) );
 
     # Create an array of types from the well allele determination
     my $curr_well_allele_types_string = $self->current_well->{ 'allele_determination' };
@@ -679,15 +679,15 @@ sub _is_allele_type_valid_for_genotyping_pass {
 
     LIMS2::Exception->throw( 'Failed: No allele determination types found, cannot determine genotyping pass' ) unless ( scalar @curr_well_allele_types_array > 0 );
 
-    DEBUG( 'alele_types string = ' . $curr_well_allele_types_string );
-    DEBUG( 'allele types as array = ' . join( ", ", @curr_well_allele_types_array ) );
+    # DEBUG( 'alele_types string = ' . $curr_well_allele_types_string );
+    # DEBUG( 'allele types as array = ' . join( ", ", @curr_well_allele_types_array ) );
 
     # Cycle through the allele determination types and check if any match against the allowed types
     # N.B. This is currently coded so that ANY one matching allele type triggers a pass
     my $valid = 0;
     foreach my $curr_well_allele_type ( @curr_well_allele_types_array ) {
         if ( $curr_well_allele_type ~~ @conv_allowed_types_array ) {
-            DEBUG ( $curr_well_allele_type . ' matches!' );
+            # DEBUG ( $curr_well_allele_type . ' matches!' );
             $valid = 1;
         }
     }
@@ -696,7 +696,7 @@ sub _is_allele_type_valid_for_genotyping_pass {
 }
 
 sub _apply_additional_genotyping_pass_criteria {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     # may be more than one test to check
 
@@ -713,11 +713,14 @@ sub _apply_additional_genotyping_pass_criteria {
         # Get the specific logic for this particular workflow and scope into this method:
         my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'genotyping_pass' }->{ 'tests' }->{ $key };
 
+        if (defined $logic_string ) { print "well id " . $self->current_well_id . " pass criteria logic string = " . $logic_string . "\n"; }
+
         # check string is defined
         LIMS2::Exception->throw("apply additional genotyping pass criteria: no tests logic string defined for test " . $key ) unless ( defined $logic_string );
 
         # if logic string is empty then no further tests required and well has passed test
         if ( $logic_string eq '' ) {
+            print "well id " . $self->current_well_id . " logic string empty\n";
             push( @passed_tests, $key );
         }
         else {
@@ -735,8 +738,30 @@ sub _apply_additional_genotyping_pass_criteria {
     }
 }
 
+sub _set_calculated_well_accepted_value {
+    my ( $self, $genotyping_pass ) = @_;
+
+    unless ( defined $genotyping_pass && defined $self->current_well->{ 'accepted' } ) { return; }
+
+    # store an accepted value for each well, indicating where different than current database value
+    if ( $genotyping_pass eq 'fail' || $genotyping_pass eq '' ) {
+        if ( $self->current_well->{ 'accepted' } eq 'yes') {
+            $self->current_well->{ 'accepted' } = '* no';
+            $self->current_well->{ 'update_for_accepted' } = 0;
+        }
+    }
+    else {
+        if ( $self->current_well->{ 'accepted' } eq 'no') {
+            $self->current_well->{ 'accepted' } = '* yes';
+            $self->current_well->{ 'update_for_accepted' } = 1;
+        }
+    }
+
+    return;
+}
+
 sub _is_loacrit_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_upper_bound' };
@@ -747,7 +772,7 @@ sub _is_loacrit_0 {
 }
 
 sub _is_loacrit_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_upper_bound' };
@@ -758,7 +783,7 @@ sub _is_loacrit_1 {
 }
 
 sub _is_loacrit_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_upper_bound' };
@@ -769,7 +794,7 @@ sub _is_loacrit_2 {
 }
 
 sub _is_loatam_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_upper_bound' };
@@ -780,7 +805,7 @@ sub _is_loatam_0 {
 }
 
 sub _is_loatam_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_upper_bound' };
@@ -791,7 +816,7 @@ sub _is_loatam_1 {
 }
 
 sub _is_loatam_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_upper_bound' };
@@ -802,7 +827,7 @@ sub _is_loatam_2 {
 }
 
 sub _is_loadel_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_upper_bound' };
@@ -813,7 +838,7 @@ sub _is_loadel_0 {
 }
 
 sub _is_loadel_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_upper_bound' };
@@ -824,7 +849,7 @@ sub _is_loadel_1 {
 }
 
 sub _is_loadel_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_upper_bound' };
@@ -835,7 +860,7 @@ sub _is_loadel_2 {
 }
 
 sub _is_cre_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_0_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_0_upper_bound' };
@@ -846,7 +871,7 @@ sub _is_cre_0 {
 }
 
 sub _is_cre_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_1_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_1_upper_bound' };
@@ -857,7 +882,7 @@ sub _is_cre_1 {
 }
 
 sub _is_puro_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_0_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_0_upper_bound' };
@@ -868,7 +893,7 @@ sub _is_puro_0 {
 }
 
 sub _is_puro_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_1_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_1_upper_bound' };
@@ -879,7 +904,7 @@ sub _is_puro_1 {
 }
 
 sub _is_chry_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_0_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_0_upper_bound' };
@@ -890,7 +915,7 @@ sub _is_chry_0 {
 }
 
 sub _is_chry_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_1_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_1_upper_bound' };
@@ -901,7 +926,7 @@ sub _is_chry_1 {
 }
 
 sub _is_chry_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_2_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_2_upper_bound' };
@@ -912,7 +937,7 @@ sub _is_chry_2 {
 }
 
 sub _is_chr8a_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_upper_bound' };
@@ -923,7 +948,7 @@ sub _is_chr8a_0 {
 }
 
 sub _is_chr8a_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_upper_bound' };
@@ -934,7 +959,7 @@ sub _is_chr8a_1 {
 }
 
 sub _is_chr8a_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_lower_bound' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_upper_bound' };
@@ -945,7 +970,7 @@ sub _is_chr8a_2 {
 }
 
 sub _is_potential_loacrit_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_upper_bound_loose' };
@@ -956,7 +981,7 @@ sub _is_potential_loacrit_0 {
 }
 
 sub _is_potential_loacrit_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_upper_bound_loose' };
@@ -967,7 +992,7 @@ sub _is_potential_loacrit_1 {
 }
 
 sub _is_potential_loacrit_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_upper_bound_loose' };
@@ -978,7 +1003,7 @@ sub _is_potential_loacrit_2 {
 }
 
 sub _is_potential_loatam_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_upper_bound_loose' };
@@ -989,7 +1014,7 @@ sub _is_potential_loatam_0 {
 }
 
 sub _is_potential_loatam_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_upper_bound_loose' };
@@ -1000,7 +1025,7 @@ sub _is_potential_loatam_1 {
 }
 
 sub _is_potential_loatam_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_upper_bound_loose' };
@@ -1011,7 +1036,7 @@ sub _is_potential_loatam_2 {
 }
 
 sub _is_potential_loadel_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_upper_bound_loose' };
@@ -1022,7 +1047,7 @@ sub _is_potential_loadel_0 {
 }
 
 sub _is_potential_loadel_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_upper_bound_loose' };
@@ -1033,7 +1058,7 @@ sub _is_potential_loadel_1 {
 }
 
 sub _is_potential_loadel_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_upper_bound_loose' };
@@ -1044,7 +1069,7 @@ sub _is_potential_loadel_2 {
 }
 
 sub _is_potential_cre_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_0_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_0_upper_bound_loose' };
@@ -1055,7 +1080,7 @@ sub _is_potential_cre_0 {
 }
 
 sub _is_potential_cre_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_1_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_1_upper_bound_loose' };
@@ -1066,7 +1091,7 @@ sub _is_potential_cre_1 {
 }
 
 sub _is_potential_puro_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_0_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_0_upper_bound_loose' };
@@ -1077,7 +1102,7 @@ sub _is_potential_puro_0 {
 }
 
 sub _is_potential_puro_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_1_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_1_upper_bound_loose' };
@@ -1088,7 +1113,7 @@ sub _is_potential_puro_1 {
 }
 
 sub _is_potential_chry_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_0_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_0_upper_bound_loose' };
@@ -1099,7 +1124,7 @@ sub _is_potential_chry_0 {
 }
 
 sub _is_potential_chry_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_1_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_1_upper_bound_loose' };
@@ -1110,7 +1135,7 @@ sub _is_potential_chry_1 {
 }
 
 sub _is_potential_chry_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_2_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_2_upper_bound_loose' };
@@ -1121,7 +1146,7 @@ sub _is_potential_chry_2 {
 }
 
 sub _is_potential_chr8a_0 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_upper_bound_loose' };
@@ -1132,7 +1157,7 @@ sub _is_potential_chr8a_0 {
 }
 
 sub _is_potential_chr8a_1 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_upper_bound_loose' };
@@ -1143,7 +1168,7 @@ sub _is_potential_chr8a_1 {
 }
 
 sub _is_potential_chr8a_2 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_lower_bound_loose' };
     my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_upper_bound_loose' };
@@ -1154,7 +1179,7 @@ sub _is_potential_chr8a_2 {
 }
 
 sub _is_neo_present {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $neo_threshold = $self->allele_config->{ 'thresholds' }->{ 'neo_threshold' };
 
@@ -1162,7 +1187,7 @@ sub _is_neo_present {
 }
 
 sub _is_bsd_present {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $bsd_threshold = $self->allele_config->{ 'thresholds' }->{ 'bsd_threshold' };
 
@@ -1170,7 +1195,7 @@ sub _is_bsd_present {
 }
 
 sub _is_lrpcr_pass {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $gf3 = $self->current_well->{ 'gf3' };
     my $gr3 = $self->current_well->{ 'gr3' };

@@ -239,6 +239,29 @@ sub update_well_accepted_override {
     return $override;
 }
 
+sub pspec_update_well_accepted {
+    return {
+        well_id    => { validate => 'integer',             rename => 'id' },
+        accepted   => { validate => 'boolean' }
+    };
+}
+
+sub update_well_accepted {
+    my ( $self, $params ) = @_;
+
+    print 'in update_well_accepted' . "\n";
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_well_accepted );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id )} );
+
+    print 'well retrieved, updating' ."\n";
+
+    $well->update( { slice_def $validated_params, qw( accepted ) } );
+
+    return $well;
+}
+
 sub pspec_create_well_recombineering_result {
     return {
         well_id      => { validate => 'integer', optional => 1, rename => 'id' },

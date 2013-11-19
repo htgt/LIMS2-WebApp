@@ -193,8 +193,8 @@
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true, width: 50 },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true, width: 50 },
                 {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
-                {header: "Calculated<br>Pass", dataIndex: 'genotyping_pass', locked:true, width: 60 },
-                {header: "Distribute", dataIndex: 'accepted', locked: true, width: 55 },
+                {header: "Calculated<br>Pass", dataIndex: 'genotyping_pass', locked:true, width: 70 },
+                {header: "Distribute", dataIndex: 'accepted', locked: true, width: 60 },
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
                 {header: "Allele Info", columns: [
                     {header: "Type",                             dataIndex: 'allele_type',                    hidden: true, width: 60 },
@@ -279,16 +279,29 @@
                 ],
                 tools:[
                     {
-                        type: 'save',
-                        tooltip: 'Save CSV file',
-                        handler: function(event, toolEl, panel){
+                        id        : 'save_accepted_flags_btn',
+                        type      : 'plus',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
+                            SaveDistributeChanges();
+                        }
+                    },
+                    {
+                        id        : 'download_csv_file_btn',
+                        type      : 'save',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
                             DownloadCsvFile();
                         }
                     },
                     {
-                        type:'help',
-                        tooltip: 'Get Help',
-                        handler: function(event, toolEl, panel){
+                        id        : 'help_btn',
+                        type      : 'help',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
                             help_win = Ext.create('Ext.window.Window', {
                                 x : 10,
                                 y : 50,
@@ -300,6 +313,41 @@
                     }
                     ],
             });
+
+            var tooltips = [{
+                target   : 'save_accepted_flags_btn',
+                html     : 'Click to save the calculated<br>distribute values for all<br>the wells on the plate'
+            },
+            {
+                target   : 'download_csv_file_btn',
+                html     : 'Click to download the plate data<br>as a CSV spreadsheet file'
+            },
+            {
+                target   : 'help_btn',
+                html     : 'Display help information'
+            }];
+
+            Ext.each(tooltips, function(config) {
+                Ext.create('Ext.tip.ToolTip', config);
+            });
+
+            function SaveDistributeChanges() {
+
+                Ext.Ajax.request({
+                   url: '[% c.uri_for( '/api/plate/genotyping_qc_save_distribute_changes' ) %]',
+                   method: 'GET',
+                   params: { plate_name: plateName },
+                   headers: {'Content-Type': 'application/json'},
+                   success: function(response, opts) {
+
+                      // callback function on the store load to refresh the grid
+                      grid.store.load( function( records, operation, success ){ grid.getView().refresh(); } );                      
+                   },
+                   failure: function(response, opts) {
+                      console.log('server-side failure with status code ' + response.status);
+                   }
+                });
+            }
 
             function DownloadCsvFile() {
                 var body = Ext.getBody();

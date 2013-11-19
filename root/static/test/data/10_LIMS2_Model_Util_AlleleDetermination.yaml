@@ -22,6 +22,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 2
     well: A02
     plate_name: EPD0001
@@ -44,6 +45,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 3
     well: A03
     plate_name: EPD0001
@@ -66,6 +68,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 4
     well: A04
     plate_name: SEPD0001
@@ -88,6 +91,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 5
     well: A05
     plate_name: SEPD0001
@@ -110,6 +114,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 6
     well: A06
     plate_name: SEPD0001
@@ -132,6 +137,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 7
     well: A07
     plate_name: SEPD0001
@@ -154,6 +160,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 8
     well: A08
     plate_name: SEPD0001
@@ -176,6 +183,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 9
     well: A09
     plate_name: SEPD0001
@@ -198,6 +206,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 10
     well: A10
     plate_name: SEPD0001
@@ -220,6 +229,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 11
     well: A11
     plate_name: SEPD0001
@@ -242,6 +252,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 12
     well: A12
     plate_name: EPD0001
@@ -264,6 +275,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 13
     well: B01
     plate_name: EPD0001
@@ -286,6 +298,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 14
     well: B02
     plate_name: EPD0001
@@ -308,6 +321,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 15
     well: B02
     plate_name: SEPD0001
@@ -330,6 +344,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 16
     well: B03
     plate_name: SEPD0001
@@ -352,6 +367,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 17
     well: B04
     plate_name: SEPD0001
@@ -374,6 +390,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 18
     well: B05
     plate_name: SEPD0001
@@ -396,6 +413,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 19
     well: B06
     plate_name: SEPD0001
@@ -418,6 +436,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 20
     well: B07
     plate_name: SEPD0001
@@ -440,6 +459,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 21
     well: B08
     plate_name: SEPD0001
@@ -462,6 +482,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 22
     well: B09
     plate_name: SEPD0001
@@ -484,6 +505,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 23
     well: B10
     plate_name: SEPD0001
@@ -506,6 +528,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 24
     well: B11
     plate_name: SEPD0001
@@ -528,6 +551,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 25
     well: B12
     plate_name: SEPD0001
@@ -550,6 +574,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 26
     well: C01
     plate_name: SEPD0001
@@ -572,6 +597,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 27
     well: C02
     plate_name: SEPD0001
@@ -594,6 +620,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 28
     well: C03
     plate_name: SEPD0001
@@ -616,6 +643,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 29
     well: C04
     plate_name: SEPD0001
@@ -638,6 +666,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 30
     well: C05
     plate_name: SEPD0001
@@ -660,6 +689,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 31
     well: C06
     plate_name: SEPD0001
@@ -682,6 +712,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 32
     well: C07
     plate_name: SEPD0001
@@ -704,6 +735,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 33
     well: C08
     plate_name: SEPD0001
@@ -726,6 +758,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 34
     well: C09
     plate_name: SEPD0001
@@ -748,6 +781,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '-'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 35
     well: C10
     plate_name: SEPD0001
@@ -770,6 +804,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 36
     well: C11
     plate_name: SEPD0001
@@ -792,6 +827,7 @@ workflow_ne1a_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.5'
+    accepted: 'no'
 workflow_ne1_gc_results:
   - id: 1
     well: A01
@@ -815,6 +851,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 2
     well: A02
     plate_name: EPD0001
@@ -837,6 +874,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 3
     well: A03
     plate_name: SEPD0001
@@ -859,6 +897,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 4
     well: A04
     plate_name: SEPD0001
@@ -881,6 +920,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 5
     well: A05
     plate_name: SEPD0001
@@ -903,6 +943,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 6
     well: A06
     plate_name: SEPD0001
@@ -925,6 +966,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 7
     well: A07
     plate_name: SEPD0001
@@ -947,6 +989,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 8
     well: A08
     plate_name: SEPD0001
@@ -969,6 +1012,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 9
     well: A09
     plate_name: SEPD0001
@@ -991,6 +1035,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 10
     well: A10
     plate_name: SEPD0001
@@ -1013,6 +1058,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 11
     well: A11
     plate_name: SEPD0001
@@ -1035,6 +1081,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 12
     well: A12
     plate_name: SEPD0001
@@ -1057,6 +1104,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 13
     well: B01
     plate_name: SEPD0001
@@ -1079,6 +1127,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 14
     well: B02
     plate_name: SEPD0001
@@ -1101,6 +1150,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 15
     well: B03
     plate_name: SEPD0001
@@ -1123,6 +1173,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 16
     well: B04
     plate_name: SEPD0001
@@ -1145,6 +1196,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 17
     well: B05
     plate_name: SEPD0001
@@ -1167,6 +1219,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 18
     well: B06
     plate_name: SEPD0001
@@ -1189,6 +1242,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 19
     well: B07
     plate_name: SEPD0001
@@ -1211,6 +1265,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 20
     well: B08
     plate_name: SEPD0001
@@ -1233,6 +1288,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 21
     well: B09
     plate_name: SEPD0001
@@ -1255,6 +1311,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 22
     well: B10
     plate_name: SEPD0001
@@ -1277,6 +1334,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 23
     well: B11
     plate_name: SEPD0001
@@ -1299,6 +1357,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 24
     well: B12
     plate_name: SEPD0001
@@ -1321,6 +1380,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 25
     well: C01
     plate_name: SEPD0001
@@ -1343,6 +1403,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 26
     well: C02
     plate_name: SEPD0001
@@ -1365,6 +1426,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 27
     well: C03
     plate_name: SEPD0001
@@ -1387,6 +1449,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 28
     well: C04
     plate_name: SEPD0001
@@ -1409,6 +1472,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 29
     well: C05
     plate_name: SEPD0001
@@ -1431,6 +1495,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 30
     well: C06
     plate_name: SEPD0001
@@ -1453,6 +1518,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '-'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 31
     well: C07
     plate_name: SEPD0001
@@ -1475,6 +1541,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 32
     well: C08
     plate_name: SEPD0001
@@ -1497,6 +1564,7 @@ workflow_ne1_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.5'
+    accepted: 'no'
 workflow_e_gc_results:
   - id: 1
     well: A01
@@ -1520,6 +1588,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 2
     well: A02
     plate_name: EPD0001
@@ -1542,6 +1611,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 3
     well: A03
     plate_name: EPD0001
@@ -1564,6 +1634,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 4
     well: A04
     plate_name: EPD0001
@@ -1586,6 +1657,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 5
     well: A05
     plate_name: EPD0001
@@ -1608,6 +1680,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 6
     well: A06
     plate_name: SEPD0001
@@ -1630,6 +1703,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 7
     well: A07
     plate_name: SEPD0001
@@ -1652,6 +1726,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 8
     well: A08
     plate_name: SEPD0001
@@ -1674,6 +1749,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 9
     well: A09
     plate_name: SEPD0001
@@ -1696,6 +1772,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 10
     well: A10
     plate_name: SEPD0001
@@ -1718,6 +1795,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 11
     well: A11
     plate_name: SEPD0001
@@ -1740,6 +1818,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 12
     well: A12
     plate_name: SEPD0001
@@ -1762,6 +1841,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 13
     well: B01
     plate_name: SEPD0001
@@ -1784,6 +1864,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 14
     well: B02
     plate_name: SEPD0001
@@ -1806,6 +1887,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 15
     well: B03
     plate_name: SEPD0001
@@ -1828,6 +1910,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 16
     well: B04
     plate_name: EPD0001
@@ -1850,6 +1933,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 17
     well: B05
     plate_name: EPD0001
@@ -1872,6 +1956,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 18
     well: B06
     plate_name: EPD0001
@@ -1894,6 +1979,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 19
     well: B07
     plate_name: EPD0001
@@ -1916,6 +2002,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 20
     well: B08
     plate_name: EPD0001
@@ -1938,6 +2025,7 @@ workflow_e_gc_results:
     bsd#confidence: '-'
     bsd#copy_number: '-'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 21
     well: B09
     plate_name: SEPD0001
@@ -1960,6 +2048,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 22
     well: B10
     plate_name: SEPD0001
@@ -1982,6 +2071,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 23
     well: B11
     plate_name: SEPD0001
@@ -2004,6 +2094,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 24
     well: B12
     plate_name: SEPD0001
@@ -2026,6 +2117,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 25
     well: C01
     plate_name: SEPD0001
@@ -2048,6 +2140,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 26
     well: C02
     plate_name: SEPD0001
@@ -2070,6 +2163,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 27
     well: C03
     plate_name: SEPD0001
@@ -2092,6 +2186,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 28
     well: C04
     plate_name: SEPD0001
@@ -2114,6 +2209,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 29
     well: C05
     plate_name: SEPD0001
@@ -2136,6 +2232,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 30
     well: C06
     plate_name: SEPD0001
@@ -2158,6 +2255,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 31
     well: C07
     plate_name: SEPD0001
@@ -2180,6 +2278,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '1.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 32
     well: C08
     plate_name: SEPD0001
@@ -2202,6 +2301,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 33
     well: C09
     plate_name: SEPD0001
@@ -2224,6 +2324,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 34
     well: C10
     plate_name: SEPD0001
@@ -2246,6 +2347,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 35
     well: C11
     plate_name: SEPD0001
@@ -2268,6 +2370,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 36
     well: C12
     plate_name: SEPD0001
@@ -2290,6 +2393,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 37
     well: D01
     plate_name: SEPD0001
@@ -2312,6 +2416,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 38
     well: D02
     plate_name: SEPD0001
@@ -2334,6 +2439,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 39
     well: D03
     plate_name: SEPD0001
@@ -2356,6 +2462,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 40
     well: D04
     plate_name: SEPD0001
@@ -2378,6 +2485,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 41
     well: D05
     plate_name: SEPD0001
@@ -2400,6 +2508,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 42
     well: D06
     plate_name: SEPD0001
@@ -2422,6 +2531,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 43
     well: D07
     plate_name: SEPD0001
@@ -2444,6 +2554,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 44
     well: D08
     plate_name: SEPD0001
@@ -2466,6 +2577,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '-'
     bsd#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 45
     well: D09
     plate_name: SEPD0001
@@ -2488,6 +2600,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '-'
+    accepted: 'no'
   - id: 46
     well: D10
     plate_name: SEPD0001
@@ -2510,6 +2623,7 @@ workflow_e_gc_results:
     bsd#confidence: '0.99'
     bsd#copy_number: '0.1'
     bsd#copy_number_range: '0.5'
+    accepted: 'no'
 workflow_creki_gc_results:
   - id: 1
     well: A01
@@ -2527,6 +2641,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 2
     well: A01
     plate_name: EPD0001
@@ -2543,6 +2658,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 3
     well: A01
     plate_name: EPD0001
@@ -2563,6 +2679,7 @@ workflow_creki_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 4
     well: A01
     plate_name: PIQ0001
@@ -2579,6 +2696,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 5
     well: A01
     plate_name: PIQ0001
@@ -2601,6 +2719,7 @@ workflow_creki_gc_results:
     chr8a#confidence: '0.99'
     chr8a#copy_number: '2.0'
     chr8a#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 6
     well: A01
     plate_name: PIQ0001
@@ -2627,6 +2746,7 @@ workflow_creki_gc_results:
     chr8a#confidence: '0.99'
     chr8a#copy_number: '2.0'
     chr8a#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 7
     well: A01
     plate_name: EPD0001
@@ -2643,6 +2763,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 8
     well: A01
     plate_name: EPD0001
@@ -2659,6 +2780,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 9
     well: A01
     plate_name: EPD0001
@@ -2679,6 +2801,7 @@ workflow_creki_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 10
     well: A01
     plate_name: PIQ0001
@@ -2695,6 +2818,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 11
     well: A01
     plate_name: PIQ0001
@@ -2711,6 +2835,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 12
     well: A01
     plate_name: PIQ0001
@@ -2731,6 +2856,7 @@ workflow_creki_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 13
     well: A01
     plate_name: PIQ0001
@@ -2747,6 +2873,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 14
     well: A01
     plate_name: EPD0001
@@ -2763,6 +2890,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 15
     well: A01
     plate_name: EPD0001
@@ -2779,6 +2907,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 16
     well: A01
     plate_name: EPD0001
@@ -2795,6 +2924,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 17
     well: A01
     plate_name: EPD0001
@@ -2811,6 +2941,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '-'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 18
     well: A01
     plate_name: EPD0001
@@ -2827,6 +2958,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '-'
+    accepted: 'no'
   - id: 19
     well: A01
     plate_name: EPD0001
@@ -2843,6 +2975,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.7'
+    accepted: 'no'
   - id: 20
     well: A01
     plate_name: EPD0001
@@ -2859,6 +2992,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '0.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 21
     well: A01
     plate_name: EPD0001
@@ -2875,6 +3009,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 22
     well: A01
     plate_name: EPD0001
@@ -2891,6 +3026,7 @@ workflow_creki_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 23
     well: A01
     plate_name: EPD0001
@@ -2911,6 +3047,7 @@ workflow_creki_gc_results:
     gf3: '-'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 24
     well: A01
     plate_name: PIQ0001
@@ -2933,6 +3070,7 @@ workflow_creki_gc_results:
     chr8a#confidence: '0.99'
     chr8a#copy_number: '2.5'
     chr8a#copy_number_range: '0.1'
+    accepted: 'no'
 workflow_crekidre_gc_results:
   - id: 1
     well: A01
@@ -2950,6 +3088,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 2
     well: A01
     plate_name: EPD0001
@@ -2966,6 +3105,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 3
     well: A01
     plate_name: EPD0001
@@ -2986,6 +3126,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 4
     well: A01
     plate_name: EPD0001
@@ -3002,6 +3143,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 5
     well: A01
     plate_name: EPD0001
@@ -3022,6 +3164,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 6
     well: A01
     plate_name: PIQ0001
@@ -3038,6 +3181,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 7
     well: A01
     plate_name: PIQ0001
@@ -3054,6 +3198,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 8
     well: A01
     plate_name: PIQ0001
@@ -3074,6 +3219,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 9
     well: A01
     plate_name: PIQ0001
@@ -3090,6 +3236,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 10
     well: A01
     plate_name: PIQ0001
@@ -3110,6 +3257,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 11
     well: A01
     plate_name: EPD0001
@@ -3126,6 +3274,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 12
     well: A01
     plate_name: EPD0001
@@ -3142,6 +3291,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 13
     well: A01
     plate_name: EPD0001
@@ -3162,6 +3312,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 14
     well: A01
     plate_name: EPD0001
@@ -3178,6 +3329,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 15
     well: A01
     plate_name: EPD0001
@@ -3198,6 +3350,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 16
     well: A01
     plate_name: PIQ0001
@@ -3214,6 +3367,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.5'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 17
     well: A01
     plate_name: PIQ0001
@@ -3230,6 +3384,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 18
     well: A01
     plate_name: PIQ0001
@@ -3250,6 +3405,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 19
     well: A01
     plate_name: PIQ0001
@@ -3266,6 +3422,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 20
     well: A01
     plate_name: PIQ0001
@@ -3286,6 +3443,7 @@ workflow_crekidre_gc_results:
     gf3: 'pass'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 21
     well: A01
     plate_name: PIQ0001
@@ -3302,6 +3460,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 22
     well: A01
     plate_name: EPD0001
@@ -3318,6 +3477,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 23
     well: A01
     plate_name: EPD0001
@@ -3334,6 +3494,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 24
     well: A01
     plate_name: EPD0001
@@ -3350,6 +3511,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 25
     well: A01
     plate_name: EPD0001
@@ -3366,6 +3528,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '-'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 26
     well: A01
     plate_name: EPD0001
@@ -3382,6 +3545,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '-'
+    accepted: 'no'
   - id: 27
     well: A01
     plate_name: EPD0001
@@ -3398,6 +3562,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.7'
+    accepted: 'no'
   - id: 28
     well: A01
     plate_name: EPD0001
@@ -3414,6 +3579,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '1.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 29
     well: A01
     plate_name: EPD0001
@@ -3430,6 +3596,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 30
     well: A01
     plate_name: EPD0001
@@ -3446,6 +3613,7 @@ workflow_crekidre_gc_results:
     loadel#confidence: '0.99'
     loadel#copy_number: '2.1'
     loadel#copy_number_range: '0.1'
+    accepted: 'no'
   - id: 31
     well: A01
     plate_name: EPD0001
@@ -3466,6 +3634,7 @@ workflow_crekidre_gc_results:
     gf3: '-'
     gr4: 'pass'
     gf4: 'pass'
+    accepted: 'no'
   - id: 32
     well: A01
     plate_name: PIQ0001
