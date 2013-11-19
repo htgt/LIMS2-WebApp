@@ -5,7 +5,7 @@ use LIMS2::Model::Util::AlleleDetermination;
 use LIMS2::Test;
 use strict;
 
-use Data::Dumper;
+# use Data::Dumper;
 
 ## no critic
 
@@ -163,14 +163,13 @@ sub all_tests : Test(217) {
         $ne1a_gc_allele_results->{ $ne1a_well_result_hash->{ 'id' } } = $ne1a_well_result_hash;
     }
 
-    print "ne1a_gc_allele_results:\n";
-    print Dumper ( $ne1a_gc_allele_results );
+    # print "ne1a_gc_allele_results:\n";
+    # print Dumper ( $ne1a_gc_allele_results );
 
     ok $ne1a_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt',   'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $ne1a_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $ne1a_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
     ok $ne1a_gc_allele_results->{ '2' }->{ 'genotyping_pass' } eq 'pass', 'well 2 should be an EP_PICK genotyping pass';
-    print $ne1a_gc_allele_results->{ '2' }->{ 'genotyping_pass' } . "\n";
     ok $ne1a_gc_allele_results->{ '3' }->{ 'allele_determination' } eq 'tm1e/wt', 'well 3 should be allele type < tm1e/wt > for stage EP_PICK';
 
     ok $ne1a_gc_allele_results->{ '4' }->{ 'allele_determination' } eq 'wt/wt',    'well 4 should be allele type < wt/wt > for stage SEP_PICK';
@@ -181,7 +180,6 @@ sub all_tests : Test(217) {
     ok $ne1a_gc_allele_results->{ '8' }->{ 'allele_determination' } eq 'tm1e/tm1', 'well 8 should be allele type < tm1e/tm1 > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '9' }->{ 'allele_determination' } eq 'tm1a/tm1', 'well 9 should be allele type < tm1a/tm1 > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '9' }->{ 'genotyping_pass' } eq 'pass', 'well 9 should be an SEP_PICK genotyping pass';
-    print $ne1a_gc_allele_results->{ '9' }->{ 'genotyping_pass' } . "\n";
     ok $ne1a_gc_allele_results->{ '10' }->{ 'allele_determination' } eq 'tm1a/wt+bsd_offtarg',
         'well 10 should be allele type < tm1a/wt+bsd_offtarg > for stage SEP_PICK';
     ok $ne1a_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'wt+neo_offtarg/tm1',
@@ -325,9 +323,6 @@ sub all_tests : Test(217) {
     foreach my $ne1_well_result_hash ( @{ $ne1_gc_allele_results_array } ) {
         $ne1_gc_allele_results->{ $ne1_well_result_hash->{ 'id' } } = $ne1_well_result_hash;
     }
-
-    print "ne1_gc_allele_results:\n";
-    print Dumper ( $ne1_gc_allele_results );
 
     ok $ne1_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'wt/wt',  'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $ne1_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
@@ -490,10 +485,6 @@ sub all_tests : Test(217) {
         $e_gc_allele_results->{ $e_well_result_hash->{ 'id' } } = $e_well_result_hash;
     }
 
-
-    print "e_gc_allele_results:\n";
-    print Dumper ( $e_gc_allele_results );
-
     ok $e_gc_allele_results->{ '1' }->{ 'allele_determination' } eq 'tm1f/wt; wt/wt', 'well 1 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
     ok $e_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $e_gc_allele_results->{ '2' }->{ 'allele_determination' } eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
@@ -651,9 +642,6 @@ sub all_tests : Test(217) {
         $creki_gc_allele_results->{ $creki_well_result_hash->{ 'id' } } = $creki_well_result_hash;
     }
 
-    print "creki_gc_allele_results:\n";
-    print Dumper ( $creki_gc_allele_results );
-
     ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $creki_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
@@ -770,9 +758,6 @@ sub all_tests : Test(217) {
     foreach my $crekidre_well_result_hash ( @{ $crekidre_gc_allele_results_array } ) {
         $crekidre_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
     }
-
-    print "crekidre_gc_allele_results:\n";
-    print Dumper ( $crekidre_gc_allele_results );
 
     ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '1' }->{ 'genotyping_pass' } eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
