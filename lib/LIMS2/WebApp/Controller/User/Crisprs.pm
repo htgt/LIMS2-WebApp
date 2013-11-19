@@ -26,18 +26,14 @@ Catalyst Controller.
 sub index : Path( '/user/browse_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles( 'read' );
-
-    $c->stash(
-        design_id => $c->request->param('design_id') || undef,
-        gene_id   => $c->request->param('gene_id')   || undef,
-    );
+    # TODO, add crispr search page here?
 
     return;
 }
 
-#TODO add simple crispr search index page  sp12 Fri 15 Nov 2013 08:50:10 GMT
+=head2 crispr
 
+=cut
 sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
     my ( $self, $c, $crispr_id ) = @_;
 
@@ -51,11 +47,11 @@ sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid crispr id" );
-        return $c->go('index');
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
     }
     catch( LIMS2::Exception::NotFound $e ) {
         $c->stash( error_msg => "Crispr $crispr_id not found" );
-        return $c->go('index');
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
     }
 
     $c->log->debug( "Retrived crispr: $crispr_id" );
@@ -130,11 +126,11 @@ sub crispr_pair : PathPart('user/crispr_pair') Chained('/') CaptureArgs(1) {
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid crispr pair id" );
-        return $c->go('index');
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
     }
     catch( LIMS2::Exception::NotFound $e ) {
         $c->stash( error_msg => "Crispr Pair $crispr_pair_id not found" );
-        return $c->go('index');
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
     }
 
     $c->log->debug( "Retrived crispr pair: $crispr_pair_id" );
