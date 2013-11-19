@@ -18,7 +18,14 @@
   <div class="span4 offset1">
     <h3>Left Crispr</h3>
     <table class="table table-bordered">
-      <tr><th>ID</th> <td>[% left_crispr.id %]</td></tr>
+      <tr>
+      <th>ID</th>
+        <td>
+        <a href="[% c.uri_for( '/user/crispr' , left_crispr.id , 'view' ) %]" target="_blank">
+          [% left_crispr.id %]
+        </a>
+        </td>
+      </tr>
       <tr><th>Sequence</th> <td>[% left_crispr.seq %]</td></tr>
       <tr><th>Chromosome</th> <td>[% left_crispr.locus.chr_name %]</td></tr>
       <tr><th>Start</th> <td>[% left_crispr.locus.chr_start %]</td></tr>
@@ -30,7 +37,14 @@
   <div class="span4 offset2">
     <h3>Right Crispr</h3>
     <table class="table table-bordered">
-      <tr><th>ID</th> <td>[% right_crispr.id %]</td></tr>
+      <tr>
+      <th>ID</th>
+        <td>
+        <a href="[% c.uri_for( '/user/crispr' , right_crispr.id , 'view' ) %]" target="_blank">
+          [% right_crispr.id %]
+        </a>
+        </td>
+      </tr>
       <tr><th>Sequence</th> <td>[% right_crispr.seq %]</td></tr>
       <tr><th>Chromosome</th> <td>[% right_crispr.locus.chr_name %]</td></tr>
       <tr><th>Start</th> <td>[% right_crispr.locus.chr_start %]</td></tr>
