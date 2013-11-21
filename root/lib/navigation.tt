@@ -144,7 +144,13 @@
                 Electroporation Production Summary
               </a>
             </li>
--->       </ul>
+-->
+            <li>
+              <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionSummary' ) %]">
+                Cre Knockin ES Distribution Summary
+              </a>
+            </li>
+          </ul>
         </li>
       </ul>
       [% IF c.user %]

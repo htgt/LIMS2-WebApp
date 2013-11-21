@@ -9,15 +9,15 @@ use LIMS2::Exception;
 use Parse::BooleanLogic;
 use Log::Log4perl qw( :easy );
 
-has species => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
-);
-
 has model => (
     is       => 'ro',
     isa      => 'LIMS2::Model',
+    required => 1,
+);
+
+has species => (
+    is       => 'ro',
+    isa      => 'Str',
     required => 1,
 );
 
@@ -307,19 +307,19 @@ sub _determine_workflow_for_wells {
 
     # select and write FEPD well data (if any)
     if ( scalar @fepd_well_ids > 0 ) {
-        my $sql_query_fepd = $self->create_sql_select_summaries_fepd( ( \@fepd_well_ids ) );
+        my $sql_query_fepd = $self->_create_sql_select_summaries_fepd( ( \@fepd_well_ids ) );
         $self->_select_workflow_data($sql_query_fepd);
     }
 
     # select and write SEPD well data (if any)
     if ( scalar @sepd_well_ids > 0 ) {
-        my $sql_query_sepd = $self->create_sql_select_summaries_sepd( ( \@sepd_well_ids ) );
+        my $sql_query_sepd = $self->_create_sql_select_summaries_sepd( ( \@sepd_well_ids ) );
         $self->_select_workflow_data($sql_query_sepd);
     }
 
     # select and write PIQ well data (if any)
     if ( scalar @piq_well_ids > 0 ) {
-        my $sql_query_piq = $self->create_sql_select_summaries_piq( ( \@piq_well_ids ) );
+        my $sql_query_piq = $self->_create_sql_select_summaries_piq( ( \@piq_well_ids ) );
         $self->_select_workflow_data($sql_query_piq);
     }
 
@@ -426,14 +426,16 @@ sub _determine_allele_type_for_well {
 
     unless ( defined $self->current_well ) { return 'Failed: no current well set'; }
     unless ( defined $self->current_well_id ) { return 'Failed: no current well id set'; }
-    unless ( defined $self->current_well->{ 'plate_type' } ) { return 'Failed: plate type not present for well id : ' . $self->current_well_id; }
+    unless ( defined $self->current_well->{ 'plate_type' } ) { return 'Failed: plate type not present'; }
 
     $self->current_well_stage( $self->current_well->{ 'plate_type' } );
 
     unless ( $self->current_well_stage ~~ [ qw( EP_PICK SEP_PICK PIQ ) ] ) { return 'N/A'; }
-    unless ( defined $self->current_well->{ 'workflow' } ) { return 'Failed: workflow not present for well id : ' . $self->current_well_id; }
+    unless ( defined $self->current_well->{ 'workflow' } ) { return 'Failed: workflow not present'; }
 
     $self->current_well_workflow( $self->current_well->{ 'workflow' } );
+
+    unless ( $self->_well_has_qc_data() ) { return 'Failed: no qc data for well' }
 
     $self->_create_assay_summary_string();
 
@@ -455,6 +457,27 @@ sub _determine_allele_type_for_well {
             . $self->current_well_stage . ' '
             . $self->current_well->{ 'assay_pattern' };
     }
+}
+
+sub _well_has_qc_data {
+    my ( $self ) = @_;
+
+    my $has_qc_data = 0;
+
+    try {
+        my $sql_query = $self->_create_sql_select_qc_data( $self->current_well_id );
+        my $sql_results = $self->run_select_query($sql_query);
+        if ( defined $sql_results && (scalar @{ $sql_results } ) > 0 ) {
+            $has_qc_data = 1;
+        }
+    }
+    catch {
+        my $exception_message = $_;
+        LIMS2::Exception->throw("Failed has_qc_data check. Exception: $exception_message");
+    };
+
+    $self->current_well->{ 'has_qc_data' } = $has_qc_data;
+    return $has_qc_data;
 }
 
 sub _create_assay_summary_string {
@@ -610,7 +633,7 @@ sub _determine_genotyping_pass_for_wells {
         # store calculated genotyping pass in well hash
         $well->{ 'genotyping_pass' } = $current_genotyping_pass;
 
-        DEBUG ( "well id " . $self->current_well_id . " well genotyping pass = " . $well->{ 'genotyping_pass' } );
+        # DEBUG ( "well id " . $self->current_well_id . " well genotyping pass = " . $well->{ 'genotyping_pass' } );
     }
 
     return;
@@ -645,7 +668,7 @@ sub _determine_genotyping_pass_for_well {
     # Attempt to find a pass result using the test criteria from the config file
     my $genotyping_pass = $self->_apply_additional_genotyping_pass_criteria();
 
-    DEBUG ( "well id " . $self->current_well_id . " genotyping pass = " . $genotyping_pass );
+     # DEBUG ( "well id " . $self->current_well_id . " genotyping pass = " . $genotyping_pass );
 
     # update the well accepted value
     $self->_set_calculated_well_accepted_value( $genotyping_pass );
@@ -713,14 +736,14 @@ sub _apply_additional_genotyping_pass_criteria {
         # Get the specific logic for this particular workflow and scope into this method:
         my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'genotyping_pass' }->{ 'tests' }->{ $key };
 
-        if (defined $logic_string ) { print "well id " . $self->current_well_id . " pass criteria logic string = " . $logic_string . "\n"; }
+        # if (defined $logic_string ) { print "well id " . $self->current_well_id . " pass criteria logic string = " . $logic_string . "\n"; }
 
         # check string is defined
         LIMS2::Exception->throw("apply additional genotyping pass criteria: no tests logic string defined for test " . $key ) unless ( defined $logic_string );
 
         # if logic string is empty then no further tests required and well has passed test
         if ( $logic_string eq '' ) {
-            print "well id " . $self->current_well_id . " logic string empty\n";
+            # print "well id " . $self->current_well_id . " logic string empty\n";
             push( @passed_tests, $key );
         }
         else {
@@ -1389,7 +1412,7 @@ sub run_select_query {
     return $sql_result;
 }
 
-sub create_sql_select_summaries_fepd {
+sub _create_sql_select_summaries_fepd {
     my ( $self, $well_ids ) = @_;
 
     $well_ids = join( ',', @{$well_ids} );
@@ -1403,7 +1426,7 @@ SQL_END
     return $sql_query;
 }
 
-sub create_sql_select_summaries_sepd {
+sub _create_sql_select_summaries_sepd {
     my ( $self, $well_ids ) = @_;
 
     $well_ids = join( ',', @{$well_ids} );
@@ -1418,7 +1441,7 @@ SQL_END
     return $sql_query;
 }
 
-sub create_sql_select_summaries_piq {
+sub _create_sql_select_summaries_piq {
     my ( $self, $well_ids ) = @_;
 
     $well_ids = join( ',', @{$well_ids} );
@@ -1427,6 +1450,18 @@ sub create_sql_select_summaries_piq {
 SELECT DISTINCT piq_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, final_pick_cassette_cre, ep_well_recombinase_id
 FROM summaries
 WHERE piq_well_id IN ( $well_ids )
+SQL_END
+
+    return $sql_query;
+}
+
+sub _create_sql_select_qc_data {
+    my ( $self, $well_id ) = @_;
+
+    my $sql_query = <<"SQL_END";
+SELECT well_id, genotyping_result_type_id
+FROM well_genotyping_results
+WHERE well_id = $well_id
 SQL_END
 
     return $sql_query;
