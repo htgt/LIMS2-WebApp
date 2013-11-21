@@ -195,8 +195,7 @@
                 {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
                 {header: "Distribute", dataIndex: 'accepted', locked: true, width: 55 },
             [% IF PIQ %]
-                {header: "Clone ID", dataIndex: 'clone_id', editor: override_combo, locked: true, width: 55 },
-                {header: "Lab<br>Number", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
+                {header: "Clone ID", dataIndex: 'clone_id', editor: override_combo, locked: true, width: 110 },
             [% END %]
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
                 {header: "Allele Info", columns: [

@@ -99,7 +99,8 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
 
     return unless $plate;
 
-    # set the plate type to true
+    # set plate_type (usen in genotyping_qc_data.tt), and true on plate_type (used in grid.tt)
+    $c->stash->{plate_type} = $plate->type;
     $c->stash->{$plate->type} = 1;
 
     my @value_names = (

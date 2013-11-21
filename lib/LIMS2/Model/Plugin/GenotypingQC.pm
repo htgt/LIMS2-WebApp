@@ -554,7 +554,9 @@ my %clone_id_hash;
 foreach my $ancestors (@$result) {
     my $well_id =  @{@$ancestors[0]}[0];
     my $clone_id =  @{@$ancestors[0]}[2];
-    $clone_id_hash{$well_id} = $clone_id;
+    # $clone_id_hash{$well_id} = $clone_id;
+    my $well = $self->retrieve_well( { id => $clone_id } );
+    $clone_id_hash{$well_id} = $well->plate->name .'['. $well->name .']';
 }
 
 

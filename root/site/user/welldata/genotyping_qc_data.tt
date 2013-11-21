@@ -6,7 +6,7 @@
 [% PROCESS 'user/welldata/grid.tt' %]
    
 <div class="page-header">
-  <h1>Plate Genotyping QC Results <small>[% plate_type %] Plate</small></h1>
+  <h1>Plate Genotyping QC Results <small>[% plate_type %] Plate View</small></h1>
   <div id="my_results"></div>
 </div>
 
