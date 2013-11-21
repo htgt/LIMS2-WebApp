@@ -325,13 +325,13 @@ sub query_ancestors_by_well_list {
 -- Ancestors by well list
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
      WHERE pr_out.well_id IN (
         $well_list
-     )	
+     )        
      UNION ALL
 -- Recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
@@ -355,7 +355,7 @@ sub get_design_data_for_well_id_list {
 
 
     my $sql_query = $self->query_ancestors_by_well_list( $wells );
-    my $sql_result =  $self->schema->storage->dbh_do(
+    my $sql_result = $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
          my $sth = $dbh->prepare_cached( $sql_query );
@@ -368,17 +368,17 @@ sub get_design_data_for_well_id_list {
 
     foreach my $result ( @{$sql_result} ) {
         $result_hash->{$result->[2]} = {
-            'well_id'     => $result->[0],
-            'parent'      => $result->[1],
-            'grandparent' => $result->[3],
+            'design_well_id' => $result->[0],
+            'design_id' => $result->[1],
+            'gene_id' => $result->[3],
         }
     }
     # The format of the resulting hash is:
     # well_id => {
-    #   design_well_id => integer_id,
-    #   design_id => integer_id, 
-    #   gene_id     => accession_id
-    #   }
+    # design_well_id => integer_id,
+    # design_id => integer_id,
+    # gene_id => accession_id
+    # }
     return $result_hash;
 }
 
@@ -395,10 +395,6 @@ sub get_ancestors_for_well_id_list {
          $sth->fetchall_arrayref();
         }
     );
-
-    foreach my $result ( @{$sql_result} ) {
-        my $ancestors = @$result[0];
-    }
     return $sql_result;
 }
 
