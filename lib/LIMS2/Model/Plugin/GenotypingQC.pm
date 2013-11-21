@@ -545,6 +545,19 @@ my @well_id_list = $self->get_uniq_wells( $sql_result);
 $self->log->debug('unique well list generated');
 my $design_data_cache = $self->create_design_data_cache( \@well_id_list );
 $self->log->debug('design data cache generated (' . @well_id_list . ' unique wells)');
+
+# get array of arrays of ancestors
+my $result =  $self->get_ancestors_for_well_id_list( \@well_id_list );
+
+# transform in hash of well_id to clone_id
+my %clone_id_hash;
+foreach my $ancestors (@$result) {
+    my $well_id =  @{@$ancestors[0]}[0];
+    my $clone_id =  @{@$ancestors[0]}[2];
+    $clone_id_hash{$well_id} = $clone_id;
+}
+
+
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
         push @all_data, $datum if $datum->{'id'};
@@ -568,6 +581,8 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{'gene_id'} = '-';
         }
         $datum->{'design_id'} = $design_id;
+        # get the clone_id
+        $datum->{'clone_id'} = $clone_id_hash{ $datum->{'id'} };
         # get the generic assay data for this row
         $self->fill_out_genotyping_results($row, $datum );
 
@@ -578,7 +593,6 @@ foreach my $row ( @{$sql_result} ) {
         # just get the primer band and generic assay data for this row
         $self->fill_out_genotyping_results($row, $datum );
     }
-
 }
 push @all_data, $datum if $datum;
 return @all_data;
@@ -612,6 +626,7 @@ sub populate_well_attributes {
     $datum->{'plate_name'} = $row->{'plate'};
     $datum->{'plate_type'} = $row->{'plate_type'};
     $datum->{'well'} = $row->{'well'};
+
     if (defined $row->{'Accepted'} ) {
         $datum->{'accepted'} = ($row->{'Accepted'} ? 'yes' : 'no') // '-';
     }

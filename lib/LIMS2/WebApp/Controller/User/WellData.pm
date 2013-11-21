@@ -99,6 +99,9 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
 
     return unless $plate;
 
+    # set the plate type to true
+    $c->stash->{$plate->type} = 1;
+
     my @value_names = (
         { title => 'Call', field=>'call'},
         { title => 'Copy Number', field => 'copy_number'},
