@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.130     2013-11-22 14:05:02 Europe/London
+
+    Added clone_id and lab_number to PIQ plates in genotyping_qc grid
+    Updated plate csv upload templates to have both es and vector templates
+
 0.129     2013-11-19 08:24:33 Europe/London
 
     Bugfix, tried to treat 9000+ as a number, needed to strip + sign from value.
