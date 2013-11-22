@@ -225,7 +225,7 @@ sub update_genotyping_qc_value {
         'targeting_pass'        => \&well_assay_update,
         'targeting_puro_pass'   => \&well_assay_update,
         'accepted_override'     => \&well_assay_update,
-        'lab_num'               => \&well_assay_update,
+        'lab_number'            => \&well_assay_update,
         'tr_pcr'                => \&primer_band_update,
         'gr3'                   => \&primer_band_update,
         'gr4'                   => \&primer_band_update,
@@ -435,8 +435,8 @@ sub delete_genotyping_qc_data {
         $params->{'assay_name'} = 'accepted_override';
         $self->update_genotyping_qc_value( $params );
     }
-    if ( $qc_row->{'lab_num'} ne '-' ) {
-        $params->{'assay_name'} = 'lab_num';
+    if ( $qc_row->{'lab_number'} ne '-' ) {
+        $params->{'assay_name'} = 'lab_number';
         $self->update_genotyping_qc_value( $params );
     }
     if ( $qc_row->{'tr_pcr'} ne '-' ) {
@@ -647,7 +647,7 @@ sub populate_well_attributes {
         $datum->{'accepted_override'} = ($row->{'Override'} ? 'yes' : 'no') // '-';
     }
     if (defined $row->{'Lab Number'} ) {
-        $datum->{'lab_num'} = $row->{'Lab Number'};
+        $datum->{'lab_number'} = $row->{'Lab Number'};
     }
 
     $datum->{'chromosome_fail'} = $row->{'Chr fail'} // '-';
