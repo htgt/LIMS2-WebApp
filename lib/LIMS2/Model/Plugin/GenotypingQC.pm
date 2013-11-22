@@ -242,10 +242,6 @@ sub update_genotyping_qc_value {
     my $well_id = $vp->{'well_id'};
     my $user = $vp->{'created_by'};
 
-
-    print"!!!!! $assay_name\n";
-    print"!!!!! $assay_value\n";
-
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
