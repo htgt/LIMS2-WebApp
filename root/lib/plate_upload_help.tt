@@ -90,7 +90,8 @@
               <th>Process</th>
               <th>Plate Types</th>
               <th>Specific Data Fields</th>
-              <th>Template</th>
+              <th>ES Template<br>(sorted by number)</br></th>
+              <th>Vector Template<br>(sorted by letter)</br></th>
             </tr>
           </thead>
 
@@ -101,7 +102,12 @@
                 <td>[% plate_help.$process.plate_types.join(' ') %]</td>
                 <td>[% plate_help.$process.data.join(' ') %]</td>
                 <td>
-                  <a href="[% c.uri_for('/static/files/plate_upload/') %][% plate_help.$process.template %]">
+                  <a href="[% c.uri_for('/static/files/plate_upload/') %][% plate_help.$process.template %]_es.csv">
+                    <i class="icon-download"></i> Download
+                  </a>
+                </td>
+                <td>
+                  <a href="[% c.uri_for('/static/files/plate_upload/') %][% plate_help.$process.template %]_vector.csv">
                     <i class="icon-download"></i> Download
                   </a>
                 </td>

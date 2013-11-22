@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.127';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.130';
 }
 ## use critic
 
@@ -344,6 +344,25 @@ sub find_crispr_by_seq_and_locus {
     }
 
     return;
+}
+
+sub pspec_retrieve_crispr_pair {
+    return {
+        id => { validate => 'integer' },
+    };
+}
+
+sub retrieve_crispr_pair {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_pair );
+
+    my $crispr_pair = $self->retrieve(
+        CrisprPair => {  'me.id' => $validated_params->{id} },
+        { prefetch => [ 'left_crispr', 'right_crispr' ] }
+    );
+
+    return $crispr_pair;
 }
 
 1;
