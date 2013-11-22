@@ -115,7 +115,7 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
     $c->stash->{assay_types} = \@assay_types;
     $c->stash->{value_names} = \@value_names;
 
-        return;
+    return;
 }
 
 sub genotyping_qc_report : Path( '/user/genotyping_qc_report') : Args(1) {

@@ -225,6 +225,7 @@ sub update_genotyping_qc_value {
         'targeting_pass'        => \&well_assay_update,
         'targeting_puro_pass'   => \&well_assay_update,
         'accepted_override'     => \&well_assay_update,
+        'lab_num'               => \&well_assay_update,
         'tr_pcr'                => \&primer_band_update,
         'gr3'                   => \&primer_band_update,
         'gr4'                   => \&primer_band_update,
@@ -240,6 +241,11 @@ sub update_genotyping_qc_value {
     my $assay_value = $vp->{'assay_value'};
     my $well_id = $vp->{'well_id'};
     my $user = $vp->{'created_by'};
+
+
+    print"!!!!! $assay_name\n";
+    print"!!!!! $assay_value\n";
+
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
@@ -429,6 +435,10 @@ sub delete_genotyping_qc_data {
         $params->{'assay_name'} = 'accepted_override';
         $self->update_genotyping_qc_value( $params );
     }
+    if ( $qc_row->{'lab_num'} ne '-' ) {
+        $params->{'assay_name'} = 'lab_num';
+        $self->update_genotyping_qc_value( $params );
+    }
     if ( $qc_row->{'tr_pcr'} ne '-' ) {
         $params->{'assay_name'} = 'tr_pcr';
         $self->update_genotyping_qc_value( $params );
@@ -530,6 +540,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
              'vic' => 1,
              'Accepted' => 1,
              'Override' => 1,
+             'Lab Number' => 1,
          });
     }
 );
@@ -614,6 +625,7 @@ sub initialize_all_datum_fields {
     $datum->{'design_id'} = '-';
     $datum->{'accepted'} = '-';
     $datum->{'accepted_override'} = '-';
+    $datum->{'lab_number'} = '-';
     return;
 }
 
@@ -634,6 +646,10 @@ sub populate_well_attributes {
     if (defined $row->{'Override'} ) {
         $datum->{'accepted_override'} = ($row->{'Override'} ? 'yes' : 'no') // '-';
     }
+    if (defined $row->{'Lab Number'} ) {
+        $datum->{'lab_num'} = $row->{'Lab Number'};
+    }
+
     $datum->{'chromosome_fail'} = $row->{'Chr fail'} // '-';
     $datum->{'targeting_pass'} = $row->{'Tgt pass'} // '-';
     $datum->{'targeting_puro_pass'} = $row->{'Puro pass'} // '-';
@@ -742,7 +758,8 @@ select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.g
     well_targeting_puro_pass.result "Puro pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
-    well_accepted_override.accepted "Override"
+    well_accepted_override.accepted "Override",
+    well_lab_number.lab_number "Lab Number"
 from wd
 left outer
     join well_chromosome_fail
@@ -759,6 +776,9 @@ left outer
 left outer
     join well_accepted_override
         on wd."Well ID" = well_accepted_override.well_id
+left outer
+    join well_lab_number
+        on wd."Well ID" = well_lab_number.well_id
 --order by wd."Well ID"
 order by wd."well"
 SQL_END
@@ -800,7 +820,8 @@ select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.g
     well_targeting_puro_pass.result "Puro pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
-    well_accepted_override.accepted "Override"
+    well_accepted_override.accepted "Override",
+    well_lab_number.lab_number "Lab Number"
 from wd
 left outer
     join well_chromosome_fail
@@ -817,6 +838,9 @@ left outer
 left outer
     join well_accepted_override
         on wd."Well ID" = well_accepted_override.well_id
+left outer
+    join well_lab_number
+        on wd."Well ID" = well_lab_number.well_id
 order by wd."Well ID"
 SQL_END
 }
@@ -924,6 +948,7 @@ sub create_csv_header_array {
         'Allele Type',
         'Distribute',
         'Override',
+        'Lab Number',
         'Chromosome Fail',
         'Allele Info#Type',
         'Allele Info#Full allele determination',
@@ -968,6 +993,7 @@ sub translate_header_items {
         'Allele Type'                           => 'allele_type',
         'Distribute'                            => 'accepted',
         'Override'                              => 'accepted_override',
+        'Lab Number'                            => 'lab_number',
         'Chromosome Fail'                       => 'chromosome_fail',
         'Allele Info#Type'                      => 'allele_type',
         'Allele Info#Full allele determination' => 'allele_determination',
