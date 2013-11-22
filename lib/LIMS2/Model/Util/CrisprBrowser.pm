@@ -13,8 +13,11 @@ LIMS2::Model::Util::CrisprBrowser
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ qw( crisprs_for_region_as_arrayref
-                    ) ]
+    exports => [ qw(
+        crisprs_for_region_as_arrayref
+        retrieve_chromosome_id
+        crisprs_to_gff
+        ) ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -33,6 +36,9 @@ sub crisprs_for_region {
     my $schema = shift;
     my $params = shift;
 
+    # Chromosome number is looked up in the chromosomes table to get the chromosome_id
+    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
+
     my $crisprs_rs = $schema->resultset('Crispr')->search(
         {
             'loci.assembly_id' => $params->{assembly_id},
@@ -49,12 +55,24 @@ sub crisprs_for_region {
         },
         {
             join     => 'loci',
-#            prefetch => 'off_target_summaries',
         }
     );
 
     return $crisprs_rs;
 }
+
+=head crisp_pairs_for_region
+
+
+=cut
+
+sub crisp_pairs_for_region {
+    my $schema = shift;
+    my $params = shift;
+
+
+}
+
 
 =head crisprs_for_region_as_arrayref 
 
@@ -76,6 +94,28 @@ sub crisprs_for_region_as_arrayref {
     }
 
     return \@crisprs;
+}
+
+sub retrieve_chromosome_id {
+    my $schema = shift;
+    my $species = shift;
+    my $chromosome_number = shift;
+
+    my $chr_id = $schema->resultset('Chromosome')->find( {
+            'species_id' => $species,
+            'name'       => $chromosome_number,
+        }
+    );
+    return $chr_id->id;
+}
+
+sub crisprs_to_gff {
+    my $crisprs_array_ref = shift;
+
+    my @crisprs_gff;
+
+    push @crisprs_gff, "First\tsecond\tthird\tfourth\tfifth\tsixth\tseventh\teigth\n";
+    return \@crisprs_gff;
 }
 
 1;

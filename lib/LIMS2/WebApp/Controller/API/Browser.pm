@@ -2,7 +2,11 @@ package LIMS2::WebApp::Controller::API::Browser;
 use Moose;
 use namespace::autoclean;
 
-use LIMS2::Model::Util::CrisprBrowser qw/ crisprs_for_region_as_arrayref /;
+use LIMS2::Model::Util::CrisprBrowser qw/
+    crisprs_for_region_as_arrayref
+    retrieve_chromosome_id
+    crisprs_to_gff
+    /;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -25,14 +29,13 @@ sub crispr :Path('/api/crispr') :Args(0) :ActionClass('REST') {
 sub crispr_GET {
     my ( $self, $c ) = @_;
 
-$DB::single=1;
 
     my $params = ();
     $params->{species} = $c->session->{'selected_species'} // 'Human';
-    $params->{assembly_id} = 'GRCh37';
-    $params->{chromosome_id}= '22';
-    $params->{start_coord}= '1';
-    $params->{end_coord}= '100000000';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // 'GRCh37';
+    $params->{chromosome_number}= $c->request->params->{'chr'};
+    $params->{start_coord}= $c->request->params->{'start'};
+    $params->{end_coord}= $c->request->params->{'end'};
 
     my $schema = $c->model('Golgi')->schema;
 
@@ -41,10 +44,10 @@ $DB::single=1;
          $params,
     );
 
-    return $self->status_ok(
-        $c,
-        entity =>  $crisprs ,
-    );
+    my $crispr_gff = crisprs_to_gff( $crisprs );
+    $c->response->content_type( 'text/plain' );
+    my $body = join '', @$crispr_gff;
+    return $c->response->body( $body ); 
 }
 
 1;

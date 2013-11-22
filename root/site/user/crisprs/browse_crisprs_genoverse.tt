@@ -21,8 +21,8 @@
           }),
           Genoverse.Track.extend({
             name      : 'Crisprs',
-            url       : "[% c.uri_for('/static/files/crispr_data/BRCA2_sel.bed' ) %] ",
-            model     : Genoverse.Track.Model.File.BED,
+            url       : "[% c.uri_for('/api/crispr')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            model     : Genoverse.Track.Model.File.GFF,
             view      : Genoverse.Track.View.Gene.Ensembl,
             resizable : 'auto',
             height    : 150,

@@ -45,10 +45,10 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Crisprs <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
-              <a href="[% c.uri_for( '/user/browse_crisprs_genoverse' ) %]">Genoverse Crisprs</a>
+              <a href="[% c.uri_for( '/user/browse_crisprs_genoverse' ) %]">BED Genoverse Crisprs</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
+              <a href="[% c.uri_for( '/user/json_crispr_genoverse' ) %]">JSON Genoverse Crisprs</a>
             </li>
           </ul>
         </li>
