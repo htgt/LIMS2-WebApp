@@ -14,7 +14,7 @@ LIMS2::Model::Util::CrisprBrowser
 
 use Sub::Exporter -setup => {
     exports => [ qw(
-        crisprs_for_region_as_arrayref
+        crisprs_for_region
         retrieve_chromosome_id
         crisprs_to_gff
         ) ]
@@ -39,23 +39,18 @@ sub crisprs_for_region {
     # Chromosome number is looked up in the chromosomes table to get the chromosome_id
     $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
 
-    my $crisprs_rs = $schema->resultset('Crispr')->search(
+    my $crisprs_rs = $schema->resultset('CrisprLocus')->search(
         {
-            'loci.assembly_id' => $params->{assembly_id},
-            'loci.chr_id'      => $params->{chromosome_id},
+            'assembly_id' => $params->{assembly_id},
+            'chr_id'      => $params->{chromosome_id},
             # need all the crisprs starting with values >= start_coord
             # and whose start values are <= end_coord
-            'loci.chr_start'   => { -between => [
+            'chr_start'   => { -between => [
                 $params->{start_coord},
                 $params->{end_coord},
                 ],
             },
-            #'loci.chr_end'     => { '<=', $params->{end_coord} },
-            # probably not interested in the end value
         },
-        {
-            join     => 'loci',
-        }
     );
 
     return $crisprs_rs;
@@ -109,13 +104,64 @@ sub retrieve_chromosome_id {
     return $chr_id->id;
 }
 
+=head crisprs_to_gff
+
+Return a reference to an array of strings.
+The format of each string is standard GFF3 - that is hard tab separated fields.
+
+=cut
+
 sub crisprs_to_gff {
-    my $crisprs_array_ref = shift;
+    my $crisprs_rs = shift;
+    my $params = shift;
 
     my @crisprs_gff;
 
-    push @crisprs_gff, "First\tsecond\tthird\tfourth\tfifth\tsixth\tseventh\teigth\n";
+    push @crisprs_gff, "##gff-version 3";
+    push @crisprs_gff, '##sequence-region lims2-region '
+        . $params->{'start_coord'}
+        . ' '
+        . $params->{'end_coord'} ;
+    push @crisprs_gff, '# Crisprs for region '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chromosome_number'}
+        . ':'
+        . $params->{'start_coord'}
+        . '-'
+        . $params->{'end_coord'} ;
+
+        while ( my $crispr_r = $crisprs_rs->next ) {
+            my $datum = $params->{'chromosome_number'};
+            # biological_region is an allowed term in SOFA
+            # In GFF3, this field is restricted to SOFA terms
+#            $datum .= "\tLIMS2\tbiological_region\t";
+            $datum .= "\tLIMS2\tCRISPR\t";
+            $datum .= $crispr_r->chr_start . "\t";
+            $datum .= $crispr_r->chr_end . "\t";
+            $datum .= '.'; # no score value
+            $datum .= "\t";
+            $datum .= ( $crispr_r->chr_strand == 1 ) ? '+' : '-' ;
+            $datum .= "\t";
+            $datum .= '.'; # phase not available
+            $datum .= "\t";
+            $datum .= 'ID=' . $crispr_r->crispr_id . ';' ;
+            $datum .= 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id ;
+
+            push @crisprs_gff, $datum ;
+        }
+
+
+
+
     return \@crisprs_gff;
+}
+
+
+sub crispr_pairs_to_gff {
+
 }
 
 1;

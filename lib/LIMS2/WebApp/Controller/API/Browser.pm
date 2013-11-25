@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use LIMS2::Model::Util::CrisprBrowser qw/
-    crisprs_for_region_as_arrayref
+    crisprs_for_region
     retrieve_chromosome_id
     crisprs_to_gff
     /;
@@ -39,14 +39,14 @@ sub crispr_GET {
 
     my $schema = $c->model('Golgi')->schema;
 
-    my $crisprs = crisprs_for_region_as_arrayref (
+    my $crisprs = crisprs_for_region(
          $schema,
          $params,
     );
 
-    my $crispr_gff = crisprs_to_gff( $crisprs );
+    my $crispr_gff = crisprs_to_gff( $crisprs, $params );
     $c->response->content_type( 'text/plain' );
-    my $body = join '', @$crispr_gff;
+    my $body = join "\n", @{$crispr_gff};
     return $c->response->body( $body ); 
 }
 
