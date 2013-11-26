@@ -58,6 +58,10 @@ sub crisprs_for_region {
 
 =head crisp_pairs_for_region
 
+Returns a resultset containing the paired Crisprs for the region defined by params.
+
+Individual crisprs for a region on a chromosome must be looked up in the CrisprPairs table.
+This is done by a join pulling back all the pairs in one go.
 
 =cut
 
@@ -65,7 +69,14 @@ sub crisp_pairs_for_region {
     my $schema = shift;
     my $params = shift;
 
+    my $crisprs_rs = crisprs_for_region( $schema, $params );
 
+    # Now we adjust the resultset query with the join
+    $crisprs_rs = $crisprs_rs->search( undef,
+        {
+            join => 'CrisprPair',
+        },
+    );
 }
 
 
@@ -138,7 +149,7 @@ sub crisprs_to_gff {
             # biological_region is an allowed term in SOFA
             # In GFF3, this field is restricted to SOFA terms
 #            $datum .= "\tLIMS2\tbiological_region\t";
-            $datum .= "\tLIMS2\tCRISPR\t";
+            $datum .= "\tLIMS2\texons\t";
             $datum .= $crispr_r->chr_start . "\t";
             $datum .= $crispr_r->chr_end . "\t";
             $datum .= '.'; # no score value
