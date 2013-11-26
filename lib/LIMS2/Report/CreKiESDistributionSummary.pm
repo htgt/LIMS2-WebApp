@@ -20,27 +20,27 @@ has '+param_names' => (
 override _build_name => sub {
     my $self = shift;
 
-    return 'Cre Knockin ES Distribution';
+    return 'Cre Knockin ES Distribution Summary';
 };
 
 override _build_columns => sub {
     return [
-        'Total Genes',
-        'Unrequested',
-        'In progress (active MI attempts)',
-        'Total Unpicked',
+        'Genes Total',
+        'Genes Unrequested',
+        'Genes Unpicked',
         'Unpicked (no PIQs)',
         'Unpicked (no clones)',
-        'Total Picked (accepted clones)',
+        'Genes Picked (accepted clones)',
         'Picked (1 clone)',
         'Picked (2 clones)',
         'Picked (3 clones)',
         'Picked (4 clones)',
         'Picked (5 clones)',
         'Picked (5+ clones)',
-        'QC passes (no MI attempts)',
-        'QC fails',
-        'Failed in Mouse Production',
+        'Genes Passed PIQ QC (no MI attempts)',
+        'Genes Failed PIQ QC',
+        'Genes with Active MI attempts',
+        'Genes Failed in Mouse Production',
     ];
 };
 
@@ -51,7 +51,7 @@ override iterator => sub {
         'model' => $self->model, 'species' => $self->species
     );
 
-    $cre_ki_es_summary_generator->generate_report_data;
+    $cre_ki_es_summary_generator->generate_summary_report_data;
     my $report_data = $cre_ki_es_summary_generator->report_data;
 
     return iter( $report_data );

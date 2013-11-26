@@ -150,6 +150,11 @@
                 Cre Knockin ES Distribution Summary
               </a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionGenes' ) %]">
+                Cre Knockin ES Distribution Genes
+              </a>
+            </li>
           </ul>
         </li>
       </ul>
