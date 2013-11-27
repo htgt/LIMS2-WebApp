@@ -558,6 +558,9 @@ sub infer_qc_process_type{
     elsif ( $source_plate_type eq 'CRISPR' ) {
         $process_type = _crispr_source_plate( $new_plate_type, $reagent_count, $params );
     }
+    elsif ( $source_plate_type eq 'FINAL_PICK' ) {
+        $process_type = _final_pick_source_plate( $new_plate_type, $reagent_count, $params );
+    }
     else {
         LIMS2::Exception->throw( "infer_qc_process_type can not handle a $source_plate_type source plate" );
     }
@@ -722,6 +725,40 @@ sub _final_source_plate {
     return;
 }
 
+=head2 _final_pick_source_plate
+
+Help infer process type where the template well is derived from a FINAL_PICK plate
+
+=cut
+sub _final_pick_source_plate {
+    my ( $new_plate_type, $reagent_count, $params ) = @_;
+
+    unless ( $new_plate_type eq 'FINAL_PICK' ) {
+        LIMS2::Exception->throw(
+            "Can only create a FINAL_PICK plate from another FINAL_PICK template plate"
+            . ", not a $new_plate_type plate"
+        );
+    }
+
+    if ( $params->{recombinase} ) {
+        LIMS2::Exception->throw(
+            'A recombinase was specified when the FINAL_PICK template plate was created, '
+            . ' this does not fit with creating a FINAL_PICK plate here'
+        );
+    }
+    elsif ($reagent_count == 0) {
+        return 'rearray';
+    }
+    else {
+        LIMS2::Exception->throw(
+            'Cassette / backbone was specified when the FINAL_PICK template plate was created, '
+            . ' this does not fit in with creating a FINAL_PICK plate here'
+        );
+    }
+
+    return;
+}
+
 =head2 _crispr_source_plate
 
 Help infer process type where the template well is derived from a CRISPR plate
@@ -753,6 +790,7 @@ sub _crispr_source_plate {
 
     return;
 }
+
 
 1;
 
