@@ -24,9 +24,10 @@ override _build_columns => sub {
     return [
         'Well Name',
         'Crispr Plate', 'Crispr Well',
+        'Backbone',
         'Created By','Created At',
         'Accepted?',
-    ];
+    ]; 
 };
 
 override iterator => sub {
@@ -51,11 +52,16 @@ override iterator => sub {
 
         my $crispr = $well->parent_crispr;
 
+        my $backbone = '';
+        if ($well->backbone) {
+            $backbone = $well->backbone->name;
+        }
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $well->name,
             $crispr->plate,
             $crispr->name,
+            $backbone,
             $well->created_by->name,
             $well->created_at->ymd,
             $self->boolean_str( $well->is_accepted ),

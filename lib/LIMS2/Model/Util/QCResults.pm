@@ -38,11 +38,11 @@ use Data::Dumper;
 sub retrieve_qc_run_results {
     my $qc_run = shift;
 #print "running retrieve_qc_run_results\n";
-    my $expected_design_loc = _design_loc_for_qc_template_plate($qc_run);
+    my $expected_loc = _design_loc_for_qc_template_plate($qc_run);
     my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
         { prefetch => ['qc_test_results'] } );
 
-    my @qc_run_results = map { @{ _parse_qc_seq_wells( $_, $expected_design_loc, $qc_run ) } } @qc_seq_wells;
+    my @qc_run_results = map { @{ _parse_qc_seq_wells( $_, $expected_loc, $qc_run ) } } @qc_seq_wells;
 
     @qc_run_results = sort {
                $a->{plate_name} cmp $b->{plate_name}
@@ -57,9 +57,15 @@ sub retrieve_qc_run_results {
 #this is functionally the same as retrieve_qc_run_results but with raw sql so pages don't time out.
 #eventually this should replace retrive_qc_run_results
 sub retrieve_qc_run_results_fast {
-    my ( $qc_run, $schema ) = @_;
+    my ( $qc_run, $schema, $crispr_run ) = @_;
+    my $name_id;
+    if ($crispr_run) {
+        $name_id = 'crispr_id';
+    } else {
+        $name_id = 'design_id';
+    }
 
-    my $expected_design_loc = _design_loc_for_qc_template_plate($qc_run);
+    my $expected_loc = _loc_for_qc_template_plate($qc_run, $crispr_run);
 
     #query to fetch all the data we need. we need left joins on alignments/test_results/engseqs
     #because failed wells don't get a qc_test_result or qc_alignment, but we still need to show them.
@@ -102,8 +108,8 @@ EOT
                     plate_name         => $plate_name,
                     well_name          => lc $well_name,
                     well_name_384      => lc to384( $plate_name, $well_name ),
-                    design_id          => $eng_seq_params->{ design_id },
-                    expected_design_id => $expected_design_loc->{ uc $well_name },
+                    $name_id           => $eng_seq_params->{ $name_id },
+                    'expected_'.$name_id  => $expected_loc->{ uc $well_name },
                     gene_symbol        => '-',
                     pass               => $r->{overall_pass},
                     primers            => []
@@ -353,23 +359,45 @@ sub _validated_download_seq_params {
     return \%params;
 }
 
+# obsolete. Used by retrieve_qc_run_results which is obsolete (maybe some legacy code still uses?)
 sub _design_loc_for_qc_template_plate {
     my ($qc_run) = @_;
-    my %design_loc_for;
+    my %loc_for;
     my @qc_template_wells
         = $qc_run->qc_template->qc_template_wells( {}, { prefetch => ['qc_eng_seq'] } );
 
     for my $well ( map { $_->as_hash } @qc_template_wells ) {
         if ( exists $well->{eng_seq_params}{design_id} ) {
-            $design_loc_for{ $well->{name} } = $well->{eng_seq_params}{design_id};
+            $loc_for{ $well->{name} } = $well->{eng_seq_params}{design_id};
         }
     }
 
-    return \%design_loc_for;
+    return \%loc_for;
+}
+
+sub _loc_for_qc_template_plate {
+    my ($qc_run, $crispr_run) = @_;
+    my $name_loc;
+    if ($crispr_run) {
+        $name_loc = 'crispr_id';
+    } else {
+        $name_loc = 'design_id';
+    }
+    my %loc_for;
+    my @qc_template_wells
+        = $qc_run->qc_template->qc_template_wells( {}, { prefetch => ['qc_eng_seq'] } );
+
+    for my $well ( map { $_->as_hash } @qc_template_wells ) {
+        if ( exists $well->{eng_seq_params}{$name_loc} ) {
+            $loc_for{ $well->{name} } = $well->{eng_seq_params}{$name_loc};
+        }
+    }
+
+    return \%loc_for;
 }
 
 sub _parse_qc_seq_wells {
-    my ( $qc_seq_well, $expected_design_loc, $qc_run ) = @_;
+    my ( $qc_seq_well, $expected_loc, $qc_run ) = @_;
 
     my $plate_name      = $qc_seq_well->plate_name;
     my $well_name       = lc( $qc_seq_well->well_name );
@@ -383,7 +411,7 @@ sub _parse_qc_seq_wells {
         plate_name         => $plate_name,
         well_name          => $well_name,
         well_name_384      => lc to384( $plate_name, $well_name ),
-        expected_design_id => $expected_design_loc->{ uc $well_name },
+        expected_design_id => $expected_loc->{ uc $well_name },
         gene_symbol        => '-', #TODO add gene symbol info once designs imported to lims2
         num_reads          => $num_reads
     );
@@ -526,6 +554,9 @@ sub infer_qc_process_type{
     }
     elsif ( $source_plate_type eq 'FINAL' ) {
         $process_type = _final_source_plate( $new_plate_type, $reagent_count, $params );
+    }
+    elsif ( $source_plate_type eq 'CRISPR' ) {
+        $process_type = _crispr_source_plate( $new_plate_type, $reagent_count, $params );
     }
     else {
         LIMS2::Exception->throw( "infer_qc_process_type can not handle a $source_plate_type source plate" );
@@ -685,6 +716,38 @@ sub _final_source_plate {
     else {
         LIMS2::Exception->throw(
             "Can not create $new_plate_type plate from FINAL template plate"
+        );
+    }
+
+    return;
+}
+
+=head2 _crispr_source_plate
+
+Help infer process type where the template well is derived from a CRISPR plate
+
+=cut
+sub _crispr_source_plate {
+    my ( $new_plate_type, $reagent_count, $params ) = @_;
+
+    unless ( $new_plate_type eq 'CRISPR_V' ) {
+        LIMS2::Exception->throw(
+            "Can only create CRISPR_V plate from a CRISPR template plate, not a $new_plate_type plate");
+    }
+
+    if ( $params->{recombinase} ) {
+        LIMS2::Exception->throw(
+            'A recombinase was specified when the CRISPR template plate was created, '
+            . ' this does not fit with creating a CRISPR_V plate here'
+        );
+    }
+    elsif ( $reagent_count == 1 && $params->{backbone} ) {
+        return 'crispr_vector';
+    }
+    else {
+        LIMS2::Exception->throw(
+            'A cassette and backbone were not specified when the CRISPR template plate was created, '
+            . ' this information is required when creating a CRISPR_V plate from a CRISPR template plate'
         );
     }
 

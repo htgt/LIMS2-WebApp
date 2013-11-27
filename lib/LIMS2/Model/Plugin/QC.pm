@@ -29,9 +29,11 @@ use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
+use HTGT::QC::Config;
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
+
 
 sub pspec_find_or_create_qc_template {
     return {
@@ -541,8 +543,9 @@ sub qc_run_results {
     my $validated_params = $self->check_params( $params, $self->pspec_qc_run_results );
 
     my $qc_run = $self->retrieve( 'QcRun' => { id => $validated_params->{qc_run_id} } );
+    my $crispr_run = HTGT::QC::Config->new->profile( $qc_run->profile )->vector_stage eq "crispr";
 
-    my $results = retrieve_qc_run_results_fast($qc_run, $self->schema);
+    my $results = retrieve_qc_run_results_fast($qc_run, $self->schema, $crispr_run);
 
     return ( $qc_run, $results );
 }
@@ -838,26 +841,36 @@ sub create_plate_from_qc{
 	my $template = $self->retrieve_qc_template({ id => $validated_params->{qc_template_id}});
 	my $results_by_well = $validated_params->{results_by_well};
 
+
+
 	my @new_wells;
 
-	while (my ($well, $results) = each %$results_by_well){
+	while (my ($well, $results) = each %$results_by_well) {
 		my $best = $results->[0];
-		if(my $design_id = $best->{design_id}){
-			DEBUG "Found design $design_id for well $well";
+        my $name;
+        if (exists $best->{design_id}) {
+            $name = 'design_id';
+        } elsif (exists $best->{crispr_id}) {
+            $name = 'crispr_id';
+        }
+
+		if( $name ){
+            my $id = $best->{$name};
+			DEBUG "Found $name $id for well $well";
 			my $template_well;
 
-            if ($best->{expected_design_id} and $design_id eq $best->{expected_design_id}){
+            if ($best->{'expected_'.$name} and $id eq $best->{'expected_'.$name}){
             	# Fetch source well from template well with same location
-            	DEBUG "Found design $design_id at expected location on template";
+            	DEBUG "Found $name $id at expected location on template";
             	($template_well) = $template->qc_template_wells->search({ name => $well });
             }
             else{
             	# See if design_id was expected in some other well on the template,
             	# and get source for that
-            	DEBUG "Looking for design $design_id at different template location";
-            	($template_well) = grep { $_->as_hash->{eng_seq_params}->{design_id} eq $design_id }
+            	DEBUG "Looking for $name $id at different template location";
+            	($template_well) = grep { $_->as_hash->{eng_seq_params}->{$name} eq $id }
             	                      $template->qc_template_wells->all;
-            	die "Could not find template well for design $design_id" unless $template_well;
+            	die "Could not find template well for $name $id" unless $template_well;
             }
             my $source_well = $template_well->source_well
                 or die "No source well linked to template well ".$template_well->id;
@@ -889,13 +902,14 @@ sub create_plate_from_qc{
                 $source_well->plate->type_id,
             );
 
+
             push @new_wells, \%well_params;
 		}
 		else{
 			# Decided not to create empty wells
 			# If we created empty wells they would either need dummy input process,
 			# or we would have to remove the constraint that wells have input process
-			DEBUG "No design for well $well";
+			DEBUG "No design or crispr for well $well";
 		}
 	}
 

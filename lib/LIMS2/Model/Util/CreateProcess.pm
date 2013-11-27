@@ -975,7 +975,9 @@ sub _create_process_aux_data_dist_qc {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_crispr_vector {
-    return;
+    return {
+        backbone => { validate => 'existing_backbone', optional => 0 },
+    };
 }
 ## use critic
 
