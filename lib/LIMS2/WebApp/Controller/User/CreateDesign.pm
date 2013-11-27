@@ -8,6 +8,7 @@ use Const::Fast;
 use Try::Tiny;
 
 use LIMS2::Util::FarmJobRunner;
+use LIMS2::Model::Util::CreateDesign qw( exons_for_gene );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -134,6 +135,46 @@ sub pspec_create_design {
         g3_offset     => { validate => 'integer' },
         create_design => { optional => 0 } #this is the submit button
     };
+}
+
+sub gibson_design_gene_pick : Path('/user/gibson_design_gene') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    return;
+}
+
+sub gibson_design_exon_pick : Path( '/user/gibson_design_exon' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+    if ( !$c->request->param('gene') ) {
+        $c->flash( error_msg => "Please enter a gene name" );
+        return $c->go('gibson_design_gene_pick');
+    }
+
+    my $species = $c->session->{selected_species};
+
+    #TODO assembly and build! sp12 Wed 27 Nov 2013 10:26:54 GMT
+    my $build = 73;
+
+    my $exon_data = exons_for_gene(
+        $c->model('Golgi')->schema,
+        $c->request->param('genes'),
+        $species,
+        $build,
+    );
+
+    $c->stash(
+        exons => $exon_data,
+        gene  => $gene,
+    );
+
+} 
+
+sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
+    my ( $self, $c ) = @_;
 }
 
 __PACKAGE__->meta->make_immutable;

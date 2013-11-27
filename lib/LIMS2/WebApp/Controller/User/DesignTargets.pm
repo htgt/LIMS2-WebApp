@@ -45,7 +45,7 @@ sub gene_report : Path('/user/design_target_report') {
     }
 
     my $species = $c->session->{selected_species};
-    my $build   = $species eq 'Mouse' ? 70 : $species eq 'Human' ? 73 : undef;
+    my $build   = $species eq 'Mouse' ? 73 : $species eq 'Human' ? 73 : undef;
 
     my %report_parameters = (
         type                 => $c->request->param('report_type') || 'standard',
