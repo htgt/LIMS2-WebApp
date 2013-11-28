@@ -27,7 +27,7 @@ override _build_columns => sub {
         'Backbone',
         'Created By','Created At',
         'Accepted?',
-    ]; 
+    ];
 };
 
 override iterator => sub {
