@@ -19,6 +19,7 @@ use List::MoreUtils qw( any part );
 use namespace::autoclean;
 use Log::Log4perl qw( :easy );
 use Readonly;
+use Parse::BooleanLogic;
 # use Deep::Hash::Utils qw(reach slurp nest deepvalue);
 
 use Data::Dumper;
@@ -43,7 +44,7 @@ has imits_config => (
     builder => '_build_imits_config',
 );
 
-has summaried_data => (
+has summarised_data => (
     is         => 'rw',
     isa        => 'HashRef',
     lazy_build => 1,
@@ -73,6 +74,12 @@ has cre_ki_genes => (
     builder    => '_build_cre_ki_genes',
 );
 
+has dispatches => (
+    is         => 'rw',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
 Readonly my @BASKET_NAMES => (
     'unrequested',
     'unpicked_no_clones',
@@ -87,8 +94,27 @@ Readonly my @BASKET_NAMES => (
     'qc_passed_no_mi_attempts',
     'in_progress_active_mi_attempts',
     'failed_in_mouse_production',
-    'unrecognised_type missing_from_lims2',
+    'unrecognised_type',
+    'missing_from_lims2',
 );
+
+Readonly my %BASKET_LOGIC_STRINGS => {
+    'unrequested'                           => 'has_lims2_data AND not_has_imits_data',
+    'unpicked_no_clones'                    => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND not_has_piqs AND has_acpt_clones',
+    'unpicked_no_piqs'                      => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND not_has_piqs AND not_has_acpt_clones',
+    'picked_1_clone'                        => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND not_has_piq_qc_data AND has_1_acpt_clone',
+    'picked_2_clones'                       => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND not_has_piq_qc_data AND has_2_acpt_clones',
+    'picked_3_clones'                       => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND not_has_piq_qc_data AND has_3_acpt_clones',
+    'picked_4_clones'                       => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND not_has_piq_qc_data AND has_4_acpt_clones',
+    'picked_5_clones'                       => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND not_has_piq_qc_data AND has_5_acpt_clones',
+    'picked_gt5_clones'                     => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND not_has_piq_qc_data AND has_gt5_acpt_clones',
+    'qc_failed_no_mi_attempts'              => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND has_piq_qc_data AND not_has_acpt_piqs',
+    'qc_passed_no_mi_attempts'              => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND has_acpt_clones AND has_piq_qc_data AND has_acpt_piqs',
+    'in_progress_active_mi_attempts'        => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND has_mi_attempts AND has_actv_mi_attempts',
+    'failed_in_mouse_production'            => 'has_lims2_data AND has_imits_data AND has_actv_mi_plans AND has_mi_attempts AND not_has_actv_mi_attempts',
+    'unrecognised_type'                     => 'has_lims2_data AND has_imits_data AND ( has_actv_mi_plans AND not_has_mi_attempts AND has_piqs AND not_has_acpt_clones ) OR ( not_has_actv_mi_plans )',
+    'missing_from_lims2'                    => 'not_has_lims2_data',
+};
 
 =head2 build_cre_ki_genes
 
@@ -134,6 +160,59 @@ sub _build_imits_config {
     return $imits_config;
 }
 
+=head2 _build_dispatches
+
+build dispatches table for determining gene basket
+
+=cut
+sub _build_dispatches {
+    my ( $self ) = @_;
+
+    my $dispatches = {
+        'has_lims2_data'                 => sub { $self->_has_lims2_data },
+        'not_has_lims2_data'             => sub { !$self->_has_lims2_data },
+        'has_imits_data'                 => sub { $self->_has_imits_data },
+        'not_has_imits_data'             => sub { !$self->_has_imits_data },
+        'has_mi_attempts'                => sub { $self->_has_mi_attempts },
+        'not_has_mi_attempts'            => sub { !$self->_has_mi_attempts },
+        'has_actv_mi_plans'              => sub { $self->_has_actv_mi_plans },
+        'not_has_actv_mi_plans'          => sub { !$self->_has_actv_mi_plans },
+        'has_actv_mi_attempts'           => sub { $self->_has_actv_mi_attempts },
+        'not_has_actv_mi_attempts'       => sub { !$self->_has_actv_mi_attempts },
+        'has_piqs'                       => sub { $self->_has_piqs },
+        'not_has_piqs'                   => sub { !$self->_has_piqs },
+        'has_acpt_clones'                => sub { $self->_has_acpt_clones },
+        'not_has_acpt_clones'            => sub { !$self->_has_acpt_clones },
+        'has_1_acpt_clone'               => sub { $self->_has_1_acpt_clone },
+        'has_2_acpt_clones'              => sub { $self->_has_2_acpt_clones },
+        'has_3_acpt_clones'              => sub { $self->_has_3_acpt_clones },
+        'has_4_acpt_clones'              => sub { $self->_has_4_acpt_clones },
+        'has_5_acpt_clones'              => sub { $self->_has_5_acpt_clones },
+        'has_gt5_acpt_clones'            => sub { $self->_has_gt5_acpt_clones },
+        'has_acpt_piqs'                  => sub { $self->_has_acpt_piqs },
+        'not_has_acpt_piqs'              => sub { !$self->_has_acpt_piqs },
+        'has_piq_qc_data'                => sub { $self->_has_piq_qc_data },
+        'not_has_piq_qc_data'            => sub { !$self->_has_piq_qc_data },
+        'unrequested'                    => sub { $self->summarised_data->{ 'count_unrequested_total' }++; },
+        'unpicked_no_clones'             => sub { $self->summarised_data->{ 'count_unpicked_no_clones_total' }++; $self->summarised_data->{ 'count_unpicked_total' }++; },
+        'unpicked_no_piqs'               => sub { $self->summarised_data->{ 'count_unpicked_no_piqs_total' }++; $self->summarised_data->{ 'count_unpicked_total' }++; },
+        'picked_1_clone'                 => sub { $self->summarised_data->{ 'count_picked_total' }++; $self->summarised_data->{ 'count_picked_1_clones_total' }++; },
+        'picked_2_clones'                => sub { $self->summarised_data->{ 'count_picked_total' }++; $self->summarised_data->{ 'count_picked_2_clones_total' }++; },
+        'picked_3_clones'                => sub { $self->summarised_data->{ 'count_picked_total' }++; $self->summarised_data->{ 'count_picked_3_clones_total' }++; },
+        'picked_4_clones'                => sub { $self->summarised_data->{ 'count_picked_total' }++; $self->summarised_data->{ 'count_picked_4_clones_total' }++; },
+        'picked_5_clones'                => sub { $self->summarised_data->{ 'count_picked_total' }++; $self->summarised_data->{ 'count_picked_5_clones_total' }++; },
+        'picked_gt5_clones'              => sub { $self->summarised_data->{ 'count_picked_total' }++; $self->summarised_data->{ 'count_picked_gt5_clones_total' }++; },
+        'qc_failed_no_mi_attempts'       => sub { $self->summarised_data->{ 'count_qc_fails_all_piqd_clones' }++; },
+        'qc_passed_no_mi_attempts'       => sub { $self->summarised_data->{ 'count_qc_passes_no_mis_total' }++; },
+        'in_progress_active_mi_attempts' => sub { $self->summarised_data->{ 'count_in_progress_active_mis_total' }++; },
+        'failed_in_mouse_production'     => sub { $self->summarised_data->{ 'count_failed_mp_total' }++; },
+        'unrecognised_type'              => sub { $self->summarised_data->{ 'count_unrecognized_type' }++; },
+        'missing_from_lims2'             => sub { $self->summarised_data->{ 'count_only_in_imits' }++; },
+    };
+
+    return $dispatches;
+}
+
 =head2 generate_report_data
 
 generate report data for overview summary report
@@ -146,22 +225,22 @@ sub generate_summary_report_data {
     $self->_summarise_cre_ki_data();
 
     push @report_data, [
-    	$self->summaried_data->{ 'count_genes_total' },
-        $self->summaried_data->{ 'count_unrequested_total' },
-        $self->summaried_data->{ 'count_unpicked_total' },
-        $self->summaried_data->{ 'count_unpicked_no_piqs_total' },
-        $self->summaried_data->{ 'count_unpicked_no_clones_total' },
-        $self->summaried_data->{ 'count_picked_total' },
-        $self->summaried_data->{ 'count_picked_1_clone_total' },
-        $self->summaried_data->{ 'count_picked_2_clones_total' },
-        $self->summaried_data->{ 'count_picked_3_clones_total' },
-        $self->summaried_data->{ 'count_picked_4_clones_total' },
-        $self->summaried_data->{ 'count_picked_5_clones_total' },
-        $self->summaried_data->{ 'count_picked_gt5_clones_total' },
-        $self->summaried_data->{ 'count_qc_passes_no_mis_total' },
-        $self->summaried_data->{ 'count_qc_fails_all_piqd_clones' },
-        $self->summaried_data->{ 'count_in_progress_active_mis_total' },
-        $self->summaried_data->{ 'count_failed_mp_total' },
+    	$self->summarised_data->{ 'count_genes_total' },
+        $self->summarised_data->{ 'count_unrequested_total' },
+        $self->summarised_data->{ 'count_unpicked_total' },
+        $self->summarised_data->{ 'count_unpicked_no_piqs_total' },
+        $self->summarised_data->{ 'count_unpicked_no_clones_total' },
+        $self->summarised_data->{ 'count_picked_total' },
+        $self->summarised_data->{ 'count_picked_1_clone_total' },
+        $self->summarised_data->{ 'count_picked_2_clones_total' },
+        $self->summarised_data->{ 'count_picked_3_clones_total' },
+        $self->summarised_data->{ 'count_picked_4_clones_total' },
+        $self->summarised_data->{ 'count_picked_5_clones_total' },
+        $self->summarised_data->{ 'count_picked_gt5_clones_total' },
+        $self->summarised_data->{ 'count_qc_passes_no_mis_total' },
+        $self->summarised_data->{ 'count_qc_fails_all_piqd_clones' },
+        $self->summarised_data->{ 'count_in_progress_active_mis_total' },
+        $self->summarised_data->{ 'count_failed_mp_total' },
     ];
 
     $self->report_data( \@report_data );
@@ -193,7 +272,7 @@ sub generate_genes_report_data {
                 $basket_name,
                 $curr_gene->{ 'mgi_accession_id' },
                 $curr_gene->{ 'marker_symbol' },
-                $curr_gene->{ 'accepted_clones_at_wtsi' },                
+                $curr_gene->{ 'accepted_clones_at_wtsi' },
                 $curr_gene->{ 'accepted_clone_piq_wells_at_wtsi' },
                 $curr_gene->{ 'accepted_clones_qc_passed_at_wtsi' },
                 $curr_gene->{ 'plans_summary' },
@@ -263,164 +342,101 @@ sub _add_lims2_data {
                 my $piq_well = \% { $fp_well->{ 'piq_wells' }->{ $piq_well_id } };
                 if ( defined $row->{ 'piq_well_db_id' } ) {
                     $piq_well->{ 'piq_well_db_id' } = $row->{ 'piq_well_db_id' };
-                
-                    # the piq well ids are collected and sent to allele determination to check for genotyping passes
-                    # push( @piq_well_db_ids, $piq_well_db_id );
                 }
             }
         }
     }
 
-    # $self->_add_lims2_piq_genotyping_pass_data( $cre_ki_genes, \@piq_well_db_ids );
-
     return;
 }
-
-=head2 add_lims2_piq_genotyping_pass_data
-
-run allele determination code against data to get genotyping QC pass information
-
-=cut
-## no critic ( Subroutines::ProhibitExcessComplexity )
-# sub _add_lims2_piq_genotyping_pass_data {
-#     my ( $self, $cre_ki_genes, $piq_well_db_ids ) = @_;
-
-#     # fetch genotyping data for list of PIQ well ids
-#     my $piq_AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self->model, 'species' => $self->species );
-#     my $piq_AD_results = $piq_AD->determine_allele_types_for_well_ids( $piq_well_db_ids );
-
-#     # convert piq_AD_results into a hash
-#     my $piq_AD_results_hash = {};
-#     foreach my $piq_well ( @{ $piq_AD_results } ) {
-#         my $well_db_id = $piq_well->{ 'id' };
-#         $piq_AD_results_hash->{ $well_db_id } = $piq_well;
-#     }
-
-#     foreach my $mgi_gene_id ( sort keys %{ $cre_ki_genes } ) {
-#         if ( exists $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' } ) {
-#         	foreach my $clone_well_id ( sort keys %{ $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' } } ) {
-#                 if ( exists $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' }->{ $clone_well_id }->{ 'freezer_wells' } ) {
-#                     foreach my $fp_well_id ( sort keys %{ $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' }->{ $clone_well_id }->{ 'freezer_wells' } } ) {
-#                         if ( exists $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' }->{ $clone_well_id }->{ 'freezer_wells' }->{ $fp_well_id }->{ 'piq_wells' } ) {
-#                             foreach my $piq_well_id ( sort keys %{ $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' }->{ $clone_well_id }->{ 'freezer_wells' }->{ $fp_well_id }->{ 'piq_wells' } } ) {
-#                                 # add in genotyping data if exists in piq_results hash
-#                                 my $curr_piq_well_db_id = $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' }->{ $clone_well_id }->{ 'freezer_wells' }->{ $fp_well_id }->{ 'piq_wells' }->{ $piq_well_id }->{ 'piq_well_db_id' };
-#                                 if ( exists $piq_AD_results_hash->{ $curr_piq_well_db_id } ) {
-#                                     $cre_ki_genes->{ $mgi_gene_id }->{ 'clones' }->{ $clone_well_id }->{ 'freezer_wells' }->{ $fp_well_id }->{ 'piq_wells' }->{ $piq_well_id }->{ 'genotyping_results' } = $piq_AD_results_hash->{ $curr_piq_well_db_id };
-#                                 }
-#                             }
-#                         }
-#                     }
-#                 }
-#             }
-#         }
-#     }
-
-#     return;
-# }
-## use critic
 
 =head2 add_lims2_counts
 
 cycle through hash adding LIMS2 counts
 
 =cut
-## no critic ( Subroutines::ProhibitExcessComplexity )
 sub _add_lims2_counts {
     my ( $self, $cre_ki_genes ) = @_;
 
     foreach my $mgi_gene_id ( sort keys %{ $cre_ki_genes } ) {
-        my $count_lims2_clones_total = 0;
-        my $count_lims2_clones_accepted = 0;
-        my $count_lims2_freezer_wells = 0;
-        my $count_lims2_piq_wells = 0;
-        my $count_lims2_piq_wells_accepted = 0;
-        my $count_lims2_piq_has_qc_data = 0;
+        my $curr_gene = \% { $cre_ki_genes->{ $mgi_gene_id } };
+        $self->_initialise_curr_gene_lims2_and_imits_counters( $curr_gene );
+
+        # arrays to hold lists of wells
         my @ep_pick_well_ids_array;
         my @fp_well_ids_array;
         my @piq_well_ids_array;
         my @qc_passed_clones_array;
 
-        my $curr_gene = \% { $cre_ki_genes->{ $mgi_gene_id } };
-
-        if ( exists $curr_gene->{ 'clones' } ) {
-            my $curr_gene_clones = \% { $curr_gene->{ 'clones' } };
-
-            foreach my $clone_well_id ( sort keys %{ $curr_gene_clones } ) {
-                $count_lims2_clones_total++;
-                if ( $curr_gene_clones->{ $clone_well_id }->{ 'clone_accepted' } ) {
-                    $count_lims2_clones_accepted++;
-                    push ( @ep_pick_well_ids_array, $clone_well_id );
-                    # add to concatenated lists of freezer and piq wells
-
-                    my $curr_clone = \% { $curr_gene_clones->{ $clone_well_id } };
-
-                     # cycle through all the freezer wells for each accepted clone (if any)
-                    foreach my $fp_well_id ( sort keys %{ $curr_clone->{ 'freezer_wells' } } ) {
-                        $count_lims2_freezer_wells++;
-                        push ( @fp_well_ids_array, $fp_well_id );
-
-                        my $curr_fp_well = \%{ $curr_clone->{ 'freezer_wells' }->{ $fp_well_id } };
-
-                        # cycle through all the PIQ wells for each freezer well (if any)
-                        foreach my $piq_well_id ( sort keys %{ $curr_fp_well->{ 'piq_wells' } } ) {
-                            $count_lims2_piq_wells++;
-                            push ( @piq_well_ids_array, $piq_well_id );
-
-                            my $curr_piq_well = \% { $curr_fp_well->{ 'piq_wells' }->{ $piq_well_id } };
-
-                            # if ( exists $curr_piq_well->{ 'genotyping_results' } ) {
-                            #     my $piq_genotyping_pass = $curr_piq_well->{ 'genotyping_results' }->{ 'genotyping_pass' };
-                            #     my $well_has_qc_data = $curr_piq_well->{ 'genotyping_results' }->{ 'has_qc_data' };
-
-                            #     if ( defined $piq_genotyping_pass && $piq_genotyping_pass ne 'fail' && $piq_genotyping_pass ne '' ) { 
-                            #     	push ( @qc_passed_clones_array, $clone_well_id );
-                            #     	$count_lims2_piq_wells_accepted++;
-                            #     }
-                            #     if ( defined $well_has_qc_data && $well_has_qc_data == 1 ) { $count_lims2_piq_has_qc_data++; }
-                            # }
-                            if ( $curr_piq_well->{ 'piq_well_accepted' } == 1 ) {
-                                
-                                push ( @qc_passed_clones_array, $clone_well_id );
-                                $count_lims2_piq_wells_accepted++;
-                            }
-
-                            $curr_piq_well->{ 'has_qc_data' } = $self->_well_has_qc_data( $curr_piq_well->{ 'piq_well_db_id' } );
-                            if ( $curr_piq_well->{ 'has_qc_data' } ) {
-                                $count_lims2_piq_has_qc_data++;
-                            }
-                        }
+        unless ( exists $curr_gene->{ 'clones' } ) { next; }
+        my $curr_gene_clones = \% { $curr_gene->{ 'clones' } };
+        # cycle through the ep pick clones
+        foreach my $clone_well_id ( sort keys %{ $curr_gene_clones } ) {
+            $curr_gene->{ 'count_lims2_clones_total' }++;
+            unless ( $curr_gene_clones->{ $clone_well_id }->{ 'clone_accepted' } ) { next; }
+            $curr_gene->{ 'count_lims2_clones_accepted' }++;
+            push ( @ep_pick_well_ids_array, $clone_well_id );
+            # add to concatenated lists of freezer and piq wells
+            my $curr_clone = \% { $curr_gene_clones->{ $clone_well_id } };
+             # cycle through all the freezer wells for each accepted clone (if any)
+            foreach my $fp_well_id ( sort keys %{ $curr_clone->{ 'freezer_wells' } } ) {
+                $curr_gene->{ 'count_lims2_freezer_wells' }++;
+                push ( @fp_well_ids_array, $fp_well_id );
+                my $curr_fp_well = \%{ $curr_clone->{ 'freezer_wells' }->{ $fp_well_id } };
+                # cycle through all the PIQ wells for each freezer well (if any)
+                unless ( exists $curr_fp_well->{ 'piq_wells' } ) { next; }
+                foreach my $piq_well_id ( sort keys %{ $curr_fp_well->{ 'piq_wells' } } ) {
+                    $curr_gene->{ 'count_lims2_piq_wells' }++;
+                    push ( @piq_well_ids_array, $piq_well_id );
+                    my $curr_piq_well = \% { $curr_fp_well->{ 'piq_wells' }->{ $piq_well_id } };
+                    if ( $curr_piq_well->{ 'piq_well_accepted' } == 1 ) {
+                        push ( @qc_passed_clones_array, $clone_well_id );
+                        $curr_gene->{ 'count_lims2_piq_wells_accepted' }++;
+                    }
+                    $curr_piq_well->{ 'has_qc_data' } = $self->_well_has_qc_data( $curr_piq_well->{ 'piq_well_db_id' } );
+                    if ( $curr_piq_well->{ 'has_qc_data' } ) {
+                        $curr_gene->{ 'count_lims2_piq_has_qc_data' }++;
                     }
                 }
             }
         }
-
-        # add counts and well lists into hash
-        $curr_gene->{ 'has_lims2_data' } = 1;
-        $curr_gene->{ 'count_lims2_clones_total' }          = $count_lims2_clones_total;
-        $curr_gene->{ 'count_lims2_clones_accepted' }       = $count_lims2_clones_accepted;
-        $curr_gene->{ 'count_lims2_freezer_wells' }         = $count_lims2_freezer_wells;
-        $curr_gene->{ 'count_lims2_piq_wells' }             = $count_lims2_piq_wells;
-        $curr_gene->{ 'count_lims2_piq_wells_accepted' }    = $count_lims2_piq_wells_accepted;
-        $curr_gene->{ 'count_lims2_piq_has_qc_data' }       = $count_lims2_piq_has_qc_data;
 
         # add lists of well ids into hash
         if ( @ep_pick_well_ids_array ) { $curr_gene->{ 'accepted_clones_list' }          = join ( ' : ', @ep_pick_well_ids_array ) };
         if ( @fp_well_ids_array ) { $curr_gene->{ 'accepted_clone_fp_wells_list' }       = join ( ' : ', @fp_well_ids_array ) };
         if ( @piq_well_ids_array ) { $curr_gene->{ 'accepted_clone_piq_wells_list' }     = join ( ' : ', @piq_well_ids_array ) };
         if ( @qc_passed_clones_array ) { $curr_gene->{ 'accepted_clone_qc_passed_list' } = join ( ' : ', @qc_passed_clones_array ) };
-
-        # these counters set to zero for now and incremented when imits data added
-        $curr_gene->{ 'has_imits_data' }                    = 0;
-        $curr_gene->{ 'count_mi_plans_total' }              = 0;
-        $curr_gene->{ 'count_mi_plans_active' }             = 0;
-        $curr_gene->{ 'count_mi_attempts_total' }           = 0;
-        $curr_gene->{ 'count_mi_attempts_active' }          = 0;
     }
 
     return;
 }
-## use critic
+
+=head2 _initialise_curr_gene_lims2_and_imits_counters
+
+initialise the lims2 and imits counters
+
+=cut
+sub _initialise_curr_gene_lims2_and_imits_counters {
+    my ( $self, $curr_gene ) = @_;
+
+    # initialise the lims2 counters
+    $curr_gene->{ 'has_lims2_data' } = 1;
+    $curr_gene->{ 'count_lims2_clones_total' } = 0;
+    $curr_gene->{ 'count_lims2_clones_accepted' } = 0;
+    $curr_gene->{ 'count_lims2_freezer_wells' } = 0;
+    $curr_gene->{ 'count_lims2_piq_wells' } = 0;
+    $curr_gene->{ 'count_lims2_piq_wells_accepted' } = 0;
+    $curr_gene->{ 'count_lims2_piq_has_qc_data' } = 0;
+
+    # initialise the imits counters
+    $curr_gene->{ 'has_imits_data' }                    = 0;
+    $curr_gene->{ 'count_mi_plans_total' }              = 0;
+    $curr_gene->{ 'count_mi_plans_active' }             = 0;
+    $curr_gene->{ 'count_mi_attempts_total' }           = 0;
+    $curr_gene->{ 'count_mi_attempts_active' }          = 0;
+
+    return;
+}
 
 =head2 fetch_imits_cre_ki_data
 
@@ -487,33 +503,34 @@ sub _fuse_lims2_and_imits_data {
 
     # Now we can fuse the two reports, by merging the output from (lims2) onto the output from (iMits) by gene.
     foreach my $imits_gene_id ( sort keys %{ $imits_cre_ki_data } ) {
-        # add imits data into the lims2 hash at clone level, adding counters at gene level
-        my $count_mi_plans_total     = 0;
-        my $count_mi_plans_active    = 0;
-        my $count_mi_attempts_total  = 0;
-        my $count_mi_attempts_active = 0; # status not aborted and is_attempt_active true
 
         # check for whether lims2 knows about this gene, if not set base counters
-        if ( !exists $cre_ki_genes->{ $imits_gene_id } ) {
+        unless ( exists $cre_ki_genes->{ $imits_gene_id } ) {
             $self->_initialise_cre_gene_where_only_in_imits( $cre_ki_genes, $imits_gene_id );
         }
 
         my $cre_ki_gene = \%{ $cre_ki_genes->{ $imits_gene_id } };
         my $imits_gene = \%{ $imits_cre_ki_data->{ $imits_gene_id } };
 
+        # add imits data into the lims2 hash at clone level, adding counters at gene level
+        $cre_ki_gene->{ 'has_imits_data' } = 1;
+        $cre_ki_gene->{ 'count_mi_plans_total' }     = 0;
+        $cre_ki_gene->{ 'count_mi_plans_active' }    = 0;
+        $cre_ki_gene->{ 'count_mi_attempts_total' }  = 0;
+        $cre_ki_gene->{ 'count_mi_attempts_active' } = 0; # status not aborted and is_attempt_active true
+
         # if gene has mi_plans
         if ( exists $imits_gene->{ 'mi_plans' } ) {
             # copy mi_plans across
             my $imits_gene_plans = \%{ $imits_gene->{ 'mi_plans' } };
             $cre_ki_gene->{ 'mi_plans' } = $imits_gene_plans;
-
             # for each plan increment counters
             foreach my $imits_plan_id ( sort keys %{ $imits_gene_plans } ) {
-                $count_mi_plans_total++;
+                $cre_ki_gene->{ 'count_mi_plans_total' }++;
                 my $is_current_plan_active = $imits_gene_plans->{ $imits_plan_id }->{ 'is_plan_active' };
                 # TODO: check for an aborted status here?
                 if ( $is_current_plan_active ) {
-                    $count_mi_plans_active++;
+                    $cre_ki_gene->{ 'count_mi_plans_active' }++;
                 }
             }
         }
@@ -521,30 +538,23 @@ sub _fuse_lims2_and_imits_data {
         # for each clone
         foreach my $imits_clone_id ( sort keys %{ $imits_gene->{ 'clones' } } ) {
             my $imits_clone = \%{ $imits_gene->{ 'clones' }->{ $imits_clone_id } };
-
             # check if clone has mi attempts
             if ( exists $imits_clone->{ 'mi_attempts' } ) {
                 # copy mi_attempts across
                 $cre_ki_gene->{ 'clones' }->{ $imits_clone_id }->{ 'mi_attempts' } = $imits_clone->{ 'mi_attempts' };
-
                 # check each attempt
                 foreach my $mi_attempt_db_id ( sort keys %{ $imits_clone->{ 'mi_attempts' } } ) {
-                    $count_mi_attempts_total++;
-                    my $imits_mi_attempt = \%{ $imits_clone->{ 'mi_attempts' }->{ $mi_attempt_db_id } };
+                    $cre_ki_gene->{ 'count_mi_attempts_total' }++;
+                    my $imits_mi_attempt                  = \%{ $imits_clone->{ 'mi_attempts' }->{ $mi_attempt_db_id } };
                     my $curr_mi_attempt_status            = $imits_mi_attempt->{ 'status_code' };
                     my $curr_mi_attempt_is_attempt_active = $imits_mi_attempt->{ 'is_attempt_active' };
                     # to be active attempt must be active and not aborted
                     if ( $curr_mi_attempt_is_attempt_active && $curr_mi_attempt_status ne 'abt' ) {
-                        $count_mi_attempts_active++;
+                       $cre_ki_gene->{ 'count_mi_attempts_active' }++;
                     }
                 }
             }
         }
-        $cre_ki_gene->{ 'has_imits_data' } = 1;
-        $cre_ki_gene->{ 'count_mi_plans_total' } = $count_mi_plans_total;
-        $cre_ki_gene->{ 'count_mi_plans_active' } = $count_mi_plans_active;
-        $cre_ki_gene->{ 'count_mi_attempts_total' } = $count_mi_attempts_total;
-        $cre_ki_gene->{ 'count_mi_attempts_active' } = $count_mi_attempts_active;
     }
 
     return;
@@ -578,10 +588,10 @@ summarise the data for reporting
 sub _summarise_cre_ki_data {
     my ( $self ) = @_;
 
-    $self->_initialise_summaried_data_hash();
+    $self->_initialise_summarised_data_hash();
 
     foreach my $mgi_gene_id ( sort keys %{ $self->cre_ki_genes } ) {
-    	$self->summaried_data->{ 'count_genes_total' }++;
+    	$self->summarised_data->{ 'count_genes_total' }++;
 
     	$self->_initialise_curr_gene_summary( $mgi_gene_id );
     	$self->_summarise_cre_ki_data_current_gene ( $mgi_gene_id );
@@ -595,16 +605,16 @@ sub _summarise_cre_ki_data {
     return;
 }
 
-=head2 initialise_summaried_data_hash
+=head2 initialise_summarised_data_hash
 
 initialise the data hash for the summary counts
 
 =cut
-sub _initialise_summaried_data_hash {
+sub _initialise_summarised_data_hash {
 	my ( $self ) = @_;
 
     # foreach my $prod_centre ( [ qw( WTSI Monterotondo  ) ] )
-    my $summaried_data = {
+    my $summarised_data = {
     	'count_genes_total'                  => 0,
         'count_only_in_imits'                => 0,
         'count_unrecognized_type'            => 0,
@@ -625,7 +635,7 @@ sub _initialise_summaried_data_hash {
         'count_in_progress_active_mis_total' => 0,
     };
 
-    $self->summaried_data( $summaried_data );
+    $self->summarised_data( $summarised_data );
 
     return;
 }
@@ -643,7 +653,7 @@ sub _initialise_curr_gene_summary {
     my $curr_gene = \%{ $self->cre_ki_genes->{ $mgi_gene_id } };
 
 	my $curr_gene_summary = {
-		'mgi_accession_id'                   => $mgi_gene_id,		
+		'mgi_accession_id'                   => $mgi_gene_id,
 		'has_imits_data'                     => $curr_gene->{ 'has_imits_data' },
 		'has_lims2_data'                     => $curr_gene->{ 'has_lims2_data' },
 		'basket'                             => '',
@@ -652,7 +662,7 @@ sub _initialise_curr_gene_summary {
     $self->curr_gene_summary( $curr_gene_summary );
 
     $self->_initialise_curr_gene_summary_lims2_data( $curr_gene );
-    $self->_initialise_curr_gene_summary_imits_data( $curr_gene );	
+    $self->_initialise_curr_gene_summary_imits_data( $curr_gene );
 
 	return;
 }
@@ -670,10 +680,10 @@ sub _initialise_curr_gene_summary_lims2_data {
         $self->curr_gene_summary->{ 'marker_symbol' }                      = $curr_gene->{ 'gene_symbol' };
         $self->curr_gene_summary->{ 'accepted_clones_at_wtsi' }            = $curr_gene->{ 'accepted_clones_list' };
         $self->curr_gene_summary->{ 'accepted_clones_qc_passed_at_wtsi' }  = $curr_gene->{ 'accepted_clone_qc_passed_list' };
-        $self->curr_gene_summary->{ 'accepted_clone_piq_wells_at_wtsi' }   = $curr_gene->{ 'accepted_clone_piq_wells_list' };    
+        $self->curr_gene_summary->{ 'accepted_clone_piq_wells_at_wtsi' }   = $curr_gene->{ 'accepted_clone_piq_wells_list' };
         $self->curr_gene_summary->{ 'count_lims2_clones_total' }           = $curr_gene->{ 'count_lims2_clones_total' };
         $self->curr_gene_summary->{ 'count_lims2_clones_accepted' }        = $curr_gene->{ 'count_lims2_clones_accepted' };
-        $self->curr_gene_summary->{ 'count_lims2_freezer_wells' }          = $curr_gene->{ 'count_lims2_freezer_wells' };        
+        $self->curr_gene_summary->{ 'count_lims2_freezer_wells' }          = $curr_gene->{ 'count_lims2_freezer_wells' };
         $self->curr_gene_summary->{ 'count_lims2_piq_wells_accepted' }     = $curr_gene->{ 'count_lims2_piq_wells_accepted' };
         $self->curr_gene_summary->{ 'count_lims2_piq_has_qc_data' }        = $curr_gene->{ 'count_lims2_piq_has_qc_data' };
         $self->curr_gene_summary->{ 'count_lims2_piq_wells' }              = $curr_gene->{ 'count_lims2_piq_wells' };
@@ -708,7 +718,7 @@ sub _initialise_curr_gene_summary_imits_data {
         $self->curr_gene_summary->{ 'count_mi_plans_active' }              = $curr_gene->{ 'count_mi_plans_active' };
         $self->curr_gene_summary->{ 'count_mi_attempts' }                  = $curr_gene->{ 'count_mi_attempts_total' };
         $self->curr_gene_summary->{ 'count_mi_attempts_active' }           = $curr_gene->{ 'count_mi_attempts_active' };
-        
+
         my @plans_array;
         foreach my $plan_id ( sort keys %{ $curr_gene->{ 'mi_plans' } } ) {
             my $curr_plan = $curr_gene->{ 'mi_plans' }->{ $plan_id };
@@ -735,213 +745,581 @@ summarise the information for the current gene
 sub _summarise_cre_ki_data_current_gene {
 	my ( $self, $mgi_gene_id ) = @_;
 
-    if ( $self->curr_gene_summary->{ 'has_lims2_data' } ) {
-        if ( $self->curr_gene_summary->{ 'has_imits_data' } ) {
-            if ( $self->curr_gene_summary->{ 'count_mi_plans_active' } > 0 ) {
-                if ( $self->curr_gene_summary->{ 'count_mi_attempts' } > 0 ) {
-                    if ( $self->curr_gene_summary->{ 'count_mi_attempts_active' } == 0 ) {
-                    	$self->_basket_failed_in_mouse_production( $mgi_gene_id );                        	
-                    }
-                    else {
-                    	$self->_basket_in_progress( $mgi_gene_id );
-                    }
-                }
-                else {
-                    if ( $self->curr_gene_summary->{ 'count_lims2_piq_wells' } > 0 ) {
-                        if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } > 0 ) {
-                            if ( $self->curr_gene_summary->{ 'count_lims2_piq_has_qc_data' } > 0 ) {
-                                if ( $self->curr_gene_summary->{ 'count_lims2_piq_wells_accepted' } > 0 ) {
-                                	$self->_basket_qc_passed( $mgi_gene_id );
-                                }
-                                else {
-                                	$self->_basket_qc_failed( $mgi_gene_id );
-                                }
-                            }
-                            else {
-                            	$self->_basket_picked( $mgi_gene_id );
-                            }
-                        }
-                        else {
-                        	$self->_basket_unrecognized_type( $mgi_gene_id, 'mi_plans_active, no mi_attempts, piq_wells, no accepted clones' );
-                        }
-                    }
-                    else {
-                    	$self->_basket_unpicked( $mgi_gene_id );
-                    }
-                }
-            }
-            else {
-                $self->_basket_unrecognized_type( $mgi_gene_id, 'no mi_plans_active' );
-            }
+    my $basket_names = \@BASKET_NAMES;
+    my $basket_logic_strings = \%BASKET_LOGIC_STRINGS;
+    foreach my $basket_name ( @{ $basket_names } ) {
+        my $curr_basket_logic_string = $basket_logic_strings->{ $basket_name };
+        print 'logic string tested = ' . $curr_basket_logic_string . "\n";
+        if ( $self->_test_basket_logic_string( $curr_basket_logic_string ) ) {
+            print 'logic string PASS'. "\n";
+
+            $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $basket_name;
+            $self->curr_gene_summary->{ 'basket' }              = $basket_name;
+
+            return $self->dispatches->{ $basket_name }->();
         }
-        else {
-        	$self->_basket_unrequested( $mgi_gene_id );
-        }
-    }
-    else {
-    	$self->_basket_missing_lims2( $mgi_gene_id );
     }
 
 	return;
 }
 
-# sub _gene_has_lims2_data {
-#     my ( $self ) = @_;
+=head2 _test_basket_logic_string
 
+test the basket logic string to see if there is a match
+
+=cut
+sub _test_basket_logic_string {
+    my ( $self, $logic_string ) = @_;
+
+    LIMS2::Exception->throw( "basket logic test: no logic string defined" ) unless ( defined $logic_string && $logic_string ne '' );
+
+    # have the parser interpret and test the logic string
+    my $parser = Parse::BooleanLogic->new();
+    my $tree   = $parser->as_array( $logic_string );
+
+    my $callback = sub {
+        my $self    = pop;
+        my $operand = $_[0]->{ 'operand' };
+
+        # DEBUG ( 'operand = <' . $operand . '>' );
+
+        my $method  = $self->dispatches->{ $operand };
+        return $method->();
+    };
+
+    my $result = $parser->solve( $tree, $callback, $self );
+
+    return $result;
+}
+
+=head2 _has_lims2_data
+
+test if current gene has lims2 data
+
+=cut
+sub _has_lims2_data {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'has_lims2_data' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'has_lims2_data' } ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_imits_data
+
+test if current gene has imits data
+
+=cut
+sub _has_imits_data {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'has_imits_data' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'has_imits_data' } ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_actv_mi_plans
+
+test if current gene has active mi plans
+
+=cut
+sub _has_actv_mi_plans {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_mi_plans_active' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_mi_plans_active' } > 0 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_mi_attempts
+
+test if current gene has mi attempts
+
+=cut
+sub _has_mi_attempts {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_mi_attempts' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_mi_attempts' } > 0 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_actv_mi_attempts
+
+test if current gene has active mi attempts
+
+=cut
+sub _has_actv_mi_attempts {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_mi_attempts_active' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_mi_attempts_active' } == 0 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_piqs
+
+test if current gene has piq wells
+
+=cut
+sub _has_piqs {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_piq_wells' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_piq_wells' } > 0 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_acpt_clones
+
+test if current gene has accepted clones
+
+=cut
+sub _has_acpt_clones {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } > 0 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_1_acpt_clone
+
+test if current gene has 1 accepted clone
+
+=cut
+sub _has_1_acpt_clone {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 1 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_2_acpt_clone
+
+test if current gene has 2 accepted clones
+
+=cut
+sub _has_2_acpt_clones {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 2 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_3_acpt_clone
+
+test if current gene has 3 accepted clones
+
+=cut
+sub _has_3_acpt_clones {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 3 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_4_acpt_clone
+
+test if current gene has 4 accepted clones
+
+=cut
+sub _has_4_acpt_clones {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 4 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_5_acpt_clone
+
+test if current gene has 5 accepted clones
+
+=cut
+sub _has_5_acpt_clones {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 5 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_gt5_acpt_clones
+
+test if current gene has more than 5 accepted clones
+
+=cut
+sub _has_gt5_acpt_clones {
+    my ( $self ) = @_;
+
+    unless ( defined $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } ) { return 0; }
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } > 5 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_piq_qc_data
+
+test if current gene has piq qc data
+
+=cut
+sub _has_piq_qc_data {
+    my ( $self ) = @_;
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_piq_has_qc_data' } > 0 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+=head2 _has_acpt_piqs
+
+test if current gene has accepted piqs
+
+=cut
+sub _has_acpt_piqs {
+    my ( $self ) = @_;
+
+    if ( $self->curr_gene_summary->{ 'count_lims2_piq_wells_accepted' } > 0 ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+# =head2 _basket_failed_in_mouse_production
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_failed_in_mouse_production {
+# 	my ( $self, $mgi_gene_id ) = @_;
+
+#     # Failed in Mouse production. These have mi_attempts, but no active ones. (all should have PIQ data but this is incidental).
+#     my $txt = 'failed_in_mouse_production';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_failed_mp_total' }++;
+
+# 	return;
+# }
+
+# =head2 _basket_in_progress
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_in_progress {
+# 	my ( $self, $mgi_gene_id ) = @_;
+
+#     # In progress i.e. active attempts
+#     my $txt = 'in_progress_active_mi_attempts';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_in_progress_active_mis_total' }++;
+
+# 	return;
+# }
+
+# =head2 _basket_qc_passed
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_qc_passed {
+# 	my ( $self, $mgi_gene_id ) = @_;
+
+# 	# Have at least one PIQ QC pass but no MI attempts
+#     my $txt = 'qc_passed_no_mi_attempts';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_qc_passes_no_mis_total' }++;
+
+# 	return;
+# }
+
+# =head2 _basket_qc_failed
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_qc_failed {
+# 	my ( $self, $mgi_gene_id ) = @_;
+
+# 	# All PIQ QC has failed and no MI attempts
+# 	my $txt = 'qc_failed_no_mi_attempts';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_qc_fails_all_piqd_clones' }++;
+
+# 	return;
+# }
+
+# =head2 _basket_picked_1_clone
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_picked_1_clone {
+#     my ( $self, $mgi_gene_id ) = @_;
+
+#     my $txt = 'picked_1_clone';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->summarised_data->{ 'count_picked_1_clone_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_picked_total' }++;
 
 #     return;
 # }
 
-sub _basket_failed_in_mouse_production {
-	my ( $self, $mgi_gene_id ) = @_;
+# =head2 _basket_picked_2_clones
 
-    # Failed in Mouse production. These have mi_attempts, but no active ones. (all should have PIQ data but this is incidental).
-    my $txt = 'failed_in_mouse_production';
-    $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->summaried_data->{ 'count_failed_mp_total' }++;
+# basket method to perform basket-specific actions
 
-	return;
-}
+# =cut
+# sub _basket_picked_2_clones {
+#     my ( $self, $mgi_gene_id ) = @_;
 
-sub _basket_in_progress {
-	my ( $self, $mgi_gene_id ) = @_;
+#     my $txt = 'picked_2_clones';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->summarised_data->{ 'count_picked_2_clones_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_picked_total' }++;
 
-    # In progress i.e. active attempts
-    my $txt = 'in_progress_active_mi_attempts';
-    $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->summaried_data->{ 'count_in_progress_active_mis_total' }++;
+#     return;
+# }
 
-	return;
-}
+# =head2 _basket_picked_3_clones
 
-sub _basket_qc_passed {
-	my ( $self, $mgi_gene_id ) = @_;
+# basket method to perform basket-specific actions
 
-	# Have at least one PIQ QC pass but no MI attempts
-    my $txt = 'qc_passed_no_mi_attempts';
-    $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->summaried_data->{ 'count_qc_passes_no_mis_total' }++;
+# =cut
+# sub _basket_picked_3_clones {
+#     my ( $self, $mgi_gene_id ) = @_;
 
-	return;
-}
+#     my $txt = 'picked_3_clones';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->summarised_data->{ 'count_picked_3_clones_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_picked_total' }++;
 
-sub _basket_qc_failed {
-	my ( $self, $mgi_gene_id ) = @_;
+#     return;
+# }
 
-	# All PIQ QC has failed and no MI attempts
-	my $txt = 'qc_failed_no_mi_attempts';
-    $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->summaried_data->{ 'count_qc_fails_all_piqd_clones' }++;
+# =head2 _basket_picked_4_clones
 
-	return;
-}
+# basket method to perform basket-specific actions
 
-sub _basket_picked {
-	my ( $self, $mgi_gene_id ) = @_;
+# =cut
+# sub _basket_picked_4_clones {
+#     my ( $self, $mgi_gene_id ) = @_;
 
-    # Picked. These have an active plan in iMits but no mi_attempts, in lims2 there are clones but no pass or fail data for the PIQ ie. waiting on the lab.
-    my $txt = '';
-    if ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 1 ) {
-    	$txt = 'picked_1_clone';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_picked_1_clone_total' }++;
-    }
-    elsif ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 2 ) {
-    	$txt = 'picked_2_clones';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_picked_2_clones_total' }++;
-    }
-    elsif ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 3 ) {
-    	$txt = 'picked_3_clones';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_picked_3_clones_total' }++;
-    }
-    elsif ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 4 ) {
-    	$txt = 'picked_4_clones';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_picked_4_clones_total' }++;
-    }
-    elsif ( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } == 5 ) {
-    	$txt = 'picked_5_clones';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_picked_5_clones_total' }++;
-    }
-    else {
-    	$txt = 'picked_gt5_clones';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_picked_gt5_clones_total' }++;
-    }
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->summaried_data->{ 'count_picked_total' }++;
+#     my $txt = 'picked_4_clones';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->summarised_data->{ 'count_picked_4_clones_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_picked_total' }++;
 
-	return;
-}
+#     return;
+# }
 
-sub _basket_unpicked {
-	my ( $self, $mgi_gene_id ) = @_;
+# =head2 _basket_picked_5_clones
 
-	my $txt = '';
-    if( $self->curr_gene_summary->{ 'count_lims2_clones_accepted' } > 0 ) {
-        # (1b) Unpicked_no_piqs. These have an active plan in iMits but no mi_attempts, they have clones but no PIQ data from lims2.
-        $txt = 'unpicked_no_piqs';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_unpicked_no_piqs_total' }++;
-    }
-    else {
-        # (1a) Unpicked_no_clones. These have an active plan in iMits but no mi_attempts, and no clones or PIQ data from lims2.
-        $txt = 'unpicked_no_clones';
-        $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-        $self->summaried_data->{ 'count_unpicked_no_clones_total' }++;
-    }
-    $self->curr_gene_summary->{ 'basket' }                  = $txt;
-    $self->summaried_data->{ 'count_unpicked_total' }++;
+# basket method to perform basket-specific actions
 
-	return;
-}
+# =cut
+# sub _basket_picked_5_clones {
+#     my ( $self, $mgi_gene_id ) = @_;
 
-sub _basket_unrecognized_type {
-	my ( $self, $mgi_gene_id, $msg ) = @_;
+#     my $txt = 'picked_5_clones';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->summarised_data->{ 'count_picked_5_clones_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_picked_total' }++;
 
-	# Unrecognised combination
-	my $txt = 'unrecognised_type';
-	$self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->summaried_data->{ 'count_unrecognized_type' }++;
+#     return;
+# }
 
-    WARN 'Unrecognised type <' . $msg . '>, gene ID = ' . $mgi_gene_id;
+# =head2 _basket_picked_gt5_clones
 
-	return;
-}
+# basket method to perform basket-specific actions
 
-sub _basket_unrequested {
-	my ( $self, $mgi_gene_id ) = @_;
+# =cut
+# sub _basket_picked_gt5_clones {
+#     my ( $self, $mgi_gene_id ) = @_;
 
-    # (d) Unrequested. These have no data coming from iMITS whatsover, but DO have data in LIMS2 i.e. in the project list. Useful to know if there are accepted clones and piq'd clones too.
-    my $txt = 'unrequested';
-    $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->summaried_data->{ 'count_unrequested_total' }++;
+#     my $txt = 'picked_gt5_clones';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->summarised_data->{ 'count_picked_gt5_clones_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_picked_total' }++;
 
-	return;
-}
+#     return;
+# }
 
-sub _basket_missing_lims2 {
-	my ( $self, $mgi_gene_id ) = @_;
+# =head2 _basket_unpicked_no_piqs
 
-    # these are missing from LIMS2. i.e. missing CreKI projects in LIMS2
-    my $txt = 'missing_from_lims2';
-    $self->curr_gene_summary->{ 'basket' }              = $txt;
-    $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
-    $self->summaried_data->{ 'count_only_in_imits' }++;
+# basket method to perform basket-specific actions
 
-    WARN 'Gene in imits but missing in LIMS2, gene ID = ' . $mgi_gene_id;
+# =cut
+# sub _basket_unpicked_no_piqs {
+#     my ( $self, $mgi_gene_id ) = @_;
 
-	return;
-}
+#     # (1b) Unpicked_no_piqs. These have an active plan in iMits but no mi_attempts, they have clones but no PIQ data from lims2.
+#     my $txt = 'unpicked_no_piqs';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' }     = $txt;
+#     $self->summarised_data->{ 'count_unpicked_no_piqs_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }                  = $txt;
+#     $self->summarised_data->{ 'count_unpicked_total' }++;
+
+#     return;
+# }
+
+# =head2 _basket_unpicked_no_clones
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_unpicked_no_clones {
+#     my ( $self, $mgi_gene_id ) = @_;
+
+#     # (1a) Unpicked_no_clones. These have an active plan in iMits but no mi_attempts, and no clones or PIQ data from lims2.
+#     my $txt = 'unpicked_no_clones';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' }     = $txt;
+#     $self->summarised_data->{ 'count_unpicked_no_clones_total' }++;
+#     $self->curr_gene_summary->{ 'basket' }                  = $txt;
+#     $self->summarised_data->{ 'count_unpicked_total' }++;
+
+#     return;
+# }
+
+# =head2 _basket_unrecognized_type
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_unrecognized_type {
+# 	# my ( $self, $mgi_gene_id, $msg ) = @_;
+#     my ( $self, $mgi_gene_id) = @_;
+
+# 	# Unrecognised combination
+# 	my $txt = 'unrecognised_type';
+# 	$self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_unrecognized_type' }++;
+
+#     # WARN 'Unrecognised type <' . $msg . '>, gene ID = ' . $mgi_gene_id;
+#     WARN 'Unrecognised basket type, gene ID = ' . $mgi_gene_id;
+
+# 	return;
+# }
+
+# =head2 _basket_unrequested
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_unrequested {
+# 	my ( $self, $mgi_gene_id ) = @_;
+
+#     # (d) Unrequested. These have no data coming from iMITS whatsover, but DO have data in LIMS2 i.e. in the project list. Useful to know if there are accepted clones and piq'd clones too.
+#     my $txt = 'unrequested';
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->summarised_data->{ 'count_unrequested_total' }++;
+
+# 	return;
+# }
+
+# =head2 _basket_missing_lims2
+
+# basket method to perform basket-specific actions
+
+# =cut
+# sub _basket_missing_lims2 {
+# 	my ( $self, $mgi_gene_id ) = @_;
+
+#     # these are missing from LIMS2. i.e. missing CreKI projects in LIMS2
+#     my $txt = 'missing_from_lims2';
+#     $self->curr_gene_summary->{ 'basket' }              = $txt;
+#     $self->cre_ki_genes->{ $mgi_gene_id }->{ 'basket' } = $txt;
+#     $self->summarised_data->{ 'count_only_in_imits' }++;
+
+#     WARN 'Gene in imits but missing in LIMS2, gene ID = ' . $mgi_gene_id;
+
+# 	return;
+# }
 
 sub _add_to_summary_data_by_gene{
     my ( $self ) = @_;
