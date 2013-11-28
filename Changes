@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.133     2013-11-28 17:21:06 Europe/London
+
+    Fixed qc plate upload bug
+
 0.132     2013-11-28 14:31:45 Europe/London
 
     Creation of CRISPR_V plates in now through QC.
