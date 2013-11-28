@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.129';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.131';
 }
 ## use critic
 
@@ -513,14 +513,27 @@ sub _check_wells_crispr_single_ep {
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
 
-    #two input wells, one must be CRISPR_V, other FINAL_PICK
-    my @input_well_types = map{ $_->plate->type_id } $process->input_wells;
+    # two input wells, one must be CRISPR_V, other FINAL_PICK
+    my @input_well = $process->input_wells;
 
-    if ( ( none { $_ eq 'CRISPR_V' } @input_well_types ) || ( none { $_ eq 'FINAL_PICK' } @input_well_types ) ) {
+    my $crispr_v,
+    my $final_pick;
+
+    foreach (@input_well) {
+        if ($_->plate->type_id eq 'CRISPR_V') {
+            $crispr_v++;
+            unless (defined $_->crispr ) {
+            LIMS2::Exception::Validation->throw(
+                "Well $_ is not a crispr." );
+            }
+
+        }
+        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+    }
+    unless ($crispr_v == 1 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
-            'crispr_single_ep process types require two input wells, one of type CRISPR_V '
+            'crispr_paired_ep process types require two input wells, one of type CRISPR_V '
             . 'and the other of type FINAL_PICK'
-            . ' (got ' . join( ',', @input_well_types ) . ')'
         );
     }
 
@@ -535,7 +548,7 @@ sub _check_wells_crispr_paired_ep {
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
 
-    #three input wells, two must be CRISPR_V, other FINAL_PICK
+    # three input wells, two must be CRISPR_V, other FINAL_PICK
     my @input_well = $process->input_wells;
 
     my $crispr_v,
@@ -546,7 +559,15 @@ sub _check_wells_crispr_paired_ep {
     foreach (@input_well) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            if ( defined($_->crispr) && defined($_->crispr->pam_right) && ($_->crispr->pam_right) ) {
+            unless (defined $_->crispr ) {
+            LIMS2::Exception::Validation->throw(
+                "Well $_ is not a crispr." );
+            }
+            unless ( defined $_->crispr->pam_right) {
+            LIMS2::Exception::Validation->throw(
+                'Crispr '. $_->crispr->id . ' does not have direction' );
+            }
+            if ($_->crispr->pam_right) {
                 $pamright = 1;
             } else {
                 $pamleft = 1;
@@ -558,13 +579,13 @@ sub _check_wells_crispr_paired_ep {
     unless ($crispr_v == 2 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
             'crispr_paired_ep process types require three input wells, two of type CRISPR_V '
-            . 'and the other of type FINAL_PICK.'
+            . 'and the other of type FINAL_PICK'
         );
     }
     unless ($pamright && $pamleft ) {
         LIMS2::Exception::Validation->throw(
             'crispr_paired_ep process types requires paired CRISPR_V. '
-            . 'The provided pair is not valid.'
+            . 'The provided pair is not valid'
         );
     }
 

@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.129';
+    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.131';
 }
 ## use critic
 
