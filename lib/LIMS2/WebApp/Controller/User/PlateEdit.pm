@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateEdit;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.132';
+    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.133';
 }
 ## use critic
 
