@@ -16,30 +16,77 @@ use List::MoreUtils qw( uniq );
 use LIMS2::Util::EnsEMBL;
 use LIMS2::Exception;
 
+=head2 exons_for_gene
+
+
+=cut
 sub exons_for_gene {
     my ( $model, $gene_name, $species, $build ) = @_;
 
-    my $gene = get_ensembl_gene( $gene_name, $species );
+    my $gene = get_ensembl_gene( $model, $gene_name, $species );
+
+    # add lots of additional data
+    my $canonical_transcript = $gene->canonical_transcript;
+    my $exons = $canonical_transcript->get_all_Exons;
+
+    return $exons;
 }
 
-=head2 _sort_gene_id
+=head2 get_ensembl_gene
 
-Sort the input from the gene search box into gene id types
 
 =cut
 ## no critic(BuiltinFunctions::ProhibitComplexMappings)
 sub get_ensembl_gene {
-    my ( $gene_name, $species ) = @_;
+    my ( $model, $gene_name, $species ) = @_;
 
-    my $ensembl_util = LIMS2::Util::EnsEMBL->new( species => $species );
-    if ( $gene_name =~ /HGNC:\d+/ || $gene_name =~ /MGI:\d+/  ) {
+    my $ga = $model->ensembl_util->gene_adaptor( $species );
+
+    my $gene;
+    if ( $gene_name =~ /HGNC:\d+/ ) {
+        my @genes = @{ $ensembl_util->gene_adaptor->fetch_all_by_external_name($hgnc_name, 'HGNC') };
+        unless( @genes ) {
+            WARN( "Unable to find gene $gene_name in EnsEMBL" );
+            return;
+        }
+        if ( scalar(@genes) > 1 ) {
+            #TODO throw error, use ensembl if instead sp12 Wed 27 Nov 2013 14:58:41 GMT
+            DEBUG("Found multiple EnsEMBL genes for $gene_name");
+        else {
+            $gene = shift @genes;
+        }
+    }
+    elsif ( $gene_name =~ /MGI:\d+/  ) {
+        my @genes = @{ $ensembl_util->gene_adaptor->fetch_all_by_external_name($hgnc_name, 'MGI') };
+        unless( @genes ) {
+            WARN( "Unable to find gene $gene_name in EnsEMBL" );
+            return;
+        }
+        if ( scalar(@genes) > 1 ) {
+            #TODO throw error, use ensembl if instead sp12 Wed 27 Nov 2013 14:58:41 GMT
+            DEBUG("Found multiple EnsEMBL genes for $gene_name");
+        else {
+            $gene = shift @genes;
+        }
+
     }
     elsif ( $gene_name =~ /ENS(MUS)?G\d+/ ) {
+        $gene = $ga->fetch_by_stable_id( $gene_name );
     }
     else {
         #assume its a marker symbol
+        my @genes = @{ $ga->fetach_all_by_external_name( $gene_name, 'type' ) };
+        unless( @genes ) {
+            WARN( "Unable to find gene $gene_name in EnsEMBL" );
+            return;
+        }
+        if ( scalar(@genes) > 1 ) {
+            #TODO throw error, use ensembl if instead sp12 Wed 27 Nov 2013 14:58:41 GMT
+            DEBUG("Found multiple EnsEMBL genes for $gene_name");
+        else {
+            $gene = shift @genes;
+        }
     }
-
 
     return $gene;
 }
