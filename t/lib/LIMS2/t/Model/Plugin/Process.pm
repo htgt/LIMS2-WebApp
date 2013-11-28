@@ -88,8 +88,7 @@ Code to execute all tests
 
 =cut
 
-# sub all_tests  : Test(329)
-sub all_tests  : Tests
+sub all_tests  : Test(380)
 {
 
 
@@ -980,13 +979,42 @@ sub all_tests  : Tests
     my $process = model->create_process( $crispr_ep_process_data->{single_ep_invalid_input_well} );
     } qr/crispr_single_ep process should have 2 input well\(s\) \(got 1\)/;
 
-    
-    note( "TODO: Testing crispr_paired_ep process creation" );
-    # ok $process = model->create_process( $crispr_ep_process_data->{paired_ep_valid_input} ),
-    #     'create_process for type crispr_paired_ep should succeed';
-    # isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    # is $process->type->id, 'crispr_paired_ep',
-    #     'process is of correct type (crispr_paired_ep)';
+
+    note( "Testing crispr_paired_ep process creation" );
+    ok $process = model->create_process( $crispr_ep_process_data->{paired_ep_valid_input} ),
+        'create_process for type crispr_paired_ep should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'crispr_paired_ep',
+        'process is of correct type (crispr_paired_ep)';
+
+    ok $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 3, '...three input wells';
+    # check the names of the input wells
+    $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'first input well has correct name';
+    is $input_well->plate->name, 'FP1008', '...and is on correct plate';
+    $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'second input well has correct name';
+    is $input_well->plate->name, 'CRISPR_V_T1', '...and is on correct plate';
+    $input_well = $input_wells->next;
+    is $input_well->name, 'A02', 'second input well has correct name';
+    is $input_well->plate->name, 'CRISPR_V_T1', '...and is on correct plate';
+
+    ok $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'CRISPR_EP_P1', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+
+    throws_ok {
+    my $process = model->create_process( $crispr_ep_process_data->{paired_ep_invalid_input1} );
+    } qr/crispr_paired_ep process input well should be type FINAL_PICK,CRISPR_V \(got XEP,CRISPR_V\)/;
+
+    throws_ok {
+    my $process = model->create_process( $crispr_ep_process_data->{paired_ep_invalid_input2} );
+    } qr/crispr_paired_ep process types requires paired CRISPR_V. The provided pair is not valid/;
 
     }
 

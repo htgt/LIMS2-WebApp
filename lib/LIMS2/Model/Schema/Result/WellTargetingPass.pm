@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellTargetingPass;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellTargetingPass::VERSION = '0.130';
+    $LIMS2::Model::Schema::Result::WellTargetingPass::VERSION = '0.132';
 }
 ## use critic
 

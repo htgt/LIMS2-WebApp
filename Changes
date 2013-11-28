@@ -1,3 +1,11 @@
+0.132     2013-11-28 14:31:45 Europe/London
+
+    Creation of CRISPR_V plates in now through QC.
+
+0.131     2013-11-28 08:24:06 Europe/London
+
+    Allow FINAL_PICK plates to be created from other FINAL_PICK plates via qc.
+
 0.130     2013-11-22 14:05:02 Europe/London
 
     Added clone_id and lab_number to PIQ plates in genotyping_qc grid

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.130';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.132';
 }
 ## use critic
 
@@ -1179,7 +1179,6 @@ sub pspec_create_well_lab_number {
     return {
         well_id     => { validate => 'integer', optional => 0, rename => 'id' },
         lab_number  => { validate => 'non_empty_string', optional => 0 },
-        result      => { validate => 'non_empty_string', optional => 1 },
         created_by  => { validate => 'non_empty_string', optional => 1 },
     }
 }
@@ -1234,6 +1233,7 @@ sub update_or_create_well_lab_number {
 
     if ( $params->{'result'} ) {
         $params->{'lab_number'} = $params->{'result'};
+        delete $params->{'result'};
     }
 
     my $message;

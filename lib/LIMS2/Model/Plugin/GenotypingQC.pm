@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.130';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.132';
 }
 ## use critic
 
@@ -247,10 +247,6 @@ sub update_genotyping_qc_value {
     my $assay_value = $vp->{'assay_value'};
     my $well_id = $vp->{'well_id'};
     my $user = $vp->{'created_by'};
-
-
-    print"!!!!! $assay_name\n";
-    print"!!!!! $assay_value\n";
 
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
