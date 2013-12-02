@@ -137,6 +137,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 designs_create
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignCreate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "designs_create",
+  "LIMS2::Model::Schema::Result::DesignCreate",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 gene_designs
 
 Type: has_many
@@ -433,8 +448,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yYenS8+85vH8Ot1MoiarSQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-02 15:04:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6DrUbO5PVVjO8d+VDKJe/g
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
