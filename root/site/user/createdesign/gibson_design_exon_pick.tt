@@ -1,0 +1,93 @@
+[% META title = "Gibson Design Exon Pick"; META tab_name = "Designs" %]
+
+<div class="page-header">
+  <h1>Exon Targets 
+  <small>assembly: [% assembly %],</small>
+  <small>build: [% build %]</small>
+  </h1>
+</div>
+
+<div class="row">
+  <div class="span4">
+    <div class="well">
+      <dl>
+        <dt>Ensembl Gene ID</dt>
+        <dd><a href="[% gene.gene_link %]" target="_blank">[% gene.ensembl_id %]</a></dd>
+        <dt>Marker Symbol</dt>
+        <dd>[% gene.marker_symbol   %]</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="span4">
+    <div class="well">
+      <dl>
+        <dt>[% IF species == 'Human' %]HGNC [% ELSIF species == 'Mouse' %]MGI [% END %]Gene ID</dt>
+        <dd>[% gene.gene_id %]</dd>
+        <dt>Canonical Transcript</dt>
+        <dd><a href="[% gene.transcript_link %]" target="_blank">[% gene.canonical_transcript %]</a></dd>
+      </dl>
+    </div>
+  </div>
+  <div class="span4">
+    <div class="well">
+      <dl>
+        <dt>Chromosome</dt>
+        <dd>[% gene.chr %]</dd>
+        <dt>Strand</dt>
+        <dd>[% gene.strand %]</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="span12" >
+    <table id="design-target-report" class="table table-bordered table-condensed" style="max-width: none">
+
+      <thead>
+        <tr>
+          <th group-header">ID</th>
+          <th group-header">Rank</th>
+          <th group-header">Size</th>
+          <th group-header">Start</th>
+          <th group-header">End</th>
+          <th group-header">Start Phase</th>
+          <th group-header">End Phase</th>
+          <th group-header">Existing Designs</th>
+          <th group-header"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        [%- FOR exon IN exons %]
+          <tr [% IF exon.dt %]class="success"[% END %]>
+            <td>[% exon.id %]</td>
+            <td>[% exon.rank %]</td>
+            <td>[% exon.size %]</td>
+            <td>[% exon.start %]</td>
+            <td>[% exon.end %]</td>
+            <td>[% exon.start_phase %]</td>
+            <td>[% exon.end_phase %]</td>
+
+            <td>
+              [% FOR id IN exon.designs %]
+                <a href="[% c.uri_for( '/user/view_design', { design_id => id } ) %]" target="_blank">
+                  [% id %]
+                </a>
+              [% END %]
+            </td>
+
+            <td>
+              <a href="[% c.uri_for( '/user/create_gibson_design', { 'exon_id' => exon.id, 'gene_id' => gene.gene_id } ) %]" target="_blank" class="btn btn-info btn-mini btn-block">
+              Pick Exon</a>
+            </td>
+
+          </tr>
+        [% END %]
+      </tbody>
+
+    </table>
+
+
+  </div>
+</div>

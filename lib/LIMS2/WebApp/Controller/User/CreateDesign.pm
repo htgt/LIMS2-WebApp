@@ -77,8 +77,8 @@ sub index : Path( '/user/create_design' ) : Args(0) {
 
     return;
 
-    #ins-del-design --design-method deletion --chromosome 11 --strand 1 
-    #--target-start 101176328 --target-end 101176428 --target-gene LBLtest 
+    #ins-del-design --design-method deletion --chromosome 11 --strand 1
+    #--target-start 101176328 --target-end 101176428 --target-gene LBLtest
     #--dir /nfs/users/nfs_a/ah19/new_dc_test --debug"
 }
 
@@ -137,7 +137,7 @@ sub pspec_create_design {
     };
 }
 
-sub gibson_design_gene_pick : Path('/user/gibson_design_gene') : Args(0) {
+sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
@@ -145,36 +145,55 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene') : Args(0) {
     return;
 }
 
-sub gibson_design_exon_pick : Path( '/user/gibson_design_exon' ) : Args(0) {
+sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
-    if ( !$c->request->param('gene') ) {
+    my $gene_name = $c->request->param('gene');
+    unless ( $gene_name ) {
         $c->flash( error_msg => "Please enter a gene name" );
         return $c->go('gibson_design_gene_pick');
     }
 
     my $species = $c->session->{selected_species};
+    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species } )->assembly_id;
 
     #TODO assembly and build! sp12 Wed 27 Nov 2013 10:26:54 GMT
     my $build = 73;
 
-    my $exon_data = exons_for_gene(
-        $c->model('Golgi')->schema,
-        $c->request->param('genes'),
+    my ( $gene_data, $exon_data ) = exons_for_gene(
+        $c->model('Golgi'),
+        $c->request->param('gene'),
         $species,
         $build,
     );
 
+    unless ( $gene_data ) {
+        $c->flash( error_msg => "Unable to find gene: $gene_name" );
+        return $c->go('gibson_design_gene_pick');
+    }
+
     $c->stash(
         exons => $exon_data,
-        gene  => $gene,
+        gene  => $gene_data,
+        build => $build,
+        assembly => $default_assembly,
+        species => $species,
     );
 
-} 
+}
 
 sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     my ( $self, $c ) = @_;
+
+    my $gene_id = $c->request->param('gene_id');
+    my $exon_id = $c->request->param('exon_id');
+
+    $c->stash(
+        exon_id => $exon_id,
+        gene_id  => $gene_id,
+    );
 }
 
 __PACKAGE__->meta->make_immutable;

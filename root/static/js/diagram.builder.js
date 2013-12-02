@@ -275,11 +275,12 @@ function DiagramBuilder(id, width, height) {
       "x": {
         "left": (coords.x - this._attributes.textWidth) - textPad,
         "right": coords.x2 + textPad,
-        "center": coords.x
+        "center": coords.x,
+        "block": coords.x + ( this._attributes.textWidth / 2 )
       } 
     };
 
-    var placement_re = /(top|bottom|center)?\s*(left|right)?/i;
+    var placement_re = /(top|bottom|center)?\s*(left|right|block)?/i;
     var match = placement_re.exec(placement || "top center"); //in case placement is null
 
     var yOffset, xOffset;
