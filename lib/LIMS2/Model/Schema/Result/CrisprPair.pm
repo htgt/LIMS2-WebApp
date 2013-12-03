@@ -168,5 +168,13 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+# Method to link directly to locus table without having to go via Crispr table
+__PACKAGE__->belongs_to(
+    "right_crispr_locus",
+    "LIMS2::Model::Schema::Result::Crispr",
+    { 'foreign.crispr_id' => 'self.right_crispr' },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
 __PACKAGE__->meta->make_immutable;
 1;

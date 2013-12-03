@@ -15,9 +15,10 @@ LIMS2::Model::Util::CrisprBrowser
 use Sub::Exporter -setup => {
     exports => [ qw(
         crisprs_for_region
-        retrieve_chromosome_id
         crisprs_to_gff
-        ) ]
+        crispr_pairs_for_region
+        crispr_pairs_to_gff 
+    ) ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -56,27 +57,35 @@ sub crisprs_for_region {
     return $crisprs_rs;
 }
 
-=head crisp_pairs_for_region
+=head crispr_pairs_for_region
 
 Returns a resultset containing the paired Crisprs for the region defined by params.
 
-Individual crisprs for a region on a chromosome must be looked up in the CrisprPairs table.
+Individual crisprs for a region on a chromosome must be looked up in the CrisprPair table.
 This is done by a join pulling back all the pairs in one go.
 
 =cut
 
-sub crisp_pairs_for_region {
+sub crispr_pairs_for_region {
     my $schema = shift;
     my $params = shift;
 
-    my $crisprs_rs = crisprs_for_region( $schema, $params );
 
-    # Now we adjust the resultset query with the join
-    $crisprs_rs = $crisprs_rs->search( undef,
+    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
+
+    my $crisprs_rs = $schema->resultset('CrisprBrowserPairs')->search( {},
         {
-            join => 'CrisprPair',
-        },
+            bind => [
+                $params->{start_coord},
+                $params->{end_coord},
+                $params->{chromosome_id},
+                $params->{assembly_id},
+            ],
+        }
     );
+
+
+    return $crisprs_rs;
 }
 
 
@@ -145,23 +154,29 @@ sub crisprs_to_gff {
         . $params->{'end_coord'} ;
 
         while ( my $crispr_r = $crisprs_rs->next ) {
-            my $datum = $params->{'chromosome_number'};
-            # biological_region is an allowed term in SOFA
-            # In GFF3, this field is restricted to SOFA terms
-#            $datum .= "\tLIMS2\tbiological_region\t";
-            $datum .= "\tLIMS2\texons\t";
-            $datum .= $crispr_r->chr_start . "\t";
-            $datum .= $crispr_r->chr_end . "\t";
-            $datum .= '.'; # no score value
-            $datum .= "\t";
-            $datum .= ( $crispr_r->chr_strand == 1 ) ? '+' : '-' ;
-            $datum .= "\t";
-            $datum .= '.'; # phase not available
-            $datum .= "\t";
-            $datum .= 'ID=' . $crispr_r->crispr_id . ';' ;
-            $datum .= 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id ;
-
-            push @crisprs_gff, $datum ;
+            my %crispr_format_hash = (
+                'seqid' => $params->{'chromosome_number'},
+                'source' => 'LIMS2',
+                'type' => 'Crispr',
+                'start' => $crispr_r->chr_start,
+                'end' => $crispr_r->chr_end,
+                'score' => '.',
+                'strand' => '+' ,
+#                'strand' => '.',
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . 'C_' . $crispr_r->crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
+                );
+            my $crispr_parent_datum = prep_crispr_datum( \%crispr_format_hash );
+            $crispr_format_hash{'type'} = 'CDS';
+            $crispr_format_hash{'attributes'} =     'ID='
+                    . $crispr_r->crispr_id . ';'
+                    . 'Parent=C_' . $crispr_r->crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
+                    . 'color=#45A825;'; # greenish
+            my $crispr_child_datum = prep_crispr_datum( \%crispr_format_hash );
+            push @crisprs_gff, $crispr_parent_datum, $crispr_child_datum ;
         }
 
 
@@ -171,8 +186,94 @@ sub crisprs_to_gff {
 }
 
 
-sub crispr_pairs_to_gff {
+=head crispr_pairs_to_gff 
+Returns an array representing a set of strings ready for 
+concatenation to produce a GFF3 format file.
 
+=cut
+
+sub crispr_pairs_to_gff {
+    my $crisprs_rs = shift;
+    my $params = shift;
+#$DB::single=1;
+    my @crisprs_gff;
+
+    push @crisprs_gff, "##gff-version 3";
+    push @crisprs_gff, '##sequence-region lims2-region '
+        . $params->{'start_coord'}
+        . ' '
+        . $params->{'end_coord'} ;
+    push @crisprs_gff, '# Crispr pairs for region '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chromosome_number'}
+        . ':'
+        . $params->{'start_coord'}
+        . '-'
+        . $params->{'end_coord'} ;
+
+        while ( my $crispr_r = $crisprs_rs->next ) {            
+            my %crispr_format_hash = (
+                'seqid' => $params->{'chromosome_number'},
+                'source' => 'LIMS2',
+                'type' => 'crispr_pair',
+                'start' => $crispr_r->left_crispr_start,
+                'end' => $crispr_r->right_crispr_end,
+                'score' => '.',
+                'strand' => '+' ,
+#                'strand' => '.',
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . $crispr_r->pair_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->pair_id . ';'
+                );
+            my $crispr_pair_parent_datum = prep_crispr_datum( \%crispr_format_hash );
+            $crispr_format_hash{'type'} = 'CDS';
+            $crispr_format_hash{'end'} = $crispr_r->left_crispr_end;
+            $crispr_format_hash{'attributes'} =     'ID='
+                    . $crispr_r->left_crispr_id . ';'
+                    . 'Parent=' . $crispr_r->pair_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->left_crispr_id . ';'
+                    . 'color=#AA2424;' # reddish
+                    . 'Comment=Junk;';
+            my $crispr_left_datum = prep_crispr_datum( \%crispr_format_hash );
+            $crispr_format_hash{'start'} = $crispr_r->right_crispr_start;
+            $crispr_format_hash{'end'} = $crispr_r->right_crispr_end;
+            $crispr_format_hash{'attributes'} =     'ID='
+                    . $crispr_r->right_crispr_id . ';'
+                    . 'Parent=' . $crispr_r->pair_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->right_crispr_id . ';'
+                    . 'color=#1A8599;' # blueish
+                    . 'Comment=Junk;';
+#            $crispr_format_hash{'attributes'} = $crispr_r->pair_id;
+            my $crispr_right_datum = prep_crispr_datum( \%crispr_format_hash );
+            push @crisprs_gff, $crispr_pair_parent_datum, $crispr_left_datum, $crispr_right_datum ;
+        }
+
+
+    return \@crisprs_gff;
+}
+
+sub prep_crispr_datum {
+    my $crispr_hr = shift;
+
+    my @data;
+
+    push @data, @$crispr_hr{qw/
+        seqid
+        source
+        type
+        start
+        end
+        score
+        strand
+        phase
+        attributes
+        /};
+    my $datum = join "\t", @data;
+    return $datum;
 }
 
 1;
