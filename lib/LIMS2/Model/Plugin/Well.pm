@@ -1029,6 +1029,7 @@ sub pspec_create_well_genotyping_result {
         copy_number_range =>
                        { validate => 'copy_float', optional => 1 },
         confidence  => { validate => 'confidence_float', optional => 1 },
+        vic         => { validate => 'copy_float', optional => 1 },
         overwrite   => { validate => 'boolean', optional => 1, default => 0 },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
@@ -1058,7 +1059,7 @@ sub create_well_genotyping_result {
     	$genotyping_result = $well->create_related(
         well_genotyping_results => {
             slice_def $validated_params,
-            qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
+            qw( call genotyping_result_type_id copy_number copy_number_range confidence vic created_by_id created_at )
         });
     }
     return $genotyping_result;
@@ -1085,7 +1086,7 @@ sub update_or_create_well_genotyping_result {
                                    });
     if ( $genotyping_result ) {
        my $update_request = {slice_def $validated_params,
-           qw( genotyping_result_type_id call copy_number copy_number_range confidence )};
+           qw( genotyping_result_type_id call copy_number copy_number_range confidence vic )};
        if ( $update_request->{call} ) {
            # Update the result if new result is "better" or if overwrite flag is set to true
            my $previous = $genotyping_result->call;
@@ -1095,6 +1096,7 @@ sub update_or_create_well_genotyping_result {
                    $update_request->{copy_number} = undef;
                    $update_request->{copy_number_range} = undef;
                    $update_request->{confidence} = undef;
+                   $update_request->{vic} = undef;
                }
                $genotyping_result->update( $update_request );
                $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
@@ -1107,7 +1109,7 @@ sub update_or_create_well_genotyping_result {
        }
        else {
             # The assay parameter to update is not a 'call', so no ranking needs to be applied
-            my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence / )};
+            my $assay_field_slice = { slice_def( $validated_params, qw/ copy_number copy_number_range confidence vic / )};
             my ( $assay_field, $assay_value ) = each %{$assay_field_slice};
 
             my $previous = $genotyping_result->$assay_field // 'undefined';
@@ -1122,7 +1124,7 @@ sub update_or_create_well_genotyping_result {
         $genotyping_result = $well->create_related(
         well_genotyping_results => {
             slice_def $validated_params,
-            qw( call genotyping_result_type_id copy_number copy_number_range confidence created_by_id created_at )
+            qw( call genotyping_result_type_id copy_number copy_number_range confidence vic created_by_id created_at )
         });
         $message = "Genotyping result for ".$validated_params->{genotyping_result_type_id}
                   ." created with result ".$genotyping_result->call;
@@ -1171,6 +1173,7 @@ sub pspec_create_well_lab_number {
     return {
         well_id     => { validate => 'integer', optional => 0, rename => 'id' },
         lab_number  => { validate => 'non_empty_string', optional => 0 },
+        created_by  => { validate => 'non_empty_string', optional => 1 },
     }
 }
 
@@ -1221,6 +1224,11 @@ sub create_well_lab_number {
 
 sub update_or_create_well_lab_number {
     my ( $self, $params ) = @_;
+
+    if ( $params->{'result'} ) {
+        $params->{'lab_number'} = $params->{'result'};
+        delete $params->{'result'};
+    }
 
     my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_lab_number );
@@ -1284,7 +1292,6 @@ sub update_or_create_well_lab_number {
         );
         $message = 'Create succeeded. Lab Number ' . $lab_number->lab_number . ' created for well ' . $well->as_string;
     }
-
     return wantarray ? ($lab_number, $message) : $lab_number ;
 }
 

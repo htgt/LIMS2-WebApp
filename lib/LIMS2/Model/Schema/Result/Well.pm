@@ -995,11 +995,17 @@ sub parent_crispr {
 sub parent_crispr_v {
     my $self = shift;
 
+    my @parents;
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
         if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
-            return $ancestor;
+            push ( @parents, $ancestor );
+            # return $ancestor;
         }
+    }
+
+    if (scalar @parents) {
+      return @parents;
     }
 
     require LIMS2::Exception::Implementation;

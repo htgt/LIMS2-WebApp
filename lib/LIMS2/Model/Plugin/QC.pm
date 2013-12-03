@@ -29,9 +29,11 @@ use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
+use HTGT::QC::Config;
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
+
 
 sub pspec_find_or_create_qc_template {
     return {
@@ -71,9 +73,9 @@ sub find_or_create_qc_template {
         'created qc template plate ' . $qc_template->name . ' with id ' . $qc_template->id );
     while ( my ( $well_name, $eng_seq_id ) = each %template_layout ) {
 
-    	# Store the overrides that were specified for this template
-    	my %well_overrides = slice_def ($validated_params->{wells}->{$well_name},
-    	                                qw( cassette backbone recombinase ) );
+        # Store the overrides that were specified for this template
+        my %well_overrides = slice_def ($validated_params->{wells}->{$well_name},
+                                        qw( cassette backbone recombinase ) );
 
         my $template_well = $qc_template->create_related(
                 qc_template_wells => {
@@ -84,34 +86,34 @@ sub find_or_create_qc_template {
         );
 
         if(my $cassette_name = $well_overrides{'cassette'}){
-        	my $cassette = $self->schema->resultset('Cassette')->find({ name => $cassette_name })
-        	or die "Cassette $cassette_name not found";
-        	$template_well->create_related(
-        	    qc_template_well_cassette => {
-        	    	cassette_id => $cassette->id,
-        	    }
-        	);
+            my $cassette = $self->schema->resultset('Cassette')->find({ name => $cassette_name })
+            or die "Cassette $cassette_name not found";
+            $template_well->create_related(
+                qc_template_well_cassette => {
+                    cassette_id => $cassette->id,
+                }
+            );
         }
 
         if(my $backbone_name = $well_overrides{'backbone'}){
-        	my $backbone = $self->schema->resultset('Backbone')->find({ name => $backbone_name })
-        	or die "Backbone $backbone_name not found";
-        	$template_well->create_related(
-        	    qc_template_well_backbone => {
-        	    	backbone_id => $backbone->id,
-        	    }
-        	);
+            my $backbone = $self->schema->resultset('Backbone')->find({ name => $backbone_name })
+            or die "Backbone $backbone_name not found";
+            $template_well->create_related(
+                qc_template_well_backbone => {
+                    backbone_id => $backbone->id,
+                }
+            );
         }
 
         if(my $recom_list = $well_overrides{'recombinase'}){
             foreach my $recom (@$recom_list){
                 $self->schema->resultset('Recombinase')->find({ id => $recom })
                 or die "Recombinase $recom not found";
-	        	$template_well->create_related(
-	        	    qc_template_well_recombinases => {
-	        	    	recombinase_id => $recom,
-	        	    }
-	        	);
+                $template_well->create_related(
+                    qc_template_well_recombinases => {
+                        recombinase_id => $recom,
+                    }
+                );
             }
         }
     }
@@ -159,10 +161,10 @@ sub retrieve_qc_template {
 
     my %search;
     if ($validated_params->{name}){
-    	$search{'me.name'} = $validated_params->{name};
+        $search{'me.name'} = $validated_params->{name};
     }
     if ($validated_params->{id}){
-    	$search{'me.id'} = $validated_params->{id};
+        $search{'me.id'} = $validated_params->{id};
     }
 
     my $template = $self->retrieve(
@@ -194,8 +196,8 @@ sub retrieve_qc_template_well {
 
 sub pspec_delete_qc_template {
     return {
-    	id => { validate => 'integer' },
-    	delete_runs => { validate => 'boolean', default => 0 },
+        id => { validate => 'integer' },
+        delete_runs => { validate => 'boolean', default => 0 },
     };
 }
 
@@ -210,18 +212,18 @@ sub delete_qc_template {
     );
 
     if ( my @runs = $template->qc_runs ) {
-    	if ($validated_params->{delete_runs}){
-    		foreach my $run (@runs){
-    			$self->delete_qc_run({ id => $run->id });
-    		}
-    	}
-    	else{
+        if ($validated_params->{delete_runs}){
+            foreach my $run (@runs){
+                $self->delete_qc_run({ id => $run->id });
+            }
+        }
+        else{
             $self->throw( InvalidState => {
                 message => 'Template ' . $template->id
                       . ' has been used in one or more QC runs, so cannot be deleted'
                 }
             );
-    	}
+        }
     }
 
     for my $well ( $template->qc_template_wells ) {
@@ -481,10 +483,10 @@ sub retrieve_qc_run {
 }
 
 sub delete_qc_run {
-	my ( $self, $params ) = @_;
+    my ( $self, $params ) = @_;
 
-	# This will validate params
-	my $qc_run = $self->retrieve_qc_run($params);
+    # This will validate params
+    my $qc_run = $self->retrieve_qc_run($params);
 
     #delete any alignments (and subsequent regions) linked to this qc run.
     for my $alignment ( $qc_run->search_related('qc_alignments') ) {
@@ -541,8 +543,9 @@ sub qc_run_results {
     my $validated_params = $self->check_params( $params, $self->pspec_qc_run_results );
 
     my $qc_run = $self->retrieve( 'QcRun' => { id => $validated_params->{qc_run_id} } );
+    my $crispr_run = HTGT::QC::Config->new->profile( $qc_run->profile )->vector_stage eq "crispr";
 
-    my $results = retrieve_qc_run_results_fast($qc_run, $self->schema);
+    my $results = retrieve_qc_run_results_fast($qc_run, $self->schema, $crispr_run);
 
     return ( $qc_run, $results );
 }
@@ -640,36 +643,36 @@ sub pass_to_boolean {
 }
 
 sub pspec_qc_template_from_plate{
-	return{
-		name                   => { validate => 'existing_plate_name', optional => 1},
-		id                     => { validate => 'integer', optional => 1},
-		species                => { validate => 'existing_species', optional => 1},
-		template_name          => { validate => 'plate_name'},
-		cassette               => { validate => 'existing_cassette', optional => 1},
-		backbone               => { validate => 'existing_backbone', optional => 1},
-		recombinase            => { validate => 'existing_recombinase', optional => 1},
-		phase_matched_cassette => { optional => 1 },
-	};
+    return{
+        name                   => { validate => 'existing_plate_name', optional => 1},
+        id                     => { validate => 'integer', optional => 1},
+        species                => { validate => 'existing_species', optional => 1},
+        template_name          => { validate => 'plate_name'},
+        cassette               => { validate => 'existing_cassette', optional => 1},
+        backbone               => { validate => 'existing_backbone', optional => 1},
+        recombinase            => { validate => 'existing_recombinase', optional => 1},
+        phase_matched_cassette => { optional => 1 },
+    };
 }
 
 sub create_qc_template_from_plate {
-	my ( $self, $params ) = @_;
+    my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_plate );
     $self->log->info( 'Creating qc template plate: ' . $validated_params->{template_name} );
 
     my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
 
-	my $well_hash;
+    my $well_hash;
 
-	foreach my $well ($plate->wells->all){
-		my $name = $well->name;
+    foreach my $well ($plate->wells->all){
+        my $name = $well->name;
         $well_hash->{$name}->{well_id} = $well->id;
         foreach my $override qw(cassette recombinase backbone phase_matched_cassette) {
             $well_hash->{$name}->{$override} = $validated_params->{$override}
                 if exists $validated_params->{$override};
         }
-	}
+    }
 
     my $template = create_qc_template_from_wells(
         $self,
@@ -679,15 +682,15 @@ sub create_qc_template_from_plate {
         }
     );
 
-	return $template;
+    return $template;
 }
 
 sub pspec_qc_template_from_csv{
-	return{
-		template_name => { validate => 'plate_name'},
-		species       => { validate => 'existing_species'},
-		well_data_fh  => { validate => 'file_handle' },
-	};
+    return{
+        template_name => { validate => 'plate_name'},
+        species       => { validate => 'existing_species'},
+        well_data_fh  => { validate => 'file_handle' },
+    };
 }
 
 sub create_qc_template_from_csv{
@@ -695,14 +698,14 @@ sub create_qc_template_from_csv{
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_template_from_csv );
 
-	my $well_data = parse_csv_file($params->{well_data_fh});
+    my $well_data = parse_csv_file($params->{well_data_fh});
 
-	my $well_hash;
+    my $well_hash;
 
-	for my $datum (@{$well_data}){
-		# We uppercase all well and source well names so that csv
-		# input values are case insensitive
-		my $name = uc( $datum->{well_name} );
+    for my $datum (@{$well_data}){
+        # We uppercase all well and source well names so that csv
+        # input values are case insensitive
+        my $name = uc( $datum->{well_name} );
         $well_hash->{$name}->{well_name} = uc( $datum->{source_well} );
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
         $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
@@ -714,7 +717,7 @@ sub create_qc_template_from_csv{
             s/\s*//g foreach @recombinases;
             $well_hash->{$name}->{recombinase} = \@recombinases;
         }
-	}
+    }
 
     my $template = create_qc_template_from_wells(
         $self,
@@ -772,46 +775,46 @@ sub pspec_create_plates_from_qc{
 }
 
 sub create_plates_from_qc{
-	my ($self, $params) = @_;
+    my ($self, $params) = @_;
 
-	my $validated_params = $self->check_params( $params, $self->pspec_create_plates_from_qc);
+    my $validated_params = $self->check_params( $params, $self->pspec_create_plates_from_qc);
 
-	my ($qc_run, $results) = $self->qc_run_results({ qc_run_id => $validated_params->{qc_run_id}});
-	my @created_plates;
+    my ($qc_run, $results) = $self->qc_run_results({ qc_run_id => $validated_params->{qc_run_id}});
+    my @created_plates;
 
-	# Get list of all sequencing plate names
-	my @plates = uniq map { $_->{plate_name} } @$results;
+    # Get list of all sequencing plate names
+    my @plates = uniq map { $_->{plate_name} } @$results;
 
-	foreach my $plate (@plates){
-		# Get results for this plate only, store by well
-		my %results_by_well;
+    foreach my $plate (@plates){
+        # Get results for this plate only, store by well
+        my %results_by_well;
         for my $r ( @$results ) {
             next unless $r->{plate_name} eq $plate;
             push @{ $results_by_well{ uc( substr( $r->{well_name}, -3 ) ) } }, $r;
         }
 
-		my $old_name = $plate;
-		my $new_name;
-		my $rename = $validated_params->{rename_plate};
-		$new_name = ($rename and $rename->{$old_name}) ? $rename->{$old_name}
-		                                               : $old_name;
+        my $old_name = $plate;
+        my $new_name;
+        my $rename = $validated_params->{rename_plate};
+        $new_name = ($rename and $rename->{$old_name}) ? $rename->{$old_name}
+                                                       : $old_name;
 
-		my $plate_from_qc = {
-			plate_name      => $new_name,
-			orig_name       => $old_name,
-		    results_by_well => \%results_by_well,
-		    plate_type      => $validated_params->{plate_type},
-		    qc_template_id  => $qc_run->qc_template->id,
-		    created_by      => $validated_params->{created_by},
-		    view_uri        => $validated_params->{view_uri},
-		    qc_run_id       => $validated_params->{qc_run_id},
-		};
+        my $plate_from_qc = {
+            plate_name      => $new_name,
+            orig_name       => $old_name,
+            results_by_well => \%results_by_well,
+            plate_type      => $validated_params->{plate_type},
+            qc_template_id  => $qc_run->qc_template->id,
+            created_by      => $validated_params->{created_by},
+            view_uri        => $validated_params->{view_uri},
+            qc_run_id       => $validated_params->{qc_run_id},
+        };
 
-		my $plate = $self->create_plate_from_qc($plate_from_qc,);
+        my $plate = $self->create_plate_from_qc($plate_from_qc,);
 
-		push @created_plates, $plate;
-	}
-	return @created_plates;
+        push @created_plates, $plate;
+    }
+    return @created_plates;
 }
 
 # acs 11/03/13 - added optional process type for use with type FINAL_PICK
@@ -829,35 +832,45 @@ sub pspec_create_plate_from_qc{
 }
 
 sub create_plate_from_qc{
-	my ($self, $params) = @_;
+    my ($self, $params) = @_;
 
-	DEBUG "Creating plate ".$params->{plate_name};
+    DEBUG "Creating plate ".$params->{plate_name};
 
-	my $validated_params = $self->check_params( $params, $self->pspec_create_plate_from_qc );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_plate_from_qc );
 
-	my $template = $self->retrieve_qc_template({ id => $validated_params->{qc_template_id}});
-	my $results_by_well = $validated_params->{results_by_well};
+    my $template = $self->retrieve_qc_template({ id => $validated_params->{qc_template_id}});
+    my $results_by_well = $validated_params->{results_by_well};
 
-	my @new_wells;
 
-	while (my ($well, $results) = each %$results_by_well){
-		my $best = $results->[0];
-		if(my $design_id = $best->{design_id}){
-			DEBUG "Found design $design_id for well $well";
-			my $template_well;
 
-            if ($best->{expected_design_id} and $design_id eq $best->{expected_design_id}){
-            	# Fetch source well from template well with same location
-            	DEBUG "Found design $design_id at expected location on template";
-            	($template_well) = $template->qc_template_wells->search({ name => $well });
+    my @new_wells;
+
+    while (my ($well, $results) = each %$results_by_well) {
+        my $best = $results->[0];
+        my $name = '';
+        if (defined $best->{design_id}) {
+            $name = 'design_id';
+        } elsif (defined $best->{crispr_id}) {
+            $name = 'crispr_id';
+        }
+
+        if( $name ){
+            my $id = $best->{$name};
+            DEBUG "Found $name $id for well $well";
+            my $template_well;
+
+            if ( (defined $best->{'expected_'.$name}) and ($id eq $best->{'expected_'.$name}) ){
+                # Fetch source well from template well with same location
+                DEBUG "Found $name $id at expected location on template";
+                ($template_well) = $template->qc_template_wells->search({ name => $well });
             }
             else{
-            	# See if design_id was expected in some other well on the template,
-            	# and get source for that
-            	DEBUG "Looking for design $design_id at different template location";
-            	($template_well) = grep { $_->as_hash->{eng_seq_params}->{design_id} eq $design_id }
-            	                      $template->qc_template_wells->all;
-            	die "Could not find template well for design $design_id" unless $template_well;
+                # See if design_id was expected in some other well on the template,
+                # and get source for that
+                DEBUG "Looking for $name $id at different template location";
+                ($template_well) = grep { $_->as_hash->{eng_seq_params}->{$name} eq $id }
+                                      $template->qc_template_wells->all;
+                die "Could not find template well for $name $id" unless $template_well;
             }
             my $source_well = $template_well->source_well
                 or die "No source well linked to template well ".$template_well->id;
@@ -872,15 +885,15 @@ sub create_plate_from_qc{
 
             # Identify reagent overrides from QC wells            
             if ( my $cassette = $template_well->qc_template_well_cassette){
-            	$well_params{cassette} = $cassette->cassette->name;
+                $well_params{cassette} = $cassette->cassette->name;
             }
 
             if ( my $backbone = $template_well->qc_template_well_backbone){
-            	$well_params{backbone} = $backbone->backbone->name;
+                $well_params{backbone} = $backbone->backbone->name;
             }
 
             if ( my @recombinases = $template_well->qc_template_well_recombinases->all ){
-            	$well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
+                $well_params{recombinase} = [ map { $_->recombinase_id } @recombinases ];
             }
 
             $well_params{process_type} = infer_qc_process_type(
@@ -889,55 +902,56 @@ sub create_plate_from_qc{
                 $source_well->plate->type_id,
             );
 
+
             push @new_wells, \%well_params;
-		}
-		else{
-			# Decided not to create empty wells
-			# If we created empty wells they would either need dummy input process,
-			# or we would have to remove the constraint that wells have input process
-			DEBUG "No design for well $well";
-		}
-	}
+        }
+        else{
+            # Decided not to create empty wells
+            # If we created empty wells they would either need dummy input process,
+            # or we would have to remove the constraint that wells have input process
+            DEBUG "No design or crispr for well $well";
+        }
+    }
 
-	my $plate = $self->create_plate({
-		name    => $validated_params->{plate_name},
-		species => $template->species->id,
-		type    => $validated_params->{plate_type},
-		wells   => \@new_wells,
-		created_by => $validated_params->{created_by},
-	});
+    my $plate = $self->create_plate({
+        name    => $validated_params->{plate_name},
+        species => $template->species->id,
+        type    => $validated_params->{plate_type},
+        wells   => \@new_wells,
+        created_by => $validated_params->{created_by},
+    });
 
-	$self->_add_well_qc_sequencing_results({
-		plate           => $plate,
-		orig_name       => $validated_params->{orig_name},
-		results_by_well => $results_by_well,
-		view_uri        => $validated_params->{view_uri},
-		qc_run_id       => $validated_params->{qc_run_id},
-	});
+    $self->_add_well_qc_sequencing_results({
+        plate           => $plate,
+        orig_name       => $validated_params->{orig_name},
+        results_by_well => $results_by_well,
+        view_uri        => $validated_params->{view_uri},
+        qc_run_id       => $validated_params->{qc_run_id},
+    });
 
-	return $plate;
+    return $plate;
 }
 
 sub pspec_add_well_qc_sequencing_results{
-	return{
+    return{
         plate   => { },
         orig_name       => { validate => 'non_empty_string' },
         results_by_well => { validate => 'hashref' },
         view_uri        => { validate => 'absolute_url' },
         qc_run_id       => { validate => 'uuid' },
-	};
+    };
 }
 
 sub _add_well_qc_sequencing_results{
-	my ($self, $params) = @_;
+    my ($self, $params) = @_;
 
     my $v_params = $self->check_params($params, $self->pspec_add_well_qc_sequencing_results);
 
     my $plate = $v_params->{plate};
 
-	foreach my $well ($plate->wells->all){
-		my $results = $v_params->{results_by_well}->{$well->name};
-		my $best = $results->[0];
+    foreach my $well ($plate->wells->all){
+        my $results = $v_params->{results_by_well}->{$well->name};
+        my $best = $results->[0];
 
         my $view_params = {
             well_name  => lc($well->name),
@@ -945,20 +959,20 @@ sub _add_well_qc_sequencing_results{
             qc_run_id  => $v_params->{qc_run_id},
         };
 
-		my $url = URI->new($v_params->{view_uri});
-		$url->query_form($view_params);
+        my $url = URI->new($v_params->{view_uri});
+        $url->query_form($view_params);
 
-		my $qc_result = {
-			well_id         => $well->id,
-			valid_primers   => join( q{,}, @{ $best->{valid_primers} } ),
-			mixed_reads     => @{ $results } > 1 ? 1 : 0,
-			pass            => $best->{pass} ? 1 : 0,
-			test_result_url => $url->as_string,
-			created_by      => $plate->created_by->name,
-		};
+        my $qc_result = {
+            well_id         => $well->id,
+            valid_primers   => join( q{,}, @{ $best->{valid_primers} } ),
+            mixed_reads     => @{ $results } > 1 ? 1 : 0,
+            pass            => $best->{pass} ? 1 : 0,
+            test_result_url => $url->as_string,
+            created_by      => $plate->created_by->name,
+        };
         $self->create_well_qc_sequencing_result($qc_result);
-	}
-	return;
+    }
+    return;
 }
 1;
 

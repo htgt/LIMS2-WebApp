@@ -137,7 +137,7 @@ sub _valid_column_names{
 
     # Assay specific results
     foreach my $assay (@$assay_types){
-        foreach my $colname qw( pass confidence copy_number copy_number_range){
+        foreach my $colname qw( pass confidence copy_number copy_number_range vic){
             $recognized{$assay."_".$colname} = 1;
         }
     }
@@ -177,6 +177,11 @@ sub create_assay{
             # confidence is optional
             if (defined (my $conf = $datum->{$assay."_confidence"}) ){
                 $new_values{'confidence'} = $conf;
+            }
+
+            # VIC is optional
+            if (defined (my $conf = $datum->{$assay."_vic"}) ){
+                $new_values{'vic'} = $conf;
             }
 
             ($result, $message) = $self->update_or_create_well_genotyping_result({
@@ -220,6 +225,7 @@ sub update_genotyping_qc_value {
         'targeting_pass'        => \&well_assay_update,
         'targeting_puro_pass'   => \&well_assay_update,
         'accepted_override'     => \&well_assay_update,
+        'lab_number'            => \&well_assay_update,
         'tr_pcr'                => \&primer_band_update,
         'gr3'                   => \&primer_band_update,
         'gr4'                   => \&primer_band_update,
@@ -235,16 +241,14 @@ sub update_genotyping_qc_value {
     my $assay_value = $vp->{'assay_value'};
     my $well_id = $vp->{'well_id'};
     my $user = $vp->{'created_by'};
+
     # $assay_value needs translating from string to value before sending down the line
     # if it is a pcr band update
     # Possible values are 'true', 'false', '-' (the latter gets passed through as is)
-     if ( $assay_name =~ /
-#             (g[r|f])    |
-#             tr_pcr      |
-             accepted_override
-             /xgms ){
-          $assay_value = $self->convert_bool( $assay_value );
-     }
+    # /(g[r|f])|tr_pcr|accepted_override/ Obsolete, updated for accepted_override only
+    if ( $assay_name =~ /accepted_override/xgms ) {
+        $assay_value = $self->convert_bool( $assay_value );
+    }
     my $genotyping_qc_result;
 
     if (exists $assays_dispatch->{$assay_name} ) {
@@ -427,6 +431,10 @@ sub delete_genotyping_qc_data {
         $params->{'assay_name'} = 'accepted_override';
         $self->update_genotyping_qc_value( $params );
     }
+    if ( $qc_row->{'lab_number'} ne '-' ) {
+        $params->{'assay_name'} = 'lab_number';
+        $self->update_genotyping_qc_value( $params );
+    }
     if ( $qc_row->{'tr_pcr'} ne '-' ) {
         $params->{'assay_name'} = 'tr_pcr';
         $self->update_genotyping_qc_value( $params );
@@ -525,8 +533,10 @@ my $sql_result =  $self->schema->storage->dbh_do(
              'copy_number' => 1,
              'confidence' => 1,
              'copy_number_range' => 1,
+             'vic' => 1,
              'Accepted' => 1,
              'Override' => 1,
+             'Lab Number' => 1,
          });
     }
 );
@@ -542,6 +552,20 @@ my @well_id_list = $self->get_uniq_wells( $sql_result);
 $self->log->debug('unique well list generated');
 my $design_data_cache = $self->create_design_data_cache( \@well_id_list );
 $self->log->debug('design data cache generated (' . @well_id_list . ' unique wells)');
+
+# get array of arrays of ancestors
+my $result =  $self->get_ancestors_for_well_id_list( \@well_id_list );
+
+# transform in hash of well_id to clone_id
+my %clone_id_hash;
+foreach my $ancestors (@$result) {
+    my $well_id =  @{@$ancestors[0]}[0];
+    my $clone_id =  @{@$ancestors[0]}[2];
+    my $well = $self->retrieve_well( { id => $clone_id } );
+    $clone_id_hash{$well_id} = $well->plate->name .'['. $well->name .']';
+}
+
+
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
         push @all_data, $datum if $datum->{'id'};
@@ -565,6 +589,8 @@ foreach my $row ( @{$sql_result} ) {
             $datum->{'gene_id'} = '-';
         }
         $datum->{'design_id'} = $design_id;
+        # get the clone_id
+        $datum->{'clone_id'} = $clone_id_hash{ $datum->{'id'} };
         # get the generic assay data for this row
         $self->fill_out_genotyping_results($row, $datum );
 
@@ -575,7 +601,6 @@ foreach my $row ( @{$sql_result} ) {
         # just get the primer band and generic assay data for this row
         $self->fill_out_genotyping_results($row, $datum );
     }
-
 }
 push @all_data, $datum if $datum;
 return @all_data;
@@ -596,6 +621,7 @@ sub initialize_all_datum_fields {
     $datum->{'design_id'} = '-';
     $datum->{'accepted'} = '-';
     $datum->{'accepted_override'} = '-';
+    $datum->{'lab_number'} = '-';
     return;
 }
 
@@ -609,12 +635,17 @@ sub populate_well_attributes {
     $datum->{'plate_name'} = $row->{'plate'};
     $datum->{'plate_type'} = $row->{'plate_type'};
     $datum->{'well'} = $row->{'well'};
+
     if (defined $row->{'Accepted'} ) {
         $datum->{'accepted'} = ($row->{'Accepted'} ? 'yes' : 'no') // '-';
     }
     if (defined $row->{'Override'} ) {
         $datum->{'accepted_override'} = ($row->{'Override'} ? 'yes' : 'no') // '-';
     }
+    if (defined $row->{'Lab Number'} ) {
+        $datum->{'lab_number'} = $row->{'Lab Number'};
+    }
+
     $datum->{'chromosome_fail'} = $row->{'Chr fail'} // '-';
     $datum->{'targeting_pass'} = $row->{'Tgt pass'} // '-';
     $datum->{'targeting_puro_pass'} = $row->{'Puro pass'} // '-';
@@ -635,6 +666,7 @@ sub fill_out_genotyping_results {
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number'} =  $row->{'copy_number'} // '-';
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'copy_number_range'} =  $row->{'copy_number_range'} // '-';
             $datum->{$row->{'genotyping_result_type_id'} . '#' . 'confidence'} =  $row->{'confidence'} // '-';
+            $datum->{$row->{'genotyping_result_type_id'} . '#' . 'vic'} =  $row->{'vic'} // '-';
         }
     return;
 }
@@ -707,6 +739,7 @@ with wd as (
     , wgt.copy_number
     , wgt.copy_number_range
     , wgt.confidence
+    , wgt.vic
     from plates p, wells w
         left join well_genotyping_results wgt
         on wgt.well_id = w.id
@@ -715,13 +748,14 @@ with wd as (
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
     wd."Accepted",
-    wd.copy_number, wd.copy_number_range, wd.confidence,
+    wd.copy_number, wd.copy_number_range, wd.confidence, wd.vic,
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
-    well_accepted_override.accepted "Override"
+    well_accepted_override.accepted "Override",
+    well_lab_number.lab_number "Lab Number"
 from wd
 left outer
     join well_chromosome_fail
@@ -738,6 +772,9 @@ left outer
 left outer
     join well_accepted_override
         on wd."Well ID" = well_accepted_override.well_id
+left outer
+    join well_lab_number
+        on wd."Well ID" = well_lab_number.well_id
 --order by wd."Well ID"
 order by wd."well"
 SQL_END
@@ -764,6 +801,7 @@ with wd as (
     , wgt.copy_number
     , wgt.copy_number_range
     , wgt.confidence
+    , wgt.vic
     from plates p, wells w
         left join well_genotyping_results wgt
         on wgt.well_id = w.id
@@ -772,13 +810,14 @@ with wd as (
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
     wd."Accepted",
-    wd.copy_number, wd.copy_number_range, wd.confidence,
+    wd.copy_number, wd.copy_number_range, wd.confidence, wd.vic,
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
-    well_accepted_override.accepted "Override"
+    well_accepted_override.accepted "Override",
+    well_lab_number.lab_number "Lab Number"
 from wd
 left outer
     join well_chromosome_fail
@@ -795,28 +834,30 @@ left outer
 left outer
     join well_accepted_override
         on wd."Well ID" = well_accepted_override.well_id
+left outer
+    join well_lab_number
+        on wd."Well ID" = well_lab_number.well_id
 order by wd."Well ID"
 SQL_END
 }
 
- sub convert_bool {
-     my $self = shift;
-     my $string_value = shift;
+sub convert_bool {
+    my $self = shift;
+    my $string_value = shift;
+    my %lookup_boolean = (
+        'true'  => 1,
+        'yes'   => 1,
+        '1'     => 1,
+        'false' => 0,
+        'no'    => 0,
+        '0'     => 0,
+    );
 
-     my %lookup_boolean = (
-         'true'  => 1,
-         'yes'   => 1,
-         '1'     => 1,
-         'false' => 0,
-         'no'    => 0,
-         '0'     => 0,
-     );
-
-     # Return the boolean as an integer, otherwise return the original string
-     # This is because other strings like 'reset' or '-' might be present in
-     # addition to 'yes', 'no', etc.
-     return exists $lookup_boolean{$string_value} ? $lookup_boolean{$string_value}
-             : $string_value ;
+    # Return the boolean as an integer, otherwise return the original string
+    # This is because other strings like 'reset' or '-' might be present in
+    # addition to 'yes', 'no', etc.
+    return exists $lookup_boolean{$string_value} ?
+    $lookup_boolean{$string_value} : $string_value ;
 }
 
 
@@ -861,6 +902,7 @@ sub csv_genotyping_qc_plate_data {
         { 'copy_number' => 'Copy Number' },
         { 'copy_number_range' => 'Range' },
         { 'confidence' => 'Confidence' },
+        { 'vic' => 'VIC' },
     );
     my @assay_types = sort map { $_->id } $self->schema->resultset('GenotypingResultType')->all;
     my @csv_header_array = $self->create_csv_header_array( \@assay_types );
@@ -902,6 +944,7 @@ sub create_csv_header_array {
         'Allele Type',
         'Distribute',
         'Override',
+        'Lab Number',
         'Chromosome Fail',
         'Allele Info#Type',
         'Allele Info#Full allele determination',
@@ -926,7 +969,8 @@ sub create_csv_header_array {
             $assay_name . '#call',
             $assay_name . '#copy_number',
             $assay_name . '#copy_number_range',
-            $assay_name . '#confidence' ;
+            $assay_name . '#confidence' ,
+            $assay_name . '#vic' ;
     }
 
     return @header_words;
@@ -945,6 +989,7 @@ sub translate_header_items {
         'Allele Type'                           => 'allele_type',
         'Distribute'                            => 'accepted',
         'Override'                              => 'accepted_override',
+        'Lab Number'                            => 'lab_number',
         'Chromosome Fail'                       => 'chromosome_fail',
         'Allele Info#Type'                      => 'allele_type',
         'Allele Info#Full allele determination' => 'allele_determination',
