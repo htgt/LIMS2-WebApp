@@ -37,7 +37,22 @@ sub login : Global {
     }
 
     if ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
-        $c->flash( success_msg => 'Login successful' );
+    	
+    	# Only set the flash message if we are staying in lims2 webapp
+    	my $app_root = quotemeta( $c->req->base );
+    	$c->log->debug("App root uri: $app_root");
+        if($goto=~/$app_root/){
+            $c->flash( success_msg => 'Login successful' );
+        }
+        
+        # Set a cookie that htgt webapp can use to check authentication
+        $c->log->debug('Writing LIMS2Auth cookie for htgt');
+        $c->res->cookies->{LIMS2Auth} = { 
+        	value => lc($username), 
+        	expires => '+1h',
+        	domain => '.internal.sanger.ac.uk',
+        };
+        
         return $c->res->redirect($goto);
     }
     else {
