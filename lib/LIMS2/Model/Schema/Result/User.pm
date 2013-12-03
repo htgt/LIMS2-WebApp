@@ -107,6 +107,21 @@ __PACKAGE__->add_unique_constraint("users_name_key", ["name"]);
 
 =head1 RELATIONS
 
+=head2 design_attempts
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignAttempt>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_attempts",
+  "LIMS2::Model::Schema::Result::DesignAttempt",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 design_comments
 
 Type: has_many
@@ -133,21 +148,6 @@ Related object: L<LIMS2::Model::Schema::Result::Design>
 __PACKAGE__->has_many(
   "designs",
   "LIMS2::Model::Schema::Result::Design",
-  { "foreign.created_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 designs_create
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::DesignCreate>
-
-=cut
-
-__PACKAGE__->has_many(
-  "designs_create",
-  "LIMS2::Model::Schema::Result::DesignCreate",
   { "foreign.created_by" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -448,8 +448,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-02 15:04:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6DrUbO5PVVjO8d+VDKJe/g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-03 07:05:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rcGJ3y1xRWNxzKEyD5mH1g
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

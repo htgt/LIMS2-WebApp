@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::DesignCreate;
+package LIMS2::Model::Schema::Result::DesignAttempt;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::DesignCreate
+LIMS2::Model::Schema::Result::DesignAttempt
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<design_create>
+=head1 TABLE: C<design_attempts>
 
 =cut
 
-__PACKAGE__->table("design_create");
+__PACKAGE__->table("design_attempts");
 
 =head1 ACCESSORS
 
@@ -43,7 +43,7 @@ __PACKAGE__->table("design_create");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'design_create_id_seq'
+  sequence: 'design_attempts_id_seq'
 
 =head2 design_parameters
 
@@ -101,7 +101,7 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "design_create_id_seq",
+    sequence          => "design_attempts_id_seq",
   },
   "design_parameters",
   { data_type => "text", is_nullable => 1 },
@@ -158,8 +158,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-02 15:04:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ywPliZvyUpB4Zi7mpgP5IQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-03 07:05:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NlJ7PSrWemPZgymD4F4E6A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
