@@ -87,9 +87,15 @@ sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
         { qc_run_id => $c->request->params->{qc_run_id} } );
 
+    my $crispr = 0;
+    if ($results->[0]->{crispr_id}) {
+        $crispr = 1;
+    }
+
     $c->stash(
         qc_run  => $qc_run->as_hash,
         results => $results,
+        crispr  => $crispr
     );
     return;
 }
