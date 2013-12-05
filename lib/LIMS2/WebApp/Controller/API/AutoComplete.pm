@@ -3,7 +3,7 @@ use Moose;
 use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
-use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names);
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -89,12 +89,8 @@ sub badger_seq_projects_GET {
 
 	$c->assert_user_roles( 'read' );
 
-    my $projects=[];
-
-    my $params = { term => $c->request->params->{term} };
-    my $content = htgt_api_call($c, $params, 'seq_projects_uri');
-    $projects = $content->{ badger_seq_projects };
-
+    my $projects = search_seq_project_names($c->request->params->{term});
+    
     return $self->status_ok( $c, entity => $projects );
 }
 
