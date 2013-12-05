@@ -1,0 +1,2203 @@
+---
+cre_ki_data:
+  overall_production_centres:
+      unassigned: 1
+      multiple_centres: 1
+      WTSI: 1
+  genes:
+      'MGI:1000001':
+        gene_symbol: 'Unreq'
+        lims2_project_db_id: 1
+        has_lims2_data: 1
+        has_imits_data: 0
+        count_lims2_final_picks_total: 0
+        count_lims2_final_picks_accepted: 0
+        count_lims2_ep_pick_wells_total: 0
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 0
+        count_imits_mi_plans_active: 0
+        count_imits_production_centres: 0
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+      'MGI:1000002':
+        gene_symbol: 'UnreqVect'
+        lims2_project_db_id: 2
+        has_lims2_data: 1
+        has_imits_data: 0
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 0
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 0
+        count_imits_mi_plans_active: 0
+        count_imits_production_centres: 0
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+      'MGI:1000003':
+        gene_symbol: 'UnreqClones'
+        lims2_project_db_id: 3
+        has_lims2_data: 1
+        has_imits_data: 0
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 0
+        count_imits_mi_plans_active: 0
+        count_imits_production_centres: 0
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: ''
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000004':
+        gene_symbol: 'AwaitVects'
+        lims2_project_db_id: 4
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 0
+        count_lims2_final_picks_accepted: 0
+        count_lims2_ep_pick_wells_total: 0
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: ''
+        accepted_clone_fp_wells_list: ''
+        accepted_final_pick_wells_list: ''
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+      'MGI:1000005':
+        gene_symbol: 'AwaitEP'
+        lims2_project_db_id: 5
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 0
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: ''
+        accepted_clone_fp_wells_list: ''
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+      'MGI:1000006':
+        gene_symbol: 'AwaitPQC'
+        lims2_project_db_id: 6
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: ''
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000007':
+        gene_symbol: 'InPQC'
+        lims2_project_db_id: 7
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 2
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 1
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: 'CEPD001_1_A02'
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02'
+        accepted_clone_fp_wells_list: ''
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000008':
+        gene_symbol: 'FailPQC'
+        lims2_project_db_id: 8
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 1
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: 'CEPD001_1_A01'
+        accepted_ep_pick_wells_list: ''
+        accepted_clone_fp_wells_list: ''
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 0
+      'MGI:1000009':
+        gene_symbol: 'AwaitSQC'
+        lims2_project_db_id: 9
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+      'MGI:1000010':
+        gene_symbol: 'InSQC1'
+        lims2_project_db_id: 10
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+      'MGI:1000011':
+        gene_symbol: 'InSQC2'
+        lims2_project_db_id: 11
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 2
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 2
+        count_lims2_freezer_wells: 2
+        count_lims2_piq_wells_total: 2
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+      'MGI:1000012':
+        gene_symbol: 'InSQC3'
+        lims2_project_db_id: 12
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 3
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 3
+        count_lims2_freezer_wells: 3
+        count_lims2_piq_wells_total: 3
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+      'MGI:1000013':
+        gene_symbol: 'InSQC4'
+        lims2_project_db_id: 13
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 4
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 4
+        count_lims2_freezer_wells: 4
+        count_lims2_piq_wells_total: 4
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03 : FP0001_A04'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A04':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20004
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A04':
+                fp_well_accepted: 0
+                fp_well_db_id: 30004
+                piq_wells:
+                  'PIQ_CRE_0001_A04':
+                    piq_well_db_id: 40004
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+      'MGI:1000014':
+        gene_symbol: 'InSQC5'
+        lims2_project_db_id: 14
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 5
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 5
+        count_lims2_freezer_wells: 5
+        count_lims2_piq_wells_total: 5
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03 : FP0001_A04 : FP0001_A04 : FP0001_A05'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A04':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20004
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A04':
+                fp_well_accepted: 0
+                fp_well_db_id: 30004
+                piq_wells:
+                  'PIQ_CRE_0001_A04':
+                    piq_well_db_id: 40004
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A05':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20005
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A05':
+                fp_well_accepted: 0
+                fp_well_db_id: 30005
+                piq_wells:
+                  'PIQ_CRE_0001_A05':
+                    piq_well_db_id: 40005
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+      'MGI:1000015':
+        gene_symbol: 'InSQCgt5'
+        lims2_project_db_id: 15
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 6
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 6
+        count_lims2_freezer_wells: 6
+        count_lims2_piq_wells_total: 6
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05 : CEPD0001_1_A06'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03 : FP0001_A04 : FP0001_A04 : FP0001_A05 : FP0001_A06'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A04':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20004
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A04':
+                fp_well_accepted: 0
+                fp_well_db_id: 30004
+                piq_wells:
+                  'PIQ_CRE_0001_A04':
+                    piq_well_db_id: 40004
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A05':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20005
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A05':
+                fp_well_accepted: 0
+                fp_well_db_id: 30005
+                piq_wells:
+                  'PIQ_CRE_0001_A05':
+                    piq_well_db_id: 40005
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+          'CEPD00001_1_A06':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20006
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A06':
+                fp_well_accepted: 0
+                fp_well_db_id: 30006
+                piq_wells:
+                  'PIQ_CRE_0001_A06':
+                    piq_well_db_id: 40006
+                    has_qc_data: 0
+                    piq_well_accepted: 0
+      'MGI:1000016':
+        gene_symbol: 'FailSQC1'
+        lims2_project_db_id: 16
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 2
+        count_lims2_ep_pick_wells_accepted: 2
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 2
+        count_lims2_freezer_wells: 2
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 1
+        count_lims2_piq_wells_with_qc_data: 1
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01'
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000017':
+        gene_symbol: 'FailSQC2'
+        lims2_project_db_id: 17
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 3
+        count_lims2_ep_pick_wells_accepted: 3
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 3
+        count_lims2_freezer_wells: 3
+        count_lims2_piq_wells_total: 2
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 2
+        count_lims2_piq_wells_with_qc_data: 2
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01 : CEPD0001_1_A02'
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000018':
+        gene_symbol: 'FailSQC3'
+        lims2_project_db_id: 18
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 4
+        count_lims2_ep_pick_wells_accepted: 4
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 4
+        count_lims2_freezer_wells: 4
+        count_lims2_piq_wells_total: 3
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 3
+        count_lims2_piq_wells_with_qc_data: 3
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03'
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A04':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20004
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000019':
+        gene_symbol: 'FailSQC4'
+        lims2_project_db_id: 19
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 5
+        count_lims2_ep_pick_wells_accepted: 5
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 5
+        count_lims2_freezer_wells: 5
+        count_lims2_piq_wells_total: 4
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 4
+        count_lims2_piq_wells_with_qc_data: 4
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03 : FP0001_A04'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04'
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A04':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20004
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A04':
+                fp_well_accepted: 0
+                fp_well_db_id: 30004
+                piq_wells:
+                  'PIQ_CRE_0001_A04':
+                    piq_well_db_id: 40004
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A05':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20005
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000020':
+        gene_symbol: 'FailSQC5'
+        lims2_project_db_id: 20
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 6
+        count_lims2_ep_pick_wells_accepted: 6
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 6
+        count_lims2_freezer_wells: 6
+        count_lims2_piq_wells_total: 5
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 5
+        count_lims2_piq_wells_with_qc_data: 5
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03 : FP0001_A04 : FP0001_A05'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05'
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A04':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20004
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A04':
+                fp_well_accepted: 0
+                fp_well_db_id: 30004
+                piq_wells:
+                  'PIQ_CRE_0001_A04':
+                    piq_well_db_id: 40004
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A05':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20005
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A05':
+                fp_well_accepted: 0
+                fp_well_db_id: 30005
+                piq_wells:
+                  'PIQ_CRE_0001_A05':
+                    piq_well_db_id: 40005
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A06':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20006
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000021':
+        gene_symbol: 'FailSQCgt5'
+        lims2_project_db_id: 21
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 7
+        count_lims2_ep_pick_wells_accepted: 7
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 7
+        count_lims2_freezer_wells: 7
+        count_lims2_piq_wells_total: 6
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 6
+        count_lims2_piq_wells_with_qc_data: 6
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05 : CEPD0001_1_A06'
+        accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03 : FP0001_A04 : FP0001_A05 : FP0001_A06'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05 : CEPD0001_1_A05'
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A02':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20002
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A02':
+                fp_well_accepted: 0
+                fp_well_db_id: 30002
+                piq_wells:
+                  'PIQ_CRE_0001_A02':
+                    piq_well_db_id: 40002
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A03':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20003
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A03':
+                fp_well_accepted: 0
+                fp_well_db_id: 30003
+                piq_wells:
+                  'PIQ_CRE_0001_A03':
+                    piq_well_db_id: 40003
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A04':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20004
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A04':
+                fp_well_accepted: 0
+                fp_well_db_id: 30004
+                piq_wells:
+                  'PIQ_CRE_0001_A04':
+                    piq_well_db_id: 40004
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A05':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20005
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A05':
+                fp_well_accepted: 0
+                fp_well_db_id: 30005
+                piq_wells:
+                  'PIQ_CRE_0001_A05':
+                    piq_well_db_id: 40005
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A06':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20006
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A06':
+                fp_well_accepted: 0
+                fp_well_db_id: 30006
+                piq_wells:
+                  'PIQ_CRE_0001_A06':
+                    piq_well_db_id: 40006
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+          'CEPD00001_1_A07':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20007
+            has_qc_data: 0
+            clone_accepted: 0
+      'MGI:1000022':
+        gene_symbol: 'FailSQCnc'
+        lims2_project_db_id: 22
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 1
+        count_lims2_piq_wells_with_qc_data: 1
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01'
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 0
+      'MGI:1000023':
+        gene_symbol: 'AwaitMIs'
+        lims2_project_db_id: 23
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 1
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 1
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: 'CEPD0001_1_A01'
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 1
+      'MGI:1000024':
+        gene_symbol: 'InProgress'
+        lims2_project_db_id: 24
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 1
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 1
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 1
+        count_imits_mi_attempts_active: 1
+        count_imits_mi_attempts_in_progress: 1
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: 'CEPD0001_1_A01'
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: 'CEPD00001_1_A01'
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 1
+            mi_attempts:
+              '10001':
+                is_attempt_active: 1
+                status_name: 'Micro-injection in progress'
+                status_code: 'mip'
+                plan_priority: 'Low'
+                consortia_name: 'EUCOMMToolsCre'
+                production_centre_name: 'WTSI'
+      'MGI:1000025':
+        gene_symbol: 'FailedMP'
+        lims2_project_db_id: 25
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 1
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 1
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 1
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 1
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: 'CEPD0001_1_A01'
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: 'CEPD00001_1_A01'
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 1
+            mi_attempts:
+              '10001':
+                is_attempt_active: 0
+                status_name: 'Micro-injection aborted'
+                status_code: 'abt'
+                plan_priority: 'Low'
+                consortia_name: 'EUCOMMToolsCre'
+                production_centre_name: 'WTSI'
+      'MGI:1000026':
+        gene_symbol: 'Chimeras'
+        lims2_project_db_id: 26
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 1
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 1
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 1
+        count_imits_mi_attempts_active: 1
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 1
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: 'CEPD0001_1_A01'
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: 'CEPD00001_1_A01'
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 1
+            mi_attempts:
+              '10001':
+                is_attempt_active: 1
+                status_name: 'Chimeras obtained'
+                status_code: 'chr'
+                plan_priority: 'Low'
+                consortia_name: 'EUCOMMToolsCre'
+                production_centre_name: 'WTSI'
+      'MGI:1000027':
+        gene_symbol: 'GltAchv'
+        lims2_project_db_id: 27
+        has_lims2_data: 1
+        has_imits_data: 1
+        count_lims2_final_picks_total: 1
+        count_lims2_final_picks_accepted: 1
+        count_lims2_ep_pick_wells_total: 1
+        count_lims2_ep_pick_wells_accepted: 1
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 1
+        count_lims2_freezer_wells: 1
+        count_lims2_piq_wells_total: 1
+        count_lims2_piq_wells_accepted: 1
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 1
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 1
+        count_imits_mi_attempts_active: 1
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 1
+        count_imits_mi_attempts_aborted: 0
+        vectors:
+          'ETGRD0001_A_1_A01':
+            final_pick_well_accepted: 1
+            final_pick_well_db_id: 10001
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: 'CEPD0001_1_A01'
+        accepted_clone_fp_wells_list: 'FP0001_A01'
+        accepted_clone_secondary_qc_passed_list: 'CEPD0001_1_A01'
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: 'CEPD00001_1_A01'
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+        clones:
+          'CEPD00001_1_A01':
+            vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
+            vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
+            final_pick_well_ident: 'ETGRD0001_A_1_A01'
+            ep_pick_well_db_id: 20001
+            has_qc_data: 1
+            clone_accepted: 1
+            freezer_wells:
+              'FP0001_A01':
+                fp_well_accepted: 0
+                fp_well_db_id: 30001
+                piq_wells:
+                  'PIQ_CRE_0001_A01':
+                    piq_well_db_id: 40001
+                    has_qc_data: 1
+                    piq_well_accepted: 1
+            mi_attempts:
+              '10001':
+                is_attempt_active: 1
+                status_name: 'Genotype confirmed'
+                status_code: 'gtc'
+                plan_priority: 'Low'
+                consortia_name: 'EUCOMMToolsCre'
+                production_centre_name: 'WTSI'
+      'MGI:1000028':
+        gene_symbol: 'MissLims2'
+        lims2_project_db_id: 0
+        has_lims2_data: 0
+        has_imits_data: 1
+        count_lims2_final_picks_total: 0
+        count_lims2_final_picks_accepted: 0
+        count_lims2_ep_pick_wells_total: 0
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 1
+        count_imits_mi_plans_active: 1
+        count_imits_production_centres: 1
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
+        accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
+        failed_ep_pick_wells_list: ''
+        accepted_ep_pick_wells_list: ''
+        accepted_clone_fp_wells_list: ''
+        accepted_clone_secondary_qc_passed_list: ''
+        accepted_clone_secondary_qc_failed_list: ''
+        mi_attempts_mip_clones_list: ''
+        mi_attempts_chr_clones_list: ''
+        mi_attempts_gtc_clones_list: ''
+        mi_attempts_abt_clones_list: ''
+        production_centres:
+          'WTSI': 1
+        production_centres_list: 'WTSI'
+        mi_plans:
+          '10001':
+            plan_priority: 'Low'
+            production_centre_name: 'WTSI'
+            is_plan_active: 1
+      'MGI:1000029':
+        gene_symbol: 'UnreqType'
+        lims2_project_db_id: 29
+        has_lims2_data: 0
+        has_imits_data: 0
+        count_lims2_final_picks_total: 0
+        count_lims2_final_picks_accepted: 0
+        count_lims2_ep_pick_wells_total: 0
+        count_lims2_ep_pick_wells_accepted: 0
+        count_lims2_ep_pick_wells_failed: 0
+        count_lims2_ep_pick_wells_with_qc_data: 0
+        count_lims2_freezer_wells: 0
+        count_lims2_piq_wells_total: 0
+        count_lims2_piq_wells_accepted: 0
+        count_lims2_piq_wells_failed: 0
+        count_lims2_piq_wells_with_qc_data: 0
+        count_imits_mi_plans_total: 0
+        count_imits_mi_plans_active: 0
+        count_imits_production_centres: 0
+        count_imits_mi_attempts_total: 0
+        count_imits_mi_attempts_active: 0
+        count_imits_mi_attempts_in_progress: 0
+        count_imits_mi_attempts_chimeras_obtained: 0
+        count_imits_mi_attempts_glt_achieved: 0
+        count_imits_mi_attempts_aborted: 0
