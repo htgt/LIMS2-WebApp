@@ -81,12 +81,12 @@ sub sequencing_projects_GET {
 =cut
 
 sub badger_seq_projects :Path( '/api/autocomplete/badger_seq_projects' ) :Args(0) :ActionClass( 'REST' ) {
-	
+
 }
 
 sub badger_seq_projects_GET {
 	my ( $self, $c ) = @_;
-	
+
 	$c->assert_user_roles( 'read' );
 
     my $projects=[];
@@ -94,7 +94,7 @@ sub badger_seq_projects_GET {
     my $params = { term => $c->request->params->{term} };
     my $content = htgt_api_call($c, $params, 'seq_projects_uri');
     $projects = $content->{ badger_seq_projects };
-    
+
     return $self->status_ok( $c, entity => $projects );
 }
 

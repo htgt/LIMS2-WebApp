@@ -213,16 +213,16 @@ sub htgt_api_call {
 
         #make the actual request 
         my $response = $ua->request( $req );
-    
+
         die "Request to $uri was not successful. Response: ".$response->status_line."<br/>".$response->as_string
             unless $response->is_success;
 
-        $content = decode_json( $response->content ); 
+        $content = decode_json( $response->content );
     }
     catch {
         $c->stash( error_msg => "Sorry, your HTGT API submission failed with error: $_" );
         return;
-    }; 
+    };
     return $content;
 }
 
