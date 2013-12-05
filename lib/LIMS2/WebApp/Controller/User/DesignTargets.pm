@@ -1,13 +1,12 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.125';
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.132';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
-use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
 use LIMS2::Model::Util::Crisprs qw( crispr_pick );
 use Try::Tiny;
 use namespace::autoclean;
@@ -51,6 +50,9 @@ sub gene_report : Path('/user/design_target_report') {
         return $c->go('index');
     }
 
+    my $species = $c->session->{selected_species};
+    my $build   = $species eq 'Mouse' ? 70 : $species eq 'Human' ? 73 : undef;
+
     my %report_parameters = (
         type                 => $c->request->param('report_type') || 'standard',
         off_target_algorithm => $c->request->param('off_target_algorithm') || 'bwa',
@@ -61,6 +63,7 @@ sub gene_report : Path('/user/design_target_report') {
         $c->model('Golgi')->schema,
         $c->request->param('genes') || $gene,
         $c->session->{selected_species},
+        $build,
         \%report_parameters,
     );
 
@@ -78,11 +81,16 @@ sub gene_report : Path('/user/design_target_report') {
         $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
     }
 
+    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species } )->assembly_id;
+
     $c->stash(
         design_targets_data => $design_targets_data,
         genes               => $c->request->param('genes') || $gene,
         search_terms        => $search_terms,
-        species             => $c->session->{selected_species},
+        species             => $species,
+        assembly            => $default_assembly,
+        build               => $build,
         params              => \%report_parameters,
     );
 
@@ -105,34 +113,6 @@ sub design_target_report_crispr_pick : Path('/user/design_target_report_crispr_p
     catch {
         $c->flash( error_msg => "Something went wrong: " . $_ );
     };
-
-    return;
-}
-
-=head2 crisprs_ucsc_blat
-
-Link to UCSC Blat page for set for crisprs for a design target.
-
-=cut
-sub crisprs_ucsc_blat : Path( '/user/crisprs_ucsc_blat' ) : Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles( 'read' );
-
-    my $species_id = $c->request->param('species') || $c->session->{selected_species};
-
-    unless ( $c->request->param('sequence') ) {
-        $c->stash( error_msg => "Must specify a fasta sequence string" );
-        return;
-    }
-
-    my $ucsc_db = $UCSC_BLAT_DB{ lc($species_id) };
-
-    $c->stash(
-        sequence => $c->request->param('sequence'),
-        species  => $species_id,
-        uscs_db  => $ucsc_db,
-    );
 
     return;
 }

@@ -342,7 +342,7 @@ sub all_tests  : Test(89) {
 
     {
 	ok my $profiles = model->list_profiles(), 'list_profiles ok';
-	is_deeply $profiles, [ 'eucomm-cre', 'eucomm-post-cre', 'test' ], '.. profile list is correct';
+	is_deeply $profiles, [ 'eucomm-post-cre', 'eucomm-promoter-driven-post-gateway', 'test' ], '.. profile list is correct';
     }
 
     note( "Testing Qc Run Deletion" );

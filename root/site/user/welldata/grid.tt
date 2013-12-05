@@ -20,6 +20,8 @@
                     {name: 'accepted_override', type: 'string'},
                     {name: 'gene_id', type: 'string'},
                     {name: 'design_id', type: 'string'},
+                    {name: 'clone_id', type: 'string'},
+                    {name: 'lab_number', type: 'string'},
                     {name: 'chromosome_fail', type: 'string'},
                     {name: 'targeting_pass', type: 'string'},
                     {name: 'targeting_puro_pass', type: 'string'},
@@ -186,13 +188,21 @@
                 forceSelection: true
             });
 
+            var lab_number_field = Ext.create( 'Ext.form.TextField', {
+                queryMode: 'local'
+            });
+
             var columns = [
                 {header: "Well", dataIndex: 'well', locked: true, columnWidth: 3, width: 40 },
-                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true, width: 50 },
+                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true, width: 60 },
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true, width: 50 },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true, width: 50 },
                 {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
                 {header: "Distribute", dataIndex: 'accepted', locked: true, width: 55 },
+            [% IF PIQ %]
+                {header: "Clone ID", dataIndex: 'clone_id', locked: true, width: 110 },
+                {header: "Lab Number", dataIndex: 'lab_number', editor: lab_number_field, locked: true, width: 75 },
+            [% END %]
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
                 {header: "Allele Info", columns: [
                     {header: "Type",                             dataIndex: 'allele_type',                    hidden: true, width: 60 },
@@ -233,6 +243,9 @@
                             [% ELSIF name.title == "Confidence" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
                                 editor: { xtype: 'textfield' }, hidden: true, width: 85 },
+                            [% ELSIF name.title == "VIC" %]
+                                {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
                             [% END %]
                         [% END %]
                       ]},

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.125';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.132';
 }
 ## use critic
 
@@ -262,12 +262,13 @@ sub as_hash {
     }
 
     my %h = (
-        id                 => $self->id,
-        type               => $self->crispr_loci_type_id,
-        seq                => $self->seq,
-        species            => $self->species_id,
-        comment            => $self->comment,
-        locus              => $locus ? $locus->as_hash : undef,
+        id        => $self->id,
+        type      => $self->crispr_loci_type_id,
+        seq       => $self->seq,
+        species   => $self->species_id,
+        comment   => $self->comment,
+        locus     => $locus ? $locus->as_hash : undef,
+        pam_right => $self->pam_right == 1 ? 'true' : $self->pam_right == 0 ? 'false' : '',
     );
 
     $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];

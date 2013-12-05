@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.125';
+    $LIMS2::Model::Constants::VERSION = '0.132';
 }
 ## use critic
 
@@ -68,22 +68,22 @@ const our %PROCESS_SPECIFIC_FIELDS => (
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
 const our %PROCESS_TEMPLATE => (
-    'int_recom'              => 'recombineering_template.csv',
-    'cre_bac_recom'          => 'recombineering_template.csv',
-    '2w_gateway'             => 'gateway_template.csv',
-    '3w_gateway'             => 'gateway_template.csv',
-    'final_pick'             => 'standard_template.csv',
-    'dna_prep'               => 'standard_template.csv',
-    'recombinase'            => 'recombinase_template.csv',
-    'first_electroporation'  => 'first_electroporation_template.csv',
-    'second_electroporation' => 'second_electroporation_template.csv',
-    'clone_pick'             => 'standard_template.csv',
-    'clone_pool'             => 'standard_template.csv',
-    'freeze'                 => 'standard_template.csv',
-    'xep_pool'               => 'standard_template.csv',
-    'dist_qc'                => 'piq_template.csv',
-    'crispr_single_ep'       => 'crispr_single_ep_template.csv',
-    'crispr_paired_ep'       => 'crispr_paired_ep_template.csv',
+    'int_recom'              => 'recombineering_template',
+    'cre_bac_recom'          => 'recombineering_template',
+    '2w_gateway'             => 'gateway_template',
+    '3w_gateway'             => 'gateway_template',
+    'final_pick'             => 'standard_template',
+    'dna_prep'               => 'standard_template',
+    'recombinase'            => 'recombinase_template',
+    'first_electroporation'  => 'first_electroporation_template',
+    'second_electroporation' => 'second_electroporation_template',
+    'clone_pick'             => 'standard_template',
+    'clone_pool'             => 'standard_template',
+    'freeze'                 => 'standard_template',
+    'xep_pool'               => 'standard_template',
+    'dist_qc'                => 'piq_template',
+    'crispr_single_ep'       => 'crispr_single_ep_template',
+    'crispr_paired_ep'       => 'crispr_paired_ep_template',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
