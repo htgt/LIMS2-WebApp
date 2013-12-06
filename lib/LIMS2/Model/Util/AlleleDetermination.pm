@@ -172,7 +172,6 @@ sub _build_allele_translation {
     my ( $self ) = @_;
 
     my $allele_translation = $self->allele_config->{ 'allele_translation' };
-
     return $allele_translation;
 }
 
@@ -507,8 +506,6 @@ sub _create_assay_summary_string {
 
     my $pattern_string = join( ' ', (@pattern) );
 
-    # DEBUG('pattern= ' . $pattern_string );
-
     $self->current_well->{ 'assay_pattern' } = $pattern_string;
 
     return;
@@ -605,6 +602,7 @@ sub _minimised_allele_type {
     return $current_allele_type;
 }
 
+<<<<<<< HEAD
 sub _determine_genotyping_pass_for_wells {
     my ( $self ) = @_;
 

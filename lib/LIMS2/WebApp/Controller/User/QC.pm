@@ -14,6 +14,7 @@ use HTGT::QC::Config;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
+use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -87,9 +88,15 @@ sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
         { qc_run_id => $c->request->params->{qc_run_id} } );
 
+    my $crispr = 0;
+    if ($results->[0]->{crispr_id}) {
+        $crispr = 1;
+    }
+
     $c->stash(
         qc_run  => $qc_run->as_hash,
         results => $results,
+        crispr  => $crispr
     );
     return;
 }
@@ -278,54 +285,9 @@ sub _launch_qc{
         species             => $c->session->{ selected_species },
     };
 
-    my $content = $self->_htgt_api_call( $c, $params, 'submit_uri' );
+    my $content = htgt_api_call( $c, $params, 'submit_uri' );
 
     return $content->{ qc_run_id };
-}
-
-#generic function to make a htgt api call, accepting a hashref of user parameters,
-#and returning the decoded json content provided by the api page.
-sub _htgt_api_call {
-    my ( $self, $c, $params, $conf_uri_key ) = @_;
-
-    my $content;
-
-    #do everythign in a try because if it fails there's no template and you get a useless error
-    try {
-        die "No URI specified." unless $conf_uri_key;
-
-        my $ua = LWP::UserAgent->new();
-        my $qc_conf = Config::Tiny->new();
-        $qc_conf = Config::Tiny->read( $ENV{ LIMS2_QC_CONFIG } );
-
-        #add authentication information
-        $params->{ username } = $qc_conf->{_}->{ username };
-        $params->{ password } = $qc_conf->{_}->{ password };
-
-        my $uri = $qc_conf->{_}->{ $conf_uri_key }; #kill_uri or submit_uri
-
-        die "No QC submission service has been configured. Cannot submit QC job."
-            unless $qc_conf;
-
-        #create a http request object sending json
-        my $req = HTTP::Request->new( POST => $uri );
-        $req->content_type( 'application/json' );
-        $req->content( encode_json( $params ) );
-
-        #make the actual request 
-        my $response = $ua->request( $req );
-
-        die "Request to $uri was not successful. Response: ".$response->status_line."<br/>".$response->as_string
-            unless $response->is_success;
-
-        $content = decode_json( $response->content );
-    }
-    catch {
-        $c->stash( error_msg => "Sorry, your HTGT API submission failed with error: $_" );
-        return;
-    };
-
-    return $content;
 }
 
 sub latest_runs :Path('/user/latest_runs') :Args(0) {
@@ -363,7 +325,7 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
 
     $c->assert_user_roles( 'edit' );
 
-    my $content = $self->_htgt_api_call( $c, { qc_run_id => $qc_run_id }, 'kill_uri' );
+    my $content = htgt_api_call( $c, { qc_run_id => $qc_run_id }, 'kill_uri' );
 
     if ( $content ) {
         my @jobs_killed = @{ $content->{ job_ids } };
@@ -551,7 +513,7 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 	$c->stash->{qc_run_id} = $run_id;
 	$c->stash->{plate_type} = $c->req->param('plate_type');
 
-	$c->stash->{plate_types}   = [ qw(INT POSTINT FINAL FINAL_PICK) ];
+	$c->stash->{plate_types}   = [ qw(INT POSTINT FINAL FINAL_PICK CRISPR_V) ];
 
 	unless ($run_id){
 		$c->flash->{error_msg} = "No QC run ID provided to create plates";

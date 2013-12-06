@@ -7,6 +7,7 @@ valid_input:
     input_wells:
         - plate_name: CRISPR_T1
           well_name: A01
+    backbone: R3R4_pBR_amp
 valid_input1:
     type: crispr_vector
     output_wells:
@@ -15,6 +16,7 @@ valid_input1:
     input_wells:
         - plate_name: CRISPR_T1
           well_name: A01
+    backbone: R3R4_pBR_amp
 valid_input2:
     type: crispr_vector
     output_wells:
@@ -23,6 +25,7 @@ valid_input2:
     input_wells:
         - plate_name: CRISPR_T1
           well_name: A02
+    backbone: R3R4_pBR_amp
 valid_input3:
     type: crispr_vector
     output_wells:
@@ -31,6 +34,7 @@ valid_input3:
     input_wells:
         - plate_name: CRISPR_T1
           well_name: A03
+    backbone: R3R4_pBR_amp
 invalid_output_well:
     type: crispr_vector
     output_wells:
@@ -39,6 +43,7 @@ invalid_output_well:
     input_wells:
         - plate_name: CRISPR_T1
           well_name: A01
+    backbone: R3R4_pBR_amp
 invalid_input_well:
     type: crispr_vector
     output_wells:
@@ -47,4 +52,5 @@ invalid_input_well:
     input_wells:
         - plate_name: XEP0006
           well_name: A01
+    backbone: R3R4_pBR_amp
 

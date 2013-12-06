@@ -1,5 +1,41 @@
 {{$NEXT}}
 
+0.134     2013-12-05 16:33:09 Europe/London
+
+    Fixes in genotyping_qc csv download (now plate type specific), and qc_template csv
+    Updated view_qc_run to show crisprs
+    autocomplete list of Badger Repository sequencing projects using htgt
+
+0.133     2013-11-28 17:21:06 Europe/London
+
+    Fixed qc plate upload bug
+
+0.132     2013-11-28 14:31:45 Europe/London
+
+    Creation of CRISPR_V plates in now through QC.
+
+0.131     2013-11-28 08:24:06 Europe/London
+
+    Allow FINAL_PICK plates to be created from other FINAL_PICK plates via qc.
+
+0.130     2013-11-22 14:05:02 Europe/London
+
+    Added clone_id and lab_number to PIQ plates in genotyping_qc grid
+    Updated plate csv upload templates to have both es and vector templates
+
+0.129     2013-11-19 08:24:33 Europe/London
+
+    Bugfix, tried to treat 9000+ as a number, needed to strip + sign from value.
+
+0.128     2013-11-19 07:47:33 Europe/London
+
+    Updated design target crispr report to show more useful information.
+    Added detail pages for crisprs and crispr pairs.
+
+0.127     2013-11-18 11:05:36 Europe/London
+
+    Added VIC to genoptyping QC upload
+
 0.126     2013-11-15 10:22:26 Europe/London
 
     CRISPR_EP plate report updated, crispr_paired_ep process working

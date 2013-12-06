@@ -156,6 +156,37 @@ WHERE w.process_id = pd.process_id
 QUERY_END
 }
 
+sub query_ancestors_by_well_id_list {
+    my $self = shift;
+    my $well_array_ref = shift;
+
+    my $well_list = join q{,}, @{$well_array_ref};
+
+    return << "QUERY_END";
+-- Ancestors by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+-- Non-recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+        WHERE pr_out.well_id IN (
+        $well_list
+     )  
+     UNION ALL
+-- Recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+)
+SELECT distinct w.path
+FROM well_hierarchy w, process_design pd
+WHERE w.process_id = pd.process_id
+QUERY_END
+}
+
 sub pspec_paths_for_well_id_depth_first {
     return {
         well_id           => { validate   => 'integer', },
@@ -293,13 +324,13 @@ sub query_ancestors_by_well_list {
 -- Ancestors by well list
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id] 
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
      WHERE pr_out.well_id IN (
         $well_list
-     )	
+     )        
      UNION ALL
 -- Recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
@@ -316,14 +347,13 @@ GROUP BY w.output_well_id, pd.design_id,"original_well", gd.gene_id;
 QUERY_END
 }
 
-
 sub get_design_data_for_well_id_list {
     my $self = shift;
     my $wells = shift;
 
 
     my $sql_query = $self->query_ancestors_by_well_list( $wells );
-    my $sql_result =  $self->schema->storage->dbh_do(
+    my $sql_result = $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
          my $sth = $dbh->prepare_cached( $sql_query );
@@ -343,10 +373,27 @@ sub get_design_data_for_well_id_list {
     }
     # The format of the resulting hash is:
     # well_id => {
-    #   design_well_id => integer_id,
-    #   design_id => integer_id, 
-    #   gene_id     => accession_id
-    #   }
+    # design_well_id => integer_id,
+    # design_id => integer_id,
+    # gene_id => accession_id
+    # }
     return $result_hash;
 }
+
+sub get_ancestors_for_well_id_list {
+    my $self = shift;
+    my $wells = shift;
+
+    my $sql_query = $self->query_ancestors_by_well_id_list( $wells );
+    my $sql_result =  $self->schema->storage->dbh_do(
+    sub {
+         my ( $storage, $dbh ) = @_;
+         my $sth = $dbh->prepare_cached( $sql_query );
+         $sth->execute();
+         $sth->fetchall_arrayref();
+        }
+    );
+    return $sql_result;
+}
+
 1;

@@ -285,7 +285,7 @@ sub almost_all_tests  : Test(48)
 
 }
 
-sub test_infer_qc_process_type : Test(25) {
+sub test_infer_qc_process_type : Test(29) {
     note( 'DESIGN source plates' );
     throws_ok {
         infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'POSTINT', 'DESIGN' )
@@ -393,6 +393,25 @@ sub test_infer_qc_process_type : Test(25) {
 
     is infer_qc_process_type( { }, 'FINAL_PICK', 'FINAL' ), 'final_pick',
         'correctly infers final_pick process for FINAL_PICK plate';
+
+    note( 'FINAL_PICK source plate' );
+    throws_ok {
+        infer_qc_process_type( {}, 'FINAL', 'FINAL_PICK' )
+    } qr/Can only create a FINAL_PICK plate from another FINAL_PICK/
+        , 'throws error when trying to create FINAL plate';
+
+    throws_ok {
+        infer_qc_process_type( { cassette => 'foo' }, 'FINAL_PICK', 'FINAL_PICK' )
+    } qr/Cassette \/ backbone was specified when the FINAL_PICK template plate was created/
+        , 'throws error when trying to create FINAL_PICK plate while specifying cassette';
+
+    throws_ok {
+        infer_qc_process_type( { recombinase => 'foo' }, 'FINAL_PICK', 'FINAL_PICK' )
+    } qr/A recombinase was specified when the FINAL_PICK template plate was created/
+        , 'throws error when trying to create FINAL_PICK plate while specifying recombinase';
+
+    is infer_qc_process_type( {}, 'FINAL_PICK', 'FINAL_PICK' ), 'rearray',
+        'correctly infers rearray process for FINAL_PICK plate';
 }
 
 =head1 AUTHOR

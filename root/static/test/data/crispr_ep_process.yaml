@@ -34,7 +34,31 @@ paired_ep_valid_input:
           well_name: A01
     input_wells:
         - plate_name: CRISPR_V_T1
+          well_name: A01
+        - plate_name: CRISPR_V_T1
           well_name: A02
+        - plate_name: FP1008
+          well_name: A01
+paired_ep_invalid_input1: 
+    type: crispr_paired_ep
+    output_wells:
+        - plate_name: CRISPR_EP_P1
+          well_name: A01
+    input_wells:
+        - plate_name: CRISPR_V_T1
+          well_name: A01
+        - plate_name: CRISPR_V_T1
+          well_name: A02
+        - plate_name: XEP0006
+          well_name: A01
+paired_ep_invalid_input2: 
+    type: crispr_paired_ep
+    output_wells:
+        - plate_name: CRISPR_EP_P1
+          well_name: A02
+    input_wells:
+        - plate_name: CRISPR_V_T1
+          well_name: A01
         - plate_name: CRISPR_V_T1
           well_name: A03
         - plate_name: FP1008

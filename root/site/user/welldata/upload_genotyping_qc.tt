@@ -84,7 +84,14 @@
              <dt>bsd_copy_number_range</dt>
              <dt>bsd_confidence</dt>
              <dt>bsd_vic</dt>
-            </dl>         
+            </dl> 
+            LRPCR bands can be blank if no test was performed, otherwise:
+            <dl class="dl-horizontal">
+             <dt>gr / gf bands</dt>
+             <dd>Values accepted: pass, fail</dd>
+             <dt>Pass</dt>
+             <dd>Values accepted: pass, passb, fail</dd>
+            </dl>       
             <p>A template for the upload file can be found <a href="[% c.uri_for('/static/files/qc_upload/') %]genotyping_upload_template.csv">here</a>.
           </p>
         </div>

@@ -99,6 +99,10 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
 
     return unless $plate;
 
+    # set plate_type (usen in genotyping_qc_data.tt), and true on plate_type (used in grid.tt)
+    $c->stash->{plate_type} = $plate->type;
+    $c->stash->{$plate->type} = 1;
+
     my @value_names = (
         { title => 'Call', field=>'call'},
         { title => 'Copy Number', field => 'copy_number'},
@@ -111,7 +115,7 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
     $c->stash->{assay_types} = \@assay_types;
     $c->stash->{value_names} = \@value_names;
 
-        return;
+    return;
 }
 
 sub genotyping_qc_report : Path( '/user/genotyping_qc_report') : Args(1) {
