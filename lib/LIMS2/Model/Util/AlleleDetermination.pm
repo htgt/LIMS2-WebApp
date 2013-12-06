@@ -602,7 +602,6 @@ sub _minimised_allele_type {
     return $current_allele_type;
 }
 
-<<<<<<< HEAD
 sub _determine_genotyping_pass_for_wells {
     my ( $self ) = @_;
 
