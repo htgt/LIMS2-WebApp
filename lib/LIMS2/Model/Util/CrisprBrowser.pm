@@ -18,6 +18,8 @@ use Sub::Exporter -setup => {
         crisprs_to_gff
         crispr_pairs_for_region
         crispr_pairs_to_gff 
+        gibson_designs_for_region
+        design_oligos_to_gff
     ) ]
 };
 
@@ -168,14 +170,14 @@ sub crisprs_to_gff {
                     . 'C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                 );
-            my $crispr_parent_datum = prep_crispr_datum( \%crispr_format_hash );
+            my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             $crispr_format_hash{'type'} = 'CDS';
             $crispr_format_hash{'attributes'} =     'ID='
                     . $crispr_r->crispr_id . ';'
                     . 'Parent=C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                     . 'color=#45A825;'; # greenish
-            my $crispr_child_datum = prep_crispr_datum( \%crispr_format_hash );
+            my $crispr_child_datum = prep_gff_datum( \%crispr_format_hash );
             push @crisprs_gff, $crispr_parent_datum, $crispr_child_datum ;
         }
 
@@ -195,7 +197,7 @@ concatenation to produce a GFF3 format file.
 sub crispr_pairs_to_gff {
     my $crisprs_rs = shift;
     my $params = shift;
-#$DB::single=1;
+
     my @crisprs_gff;
 
     push @crisprs_gff, "##gff-version 3";
@@ -229,7 +231,7 @@ sub crispr_pairs_to_gff {
                     . $crispr_r->pair_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->pair_id . ';'
                 );
-            my $crispr_pair_parent_datum = prep_crispr_datum( \%crispr_format_hash );
+            my $crispr_pair_parent_datum = prep_gff_datum( \%crispr_format_hash );
             $crispr_format_hash{'type'} = 'CDS';
             $crispr_format_hash{'end'} = $crispr_r->left_crispr_end;
             $crispr_format_hash{'attributes'} =     'ID='
@@ -238,7 +240,7 @@ sub crispr_pairs_to_gff {
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->left_crispr_id . ';'
                     . 'color=#AA2424;' # reddish
                     . 'Comment=Junk;';
-            my $crispr_left_datum = prep_crispr_datum( \%crispr_format_hash );
+            my $crispr_left_datum = prep_gff_datum( \%crispr_format_hash );
             $crispr_format_hash{'start'} = $crispr_r->right_crispr_start;
             $crispr_format_hash{'end'} = $crispr_r->right_crispr_end;
             $crispr_format_hash{'attributes'} =     'ID='
@@ -248,7 +250,7 @@ sub crispr_pairs_to_gff {
                     . 'color=#1A8599;' # blueish
                     . 'Comment=Junk;';
 #            $crispr_format_hash{'attributes'} = $crispr_r->pair_id;
-            my $crispr_right_datum = prep_crispr_datum( \%crispr_format_hash );
+            my $crispr_right_datum = prep_gff_datum( \%crispr_format_hash );
             push @crisprs_gff, $crispr_pair_parent_datum, $crispr_left_datum, $crispr_right_datum ;
         }
 
@@ -256,12 +258,19 @@ sub crispr_pairs_to_gff {
     return \@crisprs_gff;
 }
 
-sub prep_crispr_datum {
-    my $crispr_hr = shift;
+=head prep_gff_datum
+given: hash ref of key value pairs
+returns: ref to array of tab separated values
+
+The gff format requires hard tab separated list of values in specified fields.
+=cut
+
+sub prep_gff_datum {
+    my $datum_hr = shift;
 
     my @data;
 
-    push @data, @$crispr_hr{qw/
+    push @data, @$datum_hr{qw/
         seqid
         source
         type
@@ -274,6 +283,184 @@ sub prep_crispr_datum {
         /};
     my $datum = join "\t", @data;
     return $datum;
+}
+
+=head
+Similar methods for design retrieval and browsing
+=cut
+
+sub gibson_designs_for_region {
+    my $schema = shift;
+    my $params = shift;
+
+
+    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
+
+    my $oligo_rs = $schema->resultset('GibsonDesignBrowser')->search( {},
+        {
+            bind => [
+                $params->{start_coord},
+                $params->{end_coord},
+                $params->{chromosome_id},
+                $params->{assembly_id},
+            ],
+        }
+    );
+
+
+    return $oligo_rs;
+}
+
+sub design_oligos_to_gff {
+    my $oligo_rs = shift;
+    my $params = shift;
+
+    my @oligo_gff;
+
+    push @oligo_gff, "##gff-version 3";
+    push @oligo_gff, '##sequence-region lims2-region '
+        . $params->{'start_coord'}
+        . ' '
+        . $params->{'end_coord'} ;
+    push @oligo_gff, '# Gibson designs for region '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chromosome_number'}
+        . ':'
+        . $params->{'start_coord'}
+        . '-'
+        . $params->{'end_coord'} ;
+
+        my $gibson_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs. 
+        $gibson_designs = parse_gibson_designs( $oligo_rs );
+        my $design_meta_data;
+        $design_meta_data = generate_design_meta_data ( $gibson_designs );
+
+
+        # The gff paret is generated from the meta data for the design
+        # must do this for each design (as there may be several)
+        foreach my $design_data ( keys %$design_meta_data ) {
+            my %oligo_format_hash = (
+                'seqid' => $params->{'chromosome_number'},
+                'source' => 'LIMS2',
+                'type' => 'Gibson',
+                'start' => $design_meta_data->{$design_data}->{'design_start'},
+                'end' => $design_meta_data->{$design_data}->{'design_end'},
+                'score' => '.',
+                'strand' => ( $design_meta_data->{$design_data}->{'strand'} == '-1' ) ? '-' : '+',
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . 'D_' . $design_data . ';'
+                    . 'Name=' . 'D_' . $design_data . ';'
+                );
+            my $oligo_parent_datum = prep_gff_datum( \%oligo_format_hash );
+            push @oligo_gff, $oligo_parent_datum;
+
+            # process the components of the design
+            $oligo_format_hash{'type'} = 'CDS';
+            foreach my $oligo ( keys %{$gibson_designs->{$design_data}} ) {
+                $oligo_format_hash{'start'} = $gibson_designs->{$design_data}->{$oligo}->{'chr_start'};
+                $oligo_format_hash{'end'}   = $gibson_designs->{$design_data}->{$oligo}->{'chr_end'};
+                $oligo_format_hash{'attributes'} =     'ID='
+                    . $oligo . ';'
+                    . 'Parent=D_' . $design_data . ';'
+                    . 'Name=' . $oligo . ';'
+                    . 'color=' . $gibson_designs->{$design_data}->{$oligo}->{'colour'} . ';'; # greenish TODO: select colour for 3s, 5s, Es
+                my $oligo_child_datum = prep_gff_datum( \%oligo_format_hash );
+                push @oligo_gff, $oligo_child_datum ;
+            }
+        }
+
+
+
+
+    return \@oligo_gff;
+}
+
+
+=head parse_gibson_designs
+Given and GibsonDesignBrowser Resultset.
+Returns hashref of hashrefs keyd on design_id
+=cut
+
+sub parse_gibson_designs {
+    my $gibson_rs = shift;
+    
+    my %design_structure;
+
+    # Note that the result set is ordered first by design_id and then by chr_start
+    # so we can rely on all the data for one design to be grouped together
+    # and within the group for the oligos to be properly ordered,
+    # whether they are on the Watson or Crick strands.
+
+    # When the gff format is generated, 3s, 5s, and Es will be coloured in pairs
+    # 5F with 5R, EF with ER, 3F with 3R
+
+    while ( my $gibson = $gibson_rs->next ) {
+        $design_structure{ $gibson->design_id } -> 
+            {$gibson->oligo_type_id} = {
+                'design_oligo_id' => $gibson->oligo_id,
+                'chr_start' => $gibson->chr_start,
+                'chr_end' => $gibson->chr_end,
+                'chr_strand' => $gibson->chr_strand,
+                'colour'     => gibson_colour( $gibson->oligo_type_id ),
+            };
+    }
+
+    return \%design_structure;
+}
+
+=head generate_design_meta_data
+Given a design_structure hashref provided by the parse_gibson_design method
+Returns a design_meta_data hashref containing the start and end coordinates for the entire design
+
+=cut
+
+sub generate_design_meta_data {
+    my $gibson_designs = shift;
+
+    my %design_meta_data;
+    my @design_keys;
+
+    @design_keys = sort keys %$gibson_designs;
+
+    foreach my $design_key ( @design_keys ) {
+        if ( $gibson_designs->{$design_key}->{'3F'}->{'chr_strand'} == 1 ) {
+            # calculate length of design on the plus strand
+            $design_meta_data{ $design_key } = {
+                'design_start' => $gibson_designs->{$design_key}->{'5F'}->{'chr_start'},
+                'design_end'   => $gibson_designs->{$design_key}->{'3R'}->{'chr_end'},
+                'strand'       => $gibson_designs->{$design_key}->{'5F'}->{'chr_strand'},
+            };
+
+        }
+        else {
+            # calculate length of design on the minus strand
+            $design_meta_data{ $design_key } = {
+                'design_start' => $gibson_designs->{$design_key}->{'3R'}->{'chr_start'},
+                'design_end'   => $gibson_designs->{$design_key}->{'5F'}->{'chr_end'},
+                'strand'       => $gibson_designs->{$design_key}->{'3R'}->{'chr_strand'},
+            };
+        }
+    }
+
+    return \%design_meta_data;
+}
+
+sub gibson_colour {
+    my $oligo_type_id = shift;
+
+    my %colours = (
+        '5F' => '#68D310',
+        '5R' => '#68D310',
+        'EF' => '#589BDD',
+        'ER' => '#589BDD',
+        '3F' => '#BF249B',
+        '3R' => '#BF249B',
+    );
+    return $colours{ $oligo_type_id };
 }
 
 1;

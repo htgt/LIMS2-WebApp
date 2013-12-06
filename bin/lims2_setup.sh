@@ -52,7 +52,7 @@ function lims2_webapp {
     $LIMS2_DEBUG_COMMAND $LIMS2_DEV_ROOT/script/lims2_webapp_server.pl -p $LIMS2_PORT $LIMS2_WEBAPP_SERVER_OPTIONS
 }
 
-function lims2_debug {
+function lims2_webapp_debug {
     LIMS2_DEBUG_COMMAND=$LIMS2_DEBUG_DEFINITION
     lims2_webapp $1
     unset LIMS2_DEBUG_COMMAND
