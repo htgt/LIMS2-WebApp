@@ -25,13 +25,20 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
+        'Production Centre',
+        'Priorities',
         'Basket',
         'MGI Accession ID',
         'Marker Symbol',
-        'FEP-accepted Clones at WTSI',
-        'PIQ wells at WTSI',
-        'PIQ-accepted Clones at WTSI',
-        'Imits Plans Summary',
+        'Accepted Vectors',
+        'Accepted Clones passed 1st QC',
+        'Failed Clones',
+        'Accepted Clones Passed 2nd QC',
+        'Accepted Clones Failed 2nd QC',
+        'MI Attempts Aborted or Inactive',
+        'MI Attempts In Progress',
+        'MI Attempts Chimeras Obtained',
+        'MI Attempts Genotype Confirmed',
     ];
 };
 
