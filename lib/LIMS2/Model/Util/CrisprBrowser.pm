@@ -332,12 +332,12 @@ sub design_oligos_to_gff {
         . $params->{'start_coord'}
         . '-'
         . $params->{'end_coord'} ;
+$DB::single=1;
 
         my $gibson_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs. 
         $gibson_designs = parse_gibson_designs( $oligo_rs );
         my $design_meta_data;
         $design_meta_data = generate_design_meta_data ( $gibson_designs );
-
 
         # The gff paret is generated from the meta data for the design
         # must do this for each design (as there may be several)
@@ -349,7 +349,7 @@ sub design_oligos_to_gff {
                 'start' => $design_meta_data->{$design_data}->{'design_start'},
                 'end' => $design_meta_data->{$design_data}->{'design_end'},
                 'score' => '.',
-                'strand' => ( $design_meta_data->{$design_data}->{'strand'} == '-1' ) ? '-' : '+',
+                'strand' => '+',
                 'phase' => '.',
                 'attributes' => 'ID='
                     . 'D_' . $design_data . ';'
@@ -363,6 +363,7 @@ sub design_oligos_to_gff {
             foreach my $oligo ( keys %{$gibson_designs->{$design_data}} ) {
                 $oligo_format_hash{'start'} = $gibson_designs->{$design_data}->{$oligo}->{'chr_start'};
                 $oligo_format_hash{'end'}   = $gibson_designs->{$design_data}->{$oligo}->{'chr_end'};
+                $oligo_format_hash{'strand'} = ( $design_meta_data->{$design_data}->{$oligo}->{'strand'} eq '-1' ) ? '-' : '+';
                 $oligo_format_hash{'attributes'} =     'ID='
                     . $oligo . ';'
                     . 'Parent=D_' . $design_data . ';'

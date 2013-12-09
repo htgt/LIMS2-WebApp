@@ -189,10 +189,14 @@ sub crispr_pair_ucsc_blat : PathPart('blat') Chained('crispr_pair') : Args(0) {
 
 sub browse_crisprs : Path( '/user/browse_crisprs' ) : Args(0) {
         my ( $self, $c ) = @_;
+
+        return;
     }
 
 sub browse_crisprs_genoverse : Path( '/user/browse_crisprs_genoverse' ) : Args(0) {
         my ( $self, $c ) = @_;
+
+        return;
     }
 
 __PACKAGE__->meta->make_immutable;
