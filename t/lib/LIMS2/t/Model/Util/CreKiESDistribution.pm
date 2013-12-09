@@ -152,7 +152,7 @@ sub all_tests : Test(69) {
     ok $summary_report_data->[0]->[29] eq '1', 'count of WTSI genes missing from_lims2 should be 1';
     ok $summary_report_data->[0]->[30] eq '0', 'count of WTSI genes unrecognised type should be 0';
 
-    ok $summary_report_data->[1]->[0]  eq 'unassigned', 'production centre name should be unassigned';
+    ok $summary_report_data->[1]->[0]  eq 'Unassigned', 'production centre name should be Unassigned';
     ok $summary_report_data->[1]->[1]  eq '4', 'count of unassigned genes total should be 4';
     ok $summary_report_data->[1]->[2]  eq '1', 'count of unassigned genes unrequested should be 1';
     ok $summary_report_data->[1]->[3]  eq '1', 'count of unassigned genes unrequested vector complete should be 1';

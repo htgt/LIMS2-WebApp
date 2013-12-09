@@ -87,7 +87,7 @@ Readonly my @BASKET_NAMES => (
     'awaiting_vectors',
     'awaiting_electroporation',
     'awaiting_primary_qc',
-    'in_primary_qc',    
+    'in_primary_qc',
     'failed_primary_qc_no_rem_clones',
     'awaiting_secondary_qc',
     'in_secondary_qc_1_clone',
@@ -210,27 +210,11 @@ sub _build_dispatches {
 
         'has_acpt_final_picks'                   => sub { $self->_has_acpt_final_picks },
         'not_has_acpt_final_picks'               => sub { !$self->_has_acpt_final_picks },
-        'has_primary_qc_data'                    => sub { $self->_has_primary_qc_data },
-        'not_has_primary_qc_data'                => sub { !$self->_has_primary_qc_data },
-
-        'has_mi_attempts'                        => sub { $self->_has_mi_attempts },
-        'not_has_mi_attempts'                    => sub { !$self->_has_mi_attempts },
-        'has_actv_mi_plans'                      => sub { $self->_has_actv_mi_plans },
-        'not_has_actv_mi_plans'                  => sub { !$self->_has_actv_mi_plans },
-        'has_actv_mi_attempts'                   => sub { $self->_has_actv_mi_attempts },
-        'not_has_actv_mi_attempts'               => sub { !$self->_has_actv_mi_attempts },
-        'has_piqs'                               => sub { $self->_has_piqs },
-        'not_has_piqs'                           => sub { !$self->_has_piqs },
-
-        'has_aborted_mi_attempts'                => sub { $self->_has_has_aborted_mi_attempts },
-        'not_aborted_mi_attempts'                => sub { !$self->_has_has_aborted_mi_attempts },
-        'has_actv_mi_attempts_type_chr'          => sub { $self->_has_actv_mi_attempts_type_chr },
-        'not_has_actv_mi_attempts_type_chr'      => sub { !$self->_has_actv_mi_attempts_type_chr },
-        'has_actv_mi_attempts_type_gtc'          => sub { $self->_has_actv_mi_attempts_type_gtc },
-        'not_has_actv_mi_attempts_type_gtc'      => sub { !$self->_has_actv_mi_attempts_type_gtc },
 
         'has_clones'                             => sub { $self->_has_clones },
         'not_has_clones'                         => sub { !$self->_has_clones },
+        'has_primary_qc_data'                    => sub { $self->_has_primary_qc_data },
+        'not_has_primary_qc_data'                => sub { !$self->_has_primary_qc_data },
         'has_clones_missing_primary_qc_data'     => sub { $self->_has_clones_missing_primary_qc_data },
         'has_all_clones_failed_primary_qc'       => sub { $self->_has_all_clones_failed_primary_qc },
 
@@ -242,6 +226,9 @@ sub _build_dispatches {
         'has_4_acpt_clones'                      => sub { $self->_has_4_acpt_clones },
         'has_5_acpt_clones'                      => sub { $self->_has_5_acpt_clones },
         'has_gt5_acpt_clones'                    => sub { $self->_has_gt5_acpt_clones },
+
+        'has_piqs'                               => sub { $self->_has_piqs },
+        'not_has_piqs'                           => sub { !$self->_has_piqs },
         'has_acpt_piqs'                          => sub { $self->_has_acpt_piqs },
         'not_has_acpt_piqs'                      => sub { !$self->_has_acpt_piqs },
         'has_secondary_qc_data'                  => sub { $self->_has_secondary_qc_data },
@@ -255,6 +242,18 @@ sub _build_dispatches {
         'has_gt5_failed_piqs'                    => sub { $self->_has_gt5_failed_piqs },
 
         'has_all_clones_failed_secondary_qc'     => sub { $self->_has_all_clones_failed_secondary_qc },
+
+        'has_actv_mi_plans'                      => sub { $self->_has_actv_mi_plans },
+        'not_has_actv_mi_plans'                  => sub { !$self->_has_actv_mi_plans },
+        'has_aborted_mi_attempts'                => sub { $self->_has_has_aborted_mi_attempts },
+        'has_mi_attempts'                        => sub { $self->_has_mi_attempts },
+        'not_has_mi_attempts'                    => sub { !$self->_has_mi_attempts },
+        'has_actv_mi_attempts'                   => sub { $self->_has_actv_mi_attempts },
+        'not_has_actv_mi_attempts'               => sub { !$self->_has_actv_mi_attempts },
+        'has_actv_mi_attempts_type_chr'          => sub { $self->_has_actv_mi_attempts_type_chr },
+        'not_has_actv_mi_attempts_type_chr'      => sub { !$self->_has_actv_mi_attempts_type_chr },
+        'has_actv_mi_attempts_type_gtc'          => sub { $self->_has_actv_mi_attempts_type_gtc },
+        'not_has_actv_mi_attempts_type_gtc'      => sub { !$self->_has_actv_mi_attempts_type_gtc },
 
         'unrequested'                            => sub { my $centre_name = shift; $self->cre_ki_genes->{ 'summary_counts' }->{ 'report' }->{ $centre_name }->{ 'count_unrequested' }++; },
         'unrequested_vector_complete'            => sub { my $centre_name = shift; $self->cre_ki_genes->{ 'summary_counts' }->{ 'report' }->{ $centre_name }->{ 'count_unrequested_vector_complete' }++; },
@@ -303,32 +302,58 @@ sub generate_summary_report_data {
     $self->_summarise_cre_ki_data();
 
     # Transfer the information for each production centre into the report array, one row per production centre
-    # NB. includes 'unassigned' and 'multiple centres'
+    # NB. includes 'Unassigned' and 'Multiple Centres'
 
-    #TODO need them in an order, multis and unassigned last
-    foreach my $prod_centre_name ( sort keys %{ $self->cre_ki_genes->{ 'overall_production_centres' } } ) {
-        my $curr_counter_set = \%{ $self->cre_ki_genes->{ 'summary_counts' }->{ 'report' }->{ $prod_centre_name } };
-
-        # don't use the row if it's empty
-        unless ( $curr_counter_set->{ 'count_genes_total' } == 0 ) {
-
-            # fetch counts for current basket
-            my @curr_basket_counts;
-            foreach my $basket_name ( @BASKET_NAMES ) {
-                push ( @curr_basket_counts, $curr_counter_set->{ 'count_'.$basket_name } );
-            }
-
-            # add row into report data array
-            push @report_data, [
-                $prod_centre_name,
-                $curr_counter_set->{ 'count_genes_total' },
-                @curr_basket_counts,
-                $curr_counter_set->{ 'count_unrecognised_type' },
-            ];
+    #need to sort the centres in an order, multis and unassigned last
+    my @sorted_overall_production_centres = sort {
+        if ($a eq 'Unassigned' || ( $a eq 'Multiple Centres' && $b ne 'Unassigned' ) ) {
+            return 1;
         }
+        elsif ($b eq 'Unassigned' || ( $b eq 'Multiple Centres' && $a ne 'Unassigned' ) ) {
+            return -1;
+        }
+        else {
+            return $a cmp $b;
+        }
+    } keys %{ $self->cre_ki_genes->{ 'overall_production_centres' } };
+
+    # build the row for the report
+    foreach my $prod_centre_name ( @sorted_overall_production_centres ) {
+        $self->_generate_summary_report_row( $prod_centre_name, \@report_data );
     }
 
     $self->report_data( \@report_data );
+
+    return;
+}
+
+=head2 _generate_summary_report_row
+
+generate row for summary report
+
+=cut
+sub _generate_summary_report_row {
+    my ( $self, $prod_centre_name, $report_data ) = @_;
+
+    my $curr_counter_set = \%{ $self->cre_ki_genes->{ 'summary_counts' }->{ 'report' }->{ $prod_centre_name } };
+
+    # don't use the row if it's empty
+    unless ( $curr_counter_set->{ 'count_genes_total' } == 0 ) {
+
+        # fetch counts for current basket
+        my @curr_basket_counts;
+        foreach my $basket_name ( @BASKET_NAMES ) {
+            push ( @curr_basket_counts, $curr_counter_set->{ 'count_'.$basket_name } );
+        }
+
+        # add row into report data array
+        push @{ $report_data }, [
+            $prod_centre_name,
+            $curr_counter_set->{ 'count_genes_total' },
+            @curr_basket_counts,
+            $curr_counter_set->{ 'count_unrecognised_type' },
+        ];
+    }
 
     return;
 }
@@ -345,53 +370,72 @@ sub generate_genes_report_data {
 
     $self->_summarise_cre_ki_data();
 
-    # print "Summary gene data: \n";
-    # print ( Dumper ( $self->summary_gene_data ) );
-
-    # create rows ordered by production centre and then by basket then by gene id
-    foreach my $prod_centre_name ( sort keys %{ $self->cre_ki_genes->{ 'overall_production_centres' } } ) {
-
-        my @baskets = ( @BASKET_NAMES );
-        push ( @baskets, 'unrecognised' );
-
-        # print "Genes report baskets: \n";
-        # print ( Dumper ( @baskets ) );
-
-        # for each set of genes create the row
-        foreach my $basket_name ( @baskets ) {
-            my $curr_basket = \%{ $self->summary_gene_data->{ $prod_centre_name }->{ $basket_name } };
-
-            # skip if no genes in this partition
-            unless ( defined $curr_basket->{ 'count_genes' } ) { next; }
-
-            # print "$prod_centre_name $basket_name genes count: ".$curr_basket->{ 'count_genes' }."\n";
-
-            unless ( ( $curr_basket->{ 'count_genes' } ) > 0 ) { next; }
-
-            # add row to report array for each gene
-            foreach my $mgi_gene_id ( sort keys %{ $curr_basket->{ 'genes' } } ) {
-                my $curr_gene = $self->cre_ki_genes->{ 'genes' }->{ $mgi_gene_id };
-                push @report_data, [
-                    $prod_centre_name,
-                    $curr_gene->{ 'production_centre_priorities_list' },
-                    $basket_name,
-                    $curr_basket->{ 'genes' }->{ $mgi_gene_id }->{ 'mgi_accession_id' },
-                    $curr_gene->{ 'marker_symbol' },
-                    $curr_gene->{ 'accepted_final_pick_wells_list' },
-                    $curr_gene->{ 'accepted_ep_pick_wells_list' },
-                    $curr_gene->{ 'failed_ep_pick_wells_list' },
-                    $curr_gene->{ 'accepted_clone_secondary_qc_passed_list' },
-                    $curr_gene->{ 'accepted_clone_secondary_qc_failed_list' },
-                    $curr_gene->{ 'mi_attempts_abt_clones_list' },
-                    $curr_gene->{ 'mi_attempts_mip_clones_list' },
-                    $curr_gene->{ 'mi_attempts_chr_clones_list' },
-                    $curr_gene->{ 'mi_attempts_gtc_clones_list' },
-                ];
-            }
+    #need to sort the centres in an order, multis and unassigned last
+    my @sorted_overall_production_centres = sort {
+        if ($a eq 'Unassigned' || ( $a eq 'Multiple Centres' && $b ne 'Unassigned' ) ) {
+            return 1;
         }
+        elsif ($b eq 'Unassigned' || ( $b eq 'Multiple Centres' && $a ne 'Unassigned' ) ) {
+            return -1;
+        }
+        else {
+            return $a cmp $b;
+        }
+    } keys %{ $self->cre_ki_genes->{ 'overall_production_centres' } };
+
+    # build the row for the report
+    foreach my $prod_centre_name ( @sorted_overall_production_centres ) {
+        $self->_generate_gene_report_row( $prod_centre_name, \@report_data );
     }
 
     $self->report_data( \@report_data );
+
+    return;
+}
+
+=head2 _generate_gene_report_row
+
+generate row for gene report
+
+=cut
+sub _generate_gene_report_row {
+    my ( $self, $prod_centre_name, $report_data ) = @_;
+
+    my @baskets = ( @BASKET_NAMES );
+    push ( @baskets, 'unrecognised' );
+
+    # for each set of genes create the row
+    foreach my $basket_name ( @baskets ) {
+        my $curr_basket = \%{ $self->summary_gene_data->{ $prod_centre_name }->{ $basket_name } };
+
+        # skip if no genes in this partition
+        unless ( defined $curr_basket->{ 'count_genes' } ) { next; }
+
+        # print "$prod_centre_name $basket_name genes count: ".$curr_basket->{ 'count_genes' }."\n";
+
+        unless ( ( $curr_basket->{ 'count_genes' } ) > 0 ) { next; }
+
+        # add row to report array for each gene
+        foreach my $mgi_gene_id ( sort keys %{ $curr_basket->{ 'genes' } } ) {
+            my $curr_gene = $self->cre_ki_genes->{ 'genes' }->{ $mgi_gene_id };
+            push @{ $report_data }, [
+                $prod_centre_name,
+                $curr_gene->{ 'production_centre_priorities_list' },
+                $basket_name,
+                $curr_basket->{ 'genes' }->{ $mgi_gene_id }->{ 'mgi_accession_id' },
+                $curr_gene->{ 'marker_symbol' },
+                $curr_gene->{ 'accepted_final_pick_wells_list' },
+                $curr_gene->{ 'accepted_ep_pick_wells_list' },
+                $curr_gene->{ 'failed_ep_pick_wells_list' },
+                $curr_gene->{ 'accepted_clone_secondary_qc_passed_list' },
+                $curr_gene->{ 'accepted_clone_secondary_qc_failed_list' },
+                $curr_gene->{ 'mi_attempts_abt_clones_list' },
+                $curr_gene->{ 'mi_attempts_mip_clones_list' },
+                $curr_gene->{ 'mi_attempts_chr_clones_list' },
+                $curr_gene->{ 'mi_attempts_gtc_clones_list' },
+            ];
+        }
+    }
 
     return;
 }
@@ -488,30 +532,17 @@ sub _add_lims2_counts {
     foreach my $mgi_gene_id ( sort keys %{ $cre_ki_genes->{ 'genes' } } ) {
         my $curr_gene_hash = \% { $cre_ki_genes->{ 'genes' }->{ $mgi_gene_id } };
 
-        # arrays to hold lists of wells
-        my @final_pick_well_idents_array;
-        my @accepted_ep_pick_well_idents_array;
-        my @failed_ep_pick_well_idents_array;
-        my @fp_well_idents_array;
-        my @piq_well_idents_array;
-        my @accepted_piq_clones_array;
-        my @failed_piq_clones_array;
-             
+        $self->_initialise_current_gene_well_ident_lists( $curr_gene_hash );
+
         if ( exists $curr_gene_hash->{ 'vectors' } ) {
-            my $curr_gene_hash_vectors = \% { $curr_gene_hash->{ 'vectors' } };
-            # cycle through the final pick vectors
-            foreach my $vector_well_ident ( sort keys %{ $curr_gene_hash_vectors } ) {
-                $curr_gene_hash->{ 'count_lims2_final_picks_total' }++;
-                if ( $curr_gene_hash_vectors->{ $vector_well_ident }->{ 'final_pick_well_accepted' } == 1 ) {                    
-                    push ( @final_pick_well_idents_array, $vector_well_ident );
-                    $curr_gene_hash->{ 'count_lims2_final_picks_accepted' }++;
-                }
-            }
+            # add vector counts
+            $self->_add_current_gene_final_pick_counts( $curr_gene_hash );
         }
 
         unless ( exists $curr_gene_hash->{ 'clones' } ) { next; }
 
         my $curr_gene_clones_hash = \% { $curr_gene_hash->{ 'clones' } };
+
         # cycle through the ep pick clones
         foreach my $clone_well_ident ( sort keys %{ $curr_gene_clones_hash } ) {
             $curr_gene_hash->{ 'count_lims2_ep_pick_wells_total' }++;
@@ -519,10 +550,10 @@ sub _add_lims2_counts {
             # check for well accepted
             my $curr_clone_hash = \% { $curr_gene_clones_hash->{ $clone_well_ident } };
             if ( $curr_clone_hash->{ 'clone_accepted' } == 1 ) {
-                push ( @accepted_ep_pick_well_idents_array, $clone_well_ident );
+                push ( @{ $curr_gene_hash->{ 'accepted_ep_pick_wells_array' } }, $clone_well_ident );
                 $curr_gene_hash->{ 'count_lims2_ep_pick_wells_accepted' }++;
             }
-            
+
             # check for QC data
             $curr_clone_hash->{ 'has_qc_data' } = $self->_well_has_qc_data( $curr_clone_hash->{ 'ep_pick_well_db_id' } );
             if ( $curr_clone_hash->{ 'has_qc_data' } ) {
@@ -530,7 +561,7 @@ sub _add_lims2_counts {
 
                 # failed if NOT accepted and has qc data
                 if ( $curr_clone_hash->{ 'clone_accepted' } == 0 ) {
-                    push ( @failed_ep_pick_well_idents_array, $clone_well_ident );
+                    push ( @{ $curr_gene_hash->{ 'failed_ep_pick_wells_array' } }, $clone_well_ident );
                     $curr_gene_hash->{ 'count_lims2_ep_pick_wells_failed' }++;
                 }
             }
@@ -538,48 +569,117 @@ sub _add_lims2_counts {
              # cycle through all the freezer wells for each accepted clone (if any)
             foreach my $fp_well_ident ( sort keys %{ $curr_clone_hash->{ 'freezer_wells' } } ) {
                 $curr_gene_hash->{ 'count_lims2_freezer_wells' }++;
-                push ( @fp_well_idents_array, $fp_well_ident );
+                push ( @{ $curr_gene_hash->{ 'fp_wells_array' } }, $fp_well_ident );
                 my $curr_fp_well_hash = \%{ $curr_clone_hash->{ 'freezer_wells' }->{ $fp_well_ident } };
 
                 unless ( exists $curr_fp_well_hash->{ 'piq_wells' } ) { next; }
-
-                my $curr_gene_piqs_hash = \% { $curr_fp_well_hash->{ 'piq_wells' } };
-                # cycle through all the PIQ wells for each freezer well (if any)
-                foreach my $piq_well_ident ( sort keys %{ $curr_gene_piqs_hash } ) {
-                    $curr_gene_hash->{ 'count_lims2_piq_wells_total' }++;
-                    push ( @piq_well_idents_array, $piq_well_ident );
-
-                    my $curr_piq_well_hash = \% { $curr_gene_piqs_hash->{ $piq_well_ident } };
-                    # check for well accepted
-                    if ( $curr_piq_well_hash->{ 'piq_well_accepted' } == 1 ) {
-                        push ( @accepted_piq_clones_array, $clone_well_ident );
-                        $curr_gene_hash->{ 'count_lims2_piq_wells_accepted' }++;
-                    }
-
-                    # check for QC data
-                    $curr_piq_well_hash->{ 'has_qc_data' } = $self->_well_has_qc_data( $curr_piq_well_hash->{ 'piq_well_db_id' } );
-                    if ( $curr_piq_well_hash->{ 'has_qc_data' } ) {
-                        $curr_gene_hash->{ 'count_lims2_piq_wells_with_qc_data' }++;
-
-                        # failed if NOT accepted and PIQ has qc data
-                        if ( $curr_piq_well_hash->{ 'piq_well_accepted' } == 0 ) {
-                            push ( @failed_piq_clones_array, $clone_well_ident );
-                            $curr_gene_hash->{ 'count_lims2_piq_wells_failed' }++;
-                        }
-                    }
-                }
+                # add PIQ counts
+                $self->_add_current_gene_piq_counts( $curr_gene_hash, $clone_well_ident, $curr_fp_well_hash );
             }
         }
 
         # add lists of well ids into gene hash
-        if ( @final_pick_well_idents_array ) { $curr_gene_hash->{ 'accepted_final_pick_wells_list' }       = join ( ' : ', @final_pick_well_idents_array ) };
-        if ( @accepted_ep_pick_well_idents_array ) { $curr_gene_hash->{ 'accepted_ep_pick_wells_list' }    = join ( ' : ', @accepted_ep_pick_well_idents_array ) };
-        if ( @failed_ep_pick_well_idents_array ) { $curr_gene_hash->{ 'failed_ep_pick_wells_list' }        = join ( ' : ', @failed_ep_pick_well_idents_array ) };
-        if ( @fp_well_idents_array ) { $curr_gene_hash->{ 'fp_wells_list' }                                = join ( ' : ', @fp_well_idents_array ) };
-        if ( @piq_well_idents_array ) { $curr_gene_hash->{ 'piq_wells_list' }                              = join ( ' : ', @piq_well_idents_array ) };
-        if ( @accepted_piq_clones_array ) { $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_list' } = join ( ' : ', @accepted_piq_clones_array ) };
-        if ( @failed_piq_clones_array ) { $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_list' }   = join ( ' : ', @failed_piq_clones_array ) };
+        $self->_create_current_gene_well_ident_lists( $curr_gene_hash );
     }
+
+    return;
+}
+
+=head2 _add_current_gene_final_pick_counts
+
+add final pick counts
+
+=cut
+sub _add_current_gene_final_pick_counts {
+    my ( $self, $curr_gene_hash ) = @_;
+
+    my $curr_gene_hash_vectors = \% { $curr_gene_hash->{ 'vectors' } };
+    # cycle through the final pick vectors
+    foreach my $vector_well_ident ( sort keys %{ $curr_gene_hash_vectors } ) {
+        $curr_gene_hash->{ 'count_lims2_final_picks_total' }++;
+        if ( $curr_gene_hash_vectors->{ $vector_well_ident }->{ 'final_pick_well_accepted' } == 1 ) {
+            push ( @{ $curr_gene_hash->{ 'accepted_final_pick_wells_array' } }, $vector_well_ident );
+            $curr_gene_hash->{ 'count_lims2_final_picks_accepted' }++;
+        }
+    }
+
+    return;
+
+}
+
+=head2 _add_current_gene_piq_counts
+
+add piq counts
+
+=cut
+sub _add_current_gene_piq_counts {
+    my ( $self, $curr_gene_hash, $clone_well_ident, $curr_fp_well_hash ) = @_;
+
+    my $curr_gene_piqs_hash = \% { $curr_fp_well_hash->{ 'piq_wells' } };
+    # cycle through all the PIQ wells for each freezer well (if any)
+    foreach my $piq_well_ident ( sort keys %{ $curr_gene_piqs_hash } ) {
+        $curr_gene_hash->{ 'count_lims2_piq_wells_total' }++;
+        push ( @{ $curr_gene_hash->{ 'piq_wells_array' } }, $piq_well_ident );
+
+        my $curr_piq_well_hash = \% { $curr_gene_piqs_hash->{ $piq_well_ident } };
+        # check for well accepted
+        if ( $curr_piq_well_hash->{ 'piq_well_accepted' } == 1 ) {
+            push ( @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_array' } }, $clone_well_ident );
+            $curr_gene_hash->{ 'count_lims2_piq_wells_accepted' }++;
+        }
+
+        # check for PIQ QC data
+        $curr_piq_well_hash->{ 'has_qc_data' } = $self->_well_has_qc_data( $curr_piq_well_hash->{ 'piq_well_db_id' } );
+        if ( $curr_piq_well_hash->{ 'has_qc_data' } ) {
+            $curr_gene_hash->{ 'count_lims2_piq_wells_with_qc_data' }++;
+
+            # failed if NOT accepted and PIQ has qc data
+            if ( $curr_piq_well_hash->{ 'piq_well_accepted' } == 0 ) {
+                push ( @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_array' } }, $clone_well_ident );
+                $curr_gene_hash->{ 'count_lims2_piq_wells_failed' }++;
+            }
+        }
+    }
+
+    return;
+}
+
+=head2 _initialise_current_gene_well_ident_lists
+
+initialise various well ident strings for current gene
+
+=cut
+sub _initialise_current_gene_well_ident_lists {
+    my ( $self, $curr_gene_hash ) = @_;
+
+    # add lists of well ids into gene hash
+    $curr_gene_hash->{ 'accepted_final_pick_wells_array' }          = [];
+    $curr_gene_hash->{ 'accepted_ep_pick_wells_array' }             = [];
+    $curr_gene_hash->{ 'failed_ep_pick_wells_array' }               = [];
+    $curr_gene_hash->{ 'fp_wells_array' }                           = [];
+    $curr_gene_hash->{ 'piq_wells_array' }                          = [];
+    $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_array' } = [];
+    $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_array' } = [];
+
+    return;
+}
+
+=head2 _create_current_gene_well_ident_lists
+
+create various well ident strings for current gene
+
+=cut
+sub _create_current_gene_well_ident_lists {
+    my ( $self, $curr_gene_hash ) = @_;
+
+    # add lists of well ids into gene hash
+    $curr_gene_hash->{ 'accepted_final_pick_wells_list' }          = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_final_pick_wells_array' } } );
+    $curr_gene_hash->{ 'accepted_ep_pick_wells_list' }             = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_ep_pick_wells_array' } } );
+    $curr_gene_hash->{ 'failed_ep_pick_wells_list' }               = join ( ' : ', @{ $curr_gene_hash->{ 'failed_ep_pick_wells_array' } } );
+    $curr_gene_hash->{ 'fp_wells_list' }                           = join ( ' : ', @{ $curr_gene_hash->{ 'fp_wells_array' } } );
+    $curr_gene_hash->{ 'piq_wells_list' }                          = join ( ' : ', @{ $curr_gene_hash->{ 'piq_wells_array' } } );
+    $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_list' } = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_array' } } );
+    $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_list' } = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_array' } } );
 
     return;
 }
@@ -597,14 +697,14 @@ sub _initialise_curr_gene_lims2_counters {
 
     $curr_gene->{ 'count_lims2_final_picks_total' }             = 0;
     $curr_gene->{ 'count_lims2_final_picks_accepted' }          = 0;
-    
+
     $curr_gene->{ 'count_lims2_ep_pick_wells_total' }           = 0;
     $curr_gene->{ 'count_lims2_ep_pick_wells_accepted' }        = 0;
     $curr_gene->{ 'count_lims2_ep_pick_wells_failed' }          = 0;
     $curr_gene->{ 'count_lims2_ep_pick_wells_with_qc_data' }    = 0;
 
     $curr_gene->{ 'count_lims2_freezer_wells' }                 = 0;
-    
+
     $curr_gene->{ 'count_lims2_piq_wells_total' }               = 0;
     $curr_gene->{ 'count_lims2_piq_wells_accepted' }            = 0;
     $curr_gene->{ 'count_lims2_piq_wells_failed' }              = 0;
@@ -642,13 +742,7 @@ select Cre Ki data by gene from imits database
 sub _fetch_imits_cre_ki_data {
     my ( $self ) = @_;
 
-    my $dbname   = $self->imits_config->{ 'imits_connection' }->{ 'dbname' };
-    my $host     = $self->imits_config->{ 'imits_connection' }->{ 'host' };
-    my $port     = $self->imits_config->{ 'imits_connection' }->{ 'port' };
-    my $username = $self->imits_config->{ 'imits_connection' }->{ 'username' };
-    my $password = $self->imits_config->{ 'imits_connection' }->{ 'password' };
-
-    my $dbh = DBI->connect("dbi:Pg:dbname=$dbname;host=$host;port=$port;", "$username", "$password");
+    my $dbh = $self->_connect_to_imits();
 
     my $sql = _sql_select_imits_data();
 
@@ -700,6 +794,25 @@ sub _fetch_imits_cre_ki_data {
     return $imits_data;
 }
 
+=head2 _connect_to_imits
+
+create connection to imits
+
+=cut
+sub _connect_to_imits {
+    my ( $self ) = @_;
+
+    my $dbname   = $self->imits_config->{ 'imits_connection' }->{ 'dbname' };
+    my $host     = $self->imits_config->{ 'imits_connection' }->{ 'host' };
+    my $port     = $self->imits_config->{ 'imits_connection' }->{ 'port' };
+    my $username = $self->imits_config->{ 'imits_connection' }->{ 'username' };
+    my $password = $self->imits_config->{ 'imits_connection' }->{ 'password' };
+
+    my $dbh = DBI->connect("dbi:Pg:dbname=$dbname;host=$host;port=$port;", "$username", "$password");
+
+    return $dbh;
+}
+
 =head2 fuse_lims2_and_imits_data
 
 join together the LIMS2 and imits gene data
@@ -726,18 +839,7 @@ sub _fuse_lims2_and_imits_data {
 
         # if gene has mi_plans
         if ( exists $imits_gene_hash->{ 'mi_plans' } ) {
-            # copy mi_plans across
-            my $imits_gene_plans = \%{ $imits_gene_hash->{ 'mi_plans' } };
-            $curr_gene_hash->{ 'mi_plans' } = $imits_gene_plans;
-            # for each plan increment counters
-            foreach my $imits_plan_id ( sort keys %{ $imits_gene_plans } ) {
-                $curr_gene_hash->{ 'count_imits_mi_plans_total' }++;
-                my $is_current_plan_active = $imits_gene_plans->{ $imits_plan_id }->{ 'is_plan_active' };
-                # TODO: check for an aborted status here?
-                if ( $is_current_plan_active ) {
-                    $curr_gene_hash->{ 'count_imits_mi_plans_active' }++;
-                }
-            }
+            $self->_fuse_imits_plan_data( $curr_gene_hash, $imits_gene_hash );
         }
 
         # create text for display from production centres hash
@@ -762,10 +864,8 @@ sub _fuse_lims2_and_imits_data {
                     $curr_gene_hash->{ 'count_imits_mi_attempts_total' }++;
                     my $imits_mi_attempt                  = \%{ $imits_clone_hash->{ 'mi_attempts' }->{ $mi_attempt_db_id } };
                     my $curr_mi_attempt_status            = $imits_mi_attempt->{ 'status_code' } // '';
-                    # my $curr_mi_attempt_status_name       = $imits_mi_attempt->{ 'status_name' } // '';
                     my $curr_mi_attempt_is_active         = $imits_mi_attempt->{ 'is_attempt_active' } // '';
                     my $curr_mi_attempt_prod_centre       = $imits_mi_attempt->{ 'production_centre_name' } // '';
-                    # my $curr_mi_attempt_plan_priority     = $imits_mi_attempt->{ 'plan_priority' } // '';
                     my $curr_mi_attempt_colony_name       = $imits_mi_attempt->{ 'colony_name' } // '';
 
                     # to be active attempt must be active and not aborted
@@ -796,7 +896,31 @@ sub _fuse_lims2_and_imits_data {
         if ( @mi_attempt_gtc_clones_array ) { $curr_gene_hash->{ 'mi_attempts_gtc_clones_list' }    = join ( ' : ', @mi_attempt_gtc_clones_array ) };
         if ( @mi_attempt_chr_clones_array ) { $curr_gene_hash->{ 'mi_attempts_chr_clones_list' }    = join ( ' : ', @mi_attempt_chr_clones_array ) };
         if ( @mi_attempt_mip_clones_array ) { $curr_gene_hash->{ 'mi_attempts_mip_clones_list' }    = join ( ' : ', @mi_attempt_mip_clones_array ) };
-        if ( @mi_attempt_abt_clones_array ) { $curr_gene_hash->{ 'mi_attempts_abt_clones_list' }    = join ( ' : ', @mi_attempt_abt_clones_array ) };       
+        if ( @mi_attempt_abt_clones_array ) { $curr_gene_hash->{ 'mi_attempts_abt_clones_list' }    = join ( ' : ', @mi_attempt_abt_clones_array ) };
+    }
+
+    return;
+}
+
+=head2 _fuse_imits_plan_data
+
+incorporate imits plan data into current gene hash
+
+=cut
+sub _fuse_imits_plan_data {
+    my ( $self, $curr_gene_hash, $imits_gene_hash ) = @_;
+
+    # copy mi_plans across
+    my $imits_gene_plans = \%{ $imits_gene_hash->{ 'mi_plans' } };
+    $curr_gene_hash->{ 'mi_plans' } = $imits_gene_plans;
+    # for each plan increment counters
+    foreach my $imits_plan_id ( sort keys %{ $imits_gene_plans } ) {
+        $curr_gene_hash->{ 'count_imits_mi_plans_total' }++;
+        my $is_current_plan_active = $imits_gene_plans->{ $imits_plan_id }->{ 'is_plan_active' };
+        # TODO: check for an aborted status here?
+        if ( $is_current_plan_active ) {
+            $curr_gene_hash->{ 'count_imits_mi_plans_active' }++;
+        }
     }
 
     return;
@@ -832,7 +956,7 @@ sub _create_production_centres_display_lists {
     }
     $curr_gene_hash->{ 'count_imits_production_centres' }        = scalar @production_centres_list;
 
-    if ( @production_centres_list ) { 
+    if ( @production_centres_list ) {
         $curr_gene_hash->{ 'production_centres_list' }           = join ( ' : ', @production_centres_list )
     };
 
@@ -1056,7 +1180,7 @@ sub _test_basket_logic_string {
 
         # if ( $operand_result ) { print "OPERAND RESULT: True \n"; } 
         # else { print "OPERAND RESULT: False \n"; }
-        
+
         return $operand_result;
     };
 
@@ -1394,8 +1518,8 @@ sub _has_1_failed_piq {
     unless ( defined $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } ) { return 0; }
     unless ( defined $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
-    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }    
-    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; } 
+    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }
+    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
     if ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } == 1 ) {
         return 1;
@@ -1416,8 +1540,8 @@ sub _has_2_failed_piqs {
     unless ( defined $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } ) { return 0; }
     unless ( defined $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
-    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }    
-    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; } 
+    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }
+    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
     if ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } == 2 ) {
         return 1;
@@ -1438,8 +1562,8 @@ sub _has_3_failed_piqs {
     unless ( defined $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } ) { return 0; }
     unless ( defined $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
-    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }    
-    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; } 
+    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }
+    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
     if ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } == 3 ) {
         return 1;
@@ -1460,8 +1584,8 @@ sub _has_4_failed_piqs {
     unless ( defined $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } ) { return 0; }
     unless ( defined $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
-    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }    
-    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; } 
+    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }
+    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
     if ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } == 4 ) {
         return 1;
@@ -1482,8 +1606,8 @@ sub _has_5_failed_piqs {
     unless ( defined $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } ) { return 0; }
     unless ( defined $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
-    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }    
-    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; } 
+    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }
+    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
     if ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } == 5 ) {
         return 1;
@@ -1504,8 +1628,8 @@ sub _has_gt5_failed_piqs {
     unless ( defined $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } ) { return 0; }
     unless ( defined $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
-    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }    
-    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; } 
+    unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }
+    unless ( $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } > $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
     if ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 5 ) {
         return 1;
@@ -1527,7 +1651,7 @@ sub _has_all_clones_failed_secondary_qc {
     unless ( defined $self->curr_gene->{ 'count_lims2_piq_wells_failed' } ) { return 0; }
 
     unless ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } > 0 ) { return 0; }
-    
+
     if ( $self->curr_gene->{ 'count_lims2_piq_wells_failed' } >= $self->curr_gene->{ 'count_lims2_ep_pick_wells_accepted' } ) {
         return 1;
     }

@@ -1,8 +1,7 @@
 ---
 cre_ki_data:
   overall_production_centres:
-      unassigned: 1
-      multiple_centres: 1
+      Unassigned: 1
       WTSI: 1
   genes:
       'MGI:1000001':
