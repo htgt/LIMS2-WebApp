@@ -216,7 +216,7 @@ sub crispr_pairs_to_gff {
         . '-'
         . $params->{'end_coord'} ;
 
-        while ( my $crispr_r = $crisprs_rs->next ) {            
+        while ( my $crispr_r = $crisprs_rs->next ) {
             my %crispr_format_hash = (
                 'seqid' => $params->{'chromosome_number'},
                 'source' => 'LIMS2',
@@ -332,7 +332,6 @@ sub design_oligos_to_gff {
         . $params->{'start_coord'}
         . '-'
         . $params->{'end_coord'} ;
-$DB::single=1;
 
         my $gibson_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs. 
         $gibson_designs = parse_gibson_designs( $oligo_rs );
@@ -349,7 +348,7 @@ $DB::single=1;
                 'start' => $design_meta_data->{$design_data}->{'design_start'},
                 'end' => $design_meta_data->{$design_data}->{'design_end'},
                 'score' => '.',
-                'strand' => '+',
+                'strand' => ( $design_meta_data->{$design_data}->{'strand'} eq '-1' ) ? '-' : '+',
                 'phase' => '.',
                 'attributes' => 'ID='
                     . 'D_' . $design_data . ';'
@@ -363,7 +362,7 @@ $DB::single=1;
             foreach my $oligo ( keys %{$gibson_designs->{$design_data}} ) {
                 $oligo_format_hash{'start'} = $gibson_designs->{$design_data}->{$oligo}->{'chr_start'};
                 $oligo_format_hash{'end'}   = $gibson_designs->{$design_data}->{$oligo}->{'chr_end'};
-                $oligo_format_hash{'strand'} = ( $design_meta_data->{$design_data}->{$oligo}->{'strand'} eq '-1' ) ? '-' : '+';
+                $oligo_format_hash{'strand'} = ( $gibson_designs->{$design_data}->{$oligo}->{'chr_strand'} eq '-1' ) ? '-' : '+';
                 $oligo_format_hash{'attributes'} =     'ID='
                     . $oligo . ';'
                     . 'Parent=D_' . $design_data . ';'
@@ -388,7 +387,7 @@ Returns hashref of hashrefs keyd on design_id
 
 sub parse_gibson_designs {
     my $gibson_rs = shift;
-    
+
     my %design_structure;
 
     # Note that the result set is ordered first by design_id and then by chr_start
@@ -400,7 +399,7 @@ sub parse_gibson_designs {
     # 5F with 5R, EF with ER, 3F with 3R
 
     while ( my $gibson = $gibson_rs->next ) {
-        $design_structure{ $gibson->design_id } -> 
+        $design_structure{ $gibson->design_id } ->
             {$gibson->oligo_type_id} = {
                 'design_oligo_id' => $gibson->oligo_id,
                 'chr_start' => $gibson->chr_start,
