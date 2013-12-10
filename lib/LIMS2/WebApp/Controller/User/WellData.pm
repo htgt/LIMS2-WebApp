@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.131';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.135';
 }
 ## use critic
 
@@ -152,10 +152,10 @@ sub genotyping_qc_report : Path( '/user/genotyping_qc_report') : Args(1) {
 sub genotyping_grid_help : Path( '/user/genotyping_grid_help') : Args(0) {
     return;
 }
+
 sub update_colony_picks_step_1 : Path( '/user/update_colony_picks_step_1' ) :Args(0) {
     my ( $self, $c ) = @_;
     return;
-
 }
 
 sub update_colony_picks_step_2 : Path( '/user/update_colony_picks_step_2' ) :Args(0) {

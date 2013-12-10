@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateQC::VERSION = '0.131';
+    $LIMS2::Model::Util::CreateQC::VERSION = '0.135';
 }
 ## use critic
 
@@ -18,17 +18,19 @@ use Sub::Exporter -setup => {
             create_qc_run_seq_proj
             create_qc_test_result_alignment
             get_qc_run_seq_well_from_alignments
+            htgt_api_call
             )
     ]
 };
 
 use Log::Log4perl qw( :easy );
-use JSON ();
+use JSON qw( encode_json decode_json );
 use Data::Compare qw( Compare );
 use List::MoreUtils qw( uniq );
 use Hash::MoreUtils qw( slice );
 use LIMS2::Exception::Validation;
 use LIMS2::Exception::System;
+use Try::Tiny;
 
 sub create_or_retrieve_eng_seq {
     my ( $model, $params ) = @_;
@@ -184,6 +186,50 @@ sub pspec__create_qc_test_result_alignment_region {
         match_str   => { validate => 'qc_match_str', trim => 0 },
         pass        => { validate => 'boolean' }
     };
+}
+
+#generic function to make a htgt api call, accepting a hashref of user parameters,
+#and returning the decoded json content provided by the api page.
+sub htgt_api_call {
+    my ( $c, $params, $conf_uri_key ) = @_;
+
+    my $content = {};
+
+    #do everythign in a try because if it fails there's no template and you get a useless error
+    try {
+        die "No URI specified." unless $conf_uri_key;
+
+        my $ua = LWP::UserAgent->new();
+        my $qc_conf = Config::Tiny->new();
+        $qc_conf = Config::Tiny->read( $ENV{ LIMS2_QC_CONFIG } );
+
+        #add authentication information
+        $params->{ username } = $qc_conf->{_}->{ username };
+        $params->{ password } = $qc_conf->{_}->{ password };
+
+        my $uri = $qc_conf->{_}->{ $conf_uri_key }; #kill_uri or submit_uri
+
+        die "No QC submission service has been configured. Cannot submit QC job."
+            unless $qc_conf;
+
+        #create a http request object sending json
+        my $req = HTTP::Request->new( POST => $uri );
+        $req->content_type( 'application/json' );
+        $req->content( encode_json( $params ) );
+
+        #make the actual request 
+        my $response = $ua->request( $req );
+
+        die "Request to $uri was not successful. Response: ".$response->status_line."<br/>".$response->as_string
+            unless $response->is_success;
+
+        $content = decode_json( $response->content );
+    }
+    catch {
+        $c->stash( error_msg => "Sorry, your HTGT API submission failed with error: $_" );
+        return;
+    };
+    return $content;
 }
 
 sub _create_qc_test_result_alignment_region {

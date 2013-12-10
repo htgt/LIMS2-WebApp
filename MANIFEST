@@ -136,6 +136,7 @@ lib/LIMS2/Model/Util.pm
 lib/LIMS2/Model/Util/AlleleDetermination.pm
 lib/LIMS2/Model/Util/BacsForDesign.pm
 lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
+lib/LIMS2/Model/Util/CreKiESDistribution.pm
 lib/LIMS2/Model/Util/CreatePlate.pm
 lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
@@ -155,6 +156,8 @@ lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
+lib/LIMS2/Report/CreKiESDistributionGenes.pm
+lib/LIMS2/Report/CreKiESDistributionSummary.pm
 lib/LIMS2/Report/CrisprEPPlate.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
@@ -269,6 +272,7 @@ root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_pair.tt
+root/site/user/designtargets/crisprs_ucsc_blat.tt
 root/site/user/designtargets/design_target_report_crispr_pick.tt
 root/site/user/designtargets/gene_report_crispr_pairs.tt
 root/site/user/designtargets/gene_report_single_crisprs.tt
@@ -2118,19 +2122,22 @@ root/static/extjs/src/view/View.js
 root/static/extjs/src/window/MessageBox.js
 root/static/extjs/src/window/Window.js
 root/static/extjs/version.properties
+root/static/files/plate_upload/crispr_paired_ep_template.csv
 root/static/files/plate_upload/crispr_paired_ep_template_es.csv
 root/static/files/plate_upload/crispr_paired_ep_template_vector.csv
+root/static/files/plate_upload/crispr_single_ep_template.csv
 root/static/files/plate_upload/crispr_single_ep_template_es.csv
 root/static/files/plate_upload/crispr_single_ep_template_vector.csv
-root/static/files/plate_upload/dna_template_es.csv
+root/static/files/plate_upload/dna_template.csv
 root/static/files/plate_upload/dna_template_vector.csv
 root/static/files/plate_upload/first_electroporation_template_es.csv
 root/static/files/plate_upload/first_electroporation_template_vector.csv
 root/static/files/plate_upload/gateway_template_es.csv
 root/static/files/plate_upload/gateway_template_vector.csv
+root/static/files/plate_upload/piq_template.csv
 root/static/files/plate_upload/piq_template_es.csv
 root/static/files/plate_upload/piq_template_vector.csv
-root/static/files/plate_upload/qc_template_plate_template_es.csv
+root/static/files/plate_upload/qc_template_plate_template.csv
 root/static/files/plate_upload/qc_template_plate_template_vector.csv
 root/static/files/plate_upload/recombinase_template_es.csv
 root/static/files/plate_upload/recombinase_template_vector.csv
@@ -2174,6 +2181,7 @@ root/static/js/jquery.qtip.min.js
 root/static/js/poller.js
 root/static/js/raphael-min.js
 root/static/test/data/10_LIMS2_Model_Util_AlleleDetermination.yaml
+root/static/test/data/10_LIMS2_Model_Util_CreKiESDistribution.yaml
 root/static/test/data/2w_gateway_process.yaml
 root/static/test/data/3w_gateway_process.yaml
 root/static/test/data/70-pipeline_summary_reports_data.yaml
@@ -2433,6 +2441,7 @@ t/LIMS2/Model/Schema/Result/10_LIMS2_Model_Schema_Result_WellTargetingPuroPass.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_AlleleDetermination.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_BacsForDesign.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_ComputeAcceptedStatus.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreKiESDistribution.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreatePlate.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreateProcess.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreateQC.t
@@ -2639,6 +2648,7 @@ t/lib/LIMS2/t/Model/Util.pm
 t/lib/LIMS2/t/Model/Util/AlleleDetermination.pm
 t/lib/LIMS2/t/Model/Util/BacsForDesign.pm
 t/lib/LIMS2/t/Model/Util/ComputeAcceptedStatus.pm
+t/lib/LIMS2/t/Model/Util/CreKiESDistribution.pm
 t/lib/LIMS2/t/Model/Util/CreatePlate.pm
 t/lib/LIMS2/t/Model/Util/CreateProcess.pm
 t/lib/LIMS2/t/Model/Util/CreateQC.pm
