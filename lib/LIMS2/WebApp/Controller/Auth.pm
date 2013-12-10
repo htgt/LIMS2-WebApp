@@ -1,6 +1,7 @@
 package LIMS2::WebApp::Controller::Auth;
 use Moose;
 use Crypt::CBC;
+use Config::Tiny;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -54,8 +55,13 @@ sub login : Global {
 
             $c->log->debug('Writing LIMS2Auth cookie for htgt');
             
-        	# FIXME!! get this from config file - it will not be "password"!
-        	my $key = "password";            
+            my $conf_file = $ENV{LIMS2_HTGT_KEY} 
+                or die "Cannot write cookie for HTGT - no LIMS2_HTGT_KEY environment variable set.";
+    
+            my $conf = Config::Tiny->read($conf_file);
+            my $key = $conf->{_}->{auth_key}
+                or die "Cannot write cookie - no auth_key provided in $conf_file "; 
+           
             my $cookie_data = $htgtsession.":".lc($username);
             my $cipher = Crypt::CBC->new( -key => $key, -cipher => 'Blowfish');
             
@@ -63,7 +69,7 @@ sub login : Global {
             $c->res->cookies->{LIMS2Auth} = { 
         	    value => $cipher->encrypt($cookie_data), 
         	    expires => '+1h',
-        	    domain => '.internal.sanger.ac.uk',
+        	    domain => '.sanger.ac.uk',
             };
         }
         
