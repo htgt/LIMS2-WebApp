@@ -21,6 +21,14 @@ has species => (
     required => 1,
 );
 
+# flag for testing mode
+has is_in_test_mode => (
+    is       => 'rw',
+    isa      => 'Int',
+    required => 0,
+    default => 0,
+);
+
 # array of hashrefs of well genotyping results
 has well_genotyping_results_array => (
     is  => 'rw',
@@ -207,7 +215,7 @@ sub determine_allele_types_for_genotyping_results_array {
     $self->_determine_workflow_for_wells();
 
     # determine allele types
-    $self->_determine_allele_types_for_wells();
+    $self->_determine_allele_types_for_wells( 0 );
 
     $self->_determine_genotyping_pass_for_wells();
 
@@ -218,7 +226,9 @@ sub determine_allele_types_for_genotyping_results_array {
 # this entry point is for testing the logic, where the genotyping results array of well hashes is already
 # set up and contains workflow and summaries table data
 sub test_determine_allele_types_logic {
-    my ( $self, $well_ids ) = @_;
+    my ( $self ) = @_;
+
+    $self->is_in_test_mode( 1 );
 
     # determine allele types
     $self->_determine_allele_types_for_wells();
@@ -434,7 +444,9 @@ sub _determine_allele_type_for_well {
 
     $self->current_well_workflow( $self->current_well->{ 'workflow' } );
 
-    unless ( $self->_well_has_qc_data() ) { return 'Failed: no qc data for well' }
+    unless ( $self->is_in_test_mode ) {
+        unless ( $self->_well_has_qc_data() ) { return 'Failed: no qc data for well'; }
+    }
 
     $self->_create_assay_summary_string();
 
