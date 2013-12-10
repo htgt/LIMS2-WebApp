@@ -23,7 +23,10 @@
 
   <tbody>
     [% FOR datum IN design_targets_data %]
-      <tr>
+      <tr [% IF datum.designs > 0 && datum.crispr_pairs > 0 %]
+            class="success"
+          [% END %]
+      >
         <td>[% datum.marker_symbol %]</td>
         <td>[% datum.gene_id %]</td>
         <td>[% datum.ensembl_exon_id %]</td>
