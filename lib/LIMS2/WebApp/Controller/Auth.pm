@@ -1,5 +1,6 @@
 package LIMS2::WebApp::Controller::Auth;
 use Moose;
+use Crypt::CBC;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -26,8 +27,10 @@ sub login : Global {
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
     my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
-
-    $c->stash( goto_on_success => $goto );
+    my $htgtsession = $c->stash->{htgtsession} || $c->req->param('htgtsession');
+    
+    $c->log->debug("HTGT session: $htgtsession");
+    $c->stash( goto_on_success => $goto, htgtsession => $htgtsession );
 
     return unless $c->req->param('login');
 
@@ -45,13 +48,24 @@ sub login : Global {
             $c->flash( success_msg => 'Login successful' );
         }
         
-        # Set a cookie that htgt webapp can use to check authentication
-        $c->log->debug('Writing LIMS2Auth cookie for htgt');
-        $c->res->cookies->{LIMS2Auth} = { 
-        	value => lc($username), 
-        	expires => '+1h',
-        	domain => '.internal.sanger.ac.uk',
-        };
+        # If we have a htgt session id set a cookie that htgt can use 
+        # to check authentication
+        if ($htgtsession){
+
+            $c->log->debug('Writing LIMS2Auth cookie for htgt');
+            
+        	# FIXME!! get this from config file - it will not be "password"!
+        	my $key = "password";            
+            my $cookie_data = $htgtsession.":".lc($username);
+            my $cipher = Crypt::CBC->new( -key => $key, -cipher => 'Blowfish');
+            
+            # FIXME: set domain depending on dev or live environment
+            $c->res->cookies->{LIMS2Auth} = { 
+        	    value => $cipher->encrypt($cookie_data), 
+        	    expires => '+1h',
+        	    domain => '.internal.sanger.ac.uk',
+            };
+        }
         
         return $c->res->redirect($goto);
     }
