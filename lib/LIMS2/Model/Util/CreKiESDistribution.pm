@@ -171,6 +171,9 @@ sub _build_cre_ki_genes {
 	# now fuse the two datasets, by merging the output from iMits onto the output from Lims2 by gene
 	$self->_fuse_lims2_and_imits_data( $cre_ki_genes, $imits_cre_ki_genes );
 
+    # add any missing gene symbols where not in LIMS2 or iMits
+    $self->_fetch_gene_symbols_where_missing( $cre_ki_genes );
+
     # print ( Dumper ( $cre_ki_genes ) );
 
     return $cre_ki_genes;
@@ -479,7 +482,7 @@ sub _add_lims2_data {
     # transfer information from the flat sql result into the main genes hash
     foreach my $row ( @{ $sql_result_lims2_summary_data } ) {
         my $mgi_gene_id = $row->{ 'design_gene_id' };
-        $cre_ki_genes->{ 'genes' }->{ $mgi_gene_id }->{ 'marker_symbol' } = $row->{ 'design_gene_symbol' };
+        if ( defined $row->{ 'design_gene_symbol' } ) { $cre_ki_genes->{ 'genes' }->{ $mgi_gene_id }->{ 'marker_symbol' } = $row->{ 'design_gene_symbol' } };
 
         # add vector information
         if ( defined $row->{ 'final_pick_well_ident' } ) {
@@ -755,7 +758,7 @@ sub _fetch_imits_cre_ki_data {
 
     foreach my $imits_row ( @{ $imits_results } ) {
         my $row_gene_id = $imits_row->{ 'mgi_accession_id' };
-        $imits_data->{ 'genes' }->{ $row_gene_id }->{ 'marker_symbol' } = $imits_row->{ 'marker_symbol' };
+        if ( defined $imits_row->{ 'marker_symbol' } ) { $imits_data->{ 'genes' }->{ $row_gene_id }->{ 'marker_symbol' } = $imits_row->{ 'marker_symbol' } };
 
         my $imits_gene_hash = \%{ $imits_data->{ 'genes' }->{ $row_gene_id } };
         my $row_plan_db_id = $imits_row->{ 'plan_db_id' };
@@ -836,6 +839,13 @@ sub _fuse_lims2_and_imits_data {
 
         # add imits data into the lims2 hash at clone level, adding counters at gene level
         $curr_gene_hash->{ 'has_imits_data' } = 1;
+
+        # check marker symbol
+        unless ( defined $curr_gene_hash->{ 'marker_symbol' } ) {
+            if ( defined $imits_gene_hash->{ 'marker_symbol' } ) {
+                $curr_gene_hash->{ 'marker_symbol' } = $imits_gene_hash->{ 'marker_symbol' };
+            }
+        };
 
         # if gene has mi_plans
         if ( exists $imits_gene_hash->{ 'mi_plans' } ) {
@@ -957,7 +967,7 @@ sub _create_production_centres_display_lists {
     $curr_gene_hash->{ 'count_imits_production_centres' }        = scalar @production_centres_list;
 
     if ( @production_centres_list ) {
-        $curr_gene_hash->{ 'production_centres_list' }           = join ( ' : ', @production_centres_list )
+        $curr_gene_hash->{ 'production_centres_list' }           = join ( ' : ', @production_centres_list );
     };
 
     # plan priorities
@@ -966,10 +976,43 @@ sub _create_production_centres_display_lists {
         push ( @production_centre_priorities_list, $priority );
     }
     if ( @production_centre_priorities_list ) {
-        $curr_gene_hash->{ 'production_centre_priorities_list' } = join ( ' : ', @production_centre_priorities_list )
+        $curr_gene_hash->{ 'production_centre_priorities_list' } = join ( ' : ', @production_centre_priorities_list );
     }
 
     return;
+}
+
+=head2 _fetch_gene_symbols_where_missing
+
+fetch the gene symbols where missing in the main hash
+
+=cut
+sub _fetch_gene_symbols_where_missing {
+    my ( $self, $cre_ki_genes ) = @_;
+
+    foreach my $mgi_gene_id ( sort keys %{ $cre_ki_genes->{ 'genes' } } ) {
+        my $curr_gene_hash = \% { $cre_ki_genes->{ 'genes' }->{ $mgi_gene_id } };
+
+        unless ( $curr_gene_hash->{ 'marker_symbol' } ) {
+            $curr_gene_hash->{ 'marker_symbol' } = $self->_fetch_gene_symbol_for_mgi_id( $mgi_gene_id );
+        }
+    }
+
+    return;
+}
+
+=head2 _fetch_gene_symbol_for_mgi_id
+
+fetch a gene symbol for an mgi id
+
+=cut
+sub _fetch_gene_symbol_for_mgi_id {
+    my ( $self, $mgi_gene_id ) = @_;
+
+    # returns list string as potential for more than one name
+    my $gene_symbol = $self->model->get_gene_symbol_for_gene_id( $mgi_gene_id, $self->species );
+
+    return $gene_symbol // '';
 }
 
 =head2 summarise_cre_ki_data

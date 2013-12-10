@@ -5,7 +5,7 @@ cre_ki_data:
       WTSI: 1
   genes:
       'MGI:1000001':
-        gene_symbol: 'Unreq'
+        marker_symbol: 'Unreq'
         lims2_project_db_id: 1
         has_lims2_data: 1
         has_imits_data: 0
@@ -30,7 +30,7 @@ cre_ki_data:
         count_imits_mi_attempts_glt_achieved: 0
         count_imits_mi_attempts_aborted: 0
       'MGI:1000002':
-        gene_symbol: 'UnreqVect'
+        marker_symbol: 'UnreqVect'
         lims2_project_db_id: 2
         has_lims2_data: 1
         has_imits_data: 0
@@ -59,7 +59,7 @@ cre_ki_data:
             final_pick_well_accepted: 1
             final_pick_well_db_id: 10001
       'MGI:1000003':
-        gene_symbol: 'UnreqClones'
+        marker_symbol: 'UnreqClones'
         lims2_project_db_id: 3
         has_lims2_data: 1
         has_imits_data: 0
@@ -98,7 +98,7 @@ cre_ki_data:
         mi_attempts_gtc_clones_list: ''
         mi_attempts_abt_clones_list: ''
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -106,7 +106,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000004':
-        gene_symbol: 'AwaitVects'
+        marker_symbol: 'AwaitVects'
         lims2_project_db_id: 4
         has_lims2_data: 1
         has_imits_data: 1
@@ -142,6 +142,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -149,7 +150,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
       'MGI:1000005':
-        gene_symbol: 'AwaitEP'
+        marker_symbol: 'AwaitEP'
         lims2_project_db_id: 5
         has_lims2_data: 1
         has_imits_data: 1
@@ -189,6 +190,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -196,7 +198,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
       'MGI:1000006':
-        gene_symbol: 'AwaitPQC'
+        marker_symbol: 'AwaitPQC'
         lims2_project_db_id: 6
         has_lims2_data: 1
         has_imits_data: 1
@@ -236,6 +238,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -243,7 +246,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -251,7 +254,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000007':
-        gene_symbol: 'InPQC'
+        marker_symbol: 'InPQC'
         lims2_project_db_id: 7
         has_lims2_data: 1
         has_imits_data: 1
@@ -280,7 +283,7 @@ cre_ki_data:
             final_pick_well_accepted: 1
             final_pick_well_db_id: 10001
         accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
-        failed_ep_pick_wells_list: 'CEPD001_1_A02'
+        failed_ep_pick_wells_list: 'CEPD0001_1_A02'
         accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02'
         accepted_clone_fp_wells_list: ''
         accepted_clone_secondary_qc_passed_list: ''
@@ -291,6 +294,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -298,14 +302,14 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
             ep_pick_well_db_id: 20001
             has_qc_data: 1
             clone_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -313,7 +317,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000008':
-        gene_symbol: 'FailPQC'
+        marker_symbol: 'FailPQC'
         lims2_project_db_id: 8
         has_lims2_data: 1
         has_imits_data: 1
@@ -342,7 +346,7 @@ cre_ki_data:
             final_pick_well_accepted: 1
             final_pick_well_db_id: 10001
         accepted_final_pick_wells_list: 'ETGRD0001_A_1_A01'
-        failed_ep_pick_wells_list: 'CEPD001_1_A01'
+        failed_ep_pick_wells_list: 'CEPD0001_1_A01'
         accepted_ep_pick_wells_list: ''
         accepted_clone_fp_wells_list: ''
         accepted_clone_secondary_qc_passed_list: ''
@@ -353,6 +357,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -360,7 +365,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -368,7 +373,7 @@ cre_ki_data:
             has_qc_data: 1
             clone_accepted: 0
       'MGI:1000009':
-        gene_symbol: 'AwaitSQC'
+        marker_symbol: 'AwaitSQC'
         lims2_project_db_id: 9
         has_lims2_data: 1
         has_imits_data: 1
@@ -408,6 +413,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -415,7 +421,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -427,7 +433,7 @@ cre_ki_data:
                 fp_well_accepted: 0
                 fp_well_db_id: 30001
       'MGI:1000010':
-        gene_symbol: 'InSQC1'
+        marker_symbol: 'InSQC1'
         lims2_project_db_id: 10
         has_lims2_data: 1
         has_imits_data: 1
@@ -467,6 +473,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -474,7 +481,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -491,7 +498,7 @@ cre_ki_data:
                     has_qc_data: 0
                     piq_well_accepted: 0
       'MGI:1000011':
-        gene_symbol: 'InSQC2'
+        marker_symbol: 'InSQC2'
         lims2_project_db_id: 11
         has_lims2_data: 1
         has_imits_data: 1
@@ -531,6 +538,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -538,7 +546,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -554,7 +562,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -571,7 +579,7 @@ cre_ki_data:
                     has_qc_data: 0
                     piq_well_accepted: 0
       'MGI:1000012':
-        gene_symbol: 'InSQC3'
+        marker_symbol: 'InSQC3'
         lims2_project_db_id: 12
         has_lims2_data: 1
         has_imits_data: 1
@@ -611,6 +619,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -618,7 +627,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -634,7 +643,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -650,7 +659,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -667,7 +676,7 @@ cre_ki_data:
                     has_qc_data: 0
                     piq_well_accepted: 0
       'MGI:1000013':
-        gene_symbol: 'InSQC4'
+        marker_symbol: 'InSQC4'
         lims2_project_db_id: 13
         has_lims2_data: 1
         has_imits_data: 1
@@ -707,6 +716,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -714,7 +724,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -730,7 +740,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -746,7 +756,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -762,7 +772,7 @@ cre_ki_data:
                     piq_well_db_id: 40003
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A04':
+          'CEPD0001_1_A04':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -779,7 +789,7 @@ cre_ki_data:
                     has_qc_data: 0
                     piq_well_accepted: 0
       'MGI:1000014':
-        gene_symbol: 'InSQC5'
+        marker_symbol: 'InSQC5'
         lims2_project_db_id: 14
         has_lims2_data: 1
         has_imits_data: 1
@@ -819,6 +829,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -826,7 +837,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -842,7 +853,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -858,7 +869,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -874,7 +885,7 @@ cre_ki_data:
                     piq_well_db_id: 40003
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A04':
+          'CEPD0001_1_A04':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -890,7 +901,7 @@ cre_ki_data:
                     piq_well_db_id: 40004
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A05':
+          'CEPD0001_1_A05':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -907,7 +918,7 @@ cre_ki_data:
                     has_qc_data: 0
                     piq_well_accepted: 0
       'MGI:1000015':
-        gene_symbol: 'InSQCgt5'
+        marker_symbol: 'InSQCgt5'
         lims2_project_db_id: 15
         has_lims2_data: 1
         has_imits_data: 1
@@ -947,6 +958,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -954,7 +966,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -970,7 +982,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -986,7 +998,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1002,7 +1014,7 @@ cre_ki_data:
                     piq_well_db_id: 40003
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A04':
+          'CEPD0001_1_A04':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1018,7 +1030,7 @@ cre_ki_data:
                     piq_well_db_id: 40004
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A05':
+          'CEPD0001_1_A05':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1034,7 +1046,7 @@ cre_ki_data:
                     piq_well_db_id: 40005
                     has_qc_data: 0
                     piq_well_accepted: 0
-          'CEPD00001_1_A06':
+          'CEPD0001_1_A06':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1051,7 +1063,7 @@ cre_ki_data:
                     has_qc_data: 0
                     piq_well_accepted: 0
       'MGI:1000016':
-        gene_symbol: 'FailSQC1'
+        marker_symbol: 'FailSQC1'
         lims2_project_db_id: 16
         has_lims2_data: 1
         has_imits_data: 1
@@ -1091,6 +1103,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1098,7 +1111,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1114,7 +1127,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1122,7 +1135,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000017':
-        gene_symbol: 'FailSQC2'
+        marker_symbol: 'FailSQC2'
         lims2_project_db_id: 17
         has_lims2_data: 1
         has_imits_data: 1
@@ -1162,6 +1175,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1169,7 +1183,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1185,7 +1199,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1201,7 +1215,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1209,7 +1223,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000018':
-        gene_symbol: 'FailSQC3'
+        marker_symbol: 'FailSQC3'
         lims2_project_db_id: 18
         has_lims2_data: 1
         has_imits_data: 1
@@ -1249,6 +1263,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1256,7 +1271,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1272,7 +1287,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1288,7 +1303,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1304,7 +1319,7 @@ cre_ki_data:
                     piq_well_db_id: 40003
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A04':
+          'CEPD0001_1_A04':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1312,7 +1327,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000019':
-        gene_symbol: 'FailSQC4'
+        marker_symbol: 'FailSQC4'
         lims2_project_db_id: 19
         has_lims2_data: 1
         has_imits_data: 1
@@ -1352,6 +1367,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1359,7 +1375,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1375,7 +1391,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1391,7 +1407,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1407,7 +1423,7 @@ cre_ki_data:
                     piq_well_db_id: 40003
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A04':
+          'CEPD0001_1_A04':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1423,7 +1439,7 @@ cre_ki_data:
                     piq_well_db_id: 40004
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A05':
+          'CEPD0001_1_A05':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1431,7 +1447,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000020':
-        gene_symbol: 'FailSQC5'
+        marker_symbol: 'FailSQC5'
         lims2_project_db_id: 20
         has_lims2_data: 1
         has_imits_data: 1
@@ -1471,6 +1487,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1478,7 +1495,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1494,7 +1511,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1510,7 +1527,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1526,7 +1543,7 @@ cre_ki_data:
                     piq_well_db_id: 40003
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A04':
+          'CEPD0001_1_A04':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1542,7 +1559,7 @@ cre_ki_data:
                     piq_well_db_id: 40004
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A05':
+          'CEPD0001_1_A05':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1558,7 +1575,7 @@ cre_ki_data:
                     piq_well_db_id: 40005
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A06':
+          'CEPD0001_1_A06':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1566,7 +1583,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000021':
-        gene_symbol: 'FailSQCgt5'
+        marker_symbol: 'FailSQCgt5'
         lims2_project_db_id: 21
         has_lims2_data: 1
         has_imits_data: 1
@@ -1599,13 +1616,14 @@ cre_ki_data:
         accepted_ep_pick_wells_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05 : CEPD0001_1_A06'
         accepted_clone_fp_wells_list: 'FP0001_A01 : FP0001_A02 : FP0001_A03 : FP0001_A04 : FP0001_A05 : FP0001_A06'
         accepted_clone_secondary_qc_passed_list: ''
-        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05 : CEPD0001_1_A05'
+        accepted_clone_secondary_qc_failed_list: 'CEPD0001_1_A01 : CEPD0001_1_A02 : CEPD0001_1_A03 : CEPD0001_1_A04 : CEPD0001_1_A05 : CEPD0001_1_A06'
         mi_attempts_mip_clones_list: ''
         mi_attempts_chr_clones_list: ''
         mi_attempts_gtc_clones_list: ''
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1613,7 +1631,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1629,7 +1647,7 @@ cre_ki_data:
                     piq_well_db_id: 40001
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A02':
+          'CEPD0001_1_A02':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1645,7 +1663,7 @@ cre_ki_data:
                     piq_well_db_id: 40002
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A03':
+          'CEPD0001_1_A03':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1661,7 +1679,7 @@ cre_ki_data:
                     piq_well_db_id: 40003
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A04':
+          'CEPD0001_1_A04':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1677,7 +1695,7 @@ cre_ki_data:
                     piq_well_db_id: 40004
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A05':
+          'CEPD0001_1_A05':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1693,7 +1711,7 @@ cre_ki_data:
                     piq_well_db_id: 40005
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A06':
+          'CEPD0001_1_A06':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1709,7 +1727,7 @@ cre_ki_data:
                     piq_well_db_id: 40006
                     has_qc_data: 1
                     piq_well_accepted: 0
-          'CEPD00001_1_A07':
+          'CEPD0001_1_A07':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1717,7 +1735,7 @@ cre_ki_data:
             has_qc_data: 0
             clone_accepted: 0
       'MGI:1000022':
-        gene_symbol: 'FailSQCnc'
+        marker_symbol: 'FailSQCnc'
         lims2_project_db_id: 22
         has_lims2_data: 1
         has_imits_data: 1
@@ -1757,6 +1775,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1764,7 +1783,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1781,7 +1800,7 @@ cre_ki_data:
                     has_qc_data: 1
                     piq_well_accepted: 0
       'MGI:1000023':
-        gene_symbol: 'AwaitMIs'
+        marker_symbol: 'AwaitMIs'
         lims2_project_db_id: 23
         has_lims2_data: 1
         has_imits_data: 1
@@ -1821,6 +1840,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1828,7 +1848,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1845,7 +1865,7 @@ cre_ki_data:
                     has_qc_data: 1
                     piq_well_accepted: 1
       'MGI:1000024':
-        gene_symbol: 'InProgress'
+        marker_symbol: 'InProgress'
         lims2_project_db_id: 24
         has_lims2_data: 1
         has_imits_data: 1
@@ -1879,12 +1899,13 @@ cre_ki_data:
         accepted_clone_fp_wells_list: 'FP0001_A01'
         accepted_clone_secondary_qc_passed_list: 'CEPD0001_1_A01'
         accepted_clone_secondary_qc_failed_list: ''
-        mi_attempts_mip_clones_list: 'CEPD00001_1_A01'
+        mi_attempts_mip_clones_list: 'CEPD0001_1_A01'
         mi_attempts_chr_clones_list: ''
         mi_attempts_gtc_clones_list: ''
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1892,7 +1913,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1917,7 +1938,7 @@ cre_ki_data:
                 consortia_name: 'EUCOMMToolsCre'
                 production_centre_name: 'WTSI'
       'MGI:1000025':
-        gene_symbol: 'FailedMP'
+        marker_symbol: 'FailedMP'
         lims2_project_db_id: 25
         has_lims2_data: 1
         has_imits_data: 1
@@ -1954,9 +1975,10 @@ cre_ki_data:
         mi_attempts_mip_clones_list: ''
         mi_attempts_chr_clones_list: ''
         mi_attempts_gtc_clones_list: ''
-        mi_attempts_abt_clones_list: 'CEPD00001_1_A01'
+        mi_attempts_abt_clones_list: 'CEPD0001_1_A01'
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -1964,7 +1986,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -1989,7 +2011,7 @@ cre_ki_data:
                 consortia_name: 'EUCOMMToolsCre'
                 production_centre_name: 'WTSI'
       'MGI:1000026':
-        gene_symbol: 'Chimeras'
+        marker_symbol: 'Chimeras'
         lims2_project_db_id: 26
         has_lims2_data: 1
         has_imits_data: 1
@@ -2024,11 +2046,12 @@ cre_ki_data:
         accepted_clone_secondary_qc_passed_list: 'CEPD0001_1_A01'
         accepted_clone_secondary_qc_failed_list: ''
         mi_attempts_mip_clones_list: ''
-        mi_attempts_chr_clones_list: 'CEPD00001_1_A01'
+        mi_attempts_chr_clones_list: 'CEPD0001_1_A01'
         mi_attempts_gtc_clones_list: ''
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -2036,7 +2059,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -2061,7 +2084,7 @@ cre_ki_data:
                 consortia_name: 'EUCOMMToolsCre'
                 production_centre_name: 'WTSI'
       'MGI:1000027':
-        gene_symbol: 'GltAchv'
+        marker_symbol: 'GltAchv'
         lims2_project_db_id: 27
         has_lims2_data: 1
         has_imits_data: 1
@@ -2097,10 +2120,11 @@ cre_ki_data:
         accepted_clone_secondary_qc_failed_list: ''
         mi_attempts_mip_clones_list: ''
         mi_attempts_chr_clones_list: ''
-        mi_attempts_gtc_clones_list: 'CEPD00001_1_A01'
+        mi_attempts_gtc_clones_list: 'CEPD0001_1_A01'
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -2108,7 +2132,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
         clones:
-          'CEPD00001_1_A01':
+          'CEPD0001_1_A01':
             vector_backbone_name: 'L3L4_pD223_DTA_T_spec'
             vector_cassette_name: 'pL1L2_GT1_LF2A_nEGFPO_T2A_CreERT_puro'
             final_pick_well_ident: 'ETGRD0001_A_1_A01'
@@ -2133,7 +2157,7 @@ cre_ki_data:
                 consortia_name: 'EUCOMMToolsCre'
                 production_centre_name: 'WTSI'
       'MGI:1000028':
-        gene_symbol: 'MissLims2'
+        marker_symbol: 'MissLims2'
         lims2_project_db_id: 0
         has_lims2_data: 0
         has_imits_data: 1
@@ -2169,6 +2193,7 @@ cre_ki_data:
         mi_attempts_abt_clones_list: ''
         production_centres:
           'WTSI': 1
+        production_centre_priorities_list: 'WTSI_Low'
         production_centres_list: 'WTSI'
         mi_plans:
           '10001':
@@ -2176,7 +2201,7 @@ cre_ki_data:
             production_centre_name: 'WTSI'
             is_plan_active: 1
       'MGI:1000029':
-        gene_symbol: 'UnreqType'
+        marker_symbol: 'UnreqType'
         lims2_project_db_id: 29
         has_lims2_data: 0
         has_imits_data: 0

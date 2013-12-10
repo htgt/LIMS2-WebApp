@@ -198,13 +198,13 @@
                 {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true, width: 50 },
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true, width: 50 },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true, width: 50 },
-                {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
-                {header: "Calculated<br>Pass", dataIndex: 'genotyping_pass', locked:true, width: 70 },
-                {header: "Distribute", dataIndex: 'accepted', locked: true, width: 60 },
             [% IF PIQ %]
                 {header: "Clone ID", dataIndex: 'clone_id', locked: true, width: 110 },
                 {header: "Lab Number", dataIndex: 'lab_number', editor: lab_number_field, locked: true, width: 75 },
             [% END %]
+                {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
+                {header: "Calculated<br>Pass", dataIndex: 'genotyping_pass', locked:true, width: 70 },
+                {header: "Distribute", dataIndex: 'accepted', locked: true, width: 60 },
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
                 {header: "Allele Info", columns: [
                     {header: "Type",                             dataIndex: 'allele_type',                    hidden: true, width: 60 },
