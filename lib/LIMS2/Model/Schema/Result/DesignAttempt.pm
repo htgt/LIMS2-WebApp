@@ -93,6 +93,12 @@ __PACKAGE__->table("design_attempts");
   data_type: 'text'
   is_nullable: 1
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -126,6 +132,8 @@ __PACKAGE__->add_columns(
   },
   "comment",
   { data_type => "text", is_nullable => 1 },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -157,9 +165,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 species
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-03 07:05:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NlJ7PSrWemPZgymD4F4E6A
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-11 08:18:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oOfJULVnJ2drFZoyc2AWBw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

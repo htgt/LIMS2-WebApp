@@ -503,6 +503,7 @@ sub pspec_create_design_attempt {
         fail              => { validate => 'json', optional => 1 },
         error             => { validate => 'non_empty_string', optional => 1 },
         design_ids        => { validate => 'non_empty_string', optional => 1 },
+        species           => { validate => 'existing_species', rename => 'species_id' },
         created_at        => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         created_by        => { validate => 'existing_user', post_filter => 'user_id_for' },
         comment           => { optional => 1 },
@@ -518,7 +519,7 @@ sub create_design_attempt {
         {
             slice_def (
                 $validated_params,
-                qw ( design_parameters gene_id status fail error
+                qw ( design_parameters gene_id status fail error species_id
                      design_ids created_at created_by comment
                    )
             ),
@@ -558,7 +559,8 @@ sub update_design_attempt {
 
 sub pspec_retrieve_design_attempt {
     return {
-        id => { validate => 'integer' },
+        id      => { validate => 'integer' },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
     };
 }
 
@@ -568,7 +570,7 @@ sub retrieve_design_attempt {
     my $validated_params
         = $self->check_params( $params, $self->pspec_retrieve_design_attempt, ignore_unknown => 1 );
 
-    return $self->retrieve( DesignAttempt => { id => $validated_params->{id} } );
+    return $self->retrieve( DesignAttempt => { slice_def $validated_params, qw( id species_id ) } );
 }
 
 sub delete_design_attempt {
