@@ -20,6 +20,7 @@ use Sub::Exporter -setup => {
                      design_target_report_for_genes
                      bulk_designs_for_design_targets
                      get_design_targets_data
+                     prebuild_oligos
                     ) ]
 };
 
