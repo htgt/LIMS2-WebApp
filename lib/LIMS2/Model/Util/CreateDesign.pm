@@ -13,29 +13,32 @@ use Sub::Exporter -setup => {
 
 use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( uniq );
+use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
 use LIMS2::Util::EnsEMBL;
 use LIMS2::Exception;
 
 =head2 exons_for_gene
 
+Given a gene name find all its exons that could be targeted for a design.
+Optionally get all exons or just exons from canonical transcript.
 
 =cut
 sub exons_for_gene {
-    my ( $model, $gene_name, $species, $build ) = @_;
+    my ( $model, $gene_name, $exon_types, $species ) = @_;
 
     my $gene = get_ensembl_gene( $model, $gene_name, $species );
     return unless $gene;
 
     my $gene_data = build_gene_data( $gene, $species );
 
-    my $exon_data = build_gene_exon_data( $model, $gene, $gene_data->{gene_id}, $species );
+    my $exon_data = build_gene_exon_data( $model, $gene, $gene_data->{gene_id}, $exon_types, $species );
 
     return ( $gene_data, $exon_data );
 }
 
 =head2 build_gene_data
 
-desc
+Build up data about targeted gene to display to user.
 
 =cut
 sub build_gene_data {
@@ -63,13 +66,11 @@ sub build_gene_data {
     $data{marker_symbol} = $gene->external_name;
     $data{canonical_transcript} = $canonical_transcript->stable_id;
 
-    my $slice = $gene->slice;
-    $data{chr} = $slice->chr_name;
-    $data{strand} = $slice->strand;
+    $data{strand} = $gene->strand;
+    $data{chr} = $gene->seq_region_name;
 
     return \%data;
 }
-
 
 =head2 external_gene_id
 
@@ -106,12 +107,10 @@ data to display
 
 =cut
 sub build_gene_exon_data {
-    my ( $model, $gene, $gene_id, $species ) = @_;
-    #TODO add option to show all exons, not just onces from canonical transcript
-    # if so grab all valid transcripts ?
+    my ( $model, $gene, $gene_id, $exon_types, $species ) = @_;
 
     my $canonical_transcript = $gene->canonical_transcript;
-    my $exons = $canonical_transcript->get_all_Exons;
+    my $exons = $exon_types eq 'canonical' ? $canonical_transcript->get_all_Exons : $gene->get_all_Exons;
 
     my %exon_data;
     for my $exon ( @{ $exons } ) {
@@ -119,11 +118,13 @@ sub build_gene_exon_data {
         $data{id} = $exon->stable_id;
         $data{size} = $exon->length;
         $data{chr} = $exon->seq_region_name;
-        #TODO make sure coords in right system sp12 Thu 28 Nov 2013 14:42:10 GMT
         $data{start} = $exon->start;
         $data{end} = $exon->end;
         $data{start_phase} = $exon->phase;
         $data{end_phase} = $exon->end_phase;
+        #TODO this may not be expected data sp12 Tue 03 Dec 2013 11:16:27 GMT
+        #     not clear what constitutive means to Ensembl
+        $data{constitutive} = $exon->is_constitutive ? 'yes' : 'no';
 
         $exon_data{ $exon->stable_id } = \%data;
     }
@@ -131,12 +132,19 @@ sub build_gene_exon_data {
     design_targets_for_exons( $model, \%exon_data, $gene->stable_id );
     exon_ranks( \%exon_data, $canonical_transcript );
 
-    my @exons = sort { $a->{rank} <=> $b->{rank} } values %exon_data;
-    return \@exons;
+    if ( $gene->strand == 1 ) {
+        return [ sort { $a->{start} <=> $b->{start} } values %exon_data ];
+    }
+    else {
+        return [ sort { $b->{start} <=> $a->{start} } values %exon_data ];
+    }
+    return;
 }
 
 =head2 get_ensembl_gene
 
+Grab a ensembl gene object.
+First need to work out format of gene name user has supplied
 
 =cut
 ## no critic(BuiltinFunctions::ProhibitComplexMappings)
@@ -164,6 +172,11 @@ sub get_ensembl_gene {
 }
 ## use critic
 
+=head2 _fetch_by_external_name
+
+Wrapper around fetching ensembl gene given external gene name.
+
+=cut
 sub _fetch_by_external_name {
     my ( $ga, $gene_name, $type ) = @_;
 
@@ -196,27 +209,29 @@ sub designs_for_exons {
     my @designs = $model->schema->resultset('Design')->search(
         {
             'genes.gene_id' => $gene_id,
-            species_id      => $species,
+            'me.species_id' => $species,
             design_type_id  => 'gibson',
         },
         {
             join     => 'genes',
-            #prefetch =>  { 'oligos' => { 'loci' => 'chr' } },
+            prefetch =>  { 'oligos' => { 'loci' => 'chr' } },
         },
     );
+
+    my $assembly = $model->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species } )->assembly_id;
 
     my %data;
     while ( my( $id, $exon ) = each %{ $exons } ) {
         my @matching_designs;
-        ### $exon
 
         for my $design ( @designs ) {
-            #my $oligo_data = prebuild_oligos( $design, $assembly );
+            my $oligo_data = prebuild_oligos( $design, $assembly );
             # if no oligo data then design does not have oligos on assembly
-            #next unless $oligo_data;
+            next unless $oligo_data;
             my $di = LIMS2::Model::Util::DesignInfo->new(
-                design  => $design,
-                #oligos => $oligo_data,
+                design => $design,
+                oligos => $oligo_data,
             );
             if ( $exon->{start} > $di->target_region_start
                 && $exon->{end} < $di->target_region_end
