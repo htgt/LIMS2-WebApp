@@ -159,6 +159,10 @@ sub ensembl_gene_id {
     return regexp_matches(qr/^ENS[A-Z]*G\d+$/);
 }
 
+sub ensembl_exon_id {
+    return regexp_matches(qr/^ENS[A-Z]*E\d+$/);
+}
+
 # More restrictive values  for Cre Bac recombineering
 sub cre_bac_recom_bac_library {
     return in_set('black6');
@@ -464,6 +468,10 @@ sub pass_or_fail {
 # at least 6 non whitespace characters long
 sub password_string {
     return regexp_matches(qr/^\S{6,}$/);
+}
+
+sub repeat_mask_class {
+    return in_set( 'trf', 'dust' );
 }
 
 1;
