@@ -187,7 +187,6 @@ WHERE w.process_id = pd.process_id
 QUERY_END
 }
 
-
 sub pspec_paths_for_well_id_depth_first {
     return {
         well_id           => { validate   => 'integer', },
@@ -348,7 +347,6 @@ GROUP BY w.output_well_id, pd.design_id,"original_well", gd.gene_id;
 QUERY_END
 }
 
-
 sub get_design_data_for_well_id_list {
     my $self = shift;
     my $wells = shift;
@@ -369,8 +367,8 @@ sub get_design_data_for_well_id_list {
     foreach my $result ( @{$sql_result} ) {
         $result_hash->{$result->[2]} = {
             'design_well_id' => $result->[0],
-            'design_id' => $result->[1],
-            'gene_id' => $result->[3],
+            'design_id'      => $result->[1],
+            'gene_id'        => $result->[3],
         }
     }
     # The format of the resulting hash is:
