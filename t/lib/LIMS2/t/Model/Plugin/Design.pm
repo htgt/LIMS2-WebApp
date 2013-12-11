@@ -340,6 +340,40 @@ sub all_tests : Tests {
 
 }
 
+sub design_attempts : Tests(8) {
+    my $design_attempt_data = {
+        gene_id    => 'FOO',
+        status     => 'pending',
+        created_by => 'test_user@example.org',
+        species    => 'Human',
+    };
+
+    my $design_parameters = { param_1 => 5, param_2 => 10 };
+    $design_attempt_data->{design_parameters} = encode_json($design_parameters);
+
+    ok my $design_attempt = model->create_design_attempt($design_attempt_data), 'can create new design attempt';
+    is $design_attempt->gene_id, 'FOO', '.. has correct gene_id';
+    is $design_attempt->species_id, 'Human', '.. has correct species_id';
+
+    my $design_attempt_update = {
+        id     => $design_attempt->id,
+        status => 'fail',
+        fail   => encode_json( { reason => 'unknown' } ),
+    };
+    ok model->update_design_attempt( $design_attempt_update ), 'can update design_attempt';
+
+    ok my $design_attempt2 = model->retrieve_design_attempt( { id => $design_attempt->id } ),
+        'can retrieve a design attempt';
+    is $design_attempt2->status, 'fail', '..updated status correctly';
+
+    ok model->delete_design_attempt( { id => $design_attempt->id } ), 'can deleted design attempt';
+
+    throws_ok {
+        model->retrieve_design_attempt( { id => $design_attempt->id } )
+    } 'LIMS2::Exception::NotFound', 'can not find deleted design attempt';
+
+}
+
 ## use critic
 
 1;
