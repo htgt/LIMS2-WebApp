@@ -973,8 +973,22 @@ sub _create_process_aux_data_dist_qc {
 }
 ## use critic
 
+sub pspec__create_process_aux_data_crispr_vector {
+    return {
+        backbone    => { validate => 'existing_backbone' },
+    };
+}
+
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_crispr_vector {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_crispr_vector );
+
+    $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
+
     return;
 }
 ## use critic

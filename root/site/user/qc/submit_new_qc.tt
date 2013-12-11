@@ -88,5 +88,10 @@
        source: "[% c.uri_for( '/api/autocomplete/qc_templates' ) %]",
        minLength: 2,
      });
+
+    $("#sequencing_project").autocomplete({
+       source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
+       minLength: 5,
+     });     
    
 </script>

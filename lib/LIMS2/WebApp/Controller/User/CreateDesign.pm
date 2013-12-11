@@ -15,7 +15,7 @@ use LIMS2::Model::Util::CreateDesign qw( exons_for_gene );
 BEGIN { extends 'Catalyst::Controller' };
 
 #use this default if the env var isnt set.
-const my $DEFAULT_DESIGNS_DIR => dir( $ENV{DEFAULT_DESIGNS_DIR} //
+const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch110/sanger/team87/lims2_designs' );
 const my @DESIGN_TYPES => (
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change

@@ -546,6 +546,8 @@ my $saved_id = -1;
 my $datum = {};
 my $gene_cache;
 
+$self->{plate_type} = $sql_result->[0]->{plate_type};
+
 # Extract the well_ids from $sql_result and send them to create_well_cache to generate
 # a cache of well objects as a hashref. Squeeze out the duplicates along the way.
 my @well_id_list = $self->get_uniq_wells( $sql_result);
@@ -553,18 +555,20 @@ $self->log->debug('unique well list generated');
 my $design_data_cache = $self->create_design_data_cache( \@well_id_list );
 $self->log->debug('design data cache generated (' . @well_id_list . ' unique wells)');
 
+
 # get array of arrays of ancestors
 my $result =  $self->get_ancestors_for_well_id_list( \@well_id_list );
 
 # transform in hash of well_id to clone_id
 my %clone_id_hash;
-foreach my $ancestors (@$result) {
-    my $well_id =  @{@$ancestors[0]}[0];
-    my $clone_id =  @{@$ancestors[0]}[2];
-    my $well = $self->retrieve_well( { id => $clone_id } );
-    $clone_id_hash{$well_id} = $well->plate->name .'['. $well->name .']';
+if ($self->{plate_type} eq 'PIQ') {
+    foreach my $ancestors (@$result) {
+        my $well_id =  @{@$ancestors[0]}[0];
+        my $clone_id =  @{@$ancestors[0]}[2];
+        my $well = $self->retrieve_well( { id => $clone_id } );
+        $clone_id_hash{$well_id} = $well->plate->name .'['. $well->name .']';
+    }
 }
-
 
 foreach my $row ( @{$sql_result} ) {
     if ( $row->{'Well ID'} != $saved_id ) {
@@ -941,10 +945,16 @@ sub create_csv_header_array {
         'Gene Name',
         'Gene ID',
         'Design ID',
+    );
+    if ($self->{plate_type} eq 'PIQ') {
+        push (@header_words, ('Clone ID','Lab Number'));
+    }
+
+    push (@header_words, (
         'Allele Type',
+        'Calculated Pass',
         'Distribute',
         'Override',
-        'Lab Number',
         'Chromosome Fail',
         'Allele Info#Type',
         'Allele Info#Full allele determination',
@@ -960,7 +970,7 @@ sub create_csv_header_array {
         'gr3',
         'gr4',
         'gf3',
-        'gf4',
+        'gf4')
     );
 
     # Add the generic assay headers
@@ -987,9 +997,11 @@ sub translate_header_items {
         'Gene ID'                               => 'gene_id',
         'Design ID'                             => 'design_id',
         'Allele Type'                           => 'allele_type',
+        'Calculated Pass'                       => 'genotyping_pass',
         'Distribute'                            => 'accepted',
-        'Override'                              => 'accepted_override',
+        'Clone ID'                              => 'clone_id',
         'Lab Number'                            => 'lab_number',
+        'Override'                              => 'accepted_override',
         'Chromosome Fail'                       => 'chromosome_fail',
         'Allele Info#Type'                      => 'allele_type',
         'Allele Info#Full allele determination' => 'allele_determination',

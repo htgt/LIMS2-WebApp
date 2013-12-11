@@ -1,4 +1,4 @@
-well_name,xep_plate,xep_well,dna_plate,dna_well
+well_name,final_pick_plate,final_pick_well,crispr_vector_plate,crispr_vector_well
 A01,
 B01,
 C01,
