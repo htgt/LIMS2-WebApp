@@ -220,6 +220,7 @@ sub as_hash {
         fail              => $fail_reason,
         error             => $self->error,
         design_ids        => \@design_ids,
+        species           => $self->species_id,
         created_at        => $self->created_at->iso8601,
         created_by        => $self->created_by->name,
         comment           => $self->comment,

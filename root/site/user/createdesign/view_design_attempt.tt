@@ -37,6 +37,10 @@
           </td>
         </tr>
         <tr>
+          <th>Species</th>
+          <td>[% da.species %]</td>
+        </tr>
+        <tr>
           <th>Created By</th>
           <td>[% da.created_by %]</td>
         </tr>
