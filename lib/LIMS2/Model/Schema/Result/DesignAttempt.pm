@@ -197,8 +197,8 @@ sub as_hash {
 
     my ( $design_params, $fail_reason );
     if ( $opts->{pretty_print_json} ) {
-        use JSON;
-        use Try::Tiny;
+        require JSON;
+        require Try::Tiny;
         my $json = JSON->new;
         $design_params
             = $self->design_parameters

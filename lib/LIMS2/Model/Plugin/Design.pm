@@ -522,7 +522,7 @@ sub create_design_attempt {
                 qw ( design_parameters gene_id status fail error species_id
                      design_ids created_at created_by comment
                    )
-            ),
+            )
         }
     );
     $self->log->debug( 'Created design attempt ' . $design_attempt->id );

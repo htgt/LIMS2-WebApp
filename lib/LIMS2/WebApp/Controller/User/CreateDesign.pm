@@ -180,7 +180,7 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
         assembly => $default_assembly,
         species  => $species,
     );
-
+    return;
 }
 
 sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
@@ -226,7 +226,6 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
             gene_id => $gene_id,
         );
     }
-
     return;
 }
 
@@ -352,6 +351,7 @@ sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
     $c->stash(
         das => [ map { $_->as_hash } @design_attempts ],
     );
+    return;
 }
 
 sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1) {
