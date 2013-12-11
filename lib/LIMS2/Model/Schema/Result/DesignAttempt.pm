@@ -202,9 +202,9 @@ sub as_hash {
         my $json = JSON->new;
         $design_params
             = $self->design_parameters
-            ? try { $json->pretty->encode( $json->decode( $self->design_parameters ) ) }
+            ? Try::Tiny::try { $json->pretty->encode( $json->decode( $self->design_parameters ) ) }
             : '';
-        $fail_reason = $self->fail ? try { $json->pretty->encode( $json->decode( $self->fail ) ) } : '';
+        $fail_reason = $self->fail ? Try::Tiny::try { $json->pretty->encode( $json->decode( $self->fail ) ) } : '';
     }
     else {
         $design_params = $self->design_parameters;
