@@ -9,11 +9,11 @@
 
     <label><strong>Show Exons</strong></label>
     <label class="radio">
-      <input type="radio" name="report_type" value="standard" checked>
+      <input type="radio" name="show_exons" value="canonical" checked>
       Canonical Transcript Only
     </label>
     <label class="radio">
-      <input type="radio" name="report_type" value="simple">
+      <input type="radio" name="show_exons" value="all">
       All
     </label>
 
