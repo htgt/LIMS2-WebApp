@@ -79,8 +79,13 @@
       <th>Plate Name</th>
       <th>Well Name</th>
       <th>384 Well Name</th>
+      [% IF crispr -%]
+      <th>Crispr Id</th>
+      <th>Expected Crispr Id</th>
+      [% ELSE -%]
       <th>Design Id</th>
       <th>Expected Design Id</th>
+      [% END -%]
       <th>Gene Symbol</th>
       <th>Pass?</th>
       <th>Raw Score</th>
@@ -97,8 +102,13 @@
       <td>[% r.plate_name %]</td>
       <td>[% r.well_name %]</td>
       <td>[% r.well_name_384 %]</td>
+      [% IF crispr -%]
+      <td>[% r.crispr_id %]</td>
+      <td>[% r.expected_crispr_id %]</td>
+      [% ELSE -%]
       <td>[% r.design_id %]</td>
       <td>[% r.expected_design_id %]</td>
+      [% END -%]
       <td>[% r.gene_symbol %]</td>
       <td>[% pass_fail( r.pass ) %]</td>
       <td>[% r.score %]</td>
