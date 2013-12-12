@@ -494,12 +494,6 @@ sub delete_qc_run {
     }
     $qc_run->delete_related('qc_alignments');
 
-    #delete any alignments (and subsequent regions) linked to this qc run.
-    for my $alignment ( $qc_run->search_related('qc_alignments') ) {
-        $alignment->delete_related('qc_alignment_regions');
-    }
-    $qc_run->delete_related('qc_alignments');
-
     $qc_run->delete_related('qc_run_seq_projects');
 
     foreach my $well ($qc_run->search_related('qc_run_seq_wells')){
@@ -847,12 +841,31 @@ sub create_plate_from_qc{
     my $template = $self->retrieve_qc_template({ id => $validated_params->{qc_template_id}});
     my $results_by_well = $validated_params->{results_by_well};
 
-
-
     my @new_wells;
 
     while (my ($well, $results) = each %$results_by_well) {
+
+        # get the top (high scoring) result
+        my $i = 0;
         my $best = $results->[0];
+        my $best_score = $results->[0]->{score} // '0';
+
+        # check while score is the same for a matching expected design id
+        while ($best_score) {
+            $i++;
+            my $d_id = $results->[$i]->{design_id} // '0';
+            my $e_id = $results->[$i]->{expected_design_id} // '0';
+            my $pass = $results->[$i]->{pass} // '';
+            my $current_score = $results->[$i]->{score} // '0';
+            if ($best_score != $current_score) {
+                $best_score = 0;
+            }
+            # if found, get that result instead
+            if ($d_id == $e_id && $pass && $best_score) {
+                $best = $results->[$i];
+            }
+        }
+
         my $name = '';
         if (defined $best->{design_id}) {
             $name = 'design_id';
@@ -883,7 +896,7 @@ sub create_plate_from_qc{
 
             # Store new well params
             my %well_params = (
-                well_name => $well,
+                well_name    => $well,
                 parent_plate => $source_well->plate->name,
                 parent_well  => $source_well->name,
                 accepted     => $best->{pass},
@@ -908,6 +921,7 @@ sub create_plate_from_qc{
                 $source_well->plate->type_id,
             );
 
+
             push @new_wells, \%well_params;
         }
         else{
@@ -919,10 +933,10 @@ sub create_plate_from_qc{
     }
 
     my $plate = $self->create_plate({
-        name    => $validated_params->{plate_name},
-        species => $template->species->id,
-        type    => $validated_params->{plate_type},
-        wells   => \@new_wells,
+        name       => $validated_params->{plate_name},
+        species    => $template->species->id,
+        type       => $validated_params->{plate_type},
+        wells      => \@new_wells,
         created_by => $validated_params->{created_by},
     });
 
@@ -939,7 +953,7 @@ sub create_plate_from_qc{
 
 sub pspec_add_well_qc_sequencing_results{
     return{
-        plate   => { },
+        plate           => { },
         orig_name       => { validate => 'non_empty_string' },
         results_by_well => { validate => 'hashref' },
         view_uri        => { validate => 'absolute_url' },
