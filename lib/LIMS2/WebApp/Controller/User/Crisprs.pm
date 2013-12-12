@@ -219,19 +219,17 @@ With
 =cut
 
 sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
-    my ( $self, $c ) = @_; 
-$DB::single=1;
+    my ( $self, $c ) = @_;
 
     my $exon_coords_rs = $c->model('Golgi')->schema->resultset('DesignTarget')->search(
         {
             'ensembl_exon_id' => $c->request->params->{'exon_id'},
         }
-        
     );
 
     my $exon_coords = $exon_coords_rs->single;
-
     $c->stash(
+        'crispr_style'  => $c->request->params->{'crispr_style'},
         'genome'        => $c->request->params->{'genome'},
         'chromosome'    => $c->request->params->{'chromosome'},
         'gene_symbol'   => $c->request->params->{'symbol'},

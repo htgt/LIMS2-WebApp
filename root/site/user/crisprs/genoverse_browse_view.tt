@@ -1,9 +1,11 @@
 [% META title="Browse Crisprs"; META tab_name = 'Crisprs' %]
 <div class="page-header">
-  <h1>[%gene_symbol%] 
+  <h1>[%- gene_symbol -%] 
   <small>exon: <strong>[%exon_id%]</strong>
-  assembly: [% genome %]</small>
+  chr: [%- chromosome -%]
+  assembly: [%- genome -%]</small>
   </h1>
+  <h4>Displaying: Gibson designs and [% crispr_style == 'single' ? 'single' : 'paired' %] crisprs</h4>
 </div>
 
     <script type="text/javascript" src="http://genoverse.org/js/genoverse.combined.js">
@@ -34,14 +36,16 @@
             resizable : 'auto',
             height    : 150
           }),
-//          Genoverse.Track.extend({
-//            name      : 'Crisprs',
-//            url       : "[% c.uri_for('/api/crispr')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
-//            model     : Genoverse.Track.Model.Transcript.GFF3,
-//            view      : Genoverse.Track.View.Transcript,
-//            resizable : 'auto',
-//            height    : 150
-//          }),
+[% IF crispr_style == 'single' %]
+          Genoverse.Track.extend({
+            name      : 'Crisprs',
+            url       : "[% c.uri_for('/api/crispr')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            model     : Genoverse.Track.Model.Transcript.GFF3,
+            view      : Genoverse.Track.View.Transcript,
+            resizable : 'auto',
+            height    : 150
+          }),
+[% ELSE %]
           Genoverse.Track.extend({
             name      : 'Crispr_pairs',
             url       : "[% c.uri_for('/api/crispr_pairs')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
@@ -50,6 +54,7 @@
             resizable : 'auto',
             height    : 150
           }),
+[% END %]
           Genoverse.Track.extend({
             name   : 'Genes',
             height : 200,
