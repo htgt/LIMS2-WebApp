@@ -1,3 +1,6 @@
+0.136     2013-12-12 11:59:52 Europe/London
+	Cookie for HTGT2 authentication written on successful login
+
 0.135     2013-12-10 16:21:17 Europe/London
 	Added Cre ES Distribution reports
 	Modified genotyping QC grid to add Calculated Pass

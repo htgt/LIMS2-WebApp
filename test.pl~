@@ -1,0 +1,7 @@
+use strict;
+my $search_term="ETP";
+
+my @output = "test ETPC111_3 test","ETPC... blah";
+my @projects;
+push @projects, map { $_ =~ /($search_term\S*)/g }, @output;
+print join "\t", @projects;

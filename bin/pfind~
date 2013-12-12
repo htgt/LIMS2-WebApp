@@ -1,0 +1,133 @@
+#!/software/bin/perl-5.8.8 -w
+#######################################################################
+# This software has been created by Genome Research Limited (GRL).    # 
+# GRL hereby grants permission to use, copy, modify and distribute    # 
+# this software and its documentation for non-commercial purposes     # 
+# without fee at the user's own risk on the basis set out below.      #
+# GRL neither undertakes nor accepts any duty whether contractual or  # 
+# otherwise in connection with the software, its use or the use of    # 
+# any derivative, and makes no representations or warranties, express #
+# or implied, concerning the software, its suitability, fitness for   #
+# a particular purpose or non-infringement.                           #
+# In no event shall the authors of the software or GRL be responsible # 
+# or liable for any loss or damage whatsoever arising in any way      # 
+# directly or indirectly out of the use of this software or its       # 
+# derivatives, even if advised of the possibility of such damage.     #
+# Our software can be freely distributed under the conditions set out # 
+# above, and must contain this copyright notice.                      #
+#######################################################################
+ # $Id: pfind 20546 2007-05-01 11:13:07Z rmd $
+
+use strict;
+use OORepository;
+my $wild_project;
+my $quiet;
+my $unique;
+# 
+# U S A G E;
+#
+my $usage = "\nUsage: pfind -q [quiet mode] -u [unique] <projectname> || -a [displays all projects]\n";
+
+if( $ARGV[0] eq '-a' ){
+	$wild_project = "";
+}
+else{
+    my $arg ;
+    foreach $arg (@ARGV) {
+	if ($arg eq '-u') { $unique = 1 ; }
+	elsif ($arg eq '-q') { $quiet = 1 ; }
+	else { 
+	    $wild_project = $arg ;
+	    $wild_project =~ s/\*//g;
+	    chomp($wild_project);
+	}
+    }
+}
+
+if (! defined $wild_project) { die $usage ; }
+
+eval{
+	my $repos = new OORepository;
+	#$repos->read_project_table();
+
+	my $test_string = ($unique) ? $wild_project : "%" . $wild_project . "%" ;
+	my $projects =
+	    $repos->{DB}->selectall_arrayref(qq[select projectname 
+						from project 
+						where projectname ]
+					     . ($unique ? '= ?' : 'like ?'),
+					     {}, $test_string);
+
+	if( scalar(@{$projects}) == 0 ){
+			print STDERR "Project $wild_project doesn't exist in the repository\n";
+			exit(1);
+	}
+
+	foreach my $project_ref (@{$projects}){ 
+		
+		my $project = $project_ref->[0];
+	
+		$repos->get_online_path_from_project($project);
+
+		if(defined $repos->{online_path}){
+			if( defined $quiet ){
+				print STDOUT "$repos->{online_path}";
+			}else{
+				print STDOUT "Location of $project is $repos->{online_path}\n";
+			}
+		}else{
+			print STDERR "Project $project doesn't have an online_path\n";
+		}
+	}
+};
+if( $@ ){
+	print STDERR "An error occurred:\n $@\n";
+}	
+
+__END__
+
+=head1 NAME
+
+pfind - find a project in the repository
+
+=head1 SYNOPSIS
+
+pfind [-q][-u] <project name>
+
+=head1 DESCRIPTION
+
+Looks up the given project in the repository and prints the current online
+path.  If the project is not in the tracking database, it will print 'Project
+<project name> doesn't exist in the repository'.  If the project does
+exist, but does not have a current online path, it will print 'Project
+<project name> doesn't have an online_path'.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -a
+
+Display all projects (maybe not a good idea!)
+
+=item -q
+
+Quiet mode.  Normally pfind prints 'Location of project <project name> is ...'
+The -q option supresses this, and the final newline, so that pfind can be
+used in backticks.  e.g.:
+
+ cd `pfind -q <project name>`
+
+=item -u
+
+Unique mode.  Normally, pfind will put wildcards on the front and back of the
+project name before trying to look it up.  Using -u supresses this, so only
+exact matches are returned.
+
+=back
+
+=head1 AUTHOR
+
+Andy Smith
+
+=cut

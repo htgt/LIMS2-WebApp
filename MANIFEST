@@ -4,10 +4,13 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+badger.pl~
 bin/draw_plate_relations.pl
+bin/fetch-seq-projects.sh~
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
+bin/pfind~
 bin/process_graph.pl
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
@@ -2736,3 +2739,4 @@ t/lib/LIMS2/t/WebApp/Pageset.pm
 t/lib/LIMS2/t/WebApp/Script/FastCGI.pm
 t/lib/LIMS2/t/WebApp/View/HTML.pm
 t/release-no-smart-comments.t
+test.pl~
