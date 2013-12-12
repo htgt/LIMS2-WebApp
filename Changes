@@ -2,8 +2,6 @@
 
 0.134     2013-12-05 16:33:09 Europe/London
 
-0.132     2013-12-05 16:10:10 Europe/London
-
     Fixes in genotyping_qc csv download (now plate type specific), and qc_template csv
     Updated view_qc_run to show crisprs
     autocomplete list of Badger Repository sequencing projects using htgt

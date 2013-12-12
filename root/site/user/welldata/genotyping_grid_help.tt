@@ -31,6 +31,29 @@ Using this type of view we can present more data more quickly. There is no pagin
         The remaining columns are scrollable using the horizontal scrollbar at the bottom of the grid.
         You may have scrollbars on your browser window as well but these will not scroll the data in the grid view.
     </p>
+        The locked columns on the left of the grid are:
+
+        <pre>
+        Well
+        Gene name
+        Design ID
+        Allele Type
+        Calculated pass
+        Distribute
+        Override
+        </pre>
+
+    <p>
+        The <em>Allele Type</em> is calculated from targeting assay data and will be a 'fail' if no assay data exists.<br>
+        The <em>Calculated Pass</em> is determined using the Allele Type and any additional checks specified (e.g. chromosome assays).
+        It is an automated calculation of the overall genotyping pass for that well.<br>
+        The <em>Distribute</em> column displays the calculated distribute flag for the well, and corresponds to the Calculated Pass column value.<br>
+        N.B. if the distribute flag value calculated in the display differs from that stored in the database (e.g. if viewing recently uploaded genotyping results)
+        then the value is marked with an asterisk (e.g. '* yes' displayed if current database value is 'no'). Use the icon in the top right of the screen to persist
+        the distribute values into the database. The screen should update and the asterisks should disappear.<br>
+        The <em>Override</em> column allows manual override of the distribute flag, and supercedes any automatically calculated value.
+    </p>
+
         The first section of assay data comprises the following columns:
 
         <pre>

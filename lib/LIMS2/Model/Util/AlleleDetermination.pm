@@ -7,8 +7,13 @@ use Moose;
 use Try::Tiny;
 use LIMS2::Exception;
 use Parse::BooleanLogic;
+use Log::Log4perl qw( :easy );
 
-# use Smart::Comments;
+has model => (
+    is       => 'ro',
+    isa      => 'LIMS2::Model',
+    required => 1,
+);
 
 has species => (
     is       => 'ro',
@@ -16,10 +21,12 @@ has species => (
     required => 1,
 );
 
-has model => (
-    is       => 'ro',
-    isa      => 'LIMS2::Model',
-    required => 1,
+# flag for testing mode
+has is_in_test_mode => (
+    is       => 'rw',
+    isa      => 'Int',
+    required => 0,
+    default => 0,
 );
 
 # array of hashrefs of well genotyping results
@@ -42,30 +49,30 @@ has well_allele_type_results => (
 
 has current_well => (
     is  => 'rw',
-    isa => 'HashRef',
+    isa => 'Maybe[HashRef]',
 );
 
 has current_well_id => (
     is       => 'rw',
-    isa      => 'Int',
+    isa      => 'Maybe[Int]',
     required => 0,
 );
 
 has current_well_workflow => (
     is       => 'rw',
-    isa      => 'Str',
+    isa      => 'Maybe[Str]',
     required => 0,
 );
 
 has current_well_stage => (
     is       => 'rw',
-    isa      => 'Str',
+    isa      => 'Maybe[Str]',
     required => 0,
 );
 
 has current_well_validation_msg => (
     is       => 'rw',
-    isa      => 'Str',
+    isa      => 'Maybe[Str]',
     required => 0,
 );
 
@@ -75,13 +82,7 @@ has allele_config => (
     builder => '_build_allele_config',
 );
 
-has assay_dispatches => (
-    is         => 'rw',
-    isa        => 'HashRef',
-    lazy_build => 1,
-);
-
-has validation_dispatches => (
+has dispatches => (
     is         => 'rw',
     isa        => 'HashRef',
     lazy_build => 1,
@@ -94,12 +95,12 @@ has allele_translation => (
 );
 
 sub BUILD {
-    my ($self) = @_;
+    my ( $self ) = @_;
     return;
 }
 
 sub _build_allele_config {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $conf_parser = Config::Scoped->new(
         file     => $ENV{LIMS2_ALLELE_DET_CONFIG},
@@ -111,56 +112,74 @@ sub _build_allele_config {
     return $allele_config;
 }
 
-sub _build_assay_dispatches {
-    my ($self) = @_;
+sub _build_dispatches {
+    my ( $self ) = @_;
 
-    my $assay_dispatches = {
-        'is_loacrit_0'           => sub { $self->is_loacrit_0 },
-        'is_loacrit_1'           => sub { $self->is_loacrit_1 },
-        'is_loacrit_2'           => sub { $self->is_loacrit_2 },
-        'is_loatam_0'            => sub { $self->is_loatam_0 },
-        'is_loatam_1'            => sub { $self->is_loatam_1 },
-        'is_loatam_2'            => sub { $self->is_loatam_2 },
-        'is_loadel_0'            => sub { $self->is_loadel_0 },
-        'is_loadel_1'            => sub { $self->is_loadel_1 },
-        'is_loadel_2'            => sub { $self->is_loadel_2 },
-        'is_neo_present'         => sub { $self->is_neo_present },
-        'is_neo_absent'          => sub { $self->is_neo_absent },
-        'is_bsd_present'         => sub { $self->is_bsd_present },
-        'is_bsd_absent'          => sub { $self->is_bsd_absent },
-        'is_potential_loacrit_0' => sub { $self->is_potential_loacrit_0 },
-        'is_potential_loacrit_1' => sub { $self->is_potential_loacrit_1 },
-        'is_potential_loacrit_2' => sub { $self->is_potential_loacrit_2 },
-        'is_potential_loatam_0'  => sub { $self->is_potential_loatam_0 },
-        'is_potential_loatam_1'  => sub { $self->is_potential_loatam_1 },
-        'is_potential_loatam_2'  => sub { $self->is_potential_loatam_2 },
-        'is_potential_loadel_0'  => sub { $self->is_potential_loadel_0 },
-        'is_potential_loadel_1'  => sub { $self->is_potential_loadel_1 },
-        'is_potential_loadel_2'  => sub { $self->is_potential_loadel_2 },
+    my $dispatches = {
+        'is_loacrit_0'           => sub { $self->_is_loacrit_0 },
+        'is_potential_loacrit_0' => sub { $self->_is_potential_loacrit_0 },
+        'is_loacrit_1'           => sub { $self->_is_loacrit_1 },
+        'is_potential_loacrit_1' => sub { $self->_is_potential_loacrit_1 },
+        'is_loacrit_2'           => sub { $self->_is_loacrit_2 },
+        'is_potential_loacrit_2' => sub { $self->_is_potential_loacrit_2 },
+        'is_loatam_0'            => sub { $self->_is_loatam_0 },
+        'is_potential_loatam_0'  => sub { $self->_is_potential_loatam_0 },
+        'is_loatam_1'            => sub { $self->_is_loatam_1 },
+        'is_potential_loatam_1'  => sub { $self->_is_potential_loatam_1 },
+        'is_loatam_2'            => sub { $self->_is_loatam_2 },
+        'is_potential_loatam_2'  => sub { $self->_is_potential_loatam_2 },
+        'is_loadel_0'            => sub { $self->_is_loadel_0 },
+        'is_potential_loadel_0'  => sub { $self->_is_potential_loadel_0 },
+        'is_loadel_1'            => sub { $self->_is_loadel_1 },
+        'is_potential_loadel_1'  => sub { $self->_is_potential_loadel_1 },
+        'is_loadel_2'            => sub { $self->_is_loadel_2 },
+        'is_potential_loadel_2'  => sub { $self->_is_potential_loadel_2 },
+        'is_cre_0'               => sub { $self->_is_cre_0 },
+        'is_potential_cre_0'     => sub { $self->_is_potential_cre_0 },
+        'is_cre_1'               => sub { $self->_is_cre_1 },
+        'is_potential_cre_1'     => sub { $self->_is_potential_cre_1 },
+        'is_puro_0'              => sub { $self->_is_puro_0 },
+        'is_potential_puro_0'    => sub { $self->_is_potential_puro_0 },
+        'is_puro_1'              => sub { $self->_is_puro_1 },
+        'is_potential_puro_1'    => sub { $self->_is_potential_puro_1 },
+        'is_chry_0'              => sub { $self->_is_chry_0 },
+        'is_potential_chry_0'    => sub { $self->_is_potential_chry_0 },
+        'is_chry_1'              => sub { $self->_is_chry_1 },
+        'is_potential_chry_1'    => sub { $self->_is_potential_chry_1 },
+        'is_chry_2'              => sub { $self->_is_chry_2 },
+        'is_potential_chry_2'    => sub { $self->_is_potential_chry_2 },
+        'is_chr8a_0'             => sub { $self->_is_chr8a_0 },
+        'is_potential_chr8a_0'   => sub { $self->_is_potential_chr8a_0 },
+        'is_chr8a_1'             => sub { $self->_is_chr8a_1 },
+        'is_potential_chr8a_1'   => sub { $self->_is_potential_chr8a_1 },
+        'is_chr8a_2'             => sub { $self->_is_chr8a_2 },
+        'is_potential_chr8a_2'   => sub { $self->_is_potential_chr8a_2 },
+        'not_is_chr8a_2'         => sub { !$self->_is_chr8a_2 },
+        'is_neo_present'         => sub { $self->_is_neo_present },
+        'is_neo_absent'          => sub { !$self->_is_neo_present },
+        'is_bsd_present'         => sub { $self->_is_bsd_present },
+        'is_bsd_absent'          => sub { !$self->_is_bsd_present },
+        'is_lrpcr_pass'          => sub { $self->_is_lrpcr_pass },
+        'valid_loacrit'          => sub { $self->_validate_assay('loacrit') },
+        'valid_loatam'           => sub { $self->_validate_assay('loatam') },
+        'valid_loadel'           => sub { $self->_validate_assay('loadel') },
+        'not_valid_loadel'       => sub { !$self->_validate_assay('loadel') },
+        'valid_neo'              => sub { $self->_validate_assay('neo') },
+        'valid_bsd'              => sub { $self->_validate_assay('bsd') },
+        'valid_cre'              => sub { $self->_validate_assay('cre') },
+        'valid_puro'             => sub { $self->_validate_assay('puro') },
+        'valid_lrpcr'            => sub { $self->_validate_primers('lrpcr') },
+        'valid_chry'             => sub { $self->_validate_assay('chry') },
+        'valid_chr8a'            => sub { $self->_validate_assay('chr8a') },
     };
 
-    return $assay_dispatches;
-}
-
-sub _build_validation_dispatches {
-    my ($self) = @_;
-
-    my $validation_dispatches = {
-        'loacrit' => sub { $self->_validate_assay('loacrit') },
-        'loatam'  => sub { $self->_validate_assay('loatam') },
-        'loadel'  => sub { $self->_validate_assay('loadel') },
-        'neo'     => sub { $self->_validate_assay('neo') },
-        'bsd'     => sub { $self->_validate_assay('bsd') },
-    };
-
-    return $validation_dispatches;
+    return $dispatches;
 }
 
 sub _build_allele_translation {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    my $allele_translation = $self->allele_config->{'allele_translation'};
-
+    my $allele_translation = $self->allele_config->{ 'allele_translation' };
     return $allele_translation;
 }
 
@@ -177,7 +196,9 @@ sub determine_allele_types_for_well_ids {
     # TODO: get workflow calculation into summaries generation
     $self->_determine_workflow_for_wells();
 
-    $self->_determine_allele_types();
+    $self->_determine_allele_types_for_wells();
+
+    $self->_determine_genotyping_pass_for_wells();
 
     # return array of well hashes which contains the allele-type results
     return $self->well_genotyping_results_array;
@@ -194,7 +215,9 @@ sub determine_allele_types_for_genotyping_results_array {
     $self->_determine_workflow_for_wells();
 
     # determine allele types
-    $self->_determine_allele_types();
+    $self->_determine_allele_types_for_wells( 0 );
+
+    $self->_determine_genotyping_pass_for_wells();
 
     # return array of well hashes which contains the allele-type results
     return $self->well_genotyping_results_array;
@@ -203,19 +226,25 @@ sub determine_allele_types_for_genotyping_results_array {
 # this entry point is for testing the logic, where the genotyping results array of well hashes is already
 # set up and contains workflow and summaries table data
 sub test_determine_allele_types_logic {
-    my ( $self, $well_ids ) = @_;
+    my ( $self ) = @_;
+
+    $self->is_in_test_mode( 1 );
 
     # determine allele types
-    $self->_determine_allele_types();
+    $self->_determine_allele_types_for_wells();
 
-    # return basic results hash
-    return $self->well_allele_type_results;
+    $self->_determine_genotyping_pass_for_wells();
+
+    # return array of well hashes which contains the allele-type results
+    return $self->well_genotyping_results_array;
 }
 
-sub _determine_allele_types {
-    my ($self) = @_;
+sub _determine_allele_types_for_wells {
+    my ( $self ) = @_;
 
     $self->well_allele_type_results( {} );
+
+    $self->_initialise_current_well_attributes();
 
     foreach my $well ( @{ $self->well_genotyping_results_array } ) {
 
@@ -224,7 +253,7 @@ sub _determine_allele_types {
 
         my $current_allele_type = '';
 
-        # attempt tp determine the allele type for this well and add the result into the output hashref
+        # attempt to determine the allele type for this well and add the result into the output hashref
         try {
             $current_allele_type = $self->_determine_allele_type_for_well();
         }
@@ -234,11 +263,11 @@ sub _determine_allele_types {
         };
 
         # store full allele determination in well hash
-        $well->{'allele_determination'} = $current_allele_type;
+        $well->{ 'allele_determination' } = $current_allele_type;
 
         # also reformat and store minimal version of allele determination for display in grids
         my $minimal_allele_type = $self->_minimised_allele_type($current_allele_type);
-        $well->{'allele_type'} = $minimal_allele_type;
+        $well->{ 'allele_type' } = $minimal_allele_type;
 
         # add result to minimal well / result hash
         $self->well_allele_type_results->{ $self->current_well_id } = $current_allele_type;
@@ -248,48 +277,59 @@ sub _determine_allele_types {
 }
 
 sub _determine_workflow_for_wells {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    # SQL for selecting the fields for determining workflows differs for EP_PICK and SEP_PICK plate types
+    # SQL for selecting the fields for determining workflows differs for EP_PICK, SEP_PICK and PIQ plate types
+    # First group the well ids into FEPD, SEPD and PIQ arrays (will usually all be one type) so not
+    # running the SQL query multiple times
 
     my @fepd_well_ids = ();
     my @sepd_well_ids = ();
+    my @piq_well_ids  = ();
 
-    # first, group the well ids into FEPD and SEPD sets (will usually all be one type) so not
-    # running the query multiple times
+    $self->_initialise_current_well_attributes();
 
-WELL_LOOP:
     foreach my $current_well ( @{ $self->well_genotyping_results_array } ) {
 
-        my $current_well_id = $current_well->{'id'};
+        my $current_well_id         = $current_well->{ 'id' };
+        my $current_well_plate_type = $current_well->{ 'plate_type' };
+        unless ( defined $current_well_id && defined $current_well_plate_type ) {
+            # no plate type found, cannot determine workflow for this well
+            $current_well->{ 'workflow' } = 'unknown';
+            next;
+        }
 
-        unless ( defined $current_well_id ) { next WELL_LOOP; }
-
-        my $curr_well_plate_type = $current_well->{'plate_type'};
-
-        if ( defined $curr_well_plate_type && $curr_well_plate_type eq 'EP_PICK' ) {
+        if ( $current_well_plate_type eq 'EP_PICK' ) {
             push( @fepd_well_ids, $current_well_id );
         }
-        elsif ( defined $curr_well_plate_type && $curr_well_plate_type eq 'SEP_PICK' ) {
+        elsif ( $current_well_plate_type eq 'SEP_PICK' ) {
             push( @sepd_well_ids, $current_well_id );
         }
+        elsif ( $current_well_plate_type eq 'PIQ' ) {
+            push( @piq_well_ids, $current_well_id );
+        }
         else {
-
-            # unusable plate type
-            next WELL_LOOP;
+            # unusable plate type, cannot determine workflow for this well
+            $current_well->{ 'workflow' } = 'unknown';
         }
     }
 
-    # select and write FEPD well data
+    # select and write FEPD well data (if any)
     if ( scalar @fepd_well_ids > 0 ) {
-        my $sql_query_fepd = $self->create_sql_select_summaries_fepd( ( \@fepd_well_ids ) );
+        my $sql_query_fepd = $self->_create_sql_select_summaries_fepd( ( \@fepd_well_ids ) );
         $self->_select_workflow_data($sql_query_fepd);
     }
 
-    # select and write SEPD well data
+    # select and write SEPD well data (if any)
     if ( scalar @sepd_well_ids > 0 ) {
-        my $sql_query_sepd = $self->create_sql_select_summaries_sepd( ( \@sepd_well_ids ) );
+        my $sql_query_sepd = $self->_create_sql_select_summaries_sepd( ( \@sepd_well_ids ) );
         $self->_select_workflow_data($sql_query_sepd);
+    }
+
+    # select and write PIQ well data (if any)
+    if ( scalar @piq_well_ids > 0 ) {
+        my $sql_query_piq = $self->_create_sql_select_summaries_piq( ( \@piq_well_ids ) );
+        $self->_select_workflow_data($sql_query_piq);
     }
 
     return;
@@ -302,45 +342,32 @@ sub _select_workflow_data {
         my $sql_results = $self->run_select_query($sql_query);
 
         if ( defined $sql_results ) {
-
-            # Calculate and set workflow for each well
-            # Requires specific fields from summaries table
-
             my $well_results = {};
 
-            # transfer results into hash
+            # transfer results into hash ( set to blank if empty field )
             foreach my $sql_result ( @{$sql_results} ) {
-
-                my $curr_well_id = $sql_result->{'well_id'};
-                $well_results->{$curr_well_id}->{'final_pick_recombinase_id'}
-                    = $sql_result->{'final_pick_recombinase_id'} // '';
-                $well_results->{$curr_well_id}->{'final_pick_cassette_resistance'}
-                    = $sql_result->{'final_pick_cassette_resistance'} // '';
-                $well_results->{$curr_well_id}->{'ep_well_recombinase_id'} = $sql_result->{'ep_well_recombinase_id'}
-                    // '';
+                my $current_sql_well_id = $sql_result->{ 'well_id' };
+                $well_results->{ $current_sql_well_id }->{ 'final_pick_recombinase_id' }      = $sql_result->{ 'final_pick_recombinase_id' } // '';
+                $well_results->{ $current_sql_well_id }->{ 'final_pick_cassette_resistance' } = $sql_result->{ 'final_pick_cassette_resistance' } // '';
+                $well_results->{ $current_sql_well_id }->{ 'final_pick_cassette_cre' }        = $sql_result->{ 'final_pick_cassette_cre' } // '';
+                $well_results->{ $current_sql_well_id }->{ 'ep_well_recombinase_id' }         = $sql_result->{ 'ep_well_recombinase_id' } // '';
             }
 
-            # loop through genotyping results array and copy across any results from the well_results hash
-            # where there is a match of well id, and also calculate the workflow
-        WELL_LOOP:
-            foreach my $curr_well ( @{ $self->well_genotyping_results_array } ) {
+            # now loop through genotyping results array and copy across any results from the well_results hash, and calculate workflow
+            foreach my $current_gr_well ( @{ $self->well_genotyping_results_array } ) {
+                my $current_gr_well_id = $current_gr_well->{ 'id' };
 
-                my $curr_well_id = $curr_well->{'id'};
-
-                unless ( defined $curr_well_id ) { next WELL_LOOP; }
-
-                # check if we have a result for this well id
-                unless ( defined $well_results->{$curr_well_id} ) { next WELL_LOOP; }
+                # check for whether there is a result for this well ID
+                unless ( defined $current_gr_well_id && defined $well_results->{ $current_gr_well_id } ) { next; }
 
                 # store fields in well hash (or blank if not set)
-                $curr_well->{'final_pick_recombinase_id'}
-                    = $well_results->{$curr_well_id}->{'final_pick_recombinase_id'};
-                $curr_well->{'final_pick_cassette_resistance'}
-                    = $well_results->{$curr_well_id}->{'final_pick_cassette_resistance'};
-                $curr_well->{'ep_well_recombinase_id'} = $well_results->{$curr_well_id}->{'ep_well_recombinase_id'};
+                $current_gr_well->{ 'final_pick_recombinase_id' }       = $well_results->{ $current_gr_well_id }->{ 'final_pick_recombinase_id' };
+                $current_gr_well->{ 'final_pick_cassette_resistance' }  = $well_results->{ $current_gr_well_id }->{ 'final_pick_cassette_resistance' };
+                $current_gr_well->{ 'final_pick_cassette_cre' }         = $well_results->{ $current_gr_well_id }->{ 'final_pick_cassette_cre' };
+                $current_gr_well->{ 'ep_well_recombinase_id' }          = $well_results->{ $current_gr_well_id }->{ 'ep_well_recombinase_id' };
 
                 # calculate workflow for well
-                $self->_calculate_workflow_for_well($curr_well);
+                $self->_calculate_workflow_for_well( $current_gr_well );
             }
         }
     }
@@ -356,29 +383,46 @@ sub _select_workflow_data {
 sub _calculate_workflow_for_well {
     my ( $self, $current_well ) = @_;
 
-    $current_well->{'workflow'} = 'unknown';
+    $current_well->{ 'workflow' } = 'unknown';
 
-    # For the non-essential pathway they apply Cre to the vector to remove the critical region in the bsd cassette
-    if ( $current_well->{'final_pick_recombinase_id'} eq 'Cre' ) {
-        if ( $current_well->{'final_pick_cassette_resistance'} eq 'bsd' ) {
+    my $fpick_recomb   = $current_well->{ 'final_pick_recombinase_id' };
+    my $fpick_cass_res = $current_well->{ 'final_pick_cassette_resistance' };
+    my $fpick_cass_cre = $current_well->{ 'final_pick_cassette_cre' };
+    my $ep_recomb      = $current_well->{ 'ep_well_recombinase_id' };
 
-            # Means standard workflow for non-essential genes using Bsd cassette first
-            $current_well->{'workflow'} = 'Ne1';    # Non-essential Bsd first
+    if ( $fpick_cass_cre eq '1' ) {
+        # Heterozygous Cre knockin workflows
+        if ( $ep_recomb eq 'Dre' ) {
+            # For the workflow for Dre'd Cre Knockin genes they apply Dre to the cassette to excise the puromycin resistance and promoter
+            $current_well->{ 'workflow' } = 'CreKiDre';
+            return;
+        }
+        else {
+            # For the workflow for non-Dre'd Cre Knockin genes they do not apply Dre so leave in the puromycin resistance and promoter
+            $current_well->{ 'workflow' } = 'CreKi';
+            return;
         }
     }
     else {
-
-        # For the essential pathway they apply Flp to remove the neo cassette after the first electroporation
-        if ( $current_well->{'ep_well_recombinase_id'} eq 'Flp' ) {
-            if ( $current_well->{'final_pick_cassette_resistance'} eq 'neo' ) {
-                $current_well->{'workflow'} = 'E';    # Essential genes workflow
+        if ( $fpick_recomb eq 'Cre' ) {
+            if ( $fpick_cass_res eq 'bsd' ) {
+                # For the workflow for non-essential homozygous genes they apply Cre to the vector to remove the critical region in the bsd cassette
+                $current_well->{ 'workflow' } = 'Ne1';
+                return;
             }
         }
         else {
-            if ( $current_well->{'final_pick_cassette_resistance'} eq 'neo' ) {
-
-                # Means alternate workflow for non-essential genes using Neo cassette first
-                $current_well->{'workflow'} = 'Ne1a';    # Non-essential Neo first
+            if ( $fpick_cass_res eq 'neo' ) {
+                if ( $ep_recomb eq 'Flp' ) {
+                    # For the workflow for essential homozygous genes they apply Flp to remove the neo cassette after the first electroporation
+                    $current_well->{ 'workflow' } = 'E';
+                    return;
+                }
+                else {
+                    # For the alternate workflow for non-essential homozygous genes using Neo cassette first
+                    $current_well->{ 'workflow' } = 'Ne1a';
+                    return;
+                }
             }
         }
     }
@@ -387,40 +431,30 @@ sub _calculate_workflow_for_well {
 }
 
 sub _determine_allele_type_for_well {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    unless ( defined $self->current_well ) {
-        return 'Failed: no current well set';
+    unless ( defined $self->current_well ) { return 'Failed: no current well set'; }
+    unless ( defined $self->current_well_id ) { return 'Failed: no current well id set'; }
+    unless ( defined $self->current_well->{ 'plate_type' } ) { return 'Failed: plate type not present'; }
+
+    $self->current_well_stage( $self->current_well->{ 'plate_type' } );
+
+    unless ( $self->current_well_stage ~~ [ qw( EP_PICK SEP_PICK PIQ ) ] ) { return 'N/A'; }
+    unless ( defined $self->current_well->{ 'workflow' } ) { return 'Failed: workflow not present'; }
+
+    $self->current_well_workflow( $self->current_well->{ 'workflow' } );
+
+    unless ( $self->is_in_test_mode ) {
+        unless ( $self->_well_has_qc_data() ) { return 'Failed: no qc data for well'; }
     }
 
-    unless ( defined $self->current_well_id ) {
-        return 'Failed: no current well id set';
-    }
-
-    unless ( defined $self->current_well->{'plate_type'} ) {
-        return 'Failed: plate type not present for well id : ' . $self->current_well_id;
-    }
-
-    $self->current_well_stage( $self->current_well->{'plate_type'} );
-    unless ( ( $self->current_well_stage eq 'EP_PICK' ) || ( $self->current_well_stage eq 'SEP_PICK' ) ) {
-        return
-              'Failed: stage type must be EP_PICK or SEP_PICK and found type '
-            . $self->current_well_stage
-            . ' for well '
-            . $self->current_well_id;
-    }
-
-    unless ( defined $self->current_well->{'workflow'} ) {
-        return 'Failed: workflow not present for well id : ' . $self->current_well_id;
-    }
-
-    $self->current_well_workflow( $self->current_well->{'workflow'} );
-
-    $self->_create_assay_copy_number_string();
+    $self->_create_assay_summary_string();
 
     # Attempt to find a match using normal copy number constraints
-    my $allele_types_normal = $self->_determine_allele_type_for_well_with_constraints('normal');
-    return $allele_types_normal if ( defined $allele_types_normal && ( $allele_types_normal ne '' ) );
+    my $allele_types_normal = $self->_determine_allele_type_for_well_with_constraints( 'normal' );
+    if ( defined $allele_types_normal && ( $allele_types_normal ne '' ) ) {
+        return $allele_types_normal;
+    }
 
     # Failed to find a match, so now retry with looser thresholds
     my $allele_types_loose = $self->_determine_allele_type_for_well_with_constraints('loose');
@@ -428,29 +462,63 @@ sub _determine_allele_type_for_well {
         return $allele_types_loose;
     }
     else {
-        my $pattern = $self->current_well->{'assay_pattern'};
         return
               'Failed: unknown allele pattern : '
-            . $self->current_well_workflow . " "
-            . $self->current_well_stage . " "
-            . $pattern;
+            . $self->current_well_workflow . ' '
+            . $self->current_well_stage . ' '
+            . $self->current_well->{ 'assay_pattern' };
     }
 }
 
-sub _create_assay_copy_number_string {
-    my ($self) = @_;
+sub _well_has_qc_data {
+    my ( $self ) = @_;
+
+    my $has_qc_data = 0;
+
+    try {
+        my $sql_query = $self->_create_sql_select_qc_data( $self->current_well_id );
+        my $sql_results = $self->run_select_query($sql_query);
+        if ( defined $sql_results && (scalar @{ $sql_results } ) > 0 ) {
+            $has_qc_data = 1;
+        }
+    }
+    catch {
+        my $exception_message = $_;
+        LIMS2::Exception->throw("Failed has_qc_data check. Exception: $exception_message");
+    };
+
+    $self->current_well->{ 'has_qc_data' } = $has_qc_data;
+    return $has_qc_data;
+}
+
+sub _create_assay_summary_string {
+    my ( $self ) = @_;
 
     my @pattern;
 
-    # pull out the assay values
-    foreach my $assay_name ( 'bsd', 'loacrit', 'loadel', 'loatam', 'neo' ) {
-        push( @pattern,
-            ( $assay_name . "<" . ( $self->current_well->{ $assay_name . '#copy_number' } // '-' ) . ">" ) );
+    if ( $self->current_well_workflow ~~ [ qw( CreKi CreKiDre ) ] ) {
+        # build the summary for Cre Knockin workflows
+        foreach my $assay_name ( 'cre', 'puro', 'loadel' ) {
+            push( @pattern,
+                ( $assay_name . ':' . ( $self->current_well->{ $assay_name . '#copy_number' } // '-' ) ) );
+        }
+        foreach my $lrpcr_val ( 'gr3', 'gf3', 'gr4', 'gf4' ) {
+            my $lrpcr_val_string = $lrpcr_val . ':' . ( $self->current_well->{ $lrpcr_val } // '-' );
+            # DEBUG( 'curr well id= ' . $self->current_well_id() . ' lrpcr_val_string=' . $lrpcr_val_string );
+            push( @pattern, $lrpcr_val_string );
+        }
+    }
+    else {
+        # build the summary for homozygous workflows
+        foreach my $assay_name ( 'bsd', 'loacrit', 'loadel', 'loatam', 'neo' ) {
+            push( @pattern,
+                ( $assay_name . ':' . ( $self->current_well->{ $assay_name . '#copy_number' } // '-' ) ) );
+        }
     }
 
     my $pattern_string = join( ' ', (@pattern) );
 
-    $self->current_well->{'assay_pattern'} = $pattern_string;
+    $self->current_well->{ 'assay_pattern' } = $pattern_string;
 
     return;
 }
@@ -459,20 +527,30 @@ sub _determine_allele_type_for_well_with_constraints {
     my ( $self, $constraint_name ) = @_;
 
     $self->current_well_validation_msg('');
-    unless ( $self->_validate_assays($constraint_name) ) {
+    unless ( $self->_validate_assays( $constraint_name ) ) {
         return 'Failed: validate assays : ' . $self->current_well_validation_msg;
     }
 
     my @allele_types;
 
     # Attempt to find a matching allele type using normal constraints
-    my $tests
-        = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{$constraint_name}
-        ->{'tests'};
+    my $tests = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $constraint_name }->{ 'tests' };
 
-    foreach my $key ( keys %{$tests} ) {
-        push( @allele_types, ( $self->allele_translation->{$key} ) )
-            if ( $self->_is_allele_test( $constraint_name, $key ) );
+    # print 'curr well id = ' . $self->current_well_id . ' tests workflow = ' . $self->current_well_workflow . ' stage = ' . $self->current_well_stage . ' constraint name = ' . $constraint_name . "\n";
+
+    # $tests
+
+    unless ( defined $tests ) { LIMS2::Exception->throw("determine allele type for well: no tests defined in config") };
+
+    foreach my $key ( keys %{ $tests } ) {
+
+        # Get the specific logic for this particular workflow and scope into this method:
+        my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $constraint_name }->{ 'tests' }->{ $key };
+
+        LIMS2::Exception->throw("determine allele type: no tests logic string defined for test " . $key ) unless ( defined $logic_string && $logic_string ne '' );
+
+        push( @allele_types, ( $self->allele_translation->{ $key } ) )
+            if ( $self->_is_allele_test( $logic_string ) );
     }
 
     if ( scalar @allele_types > 0 ) {
@@ -484,24 +562,24 @@ sub _determine_allele_type_for_well_with_constraints {
 }
 
 sub _is_allele_test {
-    my ( $self, $constraint_name, $test_name ) = @_;
+    my ( $self, $logic_string ) = @_;
 
-    # Get the specific logic for this particular workflow and scope into this method:
-    my $logic_string
-        = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{$constraint_name}
-        ->{'tests'}->{$test_name};
+    LIMS2::Exception->throw( "allele test: no tests logic string defined" ) unless ( defined $logic_string && $logic_string ne '' );
 
-    LIMS2::Exception->throw("allele checking: no tests logic string defined") unless ( defined $logic_string );
+    # DEBUG ( 'Allele test logic string = ' . $logic_string );
 
-    # logic string looks like this: 'is_loacrit_1 AND is_loatam_1 AND is_loadel_0 AND is_neo_present AND is_bsd_present'
+    # logic string looks like this: 'is_loacrit_1 AND is_loatam_1 AND is_loadel_0 AND ( is_neo_present OR is_bsd_present )'
     # Get the parser to read this, interpret logic and run our coded methods "is_loacrit_1" etc
     my $parser = Parse::BooleanLogic->new();
-    my $tree   = $parser->as_array($logic_string);
+    my $tree   = $parser->as_array( $logic_string );
 
     my $callback = sub {
         my $self    = pop;
-        my $operand = $_[0]->{'operand'};
-        my $method  = $self->assay_dispatches->{$operand};
+        my $operand = $_[0]->{ 'operand' };
+
+        # DEBUG ( 'operand = <' . $operand . '>' );
+
+        my $method  = $self->dispatches->{ $operand };
         return $method->();
     };
 
@@ -536,210 +614,649 @@ sub _minimised_allele_type {
     return $current_allele_type;
 }
 
-sub is_loacrit_0 {
-    my ($self) = @_;
+sub _determine_genotyping_pass_for_wells {
+    my ( $self ) = @_;
 
-    my $loacrit_0_lower = $self->allele_config->{'thresholds'}->{'loacrit_0_lower_bound'};
-    my $loacrit_0_upper = $self->allele_config->{'thresholds'}->{'loacrit_0_upper_bound'};
+    # this has to decide if the overall result is a pass (distribute) or fail
+    # for EP plate types this is a check on whether the allele type is the expected allele type
+    # for PIQ plates this first checks allele type then if correct performs additional checks on Chromosome assays
+    $self->_initialise_current_well_attributes();
 
-    return $self->is_assay_copy_number_in_rng( $loacrit_0_lower, $loacrit_0_upper, 'loacrit' );
+    foreach my $well ( @{ $self->well_genotyping_results_array } ) {
+
+        $self->current_well( $well );
+        $self->current_well_id( $well->{ 'id' } );
+
+        my $current_genotyping_pass = 'fail';
+
+        # attempt to determine the genotyping pass for this well and add the result into the output hashref
+        try {
+            $current_genotyping_pass = $self->_determine_genotyping_pass_for_well();
+        }
+        catch {
+            my $exception_message = $_;
+            $well->{ 'genotyping_pass_error_message' } = 'Failed genotyping pass determination. Exception: '. $exception_message;
+            ERROR( 'Failed genotyping pass determination. Exception: '. $exception_message );
+        };
+
+        # store calculated genotyping pass in well hash
+        $well->{ 'genotyping_pass' } = $current_genotyping_pass;
+
+        # DEBUG ( "well id " . $self->current_well_id . " well genotyping pass = " . $well->{ 'genotyping_pass' } );
+    }
+
+    return;
 }
 
-sub is_loacrit_1 {
-    my ($self) = @_;
+sub _determine_genotyping_pass_for_well {
+    my ( $self ) = @_;
 
-    my $loacrit_1_lower = $self->allele_config->{'thresholds'}->{'loacrit_1_lower_bound'};
-    my $loacrit_1_upper = $self->allele_config->{'thresholds'}->{'loacrit_1_upper_bound'};
+    # DEBUG ( 'In _determine_genotyping_pass_for_well method' );
 
-    return $self->is_assay_copy_number_in_rng( $loacrit_1_lower, $loacrit_1_upper, 'loacrit' );
+    LIMS2::Exception->throw( 'Failed: no current well set' ) unless ( defined $self->current_well );
+    LIMS2::Exception->throw( 'Failed: no current well id set' ) unless ( defined $self->current_well_id );
+    LIMS2::Exception->throw( 'Failed: plate type not present for well id : ' . $self->current_well_id ) unless ( defined $self->current_well->{ 'plate_type' } );
+
+    $self->current_well_stage( $self->current_well->{ 'plate_type' } );
+
+    LIMS2::Exception->throw( 'Failed: Plate type unusable' ) unless ( $self->current_well_stage ~~ [ qw( EP_PICK SEP_PICK PIQ ) ] );
+    LIMS2::Exception->throw( 'Failed: Workflow not present' ) unless ( defined $self->current_well->{ 'workflow' } );
+
+    $self->current_well_workflow( $self->current_well->{ 'workflow' } );
+
+    LIMS2::Exception->throw( 'Failed: Allele type not present' ) unless ( defined $self->current_well->{ 'allele_determination' } );
+
+    # If the well allele type is a 'fail' return false
+    my $curr_well_allele_det = $self->current_well->{ 'allele_type' };
+    # DEBUG ( 'curr_well_allele_det = ' . $curr_well_allele_det );
+    if ( !defined $curr_well_allele_det || $curr_well_allele_det eq 'fail' || $curr_well_allele_det eq 'unknown' ) { return 'fail'; }
+
+    # Check if the allele type matches one of the allowed types according to the config file
+    unless ( $self->_is_allele_type_valid_for_genotyping_pass() ) { return 'fail'; };
+
+    # Attempt to find a pass result using the test criteria from the config file
+    my $genotyping_pass = $self->_apply_additional_genotyping_pass_criteria();
+
+     # DEBUG ( "well id " . $self->current_well_id . " genotyping pass = " . $genotyping_pass );
+
+    # update the well accepted value
+    $self->_set_calculated_well_accepted_value( $genotyping_pass );
+
+    return $genotyping_pass;
 }
 
-sub is_loacrit_2 {
-    my ($self) = @_;
+sub _is_allele_type_valid_for_genotyping_pass {
+    my ( $self ) = @_;
 
-    my $loacrit_2_lower = $self->allele_config->{'thresholds'}->{'loacrit_2_lower_bound'};
-    my $loacrit_2_upper = $self->allele_config->{'thresholds'}->{'loacrit_2_upper_bound'};
+    # DEBUG ( 'In _is_allele_type_valid_for_genotyping_pass method' );
 
-    return $self->is_assay_copy_number_in_rng( $loacrit_2_lower, $loacrit_2_upper, 'loacrit' );
+    # Fetch the list of genotyping pass allowed allele types from the config
+    # e.g. 'tm1_wt OR tm1_wt_lrpcr OR tm1_1_wt OR tm1_1_wt_lrpcr OR potential_tm1_wt OR potential_tm1_wt_lrpcr OR potential_tm1_1_wt OR potential_tm1_1_wt_lrpcr'
+    my $allowed_types_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'genotyping_pass' }->{ 'types_allowed' }->{ 'allele_types' };
+    my @allowed_types_array = split( /\sOR\s/, $allowed_types_string );
+    my @conv_allowed_types_array = ();
+    foreach my $allowed_type ( @allowed_types_array ) {
+        push( @conv_allowed_types_array, ( $self->allele_translation->{ $allowed_type } ) );
+    }
+
+    LIMS2::Exception->throw( 'Failed: No allowed allele types returned from config, cannot determine genotyping pass' ) unless ( scalar @conv_allowed_types_array > 0 );
+
+    # DEBUG( 'config string = ' . $allowed_types_string );
+    # DEBUG( 'config as array = ' . join( ", ", @allowed_types_array ) );
+    # DEBUG( 'converted config as array = ' . join( ", ", @conv_allowed_types_array ) );
+
+    # Create an array of types from the well allele determination
+    my $curr_well_allele_types_string = $self->current_well->{ 'allele_determination' };
+    my @curr_well_allele_types_array = split( /;\s/, $curr_well_allele_types_string );
+
+    LIMS2::Exception->throw( 'Failed: No allele determination types found, cannot determine genotyping pass' ) unless ( scalar @curr_well_allele_types_array > 0 );
+
+    # DEBUG( 'alele_types string = ' . $curr_well_allele_types_string );
+    # DEBUG( 'allele types as array = ' . join( ", ", @curr_well_allele_types_array ) );
+
+    # Cycle through the allele determination types and check if any match against the allowed types
+    # N.B. This is currently coded so that ANY one matching allele type triggers a pass
+    my $valid = 0;
+    foreach my $curr_well_allele_type ( @curr_well_allele_types_array ) {
+        if ( $curr_well_allele_type ~~ @conv_allowed_types_array ) {
+            # DEBUG ( $curr_well_allele_type . ' matches!' );
+            $valid = 1;
+        }
+    }
+
+    return $valid;
 }
 
-sub is_loatam_0 {
-    my ($self) = @_;
+sub _apply_additional_genotyping_pass_criteria {
+    my ( $self ) = @_;
 
-    my $loatam_0_lower = $self->allele_config->{'thresholds'}->{'loatam_0_lower_bound'};
-    my $loatam_0_upper = $self->allele_config->{'thresholds'}->{'loatam_0_upper_bound'};
+    # may be more than one test to check
 
-    return $self->is_assay_copy_number_in_rng( $loatam_0_lower, $loatam_0_upper, 'loatam' );
+    my @passed_tests;
+
+    # Attempt to find a matching allele type using normal constraints
+    my $tests = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'genotyping_pass' }->{ 'tests' };
+
+    # at least one test must be defined called 'pass', although it may have an empty logic string if no further tests are required
+    unless ( defined $tests ) { LIMS2::Exception->throw("apply additional genotyping tests: no tests defined in config") };
+
+    foreach my $key ( keys %{ $tests } ) {
+
+        # Get the specific logic for this particular workflow and scope into this method:
+        my $logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'genotyping_pass' }->{ 'tests' }->{ $key };
+
+        # if (defined $logic_string ) { print "well id " . $self->current_well_id . " pass criteria logic string = " . $logic_string . "\n"; }
+
+        # check string is defined
+        LIMS2::Exception->throw("apply additional genotyping pass criteria: no tests logic string defined for test " . $key ) unless ( defined $logic_string );
+
+        # if logic string is empty then no further tests required and well has passed test
+        if ( $logic_string eq '' ) {
+            # print "well id " . $self->current_well_id . " logic string empty\n";
+            push( @passed_tests, $key );
+        }
+        else {
+            if ( $self->_is_allele_test( $logic_string ) ) {
+                push( @passed_tests, $key );
+            }
+        }
+    }
+
+    if ( scalar @passed_tests > 0 ) {
+        return join( '; ', ( sort @passed_tests ) );
+    }
+    else {
+        return 'fail';
+    }
 }
 
-sub is_loatam_1 {
-    my ($self) = @_;
+sub _set_calculated_well_accepted_value {
+    my ( $self, $genotyping_pass ) = @_;
 
-    my $loatam_1_lower = $self->allele_config->{'thresholds'}->{'loatam_1_lower_bound'};
-    my $loatam_1_upper = $self->allele_config->{'thresholds'}->{'loatam_1_upper_bound'};
+    unless ( defined $genotyping_pass && defined $self->current_well->{ 'accepted' } ) { return; }
 
-    return $self->is_assay_copy_number_in_rng( $loatam_1_lower, $loatam_1_upper, 'loatam' );
+    # store an accepted value for each well, indicating where different than current database value
+    if ( $genotyping_pass eq 'fail' || $genotyping_pass eq '' ) {
+        if ( $self->current_well->{ 'accepted' } eq 'yes') {
+            $self->current_well->{ 'accepted' } = '* no';
+            $self->current_well->{ 'update_for_accepted' } = 0;
+        }
+    }
+    else {
+        if ( $self->current_well->{ 'accepted' } eq 'no') {
+            $self->current_well->{ 'accepted' } = '* yes';
+            $self->current_well->{ 'update_for_accepted' } = 1;
+        }
+    }
+
+    return;
 }
 
-sub is_loatam_2 {
-    my ($self) = @_;
+sub _is_loacrit_0 {
+    my ( $self ) = @_;
 
-    my $loatam_2_lower = $self->allele_config->{'thresholds'}->{'loatam_2_lower_bound'};
-    my $loatam_2_upper = $self->allele_config->{'thresholds'}->{'loatam_2_upper_bound'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loatam_2_lower, $loatam_2_upper, 'loatam' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
-sub is_loadel_0 {
-    my ($self) = @_;
+sub _is_loacrit_1 {
+    my ( $self ) = @_;
 
-    my $loadel_0_lower = $self->allele_config->{'thresholds'}->{'loadel_0_lower_bound'};
-    my $loadel_0_upper = $self->allele_config->{'thresholds'}->{'loadel_0_upper_bound'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loadel_0_lower, $loadel_0_upper, 'loadel' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
-sub is_loadel_1 {
-    my ($self) = @_;
+sub _is_loacrit_2 {
+    my ( $self ) = @_;
 
-    my $loadel_1_lower = $self->allele_config->{'thresholds'}->{'loadel_1_lower_bound'};
-    my $loadel_1_upper = $self->allele_config->{'thresholds'}->{'loadel_1_upper_bound'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loadel_1_lower, $loadel_1_upper, 'loadel' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
-sub is_loadel_2 {
-    my ($self) = @_;
+sub _is_loatam_0 {
+    my ( $self ) = @_;
 
-    my $loadel_2_lower = $self->allele_config->{'thresholds'}->{'loadel_2_lower_bound'};
-    my $loadel_2_upper = $self->allele_config->{'thresholds'}->{'loadel_2_upper_bound'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loadel_2_lower, $loadel_2_upper, 'loadel' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
-sub is_potential_loacrit_0 {
-    my ($self) = @_;
+sub _is_loatam_1 {
+    my ( $self ) = @_;
 
-    my $loacrit_0_lower = $self->allele_config->{'thresholds'}->{'loacrit_0_lower_bound_loose'};
-    my $loacrit_0_upper = $self->allele_config->{'thresholds'}->{'loacrit_0_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loacrit_0_lower, $loacrit_0_upper, 'loacrit' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
-sub is_potential_loacrit_1 {
-    my ($self) = @_;
+sub _is_loatam_2 {
+    my ( $self ) = @_;
 
-    my $loacrit_1_lower = $self->allele_config->{'thresholds'}->{'loacrit_1_lower_bound_loose'};
-    my $loacrit_1_upper = $self->allele_config->{'thresholds'}->{'loacrit_1_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loacrit_1_lower, $loacrit_1_upper, 'loacrit' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
-sub is_potential_loacrit_2 {
-    my ($self) = @_;
+sub _is_loadel_0 {
+    my ( $self ) = @_;
 
-    my $loacrit_2_lower = $self->allele_config->{'thresholds'}->{'loacrit_2_lower_bound_loose'};
-    my $loacrit_2_upper = $self->allele_config->{'thresholds'}->{'loacrit_2_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loacrit_2_lower, $loacrit_2_upper, 'loacrit' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
-sub is_potential_loatam_0 {
-    my ($self) = @_;
+sub _is_loadel_1 {
+    my ( $self ) = @_;
 
-    my $loatam_0_lower = $self->allele_config->{'thresholds'}->{'loatam_0_lower_bound_loose'};
-    my $loatam_0_upper = $self->allele_config->{'thresholds'}->{'loatam_0_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loatam_0_lower, $loatam_0_upper, 'loatam' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
-sub is_potential_loatam_1 {
-    my ($self) = @_;
+sub _is_loadel_2 {
+    my ( $self ) = @_;
 
-    my $loatam_1_lower = $self->allele_config->{'thresholds'}->{'loatam_1_lower_bound_loose'};
-    my $loatam_1_upper = $self->allele_config->{'thresholds'}->{'loatam_1_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loatam_1_lower, $loatam_1_upper, 'loatam' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
-sub is_potential_loatam_2 {
-    my ($self) = @_;
+sub _is_cre_0 {
+    my ( $self ) = @_;
 
-    my $loatam_2_lower = $self->allele_config->{'thresholds'}->{'loatam_2_lower_bound_loose'};
-    my $loatam_2_upper = $self->allele_config->{'thresholds'}->{'loatam_2_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_0_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_0_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loatam_2_lower, $loatam_2_upper, 'loatam' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
 }
 
-sub is_potential_loadel_0 {
-    my ($self) = @_;
+sub _is_cre_1 {
+    my ( $self ) = @_;
 
-    my $loadel_0_lower = $self->allele_config->{'thresholds'}->{'loadel_0_lower_bound_loose'};
-    my $loadel_0_upper = $self->allele_config->{'thresholds'}->{'loadel_0_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_1_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_1_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loadel_0_lower, $loadel_0_upper, 'loadel' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
 }
 
-sub is_potential_loadel_1 {
-    my ($self) = @_;
+sub _is_puro_0 {
+    my ( $self ) = @_;
 
-    my $loadel_1_lower = $self->allele_config->{'thresholds'}->{'loadel_1_lower_bound_loose'};
-    my $loadel_1_upper = $self->allele_config->{'thresholds'}->{'loadel_1_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_0_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_0_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loadel_1_lower, $loadel_1_upper, 'loadel' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
 }
 
-sub is_potential_loadel_2 {
-    my ($self) = @_;
+sub _is_puro_1 {
+    my ( $self ) = @_;
 
-    my $loadel_2_lower = $self->allele_config->{'thresholds'}->{'loadel_2_lower_bound_loose'};
-    my $loadel_2_upper = $self->allele_config->{'thresholds'}->{'loadel_2_upper_bound_loose'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_1_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_1_upper_bound' };
 
-    return $self->is_assay_copy_number_in_rng( $loadel_2_lower, $loadel_2_upper, 'loadel' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
 }
 
-sub is_neo_present {
-    my ($self) = @_;
+sub _is_chry_0 {
+    my ( $self ) = @_;
 
-    my $neo_threshold = $self->allele_config->{'thresholds'}->{'neo_threshold'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_0_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_0_upper_bound' };
 
-    return $self->is_marker_present( $neo_threshold, 'neo' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
-sub is_neo_absent {
-    my ($self) = @_;
+sub _is_chry_1 {
+    my ( $self ) = @_;
 
-    return !$self->is_neo_present();
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_1_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_1_upper_bound' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
-sub is_bsd_present {
-    my ($self) = @_;
+sub _is_chry_2 {
+    my ( $self ) = @_;
 
-    my $bsd_threshold = $self->allele_config->{'thresholds'}->{'bsd_threshold'};
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_2_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_2_upper_bound' };
 
-    return $self->is_marker_present( $bsd_threshold, 'bsd' );
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
-sub is_bsd_absent {
-    my ($self) = @_;
+sub _is_chr8a_0 {
+    my ( $self ) = @_;
 
-    return !$self->is_bsd_present();
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_upper_bound' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
-sub is_assay_copy_number_in_rng {
+sub _is_chr8a_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_upper_bound' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_chr8a_2 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_lower_bound' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_upper_bound' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_potential_loacrit_0 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_0_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
+}
+
+sub _is_potential_loacrit_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_1_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
+}
+
+sub _is_potential_loacrit_2 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loacrit_2_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
+}
+
+sub _is_potential_loatam_0 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_0_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
+}
+
+sub _is_potential_loatam_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_1_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
+}
+
+sub _is_potential_loatam_2 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loatam_2_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
+}
+
+sub _is_potential_loadel_0 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_0_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
+}
+
+sub _is_potential_loadel_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_1_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
+}
+
+sub _is_potential_loadel_2 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'loadel_2_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
+}
+
+sub _is_potential_cre_0 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_0_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_0_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
+}
+
+sub _is_potential_cre_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'cre_1_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'cre_1_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
+}
+
+sub _is_potential_puro_0 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_0_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_0_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
+}
+
+sub _is_potential_puro_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_1_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_1_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
+}
+
+sub _is_potential_chry_0 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_0_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_0_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_potential_chry_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_1_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_1_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_potential_chry_2 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chry_2_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chry_2_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
+}
+
+sub _is_potential_chr8a_0 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_0_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_potential_chr8a_1 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_1_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_potential_chr8a_2 {
+    my ( $self ) = @_;
+
+    my $lower = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_lower_bound_loose' };
+    my $upper = $self->allele_config->{ 'thresholds' }->{ 'chr8a_2_upper_bound_loose' };
+
+    unless ( defined $lower && defined $upper ) { return 0 };
+
+    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
+}
+
+sub _is_neo_present {
+    my ( $self ) = @_;
+
+    my $neo_threshold = $self->allele_config->{ 'thresholds' }->{ 'neo_threshold' };
+
+    return $self->_is_marker_present( $neo_threshold, 'neo' );
+}
+
+sub _is_bsd_present {
+    my ( $self ) = @_;
+
+    my $bsd_threshold = $self->allele_config->{ 'thresholds' }->{ 'bsd_threshold' };
+
+    return $self->_is_marker_present( $bsd_threshold, 'bsd' );
+}
+
+sub _is_lrpcr_pass {
+    my ( $self ) = @_;
+
+    my $gf3 = $self->current_well->{ 'gf3' };
+    my $gr3 = $self->current_well->{ 'gr3' };
+    my $gf4 = $self->current_well->{ 'gf4' };
+    my $gr4 = $self->current_well->{ 'gr4' };
+
+    # expecting 'pass' in all four fields
+    unless ( defined $gf3 && $gf3 eq 'pass' ) { return 0; }
+    unless ( defined $gr3 && $gr3 eq 'pass' ) { return 0; }
+    unless ( defined $gf4 && $gf4 eq 'pass' ) { return 0; }
+    unless ( defined $gr4 && $gr4 eq 'pass' ) { return 0; }
+
+    return 1;
+}
+
+sub _is_assay_copy_number_in_rng {
     my ( $self, $min, $max, $assay_name ) = @_;
 
     my $value = $self->current_well->{ $assay_name . '#copy_number' };
 
     if ( defined $value && $value ne '-' ) {
-        return $self->is_value_in_range( $min, $max, $value );
+        return $self->_is_value_in_range( $min, $max, $value );
     }
     else {
         return 0;
     }
 }
 
-sub is_marker_present {
+sub _is_marker_present {
     my ( $self, $threshold, $marker ) = @_;
 
     my $value = $self->current_well->{ $marker . '#copy_number' };
@@ -752,7 +1269,7 @@ sub is_marker_present {
     }
 }
 
-sub is_value_in_range {
+sub _is_value_in_range {
     my ( $self, $min, $max, $value ) = @_;
 
     if ( ( $value >= $min ) && ( $value <= $max ) ) {
@@ -766,27 +1283,29 @@ sub is_value_in_range {
 sub _validate_assays {
     my ( $self, $constraint_name ) = @_;
 
-    LIMS2::Exception->throw("validate assays: no current well set")          unless $self->current_well_id;
-    LIMS2::Exception->throw("validate assays: no current well workflow set") unless $self->current_well_workflow;
-    LIMS2::Exception->throw("validate assays: no current well stage set")    unless $self->current_well_stage;
+    LIMS2::Exception->throw( "validate assays: no current well set" )          unless $self->current_well_id;
+    LIMS2::Exception->throw( "validate assays: no current well workflow set" ) unless $self->current_well_workflow;
+    LIMS2::Exception->throw( "validate assays: no current well stage set" )    unless $self->current_well_stage;
+
+    # print 'curr well id = '. $self->current_well_id . ' validate assays: workflow = ' . $self->current_well_workflow . ' stage = ' . $self->current_well_stage . ' constraint name = ' . $constraint_name . "\n";
 
     # Get the specific logic for this particular workflow and scope into this method:
-    my $validation_logic_string
-        = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{$constraint_name}
-        ->{'validation'}->{'assays'};
+    my $validation_logic_string = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $constraint_name }->{ 'validation' }->{ 'assays' };
 
-    LIMS2::Exception->throw("validation: no validation logic string defined")
-        unless ( defined $validation_logic_string );
+    unless ( defined $validation_logic_string ) { LIMS2::Exception->throw( "validation: no validation logic string defined" ); }
 
     # logic string looks like this: 'loacrit AND loatam AND neo'
     # Get the parser to read this, interpret logic and run correct validate assay methods
     my $parser = Parse::BooleanLogic->new();
-    my $tree   = $parser->as_array($validation_logic_string);
+    my $tree   = $parser->as_array( $validation_logic_string );
 
     my $callback = sub {
         my $self    = pop;
-        my $operand = $_[0]->{'operand'};
-        my $method  = $self->validation_dispatches->{$operand};
+        my $operand = $_[0]->{ 'operand' };
+
+        # print 'curr_well_id = ' . $self->current_well_id . ' val operand = ' . $operand . "\n";
+
+        my $method  = $self->dispatches->{ $operand };
         return $method->();
     };
 
@@ -811,7 +1330,7 @@ sub _validate_assay {
 
         # LIMS2::Exception->throw( "$assay_name assay validation: Copy Number not present" );
         $self->current_well_validation_msg(
-            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number not present" );
+            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number not present. " );
         return 0;
     }
 
@@ -819,7 +1338,7 @@ sub _validate_assay {
 
         # LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range not present" );
         $self->current_well_validation_msg(
-            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range not present" );
+            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range not present. " );
         return 0;
     }
 
@@ -827,13 +1346,59 @@ sub _validate_assay {
 
         # LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range above threshold" );
         $self->current_well_validation_msg(
-            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range above threshold" );
+            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range above threshold. " );
         return 0;
     }
 
     # TODO: add validations for confidence and vic
 
     return 1;
+}
+
+sub _validate_primers {
+    my ( $self, $assay_name ) = @_;
+
+    # print "validating assay : $assay_name\n";
+
+    my $gf3 = $self->current_well->{ 'gf3' };
+    my $gr3 = $self->current_well->{ 'gr3' };
+    my $gf4 = $self->current_well->{ 'gf4' };
+    my $gr4 = $self->current_well->{ 'gr4' };
+
+    # expecting 'pass','fail' (or blank if not done)
+    unless ( defined $gf3 && ( $gf3 ~~ [ qw( pass fail ) ] ) ) {
+        $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gf3 value not present. " );
+        return 0;
+    }
+
+    unless ( defined $gr3 && ( $gr3 ~~ [ qw( pass fail ) ] ) ) {
+        $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gr3 value not present. " );
+        return 0;
+    }
+
+    unless ( defined $gf4 && ( $gf4 ~~ [ qw( pass fail ) ] ) ) {
+        $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gf4 value not present. " );
+        return 0;
+    }
+
+    unless ( defined $gr4 && ( $gr4 ~~ [ qw( pass fail ) ] ) ) {
+        $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gr4 value not present. " );
+        return 0;
+    }
+
+    return 1;
+}
+
+sub _initialise_current_well_attributes {
+    my ( $self ) = @_;
+
+    $self->current_well( undef );
+    $self->current_well_id( undef );
+    $self->current_well_stage( undef );
+    $self->current_well_workflow( undef );
+    $self->current_well_validation_msg ( undef );
+
+    return;
 }
 
 # Generic method to run select SQL
@@ -856,30 +1421,56 @@ sub run_select_query {
     return $sql_result;
 }
 
-sub create_sql_select_summaries_fepd {
+sub _create_sql_select_summaries_fepd {
     my ( $self, $well_ids ) = @_;
 
     $well_ids = join( ',', @{$well_ids} );
 
     my $sql_query = <<"SQL_END";
-select distinct ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
-from summaries
-where ep_pick_well_id in ( $well_ids )
+SELECT DISTINCT ep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, final_pick_cassette_cre, ep_well_recombinase_id
+FROM summaries
+WHERE ep_pick_well_id IN ( $well_ids )
 SQL_END
 
     return $sql_query;
 }
 
-sub create_sql_select_summaries_sepd {
+sub _create_sql_select_summaries_sepd {
     my ( $self, $well_ids ) = @_;
 
     $well_ids = join( ',', @{$well_ids} );
 
     my $sql_query = <<"SQL_END";
-select distinct sep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, ep_well_recombinase_id
-from summaries
-where sep_pick_well_id in ( $well_ids )
+SELECT DISTINCT sep_pick_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, final_pick_cassette_cre, ep_well_recombinase_id
+FROM summaries
+WHERE sep_pick_well_id IN ( $well_ids )
 and ep_pick_well_id > 0
+SQL_END
+
+    return $sql_query;
+}
+
+sub _create_sql_select_summaries_piq {
+    my ( $self, $well_ids ) = @_;
+
+    $well_ids = join( ',', @{$well_ids} );
+
+    my $sql_query = <<"SQL_END";
+SELECT DISTINCT piq_well_id as well_id, final_pick_recombinase_id, final_pick_cassette_resistance, final_pick_cassette_cre, ep_well_recombinase_id
+FROM summaries
+WHERE piq_well_id IN ( $well_ids )
+SQL_END
+
+    return $sql_query;
+}
+
+sub _create_sql_select_qc_data {
+    my ( $self, $well_id ) = @_;
+
+    my $sql_query = <<"SQL_END";
+SELECT well_id, genotyping_result_type_id
+FROM well_genotyping_results
+WHERE well_id = $well_id
 SQL_END
 
     return $sql_query;

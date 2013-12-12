@@ -945,14 +945,15 @@ sub create_csv_header_array {
         'Gene Name',
         'Gene ID',
         'Design ID',
-        'Allele Type',
-        'Distribute',
     );
     if ($self->{plate_type} eq 'PIQ') {
         push (@header_words, ('Clone ID','Lab Number'));
     }
 
     push (@header_words, (
+        'Allele Type',
+        'Calculated Pass',
+        'Distribute',
         'Override',
         'Chromosome Fail',
         'Allele Info#Type',
@@ -996,6 +997,7 @@ sub translate_header_items {
         'Gene ID'                               => 'gene_id',
         'Design ID'                             => 'design_id',
         'Allele Type'                           => 'allele_type',
+        'Calculated Pass'                       => 'genotyping_pass',
         'Distribute'                            => 'accepted',
         'Clone ID'                              => 'clone_id',
         'Lab Number'                            => 'lab_number',
