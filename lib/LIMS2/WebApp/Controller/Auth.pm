@@ -28,7 +28,7 @@ sub login : Global {
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
     my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
-    my $htgtsession = $c->stash->{htgtsession} || $c->req->param('htgtsession');
+    my $htgtsession = $c->stash->{htgtsession} || $c->req->param('htgtsession') || "";
 
     $c->log->debug("HTGT session: $htgtsession");
     $c->stash( goto_on_success => $goto, htgtsession => $htgtsession );
