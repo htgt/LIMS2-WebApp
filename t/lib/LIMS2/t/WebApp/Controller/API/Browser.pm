@@ -88,7 +88,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(38)
+sub all_tests  : Test()
 {
     my $mech = mech();
 
