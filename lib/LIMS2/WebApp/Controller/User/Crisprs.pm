@@ -199,6 +199,51 @@ sub browse_crisprs_genoverse : Path( '/user/browse_crisprs_genoverse' ) : Args(0
         return;
     }
 
+=head genoverse_browse_view
+Given
+    genome
+    chromosome ID
+    symbol
+    gene_id
+    exon_id
+Renders
+    genoverse_browse_view
+With
+    genome
+    chromosome ID
+    symbol
+    gene_id
+    exon_id
+    exon_start (chromosome coordinates)
+    exon_end (chromosome coordinates)
+=cut
+
+sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
+    my ( $self, $c ) = @_; 
+$DB::single=1;
+
+    my $exon_coords_rs = $c->model('Golgi')->schema->resultset('DesignTarget')->search(
+        {
+            'ensembl_exon_id' => $c->request->params->{'exon_id'},
+        }
+        
+    );
+
+    my $exon_coords = $exon_coords_rs->single;
+
+    $c->stash(
+        'genome'        => $c->request->params->{'genome'},
+        'chromosome'    => $c->request->params->{'chromosome'},
+        'gene_symbol'   => $c->request->params->{'symbol'},
+        'gene_id'       => $c->request->params->{'gene_id'},
+        'exon_id'       => $c->request->params->{'exon_id'},
+        'exon_start'    => $exon_coords->chr_start,
+        'exon_end'      => $exon_coords->chr_end,
+    );
+
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

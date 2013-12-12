@@ -47,7 +47,14 @@
             <p> <a href="[% datum.ensembl_gene_link %]" target="_blank" class="btn btn-mini">[% datum.ensembl_gene_id %]</a> </p>
           </td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">
-            <p> <strong>[% datum.ensembl_exon_id %]</strong> </p>
+            <p> <a href="[% c.uri_for( '/user/genoverse_browse',
+                { genome => assembly,
+                  chromosome => datum.chromosome,
+                  symbol => datum.marker_symbol,
+                  gene_id => datum.gene_id,
+                  exon_id => datum.ensembl_exon_id }
+                  )
+                  %]" target="_blank" class="btn btn-mini">[% datum.ensembl_exon_id %]</a> </p>
             <p> Chromosome: <span class="label"> [% datum.chromosome %] </span> </p>
             <p> Size: <span class="label"> [% datum.exon_size %] </span> </p>
             <p> Rank: <span class="label"> [% datum.exon_rank %] </span> </p>
