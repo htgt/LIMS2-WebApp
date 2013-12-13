@@ -21,7 +21,7 @@ function createGibsonDiagram(builder) {
 
   //add all the offset size fields to the fields we want them on
   builder.addLabel(fiveF, fiveR, "5F offset", "end to start", "5F_offset", 1000);
-  builder.addLabel(threeF, threeR, "3F offset", "end to start", "3R_offset", 1000);
+  builder.addLabel(threeF, threeR, "3R offset", "end to start", "3R_offset", 1000);
   builder.addLabel(EF, critExon, "5R-EF offset", "end to start", "5R_EF_offset", 200);
   builder.addLabel(critExon, ER, "ER-3F offset", "end to start", "ER_3F_offset", 100);
 
