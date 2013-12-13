@@ -15,6 +15,7 @@
         <tr>
           <th>ID</th>
           <th>Gene ID(s)</th>
+          <th>Exon ID(s)</th>
           <th>Status</th>
           <th>Design ID(s)</th>
           <th>Errors</th>
@@ -41,6 +42,7 @@
               </a>
             </td>
             <td>[% da.gene_id %]</td>
+            <td>[% da.design_parameters.target_exon %]</td>
             <td>[% da.status %]</td>
             <td>
               [% FOR id IN da.design_ids %]
