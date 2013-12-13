@@ -180,8 +180,8 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
     }
     catch( LIMS2::Exception $e ) {
         $c->stash( error_msg => "Problem finding gene: $e" );
-        return $c->go('gibson_design_gene_pick');
-    }
+        $c->go('gibson_design_gene_pick');
+    };
 
     return;
 }
@@ -234,6 +234,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     return;
 }
 
+#TODO maybe move these methods to a seperate util module, this controller is getting fat sp12 Fri 13 Dec 2013 08:33:44 GMT
 sub run_design_create_in_background {
     my ( $self, $cmd ) = @_;
 
