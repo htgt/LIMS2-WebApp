@@ -48,3 +48,10 @@
     [% END %]
   </tbody>
 </table>
+
+<div class="row">
+  <div class="span3">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn">
+    <i class="icon-hand-left"></i> Back to search </a>
+  </div>
+</div>
