@@ -34,6 +34,12 @@
               <a href="[% c.uri_for( '/user/create_design' ) %]">Create Design</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Gibson Design</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/design_attempts' ) %]">Design Attempts</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
             <li>
