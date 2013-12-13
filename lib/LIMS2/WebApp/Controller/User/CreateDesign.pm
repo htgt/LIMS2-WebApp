@@ -10,7 +10,8 @@ use TryCatch;
 use IPC::Run 'run';
 use LIMS2::Util::FarmJobRunner;
 use LIMS2::Exception::System;
-use LIMS2::Model::Util::CreateDesign qw( exons_for_gene );
+use LIMS2::Model::Util::CreateDesign qw( exons_for_gene get_ensembl_gene );
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -74,7 +75,7 @@ sub index : Path( '/user/create_design' ) : Args(0) {
         catch {
             $c->stash( error_msg => "Error submitting Design Creation job: $_" );
             return;
-        };
+        }
     }
 
     return;
@@ -153,7 +154,7 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
     $c->assert_user_roles( 'edit' );
     my $gene_name = $c->request->param('gene');
     unless ( $gene_name ) {
-        $c->flash( error_msg => "Please enter a gene name" );
+        $c->stash( error_msg => "Please enter a gene name" );
         return $c->go('gibson_design_gene_pick');
     }
 
@@ -162,24 +163,26 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
         { species_id => $species } )->assembly_id;
 
     $c->log->debug("Pick exon targets for gene $gene_name");
-    my ( $gene_data, $exon_data ) = exons_for_gene(
-        $c->model('Golgi'),
-        $c->request->param('gene'),
-        $c->request->param('show_exons'),
-        $species,
-    );
+    try {
+        my ( $gene_data, $exon_data )= exons_for_gene(
+            $c->model('Golgi'),
+            $c->request->param('gene'),
+            $c->request->param('show_exons'),
+            $species,
+        );
 
-    unless ( $gene_data ) {
-        $c->flash( error_msg => "Unable to find gene: $gene_name" );
+        $c->stash(
+            exons    => $exon_data,
+            gene     => $gene_data,
+            assembly => $default_assembly,
+            species  => $species,
+        );
+    }
+    catch( LIMS2::Exception $e ) {
+        $c->stash( error_msg => "Problem finding gene: $e" );
         return $c->go('gibson_design_gene_pick');
     }
 
-    $c->stash(
-        exons    => $exon_data,
-        gene     => $gene_data,
-        assembly => $default_assembly,
-        species  => $species,
-    );
     return;
 }
 
@@ -203,6 +206,8 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
             }
         );
         $params->{da_id} = $design_attempt->id;
+
+        $self->find_or_create_design_target( $c, $params );
 
         try {
             my $cmd = $self->generate_gibson_design_cmd( $params );
@@ -274,12 +279,19 @@ sub pspec_create_gibson_design {
 sub parse_and_validate_gibson_params {
     my ( $self, $c ) = @_;
 
-    my $validated_params = $c->model( 'Golgi' )->check_params( $c->request->params, $self->pspec_create_gibson_design );
+    my $validated_params = $c->model('Golgi')->check_params(
+        $c->request->params, $self->pspec_create_gibson_design );
     $validated_params->{user} = $c->user->name;
+
+    my $species = $c->session->{selected_species};
+    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species } )->assembly_id;
 
     my $uuid = Data::UUID->new->create_str;
     $validated_params->{output_dir} = $DEFAULT_DESIGNS_DIR->subdir( $uuid )->stringify;
-    $validated_params->{species} = $c->session->{selected_species};
+    $validated_params->{species} = $species;
+    $validated_params->{build_id} = $DEFAULT_SPECIES_BUILD{ lc($species) };
+    $validated_params->{assembly_id} = $default_assembly;
 
     $c->stash( {
         gene_id => $validated_params->{gene_id},
@@ -333,6 +345,75 @@ sub generate_gibson_design_cmd {
     return \@gibson_cmd_parameters;
 }
 
+sub find_or_create_design_target {
+    my ( $self, $c, $params ) = @_;
+
+    my $existing_design_target = $c->model('Golgi')->schema->resultset('DesignTarget')->find(
+        {
+            species_id      => $params->{species},
+            ensembl_exon_id => $params->{exon_id},
+            build_id        => $params->{build_id},
+        }
+    );
+
+    $c->log->debug('Design target already exists for exon: ' . $params->{exon_id});
+    return if $existing_design_target;
+
+    my $gene = get_ensembl_gene( $c->model('Golgi'), $params->{gene_id}, $params->{species} );
+    LIMS2::Exception->throw( "Unable to find ensembl gene for: " . $params->{gene_id} )
+        unless $gene;
+    my $canonical_transcript = $gene->canonical_transcript;
+
+    my $exon;
+    try {
+        $exon = $c->model('Golgi')->ensembl_exon_adaptor( $params->{species} )
+            ->fetch_by_stable_id( $params->{exon_id} );
+    }
+    LIMS2::Exception->throw( "Unable to find ensembl exon for: " . $params->{exon_id} )
+        unless $exon;
+
+    my %design_target_params = (
+        species              => $params->{species},
+        gene_id              => $params->{gene_id},
+        marker_symbol        => $gene->external_name,
+        ensembl_gene_id      => $gene->stable_id,
+        ensembl_exon_id      => $params->{exon_id},
+        exon_size            => $exon->length,
+        canonical_transcript => $canonical_transcript->stable_id,
+        assembly             => $params->{assembly_id},
+        build                => $params->{build_id},
+        chr_name             => $exon->seq_region_name,
+        chr_start            => $exon->seq_region_start,
+        chr_end              => $exon->seq_region_end,
+        chr_strand           => $exon->seq_region_strand,
+        automatically_picked => 0,
+        comment              => 'picked via gibson design creation interface, by user: ' . $params->{user},
+
+    );
+    my $exon_rank = get_exon_rank( $exon, $canonical_transcript );
+    $design_target_params{exon_rank} = $exon_rank if $exon_rank;
+    my $design_target = $c->model('Golgi')->create_design_target( \%design_target_params );
+
+    return;
+}
+
+=head2 get_exon_rank
+
+Get rank of exon on canonical transcript
+
+=cut
+sub get_exon_rank {
+    my ( $exon, $canonical_transcript ) = @_;
+
+    my $rank = 1;
+    for my $current_exon ( @{ $canonical_transcript->get_all_Exons } ) {
+        return $rank if $current_exon->stable_id eq $exon->stable_id;
+        $rank++;
+    }
+
+    return;
+}
+
 sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -348,8 +429,8 @@ sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
         }
     );
 
-    $c->stash(
-        das => [ map { $_->as_hash } @design_attempts ],
+    $c->stash (
+        das => [ map { $_->as_hash( { json_as_hash => 1 } ) } @design_attempts ],
     );
     return;
 }
