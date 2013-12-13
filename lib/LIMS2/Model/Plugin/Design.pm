@@ -431,7 +431,7 @@ sub create_design_target {
     my $existing_target = $self->schema->resultset('DesignTarget')->find(
         {
             ensembl_exon_id => $validated_params->{ensembl_exon_id},
-            build_id => $validated_params->{build_id}
+            build_id        => $validated_params->{build_id}
         }
     );
 
