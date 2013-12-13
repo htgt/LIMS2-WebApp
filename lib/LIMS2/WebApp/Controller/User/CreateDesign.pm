@@ -480,8 +480,9 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     my ( $self, $c ) = @_;
 
     $c->stash(
-        id     => $c->stash->{da}->id,
-        status => $c->stash->{da}->status,
+        id      => $c->stash->{da}->id,
+        status  => $c->stash->{da}->status,
+        gene_id => $c->stash->{da}->gene_id,
     );
     return;
 }
