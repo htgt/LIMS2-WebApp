@@ -7,6 +7,7 @@ use Sub::Exporter -setup => {
     exports => [
         qw(
               exons_for_gene
+              get_ensembl_gene
           )
     ]
 };
@@ -157,11 +158,11 @@ sub get_ensembl_gene {
     if ( $gene_name =~ /ENS(MUS)?G\d+/ ) {
         $gene = $ga->fetch_by_stable_id( $gene_name );
     }
-    elsif ( $gene_name =~ /HGNC:\d+/ ) {
-        $gene = _fetch_by_external_name( $ga, $gene_name, 'HGNC' );
+    elsif ( $gene_name =~ /HGNC:(\d+)/ ) {
+        $gene = _fetch_by_external_name( $ga, $1, 'HGNC' );
     }
-    elsif ( $gene_name =~ /MGI:\d+/  ) {
-        $gene = _fetch_by_external_name( $ga, $gene_name, 'MGI' );
+    elsif ( $gene_name =~ /MGI:(\d+)/  ) {
+        $gene = _fetch_by_external_name( $ga, $1, 'MGI' );
     }
     else {
         #assume its a marker symbol
@@ -182,14 +183,17 @@ sub _fetch_by_external_name {
 
     my @genes = @{ $ga->fetch_all_by_external_name($gene_name, $type) };
     unless( @genes ) {
-        WARN( "Unable to find gene $gene_name in EnsEMBL" );
-        return;
+        LIMS2::Exception->throw("Unable to find gene $gene_name in EnsEMBL" );
     }
 
     if ( scalar(@genes) > 1 ) {
-        #TODO throw error, use ensembl if instead sp12 Wed 27 Nov 2013 14:58:41 GMT
         DEBUG("Found multiple EnsEMBL genes for $gene_name");
-        return;
+        my @stable_ids = map{ $_->stable_id } @genes;
+        $type ||= 'marker symbol';
+
+        LIMS2::Exception->throw( "Found multiple EnsEMBL genes with $type id $gene_name,"
+                . " try using one of the following EnsEMBL gene ids: "
+                . join( ', ', @stable_ids ) );
     }
     else {
         return shift @genes;
