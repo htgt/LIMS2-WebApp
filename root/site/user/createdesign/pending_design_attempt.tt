@@ -19,6 +19,11 @@
 <div id="design_success" class="alert alert-success hide">
   <p>Design Successful: </p>
   <div id="design_links"></div>
+  <br>
+  <a href="[% c.uri_for( '/user/design_target_report' gene_id, { 'crispr_types' => 'single' } ) %]" target="_blank" class="btn btn-info">
+          single crispr report for [% gene_id %]</a>
+  <a href="[% c.uri_for( '/user/design_target_report' gene_id, { 'crispr_types' => 'pair' } ) %]" target="_blank" class="btn btn-info">
+          crispr pair report for [% gene_id %]</a>
 </div>
 
 <div id="design_fail" class="alert alert-error hide">
