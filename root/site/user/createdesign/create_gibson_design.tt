@@ -14,7 +14,7 @@ function createGibsonDiagram(builder) {
 
   var critExon = builder.addCriticalExon();
 
-  var ER = builder.addBox("ER"); 
+  var ER = builder.addBox("ER");
   var threeF = builder.addBoxWithoutSpacing("3F");
 
   var threeR = builder.addBox("3R");
@@ -84,11 +84,12 @@ $(document).ready(function() {
         <label class="control-label" for="alt_designs">Alternate Designs</label>
         <div class="controls">
           <input type="checkbox" id="alt_designs" name="alt_designs" value="1">
+          <span class="help-block">If checked mulitple designs may be created, each with a different set of valid oligos</span>
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label">Repeat Mask Classes</label>
+        <label class="control-label">Restrict Repeat Masking</label>
         <div class="controls">
           <label class="checkbox inline">
             <input type="checkbox" name="repeat_mask_classes" value="trf"> trf
@@ -96,15 +97,16 @@ $(document).ready(function() {
           <label class="checkbox inline">
             <input type="checkbox" name="repeat_mask_classes" value="dust"> dust
           </label>
-          <span class="help-block">If no specific classes are picked all repeat regions will be masked.</span>
+          <span class="help-block">By default all repeat regions will be masked, ticking a checkbox makes sure only those classes of repeats are masked.</span>
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label" for="e id="exon_check_flank_length">Exon Check Flank Length</label>
+        <label class="control-label" for="exon_check_flank_length">Exon Check Flank Length</label>
         <div class="controls">
-          <input type="text" id="exon_check_flank_length" name="exon_check_flank_length" placeholder="0" /><br/>
-          <span class="help-block">If no value picked then no check will be done</span>
+          <input type="text" id="exon_check_flank_length" name="exon_check_flank_length" value="100" /><br/>
+          <span class="help-block">Minumum distance the 5R/EF/ER/3F oligos can be from another exon.</span>
+          <span class="help-block">If no value picked then no check will be done.</span>
         </div>
       </div>
 
