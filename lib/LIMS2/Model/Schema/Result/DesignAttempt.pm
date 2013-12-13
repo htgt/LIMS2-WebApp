@@ -195,16 +195,24 @@ sub as_hash {
     # timestamp does not seem to be set and a error is thrown
     $self->discard_changes;
 
+    use JSON;
+    use Try::Tiny;
+
     my ( $design_params, $fail_reason );
     if ( $opts->{pretty_print_json} ) {
-        require JSON;
-        require Try::Tiny;
         my $json = JSON->new;
         $design_params
             = $self->design_parameters
-            ? Try::Tiny::try { $json->pretty->encode( $json->decode( $self->design_parameters ) ) }
+            ? try { $json->pretty->encode( $json->decode( $self->design_parameters ) ) }
             : '';
-        $fail_reason = $self->fail ? Try::Tiny::try { $json->pretty->encode( $json->decode( $self->fail ) ) } : '';
+        $fail_reason
+            = $self->fail ? try { $json->pretty->encode( $json->decode( $self->fail ) ) } : '';
+    }
+    elsif ( $opts->{json_as_hash} ) {
+        my $json = JSON->new;
+        $design_params
+            = $self->design_parameters ? try { $json->decode( $self->design_parameters ) } : {};
+        $fail_reason = $self->fail ? try { $json->decode( $self->fail_reason ) } : {};
     }
     else {
         $design_params = $self->design_parameters;
