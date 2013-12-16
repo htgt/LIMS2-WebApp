@@ -8,7 +8,7 @@ use Test::Most;
 use LIMS2::Model::Util::AlleleDetermination;
 use LIMS2::Test;
 
-# use Data::Dumper;
+use Data::Dumper;
 
 ## no critic
 
@@ -322,6 +322,9 @@ sub all_tests : Test(216) {
         $ne1_gc_allele_results->{ $ne1_well_result_hash->{ 'id' } } = $ne1_well_result_hash;
     }
 
+    # print "ne1_gc_allele_results:\n";
+    # print Dumper ( $ne1_gc_allele_results );
+
     ok $ne1_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt',  'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $ne1_gc_allele_results->{ '1' }->{ 'genotyping_pass' }       eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $ne1_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
@@ -482,13 +485,16 @@ sub all_tests : Test(216) {
         $e_gc_allele_results->{ $e_well_result_hash->{ 'id' } } = $e_well_result_hash;
     }
 
-    ok $e_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'tm1f/wt; wt/wt', 'well 1 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
+    # print "e_gc_allele_results:\n";
+    # print Dumper ( $e_gc_allele_results );
+
+    ok $e_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $e_gc_allele_results->{ '1' }->{ 'genotyping_pass' }       eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $e_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1a/wt', 'well 2 should be allele type < tm1a/wt > for stage EP_PICK';
     ok $e_gc_allele_results->{ '3' }->{ 'allele_determination' }  eq 'tm1c/wt', 'well 3 should be allele type < tm1c/wt > for stage EP_PICK';
     ok $e_gc_allele_results->{ '3' }->{ 'genotyping_pass' }       eq 'pass', 'well 3 should be an EP_PICK genotyping pass';
     ok $e_gc_allele_results->{ '4' }->{ 'allele_determination' }  eq 'tm1e/wt', 'well 4 should be allele type < tm1e/wt > for stage EP_PICK';
-    ok $e_gc_allele_results->{ '5' }->{ 'allele_determination' }  eq 'tm1f/wt; wt/wt', 'well 5 should be allele type < tm1f/wt, wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '5' }->{ 'allele_determination' }  eq 'tm1f/wt', 'well 5 should be allele type < tm1f/wt > for stage EP_PICK';
 
     ok $e_gc_allele_results->{ '6'}->{ 'allele_determination' }   eq 'wt/wt',    'well 6 should be allele type < wt/wt > for stage SEP_PICK';
     ok $e_gc_allele_results->{ '6' }->{ 'genotyping_pass' }       eq 'fail', 'well 6 should be an SEP_PICK genotyping pass failure as not wanted genotype';
@@ -503,16 +509,11 @@ sub all_tests : Test(216) {
     ok $e_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'tm1e/tm1', 'well 14 should be allele type < tm1e/tm1 > for stage SEP_PICK';
     ok $e_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'tm1f/tm1', 'well 15 should be allele type < tm1f/tm1 > for stage SEP_PICK';
 
-    ok $e_gc_allele_results->{ '16' }->{ 'allele_determination' } eq 'potential tm1f/wt; potential wt/wt',
-        'well 16 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
-    ok $e_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'potential tm1a/wt',
-        'well 17 should be allele type < potential tm1a/wt > for stage EP_PICK';
-    ok $e_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'potential tm1c/wt',
-        'well 18 should be allele type < potential tm1c/wt > for stage EP_PICK';
-    ok $e_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'potential tm1e/wt',
-        'well 19 should be allele type < potential tm1e/wt > for stage EP_PICK';
-    ok $e_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'potential tm1f/wt; potential wt/wt',
-        'well 20 should be allele type < potential tm1f/wt, potential wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '16' }->{ 'allele_determination' } eq 'potential wt/wt', 'well 16 should be allele type < potential wt/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'potential tm1a/wt', 'well 17 should be allele type < potential tm1a/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'potential tm1c/wt', 'well 18 should be allele type < potential tm1c/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'potential tm1e/wt', 'well 19 should be allele type < potential tm1e/wt > for stage EP_PICK';
+    ok $e_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'potential tm1f/wt', 'well 20 should be allele type < potential tm1f/wt > for stage EP_PICK';
 
     ok $e_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'potential wt/wt',
         'well 21 should be allele type < potential wt/wt > for stage SEP_PICK';
@@ -639,6 +640,9 @@ sub all_tests : Test(216) {
         $creki_gc_allele_results->{ $creki_well_result_hash->{ 'id' } } = $creki_well_result_hash;
     }
 
+    # print "creki_gc_allele_results:\n";
+    # print Dumper ( $creki_gc_allele_results );
+
     ok $creki_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $creki_gc_allele_results->{ '1' }->{ 'genotyping_pass' }       eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $creki_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
@@ -671,11 +675,11 @@ sub all_tests : Test(216) {
     ok $creki_gc_allele_results->{ '16' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number Range above threshold. ',
         'well 16 should give a validation error for above threshold Cre copy number range';
 
-    ok $creki_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
-        'well 17 should give a validation error for missing loadel copy number and no lrprc results';
-    ok $creki_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present. lrpcr assay validation: gf3 value not present. ',
+    ok $creki_gc_allele_results->{ '17' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
+        'well 17 should give a validation error for missing loadel copy number, loacrit copy number and no lrprc results';
+    ok $creki_gc_allele_results->{ '18' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 18 should give a validation error for missing loadel copy number range and no lrprc results';
-    ok $creki_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
+    ok $creki_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 19 should give a validation error for above threshold loadel copy number range and no lrprc results';
 
     ok $creki_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number not present. ',
@@ -685,7 +689,7 @@ sub all_tests : Test(216) {
     ok $creki_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range above threshold. ',
         'well 22 should give a validation error for above threshold Puro copy number range';
  
-    ok $creki_gc_allele_results->{ '23' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
+    ok $creki_gc_allele_results->{ '23' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 23 should give a error for a failed lrpcr test';
 
     ok $creki_gc_allele_results->{ '24' }->{ 'genotyping_pass' }      eq 'passb_chr8a', 'well 24 should be a PIQ genotyping passb_chr8a';
@@ -756,6 +760,9 @@ sub all_tests : Test(216) {
         $crekidre_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
     }
 
+    print "crekidre_gc_allele_results:\n";
+    print Dumper ( $crekidre_gc_allele_results );
+
     ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '1' }->{ 'genotyping_pass' }       eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
     ok $crekidre_gc_allele_results->{ '2' }->{ 'allele_determination' }  eq 'tm1/wt', 'well 2 should be allele type < tm1/wt > for stage EP_PICK';
@@ -795,11 +802,11 @@ sub all_tests : Test(216) {
     ok $crekidre_gc_allele_results->{ '24' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number Range above threshold. ',
         'well 24 should give a validation error for above threshold Cre copy number range';
 
-    ok $crekidre_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
+    ok $crekidre_gc_allele_results->{ '25' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number not present. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 25 should give a validation error for missing loadel copy number and no lrprc results';
-    ok $crekidre_gc_allele_results->{ '26' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present. lrpcr assay validation: gf3 value not present. ',
+    ok $crekidre_gc_allele_results->{ '26' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range not present. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 26 should give a validation error for missing loadel copy number range and no lrprc results';
-    ok $crekidre_gc_allele_results->{ '27' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
+    ok $crekidre_gc_allele_results->{ '27' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 27 should give a validation error for above threshold loadel copy number range and no lrprc results';
 
     ok $crekidre_gc_allele_results->{ '28' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number not present. ',
@@ -809,7 +816,7 @@ sub all_tests : Test(216) {
     ok $crekidre_gc_allele_results->{ '30' }->{ 'allele_determination' } eq 'Failed: validate assays : puro assay validation: Copy Number Range above threshold. ',
         'well 30 should give a validation error for above threshold Puro copy number range';
  
-    ok $crekidre_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. lrpcr assay validation: gf3 value not present. ',
+    ok $crekidre_gc_allele_results->{ '31' }->{ 'allele_determination' } eq 'Failed: validate assays : loadel assay validation: Copy Number Range above threshold. loacrit assay validation: Copy Number not present. lrpcr assay validation: gf3 value not present. ',
         'well 31 should give an LRPCR error for gf3';
 
     ok $crekidre_gc_allele_results->{ '32' }->{ 'genotyping_pass' }      eq 'passb_chr8a', 'well 32 should be a PIQ genotyping passb_chr8a';
