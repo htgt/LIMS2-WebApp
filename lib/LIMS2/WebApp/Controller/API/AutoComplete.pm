@@ -90,7 +90,7 @@ sub badger_seq_projects_GET {
 	$c->assert_user_roles( 'read' );
 
     my $projects = search_seq_project_names($c->request->params->{term});
-    
+
     return $self->status_ok( $c, entity => $projects );
 }
 

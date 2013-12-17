@@ -1,5 +1,7 @@
 package LIMS2::WebApp::Controller::Auth;
 use Moose;
+use Crypt::CBC;
+use Config::Tiny;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -26,8 +28,10 @@ sub login : Global {
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
     my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
+    my $htgtsession = $c->stash->{htgtsession} || $c->req->param('htgtsession') || "";
 
-    $c->stash( goto_on_success => $goto );
+    $c->log->debug("HTGT session: $htgtsession");
+    $c->stash( goto_on_success => $goto, htgtsession => $htgtsession );
 
     return unless $c->req->param('login');
 
@@ -37,7 +41,38 @@ sub login : Global {
     }
 
     if ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
-        $c->flash( success_msg => 'Login successful' );
+
+    	# Only set the flash message if we are staying in lims2 webapp
+    	my $app_root = quotemeta( $c->req->base );
+    	$c->log->debug("App root uri: $app_root");
+        if($goto=~/$app_root/){
+            $c->flash( success_msg => 'Login successful' );
+        }
+
+        # If we have a htgt session id set a cookie that htgt can use 
+        # to check authentication
+        if ($htgtsession){
+
+            $c->log->debug('Writing LIMS2Auth cookie for htgt');
+
+            my $conf_file = $ENV{LIMS2_HTGT_KEY}
+                or die "Cannot write cookie for HTGT - no LIMS2_HTGT_KEY environment variable set.";
+
+            my $conf = Config::Tiny->read($conf_file);
+            my $key = $conf->{_}->{auth_key}
+                or die "Cannot write cookie - no auth_key provided in $conf_file ";
+
+            my $cookie_data = $htgtsession.":".lc($username);
+            my $cipher = Crypt::CBC->new( -key => $key, -cipher => 'Blowfish');
+
+            # FIXME: set domain depending on dev or live environment
+            $c->res->cookies->{LIMS2Auth} = {
+        	    value => $cipher->encrypt($cookie_data),
+        	    expires => '+1h',
+        	    domain => '.sanger.ac.uk',
+            };
+        }
+
         return $c->res->redirect($goto);
     }
     else {
