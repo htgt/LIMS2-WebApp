@@ -166,6 +166,19 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sB0a32DAqlmFSoESfhBv9Q
 
+sub as_hash {
+    my ( $self ) = @_;
+
+    my %h = (
+        id                 => $self->id,
+        left_crispr_id     => $self->left_crispr_id,
+        right_crispr_id    => $self->right_crispr_id,
+        spacer             => $self->spacer,
+        off_target_summary => $self->off_target_summary,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
