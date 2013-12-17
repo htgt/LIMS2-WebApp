@@ -652,7 +652,25 @@ sub genes {
             INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
         };
 
+        if ( !defined $gene_symbol || $gene_symbol eq '' ) {
+            try {
+                my $gene_design_row = $self->model->schema->resultset('DesignTarget')->search({
+                        gene_id => $gene_id
+                    }, {
+                    select => 'marker_symbol',
+                    rows => 1,
+                    })->single;
+                $gene_symbol = $gene_design_row->marker_symbol;
+
+            }
+            catch {
+                INFO 'Failed to fetch through design_targets gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
+            };
+        }
+
         unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
+
+
 
         push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol };
     }

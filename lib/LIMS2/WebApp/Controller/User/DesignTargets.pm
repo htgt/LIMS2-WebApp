@@ -39,12 +39,26 @@ sub gene_report : Path('/user/design_target_report') {
     my ( $self, $c, $gene ) = @_;
 
     $c->assert_user_roles( 'read' );
+    my $species = $c->session->{selected_species};
+
+
     if ( !$c->request->param('genes') && !$gene ) {
-        $c->flash( error_msg => "Please enter some gene names" );
-        return $c->go('index');
+
+        my $this_user = $ENV{'USER'} . '@sanger.ac.uk';
+        my $model = LIMS2::Model->new( { user => 'webapp', audit_user => $this_user } );
+
+        my @rows = $model->schema->resultset('Project')->search({
+                species_id => $species,
+            }, {
+            columns =>  [ qw(gene_id) ],
+            distinct => 1
+            })->all;
+        foreach my $data (@rows) {
+            $gene .= $data->gene_id."\n";
+        }
+
     }
 
-    my $species = $c->session->{selected_species};
     my $build   = $species eq 'Mouse' ? 70 : $species eq 'Human' ? 73 : undef;
 
     my %report_parameters = (
