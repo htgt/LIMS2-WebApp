@@ -168,7 +168,7 @@ sub crisprs_to_gff {
                 'phase' => '.',
                 'attributes' => 'ID='
                     . 'C_' . $crispr_r->crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             $crispr_format_hash{'type'} = 'CDS';
@@ -176,7 +176,7 @@ sub crisprs_to_gff {
                     . $crispr_r->crispr_id . ';'
                     . 'Parent=C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
-                    . 'color=#45A825;'; # greenish
+                    . 'color=#45A825'; # greenish
             my $crispr_child_datum = prep_gff_datum( \%crispr_format_hash );
             push @crisprs_gff, $crispr_parent_datum, $crispr_child_datum ;
         }
@@ -229,7 +229,7 @@ sub crispr_pairs_to_gff {
                 'phase' => '.',
                 'attributes' => 'ID='
                     . $crispr_r->pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->pair_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->pair_id
                 );
             my $crispr_pair_parent_datum = prep_gff_datum( \%crispr_format_hash );
             $crispr_format_hash{'type'} = 'CDS';
@@ -238,8 +238,7 @@ sub crispr_pairs_to_gff {
                     . $crispr_r->left_crispr_id . ';'
                     . 'Parent=' . $crispr_r->pair_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->left_crispr_id . ';'
-                    . 'color=#AA2424;' # reddish
-                    . 'Comment=Junk;';
+                    . 'color=#AA2424'; # reddish
             my $crispr_left_datum = prep_gff_datum( \%crispr_format_hash );
             $crispr_format_hash{'start'} = $crispr_r->right_crispr_start;
             $crispr_format_hash{'end'} = $crispr_r->right_crispr_end;
@@ -247,8 +246,7 @@ sub crispr_pairs_to_gff {
                     . $crispr_r->right_crispr_id . ';'
                     . 'Parent=' . $crispr_r->pair_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->right_crispr_id . ';'
-                    . 'color=#1A8599;' # blueish
-                    . 'Comment=Junk;';
+                    . 'color=#1A8599'; # blueish
 #            $crispr_format_hash{'attributes'} = $crispr_r->pair_id;
             my $crispr_right_datum = prep_gff_datum( \%crispr_format_hash );
             push @crisprs_gff, $crispr_pair_parent_datum, $crispr_left_datum, $crispr_right_datum ;
@@ -337,8 +335,7 @@ sub design_oligos_to_gff {
         $gibson_designs = parse_gibson_designs( $oligo_rs );
         my $design_meta_data;
         $design_meta_data = generate_design_meta_data ( $gibson_designs );
-
-        # The gff paret is generated from the meta data for the design
+        # The gff parent is generated from the meta data for the design
         # must do this for each design (as there may be several)
         foreach my $design_data ( keys %$design_meta_data ) {
             my %oligo_format_hash = (
@@ -352,7 +349,7 @@ sub design_oligos_to_gff {
                 'phase' => '.',
                 'attributes' => 'ID='
                     . 'D_' . $design_data . ';'
-                    . 'Name=' . 'D_' . $design_data . ';'
+                    . 'Name=' . 'D_' . $design_data
                 );
             my $oligo_parent_datum = prep_gff_datum( \%oligo_format_hash );
             push @oligo_gff, $oligo_parent_datum;
@@ -367,7 +364,7 @@ sub design_oligos_to_gff {
                     . $oligo . ';'
                     . 'Parent=D_' . $design_data . ';'
                     . 'Name=' . $oligo . ';'
-                    . 'color=' . $gibson_designs->{$design_data}->{$oligo}->{'colour'} . ';'; # greenish TODO: select colour for 3s, 5s, Es
+                    . 'color=' . $gibson_designs->{$design_data}->{$oligo}->{'colour'};
                 my $oligo_child_datum = prep_gff_datum( \%oligo_format_hash );
                 push @oligo_gff, $oligo_child_datum ;
             }
