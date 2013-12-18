@@ -665,9 +665,8 @@ sub all_tests : Test(216) {
     ok $creki_gc_allele_results->{ '11' }->{ 'allele_determination' } eq 'potential tm1/wt', 'well 11 should be allele type < potential tm1/wt > for stage PIQ';
     ok $creki_gc_allele_results->{ '12' }->{ 'allele_determination' } eq 'potential tm1/wt lrpcr only', 'well 12 should be allele type < potential tm1/wt lrpcr only > for stage PIQ';
 
-    ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi PIQ cre:2.1 puro:2.1 loadel:2.1 gr3:- gf3:- gr4:- gf4:-',
+    ok $creki_gc_allele_results->{ '13' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKi PIQ cre:2.1 puro:2.1 loadel:2.1 loacrit:- gr3:- gf3:- gr4:- gf4:-',
         'well 13 should give an unknown allele pattern error';
-
     ok $creki_gc_allele_results->{ '14' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number not present. ',
         'well 14 should give a validation error for missing Cre copy number';
     ok $creki_gc_allele_results->{ '15' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number Range not present. ',
@@ -760,8 +759,8 @@ sub all_tests : Test(216) {
         $crekidre_gc_allele_results->{ $crekidre_well_result_hash->{ 'id' } } = $crekidre_well_result_hash;
     }
 
-    print "crekidre_gc_allele_results:\n";
-    print Dumper ( $crekidre_gc_allele_results );
+    # print "crekidre_gc_allele_results:\n";
+    # print Dumper ( $crekidre_gc_allele_results );
 
     ok $crekidre_gc_allele_results->{ '1' }->{ 'allele_determination' }  eq 'wt/wt', 'well 1 should be allele type < wt/wt > for stage EP_PICK';
     ok $crekidre_gc_allele_results->{ '1' }->{ 'genotyping_pass' }       eq 'fail', 'well 1 should be an EP_PICK genotyping pass failure as not wanted genotype';
@@ -793,7 +792,7 @@ sub all_tests : Test(216) {
     ok $crekidre_gc_allele_results->{ '19' }->{ 'allele_determination' } eq 'potential tm1.1/wt', 'well 19 should be allele type < potential tm1.1/wt > for stage PIQ';
     ok $crekidre_gc_allele_results->{ '20' }->{ 'allele_determination' } eq 'potential tm1.1/wt lrpcr only', 'well 20 should be allele type < potential tm1.1/wt lrpcr only > for stage PIQ';
 
-    ok $crekidre_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKiDre PIQ cre:2.1 puro:2.1 loadel:2.1 gr3:- gf3:- gr4:- gf4:-', 'well 21 should give an unknown allele pattern error';
+    ok $crekidre_gc_allele_results->{ '21' }->{ 'allele_determination' } eq 'Failed: unknown allele pattern : CreKiDre PIQ cre:2.1 puro:2.1 loadel:2.1 loacrit:- gr3:- gf3:- gr4:- gf4:-', 'well 21 should give an unknown allele pattern error';
 
     ok $crekidre_gc_allele_results->{ '22' }->{ 'allele_determination' } eq 'Failed: validate assays : cre assay validation: Copy Number not present. ',
         'well 22 should give a validation error for missing Cre copy number';

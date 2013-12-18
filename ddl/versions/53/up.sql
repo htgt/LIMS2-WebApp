@@ -1,0 +1,1 @@
+ALTER TABLE wells ADD COLUMN accepted_rules_version TEXT;
