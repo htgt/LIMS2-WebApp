@@ -11,3 +11,5 @@ CREATE TABLE design_attempts (
     created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     comment           TEXT
 );
+
+ALTER TABLE wells ADD COLUMN accepted_rules_version TEXT;

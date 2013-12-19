@@ -40,13 +40,13 @@ sub gene_report : Path('/user/design_target_report') {
     my ( $self, $c, $gene ) = @_;
 
     $c->assert_user_roles( 'read' );
+    my $species = $c->session->{selected_species};
+    my $build   = $DEFAULT_SPECIES_BUILD{ lc($species) };
+
     if ( !$c->request->param('genes') && !$gene ) {
         $c->stash( error_msg => "Please enter some gene names" );
         return $c->go('index');
     }
-
-    my $species = $c->session->{selected_species};
-    my $build   = $DEFAULT_SPECIES_BUILD{ lc($species) };
 
     my %report_parameters = (
         type                 => $c->request->param('report_type') || 'standard',
