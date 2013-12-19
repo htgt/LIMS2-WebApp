@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.137';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.138';
 }
 ## use critic
 
@@ -232,9 +232,11 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     elsif ( exists $c->request->params->{exon_pick} ) {
         my $gene_id = $c->request->param('gene_id');
         my $exon_id = $c->request->param('exon_id');
+        my $ensembl_gene_id = $c->request->param('ensembl_gene_id');
         $c->stash(
             exon_id => $exon_id,
             gene_id => $gene_id,
+            ensembl_gene_id => $ensembl_gene_id,
         );
     }
     return;
@@ -262,8 +264,9 @@ sub run_design_create_cmd {
 
 sub pspec_create_gibson_design {
     return {
-        gene_id => { validate => 'non_empty_string' },
-        exon_id => { validate => 'ensembl_exon_id' },
+        gene_id         => { validate => 'non_empty_string' },
+        exon_id         => { validate => 'ensembl_exon_id' },
+        ensembl_gene_id => { validate => 'ensembl_gene_id' },
         # fields from the diagram
         '5F_length'    => { validate => 'integer' },
         '5F_offset'    => { validate => 'integer' },
@@ -366,11 +369,14 @@ sub find_or_create_design_target {
         }
     );
 
-    $c->log->debug('Design target already exists for exon: ' . $params->{exon_id});
-    return if $existing_design_target;
+    if ( $existing_design_target ) {
+        $c->log->debug( 'Design target ' . $existing_design_target->id
+                . ' already exists for exon: ' . $params->{exon_id} );
+        return;
+    }
 
-    my $gene = get_ensembl_gene( $c->model('Golgi'), $params->{gene_id}, $params->{species} );
-    LIMS2::Exception->throw( "Unable to find ensembl gene for: " . $params->{gene_id} )
+    my $gene = get_ensembl_gene( $c->model('Golgi'), $params->{ensembl_gene_id}, $params->{species} );
+    LIMS2::Exception->throw( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
         unless $gene;
     my $canonical_transcript = $gene->canonical_transcript;
 

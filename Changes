@@ -1,3 +1,8 @@
+0.138     2013-12-19 13:56:21 Europe/London
+
+    Bugfix: design_target creation via gibson design create interface was not passed 
+            the ensembl_gene_id
+
 0.137     2013-12-19 11:27:08 Europe/London
 	Updated Allele Determination rules.
 	Added Human projects to Summary Pipeline Reports.
