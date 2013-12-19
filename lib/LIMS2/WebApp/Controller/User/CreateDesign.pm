@@ -17,7 +17,7 @@ BEGIN { extends 'Catalyst::Controller' };
 
 #use this default if the env var isnt set.
 const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
-                                    '/lustre/scratch110/sanger/team87/lims2_designs' );
+                                    '/lustre/scratch109/sanger/team87/lims2_designs' );
 const my @DESIGN_TYPES => (
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
             #{ cmd => 'insertion-design', display_name => 'Insertion' },
@@ -213,10 +213,10 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
             my $cmd = $self->generate_gibson_design_cmd( $params );
             $c->log->debug('Design create command: ' . join(' ', @{ $cmd } ) );
 
-            $self->run_design_create_in_background( $cmd );
+            $self->run_design_create_cmd( $c, $cmd, $params );
         }
-        catch {
-            $c->stash( error_msg => "Error submitting Design Creation job: $_" );
+        catch ($err) {
+            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
             $c->res->redirect( 'gibson_design_gene_pick' );
             return;
         }
@@ -235,22 +235,21 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
 }
 
 #TODO maybe move these methods to a seperate util module, this controller is getting fat sp12 Fri 13 Dec 2013 08:33:44 GMT
-sub run_design_create_in_background {
-    my ( $self, $cmd ) = @_;
+sub run_design_create_cmd {
+    my ( $self, $c, $cmd, $params ) = @_;
 
-    local $SIG{CHLD} = 'IGNORE';
+    my $runner = LIMS2::Util::FarmJobRunner->new(
+        default_memory     => 2500,
+        default_processors => 2,
+    );
 
-    defined( my $pid = fork() )
-        or LIMS2::Exception::System->throw( "Fork failed: $!" );
+    my $job_id = $runner->submit(
+        out_file => $params->{ output_dir }->file( "design_creation.out" ),
+        err_file => $params->{ output_dir }->file( "design_creation.err" ),
+        cmd      => $cmd,
+    );
 
-    if ( $pid == 0 ) { # child
-        local $0 = 'Design Creation';
-        # TODO ssh into farm3-login to submit the job!
-        my ( $out, $err ) =  ( "", "" );
-        run( $cmd, '<', \undef, '>', \$out, '2>', \$err,);
-        ### $err
-        exit 0;
-    }
+    $c->log->info( "Successfully submitted gibson design create job $job_id with run id $params->{uuid}" );
 
     return;
 }
@@ -289,10 +288,14 @@ sub parse_and_validate_gibson_params {
         { species_id => $species } )->assembly_id;
 
     my $uuid = Data::UUID->new->create_str;
-    $validated_params->{output_dir} = $DEFAULT_DESIGNS_DIR->subdir( $uuid )->stringify;
-    $validated_params->{species} = $species;
-    $validated_params->{build_id} = $DEFAULT_SPECIES_BUILD{ lc($species) };
+    $validated_params->{uuid}        = $uuid;
+    $validated_params->{output_dir}  = $DEFAULT_DESIGNS_DIR->subdir( $uuid );
+    $validated_params->{species}     = $species;
+    $validated_params->{build_id}    = $DEFAULT_SPECIES_BUILD{ lc($species) };
     $validated_params->{assembly_id} = $default_assembly;
+
+    #create dir
+    $validated_params->{output_dir}->mkpath();
 
     $c->stash( {
         gene_id => $validated_params->{gene_id},
@@ -314,7 +317,7 @@ sub generate_gibson_design_cmd {
         '--target-gene', $params->{gene_id},
         '--target-exon', $params->{exon_id},
         '--species',     $params->{species},
-        '--dir',         $params->{output_dir},
+        '--dir',         $params->{output_dir}->subdir('workdir')->stringify,
         '--da-id',       $params->{da_id},
         #user specified params
         '--region-length-5f',    $params->{'5F_length'},
