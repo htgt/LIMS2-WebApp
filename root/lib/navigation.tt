@@ -31,9 +31,6 @@
               <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/create_design' ) %]">Create Design</a>
-            </li>
-            <li>
               <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Gibson Design</a>
             </li>
             <li>
