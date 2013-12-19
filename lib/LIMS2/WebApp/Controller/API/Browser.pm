@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API::Browser;
 use Moose;
 use namespace::autoclean;
 
-use LIMS2::Model::Util::CrisprBrowser qw/
+use LIMS2::Model::Util::GenomeBrowser qw/
     crisprs_for_region
     crisprs_to_gff
     crispr_pairs_for_region
