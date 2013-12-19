@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.137     2013-12-19 11:27:08 Europe/London
+	Updated Allele Determination rules.
+	Added Human projects to Summary Pipeline Reports.
+	Gibson design interface added.
+	Added Genoverse browser support for Crispr pairs and Gibson designs.
+
 0.136     2013-12-12 11:59:52 Europe/London
 	Cookie for HTGT2 authentication written on successful login
 
