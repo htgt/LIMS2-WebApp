@@ -530,7 +530,14 @@ sub genotyping_qc_save_distribute_changes_GET {
 
                 my $update_for_accepted = $well_hash->{ 'update_for_accepted' };
                 my $well_id             = $well_hash->{ 'id' };
-                $model->update_well_accepted( { 'well_id' => $well_id, 'accepted' => $update_for_accepted } );
+                if ( exists $well_hash->{ 'accepted_rules_version' } ) {
+                    my $rules_version   = $well_hash->{ 'accepted_rules_version' };
+                    $model->update_well_accepted( { 'well_id' => $well_id, 'accepted' => $update_for_accepted, 'accepted_rules_version' => $rules_version, } );
+                }
+                else {
+                    $model->update_well_accepted( { 'well_id' => $well_id, 'accepted' => $update_for_accepted, } );
+                }
+
                 if ( $update_for_accepted ) {
                     $well_hash->{ 'accepted' } = 'yes';
                 }
