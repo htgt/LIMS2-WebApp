@@ -64,6 +64,7 @@ $(document).ready(function() {
         <label class="control-label" for="gene_id">Gene ID</label>
         <div class="controls">
           <input type="text" id="gene_id" name="gene_id" placeholder="Target Gene ID" value="[% gene_id %]" /><br/>
+          <input type="hidden" id="ensembl_gene_id" name="ensembl_gene_id" value="[% ensembl_gene_id %]" />
           [% IF c.session.selected_species == 'Mouse' %]
             <span class="help-block">MGI Gene ID</span>
           [% ELSIF c.session.selected_species == 'Human' %]
