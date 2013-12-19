@@ -126,7 +126,7 @@ has ensembl_util => (
     lazy_build => 1,
     handles    => {
         map { 'ensembl_' . $_ => $_ }
-            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor constrained_element_adaptor repeat_feature_adaptor )
+            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor exon_adaptor constrained_element_adaptor repeat_feature_adaptor )
     }
 );
 

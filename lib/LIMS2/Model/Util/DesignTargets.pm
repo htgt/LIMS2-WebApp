@@ -20,6 +20,7 @@ use Sub::Exporter -setup => {
                      design_target_report_for_genes
                      bulk_designs_for_design_targets
                      get_design_targets_data
+                     prebuild_oligos
                     ) ]
 };
 
@@ -315,9 +316,9 @@ sub find_design_targets {
     my @design_targets = $schema->resultset('DesignTarget')->search(
         {
             -or => [
-                gene_id         => { 'IN' => $sorted_genes->{gene_ids}  },
-                marker_symbol   => { 'IN' => $sorted_genes->{marker_symbols} },
-                ensembl_gene_id => { 'IN' => $sorted_genes->{ensembl_gene_ids} },
+                gene_id                   => { 'IN' => $sorted_genes->{gene_ids}  },
+                'lower(me.marker_symbol)' => { 'IN' => $sorted_genes->{marker_symbols} },
+                ensembl_gene_id           => { 'IN' => $sorted_genes->{ensembl_gene_ids} },
             ],
             'me.species_id'  => $species_id,
             'me.assembly_id' => $assembly,
@@ -769,7 +770,7 @@ sub _sort_gene_ids {
         }
         else {
             #assume its a marker symbol
-            push @{ $sorted_genes{marker_symbols} }, $gene;
+            push @{ $sorted_genes{marker_symbols} }, lc($gene);
         }
     }
 

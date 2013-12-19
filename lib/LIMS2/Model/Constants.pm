@@ -19,6 +19,7 @@ BEGIN {
         %GIBSON_OLIGO_APPENDS
         %ADDITIONAL_PLATE_REPORTS
         %UCSC_BLAT_DB
+        %DEFAULT_SPECIES_BUILD
     );
     our %EXPORT_TAGS = ();
 }
@@ -223,6 +224,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
 const our %UCSC_BLAT_DB => (
     mouse => 'mm10',
     human => 'hg19',
+);
+
+const our %DEFAULT_SPECIES_BUILD => (
+    mouse => 73,
+    human => 73,
 );
 
 1;

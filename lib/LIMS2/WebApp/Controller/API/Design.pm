@@ -185,9 +185,93 @@ sub design_oligo_locus_POST {
     return $self->status_no_content( $c );
 }
 
-=head1 AUTHOR
+sub design_attempt : Path( '/api/design_attempt' ) : Args(0) :ActionClass( 'REST' ) {
+}
 
-Ray Miller
+=head2 GET /api/design_attempt
+
+Retrieve a design attempt by id.
+
+=cut
+sub design_attempt_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $design_attempt = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_design_attempt( { id => $c->request->param( 'id' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $design_attempt );
+}
+
+=head2 POST
+
+Create a design attempt
+
+=cut
+sub design_attempt_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $design_attempt = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->create_design_attempt( $c->request->data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/design_attempt', { id => $design_attempt->id } ),
+        entity   => $design_attempt,
+    );
+}
+
+=head2 PUT
+
+Update a design attempt
+
+=cut
+sub design_attempt_PUT {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $design_attempt = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->update_design_attempt( $c->request->data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/design_attempt', { id => $design_attempt->id } ),
+        entity   => $design_attempt,
+    );
+}
+
+sub design_attempt_status :Path( '/api/design_attempt_status' ) :Args(1) :ActionClass('REST') {
+}
+
+sub design_attempt_status_GET {
+    my ( $self, $c, $da_id ) = @_;
+
+    $c->assert_user_roles( 'read' );
+    my $da = $c->model('Golgi')->retrieve_design_attempt( { id => $da_id } );
+    my $status = $da->status;
+    my $design_links;
+    if ( $status eq 'success' ) {
+        my @design_ids = split( ' ', $da->design_ids );
+        for my $design_id ( @design_ids ) {
+            my $link = $c->uri_for('/user/view_design', { design_id => $design_id } )->as_string;
+            $design_links .= '<a href="' . $link . '">'. $design_id .'</a><br>';
+        }
+    }
+    return $self->status_ok( $c, entity => { status => $status, designs => $design_links } );
+}
 
 =head1 LICENSE
 
