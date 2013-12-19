@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.136';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.137';
 }
 ## use critic
 
@@ -10,6 +10,7 @@ use TryCatch;
 use Data::Dump 'pp';
 use Const::Fast;
 use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
+use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -70,7 +71,7 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
 
     my $design;
     try {
-        $design = $c->model('Golgi')->retrieve_design( { id => $design_id, species => $species_id } )->as_hash;
+        $design = $c->model('Golgi')->retrieve_design( { id => $design_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design id" );
@@ -80,17 +81,22 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
         return $c->go('index');
     }
 
-    $design->{assigned_genes} = join q{, }, @{ $design->{assigned_genes} || [] };
+    my $design_data = $design->as_hash;
+    $design_data->{assigned_genes} = join q{, }, @{ $design_data->{assigned_genes} || [] };
 
     my $ucsc_db = $UCSC_BLAT_DB{ lc( $species_id) };
 
-    $c->log->debug( "Design: " . pp $design );
+    $c->log->debug( "Design: " . pp $design_data );
+
+    my ( $crisprs, $crispr_pairs ) = crisprs_for_design( $c->model('Golgi'), $design );
 
     $c->stash(
-        design         => $design,
+        design         => $design_data,
         display_design => \@DISPLAY_DESIGN,
         species        => $species_id,
         uscs_db        => $ucsc_db,
+        crisprs        => [ map{ $_->as_hash } @{ $crisprs } ],
+        crispr_pairs   => [ map{ $_->as_hash } @{ $crispr_pairs } ],
     );
 
     return;
@@ -135,7 +141,6 @@ sub design_ucsc_blat : Path( '/user/design_ucsc_blat' ) : Args(0) {
 =head2 list_designs
 
 =cut
-
 sub list_designs : Path( '/user/list_designs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -278,10 +283,6 @@ sub _generate_designs_csv {
 
     return join "\n", @csv_lines;
 }
-
-=head1 AUTHOR
-
-Ray Miller
 
 =head1 LICENSE
 

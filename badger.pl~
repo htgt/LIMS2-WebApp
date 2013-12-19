@@ -1,9 +1,0 @@
-use strict;
-
-my $badger_dbh;
-my $dsn='dbi:Oracle:';
-my $user='repos@cas';
-my $password='R_ep05';
-unless ($badger_dbh){
-    $badger_dbh = DBI->connect($dsn, $user, $password) or die $!;
-}

@@ -1,13 +1,24 @@
 package LIMS2::Model::Util::AlleleDetermination;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::AlleleDetermination::VERSION = '0.136';
+    $LIMS2::Model::Util::AlleleDetermination::VERSION = '0.137';
 }
 ## use critic
 
 
 use strict;
 use warnings FATAL => 'all';
+
+=head1 NAME
+
+LIMS2::Model::Util::AlleleDetermination
+
+=head1 DESCRIPTION
+
+Calculates the Allele Types for sets of wells using their genotyping QC information.
+Also generates an overall calculated genotyping pass for the well.
+
+=cut
 
 use Moose;
 use Try::Tiny;
@@ -94,17 +105,16 @@ has dispatches => (
     lazy_build => 1,
 );
 
-has allele_translation => (
-    is      => 'rw',
-    isa     => 'HashRef',
-    builder => '_build_allele_translation',
-);
-
 sub BUILD {
     my ( $self ) = @_;
     return;
 }
 
+=head2 _build_allele_config
+
+Create an internal hash from the allele configuration file.
+
+=cut
 sub _build_allele_config {
     my ( $self ) = @_;
 
@@ -118,6 +128,11 @@ sub _build_allele_config {
     return $allele_config;
 }
 
+=head2 _build_dispatches
+
+Build the dispatches table to call internal methods based on the contents of logic strings in the configuration file.
+
+=cut
 sub _build_dispatches {
     my ( $self ) = @_;
 
@@ -144,10 +159,6 @@ sub _build_dispatches {
         'is_potential_cre_0'     => sub { $self->_is_potential_cre_0 },
         'is_cre_1'               => sub { $self->_is_cre_1 },
         'is_potential_cre_1'     => sub { $self->_is_potential_cre_1 },
-        'is_puro_0'              => sub { $self->_is_puro_0 },
-        'is_potential_puro_0'    => sub { $self->_is_potential_puro_0 },
-        'is_puro_1'              => sub { $self->_is_puro_1 },
-        'is_potential_puro_1'    => sub { $self->_is_potential_puro_1 },
         'is_chry_0'              => sub { $self->_is_chry_0 },
         'is_potential_chry_0'    => sub { $self->_is_potential_chry_0 },
         'is_chry_1'              => sub { $self->_is_chry_1 },
@@ -165,7 +176,10 @@ sub _build_dispatches {
         'is_neo_absent'          => sub { !$self->_is_neo_present },
         'is_bsd_present'         => sub { $self->_is_bsd_present },
         'is_bsd_absent'          => sub { !$self->_is_bsd_present },
+        'is_puro_present'        => sub { $self->_is_puro_present },
+        'is_puro_absent'         => sub { !$self->_is_puro_present },
         'is_lrpcr_pass'          => sub { $self->_is_lrpcr_pass },
+
         'valid_loacrit'          => sub { $self->_validate_assay('loacrit') },
         'valid_loatam'           => sub { $self->_validate_assay('loatam') },
         'valid_loadel'           => sub { $self->_validate_assay('loadel') },
@@ -177,19 +191,21 @@ sub _build_dispatches {
         'valid_lrpcr'            => sub { $self->_validate_primers('lrpcr') },
         'valid_chry'             => sub { $self->_validate_assay('chry') },
         'valid_chr8a'            => sub { $self->_validate_assay('chr8a') },
+
+        'exists_loadel'          => sub { $self->_validate_assay_exists('loadel') },
+        'not_exists_loadel'      => sub { !$self->_validate_assay_exists('loadel') },
+        'exists_loacrit'         => sub { $self->_validate_assay_exists('loacrit') },
+        'not_exists_loacrit'     => sub { !$self->_validate_assay_exists('loacrit') },
     };
 
     return $dispatches;
 }
 
-sub _build_allele_translation {
-    my ( $self ) = @_;
+=head2 determine_allele_types_for_well_ids
 
-    my $allele_translation = $self->allele_config->{ 'allele_translation' };
-    return $allele_translation;
-}
+This entry point is for where we just have an array of well ids.
 
-# this entry point is for where we just have an array of well ids
+=cut
 sub determine_allele_types_for_well_ids {
     my ( $self, $well_ids ) = @_;
 
@@ -210,7 +226,11 @@ sub determine_allele_types_for_well_ids {
     return $self->well_genotyping_results_array;
 }
 
-# this entry point is for where we have a array of hashrefs of genotyping results (one hashref per well)
+=head2 determine_allele_types_for_genotyping_results_array
+
+This entry point is for where we have a array of hashrefs of genotyping results (one hashref per well).
+
+=cut
 sub determine_allele_types_for_genotyping_results_array {
     my ( $self, $genotyping_results_array ) = @_;
 
@@ -229,8 +249,12 @@ sub determine_allele_types_for_genotyping_results_array {
     return $self->well_genotyping_results_array;
 }
 
-# this entry point is for testing the logic, where the genotyping results array of well hashes is already
-# set up and contains workflow and summaries table data
+=head2 test_determine_allele_types_logic
+
+This entry point is for testing the logic, where the genotyping results array of well hashes is already
+set up and contains workflow and summaries table data.
+
+=cut
 sub test_determine_allele_types_logic {
     my ( $self ) = @_;
 
@@ -245,6 +269,11 @@ sub test_determine_allele_types_logic {
     return $self->well_genotyping_results_array;
 }
 
+=head2 _determine_allele_types_for_wells
+
+Determine the allele types for all the wells.
+
+=cut
 sub _determine_allele_types_for_wells {
     my ( $self ) = @_;
 
@@ -265,7 +294,8 @@ sub _determine_allele_types_for_wells {
         }
         catch {
             my $exception_message = $_;
-            $current_allele_type = "Failed allele determination. Exception: $exception_message";
+            $current_allele_type = 'Failed allele determination. Exception: '.$exception_message;
+            WARN( 'Failed allele determination. Exception: '.$exception_message );
         };
 
         # store full allele determination in well hash
@@ -282,6 +312,11 @@ sub _determine_allele_types_for_wells {
     return;
 }
 
+=head2 _determine_workflow_for_wells
+
+Determine the laboratory workflow for each of the wells.
+
+=cut
 sub _determine_workflow_for_wells {
     my ( $self ) = @_;
 
@@ -341,11 +376,16 @@ sub _determine_workflow_for_wells {
     return;
 }
 
+=head2 _select_workflow_data
+
+Select the workflow data for the wells.
+
+=cut
 sub _select_workflow_data {
     my ( $self, $sql_query ) = @_;
 
     try {
-        my $sql_results = $self->run_select_query($sql_query);
+        my $sql_results = $self->_run_select_query($sql_query);
 
         if ( defined $sql_results ) {
             my $well_results = {};
@@ -386,6 +426,11 @@ sub _select_workflow_data {
     return;
 }
 
+=head2 _calculate_workflow_for_well
+
+Calculate which laborratory workflow applies for this well.
+
+=cut
 sub _calculate_workflow_for_well {
     my ( $self, $current_well ) = @_;
 
@@ -436,6 +481,11 @@ sub _calculate_workflow_for_well {
     return;
 }
 
+=head2 _determine_allele_type_for_well
+
+Determine the allele type for the well based on workflow, stage and genotyping assay results.
+
+=cut
 sub _determine_allele_type_for_well {
     my ( $self ) = @_;
 
@@ -476,6 +526,11 @@ sub _determine_allele_type_for_well {
     }
 }
 
+=head2 _well_has_qc_data
+
+Check if well has genotyping qc data.
+
+=cut
 sub _well_has_qc_data {
     my ( $self ) = @_;
 
@@ -483,7 +538,7 @@ sub _well_has_qc_data {
 
     try {
         my $sql_query = $self->_create_sql_select_qc_data( $self->current_well_id );
-        my $sql_results = $self->run_select_query($sql_query);
+        my $sql_results = $self->_run_select_query($sql_query);
         if ( defined $sql_results && (scalar @{ $sql_results } ) > 0 ) {
             $has_qc_data = 1;
         }
@@ -497,6 +552,11 @@ sub _well_has_qc_data {
     return $has_qc_data;
 }
 
+=head2 _create_assay_summary_string
+
+Summarise the assay results for grid display.
+
+=cut
 sub _create_assay_summary_string {
     my ( $self ) = @_;
 
@@ -504,7 +564,7 @@ sub _create_assay_summary_string {
 
     if ( $self->current_well_workflow ~~ [ qw( CreKi CreKiDre ) ] ) {
         # build the summary for Cre Knockin workflows
-        foreach my $assay_name ( 'cre', 'puro', 'loadel' ) {
+        foreach my $assay_name ( 'cre', 'puro', 'loadel', 'loacrit' ) {
             push( @pattern,
                 ( $assay_name . ':' . ( $self->current_well->{ $assay_name . '#copy_number' } // '-' ) ) );
         }
@@ -529,6 +589,11 @@ sub _create_assay_summary_string {
     return;
 }
 
+=head2 _determine_allele_type_for_well_with_constraints
+
+Determine the allele type for a specific well and constraint type (e.g. normal, loose).
+
+=cut
 sub _determine_allele_type_for_well_with_constraints {
     my ( $self, $constraint_name ) = @_;
 
@@ -542,10 +607,6 @@ sub _determine_allele_type_for_well_with_constraints {
     # Attempt to find a matching allele type using normal constraints
     my $tests = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ $constraint_name }->{ 'tests' };
 
-    # print 'curr well id = ' . $self->current_well_id . ' tests workflow = ' . $self->current_well_workflow . ' stage = ' . $self->current_well_stage . ' constraint name = ' . $constraint_name . "\n";
-
-    # $tests
-
     unless ( defined $tests ) { LIMS2::Exception->throw("determine allele type for well: no tests defined in config") };
 
     foreach my $key ( keys %{ $tests } ) {
@@ -555,7 +616,7 @@ sub _determine_allele_type_for_well_with_constraints {
 
         LIMS2::Exception->throw("determine allele type: no tests logic string defined for test " . $key ) unless ( defined $logic_string && $logic_string ne '' );
 
-        push( @allele_types, ( $self->allele_translation->{ $key } ) )
+        push( @allele_types, ( $self->allele_config->{ 'allele_translation' }->{ $key } ) )
             if ( $self->_is_allele_test( $logic_string ) );
     }
 
@@ -567,6 +628,11 @@ sub _determine_allele_type_for_well_with_constraints {
     }
 }
 
+=head2 _is_allele_test
+
+Determine the overall result of all the individual tests in one allele logic string.
+
+=cut
 sub _is_allele_test {
     my ( $self, $logic_string ) = @_;
 
@@ -594,6 +660,11 @@ sub _is_allele_test {
     return $result;
 }
 
+=head2 _minimised_allele_type
+
+Minimise the returned allele type for grid display purposes (small column width).
+
+=cut
 sub _minimised_allele_type {
     my ( $self, $current_allele_type ) = @_;
 
@@ -620,20 +691,26 @@ sub _minimised_allele_type {
     return $current_allele_type;
 }
 
+=head2 _determine_genotyping_pass_for_wells
+
+Determine the overall genotyping passes for all the wells.
+
+=cut
 sub _determine_genotyping_pass_for_wells {
     my ( $self ) = @_;
 
     # this has to decide if the overall result is a pass (distribute) or fail
-    # for EP plate types this is a check on whether the allele type is the expected allele type
-    # for PIQ plates this first checks allele type then if correct performs additional checks on Chromosome assays
-    $self->_initialise_current_well_attributes();
+     $self->_initialise_current_well_attributes();
 
-    foreach my $well ( @{ $self->well_genotyping_results_array } ) {
+    foreach my $curr_well_hash ( @{ $self->well_genotyping_results_array } ) {
 
-        $self->current_well( $well );
-        $self->current_well_id( $well->{ 'id' } );
+        $self->current_well( $curr_well_hash );
+        $self->current_well_id( $curr_well_hash->{ 'id' } );
 
         my $current_genotyping_pass = 'fail';
+
+        # set version number of ruleset
+        $curr_well_hash->{ 'accepted_rules_version' } = $self->allele_config->{ 'ruleset' }->{ 'version' };
 
         # attempt to determine the genotyping pass for this well and add the result into the output hashref
         try {
@@ -641,19 +718,24 @@ sub _determine_genotyping_pass_for_wells {
         }
         catch {
             my $exception_message = $_;
-            $well->{ 'genotyping_pass_error_message' } = 'Failed genotyping pass determination. Exception: '. $exception_message;
+            $curr_well_hash->{ 'genotyping_pass_error_message' } = 'Failed genotyping pass determination. Exception: '. $exception_message;
             ERROR( 'Failed genotyping pass determination. Exception: '. $exception_message );
         };
 
         # store calculated genotyping pass in well hash
-        $well->{ 'genotyping_pass' } = $current_genotyping_pass;
+        $curr_well_hash->{ 'genotyping_pass' } = $current_genotyping_pass;
 
-        # DEBUG ( "well id " . $self->current_well_id . " well genotyping pass = " . $well->{ 'genotyping_pass' } );
+        # DEBUG ( "well id " . $self->current_well_id . " well genotyping pass = " . $curr_well_hash->{ 'genotyping_pass' } );
     }
 
     return;
 }
 
+=head2 _determine_genotyping_pass_for_well
+
+Determine the genotyping pass for the current well.
+
+=cut
 sub _determine_genotyping_pass_for_well {
     my ( $self ) = @_;
 
@@ -691,6 +773,11 @@ sub _determine_genotyping_pass_for_well {
     return $genotyping_pass;
 }
 
+=head2 _is_allele_type_valid_for_genotyping_pass
+
+Determine whether the allele type is a valid type to be a genotyping pass
+
+=cut
 sub _is_allele_type_valid_for_genotyping_pass {
     my ( $self ) = @_;
 
@@ -702,10 +789,10 @@ sub _is_allele_type_valid_for_genotyping_pass {
     my @allowed_types_array = split( /\sOR\s/, $allowed_types_string );
     my @conv_allowed_types_array = ();
     foreach my $allowed_type ( @allowed_types_array ) {
-        push( @conv_allowed_types_array, ( $self->allele_translation->{ $allowed_type } ) );
+        push( @conv_allowed_types_array, ( $self->allele_config->{ 'allele_translation' }->{ $allowed_type } ) );
     }
 
-    LIMS2::Exception->throw( 'Failed: No allowed allele types returned from config, cannot determine genotyping pass' ) unless ( scalar @conv_allowed_types_array > 0 );
+    LIMS2::Exception->throw( 'Failed: No allowed allele types in config so cannot determine genotyping pass' ) unless ( scalar @conv_allowed_types_array > 0 );
 
     # DEBUG( 'config string = ' . $allowed_types_string );
     # DEBUG( 'config as array = ' . join( ", ", @allowed_types_array ) );
@@ -715,7 +802,7 @@ sub _is_allele_type_valid_for_genotyping_pass {
     my $curr_well_allele_types_string = $self->current_well->{ 'allele_determination' };
     my @curr_well_allele_types_array = split( /;\s/, $curr_well_allele_types_string );
 
-    LIMS2::Exception->throw( 'Failed: No allele determination types found, cannot determine genotyping pass' ) unless ( scalar @curr_well_allele_types_array > 0 );
+    LIMS2::Exception->throw( 'Failed: No allele types for well so cannot determine genotyping pass' ) unless ( scalar @curr_well_allele_types_array > 0 );
 
     # DEBUG( 'alele_types string = ' . $curr_well_allele_types_string );
     # DEBUG( 'allele types as array = ' . join( ", ", @curr_well_allele_types_array ) );
@@ -733,17 +820,19 @@ sub _is_allele_type_valid_for_genotyping_pass {
     return $valid;
 }
 
+=head2 _apply_additional_genotyping_pass_criteria
+
+Determine whether the well includes any additional tests for a genotyping pass and check them.
+At least one genotyping_pass test must be defined in the config called 'pass', although it may have an empty logic string if no further tests are required
+
+=cut
 sub _apply_additional_genotyping_pass_criteria {
     my ( $self ) = @_;
 
     # may be more than one test to check
-
     my @passed_tests;
-
-    # Attempt to find a matching allele type using normal constraints
     my $tests = $self->allele_config->{ $self->current_well_workflow }->{ $self->current_well_stage }->{ 'genotyping_pass' }->{ 'tests' };
 
-    # at least one test must be defined called 'pass', although it may have an empty logic string if no further tests are required
     unless ( defined $tests ) { LIMS2::Exception->throw("apply additional genotyping tests: no tests defined in config") };
 
     foreach my $key ( keys %{ $tests } ) {
@@ -776,6 +865,12 @@ sub _apply_additional_genotyping_pass_criteria {
     }
 }
 
+=head2 _set_calculated_well_accepted_value
+
+Set the displayed calculated genotyping pass depending on the current well accepted value.
+Want visible indication when it differs from current database value.
+
+=cut
 sub _set_calculated_well_accepted_value {
     my ( $self, $genotyping_pass ) = @_;
 
@@ -798,6 +893,11 @@ sub _set_calculated_well_accepted_value {
     return;
 }
 
+=head2 _is_loacrit_0
+
+Retrieve thresholds and apply test for is LOA-crit zero.
+
+=cut
 sub _is_loacrit_0 {
     my ( $self ) = @_;
 
@@ -809,6 +909,11 @@ sub _is_loacrit_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
+=head2 _is_loacrit_1
+
+Retrieve thresholds and apply test for is LOA-crit one.
+
+=cut
 sub _is_loacrit_1 {
     my ( $self ) = @_;
 
@@ -820,6 +925,11 @@ sub _is_loacrit_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
+=head2 _is_loacrit_2
+
+Retrieve thresholds and apply test for is LOA-crit two.
+
+=cut
 sub _is_loacrit_2 {
     my ( $self ) = @_;
 
@@ -831,6 +941,11 @@ sub _is_loacrit_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
+=head2 _is_loatam_0
+
+Retrieve thresholds and apply test for is LOA-tam zero.
+
+=cut
 sub _is_loatam_0 {
     my ( $self ) = @_;
 
@@ -842,6 +957,11 @@ sub _is_loatam_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
+=head2 _is_loatam_1
+
+Retrieve thresholds and apply test for is LOA-tam one.
+
+=cut
 sub _is_loatam_1 {
     my ( $self ) = @_;
 
@@ -853,6 +973,11 @@ sub _is_loatam_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
+=head2 _is_loatam_2
+
+Retrieve thresholds and apply test for is LOA-tam two.
+
+=cut
 sub _is_loatam_2 {
     my ( $self ) = @_;
 
@@ -864,6 +989,11 @@ sub _is_loatam_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
+=head2 _is_loadel_0
+
+Retrieve thresholds and apply test for is LOA-del zero.
+
+=cut
 sub _is_loadel_0 {
     my ( $self ) = @_;
 
@@ -875,6 +1005,11 @@ sub _is_loadel_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
+=head2 _is_loadel_1
+
+Retrieve thresholds and apply test for is LOA-del one.
+
+=cut
 sub _is_loadel_1 {
     my ( $self ) = @_;
 
@@ -886,6 +1021,11 @@ sub _is_loadel_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
+=head2 _is_loadel_2
+
+Retrieve thresholds and apply test for is LOA-del two.
+
+=cut
 sub _is_loadel_2 {
     my ( $self ) = @_;
 
@@ -897,6 +1037,11 @@ sub _is_loadel_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
+=head2 _is_cre_0
+
+Retrieve thresholds and apply test for is Cre zero.
+
+=cut
 sub _is_cre_0 {
     my ( $self ) = @_;
 
@@ -908,6 +1053,11 @@ sub _is_cre_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
 }
 
+=head2 _is_cre_1
+
+Retrieve thresholds and apply test for is Cre one.
+
+=cut
 sub _is_cre_1 {
     my ( $self ) = @_;
 
@@ -919,28 +1069,11 @@ sub _is_cre_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
 }
 
-sub _is_puro_0 {
-    my ( $self ) = @_;
+=head2 _is_chry_0
 
-    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_0_lower_bound' };
-    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_0_upper_bound' };
+Retrieve thresholds and apply test for is Chry zero.
 
-    unless ( defined $lower && defined $upper ) { return 0 };
-
-    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
-}
-
-sub _is_puro_1 {
-    my ( $self ) = @_;
-
-    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_1_lower_bound' };
-    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_1_upper_bound' };
-
-    unless ( defined $lower && defined $upper ) { return 0 };
-
-    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
-}
-
+=cut
 sub _is_chry_0 {
     my ( $self ) = @_;
 
@@ -952,6 +1085,11 @@ sub _is_chry_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
+=head2 _is_chry_1
+
+Retrieve thresholds and apply test for is Chry one.
+
+=cut
 sub _is_chry_1 {
     my ( $self ) = @_;
 
@@ -963,6 +1101,11 @@ sub _is_chry_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
+=head2 _is_chry_2
+
+Retrieve thresholds and apply test for is Chry two.
+
+=cut
 sub _is_chry_2 {
     my ( $self ) = @_;
 
@@ -974,6 +1117,11 @@ sub _is_chry_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
+=head2 _is_chr8a_0
+
+Retrieve thresholds and apply test for is Chr8a zero.
+
+=cut
 sub _is_chr8a_0 {
     my ( $self ) = @_;
 
@@ -985,6 +1133,11 @@ sub _is_chr8a_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
+=head2 _is_chr8a_1
+
+Retrieve thresholds and apply test for is Chr8a one.
+
+=cut
 sub _is_chr8a_1 {
     my ( $self ) = @_;
 
@@ -996,6 +1149,11 @@ sub _is_chr8a_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
+=head2 _is_chr8a_2
+
+Retrieve thresholds and apply test for is Chr8a two.
+
+=cut
 sub _is_chr8a_2 {
     my ( $self ) = @_;
 
@@ -1007,6 +1165,11 @@ sub _is_chr8a_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
+=head2 _is_potential_loacrit_0
+
+Retrieve thresholds and apply test for is potential LOA-crit zero.
+
+=cut
 sub _is_potential_loacrit_0 {
     my ( $self ) = @_;
 
@@ -1018,6 +1181,11 @@ sub _is_potential_loacrit_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
+=head2 _is_potential_loacrit_1
+
+Retrieve thresholds and apply test for is potential LOA-crit one.
+
+=cut
 sub _is_potential_loacrit_1 {
     my ( $self ) = @_;
 
@@ -1029,6 +1197,11 @@ sub _is_potential_loacrit_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
+=head2 _is_potential_loacrit_2
+
+Retrieve thresholds and apply test for is potential LOA-crit two.
+
+=cut
 sub _is_potential_loacrit_2 {
     my ( $self ) = @_;
 
@@ -1040,6 +1213,11 @@ sub _is_potential_loacrit_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loacrit' );
 }
 
+=head2 _is_potential_loatam_0
+
+Retrieve thresholds and apply test for is potential LOA-tam zero.
+
+=cut
 sub _is_potential_loatam_0 {
     my ( $self ) = @_;
 
@@ -1051,6 +1229,11 @@ sub _is_potential_loatam_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
+=head2 _is_potential_loatam_1
+
+Retrieve thresholds and apply test for is potential LOA-tam one.
+
+=cut
 sub _is_potential_loatam_1 {
     my ( $self ) = @_;
 
@@ -1062,6 +1245,11 @@ sub _is_potential_loatam_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
+=head2 _is_potential_loatam_2
+
+Retrieve thresholds and apply test for is potential LOA-tam two.
+
+=cut
 sub _is_potential_loatam_2 {
     my ( $self ) = @_;
 
@@ -1073,6 +1261,11 @@ sub _is_potential_loatam_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loatam' );
 }
 
+=head2 _is_potential_loadel_0
+
+Retrieve thresholds and apply test for is potential LOA-del zero.
+
+=cut
 sub _is_potential_loadel_0 {
     my ( $self ) = @_;
 
@@ -1084,6 +1277,11 @@ sub _is_potential_loadel_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
+=head2 _is_potential_loadel_1
+
+Retrieve thresholds and apply test for is potential LOA-del one.
+
+=cut
 sub _is_potential_loadel_1 {
     my ( $self ) = @_;
 
@@ -1095,6 +1293,11 @@ sub _is_potential_loadel_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
+=head2 _is_potential_loadel_2
+
+Retrieve thresholds and apply test for is potential LOA-del two.
+
+=cut
 sub _is_potential_loadel_2 {
     my ( $self ) = @_;
 
@@ -1106,6 +1309,11 @@ sub _is_potential_loadel_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'loadel' );
 }
 
+=head2 _is_potential_cre_0
+
+Retrieve thresholds and apply test for is potential Cre zero.
+
+=cut
 sub _is_potential_cre_0 {
     my ( $self ) = @_;
 
@@ -1117,6 +1325,11 @@ sub _is_potential_cre_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
 }
 
+=head2 _is_potential_cre_1
+
+Retrieve thresholds and apply test for is potential Cre one.
+
+=cut
 sub _is_potential_cre_1 {
     my ( $self ) = @_;
 
@@ -1128,28 +1341,11 @@ sub _is_potential_cre_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'cre' );
 }
 
-sub _is_potential_puro_0 {
-    my ( $self ) = @_;
+=head2 _is_potential_chry_0
 
-    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_0_lower_bound_loose' };
-    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_0_upper_bound_loose' };
+Retrieve thresholds and apply test for is potential Chry zero.
 
-    unless ( defined $lower && defined $upper ) { return 0 };
-
-    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
-}
-
-sub _is_potential_puro_1 {
-    my ( $self ) = @_;
-
-    my $lower = $self->allele_config->{ 'thresholds' }->{ 'puro_1_lower_bound_loose' };
-    my $upper = $self->allele_config->{ 'thresholds' }->{ 'puro_1_upper_bound_loose' };
-
-    unless ( defined $lower && defined $upper ) { return 0 };
-
-    return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'puro' );
-}
-
+=cut
 sub _is_potential_chry_0 {
     my ( $self ) = @_;
 
@@ -1161,6 +1357,11 @@ sub _is_potential_chry_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
+=head2 _is_potential_chry_1
+
+Retrieve thresholds and apply test for is potential Chry one.
+
+=cut
 sub _is_potential_chry_1 {
     my ( $self ) = @_;
 
@@ -1172,6 +1373,11 @@ sub _is_potential_chry_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
+=head2 _is_potential_chry_2
+
+Retrieve thresholds and apply test for is potential Chry two.
+
+=cut
 sub _is_potential_chry_2 {
     my ( $self ) = @_;
 
@@ -1183,6 +1389,11 @@ sub _is_potential_chry_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chry' );
 }
 
+=head2 _is_potential_chr8a_0
+
+Retrieve thresholds and apply test for is potential Chr8a zero.
+
+=cut
 sub _is_potential_chr8a_0 {
     my ( $self ) = @_;
 
@@ -1194,6 +1405,11 @@ sub _is_potential_chr8a_0 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
+=head2 _is_potential_chr8a_1
+
+Retrieve thresholds and apply test for is potential Chr8a one.
+
+=cut
 sub _is_potential_chr8a_1 {
     my ( $self ) = @_;
 
@@ -1205,6 +1421,11 @@ sub _is_potential_chr8a_1 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
+=head2 _is_potential_chr8a_2
+
+Retrieve thresholds and apply test for is potential Chr8a two.
+
+=cut
 sub _is_potential_chr8a_2 {
     my ( $self ) = @_;
 
@@ -1216,22 +1437,50 @@ sub _is_potential_chr8a_2 {
     return $self->_is_assay_copy_number_in_rng( $lower, $upper, 'chr8a' );
 }
 
+=head2 _is_neo_present
+
+Retrieve threshold and apply test for is Neo resistance present.
+
+=cut
 sub _is_neo_present {
     my ( $self ) = @_;
 
-    my $neo_threshold = $self->allele_config->{ 'thresholds' }->{ 'neo_threshold' };
+    my $neo_threshold = $self->allele_config->{ 'thresholds' }->{ 'neo_present_threshold' };
 
     return $self->_is_marker_present( $neo_threshold, 'neo' );
 }
 
+=head2 _is_bsd_present
+
+Retrieve threshold and apply test for is Bsd resistance present.
+
+=cut
 sub _is_bsd_present {
     my ( $self ) = @_;
 
-    my $bsd_threshold = $self->allele_config->{ 'thresholds' }->{ 'bsd_threshold' };
+    my $bsd_threshold = $self->allele_config->{ 'thresholds' }->{ 'bsd_present_threshold' };
 
     return $self->_is_marker_present( $bsd_threshold, 'bsd' );
 }
 
+=head2 _is_puro_present
+
+Retrieve threshold and apply test for is Puro resistance present.
+
+=cut
+sub _is_puro_present {
+    my ( $self ) = @_;
+
+    my $puro_threshold = $self->allele_config->{ 'thresholds' }->{ 'puro_present_threshold' };
+
+    return $self->_is_marker_present( $puro_threshold, 'puro' );
+}
+
+=head2 _is_lrpcr_pass
+
+Apply test for is LRPCR primer bands pass.
+
+=cut
 sub _is_lrpcr_pass {
     my ( $self ) = @_;
 
@@ -1249,6 +1498,11 @@ sub _is_lrpcr_pass {
     return 1;
 }
 
+=head2 _is_assay_copy_number_in_rng
+
+Generic method to check if assay copy number is within the allowed range.
+
+=cut
 sub _is_assay_copy_number_in_rng {
     my ( $self, $min, $max, $assay_name ) = @_;
 
@@ -1262,6 +1516,11 @@ sub _is_assay_copy_number_in_rng {
     }
 }
 
+=head2 _is_marker_present
+
+Generic method to check if resistance marker copy number is over the threshold.
+
+=cut
 sub _is_marker_present {
     my ( $self, $threshold, $marker ) = @_;
 
@@ -1275,6 +1534,11 @@ sub _is_marker_present {
     }
 }
 
+=head2 _is_value_in_range
+
+Generic method to check if value is within the set range.
+
+=cut
 sub _is_value_in_range {
     my ( $self, $min, $max, $value ) = @_;
 
@@ -1286,6 +1550,11 @@ sub _is_value_in_range {
     }
 }
 
+=head2 _validate_assays
+
+Validate the assay logic strings from the allele config file according to the current well workflow, stage and constraint. 
+
+=cut
 sub _validate_assays {
     my ( $self, $constraint_name ) = @_;
 
@@ -1320,51 +1589,104 @@ sub _validate_assays {
     return $result;
 }
 
+=head2 _validate_assays
+
+Check the current well assay has a valid result or whether it should be disregarded.
+Copy number range must be below a certain threshold (indicates variability of the assay result).
+Vic number must be within a certain range (indicates DNA concentration which cannot be too high or low).
+
+=cut
 sub _validate_assay {
     my ( $self, $assay_name ) = @_;
 
     # print "validating assay : $assay_name\n";
 
-    my $cn  = $self->current_well->{ $assay_name . '#copy_number' };
-    my $cnr = $self->current_well->{ $assay_name . '#copy_number_range' };
+    my $cn              = $self->current_well->{ $assay_name . '#copy_number' };
+    my $cnr             = $self->current_well->{ $assay_name . '#copy_number_range' };
+    my $vic             = $self->current_well->{ $assay_name . '#vic' };
+    my $cnr_threshold   = $self->allele_config->{ 'thresholds' }->{ $assay_name . '_copy_number_range_threshold' };
+    my $vic_lower_bound = $self->allele_config->{ 'thresholds' }->{ $assay_name . '_vic_number_lower_bound' };
+    my $vic_upper_bound = $self->allele_config->{ 'thresholds' }->{ $assay_name . '_vic_number_upper_bound' };
 
-    #TODO: add checks on confidence and vic
-    #my $conf = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#confidence' };
-    #my $vic = $self->well_genotyping_results->{ $self->current_well_id }->{ $assay_name . '#vic' };
+    #TODO: add checks on confidence
+    #my $conf = $self->current_well->{ $assay_name . '#confidence' };
 
     unless ( defined $cn && $cn ne '-' ) {
 
-        # LIMS2::Exception->throw( "$assay_name assay validation: Copy Number not present" );
+        # LIMS2::Exception->throw( "$assay_name assay validation: Copy Number not present' );
         $self->current_well_validation_msg(
-            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number not present. " );
+            $self->current_well_validation_msg . $assay_name.' assay validation: Copy Number not present. ' );
         return 0;
     }
 
     unless ( defined $cnr && $cnr ne '-' ) {
 
-        # LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range not present" );
+        # LIMS2::Exception->throw( $assay_name.' assay validation: Copy Number Range not present' );
         $self->current_well_validation_msg(
-            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range not present. " );
+            $self->current_well_validation_msg . $assay_name.' assay validation: Copy Number Range not present. ' );
         return 0;
     }
 
-    unless ( $cnr <= 0.4 ) {
+    unless ( defined $cnr_threshold ) {
 
-        # LIMS2::Exception->throw( "$assay_name assay validation: Copy Number Range above threshold" );
+        # LIMS2::Exception->throw( $assay_name.' assay validation: Copy Number Range threshold missing from config' );
         $self->current_well_validation_msg(
-            $self->current_well_validation_msg . "$assay_name assay validation: Copy Number Range above threshold. " );
+            $self->current_well_validation_msg . $assay_name.' assay validation: Copy Number Range threshold missing from config. ' );
         return 0;
     }
 
-    # TODO: add validations for confidence and vic
+    unless ( $cnr <= $cnr_threshold ) {
+
+        # LIMS2::Exception->throw( $assay_name.' assay validation: Copy Number Range above threshold' );
+        $self->current_well_validation_msg(
+            $self->current_well_validation_msg . $assay_name.' assay validation: Copy Number Range above threshold. ' );
+        return 0;
+    }
+
+    unless ( defined $vic_lower_bound && defined $vic_upper_bound ) {
+
+        # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number boundary thresholds missing from config' );
+        $self->current_well_validation_msg(
+            $self->current_well_validation_msg . $assay_name.' assay validation: Vic number boundary thresholds missing from config. ' );
+        return 0;
+    }
+
+    unless ( defined $vic && $vic ne '-' ) {
+
+        # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number not present' );
+        $self->current_well_validation_msg(
+            $self->current_well_validation_msg . $assay_name.' assay validation: Vic number not present. ' );
+        return 0;
+    }
+
+    unless ( $vic >= $vic_lower_bound ) {
+
+        # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number low DNA concentration HIGH' );
+        $self->current_well_validation_msg(
+            $self->current_well_validation_msg . $assay_name.' assay validation: Vic number low so DNA concentration HIGH. ' );
+        return 0;
+    }
+
+    unless ( $vic <= $vic_upper_bound ) {
+
+        # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number high so DNA concentration LOW ' );
+        $self->current_well_validation_msg(
+            $self->current_well_validation_msg . $assay_name.' assay validation: Vic number high so DNA concentration LOW. ' );
+        return 0;
+    }
+
+    # TODO: add validation for confidence
 
     return 1;
 }
 
+=head2 _validate_primers
+
+Validate the LRPCR primer assays. 
+
+=cut
 sub _validate_primers {
     my ( $self, $assay_name ) = @_;
-
-    # print "validating assay : $assay_name\n";
 
     my $gf3 = $self->current_well->{ 'gf3' };
     my $gr3 = $self->current_well->{ 'gr3' };
@@ -1395,6 +1717,30 @@ sub _validate_primers {
     return 1;
 }
 
+=head2 _validate_assay_exists
+
+Validate whether the assay has been done.
+
+=cut
+sub _validate_assay_exists {
+    my ( $self, $assay_name ) = @_;
+
+    my $cn              = $self->current_well->{ $assay_name . '#copy_number' };
+    # TODO: is it enough to check just copy number?
+    # my $cnr             = $self->current_well->{ $assay_name . '#copy_number_range' };
+    # my $vic             = $self->current_well->{ $assay_name . '#vic' };
+
+    # copy number is critical, so check if that exists
+    unless ( defined $cn ) { return 0; }
+
+    return 1;
+}
+
+=head2 _initialise_current_well_attributes
+
+Initialise the current well attributes.
+
+=cut
 sub _initialise_current_well_attributes {
     my ( $self ) = @_;
 
@@ -1407,8 +1753,12 @@ sub _initialise_current_well_attributes {
     return;
 }
 
-# Generic method to run select SQL
-sub run_select_query {
+=head2 _run_select_query
+
+Generic method to run a select SQL query
+
+=cut
+sub _run_select_query {
     my ( $self, $sql_query ) = @_;
 
     my $sql_result = $self->model->schema->storage->dbh_do(
@@ -1427,6 +1777,11 @@ sub run_select_query {
     return $sql_result;
 }
 
+=head2 _create_sql_select_summaries_fepd
+
+Create the SQL query to select FINAL_PICK and EP details for an EPD well ID.
+
+=cut
 sub _create_sql_select_summaries_fepd {
     my ( $self, $well_ids ) = @_;
 
@@ -1441,6 +1796,11 @@ SQL_END
     return $sql_query;
 }
 
+=head2 _create_sql_select_summaries_sepd
+
+Create the SQL query to select FINAL_PICK and EP details for an SEPD well ID.
+
+=cut
 sub _create_sql_select_summaries_sepd {
     my ( $self, $well_ids ) = @_;
 
@@ -1456,6 +1816,11 @@ SQL_END
     return $sql_query;
 }
 
+=head2 _create_sql_select_summaries_piq
+
+Create the SQL query to select FINAL_PICK and EP details for a PIQ well ID.
+
+=cut
 sub _create_sql_select_summaries_piq {
     my ( $self, $well_ids ) = @_;
 
@@ -1470,6 +1835,11 @@ SQL_END
     return $sql_query;
 }
 
+=head2 _create_sql_select_qc_data
+
+Create the SQL query to select genotyping results for a well ID.
+
+=cut
 sub _create_sql_select_qc_data {
     my ( $self, $well_id ) = @_;
 

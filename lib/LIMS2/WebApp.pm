@@ -1,7 +1,7 @@
 package LIMS2::WebApp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::VERSION = '0.136';
+    $LIMS2::WebApp::VERSION = '0.137';
 }
 ## use critic
 
@@ -55,7 +55,10 @@ __PACKAGE__->config(
     'Plugin::Session' => {
         expires => 28800,                                # 8 hours
         storage => $ENV{LIMS2_SESSION_STORE}
-    }
+    },
+    'static' => {
+        ignore_extensions => [ qw{ tt } ],
+    },
 );
 
 # Configure Log4perl

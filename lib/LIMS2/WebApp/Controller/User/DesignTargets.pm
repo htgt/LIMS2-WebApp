@@ -1,13 +1,14 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.136';
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.137';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Util::Crisprs qw( crispr_pick );
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use Try::Tiny;
 use namespace::autoclean;
 
@@ -45,13 +46,13 @@ sub gene_report : Path('/user/design_target_report') {
     my ( $self, $c, $gene ) = @_;
 
     $c->assert_user_roles( 'read' );
+    my $species = $c->session->{selected_species};
+    my $build   = $DEFAULT_SPECIES_BUILD{ lc($species) };
+
     if ( !$c->request->param('genes') && !$gene ) {
-        $c->flash( error_msg => "Please enter some gene names" );
+        $c->stash( error_msg => "Please enter some gene names" );
         return $c->go('index');
     }
-
-    my $species = $c->session->{selected_species};
-    my $build   = $species eq 'Mouse' ? 73 : $species eq 'Human' ? 73 : undef;
 
     my %report_parameters = (
         type                 => $c->request->param('report_type') || 'standard',
@@ -68,7 +69,7 @@ sub gene_report : Path('/user/design_target_report') {
     );
 
     unless ( @{ $design_targets_data } ) {
-        $c->flash( error_msg => "No design targets found matching search terms" );
+        $c->stash( error_msg => "No design targets found matching search terms" );
     }
 
     if ( $report_parameters{type} eq 'simple' ) {
