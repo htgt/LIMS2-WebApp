@@ -1,10 +1,10 @@
-package LIMS2::t::Model::Util::CrisprBrowser;
+package LIMS2::t::Model::Util::GenomeBrowser;
 use strict;
 use warnings FATAL => 'all';
 
 use base qw( Test::Class );
 use Test::Most;
-use LIMS2::Model::Util::CrisprBrowser qw/
+use LIMS2::Model::Util::GenomeBrowser qw/
     crisprs_for_region
     crisprs_to_gff
     crispr_pairs_for_region
@@ -18,12 +18,12 @@ use LIMS2::Test model => { classname => __PACKAGE__ };
 
 =head1 NAME
 
-LIMS2/t/Model/Util/CrisprBrowser.pm - test class for LIMS2::Model::Util::CrisprBrowser
+LIMS2/t/Model/Util/GenomeBrowser.pm - test class for LIMS2::Model::Util::GenomeBrowser
 
 =cut
 
 sub a_test_chromosome_retrieval : Test(2) {
-    ok my $chromosome_id =  LIMS2::Model::Util::CrisprBrowser::retrieve_chromosome_id( model->schema, 'Mouse', '7' );
+    ok my $chromosome_id =  LIMS2::Model::Util::GenomeBrowser::retrieve_chromosome_id( model->schema, 'Mouse', '7' );
     is $chromosome_id, 3178, 'can retrieve chromosome id';
 }
 

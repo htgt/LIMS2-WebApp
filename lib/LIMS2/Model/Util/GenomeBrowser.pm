@@ -1,11 +1,11 @@
-package LIMS2::Model::Util::CrisprBrowser;
+package LIMS2::Model::Util::GenomeBrowser;
 use strict;
 use warnings FATAL => 'all';
 
 
 =head1 NAME
 
-LIMS2::Model::Util::CrisprBrowser
+LIMS2::Model::Util::GenomeBrowser
 
 =head1 DESCRIPTION
 
