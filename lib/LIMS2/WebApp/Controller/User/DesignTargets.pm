@@ -43,9 +43,25 @@ sub gene_report : Path('/user/design_target_report') {
     my $species = $c->session->{selected_species};
     my $build   = $DEFAULT_SPECIES_BUILD{ lc($species) };
 
+    # if ( !$c->request->param('genes') && !$gene ) {
+    #     $c->stash( error_msg => "Please enter some gene names" );
+    #     return $c->go('index');
+    # }
+
+    # Replaced code above to change default behaviour to search all available genes.
     if ( !$c->request->param('genes') && !$gene ) {
-        $c->stash( error_msg => "Please enter some gene names" );
-        return $c->go('index');
+        my $this_user = $ENV{'USER'} . '@sanger.ac.uk';
+        my $model = LIMS2::Model->new( { user => 'webapp', audit_user => $this_user } );
+
+        my @rows = $model->schema->resultset('Project')->search({
+                species_id => $species,
+            }, {
+            columns =>  [ qw(gene_id) ],
+            distinct => 1
+            })->all;
+        foreach my $data (@rows) {
+            $gene .= $data->gene_id."\n";
+        }
     }
 
     my %report_parameters = (
