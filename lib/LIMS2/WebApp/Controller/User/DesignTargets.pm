@@ -50,7 +50,7 @@ sub gene_report : Path('/user/design_target_report') {
 
     # Replaced code above to change default behaviour to search all available genes.
     if ( !$c->request->param('genes') && !$gene ) {
-        my $this_user = $ENV{'USER'} . '@sanger.ac.uk';
+        my $this_user = $c->user->name;
         my $model = LIMS2::Model->new( { user => 'webapp', audit_user => $this_user } );
 
         my @rows = $model->schema->resultset('Project')->search({
