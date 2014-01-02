@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.139';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.140';
 }
 ## use critic
 
