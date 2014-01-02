@@ -1,12 +1,13 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.133';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.139';
 }
 ## use critic
 
 use Moose;
 use namespace::autoclean;
+use Try::Tiny;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -506,6 +507,61 @@ sub well_assay_complete_PUT {
     );
 
     return $self->status_no_content( $c );
+}
+
+sub genotyping_qc_save_distribute_changes :Path('/api/plate/genotyping_qc_save_distribute_changes') :Args(0) :ActionClass('REST') {
+}
+
+sub genotyping_qc_save_distribute_changes_GET {
+    my ( $self, $c ) = @_;
+    # accept the calculated allele type genotyping pass results and set the well accepted flag accordingly
+
+    $c->assert_user_roles( 'edit' );
+
+    my $plate_name = $c->request->params->{ 'plate_name' };
+
+    my $model = $c->model('Golgi');
+    my $plate = $model->retrieve_plate({ 'name' => $plate_name } );
+
+    return unless $plate;
+
+    my @plate_data = $model->get_genotyping_qc_plate_data( $plate_name, $c->session->{ 'selected_species' } );
+
+    # apply updates to well accepted flag for each well
+    my $failed;
+    try {
+        foreach my $well_hash ( @plate_data ) {
+            # if find update_accepted then run update
+            if ( exists $well_hash->{ 'update_for_accepted' } ) {
+
+                my $update_for_accepted = $well_hash->{ 'update_for_accepted' };
+                my $well_id             = $well_hash->{ 'id' };
+                if ( exists $well_hash->{ 'accepted_rules_version' } ) {
+                    my $rules_version   = $well_hash->{ 'accepted_rules_version' };
+                    $model->update_well_accepted( { 'well_id' => $well_id, 'accepted' => $update_for_accepted, 'accepted_rules_version' => $rules_version, } );
+                }
+                else {
+                    $model->update_well_accepted( { 'well_id' => $well_id, 'accepted' => $update_for_accepted, } );
+                }
+
+                if ( $update_for_accepted ) {
+                    $well_hash->{ 'accepted' } = 'yes';
+                }
+                else {
+                    $well_hash->{ 'accepted' } = 'no';
+                }
+            }
+        }
+    }
+    catch {
+        $failed = $_;
+    };
+
+    if ( defined $failed ) {
+        return $self->status_bad_request( $c, message => $_ );
+    }
+
+    return $self->status_ok( $c, entity => \@plate_data );
 }
 
 =head1 AUTHOR

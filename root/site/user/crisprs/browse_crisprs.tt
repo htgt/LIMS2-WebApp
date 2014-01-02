@@ -1,0 +1,81 @@
+[% META title="Browse Crisprs"; META tab_name = 'Crisprs' %]
+
+[%#
+<script language="javascript" src="http://www.biodalliance.org/release-0.10/dalliance-compiled.js"></script>
+%]
+
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/bam.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/bigwig.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/das.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/spans.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/utils.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/cbrowser.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/feature-popup.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/tier.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/features.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/color.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/feature-draw.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/sequence-draw.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/domui.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/karyoscape.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/quant-config.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/track-adder.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/chainset.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/version.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/sha1.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/sample.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/kspace.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/json/json2.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/bin.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/twoBit.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/thub.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/svg-export.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/jszlib/js/inflate.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/browser-ui.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/glyphs.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/session.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/jbjson.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/sourceadapters.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/polyfills/html5slider.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/ensembljson.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/overlay.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/tier-actions.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/tier-edit.js')%]"></script>
+<script language="javascript" src="[% c.uri_for('/static/dalliance/js/search.js')%]"></script>
+
+<script language="javascript">
+  new Browser({
+    chr:          '13',
+    viewStart:    30000000,
+    viewEnd:      30030000,
+    cookieKey:    'human',
+
+    sources:     [{name:                 'Genome',      
+                   uri:                  'http://www.derkholm.net:8080/das/hg18comp/',        
+                   tier_type:            'sequence',
+                   provides_entrypoints: true},
+                  {name:                 'Genes',     
+                   desc:                 'Gene structures from Ensembl 54',
+                   uri:                  'http://www.derkholm.net:8080/das/hsa_54_36p/',      
+                   collapseSuperGroups:  true,
+                   provides_karyotype:   true,
+                   provides_search:      true},
+                  {name:                 'Repeats',     
+                   uri:                  'http://www.derkholm.net:8080/das/hsa_54_36p/',      
+                   stylesheet_uri:       'http://www.derkholm.net/dalliance-test/stylesheets/ens-repeats.xml'},
+                  {name:                 'MeDIP raw',
+                   uri:                  'http://www.derkholm.net:8080/das/medipseq_reads'},
+                  {name:                 'Crisprs',
+                   bwgURI:               "[% c.uri_for('/static/files/crispr_data/BRCA2.bb')%]" }
+                   ],
+
+    searchEndpoint: new DASSource('http://www.derkholm.net:8080/das/hsa_54_36p/'),
+    browserLinks: {
+        Ensembl: 'http://ncbi36.ensembl.org/Homo_sapiens/Location/View?r=${chr}:${start}-${end}',
+        UCSC: 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr${chr}:${start}-${end}',
+    }
+  });
+</script>
+
+<div id="svgHolder"></div>
+

@@ -1,7 +1,7 @@
 package LIMS2::Model;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::VERSION = '0.133';
+    $LIMS2::Model::VERSION = '0.139';
 }
 ## use critic
 
@@ -132,7 +132,7 @@ has ensembl_util => (
     lazy_build => 1,
     handles    => {
         map { 'ensembl_' . $_ => $_ }
-            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor constrained_element_adaptor repeat_feature_adaptor )
+            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor exon_adaptor constrained_element_adaptor repeat_feature_adaptor )
     }
 );
 

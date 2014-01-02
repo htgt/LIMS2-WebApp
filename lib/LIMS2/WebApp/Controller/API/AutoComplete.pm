@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.133';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.139';
 }
 ## use critic
 
@@ -9,6 +9,8 @@ use Moose;
 use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names);
+
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
@@ -78,6 +80,24 @@ sub sequencing_projects_GET {
     };
 
     return $self->status_ok( $c, entity => $sequencing_project_names );
+}
+
+=head2 GET /api/badger_seq_projects
+
+=cut
+
+sub badger_seq_projects :Path( '/api/autocomplete/badger_seq_projects' ) :Args(0) :ActionClass( 'REST' ) {
+
+}
+
+sub badger_seq_projects_GET {
+	my ( $self, $c ) = @_;
+
+	$c->assert_user_roles( 'read' );
+
+    my $projects = search_seq_project_names($c->request->params->{term});
+
+    return $self->status_ok( $c, entity => $projects );
 }
 
 =head1 GET /api/autocomplete/gene_symbols

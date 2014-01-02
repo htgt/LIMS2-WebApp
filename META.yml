@@ -39,6 +39,7 @@ requires:
   Config::Any: 0
   Config::Tiny: 0
   Const::Fast: 0
+  Crypt::CBC: 0
   Crypt::SaltedHash: 0
   DBIx::Class::Core: 0
   DBIx::Class::Schema: 0
@@ -133,4 +134,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.133
+version: 0.139

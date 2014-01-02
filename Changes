@@ -1,3 +1,31 @@
+0.139     2014-01-02 12:13:22 Europe/London
+
+    changed default behaviour of Design Target Gene Search
+
+0.138     2013-12-19 13:56:21 Europe/London
+
+    Bugfix: design_target creation via gibson design create interface was not passed 
+            the ensembl_gene_id
+
+0.137     2013-12-19 11:27:08 Europe/London
+	Updated Allele Determination rules.
+	Added Human projects to Summary Pipeline Reports.
+	Gibson design interface added.
+	Added Genoverse browser support for Crispr pairs and Gibson designs.
+
+0.136     2013-12-12 11:59:52 Europe/London
+	Cookie for HTGT2 authentication written on successful login
+
+0.135     2013-12-10 16:21:17 Europe/London
+	Added Cre ES Distribution reports
+	Modified genotyping QC grid to add Calculated Pass
+
+0.134     2013-12-05 16:33:09 Europe/London
+
+    Fixes in genotyping_qc csv download (now plate type specific), and qc_template csv
+    Updated view_qc_run to show crisprs
+    autocomplete list of Badger Repository sequencing projects using htgt
+
 0.133     2013-11-28 17:21:06 Europe/London
 
     Fixed qc plate upload bug

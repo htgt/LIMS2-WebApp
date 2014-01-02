@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprLocus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprLocus::VERSION = '0.133';
+    $LIMS2::Model::Schema::Result::CrisprLocus::VERSION = '0.139';
 }
 ## use critic
 
@@ -158,6 +158,13 @@ __PACKAGE__->belongs_to(
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MvTFD2FpuKrcMn/zfuw6Ew
+
+__PACKAGE__->belongs_to(
+    "browse_crispr_pair",
+    "LIMS2::Model::Schema::Result::CrisprPair",
+    { 'foreign.left_crispr_id' => 'self.crispr_id' },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
 
 sub as_hash {
     my $self = shift;

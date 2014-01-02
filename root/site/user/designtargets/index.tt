@@ -4,7 +4,7 @@
   <fieldset>
     <legend>Design Target Gene Search</legend>
 
-    <textarea class="input-xxlarge" rows="10" name="genes" placeholder="genes" value="[% genes %]"></textarea>
+    <textarea class="input-xxlarge" rows="10" name="genes" placeholder="all genes" value="[% genes %]"></textarea>
     <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols</span>
 
     <label><strong>Report Type</strong></label>

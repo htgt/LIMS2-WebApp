@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.133';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.139';
 }
 ## use critic
 
@@ -91,6 +91,11 @@ __PACKAGE__->table("wells");
   default_value: false
   is_nullable: 0
 
+=head2 accepted_rules_version
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -120,6 +125,8 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "accepted",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "accepted_rules_version",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -443,8 +450,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QbXZA5S0PCM6d9pr1/qC5A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-17 16:23:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N8U5K2O0YHOdBoq5jDFTGw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
