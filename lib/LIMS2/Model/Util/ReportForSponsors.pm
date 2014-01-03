@@ -7,6 +7,9 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
+
+use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
+
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
@@ -408,6 +411,12 @@ sub generate_sub_report {
         },
     };
 
+    # For Human genes, show extra info such as Gibson designs
+    if ($self->species eq 'Human') {
+        $st_rpt_flds->{'Targeted Genes'}->{'columns'} = [ 'gene_id', 'gene_symbol', 'gibson_design', 'gibson_plated' ];
+        $st_rpt_flds->{'Targeted Genes'}->{'display_columns'} = [ 'gene id', 'gene symbol', 'gibson designs', 'gibsons plated' ]; 
+    }
+
     # for double-targeted projects
     my $dt_rpt_flds = {
         'Targeted Genes'            => {
@@ -657,8 +666,8 @@ sub genes {
                 my $gene_design_row = $self->model->schema->resultset('DesignTarget')->search({
                         gene_id => $gene_id
                     }, {
-                    select => 'marker_symbol',
-                    rows => 1,
+                        select => 'marker_symbol',
+                        rows => 1,
                     })->single;
                 $gene_symbol = $gene_design_row->marker_symbol;
 
@@ -670,9 +679,26 @@ sub genes {
 
         unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
 
+        if ($self->species eq 'Human' && $gene_symbol ne 'unknown') {
+            # get extra info for the report table
+            my $rows = $self->model->schema->resultset('Summary')->search({
+                    design_gene_id => $gene_id
+                })->all;
+
+            my $report_params = {
+                type => 'simple',
+                off_target_algorithm => 'bwa',
+                crispr_types => 'pair'
+            };
+
+            my ( $data ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
+
+            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $#{ $data }, 'gibson_plated' => $rows };
+        } else {
+            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol};
+        }
 
 
-        push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol };
     }
 
     # sort the array by gene symbol
