@@ -413,10 +413,9 @@ sub generate_sub_report {
 
     # For Human genes, show extra info such as Gibson designs
     if ($self->species eq 'Human') {
-        $st_rpt_flds->{'Targeted Genes'}->{'columns'} = [ 'gene_id', 'gene_symbol', 'gibson_design', 'gibson_plated' ];
-        $st_rpt_flds->{'Targeted Genes'}->{'display_columns'} = [ 'gene id', 'gene symbol', 'gibson designs', 'gibsons plated' ]; 
+        $st_rpt_flds->{'Targeted Genes'}->{'columns'} = [ 'gene_id', 'gene_symbol', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted' ];
+        $st_rpt_flds->{'Targeted Genes'}->{'display_columns'} = [ 'gene id', 'gene symbol', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones' ];
     }
-
     # for double-targeted projects
     my $dt_rpt_flds = {
         'Targeted Genes'            => {
@@ -679,25 +678,64 @@ sub genes {
 
         unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
 
+        # for human genes, give a more complete report with gibson design, vector and ep counts
         if ($self->species eq 'Human' && $gene_symbol ne 'unknown') {
-            # get extra info for the report table
-            my $rows = $self->model->schema->resultset('Summary')->search({
-                    design_gene_id => $gene_id
-                })->all;
 
+            # get the plates
+            my $sql =  <<"SQL_END";
+SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN, 
+concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
+concat(ep_plate_name, '_', ep_well_name) AS EP, 
+concat(ep_pick_plate_name, '_', ep_pick_well_name) AS EP_PICK 
+FROM summaries where design_gene_id = '$gene_id';
+SQL_END
+
+            my $results = $self->run_select_query( $sql );
+
+            # get the plates into arrays
+            my (@design, @final_pick_info, @final_pick, @ep, @ep_pick);
+            my $vector_pass = 0;
+            foreach my $row (@$results) {
+                push (@design, $row->{design}) unless ($row->{design} eq '_');
+                push (@final_pick_info, $row->{final_pick}) unless ($row->{final_pick} eq '_');
+                push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
+                push (@ep_pick, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
+            }
+
+            # check for vector passes and count them
+            @final_pick_info = uniq @final_pick_info;
+            my ($vector_plate, $pass_string);
+            foreach my $vector (@final_pick_info) {
+                if ( $vector =~ m/(.*?)([^\d]*)$/ ) {
+                    ($vector_plate, $pass_string) = ($1, $2);
+                }
+                push (@final_pick, $vector_plate);
+                if ($pass_string eq 'tt') {
+                    $vector_pass++;
+                }
+            }
+
+            # remove all duplicates
+            @design = uniq @design;
+            @final_pick = uniq @final_pick;
+            @ep = uniq @ep;
+            @ep_pick = uniq @ep_pick;
+
+            # get the gibson design count
             my $report_params = {
                 type => 'simple',
                 off_target_algorithm => 'bwa',
                 crispr_types => 'pair'
             };
 
-            my ( $data ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
+            my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
 
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $#{ $data }, 'gibson_plated' => $rows };
+            # push the data for the report
+            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $#{ $designs },
+            'gibson_plated' => scalar @design, 'vector_total' => scalar @final_pick, 'vector_pass' => $vector_pass, 'eps' => scalar @ep, 'targeted' => scalar @ep_pick, };
         } else {
             push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol};
         }
-
 
     }
 
