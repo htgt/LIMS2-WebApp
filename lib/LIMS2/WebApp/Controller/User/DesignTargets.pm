@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.140';
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.141';
 }
 ## use critic
 
@@ -49,25 +49,16 @@ sub gene_report : Path('/user/design_target_report') {
     my $species = $c->session->{selected_species};
     my $build   = $DEFAULT_SPECIES_BUILD{ lc($species) };
 
-    # if ( !$c->request->param('genes') && !$gene ) {
-    #     $c->stash( error_msg => "Please enter some gene names" );
-    #     return $c->go('index');
-    # }
-
-    # Replaced code above to change default behaviour to search all available genes.
+    # if no gene specified run report against all genes from that species projects
     if ( !$c->request->param('genes') && !$gene ) {
-        my $this_user = $c->user->name;
-        my $model = LIMS2::Model->new( { user => 'webapp', audit_user => $this_user } );
+        my @gene_ids = $c->model('Golgi')->schema->resultset('Project')->search_rs(
+            { species_id => $species },
+            {   columns  => [qw(gene_id)],
+                distinct => 1
+            }
+        )->get_column('gene_id')->all;
 
-        my @rows = $model->schema->resultset('Project')->search({
-                species_id => $species,
-            }, {
-            columns =>  [ qw(gene_id) ],
-            distinct => 1
-            })->all;
-        foreach my $data (@rows) {
-            $gene .= $data->gene_id."\n";
-        }
+        $gene = join("\n", @gene_ids);
     }
 
     my %report_parameters = (
