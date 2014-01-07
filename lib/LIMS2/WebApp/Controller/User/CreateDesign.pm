@@ -6,6 +6,8 @@ use Data::UUID;
 use Path::Class;
 use Const::Fast;
 use TryCatch;
+use JSON;
+use Hash::MoreUtils qw( slice_def );
 
 use IPC::Run 'run';
 use LIMS2::Util::FarmJobRunner;
@@ -197,12 +199,19 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         my $params = $self->parse_and_validate_gibson_params( $c );
 
         # create design attempt record
+        my $design_parameters = encode_json(
+            {   dir => $params->{output_dir}->stringify,
+                slice_def $params,
+                qw( uuid gene_id exon_id ensembl_gene_id assembly_id build_id ),
+            }
+        );
         my $design_attempt = $c->model('Golgi')->create_design_attempt(
             {
-                gene_id    => $params->{gene_id},
-                status     => 'pending',
-                created_by => $c->user->name,
-                species    => $c->session->{selected_species},
+                gene_id           => $params->{gene_id},
+                status            => 'pending',
+                created_by        => $c->user->name,
+                species           => $c->session->{selected_species},
+                design_parameters => $design_parameters,
             }
         );
         $params->{da_id} = $design_attempt->id;
@@ -213,7 +222,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
             my $cmd = $self->generate_gibson_design_cmd( $params );
             $c->log->debug('Design create command: ' . join(' ', @{ $cmd } ) );
 
-            $self->run_design_create_cmd( $c, $cmd, $params );
+            my $job_id = $self->run_design_create_cmd( $c, $cmd, $params );
         }
         catch ($err) {
             $c->flash( error_msg => "Error submitting Design Creation job: $err" );
@@ -253,7 +262,7 @@ sub run_design_create_cmd {
 
     $c->log->info( "Successfully submitted gibson design create job $job_id with run id $params->{uuid}" );
 
-    return;
+    return $job_id;
 }
 
 sub pspec_create_gibson_design {
