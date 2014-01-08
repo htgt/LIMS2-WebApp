@@ -91,7 +91,8 @@ sub external_gene_id {
 
     if ( @ids ) {
         my $id = shift @ids;
-        return 'HGNC:' . $id;
+        $id = 'HGNC:' . $id if $type eq 'HGNC';
+        return $id;
     }
     else {
         # return marker symbol
@@ -161,8 +162,8 @@ sub get_ensembl_gene {
     elsif ( $gene_name =~ /HGNC:(\d+)/ ) {
         $gene = _fetch_by_external_name( $ga, $1, 'HGNC' );
     }
-    elsif ( $gene_name =~ /MGI:(\d+)/  ) {
-        $gene = _fetch_by_external_name( $ga, $1, 'MGI' );
+    elsif ( $gene_name =~ /MGI:\d+/  ) {
+        $gene = _fetch_by_external_name( $ga, $gene_name, 'MGI' );
     }
     else {
         #assume its a marker symbol

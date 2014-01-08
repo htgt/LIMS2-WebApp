@@ -7,6 +7,9 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
+
+use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
+
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
@@ -408,6 +411,11 @@ sub generate_sub_report {
         },
     };
 
+    # For Human genes, show extra info such as Gibson designs
+    if ($self->species eq 'Human') {
+        $st_rpt_flds->{'Targeted Genes'}->{'columns'} = [ 'gene_id', 'gene_symbol', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ];
+        $st_rpt_flds->{'Targeted Genes'}->{'display_columns'} = [ 'gene id', 'gene symbol', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones', 'targeted clones accepted' ];
+    }
     # for double-targeted projects
     my $dt_rpt_flds = {
         'Targeted Genes'            => {
@@ -657,8 +665,8 @@ sub genes {
                 my $gene_design_row = $self->model->schema->resultset('DesignTarget')->search({
                         gene_id => $gene_id
                     }, {
-                    select => 'marker_symbol',
-                    rows => 1,
+                        select => 'marker_symbol',
+                        rows => 1,
                     })->single;
                 $gene_symbol = $gene_design_row->marker_symbol;
 
@@ -670,9 +678,79 @@ sub genes {
 
         unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
 
+        # for human genes, give a more complete report with gibson design, vector and ep counts
+        if ($self->species eq 'Human' && $gene_symbol ne 'unknown') {
 
+            # get the plates
+            my $sql =  <<"SQL_END";
+SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN, 
+concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
+concat(ep_plate_name, '_', ep_well_name) AS EP, 
+concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
+FROM summaries where design_gene_id = '$gene_id';
+SQL_END
 
-        push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol };
+            my $results = $self->run_select_query( $sql );
+
+            # get the plates into arrays
+            my (@design, @final_pick_info, @final_pick, @ep, @ep_pick_info, @ep_pick);
+            foreach my $row (@$results) {
+                push (@design, $row->{design}) unless ($row->{design} eq '_');
+                push (@final_pick_info, $row->{final_pick}) unless ($row->{final_pick} eq '_');
+                push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
+                push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
+            }
+
+            # check for vector passes and count them
+            @final_pick_info = uniq @final_pick_info;
+            my ($vector_plate, $vector_string);
+            my $vector_pass = 0;
+            foreach my $vector (@final_pick_info) {
+                if ( $vector =~ m/(.*?)([^\d]*)$/ ) {
+                    ($vector_plate, $vector_string) = ($1, $2);
+                }
+                push (@final_pick, $vector_plate);
+                if ($vector_string eq 'tt') {
+                    $vector_pass++;
+                }
+            }
+
+            # check for targeted clone passes and count them
+            @ep_pick_info = uniq @ep_pick_info;
+            my ($ep_pick_plate, $ep_pick_string);
+            my $ep_pick_pass = 0;
+            foreach my $ep_pick (@ep_pick_info) {
+                if ( $ep_pick =~ m/(.*?)([^\d]*)$/ ) {
+                    ($ep_pick_plate, $ep_pick_string) = ($1, $2);
+                }
+                push (@ep_pick, $ep_pick_plate);
+                if ($ep_pick_string eq 't') {
+                    $ep_pick_pass++;
+                }
+            }
+
+            # remove all duplicates
+            @design = uniq @design;
+            @final_pick = uniq @final_pick;
+            @ep = uniq @ep;
+            @ep_pick = uniq @ep_pick;
+
+            # get the gibson design count
+            my $report_params = {
+                type => 'simple',
+                off_target_algorithm => 'bwa',
+                crispr_types => 'pair'
+            };
+
+            my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
+
+            # push the data for the report
+            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $#{ $designs },
+            'gibson_plated' => scalar @design, 'vector_total' => scalar @final_pick, 'vector_pass' => $vector_pass, 'eps' => scalar @ep, 'targeted' => scalar @ep_pick,  'targeted_accepted' => $ep_pick_pass };
+        } else {
+            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol};
+        }
+
     }
 
     # sort the array by gene symbol
