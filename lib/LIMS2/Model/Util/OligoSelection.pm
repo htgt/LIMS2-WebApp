@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 
 =head1 NAME
 
-LIMS2::Model::Util::GenomeBrowser
+LIMS2::Model::Util::OligoSelection
 
 =head1 DESCRIPTION
 
@@ -14,24 +14,22 @@ LIMS2::Model::Util::GenomeBrowser
 
 use Sub::Exporter -setup => {
     exports => [ qw(
-        crisprs_for_region
-        crisprs_to_gff
-        crispr_pairs_for_region
-        crispr_pairs_to_gff 
-        gibson_designs_for_region
-        design_oligos_to_gff
+        oligos_for_gibson
+        oligos_for_crispr_pair
     ) ]
 };
 
 use Log::Log4perl qw( :easy );
 
-=head2 crisprs_for_region 
+=head2 oligos_for_gibson 
 
-Find crisprs for a specific chromosome region. The search is not design
-related. The method accepts species, chromosome id, start and end coordinates.
+Generate genotyping primer oligos for a design. 
 
-This method is used by the browser REST api to server data for the genome browser.
-
-dp10
 =cut
 
+
+=head2 oligos_for_crispr_pair
+
+Generate sequencing primer oligos for a crispr pair
+
+=cut
