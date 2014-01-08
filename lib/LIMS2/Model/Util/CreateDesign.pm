@@ -1,22 +1,39 @@
 package LIMS2::Model::Util::CreateDesign;
 
-use strict;
 use warnings FATAL => 'all';
 
-use Sub::Exporter -setup => {
-    exports => [
-        qw(
-              exons_for_gene
-              get_ensembl_gene
-          )
-    ]
-};
-
-use Log::Log4perl qw( :easy );
+use Moose;
 use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
 use LIMS2::Util::EnsEMBL;
 use LIMS2::Exception;
+use namespace::autoclean;
+
+with qw( MooseX::Log::Log4perl );
+
+has model => (
+    is       => 'ro',
+    isa      => 'LIMS2::Model',
+    required => 1,
+);
+
+has species => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1
+);
+
+has ensembl_util => (
+    is         => 'ro',
+    isa        => 'LIMS2::Util::EnsEMBL',
+    lazy_build => 1,
+);
+
+sub _build_ensembl_util {
+    my $self = shift;
+
+    return LIMS2::Util::EnsEMBL->new( species => $self->species );
+}
 
 =head2 exons_for_gene
 
@@ -25,14 +42,14 @@ Optionally get all exons or just exons from canonical transcript.
 
 =cut
 sub exons_for_gene {
-    my ( $model, $gene_name, $exon_types, $species ) = @_;
+    my ( $self, $gene_name, $exon_types ) = @_;
 
-    my $gene = get_ensembl_gene( $model, $gene_name, $species );
+    my $gene = $self->get_ensembl_gene( $gene_name );
     return unless $gene;
 
-    my $gene_data = build_gene_data( $gene, $species );
+    my $gene_data = $self->build_gene_data( $gene );
 
-    my $exon_data = build_gene_exon_data( $model, $gene, $gene_data->{gene_id}, $exon_types, $species );
+    my $exon_data = $self->build_gene_exon_data( $gene, $gene_data->{gene_id}, $exon_types );
 
     return ( $gene_data, $exon_data );
 }
@@ -43,26 +60,26 @@ Build up data about targeted gene to display to user.
 
 =cut
 sub build_gene_data {
-    my ( $gene, $species ) = @_;
+    my ( $self, $gene ) = @_;
     my %data;
 
     my $canonical_transcript = $gene->canonical_transcript;
     $data{ensembl_id} = $gene->stable_id;
-    if ( $species eq 'Human' ) {
+    if ( $self->species eq 'Human' ) {
         $data{gene_link} = 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?g='
             . $gene->stable_id;
         $data{transcript_link} = 'http://www.ensembl.org/Homo_sapiens/Transcript/Summary?t='
             . $canonical_transcript->stable_id;
 
-        $data{gene_id} = external_gene_id( $gene, 'HGNC' );
+        $data{gene_id} = $self->external_gene_id( $gene, 'HGNC' );
     }
-    elsif ( $species eq 'Mouse' ) {
+    elsif ( $self->species eq 'Mouse' ) {
         $data{gene_link} = 'http://www.ensembl.org/Mus_musculus/Gene/Summary?g='
             . $gene->stable_id;
         $data{transcript_link} = 'http://www.ensembl.org/Mus_musculus/Transcript/Summary?t='
             . $canonical_transcript->stable_id;
 
-        $data{gene_id} = external_gene_id( $gene, 'MGI' );
+        $data{gene_id} = $self->external_gene_id( $gene, 'MGI' );
     }
     $data{marker_symbol} = $gene->external_name;
     $data{canonical_transcript} = $canonical_transcript->stable_id;
@@ -84,7 +101,7 @@ If I can not find a id go back to marker symbol.
 
 =cut
 sub external_gene_id {
-    my ( $gene, $type ) = @_;
+    my ( $self, $gene, $type ) = @_;
 
     my @dbentries = @{ $gene->get_all_DBEntries( $type ) };
     my @ids = uniq map{ $_->primary_id } @dbentries;
@@ -109,7 +126,7 @@ data to display
 
 =cut
 sub build_gene_exon_data {
-    my ( $model, $gene, $gene_id, $exon_types, $species ) = @_;
+    my ( $self, $gene, $gene_id, $exon_types ) = @_;
 
     my $canonical_transcript = $gene->canonical_transcript;
     my $exons = $exon_types eq 'canonical' ? $canonical_transcript->get_all_Exons : $gene->get_all_Exons;
@@ -130,9 +147,9 @@ sub build_gene_exon_data {
 
         $exon_data{ $exon->stable_id } = \%data;
     }
-    designs_for_exons( $model, \%exon_data, $species, $gene_id );
-    design_targets_for_exons( $model, \%exon_data, $gene->stable_id );
-    exon_ranks( \%exon_data, $canonical_transcript );
+    $self->designs_for_exons( \%exon_data, $gene_id );
+    $self->design_targets_for_exons( \%exon_data, $gene->stable_id );
+    $self->exon_ranks( \%exon_data, $canonical_transcript );
 
     if ( $gene->strand == 1 ) {
         return [ sort { $a->{start} <=> $b->{start} } values %exon_data ];
@@ -151,23 +168,23 @@ First need to work out format of gene name user has supplied
 =cut
 ## no critic(BuiltinFunctions::ProhibitComplexMappings)
 sub get_ensembl_gene {
-    my ( $model, $gene_name, $species ) = @_;
+    my ( $self, $gene_name ) = @_;
 
-    my $ga = $model->ensembl_gene_adaptor( $species );
+    my $ga = $self->ensembl_util->gene_adaptor( $self->species );
 
     my $gene;
     if ( $gene_name =~ /ENS(MUS)?G\d+/ ) {
         $gene = $ga->fetch_by_stable_id( $gene_name );
     }
     elsif ( $gene_name =~ /HGNC:(\d+)/ ) {
-        $gene = _fetch_by_external_name( $ga, $1, 'HGNC' );
+        $gene = $self->_fetch_by_external_name( $ga, $1, 'HGNC' );
     }
     elsif ( $gene_name =~ /MGI:\d+/  ) {
-        $gene = _fetch_by_external_name( $ga, $gene_name, 'MGI' );
+        $gene = $self->_fetch_by_external_name( $ga, $gene_name, 'MGI' );
     }
     else {
         #assume its a marker symbol
-        $gene = _fetch_by_external_name( $ga, $gene_name );
+        $gene = $self->_fetch_by_external_name( $ga, $gene_name );
     }
 
     return $gene;
@@ -180,7 +197,7 @@ Wrapper around fetching ensembl gene given external gene name.
 
 =cut
 sub _fetch_by_external_name {
-    my ( $ga, $gene_name, $type ) = @_;
+    my ( $self, $ga, $gene_name, $type ) = @_;
 
     my @genes = @{ $ga->fetch_all_by_external_name($gene_name, $type) };
     unless( @genes ) {
@@ -188,7 +205,7 @@ sub _fetch_by_external_name {
     }
 
     if ( scalar(@genes) > 1 ) {
-        DEBUG("Found multiple EnsEMBL genes for $gene_name");
+        $self->log->debug("Found multiple EnsEMBL genes for $gene_name");
         my @stable_ids = map{ $_->stable_id } @genes;
         $type ||= 'marker symbol';
 
@@ -209,12 +226,12 @@ Grab any existing designs for the exons.
 
 =cut
 sub designs_for_exons {
-    my ( $model, $exons, $species, $gene_id ) = @_;
+    my ( $self, $exons, $gene_id ) = @_;
 
-    my @designs = $model->schema->resultset('Design')->search(
+    my @designs = $self->model->schema->resultset('Design')->search(
         {
             'genes.gene_id' => $gene_id,
-            'me.species_id' => $species,
+            'me.species_id' => $self->species,
             design_type_id  => 'gibson',
         },
         {
@@ -223,8 +240,8 @@ sub designs_for_exons {
         },
     );
 
-    my $assembly = $model->schema->resultset('SpeciesDefaultAssembly')->find(
-        { species_id => $species } )->assembly_id;
+    my $assembly = $self->model->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $self->species } )->assembly_id;
 
     my %data;
     while ( my( $id, $exon ) = each %{ $exons } ) {
@@ -260,9 +277,9 @@ a automatic target finding script or a human.
 
 =cut
 sub design_targets_for_exons {
-    my ( $model, $exons, $ensembl_gene_id ) = @_;
+    my ( $self, $exons, $ensembl_gene_id ) = @_;
 
-    my $dt_rs = $model->schema->resultset('DesignTarget')->search(
+    my $dt_rs = $self->model->schema->resultset('DesignTarget')->search(
         { ensembl_gene_id => $ensembl_gene_id } );
 
     for my $exon_id ( keys %{ $exons } ) {
@@ -284,7 +301,7 @@ If exon not on canonical transcript rank is left blank for now.
 
 =cut
 sub exon_ranks {
-    my ( $exons, $canonical_transcript ) = @_;
+    my ( $self, $exons, $canonical_transcript ) = @_;
 
     my $rank = 1;
     for my $current_exon ( @{ $canonical_transcript->get_all_Exons } ) {
@@ -297,6 +314,8 @@ sub exon_ranks {
 
     return;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 

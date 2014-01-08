@@ -12,7 +12,7 @@ use Hash::MoreUtils qw( slice_def );
 use IPC::Run 'run';
 use LIMS2::Util::FarmJobRunner;
 use LIMS2::Exception::System;
-use LIMS2::Model::Util::CreateDesign qw( exons_for_gene get_ensembl_gene );
+use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
 BEGIN { extends 'Catalyst::Controller' };
@@ -166,11 +166,14 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
 
     $c->log->debug("Pick exon targets for gene $gene_name");
     try {
-        my ( $gene_data, $exon_data )= exons_for_gene(
-            $c->model('Golgi'),
+
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            model   => $c->model('Golgi'),
+            species => $species,
+        );
+        my ( $gene_data, $exon_data )= $create_design_util->exons_for_gene(
             $c->request->param('gene'),
             $c->request->param('show_exons'),
-            $species,
         );
 
         $c->stash(
@@ -378,7 +381,11 @@ sub find_or_create_design_target {
         return;
     }
 
-    my $gene = get_ensembl_gene( $c->model('Golgi'), $params->{ensembl_gene_id}, $params->{species} );
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        model   => $c->model('Golgi'),
+        species => $params->{species},
+    );
+    my $gene = $create_design_util->get_ensembl_gene( $params->{ensembl_gene_id} );
     LIMS2::Exception->throw( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
         unless $gene;
     my $canonical_transcript = $gene->canonical_transcript;
