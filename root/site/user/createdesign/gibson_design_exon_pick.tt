@@ -79,7 +79,7 @@
             </td>
 
             <td>
-              <a href="[% c.uri_for( '/user/create_gibson_design', { 'exon_id' => exon.id, 'gene_id' => gene.gene_id, 'exon_pick' => '1' } ) %]" class="btn btn-info btn-mini btn-block">
+              <a href="[% c.uri_for( '/user/create_gibson_design', { 'exon_id' => exon.id, 'gene_id' => gene.gene_id, 'ensembl_gene_id' => gene.ensembl_id, 'exon_pick' => '1' } ) %]" class="btn btn-info btn-mini btn-block">
               Pick Exon</a>
             </td>
 
