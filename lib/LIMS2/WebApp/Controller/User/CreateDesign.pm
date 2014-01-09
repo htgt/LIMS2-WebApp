@@ -2,18 +2,12 @@ package LIMS2::WebApp::Controller::User::CreateDesign;
 
 use Moose;
 use namespace::autoclean;
-use Data::UUID;
-use Path::Class;
 use Const::Fast;
 use TryCatch;
-use JSON;
-use Hash::MoreUtils qw( slice_def );
+use Path::Class;
 
-use IPC::Run 'run';
-use LIMS2::Util::FarmJobRunner;
 use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
-use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -168,8 +162,9 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
     try {
 
         my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
-            model   => $c->model('Golgi'),
-            species => $species,
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+            species  => $species,
         );
         my ( $gene_data, $exon_data )= $create_design_util->exons_for_gene(
             $c->request->param('gene'),
@@ -198,34 +193,16 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
 
     if ( exists $c->request->params->{create_design} ) {
         $c->log->info('Creating new design');
-        # parse and validate params
-        my $params = $self->parse_and_validate_gibson_params( $c );
 
-        # create design attempt record
-        my $design_parameters = encode_json(
-            {   dir => $params->{output_dir}->stringify,
-                slice_def $params,
-                qw( uuid gene_id exon_id ensembl_gene_id assembly_id build_id ),
-            }
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+            species  => $c->session->{selected_species},
         );
-        my $design_attempt = $c->model('Golgi')->create_design_attempt(
-            {
-                gene_id           => $params->{gene_id},
-                status            => 'pending',
-                created_by        => $c->user->name,
-                species           => $c->session->{selected_species},
-                design_parameters => $design_parameters,
-            }
-        );
-        $params->{da_id} = $design_attempt->id;
 
-        $self->find_or_create_design_target( $c, $params );
-
+        my $design_attempt;
         try {
-            my $cmd = $self->generate_gibson_design_cmd( $params );
-            $c->log->debug('Design create command: ' . join(' ', @{ $cmd } ) );
-
-            my $job_id = $self->run_design_create_cmd( $c, $cmd, $params );
+            $design_attempt = $create_design_util->create_gibson_design();
         }
         catch ($err) {
             $c->flash( error_msg => "Error submitting Design Creation job: $err" );
@@ -240,201 +217,10 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         my $exon_id = $c->request->param('exon_id');
         my $ensembl_gene_id = $c->request->param('ensembl_gene_id');
         $c->stash(
-            exon_id => $exon_id,
-            gene_id => $gene_id,
+            exon_id         => $exon_id,
+            gene_id         => $gene_id,
             ensembl_gene_id => $ensembl_gene_id,
         );
-    }
-    return;
-}
-
-#TODO maybe move these methods to a seperate util module, this controller is getting fat sp12 Fri 13 Dec 2013 08:33:44 GMT
-sub run_design_create_cmd {
-    my ( $self, $c, $cmd, $params ) = @_;
-
-    my $runner = LIMS2::Util::FarmJobRunner->new(
-        default_memory     => 2500,
-        default_processors => 2,
-    );
-
-    my $job_id = $runner->submit(
-        out_file => $params->{ output_dir }->file( "design_creation.out" ),
-        err_file => $params->{ output_dir }->file( "design_creation.err" ),
-        cmd      => $cmd,
-    );
-
-    $c->log->info( "Successfully submitted gibson design create job $job_id with run id $params->{uuid}" );
-
-    return $job_id;
-}
-
-sub pspec_create_gibson_design {
-    return {
-        gene_id         => { validate => 'non_empty_string' },
-        exon_id         => { validate => 'ensembl_exon_id' },
-        ensembl_gene_id => { validate => 'ensembl_gene_id' },
-        # fields from the diagram
-        '5F_length'    => { validate => 'integer' },
-        '5F_offset'    => { validate => 'integer' },
-        '5R_EF_length' => { validate => 'integer' },
-        '5R_EF_offset' => { validate => 'integer' },
-        'ER_3F_length' => { validate => 'integer' },
-        'ER_3F_offset' => { validate => 'integer' },
-        '3R_length'    => { validate => 'integer' },
-        '3R_offset'    => { validate => 'integer' },
-        # other options
-        exon_check_flank_length => { validate => 'integer', optional => 1 },
-        repeat_mask_classes     => { validate => 'repeat_mask_class', optional => 1 },
-        alt_designs             => { validate => 'boolean', optional => 1 },
-        #submit
-        create_design => { optional => 0 }
-    };
-}
-
-sub parse_and_validate_gibson_params {
-    my ( $self, $c ) = @_;
-
-    my $validated_params = $c->model('Golgi')->check_params(
-        $c->request->params, $self->pspec_create_gibson_design );
-    $validated_params->{user} = $c->user->name;
-
-    my $species = $c->session->{selected_species};
-    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-        { species_id => $species } )->assembly_id;
-
-    my $uuid = Data::UUID->new->create_str;
-    $validated_params->{uuid}        = $uuid;
-    $validated_params->{output_dir}  = $DEFAULT_DESIGNS_DIR->subdir( $uuid );
-    $validated_params->{species}     = $species;
-    $validated_params->{build_id}    = $DEFAULT_SPECIES_BUILD{ lc($species) };
-    $validated_params->{assembly_id} = $default_assembly;
-
-    #create dir
-    $validated_params->{output_dir}->mkpath();
-
-    $c->stash( {
-        gene_id => $validated_params->{gene_id},
-        exon_id => $validated_params->{exon_id}
-    } );
-
-    return $validated_params;
-}
-
-sub generate_gibson_design_cmd {
-    my ( $self, $params ) = @_;
-
-    my @gibson_cmd_parameters = (
-        'design-create',
-        'gibson-design',
-        '--debug',
-        #required parameters
-        '--created-by',  $params->{user},
-        '--target-gene', $params->{gene_id},
-        '--target-exon', $params->{exon_id},
-        '--species',     $params->{species},
-        '--dir',         $params->{output_dir}->subdir('workdir')->stringify,
-        '--da-id',       $params->{da_id},
-        #user specified params
-        '--region-length-5f',    $params->{'5F_length'},
-        '--region-offset-5f',    $params->{'5F_offset'},
-        '--region-length-5r-ef', $params->{'5R_EF_length'},
-        '--region-offset-5r-ef', $params->{'5R_EF_offset'},
-        '--region-length-er-3f', $params->{'ER_3F_length'},
-        '--region-offset-er-3f', $params->{'ER_3F_offset'},
-        '--region-length-3r',    $params->{'3R_length'},
-        '--region-offset-3r',    $params->{'3R_offset'},
-        '--persist',
-    );
-
-    if ( $params->{repeat_mask_classes} ) {
-        for my $class ( @{ $params->{repeat_mask_classes} } ){
-            push @gibson_cmd_parameters, '--repeat-mask-class ' . $class;
-        }
-    }
-
-    if ( $params->{alt_designs} ) {
-        push @gibson_cmd_parameters, '--alt-designs';
-    }
-
-    if ( $params->{exon_check_flank_length} ) {
-        push @gibson_cmd_parameters,
-            '--exon-check-flank-length ' . $params->{exon_check_flank_length};
-    }
-
-    return \@gibson_cmd_parameters;
-}
-
-sub find_or_create_design_target {
-    my ( $self, $c, $params ) = @_;
-
-    my $existing_design_target = $c->model('Golgi')->schema->resultset('DesignTarget')->find(
-        {
-            species_id      => $params->{species},
-            ensembl_exon_id => $params->{exon_id},
-            build_id        => $params->{build_id},
-        }
-    );
-
-    if ( $existing_design_target ) {
-        $c->log->debug( 'Design target ' . $existing_design_target->id
-                . ' already exists for exon: ' . $params->{exon_id} );
-        return;
-    }
-
-    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
-        model   => $c->model('Golgi'),
-        species => $params->{species},
-    );
-    my $gene = $create_design_util->get_ensembl_gene( $params->{ensembl_gene_id} );
-    LIMS2::Exception->throw( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
-        unless $gene;
-    my $canonical_transcript = $gene->canonical_transcript;
-
-    my $exon;
-    try {
-        $exon = $c->model('Golgi')->ensembl_exon_adaptor( $params->{species} )
-            ->fetch_by_stable_id( $params->{exon_id} );
-    }
-    LIMS2::Exception->throw( "Unable to find ensembl exon for: " . $params->{exon_id} )
-        unless $exon;
-
-    my %design_target_params = (
-        species              => $params->{species},
-        gene_id              => $params->{gene_id},
-        marker_symbol        => $gene->external_name,
-        ensembl_gene_id      => $gene->stable_id,
-        ensembl_exon_id      => $params->{exon_id},
-        exon_size            => $exon->length,
-        canonical_transcript => $canonical_transcript->stable_id,
-        assembly             => $params->{assembly_id},
-        build                => $params->{build_id},
-        chr_name             => $exon->seq_region_name,
-        chr_start            => $exon->seq_region_start,
-        chr_end              => $exon->seq_region_end,
-        chr_strand           => $exon->seq_region_strand,
-        automatically_picked => 0,
-        comment              => 'picked via gibson design creation interface, by user: ' . $params->{user},
-
-    );
-    my $exon_rank = get_exon_rank( $exon, $canonical_transcript );
-    $design_target_params{exon_rank} = $exon_rank if $exon_rank;
-    my $design_target = $c->model('Golgi')->create_design_target( \%design_target_params );
-
-    return;
-}
-
-=head2 get_exon_rank
-
-Get rank of exon on canonical transcript
-
-=cut
-sub get_exon_rank {
-    my ( $exon, $canonical_transcript ) = @_;
-
-    my $rank = 1;
-    for my $current_exon ( @{ $canonical_transcript->get_all_Exons } ) {
-        return $rank if $current_exon->stable_id eq $exon->stable_id;
-        $rank++;
     }
 
     return;
