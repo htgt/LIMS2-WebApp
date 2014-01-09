@@ -155,5 +155,65 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub ensEMBL_gene {
+    my $self = shift;
+
+    my $species      = $self->design->species_id;
+    my $gene_id      = $self->gene_id;
+    my $gene_type_id = $self->gene_type->id;
+
+    # print "Gene ID: " . $gene_id . "\n";
+    # print "Gene type: " . $gene_type_id . "\n";
+
+    require LIMS2::Util::EnsEMBL;
+    my $ensEMBL_util = LIMS2::Util::EnsEMBL->new( { 'species' => $species, } );
+    my $ga = $ensEMBL_util->gene_adaptor( $species );
+
+    my $gene;
+    if ( $gene_type_id eq 'HGNC' ) {
+        if( $gene_id =~ /HGNC:(\d+)/ ) {
+            $gene = _fetch_by_external_name( $ga, $1, 'HGNC' );
+        }
+    }
+    elsif ( $gene_type_id eq 'MGI' ) {
+        $gene = _fetch_by_external_name( $ga, $gene_id, 'MGI' );
+    }
+    elsif ( $gene_type_id eq 'marker_symbol' ) {
+        $gene = _fetch_by_external_name( $ga, $gene_id );
+    }
+
+    return $gene;
+}
+
+=head2 _fetch_by_external_name
+
+Wrapper around fetching ensembl gene given external gene name.
+
+=cut
+sub _fetch_by_external_name {
+    my ( $ga, $gene_name, $type ) = @_;
+
+    my @genes = @{ $ga->fetch_all_by_external_name($gene_name, $type) };
+    unless( @genes ) {
+        LIMS2::Exception->throw("Unable to find gene $gene_name in EnsEMBL" );
+    }
+
+    if ( scalar(@genes) > 1 ) {
+        DEBUG("Found multiple EnsEMBL genes for $gene_name");
+        my @stable_ids = map{ $_->stable_id } @genes;
+        $type ||= 'marker symbol';
+
+        LIMS2::Exception->throw( "Found multiple EnsEMBL genes with $type id $gene_name,"
+                . " try using one of the following EnsEMBL gene ids: "
+                . join( ', ', @stable_ids ) );
+    }
+    else {
+        return shift @genes;
+    }
+
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

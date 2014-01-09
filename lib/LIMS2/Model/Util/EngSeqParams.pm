@@ -61,6 +61,14 @@ sub generate_well_eng_seq_params{
 
     my $design_params = fetch_design_eng_seq_params($design_data);
 
+    # fetch canonical transcript for the gene if it exists and add the transcript id to the params
+    # required to write exon features within genbank files for display in imits
+    my $transcript_id = $design->fetch_canonical_transcript_id;
+    if ( $transcript_id ) {
+        DEBUG( "Transcript id: $transcript_id\n" );
+        $design_params->{ 'transcript' } = $transcript_id;
+    }
+
     my $input_params = {slice_def $validated_params, qw( cassette backbone recombinase targeted_trap)};
     $input_params->{is_allele} = 1 if $stage eq 'allele';
     $input_params->{design_type} = $design_data->{type};
