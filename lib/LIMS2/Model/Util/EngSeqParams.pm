@@ -63,7 +63,8 @@ sub generate_well_eng_seq_params{
 
     # fetch canonical transcript for the gene if it exists and add the transcript id to the params
     # required to write exon features within genbank files for display in imits
-    my $transcript_id = $design->fetch_canonical_transcript_id;
+    my $transcript_id;
+    $transcript_id = $design->fetch_canonical_transcript_id;
     if ( $transcript_id ) {
         DEBUG( "Transcript id: $transcript_id\n" );
         $design_params->{ 'transcript' } = $transcript_id;

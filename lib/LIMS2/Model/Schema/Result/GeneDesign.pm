@@ -197,7 +197,6 @@ sub _fetch_by_external_name {
     }
 
     if ( scalar(@genes) > 1 ) {
-        DEBUG("Found multiple EnsEMBL genes for $gene_name");
         my @stable_ids = map{ $_->stable_id } @genes;
         $type ||= 'marker symbol';
 
