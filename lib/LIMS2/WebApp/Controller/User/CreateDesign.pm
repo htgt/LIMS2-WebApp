@@ -154,17 +154,12 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
         return $c->go('gibson_design_gene_pick');
     }
 
-    my $species = $c->session->{selected_species};
-    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-        { species_id => $species } )->assembly_id;
-
     $c->log->debug("Pick exon targets for gene $gene_name");
     try {
 
         my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
             catalyst => $c,
             model    => $c->model('Golgi'),
-            species  => $species,
         );
         my ( $gene_data, $exon_data )= $create_design_util->exons_for_gene(
             $c->request->param('gene'),
@@ -174,8 +169,7 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
         $c->stash(
             exons    => $exon_data,
             gene     => $gene_data,
-            assembly => $default_assembly,
-            species  => $species,
+            assembly => $create_design_util->assembly_id,
         );
     }
     catch( LIMS2::Exception $e ) {
@@ -197,7 +191,6 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
             catalyst => $c,
             model    => $c->model('Golgi'),
-            species  => $c->session->{selected_species},
         );
 
         my $design_attempt;
