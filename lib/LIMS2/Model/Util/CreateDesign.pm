@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
-use LIMS2::Util::EnsEMBL;
+use WebApp::Common::Util::EnsEMBL;
 use Path::Class;
 use Const::Fast;
 use TryCatch;
@@ -31,10 +31,16 @@ has catalyst => (
 );
 
 has species => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1
+    is         => 'ro',
+    isa        => 'Str',
+    lazy_build => 1,
 );
+
+sub _build_species {
+    my $self = shift;
+
+    return $self->catalyst->session->{selected_species};
+}
 
 has ensembl_util => (
     is         => 'ro',
@@ -45,7 +51,7 @@ has ensembl_util => (
 sub _build_ensembl_util {
     my $self = shift;
 
-    return LIMS2::Util::EnsEMBL->new( species => $self->species );
+    return WebApp::Common::Util::EnsEMBL->new( species => $self->species );
 }
 
 has user => (
@@ -111,12 +117,12 @@ Optionally get all exons or just exons from canonical transcript.
 sub exons_for_gene {
     my ( $self, $gene_name, $exon_types ) = @_;
 
-    my $gene = $self->get_ensembl_gene( $gene_name );
+    my $gene = $self->c_get_ensembl_gene( $gene_name );
     return unless $gene;
 
-    my $gene_data = $self->build_gene_data( $gene );
+    my $gene_data = $self->c_build_gene_data( $gene );
 
-    my $exon_data = $self->build_gene_exon_data( $gene, $gene_data->{gene_id}, $exon_types );
+    my $exon_data = $self->c_build_gene_exon_data( $gene, $gene_data->{gene_id}, $exon_types );
     $self->designs_for_exons( $exon_data, $gene_data->{gene_id} );
     $self->design_targets_for_exons( $exon_data, $gene->stable_id );
 
@@ -206,11 +212,11 @@ initiate the creation of a gibson design
 sub create_gibson_design {
     my ( $self ) = @_;
 
-    my $params = $self->parse_and_validate_gibson_params();
-    my $design_attempt = $self->initiate_design_attempt( $params );
+    my $params         = $self->c_parse_and_validate_gibson_params();
+    my $design_attempt = $self->c_initiate_design_attempt( $params );
     my $design_target  = $self->find_or_create_design_target( $params );
-    my $cmd            = $self->generate_gibson_design_cmd( $params );
-    my $job_id         = $self->run_design_create_cmd( $cmd, $params );
+    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
     return $design_attempt;
 }
@@ -239,7 +245,7 @@ sub find_or_create_design_target {
         return $existing_design_target;
     }
 
-    my $gene = $self->get_ensembl_gene( $params->{ensembl_gene_id} );
+    my $gene = $self->c_get_ensembl_gene( $params->{ensembl_gene_id} );
     die( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
         unless $gene;
     my $canonical_transcript = $gene->canonical_transcript;
@@ -270,9 +276,8 @@ sub find_or_create_design_target {
         comment              => 'picked via gibson design creation interface, by user: ' . $params->{user},
 
     );
-    my $exon_rank = $self->get_exon_rank( $exon, $canonical_transcript );
+    my $exon_rank = try{ $self->ensembl_util->get_exon_rank( $canonical_transcript, $exon->stable_id ) };
     $design_target_params{exon_rank} = $exon_rank if $exon_rank;
-    ## iffy
     my $design_target = $self->create_design_target( \%design_target_params );
 
     return $design_target;
