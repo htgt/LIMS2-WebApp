@@ -44,7 +44,7 @@ sub _build_species {
 
 has ensembl_util => (
     is         => 'ro',
-    isa        => 'LIMS2::Util::EnsEMBL',
+    isa        => 'WebApp::Common::Util::EnsEMBL',
     lazy_build => 1,
 );
 
@@ -103,10 +103,8 @@ sub _build_base_design_dir {
 
 with qw(
 MooseX::Log::Log4perl
-WebApp::Common::Design::CreateInterface
+WebAppCommon::Design::CreateInterface
 );
-
-#TODO find way to mark roles methods as such sp12 Thu 09 Jan 2014 09:48:52 GMT
 
 =head2 exons_for_gene
 
@@ -117,7 +115,7 @@ Optionally get all exons or just exons from canonical transcript.
 sub exons_for_gene {
     my ( $self, $gene_name, $exon_types ) = @_;
 
-    my $gene = $self->c_get_ensembl_gene( $gene_name );
+    my $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
     return unless $gene;
 
     my $gene_data = $self->c_build_gene_data( $gene );
