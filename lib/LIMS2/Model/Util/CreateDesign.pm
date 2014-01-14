@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
-use WebApp::Common::Util::EnsEMBL;
+use WebAppCommon::Util::EnsEMBL;
 use Path::Class;
 use Const::Fast;
 use TryCatch;
@@ -44,14 +44,14 @@ sub _build_species {
 
 has ensembl_util => (
     is         => 'ro',
-    isa        => 'WebApp::Common::Util::EnsEMBL',
+    isa        => 'WebAppCommon::Util::EnsEMBL',
     lazy_build => 1,
 );
 
 sub _build_ensembl_util {
     my $self = shift;
 
-    return WebApp::Common::Util::EnsEMBL->new( species => $self->species );
+    return WebAppCommon::Util::EnsEMBL->new( species => $self->species );
 }
 
 has user => (
