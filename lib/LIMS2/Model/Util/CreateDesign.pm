@@ -242,14 +242,14 @@ sub find_or_create_design_target {
         return $existing_design_target;
     }
 
-    my $gene = $self->c_get_ensembl_gene( $params->{ensembl_gene_id} );
+    my $gene = $self->ensembl_util->get_ensembl_gene( $params->{ensembl_gene_id} );
     die( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
         unless $gene;
     my $canonical_transcript = $gene->canonical_transcript;
 
     my $exon;
     try {
-        $exon = $self->ensembl_util->ensembl_exon_adaptor( $self->species )
+        $exon = $self->ensembl_util->exon_adaptor( $self->species )
             ->fetch_by_stable_id( $params->{exon_id} );
     }
     die( "Unable to find ensembl exon for: " . $params->{exon_id} )
@@ -275,7 +275,7 @@ sub find_or_create_design_target {
     );
     my $exon_rank = try{ $self->ensembl_util->get_exon_rank( $canonical_transcript, $exon->stable_id ) };
     $design_target_params{exon_rank} = $exon_rank if $exon_rank;
-    my $design_target = $self->create_design_target( \%design_target_params );
+    my $design_target = $self->model->create_design_target( \%design_target_params );
 
     return $design_target;
 }
