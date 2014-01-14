@@ -150,7 +150,6 @@ sub designs_for_exons {
     my $assembly = $self->model->schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $self->species } )->assembly_id;
 
-    my %data;
     for my $exon ( @{ $exons } ) {
         my @matching_designs;
 
