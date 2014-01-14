@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.138';
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.142';
 }
 ## use critic
 
@@ -49,9 +49,16 @@ sub gene_report : Path('/user/design_target_report') {
     my $species = $c->session->{selected_species};
     my $build   = $DEFAULT_SPECIES_BUILD{ lc($species) };
 
+    # if no gene specified run report against all genes from that species projects
     if ( !$c->request->param('genes') && !$gene ) {
-        $c->stash( error_msg => "Please enter some gene names" );
-        return $c->go('index');
+        my @gene_ids = $c->model('Golgi')->schema->resultset('Project')->search_rs(
+            { species_id => $species },
+            {   columns  => [qw(gene_id)],
+                distinct => 1
+            }
+        )->get_column('gene_id')->all;
+
+        $gene = join("\n", @gene_ids);
     }
 
     my %report_parameters = (

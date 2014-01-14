@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.138';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.142';
 }
 ## use critic
 
@@ -430,6 +430,33 @@ sub design_parameters_hash {
     }
 
     return;
+}
+
+=head2 fetch_canonical_transcript_id
+
+Fetch the gene for the design, then retrieve and return the canonical transcript if one exists
+
+=cut
+sub fetch_canonical_transcript_id {
+    my $self = shift;
+
+    # fetch array of gene designs
+    my @gene_designs = $self->genes;
+
+    if( scalar @gene_designs > 1 ) {
+      # expecting only one gene, error
+      return 0;
+    }
+
+    foreach my $gene_design ( @gene_designs ) {
+      my $ensEMBL_gene = $gene_design->ensEMBL_gene;
+      unless ( $ensEMBL_gene ) { next; };
+      my $canonical_transcript = $ensEMBL_gene->canonical_transcript;
+      unless ( $canonical_transcript ) { next; };
+      return $canonical_transcript->stable_id;
+    }
+
+    return 0;
 }
 
 __PACKAGE__->meta->make_immutable;
