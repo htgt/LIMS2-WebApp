@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.142';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.143';
 }
 ## use critic
 
@@ -264,9 +264,6 @@ sub crisprs_for_design_target {
 
     return \@crisprs;
 }
-
-
-
 
 =head2 bulk_crisprs_for_design_targets
 
@@ -868,6 +865,5 @@ sub get_design_targets_data {
 
     return @dt;
 }
-
 
 1;

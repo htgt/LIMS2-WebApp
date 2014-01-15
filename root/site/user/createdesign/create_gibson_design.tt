@@ -3,119 +3,25 @@
 <link href="[% c.uri_for( '/static/css/jquery.qtip.min.css' ) %]" rel="stylesheet">
 <script type="text/javascript" src="[% c.uri_for( '/static/js/raphael-min.js' ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( '/static/js/jquery.qtip.min.js' ) %]"></script>
+
+<!-- move below js file into WebApp::Common ? -->
 <script type="text/javascript" src="[% c.uri_for( '/static/js/diagram.builder.js' ) %]"></script>
-<script type="text/javascript">
 
-function createGibsonDiagram(builder) {
-  var fiveF = builder.addBox("5F");
+[% INCLUDE 'create_design/gibson_parameter_diagram.tt' %]
 
-  var fiveR = builder.addBox("5R");
-  var EF = builder.addBoxWithoutSpacing("EF");
-
-  var critExon = builder.addCriticalExon();
-
-  var ER = builder.addBox("ER");
-  var threeF = builder.addBoxWithoutSpacing("3F");
-
-  var threeR = builder.addBox("3R");
-
-  //add all the offset size fields to the fields we want them on
-  builder.addLabel(fiveF, fiveR, "5F offset", "end to start", "5F_offset", 1000);
-  builder.addLabel(threeF, threeR, "3R offset", "end to start", "3R_offset", 1000);
-  builder.addLabel(EF, critExon, "5R-EF offset", "end to start", "5R_EF_offset", 200);
-  builder.addLabel(critExon, ER, "ER-3F offset", "end to start", "ER_3F_offset", 100);
-
-  //add all the block size fields to the fields we want them on
-  builder.addField(fiveF, "5F_length", 500, "5F block size");
-  builder.addField(fiveR, "5R_EF_length", 200, "5R-EF block size", "top block");
-  builder.addField(ER, "ER_3F_length", 200, "ER-3F block size", "top block");
-  builder.addField(threeR, "3R_length", 500, "3R block size");
-
-}
-
-var builder;
-
-$(document).ready(function() {
-  //width gets dynamically resized anyway
-  builder = new DiagramBuilder("holder", 1000, 150);
-  builder._attributes.spacing = 150;
-
-  createGibsonDiagram(builder);
-
-  //builder.clearDiagram();
-});
-</script>
+[%  IF c.session.selected_species == 'Mouse';
+      gene_id_label = 'MGI Gene ID';
+    ELSIF c.session.selected_species == 'Human';
+      gene_id_label = 'HGNC Gene ID';
+    END;
+%]
 
 <form method="POST" action="[% c.uri_for( '/user/create_gibson_design' ) %]" class="well">
-
-  <fieldset>
-    <legend>Oligo Parameters</legend>
-    <div id="diagram" style="position: relative;">
-      <div id="holder" style="padding-top:20px; padding-botton:20px;">
-      </div>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <div class="form-horizontal">
-      <legend>Design Parameters</legend>
-
-      <div class="control-group">
-        <label class="control-label" for="gene_id">Gene ID</label>
-        <div class="controls">
-          <input type="text" id="gene_id" name="gene_id" placeholder="Target Gene ID" value="[% gene_id %]" /><br/>
-          <input type="hidden" id="ensembl_gene_id" name="ensembl_gene_id" value="[% ensembl_gene_id %]" />
-          [% IF c.session.selected_species == 'Mouse' %]
-            <span class="help-block">MGI Gene ID</span>
-          [% ELSIF c.session.selected_species == 'Human' %]
-            <span class="help-block">HGNC Gene ID</span>
-          [% END %]
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label" for="exon_id">Exon ID</label>
-        <div class="controls">
-          <input type="text" id="exon_id" name="exon_id" placeholder="Ensembl Exon ID" value="[% exon_id %]" /><br/>
-            <span class="help-block">Must be a Ensembl Exon ID</span>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label" for="alt_designs">Alternate Designs</label>
-        <div class="controls">
-          <input type="checkbox" id="alt_designs" name="alt_designs" value="1">
-          <span class="help-block">If checked mulitple designs may be created, each with a different set of valid oligos</span>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label">Restrict Repeat Masking</label>
-        <div class="controls">
-          <label class="checkbox inline">
-            <input type="checkbox" name="repeat_mask_classes" value="trf"> trf
-          </label>
-          <label class="checkbox inline">
-            <input type="checkbox" name="repeat_mask_classes" value="dust"> dust
-          </label>
-          <span class="help-block">By default all repeat regions will be masked, ticking a checkbox makes sure only those classes of repeats are masked.</span>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label" for="exon_check_flank_length">Exon Check Flank Length</label>
-        <div class="controls">
-          <input type="text" id="exon_check_flank_length" name="exon_check_flank_length" value="100" /><br/>
-          <span class="help-block">Minumum distance the 5R/EF/ER/3F oligos can be from another exon.</span>
-          <span class="help-block">If no value picked then no check will be done.</span>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="controls">
-          <input type="submit" name="create_design" class="btn btn-primary" value="Create Gibson Design" />
-        </div>
-      </div>
-    </div>
-  </fieldset>
+  [% INCLUDE 'create_design/common_gibson_form_parameters.tt'
+    gene_id_label    = gene_id_label
+    gene_id          = gene_id
+    exon_id          = exon_id
+    ensembl_gene_id  = ensembl_gene_id
+    extra_parameters = ''
+  %]
 </form>

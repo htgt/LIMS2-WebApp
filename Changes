@@ -1,3 +1,7 @@
+0.143     2014-01-15 07:04:25 Europe/London
+
+    Factored out some of the gibson design creation interface code into WebApp:Common
+
 0.142     2014-01-14 15:34:11 Europe/London
 	Modified EngSeqParams to fetch canonical transcript for use determining exon ranks.
 
