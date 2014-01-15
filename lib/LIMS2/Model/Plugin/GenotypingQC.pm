@@ -97,9 +97,7 @@ sub update_genotyping_qc_data{
                 else {
                     die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless ($value eq 'pass' || $value eq 'fail');
                 }
-                # FIXME: need an update or create method
-                # update_or_create_well_primer_band now implemented and this code should be updated to use it
-                $self->create_well_primer_bands({
+                $self->update_or_create_well_primer_bands({
                     well_id          => $well->id,
                     primer_band_type => $primer,
                     pass             => $value,
