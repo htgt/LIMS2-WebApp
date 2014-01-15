@@ -282,7 +282,6 @@ root/site/user/createdesign/index.tt
 root/site/user/createdesign/pending_design_attempt.tt
 root/site/user/createdesign/view_design_attempt.tt
 root/site/user/crisprs/browse_crisprs.tt
-root/site/user/crisprs/browse_crisprs_genoverse.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/genoverse_browse_view.tt
