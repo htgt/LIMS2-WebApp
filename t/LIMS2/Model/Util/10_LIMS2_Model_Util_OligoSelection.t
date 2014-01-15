@@ -12,11 +12,11 @@ use FindBin qw($Bin);
 use lib "$Bin/../../../lib";
 
 use Test::Class;
-use LIMS2::t::Model::Util::GenomeBrowser;
+use LIMS2::t::Model::Util::OligoSelection;
 
 =head1 NAME
 
-10_LIMS2_Model_Util_GenomeBrowser.t - Test file for testing the perl module 'LIMS2::Model::Util::GenomeBrowser'
+10_LIMS2_Model_Util_OligoSelection.t - Test file for testing the perl module 'LIMS2::Model::Util::OligoSelection'
 
 =head1 DESCRIPTION
 
