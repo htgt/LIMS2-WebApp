@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.144     2014-01-15 13:16:48 Europe/London
+
+    Corrected genotyping QC upload to update_or_create primer bands
+
 0.143     2014-01-15 07:04:25 Europe/London
 
     Factored out some of the gibson design creation interface code into WebApp:Common
