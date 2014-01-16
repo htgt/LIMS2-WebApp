@@ -26,6 +26,13 @@ use LIMS2::Exception;
 use Log::Log4perl qw( :easy );
 
 sub primer_driver {
+    my %params;
+
+    my $params{$schema} = shift;
+    my $params{$design_id} = shift;
+    my $params{$assembly} = shift;
+
+    my $design_oligos = oligos_for_gibson( \%params );
 
     return;
 }
@@ -49,9 +56,7 @@ The result should be 4 primers.
 =cut
 
 sub oligos_for_gibson {
-    my $schema = shift;
-    my $design_id = shift;
-    my $assembly = shift;
+    my $params = shift;
 
     # outline of process:
     # query the design_oligos table for the design_id and the 5F or 3R primer,
@@ -59,11 +64,11 @@ sub oligos_for_gibson {
     # Construct an input file for EnsEmbl to pull back the sequence for the region
     # call Primer 3 with appropriate options to generate primers.
     # update the genotyping oligos table with the generated oligos.
-    my $gibson_design_oligos_rs = gibson_design_oligos_rs( $schema, $design_id );
+    my $gibson_design_oligos_rs = gibson_design_oligos_rs( $params->{$schema}, $params->{$design_id} );
 
     my %genotyping_primers;
-    update_primer_type( '5F', \%genotyping_primers, $gibson_design_oligos_rs, $assembly);
-    update_primer_type( '3R', \%genotyping_primers, $gibson_design_oligos_rs, $assembly);
+    update_primer_type( '5F', \%genotyping_primers, $gibson_design_oligos_rs, $params->{$assembly});
+    update_primer_type( '3R', \%genotyping_primers, $gibson_design_oligos_rs, $params->{$assembly});
 
     return \%genotyping_primers;
 }
