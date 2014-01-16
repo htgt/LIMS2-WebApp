@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.134';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.145';
 }
 ## use critic
 
@@ -172,7 +172,28 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sB0a32DAqlmFSoESfhBv9Q
 
+sub as_hash {
+    my ( $self ) = @_;
+
+    my %h = (
+        id                 => $self->id,
+        left_crispr_id     => $self->left_crispr_id,
+        right_crispr_id    => $self->right_crispr_id,
+        spacer             => $self->spacer,
+        off_target_summary => $self->off_target_summary,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+# Method to link directly to locus table without having to go via Crispr table
+__PACKAGE__->belongs_to(
+    "right_crispr_locus",
+    "LIMS2::Model::Schema::Result::Crispr",
+    { 'foreign.crispr_id' => 'self.right_crispr' },
+    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
 __PACKAGE__->meta->make_immutable;
 1;

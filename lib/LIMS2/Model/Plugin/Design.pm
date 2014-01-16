@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.134';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.145';
 }
 ## use critic
 
@@ -437,7 +437,7 @@ sub create_design_target {
     my $existing_target = $self->schema->resultset('DesignTarget')->find(
         {
             ensembl_exon_id => $validated_params->{ensembl_exon_id},
-            build_id => $validated_params->{build_id}
+            build_id        => $validated_params->{build_id}
         }
     );
 
@@ -499,6 +499,95 @@ sub _get_gene_chr_start_end_strand {
     my $gene_end    = max( map { $_->seq_region_end   } @ensembl_genes );
 
     return ( $gene_chr[0], $gene_start, $gene_end, $gene_strand[0] );
+}
+
+sub pspec_create_design_attempt {
+    return {
+        design_parameters => { validate => 'json', optional => 1 },
+        gene_id           => { validate => 'non_empty_string' },
+        status            => { validate => 'non_empty_string', optional => 1 },
+        fail              => { validate => 'json', optional => 1 },
+        error             => { validate => 'non_empty_string', optional => 1 },
+        design_ids        => { validate => 'non_empty_string', optional => 1 },
+        species           => { validate => 'existing_species', rename => 'species_id' },
+        created_at        => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
+        created_by        => { validate => 'existing_user', post_filter => 'user_id_for' },
+        comment           => { optional => 1 },
+    }
+}
+
+sub create_design_attempt {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_design_attempt );
+
+    my $design_attempt = $self->schema->resultset( 'DesignAttempt' )->create(
+        {
+            slice_def (
+                $validated_params,
+                qw ( design_parameters gene_id status fail error species_id
+                     design_ids created_at created_by comment
+                   )
+            )
+        }
+    );
+    $self->log->debug( 'Created design attempt ' . $design_attempt->id );
+
+    return $design_attempt;
+}
+
+sub pspec_update_design_attempt {
+    return {
+        id                => { validate => 'integer' },
+        design_parameters => { validate => 'json', optional => 1 },
+        status            => { validate => 'non_empty_string', optional => 1 },
+        fail              => { validate => 'json', optional => 1 },
+        error             => { validate => 'non_empty_string', optional => 1 },
+        design_ids        => { validate => 'non_empty_string', optional => 1 },
+        comment           => { optional => 1 },
+    }
+}
+
+sub update_design_attempt {
+    my ( $self, $params ) = @_;
+
+    my $design_attempt = $self->retrieve_design_attempt( $params );
+    my $validated_params = $self->check_params( $params, $self->pspec_update_design_attempt );
+
+    $design_attempt->update(
+        {   slice_def $validated_params,
+            qw( status fail error design_ids comment design_parameters )
+        }
+    );
+
+    return $design_attempt;
+}
+
+sub pspec_retrieve_design_attempt {
+    return {
+        id      => { validate => 'integer' },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
+    };
+}
+
+sub retrieve_design_attempt {
+    my ( $self, $params ) = @_;
+
+    my $validated_params
+        = $self->check_params( $params, $self->pspec_retrieve_design_attempt, ignore_unknown => 1 );
+
+    return $self->retrieve( DesignAttempt => { slice_def $validated_params, qw( id species_id ) } );
+}
+
+sub delete_design_attempt {
+    my ( $self, $params ) = @_;
+
+    # design_attempt() will validate the parameters
+    my $design_attempt = $self->retrieve_design_attempt($params);
+
+    $design_attempt->delete;
+
+    return 1;
 }
 
 1;

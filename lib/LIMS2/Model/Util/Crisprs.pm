@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.134';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.145';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ LIMS2::Model::Util::Crisprs
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ 'crispr_pick' ]
+    exports => [ 'crispr_pick', 'crisprs_for_design' ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -325,6 +325,55 @@ sub crispr_hits_design {
     }
 
     return;
+}
+
+=head2 crisprs_for_design
+
+Find all crisprs that intersect with a given design
+
+=cut
+sub crisprs_for_design {
+    my ( $model, $design ) = @_;
+
+    my $design_info = LIMS2::Model::Util::DesignInfo->new(
+        design => $design,
+    );
+
+    my $chr_id = $model->_chr_id_for( $design_info->default_assembly, $design_info->chr_name );
+    my @crisprs = $model->schema->resultset('Crispr')->search(
+        {
+            'loci.assembly_id' => $design_info->default_assembly,
+            'loci.chr_id'      => $chr_id,
+            'loci.chr_start'   => { '>' => $design_info->target_region_start },
+            'loci.chr_end'     => { '<' => $design_info->target_region_end },
+        },
+        {
+            join => 'loci',
+        }
+    );
+
+    my ( @left_crispr_ids, @right_crispr_ids );
+    for my $crispr ( @crisprs ) {
+        my $direction = $crispr->pam_right;
+        # if undef crispr does not have a stored direction and is not part of a pair
+        next unless defined $direction;
+        if ( $direction == 1 ) {
+            push @right_crispr_ids, $crispr->id;
+        }
+        elsif ( $direction == 0 ) {
+            push @left_crispr_ids, $crispr->id;
+        }
+
+    }
+
+    my @crispr_pairs = $model->schema->resultset( 'CrisprPair' )->search(
+        {
+            left_crispr_id  => { 'IN' => \@left_crispr_ids },
+            right_crispr_id => { 'IN' => \@right_crispr_ids },
+        }
+    );
+
+    return ( \@crisprs, \@crispr_pairs );
 }
 
 1;

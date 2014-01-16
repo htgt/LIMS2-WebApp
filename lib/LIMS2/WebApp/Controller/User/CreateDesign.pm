@@ -1,25 +1,25 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.134';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.145';
 }
 ## use critic
 
 
 use Moose;
 use namespace::autoclean;
-use Data::UUID;
-use Path::Class;
 use Const::Fast;
-use Try::Tiny;
+use TryCatch;
+use Path::Class;
 
-use LIMS2::Util::FarmJobRunner;
+use LIMS2::Exception::System;
+use LIMS2::Model::Util::CreateDesign;
 
 BEGIN { extends 'Catalyst::Controller' };
 
 #use this default if the env var isnt set.
 const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
-                                    '/lustre/scratch110/sanger/team87/lims2_designs' );
+                                    '/lustre/scratch109/sanger/team87/lims2_designs' );
 const my @DESIGN_TYPES => (
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
             #{ cmd => 'insertion-design', display_name => 'Insertion' },
@@ -77,13 +77,13 @@ sub index : Path( '/user/create_design' ) : Args(0) {
         catch {
             $c->stash( error_msg => "Error submitting Design Creation job: $_" );
             return;
-        };
+        }
     }
 
     return;
 
-    #ins-del-design --design-method deletion --chromosome 11 --strand 1 
-    #--target-start 101176328 --target-end 101176428 --target-gene LBLtest 
+    #ins-del-design --design-method deletion --chromosome 11 --strand 1
+    #--target-start 101176328 --target-end 101176428 --target-gene LBLtest
     #--dir /nfs/users/nfs_a/ah19/new_dc_test --debug"
 }
 
@@ -140,6 +140,161 @@ sub pspec_create_design {
         g3_offset     => { validate => 'integer' },
         create_design => { optional => 0 } #this is the submit button
     };
+}
+
+sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    return;
+}
+
+sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+    my $gene_name = $c->request->param('gene');
+    unless ( $gene_name ) {
+        $c->stash( error_msg => "Please enter a gene name" );
+        return $c->go('gibson_design_gene_pick');
+    }
+
+    $c->log->debug("Pick exon targets for gene $gene_name");
+    try {
+
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+        my ( $gene_data, $exon_data )= $create_design_util->exons_for_gene(
+            $c->request->param('gene'),
+            $c->request->param('show_exons'),
+        );
+
+        $c->stash(
+            exons    => $exon_data,
+            gene     => $gene_data,
+            assembly => $create_design_util->assembly_id,
+        );
+    }
+    catch( LIMS2::Exception $e ) {
+        $c->stash( error_msg => "Problem finding gene: $e" );
+        $c->go('gibson_design_gene_pick');
+    };
+
+    return;
+}
+
+sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    if ( exists $c->request->params->{create_design} ) {
+        $c->log->info('Creating new design');
+
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+
+        my $design_attempt;
+        try {
+            $design_attempt = $create_design_util->create_gibson_design();
+        }
+        catch ($err) {
+            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
+            $c->res->redirect( 'gibson_design_gene_pick' );
+            return;
+        }
+
+        $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+    }
+    elsif ( exists $c->request->params->{exon_pick} ) {
+        my $gene_id = $c->request->param('gene_id');
+        my $exon_id = $c->request->param('exon_id');
+        my $ensembl_gene_id = $c->request->param('ensembl_gene_id');
+        $c->stash(
+            exon_id         => $exon_id,
+            gene_id         => $gene_id,
+            ensembl_gene_id => $ensembl_gene_id,
+        );
+    }
+
+    return;
+}
+
+sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    #TODO add filtering, e.g. by user, status, gene etc
+
+    my @design_attempts = $c->model('Golgi')->schema->resultset('DesignAttempt')->search(
+        {
+            species_id => $c->session->{selected_species},
+        },
+        {
+            order_by => { '-desc' => 'created_at' },
+            rows => 50,
+        }
+    );
+
+    $c->stash (
+        das => [ map { $_->as_hash( { json_as_hash => 1 } ) } @design_attempts ],
+    );
+    return;
+}
+
+sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1) {
+    my ( $self, $c, $design_attempt_id ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    my $design_attempt;
+    try {
+        $design_attempt = $c->model('Golgi')
+            ->retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
+    }
+    catch( LIMS2::Exception::Validation $e ) {
+        $c->stash( error_msg => "Please enter a valid design attempt id" );
+        return $c->go('design_attempts');
+    }
+    catch( LIMS2::Exception::NotFound $e ) {
+        $c->stash( error_msg => "Design Attempt $design_attempt_id not found" );
+        return $c->go('design_attempts');
+    }
+
+    $c->log->debug( "Retrived design_attempt: $design_attempt_id" );
+
+    $c->stash(
+        da      => $design_attempt,
+        species => $species_id,
+    );
+
+    return;
+}
+
+sub view_design_attempt : PathPart('view') Chained('design_attempt') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->stash(
+        da => $c->stash->{da}->as_hash( { pretty_print_json => 1 } ),
+    );
+    return;
+}
+
+sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->stash(
+        id      => $c->stash->{da}->id,
+        status  => $c->stash->{da}->status,
+        gene_id => $c->stash->{da}->gene_id,
+    );
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

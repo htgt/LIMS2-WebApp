@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.134';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.145';
 }
 ## use critic
 
@@ -297,6 +297,12 @@ sub vector_seq {
     my ( $self ) = @_;
 
     return substr( $self->seq, 0, 20 );
+}
+
+sub pairs {
+  my $self = shift;
+
+  return ($self->pam_right) ? $self->crispr_pairs_right_crisprs : $self->crispr_pairs_left_crisprs;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.134';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.145';
 }
 ## use critic
 
@@ -500,6 +500,12 @@ sub delete_qc_run {
     }
     $qc_run->delete_related('qc_alignments');
 
+    #delete any alignments (and subsequent regions) linked to this qc run.
+    for my $alignment ( $qc_run->search_related('qc_alignments') ) {
+        $alignment->delete_related('qc_alignment_regions');
+    }
+    $qc_run->delete_related('qc_alignments');
+
     $qc_run->delete_related('qc_run_seq_projects');
 
     foreach my $well ($qc_run->search_related('qc_run_seq_wells')){
@@ -907,7 +913,6 @@ sub create_plate_from_qc{
                 $validated_params->{plate_type},
                 $source_well->plate->type_id,
             );
-
 
             push @new_wells, \%well_params;
         }

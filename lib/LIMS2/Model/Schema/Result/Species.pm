@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Species;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Species::VERSION = '0.134';
+    $LIMS2::Model::Schema::Result::Species::VERSION = '0.145';
 }
 ## use critic
 
@@ -142,6 +142,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 design_attempts
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignAttempt>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_attempts",
+  "LIMS2::Model::Schema::Result::DesignAttempt",
+  { "foreign.species_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 design_targets
 
 Type: has_many
@@ -233,8 +248,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vw5dmQb+hFNaB/CAizaavA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-11 08:18:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kokbhAgKQ38WGTtZHT/rzQ
 
 sub check_assembly_belongs {
     my ( $self, $assembly ) = @_;

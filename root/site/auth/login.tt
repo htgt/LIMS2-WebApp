@@ -4,6 +4,7 @@
     <fieldset>
       <legend>Login</legend>
       <input name="goto_on_success" type="hidden" value="[% goto_on_success %]" />
+      <input name="htgtsession" type="hidden" value="[% htgtsession %]" />
       <input name="username" id="username_field" type="text" placeholder="Username" value="[% c.req.param('username') %]"/>
       <input name="password" id="password_field" type="password" placeholder="Password" />
       <input class="btn btn-primary" name="login" id="login_button" type="submit" value="Login" />
