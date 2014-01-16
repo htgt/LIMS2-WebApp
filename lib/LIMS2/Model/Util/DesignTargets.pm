@@ -259,9 +259,6 @@ sub crisprs_for_design_target {
     return \@crisprs;
 }
 
-
-
-
 =head2 bulk_crisprs_for_design_targets
 
 Using the custom DesignTargetCrisprs view find all the crisprs for a set of
@@ -862,6 +859,5 @@ sub get_design_targets_data {
 
     return @dt;
 }
-
 
 1;
