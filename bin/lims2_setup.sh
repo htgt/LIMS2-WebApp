@@ -15,6 +15,15 @@ case $1 in
     setdb)
         lims2_setdb $2
         ;;
+    local)
+        lims2_local_db
+        ;;
+    test)
+        lims2_test_db
+        ;;
+    replicate)
+        lims2_replicate $2
+        ;;
     *) 
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -62,6 +71,36 @@ function lims2_webapp_debug {
 function lims2_setdb {
     export LIMS2_DB=$1
     printf "$L2I_STRING: database is now $LIMS2_DB\n"
+}
+
+function lims2_replicate {
+    case $1 in
+        test)
+            lims2_load_test
+            ;;
+        local)
+            lims2_load_local
+            ;;
+        *)
+            printf "Don't know how to replicate $1\n";
+            ;; 
+    esac
+}
+
+function lims2_load_test {
+    printf "lims2_load_test should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_load_local {
+    printf "lims2_load_local should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_local_db {
+    printf "lims2_local_db should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_test_db {
+    printf "lims2_test_db should be implemented in ~/.lims2_local\n"
 }
 
 function lims2_show {
