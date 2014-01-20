@@ -19,14 +19,17 @@ LIMS2/t/Model/Util/OligoSelection.pm - test class for LIMS2::Model::Util::OligoS
 
 =cut
 
-sub a_test_oligos_for_gibson : Test(7) {
+sub a_test_oligos_for_gibson : Test(8) {
 $DB::single=1;
     my $design_id = '1002582';
+    my $assembly = 'GRCm38';
 
     ok my $gibson_rs =  LIMS2::Model::Util::OligoSelection::gibson_design_oligos_rs( model->schema, $design_id), 'Created resultset';
     is $gibson_rs->first->design_id, $design_id, 'can retrieve resultset for design_id ' . $design_id;
 
-    ok my $genotyping_primer_hr = LIMS2::Model::Util::OligoSelection::oligos_for_gibson( model->schema, $design_id), 'Generated oligo locations';
+    ok my $genotyping_primer_hr = LIMS2::Model::Util::OligoSelection::oligos_for_gibson(
+        { schema => model->schema, design_id => $design_id, assembly => $assembly }
+    ), 'Generated oligo locations';
     is $genotyping_primer_hr->{'5F'}->{'chr_start'}, 141011760, '5F chromosome start co-ordinate correct';
     is $genotyping_primer_hr->{'3R'}->{'chr_start'}, 141008069, '3R chromosome start co-ordinate correct';
 
@@ -34,102 +37,11 @@ $DB::single=1;
     my %gps;
     #dies_ok { LIMS2::Model::Util::OligoSelection::update_primer_type( '3T', \%gps, $gibson_design_oligos_rs) } 'Searching for primer 3T fails';
     throws_ok { LIMS2::Model::Util::OligoSelection::update_primer_type( '3T', \%gps, $gibson_design_oligos_rs) } qr/No data returned/, 'Searching for primer 3T fails';
+
+    ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence({ schema => model->schema, design_id => $design_id }), 'Sequences generated for forward and reverse strands';
 }
 
-=head
-sub b_test_browser_crisprs_for_region : Test(13) {
-    my %params = (
-        'assembly_id'       => 'GRCm38',
-        'chromosome_number' => '7',
-        'start_coord'       => '141000000',
-        'end_coord'         => '150000000',
-        'species'           => 'Mouse',
-    );
-    ok my $crispr_rs = crisprs_for_region( model->schema, \%params ), 'can retrieve individual crispr resultset for region';
-    ok my $test_crispr = $crispr_rs->first, 'can get a crispr locus record';
-    ok $crispr_rs = crisprs_for_region( model->schema, \%params ), 'can re-run database query';
-
-    is $test_crispr->crispr_id, 69848, 'crispr_id is correct';
-    is $test_crispr->assembly_id, 'GRCm38', 'assembly_id is correct';
-    is $test_crispr->chr_id, 3178, 'chr_id is correct';
-    is $test_crispr->chr_start, '141009904', 'chr_start is correct';
-    is $test_crispr->chr_end, '141009926', 'chr_end is correct';
-    is $test_crispr->chr_strand, '1', 'chr_strand is correct';
-
-    ok my $test_gff_crisprs =  crisprs_to_gff( $crispr_rs, \%params ), 'converted and returned gff3 format single crispr data';
-    is ref $test_gff_crisprs, 'ARRAY', 'result is an array reference';
-    is scalar @$test_gff_crisprs, 11, 'Array has the correct number of elements';
-    is $test_gff_crisprs->[4],
-    "7\tLIMS2\tCDS\t141009904\t141009926\t.\t+\t.\tID=69848;Parent=C_69848;Name=LIMS2-69848;color=#45A825",
-    'Element 5 is in the correct format';
-}
-
-sub c_test_browser_crispr_pairs_for_region : Test(17) {
-    my %params = (
-        'assembly_id'       => 'GRCm38',
-        'chromosome_number' => '7',
-        'start_coord'       => '141000000',
-        'end_coord'         => '142000000',
-        'species'           => 'Mouse',
-    );
-    
-    ok my $crispr_pairs_rs = crispr_pairs_for_region( model->schema, \%params ), 'can retrieve crispr pairs for chromosome region';
-    ok my $test_crispr_pair = $crispr_pairs_rs->first, 'can get a crispr pair record';
-    ok $crispr_pairs_rs = crispr_pairs_for_region( model->schema, \%params ), 'can re-run database query';
-    is $test_crispr_pair->pair_id , 4423 , 'crispr_pair_id is correct';
-    is $test_crispr_pair->left_crispr_id, 69871, 'left_crispr_id is correct';
-    is $test_crispr_pair->right_crispr_id, 69848, 'right_crispr_id is correct';
-    is $test_crispr_pair->left_crispr_seq, 'CCACCATCTTCCGATCCCTAGAC', 'left_crispr_seq is correct';
-    is $test_crispr_pair->right_crispr_seq, 'ATAGACACGGTCAGTGGCCCTGG', 'right_crispr_seq is correct';
-    is $test_crispr_pair->left_crispr_start, '141009868', 'left_crispr_start is correct';
-    is $test_crispr_pair->right_crispr_start, '141009904', 'right_crispr_start is correct';
-    is $test_crispr_pair->left_crispr_end, '141009890', 'left_crispr_end is correct';
-    is $test_crispr_pair->right_crispr_end, '141009926', 'right_crispr_end is correct';
-
-    ok my $test_gff_crisprs =  crispr_pairs_to_gff( $crispr_pairs_rs, \%params ), 'converted and returned gff3 format paired crispr data';
-    is ref $test_gff_crisprs, 'ARRAY', 'result is an array reference';
-    is scalar @$test_gff_crisprs, 6, 'Array has the correct number of elements';
-    is $test_gff_crisprs->[3],
-    "7\tLIMS2\tcrispr_pair\t141009868\t141009926\t.\t+\t.\tID=4423;Name=LIMS2-4423",
-    'Parent element [3] is in the correct format';
-    is $test_gff_crisprs->[4],
-    "7\tLIMS2\tCDS\t141009868\t141009890\t.\t+\t.\tID=69871;Parent=4423;Name=LIMS2-69871;color=#AA2424",
-    'Child element [4] is in the correct format';
-}
-
-sub d_test_gibson_designs_for_region : Test(17) {
-    my %params = (
-        'assembly_id'       => 'GRCm38',
-        'chromosome_number' => '7',
-        'start_coord'       => '141009355',
-        'end_coord'         => '141010224',
-        'species'           => 'Mouse',
-    );
-        
-    ok my $gibson_design_rs = gibson_designs_for_region( model->schema, \%params ), 'can retrieve gibson design resultset for region';
-    ok my $test_gibson = $gibson_design_rs->first, 'can get a gibson design record';
-    is $test_gibson->design_id, '1002582', 'design_id is correct';
-    is $test_gibson->assembly_id, 'GRCm38', 'gibson assembly_id is correct';
-    is $test_gibson->chr_start, '141008069', 'gibson chr_start is correct';
-    is $test_gibson->chr_end, '141008093', 'gibson chr_end is correct';
-    is $test_gibson->chr_id, '3178', 'gibson chr_id is correct';
-    is $test_gibson->chr_strand, '-1', 'gibson chr_strand is correct';
-    is $test_gibson->design_id, '1002582', 'gibson design_id is correct';
-    is $test_gibson->oligo_type_id, '3R', 'gibson oligo_type_id is correct';
-    is $test_gibson->design_type_id, 'gibson', 'gibson design_type_id is correct';
-
-    ok $gibson_design_rs = gibson_designs_for_region( model->schema, \%params ), 'Can re-run gibson design database query';
-    ok my $test_gff_gibsons =  design_oligos_to_gff( $gibson_design_rs, \%params ), 'converted and returned gff3 format gibson design oligo data';
-    is ref $test_gff_gibsons, 'ARRAY', 'result is an array reference';
-    is scalar @$test_gff_gibsons, 10, 'Array has the correct number of elements';
-    is $test_gff_gibsons->[3],
-    "7\tLIMS2\tGibson\t141008069\t141011784\t.\t-\t.\tID=D_1002582;Name=D_1002582",
-    'Parent element [3] is in the correct format';
-    is $test_gff_gibsons->[4],
-    "7\tLIMS2\tCDS\t141011760\t141011784\t.\t-\t.\tID=5F;Parent=D_1002582;Name=5F;color=#68D310",
-    'Child Element [4] is in the correct format';
-}
-=cut
+cut
 ## use critic
 
 1;

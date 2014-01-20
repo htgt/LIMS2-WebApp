@@ -24,15 +24,37 @@ use Sub::Exporter -setup => {
 use LIMS2::Exception;
 
 use Log::Log4perl qw( :easy );
+use Bio::Tools::Run::Primer3Redux;
+use Bio::SeqIO;
+
+sub pick_genotyping_primers {
+    my $design_id = shift;
+
+    my %seqs = get_EnsEmbl_sequence( $design_id );
+
+    my $primer3 = Bio::Tools::Run::Primer3Redux->new( -output => 'temp.out',
+        -path => 'path_to_primer_3');
+
+    # add targets and parameters
+    #
+    my $pcr_primers_forward = $primer3->pick_pcr_primers( $seqs->{'Forward'} );
+
+    my $pcr_primers_reverse = $primer3->pick_pcr_primers( $seqs->{'Reverse'} );
+
+
+    return;
+}
 
 sub primer_driver {
     my %params;
 
-    my $params{$schema} = shift;
-    my $params{$design_id} = shift;
-    my $params{$assembly} = shift;
+    $params{'schema'} = shift;
+    $params{'design_id'} = shift;
+    $params{'assembly'} = shift;
 
     my $design_oligos = oligos_for_gibson( \%params );
+
+
 
     return;
 }
@@ -64,22 +86,74 @@ sub oligos_for_gibson {
     # Construct an input file for EnsEmbl to pull back the sequence for the region
     # call Primer 3 with appropriate options to generate primers.
     # update the genotyping oligos table with the generated oligos.
-    my $gibson_design_oligos_rs = gibson_design_oligos_rs( $params->{$schema}, $params->{$design_id} );
-
+    my $gibson_design_oligos_rs = gibson_design_oligos_rs( $params->{'schema'}, $params->{'design_id'} );
     my %genotyping_primers;
-    update_primer_type( '5F', \%genotyping_primers, $gibson_design_oligos_rs, $params->{$assembly});
-    update_primer_type( '3R', \%genotyping_primers, $gibson_design_oligos_rs, $params->{$assembly});
+    update_primer_type( '5F', \%genotyping_primers, $gibson_design_oligos_rs, $params->{'assembly'});
+    update_primer_type( '3R', \%genotyping_primers, $gibson_design_oligos_rs, $params->{'assembly'});
 
     return \%genotyping_primers;
 }
 
 
 =head2 
+Given - design_id
+
+Returns - hashref of two sequences to find primers in.
 
 =cut
 
 sub get_EnsEmbl_sequence {
+    my $params = shift;
 
+$DB::single=1;
+    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'}); 
+    my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
+    my $design_oligos = $design_info->oligos;
+
+    my $chr_strand = $design_info->chr_strand == 1 ? 'plus' : 'minus';
+    my $slice_5R;
+    my $slice_3F;
+    my %seqs;
+
+    if ( $chr_strand eq 'plus' ) {
+        $slice_5R = $design_info->slice_adaptor->fetch_by_region(
+            'chromosome',
+            $design_info->chr_name,
+            $design_oligos->{'5R'}->{'start'} - 1001,
+            $design_oligos->{'5R'}->{'start'} - 1,
+            $design_info->chr_strand,
+        );
+        $slice_3F = $design_info->slice_adaptor->fetch_by_region(
+            'chromosome',
+            $design_info->chr_name,
+            $design_oligos->{'3F'}->{'start'} + 1,
+            $design_oligos->{'3F'}->{'start'} + 1001,
+            $design_info->chr_strand,
+        );
+        $seqs{'Forward'} = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_5R->seq, -verbose => -1 );
+        $seqs{'Reverse'} = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_3F->seq, -verbose => -1 )->revcom;
+    }
+    elsif ( $chr_strand eq 'minus' ) {
+        $slice_5R = $design_info->slice_adaptor->fetch_by_region(
+            'chromosome',
+            $design_info->chr_name,
+            $design_oligos->{'3F'}->{'start'} - 1001,
+            $design_oligos->{'3F'}->{'start'} - 1,
+            $design_info->chr_strand,
+        );
+        $slice_3F = $design_info->slice_adaptor->fetch_by_region(
+            'chromosome',
+            $design_info->chr_name,
+            $design_oligos->{'5R'}->{'start'} + 1,
+            $design_oligos->{'5R'}->{'start'} + 1001,
+            $design_info->chr_strand,
+        );
+        $seqs{'Reverse'} = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_5R->seq, -verbose => -1 )->revcom;
+        $seqs{'Forward'} = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_3F->seq, -verbose => -1 );
+    }
+
+
+    return \%seqs ;
 
 }
 
