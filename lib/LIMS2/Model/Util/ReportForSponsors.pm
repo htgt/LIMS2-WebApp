@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.144';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.146';
 }
 ## use critic
 
@@ -16,6 +16,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 
+use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
@@ -749,9 +750,10 @@ SQL_END
             };
 
             my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
+            my $design_count = sum map { $_->{ 'designs' } } @{$designs};
 
             # push the data for the report
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $#{ $designs },
+            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $design_count,
             'gibson_plated' => scalar @design, 'vector_total' => scalar @final_pick, 'vector_pass' => $vector_pass, 'eps' => scalar @ep, 'targeted' => scalar @ep_pick,  'targeted_accepted' => $ep_pick_pass };
         } else {
             push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol};

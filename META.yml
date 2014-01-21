@@ -49,7 +49,6 @@ requires:
   Data::Compare: 0
   Data::Dump: 0
   Data::Dumper: 0
-  Data::FormValidator: 0
   Data::Pageset: 0
   Data::Printer: 0
   Data::UUID: 0
@@ -126,6 +125,8 @@ requires:
   URI: 0
   URI::QueryParam: 0
   WebAppCommon::Design::CreateInterface: 0
+  WebAppCommon::FormValidator: 0
+  WebAppCommon::FormValidator::Constraint: 0
   WebAppCommon::Util::EnsEMBL: 0
   YAML::Any: 0
   base: 0
@@ -135,4 +136,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.144
+version: 0.146

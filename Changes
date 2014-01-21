@@ -1,3 +1,11 @@
+0.146     2014-01-21 07:50:27 Europe/London
+
+    Factor out FormValidator code into WebAppCommon
+
+0.145     2014-01-16 09:59:41 Europe/London
+
+    Fixed gibson design count in sponsor gene report
+
 0.144     2014-01-15 13:16:48 Europe/London
 
     Corrected genotyping QC upload to update_or_create primer bands
