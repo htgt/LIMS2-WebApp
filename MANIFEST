@@ -2239,6 +2239,8 @@ root/static/test/data/well_848.yaml
 root/static/test/data/well_850_user_params.yaml
 root/static/test/data/xep_pool_process.yaml
 root/static/test/fixtures/00-clean-db.sql
+root/static/test/fixtures/LIMS2/t/Model/FormValidator/Constraint/Plate.csv
+root/static/test/fixtures/LIMS2/t/Model/FormValidator/Constraint/User.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/BacClone.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/Crispr.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/CrisprLocus.csv

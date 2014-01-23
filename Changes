@@ -1,3 +1,11 @@
+0.147     2014-01-23 16:37:36 Europe/London
+
+    Added crispr pairs count to the gsponsor gene report and extended the report to support mouse
+
+0.146     2014-01-21 07:50:27 Europe/London
+
+    Factor out FormValidator code into WebAppCommon
+
 0.145     2014-01-16 09:59:41 Europe/London
 
     Fixed gibson design count in sponsor gene report
