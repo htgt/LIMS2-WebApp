@@ -9,6 +9,7 @@ use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
 use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
@@ -387,8 +388,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol' ],
-            'display_columns'       => [ 'gene id', 'gene symbol' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones', 'targeted clones accepted' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -412,11 +413,6 @@ sub generate_sub_report {
         },
     };
 
-    # For Human genes, show extra info such as Gibson designs
-    if ($self->species eq 'Human') {
-        $st_rpt_flds->{'Targeted Genes'}->{'columns'} = [ 'gene_id', 'gene_symbol', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ];
-        $st_rpt_flds->{'Targeted Genes'}->{'display_columns'} = [ 'gene id', 'gene symbol', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones', 'targeted clones accepted' ];
-    }
     # for double-targeted projects
     my $dt_rpt_flds = {
         'Targeted Genes'            => {
@@ -680,7 +676,23 @@ sub genes {
         unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
 
         # for human genes, give a more complete report with gibson design, vector and ep counts
-        if ($self->species eq 'Human' && $gene_symbol ne 'unknown') {
+        # if ($self->species eq 'Human' && $gene_symbol ne 'unknown') {
+        if ($gene_symbol ne 'unknown') {
+
+            # get the gibson design count
+            my $report_params = {
+                type => 'simple',
+                off_target_algorithm => 'bwa',
+                crispr_types => 'pair'
+            };
+
+            my $build = $DEFAULT_SPECIES_BUILD{ lc($self->species) };
+            my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, $self->species, $build, $report_params );
+
+            my $design_count = sum map { $_->{ 'designs' } } @{$designs};
+            if (!defined $design_count) {$design_count = 0};
+            my $crispr_pairs_count = sum map { $_->{ 'crispr_pairs' } } @{$designs};
+            if (!defined $crispr_pairs_count) {$crispr_pairs_count = 0};
 
             # get the plates
             my $sql =  <<"SQL_END";
@@ -688,7 +700,7 @@ SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN,
 concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
 concat(ep_plate_name, '_', ep_well_name) AS EP, 
 concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
-FROM summaries where design_gene_id = '$gene_id';
+FROM summaries where design_gene_id = '$gene_id' AND design_type = 'gibson';
 SQL_END
 
             my $results = $self->run_select_query( $sql );
@@ -736,21 +748,9 @@ SQL_END
             @ep = uniq @ep;
             @ep_pick = uniq @ep_pick;
 
-            # get the gibson design count
-            my $report_params = {
-                type => 'simple',
-                off_target_algorithm => 'bwa',
-                crispr_types => 'pair'
-            };
-
-            my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
-            my $design_count = sum map { $_->{ 'designs' } } @{$designs};
-
             # push the data for the report
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $design_count,
+            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'crispr_pairs' => $crispr_pairs_count, 'gibson_design' => $design_count,
             'gibson_plated' => scalar @design, 'vector_total' => scalar @final_pick, 'vector_pass' => $vector_pass, 'eps' => scalar @ep, 'targeted' => scalar @ep_pick,  'targeted_accepted' => $ep_pick_pass };
-        } else {
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol};
         }
 
     }
