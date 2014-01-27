@@ -229,7 +229,7 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
 
     my $exon_coords = $exon_coords_rs->single;
     $c->stash(
-        'crispr_style'  => $c->request->params->{'crispr_style'},
+        # 'crispr_style'  => $c->request->params->{'crispr_style'},
         'genome'        => $c->request->params->{'genome'},
         'chromosome'    => $c->request->params->{'chromosome'},
         'gene_symbol'   => $c->request->params->{'symbol'},
@@ -237,7 +237,8 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
         'exon_id'       => $c->request->params->{'exon_id'},
         'exon_start'    => $exon_coords->chr_start,
         'exon_end'      => $exon_coords->chr_end,
-        'hide'          => $c->request->params->{'hide'},
+        'view_single'   => $c->request->params->{'view_single'},
+        'view_paired'   => $c->request->params->{'view_paired'},
     );
 
     return;

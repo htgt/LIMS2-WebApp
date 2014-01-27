@@ -49,8 +49,9 @@
                   symbol => datum.marker_symbol,
                   gene_id => datum.gene_id,
                   exon_id => datum.ensembl_exon_id,
-                  crispr_style => "single",
-                  hide => "0" }
+                  #crispr_style => "single",
+                  view_single => 1,
+                  view_paired => 0 }
                   )
                   %]" target="_blank" class="btn btn-mini">[% datum.ensembl_exon_id %]</a> </p>
             <p> Chromosome: <span class="label"> [% datum.chromosome %] </span> </p>
