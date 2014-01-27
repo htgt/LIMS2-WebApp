@@ -5,8 +5,43 @@
   chr: [%- chromosome -%]
   assembly: [%- genome -%]</small>
   </h1>
-  <h4>Displaying: Gibson designs and [% crispr_style == 'single' ? 'single' : 'paired' %] crisprs</h4>
 </div>
+
+<div>
+  [% IF hide == 1 %]
+    <p style="font-size:25px">
+      <b>Displaying: Gibson designs</b>
+            <a href="[% c.uri_for( '/user/genoverse_browse',
+                { genome => genome,
+                  chromosome => chromosome,
+                  symbol => gene_symbol,
+                  gene_id => gene_id,
+                  exon_id => exon_id,
+                  crispr_style => crispr_style,
+                  hide => 0}
+                  )
+                  %]" class="btn btn-info" align="right">
+        Show [% crispr_style == 'single' ? 'single' : 'paired' %] crisprs</a>
+    </p>
+  [% ELSE %]
+    <p style="font-size:25px">
+      <b>Displaying: Gibson designs and [% crispr_style == 'single' ? 'single' : 'paired' %] crisprs</b>
+            <a href="[% c.uri_for( '/user/genoverse_browse',
+                { genome => genome,
+                  chromosome => chromosome,
+                  symbol => gene_symbol,
+                  gene_id => gene_id,
+                  exon_id => exon_id,
+                  crispr_style => crispr_style,
+                  hide => 1}
+                  )
+                  %]" class="btn btn-info" align="right">
+        Hide [% crispr_style == 'single' ? 'single' : 'paired' %] crisprs</a>
+    </p>
+  [% END %]
+</div>
+
+
 
     <script type="text/javascript" src="http://genoverse.org/js/genoverse.combined.js">
        {
@@ -36,6 +71,7 @@
             resizable : 'auto',
             height    : 150
           }),
+[% IF hide == 0 %]
 [% IF crispr_style == 'single' %]
           Genoverse.Track.extend({
             name      : 'Crisprs',
@@ -54,6 +90,7 @@
             resizable : 'auto',
             height    : 150
           }),
+[% END %]
 [% END %]
           Genoverse.Track.extend({
             name   : 'Genes',

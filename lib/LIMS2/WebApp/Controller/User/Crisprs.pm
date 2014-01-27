@@ -237,6 +237,7 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
         'exon_id'       => $c->request->params->{'exon_id'},
         'exon_start'    => $exon_coords->chr_start,
         'exon_end'      => $exon_coords->chr_end,
+        'hide'          => $c->request->params->{'hide'},
     );
 
     return;
