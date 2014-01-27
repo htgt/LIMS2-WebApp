@@ -53,7 +53,6 @@
                   symbol => datum.marker_symbol,
                   gene_id => datum.gene_id,
                   exon_id => datum.ensembl_exon_id,
-                  #crispr_style => "pairs",
                   view_single => 0,
                   view_paired => 1 }
                   )
