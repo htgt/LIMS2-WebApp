@@ -384,6 +384,60 @@ sub update_crispr_off_target_summary {
     return $summary;
 }
 
+sub pspec_update_crispr_pair_off_target_summary{
+    return {
+         l_id               => { validate => 'integer' },
+         r_id               => { validate => 'integer' },
+         algorithm          => { validate => 'non_empty_string' },
+         off_target_summary => { validate => 'non_empty_string' },
+    };
+}
+
+sub update_crispr_pair_off_target_summary{
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_pair_off_target_summary);
+
+    my $pair =  $self->schema->resultset("CrisprPair")->find(
+                                { 
+                                    left_crispr_id => $validated_params->{l_id}, 
+                                    right_crispr_id => $validated_params->{r_id},
+                                }
+                            );
+
+    $pair->update( { off_target_summary => $validated_params->{off_target_summary} } );
+    return $pair;
+}
+
+sub pspec_update_or_create_crispr_pair{
+    # FIXME: spacer should be signed int - need to add this to form validator
+    return {
+        l_id               => { validate => 'integer' },
+        r_id               => { validate => 'integer' },
+        spacer             => { validate => 'non_empty_string' },
+        off_target_summary => { validate => 'non_empty_string', optional => 1 },
+    };
+}
+
+sub update_or_create_crispr_pair{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_or_create_crispr_pair );
+
+    my $pair = $self->schema->resultset("CrisprPair")->update_or_create( 
+                {
+                    left_crispr_id     => $validated_params->{l_id},
+                    right_crispr_id    => $validated_params->{r_id},
+                    spacer             => $validated_params->{spacer},
+                    off_target_summary => $validated_params->{off_target_summary},
+                },
+                { key => "unique_pair" } 
+            );
+
+    return $pair;
+}
+
+
 1;
 
 __END__

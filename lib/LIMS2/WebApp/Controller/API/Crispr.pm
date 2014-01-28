@@ -57,4 +57,51 @@ sub crispr_off_target_summary_POST{
     return $self->status_ok( $c, entity => $summary );
 }
 
+sub crispr_pair_off_target_summary : Path( '/api/crispr_pair_off_target_summary' ) : Args(0) : ActionClass( 'REST' ){
+}
+
+sub crispr_pair_off_target_summary_POST{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $pair = $c->model('Golgi')->txn_do(
+        sub{
+            shift->update_crispr_pair_off_target_summary( $c->request->data );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $pair );
+}
+
+sub crispr_pair : Path( '/api/crispr_pair' ) : Args(0) : ActionClass('REST'){
+}
+
+sub crispr_pair_GET{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $pair = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_crispr_pair( { id => $c->request->param( 'id' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $pair );      
+}
+
+sub crispr_pair_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $pair = $c->model('Golgi')->txn_do(
+        sub{
+            shift->update_or_create_crispr_pair( $c->request->data );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $pair );
+}
 1;
