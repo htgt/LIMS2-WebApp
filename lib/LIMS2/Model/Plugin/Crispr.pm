@@ -359,6 +359,31 @@ sub retrieve_crispr_pair {
     return $crispr_pair;
 }
 
+sub pspec_update_crispr_off_target_summary{
+    return {
+         id                 => { validate => 'integer' },
+         algorithm          => { validate => 'non_empty_string' },
+         off_target_summary => { validate => 'non_empty_string' },
+    };
+}
+
+sub update_crispr_off_target_summary {
+    my ( $self, $params ) = @_;
+
+    my $validated_params  =$self->check_params( $params, $self->pspec_update_crispr_off_target_summary );
+    
+    my $crispr = $self->retrieve_crispr({ id => $validated_params->{id} });
+
+    $self->log->debug("Updating crsipr " . $crispr->id . " with " 
+                        . $validated_params->{off_target_summary} . "\n");
+
+    my $summary = $crispr->off_target_summaries->find( { algorithm => $validated_params->{algorithm} } );
+    
+    $summary->update( { summary => $validated_params->{off_target_summary} } );
+
+    return $summary;
+}
+
 1;
 
 __END__

@@ -1,0 +1,60 @@
+package LIMS2::WebApp::Controller::API::Crispr;
+use Moose;
+use Hash::MoreUtils qw( slice_def );
+use namespace::autoclean;
+
+BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+
+sub single_crispr : Path( '/api/single_crispr' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub single_crispr_GET{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $crispr = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_crispr( { id => $c->request->param( 'id' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $crispr );    
+}
+
+sub single_crispr_POST{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $crispr = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->create_crispr( $c->request->data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/single_crispr', { id => $crispr->id } ),
+        entity   => $crispr
+    );
+}
+
+sub crispr_off_target_summary : Path( '/api/crispr_off_target_summary' ) : Args(0) : ActionClass( 'REST') {
+}
+
+sub crispr_off_target_summary_POST{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $summary = $c->model( 'Golgi' )->txn_do(
+        sub{
+            shift->update_crispr_off_target_summary( $c->request->data );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $summary );
+}
+
+1;
