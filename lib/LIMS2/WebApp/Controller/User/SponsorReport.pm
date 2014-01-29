@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::SponsorReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::SponsorReport::VERSION = '0.146';
+    $LIMS2::WebApp::Controller::User::SponsorReport::VERSION = '0.147';
 }
 ## use critic
 
@@ -35,8 +35,12 @@ sub index :Path( '/user/sponsor_report' ) {
         $self->_generate_front_page_report ( $c, $targeting_type );
     }
     else {
-        # by default show the double-targeted page
-        $self->_generate_front_page_report ( $c, 'double_targeted' );
+        # by default show the double-targeted page for mouse
+        if ($c->session->{selected_species} eq 'Human') {
+            $self->_generate_front_page_report ( $c, 'single_targeted' );
+        } else {
+            $self->_generate_front_page_report ( $c, 'double_targeted' );
+        }
     }
 
     return;

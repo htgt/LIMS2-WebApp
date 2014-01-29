@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.146';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.147';
 }
 ## use critic
 
@@ -15,6 +15,7 @@ use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
 use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
@@ -393,8 +394,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol' ],
-            'display_columns'       => [ 'gene id', 'gene symbol' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones', 'targeted clones accepted' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -418,11 +419,6 @@ sub generate_sub_report {
         },
     };
 
-    # For Human genes, show extra info such as Gibson designs
-    if ($self->species eq 'Human') {
-        $st_rpt_flds->{'Targeted Genes'}->{'columns'} = [ 'gene_id', 'gene_symbol', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ];
-        $st_rpt_flds->{'Targeted Genes'}->{'display_columns'} = [ 'gene id', 'gene symbol', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones', 'targeted clones accepted' ];
-    }
     # for double-targeted projects
     my $dt_rpt_flds = {
         'Targeted Genes'            => {
@@ -659,7 +655,8 @@ sub genes {
     foreach my $gene_row ( @$sql_results ) {
         my $gene_id = $gene_row->{ 'gene_id' };
 
-        my $gene_symbol;
+        my $gene_symbol = '';
+        # get the gene name, the good way. TODO for human genes
         try {
             $gene_symbol = $self->model->retrieve_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{ 'gene_symbol' };
         }
@@ -667,6 +664,7 @@ sub genes {
             INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
         };
 
+        # alternative way to get gene names..
         if ( !defined $gene_symbol || $gene_symbol eq '' ) {
             try {
                 my $gene_design_row = $self->model->schema->resultset('DesignTarget')->search({
@@ -683,82 +681,91 @@ sub genes {
             };
         }
 
+        # if no gene name was found, set as unknown
         unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
 
-        # for human genes, give a more complete report with gibson design, vector and ep counts
-        if ($self->species eq 'Human' && $gene_symbol ne 'unknown') {
+        # get the gibson design count
+        my $report_params = {
+            type => 'simple',
+            off_target_algorithm => 'bwa',
+            crispr_types => 'pair'
+        };
 
-            # get the plates
-            my $sql =  <<"SQL_END";
+        my $build = $DEFAULT_SPECIES_BUILD{ lc($self->species) };
+        my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, $self->species, $build, $report_params );
+
+        my $design_count = sum map { $_->{ 'designs' } } @{$designs};
+        if (!defined $design_count) {$design_count = 0};
+        my $crispr_pairs_count = sum map { $_->{ 'crispr_pairs' } } @{$designs};
+        if (!defined $crispr_pairs_count) {$crispr_pairs_count = 0};
+
+        # get the plates
+        my $sql =  <<"SQL_END";
 SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN, 
 concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
 concat(ep_plate_name, '_', ep_well_name) AS EP, 
 concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
-FROM summaries where design_gene_id = '$gene_id';
+FROM summaries where design_gene_id = '$gene_id' AND design_type = 'gibson';
 SQL_END
 
-            my $results = $self->run_select_query( $sql );
+        my $results = $self->run_select_query( $sql );
 
-            # get the plates into arrays
-            my (@design, @final_pick_info, @final_pick, @ep, @ep_pick_info, @ep_pick);
-            foreach my $row (@$results) {
-                push (@design, $row->{design}) unless ($row->{design} eq '_');
-                push (@final_pick_info, $row->{final_pick}) unless ($row->{final_pick} eq '_');
-                push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
-                push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
-            }
-
-            # check for vector passes and count them
-            @final_pick_info = uniq @final_pick_info;
-            my ($vector_plate, $vector_string);
-            my $vector_pass = 0;
-            foreach my $vector (@final_pick_info) {
-                if ( $vector =~ m/(.*?)([^\d]*)$/ ) {
-                    ($vector_plate, $vector_string) = ($1, $2);
-                }
-                push (@final_pick, $vector_plate);
-                if ($vector_string eq 'tt') {
-                    $vector_pass++;
-                }
-            }
-
-            # check for targeted clone passes and count them
-            @ep_pick_info = uniq @ep_pick_info;
-            my ($ep_pick_plate, $ep_pick_string);
-            my $ep_pick_pass = 0;
-            foreach my $ep_pick (@ep_pick_info) {
-                if ( $ep_pick =~ m/(.*?)([^\d]*)$/ ) {
-                    ($ep_pick_plate, $ep_pick_string) = ($1, $2);
-                }
-                push (@ep_pick, $ep_pick_plate);
-                if ($ep_pick_string eq 't') {
-                    $ep_pick_pass++;
-                }
-            }
-
-            # remove all duplicates
-            @design = uniq @design;
-            @final_pick = uniq @final_pick;
-            @ep = uniq @ep;
-            @ep_pick = uniq @ep_pick;
-
-            # get the gibson design count
-            my $report_params = {
-                type => 'simple',
-                off_target_algorithm => 'bwa',
-                crispr_types => 'pair'
-            };
-
-            my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
-            my $design_count = sum map { $_->{ 'designs' } } @{$designs};
-
-            # push the data for the report
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $design_count,
-            'gibson_plated' => scalar @design, 'vector_total' => scalar @final_pick, 'vector_pass' => $vector_pass, 'eps' => scalar @ep, 'targeted' => scalar @ep_pick,  'targeted_accepted' => $ep_pick_pass };
-        } else {
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol};
+        # get the plates into arrays
+        my (@design, @final_pick_info, @final_pick, @ep, @ep_pick_info, @ep_pick);
+        foreach my $row (@$results) {
+            push (@design, $row->{design}) unless ($row->{design} eq '_');
+            push (@final_pick_info, $row->{final_pick}) unless ($row->{final_pick} eq '_');
+            push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
+            push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
         }
 
+        # check for vector passes and count them
+        @final_pick_info = uniq @final_pick_info;
+        my ($vector_plate, $vector_string);
+        my $vector_pass = 0;
+        foreach my $vector (@final_pick_info) {
+            if ( $vector =~ m/(.*?)([^\d]*)$/ ) {
+                ($vector_plate, $vector_string) = ($1, $2);
+            }
+            push (@final_pick, $vector_plate);
+            if ($vector_string eq 'tt') {
+                $vector_pass++;
+            }
+        }
+
+        # check for targeted clone passes and count them
+        @ep_pick_info = uniq @ep_pick_info;
+        my ($ep_pick_plate, $ep_pick_string);
+        my $ep_pick_pass = 0;
+        foreach my $ep_pick (@ep_pick_info) {
+            if ( $ep_pick =~ m/(.*?)([^\d]*)$/ ) {
+                ($ep_pick_plate, $ep_pick_string) = ($1, $2);
+            }
+            push (@ep_pick, $ep_pick_plate);
+            if ($ep_pick_string eq 't') {
+                $ep_pick_pass++;
+            }
+        }
+
+        # remove all duplicates
+        @design = uniq @design;
+        @final_pick = uniq @final_pick;
+        @ep = uniq @ep;
+        @ep_pick = uniq @ep_pick;
+
+        # push the data for the report
+        push @genes_for_display, {
+            'gene_id'           => $gene_id,
+            'gene_symbol'       => $gene_symbol,
+            'crispr_pairs'      => $crispr_pairs_count,
+            'gibson_design'     => $design_count,
+            'gibson_plated'     => scalar @design,
+            'vector_total'      => scalar @final_pick,
+            'vector_pass'       => $vector_pass,
+            'eps'               => scalar @ep,
+            'targeted'          => scalar @ep_pick,
+            'targeted_accepted' => $ep_pick_pass,
+        };
     }
 
     # sort the array by gene symbol

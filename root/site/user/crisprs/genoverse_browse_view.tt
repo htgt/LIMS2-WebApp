@@ -5,8 +5,65 @@
   chr: [%- chromosome -%]
   assembly: [%- genome -%]</small>
   </h1>
-  <h4>Displaying: Gibson designs and [% crispr_style == 'single' ? 'single' : 'paired' %] crisprs</h4>
 </div>
+
+<div>
+  <p style="font-size:25px">
+    <b>Displaying: Gibson designs</b>
+      [% IF view_single %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => 0,
+              view_paired => view_paired }
+              )
+              %]" class="btn btn-info" align="right">
+          Hide single crisprs</a>
+      [% ELSE %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => 1,
+              view_paired => view_paired }
+              )
+              %]" class="btn btn-info" align="right">
+          Show single crisprs</a>
+      [% END %]
+      [% IF view_paired %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => view_single,
+              view_paired => 0 }
+              )
+              %]" class="btn btn-info" align="right">
+          Hide paired crisprs</a>
+      [% ELSE %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => view_single,
+              view_paired => 1 }
+              )
+              %]" class="btn btn-info" align="right">
+          Show paired crisprs</a>
+      [% END %]
+  </p>
+</div>
+
+
 
     <script type="text/javascript" src="http://genoverse.org/js/genoverse.combined.js">
        {
@@ -36,7 +93,7 @@
             resizable : 'auto',
             height    : 150
           }),
-[% IF crispr_style == 'single' %]
+[% IF view_single %]
           Genoverse.Track.extend({
             name      : 'Crisprs',
             url       : "[% c.uri_for('/api/crispr')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
@@ -45,7 +102,8 @@
             resizable : 'auto',
             height    : 150
           }),
-[% ELSE %]
+[% END %]
+[% IF view_paired %]
           Genoverse.Track.extend({
             name      : 'Crispr_pairs',
             url       : "[% c.uri_for('/api/crispr_pairs')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,

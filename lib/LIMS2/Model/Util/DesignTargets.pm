@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.146';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.147';
 }
 ## use critic
 
@@ -477,6 +477,7 @@ sub format_crispr_data {
             $datum->{crisprs},
             $report_parameters->{off_target_algorithm},
             $default_assembly,
+            $report_parameters->{filter}
         );
     }
     else {
@@ -546,12 +547,18 @@ Get the first 5 pairs ( ranked according to _rank_crisp_pair )
 
 =cut
 sub _format_crispr_pair_data {
-    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $default_assembly ) = @_;
+    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $default_assembly , $filter) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
 
-    my @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
-        grep { _valid_crispr_pair($_) } values %{$crispr_pairs};
+    my @valid_ranked_crispr_pairs;
+    if ($filter) {
+        @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
+            grep { _valid_crispr_pair($_) } values %{$crispr_pairs};
+    } else {
+        @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
+            grep { $_ } values %{$crispr_pairs};
+    }
 
     for my $c ( @valid_ranked_crispr_pairs ) {
         my $left_crispr = $crisprs->{ $c->left_crispr_id };

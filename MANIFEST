@@ -212,6 +212,7 @@ lib/LIMS2/WebApp.pm
 lib/LIMS2/WebApp/Controller/API.pm
 lib/LIMS2/WebApp/Controller/API/AutoComplete.pm
 lib/LIMS2/WebApp/Controller/API/Browser.pm
+lib/LIMS2/WebApp/Controller/API/Crispr.pm
 lib/LIMS2/WebApp/Controller/API/Design.pm
 lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
@@ -2514,6 +2515,7 @@ t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Auth.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Root.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_User.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_AutoComplete.t
+t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Crispr.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Design.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_PlateWell.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_QC.t
@@ -2722,6 +2724,7 @@ t/lib/LIMS2/t/WebApp.pm
 t/lib/LIMS2/t/WebApp/Controller/API.pm
 t/lib/LIMS2/t/WebApp/Controller/API/AutoComplete.pm
 t/lib/LIMS2/t/WebApp/Controller/API/Browser.pm
+t/lib/LIMS2/t/WebApp/Controller/API/Crispr.pm
 t/lib/LIMS2/t/WebApp/Controller/API/Design.pm
 t/lib/LIMS2/t/WebApp/Controller/API/PlateWell.pm
 t/lib/LIMS2/t/WebApp/Controller/API/QC.pm

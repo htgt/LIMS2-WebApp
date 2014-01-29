@@ -5,10 +5,13 @@ author:
 build_requires:
   English: 0
   File::Find: 0
+  HTTP::Request: 0
   HTTP::Request::Common: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
+  YAML: 0
+  bytes: 0
 dynamic_config: 0
 generated_by: 'Dist::Zilla version 4.300014, CPAN::Meta::Converter version 2.120921'
 license: perl
@@ -136,4 +139,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.146
+version: 0.147
