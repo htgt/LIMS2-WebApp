@@ -19,7 +19,7 @@ sub single_crispr_GET{
         }
     );
 
-    return $self->status_ok( $c, entity => $crispr );    
+    return $self->status_ok( $c, entity => $crispr );
 }
 
 sub single_crispr_POST{
@@ -88,7 +88,7 @@ sub crispr_pair_GET{
         }
     );
 
-    return $self->status_ok( $c, entity => $pair );      
+    return $self->status_ok( $c, entity => $pair );
 }
 
 sub crispr_pair_POST{

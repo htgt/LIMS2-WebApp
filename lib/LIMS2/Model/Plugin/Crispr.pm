@@ -371,14 +371,14 @@ sub update_crispr_off_target_summary {
     my ( $self, $params ) = @_;
 
     my $validated_params  =$self->check_params( $params, $self->pspec_update_crispr_off_target_summary );
-    
+
     my $crispr = $self->retrieve_crispr({ id => $validated_params->{id} });
 
-    $self->log->debug("Updating crsipr " . $crispr->id . " with " 
+    $self->log->debug("Updating crsipr " . $crispr->id . " with "
                         . $validated_params->{off_target_summary} . "\n");
 
     my $summary = $crispr->off_target_summaries->find( { algorithm => $validated_params->{algorithm} } );
-    
+
     $summary->update( { summary => $validated_params->{off_target_summary} } );
 
     return $summary;
@@ -388,7 +388,6 @@ sub pspec_update_crispr_pair_off_target_summary{
     return {
          l_id               => { validate => 'integer' },
          r_id               => { validate => 'integer' },
-         algorithm          => { validate => 'non_empty_string' },
          off_target_summary => { validate => 'non_empty_string' },
     };
 }
@@ -399,8 +398,8 @@ sub update_crispr_pair_off_target_summary{
     my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_pair_off_target_summary);
 
     my $pair =  $self->schema->resultset("CrisprPair")->find(
-                                { 
-                                    left_crispr_id => $validated_params->{l_id}, 
+                                {
+                                    left_crispr_id => $validated_params->{l_id},
                                     right_crispr_id => $validated_params->{r_id},
                                 }
                             );
@@ -424,14 +423,14 @@ sub update_or_create_crispr_pair{
 
     my $validated_params = $self->check_params( $params, $self->pspec_update_or_create_crispr_pair );
 
-    my $pair = $self->schema->resultset("CrisprPair")->update_or_create( 
+    my $pair = $self->schema->resultset("CrisprPair")->update_or_create(
                 {
                     left_crispr_id     => $validated_params->{l_id},
                     right_crispr_id    => $validated_params->{r_id},
                     spacer             => $validated_params->{spacer},
                     off_target_summary => $validated_params->{off_target_summary},
                 },
-                { key => "unique_pair" } 
+                { key => "unique_pair" }
             );
 
     return $pair;
