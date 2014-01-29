@@ -748,16 +748,16 @@ SQL_END
         @ep_pick = uniq @ep_pick;
 
         # push the data for the report
-        push @genes_for_display, { 
-            'gene_id'           => $gene_id, 
-            'gene_symbol'       => $gene_symbol, 
-            'crispr_pairs'      => $crispr_pairs_count, 
-            'gibson_design'     => $design_count, 
-            'gibson_plated'     => scalar @design, 
-            'vector_total'      => scalar @final_pick, 
-            'vector_pass'       => $vector_pass, 
-            'eps'               => scalar @ep, 
-            'targeted'          => scalar @ep_pick,  
+        push @genes_for_display, {
+            'gene_id'           => $gene_id,
+            'gene_symbol'       => $gene_symbol,
+            'crispr_pairs'      => $crispr_pairs_count,
+            'gibson_design'     => $design_count,
+            'gibson_plated'     => scalar @design,
+            'vector_total'      => scalar @final_pick,
+            'vector_pass'       => $vector_pass,
+            'eps'               => scalar @ep,
+            'targeted'          => scalar @ep_pick,
             'targeted_accepted' => $ep_pick_pass,
         };
     }
