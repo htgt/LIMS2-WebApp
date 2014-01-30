@@ -130,7 +130,10 @@ LIMS2 useful environment variables:
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT
 \$LIMS2_DB                     : $LIMS2_DB
+
 END
+
+lims2_local_environment
 }
 
 function lims2_help {

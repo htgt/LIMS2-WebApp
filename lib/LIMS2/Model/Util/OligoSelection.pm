@@ -24,24 +24,61 @@ use Sub::Exporter -setup => {
 use LIMS2::Exception;
 
 use Log::Log4perl qw( :easy );
-use Bio::Tools::Run::Primer3Redux;
+
+BEGIN {
+    # LIMS2 environment variables start with LIMS2_
+    # but DesignCreate needs 'PRIMER3_CMD'
+    $ENV{'PRIMER3_CMD'} = $ENV{'LIMS2_PRIMER3_COMMAND_PATH'};
+}
+use DesignCreate::Util::Primer3;
 use Bio::SeqIO;
+use Path::Class;
 
 sub pick_genotyping_primers {
+    my $schema = shift;
     my $design_id = shift;
 
-    my %seqs = get_EnsEmbl_sequence( $design_id );
+    my %failed_primer_regions;
+    my ($region_bio_seq, $target_sequence_mask) = get_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
 
-    my $primer3 = Bio::Tools::Run::Primer3Redux->new( -output => 'temp.out',
-        -path => 'path_to_primer_3');
+    my $p3 = DesignCreate::Util::Primer3->new_with_config(
+        configfile => $ENV{ 'LIMS2_PRIMER3_GIBSON_GENOTYPING_PRIMER_CONFIG' },
+    );
 
-    # add targets and parameters
-    #
-    my $pcr_primers_forward = $primer3->pick_pcr_primers( $seqs->{'Forward'} );
+    my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
+    my $logfile = $dir_out->file( $design_id . '_oligos.log');
 
-    my $pcr_primers_reverse = $primer3->pick_pcr_primers( $seqs->{'Reverse'} );
+    my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
+            { SEQUENCE_TARGET => $target_sequence_mask } ); 
+$DB::single=1;
+    if ( $result->num_primer_pairs ) {
+        $p3->log->info( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
+        $p3->add_primer3_result( $design_id => $result );
+    }
+    else {
+        $p3->log->warn( "Failed to generate genotyping primer pairs for $design_id" );
+        $failed_primer_regions{$design_id} = $primer3_explain;
+    }
 
 
+    parse_primer3_results();
+
+    use DesignCreate::Exception::Primer3FailedFindOligos;
+
+    if (%failed_primer_regions) {
+        DesignCreate::Exception::Primer3FailedFindOligos->throw(
+            regions             => [ keys %failed_primer_regions ],
+            primer_fail_reasons => \%failed_primer_regions,
+        );
+    }
+
+    
+    return;
+
+}
+
+
+sub parse_primer3_results {
     return;
 }
 
@@ -105,7 +142,6 @@ Returns - hashref of two sequences to find primers in.
 sub get_EnsEmbl_sequence {
     my $params = shift;
 
-$DB::single=1;
     my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'}); 
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
@@ -154,6 +190,55 @@ $DB::single=1;
 
 
     return \%seqs ;
+
+}
+
+=head
+Given design and schema
+Returns a single sequence covering the whole region for Primer3 and a target_sequence_string that
+indicates which part of the sequene is being targeted (and therefore should not be part of the primer
+sequences).
+=cut
+
+sub get_EnsEmbl_region {
+    my $params = shift;
+
+    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'}); 
+    my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
+    my $design_oligos = $design_info->oligos;
+
+    my $chr_strand = $design_info->chr_strand == 1 ? 'plus' : 'minus';
+    my $slice_region;
+    my $seq;
+
+    my $start_oligo_field_width = 1000;
+    my $end_oligo_field_width = 1000;
+
+    if ( $chr_strand eq 'plus' ) {
+        $slice_region = $design_info->slice_adaptor->fetch_by_region(
+            'chromosome',
+            $design_info->chr_name,
+            $design_oligos->{'5F'}->{'start'} - $start_oligo_field_width,
+            $design_oligos->{'3R'}->{'end'} + $end_oligo_field_width,
+            $design_info->chr_strand,
+        );
+        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
+    }
+    elsif ( $chr_strand eq 'minus' ) {
+        $slice_region = $design_info->slice_adaptor->fetch_by_region(
+            'chromosome',
+            $design_info->chr_name,
+            $design_oligos->{'3R'}->{'start'} - $start_oligo_field_width,
+            $design_oligos->{'5F'}->{'end'} + $end_oligo_field_width,
+            $design_info->chr_strand,
+        );
+        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 )->revcom;
+    }
+
+    my $target_sequence_length = $seq->length  - $start_oligo_field_width - $end_oligo_field_width;
+    my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
+
+    return ($seq, $target_sequence_string) ;
 
 }
 
