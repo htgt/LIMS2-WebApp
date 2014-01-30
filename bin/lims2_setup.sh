@@ -39,7 +39,7 @@ function check_and_set {
 
 function check_and_set_dir {
     if [[ ! -d $2 ]] ; then
-        printf "L2W_STRING: directory $2 does not exist but you are setting $1 to its location\n"
+        printf "$L2W_STRING: directory $2 does not exist but you are setting $1 to its location\n"
     fi
     export $1=$2
 }
@@ -156,6 +156,8 @@ commands avaiable:
                  - replicates test into your own test_db, or live into your local db (*)
     show         - show the value of useful LIMS2 variables
 
+    local        - sets LIMS2 up to use your local database (*)
+    test         - sets LIMS2 up to use your own test database (*)
     setdb <db_name> - sets the LIMS2_DB (*) environment variable 
 
     help         - displays this help message
