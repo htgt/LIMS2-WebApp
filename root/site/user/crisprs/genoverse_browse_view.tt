@@ -64,8 +64,7 @@
 </div>
 
 
-
-    <script type="text/javascript" src="http://genoverse.org/js/genoverse.combined.js">
+    <script type="text/javascript" src="[% c.uri_for('/static/genoverse/js/genoverse.wtsi.js')%]">
        {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
