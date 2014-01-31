@@ -1,0 +1,10 @@
+perl ./script/lims2_clone_database.pl \
+    --source_defn LIMS2_LIVE \
+    --source_role lims2 \
+    --destination_defn LIMS2_STAGING \
+    --destination_role lims2 \
+    --destination_db lims2_staging \
+    --overwrite 1 \
+    --with_data 1 \
+    --create_test_role 0
+
