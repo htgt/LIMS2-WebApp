@@ -81,6 +81,9 @@ function lims2_replicate {
         local)
             lims2_load_local
             ;;
+        staging)
+            lims2_load_staging
+            ;;
         *)
             printf "Don't know how to replicate $1\n";
             ;; 
@@ -101,6 +104,10 @@ function lims2_local_db {
 
 function lims2_test_db {
     printf "lims2_test_db should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_load_staging {
+    source $LIMS2_DEV_ROOT/bin/lims2_staging_clone 
 }
 
 function lims2_show {
@@ -152,8 +159,9 @@ commands avaiable:
                  specified by \$LIMS2_WEBAPP_SERVER_PORT (default $LIMS2_WEBAPP_SERVER_PORT)
 
     debug        - starts the catalyst server using 'perl -d '
-    replicate < test | local >
-                 - replicates test into your own test_db, or live into your local db (*)
+    replicate < test | local | staging >
+                 - replicates test into your own test_db (*), or live into your local db (*)
+                 - replicates staging by copying from live - stop staging db first
     show         - show the value of useful LIMS2 variables
 
     local        - sets LIMS2 up to use your local database (*)
