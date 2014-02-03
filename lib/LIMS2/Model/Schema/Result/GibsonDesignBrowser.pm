@@ -45,7 +45,7 @@ join design_oligos b
 	on (a.design_oligo_id = b.id)
 join designs c
 	on (b.design_id = c.id)
-	and (c.design_type_id = 'gibson')
+	and (c.design_type_id = 'gibson' or c.design_type_id = 'gibson-deletion')
 
 where a.chr_start >= ? and a.chr_end <= ?
     and a.chr_id = ?
