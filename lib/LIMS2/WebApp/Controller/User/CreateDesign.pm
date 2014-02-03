@@ -250,7 +250,7 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     my $design_attempt;
     try {
         $design_attempt = $c->model('Golgi')
-            ->retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
+            ->c_retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design attempt id" );

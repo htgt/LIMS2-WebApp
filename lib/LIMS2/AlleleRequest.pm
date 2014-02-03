@@ -36,7 +36,8 @@ has [ qw( species gene_id ) ] => (
 sub _build_designs {
     my ( $self, $mutation_type ) = @_;
 
-    return $self->model->list_assigned_designs_for_gene(
+    # Uses WebAppCommon::Plugin::Design
+    return $self->model->c_list_assigned_designs_for_gene(
         {
             species => $self->species,
             gene_id => $self->gene_id,

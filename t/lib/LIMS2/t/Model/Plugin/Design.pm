@@ -30,7 +30,7 @@ Loading other test classes at compile time
 
 sub all_tests : Tests {
     {
-        ok my $design = model->retrieve_design( { id => 84231 } ), 'retrieve design id=84231';
+        ok my $design = model->c_retrieve_design( { id => 84231 } ), 'retrieve design id=84231';
         isa_ok $design, 'LIMS2::Model::Schema::Result::Design';
         can_ok $design, 'as_hash';
         ok my $h1 = $design->as_hash(), 'as hash, with relations';
@@ -41,7 +41,7 @@ sub all_tests : Tests {
     }
 
     {
-        ok my $designs = model->list_assigned_designs_for_gene(
+        ok my $designs = model->c_list_assigned_designs_for_gene(
             { species => 'Mouse', gene_id => 'MGI:94912' } ),
             'list assigned designs by MGI accession';
         isa_ok $designs, ref [];
@@ -50,7 +50,7 @@ sub all_tests : Tests {
     }
 
     {
-        ok my $designs = model->list_assigned_designs_for_gene(
+        ok my $designs = model->c_list_assigned_designs_for_gene(
             { species => 'Mouse', gene_id => 'MGI:106032', type => 'conditional' } ),
             'list assigned designs by MGI accession and design type conditional';
         isa_ok $designs, ref [];
@@ -59,7 +59,7 @@ sub all_tests : Tests {
     }
 
     {
-        ok my $designs = model->list_assigned_designs_for_gene(
+        ok my $designs = model->c_list_assigned_designs_for_gene(
             { species => 'Mouse', gene_id => 'MGI:1915248', type => 'deletion' } ),
             'list assigned designs by MGI accession and design type deletion';
         is @{$designs}, 0, 'returns no designs';
@@ -67,7 +67,7 @@ sub all_tests : Tests {
     }
 
     {
-        ok my $designs = model->list_assigned_designs_for_gene(
+        ok my $designs = model->c_list_assigned_designs_for_gene(
             { species => 'Mouse', gene_id => 'MGI:94912', gene_type => 'MGI' } ),
             'list assigned designs by MGI accession, specify id is MGI';
         isa_ok $designs, ref [];
@@ -76,11 +76,11 @@ sub all_tests : Tests {
     }
 
     {
-        ok model->search_gene_designs(
+        ok model->c_search_gene_designs(
             { search_term => 'lbl', page => 1, pagesize => 50, species => 'Mouse' } ),
             'list genes specifying a page and pagesize';
         ok my ( $gene_designs, $pager )
-            = model->search_gene_designs( { search_term => 'lbl', species => 'Mouse' } ),
+            = model->c_search_gene_designs( { search_term => 'lbl', species => 'Mouse' } ),
             'list matched genes';
         isa_ok $gene_designs, ref [];
         isa_ok $_, 'LIMS2::Model::Schema::Result::GeneDesign' for @{$gene_designs};
@@ -90,13 +90,13 @@ sub all_tests : Tests {
     }
 
     {
-        ok my ($gene_designs) = model->search_gene_designs(
+        ok my ($gene_designs) = model->c_search_gene_designs(
             { search_term => 'MGI:109393', gene_type => 'MGI', species => 'Mouse' } ),
             'list matched genes, specify gene type';
         isa_ok $gene_designs, ref [];
         is scalar( @{$gene_designs} ), 1, 'return 1 design';
 
-        ok my ($no_gene_designs) = model->search_gene_designs(
+        ok my ($no_gene_designs) = model->c_search_gene_designs(
             { search_term => 'MGI:109393', gene_type => 'marker-symbol', species => 'Mouse' } ),
             'list matched genes, specify wrong gene type';
         isa_ok $no_gene_designs, ref [];
@@ -104,33 +104,33 @@ sub all_tests : Tests {
     }
 
     {
-        ok my $designs = model->list_candidate_designs_for_gene(
+        ok my $designs = model->c_list_candidate_designs_for_gene(
             { species => 'Mouse', gene_id => 'MGI:94912', type => 'conditional' } ),
             'list candidate designs for MGI accession, gene on -ve strand';
         isa_ok $designs, ref [];
         ok grep( { $_->id == 170606 } @{$designs} ), '...returns the expected design';
 
-        ok my $designs2 = model->list_candidate_designs_for_gene(
+        ok my $designs2 = model->c_list_candidate_designs_for_gene(
             { species => 'Mouse', gene_id => 'MGI:99781' } ),
             'list candidate designs by MGI accession, gene on +ve strand';
         is @{$designs2}, 0, 'returns no designs';
 
         throws_ok {
-            model->list_candidate_designs_for_gene(
+            model->c_list_candidate_designs_for_gene(
                 { species => 'Mouse', gene_id => 'MGI:iiiiii' } )
         }
         'LIMS2::Exception::NotFound', 'throws error for non existant gene';
     }
 
     {
-        ok my $design_types = model->list_design_types(), 'can list design types';
+        ok my $design_types = model->c_list_design_types(), 'can list design types';
     }
 
     note('Testing the Creation and Deletion of designs');
     {
         my $design_data = build_design_data(84231);
 
-        ok my $new_design = model->create_design($design_data), 'can create new design';
+        ok my $new_design = model->c_create_design($design_data), 'can create new design';
         is $new_design->cassette_first, 1,        'default cassette_first value of true';
         is $new_design->id,             99999999, '..and new design has correct id';
         ok my $design_comment = $new_design->comments->first, 'can retrieve design comment';
@@ -141,7 +141,7 @@ sub all_tests : Tests {
         is $design_gene->gene_type_id, 'MGI',         'gene type is correct';
 
         throws_ok {
-            model->delete_design( { id => 99999999, cascade => 1 } );
+            model->c_delete_design( { id => 99999999, cascade => 1 } );
         }
         qr/Design 99999999 has been assigned to one or more genes/,
             'can not delete design assigned to one or more genes';
@@ -155,7 +155,7 @@ sub all_tests : Tests {
             'can create process linked to new design';
 
         throws_ok {
-            model->delete_design( { id => 99999999, cascade => 1 } );
+            model->c_delete_design( { id => 99999999, cascade => 1 } );
         }
         qr/Design 99999999 has been used in one or more processes/,
             'can not delete design assigned to one or more create_di processes';
@@ -165,26 +165,26 @@ sub all_tests : Tests {
         # Commented out for now as this test dies with "DBD::Pg::st execute failed"
         # when running within a transaction. Can't work out why
         #throws_ok{
-        #    model->delete_design( { id => 99999999 } )
+        #    model->c_delete_design( { id => 99999999 } )
         #} 'DBIx::Class::Exception', 'can not delete this design without cascade delete enabled';
 
-        ok model->delete_design( { id => 99999999, cascade => 1 } ),
+        ok model->c_delete_design( { id => 99999999, cascade => 1 } ),
             'can delete newly created design';
 
         throws_ok {
-            model->delete_design( { id => 11111111 } );
+            model->c_delete_design( { id => 11111111 } );
         }
         'LIMS2::Exception::NotFound', 'can not delete non existant design';
 
         throws_ok {
-            model->retrieve_design( { id => 99999999 } );
+            model->c_retrieve_design( { id => 99999999 } );
         }
         'LIMS2::Exception::NotFound', '..can not retreive deleted design';
 
         $design_data->{species} = 'Human';
         $design_data->{id}      = 88888888;
         throws_ok {
-            model->create_design($design_data);
+            model->c_create_design($design_data);
         }
         qr/Assembly GRCm38 does not belong to species Human/,
             'throws error for species assembly mismatch';
@@ -197,7 +197,7 @@ sub all_tests : Tests {
         my $design_parameters = { param_1 => 5, param_2 => 10 };
         $design_data->{design_parameters} = encode_json($design_parameters);
 
-        ok my $new_design = model->create_design($design_data), 'can create new design';
+        ok my $new_design = model->c_create_design($design_data), 'can create new design';
         is_deeply decode_json( $new_design->design_parameters ), $design_parameters,
             'design parameters json string is correct';
 
@@ -208,7 +208,7 @@ sub all_tests : Tests {
 
         $design_data->{design_parameters} = 'this is not json data';
         throws_ok {
-            model->create_design($design_data);
+            model->c_create_design($design_data);
         }
         qr/design_parameters, is invalid: json/, 'throws error for non json data';
     }
@@ -219,17 +219,17 @@ sub all_tests : Tests {
 
         my $oligos = delete $design_data->{oligos};
 
-        ok my $new_design = model->create_design($design_data), 'can create new design';
+        ok my $new_design = model->c_create_design($design_data), 'can create new design';
 
         my $oligo_data = shift @{$oligos};
 
         throws_ok {
-            model->create_design_oligo($oligo_data);
+            model->c_create_design_oligo($oligo_data);
         }
         'LIMS2::Exception::Validation', 'design_id not present';
 
         $oligo_data->{design_id} = $new_design->id;
-        ok my $new_oligo = model->create_design_oligo($oligo_data), 'can create new oligo';
+        ok my $new_oligo = model->c_create_design_oligo($oligo_data), 'can create new oligo';
 
     }
 
@@ -242,7 +242,7 @@ sub all_tests : Tests {
         delete $design_data->{created_at};
         delete $design_data->{name};
 
-        ok my $new_design = model->create_design($design_data), 'can create new design';
+        ok my $new_design = model->c_create_design($design_data), 'can create new design';
 
         ok $new_design->id, 'new design as a id';
         $new_design->discard_changes;
@@ -252,19 +252,19 @@ sub all_tests : Tests {
     note('Testing retrieve design oligo');
     {
         ok my $design_oligo
-            = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } ),
+            = model->c_retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } ),
             'can retrieve design oligo by design_id and oligo_type';
 
         is $design_oligo->seq, 'AATATCATGTTTTATGCTGTCTGGAATTTATTGCCTATTTCAAAGCAAAG',
             'oligo has correct sequence';
 
-        ok my $design_oligo2 = model->retrieve_design_oligo( { id => 54761 } ),
+        ok my $design_oligo2 = model->c_retrieve_design_oligo( { id => 54761 } ),
             'can retrieve design oligo by id';
     }
 
     note('Testing create design oligo locus');
     {
-        ok my $design_oligo_locus = model->create_design_oligo_locus(
+        ok my $design_oligo_locus = model->c_create_design_oligo_locus(
             {   assembly   => 'NCBIM34',
                 chr_name   => 1,
                 chr_start  => 10,
@@ -276,14 +276,14 @@ sub all_tests : Tests {
             ),
             'can create design oligo locus';
 
-        ok my $design_oligo = model->retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } ),
+        ok my $design_oligo = model->c_retrieve_design_oligo( { design_id => 81136, oligo_type => 'D5' } ),
             'can retrieve design_oligo';
 
         ok my $loci = $design_oligo->loci->find( { assembly_id => 'GRCm38' } ),
             'can find newly created loci attached to oligo';
 
         throws_ok {
-            model->create_design_oligo_locus(
+            model->c_create_design_oligo_locus(
                 {   assembly   => 'GRCm38',
                     chr_name   => 1,
                     chr_start  => 10,
@@ -304,7 +304,7 @@ sub all_tests : Tests {
         my $design_id = shift;
 
         # base new design data on current design data
-        ok my $design = model->retrieve_design( { id => $design_id } ),
+        ok my $design = model->c_retrieve_design( { id => $design_id } ),
             "retrieve design id=$design_id";
 
         my $design_data = $design->as_hash;
@@ -351,7 +351,7 @@ sub design_attempts : Tests(8) {
     my $design_parameters = { param_1 => 5, param_2 => 10 };
     $design_attempt_data->{design_parameters} = encode_json($design_parameters);
 
-    ok my $design_attempt = model->create_design_attempt($design_attempt_data), 'can create new design attempt';
+    ok my $design_attempt = model->c_create_design_attempt($design_attempt_data), 'can create new design attempt';
     is $design_attempt->gene_id, 'FOO', '.. has correct gene_id';
     is $design_attempt->species_id, 'Human', '.. has correct species_id';
 
@@ -360,16 +360,16 @@ sub design_attempts : Tests(8) {
         status => 'fail',
         fail   => encode_json( { reason => 'unknown' } ),
     };
-    ok model->update_design_attempt( $design_attempt_update ), 'can update design_attempt';
+    ok model->c_update_design_attempt( $design_attempt_update ), 'can update design_attempt';
 
-    ok my $design_attempt2 = model->retrieve_design_attempt( { id => $design_attempt->id } ),
+    ok my $design_attempt2 = model->c_retrieve_design_attempt( { id => $design_attempt->id } ),
         'can retrieve a design attempt';
     is $design_attempt2->status, 'fail', '..updated status correctly';
 
-    ok model->delete_design_attempt( { id => $design_attempt->id } ), 'can deleted design attempt';
+    ok model->c_delete_design_attempt( { id => $design_attempt->id } ), 'can deleted design attempt';
 
     throws_ok {
-        model->retrieve_design_attempt( { id => $design_attempt->id } )
+        model->c_retrieve_design_attempt( { id => $design_attempt->id } )
     } 'LIMS2::Exception::NotFound', 'can not find deleted design attempt';
 
 }
