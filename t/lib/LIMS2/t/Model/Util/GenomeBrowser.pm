@@ -113,7 +113,7 @@ sub d_test_gibson_designs_for_region : Test(17) {
     is ref $test_gff_gibsons, 'ARRAY', 'result is an array reference';
     is scalar @$test_gff_gibsons, 10, 'Array has the correct number of elements';
     is $test_gff_gibsons->[3],
-    "7\tLIMS2\tGibson\t141008069\t141011784\t.\t-\t.\tID=D_1002582;Name=D_1002582",
+    "7\tLIMS2\tgibson\t141008069\t141011784\t.\t-\t.\tID=D_1002582;Name=D_1002582",
     'Parent element [3] is in the correct format';
     is $test_gff_gibsons->[4],
     "7\tLIMS2\tCDS\t141011760\t141011784\t.\t-\t.\tID=5F;Parent=D_1002582;Name=5F;color=#68D310",

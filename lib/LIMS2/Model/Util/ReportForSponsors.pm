@@ -699,7 +699,7 @@ SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN,
 concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
 concat(ep_plate_name, '_', ep_well_name) AS EP, 
 concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
-FROM summaries where design_gene_id = '$gene_id' AND design_type = 'gibson';
+FROM summaries where design_gene_id = '$gene_id' AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );
 SQL_END
 
         my $results = $self->run_select_query( $sql );

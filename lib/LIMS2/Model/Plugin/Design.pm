@@ -525,7 +525,7 @@ sub create_design_attempt {
             )
         }
     );
-    $self->log->debug( 'Created design attempt ' . $design_attempt->id );
+    $self->log->info( 'Created design attempt ' . $design_attempt->id );
 
     return $design_attempt;
 }

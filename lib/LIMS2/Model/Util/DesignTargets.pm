@@ -122,9 +122,14 @@ sub bulk_designs_for_design_targets {
 
     my @gene_designs = $schema->resultset('GeneDesign')->search(
         {
-            gene_id => { 'IN' => [ map{ $_->gene_id } @{ $design_targets } ] },
-            'design.species_id'     => $species_id,
-            'design.design_type_id' => 'gibson',
+            -and => [
+                gene_id => { 'IN' => [ map{ $_->gene_id } @{ $design_targets } ] },
+                'design.species_id'     => $species_id,
+                -or => [
+                    'design.design_type_id' => 'gibson',
+                    'design.design_type_id' => 'gibson-deletion',
+                ],
+            ],
         },
         {
             join     => 'design',
