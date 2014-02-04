@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.152';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.153';
 }
 ## use critic
 
@@ -226,7 +226,7 @@ sub create_gibson_design {
     my $cmd            = $self->c_generate_gibson_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
-    return $design_attempt;
+    return ( $design_attempt, $job_id );
 }
 
 =head2 find_or_create_design_target
@@ -248,7 +248,7 @@ sub find_or_create_design_target {
     );
 
     if ( $existing_design_target ) {
-        $self->log->debug( 'Design target ' . $existing_design_target->id
+        $self->log->info( 'Design target ' . $existing_design_target->id
                 . ' already exists for exon: ' . $params->{exon_id} );
         return $existing_design_target;
     }

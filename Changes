@@ -1,3 +1,10 @@
+0.153     2014-02-04 14:36:45 Europe/London
+
+    Added more logging to gibson design creation.
+    Bugfix: removed trailing comma in diagram.builder.js
+    Fixed bug in Genovese Genes track display for mouse
+
+
 0.152     2014-02-04 07:06:08 Europe/London
 
     Added support for gibson-deletion designs

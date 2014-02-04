@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Design::VERSION = '0.152';
+    $LIMS2::Model::Plugin::Design::VERSION = '0.153';
 }
 ## use critic
 
@@ -531,7 +531,7 @@ sub create_design_attempt {
             )
         }
     );
-    $self->log->debug( 'Created design attempt ' . $design_attempt->id );
+    $self->log->info( 'Created design attempt ' . $design_attempt->id );
 
     return $design_attempt;
 }
