@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.152     2014-02-04 07:06:08 Europe/London
+
+    Added support for gibson-deletion designs
+
 0.151     2014-01-31 11:50:07 Europe/London
 
     Added mouse genome support for Genoverse views
