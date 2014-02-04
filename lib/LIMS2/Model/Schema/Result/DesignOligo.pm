@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.151';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.152';
 }
 ## use critic
 
@@ -276,7 +276,7 @@ sub append_seq {
         $append_seq = $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type }
             if exists $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type };
     }
-    elsif ( $design_type eq 'gibson' ) {
+    elsif ( $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ) {
         $append_seq = $GIBSON_OLIGO_APPENDS{ $oligo_type }
             if exists $GIBSON_OLIGO_APPENDS{ $oligo_type };
     }
@@ -311,7 +311,7 @@ sub oligo_order_seq {
     my $oligo_seq;
 
     # gibson oligos have the append on the 5' end
-    if ( $design_type eq 'gibson' ) {
+    if ( $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ) {
         $oligo_seq = $self->append_seq( $design_type ) . $seq;
     }
     # all other designs have appends on the 3' end of the oligo

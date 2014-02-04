@@ -9,6 +9,7 @@ bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
 bin/lims2_setup.sh
+bin/lims2_staging_clone
 bin/process_graph.pl
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx

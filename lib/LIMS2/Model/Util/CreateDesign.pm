@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.151';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.152';
 }
 ## use critic
 
@@ -143,9 +143,14 @@ sub designs_for_exons {
 
     my @designs = $self->model->schema->resultset('Design')->search(
         {
-            'genes.gene_id' => $gene_id,
-            'me.species_id' => $self->species,
-            design_type_id  => 'gibson',
+            -and => [
+                'genes.gene_id' => $gene_id,
+                'me.species_id' => $self->species,
+                -or => [
+                    design_type_id  => 'gibson',
+                    design_type_id  => 'gibson-deletion',
+                ],
+            ],
         },
         {
             join     => 'genes',
