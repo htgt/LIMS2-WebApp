@@ -193,12 +193,18 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
             model    => $c->model('Golgi'),
         );
 
-        my $design_attempt;
+        my ($design_attempt, $job_id);
         try {
-            $design_attempt = $create_design_util->create_gibson_design();
+            ( $design_attempt, $job_id ) = $create_design_util->create_gibson_design();
         }
         catch ($err) {
             $c->flash( error_msg => "Error submitting Design Creation job: $err" );
+            $c->res->redirect( 'gibson_design_gene_pick' );
+            return;
+        }
+
+        unless ( $job_id ) {
+            $c->flash( error_msg => "Unable to submit Design Creation job" );
             $c->res->redirect( 'gibson_design_gene_pick' );
             return;
         }

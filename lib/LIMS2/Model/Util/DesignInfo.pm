@@ -120,6 +120,8 @@ has floxed_exons => (
 );
 #TODO We are assuming that gibson designs are being treated as conditionals
 #     If the design is being used as a deletion the coordinates will be different
+#     Normal gibson designs can be conditional or deletion
+#     deletion-gibson designs can only be deletion designs
 #     Need to pass a flag in to this object if we know the design in a deletion
 sub _build_target_region_start {
     my $self = shift;
@@ -138,19 +140,29 @@ sub _build_target_region_start {
             return $self->oligos->{U3}{start};
         }
         else {
-            return $self->oligos->{D5}{start}
+            return $self->oligos->{D5}{start};
         }
     }
 
     # Assuming gibson design is used as a conditional
-    if ( $self->type eq 'gibson' ) {
+    if ( $self->type eq 'gibson') {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{EF}{end};
         }
         else {
-            return $self->oligos->{ER}{end}
+            return $self->oligos->{ER}{end};
         }
     }
+
+    if ( $self->type eq 'gibson-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'5R'}{end};
+        }
+        else {
+            return $self->oligos->{'3F'}{end};
+        }
+    }
+
 }
 
 sub _build_target_region_end {
@@ -161,13 +173,13 @@ sub _build_target_region_end {
             return $self->oligos->{D3}{start};
         }
         else {
-            return $self->oligos->{U5}{start}
+            return $self->oligos->{U5}{start};
         }
     }
 
     if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
         if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{D5}{end}
+            return $self->oligos->{D5}{end};
         }
         else {
             return $self->oligos->{U3}{end};
@@ -180,15 +192,28 @@ sub _build_target_region_end {
             return $self->oligos->{ER}{start};
         }
         else {
-            return $self->oligos->{EF}{start}
+            return $self->oligos->{EF}{start};
         }
     }
+
+    if ( $self->type eq 'gibson-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'3F'}{start};
+        }
+        else {
+            return $self->oligos->{'5R'}{start};
+        }
+    }
+
 }
 
 sub _build_loxp_start {
     my $self = shift;
 
-    return if $self->type eq 'deletion' || $self->type eq 'insertion';
+    return
+        if $self->type eq 'deletion'
+            || $self->type eq 'insertion'
+            || $self->type eq 'gibson-deletion';
 
     if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
         if ( $self->chr_strand == 1 ) {
@@ -213,7 +238,10 @@ sub _build_loxp_start {
 sub _build_loxp_end {
     my $self = shift;
 
-    return if $self->type eq 'deletion' || $self->type eq 'insertion';
+    return
+        if $self->type eq 'deletion'
+            || $self->type eq 'insertion'
+            || $self->type eq 'gibson-deletion';
 
     if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
         if ( $self->chr_strand == 1 ) {
@@ -265,6 +293,15 @@ sub _build_cassette_start {
             return $self->oligos->{'3F'}{start} + 1;
         }
     }
+
+    if ( $self->type eq 'gibson-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'5R'}{end} + 1;
+        }
+        else {
+            return $self->oligos->{'3F'}{end} + 1;
+        }
+    }
 }
 
 sub _build_cassette_end {
@@ -291,10 +328,19 @@ sub _build_cassette_end {
     # Assuming gibson design is used as a conditional
     if ( $self->type eq 'gibson' ) {
         if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{EF}{end} - 1;
+            return $self->oligos->{EF}{start} - 1;
         }
         else {
-            return $self->oligos->{ER}{end} - 1;
+            return $self->oligos->{ER}{start} - 1;
+        }
+    }
+
+    if ( $self->type eq 'gibson-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'3F'}{start} - 1;
+        }
+        else {
+            return $self->oligos->{'5R'}{start} - 1;
         }
     }
 }
@@ -302,7 +348,7 @@ sub _build_cassette_end {
 sub _build_homology_arm_start {
     my $self = shift;
 
-    if ( $self->type eq 'gibson' ) {
+    if ( $self->type eq 'gibson' || $self->type eq 'gibson-deletion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'5F'}{start};
         }
@@ -323,7 +369,7 @@ sub _build_homology_arm_start {
 sub _build_homology_arm_end {
     my $self = shift;
 
-    if ( $self->type eq 'gibson' ) {
+    if ( $self->type eq 'gibson' || $self->type eq 'gibson-deletion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'3R'}{end};
         }

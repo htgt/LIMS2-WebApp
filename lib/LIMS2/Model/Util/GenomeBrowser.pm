@@ -341,7 +341,7 @@ sub design_oligos_to_gff {
             my %oligo_format_hash = (
                 'seqid' => $params->{'chromosome_number'},
                 'source' => 'LIMS2',
-                'type' => 'Gibson',
+                'type' =>  $design_meta_data->{$design_data}->{'design_type'},
                 'start' => $design_meta_data->{$design_data}->{'design_start'},
                 'end' => $design_meta_data->{$design_data}->{'design_end'},
                 'score' => '.',
@@ -403,6 +403,7 @@ sub parse_gibson_designs {
                 'chr_end' => $gibson->chr_end,
                 'chr_strand' => $gibson->chr_strand,
                 'colour'     => gibson_colour( $gibson->oligo_type_id ),
+                'design_type' => $gibson->design_type_id,
             };
     }
 
@@ -430,6 +431,7 @@ sub generate_design_meta_data {
                 'design_start' => $gibson_designs->{$design_key}->{'5F'}->{'chr_start'},
                 'design_end'   => $gibson_designs->{$design_key}->{'3R'}->{'chr_end'},
                 'strand'       => $gibson_designs->{$design_key}->{'5F'}->{'chr_strand'},
+                'design_type'  => $gibson_designs->{$design_key}->{'5F'}->{'design_type'},
             };
 
         }
@@ -439,6 +441,7 @@ sub generate_design_meta_data {
                 'design_start' => $gibson_designs->{$design_key}->{'3R'}->{'chr_start'},
                 'design_end'   => $gibson_designs->{$design_key}->{'5F'}->{'chr_end'},
                 'strand'       => $gibson_designs->{$design_key}->{'3R'}->{'chr_strand'},
+                'design_type'  => $gibson_designs->{$design_key}->{'5F'}->{'design_type'},
             };
         }
     }
