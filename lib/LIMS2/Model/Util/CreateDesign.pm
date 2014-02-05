@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.153';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.154';
 }
 ## use critic
 
@@ -26,7 +26,8 @@ has model => (
     required => 1,
     handles  => {
         check_params          => 'check_params',
-        create_design_attempt => 'create_design_attempt',
+        create_design_attempt => 'c_create_design_attempt',
+        c_create_design_attempt => 'c_create_design_attempt',
     }
 );
 
@@ -286,7 +287,7 @@ sub find_or_create_design_target {
     );
     my $exon_rank = try{ $self->ensembl_util->get_exon_rank( $canonical_transcript, $exon->stable_id ) };
     $design_target_params{exon_rank} = $exon_rank if $exon_rank;
-    my $design_target = $self->model->create_design_target( \%design_target_params );
+    my $design_target = $self->model->c_create_design_target( \%design_target_params );
 
     return $design_target;
 }
