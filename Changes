@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.155     2014-02-07 12:03:48 Europe/London
+
+    Bugfix: Crispr oligo order sequence for pam_left crisprs was wrong
+
 0.154     2014-02-05 10:46:04 Europe/London
 
     Factor out Design plugin to WebApp-Common
