@@ -247,6 +247,8 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VJREFU/RuYm4fILRP417vA
 
+use Bio::Perl qw( revcom );
+
 sub as_hash {
     my ( $self ) = @_;
 
@@ -271,26 +273,46 @@ sub as_hash {
     return \%h;
 }
 
+sub guide_rna {
+    my ( $self ) = @_;
+
+    if ( ! defined $self->pam_right ) {
+        return substr( $self->seq, 1, 19 );
+    }
+    elsif ( $self->pam_right == 1 ) {
+        return substr( $self->seq, 1, 19 );
+    }
+    elsif ( $self->pam_right == 0 ) { 
+        #its pam left, so strip first three characters and the very last one,
+        #we revcom so that the grna is always relative to the NGG sequence
+        return revcom( substr( $self->seq, 3, 19 ) )->seq;
+    }
+    else {
+        die "Unexpected value in pam_right: " . $self->pam_right;
+    }
+
+}
+
 sub forward_order_seq {
     my ( $self ) = @_;
 
-    my $site = substr( $self->seq, 1, 19 );
-    return  "ACCG" . $site;
+    return  "ACCG" . $self->guide_rna;
 }
 
 sub reverse_order_seq {
     my ( $self ) = @_;
 
-    require Bio::Seq;
-    my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => substr( $self->seq, 1,19) );
-    my $revcomp_seq = $bio_seq->revcom->seq;
-    return "AAAC" . $revcomp_seq;
+    #require Bio::Seq;
+    #my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->guide_rna );
+    #my $revcomp_seq = $bio_seq->revcom->seq;
+    return "AAAC" . revcom( $self->guide_rna )->seq;
 }
 
+#we need to add the G here so its the full forward grna
 sub vector_seq {
     my ( $self ) = @_;
 
-    return substr( $self->seq, 0, 20 );
+    return  "G" . $self->guide_rna;
 }
 
 sub pairs {
