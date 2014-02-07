@@ -282,7 +282,7 @@ sub guide_rna {
     elsif ( $self->pam_right == 1 ) {
         return substr( $self->seq, 1, 19 );
     }
-    elsif ( $self->pam_right == 0 ) { 
+    elsif ( $self->pam_right == 0 ) {
         #its pam left, so strip first three characters and the very last one,
         #we revcom so that the grna is always relative to the NGG sequence
         return revcom( substr( $self->seq, 3, 19 ) )->seq;
