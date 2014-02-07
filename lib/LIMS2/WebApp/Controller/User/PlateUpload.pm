@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.154';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.155';
 }
 ## use critic
 
