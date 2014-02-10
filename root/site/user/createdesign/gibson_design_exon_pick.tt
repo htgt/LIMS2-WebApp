@@ -14,6 +14,7 @@
   exons = exons
   gene = gene
   design_create_url = '/user/create_gibson_design'
+  get_crisprs_url = '/user/get_crisprs'
   show_current_designs = 1
 %]
 

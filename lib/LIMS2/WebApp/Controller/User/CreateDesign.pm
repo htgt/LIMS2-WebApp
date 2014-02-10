@@ -11,6 +11,12 @@ use LIMS2::Model::Util::CreateDesign;
 
 BEGIN { extends 'Catalyst::Controller' };
 
+with qw(
+MooseX::Log::Log4perl
+);
+
+
+
 #use this default if the env var isnt set.
 const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_designs' );
@@ -166,6 +172,31 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
             $c->request->param('show_exons'),
         );
 
+        my $exon_ids;
+        my %crispr_count;
+        foreach my $exon ( @$exon_data ) {
+            $crispr_count{$exon->{id}} = 0;
+            $exon_ids .= ',' . $exon->{id};
+        }
+
+        if ($exon_ids =~ /^,(.*)/ ) {
+            $exon_ids = "{$1}";
+        }
+
+        my @crisprs = $c->model('Golgi')->schema->resultset('ExonCrisprs')->search( {},
+            {
+                bind => [ $exon_ids ],
+            }
+        );
+
+        foreach my $row (@crisprs) {
+            ++$crispr_count{$row->ensembl_exon_id};
+        }
+
+        for (my $i=0; $i < scalar @{$exon_data}; ++$i) {
+            ${$exon_data}[$i]{"crispr_count"} = $crispr_count{${$exon_data}[$i]->{id}};
+        }
+
         $c->stash(
             exons    => $exon_data,
             gene     => $gene_data,
@@ -296,6 +327,9 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     );
     return;
 }
+
+
+
 
 __PACKAGE__->meta->make_immutable;
 
