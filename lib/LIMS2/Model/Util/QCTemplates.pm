@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCTemplates::VERSION = '0.149';
+    $LIMS2::Model::Util::QCTemplates::VERSION = '0.156';
 }
 ## use critic
 
@@ -133,7 +133,7 @@ sub qc_template_display_data {
             $info{source_well} = $source->name;
 
             if ( my $design_id = $es_params->{design_id} ) {
-                my $design = try{ $model->retrieve_design( { id => $design_id } ) };
+                my $design = try{ $model->c_retrieve_design( { id => $design_id } ) };
 
                 if ( $design ) {
                     design_data( $model, \%info, $design, $species );

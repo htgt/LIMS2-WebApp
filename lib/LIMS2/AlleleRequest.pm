@@ -1,7 +1,7 @@
 package LIMS2::AlleleRequest;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::AlleleRequest::VERSION = '0.149';
+    $LIMS2::AlleleRequest::VERSION = '0.156';
 }
 ## use critic
 
@@ -42,7 +42,8 @@ has [ qw( species gene_id ) ] => (
 sub _build_designs {
     my ( $self, $mutation_type ) = @_;
 
-    return $self->model->list_assigned_designs_for_gene(
+    # Uses WebAppCommon::Plugin::Design
+    return $self->model->c_list_assigned_designs_for_gene(
         {
             species => $self->species,
             gene_id => $self->gene_id,

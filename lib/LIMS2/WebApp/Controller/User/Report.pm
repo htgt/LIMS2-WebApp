@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.149';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.156';
 }
 ## use critic
 
@@ -127,6 +127,7 @@ sub download_report :Path( '/user/report/download' ) :Args(1) {
     $c->assert_user_roles( 'read' );
 
     my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    $report_name =~ s/\s/_/g;
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );

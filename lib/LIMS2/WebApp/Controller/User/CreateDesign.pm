@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.149';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.156';
 }
 ## use critic
 
@@ -199,12 +199,18 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
             model    => $c->model('Golgi'),
         );
 
-        my $design_attempt;
+        my ($design_attempt, $job_id);
         try {
-            $design_attempt = $create_design_util->create_gibson_design();
+            ( $design_attempt, $job_id ) = $create_design_util->create_gibson_design();
         }
         catch ($err) {
             $c->flash( error_msg => "Error submitting Design Creation job: $err" );
+            $c->res->redirect( 'gibson_design_gene_pick' );
+            return;
+        }
+
+        unless ( $job_id ) {
+            $c->flash( error_msg => "Unable to submit Design Creation job" );
             $c->res->redirect( 'gibson_design_gene_pick' );
             return;
         }
@@ -256,7 +262,7 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     my $design_attempt;
     try {
         $design_attempt = $c->model('Golgi')
-            ->retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
+            ->c_retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design attempt id" );

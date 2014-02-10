@@ -47,6 +47,7 @@ DELETE FROM well_comments;
 DELETE FROM well_chromosome_fail;
 DELETE FROM well_targeting_pass;
 DELETE FROM well_targeting_puro_pass;
+DELETE FROM well_targeting_neo_pass;
 DELETE FROM well_genotyping_results;
 DELETE FROM well_recombineering_results;
 DELETE FROM well_colony_counts;

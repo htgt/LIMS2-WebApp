@@ -397,6 +397,76 @@ sub all_tests  : Tests
     }
 
     {
+	note("Testing well targeting_puro_pass create, retrieve and delete");
+
+	throws_ok {
+	    model->create_well_targeting_puro_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'junk' , created_by => 'test_user@example.org' }  );
+	} qr/Parameter validation failed/;
+
+	ok model->create_well_targeting_puro_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'passb' , created_by => 'test_user@example.org' }  )
+	, 'targeting_puro_pass result created successfully' ;
+
+	throws_ok {
+	    model->create_well_targeting_puro_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'passb' , created_by => 'test_user@example.org' }  );
+	} qr/Well MOHFAQ0001_A_2_D04 already has a well_targeting_puro_pass value of passb/;
+
+	ok my $targeting_puro_pass = model->retrieve_well_targeting_puro_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } ), 'can retrieve targeting pass data for well';
+	is $targeting_puro_pass->result, 'passb', 'targeting-puro fail result is passb';
+	ok my $well = $targeting_puro_pass->well, '.. can grab well from targeting_puro_pass';
+	is "$well", 'MOHFAQ0001_A_2_D04', '.. and targeting_puro_pass is for right well';
+
+	ok $targeting_puro_pass = model->update_or_create_well_targeting_puro_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass', created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
+	is $targeting_puro_pass->result, 'pass', '..updated result is now pass';
+
+	lives_ok {
+	    model->delete_well_targeting_puro_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', created_by => 'test_user@example.org' } )
+	} 'delete well targeting-puro pass';
+
+	throws_ok {
+	   model->retrieve_well_targeting_puro_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', created_by => 'test_user@example.org' } )
+	} qr/No WellTargetingPuroPass entity found/;
+
+	ok my $new_targeting_puro_pass = model->create_well_targeting_puro_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'passb', created_by => 'test_user@example.org' }  ), 'can create new well targeting pass';
+	is $new_targeting_puro_pass->result, 'passb', 'targeting pass status is passb';
+	is $well->id, $new_targeting_puro_pass->well_id , '.. and targeting_puro_pass is for right well';
+    }
+
+    {
+	note("Testing well targeting_neo_pass create, retrieve and delete");
+
+	throws_ok {
+	    model->create_well_targeting_neo_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'junk' , created_by => 'test_user@example.org' }  );
+	} qr/Parameter validation failed/;
+
+	ok model->create_well_targeting_neo_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'passb' , created_by => 'test_user@example.org' }  )
+	, 'targeting_neo_pass result created successfully' ;
+
+	throws_ok {
+	    model->create_well_targeting_neo_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'passb' , created_by => 'test_user@example.org' }  );
+	} qr/Well MOHFAQ0001_A_2_D04 already has a well_targeting_neo_pass value of passb/;
+
+	ok my $targeting_neo_pass = model->retrieve_well_targeting_neo_pass( { plate_name =>'MOHFAQ0001_A_2', well_name => 'D04' } ), 'can retrieve targeting pass data for well';
+	is $targeting_neo_pass->result, 'passb', 'targeting-neo fail result is passb';
+	ok my $well = $targeting_neo_pass->well, '.. can grab well from targeting_neo_pass';
+	is "$well", 'MOHFAQ0001_A_2_D04', '.. and targeting_neo_pass is for right well';
+
+	ok $targeting_neo_pass = model->update_or_create_well_targeting_neo_pass( {   plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'pass', created_by => 'test_user@example.org' } ), 'can update targeting pass well result';
+	is $targeting_neo_pass->result, 'pass', '..updated result is now pass';
+
+	lives_ok {
+	    model->delete_well_targeting_neo_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', created_by => 'test_user@example.org' } )
+	} 'delete well targeting-neo pass';
+
+	throws_ok {
+	   model->retrieve_well_targeting_neo_pass( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', created_by => 'test_user@example.org' } )
+	} qr/No WellTargetingNeoPass entity found/;
+
+	ok my $new_targeting_neo_pass = model->create_well_targeting_neo_pass( { plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04', result => 'passb', created_by => 'test_user@example.org' }  ), 'can create new well targeting pass';
+	is $new_targeting_neo_pass->result, 'passb', 'targeting pass status is passb';
+	is $well->id, $new_targeting_neo_pass->well_id , '.. and targeting_neo_pass is for right well';
+    }
+
+    {
 	note("Testing well chromosome_fail create, retrieve and delete");
 
 	throws_ok {
@@ -432,7 +502,6 @@ sub all_tests  : Tests
     }
 
     {
-
 	note("Testing well_genotyping_result create, update, retrieve and delete");
 
 	throws_ok {
@@ -452,7 +521,6 @@ sub all_tests  : Tests
 	throws_ok {
 	    model->create_well_genotyping_result( $result_input );
 	} qr/already has a genotyping_results value/;
-
 
 	ok my $genotyping_result = model->update_or_create_well_genotyping_result( {  plate_name => 'MOHFAQ0001_A_2' , well_name => 'D04',
 		    genotyping_result_type_id => 'loacrit',

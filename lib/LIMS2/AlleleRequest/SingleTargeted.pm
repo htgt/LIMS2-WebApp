@@ -1,7 +1,7 @@
 package LIMS2::AlleleRequest::SingleTargeted;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::AlleleRequest::SingleTargeted::VERSION = '0.149';
+    $LIMS2::AlleleRequest::SingleTargeted::VERSION = '0.156';
 }
 ## use critic
 

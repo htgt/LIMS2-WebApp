@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.149';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.156';
 }
 ## use critic
 
@@ -65,13 +65,14 @@ sub update_genotyping_qc_data{
 
         push @messages, "Well ".$datum->{well_name}.":";
         # update targeting_pass and chromosome_fail if provided
-        foreach my $overall qw(targeting_pass targeting-puro_pass chromosome_fail){
+        foreach my $overall qw(targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail){
             if (my $result = $datum->{$overall}){
 
                 # Change targeting-puro (targeting minus puro) to targeting_puro
                 # for consistency with naming of db tables
                 my $table = $overall;
                 $table =~ s/targeting-puro/targeting_puro/;
+                $table =~ s/targeting-puro/targeting_neo/;
 
                 # Tidy up result input values
                 $result =~ s/\s*//g;
@@ -136,7 +137,7 @@ sub hash_keys_to_lc {
 sub _valid_column_names{
     my ($self, $assay_types, $primer_bands) = @_;
     # Overall results including primer bands
-    my %recognized = map { lc $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail),
+    my %recognized = map { lc $_ => 1 } qw(well_name targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail),
                                      @$primer_bands;
 
     # Assay specific results
@@ -228,6 +229,7 @@ sub update_genotyping_qc_value {
         'chromosome_fail'       => \&well_assay_update,
         'targeting_pass'        => \&well_assay_update,
         'targeting_puro_pass'   => \&well_assay_update,
+        'targeting_neo_pass'    => \&well_assay_update,
         'accepted_override'     => \&well_assay_update,
         'lab_number'            => \&well_assay_update,
         'tr_pcr'                => \&primer_band_update,
@@ -431,6 +433,10 @@ sub delete_genotyping_qc_data {
         $params->{'assay_name'} = 'targeting_puro_pass';
         $self->update_genotyping_qc_value( $params );
     }
+    if ( $qc_row->{'targeting_neo_pass'} ne '-' ) {
+        $params->{'assay_name'} = 'targeting_neo_pass';
+        $self->update_genotyping_qc_value( $params );
+    }
     if ( $qc_row->{'accepted_override'} ne '-' ) {
         $params->{'assay_name'} = 'accepted_override';
         $self->update_genotyping_qc_value( $params );
@@ -530,6 +536,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
              'Chr fail' => 1,
              'Tgt pass' => 1,
              'Puro pass' => 1,
+             'Neo pass' => 1,
              'Primer band type' => 1,
              'Primer pass?' => 1,
              'genotyping_result_type_id' => 1,
@@ -657,6 +664,7 @@ sub populate_well_attributes {
     $datum->{'chromosome_fail'} = $row->{'Chr fail'} // '-';
     $datum->{'targeting_pass'} = $row->{'Tgt pass'} // '-';
     $datum->{'targeting_puro_pass'} = $row->{'Puro pass'} // '-';
+    $datum->{'targeting_neo_pass'} = $row->{'Neo pass'} // '-';
     return;
 }
 
@@ -760,6 +768,7 @@ select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.g
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
+    well_targeting_neo_pass.result "Neo pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
     well_accepted_override.accepted "Override",
@@ -774,6 +783,9 @@ left outer
 left outer
     join well_targeting_puro_pass
         on wd."Well ID" = well_targeting_puro_pass.well_id
+left outer
+    join well_targeting_neo_pass
+        on wd."Well ID" = well_targeting_neo_pass.well_id
 left outer
     join well_primer_bands
         on wd."Well ID" = well_primer_bands.well_id
@@ -822,6 +834,7 @@ select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.g
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
+    well_targeting_neo_pass.result "Neo pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
     well_accepted_override.accepted "Override",
@@ -836,6 +849,9 @@ left outer
 left outer
     join well_targeting_puro_pass
         on wd."Well ID" = well_targeting_puro_pass.well_id
+left outer
+    join well_targeting_neo_pass
+        on wd."Well ID" = well_targeting_neo_pass.well_id
 left outer
     join well_primer_bands
         on wd."Well ID" = well_primer_bands.well_id
@@ -970,6 +986,7 @@ sub create_csv_header_array {
         'Allele Info#First EP recombinase',
         'Targeting Pass',
         'Targeting Puro Pass',
+        'Targeting Neo Pass',
         'TRPCR band',
         'gr3',
         'gr4',
@@ -1017,6 +1034,7 @@ sub translate_header_items {
         'Allele Info#First EP recombinase'      => 'ep_well_recombinase_id',
         'Targeting Pass'                        => 'targeting_pass',
         'Targeting Puro Pass'                   => 'targeting_puro_pass',
+        'Targeting Neo Pass'                    => 'targeting_neo_pass',
         'TRPCR band'                            => 'trpcr',
     );
 
