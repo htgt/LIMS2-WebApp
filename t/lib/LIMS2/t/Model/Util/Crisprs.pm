@@ -17,7 +17,7 @@ LIMS2/t/Model/Util/Crisprs.pm - test class for LIMS2::Model::Util::Crisprs
 
 sub crispr_hits_design : Test(5) {
 
-    ok my $design = model->retrieve_design( { id => 1002582 } ), 'can grab design';
+    ok my $design = model->c_retrieve_design( { id => 1002582 } ), 'can grab design';
     ok my $matching_crispr = model->retrieve_crispr( { id => 69844 } ), 'can grab a crispr';
     ok my $non_matching_crispr = model->retrieve_crispr( { id => 69907 } ), 'can grab a crispr';
     my $default_assembly = 'GRCm38';
@@ -31,7 +31,7 @@ sub crispr_hits_design : Test(5) {
 
 sub crispr_pair_hits_design : Test(5) {
 
-    ok my $design = model->retrieve_design( { id => 1002582 } ), 'can grab design';
+    ok my $design = model->c_retrieve_design( { id => 1002582 } ), 'can grab design';
     ok my $matching_crispr_pair = model->schema->resultset('CrisprPair')->find( { id => 4423 } )
         , 'can grab a crispr_pair';
     ok my $non_matching_crispr_pair = model->schema->resultset('CrisprPair')->find( { id => 4475 } )

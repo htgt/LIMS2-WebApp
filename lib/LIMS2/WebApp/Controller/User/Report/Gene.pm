@@ -47,7 +47,8 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     }
 
     # fetch designs for this gene
-    my $designs = $c->model('Golgi')->list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
+    # Uses WebAppCommon::Plugin::Design
+    my $designs = $c->model('Golgi')->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
 
     my $dispatch_fetch_values = {
         design     => \&fetch_values_for_type_design,

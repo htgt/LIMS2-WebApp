@@ -1,5 +1,44 @@
 {{$NEXT}}
 
+0.153     2014-02-04 14:36:45 Europe/London
+
+    Added more logging to gibson design creation.
+    Bugfix: removed trailing comma in diagram.builder.js
+    Fixed bug in Genovese Genes track display for mouse
+
+
+0.152     2014-02-04 07:06:08 Europe/London
+
+    Added support for gibson-deletion designs
+
+0.151     2014-01-31 11:50:07 Europe/London
+
+    Added mouse genome support for Genoverse views
+
+0.150     2014-01-29 14:42:34 Europe/London
+
+0.149     2014-01-27 15:03:30 Europe/London
+
+0.148     2014-01-24 16:34:37 Europe/London
+
+    Added option to view all crispr pairs in Design Target Report
+
+0.147     2014-01-23 16:37:36 Europe/London
+
+    Added crispr pairs count to the gsponsor gene report and extended the report to support mouse
+
+0.146     2014-01-21 07:50:27 Europe/London
+
+    Factor out FormValidator code into WebAppCommon
+
+0.145     2014-01-16 09:59:41 Europe/London
+
+    Fixed gibson design count in sponsor gene report
+
+0.144     2014-01-15 13:16:48 Europe/London
+
+    Corrected genotyping QC upload to update_or_create primer bands
+
 0.143     2014-01-15 07:04:25 Europe/London
 
     Factored out some of the gibson design creation interface code into WebApp:Common

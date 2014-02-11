@@ -185,7 +185,9 @@ sub parse_date_time {
 sub plugins {
     my $class = shift;
 
-    return Module::Pluggable::Object->new( search_path => [ $class . '::Plugin' ] )->plugins;
+    return Module::Pluggable::Object->new(
+        search_path => [ $class . '::Plugin', 'WebAppCommon::Plugin' ],
+        except => 'LIMS2::Model::Plugin::Design')->plugins;
 }
 
 ## no critic(RequireFinalReturn)
