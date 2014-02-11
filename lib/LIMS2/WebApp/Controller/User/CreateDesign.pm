@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.149';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.157';
 }
 ## use critic
 
@@ -16,6 +16,12 @@ use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
 
 BEGIN { extends 'Catalyst::Controller' };
+
+with qw(
+MooseX::Log::Log4perl
+);
+
+
 
 #use this default if the env var isnt set.
 const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
@@ -172,6 +178,31 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
             $c->request->param('show_exons'),
         );
 
+        my $exon_ids;
+        my %crispr_count;
+        foreach my $exon ( @$exon_data ) {
+            $crispr_count{$exon->{id}} = 0;
+            $exon_ids .= ',' . $exon->{id};
+        }
+
+        if ($exon_ids =~ /^,(.*)/ ) {
+            $exon_ids = "{$1}";
+        }
+
+        my @crisprs = $c->model('Golgi')->schema->resultset('ExonCrisprs')->search( {},
+            {
+                bind => [ $exon_ids ],
+            }
+        );
+
+        foreach my $row (@crisprs) {
+            ++$crispr_count{$row->ensembl_exon_id};
+        }
+
+        for (my $i=0; $i < scalar @{$exon_data}; ++$i) {
+            ${$exon_data}[$i]{"crispr_count"} = $crispr_count{${$exon_data}[$i]->{id}};
+        }
+
         $c->stash(
             exons    => $exon_data,
             gene     => $gene_data,
@@ -199,12 +230,18 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
             model    => $c->model('Golgi'),
         );
 
-        my $design_attempt;
+        my ($design_attempt, $job_id);
         try {
-            $design_attempt = $create_design_util->create_gibson_design();
+            ( $design_attempt, $job_id ) = $create_design_util->create_gibson_design();
         }
         catch ($err) {
             $c->flash( error_msg => "Error submitting Design Creation job: $err" );
+            $c->res->redirect( 'gibson_design_gene_pick' );
+            return;
+        }
+
+        unless ( $job_id ) {
+            $c->flash( error_msg => "Unable to submit Design Creation job" );
             $c->res->redirect( 'gibson_design_gene_pick' );
             return;
         }
@@ -256,7 +293,7 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     my $design_attempt;
     try {
         $design_attempt = $c->model('Golgi')
-            ->retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
+            ->c_retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design attempt id" );
@@ -296,6 +333,9 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     );
     return;
 }
+
+
+
 
 __PACKAGE__->meta->make_immutable;
 

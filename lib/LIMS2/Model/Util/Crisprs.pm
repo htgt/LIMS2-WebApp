@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.149';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.157';
 }
 ## use critic
 
@@ -170,7 +170,7 @@ sub create_crispr_pair_design_links {
     my ( @create_log, @fail_log );
 
     for my $datum ( @{ $create_links } ) {
-        my $design = $model->retrieve_design( { id => $datum->{design_id} } );
+        my $design = $model->c_retrieve_design( { id => $datum->{design_id} } );
         my $crispr_pair = $model->schema->resultset( 'CrisprPair' )->find(
             { id => $datum->{crispr_pair_id} },
             { prefetch => [ 'left_crispr', 'right_crispr' ] },
@@ -205,7 +205,7 @@ sub create_crispr_design_links {
     my ( @create_log, @fail_log );
 
     for my $datum ( @{ $create_links } ) {
-        my $design = $model->retrieve_design( { id => $datum->{design_id} } );
+        my $design = $model->c_retrieve_design( { id => $datum->{design_id} } );
         my $crispr = $model->schema->resultset( 'Crispr' )->find(
             { id => $datum->{crispr_id} },
             { prefetch => 'loci' },

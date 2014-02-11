@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.149';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.157';
 }
 ## use critic
 
@@ -123,8 +123,9 @@ sub delete_well {
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
-                                 well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands 
-                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass well_lab_number );
+                                 well_qc_sequencing_result well_recombineering_results well_colony_counts
+                                 well_primer_bands well_chromosome_fail well_genotyping_results well_targeting_pass 
+                                 well_targeting_puro_pass well_targeting_neo_pass well_lab_number );
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
@@ -823,7 +824,7 @@ sub pspec_create_well_targeting_pass {
         overwrite   => { validate => 'boolean', optional => 1, default => 0 },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
-        minus_puro  => { validate => 'boolean', optional => 0, default => 0 },
+        type        => { optional => 0, default => 'well_targeting_pass' },
     }
 }
 
@@ -832,7 +833,15 @@ sub pspec_create_well_targeting_pass {
 sub create_well_targeting_puro_pass {
     my ( $self, $params ) = @_;
 
-    $params->{minus_puro} = 1;
+    $params->{type} = 'well_targeting_puro_pass';
+
+    return $self->create_well_targeting_pass( $params );
+}
+
+sub create_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    $params->{type} = 'well_targeting_neo_pass';
 
     return $self->create_well_targeting_pass( $params );
 }
@@ -843,7 +852,7 @@ sub create_well_targeting_pass {
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
-    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+    my $targ_pass_type = $validated_params->{type};
 
     if ( my $targeting_pass = $well->$targ_pass_type ) {
          $self->throw( Validation => "Well $well already has a $targ_pass_type value of "
@@ -863,9 +872,17 @@ sub create_well_targeting_pass {
 sub update_or_create_well_targeting_puro_pass {
 	my ( $self, $params ) = @_;
 
-	$params->{minus_puro} = 1;
+    $params->{type} = 'well_targeting_puro_pass';
 
 	return $self->update_or_create_well_targeting_pass( $params );
+}
+
+sub update_or_create_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    $params->{type} = 'well_targeting_neo_pass';
+
+    return $self->update_or_create_well_targeting_pass( $params );
 }
 
 sub update_or_create_well_targeting_pass {
@@ -873,7 +890,7 @@ sub update_or_create_well_targeting_pass {
     my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
-    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+    my $targ_pass_type = $validated_params->{type};
 
     my $targeting_pass;
 
@@ -916,6 +933,20 @@ sub retrieve_well_targeting_puro_pass {
     return $targeting_pass;
 }
 
+sub retrieve_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $targeting_pass = $well->well_targeting_neo_pass
+        or $self->throw( NotFound => { entity_class => 'WellTargetingNeoPass', search_params => $params } );
+
+    return $targeting_pass;
+}
+
+
 sub retrieve_well_targeting_pass {
     my ( $self, $params ) = @_;
 
@@ -937,6 +968,18 @@ sub delete_well_targeting_puro_pass {
 
     $targeting_pass->delete;
     $self->log->debug( 'Well targeting-puro_pass result deleted for well  ' . $targeting_pass->well_id );
+
+    return;
+}
+
+sub delete_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $targeting_pass = $self->retrieve_well_targeting_neo_pass( $params );
+
+    $targeting_pass->delete;
+    $self->log->debug( 'Well targeting-neo_pass result deleted for well  ' . $targeting_pass->well_id );
 
     return;
 }

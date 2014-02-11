@@ -225,7 +225,7 @@ function DiagramBuilder(id, width, height) {
     //create the path object and set its attributes
     var path = this._paper.path(path_str).attr({
       "stroke-width": 1.5,
-      "fill": '#3F4C6B',
+      "fill": '#3F4C6B'
     });
 
     //now add the EXON label, centred in the box part (ignoring the point)

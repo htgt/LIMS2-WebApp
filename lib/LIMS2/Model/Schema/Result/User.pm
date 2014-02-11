@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::User::VERSION = '0.149';
+    $LIMS2::Model::Schema::Result::User::VERSION = '0.157';
 }
 ## use critic
 
@@ -398,6 +398,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_neo_passes
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingNeoPass>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_targeting_neo_passes",
+  "LIMS2::Model::Schema::Result::WellTargetingNeoPass",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_targeting_passes
 
 Type: has_many
@@ -454,8 +469,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-03 07:05:05
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rcGJ3y1xRWNxzKEyD5mH1g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-02-07 16:49:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rAW2ENSyX3SGhuU7WgRNhg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

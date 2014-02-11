@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.149';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.157';
 }
 ## use critic
 
@@ -26,7 +26,8 @@ has model => (
     required => 1,
     handles  => {
         check_params          => 'check_params',
-        create_design_attempt => 'create_design_attempt',
+        create_design_attempt => 'c_create_design_attempt',
+        c_create_design_attempt => 'c_create_design_attempt',
     }
 );
 
@@ -143,9 +144,14 @@ sub designs_for_exons {
 
     my @designs = $self->model->schema->resultset('Design')->search(
         {
-            'genes.gene_id' => $gene_id,
-            'me.species_id' => $self->species,
-            design_type_id  => 'gibson',
+            -and => [
+                'genes.gene_id' => $gene_id,
+                'me.species_id' => $self->species,
+                -or => [
+                    design_type_id  => 'gibson',
+                    design_type_id  => 'gibson-deletion',
+                ],
+            ],
         },
         {
             join     => 'genes',
@@ -221,7 +227,7 @@ sub create_gibson_design {
     my $cmd            = $self->c_generate_gibson_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
-    return $design_attempt;
+    return ( $design_attempt, $job_id );
 }
 
 =head2 find_or_create_design_target
@@ -243,7 +249,7 @@ sub find_or_create_design_target {
     );
 
     if ( $existing_design_target ) {
-        $self->log->debug( 'Design target ' . $existing_design_target->id
+        $self->log->info( 'Design target ' . $existing_design_target->id
                 . ' already exists for exon: ' . $params->{exon_id} );
         return $existing_design_target;
     }
@@ -281,7 +287,7 @@ sub find_or_create_design_target {
     );
     my $exon_rank = try{ $self->ensembl_util->get_exon_rank( $canonical_transcript, $exon->stable_id ) };
     $design_target_params{exon_rank} = $exon_rank if $exon_rank;
-    my $design_target = $self->model->create_design_target( \%design_target_params );
+    my $design_target = $self->model->c_create_design_target( \%design_target_params );
 
     return $design_target;
 }

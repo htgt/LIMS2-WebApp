@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.149';
+    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.157';
 }
 ## use critic
 
@@ -39,7 +39,7 @@ sub design_GET {
 
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->retrieve_design( { id => $c->request->param( 'id' ) } );
+            shift->c_retrieve_design( { id => $c->request->param( 'id' ) } );
         }
     );
 
@@ -59,7 +59,7 @@ sub design_POST {
 
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->create_design( $c->request->data );
+            shift->c_create_design( $c->request->data );
         }
     );
 
@@ -97,7 +97,7 @@ sub candidate_designs_for_gene_GET {
 
     my $designs = $c->model('Golgi')->txn_do(
         sub {
-            shift->list_candidate_designs_for_gene( { slice_def $c->request->params, qw( gene_id species type ) } );
+            shift->c_list_candidate_designs_for_gene( { slice_def $c->request->params, qw( gene_id species type ) } );
         }
     );
 
@@ -137,7 +137,7 @@ sub design_oligo_GET {
 
     my $design_oligo = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->retrieve_design_oligo( { slice_def $c->request->params, qw( design_id oligo_type ) } );
+            shift->c_retrieve_design_oligo( { slice_def $c->request->params, qw( design_id oligo_type ) } );
         }
     );
 
@@ -157,7 +157,7 @@ sub design_oligo_POST {
 
     my $design_oligo = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->create_design_oligo( $c->request->data );
+            shift->c_create_design_oligo( $c->request->data );
         }
     );
 
@@ -184,7 +184,7 @@ sub design_oligo_locus_POST {
 
     my $design_oligo_locus = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->create_design_oligo_locus( $c->request->data );
+            shift->c_create_design_oligo_locus( $c->request->data );
         }
     );
 
@@ -206,7 +206,7 @@ sub design_attempt_GET {
 
     my $design_attempt = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->retrieve_design_attempt( { id => $c->request->param( 'id' ) } );
+            shift->c_retrieve_design_attempt( { id => $c->request->param( 'id' ) } );
         }
     );
 
@@ -225,7 +225,7 @@ sub design_attempt_POST {
 
     my $design_attempt = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->create_design_attempt( $c->request->data );
+            shift->c_create_design_attempt( $c->request->data );
         }
     );
 
@@ -248,7 +248,7 @@ sub design_attempt_PUT {
 
     my $design_attempt = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->update_design_attempt( $c->request->data );
+            shift->c_update_design_attempt( $c->request->data );
         }
     );
 
@@ -266,7 +266,7 @@ sub design_attempt_status_GET {
     my ( $self, $c, $da_id ) = @_;
 
     $c->assert_user_roles( 'read' );
-    my $da = $c->model('Golgi')->retrieve_design_attempt( { id => $da_id } );
+    my $da = $c->model('Golgi')->c_retrieve_design_attempt( { id => $da_id } );
     my $status = $da->status;
     my $design_links;
     if ( $status eq 'success' ) {

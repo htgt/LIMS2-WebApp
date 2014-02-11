@@ -15,6 +15,15 @@ case $1 in
     setdb)
         lims2_setdb $2
         ;;
+    local)
+        lims2_local_db
+        ;;
+    test)
+        lims2_test_db
+        ;;
+    replicate)
+        lims2_replicate $2
+        ;;
     *) 
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -30,7 +39,7 @@ function check_and_set {
 
 function check_and_set_dir {
     if [[ ! -d $2 ]] ; then
-        printf "L2W_STRING: directory $2 does not exist but you are setting $1 to its location\n"
+        printf "$L2W_STRING: directory $2 does not exist but you are setting $1 to its location\n"
     fi
     export $1=$2
 }
@@ -64,6 +73,43 @@ function lims2_setdb {
     printf "$L2I_STRING: database is now $LIMS2_DB\n"
 }
 
+function lims2_replicate {
+    case $1 in
+        test)
+            lims2_load_test
+            ;;
+        local)
+            lims2_load_local
+            ;;
+        staging)
+            lims2_load_staging
+            ;;
+        *)
+            printf "Don't know how to replicate $1\n";
+            ;; 
+    esac
+}
+
+function lims2_load_test {
+    printf "lims2_load_test should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_load_local {
+    printf "lims2_load_local should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_local_db {
+    printf "lims2_local_db should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_test_db {
+    printf "lims2_test_db should be implemented in ~/.lims2_local\n"
+}
+
+function lims2_load_staging {
+    source $LIMS2_DEV_ROOT/bin/lims2_staging_clone 
+}
+
 function lims2_show {
 cat << END
 LIMS2 useful environment variables:
@@ -91,7 +137,10 @@ LIMS2 useful environment variables:
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT
 \$LIMS2_DB                     : $LIMS2_DB
+
 END
+
+lims2_local_environment
 }
 
 function lims2_help {
@@ -110,8 +159,13 @@ commands avaiable:
                  specified by \$LIMS2_WEBAPP_SERVER_PORT (default $LIMS2_WEBAPP_SERVER_PORT)
 
     debug        - starts the catalyst server using 'perl -d '
+    replicate < test | local | staging >
+                 - replicates test into your own test_db (*), or live into your local db (*)
+                 - replicates staging by copying from live - stop staging db first
     show         - show the value of useful LIMS2 variables
 
+    local        - sets LIMS2 up to use your local database (*)
+    test         - sets LIMS2 up to use your own test database (*)
     setdb <db_name> - sets the LIMS2_DB (*) environment variable 
 
     help         - displays this help message

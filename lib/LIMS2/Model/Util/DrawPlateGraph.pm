@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DrawPlateGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DrawPlateGraph::VERSION = '0.149';
+    $LIMS2::Model::Util::DrawPlateGraph::VERSION = '0.157';
 }
 ## use critic
 

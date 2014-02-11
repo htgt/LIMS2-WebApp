@@ -5,10 +5,14 @@ author:
 build_requires:
   English: 0
   File::Find: 0
+  HTTP::Request: 0
   HTTP::Request::Common: 0
+  LIMS2::Model::Plugin::Design: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
+  YAML: 0
+  bytes: 0
 dynamic_config: 0
 generated_by: 'Dist::Zilla version 4.300014, CPAN::Meta::Converter version 2.120921'
 license: perl
@@ -17,6 +21,7 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
+  Bio::Perl: 0
   Bio::Seq: 0
   Bio::SeqIO: 0
   CHI: 0
@@ -124,6 +129,7 @@ requires:
   TryCatch: 0
   URI: 0
   URI::QueryParam: 0
+  WebAppCommon::Crispr::SubmitInterface: 0
   WebAppCommon::Design::CreateInterface: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
@@ -136,4 +142,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.149
+version: 0.157

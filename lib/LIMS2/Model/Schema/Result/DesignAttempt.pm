@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignAttempt;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignAttempt::VERSION = '0.149';
+    $LIMS2::Model::Schema::Result::DesignAttempt::VERSION = '0.157';
 }
 ## use critic
 
@@ -81,6 +81,12 @@ __PACKAGE__->table("design_attempts");
   data_type: 'text'
   is_nullable: 1
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =head2 created_by
 
   data_type: 'integer'
@@ -98,12 +104,6 @@ __PACKAGE__->table("design_attempts");
 
   data_type: 'text'
   is_nullable: 1
-
-=head2 species_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
 
 =cut
 
@@ -127,6 +127,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "design_ids",
   { data_type => "text", is_nullable => 1 },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "created_by",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -138,8 +140,6 @@ __PACKAGE__->add_columns(
   },
   "comment",
   { data_type => "text", is_nullable => 1 },
-  "species_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -187,8 +187,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-11 08:18:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oOfJULVnJ2drFZoyc2AWBw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-02-07 16:49:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c3QJm0xLcZSD3QrQG9CIog
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

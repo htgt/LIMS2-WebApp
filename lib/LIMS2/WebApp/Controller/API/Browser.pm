@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Browser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.149';
+    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.157';
 }
 ## use critic
 
@@ -38,15 +38,14 @@ sub crispr :Path('/api/crispr') :Args(0) :ActionClass('REST') {
 sub crispr_GET {
     my ( $self, $c ) = @_;
 
+    my $schema = $c->model('Golgi')->schema;
 
     my $params = ();
     $params->{species} = $c->session->{'selected_species'} // 'Human';
-    $params->{assembly_id} = $c->request->params->{'assembly'} // 'GRCh37';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // get_species_default_assembly($schema, $params->{species} ) // 'GRCh37';
     $params->{chromosome_number}= $c->request->params->{'chr'};
     $params->{start_coord}= $c->request->params->{'start'};
     $params->{end_coord}= $c->request->params->{'end'};
-
-    my $schema = $c->model('Golgi')->schema;
 
     my $crisprs = crisprs_for_region(
          $schema,
@@ -65,15 +64,15 @@ sub crispr_pairs :Path('/api/crispr_pairs') :Args(0) :ActionClass('REST') {
 sub crispr_pairs_GET {
     my ( $self, $c ) = @_;
 
+    my $schema = $c->model('Golgi')->schema;
 
     my $params = ();
     $params->{species} = $c->session->{'selected_species'} // 'Human';
-    $params->{assembly_id} = $c->request->params->{'assembly'} // 'GRCh37';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // get_species_default_assembly($schema, $params->{species} ) // 'GRCh37';
     $params->{chromosome_number}= $c->request->params->{'chr'};
     $params->{start_coord}= $c->request->params->{'start'};
     $params->{end_coord}= $c->request->params->{'end'};
 
-    my $schema = $c->model('Golgi')->schema;
 
     my $crisprs = crispr_pairs_for_region(
          $schema,
@@ -86,21 +85,30 @@ sub crispr_pairs_GET {
     return $c->response->body( $body );
 }
 
+sub get_species_default_assembly {
+    my $schema = shift;
+    my $species = shift;
+
+    my $assembly_r = $schema->resultset('SpeciesDefaultAssembly')->find( { species_id => $species } );
+
+    return $assembly_r->assembly_id || undef;
+
+}
+
 sub gibson_designs :Path('/api/gibson_designs') :Args(0) :ActionClass('REST') {
 }
 
 sub gibson_designs_GET {
     my ( $self, $c ) = @_;
 
+    my $schema = $c->model('Golgi')->schema;
 
     my $params = ();
     $params->{species} = $c->session->{'selected_species'} // 'Human';
-    $params->{assembly_id} = $c->request->params->{'assembly'} // 'GRCh37';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // get_species_default_assembly($schema, $params->{species} ) // 'GRCh37';
     $params->{chromosome_number}= $c->request->params->{'chr'};
     $params->{start_coord}= $c->request->params->{'start'};
     $params->{end_coord}= $c->request->params->{'end'};
-
-    my $schema = $c->model('Golgi')->schema;
 
     my $crisprs = gibson_designs_for_region (
          $schema,
