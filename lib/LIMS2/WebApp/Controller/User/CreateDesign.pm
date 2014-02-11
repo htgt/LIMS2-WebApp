@@ -225,6 +225,48 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     return;
 }
 
+sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibson_design' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+
+    if ( exists $c->request->params->{create_design} ) {
+        $c->log->info('Creating new design');
+
+
+        my ($design_attempt, $job_id);
+        try {
+            ( $design_attempt, $job_id ) = $create_design_util->create_gibson_design();
+        }
+        catch ($err) {
+            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
+            $c->res->redirect( 'gibson_design_gene_pick' );
+            return;
+        }
+
+        unless ( $job_id ) {
+            $c->flash( error_msg => "Unable to submit Design Creation job" );
+            $c->res->redirect( 'gibson_design_gene_pick' );
+            return;
+        }
+
+        $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+    }
+    elsif ( exists $c->request->params->{target_from_exons} ) {
+        my $target_data = $create_design_util->target_params_from_exons;
+        $c->stash(
+            target => $target_data,
+        );
+    }
+
+    return;
+}
+
 sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
     my ( $self, $c ) = @_;
 
