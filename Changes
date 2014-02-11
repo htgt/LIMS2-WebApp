@@ -1,6 +1,12 @@
 {{$NEXT}}
 
+0.157     2014-02-10 16:56:30 Europe/London
+
+    Get Crisprs for exon through farm job added
+
 0.156     2014-02-10 14:01:57 Europe/London
+
+    Added Targeting Neo Pass to Genotyping QC grid
 
 0.155     2014-02-07 12:03:48 Europe/London
 
