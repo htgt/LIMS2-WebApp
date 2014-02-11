@@ -44,6 +44,7 @@ select b.id "pair_id"
 	where a.chr_start >= ? and a.chr_end <= ?
         and a.chr_id = ?
 		and a.assembly_id = ?
+    order by a.crispr_id desc
 EOT
 
 __PACKAGE__->add_columns(
