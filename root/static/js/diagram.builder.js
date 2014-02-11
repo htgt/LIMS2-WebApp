@@ -10,9 +10,9 @@
 */
 function Diagram(diagramBuilder) {
   this._diagramBuilder = diagramBuilder;
-  this._chain = []; 
+  this._chain = [];
   this._unconnectedNodes = []; //for things not on the main chain
-  
+
   Diagram.prototype.lastElement = function() {
     return this._chain[this._chain.length - 1];
   }
@@ -49,7 +49,7 @@ function Diagram(diagramBuilder) {
 
 /*
 HOW TO USE:
-include Raphael, jquery and qtip2 for jquery as they are all required. 
+include Raphael, jquery and qtip2 for jquery as they are all required.
 
 Then add this html to your page somewhere:
 
@@ -91,21 +91,21 @@ function DiagramBuilder(id, width, height) {
     };
   };
 
-  //never access _attributes directly (unless you are me) 
+  //never access _attributes directly (unless you are me)
   this._attributes = this._createAttributes();
   this._chain = new Diagram(this);
 
   //used to automatically space elements added to the chain
   DiagramBuilder.prototype._getElementAttributes = function(width, removeSpacing) {
     //we need a copy so we can change the global one
-    var attrs = this._getAttributesCopy(width, removeSpacing); 
+    var attrs = this._getAttributesCopy(width, removeSpacing);
 
     //if we're about to draw outside the canvas add 100px to the width
     if (attrs.x + attrs.width >= this._paper.width) {
       this._paper.setSize(this._paper.width + 100, this._paper.height);
     }
 
-    //update the global value ready for the next element. 
+    //update the global value ready for the next element.
     //if removeSpacing is set then dont add on more spacing or it would be added twice.
     this._attributes.x += attrs.width + ((removeSpacing) ? 0 : this._attributes.spacing);
 
@@ -117,9 +117,9 @@ function DiagramBuilder(id, width, height) {
     //copying objects is non trivial in js so just do this
     //allow the user to remove spacing and specify their own width if they want
     return {
-      x: (removeSpacing) ? (this._attributes.x - this._attributes.spacing) : this._attributes.x, 
-      y: this._attributes.y, 
-      width: (width) ? width : this._attributes.width, 
+      x: (removeSpacing) ? (this._attributes.x - this._attributes.spacing) : this._attributes.x,
+      y: this._attributes.y,
+      width: (width) ? width : this._attributes.width,
       height: this._attributes.height
     };
   };
@@ -157,8 +157,8 @@ function DiagramBuilder(id, width, height) {
   DiagramBuilder.prototype._addBox = function(attrs, unconnected) {
     //draw the box
     var box = this._paper.rect(attrs.x, attrs.y, attrs.width, attrs.height).attr({
-      "fill": "#356AA0", 
-      "stroke-width": 1.5, 
+      "fill": "#356AA0",
+      "stroke-width": 1.5,
       "fill-opacity": 0.2
     });
     var text = this._paper.text(attrs.x + (attrs.width/2), attrs.y + (attrs.height/2), attrs.text).attr({
@@ -188,7 +188,7 @@ function DiagramBuilder(id, width, height) {
     //position should be left or right.
 
     var coords = node.getBBox();
-    var attrs = { 
+    var attrs = {
       x: coords.x + ((position == "left") ? -coords.width/2 : coords.width/2),
       y: coords.y + coords.height,
       width: this._attributes.width,
@@ -198,14 +198,56 @@ function DiagramBuilder(id, width, height) {
     return this._addBox(attrs, 1);
   }
 
+  DiagramBuilder.prototype.addTarget = function() {
+    var attrs = this._getElementAttributes(this._attributes.width * 1.6); //these are slightly wider
+    //label all the different co-ordinates we use to (attempt to) make the code more readable.
+    var coords = {
+      boxLeft: attrs.x,
+      boxRight: attrs.x+attrs.width*0.7, //the actual box part only comes out 70% of the way, the remaining 30% is the point
+      boxTop: attrs.y,
+      boxBottom: attrs.y+attrs.height,
+      pointX: attrs.x+attrs.width, //this is the pointed part on the side of the box
+      pointY: attrs.y+attrs.height/2
+    }
+
+    //each line represents a point in the format x, y
+    var points = [
+      coords.boxLeft,  coords.boxTop,     //initial start
+      coords.boxRight, coords.boxTop,     //top line of box
+      coords.pointX,   coords.pointY,     //diagonal down to point
+      coords.boxRight, coords.boxBottom,  //back in to box
+      coords.boxLeft,  coords.boxBottom   //bottom line of box
+    ];
+
+    //convert the array into a path
+    var path_str = "M" + points.join(",") + "z";
+
+    //create the path object and set its attributes
+    var path = this._paper.path(path_str).attr({
+      "stroke-width": 1.5,
+      "fill": '#CC0000'
+    });
+
+    //now add the EXON label, centred in the box part (ignoring the point)
+    this._paper.text(attrs.x+((attrs.width*0.7)/2), attrs.y+(attrs.height/2), "Target").attr({
+      "fill": "#fff",
+      "font-size": 16,
+      "font-weight": "bold"
+    });
+
+    this._chain.addNode(path);
+
+    return path;
+  };
+
   DiagramBuilder.prototype.addExon = function() {
     var attrs = this._getElementAttributes(this._attributes.width * 1.4); //these are slightly wider
     //label all the different co-ordinates we use to (attempt to) make the code more readable.
     var coords = {
-      boxLeft: attrs.x, 
+      boxLeft: attrs.x,
       boxRight: attrs.x+attrs.width*0.7, //the actual box part only comes out 70% of the way, the remaining 30% is the point
-      boxTop: attrs.y, 
-      boxBottom: attrs.y+attrs.height, 
+      boxTop: attrs.y,
+      boxBottom: attrs.y+attrs.height,
       pointX: attrs.x+attrs.width, //this is the pointed part on the side of the box
       pointY: attrs.y+attrs.height/2
     }
@@ -237,7 +279,7 @@ function DiagramBuilder(id, width, height) {
 
     this._chain.addNode(path);
 
-    return path; 
+    return path;
   };
 
   //critical just has the colour changed
@@ -269,7 +311,7 @@ function DiagramBuilder(id, width, height) {
     var offsets = {
       "y": {
         "top": (coords.y - this._attributes.textHeight) - textPad,
-        "center": coords.y + (coords.height/2 - this._attributes.textHeight/2), 
+        "center": coords.y + (coords.height/2 - this._attributes.textHeight/2),
         "bottom": coords.y + coords.height + textPad
       },
       "x": {
@@ -277,7 +319,7 @@ function DiagramBuilder(id, width, height) {
         "right": coords.x2 + textPad,
         "center": coords.x,
         "block": coords.x + ( this._attributes.textWidth / 2 )
-      } 
+      }
     };
 
     var placement_re = /(top|bottom|center)?\s*(left|right|block)?/i;
@@ -295,7 +337,7 @@ function DiagramBuilder(id, width, height) {
     //make a new input field and position it relative to the provided box
     var field = $("<input type='text' name='" + name + "' id='" + name + "' value='" + defaultValue + "' placeholder='"+title+"' />")
       .css( {
-        position: "absolute", 
+        position: "absolute",
         left: (xOffset - this._createAttributes().x) + "px", //offset from left of div to correct position
         top: ( yOffset + parseFloat(this._parentDiv.css("padding-top")) ) + "px", //we have padding at the top
         width: this._attributes.textWidth,
@@ -304,7 +346,7 @@ function DiagramBuilder(id, width, height) {
         "z-index": 100
       } )
       .insertBefore( this._parentDiv );
-    
+
     //add tooltip as a label
     field.qtip({
         content: { attr: 'placeholder' },
