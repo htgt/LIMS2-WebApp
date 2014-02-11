@@ -33,7 +33,7 @@
     ================================================== -->
     <script src="[% c.uri_for( '/static/js/jquery-1.7.2.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
-    <script src="[% c.uri_for( '/static/js/poller.js' ) %]"></script>
+    <script src="[% c.uri_for( '/js/poller.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.8.21.custom.min.js' ) %]"></script>
 
 
