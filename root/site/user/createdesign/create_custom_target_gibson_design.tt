@@ -19,7 +19,8 @@
     strand     = target.strand
   %]
   [% INCLUDE 'create_design/common_gibson_form_parameters.tt'
-    gene_id_label = gene_id_label
-    gene_id       = target.gene_id
+    gene_id_label   = gene_id_label
+    gene_id         = target.gene_id
+    ensembl_gene_id = target.ensembl_gene_id
   %]
 </form>
