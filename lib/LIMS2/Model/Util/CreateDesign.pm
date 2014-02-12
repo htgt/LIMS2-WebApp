@@ -217,18 +217,39 @@ sub target_params_from_exons {
     return $self->c_target_params_from_exons();
 }
 
-=head2 create_gibson_design
+=head2 create_exon_target_gibson_design
 
 Wrapper for all the seperate subroutines we need to run to
-initiate the creation of a gibson design
+initiate the creation of a gibson design with a exon target.
 
 =cut
-sub create_gibson_design {
+sub create_exon_target_gibson_design {
     my ( $self ) = @_;
 
-    my $params         = $self->c_parse_and_validate_gibson_params();
+    my $params         = $self->c_parse_and_validate_exon_target_gibson_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
     my $design_target  = $self->find_or_create_design_target( $params );
+    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
+
+    return ( $design_attempt, $job_id );
+}
+
+=head2 create_custom_target_gibson_design
+
+Wrapper for all the seperate subroutines we need to run to
+initiate the creation of a gibson design with a custom target.
+
+=cut
+sub create_custom_target_gibson_design {
+    my ( $self ) = @_;
+
+    my $params         = $self->c_parse_and_validate_custom_target_gibson_params();
+    my $design_attempt = $self->c_initiate_design_attempt( $params );
+    # what to do here?
+    #TODO work out all the exons for gene that we could hit and add as targets sp12 Tue 11 Feb 2014 14:59:54 GMT
+    # on canoical transcript
+    #my $design_target  = $self->find_or_create_design_target( $params );
     my $cmd            = $self->c_generate_gibson_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
