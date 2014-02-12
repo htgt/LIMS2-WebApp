@@ -11,14 +11,8 @@ use LIMS2::Model::Util::CreateDesign;
 
 BEGIN { extends 'Catalyst::Controller' };
 
-with qw(
-MooseX::Log::Log4perl
-);
-
-
-
 #use this default if the env var isnt set.
-const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
+const my $DEFAULT_DESIGNS_DIR => dir( $ENV{DEFAULT_DESIGNS_DIR} //
                                     '/lustre/scratch109/sanger/team87/lims2_designs' );
 const my @DESIGN_TYPES => (
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
@@ -226,7 +220,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
 
         my ($design_attempt, $job_id);
         try {
-            ( $design_attempt, $job_id ) = $create_design_util->create_gibson_design();
+            ( $design_attempt, $job_id ) = $create_design_util->create_exon_target_gibson_design();
         }
         catch ($err) {
             $c->flash( error_msg => "Error submitting Design Creation job: $err" );
@@ -272,7 +266,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
 
         my ($design_attempt, $job_id);
         try {
-            ( $design_attempt, $job_id ) = $create_design_util->create_gibson_design();
+            ( $design_attempt, $job_id ) = $create_design_util->create_custom_target_gibson_design();
         }
         catch ($err) {
             $c->flash( error_msg => "Error submitting Design Creation job: $err" );
