@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.155';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.158';
 }
 ## use critic
 
@@ -212,22 +212,96 @@ sub design_targets_for_exons {
     return;
 }
 
-=head2 create_gibson_design
+=head2 target_params_from_exons
 
-Wrapper for all the seperate subroutines we need to run to
-initiate the creation of a gibson design
+Given target exons return target coordinates
 
 =cut
-sub create_gibson_design {
+sub target_params_from_exons {
     my ( $self ) = @_;
 
-    my $params         = $self->c_parse_and_validate_gibson_params();
+    return $self->c_target_params_from_exons();
+}
+
+=head2 create_exon_target_gibson_design
+
+Wrapper for all the seperate subroutines we need to run to
+initiate the creation of a gibson design with a exon target.
+
+=cut
+sub create_exon_target_gibson_design {
+    my ( $self ) = @_;
+
+    my $params         = $self->c_parse_and_validate_exon_target_gibson_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
     my $design_target  = $self->find_or_create_design_target( $params );
     my $cmd            = $self->c_generate_gibson_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
     return ( $design_attempt, $job_id );
+}
+
+=head2 create_custom_target_gibson_design
+
+Wrapper for all the seperate subroutines we need to run to
+initiate the creation of a gibson design with a custom target.
+
+=cut
+sub create_custom_target_gibson_design {
+    my ( $self ) = @_;
+
+    my $params         = $self->c_parse_and_validate_custom_target_gibson_params();
+    my $design_attempt = $self->c_initiate_design_attempt( $params );
+    $self->calculate_design_targets( $params );
+    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
+
+    return ( $design_attempt, $job_id );
+}
+
+=head2 calculate_design_targets
+
+Try to work out the design targets for a gibson design
+and create any appropriate design targets.
+
+=cut
+sub calculate_design_targets {
+    my ( $self, $params ) = @_;
+
+    # TODO: if we have five_prime_exon and no three_prime exon just
+    # make one target for five_prime_exon
+    # this is for when we have multi exon target
+
+    # first grab the gene we are targetting
+    # - either using ensembl_gene_id
+    # - or gene_id if ensembl_gene_id not present
+    my $gene_name = $params->{ensembl_gene_id} || $params->{gene_id};
+    my $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
+    return unless $gene;
+
+    # grab canonical exons for gene
+    my $exons = $gene->canonical_transcript->get_all_Exons;
+
+    # identify all canonical exons which land between target start and target end
+    # is a match if the exon is a partial hit as well
+    my @target_exons;
+    for my $exon ( @{$exons} ) {
+        if (   $exon->seq_region_start >= $params->{target_start}
+            && $exon->seq_region_start <= $params->{target_end} )
+        {
+            push @target_exons, $exon;
+        }
+        elsif ($exon->seq_region_end >= $params->{target_start}
+            && $exon->seq_region_end <= $params->{target_end} )
+        {
+            push @target_exons, $exon;
+        }
+    }
+    my @names = map { $_->stable_id } @target_exons;
+
+    $self->find_or_create_design_target( $params, $_, $gene ) for @target_exons;
+
+    return;
 }
 
 =head2 find_or_create_design_target
@@ -238,33 +312,33 @@ show up in the reports based on the design targets table.
 
 =cut
 sub find_or_create_design_target {
-    my ( $self, $params ) = @_;
+    my ( $self, $params, $exon, $gene ) = @_;
 
+    my $exon_id = $exon ? $exon->stable_id : $params->{exon_id};
     my $existing_design_target = $self->model->schema->resultset('DesignTarget')->find(
         {
             species_id      => $params->{species},
-            ensembl_exon_id => $params->{exon_id},
+            ensembl_exon_id => $exon_id,
             build_id        => $params->{build_id},
         }
     );
 
     if ( $existing_design_target ) {
         $self->log->info( 'Design target ' . $existing_design_target->id
-                . ' already exists for exon: ' . $params->{exon_id} );
+                . ' already exists for exon: ' . $exon_id );
         return $existing_design_target;
     }
 
-    my $gene = $self->ensembl_util->get_ensembl_gene( $params->{ensembl_gene_id} );
+    $gene ||= $self->ensembl_util->get_ensembl_gene( $params->{ensembl_gene_id} );
     die( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
         unless $gene;
     my $canonical_transcript = $gene->canonical_transcript;
 
-    my $exon;
     try {
-        $exon = $self->ensembl_util->exon_adaptor( $self->species )
-            ->fetch_by_stable_id( $params->{exon_id} );
+        $exon ||= $self->ensembl_util->exon_adaptor( $self->species )
+            ->fetch_by_stable_id( $exon_id );
     }
-    die( "Unable to find ensembl exon for: " . $params->{exon_id} )
+    die( "Unable to find ensembl exon for: " . $exon_id )
         unless $exon;
 
     my %design_target_params = (
@@ -272,7 +346,7 @@ sub find_or_create_design_target {
         gene_id              => $params->{gene_id},
         marker_symbol        => $gene->external_name,
         ensembl_gene_id      => $gene->stable_id,
-        ensembl_exon_id      => $params->{exon_id},
+        ensembl_exon_id      => $exon_id,
         exon_size            => $exon->length,
         canonical_transcript => $canonical_transcript->stable_id,
         assembly             => $params->{assembly_id},

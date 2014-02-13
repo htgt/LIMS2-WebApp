@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.155';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.158';
 }
 ## use critic
 
@@ -11,8 +11,21 @@ use TryCatch;
 use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
 use YAML::Any;
 use namespace::autoclean;
+use Path::Class;
 
-BEGIN { extends 'Catalyst::Controller'; }
+use LIMS2::Model::Util::CreateDesign;
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+
+BEGIN { extends 'Catalyst::Controller' };
+
+with qw(
+MooseX::Log::Log4perl
+WebAppCommon::Crispr::SubmitInterface
+);
+
+
+
+
 
 =head1 NAME
 
@@ -248,6 +261,73 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
 
     return;
 }
+
+
+
+
+
+sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $job_id;
+
+    my %stash_data = (
+        template => 'user/crisprs/get_crisprs.tt',
+        exon_id  => $c->request->param('exon_id'),
+        gene_id  => $c->request->param('gene_id'),
+        species  => $c->session->{selected_species},
+    );
+
+    my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $c->session->{selected_species} } )->assembly_id;
+
+    my $params = {
+        species         => $c->session->{selected_species},
+        exon_id         => $c->request->param('exon_id'),
+        ensembl_gene_id => $c->request->param('ensembl_gene_id'),
+        gene_id         => $c->request->param('gene_id'),
+        build_id        => $DEFAULT_SPECIES_BUILD{ lc($c->session->{selected_species}) },
+        assembly_id     => $assembly,
+        user            => $c->user->name,
+    };
+
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+
+    my $design_target  = $create_design_util->find_or_create_design_target( $params );
+
+    try {
+
+        my $cmd = [
+        "/nfs/team87/farm3_lims2_vms/software/Crisprs/paired_crisprs_lims2.sh",
+            $c->request->param('exon_id'),
+            $c->session->{selected_species},
+            $c->request->param('exon_id'),
+        ];
+
+        my $bsub_params = {
+            output_dir => dir( '/lustre/scratch109/sanger/team87/crispr_logs' ),
+            id         => $c->request->param('exon_id'),
+        };
+
+        #we need to provide $self->log for this to work
+        $job_id = $self->c_run_crispr_search_cmd( $cmd, $bsub_params );
+        $stash_data{job_id} = $job_id;
+    }
+    catch ($err) {
+            $stash_data{error_msg} = $err;
+    }
+
+    $c->stash( %stash_data );
+
+    return;
+}
+
+
+
+
 
 __PACKAGE__->meta->make_immutable;
 

@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignPlate::VERSION = '0.155';
+    $LIMS2::Report::DesignPlate::VERSION = '0.158';
 }
 ## use critic
 

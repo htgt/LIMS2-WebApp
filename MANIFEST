@@ -70,6 +70,7 @@ lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
 lib/LIMS2/Model/Schema/Result/DesignTarget.pm
 lib/LIMS2/Model/Schema/Result/DesignTargetCrisprs.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
+lib/LIMS2/Model/Schema/Result/ExonCrisprs.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
 lib/LIMS2/Model/Schema/Result/GeneType.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimer.pm
@@ -133,6 +134,7 @@ lib/LIMS2/Model/Schema/Result/WellLabNumber.pm
 lib/LIMS2/Model/Schema/Result/WellPrimerBand.pm
 lib/LIMS2/Model/Schema/Result/WellQcSequencingResult.pm
 lib/LIMS2/Model/Schema/Result/WellRecombineeringResult.pm
+lib/LIMS2/Model/Schema/Result/WellTargetingNeoPass.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingPass.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingPuroPass.pm
 lib/LIMS2/Model/Types.pm
@@ -275,6 +277,7 @@ root/site/user/browseplates/index.tt
 root/site/user/browseplates/view.tt
 root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
+root/site/user/createdesign/create_custom_target_gibson_design.tt
 root/site/user/createdesign/create_gibson_design.tt
 root/site/user/createdesign/design_attempts.tt
 root/site/user/createdesign/gibson_design_exon_pick.tt
@@ -286,6 +289,7 @@ root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/genoverse_browse_view.tt
+root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_pair.tt
 root/site/user/designtargets/crisprs_ucsc_blat.tt
@@ -2218,7 +2222,6 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
-root/static/js/diagram.builder.js
 root/static/js/jquery-1.7.2.min.js
 root/static/js/jquery.qtip.min.js
 root/static/js/poller.js

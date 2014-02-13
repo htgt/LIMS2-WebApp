@@ -129,6 +129,7 @@ requires:
   TryCatch: 0
   URI: 0
   URI::QueryParam: 0
+  WebAppCommon::Crispr::SubmitInterface: 0
   WebAppCommon::Design::CreateInterface: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
@@ -141,4 +142,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.155
+version: 0.158

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::BacClone;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::BacClone::VERSION = '0.155';
+    $LIMS2::Model::Schema::Result::BacClone::VERSION = '0.158';
 }
 ## use critic
 
