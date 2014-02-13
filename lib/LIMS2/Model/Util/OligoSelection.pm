@@ -39,7 +39,8 @@ sub pick_genotyping_primers {
     my $design_id = shift;
 
     my %failed_primer_regions;
-    my ($region_bio_seq, $target_sequence_mask) = get_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length)
+        = get_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_GIBSON_GENOTYPING_PRIMER_CONFIG' },
@@ -49,7 +50,9 @@ sub pick_genotyping_primers {
     my $logfile = $dir_out->file( $design_id . '_oligos.log');
 
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
-            { SEQUENCE_TARGET => $target_sequence_mask } ); 
+            { SEQUENCE_TARGET => $target_sequence_mask ,
+              PRIMER_PRODUCT_SIZE_RANGE => $target_sequence_length . '-' . $target_sequence_length + 500,
+            } ); 
 $DB::single=1;
     if ( $result->num_primer_pairs ) {
         $p3->log->info( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
@@ -238,7 +241,7 @@ sub get_EnsEmbl_region {
     my $target_sequence_length = $seq->length  - $start_oligo_field_width - $end_oligo_field_width;
     my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
 
-    return ($seq, $target_sequence_string) ;
+    return ($seq, $target_sequence_string, $target_sequence_length) ;
 
 }
 
