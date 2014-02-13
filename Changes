@@ -1,5 +1,26 @@
 {{$NEXT}}
 
+0.158     2014-02-13 08:22:21 Europe/London
+
+    Add location specified gibson design interface
+
+0.157     2014-02-10 16:56:30 Europe/London
+
+    Get Crisprs for exon through farm job added
+
+0.156     2014-02-10 14:01:57 Europe/London
+
+    Added Targeting Neo Pass to Genotyping QC grid
+
+0.155     2014-02-07 12:03:48 Europe/London
+
+    Bugfix: Crispr oligo order sequence for pam_left crisprs was wrong
+
+0.154     2014-02-05 10:46:04 Europe/London
+
+    Factor out Design plugin to WebApp-Common
+    Improved karyotype display in genoverse for mouse
+
 0.153     2014-02-04 14:36:45 Europe/London
 
     Added more logging to gibson design creation.
