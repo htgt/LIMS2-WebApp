@@ -2,13 +2,13 @@
 
 [% INCLUDE 'pagination.tt' pageset = pageset %]
 
-<link href="[% c.uri_for( '/static/css/jquery.qtip.min.css' ) %]" rel="stylesheet">
+<link href="[% c.uri_for( '/css/jquery.qtip.min.css' ) %]" rel="stylesheet">
 
 <style type="text/css">
   .table-striped tbody tr td.failed { background-color: #FF8080; }
   .table-striped tbody tr td.successful { background-color: #80FF80; }
 </style>
-<script type="text/javascript" src="[% c.uri_for( "/static/js/jquery.qtip.min.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/js/jquery.qtip.min.js" ) %]"></script>
 <script type="text/javascript"> 
     //load tooltips for all last stage links
     $(document).ready(function() {
