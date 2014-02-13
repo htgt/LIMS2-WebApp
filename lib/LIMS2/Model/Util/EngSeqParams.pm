@@ -100,6 +100,7 @@ sub fetch_design_eng_seq_params{
 
 	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type});
 	$params->{design_id} = $design->{id};
+    $params->{species}   = $design->{species};
 
     return $params;
 }
