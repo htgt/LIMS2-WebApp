@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.158';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.159';
 }
 ## use critic
 
@@ -106,6 +106,7 @@ sub fetch_design_eng_seq_params{
 
 	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type});
 	$params->{design_id} = $design->{id};
+    $params->{species}   = lc($design->{species});
 
     return $params;
 }

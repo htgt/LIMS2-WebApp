@@ -19,3 +19,4 @@ three_arm_start: 58111237
 u_insertion:
   name: L1L2_GT2_LacZ_BSD
 transcript: ENSMUST00000038194
+species: mouse
