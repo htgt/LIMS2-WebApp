@@ -206,17 +206,6 @@ sub design_targets_for_exons {
     return;
 }
 
-=head2 target_params_from_exons
-
-Given target exons return target coordinates
-
-=cut
-sub target_params_from_exons {
-    my ( $self ) = @_;
-
-    return $self->c_target_params_from_exons();
-}
-
 =head2 create_exon_target_gibson_design
 
 Wrapper for all the seperate subroutines we need to run to
