@@ -67,14 +67,14 @@ $DB::single=1;
 
     my $primer_data = parse_primer3_results( $result );
 
-#    use DesignCreate::Exception::Primer3FailedFindOligos;
+    use DesignCreate::Exception::Primer3FailedFindOligos;
 
-#    if (%failed_primer_regions) {
-#        DesignCreate::Exception::Primer3FailedFindOligos->throw(
-#            regions             => [ keys %failed_primer_regions ],
-#            primer_fail_reasons => \%failed_primer_regions,
-#        );
-#    }
+    if (%failed_primer_regions) {
+        DesignCreate::Exception::Primer3FailedFindOligos->throw(
+            regions             => [ keys %failed_primer_regions ],
+            primer_fail_reasons => \%failed_primer_regions,
+        );
+    }
 
     return $primer_data;
 }
