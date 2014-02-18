@@ -170,22 +170,24 @@ sub build_eng_seq_params_from_loci{
 	    }
     }
 
-    return $params if ( $type eq 'deletion' or $type eq 'insertion');
+    return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
 
     if ( $params->{strand} == 1 ) {
-	    if($type =~ /gibson/){
+	    if ( $type eq 'gibson' ) {
     	        $params->{target_region_start} = $loci->{EF}->{chr_start};
     	        $params->{target_region_end} = $loci->{ER}->{chr_end};
-	    }else{
+	    }
+        else {
     	        $params->{target_region_start} = $loci->{U3}->{chr_start};
     	        $params->{target_region_end} = $loci->{D5}->{chr_end};
 	    }
     }
     else{
-	    if($type =~ /gibson/){
+	    if ( $type eq 'gibson' ) {
     	        $params->{target_region_start} = $loci->{ER}->{chr_start};
     	        $params->{target_region_end} = $loci->{EF}->{chr_end};
-	    }else{
+	    }
+        else {
     	        $params->{target_region_start} = $loci->{D5}->{chr_start};
     	        $params->{target_region_end} = $loci->{U3}->{chr_end};
 	    }
