@@ -1,8 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
-use strict;
-use warnings FATAL => 'all';
 
-use Moose;
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -23,14 +22,16 @@ use Sub::Exporter -setup => {
 
 use LIMS2::Exception;
 
-use Log::Log4perl qw( :easy );
+use Log::Log4perl qw(:easy);
+
 
 BEGIN {
     # LIMS2 environment variables start with LIMS2_
     # but DesignCreate needs 'PRIMER3_CMD'
-    $ENV{'PRIMER3_CMD'} = $ENV{'LIMS2_PRIMER3_COMMAND_PATH'};
+    local $ENV{'PRIMER3_CMD'} = $ENV{'LIMS2_PRIMER3_COMMAND_PATH'};
 }
 use DesignCreate::Util::Primer3;
+
 use Bio::SeqIO;
 use Path::Class;
 
@@ -44,6 +45,7 @@ sub pick_genotyping_primers {
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_GIBSON_GENOTYPING_PRIMER_CONFIG' },
+        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length + 500),
     );
 
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
@@ -51,38 +53,70 @@ sub pick_genotyping_primers {
 
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             { SEQUENCE_TARGET => $target_sequence_mask ,
-              PRIMER_PRODUCT_SIZE_RANGE => $target_sequence_length . '-' . $target_sequence_length + 500,
-            } ); 
+            } );
 $DB::single=1;
     if ( $result->num_primer_pairs ) {
-        $p3->log->info( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
-        $p3->add_primer3_result( $design_id => $result );
+        INFO ( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
+        #add_primer3_result( $design_id => $result );
     }
     else {
-        $p3->log->warn( "Failed to generate genotyping primer pairs for $design_id" );
+        WARN ( "Failed to generate genotyping primer pairs for $design_id" );
         $failed_primer_regions{$design_id} = $primer3_explain;
     }
 
 
-    parse_primer3_results();
+    my $primer_data = parse_primer3_results( $result );
 
-    use DesignCreate::Exception::Primer3FailedFindOligos;
+#    use DesignCreate::Exception::Primer3FailedFindOligos;
 
-    if (%failed_primer_regions) {
-        DesignCreate::Exception::Primer3FailedFindOligos->throw(
-            regions             => [ keys %failed_primer_regions ],
-            primer_fail_reasons => \%failed_primer_regions,
-        );
-    }
+#    if (%failed_primer_regions) {
+#        DesignCreate::Exception::Primer3FailedFindOligos->throw(
+#            regions             => [ keys %failed_primer_regions ],
+#            primer_fail_reasons => \%failed_primer_regions,
+#        );
+#    }
 
-    
-    return;
-
+    return $primer_data;
 }
 
 
 sub parse_primer3_results {
-    return;
+    my  $result  = shift;
+
+    my $oligo_data;
+    # iterate through each primer pair
+    $oligo_data->{pair_count} = $result->num_primer_pairs;
+    while (my $pair = $result->next_primer_pair) {
+        # do stuff with primer pairs...
+        my ($fp, $rp) = ($pair->forward_primer, $pair->reverse_primer);
+        $oligo_data->{$fp->display_name} = parse_primer( $fp );
+        $oligo_data->{$rp->display_name} = parse_primer( $rp );
+    }
+
+    return $oligo_data;
+}
+
+=head2 parse_primer
+
+
+=cut
+sub parse_primer {
+    my $primer = shift;
+
+    my %oligo_data;
+
+    my @primer_attrs = qw/
+        length
+        melting_temp
+        gc_content
+        rank
+    /;
+
+
+    %oligo_data = map { $_  => $primer->$_ } @primer_attrs;
+    $oligo_data{'seq'} = $primer->seq->seq;
+
+    return \%oligo_data;
 }
 
 sub primer_driver {
@@ -99,15 +133,15 @@ sub primer_driver {
     return;
 }
 
-=head2 oligos_for_gibson 
+=head2 oligos_for_gibson
 
-Generate genotyping primer oligos for a design. 
+Generate genotyping primer oligos for a design.
 
 Given: Design id
 Returns: Arrayref of 4 primers
 
 find the 5F primer location
-get the sequence of the 5' 1kb 
+get the sequence of the 5' 1kb
 Use Primer3 to generate primers.
 Select two primers that meet the criteria
 
@@ -135,7 +169,7 @@ sub oligos_for_gibson {
 }
 
 
-=head2 
+=head2
 Given - design_id
 
 Returns - hashref of two sequences to find primers in.
@@ -145,7 +179,7 @@ Returns - hashref of two sequences to find primers in.
 sub get_EnsEmbl_sequence {
     my $params = shift;
 
-    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'}); 
+    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
 
@@ -206,7 +240,7 @@ sequences).
 sub get_EnsEmbl_region {
     my $params = shift;
 
-    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'}); 
+    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
 
@@ -283,7 +317,7 @@ sub update_primer_type {
             'design_oligo_type_id' =>  $primer_name,
         },
     );
-    
+
     $refined_rs = $refined_rs->search(
         {
             'loci.assembly_id' => $assembly,
