@@ -20,16 +20,6 @@ const my @DESIGN_TYPES => (
             #{ cmd => 'conditional-design', display_name => 'Conditional' },
         ); #display name is used to populate the dropdown
 
-#oligo select will be something like:
-#const my @OLIGO_SELECT_METHODS => (
-#        { cmd => 'block', display_name => 'Block Specified' },
-#        { cmd => 'location', display_name => 'Location Specified' }
-#    );
-
-#
-# TODO: add javascript to make sure target start isnt > target end
-#
-
 sub index : Path( '/user/create_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -210,13 +200,14 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
 
     $c->assert_user_roles( 'edit' );
 
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+
     if ( exists $c->request->params->{create_design} ) {
         $c->log->info('Creating new design');
 
-        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
-            catalyst => $c,
-            model    => $c->model('Golgi'),
-        );
 
         my ($design_attempt, $job_id);
         try {
@@ -237,13 +228,12 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
     }
     elsif ( exists $c->request->params->{exon_pick} ) {
-        my $gene_id = $c->request->param('gene_id');
-        my $exon_id = $c->request->param('exon_id');
-        my $ensembl_gene_id = $c->request->param('ensembl_gene_id');
+        my $primer3_conf = $create_design_util->c_primer3_default_config;
         $c->stash(
-            exon_id         => $exon_id,
-            gene_id         => $gene_id,
-            ensembl_gene_id => $ensembl_gene_id,
+            exon_id         => $c->request->param('exon_id'),
+            gene_id         => $c->request->param('gene_id'),
+            ensembl_gene_id => $c->request->param('ensembl_gene_id'),
+            p3_conf         => $primer3_conf,
         );
     }
 
@@ -283,9 +273,11 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
-        my $target_data = $create_design_util->target_params_from_exons;
+        my $target_data = $create_design_util->c_target_params_from_exons;
+        my $primer3_conf = $create_design_util->c_primer3_default_config;
         $c->stash(
-            target => $target_data,
+            target  => $target_data,
+            p3_conf => $primer3_conf,
         );
     }
 
@@ -363,9 +355,6 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     );
     return;
 }
-
-
-
 
 __PACKAGE__->meta->make_immutable;
 
