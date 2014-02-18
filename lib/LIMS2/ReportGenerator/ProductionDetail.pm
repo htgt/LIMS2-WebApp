@@ -1,4 +1,10 @@
 package LIMS2::ReportGenerator::ProductionDetail;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::ReportGenerator::ProductionDetail::VERSION = '0.160';
+}
+## use critic
+
 
 use Moose;
 use Iterator::Simple qw( iflatten imap iter igrep );

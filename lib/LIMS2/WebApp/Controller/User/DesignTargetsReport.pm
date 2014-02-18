@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::DesignTargetsReport;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::DesignTargetsReport::VERSION = '0.160';
+}
+## use critic
+
 use Moose;
 use namespace::autoclean;
 

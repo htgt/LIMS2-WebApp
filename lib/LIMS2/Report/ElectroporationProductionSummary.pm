@@ -1,4 +1,10 @@
 package LIMS2::Report::ElectroporationProductionSummary;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::ElectroporationProductionSummary::VERSION = '0.160';
+}
+## use critic
+
 
 use Moose;
 use DateTime;

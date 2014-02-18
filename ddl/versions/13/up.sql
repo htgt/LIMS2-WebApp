@@ -1,2 +1,0 @@
-ALTER TABLE plates
-ADD COLUMN is_virtual BOOLEAN;

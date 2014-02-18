@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::PublicReports::API;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::PublicReports::API::VERSION = '0.160';
+}
+## use critic
+
 use Moose;
 use LIMS2::Report;
 use namespace::autoclean;
