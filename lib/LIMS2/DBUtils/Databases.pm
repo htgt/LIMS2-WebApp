@@ -1,7 +1,7 @@
 package LIMS2::DBUtils::Databases;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::DBUtils::Databases::VERSION = '0.159';
+    $LIMS2::DBUtils::Databases::VERSION = '0.161';
 }
 ## use critic
 
