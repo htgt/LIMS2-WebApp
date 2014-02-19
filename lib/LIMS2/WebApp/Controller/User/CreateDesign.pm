@@ -209,6 +209,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    my %stash_hash;
 
     if ( exists $c->request->params->{create_design} ) {
         $c->log->info('Creating new design');
@@ -237,15 +238,38 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
     }
     elsif ( exists $c->request->params->{exon_pick} ) {
-        my $gene_id = $c->request->param('gene_id');
-        my $exon_id = $c->request->param('exon_id');
-        my $ensembl_gene_id = $c->request->param('ensembl_gene_id');
-        $c->stash(
-            exon_id         => $exon_id,
-            gene_id         => $gene_id,
-            ensembl_gene_id => $ensembl_gene_id,
+        my $pick = $c->request->params->{exon_pick};
+
+        %stash_hash = (
+            gene_id             => $c->request->param('gene_id'),
+            ensembl_gene_id     => $c->request->param('ensembl_gene_id'),
         );
+
+        # if multiple exons, its an array_ref
+        if (ref($pick) eq 'ARRAY') {
+
+            # check if there's more than 2 exons, if so die
+            if ( scalar( @$pick ) > 2 ) {
+                $c->flash( error_msg => scalar @$pick. " exons selected. Pick 1 or 2 exons." );
+                return;
+            }
+
+            $stash_hash{five_prime_exon} = @$pick[0];
+            $stash_hash{three_prime_exon} = @$pick[1];
+
+        }
+        # if its not an array_ref, it is a string with a single exon
+        else {
+            $stash_hash{five_prime_exon} = $pick;
+        }
+
+    # if nothing came back, then no exon was selected. die
+    } else {
+        $c->flash( error_msg => "No exons selected. Pick 1 or 2 exons." );
+        return;
     }
+
+    $c->stash( %stash_hash );
 
     return;
 }
