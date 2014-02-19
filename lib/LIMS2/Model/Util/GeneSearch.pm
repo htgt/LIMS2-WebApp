@@ -69,7 +69,8 @@ sub retrieve_ensembl_gene {
         ->fetch_all_by_external_name( $params->{search_term} );
 
     if ( @{$genes} == 0 ) {
-        LIMS2::Exception::NotFound->throw( { entity_class => 'Gene', search_params => $params } );
+	    #    LIMS2::Exception::NotFound->throw( { entity_class => 'Gene', search_params => $params } );
+	    return [{gene_id=>$params->{search_term}, gene_symbol=>"unknown"}];
     }
 
     if ( @{$genes} > 1 ) {
