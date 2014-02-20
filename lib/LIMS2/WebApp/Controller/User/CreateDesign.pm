@@ -285,7 +285,6 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
         my $target_data = $create_design_util->c_target_params_from_exons;
-        my $primer3_conf = $create_design_util->c_primer3_default_config;
         $c->stash(
             gibson_type => 'deletion',
             %{ $target_data },
