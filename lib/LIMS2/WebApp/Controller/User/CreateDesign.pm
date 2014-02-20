@@ -204,36 +204,42 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         catalyst => $c,
         model    => $c->model('Golgi'),
     );
+    my $primer3_conf = $create_design_util->c_primer3_default_config;
+    $c->stash( default_p3_conf => $primer3_conf );
 
     if ( exists $c->request->params->{create_design} ) {
         $c->log->info('Creating new design');
 
-
         my ($design_attempt, $job_id);
+        $c->stash( $c->request->params );
         try {
             ( $design_attempt, $job_id ) = $create_design_util->create_exon_target_gibson_design();
         }
+        catch ( LIMS2::Exception::Validation $err ) {
+            my $errors = $self->_format_validation_errors( $err );
+            $c->stash( error_msg => $errors );
+            return;
+        }
         catch ($err) {
-            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
+            $c->stash( error_msg => "Error submitting Design Creation job: $err" );
             return;
         }
 
         unless ( $job_id ) {
-            $c->flash( error_msg => "Unable to submit Design Creation job" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
+            $c->stash( error_msg => "Unable to submit Design Creation job" );
             return;
         }
 
         $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
     }
     elsif ( exists $c->request->params->{exon_pick} ) {
-        my $primer3_conf = $create_design_util->c_primer3_default_config;
         $c->stash(
+            gibson_type     => 'deletion',
             exon_id         => $c->request->param('exon_id'),
             gene_id         => $c->request->param('gene_id'),
             ensembl_gene_id => $c->request->param('ensembl_gene_id'),
-            p3_conf         => $primer3_conf,
+            # set current primer3 conf values, in this case the same default for fresh page
+            %{ $primer3_conf },
         );
     }
 
@@ -249,24 +255,29 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         catalyst => $c,
         model    => $c->model('Golgi'),
     );
+    my $primer3_conf = $create_design_util->c_primer3_default_config;
+    $c->stash( default_p3_conf => $primer3_conf );
 
     if ( exists $c->request->params->{create_design} ) {
         $c->log->info('Creating new design');
 
-
         my ($design_attempt, $job_id);
+        $c->stash( $c->request->params );
         try {
             ( $design_attempt, $job_id ) = $create_design_util->create_custom_target_gibson_design();
         }
+        catch ( LIMS2::Exception::Validation $err ) {
+            my $errors = $self->_format_validation_errors( $err );
+            $c->stash( error_msg => $errors );
+            return;
+        }
         catch ($err) {
-            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
+            $c->stash( error_msg => "Error submitting Design Creation job: $err" );
             return;
         }
 
         unless ( $job_id ) {
-            $c->flash( error_msg => "Unable to submit Design Creation job" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
+            $c->stash( error_msg => "Unable to submit Design Creation job" );
             return;
         }
 
@@ -276,8 +287,9 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         my $target_data = $create_design_util->c_target_params_from_exons;
         my $primer3_conf = $create_design_util->c_primer3_default_config;
         $c->stash(
-            target  => $target_data,
-            p3_conf => $primer3_conf,
+            gibson_type => 'deletion',
+            %{ $target_data },
+            %{ $primer3_conf },
         );
     }
 
@@ -354,6 +366,36 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
         gene_id => $c->stash->{da}->gene_id,
     );
     return;
+}
+
+sub _format_validation_errors {
+    my ( $self, $err ) = @_;
+    my $errors;
+    my $params = $err->params;
+    my $validation_results = $err->results;
+    if ( defined $validation_results ) {
+        if ( $validation_results->has_missing ) {
+            $errors .= "Missing following required parameters:\n";
+            for my $m ( $validation_results->missing ) {
+                $errors .= "  * $m\n" ;
+            }
+            $errors .= "\n";
+        }
+
+        if ( $validation_results->has_invalid ) {
+            $errors .= "Following parameters are invalid:\n";
+            for my $f ( $validation_results->invalid ) {
+                my $cur_val = exists $params->{$f} ? $params->{$f} : '';
+                $errors .= "  * $f = $cur_val " . '( failed '
+                        . join( q{,}, @{ $validation_results->invalid($f) } ) . " check )\n";
+            }
+        }
+    }
+    else {
+        $errors = "Error with parameters:\n" . $err->message;
+    }
+
+    return $errors;
 }
 
 __PACKAGE__->meta->make_immutable;
