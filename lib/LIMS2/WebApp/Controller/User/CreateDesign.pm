@@ -208,29 +208,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     $c->stash( default_p3_conf => $primer3_conf );
 
     if ( exists $c->request->params->{create_design} ) {
-        $c->log->info('Creating new design');
-
-        my ($design_attempt, $job_id);
-        $c->stash( $c->request->params );
-        try {
-            ( $design_attempt, $job_id ) = $create_design_util->create_exon_target_gibson_design();
-        }
-        catch ( LIMS2::Exception::Validation $err ) {
-            my $errors = $self->_format_validation_errors( $err );
-            $c->stash( error_msg => $errors );
-            return;
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Error submitting Design Creation job: $err" );
-            return;
-        }
-
-        unless ( $job_id ) {
-            $c->stash( error_msg => "Unable to submit Design Creation job" );
-            return;
-        }
-
-        $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+        $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
     }
     elsif ( exists $c->request->params->{exon_pick} ) {
         $c->stash(
@@ -259,29 +237,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
     $c->stash( default_p3_conf => $primer3_conf );
 
     if ( exists $c->request->params->{create_design} ) {
-        $c->log->info('Creating new design');
-
-        my ($design_attempt, $job_id);
-        $c->stash( $c->request->params );
-        try {
-            ( $design_attempt, $job_id ) = $create_design_util->create_custom_target_gibson_design();
-        }
-        catch ( LIMS2::Exception::Validation $err ) {
-            my $errors = $self->_format_validation_errors( $err );
-            $c->stash( error_msg => $errors );
-            return;
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Error submitting Design Creation job: $err" );
-            return;
-        }
-
-        unless ( $job_id ) {
-            $c->stash( error_msg => "Unable to submit Design Creation job" );
-            return;
-        }
-
-        $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+        $self->_create_gibson_design( $c, $create_design_util, 'create_custom_target_gibson_design' );
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
         my $target_data = $create_design_util->c_target_params_from_exons;
@@ -295,10 +251,38 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
     return;
 }
 
+sub _create_gibson_design {
+    my ( $self, $c, $create_design_util, $cmd ) = @_;
+
+    $c->log->info('Creating new gibson design');
+
+    my ($design_attempt, $job_id);
+    $c->stash( $c->request->params );
+    try {
+        ( $design_attempt, $job_id ) = $create_design_util->$cmd;
+    }
+    catch ( LIMS2::Exception::Validation $err ) {
+        my $errors = $self->_format_validation_errors( $err );
+        $c->stash( error_msg => $errors );
+        return;
+    }
+    catch ($err) {
+        $c->stash( error_msg => "Error submitting Design Creation job: $err" );
+        return;
+    }
+
+    unless ( $job_id ) {
+        $c->stash( error_msg => "Unable to submit Design Creation job" );
+        return;
+    }
+
+    $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+
+    return;
+}
+
 sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
     my ( $self, $c ) = @_;
-
-    #TODO make this a extjs grid to enable filtering, sorting etc 
 
     my @design_attempts = $c->model('Golgi')->schema->resultset('DesignAttempt')->search(
         {
