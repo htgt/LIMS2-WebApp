@@ -1,3 +1,28 @@
+0.163     2014-02-20 15:53:37 Europe/London
+
+    Multiexon gibson design creation
+
+0.162     2014-02-20 08:03:55 Europe/London
+
+    Add Primer3 options to gibson design create interface.
+    Clearer validation errors on same interface.
+
+0.161     2014-02-18 12:09:17 Europe/London
+
+    Re-release of 0.160
+
+0.160     2014-02-18 10:49:28 Europe/London
+    
+    Add fixes for running QC on human gibson plates
+
+0.159     2014-02-13 13:18:29 Europe/London
+
+    Add species to eng seq params generated for qc template wells 
+
+0.158     2014-02-13 08:22:21 Europe/London
+
+    Add location specified gibson design interface
+
 0.157     2014-02-10 16:56:30 Europe/London
 
     Get Crisprs for exon through farm job added

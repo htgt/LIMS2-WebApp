@@ -1,7 +1,7 @@
 package LIMS2::WebApp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::VERSION = '0.157';
+    $LIMS2::WebApp::VERSION = '0.163';
 }
 ## use critic
 
@@ -62,6 +62,10 @@ __PACKAGE__->config(
         storage => $ENV{LIMS2_SESSION_STORE}
     },
     'static' => {
+        include_path => [
+            $ENV{SHARED_WEBAPP_STATIC_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_static',
+            __PACKAGE__->path_to( 'root' ),
+        ],
         ignore_extensions => [ qw{ tt } ],
     },
 );

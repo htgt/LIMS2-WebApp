@@ -277,6 +277,7 @@ root/site/user/browseplates/index.tt
 root/site/user/browseplates/view.tt
 root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
+root/site/user/createdesign/create_custom_target_gibson_design.tt
 root/site/user/createdesign/create_gibson_design.tt
 root/site/user/createdesign/design_attempts.tt
 root/site/user/createdesign/gibson_design_exon_pick.tt
@@ -2221,7 +2222,6 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
-root/static/js/diagram.builder.js
 root/static/js/jquery-1.7.2.min.js
 root/static/js/jquery.qtip.min.js
 root/static/js/poller.js
