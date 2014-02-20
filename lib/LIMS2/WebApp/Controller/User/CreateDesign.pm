@@ -20,16 +20,6 @@ const my @DESIGN_TYPES => (
             #{ cmd => 'conditional-design', display_name => 'Conditional' },
         ); #display name is used to populate the dropdown
 
-#oligo select will be something like:
-#const my @OLIGO_SELECT_METHODS => (
-#        { cmd => 'block', display_name => 'Block Specified' },
-#        { cmd => 'location', display_name => 'Location Specified' }
-#    );
-
-#
-# TODO: add javascript to make sure target start isnt > target end
-#
-
 sub index : Path( '/user/create_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -211,38 +201,25 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     $c->assert_user_roles( 'edit' );
     my %stash_hash;
 
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+    my $primer3_conf = $create_design_util->c_primer3_default_config;
+    $c->stash( default_p3_conf => $primer3_conf );
+
     if ( exists $c->request->params->{create_design} ) {
-        $c->log->info('Creating new design');
-
-        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
-            catalyst => $c,
-            model    => $c->model('Golgi'),
-        );
-
-        my ($design_attempt, $job_id);
-        try {
-            ( $design_attempt, $job_id ) = $create_design_util->create_exon_target_gibson_design();
-        }
-        catch ($err) {
-            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
-            return;
-        }
-
-        unless ( $job_id ) {
-            $c->flash( error_msg => "Unable to submit Design Creation job" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
-            return;
-        }
-
-        $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+        $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
     }
     elsif ( exists $c->request->params->{exon_pick} ) {
         my $pick = $c->request->params->{exon_pick};
 
         %stash_hash = (
-            gene_id             => $c->request->param('gene_id'),
-            ensembl_gene_id     => $c->request->param('ensembl_gene_id'),
+            gene_id         => $c->request->param('gene_id'),
+            ensembl_gene_id => $c->request->param('ensembl_gene_id'),
+            gibson_type     => 'deletion',
+            # set current primer3 conf values, in this case the same default for fresh page
+            %{ $primer3_conf },
         );
 
         # if multiple exons, its an array_ref
@@ -283,43 +260,56 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         catalyst => $c,
         model    => $c->model('Golgi'),
     );
+    my $primer3_conf = $create_design_util->c_primer3_default_config;
+    $c->stash( default_p3_conf => $primer3_conf );
 
     if ( exists $c->request->params->{create_design} ) {
-        $c->log->info('Creating new design');
-
-
-        my ($design_attempt, $job_id);
-        try {
-            ( $design_attempt, $job_id ) = $create_design_util->create_custom_target_gibson_design();
-        }
-        catch ($err) {
-            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
-            return;
-        }
-
-        unless ( $job_id ) {
-            $c->flash( error_msg => "Unable to submit Design Creation job" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
-            return;
-        }
-
-        $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+        $self->_create_gibson_design( $c, $create_design_util, 'create_custom_target_gibson_design' );
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
-        my $target_data = $create_design_util->target_params_from_exons;
+        my $target_data = $create_design_util->c_target_params_from_exons;
         $c->stash(
-            target => $target_data,
+            gibson_type => 'deletion',
+            %{ $target_data },
+            %{ $primer3_conf },
         );
     }
 
     return;
 }
 
+sub _create_gibson_design {
+    my ( $self, $c, $create_design_util, $cmd ) = @_;
+
+    $c->log->info('Creating new gibson design');
+
+    my ($design_attempt, $job_id);
+    $c->stash( $c->request->params );
+    try {
+        ( $design_attempt, $job_id ) = $create_design_util->$cmd;
+    }
+    catch ( LIMS2::Exception::Validation $err ) {
+        my $errors = $self->_format_validation_errors( $err );
+        $c->stash( error_msg => $errors );
+        return;
+    }
+    catch ($err) {
+        $c->stash( error_msg => "Error submitting Design Creation job: $err" );
+        return;
+    }
+
+    unless ( $job_id ) {
+        $c->stash( error_msg => "Unable to submit Design Creation job" );
+        return;
+    }
+
+    $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
+
+    return;
+}
+
 sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
     my ( $self, $c ) = @_;
-
-    #TODO make this a extjs grid to enable filtering, sorting etc 
 
     my @design_attempts = $c->model('Golgi')->schema->resultset('DesignAttempt')->search(
         {
@@ -388,8 +378,35 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     return;
 }
 
+sub _format_validation_errors {
+    my ( $self, $err ) = @_;
+    my $errors;
+    my $params = $err->params;
+    my $validation_results = $err->results;
+    if ( defined $validation_results ) {
+        if ( $validation_results->has_missing ) {
+            $errors .= "Missing following required parameters:\n";
+            for my $m ( $validation_results->missing ) {
+                $errors .= "  * $m\n" ;
+            }
+            $errors .= "\n";
+        }
 
+        if ( $validation_results->has_invalid ) {
+            $errors .= "Following parameters are invalid:\n";
+            for my $f ( $validation_results->invalid ) {
+                my $cur_val = exists $params->{$f} ? $params->{$f} : '';
+                $errors .= "  * $f = $cur_val " . '( failed '
+                        . join( q{,}, @{ $validation_results->invalid($f) } ) . " check )\n";
+            }
+        }
+    }
+    else {
+        $errors = "Error with parameters:\n" . $err->message;
+    }
 
+    return $errors;
+}
 
 __PACKAGE__->meta->make_immutable;
 
