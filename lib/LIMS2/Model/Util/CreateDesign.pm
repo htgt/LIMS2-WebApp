@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
 use Path::Class;
 use Const::Fast;
@@ -348,6 +349,21 @@ sub find_or_create_design_target {
 
     return $design_target;
 }
+
+=head2 throw_validation_error
+
+Override parent throw method to use LIMS2::Exception::Validation.
+
+=cut
+around 'throw_validation_error' => sub {
+    my $orig = shift;
+    my $self = shift;
+    my $errors = shift;
+
+    LIMS2::Exception::Validation->throw(
+        message => $errors,
+    );
+};
 
 __PACKAGE__->meta->make_immutable;
 
