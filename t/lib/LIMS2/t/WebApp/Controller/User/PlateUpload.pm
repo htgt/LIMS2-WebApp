@@ -284,7 +284,7 @@ sub all_tests  : Test(112)
 
 	ok $res->is_success, '...response is_success';
 	is $res->base->path, '/user/plate_upload_step2', '... stays on same page';
-	like $res->content, qr/Parameter validation failed\s+well_name/
+	like $res->content, qr/well_name, is invalid: well_name/
 	    , '...throws error parameter validation failed for well_name';
     }
 

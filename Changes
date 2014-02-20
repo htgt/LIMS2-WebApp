@@ -1,3 +1,8 @@
+0.162     2014-02-20 08:03:55 Europe/London
+
+    Add Primer3 options to gibson design create interface.
+    Clearer validation errors on same interface.
+
 0.161     2014-02-18 12:09:17 Europe/London
 
     Re-release of 0.160

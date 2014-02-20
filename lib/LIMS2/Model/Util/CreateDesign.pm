@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.161';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.162';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use warnings FATAL => 'all';
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
 use Path::Class;
 use Const::Fast;
@@ -212,17 +213,6 @@ sub design_targets_for_exons {
     return;
 }
 
-=head2 target_params_from_exons
-
-Given target exons return target coordinates
-
-=cut
-sub target_params_from_exons {
-    my ( $self ) = @_;
-
-    return $self->c_target_params_from_exons();
-}
-
 =head2 create_exon_target_gibson_design
 
 Wrapper for all the seperate subroutines we need to run to
@@ -365,6 +355,21 @@ sub find_or_create_design_target {
 
     return $design_target;
 }
+
+=head2 throw_validation_error
+
+Override parent throw method to use LIMS2::Exception::Validation.
+
+=cut
+around 'throw_validation_error' => sub {
+    my $orig = shift;
+    my $self = shift;
+    my $errors = shift;
+
+    LIMS2::Exception::Validation->throw(
+        message => $errors,
+    );
+};
 
 __PACKAGE__->meta->make_immutable;
 
