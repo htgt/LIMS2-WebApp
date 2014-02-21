@@ -269,27 +269,16 @@ sub crispr_pair_hits_design {
         default_assembly => $default_assembly,
     );
 
-    unless (
-        crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) )
+    if (
+        !crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) &&
+        !crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info )
+    )
     {
-        ERROR( 'Left crispr ' . $crispr_pair->left_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
+        ERROR( 'Crispr Pair ' . $crispr_pair->id . ' does not hit design ' . $design->id );
         push @{$fail_log},
               'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
-        return 0;
-    }
-
-    unless (
-        crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info ) )
-    {
-        ERROR( 'Right crispr ' . $crispr_pair->right_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
-        push @{$fail_log},
-              'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
+            . ' & crispr pair: ' . $crispr_pair->id
+            . ', neither crispr lies wholly within target region of design';
         return 0;
     }
 
