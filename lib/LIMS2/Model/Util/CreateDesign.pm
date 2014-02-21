@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.162';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.164';
 }
 ## use critic
 
@@ -224,7 +224,7 @@ sub create_exon_target_gibson_design {
 
     my $params         = $self->c_parse_and_validate_exon_target_gibson_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
-    my $design_target  = $self->find_or_create_design_target( $params );
+    $self->calculate_design_targets( $params );
     my $cmd            = $self->c_generate_gibson_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
@@ -258,16 +258,40 @@ and create any appropriate design targets.
 sub calculate_design_targets {
     my ( $self, $params ) = @_;
 
-    # TODO: if we have five_prime_exon and no three_prime exon just
-    # make one target for five_prime_exon
-    # this is for when we have multi exon target
-
-    # first grab the gene we are targetting
-    # - either using ensembl_gene_id
-    # - or gene_id if ensembl_gene_id not present
+    # get gene
     my $gene_name = $params->{ensembl_gene_id} || $params->{gene_id};
     my $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
     return unless $gene;
+    my $exon_adaptor = $self->ensembl_util->exon_adaptor;
+
+    # if no 3 prime, only 5 prime exon. target it
+    if ( $params->{five_prime_exon} && !$params->{three_prime_exon} ) {
+        my $five_prime_exon = $exon_adaptor->fetch_by_stable_id( $params->{five_prime_exon} );
+        $self->find_or_create_design_target( $params, $five_prime_exon, $gene );
+
+        return;
+    }
+
+    # get target start and end
+    my $target_start;
+    my $target_end;
+    if ( $params->{target_start} && $params->{target_end} ) {
+        $target_start = $params->{target_start};
+        $target_end = $params->{target_end};
+    } else {
+        if ( $params->{five_prime_exon} && $params->{three_prime_exon} ) {
+            my $five_prime_exon = $exon_adaptor->fetch_by_stable_id( $params->{five_prime_exon} );
+            my $three_prime_exon = $exon_adaptor->fetch_by_stable_id( $params->{three_prime_exon} );
+            if ( $gene->strand == 1 ) {
+                $target_start = $five_prime_exon->seq_region_start;
+                $target_end = $three_prime_exon->seq_region_end;
+            }
+            else {
+                $target_start = $three_prime_exon->seq_region_start;
+                $target_end = $five_prime_exon->seq_region_end;
+            }
+        }
+    }
 
     # grab canonical exons for gene
     my $exons = $gene->canonical_transcript->get_all_Exons;
@@ -276,13 +300,13 @@ sub calculate_design_targets {
     # is a match if the exon is a partial hit as well
     my @target_exons;
     for my $exon ( @{$exons} ) {
-        if (   $exon->seq_region_start >= $params->{target_start}
-            && $exon->seq_region_start <= $params->{target_end} )
+        if (   $exon->seq_region_start >= $target_start
+            && $exon->seq_region_start <= $target_end )
         {
             push @target_exons, $exon;
         }
-        elsif ($exon->seq_region_end >= $params->{target_start}
-            && $exon->seq_region_end <= $params->{target_end} )
+        elsif ($exon->seq_region_end >= $target_start
+            && $exon->seq_region_end <= $target_end )
         {
             push @target_exons, $exon;
         }
@@ -305,6 +329,7 @@ sub find_or_create_design_target {
     my ( $self, $params, $exon, $gene ) = @_;
 
     my $exon_id = $exon ? $exon->stable_id : $params->{exon_id};
+
     my $existing_design_target = $self->model->schema->resultset('DesignTarget')->find(
         {
             species_id      => $params->{species},
@@ -349,6 +374,7 @@ sub find_or_create_design_target {
         comment              => 'picked via gibson design creation interface, by user: ' . $params->{user},
 
     );
+
     my $exon_rank = try{ $self->ensembl_util->get_exon_rank( $canonical_transcript, $exon->stable_id ) };
     $design_target_params{exon_rank} = $exon_rank if $exon_rank;
     my $design_target = $self->model->c_create_design_target( \%design_target_params );

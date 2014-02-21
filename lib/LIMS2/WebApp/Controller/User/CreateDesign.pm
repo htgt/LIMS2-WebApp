@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.162';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.164';
 }
 ## use critic
 
@@ -205,6 +205,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    my %stash_hash;
 
     my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
         catalyst => $c,
@@ -217,15 +218,41 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
     }
     elsif ( exists $c->request->params->{exon_pick} ) {
-        $c->stash(
-            gibson_type     => 'deletion',
-            exon_id         => $c->request->param('exon_id'),
+        my $pick = $c->request->params->{exon_pick};
+
+        %stash_hash = (
             gene_id         => $c->request->param('gene_id'),
             ensembl_gene_id => $c->request->param('ensembl_gene_id'),
+            gibson_type     => 'deletion',
             # set current primer3 conf values, in this case the same default for fresh page
             %{ $primer3_conf },
         );
+
+        # if multiple exons, its an array_ref
+        if (ref($pick) eq 'ARRAY') {
+
+            # check if there's more than 2 exons, if so die
+            if ( scalar( @$pick ) > 2 ) {
+                $c->flash( error_msg => scalar @$pick. " exons selected. Pick 1 or 2 exons." );
+                return;
+            }
+
+            $stash_hash{five_prime_exon} = @$pick[0];
+            $stash_hash{three_prime_exon} = @$pick[1];
+
+        }
+        # if its not an array_ref, it is a string with a single exon
+        else {
+            $stash_hash{five_prime_exon} = $pick;
+        }
+
+    # if nothing came back, then no exon was selected. die
+    } else {
+        $c->flash( error_msg => "No exons selected. Pick 1 or 2 exons." );
+        return;
     }
+
+    $c->stash( %stash_hash );
 
     return;
 }
