@@ -1,9 +1,6 @@
 [% META title = "Create Custom Target Gibson Design"; META tab_name = "Designs" %]
 
-[% INCLUDE 'create_design/custom_target_gibson_parameter_diagram.tt'
-  target_start = target.start
-  target_end   = target.end
-%]
+[% INCLUDE 'create_design/custom_target_gibson_parameter_diagram.tt' %]
 
 [%  IF c.session.selected_species == 'Mouse';
       gene_id_label = 'MGI Gene ID';
@@ -14,13 +11,6 @@
 
 <form method="POST" action="[% c.uri_for( '/user/create_custom_target_gibson_design' ) %]" class="well">
   [% INCLUDE 'create_design/diagram_placeholder.tt' %]
-  [% INCLUDE 'create_design/custom_target_specific_parameters.tt'
-    chromosome = target.chromosome
-    strand     = target.strand
-  %]
-  [% INCLUDE 'create_design/common_gibson_form_parameters.tt'
-    gene_id_label   = gene_id_label
-    gene_id         = target.gene_id
-    ensembl_gene_id = target.ensembl_gene_id
-  %]
+  [% INCLUDE 'create_design/custom_target_specific_parameters.tt' %]
+  [% INCLUDE 'create_design/common_gibson_form_parameters.tt' %]
 </form>

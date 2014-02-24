@@ -1,11 +1,12 @@
 [% META title = "Gibson Design Gene Pick"; META tab_name = "Designs" %]
 
-<form method="POST" action="[% c.uri_for( '/user/gibson_design_exon_pick' ) %]" class="well">
+<form method="POST" action="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]" class="well">
   <fieldset>
     <legend>Gibson Design Gene Pick</legend>
 
-    <input type="text" class="input-xxlarge" name="gene" placeholder="gene name">
-    <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.</span>
+    <input type="text" class="input-xxlarge" name="gene_id" placeholder="gene name">
+    <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.<br>
+    If you know the Ensembl exon id of the exon you wish to target you may use this instead.</span>
 
     <label><strong>Show Exons</strong></label>
     <label class="radio">
@@ -18,10 +19,14 @@
     </label>
 
     <br>
-    <input type="submit" name="action" class="btn btn-primary" value="Find Exons" />
+    <input type="submit" name="gene_pick" class="btn btn-primary" value="Find Exons" />
   </fieldset>
 </form>
 
 <div class="well">
-Alternatively, if you know the exact coordinates of your target click <a href="[% c.uri_for('/user/create_custom_target_gibson_design') %]">here</a>.
+If you know the exact coordinates of your target click <a href="[% c.uri_for('/user/create_custom_target_gibson_design') %]">here</a>.
+</div>
+
+<div class="well">
+If you know the exon you want to target click <a href="[% c.uri_for('/user/create_gibson_design') %]">here</a>.
 </div>
