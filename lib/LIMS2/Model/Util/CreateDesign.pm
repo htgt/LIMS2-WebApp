@@ -117,11 +117,18 @@ Optionally get all exons or just exons from canonical transcript.
 sub exons_for_gene {
     my ( $self, $gene_name, $exon_types ) = @_;
 
-    my $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
-    return unless $gene;
+    my $gene;
+    try {
+        $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
+        die "Unable to find gene $gene_name in Ensemble database" unless $gene;
+    }
+    catch ( $err ){
+        LIMS2::Exception::Validation->throw(
+            message => $err,
+        );
+    }
 
     my $gene_data = $self->c_build_gene_data( $gene );
-
     my $exon_data = $self->c_build_gene_exon_data( $gene, $gene_data->{gene_id}, $exon_types );
     $self->designs_for_exons( $exon_data, $gene_data->{gene_id} );
     $self->design_targets_for_exons( $exon_data, $gene->stable_id );
