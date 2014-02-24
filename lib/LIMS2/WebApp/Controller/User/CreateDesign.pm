@@ -133,12 +133,48 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
     return unless $c->request->param('gene_pick');
 
-    unless ( $c->request->param('gene_id') ) {
+    my $gene_id = $c->request->param('gene_id');
+    unless ( $gene_id ) {
         $c->stash( error_msg => "Please enter a gene name" );
         return;
     }
 
-    return $c->go( 'gibson_design_exon_pick' );
+    # if user entered a exon id
+    if ( $gene_id =~ qr/^ENS[A-Z]*E\d+$/ ) {
+        my $exon_id = $gene_id;
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+
+        my $exon_data;
+        try{
+            $exon_data = $create_design_util->c_exon_target_data( $exon_id );
+        }
+        catch {
+            $c->stash( error_msg =>
+                    "Unable to find gene information for exon $exon_id, make sure it is a valid ensembl exon id"
+            );
+            return;
+        }
+
+        $c->stash(
+            gene_id         => $exon_data->{gene_id},
+            ensembl_gene_id => $exon_data->{ensembl_gene_id},
+            gibson_type     => 'deletion',
+            five_prime_exon => $exon_id,
+        );
+        $c->go( 'create_gibson_design' );
+    }
+    else {
+        # generate and display data for exon pick table
+        $c->forward( 'generate_exon_pick_data' );
+        return if $c->stash->{error_msg};
+
+        $c->go( 'gibson_design_exon_pick' );
+    }
+
+    return;
 }
 
 sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) {
@@ -172,9 +208,6 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
         }
         $c->stash( %stash_hash );
         $c->go( 'create_gibson_design' );
-    }
-    else {
-        $c->forward( 'generate_exon_pick_data' );
     }
 
     return;
