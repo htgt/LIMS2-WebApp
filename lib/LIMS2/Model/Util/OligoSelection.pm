@@ -31,6 +31,7 @@ BEGIN {
     local $ENV{'PRIMER3_CMD'} = $ENV{'LIMS2_PRIMER3_COMMAND_PATH'};
 }
 use DesignCreate::Util::Primer3;
+use DesignCreate::Util::BWA;
 
 use Bio::SeqIO;
 use Path::Class;
@@ -38,6 +39,7 @@ use Path::Class;
 sub pick_genotyping_primers {
     my $schema = shift;
     my $design_id = shift;
+    my $species = shift;
 
     my %failed_primer_regions;
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length)
@@ -57,7 +59,6 @@ sub pick_genotyping_primers {
 $DB::single=1;
     if ( $result->num_primer_pairs ) {
         INFO ( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
-        #add_primer3_result( $design_id => $result );
     }
     else {
         WARN ( "Failed to generate genotyping primer pairs for $design_id" );
@@ -76,7 +77,77 @@ $DB::single=1;
         );
     }
 
+    my $primer_passes = genomic_check( $design_id, $species, $primer_data );
+
     return $primer_data;
+}
+
+sub genomic_check {
+    my $design_id = shift;
+    my $species = shift;
+    my $primer_data = shift;
+
+    my %primer_passes;
+
+    # implement genomic specificty checking using BWA
+    #
+
+    my ($bwa_query_filespec, $work_dir ) = generate_bwa_query_file( $design_id, $primer_data );
+    my $num_bwa_threads = 2;
+
+
+    my $bwa = DesignCreate::Util::BWA->new(
+            query_file        => $bwa_query_filespec,
+            work_dir          => $work_dir,
+            species           => $species,
+            three_prime_check => 0,
+            num_bwa_threads   => $num_bwa_threads,
+    );
+
+    $bwa->generate_sam_file;
+
+    my $oligo_hits = $bwa->oligo_hits;
+    $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
+
+    return \%primer_passes;
+
+}
+
+
+sub filter_oligo_hits {
+    my $hits_to_filter = shift;
+    my $primer_data = shift;
+
+    # select only the primers with highest rank
+    # that are not hitting other areas of the genome
+    # so that we only suggest max of two primer pairs.
+$DB::single=1;
+    
+
+    return $primer_data;
+}
+
+
+sub generate_bwa_query_file {
+    my $design_id= shift;
+    my $primer_data = shift;
+
+    my $dir_out = dir( $ENV{ 'LIMS2_BWA_OLIGO_DIR' } );
+    my $fasta_file_name = $dir_out->file( $design_id . '_oligos.fasta');
+    my $fh = $fasta_file_name->openw();
+    my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
+
+    foreach my $oligo ( sort keys %{ $primer_data->{'left'} } ) {
+        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'left'}->{$oligo}->{'seq'}, -id => $oligo );
+        $seq_out->write_seq( $fasta_seq );
+    }
+
+    foreach my $oligo ( sort keys %{ $primer_data->{'right'} } ) {
+        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'right'}->{$oligo}->{'seq'}, -id => $oligo );
+        $seq_out->write_seq( $fasta_seq );
+    }
+
+    return ($fasta_file_name, $dir_out);
 }
 
 
@@ -89,8 +160,8 @@ sub parse_primer3_results {
     while (my $pair = $result->next_primer_pair) {
         # do stuff with primer pairs...
         my ($fp, $rp) = ($pair->forward_primer, $pair->reverse_primer);
-        $oligo_data->{$fp->display_name} = parse_primer( $fp );
-        $oligo_data->{$rp->display_name} = parse_primer( $rp );
+        $oligo_data->{'left'}->{$fp->display_name} = parse_primer( $fp );
+        $oligo_data->{'right'}->{$rp->display_name} = parse_primer( $rp );
     }
 
     return $oligo_data;
@@ -110,6 +181,7 @@ sub parse_primer {
         melting_temp
         gc_content
         rank
+        location
     /;
 
 
@@ -127,8 +199,6 @@ sub primer_driver {
     $params{'assembly'} = shift;
 
     my $design_oligos = oligos_for_gibson( \%params );
-
-
 
     return;
 }
