@@ -409,6 +409,27 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     return;
 }
 
+sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+
+    # this will stash all the needed design parameters
+    my $gibson_target_type = $create_design_util->redo_design_attempt();
+
+    if ( $gibson_target_type eq 'exon' ) {
+        return $c->go( 'create_gibson_design' );
+    }
+    elsif ( $gibson_target_type eq 'location' ) {
+        return $c->go( 'create_custom_target_gibson_design' );
+    }
+
+    return;
+}
+
 sub _format_validation_errors {
     my ( $self, $err ) = @_;
     my $errors;
