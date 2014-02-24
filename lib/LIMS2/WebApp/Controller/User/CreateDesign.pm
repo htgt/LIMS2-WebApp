@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.164';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.165';
 }
 ## use critic
 
@@ -137,6 +137,49 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
     $c->assert_user_roles( 'edit' );
 
+    return unless $c->request->param('gene_pick');
+
+    my $gene_id = $c->request->param('gene_id');
+    unless ( $gene_id ) {
+        $c->stash( error_msg => "Please enter a gene name" );
+        return;
+    }
+
+    # if user entered a exon id
+    if ( $gene_id =~ qr/^ENS[A-Z]*E\d+$/ ) {
+        my $exon_id = $gene_id;
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+
+        my $exon_data;
+        try{
+            $exon_data = $create_design_util->c_exon_target_data( $exon_id );
+        }
+        catch {
+            $c->stash( error_msg =>
+                    "Unable to find gene information for exon $exon_id, make sure it is a valid ensembl exon id"
+            );
+            return;
+        }
+
+        $c->stash(
+            gene_id         => $exon_data->{gene_id},
+            ensembl_gene_id => $exon_data->{ensembl_gene_id},
+            gibson_type     => 'deletion',
+            five_prime_exon => $exon_id,
+        );
+        $c->go( 'create_gibson_design' );
+    }
+    else {
+        # generate and display data for exon pick table
+        $c->forward( 'generate_exon_pick_data' );
+        return if $c->stash->{error_msg};
+
+        $c->go( 'gibson_design_exon_pick' );
+    }
+
     return;
 }
 
@@ -144,58 +187,77 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-    my $gene_name = $c->request->param('gene');
-    unless ( $gene_name ) {
-        $c->stash( error_msg => "Please enter a gene name" );
-        return $c->go('gibson_design_gene_pick');
+
+    if ( $c->request->params->{pick_exons} ) {
+        my $exon_picks = $c->request->params->{exon_pick};
+
+        unless ( $exon_picks ) {
+            $c->stash( error_msg => "No exons selected" );
+            $c->forward( 'generate_exon_pick_data' );
+            return;
+        }
+
+        my %stash_hash = (
+            gene_id         => $c->request->param('gene_id'),
+            ensembl_gene_id => $c->request->param('ensembl_gene_id'),
+            gibson_type     => 'deletion',
+        );
+
+        # if multiple exons, its an array_ref
+        if (ref($exon_picks) eq 'ARRAY') {
+            $stash_hash{five_prime_exon}  = $exon_picks->[0];
+            $stash_hash{three_prime_exon} = $exon_picks->[-1];
+        }
+        # if its not an array_ref, it is a string with a single exon
+        else {
+            $stash_hash{five_prime_exon} = $exon_picks;
+        }
+        $c->stash( %stash_hash );
+        $c->go( 'create_gibson_design' );
     }
 
-    $c->log->debug("Pick exon targets for gene $gene_name");
-    try {
+    return;
+}
 
+sub generate_exon_pick_data : Private {
+    my ( $self, $c ) = @_;
+
+    $c->log->debug("Pick exon targets for gene: " . $c->request->param('gene_id') );
+    try {
         my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
             catalyst => $c,
             model    => $c->model('Golgi'),
         );
-        my ( $gene_data, $exon_data )= $create_design_util->exons_for_gene(
-            $c->request->param('gene'),
+        my ( $gene_data, $exon_data ) = $create_design_util->exons_for_gene(
+            $c->request->param('gene_id'),
             $c->request->param('show_exons'),
         );
 
-        my $exon_ids;
-        my %crispr_count;
-        foreach my $exon ( @$exon_data ) {
-            $crispr_count{$exon->{id}} = 0;
-            $exon_ids .= ',' . $exon->{id};
-        }
-
-        if ($exon_ids =~ /^,(.*)/ ) {
-            $exon_ids = "{$1}";
-        }
-
+        my $exon_ids_string = join(',', map{ $_->{id} } @{ $exon_data } );
         my @crisprs = $c->model('Golgi')->schema->resultset('ExonCrisprs')->search( {},
             {
-                bind => [ $exon_ids ],
+                bind => [ '{' . $exon_ids_string . '}' ],
             }
         );
 
+        my %crispr_count;
         foreach my $row (@crisprs) {
             ++$crispr_count{$row->ensembl_exon_id};
         }
 
-        for (my $i=0; $i < scalar @{$exon_data}; ++$i) {
-            ${$exon_data}[$i]{"crispr_count"} = $crispr_count{${$exon_data}[$i]->{id}};
+        for my $datum ( @{ $exon_data } ) {
+            $datum->{crispr_count} = $crispr_count{ $datum->{id} } || 0;
         }
 
         $c->stash(
-            exons    => $exon_data,
-            gene     => $gene_data,
-            assembly => $create_design_util->assembly_id,
+            exons      => $exon_data,
+            gene       => $gene_data,
+            assembly   => $create_design_util->assembly_id,
+            show_exons => $c->request->param('show_exons'),
         );
     }
     catch( LIMS2::Exception $e ) {
         $c->stash( error_msg => "Problem finding gene: $e" );
-        $c->go('gibson_design_gene_pick');
     };
 
     return;
@@ -205,7 +267,6 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-    my %stash_hash;
 
     my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
         catalyst => $c,
@@ -217,42 +278,9 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     if ( exists $c->request->params->{create_design} ) {
         $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
     }
-    elsif ( exists $c->request->params->{exon_pick} ) {
-        my $pick = $c->request->params->{exon_pick};
-
-        %stash_hash = (
-            gene_id         => $c->request->param('gene_id'),
-            ensembl_gene_id => $c->request->param('ensembl_gene_id'),
-            gibson_type     => 'deletion',
-            # set current primer3 conf values, in this case the same default for fresh page
-            %{ $primer3_conf },
-        );
-
-        # if multiple exons, its an array_ref
-        if (ref($pick) eq 'ARRAY') {
-
-            # check if there's more than 2 exons, if so die
-            if ( scalar( @$pick ) > 2 ) {
-                $c->flash( error_msg => scalar @$pick. " exons selected. Pick 1 or 2 exons." );
-                return;
-            }
-
-            $stash_hash{five_prime_exon} = @$pick[0];
-            $stash_hash{three_prime_exon} = @$pick[1];
-
-        }
-        # if its not an array_ref, it is a string with a single exon
-        else {
-            $stash_hash{five_prime_exon} = $pick;
-        }
-
-    # if nothing came back, then no exon was selected. die
-    } else {
-        $c->flash( error_msg => "No exons selected. Pick 1 or 2 exons." );
-        return;
+    else {
+        $c->stash( %{ $primer3_conf } );
     }
-
-    $c->stash( %stash_hash );
 
     return;
 }
@@ -279,6 +307,9 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
             %{ $target_data },
             %{ $primer3_conf },
         );
+    }
+    else {
+        $c->stash( %{ $primer3_conf } );
     }
 
     return;

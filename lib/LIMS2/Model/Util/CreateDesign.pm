@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.164';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.165';
 }
 ## use critic
 
@@ -9,7 +9,7 @@ package LIMS2::Model::Util::CreateDesign;
 use warnings FATAL => 'all';
 
 use Moose;
-use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
+use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
@@ -123,11 +123,18 @@ Optionally get all exons or just exons from canonical transcript.
 sub exons_for_gene {
     my ( $self, $gene_name, $exon_types ) = @_;
 
-    my $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
-    return unless $gene;
+    my $gene;
+    try {
+        $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
+        die "Unable to find gene $gene_name in Ensemble database" unless $gene;
+    }
+    catch ( $err ){
+        LIMS2::Exception::Validation->throw(
+            message => $err,
+        );
+    }
 
     my $gene_data = $self->c_build_gene_data( $gene );
-
     my $exon_data = $self->c_build_gene_exon_data( $gene, $gene_data->{gene_id}, $exon_types );
     $self->designs_for_exons( $exon_data, $gene_data->{gene_id} );
     $self->design_targets_for_exons( $exon_data, $gene->stable_id );
@@ -166,6 +173,7 @@ sub designs_for_exons {
     for my $exon ( @{ $exons } ) {
         my @matching_designs;
 
+        #TODO refactor, we are working out same design coordinates multiple times sp12 Mon 24 Feb 2014 13:20:23 GMT
         for my $design ( @designs ) {
             my $oligo_data = prebuild_oligos( $design, $assembly );
             # if no oligo data then design does not have oligos on assembly
@@ -174,10 +182,13 @@ sub designs_for_exons {
                 design => $design,
                 oligos => $oligo_data,
             );
-            if ( $exon->{start} > $di->target_region_start
-                && $exon->{end} < $di->target_region_end
-                && $exon->{chr} eq $di->chr_name
-            ) {
+            next unless $exon->{chr} eq $di->chr_name;
+
+            if (target_overlaps_exon(
+                    $di->target_region_start, $di->target_region_end,
+                    $exon->{start},           $exon->{end} )
+               )
+            {
                 push @matching_designs, $design;
             }
         }
@@ -275,21 +286,25 @@ sub calculate_design_targets {
     # get target start and end
     my $target_start;
     my $target_end;
+    my $chromosome;
     if ( $params->{target_start} && $params->{target_end} ) {
         $target_start = $params->{target_start};
-        $target_end = $params->{target_end};
-    } else {
+        $target_end   = $params->{target_end};
+        $chromosome   = $params->{chromosome};
+    }
+    else {
         if ( $params->{five_prime_exon} && $params->{three_prime_exon} ) {
-            my $five_prime_exon = $exon_adaptor->fetch_by_stable_id( $params->{five_prime_exon} );
+            my $five_prime_exon  = $exon_adaptor->fetch_by_stable_id( $params->{five_prime_exon} );
             my $three_prime_exon = $exon_adaptor->fetch_by_stable_id( $params->{three_prime_exon} );
             if ( $gene->strand == 1 ) {
                 $target_start = $five_prime_exon->seq_region_start;
-                $target_end = $three_prime_exon->seq_region_end;
+                $target_end   = $three_prime_exon->seq_region_end;
             }
             else {
                 $target_start = $three_prime_exon->seq_region_start;
-                $target_end = $five_prime_exon->seq_region_end;
+                $target_end   = $five_prime_exon->seq_region_end;
             }
+            $chromosome = $five_prime_exon->seq_region_name;
         }
     }
 
@@ -300,18 +315,14 @@ sub calculate_design_targets {
     # is a match if the exon is a partial hit as well
     my @target_exons;
     for my $exon ( @{$exons} ) {
-        if (   $exon->seq_region_start >= $target_start
-            && $exon->seq_region_start <= $target_end )
-        {
-            push @target_exons, $exon;
-        }
-        elsif ($exon->seq_region_end >= $target_start
-            && $exon->seq_region_end <= $target_end )
+        next unless $chromosome eq $exon->seq_region_name;
+        if (target_overlaps_exon(
+                $target_start, $target_end, $exon->seq_region_start, $exon->seq_region_end )
+            )
         {
             push @target_exons, $exon;
         }
     }
-    my @names = map { $_->stable_id } @target_exons;
 
     $self->find_or_create_design_target( $params, $_, $gene ) for @target_exons;
 

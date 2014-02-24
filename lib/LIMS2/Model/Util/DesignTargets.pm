@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.164';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.165';
 }
 ## use critic
 
@@ -27,6 +27,7 @@ use Sub::Exporter -setup => {
                      bulk_designs_for_design_targets
                      get_design_targets_data
                      prebuild_oligos
+                     target_overlaps_exon
                     ) ]
 };
 
@@ -148,6 +149,7 @@ sub bulk_designs_for_design_targets {
     for my $dt ( @{ $design_targets } ) {
         my @matching_designs;
         my @dt_designs = map{ $_->design } grep{ $_->gene_id eq $dt->gene_id } @gene_designs;
+        #TODO refactor, we are working out same design coordinates multiple times sp12 Mon 24 Feb 2014 13:20:23 GMT
         for my $design ( @dt_designs ) {
             my $oligo_data = prebuild_oligos( $design, $assembly );
             # if no oligo data then design does not have oligos on assembly
@@ -157,10 +159,12 @@ sub bulk_designs_for_design_targets {
                 default_assembly => $assembly,
                 oligos           => $oligo_data,
             );
-            if ( $dt->chr_start > $di->target_region_start
-                && $dt->chr_end < $di->target_region_end
-                && $dt->chr->name eq $di->chr_name
-            ) {
+            next if $dt->chr->name ne $di->chr_name;
+
+            if (target_overlaps_exon(
+                    $di->target_region_start, $di->target_region_end, $dt->chr_start, $dt->chr_end )
+                )
+            {
                 push @matching_designs, $design;
                 push @design_ids, $design->id;
             }
@@ -876,6 +880,37 @@ sub get_design_targets_data {
     }
 
     return @dt;
+}
+
+=head2 target_overlaps_exon
+
+Check if target overlaps a exon ( or any two sets of coordiantes overlap )
+- First 2 parameters should be the target start and target end
+- Next 2 parameters should be the exon start and exon end
+
+Note: this does not check if the chromosome is the same.
+
+=cut
+sub target_overlaps_exon {
+    my ( $target_start, $target_end, $exon_start, $exon_end ) = @_;
+
+    if (   $target_start < $exon_start
+        && $target_end > $exon_end )
+    {
+        return 1;
+    }
+    elsif ($target_start >= $exon_start
+        && $target_start <= $exon_end )
+    {
+        return 1;
+    }
+    elsif ($target_end >= $exon_start
+        && $target_end <= $exon_end )
+    {
+        return 1;
+    }
+
+    return;
 }
 
 1;
