@@ -5,7 +5,8 @@
     <legend>Gibson Design Gene Pick</legend>
 
     <input type="text" class="input-xxlarge" name="gene_id" placeholder="gene name">
-    <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.</span>
+    <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.<br>
+    If you know the Ensembl exon id of the exon you wish to target you may use this instead.</span>
 
     <label><strong>Show Exons</strong></label>
     <label class="radio">
