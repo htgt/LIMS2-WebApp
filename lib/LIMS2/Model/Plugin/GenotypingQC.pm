@@ -380,7 +380,8 @@ sub delete_plate_genotyping_qc_data {
     my $species = shift;
     my $user = shift;
 
-    my @qc_ref = $self->get_genotyping_qc_plate_data( $plate_name, $species );
+    # don't need alelle determination to run here
+    my @qc_ref = $self->get_genotyping_qc_plate_data( $plate_name, $species, 0 );
 
     foreach my $qc_row ( @qc_ref ) {
         $self->delete_genotyping_qc_data( $qc_row, $user );
@@ -396,7 +397,8 @@ sub delete_well_genotyping_qc_data {
     my $species = shift;
     my $user = shift;
 
-    my @qc_ref = $self->get_genotyping_qc_well_data( $well_list, $plate_name, $species);
+    # don't need allele determination to run here
+    my @qc_ref = $self->get_genotyping_qc_well_data( $well_list, $plate_name, $species, 0 );
 
     foreach my $qc_row ( @qc_ref ) {
         $self->delete_genotyping_qc_data( $qc_row, $user );
@@ -483,28 +485,42 @@ sub fast_delete_gqc_data {
 # The next two methods are used by the caller to return a plate of data or a set of well data
 
 sub get_genotyping_qc_plate_data {
-    my $self = shift;
-    my $plate_name = shift;
-    my $species = shift;
+    my $self                  = shift;
+    my $plate_name            = shift;
+    my $species               = shift;
+    my $include_genotyping_qc = shift;
+
     my $sql_query = $self->sql_plate_qc_query( $plate_name );
     my @gqc_data = $self->get_genotyping_qc_browser_data( $sql_query, $species );
-    # append the allele determination and workflow information for each well
-    my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
-    my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
-    return @{ $gqc_data_with_allele_types };
+
+    if ( $include_genotyping_qc == 1 ) {
+        # append the allele determination and workflow information for each well
+        my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
+        my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
+        @gqc_data = @{ $gqc_data_with_allele_types };
+    }
+
+    return @gqc_data;
 }
 
 sub get_genotyping_qc_well_data {
-    my $self = shift;
-    my $well_list = shift;
-    my $plate_name = shift;
-    my $species = shift;
+    my $self                  = shift;
+    my $well_list             = shift;
+    my $plate_name            = shift;
+    my $species               = shift;
+    my $include_genotyping_qc = shift;
+
     my $sql_query = $self->sql_well_qc_query( $well_list );
     my @gqc_data = $self->get_genotyping_qc_browser_data( $sql_query, $species );
-    # append the allele determination and workflow information for each well
-    my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
-    my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
-    return @{ $gqc_data_with_allele_types };
+
+    if ( $include_genotyping_qc == 1 ) {
+        # append the allele determination and workflow information for each well
+        my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
+        my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
+        @gqc_data = @{ $gqc_data_with_allele_types };
+    }
+
+    return @gqc_data;
 }
 
 sub get_genotyping_qc_browser_data {
@@ -892,9 +908,11 @@ sub csv_genotyping_qc_plate_data {
     my $self = shift;
     my $plate_name = shift;
     my $species = shift;
+    # include allele determination in csv
     my @plate_well_data = $self->get_genotyping_qc_plate_data(
         $plate_name,
         $species,
+        1,
     );
 
     # Unpack the array of hashes and construct a csv format file.

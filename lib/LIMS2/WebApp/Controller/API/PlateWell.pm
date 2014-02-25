@@ -253,7 +253,8 @@ sub well_genotyping_qc_list_GET {
     my $plate = $model->retrieve_plate({ name => $plate_name});
     my @plate_well_data = $model->get_genotyping_qc_plate_data(
         $plate_name,
-        $c->session->{selected_species}
+        $c->session->{selected_species},
+        1
     );
     return $self->status_ok( $c, entity => \@plate_well_data );
 }
@@ -265,26 +266,25 @@ sub well_genotyping_qc_PUT{
     my ( $self, $c, $well_id ) = @_;
     $c->assert_user_roles('edit');
 
-    my $data = $c->request->data;
+    my $data       = $c->request->data;
     my $plate_name = $c->request->param('plate_name');
-    my $species = $c->session->{'selected_species'};
+    my $species    = $c->session->{'selected_species'};
+
     # $data will contain a key for well 'id' and a key whose name is the column name
     # and whose value is the new value to be passed as an update.
     # e.g. 'chr1#call' => 'fail'
     delete $data->{'id'}; # this is already in $well_id
     my ( $assay_type, $assay_value ) = each %{$data};
 
-    my $model = $c->model('Golgi');
+    my $model  = $c->model('Golgi');
     my $params = {};
 
+    $params->{ 'assay_name' }  = $assay_type;
+    $params->{ 'assay_value' } = $assay_value;
+    $params->{ 'well_id' }     = $well_id;
+    $params->{ 'created_by' }  = $c->user->name;
 
-    $params->{assay_name} = $assay_type;
-    $params->{assay_value} = $assay_value;
-    $params->{well_id} = $well_id;
-    $params->{created_by} = $c->user->name;
-
-
-    # Transaction happens at the controller level
+    # Update transaction happens at the controller level
     # need transaction_do to start here...
     $model->txn_do(
         sub {
@@ -292,11 +292,23 @@ sub well_genotyping_qc_PUT{
         }
     ); # end transaction
     # and finish here.
-    # The session species is required for the gene symbol lookup
+
+    my $get_allele_determination = 0;
+
+    if ( $params->{ 'assay_name' } eq 'accepted_override' ) {        
+        # for the accepted override we don't need to re-calculate allele determination 
+        $get_allele_determination = 1;
+    }
+
+    # The session species is required for the gene symbol lookup.
+    # get_genotyping_qc_well_data takes an array of wells ids, we only have one here.
+    # get_genotyping_qc_well_data returns an array of hashrefs, one per well, we just take the first (and only) hashref here.
     my @well_list;
     push @well_list, $well_id;
-    my ($new_data) = $model->get_genotyping_qc_well_data( \@well_list, $plate_name, $species );
+    my @arr_data = $model->get_genotyping_qc_well_data( \@well_list, $plate_name, $species, $get_allele_determination );
+    my $new_data = shift @arr_data;
 
+    # return to the view
     return $self->status_created(
         $c,
         location => $c->uri_for('/api/well/genotyping_qc', {plate_name => $plate_name}),
@@ -519,7 +531,7 @@ sub genotyping_qc_save_distribute_changes_GET {
 
     return unless $plate;
 
-    my @plate_data = $model->get_genotyping_qc_plate_data( $plate_name, $c->session->{ 'selected_species' } );
+    my @plate_data = $model->get_genotyping_qc_plate_data( $plate_name, $c->session->{ 'selected_species' }, 1 );
 
     # apply updates to well accepted flag for each well
     my $failed;

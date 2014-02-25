@@ -206,7 +206,7 @@ sub determine_allele_types_for_well_ids {
     $self->well_ids($well_ids);
 
     # fetch array of well hashes from genotyping QC
-    my @gqc_results = $self->model->get_genotyping_qc_well_data( \@{$well_ids}, 'dummy', $self->species );
+    my @gqc_results = $self->model->get_genotyping_qc_well_data( \@{$well_ids}, 'dummy', $self->species, 1 );
     $self->well_genotyping_results_array( \@gqc_results );
 
     # TODO: get workflow calculation into summaries generation
