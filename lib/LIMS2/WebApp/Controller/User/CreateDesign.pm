@@ -133,7 +133,7 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
     return unless $c->request->param('gene_pick');
 
-    my $gene_id = $c->request->param('gene_id');
+    my $gene_id = $c->request->param('search_gene');
     unless ( $gene_id ) {
         $c->stash( error_msg => "Please enter a gene name" );
         return;
@@ -223,7 +223,7 @@ sub generate_exon_pick_data : Private {
             model    => $c->model('Golgi'),
         );
         my ( $gene_data, $exon_data ) = $create_design_util->exons_for_gene(
-            $c->request->param('gene_id'),
+            $c->request->param('search_gene'),
             $c->request->param('show_exons'),
         );
 
@@ -244,10 +244,11 @@ sub generate_exon_pick_data : Private {
         }
 
         $c->stash(
-            exons      => $exon_data,
-            gene       => $gene_data,
-            assembly   => $create_design_util->assembly_id,
-            show_exons => $c->request->param('show_exons'),
+            exons       => $exon_data,
+            gene        => $gene_data,
+            search_gene => $c->request->param('search_gene'),
+            assembly    => $create_design_util->assembly_id,
+            show_exons  => $c->request->param('show_exons'),
         );
     }
     catch( LIMS2::Exception $e ) {
