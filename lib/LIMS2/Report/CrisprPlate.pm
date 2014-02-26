@@ -2,6 +2,7 @@ package LIMS2::Report::CrisprPlate;
 
 use Moose;
 use namespace::autoclean;
+use List::MoreUtils qw(uniq);
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -17,7 +18,7 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
-        "Well Name","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
+        "Well Name","Gene Symbol","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
         "Created By","Created At",
     ];
 };
@@ -46,8 +47,11 @@ override iterator => sub {
             $locus_data = $crispr_data->{locus} if $crispr_data->{locus};
         }
 
+        my $gene_symbol = _get_crispr_gene_symbol($process_crispr->crispr);
+
         return [
             $well->name,
+            $gene_symbol ? $gene_symbol : '-',
             $crispr_data ? $crispr_data->{id}        : '-',
             $crispr_data ? $crispr_data->{seq}       : '-',
             $crispr_data ? $crispr_data->{type}      : '-',
@@ -61,6 +65,25 @@ override iterator => sub {
         ];
     };
 };
+
+sub _get_crispr_gene_symbol{
+    my ($crispr) = @_;
+    
+    my @symbols;
+    my $schema = $crispr->result_source->schema;
+
+    my @dt_crisprs = $schema->resultset('DesignTargetCrisprs')->search(
+        {
+            crispr_id => $crispr->id,
+        },
+    );
+    
+    foreach my $dt (@dt_crisprs){
+        push @symbols, $schema->resultset('DesignTarget')->find({ id => $dt->design_target_id })->marker_symbol;
+    }
+
+    return join ", ", @symbols;
+}
 
 __PACKAGE__->meta->make_immutable;
 
