@@ -20,6 +20,7 @@ use LIMS2::Exception::Implementation;
 
 const my $MGI_ACCESSION_ID_RX => qr/^MGI:\d+$/;
 const my $ENSEMBL_GENE_ID_RX  => qr/^ENS[A-Z]*G\d+$/;
+const my $HGNC_GENE_ID_RX =>qr/^HGNC:\d+$/;
 
 sub retrieve_solr_gene {
     my ( $model, $params ) = @_;
@@ -65,8 +66,16 @@ sub retrieve_ensembl_gene {
         return { gene_id => $gene->stable_id, gene_symbol => $gene->external_name };
     }
 
+    my $term = $params->{search_term};
+    my $db_name = undef;
+
+    if( $params->{search_term} =~ $HGNC_GENE_ID_RX ){
+        $term =~ s/^HGNC://;
+        $db_name = 'HGNC';
+    }
+
     my $genes = $model->ensembl_gene_adaptor( $params->{species} )
-        ->fetch_all_by_external_name( $params->{search_term} );
+        ->fetch_all_by_external_name( $term, $db_name );
 
     if ( @{$genes} == 0 ) {
 	    #    LIMS2::Exception::NotFound->throw( { entity_class => 'Gene', search_params => $params } );
