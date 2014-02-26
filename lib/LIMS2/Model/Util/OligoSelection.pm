@@ -36,6 +36,15 @@ use DesignCreate::Util::BWA;
 use Bio::SeqIO;
 use Path::Class;
 
+=head pick_genotyping_primers
+     outline of process:
+     query the design_oligos table for the design_id and the 5F or 3R primer,
+     join on the design_oligo_loci table to generate the genomic co-ordinates
+     Construct an input file for EnsEmbl to pull back the sequence for the region
+     call Primer 3 with appropriate options to generate primers.
+     update the genotyping oligos table with the generated oligos.
+=cut
+
 sub pick_genotyping_primers {
     my $schema = shift;
     my $design_id = shift;
@@ -89,7 +98,7 @@ sub genomic_check {
 
     my %primer_passes;
 
-    # implement genomic specificty checking using BWA
+    # implement genomic specificity checking using BWA
     #
 
     my ($bwa_query_filespec, $work_dir ) = generate_bwa_query_file( $design_id, $primer_data );
@@ -122,11 +131,49 @@ sub filter_oligo_hits {
     # that are not hitting other areas of the genome
     # so that we only suggest max of two primer pairs.
 $DB::single=1;
+    my %primer_data_updated;
     
+    foreach my $key ( sort keys %{$primer_data->{'left'}} ) {
+        $primer_data->{'left'}->{$key}->{'mapped'} = $hits_to_filter->{$key};
+    }
 
+    foreach my $key ( sort keys %{$primer_data->{'right'}} ) {
+        $primer_data->{'right'}->{$key}->{'mapped'} = $hits_to_filter->{$key};
+    }
+
+    $primer_data = del_bad_pairs('left', $primer_data);
+    $primer_data = del_bad_pairs('right', $primer_data);
+    
     return $primer_data;
 }
 
+=head del_bad_pairs
+Given: left | right, primer_data hashref
+Returns: primer_data_hashref
+
+     Process the input hash deleting any that do not have a unique_alignment key.
+     Make sure there both a left and a right primer of the same rank.
+    
+=cut
+sub del_bad_pairs {
+    my $primer_end = shift;
+    my $primer_data = shift;
+
+    my $temp1;
+    my $temp2;
+
+    foreach my $primer ( sort keys %{$primer_data->{$primer_end}} ) {
+        if ( ! defined $primer_data->{$primer_end}->{$primer}->{'mapped'}->{'unique_alignment'} ) {
+            $primer =~ s/right/left/;
+            my $left_primer = $primer;
+            $primer =~ s/left/right/;
+            my $right_primer = $primer;
+            $temp1 = delete $primer_data->{'left'}->{$left_primer};
+            $temp2 = delete $primer_data->{'right'}->{$right_primer};
+        }
+    }
+    return $primer_data;
+}
 
 sub generate_bwa_query_file {
     my $design_id= shift;
@@ -224,12 +271,6 @@ The result should be 4 primers.
 sub oligos_for_gibson {
     my $params = shift;
 
-    # outline of process:
-    # query the design_oligos table for the design_id and the 5F or 3R primer,
-    # join on the design_oligo_loci table to generate the genomic co-ordinates
-    # Construct an input file for EnsEmbl to pull back the sequence for the region
-    # call Primer 3 with appropriate options to generate primers.
-    # update the genotyping oligos table with the generated oligos.
     my $gibson_design_oligos_rs = gibson_design_oligos_rs( $params->{'schema'}, $params->{'design_id'} );
     my %genotyping_primers;
     update_primer_type( '5F', \%genotyping_primers, $gibson_design_oligos_rs, $params->{'assembly'});
@@ -412,6 +453,15 @@ sub update_primer_type {
     return \$genotyping_primer_hr;
 }
 
+sub pick_crispr_primers {
+    my $schema = shift;
+    my $crispr_pair_id = shift;
+
+    my $crispr_oligos = oligo_for_crisp_pair( $schema, $crispr_pair_id );
+
+    return;
+}
+
 =head2 oligos_for_crispr_pair
 
 Generate sequencing primer oligos for a crispr pair
@@ -421,11 +471,33 @@ These oligos should be 100b from the 5' end of the left crispr so that sequencin
 For the right crispr, the primer should be 100b from the 3' end of the crispr, again so that sequencing
 reads into the crispr itself
 
+Given crispr pair id
+Returns Hash of two oligos forming the left and right crispr pair.
+
 =cut
 
 sub oligos_for_crispr_pair {
+    my $schema = shift;
+    my $crispr_pair_id = shift;
 
-    return;
+
+    my $crispr_pairs_rs = crispr_pair_oligos_rs( $schema, $crispr_pair_id );
+    my %crispr_pairs;
+
+    return \%crispr_pairs;
+}
+
+sub crispr_pair_oligos_rs {
+    my $schema = shift;
+    my $crispr_pair_id = shift;
+
+    my $crispr_rs = $schema->resultset('CrisprPair')->search(
+        {
+            'id' => $crispr_pair_id,
+        },
+    );
+
+    return $crispr_rs;
 }
 
 1;

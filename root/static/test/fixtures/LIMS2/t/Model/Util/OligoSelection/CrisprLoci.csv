@@ -1,0 +1,3 @@
+crispr_id,assembly_id,chr_id,chr_start,chr_end,chr_strand
+65619,GRCh37,22,203680097,203680119,-1
+65638,GRCh37,22,203680139,203680161,1

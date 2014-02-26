@@ -43,7 +43,7 @@ sub a_test_oligos_for_gibson : Test(11) {
     ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence({ schema => model->schema, design_id => $design_id }), 'Sequences generated for forward and reverse strands';
     ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model->schema, $design_id, $species ), 'Running primer3';
     is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
-    is $primer_results->{'left'}->{'left_0'}->{'seq'}, 'CAAACAACAGCAACAACAATACCAG', 'Left rank 0 primer correct';
+    is $primer_results->{'left'}->{'left_1'}->{'seq'}, 'CAAACAACAGCAACAACAATACCAG', 'Left rank 0 primer correct';
 }
 
 sub b_test_oligos_for_gibson : Test(6) {
@@ -60,6 +60,23 @@ $DB::single=1;
     ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model->schema, $design_id, $species ), 'Running primer3';
     is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
     is $primer_results->{'left'}->{'left_0'}->{'seq'}, 'ATGTTATTTCCCCTATGAGCTCCAG', 'Left rank 0 primer correct';
+
+}
+
+sub c_test_oligos_for_crispr_pair : Test(6) {
+$DB::single=1;
+
+    my $crispr_pair_id = '19768';
+    my $assembly = 'GRCh37';
+    my $species = 'Human';
+
+    ok my $crispr_pairs_rs =  LIMS2::Model::Util::OligoSelection::crispr_pair_oligos_rs( model->schema, $crispr_pair_id), 'Created crispr_pair resultset';
+    is $crispr_pairs_rs->first->left_crispr_id, 65619, 'left crispr id is correct';
+    
+    #ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence({ schema => model->schema, design_id => $design_id }), 'Sequences generated for forward and reverse strands';
+    #ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model->schema, $design_id, $species ), 'Running primer3';
+    #is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
+    #is $primer_results->{'left'}->{'left_0'}->{'seq'}, 'ATGTTATTTCCCCTATGAGCTCCAG', 'Left rank 0 primer correct';
 
 }
 
