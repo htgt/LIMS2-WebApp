@@ -720,7 +720,7 @@ sub _format_crispr_off_target_summary {
         return $summary_details;
     }
 
-    return;
+    return '';
 }
 
 =head2 _format_crispr_pair_off_target_summary
@@ -739,7 +739,7 @@ sub _format_crispr_pair_off_target_summary {
         }
     }
 
-    return;
+    return '';
 }
 
 =head2 _formated_crispr_locus
