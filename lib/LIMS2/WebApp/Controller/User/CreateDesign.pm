@@ -258,7 +258,6 @@ sub generate_exon_pick_data : Private {
     return;
 }
 
-use Smart::Comments;
 sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
     my ( $self, $c, $is_redo ) = @_;
 
@@ -402,8 +401,13 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
 sub view_design_attempt : PathPart('view') Chained('design_attempt') : Args(0) {
     my ( $self, $c ) = @_;
 
+    my $da = $c->stash->{da};
+    my $da_hash = $da->as_hash( { json_as_hash => 1 } );
+
     $c->stash(
-        da => $c->stash->{da}->as_hash( { pretty_print_json => 1 } ),
+        da     => $da->as_hash( { pretty_print_json => 1 } ),
+        fail   => $da_hash->{fail},
+        params => $da_hash->{design_parameters},
     );
     return;
 }
