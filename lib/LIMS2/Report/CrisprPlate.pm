@@ -47,7 +47,7 @@ override iterator => sub {
             $locus_data = $crispr_data->{locus} if $crispr_data->{locus};
         }
 
-        my $gene_symbol = _get_crispr_gene_symbol($process_crispr->crispr);
+        my $gene_symbol = $process_crispr->crispr->marker_symbol;
 
         return [
             $well->name,
@@ -65,25 +65,6 @@ override iterator => sub {
         ];
     };
 };
-
-sub _get_crispr_gene_symbol{
-    my ($crispr) = @_;
-    
-    my @symbols;
-    my $schema = $crispr->result_source->schema;
-
-    my @dt_crisprs = $schema->resultset('DesignTargetCrisprs')->search(
-        {
-            crispr_id => $crispr->id,
-        },
-    );
-    
-    foreach my $dt (@dt_crisprs){
-        push @symbols, $schema->resultset('DesignTarget')->find({ id => $dt->design_target_id })->marker_symbol;
-    }
-
-    return join ", ", @symbols;
-}
 
 __PACKAGE__->meta->make_immutable;
 
