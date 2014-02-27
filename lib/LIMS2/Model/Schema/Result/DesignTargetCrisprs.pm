@@ -54,6 +54,12 @@ __PACKAGE__->belongs_to(
     { id => "crispr_id" },
 );
 
+__PACKAGE__->belongs_to(
+    "design_target",
+    "LIMS2::Model::Schema::Result::DesignTarget",
+    { id => "design_target_id" },
+);
+
 __PACKAGE__->meta->make_immutable;
 
 1;

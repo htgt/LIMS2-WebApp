@@ -2,6 +2,7 @@ package LIMS2::Report::CrisprPlate;
 
 use Moose;
 use namespace::autoclean;
+use List::MoreUtils qw(uniq);
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -17,7 +18,7 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
-        "Well Name","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
+        "Well Name","Gene Symbol","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
         "Created By","Created At",
     ];
 };
@@ -46,8 +47,11 @@ override iterator => sub {
             $locus_data = $crispr_data->{locus} if $crispr_data->{locus};
         }
 
+        my $gene_symbol = $process_crispr->crispr->marker_symbol;
+
         return [
             $well->name,
+            $gene_symbol ? $gene_symbol : '-',
             $crispr_data ? $crispr_data->{id}        : '-',
             $crispr_data ? $crispr_data->{seq}       : '-',
             $crispr_data ? $crispr_data->{type}      : '-',
