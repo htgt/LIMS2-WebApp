@@ -2,6 +2,7 @@
 
 [% INCLUDE 'create_design/exon_target_gibson_parameter_diagram.tt' %]
 
+
 [%  IF c.session.selected_species == 'Mouse';
       gene_id_label = 'MGI Gene ID';
     ELSIF c.session.selected_species == 'Human';
@@ -14,6 +15,14 @@
   [% INCLUDE 'create_design/exon_target_specific_parameters.tt' %]
   [% INCLUDE 'create_design/common_gibson_form_parameters.tt' %]
 </form>
+
+[% IF display_da && display_da.fail %]
+  <div class="well">
+    <p>Redoing design attempt ???, reason for failure<p> 
+
+    <pre class="alert alert-error">[% display_da.fail %]</pre>
+  </div>
+[% END %]
 
 <div class="well">
 <p>

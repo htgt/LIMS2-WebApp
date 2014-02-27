@@ -258,8 +258,9 @@ sub generate_exon_pick_data : Private {
     return;
 }
 
-sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
-    my ( $self, $c ) = @_;
+use Smart::Comments;
+sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
+    my ( $self, $c, $is_redo ) = @_;
 
     $c->assert_user_roles( 'edit' );
 
@@ -270,7 +271,11 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     my $primer3_conf = $create_design_util->c_primer3_default_config;
     $c->stash( default_p3_conf => $primer3_conf );
 
-    if ( exists $c->request->params->{create_design} ) {
+    if ( $is_redo && $is_redo eq 'redo' ) {
+        # if we have redo flag all the stash variables have been setup correctly 
+        return;
+    }
+    elsif ( exists $c->request->params->{create_design} ) {
         $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
     }
     else {
@@ -280,8 +285,8 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
     return;
 }
 
-sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibson_design' ) : Args(0) {
-    my ( $self, $c ) = @_;
+sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibson_design' ) : Args {
+    my ( $self, $c, $is_redo ) = @_;
 
     $c->assert_user_roles( 'edit' );
 
@@ -292,7 +297,11 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
     my $primer3_conf = $create_design_util->c_primer3_default_config;
     $c->stash( default_p3_conf => $primer3_conf );
 
-    if ( exists $c->request->params->{create_design} ) {
+    if ( $is_redo && $is_redo eq 'redo' ) {
+        # if we have redo flag all the stash variables have been setup correctly 
+        return;
+    }
+    elsif ( exists $c->request->params->{create_design} ) {
         $self->_create_gibson_design( $c, $create_design_util, 'create_custom_target_gibson_design' );
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
@@ -419,13 +428,16 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
     );
 
     # this will stash all the needed design parameters
-    my $gibson_target_type = $create_design_util->redo_design_attempt();
+    my $gibson_target_type = $create_design_util->redo_design_attempt( $c->stash->{da} );
 
     if ( $gibson_target_type eq 'exon' ) {
-        return $c->go( 'create_gibson_design' );
+        return $c->go( 'create_gibson_design', [ 'redo' ] );
     }
     elsif ( $gibson_target_type eq 'location' ) {
-        return $c->go( 'create_custom_target_gibson_design' );
+        return $c->go( 'create_custom_target_gibson_design' , [ 'redo' ] );
+    }
+    else {
+        #TODO ???? sp12 Mon 24 Feb 2014 09:17:19 GMT
     }
 
     return;
