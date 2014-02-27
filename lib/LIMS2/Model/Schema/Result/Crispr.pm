@@ -332,7 +332,7 @@ sub marker_symbol{
       },
   );
 
-  return join ", ", map { $_->design_target->marker_symbol } @dt_crisprs;  
+  return join ", ", map { $_->design_target->marker_symbol } @dt_crisprs;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
