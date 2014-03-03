@@ -16,12 +16,8 @@
   [% INCLUDE 'create_design/common_gibson_form_parameters.tt' %]
 </form>
 
-[% IF display_da && display_da.fail %]
-  <div class="well">
-    <p>Redoing design attempt ???, reason for failure<p> 
-
-    <pre class="alert alert-error">[% display_da.fail %]</pre>
-  </div>
+[% IF da %]
+[% INCLUDE 'create_design/redo_design_attempt_data.tt' %]
 [% END %]
 
 <div class="well">
