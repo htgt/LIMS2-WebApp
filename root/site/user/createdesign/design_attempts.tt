@@ -9,5 +9,5 @@
 
 [% INCLUDE 'create_design/design_attempt_table.tt'
     design_attempt_url = '/user/design_attempt'
-    view_design_url = '/user/view_design'
+    view_design_url    = '/user/view_design'
 %]
