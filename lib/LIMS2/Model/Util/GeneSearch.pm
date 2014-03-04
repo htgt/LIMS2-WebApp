@@ -97,7 +97,7 @@ sub retrieve_ensembl_gene {
 
 sub _remove_ensembl_lrg_results{
     my ($genes) = @_;
-    
+
     my @all = @{ $genes || [] };
     my @filtered = grep { $_->source ne 'LRG database' } @all;
 

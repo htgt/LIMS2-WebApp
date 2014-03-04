@@ -76,7 +76,7 @@ sub crispr_marker_symbols{
         my $design = $crispr_design->design;
         _symbols_from_design($model, $design, \%symbols);
     }
-  
+
     foreach my $pair ($crispr->crispr_pairs_left_crisprs->all, $crispr->crispr_pairs_right_crisprs->all){
         foreach my $pair_crispr_design ($pair->crispr_designs->all){
             my $pair_design = $pair_crispr_design->design;
@@ -89,12 +89,12 @@ sub crispr_marker_symbols{
 
 sub _symbols_from_design{
     my ($model, $design, $symbols) = @_;
-    
+
     my $design_params = $design->design_parameters;
     my $json = JSON->new;
     my $params;
-    try { 
-      $params = $json->decode( $design_params ) 
+    try {
+      $params = $json->decode( $design_params )
     } catch {
       DEBUG "Could not parse design_parameters json for design ".$design->id." Error: $_";
     };
@@ -112,10 +112,10 @@ sub _symbols_from_design{
     };
 
     return unless $gene;
-    
+
     $symbols->{ $gene->{gene_symbol} } = 1;
     DEBUG "Found symbol ".$gene->{gene_symbol};
-    return;   
+    return;
 }
 
 
