@@ -321,20 +321,6 @@ sub pairs {
   return ($self->pam_right) ? $self->crispr_pairs_right_crisprs : $self->crispr_pairs_left_crisprs;
 }
 
-sub marker_symbol{
-  my $self = shift;
-
-  my $schema = $self->result_source->schema;
-
-  my @dt_crisprs = $schema->resultset('DesignTargetCrisprs')->search(
-      {
-          crispr_id => $self->id,
-      },
-  );
-
-  return join ", ", map { $_->design_target->marker_symbol } @dt_crisprs;
-}
-
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
