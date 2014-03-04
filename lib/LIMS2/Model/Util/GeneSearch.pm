@@ -17,6 +17,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use LIMS2::Exception::NotFound;
 use LIMS2::Exception::Implementation;
+use Data::Dumper;
 
 const my $MGI_ACCESSION_ID_RX => qr/^MGI:\d+$/;
 const my $ENSEMBL_GENE_ID_RX  => qr/^ENS[A-Z]*G\d+$/;
@@ -77,19 +78,30 @@ sub retrieve_ensembl_gene {
     my $genes = $model->ensembl_gene_adaptor( $params->{species} )
         ->fetch_all_by_external_name( $term, $db_name );
 
-    if ( @{$genes} == 0 ) {
+    my $filtered = _remove_ensembl_lrg_results($genes);
+
+    if ( @{$filtered} == 0 ) {
 	    #    LIMS2::Exception::NotFound->throw( { entity_class => 'Gene', search_params => $params } );
 	    return [{gene_id=>$params->{search_term}, gene_symbol=>"unknown"}];
     }
 
-    if ( @{$genes} > 1 ) {
+    if ( @{$filtered} > 1 ) {
         LIMS2::Exception::Implementation->throw(
             "Retrieval of gene $params->{species}/$params->{search_term} returned "
-            . @{$genes} . " genes"
+            . @{$filtered} . " genes"
         );
     }
 
-    return { gene_id => $genes->[0]->stable_id, gene_symbol => $genes->[0]->external_name };
+    return { gene_id => $filtered->[0]->stable_id, gene_symbol => $filtered->[0]->external_name };
+}
+
+sub _remove_ensembl_lrg_results{
+    my ($genes) = @_;
+    
+    my @all = @{ $genes || [] };
+    my @filtered = grep { $_->source ne 'LRG database' } @all;
+
+    return \@filtered;
 }
 
 sub normalize_solr_result {
