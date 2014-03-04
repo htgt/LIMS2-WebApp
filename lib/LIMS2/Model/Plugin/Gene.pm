@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.165';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.167';
 }
 ## use critic
 
@@ -53,6 +53,7 @@ sub search_genes {
     }
     elsif ( $species eq 'Human' ) {
         my $genes = $self->retrieve_gene( $validated_params ) || [];
+        DEBUG "Genes retrieved: ". pp $genes;
         @genes = @{ $genes };
     }
     else {

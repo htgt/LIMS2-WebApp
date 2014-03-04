@@ -1,0 +1,14 @@
+use strict;
+use warnings;
+
+use LIMS2::Model;
+use Data::Dumper;
+
+my $model = LIMS2::Model->new({user=>'tasks'});
+
+my $gene = $model->retrieve_gene({species => 'Human', search_term => 'HGNC:253'});
+print Dumper($gene);
+
+#print "Symbol: $symbol\n";
+
+
