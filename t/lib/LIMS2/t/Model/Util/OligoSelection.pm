@@ -43,7 +43,7 @@ sub a_test_oligos_for_gibson : Test(11) {
     ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence({ schema => model->schema, design_id => $design_id }), 'Sequences generated for forward and reverse strands';
     ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model->schema, $design_id, $species ), 'Running primer3';
     is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
-    is $primer_results->{'left'}->{'left_1'}->{'seq'}, 'CAAACAACAGCAACAACAATACCAG', 'Left rank 0 primer correct';
+    is $primer_results->{'left'}->{'left_1'}->{'seq'}, 'AACCAGAAAAATGTCAGGACAAGAC', 'Left rank 1 primer correct';
 }
 
 sub b_test_oligos_for_gibson : Test(6) {
@@ -63,7 +63,7 @@ $DB::single=1;
 
 }
 
-sub c_test_oligos_for_crispr_pair : Test(6) {
+sub c_test_oligos_for_crispr_pair : Test(2) {
 $DB::single=1;
 
     my $crispr_pair_id = '19768';
