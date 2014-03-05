@@ -720,7 +720,7 @@ sub _format_crispr_off_target_summary {
         return $summary_details;
     }
 
-    return;
+    return '';
 }
 
 =head2 _format_crispr_pair_off_target_summary
@@ -734,12 +734,12 @@ sub _format_crispr_pair_off_target_summary {
 
     if ( $crispr_pair->off_target_summary ) {
         my $summary = Load($crispr_pair->off_target_summary);
-        if ( my $distance = $summary->{distance} ) {
-            return $distance;
+        if ( exists $summary->{distance} ) {
+            return $summary->{distance};
         }
     }
 
-    return;
+    return '';
 }
 
 =head2 _formated_crispr_locus
