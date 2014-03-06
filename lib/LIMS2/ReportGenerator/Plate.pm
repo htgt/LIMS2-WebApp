@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.167';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.168';
 }
 ## use critic
 
@@ -15,6 +15,7 @@ use LIMS2::Exception::Implementation;
 use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
+use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
@@ -181,6 +182,56 @@ sub pick_counts {
     my $accepted = scalar grep { $_->is_accepted } @picks;
 
     return ( $picked, $accepted );
+}
+
+sub crispr_marker_symbols{
+    my ($self, $crispr) = @_;
+
+    my %symbols;
+    foreach my $crispr_design ($crispr->crispr_designs->all){
+        my $design = $crispr_design->design;
+        $self->_symbols_from_design($design, \%symbols);
+    }
+
+    foreach my $pair ($crispr->crispr_pairs_left_crisprs->all, $crispr->crispr_pairs_right_crisprs->all){
+        foreach my $pair_crispr_design ($pair->crispr_designs->all){
+            my $pair_design = $pair_crispr_design->design;
+            $self->_symbols_from_design($pair_design, \%symbols);
+        }
+    }
+
+    return join ", ", keys %symbols;
+}
+
+sub _symbols_from_design{
+    my ($self, $design, $symbols) = @_;
+
+    my $design_params = $design->design_parameters;
+    my $json = JSON->new;
+    my $params;
+    try {
+      $params = $json->decode( $design_params )
+    } catch {
+      DEBUG "Could not parse design_parameters json for design ".$design->id." Error: $_";
+    };
+
+    return unless $params;
+
+    my $gene;
+    try{
+      $gene = $self->model->retrieve_gene({
+        species     => $design->species_id,
+        search_term => $params->{target_genes}->[0],
+      });
+    } catch {
+        DEBUG "Could not retrieve gene for ".$params->{target_genes}->[0]." Error: $_";
+    };
+
+    return unless $gene;
+
+    $symbols->{ $gene->{gene_symbol} } = 1;
+    DEBUG "Found symbol ".$gene->{gene_symbol};
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;
