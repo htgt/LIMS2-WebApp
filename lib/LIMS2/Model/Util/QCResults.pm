@@ -558,6 +558,11 @@ sub infer_qc_process_type{
     elsif ( $source_plate_type eq 'CRISPR' ) {
         $process_type = _crispr_source_plate( $new_plate_type, $reagent_count, $params );
     }
+    elsif ( $source_plate_type eq 'CRISPR_V' ) {
+        # CRISPR_V QC can only be done to create a rearrayed CRISPR_V plate
+        # rearray creation will check that input and output well types are the same
+        $process_type = 'rearray';
+    }
     elsif ( $source_plate_type eq 'FINAL_PICK' ) {
         $process_type = _final_pick_source_plate( $new_plate_type, $reagent_count, $params );
     }
