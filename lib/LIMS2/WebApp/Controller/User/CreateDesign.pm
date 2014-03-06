@@ -267,8 +267,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
         catalyst => $c,
         model    => $c->model('Golgi'),
     );
-    my $primer3_conf = $create_design_util->c_primer3_default_config;
-    $c->stash( default_p3_conf => $primer3_conf );
+    $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
     if ( $is_redo && $is_redo eq 'redo' ) {
         # if we have redo flag all the stash variables have been setup correctly 
@@ -276,9 +275,6 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
     }
     elsif ( exists $c->request->params->{create_design} ) {
         $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
-    }
-    else {
-        $c->stash( %{ $primer3_conf } );
     }
 
     return;
@@ -293,8 +289,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         catalyst => $c,
         model    => $c->model('Golgi'),
     );
-    my $primer3_conf = $create_design_util->c_primer3_default_config;
-    $c->stash( default_p3_conf => $primer3_conf );
+    $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
     if ( $is_redo && $is_redo eq 'redo' ) {
         # if we have redo flag all the stash variables have been setup correctly 
@@ -308,11 +303,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         $c->stash(
             gibson_type => 'deletion',
             %{ $target_data },
-            %{ $primer3_conf },
         );
-    }
-    else {
-        $c->stash( %{ $primer3_conf } );
     }
 
     return;
@@ -431,8 +422,17 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
         model    => $c->model('Golgi'),
     );
 
-    # this will stash all the needed design parameters
-    my $gibson_target_type = $create_design_util->redo_design_attempt( $c->stash->{da} );
+    my $gibson_target_type;
+    try {
+        # this will stash all the needed design parameters
+        $gibson_target_type = $create_design_util->redo_design_attempt( $c->stash->{da} );
+    }
+    catch ( $err ) {
+        $c->stash(error_msg => "Error processing parameters from design attempt "
+                . $c->stash->{da}->id . ":\n" . $err
+                . "Unable to redo design" );
+        return $c->go('design_attempts');
+    }
 
     if ( $gibson_target_type eq 'exon' ) {
         return $c->go( 'create_gibson_design', [ 'redo' ] );
@@ -441,7 +441,8 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
         return $c->go( 'create_custom_target_gibson_design' , [ 'redo' ] );
     }
     else {
-        #TODO ???? sp12 Mon 24 Feb 2014 09:17:19 GMT
+        $c->stash( error_msg => "Unknown gibson target type $gibson_target_type"  );
+        return $c->go('design_attempts');
     }
 
     return;
