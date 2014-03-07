@@ -9,6 +9,8 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use LIMS2::Model::Schema::Result::Well;
 
+use Smart::Comments;
+
 extends qw( LIMS2::ReportGenerator );
 
 has species => (
@@ -47,12 +49,21 @@ sub _build_gene_electroporate_list {
     }
 
     my @electroporate_list;
+
     while ( my $project = $project_rs->next ) {
     	my %wells;
         my %data;
         $data{gene_id}       = $project->gene_id;
-        $data{marker_symbol} = $self->model->retrieve_gene(
-            { species => $self->species, search_term => $project->gene_id } )->{gene_symbol};
+
+        # Temporarily shut down Human gene search while there is no Human gene index
+        my $gene_symbol = '';
+        if ($self->species eq 'Mouse') {
+            $gene_symbol = $self->model->retrieve_gene({
+                                    species => $self->species,
+                                    search_term => $project->gene_id
+                                })->{gene_symbol};
+        }
+        $data{marker_symbol} = $gene_symbol;
 
         # Find vector wells for the project
         $self->vectors($project, \%wells, 'first');
@@ -70,10 +81,8 @@ sub _build_gene_electroporate_list {
 
         $data{fep_wells} = $self->electroporation_wells( $project, \%wells, 'first' );
         $data{sep_wells} = $self->electroporation_wells( $project, \%wells, 'second' );
-
         push @electroporate_list, \%data;
     }
-
     return \@electroporate_list;
 }
 
@@ -152,6 +161,7 @@ override iterator => sub {
                 $self->print_electroporation_wells( \@data, $result, 'sep_wells');
 
                 $result = shift @sorted_electroporate_list;
+                ### @data
                 return \@data;
             }
         );
