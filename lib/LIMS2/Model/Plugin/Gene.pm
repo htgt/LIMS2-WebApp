@@ -48,7 +48,7 @@ sub search_genes {
     elsif ( $species eq 'Human' ) {
         my $genes = $self->retrieve_gene( $validated_params ) || [];
         DEBUG "Genes retrieved: ". pp $genes;
-        @genes = @{ $genes };
+        @genes = ( $genes );
     }
     else {
         LIMS2::Exception::Implementation->throw( "search_genes() for species '$species' not implemented" );
