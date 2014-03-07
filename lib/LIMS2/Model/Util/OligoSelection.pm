@@ -62,7 +62,7 @@ sub pick_genotyping_primers {
     my $species = shift;
 
     my %failed_primer_regions;
-    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length)
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand)
         = get_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
@@ -97,7 +97,7 @@ sub pick_genotyping_primers {
         );
     }
 
-    my $primer_passes = genomic_check( $design_id, $species, $primer_data );
+    my $primer_passes = genomic_check( $design_id, $species, $primer_data, $chr_strand );
 
     return $primer_data;
 }
@@ -210,7 +210,7 @@ sub generate_bwa_query_file {
 
 
 sub parse_primer3_results {
-    my  $result  = shift;
+    my $result = shift;
 
     my $oligo_data;
     # iterate through each primer pair
@@ -398,7 +398,7 @@ sub get_EnsEmbl_region {
     my $target_sequence_length = $seq->length  - $start_oligo_field_width - $end_oligo_field_width;
     my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
 
-    return ($seq, $target_sequence_string, $target_sequence_length) ;
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand);
 
 }
 
@@ -470,7 +470,8 @@ sub pick_crispr_primers {
 
     my $crispr_oligos = oligos_for_crispr_pair( $params->{'schema'}, $params->{'crispr_pair_id'} );
 
-    my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length )
+    # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
+    my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand )
         = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos );
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
@@ -495,8 +496,6 @@ sub pick_crispr_primers {
 
     }
 
-
-    #needs modifying
     my $primer_data = parse_primer3_results( $result );
     #
     use DesignCreate::Exception::Primer3FailedFindOligos;
@@ -508,7 +507,7 @@ sub pick_crispr_primers {
         );
     }
 
-    return ($crispr_oligos, $primer_data);
+    return ($crispr_oligos, $primer_data, $chr_strand);
 }
 
 =head2 oligos_for_crispr_pair
@@ -633,7 +632,7 @@ sub get_crispr_pair_EnsEmbl_region {
 
     my $target_sequence_string =  $search_field_width. ',' . $target_sequence_length;
 
-    return ($seq, $target_sequence_string, $target_sequence_length) ;
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand)  ;
 }
 
 
