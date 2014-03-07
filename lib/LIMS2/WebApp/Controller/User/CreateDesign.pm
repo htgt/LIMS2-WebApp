@@ -270,7 +270,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
     $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
     if ( $is_redo && $is_redo eq 'redo' ) {
-        # if we have redo flag all the stash variables have been setup correctly 
+        # if we have redo flag all the stash variables have been setup correctly
         return;
     }
     elsif ( exists $c->request->params->{create_design} ) {
@@ -292,7 +292,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
     $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
     if ( $is_redo && $is_redo eq 'redo' ) {
-        # if we have redo flag all the stash variables have been setup correctly 
+        # if we have redo flag all the stash variables have been setup correctly
         return;
     }
     elsif ( exists $c->request->params->{create_design} ) {
