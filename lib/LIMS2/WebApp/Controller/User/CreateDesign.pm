@@ -152,6 +152,7 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
             $exon_data = $create_design_util->c_exon_target_data( $exon_id );
         }
         catch {
+            $c->log->warn("Unable to find gene information for exon $exon_id");
             $c->stash( error_msg =>
                     "Unable to find gene information for exon $exon_id, make sure it is a valid ensembl exon id"
             );
@@ -216,7 +217,7 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
 sub generate_exon_pick_data : Private {
     my ( $self, $c ) = @_;
 
-    $c->log->debug("Pick exon targets for gene: " . $c->request->param('gene_id') );
+    $c->log->debug("Pick exon targets for gene: " . $c->request->param('search_gene') );
     try {
         my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
             catalyst => $c,
@@ -252,6 +253,7 @@ sub generate_exon_pick_data : Private {
         );
     }
     catch( LIMS2::Exception $e ) {
+        $c->log->warn("Problem finding gene: $e");
         $c->stash( error_msg => "Problem finding gene: $e" );
     };
 
@@ -320,16 +322,19 @@ sub _create_gibson_design {
         ( $design_attempt, $job_id ) = $create_design_util->$cmd;
     }
     catch ( LIMS2::Exception::Validation $err ) {
-        my $errors = $self->_format_validation_errors( $err );
+        my $errors = $create_design_util->c_format_validation_errors( $err );
+        $c->log->warn( 'User create gibson design error: ' . $errors );
         $c->stash( error_msg => $errors );
         return;
     }
     catch ($err) {
+        $c->log->warn( "Error submitting gibson design job: $err " );
         $c->stash( error_msg => "Error submitting Design Creation job: $err" );
         return;
     }
 
     unless ( $job_id ) {
+        $c->log->warn( 'Unable to submit Design Creation job' );
         $c->stash( error_msg => "Unable to submit Design Creation job" );
         return;
     }
@@ -446,36 +451,6 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
     }
 
     return;
-}
-
-sub _format_validation_errors {
-    my ( $self, $err ) = @_;
-    my $errors;
-    my $params = $err->params;
-    my $validation_results = $err->results;
-    if ( defined $validation_results ) {
-        if ( $validation_results->has_missing ) {
-            $errors .= "Missing following required parameters:\n";
-            for my $m ( $validation_results->missing ) {
-                $errors .= "  * $m\n" ;
-            }
-            $errors .= "\n";
-        }
-
-        if ( $validation_results->has_invalid ) {
-            $errors .= "Following parameters are invalid:\n";
-            for my $f ( $validation_results->invalid ) {
-                my $cur_val = exists $params->{$f} ? $params->{$f} : '';
-                $errors .= "  * $f = $cur_val " . '( failed '
-                        . join( q{,}, @{ $validation_results->invalid($f) } ) . " check )\n";
-            }
-        }
-    }
-    else {
-        $errors = "Error with parameters:\n" . $err->message;
-    }
-
-    return $errors;
 }
 
 __PACKAGE__->meta->make_immutable;
