@@ -1,4 +1,4 @@
-package LIMS2::Report::CrisprEPPlate;
+package LIMS2::Report::AssemblyPlate;
 
 use Moose;
 use namespace::autoclean;
@@ -6,7 +6,7 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
-    return [ 'CRISPR_EP' ];
+    return [ 'ASSEMBLY' ];
 };
 
 override _build_name => sub {
@@ -21,7 +21,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name',
-        'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
+        'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
         'Left Crispr', 'Right Crispr',
         'Created By','Created At',
     ];
@@ -68,8 +68,6 @@ override iterator => sub {
             $final_vector->cassette->resistance,
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
             $final_vector->backbone->name,
-            $well->nuclease->name,
-            $well->first_cell_line->name,            
             $left_crispr,
             $right_crispr,
             # join( q{/}, @{ $final_vector->recombinases } ),

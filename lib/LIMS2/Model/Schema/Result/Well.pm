@@ -714,6 +714,14 @@ sub crispr {
     return $process_crispr ? $process_crispr->crispr : undef;
 }
 
+sub nuclease {
+    my $self = shift;
+
+    my $process_nuclease = $self->ancestors->find_process( $self, 'process_nuclease');
+
+    return $process_nuclease ? $process_nuclease->nuclease : undef;
+}
+
 sub designs{
 	my $self = shift;
 

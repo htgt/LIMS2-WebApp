@@ -202,6 +202,10 @@ sub existing_cassette {
     return shift->existing_row( 'Cassette', 'name' );
 }
 
+sub existing_nuclease {
+    return shift->existing_row( 'Nuclease', 'name');
+}
+
 sub qc_seq_read_id {
     return shift->regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9]+$/);
 }
