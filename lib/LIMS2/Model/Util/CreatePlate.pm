@@ -72,6 +72,8 @@ sub pspec_find_parent_well_ids {
         crispr_vector1_well  => { validate => 'well_name',  optional => 1 },
         crispr_vector2_plate => { validate => 'plate_name', optional => 1 },
         crispr_vector2_well  => { validate => 'well_name',  optional => 1 },
+        assembly_plate       => { validate => 'plate_name', optional => 1 },
+        assembly_well        => { validate => 'assembly',   optional => 1 },
         DEPENDENCY_GROUPS    => { parent   => [qw( parent_plate parent_well )] },
         DEPENDENCY_GROUPS    => { vector   => [qw( vector_plate vector_well )] },
         DEPENDENCY_GROUPS    => { allele   => [qw( allele_plate allele_well )] },
@@ -103,7 +105,7 @@ sub find_parent_well_ids {
             );
             delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
-        when ( 'crispr_single_ep' ) {
+        when ( 'assembly_single' ) {
             push @parent_well_ids, well_id_for(
                 $model, {
                     plate_name => $validated_params->{final_pick_plate},
@@ -118,7 +120,7 @@ sub find_parent_well_ids {
             );
             delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
-        when ( 'crispr_paired_ep' ) {
+        when ( 'assembly_paired' ) {
             push @parent_well_ids, well_id_for(
                 $model, {
                     plate_name => $validated_params->{final_pick_plate},
@@ -138,6 +140,14 @@ sub find_parent_well_ids {
                 }
             );
             delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
+        }
+        when ( 'crispr_ep' ) {
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{assembly_plate},
+                    well_name  => substr( $validated_params->{assembly_well}, -3 ) 
+                }
+            );
         }
         when ( 'create_di' ) {
             return [];

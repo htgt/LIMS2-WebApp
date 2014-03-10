@@ -44,8 +44,9 @@ const our %PROCESS_PLATE_TYPES => (
     'xep_pool'               => [qw( XEP )],
     'dist_qc'                => [qw( PIQ )],
     'crispr_vector'          => [qw( CRISPR_V )],
-    'crispr_single_ep'       => [qw( CRISPR_EP )],
-    'crispr_paired_ep'       => [qw( CRISPR_EP )],
+    'assembly_single'        => [qw( ASSEMBLY )],
+    'assembly_paired'        => [qw( ASSEMBLY )],    
+    'crispr_ep'              => [qw( CRISPR_EP )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -58,6 +59,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'clone_pick'             => [qw( recombinase )],
     'first_electroporation'  => [qw( cell_line recombinase )],
     'second_electroporation' => [qw( recombinase )],
+    'crispr_ep'              => [qw( cell_line nuclease )],
 #    'xep_pool'              => [qw( recombinase )],
 );
 
@@ -77,8 +79,9 @@ const our %PROCESS_TEMPLATE => (
     'freeze'                 => 'standard_template',
     'xep_pool'               => 'standard_template',
     'dist_qc'                => 'piq_template',
-    'crispr_single_ep'       => 'crispr_single_ep_template',
-    'crispr_paired_ep'       => 'crispr_paired_ep_template',
+    'assembly_single'        => 'assembly_single_template',
+    'assembly_paired'        => 'assembly_paired_template',    
+    'crispr_ep'              => 'crispr_ep_template',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -152,13 +155,17 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( CRISPR )],
         number => 1,
     },
-    'crispr_single_ep' => {
+    'assembly_single' => {
         type   => [qw( CRISPR_V FINAL_PICK )],
         number => 2,
     },
-    'crispr_paired_ep' => {
+    'assembly_paired' => {
         type   => [qw( CRISPR_V CRISPR_V FINAL_PICK )],
         number => 3,
+    },     
+    'crispr_ep' => {
+        type   => [qw( ASSEMBLY )],
+        number => 1,
     },
 );
 
