@@ -88,7 +88,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(380)
+sub all_tests  : Test(395)
 {
 
 
@@ -114,8 +114,9 @@ sub all_tests  : Test(380)
 	    xep_pool
 	    dist_qc
         crispr_vector
-        crispr_single_ep
-        crispr_paired_ep
+        assembly_single
+        assembly_paired
+        crispr_ep
 	    );
 
 	    my @model_process_types = sort map {$_->id} @{ model->list_process_types };
@@ -944,14 +945,14 @@ sub all_tests  : Test(380)
     } qr/crispr_vector process input well should be type (CRISPR)/;
 
 
-    note( "Testing crispr_single_ep process creation" );
-    my $crispr_ep_process_data = test_data( 'crispr_ep_process.yaml' );
+    note( "Testing assembly_single process creation" );
+    my $assembly_process_data = test_data( 'assembly_process.yaml' );
     {
-    ok my $process = model->create_process( $crispr_ep_process_data->{single_ep_valid_input} ),
-        'create_process for type crispr_single_ep should succeed';
+    ok my $process = model->create_process( $assembly_process_data->{single_ep_valid_input} ),
+        'create_process for type assembly_single should succeed';
     isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    is $process->type->id, 'crispr_single_ep',
-        'process is of correct type (crispr_single_ep)';
+    is $process->type->id, 'assembly_single',
+        'process is of correct type (assembly_single)';
 
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 2, '...two input wells';
@@ -967,25 +968,25 @@ sub all_tests  : Test(380)
     is $output_wells->count, 1, 'only one output well';
     my $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'CRISPR_EP_S1', '..and is on correct plate';
+    is $output_well->plate->name, 'ASSEMBLY_S1', '..and is on correct plate';
 
     lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
 
     throws_ok {
-    my $process = model->create_process( $crispr_ep_process_data->{single_ep_invalid_output_well} );
-    } qr/crispr_single_ep process output well should be type (CRISPR_EP)/;
+    my $process = model->create_process( $assembly_process_data->{single_ep_invalid_output_well} );
+    } qr/assembly_single process output well should be type (ASSEMBLY)/;
 
     throws_ok {
-    my $process = model->create_process( $crispr_ep_process_data->{single_ep_invalid_input_well} );
-    } qr/crispr_single_ep process should have 2 input well\(s\) \(got 1\)/;
+    my $process = model->create_process( $assembly_process_data->{single_ep_invalid_input_well} );
+    } qr/assembly_single process should have 2 input well\(s\) \(got 1\)/;
 
 
-    note( "Testing crispr_paired_ep process creation" );
-    ok $process = model->create_process( $crispr_ep_process_data->{paired_ep_valid_input} ),
-        'create_process for type crispr_paired_ep should succeed';
+    note( "Testing assembly_paired process creation" );
+    ok $process = model->create_process( $assembly_process_data->{paired_ep_valid_input} ),
+        'create_process for type assembly_paired should succeed';
     isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    is $process->type->id, 'crispr_paired_ep',
-        'process is of correct type (crispr_paired_ep)';
+    is $process->type->id, 'assembly_paired',
+        'process is of correct type (assembly_paired)';
 
     ok $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 3, '...three input wells';
@@ -1004,20 +1005,55 @@ sub all_tests  : Test(380)
     is $output_wells->count, 1, 'only one output well';
     $output_well = $output_wells->next;
     is $output_well->name, 'A01', 'output well has correct name';
-    is $output_well->plate->name, 'CRISPR_EP_P1', '..and is on correct plate';
+    is $output_well->plate->name, 'ASSEMBLY_P1', '..and is on correct plate';
 
     lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
 
     throws_ok {
-    my $process = model->create_process( $crispr_ep_process_data->{paired_ep_invalid_input1} );
-    } qr/crispr_paired_ep process input well should be type FINAL_PICK,CRISPR_V \(got XEP,CRISPR_V\)/;
+    my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input1} );
+    } qr/assembly_paired process input well should be type FINAL_PICK,CRISPR_V \(got XEP,CRISPR_V\)/;
 
     throws_ok {
-    my $process = model->create_process( $crispr_ep_process_data->{paired_ep_invalid_input2} );
-    } qr/crispr_paired_ep process types requires paired CRISPR_V. The provided pair is not valid/;
+    my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input2} );
+    } qr/assembly_paired process types require paired CRISPR_V. The provided pair is not valid/;
+
+
+    note( "Testing crispr_ep process creation" );
+    my $crispr_ep_process_data = test_data('crispr_ep_process.yaml');
+    ok $process = model->create_process( $crispr_ep_process_data->{ep_valid_input} ),
+        'create_process for type crispr_ep should succeed';
+    isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+    is $process->type->id, 'crispr_ep',
+        'process is of correct type (crispr_ep)';
+
+    ok $input_wells = $process->input_wells, 'process can return input wells resultset';
+    is $input_wells->count, 1, '...one input well';
+    # check the names of the input wells
+    $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'first input well has correct name';
+    is $input_well->plate->name, 'ASSEMBLY_S1', '...and is on correct plate';
+
+    ok $output_wells = $process->output_wells, 'process can return output wells resultset';
+    is $output_wells->count, 1, 'only one output well';
+    $output_well = $output_wells->next;
+    is $output_well->name, 'A01', 'output well has correct name';
+    is $output_well->plate->name, 'CRISPR_EP_S1', '..and is on correct plate';
+
+    lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+
+    throws_ok {
+    my $process = model->create_process( $crispr_ep_process_data->{ep_missing_information} );
+    } qr/nuclease, is missing/;
+
+    throws_ok {
+    my $process = model->create_process( $crispr_ep_process_data->{ep_invalid_output_well} );
+    } qr/crispr_ep process output well should be type CRISPR_EP \(got XEP\)/;
+
+    throws_ok {
+    my $process = model->create_process( $crispr_ep_process_data->{ep_invalid_input_well} );
+    } qr/crispr_ep process input well should be type ASSEMBLY \(got CRISPR\)/;
 
     }
-
 }
 
 
