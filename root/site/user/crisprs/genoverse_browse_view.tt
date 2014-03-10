@@ -79,6 +79,9 @@
           Genoverse.Track.Scalebar,
           Genoverse.Track.extend({
             name      : 'Sequence',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url       : 'http://beta.rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
+            [% END %]            
             model     : Genoverse.Track.Model.Sequence.Ensembl,
             view      : Genoverse.Track.View.Sequence,
             resizable : 'auto',

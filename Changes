@@ -1,3 +1,17 @@
+0.169     2014-03-10 12:30:09 Europe/London
+
+    Fixed Genes to Electroporate report.
+    TODO: Human gene names are disabled in the report.
+
+0.168     2014-03-06 14:19:20 Europe/London
+
+    Marker symbols added to crispr vector plates
+    Allow plate creation from crispr vector QC template
+
+0.167     2014-03-04 16:28:40 Europe/London
+
+    Marker symbols shown for human design and crispr plates
+
 0.166     2014-02-27 09:19:53 Europe/London
 
     Fix in undef return
