@@ -9,8 +9,8 @@ DELETE FROM process_types where id='crispr_single_ep';
 DELETE FROM process_types where id='crispr_paired_ep';
 
 INSERT INTO process_types(id,description)
-VALUES ('assembly_single','Single crispr assembly'),
-       ('assembly_paired','Paired crispr assembly'),
+VALUES ('single_crispr_assembly','Single crispr assembly'),
+       ('paired_crispr_assembly','Paired crispr assembly'),
        ('crispr_ep','Crispr electroporation');
 
 INSERT INTO plate_types(id,description)

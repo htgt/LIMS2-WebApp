@@ -1,6 +1,6 @@
 ---
 single_ep_valid_input: 
-    type: assembly_single
+    type: single_crispr_assembly
     output_wells:
         - plate_name: ASSEMBLY_S1
           well_name: A01
@@ -10,7 +10,7 @@ single_ep_valid_input:
         - plate_name: FP1008
           well_name: A01
 single_ep_invalid_output_well:
-    type: assembly_single
+    type: single_crispr_assembly
     output_wells:
         - plate_name: XEP0006
           well_name: A01
@@ -20,7 +20,7 @@ single_ep_invalid_output_well:
         - plate_name: FP1008
           well_name: A01
 single_ep_invalid_input_well:
-    type: assembly_single
+    type: single_crispr_assembly
     output_wells:
         - plate_name: ASSEMBLY_S1
           well_name: A01
@@ -28,7 +28,7 @@ single_ep_invalid_input_well:
         - plate_name: CRISPR_T1
           well_name: A01
 paired_ep_valid_input: 
-    type: assembly_paired
+    type: paired_crispr_assembly
     output_wells:
         - plate_name: ASSEMBLY_P1
           well_name: A01
@@ -40,7 +40,7 @@ paired_ep_valid_input:
         - plate_name: FP1008
           well_name: A01
 paired_ep_invalid_input1: 
-    type: assembly_paired
+    type: paired_crispr_assembly
     output_wells:
         - plate_name: ASSEMBLY_P1
           well_name: A01
@@ -52,7 +52,7 @@ paired_ep_invalid_input1:
         - plate_name: XEP0006
           well_name: A01
 paired_ep_invalid_input2: 
-    type: assembly_paired
+    type: paired_crispr_assembly
     output_wells:
         - plate_name: ASSEMBLY_P1
           well_name: A02

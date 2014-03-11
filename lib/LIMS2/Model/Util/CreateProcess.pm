@@ -148,8 +148,8 @@ my %process_check_well = (
     'xep_pool'               => \&_check_wells_xep_pool,
     'dist_qc'                => \&_check_wells_dist_qc,
     'crispr_vector'          => \&_check_wells_crispr_vector,
-    'assembly_single'        => \&_check_wells_assembly_single,
-    'assembly_paired'        => \&_check_wells_assembly_paired,
+    'single_crispr_assembly' => \&_check_wells_single_crispr_assembly,
+    'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
 );
 
@@ -507,7 +507,7 @@ sub _check_wells_crispr_vector {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_wells_assembly_single {
+sub _check_wells_single_crispr_assembly {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -532,7 +532,7 @@ sub _check_wells_assembly_single {
     }
     unless ($crispr_v == 1 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
-            'assembly_single process types require two input wells, one of type CRISPR_V '
+            'single_crispr_assembly process types require two input wells, one of type CRISPR_V '
             . 'and the other of type FINAL_PICK'
         );
     }
@@ -542,7 +542,7 @@ sub _check_wells_assembly_single {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_wells_assembly_paired {
+sub _check_wells_paired_crispr_assembly {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -578,13 +578,13 @@ sub _check_wells_assembly_paired {
 
     unless ($crispr_v == 2 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
-            'assembly_paired process types require three input wells, two of type CRISPR_V '
+            'paired_crispr_assembly process types require three input wells, two of type CRISPR_V '
             . 'and the other of type FINAL_PICK'
         );
     }
     unless ($pamright && $pamleft ) {
         LIMS2::Exception::Validation->throw(
-            'assembly_paired process types require paired CRISPR_V. '
+            'paired_crispr_assembly process types require paired CRISPR_V. '
             . 'The provided pair is not valid'
         );
     }
@@ -623,8 +623,8 @@ my %process_aux_data = (
     'xep_pool'               => \&_create_process_aux_data_xep_pool,
     'dist_qc'                => \&_create_process_aux_data_dist_qc,
     'crispr_vector'          => \&_create_process_aux_data_crispr_vector,
-    'assembly_single'        => \&_create_process_aux_data_assembly_single,
-    'assembly_paired'        => \&_create_process_aux_data_assembly_paired,
+    'single_crispr_assembly' => \&_create_process_aux_data_single_crispr_assembly,
+    'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
 );
 
@@ -1011,13 +1011,13 @@ sub _create_process_aux_data_crispr_vector {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_assembly_single {
+sub _create_process_aux_data_single_crispr_assembly {
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_assembly_paired {
+sub _create_process_aux_data_paired_crispr_assembly {
     return;
 }
 ## use critic

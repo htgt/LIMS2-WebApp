@@ -102,7 +102,7 @@ sub find_parent_well_ids {
             );
             delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
-        when ( 'assembly_single' ) {
+        when ( 'single_crispr_assembly' ) {
             push @parent_well_ids, well_id_for(
                 $model, {
                     plate_name => $validated_params->{final_pick_plate},
@@ -117,7 +117,7 @@ sub find_parent_well_ids {
             );
             delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
-        when ( 'assembly_paired' ) {
+        when ( 'paired_crispr_assembly' ) {
             push @parent_well_ids, well_id_for(
                 $model, {
                     plate_name => $validated_params->{final_pick_plate},

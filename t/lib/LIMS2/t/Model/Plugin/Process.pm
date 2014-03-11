@@ -114,8 +114,8 @@ sub all_tests  : Test(395)
 	    xep_pool
 	    dist_qc
         crispr_vector
-        assembly_single
-        assembly_paired
+        single_crispr_assembly
+        paired_crispr_assembly
         crispr_ep
 	    );
 
@@ -945,14 +945,14 @@ sub all_tests  : Test(395)
     } qr/crispr_vector process input well should be type (CRISPR)/;
 
 
-    note( "Testing assembly_single process creation" );
+    note( "Testing single_crispr_assembly process creation" );
     my $assembly_process_data = test_data( 'assembly_process.yaml' );
     {
     ok my $process = model->create_process( $assembly_process_data->{single_ep_valid_input} ),
-        'create_process for type assembly_single should succeed';
+        'create_process for type single_crispr_assembly should succeed';
     isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    is $process->type->id, 'assembly_single',
-        'process is of correct type (assembly_single)';
+    is $process->type->id, 'single_crispr_assembly',
+        'process is of correct type (single_crispr_assembly)';
 
     ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 2, '...two input wells';
@@ -974,19 +974,19 @@ sub all_tests  : Test(395)
 
     throws_ok {
     my $process = model->create_process( $assembly_process_data->{single_ep_invalid_output_well} );
-    } qr/assembly_single process output well should be type (ASSEMBLY)/;
+    } qr/single_crispr_assembly process output well should be type (ASSEMBLY)/;
 
     throws_ok {
     my $process = model->create_process( $assembly_process_data->{single_ep_invalid_input_well} );
-    } qr/assembly_single process should have 2 input well\(s\) \(got 1\)/;
+    } qr/single_crispr_assembly process should have 2 input well\(s\) \(got 1\)/;
 
 
-    note( "Testing assembly_paired process creation" );
+    note( "Testing paired_crispr_assembly process creation" );
     ok $process = model->create_process( $assembly_process_data->{paired_ep_valid_input} ),
-        'create_process for type assembly_paired should succeed';
+        'create_process for type paired_crispr_assembly should succeed';
     isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
-    is $process->type->id, 'assembly_paired',
-        'process is of correct type (assembly_paired)';
+    is $process->type->id, 'paired_crispr_assembly',
+        'process is of correct type (paired_crispr_assembly)';
 
     ok $input_wells = $process->input_wells, 'process can return input wells resultset';
     is $input_wells->count, 3, '...three input wells';
@@ -1011,11 +1011,11 @@ sub all_tests  : Test(395)
 
     throws_ok {
     my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input1} );
-    } qr/assembly_paired process input well should be type FINAL_PICK,CRISPR_V \(got XEP,CRISPR_V\)/;
+    } qr/paired_crispr_assembly process input well should be type FINAL_PICK,CRISPR_V \(got XEP,CRISPR_V\)/;
 
     throws_ok {
     my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input2} );
-    } qr/assembly_paired process types require paired CRISPR_V. The provided pair is not valid/;
+    } qr/paired_crispr_assembly process types require paired CRISPR_V. The provided pair is not valid/;
 
 
     note( "Testing crispr_ep process creation" );
