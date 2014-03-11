@@ -346,6 +346,9 @@ sub process_data_for {
         if ( $p->process_cell_line ) {
             push @data, 'Cell line: ' . $p->process_cell_line->cell_line->name;
         }
+        if ( $p->process_nuclease ) {
+            push @data, 'Nuclease: ' . $p->process_nuclease->nuclease->name;
+        }        
         if ( $p->process_design ) {
             my $design = $p->process_design->design;
             push @data, 'Design: ' . $design->id;
@@ -356,7 +359,7 @@ sub process_data_for {
         }
         if ( my @recombinases = $p->process_recombinases ) {
             push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );
-        }
+        }      
     }
 
     return @data;
