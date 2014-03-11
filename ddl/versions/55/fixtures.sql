@@ -1,8 +1,8 @@
 INSERT INTO nucleases(id, name)
-VALUES ('1','test1'),
-       ('2','test2'),
-       ('3','test3'),
-       ('4','test4');
+VALUES ('1','Cas9 Church D10A (+neo)'),
+       ('2','Cas9 ZF-D10A (+neo)'),
+       ('3','Cas9 ZF-H840A (-neo)'),
+       ('4','Cas9 ZF-D10A (-neo)');
 
 
 DELETE FROM process_types where id='crispr_single_ep';
