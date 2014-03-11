@@ -419,6 +419,7 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     return;
 }
 
+## no critic(RequireFinalReturn)
 sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -452,6 +453,7 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
 
     return;
 }
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 
