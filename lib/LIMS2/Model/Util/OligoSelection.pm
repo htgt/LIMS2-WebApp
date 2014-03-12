@@ -57,12 +57,16 @@ $registry->load_registry_from_db(
 =cut
 
 sub pick_genotyping_primers {
-    my $schema = shift;
-    my $design_id = shift;
-    my $species = shift;
+    my $params = shift;
+
+    my $schema = $params->{'schema'};
+    my $design_id = $params->{'design_id'};
+    my $well_id = $params->{'well_id'};
+    my $species = $params->{'species'};
 
     my %failed_primer_regions;
-    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand)
+    # Return the design oligos as well so that we can report them to provide context later on
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos)
         = get_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
@@ -97,22 +101,22 @@ sub pick_genotyping_primers {
         );
     }
 
-    my $primer_passes = genomic_check( $design_id, $species, $primer_data, $chr_strand );
+    my $primer_passes = genomic_check( $design_id, ,$well_id, $species, $primer_data, $chr_strand );
 
-    return $primer_data;
+    return ($primer_data, $primer_passes, $chr_strand, $design_oligos);
 }
 
 sub genomic_check {
     my $design_id = shift;
+    my $well_id = shift;
     my $species = shift;
     my $primer_data = shift;
 
-    my %primer_passes;
 
     # implement genomic specificity checking using BWA
     #
 
-    my ($bwa_query_filespec, $work_dir ) = generate_bwa_query_file( $design_id, $primer_data );
+    my ($bwa_query_filespec, $work_dir ) = generate_bwa_query_file( $design_id, $well_id, $primer_data );
     my $num_bwa_threads = 2;
 
 
@@ -125,11 +129,10 @@ sub genomic_check {
     );
 
     $bwa->generate_sam_file;
-
     my $oligo_hits = $bwa->oligo_hits;
     $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
 
-    return \%primer_passes;
+    return $primer_data;
 
 }
 
@@ -188,9 +191,12 @@ sub del_bad_pairs {
 
 sub generate_bwa_query_file {
     my $design_id= shift;
+    my $well_id = shift;
     my $primer_data = shift;
 
-    my $dir_out = dir( $ENV{ 'LIMS2_BWA_OLIGO_DIR' } );
+    my $dir_out = dir( $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa', $well_id );
+    mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
+
     my $fasta_file_name = $dir_out->file( $design_id . '_oligos.fasta');
     my $fh = $fasta_file_name->openw();
     my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
@@ -398,7 +404,7 @@ sub get_EnsEmbl_region {
     my $target_sequence_length = $seq->length  - $start_oligo_field_width - $end_oligo_field_width;
     my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
 
-    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand);
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos);
 
 }
 
