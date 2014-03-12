@@ -1043,5 +1043,32 @@ sub parent_crispr_v {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub left_and_right_crispr_wells {
+    my $self = shift;
+
+    my ($crispr_v_1, $crispr_v_2) = $self->parent_crispr_v;
+
+    my ($right_crispr, $left_crispr);
+    if (defined $crispr_v_2) {
+        if ($crispr_v_2->crispr->pam_right) {
+            $right_crispr = $crispr_v_2->parent_crispr;
+            $left_crispr = $crispr_v_1->parent_crispr;
+        } else {
+            $right_crispr = $crispr_v_1->parent_crispr;
+            $left_crispr = $crispr_v_2->parent_crispr;
+        }
+        return ($left_crispr, $right_crispr);
+    } elsif (defined $crispr_v_1) {
+        $right_crispr = undef;
+        $left_crispr = $crispr_v_1->parent_crispr;
+        return ($left_crispr, $right_crispr);
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
+}
+## use critic
+
 __PACKAGE__->meta->make_immutable;
 1;

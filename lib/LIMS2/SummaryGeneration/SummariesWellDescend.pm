@@ -128,6 +128,8 @@ sub generate_summary_rows_for_all_trails {
         }
 
         # insert to DB
+        use Data::Dumper;
+        DEBUG(Dumper(\%summary_row_values));
         my $inserts = insert_summary_row_via_dbix ( $model, \%summary_row_values ) or WARN caller()." Insert failed for well ID $design_well_id";
 
         if($inserts) {
@@ -168,9 +170,11 @@ sub add_to_output_for_well {
 		FP         => \&fetch_values_for_type_FP,
         PIQ        => \&fetch_values_for_type_PIQ,
 		SFP        => \&fetch_values_for_type_SFP,
+        ASSEMBLY   => \&fetch_values_for_type_ASSEMBLY,
+        CRISPR_EP  => \&fetch_values_for_type_CRISPR_EP,
 	};
 
-    my @include_types = ('DESIGN','INT','FINAL','FINAL_PICK','DNA','EP','EP_PICK','XEP','SEP','SEP_PICK','FP','PIQ','SFP');
+    my @include_types = ('DESIGN','INT','FINAL','FINAL_PICK','DNA','EP','EP_PICK','XEP','SEP','SEP_PICK','FP','PIQ','SFP','ASSEMBLY','CRISPR_EP');
 
     # checks for recognised plate type, and if an instance of this plate type already processed
     return unless any { $curr_plate_type_id eq $_ } @include_types;
@@ -692,6 +696,84 @@ sub fetch_values_for_type_SFP {
     $summary_row_values->{ 'sfp_well_assay_complete' }   = $stored_values->{ stored_sfp_well_assay_complete };
     $summary_row_values->{ 'sfp_well_created_ts' }       = $stored_values->{ stored_sfp_well_created_ts };
     $summary_row_values->{ 'sfp_well_accepted' }         = $stored_values->{ stored_sfp_well_accepted };
+    return;
+}
+
+# --------------ASSEMBLY-----------------
+# values specific to crispr ASSEMBLY wells
+# ----------------------------------
+sub fetch_values_for_type_ASSEMBLY {
+    my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
+
+    if( (not exists $stored_values->{ stored_assembly_well_id }) || ($curr_well->id != $stored_values->{ stored_assembly_well_id }) ) {
+        # different well to previous cycle, so must fetch and store new values
+        TRACE caller()." Fetching new values for ASSEMBLY well : ".$curr_well->id;
+        $stored_values->{ 'stored_assembly_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_assembly_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_assembly_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_assembly_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_assembly_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_assembly_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_assembly_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
+
+        my ($left, $right) = try{ $curr_well->left_and_right_crispr_wells };
+        if($left){
+            $stored_values->{ 'stored_assembly_well_left_crispr_well_id' }   = try{ $left->id }; 
+        }
+        if($right){
+            $stored_values->{ 'stored_assembly_well_right_crispr_well_id' }  = try{ $right->id };
+        }
+    }
+
+    $summary_row_values->{ 'assembly_well_id' }               = $stored_values->{ stored_assembly_well_id };
+    $summary_row_values->{ 'assembly_well_name' }             = $stored_values->{ stored_assembly_well_name };
+    $summary_row_values->{ 'assembly_plate_id' }              = $stored_values->{ stored_assembly_plate_id };
+    $summary_row_values->{ 'assembly_plate_name' }            = $stored_values->{ stored_assembly_plate_name };
+    $summary_row_values->{ 'assembly_well_assay_complete' }   = $stored_values->{ stored_assembly_well_assay_complete };
+    $summary_row_values->{ 'assembly_well_created_ts' }       = $stored_values->{ stored_assembly_well_created_ts };
+    $summary_row_values->{ 'assembly_well_accepted' }         = $stored_values->{ stored_sfp_well_accepted };
+
+    $summary_row_values->{ 'assembly_well_left_crispr_well_id' }   = $stored_values->{ 'stored_assembly_well_left_crispr_well_id' };  
+    $summary_row_values->{ 'assembly_well_right_crispr_well_id' } = $stored_values->{ 'stored_assembly_well_right_crispr_well_id' };       
+    return;
+}
+
+
+# --------------CRISPR_EP-----------------
+# values specific to CRISPR_EP wells
+# ----------------------------------
+sub fetch_values_for_type_CRISPR_EP {
+    my $params = shift;
+    my $summary_row_values = $params->{ summary_row_values };
+    my $stored_values = $params->{ stored_values };
+    my $curr_well = $params->{ curr_well };
+
+    if( (not exists $stored_values->{ stored_crispr_ep_well_id }) || ($curr_well->id != $stored_values->{ stored_crispr_ep_well_id }) ) {
+        # different well to previous cycle, so must fetch and store new values
+        TRACE caller()." Fetching new values for crispr_ep well : ".$curr_well->id;
+        $stored_values->{ 'stored_crispr_ep_well_id' }                = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_crispr_ep_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_crispr_ep_plate_id' }               = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_crispr_ep_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_crispr_ep_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_crispr_ep_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_crispr_ep_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
+        $stored_values->{ 'stored_crispr_ep_well_nuclease' }          = try{ $curr_well->nuclease->name };
+        $stored_values->{ 'stored_crispr_ep_well_cell_line' }         = try{ $curr_well->first_cell_line->name };
+    }
+
+    $summary_row_values->{ 'crispr_ep_well_id' }               = $stored_values->{ stored_crispr_ep_well_id };
+    $summary_row_values->{ 'crispr_ep_well_name' }             = $stored_values->{ stored_crispr_ep_well_name };
+    $summary_row_values->{ 'crispr_ep_plate_id' }              = $stored_values->{ stored_crispr_ep_plate_id };
+    $summary_row_values->{ 'crispr_ep_plate_name' }            = $stored_values->{ stored_crispr_ep_plate_name };
+    $summary_row_values->{ 'crispr_ep_well_assay_complete' }   = $stored_values->{ stored_crispr_ep_well_assay_complete };
+    $summary_row_values->{ 'crispr_ep_well_created_ts' }       = $stored_values->{ stored_crispr_ep_well_created_ts };
+    $summary_row_values->{ 'crispr_ep_well_accepted' }         = $stored_values->{ stored_crispr_ep_well_accepted };
+    $summary_row_values->{ 'crispr_ep_well_nuclease' }         = $stored_values->{ stored_crispr_ep_well_nuclease };
+    $summary_row_values->{ 'crispr_ep_well_cell_line' }        = $stored_values->{ stored_crispr_ep_well_cell_line };    
     return;
 }
 
