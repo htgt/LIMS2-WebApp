@@ -20,7 +20,7 @@ override _build_columns => sub {
 
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
-        'Well Name',
+        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
         'Left Crispr', 'Right Crispr',
         'Created By','Created At',
@@ -64,6 +64,7 @@ override iterator => sub {
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $well->name,
+            $self->design_and_gene_cols($well),
             $final_vector->cassette->name,
             $final_vector->cassette->resistance,
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
