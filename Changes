@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.170     2014-03-12 06:12:28 Europe/London
+
+    Added redo button to design attempts page.
+    Better formatting of design attempt error and design parameter data.
+
 0.169     2014-03-10 12:30:09 Europe/London
 
     Fixed Genes to Electroporate report.
