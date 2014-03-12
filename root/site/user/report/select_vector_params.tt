@@ -6,7 +6,7 @@
 <form method="POST" action="[% c.uri_for( "/user/report/cache/${report_name}" ) %]" class="well">
   <fieldset>
     <label for="sponsor_field">Please select which sponsor you would like to view results for:</label>
-    <select name="sponsor" id="sponor_field">
+    <select name="sponsor" id="sponsor_field">
       <option value = "All">All</option>
       [% FOR sponsor IN sponsors %]
       <option value="[% sponsor %]">[% sponsor %]</option>
