@@ -284,7 +284,7 @@ sub calculate_design_targets {
     if ( $params->{target_start} && $params->{target_end} ) {
         $target_start = $params->{target_start};
         $target_end   = $params->{target_end};
-        $chromosome   = $params->{chromosome};
+        $chromosome   = $params->{chr_name};
     }
     else {
         if ( $params->{five_prime_exon} && $params->{three_prime_exon} ) {
