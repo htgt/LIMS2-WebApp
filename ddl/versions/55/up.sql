@@ -9,7 +9,6 @@ CREATE TABLE process_nuclease (
        nuclease_id integer NOT NULL REFERENCES nucleases(id),
        PRIMARY KEY(process_id)
 );
-
 -- Drop the indices
 DROP INDEX summaries_design_gene_id_index;
 DROP INDEX summaries_design_gene_symbol_index;

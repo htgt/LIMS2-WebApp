@@ -10,3 +10,6 @@
 "1857","R3R4_pBR_DTA+_Bsd_amp","medium copy number vector backbone from 4th recombineering after gap repair plasmid recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.","AmpR","2-way"
 "1858","L3L4_pZero_DTA_kan","high copy number; standard backbone for promoterless vectors","KanR","3-way"
 "1859","L4L3_pD223_DTA_spec","INVERTED R3 and R4 Gateway Sites with Linearization close to DTA pA, potentially compromising negative selection","spec R","3-way"
+1,R3R4_pBR_amp_1,"medium copy number vector backbone from gap repair plasmid from recombineering which remains after 2-way Gateway reaction. Reactive R3 and R4 sites remain on plasmid.",AmpR,2-way
+13,U6_BsaI_gRNA,"mouse crispr vector",,
+14,puc19_RV_GIBSON,"AmpR from puc19 E coli",AmpR,2-way
