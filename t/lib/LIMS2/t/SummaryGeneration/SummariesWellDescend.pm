@@ -18,6 +18,70 @@ See also SummariesWellDescendLegacy test module which tests trails loaded from t
 
 Test module structured for running under Test::Class
 
+Test data csv files generated using LIMS2 Human data as follows:
+
+Design: 
+select * from designs where species_id='Human'
+
+GeneDesign: 
+select gd.* from gene_design gd, designs d where d.species_id='Human'
+and d.id=gd.design_id
+
+Plate:
+select * from plates where species_id='Human'
+
+Process:
+select pr.* from processes pr, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and pr.id=po.process_id
+
+ProcessBackbone:
+select prb.* from process_backbone prb, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and prb.process_id=po.process_id
+
+ProcessCassette:
+select prb.* from process_cassette prb, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and prb.process_id=po.process_id
+
+ProcessCellLine:
+select prb.* from process_cell_line prb, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and prb.process_id=po.process_id
+
+ProcessDesign:
+select prb.* from process_design prb, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and prb.process_id=po.process_id
+
+ProcessInputWell:
+select prb.* from process_input_well prb, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and prb.process_id=po.process_id
+
+ProcessOutputWell:
+select prb.* from process_output_well prb, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and prb.process_id=po.process_id
+
+ProcessRecombinase:
+select prb.* from process_recombinase prb, process_output_well po, wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+and po.well_id=w.id
+and prb.process_id=po.process_id
+
+Well:
+select w.* from wells w,plates p where p.species_id='Human'
+and w.plate_id=p.id
+
 =head1 METHODS
 
 =cut
