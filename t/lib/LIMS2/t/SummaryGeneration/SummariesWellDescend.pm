@@ -67,10 +67,9 @@ and po.well_id=w.id
 and prb.process_id=po.process_id
 
 ProcessOutputWell:
-select prb.* from process_output_well prb, process_output_well po, wells w,plates p where p.species_id='Human'
+select po.* from process_output_well po, wells w,plates p where p.species_id='Human'
 and w.plate_id=p.id
 and po.well_id=w.id
-and prb.process_id=po.process_id
 
 ProcessRecombinase:
 select prb.* from process_recombinase prb, process_output_well po, wells w,plates p where p.species_id='Human'
