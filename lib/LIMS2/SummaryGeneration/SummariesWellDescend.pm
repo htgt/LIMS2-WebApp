@@ -128,8 +128,6 @@ sub generate_summary_rows_for_all_trails {
         }
 
         # insert to DB
-        use Data::Dumper;
-        DEBUG(Dumper(\%summary_row_values));
         my $inserts = insert_summary_row_via_dbix ( $model, \%summary_row_values ) or WARN caller()." Insert failed for well ID $design_well_id";
 
         if($inserts) {
@@ -799,12 +797,13 @@ sub fetch_well_gene_symbols_and_ids {
     my ( $well, $model ) = @_;
 
     my @gene_ids = try { uniq map { $_->gene_id } $well->design->genes };
+    my $species = $well->design->species_id;
 
     # try to fetch gene symbols
     my @gene_symbols;
     try {
         for my $gene_id ( @gene_ids ) {
-            my $gene_symbol = $model->retrieve_gene( { search_term => $gene_id,  species => 'Mouse' } )->{gene_symbol};
+            my $gene_symbol = $model->retrieve_gene( { search_term => $gene_id,  species => $species } )->{gene_symbol};
             push @gene_symbols, $gene_symbol;
         }
     };
