@@ -47,6 +47,20 @@ $registry->load_registry_from_db(
     );
 
 
+
+=head pick_PCR_primers_for_crisprs
+    given location of crispr primers as an input,
+    search for primers to generate a PCR product covering the region of the crispr primers
+    This is modeled on the genotyping primers and therefore includes a genomic check
+=cut
+
+
+sub pick_PCR_primers_for_crisprs {
+
+    return;
+}
+
+
 =head pick_genotyping_primers
      outline of process:
      query the design_oligos table for the design_id and the 5F or 3R primer,
@@ -101,7 +115,10 @@ sub pick_genotyping_primers {
         );
     }
 
-    my $primer_passes = genomic_check( $design_id, ,$well_id, $species, $primer_data, $chr_strand );
+    my $primer_passes = genomic_check( $design_id, $well_id, $species, $primer_data, $chr_strand );
+
+    #TODO: If no primer pairs pass the genomic check, need to call this method recursively with a different
+    #set of parameters until two pairs of primers are found.
 
     return ($primer_data, $primer_passes, $chr_strand, $design_oligos);
 }
@@ -194,7 +211,12 @@ sub generate_bwa_query_file {
     my $well_id = shift;
     my $primer_data = shift;
 
-    my $dir_out = dir( $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa', $well_id );
+    my $root_dir = $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa';
+    use Data::UUID;
+    my $ug = Data::UUID->new();
+
+    my $unique_string = $ug->create_str(); 
+    my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
     mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
 
     my $fasta_file_name = $dir_out->file( $design_id . '_oligos.fasta');
