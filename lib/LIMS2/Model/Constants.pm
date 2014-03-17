@@ -45,7 +45,7 @@ const our %PROCESS_PLATE_TYPES => (
     'dist_qc'                => [qw( PIQ )],
     'crispr_vector'          => [qw( CRISPR_V )],
     'single_crispr_assembly' => [qw( ASSEMBLY )],
-    'paired_crispr_assembly' => [qw( ASSEMBLY )],    
+    'paired_crispr_assembly' => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
 );
 
@@ -80,7 +80,7 @@ const our %PROCESS_TEMPLATE => (
     'xep_pool'               => 'standard_template',
     'dist_qc'                => 'piq_template',
     'single_crispr_assembly' => 'single_crispr_assembly_template',
-    'paired_crispr_assembly' => 'paired_crispr_assembly_template',    
+    'paired_crispr_assembly' => 'paired_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
 );
 
@@ -162,7 +162,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'paired_crispr_assembly' => {
         type   => [qw( CRISPR_V CRISPR_V FINAL_PICK )],
         number => 3,
-    },     
+    },
     'crispr_ep' => {
         type   => [qw( ASSEMBLY )],
         number => 1,

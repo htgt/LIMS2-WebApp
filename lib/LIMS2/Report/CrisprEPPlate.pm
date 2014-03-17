@@ -70,7 +70,7 @@ override iterator => sub {
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
             $final_vector->backbone->name,
             $well->nuclease->name,
-            $well->first_cell_line->name,            
+            $well->first_cell_line->name,
             $left_crispr,
             $right_crispr,
             # join( q{/}, @{ $final_vector->recombinases } ),

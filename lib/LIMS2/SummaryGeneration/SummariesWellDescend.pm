@@ -717,12 +717,12 @@ sub fetch_values_for_type_ASSEMBLY {
         $stored_values->{ 'stored_assembly_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_assembly_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
 
-        my ($left, $right) = try{ $curr_well->left_and_right_crispr_wells };
-        if($left){
-            $stored_values->{ 'stored_assembly_well_left_crispr_well_id' }   = try{ $left->id }; 
+        my ($left_well, $right_well) = try{ $curr_well->left_and_right_crispr_wells };
+        if($left_well){
+            $stored_values->{ 'stored_assembly_well_left_crispr_well_id' }   = try{ $left_well->id };
         }
-        if($right){
-            $stored_values->{ 'stored_assembly_well_right_crispr_well_id' }  = try{ $right->id };
+        if($right_well){
+            $stored_values->{ 'stored_assembly_well_right_crispr_well_id' }  = try{ $right_well->id };
         }
     }
 
@@ -734,8 +734,8 @@ sub fetch_values_for_type_ASSEMBLY {
     $summary_row_values->{ 'assembly_well_created_ts' }       = $stored_values->{ stored_assembly_well_created_ts };
     $summary_row_values->{ 'assembly_well_accepted' }         = $stored_values->{ stored_sfp_well_accepted };
 
-    $summary_row_values->{ 'assembly_well_left_crispr_well_id' }   = $stored_values->{ 'stored_assembly_well_left_crispr_well_id' };  
-    $summary_row_values->{ 'assembly_well_right_crispr_well_id' } = $stored_values->{ 'stored_assembly_well_right_crispr_well_id' };       
+    $summary_row_values->{ 'assembly_well_left_crispr_well_id' }   = $stored_values->{ 'stored_assembly_well_left_crispr_well_id' };
+    $summary_row_values->{ 'assembly_well_right_crispr_well_id' } = $stored_values->{ 'stored_assembly_well_right_crispr_well_id' };
     return;
 }
 
@@ -771,7 +771,7 @@ sub fetch_values_for_type_CRISPR_EP {
     $summary_row_values->{ 'crispr_ep_well_created_ts' }       = $stored_values->{ stored_crispr_ep_well_created_ts };
     $summary_row_values->{ 'crispr_ep_well_accepted' }         = $stored_values->{ stored_crispr_ep_well_accepted };
     $summary_row_values->{ 'crispr_ep_well_nuclease' }         = $stored_values->{ stored_crispr_ep_well_nuclease };
-    $summary_row_values->{ 'crispr_ep_well_cell_line' }        = $stored_values->{ stored_crispr_ep_well_cell_line };    
+    $summary_row_values->{ 'crispr_ep_well_cell_line' }        = $stored_values->{ stored_crispr_ep_well_cell_line };
     return;
 }
 
