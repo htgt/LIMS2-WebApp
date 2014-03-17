@@ -26,7 +26,9 @@ Readonly my @ST_REPORT_CATEGORIES => (
     'Targeted Genes',
     'Vectors',
     'Valid DNA',
-    'Electroporations',
+    'Crispr Vectors Single',
+    'Crispr Vectors Paired',
+    'Crispr Electroporations',
     'Accepted ES Clones',
 );
 
@@ -147,6 +149,19 @@ sub _build_column_data {
     # --------- Targeted Genes -----------
     my $count_tgs = $number_genes;
     $sponsor_data->{'Targeted Genes'}{$sponsor_id} = $count_tgs;
+
+    # ------------ Crispr Vectors --------
+    my $count_crispr_vectors_single = 0;
+    if( $count_tgs > 0 ){
+        $count_crispr_vectors_single = $self->crispr_vectors_single($sponsor_id, 'count');
+    }
+    $sponsor_data->{'Crispr Vectors Single'}{$sponsor_id} = $count_crispr_vectors_single;
+
+    my $count_crispr_vectors_paired = 0;
+    if( $count_tgs > 0 ){
+        $count_crispr_vectors_paired = $self->crispr_vectors_paired($sponsor_id, 'count');
+    }
+    $sponsor_data->{'Crispr Vectors Paired'}{$sponsor_id} = $count_crispr_vectors_paired;
 
     # ------------ Vectors ---------------
     # only look if targeted genes found
@@ -798,6 +813,65 @@ sub vectors {
     }
 }
 
+sub crispr_vectors_single {
+    my ( $self, $sponsor_id, $query_type ) = @_;
+
+    DEBUG 'Crispr Vectors Single: sponsor id = '.$sponsor_id.' , targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
+
+    if ( $query_type eq 'count' ) {
+        my $count = 0;
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_count_st_crispr_vectors_single ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        $count = $self->run_count_query( $sql_query );
+        return $count;
+    }
+    elsif ( $query_type eq 'select' ) {
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_select_st_crispr_vectors_single ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        my $sql_results = $self->run_select_query( $sql_query );
+        return $sql_results;
+    }
+}
+
+sub crispr_vectors_paired {
+    my ( $self, $sponsor_id, $query_type ) = @_;
+
+    DEBUG 'Crispr Vectors Paired: sponsor id = '.$sponsor_id.' , targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
+
+    if ( $query_type eq 'count' ) {
+        my $count = 0;
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_count_st_crispr_vectors_paired ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        $count = $self->run_count_query( $sql_query );
+        return $count;
+    }
+    elsif ( $query_type eq 'select' ) {
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_select_st_crispr_vectors_paired ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        my $sql_results = $self->run_select_query( $sql_query );
+        return $sql_results;
+    }
+}
 sub vector_pairs_neo_and_bsd {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
@@ -4078,5 +4152,169 @@ SQL_END
     return $sql_query;
 }
 
+#----------- Crispr Vector SQL ------------
+#
+#  FIXME: these queries do not check well_accepted_override
+#
+#-------------------------------------------
+sub sql_count_st_crispr_vectors_single {
+    my ( $self, $sponsor_id ) = @_;
 
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_id=prc.crispr_id
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term    
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT count(distinct w.input_well_id)
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query; 
+}
+
+sub sql_select_st_crispr_vectors_single {
+    my ( $self, $sponsor_id ) = @_;
+
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+-- Descendants by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_id=prc.crispr_id
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term    
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT distinct w.input_well_id
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query; 
+}
+
+sub sql_count_st_crispr_vectors_paired {
+    my ( $self, $sponsor_id ) = @_;
+
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+-- Descendants by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_pair_id=cp.id
+and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term    
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT count(distinct w.input_well_id)
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query; 
+}
+
+sub sql_select_st_crispr_vectors_paired {
+    my ( $self, $sponsor_id ) = @_;
+
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+-- Descendants by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_pair_id=cp.id
+and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term    
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT distinct w.input_well_id
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query; 
+}
 1;
