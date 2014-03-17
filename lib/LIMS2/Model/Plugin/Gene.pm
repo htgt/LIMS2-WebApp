@@ -57,7 +57,7 @@ sub search_genes {
         elsif(ref($genes) eq "HASH"){
             push @genes, $genes;
         }
-        else{ 
+        else{
             die "Don't know what to do with return value from retrieve_gene: $genes";
         }
       }

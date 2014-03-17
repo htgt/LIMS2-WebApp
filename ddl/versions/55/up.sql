@@ -1,6 +1,6 @@
 CREATE TABLE nucleases (
-       id integer NOT,
-       name TEXT NOT,
+       id integer NOT NULL,
+       name TEXT NOT NULL,
        PRIMARY KEY(id)
 );
 
