@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.170';
+    $LIMS2::Test::VERSION = '0.171';
 }
 ## use critic
 
@@ -270,6 +270,7 @@ sub load_static_files {
             GenotypingPrimerType
             GenotypingResultType
             MutationDesignType
+            Nuclease
             PlateType
             PrimerBandType
             ProcessType
@@ -323,6 +324,7 @@ sub load_dynamic_files {
             ProcessRecombinase
             ProcessDesign
             ProcessCrispr
+            ProcessNuclease
             Plate
             Well
             ProcessInputWell

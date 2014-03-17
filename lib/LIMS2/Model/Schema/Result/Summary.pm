@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.170';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.171';
 }
 ## use critic
 
@@ -411,6 +411,96 @@ __PACKAGE__->table("summaries");
 =head2 dna_well_accepted
 
   data_type: 'boolean'
+  is_nullable: 1
+
+=head2 assembly_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 assembly_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 assembly_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 assembly_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 assembly_well_assay_complete
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 assembly_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 assembly_well_accepted
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 assembly_well_left_crispr_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 assembly_well_right_crispr_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 crispr_ep_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 crispr_ep_well_assay_complete
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 crispr_ep_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 crispr_ep_well_accepted
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 crispr_ep_well_nuclease
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 crispr_ep_well_cell_line
+
+  data_type: 'text'
   is_nullable: 1
 
 =head2 ep_plate_name
@@ -907,6 +997,42 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "dna_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
+  "assembly_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "assembly_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "assembly_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "assembly_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "assembly_well_assay_complete",
+  { data_type => "timestamp", is_nullable => 1 },
+  "assembly_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "assembly_well_accepted",
+  { data_type => "boolean", is_nullable => 1 },
+  "assembly_well_left_crispr_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "assembly_well_right_crispr_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "crispr_ep_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "crispr_ep_well_assay_complete",
+  { data_type => "timestamp", is_nullable => 1 },
+  "crispr_ep_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "crispr_ep_well_accepted",
+  { data_type => "boolean", is_nullable => 1 },
+  "crispr_ep_well_nuclease",
+  { data_type => "text", is_nullable => 1 },
+  "crispr_ep_well_cell_line",
+  { data_type => "text", is_nullable => 1 },
   "ep_plate_name",
   { data_type => "text", is_nullable => 1 },
   "ep_plate_id",
@@ -1058,8 +1184,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JSE3H8KKw7BakaWrvvQwYQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-03-12 11:18:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JXuD6ULiYapJxGzUtmRkQQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.170';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.171';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use Data::Dump 'pp';
 use namespace::autoclean;
 use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util::GeneSearch qw( retrieve_solr_gene retrieve_ensembl_gene normalize_solr_result );
+use TryCatch;
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -52,9 +53,24 @@ sub search_genes {
             @{ $self->solr_query( $validated_params->{search_term} ) };
     }
     elsif ( $species eq 'Human' ) {
+     # Massive fudge to make this work while search_genes rewrite is in progress
+     try{
         my $genes = $self->retrieve_gene( $validated_params ) || [];
         DEBUG "Genes retrieved: ". pp $genes;
-        @genes = @{ $genes };
+        if (ref($genes) eq "ARRAY"){
+            @genes = @{ $genes };
+        }
+        elsif(ref($genes) eq "HASH"){
+            push @genes, $genes;
+        }
+        else{
+            die "Don't know what to do with return value from retrieve_gene: $genes";
+        }
+      }
+      catch($err){
+        DEBUG "retrieve_gene failed: $err";
+        return \@genes;
+      }
     }
     else {
         LIMS2::Exception::Implementation->throw( "search_genes() for species '$species' not implemented" );

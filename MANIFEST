@@ -14,6 +14,7 @@ bin/process_graph.pl
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
 docs/testing/TestingTargets.ods
+generate-pg-audit-ddl~
 lib/LIMS2/AlleleRequest.pm
 lib/LIMS2/AlleleRequest/DoubleTargeted.pm
 lib/LIMS2/AlleleRequest/SingleTargeted.pm
@@ -78,6 +79,7 @@ lib/LIMS2/Model/Schema/Result/GenotypingPrimerType.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
+lib/LIMS2/Model/Schema/Result/Nuclease.pm
 lib/LIMS2/Model/Schema/Result/Plate.pm
 lib/LIMS2/Model/Schema/Result/PlateComment.pm
 lib/LIMS2/Model/Schema/Result/PlateType.pm
@@ -91,6 +93,7 @@ lib/LIMS2/Model/Schema/Result/ProcessCrispr.pm
 lib/LIMS2/Model/Schema/Result/ProcessDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessElectroporation.pm
 lib/LIMS2/Model/Schema/Result/ProcessInputWell.pm
+lib/LIMS2/Model/Schema/Result/ProcessNuclease.pm
 lib/LIMS2/Model/Schema/Result/ProcessOutputWell.pm
 lib/LIMS2/Model/Schema/Result/ProcessRecombinase.pm
 lib/LIMS2/Model/Schema/Result/ProcessType.pm
@@ -164,6 +167,7 @@ lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
+lib/LIMS2/Report/AssemblyPlate.pm
 lib/LIMS2/Report/CreKiESDistributionGenes.pm
 lib/LIMS2/Report/CreKiESDistributionSummary.pm
 lib/LIMS2/Report/CrisprEPPlate.pm
@@ -2142,18 +2146,20 @@ root/static/extjs/src/view/View.js
 root/static/extjs/src/window/MessageBox.js
 root/static/extjs/src/window/Window.js
 root/static/extjs/version.properties
+root/static/files/plate_upload/crispr_ep_template_es.csv
+root/static/files/plate_upload/crispr_ep_template_es.csv~
+root/static/files/plate_upload/crispr_ep_template_vector.csv
+root/static/files/plate_upload/crispr_ep_template_vector.csv~
 root/static/files/plate_upload/crispr_paired_ep_template.csv
-root/static/files/plate_upload/crispr_paired_ep_template_es.csv
-root/static/files/plate_upload/crispr_paired_ep_template_vector.csv
 root/static/files/plate_upload/crispr_single_ep_template.csv
-root/static/files/plate_upload/crispr_single_ep_template_es.csv
-root/static/files/plate_upload/crispr_single_ep_template_vector.csv
 root/static/files/plate_upload/dna_template.csv
 root/static/files/plate_upload/dna_template_vector.csv
 root/static/files/plate_upload/first_electroporation_template_es.csv
 root/static/files/plate_upload/first_electroporation_template_vector.csv
 root/static/files/plate_upload/gateway_template_es.csv
 root/static/files/plate_upload/gateway_template_vector.csv
+root/static/files/plate_upload/paired_crispr_assembly_template_es.csv
+root/static/files/plate_upload/paired_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/piq_template.csv
 root/static/files/plate_upload/piq_template_es.csv
 root/static/files/plate_upload/piq_template_vector.csv
@@ -2165,6 +2171,8 @@ root/static/files/plate_upload/recombineering_template_es.csv
 root/static/files/plate_upload/recombineering_template_vector.csv
 root/static/files/plate_upload/second_electroporation_template_es.csv
 root/static/files/plate_upload/second_electroporation_template_vector.csv
+root/static/files/plate_upload/single_crispr_assembly_template_es.csv
+root/static/files/plate_upload/single_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/standard_template_es.csv
 root/static/files/plate_upload/standard_template_vector.csv
 root/static/files/qc_upload/dna_status_upload_template.csv
@@ -2233,6 +2241,7 @@ root/static/test/data/3w_gateway_process.yaml
 root/static/test/data/70-pipeline_summary_reports_data.yaml
 root/static/test/data/add_colony_count.yaml
 root/static/test/data/add_recombinase.yaml
+root/static/test/data/assembly_process.yaml
 root/static/test/data/clone_pick_process.yaml
 root/static/test/data/clone_pool_process.yaml
 root/static/test/data/cre_bac_recom_process.yaml
@@ -2298,6 +2307,7 @@ root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessCassette.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessCellLine.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessDesign.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessInputWell.csv
+root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessNuclease.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessOutputWell.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessRecombinase.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/User.csv
@@ -2318,6 +2328,20 @@ root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/DesignOligo.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/DesignOligoLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/User.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Design.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/GeneDesign.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Plate.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Process.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessBackbone.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessCassette.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessCellLine.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessDesign.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessInputWell.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessOutputWell.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessRecombinase.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/User.csv
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/User.csv~
+root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Well.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crispr_loci.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crisprs.csv
 root/static/test/fixtures/legacy/10-load-fixture-data.sql
@@ -2337,6 +2361,7 @@ root/static/test/fixtures/reference_data/GeneType.csv
 root/static/test/fixtures/reference_data/GenotypingPrimerType.csv
 root/static/test/fixtures/reference_data/GenotypingResultType.csv
 root/static/test/fixtures/reference_data/MutationDesignType.csv
+root/static/test/fixtures/reference_data/Nuclease.csv
 root/static/test/fixtures/reference_data/PlateType.csv
 root/static/test/fixtures/reference_data/PrimerBandType.csv
 root/static/test/fixtures/reference_data/ProcessType.csv
@@ -2538,6 +2563,7 @@ t/LIMS2/ReportGenerator/10_LIMS2_ReportGenerator_ProductionDetail.t
 t/LIMS2/ReportGenerator/Plate/10_LIMS2_ReportGenerator_Plate_DoubleTargeted.t
 t/LIMS2/ReportGenerator/Plate/10_LIMS2_ReportGenerator_Plate_SingleTargeted.t
 t/LIMS2/SummaryGeneration/10_LIMS2_SummaryGeneration_SummariesWellDescend.t
+t/LIMS2/SummaryGeneration/10_LIMS2_SummaryGeneration_SummariesWellDescend_Legacy.t
 t/LIMS2/WebApp/10_LIMS2_WebApp_Pageset.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_API.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Admin.t
@@ -2749,6 +2775,8 @@ t/lib/LIMS2/t/ReportGenerator/Plate/DoubleTargeted.pm
 t/lib/LIMS2/t/ReportGenerator/Plate/SingleTargeted.pm
 t/lib/LIMS2/t/ReportGenerator/ProductionDetail.pm
 t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescend.pm
+t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm
+t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm~
 t/lib/LIMS2/t/Test.pm
 t/lib/LIMS2/t/WebApp.pm
 t/lib/LIMS2/t/WebApp/Controller/API.pm

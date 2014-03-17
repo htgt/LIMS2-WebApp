@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.170';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.171';
 }
 ## use critic
 
@@ -206,6 +206,10 @@ sub existing_backbone {
 # all cassettes, regardless of type, for validated cassette names sent to generate_eng_seq_params
 sub existing_cassette {
     return shift->existing_row( 'Cassette', 'name' );
+}
+
+sub existing_nuclease {
+    return shift->existing_row( 'Nuclease', 'name');
 }
 
 sub qc_seq_read_id {

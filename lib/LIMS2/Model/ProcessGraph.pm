@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.170';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.171';
 }
 ## use critic
 
@@ -351,6 +351,9 @@ sub process_data_for {
         }
         if ( $p->process_cell_line ) {
             push @data, 'Cell line: ' . $p->process_cell_line->cell_line->name;
+        }
+        if ( $p->process_nuclease ) {
+            push @data, 'Nuclease: ' . $p->process_nuclease->nuclease->name;
         }
         if ( $p->process_design ) {
             my $design = $p->process_design->design;

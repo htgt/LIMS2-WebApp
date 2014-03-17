@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Process::VERSION = '0.170';
+    $LIMS2::Model::Schema::Result::Process::VERSION = '0.171';
 }
 ## use critic
 
@@ -190,6 +190,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_nuclease
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessNuclease>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_nuclease",
+  "LIMS2::Model::Schema::Result::ProcessNuclease",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_output_wells
 
 Type: has_many
@@ -256,8 +271,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rWMT6UuJ+K0q0zcn6jwfUA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-03-10 12:23:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nCot/xkTfiD6KCXvFalMDQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
