@@ -22,13 +22,15 @@ use Try::Tiny;                              # Exception handling
 extends qw( LIMS2::ReportGenerator );
 
 # Rows on report view
+# These crispr counts now work but sub reports do not
+# 'Crispr Vectors Single',
+# 'Crispr Vectors Paired',
+# 'Crispr Electroporations',
 Readonly my @ST_REPORT_CATEGORIES => (
     'Targeted Genes',
     'Vectors',
     'Valid DNA',
-    'Crispr Vectors Single',
-    'Crispr Vectors Paired',
-    'Crispr Electroporations',
+    'Electroporations',
     'Accepted ES Clones',
 );
 
@@ -150,7 +152,7 @@ sub _build_column_data {
     my $count_tgs = $number_genes;
     $sponsor_data->{'Targeted Genes'}{$sponsor_id} = $count_tgs;
 
-    # ------------ Crispr Vectors --------
+    # ------------ Crispr Vectors and Electroporations --------
     my $count_crispr_vectors_single = 0;
     if( $count_tgs > 0 ){
         $count_crispr_vectors_single = $self->crispr_vectors_single($sponsor_id, 'count');
@@ -162,6 +164,12 @@ sub _build_column_data {
         $count_crispr_vectors_paired = $self->crispr_vectors_paired($sponsor_id, 'count');
     }
     $sponsor_data->{'Crispr Vectors Paired'}{$sponsor_id} = $count_crispr_vectors_paired;
+    
+    my $count_crispr_eps = 0;
+    if( $count_crispr_vectors_single or $count_crispr_vectors_paired){
+        $count_crispr_eps = $self->crispr_electroporations($sponsor_id, 'count');
+    }
+    $sponsor_data->{'Crispr Electroporations'}{$sponsor_id} = $count_crispr_eps;
 
     # ------------ Vectors ---------------
     # only look if targeted genes found
@@ -1239,6 +1247,26 @@ sub electroporations {
     elsif ( $query_type eq 'select' ) {
         my $sql_query;
         $sql_query = $self->sql_select_st_electroporations ( $sponsor_id );
+        my $sql_results = $self->run_select_query( $sql_query );
+        return $sql_results;
+    }
+}
+
+sub crispr_electroporations {
+    my ( $self, $sponsor_id, $query_type ) = @_;
+
+    DEBUG 'Crispr electroporations: sponsor id = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
+
+    if ( $query_type eq 'count' ) {
+        my $count = 0;
+        my $sql_query;
+        $sql_query = $self->sql_count_crispr_eps ( $sponsor_id );
+        $count = $self->run_count_query( $sql_query );
+        return $count;
+    }
+    elsif ( $query_type eq 'select' ) {
+        my $sql_query;
+        $sql_query = $self->sql_select_crispr_electroporations ( $sponsor_id );
         my $sql_results = $self->run_select_query( $sql_query );
         return $sql_results;
     }
@@ -4316,5 +4344,34 @@ and plates.type_id='CRISPR_V'
 and wells.accepted='true'
 SQL_END
 return $sql_query; 
+}
+
+sub sql_count_crispr_eps{
+    my ($self, $sponsor_id) = @_;
+    my $species_id = $self->species;
+
+my $sql_query = <<"SQL_END";
+select count(distinct s.design_gene_id) from projects pr, summaries s
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=s.design_gene_id
+and s.crispr_ep_well_accepted='true'
+SQL_END
+return $sql_query
+}
+
+sub sql_select_crispr_eps{
+    my ($self, $sponsor_id) = @_;
+    my $species_id = $self->species;
+
+my $sql_query = <<"SQL_END";
+select s.design_gene_id, s.design_gene_symbol, s.crispr_ep_well_cell_line, s.crispr_ep_well_nuclease
+from projects pr, summaries s
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=s.design_gene_id
+and s.crispr_ep_well_accepted='true'
+SQL_END
+return $sql_query
 }
 1;
