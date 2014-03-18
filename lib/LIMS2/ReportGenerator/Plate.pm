@@ -114,6 +114,41 @@ sub base_data {
     confess "base_data() must be implemented by a subclass";
 }
 
+sub accepted_crispr_columns {
+    return ("Accepted Crispr Single", "Accepted Crispr Pairs");
+}
+
+sub accepted_crispr_data {
+    my ( $self, $well ) = @_;
+
+    my (@single_crisprs, @paired_crisprs);
+
+    if (my $design = $well->design){
+        foreach my $crispr_design ($design->crispr_designs){
+            if(my $crispr = $crispr_design->crispr){
+                push @single_crisprs, $crispr->accepted_vector_wells;
+            }
+            elsif(my $crispr_pair = $crispr_design->crispr_pair){
+                my @left_crisprs = $crispr_pair->left_crispr->accepted_vector_wells;
+                my @right_crisprs = $crispr_pair->right_crispr->accepted_vector_wells;
+                if (@left_crisprs and @right_crisprs){
+                    my $left_as_string = join( q{/}, map {$_->as_string} @left_crisprs);
+                    my $right_as_string = join( q{/}, map {$_->as_string} @right_crisprs);
+                    my $pair_as_string = "[left:$left_as_string-right:$right_as_string]";
+                    push @paired_crisprs, $pair_as_string; 
+                }
+            }
+        }
+    }
+    else{
+        LIMS2::Exception::Implementation->throw("Cannot find design for well ".$well->as_string);
+    }
+    return ( 
+        join( q{/}, map {$_->as_string} @single_crisprs ),
+        join( q{ }, @paired_crisprs ),
+    );
+}
+
 sub design_and_gene_cols {
     my ( $self, $well ) = @_;
 

@@ -1005,6 +1005,21 @@ sub descendant_piq {
 }
 ## use critic
 
+sub descendant_crispr_vectors {
+    my $self = shift;
+
+    my @crispr_vectors;
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ) {
+      while( my $descendant = $descendants->next ) {
+        if ( $descendant->plate->type_id eq 'CRISPR_V' ) {
+          push @crispr_vectors, $descendant;
+        }
+      }
+    }
+    return @crispr_vectors;
+}
+
 ## no critic(RequireFinalReturn)
 sub parent_crispr {
     my $self = shift;

@@ -341,6 +341,26 @@ sub related_designs {
     return @designs;
 }
 
+sub crispr_wells{
+    my $self = shift;
+
+    return map { $_->process->output_wells } $self->process_crisprs;
+}
+
+sub vector_wells{
+    my $self = shift;
+
+    my @wells = $self->crispr_wells;
+
+    return map { $_->descendant_crispr_vectors } @wells;
+}
+
+sub accepted_vector_wells{
+    my $self = shift;
+
+    return grep { $_->is_accepted } $self->vector_wells;
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
