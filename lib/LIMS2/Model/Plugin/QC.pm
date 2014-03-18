@@ -30,6 +30,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use HTGT::QC::Config;
+use TryCatch;
 use namespace::autoclean;
 
 requires qw( schema check_params throw );
@@ -553,6 +554,38 @@ sub qc_run_results {
 
     my $results = retrieve_qc_run_results_fast($qc_run, $self->schema, $crispr_run);
 
+    # retrieve_qc_run_results_fast looks up MGI accessions in the solr index 
+    # but for human qc runs we need to fetch gene symbols from ensembl
+    # TODO: When the human solr index is implemented we should search this in the
+    # retrieve_qc_run_results_fast method instead of doing ensembl query here
+    if($qc_run->qc_template->species_id eq 'Human'){
+        DEBUG "Human QC run - fetching gene symbols from ensembl";
+        foreach my $result (@{ $results || [] }){
+            my @designs;
+            if($crispr_run){
+                # get symbol for crispr
+                try{
+                    my $crispr = $self->retrieve( 'Crispr' => { id => $result->{expected_crispr_id} });
+                    @designs = $crispr->related_designs;
+                }
+            }
+            else{
+                # get symbol for design
+                try{
+                    @designs = $self->retrieve( 'Design' => { id => $result->{expected_design_id} });
+                }
+            }
+            my @genes = map { $_->genes } @designs;
+            my @gene_ids = uniq map { $_->gene_id } @genes;
+            my @symbols;
+            foreach my $gene (@gene_ids){
+                try{
+                    push @symbols, $self->retrieve_gene( { species => 'Human', search_term => $gene } )->{gene_symbol};
+                }
+            }
+            $result->{gene_symbol} = join( q{/}, uniq @symbols );
+        }
+    }
     return ( $qc_run, $results );
 }
 

@@ -182,16 +182,8 @@ sub crispr_marker_symbols{
     my ($self, $crispr) = @_;
 
     my %symbols;
-    foreach my $crispr_design ($crispr->crispr_designs->all){
-        my $design = $crispr_design->design;
+    foreach my $design ($crispr->related_designs){
         $self->_symbols_from_design($design, \%symbols);
-    }
-
-    foreach my $pair ($crispr->crispr_pairs_left_crisprs->all, $crispr->crispr_pairs_right_crisprs->all){
-        foreach my $pair_crispr_design ($pair->crispr_designs->all){
-            my $pair_design = $pair_crispr_design->design;
-            $self->_symbols_from_design($pair_design, \%symbols);
-        }
     }
 
     return join ", ", keys %symbols;
@@ -200,31 +192,18 @@ sub crispr_marker_symbols{
 sub _symbols_from_design{
     my ($self, $design, $symbols) = @_;
 
-    my $design_params = $design->design_parameters;
-    my $json = JSON->new;
-    my $params;
+    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
+    my @gene_symbols;
     try {
-      $params = $json->decode( $design_params )
-    } catch {
-      DEBUG "Could not parse design_parameters json for design ".$design->id." Error: $_";
+        @gene_symbols  = uniq map {
+            $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
+        } @gene_ids;
     };
 
-    return unless $params;
-
-    my $gene;
-    try{
-      $gene = $self->model->retrieve_gene({
-        species     => $design->species_id,
-        search_term => $params->{target_genes}->[0],
-      });
-    } catch {
-        DEBUG "Could not retrieve gene for ".$params->{target_genes}->[0]." Error: $_";
-    };
-
-    return unless $gene;
-
-    $symbols->{ $gene->{gene_symbol} } = 1;
-    DEBUG "Found symbol ".$gene->{gene_symbol};
+    # Add any symbols we found to the hash
+    foreach my $symbol (@gene_symbols){
+        $symbols->{$symbol} = 1;
+    }
     return;
 }
 

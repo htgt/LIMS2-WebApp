@@ -264,6 +264,7 @@ sub load_static_files {
             GenotypingPrimerType
             GenotypingResultType
             MutationDesignType
+            Nuclease
             PlateType
             PrimerBandType
             ProcessType
@@ -317,6 +318,7 @@ sub load_dynamic_files {
             ProcessRecombinase
             ProcessDesign
             ProcessCrispr
+            ProcessNuclease
             Plate
             Well
             ProcessInputWell
