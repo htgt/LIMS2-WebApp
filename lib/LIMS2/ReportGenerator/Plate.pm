@@ -161,8 +161,10 @@ sub design_and_gene_cols {
         } @gene_ids;
     };
 
+    my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
+    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
 
-    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ) );
+    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
 }
 
 sub qc_result_cols {
@@ -222,6 +224,29 @@ sub crispr_marker_symbols{
     }
 
     return join ", ", keys %symbols;
+}
+
+sub crispr_design_and_gene_cols{
+    my ($self, $crispr) = @_;
+
+    my %symbols;
+    my (@design_ids, @gene_ids);
+
+    foreach my $design ($crispr->related_designs){
+        $self->_symbols_from_design($design, \%symbols);
+        push @design_ids, $design->id;
+        push @gene_ids,  map { $_->gene_id } $design->genes;
+    }
+
+    my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
+    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+
+    return ( 
+        join( q{/}, uniq @design_ids ), 
+        join( q{/}, uniq @gene_ids ), 
+        join( q{/}, keys %symbols ), 
+        join( q{/}, @sponsors ) 
+    );
 }
 
 sub _symbols_from_design{

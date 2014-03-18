@@ -1037,15 +1037,21 @@ sub parent_crispr {
 ## use critic
 
 ## no critic(RequireFinalReturn)
+## This returns the final set (single or paired) of CRISPR_V parents
+## It will stop traversing if it hits a CRISPR_V grandparent, 
+## i.e. if CRISPR_V plates have been rearrayed
 sub parent_crispr_v {
     my $self = shift;
 
     my @parents;
-    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
         if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
+
+            # Exit loop when we start seeing CRIPSR_V grandparents
+            last if grep { $_->plate->type_id eq 'CRISPR_V' } $self->ancestors->output_wells($ancestor);
+
             push ( @parents, $ancestor );
-            # return $ancestor;
         }
     }
 
