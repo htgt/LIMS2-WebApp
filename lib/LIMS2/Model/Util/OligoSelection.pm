@@ -55,11 +55,59 @@ $registry->load_registry_from_db(
 =cut
 
 
-sub pick_PCR_primers_for_crisprs {
+sub pick_crispr_PCR_primers {
+    my $params = shift;
 
-    return;
+    my $schema = $params->{'schema'};
+    my $well_id = $params->{'well_id'};
+    my $crispr_primers = $params->{'crispr_primers'};
+    my $species = $params->{'species'};
+    my %failed_primer_regions;
+    # Return the design oligos as well so that we can report them to provide context later on
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length )
+        = get_crispr_PCR_EnsEmbl_region( {
+                schema => $schema,
+                crispr_primers => $crispr_primers,
+                species => $species,
+            } );
+    my $p3 = DesignCreate::Util::Primer3->new_with_config(
+        configfile => $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' },
+        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length + 500),
+    );
+    my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
+    my $logfile = $dir_out->file( $well_id . '_pcr_oligos.log');
+        
+    my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
+            {
+                SEQUENCE_TARGET => $target_sequence_mask ,
+            } );
+    if ( $result->num_primer_pairs ) {
+        INFO ( "$well_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
+    }
+    else {
+        WARN ( "Failed to generate pcr primer pairs for $$well_id" );
+        $failed_primer_regions{$well_id} = $primer3_explain;
+    }
+
+
+    my $primer_data = parse_primer3_results( $result );
+
+    use DesignCreate::Exception::Primer3FailedFindOligos;
+
+    if (%failed_primer_regions) {
+        DesignCreate::Exception::Primer3FailedFindOligos->throw(
+            regions             => [ keys %failed_primer_regions ],
+            primer_fail_reasons => \%failed_primer_regions,
+        );
+    }
+
+    my $primer_passes = pcr_genomic_check( $well_id, $species, $primer_data );
+
+    #TODO: If no primer pairs pass the genomic check, need to call this method recursively with a different
+    #set of parameters until two pairs of primers are found.
+
+    return ($primer_data, $primer_passes);
 }
-
 
 =head pick_genotyping_primers
      outline of process:
@@ -81,7 +129,7 @@ sub pick_genotyping_primers {
     my %failed_primer_regions;
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos)
-        = get_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
+        = get_genotyping_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_GIBSON_GENOTYPING_PRIMER_CONFIG' },
@@ -122,6 +170,36 @@ sub pick_genotyping_primers {
 
     return ($primer_data, $primer_passes, $chr_strand, $design_oligos);
 }
+
+sub pcr_genomic_check {
+    my $well_id = shift;
+    my $species = shift;
+    my $primer_data = shift;
+
+
+    # implement genomic specificity checking using BWA
+    #
+
+    my ($bwa_query_filespec, $work_dir ) = generate_pcr_bwa_query_file( $well_id, $primer_data );
+    my $num_bwa_threads = 2;
+
+
+    my $bwa = DesignCreate::Util::BWA->new(
+            query_file        => $bwa_query_filespec,
+            work_dir          => $work_dir,
+            species           => $species,
+            three_prime_check => 0,
+            num_bwa_threads   => $num_bwa_threads,
+    );
+
+    $bwa->generate_sam_file;
+    my $oligo_hits = $bwa->oligo_hits;
+    $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
+
+    return $primer_data;
+
+}
+
 
 sub genomic_check {
     my $design_id = shift;
@@ -205,6 +283,36 @@ sub del_bad_pairs {
     }
     return $primer_data;
 }
+
+sub generate_pcr_bwa_query_file {
+    my $well_id = shift;
+    my $primer_data = shift;
+
+    my $root_dir = $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa';
+    use Data::UUID;
+    my $ug = Data::UUID->new();
+
+    my $unique_string = $ug->create_str(); 
+    my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
+    mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
+
+    my $fasta_file_name = $dir_out->file( $well_id . '_oligos.fasta');
+    my $fh = $fasta_file_name->openw();
+    my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
+
+    foreach my $oligo ( sort keys %{ $primer_data->{'left'} } ) {
+        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'left'}->{$oligo}->{'seq'}, -id => $oligo );
+        $seq_out->write_seq( $fasta_seq );
+    }
+
+    foreach my $oligo ( sort keys %{ $primer_data->{'right'} } ) {
+        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'right'}->{$oligo}->{'seq'}, -id => $oligo );
+        $seq_out->write_seq( $fasta_seq );
+    }
+
+    return ($fasta_file_name, $dir_out);
+}
+
 
 sub generate_bwa_query_file {
     my $design_id= shift;
@@ -381,13 +489,67 @@ sub get_EnsEmbl_sequence {
 }
 
 =head
+Given crispr sequencing co-ordinates
+Returns a sequence region
+=cut
+
+sub get_crispr_PCR_EnsEmbl_region{
+    my $params = shift;
+
+    my $schema = $params->{'schema'};
+    my $crispr_primers = $params->{'crispr_primers'};
+    my $species = $params->{'species'};
+
+    my $slice_region;
+
+    # Here we want a slice from the beginning of (start(left_0) - ($dead_width + $search_field))
+    # to the end(right_0) + ($dead_width + $search_field)
+    my $dead_field_width = 100;
+    my $search_field_width = 200;
+
+
+    my $chr_strand = $crispr_primers->{'strand'}; # That is the gene strand
+    my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
+    my $seq;
+
+
+    my $start_target = $crispr_primers->{'crispr_primers'}->{'left'}->{'left_0'}->{'location'}->start
+        + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
+    my $end_target = $crispr_primers->{'crispr_primers'}->{'right'}->{'right_0'}->{'location'}->end
+        + $crispr_primers->{'crispr_seq'}->{'chr_region_start'};
+
+    my $start_coord =  $start_target - ($dead_field_width + $search_field_width);
+    my $end_coord =  $end_target + ($dead_field_width + $search_field_width);
+    $slice_region = $slice_adaptor->fetch_by_region(
+        'chromosome',
+        $crispr_primers->{'crispr_seq'}->{'left_crispr'}->{'chr_name'},
+        $start_coord,
+        $end_coord,
+        $crispr_primers->{'strand'},
+    );
+    if ( $chr_strand eq 'plus' ) {
+        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
+    }
+    elsif ( $chr_strand eq 'minus' ) {
+        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 )->revcom;
+    }
+
+    my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
+    my $target_sequence_string = $search_field_width . ',' . $target_sequence_length;
+
+    
+    return ( $seq, $target_sequence_string, $target_sequence_length );
+} 
+
+
+=head
 Given design and schema
 Returns a single sequence covering the whole region for Primer3 and a target_sequence_string that
-indicates which part of the sequene is being targeted (and therefore should not be part of the primer
+indicates which part of the sequence is being targeted (and therefore should not be part of the primer
 sequences).
 =cut
 
-sub get_EnsEmbl_region {
+sub get_genotyping_EnsEmbl_region {
     my $params = shift;
 
     my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
@@ -499,8 +661,11 @@ sub pick_crispr_primers {
     my $crispr_oligos = oligos_for_crispr_pair( $params->{'schema'}, $params->{'crispr_pair_id'} );
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
-    my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand )
-        = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos );
+    my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
+        $chr_seq_start, $chr_seq_end)
+        = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos );    
+
+    $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' },
@@ -619,7 +784,7 @@ sub get_crispr_pair_EnsEmbl_region {
     my $seq;
     my $crispr_length = length($crispr_oligos->{'left_crispr'}->{'seq'});
     # dead field width is the number of bases in which primers must not be found.
-    # This is because sequencing oligos nees some run-in to the region of interest.
+    # This is because sequencing oligos needs some run-in to the region of interest.
     # So, we need a region that covers from the 3' end of the crispr back to (len_crispr + dead_field + live_field)
     # 5' (live_field + dead_field + len_crispr)
     my $dead_field_width = 100; 
@@ -658,9 +823,12 @@ sub get_crispr_pair_EnsEmbl_region {
     my $target_sequence_length = ($end_coord - $start_coord) + 2 * $dead_field_width;
     # target sequence is <start, length> and in this case indicates the region we want to sequence
 
-    my $target_sequence_string =  $search_field_width. ',' . $target_sequence_length;
+    my $target_sequence_string =  $search_field_width . ',' . $target_sequence_length;
 
-    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand)  ;
+    my $chr_seq_start = $slice_region->start;
+    my $chr_seq_end = $slice_region->end;
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand,
+            $chr_seq_start, $chr_seq_end)  ;
 }
 
 
@@ -716,5 +884,7 @@ sub get_crispr_EnsEmbl_region {
     # target sequence is <start, length> and in this case indicates the region we want to sequence
     my $target_sequence_string = 1 . ',' . $target_sequence_length;
 
-    return ($seq, $target_sequence_string, $target_sequence_length) ;
+    my $chr_seq_start = $slice_region->start;
+    my $chr_seq_end = $slice_region->end;
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_seq_start, $chr_seq_end) ;
 }1;
