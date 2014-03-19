@@ -76,7 +76,7 @@ sub pick_crispr_PCR_primers {
     );
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
     my $logfile = $dir_out->file( $well_id . '_pcr_oligos.log');
-        
+
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             {
                 SEQUENCE_TARGET => $target_sequence_mask ,
@@ -240,8 +240,7 @@ sub filter_oligo_hits {
     # that are not hitting other areas of the genome
 
     # so that we only suggest max of two primer pairs.
-    my %primer_data_updated;
-    
+
     foreach my $key ( sort keys %{$primer_data->{'left'}} ) {
         $primer_data->{'left'}->{$key}->{'mapped'} = $hits_to_filter->{$key};
     }
@@ -252,7 +251,7 @@ sub filter_oligo_hits {
 
     $primer_data = del_bad_pairs('left', $primer_data);
     $primer_data = del_bad_pairs('right', $primer_data);
-    
+
     return $primer_data;
 }
 
@@ -262,7 +261,7 @@ Returns: primer_data_hashref
 
      Process the input hash deleting any that do not have a unique_alignment key.
      Make sure there both a left and a right primer of the same rank.
-    
+
 =cut
 sub del_bad_pairs {
     my $primer_end = shift;
@@ -292,7 +291,7 @@ sub generate_pcr_bwa_query_file {
     use Data::UUID;
     my $ug = Data::UUID->new();
 
-    my $unique_string = $ug->create_str(); 
+    my $unique_string = $ug->create_str();
     my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
     mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
 
@@ -323,7 +322,7 @@ sub generate_bwa_query_file {
     use Data::UUID;
     my $ug = Data::UUID->new();
 
-    my $unique_string = $ug->create_str(); 
+    my $unique_string = $ug->create_str();
     my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
     mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
 
@@ -537,9 +536,9 @@ sub get_crispr_PCR_EnsEmbl_region{
     my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
     my $target_sequence_string = $search_field_width . ',' . $target_sequence_length;
 
-    
+
     return ( $seq, $target_sequence_string, $target_sequence_length );
-} 
+}
 
 
 =head
@@ -663,7 +662,7 @@ sub pick_crispr_primers {
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
         $chr_seq_start, $chr_seq_end)
-        = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos );    
+        = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos );
 
     $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
 
@@ -679,7 +678,7 @@ sub pick_crispr_primers {
             { SEQUENCE_TARGET => $target_sequence_mask ,
             } );
     # for sequencing dont want pairs
-    my %failed_primer_regions; 
+    my %failed_primer_regions;
     if ( $result->num_primer_pairs ) {
         INFO ( $params->{'crispr_pair_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
     }
@@ -723,7 +722,7 @@ sub oligos_for_crispr_pair {
 
 
     my $crispr_pairs_rs = crispr_pair_oligos_rs( $schema, $crispr_pair_id );
-    my $crispr_pair = $crispr_pairs_rs->first; 
+    my $crispr_pair = $crispr_pairs_rs->first;
 
     my %crispr_pairs;
     $crispr_pairs{'left_crispr'}->{'id'} = $crispr_pair->left_crispr_locus->crispr_id;
@@ -733,7 +732,7 @@ sub oligos_for_crispr_pair {
     $crispr_pairs{'left_crispr'}->{'chr_id'} = $crispr_pair->left_crispr_locus->chr_id;
     $crispr_pairs{'left_crispr'}->{'chr_name'} = $crispr_pair->left_crispr_locus->chr->name;
     $crispr_pairs{'left_crispr'}->{'seq'} = $crispr_pair->left_crispr_locus->crispr->seq;
-    
+
     $crispr_pairs{'right_crispr'}->{'id'} = $crispr_pair->right_crispr_locus->crispr_id;
     $crispr_pairs{'right_crispr'}->{'chr_start'} = $crispr_pair->right_crispr_locus->chr_start;
     $crispr_pairs{'right_crispr'}->{'chr_end'} = $crispr_pair->right_crispr_locus->chr_end;
@@ -787,7 +786,7 @@ sub get_crispr_pair_EnsEmbl_region {
     # This is because sequencing oligos needs some run-in to the region of interest.
     # So, we need a region that covers from the 3' end of the crispr back to (len_crispr + dead_field + live_field)
     # 5' (live_field + dead_field + len_crispr)
-    my $dead_field_width = 100; 
+    my $dead_field_width = 100;
     my $search_field_width = 200;
 
     my $start_coord = $crispr_oligos->{'left_crispr'}->{'chr_start'};
@@ -853,7 +852,7 @@ sub get_crispr_EnsEmbl_region {
     # This is because sequencing oligos nees some run-in to the region of interest.
     # So, we need a region that covers from the 3' end of the crispr back to (len_crispr + dead_field + live_field)
     # 5' (live_field + dead_field + len_crispr)
-    my $dead_field_width = 100; 
+    my $dead_field_width = 100;
     my $live_field_width = 200;
 
     my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
@@ -882,9 +881,11 @@ sub get_crispr_EnsEmbl_region {
 
     my $target_sequence_length = $seq->length - ($dead_field_width + $crispr_length);
     # target sequence is <start, length> and in this case indicates the region we want to sequence
-    my $target_sequence_string = 1 . ',' . $target_sequence_length;
+    my $target_sequence_string = '1' . ',' . $target_sequence_length;
 
     my $chr_seq_start = $slice_region->start;
     my $chr_seq_end = $slice_region->end;
     return ($seq, $target_sequence_string, $target_sequence_length, $chr_seq_start, $chr_seq_end) ;
-}1;
+}
+
+1;
