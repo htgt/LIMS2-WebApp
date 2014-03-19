@@ -321,6 +321,26 @@ sub pairs {
   return ($self->pam_right) ? $self->crispr_pairs_right_crisprs : $self->crispr_pairs_left_crisprs;
 }
 
+# Designs may be linked to single crispr directly or to crispr pair
+sub related_designs {
+  my $self = shift;
+
+  my @designs;
+      foreach my $crispr_design ($self->crispr_designs->all){
+        my $design = $crispr_design->design;
+        push @designs, $design;
+    }
+
+    foreach my $pair ($self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all){
+        foreach my $pair_crispr_design ($pair->crispr_designs->all){
+            my $pair_design = $pair_crispr_design->design;
+            push @designs, $pair_design;
+        }
+    }
+
+    return @designs;
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

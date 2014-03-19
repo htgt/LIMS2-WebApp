@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.172     2014-03-19 06:21:46 Europe/London
+
+    Added candidate_oligo and candidate_region columns to design attempt table.
+
+0.171     2014-03-17 11:17:42 Europe/London
+
+    Added crispr assembly plate to  workflow
+
 0.170     2014-03-12 06:12:28 Europe/London
 
     Added redo button to design attempts page.

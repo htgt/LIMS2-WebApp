@@ -116,7 +116,7 @@ sub delete_process {
 
     my @related_resultsets = qw(  process_backbone process_bacs process_cassette process_design
                                   process_input_wells process_output_wells process_recombinases
-                                  process_cell_line process_crispr
+                                  process_cell_line process_crispr process_nuclease
                                 );
 
     for my $rs ( @related_resultsets ) {

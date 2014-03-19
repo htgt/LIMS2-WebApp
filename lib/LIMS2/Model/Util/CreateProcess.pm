@@ -55,6 +55,11 @@ my %process_field_data = (
         label  => 'Recombinase',
         name   => 'recombinase',
     },
+    nuclease => {
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('Nuclease')->all ]},
+        label  => 'Nuclease',
+        name   => 'nuclease',
+    }
 );
 
 sub process_fields {
@@ -143,8 +148,9 @@ my %process_check_well = (
     'xep_pool'               => \&_check_wells_xep_pool,
     'dist_qc'                => \&_check_wells_dist_qc,
     'crispr_vector'          => \&_check_wells_crispr_vector,
-    'crispr_single_ep'       => \&_check_wells_crispr_single_ep,
-    'crispr_paired_ep'       => \&_check_wells_crispr_paired_ep,
+    'single_crispr_assembly' => \&_check_wells_single_crispr_assembly,
+    'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
+    'crispr_ep'              => \&_check_wells_crispr_ep,
 );
 
 sub check_process_wells {
@@ -501,7 +507,7 @@ sub _check_wells_crispr_vector {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_wells_crispr_single_ep {
+sub _check_wells_single_crispr_assembly {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -526,7 +532,7 @@ sub _check_wells_crispr_single_ep {
     }
     unless ($crispr_v == 1 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
-            'crispr_paired_ep process types require two input wells, one of type CRISPR_V '
+            'single_crispr_assembly process types require two input wells, one of type CRISPR_V '
             . 'and the other of type FINAL_PICK'
         );
     }
@@ -536,7 +542,7 @@ sub _check_wells_crispr_single_ep {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _check_wells_crispr_paired_ep {
+sub _check_wells_paired_crispr_assembly {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -572,17 +578,27 @@ sub _check_wells_crispr_paired_ep {
 
     unless ($crispr_v == 2 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
-            'crispr_paired_ep process types require three input wells, two of type CRISPR_V '
+            'paired_crispr_assembly process types require three input wells, two of type CRISPR_V '
             . 'and the other of type FINAL_PICK'
         );
     }
     unless ($pamright && $pamleft ) {
         LIMS2::Exception::Validation->throw(
-            'crispr_paired_ep process types requires paired CRISPR_V. '
+            'paired_crispr_assembly process types require paired CRISPR_V. '
             . 'The provided pair is not valid'
         );
     }
 
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_crispr_ep {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
     return;
 }
 ## use critic
@@ -607,8 +623,9 @@ my %process_aux_data = (
     'xep_pool'               => \&_create_process_aux_data_xep_pool,
     'dist_qc'                => \&_create_process_aux_data_dist_qc,
     'crispr_vector'          => \&_create_process_aux_data_crispr_vector,
-    'crispr_single_ep'       => \&_create_process_aux_data_crispr_single_ep,
-    'crispr_paired_ep'       => \&_create_process_aux_data_crispr_paired_ep,
+    'single_crispr_assembly' => \&_create_process_aux_data_single_crispr_assembly,
+    'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
+    'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
 );
 
 sub create_process_aux_data {
@@ -994,13 +1011,33 @@ sub _create_process_aux_data_crispr_vector {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_crispr_single_ep {
+sub _create_process_aux_data_single_crispr_assembly {
     return;
 }
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
-sub _create_process_aux_data_crispr_paired_ep {
+sub _create_process_aux_data_paired_crispr_assembly {
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_crispr_ep {
+    return {
+        cell_line    => { validate => 'existing_cell_line' },
+        nuclease     => { validate => 'existing_nuclease' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_crispr_ep {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_crispr_ep );
+
+    $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) }  );
+    $process->create_related( process_nuclease => { nuclease_id => _nuclease_id_for( $model, $validated_params->{nuclease} ) } );
+
     return;
 }
 ## use critic
@@ -1026,6 +1063,12 @@ sub _cell_line_id_for {
 	return $cell_line->id;
 }
 
+sub _nuclease_id_for{
+    my ($model, $nuclease_name ) = @_;
+
+    my $nuclease = $model->retrieve( Nuclease => { name => $nuclease_name });
+    return $nuclease->id;
+}
 1;
 
 __END__

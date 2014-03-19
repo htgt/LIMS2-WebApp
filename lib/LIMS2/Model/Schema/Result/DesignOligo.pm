@@ -191,16 +191,17 @@ sub as_hash {
 
 =head2 oligo_strand_vs_design_strand
 
-What is the orientation of the oligo in relation to the strand of the design it is targeted against.
+What is the orientation of the oligo in relation to the strand of the design it belongs to.
+1 means it is the same strand as the design, -1 means it is the opposite strand to the design.
 Remember, all oligo sequence is stored on the +ve strand, no matter the design strand.
 
 For example, the U5 oligo is on the same strand as the design ( 1 )
 So a U5 oligo for a +ve stranded design is on the +ve strand ( i.e do not revcomp )
-Conversly, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e revcomp it )
+Conversely, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e revcomp it )
 
 The U3 oligo is on the opposite strand as the design ( -1 )
 So a U3 oligo for a +ve stranded design is on the -ve strand ( i.e revcomp it )
-Conversly, a U3 oligo for a -ve stranded design is on the +ve strand ( i.e do not revcomp )
+Conversely, a U3 oligo for a -ve stranded design is on the +ve strand ( i.e do not revcomp )
 
 =cut
 my %OLIGO_STRAND_VS_DESIGN_STRAND = (
