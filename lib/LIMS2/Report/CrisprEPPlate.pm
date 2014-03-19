@@ -20,7 +20,7 @@ override _build_columns => sub {
 
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
-        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol',
+        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
         'Left Crispr', 'Right Crispr',
         'Created By','Created At',
@@ -45,22 +45,7 @@ override iterator => sub {
             or return;
 
         my $final_vector = $well->final_vector;
-        my ($crispr1, $crispr2) = $well->parent_crispr_v;#->parent_crispr;
-
-        my ($right_crispr, $left_crispr);
-        if (defined $crispr2) {
-            if ($crispr2->crispr->pam_right) {
-                $right_crispr = $crispr2->parent_crispr->plate . '[' . $crispr2->parent_crispr->name . ']';
-                $left_crispr = $crispr1->parent_crispr->plate . '[' . $crispr1->parent_crispr->name . ']';
-            } else {
-                $right_crispr = $crispr1->parent_crispr->plate . '[' . $crispr1->parent_crispr->name . ']';
-                $left_crispr = $crispr2->parent_crispr->plate . '[' . $crispr2->parent_crispr->name . ']';
-            }
-        } elsif (defined $crispr1) {
-            $right_crispr = '';
-            $left_crispr = $crispr1->parent_crispr->plate . '[' . $crispr1->parent_crispr->name . ']';
-        }
-
+        my ($left_crispr,$right_crispr) = $well->left_and_right_crispr_wells;
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $well->name,
@@ -71,8 +56,8 @@ override iterator => sub {
             $final_vector->backbone->name,
             $well->nuclease->name,
             $well->first_cell_line->name,
-            $left_crispr,
-            $right_crispr,
+            $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
+            $right_crispr ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
             # join( q{/}, @{ $final_vector->recombinases } ),
             $well->created_by->name,
             $well->created_at->ymd,
