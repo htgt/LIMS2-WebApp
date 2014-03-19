@@ -153,6 +153,8 @@ sub _build_column_data {
     my $count_tgs = $number_genes;
     $sponsor_data->{'Targeted Genes'}{$sponsor_id} = $count_tgs;
 
+=head
+    # FIXME: This is not fully implemented yet
     # ------------ Crispr Vectors and Electroporations --------
     my $count_crispr_vectors_single = 0;
     if( $count_tgs > 0 ){
@@ -171,6 +173,7 @@ sub _build_column_data {
         $count_crispr_eps = $self->crispr_electroporations($sponsor_id, 'count');
     }
     $sponsor_data->{'Crispr Electroporations'}{$sponsor_id} = $count_crispr_eps;
+=cut
 
     # ------------ Vectors ---------------
     # only look if targeted genes found
