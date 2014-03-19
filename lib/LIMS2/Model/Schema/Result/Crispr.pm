@@ -358,7 +358,23 @@ sub vector_wells{
 sub accepted_vector_wells{
     my $self = shift;
 
-    return grep { $_->is_accepted } $self->vector_wells;
+    # Assume we are only interested in vectors on the most recently created crispr_v plate
+    my @accepted_wells;
+    my $most_recent_plate;
+    foreach my $well ($self->vector_wells){
+        
+        next unless $well->is_accepted;
+
+        push @accepted_wells, $well;  
+
+        my $plate = $well->plate; 
+        $most_recent_plate ||= $plate;
+        if ($plate->created_at > $most_recent_plate->created_at){
+            $most_recent_plate = $plate;
+        }
+    }
+
+    return grep { $_->plate_id == $most_recent_plate->id } @accepted_wells;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
