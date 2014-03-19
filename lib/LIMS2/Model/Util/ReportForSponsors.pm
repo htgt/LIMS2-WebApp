@@ -142,6 +142,7 @@ sub _build_sponsor_column_data {
     return;
 }
 
+## no critic(ProhibitExcessComplexity)
 sub _build_column_data {
 
     my ( $self, $sponsor_id, $sponsor_data, $number_genes ) = @_;
@@ -164,7 +165,7 @@ sub _build_column_data {
         $count_crispr_vectors_paired = $self->crispr_vectors_paired($sponsor_id, 'count');
     }
     $sponsor_data->{'Crispr Vectors Paired'}{$sponsor_id} = $count_crispr_vectors_paired;
-    
+
     my $count_crispr_eps = 0;
     if( $count_crispr_vectors_single or $count_crispr_vectors_paired){
         $count_crispr_eps = $self->crispr_electroporations($sponsor_id, 'count');
@@ -306,6 +307,7 @@ sub _build_column_data {
 
     return;
 }
+## use critic
 
 sub select_sponsors_with_projects {
     my ( $self ) = @_;
@@ -4221,7 +4223,7 @@ and wells.plate_id=plates.id
 and plates.type_id='CRISPR_V'
 and wells.accepted='true'
 SQL_END
-return $sql_query; 
+return $sql_query;
 }
 
 sub sql_select_st_crispr_vectors_single {
@@ -4261,7 +4263,7 @@ and wells.plate_id=plates.id
 and plates.type_id='CRISPR_V'
 and wells.accepted='true'
 SQL_END
-return $sql_query; 
+return $sql_query;
 }
 
 sub sql_count_st_crispr_vectors_paired {
@@ -4302,7 +4304,7 @@ and wells.plate_id=plates.id
 and plates.type_id='CRISPR_V'
 and wells.accepted='true'
 SQL_END
-return $sql_query; 
+return $sql_query;
 }
 
 sub sql_select_st_crispr_vectors_paired {
@@ -4343,7 +4345,7 @@ and wells.plate_id=plates.id
 and plates.type_id='CRISPR_V'
 and wells.accepted='true'
 SQL_END
-return $sql_query; 
+return $sql_query;
 }
 
 sub sql_count_crispr_eps{

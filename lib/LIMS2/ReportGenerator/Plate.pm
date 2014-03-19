@@ -135,7 +135,7 @@ sub accepted_crispr_data {
                     my $left_as_string = join( q{/}, map {$_->as_string} @left_crisprs);
                     my $right_as_string = join( q{/}, map {$_->as_string} @right_crisprs);
                     my $pair_as_string = "[left:$left_as_string-right:$right_as_string]";
-                    push @paired_crisprs, $pair_as_string; 
+                    push @paired_crisprs, $pair_as_string;
                 }
             }
         }
@@ -143,7 +143,7 @@ sub accepted_crispr_data {
     else{
         LIMS2::Exception::Implementation->throw("Cannot find design for well ".$well->as_string);
     }
-    return ( 
+    return (
         join( q{/}, map {$_->as_string} @single_crisprs ),
         join( q{ }, @paired_crisprs ),
     );
@@ -241,11 +241,11 @@ sub crispr_design_and_gene_cols{
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
     my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
 
-    return ( 
-        join( q{/}, uniq @design_ids ), 
-        join( q{/}, uniq @gene_ids ), 
-        join( q{/}, keys %symbols ), 
-        join( q{/}, @sponsors ) 
+    return (
+        join( q{/}, uniq @design_ids ),
+        join( q{/}, uniq @gene_ids ),
+        join( q{/}, keys %symbols ),
+        join( q{/}, @sponsors )
     );
 }
 

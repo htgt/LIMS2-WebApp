@@ -23,7 +23,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name',
-        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors",        
+        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors",
         'Crispr Plate', 'Crispr Well',
         'Backbone',
         'Created By','Created At',

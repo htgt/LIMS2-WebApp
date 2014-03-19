@@ -21,7 +21,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
-        $self->accepted_crispr_columns,        
+        $self->accepted_crispr_columns,
         "Cassette", "Cassette Resistance", "Cassette Type", "Backbone", "Recombinases",
         "Intermedate Well", "Intermediate QC Test Result", "Intermediate Valid Primers", "Intermediate Mixed Reads?", "Intermediate Sequencing QC Pass?",
         "Post-intermedate Well", "Post-intermediate QC Test Result", "Post-intermediate Valid Primers", "Post-intermediate Mixed Reads?", "Post-intermediate Sequencing QC Pass?",

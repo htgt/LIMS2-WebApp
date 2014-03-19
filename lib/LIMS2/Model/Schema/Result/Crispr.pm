@@ -362,12 +362,12 @@ sub accepted_vector_wells{
     my @accepted_wells;
     my $most_recent_plate;
     foreach my $well ($self->vector_wells){
-        
+
         next unless $well->is_accepted;
 
-        push @accepted_wells, $well;  
+        push @accepted_wells, $well;
 
-        my $plate = $well->plate; 
+        my $plate = $well->plate;
         $most_recent_plate ||= $plate;
         if ($plate->created_at > $most_recent_plate->created_at){
             $most_recent_plate = $plate;
