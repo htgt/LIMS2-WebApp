@@ -1,3 +1,7 @@
+0.172     2014-03-19 06:21:46 Europe/London
+
+    Added candidate_oligo and candidate_region columns to design attempt table.
+
 0.171     2014-03-17 11:17:42 Europe/London
 
     Added crispr assembly plate to  workflow

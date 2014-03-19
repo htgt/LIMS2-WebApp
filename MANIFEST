@@ -14,7 +14,6 @@ bin/process_graph.pl
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
 docs/testing/TestingTargets.ods
-generate-pg-audit-ddl~
 lib/LIMS2/AlleleRequest.pm
 lib/LIMS2/AlleleRequest/DoubleTargeted.pm
 lib/LIMS2/AlleleRequest/SingleTargeted.pm
@@ -2147,9 +2146,7 @@ root/static/extjs/src/window/MessageBox.js
 root/static/extjs/src/window/Window.js
 root/static/extjs/version.properties
 root/static/files/plate_upload/crispr_ep_template_es.csv
-root/static/files/plate_upload/crispr_ep_template_es.csv~
 root/static/files/plate_upload/crispr_ep_template_vector.csv
-root/static/files/plate_upload/crispr_ep_template_vector.csv~
 root/static/files/plate_upload/crispr_paired_ep_template.csv
 root/static/files/plate_upload/crispr_single_ep_template.csv
 root/static/files/plate_upload/dna_template.csv
@@ -2340,7 +2337,6 @@ root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Process
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessOutputWell.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessRecombinase.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/User.csv
-root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/User.csv~
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Well.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crispr_loci.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crisprs.csv
@@ -2776,7 +2772,6 @@ t/lib/LIMS2/t/ReportGenerator/Plate/SingleTargeted.pm
 t/lib/LIMS2/t/ReportGenerator/ProductionDetail.pm
 t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescend.pm
 t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm
-t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm~
 t/lib/LIMS2/t/Test.pm
 t/lib/LIMS2/t/WebApp.pm
 t/lib/LIMS2/t/WebApp/Controller/API.pm

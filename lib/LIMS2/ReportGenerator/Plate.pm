@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.171';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.172';
 }
 ## use critic
 
@@ -188,16 +188,8 @@ sub crispr_marker_symbols{
     my ($self, $crispr) = @_;
 
     my %symbols;
-    foreach my $crispr_design ($crispr->crispr_designs->all){
-        my $design = $crispr_design->design;
+    foreach my $design ($crispr->related_designs){
         $self->_symbols_from_design($design, \%symbols);
-    }
-
-    foreach my $pair ($crispr->crispr_pairs_left_crisprs->all, $crispr->crispr_pairs_right_crisprs->all){
-        foreach my $pair_crispr_design ($pair->crispr_designs->all){
-            my $pair_design = $pair_crispr_design->design;
-            $self->_symbols_from_design($pair_design, \%symbols);
-        }
     }
 
     return join ", ", keys %symbols;
