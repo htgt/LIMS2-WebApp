@@ -33,6 +33,8 @@ use LIMS2::Model::Util::PgUserRole qw( db_name );
 use LIMS2::Model::Util::RefdataUpload;
 use File::Basename;
 
+Log::Log4perl->easy_init($OFF);
+
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
 # These must match the user/password created in t/fixtures/10-users-roles.t
@@ -298,6 +300,7 @@ sub load_dynamic_files {
     my @reference_tables = (
         qw(
             User
+            UserRole
             Design
             DesignOligo
             DesignOligoLocus
@@ -325,6 +328,7 @@ sub load_dynamic_files {
             ProcessOutputWell
             ProcessDesign
             ProcessRecombinase
+            Project
         )
     );
 

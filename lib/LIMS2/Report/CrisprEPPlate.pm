@@ -2,6 +2,7 @@ package LIMS2::Report::CrisprEPPlate;
 
 use Moose;
 use namespace::autoclean;
+use TryCatch;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -50,14 +51,14 @@ override iterator => sub {
         return [
             $well->name,
             $self->design_and_gene_cols($well),
-            $final_vector->cassette->name,
-            $final_vector->cassette->resistance,
+            $final_vector->cassette ? $final_vector->cassette->name       : '-',
+            $final_vector->cassette ? $final_vector->cassette->resistance : '-',
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
-            $final_vector->backbone->name,
-            $well->nuclease->name,
-            $well->first_cell_line->name,
-            $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
-            $right_crispr ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
+            $final_vector->backbone ? $final_vector->backbone->name       : '-',
+            $well->nuclease         ? $well->nuclease->name               : '-',
+            $well->first_cell_line  ? $well->first_cell_line->name        : '-',
+            $left_crispr            ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
+            $right_crispr           ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
             # join( q{/}, @{ $final_vector->recombinases } ),
             $well->created_by->name,
             $well->created_at->ymd,
