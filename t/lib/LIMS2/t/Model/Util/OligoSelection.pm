@@ -41,7 +41,11 @@ sub a_test_oligos_for_gibson : Test(11) {
     throws_ok { LIMS2::Model::Util::OligoSelection::update_primer_type( '3T', \%gps, $gibson_design_oligos_rs) } qr/No data returned/, 'Searching for primer 3T fails';
 
     ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence({ schema => model->schema, design_id => $design_id }), 'Sequences generated for forward and reverse strands';
-    ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model->schema, $design_id, $species ), 'Running primer3';
+    ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers({
+            'schema' => model->schema,
+            'design_id' => $design_id,
+            'species' => $species 
+        }), 'Running primer3';
     is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
     is $primer_results->{'left'}->{'left_1'}->{'seq'}, 'AACCAGAAAAATGTCAGGACAAGAC', 'Left rank 1 primer correct';
 }
@@ -57,7 +61,11 @@ $DB::single=1;
     is $gibson_rs->first->design_id, $design_id, 'can retrieve resultset for design_id ' . $design_id;
     
     ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence({ schema => model->schema, design_id => $design_id }), 'Sequences generated for forward and reverse strands';
-    ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model->schema, $design_id, $species ), 'Running primer3';
+    ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers({
+            'schema' => model->schema,
+            'design_id' => $design_id,
+            'species' => $species
+        }), 'Running primer3';
     is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
     is $primer_results->{'left'}->{'left_0'}->{'seq'}, 'ATGTTATTTCCCCTATGAGCTCCAG', 'Left rank 0 primer correct';
 

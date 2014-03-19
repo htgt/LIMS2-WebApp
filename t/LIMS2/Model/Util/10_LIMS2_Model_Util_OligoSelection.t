@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -d
+#!/usr/bin/env perl
 
 use strict;
 use warnings FATAL => 'all';
@@ -23,8 +23,8 @@ use LIMS2::t::Model::Util::OligoSelection;
 Test module structured for running under Test::Class
 
 =cut
-
-Test::Class->runtests;
+# Not ready to run tests for deployment
+#Test::Class->runtests;
 
 
 1;
