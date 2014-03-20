@@ -59,7 +59,12 @@ my %process_field_data = (
         values => sub{ return [ map{ $_->name } shift->schema->resultset('Nuclease')->all ]},
         label  => 'Nuclease',
         name   => 'nuclease',
-    }
+    },
+    backbone => {
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('Backbone')->all ] },
+        label  => 'Backbone',
+        name   => 'backbone',
+    },
 );
 
 sub process_fields {
@@ -705,9 +710,9 @@ sub _create_process_aux_data_create_crispr {
 ## use critic
 
 sub pspec__create_process_aux_data_int_recom {
+    ## Backbone constraint must be set depending on species
     return {
         cassette => { validate => 'existing_intermediate_cassette' },
-        backbone => { validate => 'existing_intermediate_backbone' },
     };
 }
 
@@ -715,8 +720,21 @@ sub pspec__create_process_aux_data_int_recom {
 sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
 
+    my $pspec = pspec__create_process_aux_data_int_recom;
+    my ($input_well) = $process->process_input_wells;
+    my $species_id = $input_well->well->plate->species_id;
+    if($species_id eq "Human"){
+        # Allow any type of backbone
+        DEBUG("Allowing any backbone on human int_recom");
+        $pspec->{backbone} = { validate => 'existing_backbone' };
+    }
+    else{
+        # Must be an intermediate backbone
+        $pspec->{backbone} = { validate => 'existing_intermediate_backbone'};
+    }
+
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_int_recom );
+        = $model->check_params( $params, $pspec );
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );

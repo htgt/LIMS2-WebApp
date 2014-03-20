@@ -51,7 +51,7 @@ const our %PROCESS_PLATE_TYPES => (
 
 # Additional information required at upload for process types (none if not listed)
 const our %PROCESS_SPECIFIC_FIELDS => (
-    'int_recom'              => [qw( intermediate_cassette intermediate_backbone )],
+    'int_recom'              => [qw( intermediate_cassette backbone )],
     'cre_bac_recom'          => [qw( intermediate_cassette intermediate_backbone )],
     '2w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     '3w_gateway'             => [qw( final_cassette final_backbone recombinase )],
@@ -60,6 +60,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'first_electroporation'  => [qw( cell_line recombinase )],
     'second_electroporation' => [qw( recombinase )],
     'crispr_ep'              => [qw( cell_line nuclease )],
+    'crispr_vector'          => [qw( backbone )],
 #    'xep_pool'              => [qw( recombinase )],
 );
 
