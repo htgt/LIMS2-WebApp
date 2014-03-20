@@ -27,7 +27,7 @@ sub a_test_chromosome_retrieval : Test(2) {
     is $chromosome_id, 3178, 'can retrieve chromosome id';
 }
 
-sub b_test_browser_crisprs_for_region : Test(12) {
+sub b_test_browser_crisprs_for_region : Test(14) {
     my %params = (
         'assembly_id'       => 'GRCm38',
         'chromosome_number' => '7',
@@ -49,12 +49,14 @@ sub b_test_browser_crisprs_for_region : Test(12) {
     ok my $test_gff_crisprs =  crisprs_to_gff( $crispr_rs, \%params ), 'converted and returned gff3 format single crispr data';
     is ref $test_gff_crisprs, 'ARRAY', 'result is an array reference';
     is scalar @$test_gff_crisprs, 11, 'Array has the correct number of elements';
-    #is $test_gff_crisprs->[4],
-    #"7\tLIMS2\tCDS\t141009904\t141009926\t.\t+\t.\tID=69848;Parent=C_69848;Name=LIMS2-69848;color=#45A825",
-    #'Element 5 is in the correct format';
+    my @example = grep { /ID=69848/ } @$test_gff_crisprs;
+    is scalar @example, 1, 'Example contains just one example crispr';
+    is $example[0],
+    "7\tLIMS2\tCDS\t141009904\t141009926\t.\t+\t.\tID=69848;Parent=C_69848;Name=LIMS2-69848;color=#45A825",
+    'Element 0 is in the correct format';
 }
 
-sub c_test_browser_crispr_pairs_for_region : Test(17) {
+sub c_test_browser_crispr_pairs_for_region : Test(18) {
     my %params = (
         'assembly_id'       => 'GRCm38',
         'chromosome_number' => '7',
@@ -79,15 +81,18 @@ sub c_test_browser_crispr_pairs_for_region : Test(17) {
     ok my $test_gff_crisprs =  crispr_pairs_to_gff( $crispr_pairs_rs, \%params ), 'converted and returned gff3 format paired crispr data';
     is ref $test_gff_crisprs, 'ARRAY', 'result is an array reference';
     is scalar @$test_gff_crisprs, 6, 'Array has the correct number of elements';
-    is $test_gff_crisprs->[3],
+    my @example_pair = grep { /Name=LIMS2-4423/ } @$test_gff_crisprs;
+    is scalar @example_pair, 1, 'Example contains just one example crispr pair';
+    is $example_pair[0],
     "7\tLIMS2\tcrispr_pair\t141009868\t141009926\t.\t+\t.\tID=4423;Name=LIMS2-4423",
     'Parent element [3] is in the correct format';
-    is $test_gff_crisprs->[4],
+    my @example_child = grep { /ID=69871/ } @$test_gff_crisprs;
+    is $example_child[0],
     "7\tLIMS2\tCDS\t141009868\t141009890\t.\t+\t.\tID=69871;Parent=4423;Name=LIMS2-69871;color=#AA2424",
-    'Child element [4] is in the correct format';
+    'Child element is in the correct format';
 }
 
-sub d_test_gibson_designs_for_region : Test(17) {
+sub d_test_gibson_designs_for_region : Test(19) {
     my %params = (
         'assembly_id'       => 'GRCm38',
         'chromosome_number' => '7',
@@ -112,12 +117,16 @@ sub d_test_gibson_designs_for_region : Test(17) {
     ok my $test_gff_gibsons =  design_oligos_to_gff( $gibson_design_rs, \%params ), 'converted and returned gff3 format gibson design oligo data';
     is ref $test_gff_gibsons, 'ARRAY', 'result is an array reference';
     is scalar @$test_gff_gibsons, 10, 'Array has the correct number of elements';
-    is $test_gff_gibsons->[3],
+    my @example_parent = grep { /ID=D_1002582/ } @$test_gff_gibsons;
+    is scalar @example_parent, 1, 'Example contains just one example crispr pair';
+    is $example_parent[0],
     "7\tLIMS2\tgibson\t141008069\t141011784\t.\t-\t.\tID=D_1002582;Name=D_1002582",
-    'Parent element [3] is in the correct format';
-    is $test_gff_gibsons->[4],
+    'Parent row is in the correct format';
+    my @example_child = grep { /ID=5F/ } @$test_gff_gibsons;
+    is scalar @example_child, 1, 'Example contains just one example crispr pair';
+    is $example_child[0],
     "7\tLIMS2\tCDS\t141011760\t141011784\t.\t-\t.\tID=5F;Parent=D_1002582;Name=5F;color=#68D310",
-    'Child Element [4] is in the correct format';
+    'Child row is in the correct format';
 }
 
 ## use critic
