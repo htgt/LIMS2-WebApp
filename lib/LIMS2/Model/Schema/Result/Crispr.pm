@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.172';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.173';
 }
 ## use critic
 
@@ -345,6 +345,42 @@ sub related_designs {
     }
 
     return @designs;
+}
+
+sub crispr_wells{
+    my $self = shift;
+
+    return map { $_->process->output_wells } $self->process_crisprs;
+}
+
+sub vector_wells{
+    my $self = shift;
+
+    my @wells = $self->crispr_wells;
+
+    return map { $_->descendant_crispr_vectors } @wells;
+}
+
+sub accepted_vector_wells{
+    my $self = shift;
+
+    # Assume we are only interested in vectors on the most recently created crispr_v plate
+    my @accepted_wells;
+    my $most_recent_plate;
+    foreach my $well ($self->vector_wells){
+
+        next unless $well->is_accepted;
+
+        push @accepted_wells, $well;
+
+        my $plate = $well->plate;
+        $most_recent_plate ||= $plate;
+        if ($plate->created_at > $most_recent_plate->created_at){
+            $most_recent_plate = $plate;
+        }
+    }
+
+    return grep { $_->plate_id == $most_recent_plate->id } @accepted_wells;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

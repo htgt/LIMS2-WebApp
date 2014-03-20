@@ -1,3 +1,9 @@
+0.173     2014-03-20 14:47:42 Europe/London
+    
+    OligoSelection util module added
+    Accepted crisprs or crispr pairs (well locations) shown on final and final pick vector plate reportsd
+    Gene sponsors shown on plate reports alongside gene IDs and symbols
+
 0.172     2014-03-19 06:21:46 Europe/London
 
     Added candidate_oligo and candidate_region columns to design attempt table.

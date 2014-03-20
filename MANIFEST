@@ -158,6 +158,7 @@ lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
+lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/QCResults.pm
 lib/LIMS2/Model/Util/QCTemplates.pm
@@ -2325,6 +2326,13 @@ root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/DesignOligo.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/DesignOligoLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/GenomeBrowser/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/Crispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/CrisprLocus.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/CrisprPair.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/Design.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligo.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligoLocus.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/User.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Design.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/GeneDesign.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Plate.csv
@@ -2728,6 +2736,7 @@ t/lib/LIMS2/t/Model/Util/DrawPlateGraph.pm
 t/lib/LIMS2/t/Model/Util/EngSeqParams.pm
 t/lib/LIMS2/t/Model/Util/GeneSearch.pm
 t/lib/LIMS2/t/Model/Util/GenomeBrowser.pm
+t/lib/LIMS2/t/Model/Util/OligoSelection.pm
 t/lib/LIMS2/t/Model/Util/PgUserRole.pm
 t/lib/LIMS2/t/Model/Util/QCResults.pm
 t/lib/LIMS2/t/Model/Util/QCTemplates.pm

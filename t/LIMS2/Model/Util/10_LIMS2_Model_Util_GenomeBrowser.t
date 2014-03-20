@@ -16,7 +16,7 @@ use LIMS2::t::Model::Util::GenomeBrowser;
 
 =head1 NAME
 
-10_LIMS2_Model_Util_CrisprBrowswer.t - Test file for testing the perl module 'LIMS2::Model::Util::GenomeBrowser'
+10_LIMS2_Model_Util_GenomeBrowser.t - Test file for testing the perl module 'LIMS2::Model::Util::GenomeBrowser'
 
 =head1 DESCRIPTION
 

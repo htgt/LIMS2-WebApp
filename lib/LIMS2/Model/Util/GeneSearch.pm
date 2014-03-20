@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GeneSearch;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GeneSearch::VERSION = '0.172';
+    $LIMS2::Model::Util::GeneSearch::VERSION = '0.173';
 }
 ## use critic
 
@@ -91,13 +91,14 @@ sub retrieve_ensembl_gene {
 	    return [{gene_id=>$params->{search_term}, gene_symbol=>"unknown"}];
     }
 
-    if ( @{$filtered} > 1 ) {
-        LIMS2::Exception::Implementation->throw(
-            "Retrieval of gene $params->{species}/$params->{search_term} returned "
-            . @{$filtered} . " genes"
-        );
-    }
+#    if ( @{$filtered} > 1 ) {
+#        LIMS2::Exception::Implementation->throw(
+#            "Retrieval of gene $params->{species}/$params->{search_term} returned "
+#            . @{$filtered} . " genes"
+#        );
+#    }
 
+    #TODO: return a complete list of gene_id and gene_symbol, not just the first one
     return { gene_id => $filtered->[0]->stable_id, gene_symbol => $filtered->[0]->external_name };
 }
 

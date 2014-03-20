@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::SingleTargeted;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.172';
+    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.173';
 }
 ## use critic
 
@@ -15,7 +15,7 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate );
 
 sub base_columns {
-    return ( "Well Name", "Design Id", "Gene Id", "Gene Symbol",  "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?" );
+    return ( "Well Name", "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors", "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?" );
 }
 
 sub base_data {

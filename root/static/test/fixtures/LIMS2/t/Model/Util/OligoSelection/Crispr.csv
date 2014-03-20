@@ -1,0 +1,3 @@
+id,seq,species_id,crispr_loci_type_id,comment,pam_right
+65619,CCTGTGATGGACTCCGGACTATC,Human,Exonic,42A,f
+65638,TCGATGACACAGAGCCCTCTTGG,Human,Exonic,47B,t

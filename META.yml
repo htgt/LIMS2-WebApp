@@ -21,6 +21,7 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
+  Bio::EnsEMBL::Registry: 0
   Bio::Perl: 0
   Bio::Seq: 0
   Bio::SeqIO: 0
@@ -62,6 +63,9 @@ requires:
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
   DateTime::Format::Strptime: 0
+  DesignCreate::Exception::Primer3FailedFindOligos: 0
+  DesignCreate::Util::BWA: 0
+  DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
   EngSeqBuilder: 0
   Exporter: 0
@@ -142,4 +146,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.172
+version: 0.173

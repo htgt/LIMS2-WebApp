@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprPlate::VERSION = '0.172';
+    $LIMS2::Report::CrisprPlate::VERSION = '0.173';
 }
 ## use critic
 
@@ -26,7 +26,9 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
-        "Well Name","Gene Symbol","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
+        "Well Name",
+        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors",
+        "Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
         "Created By","Created At",
     ];
 };
@@ -59,7 +61,7 @@ override iterator => sub {
 
         return [
             $well->name,
-            $gene_symbol ? $gene_symbol : '-',
+            $self->crispr_design_and_gene_cols( $process_crispr->crispr ),
             $crispr_data ? $crispr_data->{id}        : '-',
             $crispr_data ? $crispr_data->{seq}       : '-',
             $crispr_data ? $crispr_data->{type}      : '-',
