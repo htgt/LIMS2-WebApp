@@ -932,7 +932,7 @@ sub get_repeat_masked_sequence {
     my $revcom = $params->{'revcom'};
     my $seq;
     if ( $repeat_mask->[0] eq 'NONE' ) {
-        DEBUG('No repeat masking selected');        
+        DEBUG('No repeat masking selected');
         $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
     }
     else {
