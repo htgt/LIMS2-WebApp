@@ -121,7 +121,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1
     },
     'dna_prep' => {
-        type   => [qw( FINAL FINAL_PICK )],
+        type   => [qw( FINAL FINAL_PICK CRISPR_V )],
         number => 1,
     },
     'clone_pick' => {
@@ -157,11 +157,11 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'single_crispr_assembly' => {
-        type   => [qw( CRISPR_V FINAL_PICK )],
+        type   => [qw( DNA )],
         number => 2,
     },
     'paired_crispr_assembly' => {
-        type   => [qw( CRISPR_V CRISPR_V FINAL_PICK )],
+        type   => [qw( DNA )],
         number => 3,
     },
     'crispr_ep' => {
