@@ -51,8 +51,6 @@ override iterator => sub {
             $locus_data = $crispr_data->{locus} if $crispr_data->{locus};
         }
 
-        my $gene_symbol = $self->crispr_marker_symbols($process_crispr->crispr);
-
         return [
             $well->name,
             $self->crispr_design_and_gene_cols( $process_crispr->crispr ),

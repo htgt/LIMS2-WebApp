@@ -59,7 +59,12 @@ my %process_field_data = (
         values => sub{ return [ map{ $_->name } shift->schema->resultset('Nuclease')->all ]},
         label  => 'Nuclease',
         name   => 'nuclease',
-    }
+    },
+    backbone => {
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('Backbone')->all ] },
+        label  => 'Backbone',
+        name   => 'backbone',
+    },
 );
 
 sub process_fields {
@@ -513,13 +518,14 @@ sub _check_wells_single_crispr_assembly {
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
 
-    # two input wells, one must be CRISPR_V, other FINAL_PICK
-    my @input_well = $process->input_wells;
+    # 2 DNA input wells, 1 must be from CRISPR_V, 1 from FINAL_PICK
+    my @input_wells = $process->input_wells;
+    my @input_parent_wells = map { $_->ancestors->input_wells($_) } @input_wells;
 
-    my $crispr_v,
-    my $final_pick;
+    my $crispr_v = 0;
+    my $final_pick = 0;
 
-    foreach (@input_well) {
+    foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
             unless (defined $_->crispr ) {
@@ -532,8 +538,8 @@ sub _check_wells_single_crispr_assembly {
     }
     unless ($crispr_v == 1 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
-            'single_crispr_assembly process types require two input wells, one of type CRISPR_V '
-            . 'and the other of type FINAL_PICK'
+            'single_crispr_assembly requires two input wells, one DNA prepared from a CRISPR_V '
+            . 'and one DNA prepared from a FINAL_PICK '
         );
     }
 
@@ -548,15 +554,16 @@ sub _check_wells_paired_crispr_assembly {
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
 
-    # three input wells, two must be CRISPR_V, other FINAL_PICK
-    my @input_well = $process->input_wells;
+    # 3 DNA input wells, 2 must be from CRISPR_V, 1 from FINAL_PICK
+    my @input_wells = $process->input_wells;
+    my @input_parent_wells = map { $_->ancestors->input_wells($_) } @input_wells;
 
-    my $crispr_v,
-    my $final_pick;
+    my $crispr_v = 0;
+    my $final_pick = 0;
     my $pamright;
     my $pamleft;
 
-    foreach (@input_well) {
+    foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
             unless (defined $_->crispr ) {
@@ -578,13 +585,13 @@ sub _check_wells_paired_crispr_assembly {
 
     unless ($crispr_v == 2 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
-            'paired_crispr_assembly process types require three input wells, two of type CRISPR_V '
-            . 'and the other of type FINAL_PICK'
+            'paired_crispr_assembly requires three input wells, two DNAs prepared from a CRISPR_V '
+            . 'and one DNA prepared from a FINAL_PICK'
         );
     }
     unless ($pamright && $pamleft ) {
         LIMS2::Exception::Validation->throw(
-            'paired_crispr_assembly process types require paired CRISPR_V. '
+            'paired_crispr_assembly requires DNA prepared from paired CRISPR_V wells. '
             . 'The provided pair is not valid'
         );
     }
@@ -705,9 +712,9 @@ sub _create_process_aux_data_create_crispr {
 ## use critic
 
 sub pspec__create_process_aux_data_int_recom {
+    ## Backbone constraint must be set depending on species
     return {
         cassette => { validate => 'existing_intermediate_cassette' },
-        backbone => { validate => 'existing_intermediate_backbone' },
     };
 }
 
@@ -715,8 +722,21 @@ sub pspec__create_process_aux_data_int_recom {
 sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
 
+    my $pspec = pspec__create_process_aux_data_int_recom;
+    my ($input_well) = $process->process_input_wells;
+    my $species_id = $input_well->well->plate->species_id;
+    if($species_id eq "Human"){
+        # Allow any type of backbone
+        DEBUG("Allowing any backbone on human int_recom");
+        $pspec->{backbone} = { validate => 'existing_backbone' };
+    }
+    else{
+        # Must be an intermediate backbone
+        $pspec->{backbone} = { validate => 'existing_intermediate_backbone'};
+    }
+
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_int_recom );
+        = $model->check_params( $params, $pspec );
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
