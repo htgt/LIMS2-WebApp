@@ -591,7 +591,7 @@ sub _check_wells_paired_crispr_assembly {
     }
     unless ($pamright && $pamleft ) {
         LIMS2::Exception::Validation->throw(
-            'paired_crispr_assembly requires DNA prepared from paired CRISPR_V wells '
+            'paired_crispr_assembly requires DNA prepared from paired CRISPR_V wells. '
             . 'The provided pair is not valid'
         );
     }

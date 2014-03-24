@@ -88,7 +88,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(395)
+sub all_tests  : Test(399)
 {
 
 
@@ -947,6 +947,11 @@ sub all_tests  : Test(395)
 
     note( "Testing single_crispr_assembly process creation" );
     my $assembly_process_data = test_data( 'assembly_process.yaml' );
+    # Set up some DNA wells from CRISPR_V and FINAL_PICK fixture data
+    ok model->create_process( $assembly_process_data->{crispr1_dna_prep} );
+    ok model->create_process( $assembly_process_data->{crispr2_dna_prep} );
+    ok model->create_process( $assembly_process_data->{crispr3_dna_prep} );
+    ok model->create_process( $assembly_process_data->{final_pick_dna_prep} );
     {
     ok my $process = model->create_process( $assembly_process_data->{single_ep_valid_input} ),
         'create_process for type single_crispr_assembly should succeed';
@@ -959,10 +964,10 @@ sub all_tests  : Test(395)
     # check the names of the input wells
     my $input_well = $input_wells->next;
     is $input_well->name, 'A01', 'first input well has correct name';
-    is $input_well->plate->name, 'FP1008', '...and is on correct plate';
+    is $input_well->plate->name, 'DNA_T1', '...and is on correct plate';
     $input_well = $input_wells->next;
     is $input_well->name, 'A01', 'second input well has correct name';
-    is $input_well->plate->name, 'CRISPR_V_T1', '...and is on correct plate';
+    is $input_well->plate->name, 'DNA_FP1008', '...and is on correct plate';
 
     ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
@@ -993,13 +998,13 @@ sub all_tests  : Test(395)
     # check the names of the input wells
     $input_well = $input_wells->next;
     is $input_well->name, 'A01', 'first input well has correct name';
-    is $input_well->plate->name, 'FP1008', '...and is on correct plate';
-    $input_well = $input_wells->next;
-    is $input_well->name, 'A01', 'second input well has correct name';
-    is $input_well->plate->name, 'CRISPR_V_T1', '...and is on correct plate';
+    is $input_well->plate->name, 'DNA_T1', '...and is on correct plate';
     $input_well = $input_wells->next;
     is $input_well->name, 'A02', 'second input well has correct name';
-    is $input_well->plate->name, 'CRISPR_V_T1', '...and is on correct plate';
+    is $input_well->plate->name, 'DNA_T1', '...and is on correct plate';
+    $input_well = $input_wells->next;
+    is $input_well->name, 'A01', 'second input well has correct name';
+    is $input_well->plate->name, 'DNA_FP1008', '...and is on correct plate';
 
     ok $output_wells = $process->output_wells, 'process can return output wells resultset';
     is $output_wells->count, 1, 'only one output well';
@@ -1011,11 +1016,11 @@ sub all_tests  : Test(395)
 
     throws_ok {
     my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input1} );
-    } qr/paired_crispr_assembly process input well should be type FINAL_PICK,CRISPR_V \(got XEP,CRISPR_V\)/;
+    } qr/paired_crispr_assembly process input well should be type DNA \(got XEP,DNA\)/;
 
     throws_ok {
     my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input2} );
-    } qr/paired_crispr_assembly process types require paired CRISPR_V. The provided pair is not valid/;
+    } qr/paired_crispr_assembly requires DNA prepared from paired CRISPR_V wells. The provided pair is not valid/;
 
 
     note( "Testing crispr_ep process creation" );
