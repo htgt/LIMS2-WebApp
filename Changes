@@ -1,3 +1,7 @@
+0.174     2014-03-24 15:48:12 Europe/London
+
+    Crispr assembly plate must now be created from DNA plates
+
 0.173     2014-03-20 14:47:42 Europe/London
     
     OligoSelection util module added

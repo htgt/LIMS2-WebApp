@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprPlate::VERSION = '0.173';
+    $LIMS2::Report::CrisprPlate::VERSION = '0.174';
 }
 ## use critic
 
@@ -56,8 +56,6 @@ override iterator => sub {
             $crispr_data = $process_crispr->crispr->as_hash;
             $locus_data = $crispr_data->{locus} if $crispr_data->{locus};
         }
-
-        my $gene_symbol = $self->crispr_marker_symbols($process_crispr->crispr);
 
         return [
             $well->name,

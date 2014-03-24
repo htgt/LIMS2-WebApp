@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.173';
+    $LIMS2::Test::VERSION = '0.174';
 }
 ## use critic
 
@@ -38,6 +38,8 @@ use Digest::MD5;
 use LIMS2::Model::Util::PgUserRole qw( db_name );
 use LIMS2::Model::Util::RefdataUpload;
 use File::Basename;
+
+Log::Log4perl->easy_init($OFF);
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
@@ -304,6 +306,7 @@ sub load_dynamic_files {
     my @reference_tables = (
         qw(
             User
+            UserRole
             Design
             DesignOligo
             DesignOligoLocus
@@ -331,6 +334,7 @@ sub load_dynamic_files {
             ProcessOutputWell
             ProcessDesign
             ProcessRecombinase
+            Project
         )
     );
 
