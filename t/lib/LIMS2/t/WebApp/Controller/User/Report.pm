@@ -85,7 +85,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(32)
+sub all_tests  : Test(40)
 {
     my $mech = mech();
 
@@ -97,13 +97,12 @@ sub all_tests  : Test(32)
     $mech->text_contains('Human-Core/Mutation');
     }
 
-
     {
     note('CrisprPlate report ok');
     $mech->get_ok('/user/report/sync/CrisprPlate?plate_id=5670');
     $mech->text_contains('Crispr Plate HCL1');
     $mech->text_contains('POLK');
-    $mech->text_contains('Human-Core/Mutation');  
+    $mech->text_contains('Human-Core/Mutation');
     }
 
     {
@@ -115,9 +114,25 @@ sub all_tests  : Test(32)
     }
 
     {
+    note('DNAPlate report ok for final pick derived plate');
+    $mech->get_ok('/user/report/sync/DNAPlate?plate_id=5960');
+    $mech->text_contains('DNA Plate HG1_DNA');
+    $mech->text_contains('ERAP2');
+    $mech->text_contains('Human-Core/Pathogen');    
+    }
+
+    {
+    note('DNAPlate report ok for crispr_v derived plate');
+    $mech->get_ok('/user/report/sync/DNAPlate?plate_id=5961');
+    $mech->text_contains('DNA Plate HCL_DNA');
+    $mech->text_contains('ERAP2');
+    $mech->text_contains('Human-Core/Pathogen');    
+    }
+
+    {
     note('AssemblyPlate report ok');
-    $mech->get_ok('/user/report/sync/AssemblyPlate?plate_id=5950');
-    $mech->text_contains('Crispr Assembly Plate HG1_ASSEMBLY_TEST');
+    $mech->get_ok('/user/report/sync/AssemblyPlate?plate_id=5965');
+    $mech->text_contains('Crispr Assembly Plate HG1_DNA_ASSEMBLY');
     $mech->text_contains('ERAP2');
     $mech->text_contains('Human-Core/Pathogen');
     $mech->text_contains('HCL1[A04]');      
@@ -125,7 +140,7 @@ sub all_tests  : Test(32)
 
     {
     note('CrisprEPPlate report ok');
-    $mech->get_ok('/user/report/sync/CrisprEPPlate?plate_id=5952');
+    $mech->get_ok('/user/report/sync/CrisprEPPlate?plate_id=5967');
     $mech->text_contains('Crispr Electroporation Plate HG1_EP_TEST');
     $mech->text_contains('ERAP2');
     $mech->text_contains('Human-Core/Pathogen');

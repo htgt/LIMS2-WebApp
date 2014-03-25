@@ -11,5 +11,3 @@ id,name,password,active
 363,test363@sanger.ac.uk,test,true
 374,test374@sanger.ac.uk,test,true
 1000,test_user@example.org,{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn,true
-
-
