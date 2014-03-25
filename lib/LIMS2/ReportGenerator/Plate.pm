@@ -150,7 +150,12 @@ sub accepted_crispr_data {
 }
 
 sub design_and_gene_cols {
-    my ( $self, $well ) = @_;
+    my ( $self, $well, $crispr ) = @_;
+
+    # If well crispr is provided we need to get design and gene info via crispr_designs
+    if($crispr){
+        return $self->crispr_design_and_gene_cols($crispr);
+    }
 
     my $design        = $well->design;
     my @gene_ids      = uniq map { $_->gene_id } $design->genes;

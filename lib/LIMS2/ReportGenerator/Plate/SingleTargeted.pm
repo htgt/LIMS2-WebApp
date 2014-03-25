@@ -13,11 +13,11 @@ sub base_columns {
 }
 
 sub base_data {
-    my ( $self, $well ) = @_;
+    my ( $self, $well, $crispr ) = @_;
 
     return (
         $well->name,
-        $self->design_and_gene_cols( $well ),
+        $self->design_and_gene_cols($well,$crispr),
         $well->created_by->name,
         $well->created_at->ymd,
         ( $well->assay_pending ? $well->assay_pending->ymd : '' ),

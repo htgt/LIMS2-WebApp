@@ -10,6 +10,7 @@
 \copy (select po.* from process_output_well po, wells w,plates p where p.species_id='Human' and w.plate_id=p.id and po.well_id=w.id) to 'ProcessOutputWell.csv' with CSV HEADER;
 \copy (select prb.* from process_recombinase prb, process_output_well po, wells w,plates p where p.species_id='Human' and w.plate_id=p.id and po.well_id=w.id and prb.process_id=po.process_id) to 'ProcessRecombinase.csv' with CSV HEADER;
 \copy (select prb.* from process_nuclease prb, process_output_well po, wells w,plates p where p.species_id='Human' and w.plate_id=p.id and po.well_id=w.id and prb.process_id=po.process_id) to 'ProcessNuclease.csv' with CSV HEADER;
+\copy (select prb.* from process_crispr prb, process_output_well po, wells w,plates p where p.species_id='Human' and w.plate_id=p.id and po.well_id=w.id and prb.process_id=po.process_id) to 'ProcessCrispr.csv' with CSV HEADER;
 \copy (select w.* from wells w,plates p where p.species_id='Human' and w.plate_id=p.id) to 'Well.csv' with CSV HEADER;
 
 
