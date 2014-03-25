@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.174';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.175';
 }
 ## use critic
 
@@ -571,14 +571,14 @@ sub qc_run_results {
             if($crispr_run){
                 # get symbol for crispr
                 try{
-                    my $crispr = $self->retrieve( 'Crispr' => { id => $result->{expected_crispr_id} });
+                    my $crispr = $self->retrieve( 'Crispr' => { id => $result->{crispr_id} });
                     @designs = $crispr->related_designs;
                 }
             }
             else{
                 # get symbol for design
                 try{
-                    @designs = $self->retrieve( 'Design' => { id => $result->{expected_design_id} });
+                    @designs = $self->retrieve( 'Design' => { id => $result->{design_id} });
                 }
             }
             my @genes = map { $_->genes } @designs;

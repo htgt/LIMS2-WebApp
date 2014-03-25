@@ -2368,7 +2368,6 @@ root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/ProcessOutputWel
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/ProcessRecombinase.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/Project.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/User.csv
-root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/User.csv~
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/Well.csv
 root/static/test/fixtures/legacy/10-load-fixture-data.sql
@@ -2398,7 +2397,6 @@ root/static/test/fixtures/reference_data/Role.csv
 root/static/test/fixtures/reference_data/Species.csv
 root/static/test/fixtures/reference_data/SpeciesDefaultAssembly.csv
 root/static/test/fixtures/reference_data/Sponsor.csv
-root/static/test/fixtures/reference_data/UserRole.csv~
 script/generate-pg-audit-ddl
 script/htgt_env.pl
 script/lims2_clone_database.pl
