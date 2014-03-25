@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.175     2014-03-25 14:39:24 Europe/London
+
+    Bugfix: Human QC gene lookup now goes on the design id rather than the expected design id
+
 0.174     2014-03-24 15:48:12 Europe/London
 
     Crispr assembly plate must now be created from DNA plates
