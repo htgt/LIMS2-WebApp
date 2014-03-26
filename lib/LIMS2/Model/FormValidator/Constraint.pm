@@ -65,6 +65,10 @@ sub copy_float {
     }
 }
 
+sub signed_float {
+    return shift->regexp_matches(qr/^[-]?\d+(\.\d+)?$/);
+}
+
 sub bac_library {
     return shift->regexp_matches(qr/^\w+$/);
 }

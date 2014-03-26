@@ -8,6 +8,7 @@ use Sub::Exporter -setup => {
         qw(
             parse_csv_file
             upload_plate_dna_status
+            spreadsheet_to_csv
           )
     ]
 };
@@ -19,6 +20,11 @@ use Text::CSV_XS;
 use IO::File;
 use Try::Tiny;
 use Perl6::Slurp;
+use Text::Iconv;
+use Spreadsheet::XLSX;
+use File::Temp;
+
+Log::Log4perl->easy_init($DEBUG);
 
 sub pspec__check_dna_status {
     return {
@@ -39,6 +45,11 @@ sub upload_plate_dna_status {
     check_plate_type( $plate, [ qw(DNA) ]  );
 
     for my $datum ( @{$data} ) {
+        if($params->{from_concentration}){
+            # Input is from concentration measurment spreadsheet so needs
+            # some additional processing
+            _process_concentration_data($datum,$plate);
+        }
         my $validated_params = $model->check_params( $datum, pspec__check_dna_status() );
         my $dna_status = $model->create_well_dna_status(
             +{
@@ -63,6 +74,67 @@ sub upload_plate_dna_status {
     return \@returned_messages;
 }
 
+sub _process_concentration_data{
+    my ($datum, $plate) = @_;
+
+    # Pad out numerical part of well name
+    my $well_name = delete $datum->{Well};
+    unless($well_name){
+        LIMS2::Exception::Validation->throw(
+            'No Well provided in DNA concentration data'
+        );
+    }
+    my ($letter, $number) = ($well_name =~ m/^([A-Z])([0-9]*)$/g);
+    my $formatted_well_name = sprintf('%s%02d', $letter, $number);
+    $datum->{'well_name'} = $formatted_well_name;
+
+    # Determine source plate type
+    my ($well) = $plate->search_related('wells', {name => $formatted_well_name});
+    unless($well){
+        LIMS2::Exception::Validation->throw(
+            "Upload contains well $formatted_well_name which was not found on plate ".$plate->name
+        );
+    }
+    my ($input_well) = $well->ancestors->input_wells($well);
+    my $plate_type = $input_well->plate->type_id;
+    my $species = $input_well->plate->species_id;
+    my $minimum;
+    ## FIXME: should specify this in some config file
+    if($species eq 'Human' and $plate_type eq 'FINAL_PICK'){
+        $minimum = 20;
+    }
+    elsif($species eq 'Human' and $plate_type eq 'CRISPR_V'){
+        $minimum = 30;
+    }
+    elsif($species eq 'Mouse' and $plate_type eq 'CRISPR_V'){
+        $minimum = 40;
+    }
+    else{
+        LIMS2::Exception::Validation->throw(
+            "No concentration threshold defined for $species $plate_type DNA"
+        );
+    }
+
+    # Score as pass or fail
+    my $concentration = delete $datum->{'Concentration ng/ul'};
+    unless($concentration){
+        LIMS2::Exception::Validation->throw(
+            'No concentration value provided in DNA concentration data'
+        );
+    }
+    $datum->{concentration_ng_ul} = $concentration;
+
+    my $result;
+    if ($concentration > $minimum ){
+        $result = 'pass';
+    }
+    else{
+        $result = 'fail';
+    }
+    DEBUG("concentration: $concentration, minimum: $minimum, result: $result");
+    $datum->{dna_status_result} = $result; 
+    return;
+}
 sub check_plate_type {
     my ( $plate, $types ) = @_;
 
@@ -74,6 +146,33 @@ sub check_plate_type {
     }
 
     return;
+}
+
+sub spreadsheet_to_csv {
+    my ( $spreadsheet ) = @_;
+
+    my $converter = Text::Iconv->new("utf-8", "windows-1251");
+    my $excel = Spreadsheet::XLSX->new($spreadsheet, $converter);
+    my $csv = Text::CSV_XS->new( { eol => "\n" } );
+
+    my %worksheets;
+
+    foreach my $sheet (@{$excel->{Worksheet}}) {
+
+        my $output_fh = File::Temp->new() or die "Error creating temp file - $!";
+        $output_fh->unlink_on_destroy(0);
+
+        $worksheets{ $sheet->{Name} } = $output_fh->filename;
+
+        $sheet->{MaxRow} ||= $sheet->{MinRow};
+        
+        foreach my $row ($sheet->{MinRow} .. $sheet->{MaxRow}) {
+            my @vals = map { $_->{Val} } grep{$_} @{ $sheet->{Cells}[$row] };
+            $csv->print($output_fh, \@vals);
+        }
+    }
+
+    return \%worksheets;
 }
 
 sub parse_csv_file {

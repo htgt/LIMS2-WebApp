@@ -1,0 +1,78 @@
+[%- META title = 'DNA Concentraion Upload'; META tab_name = 'Cells' %]
+
+<div class="page-header">
+  <h1>DNA Concentration Spreadsheet Upload</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="dna_concentration_upload" action="[% c.uri_for( '/user/dna_concentration_upload' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>DNA Concentration Spreadsheet</label>
+        <input name="datafile" type="file">
+
+        <br>
+        <br>
+        <button name="spreadsheet" id="spreadsheet" type="submit" value="spreadsheet" class="btn">
+            <i class="icon-upload"></i> Upload Spreadsheet
+        </button>
+    </form>
+  </div>
+
+</div>
+
+[% IF worksheets %]
+<div class="row">
+<div class="span6 offset3">
+  <form method="POST" id="dna_concentration_update" action="[% c.uri_for( '/user/dna_concentration_update' ) %]" class="form well" enctype="multipart/form-data">
+      <h5>Worksheets to Plates</h5>
+      <table>
+        <tr><th>Worksheet</th><th>Plate Name</th></tr>
+        [% FOR sheet IN worksheets %]
+          <tr>
+            <td>[% sheet.key %]</td>
+            <td>
+            <input name="[% sheet.key %]_map" id="[% sheet.key %]_map" type="text">
+            <input type="hidden" name="[% sheet.key %]" value="[% sheet.value %]">
+            </td>
+          </tr>
+        [% END %] 
+      </table>
+      <button name="update" id="update" type="submit" value="update" class="btn">
+        <i class="icon-play-circle"></i> Update Plates
+      </button>
+  </form>
+</div>
+</div>
+[% END %]
+
+<div class="accordion" id="accordian">
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="icon-question-sign"></i>DNA concentration spreadsheet upload help
+      </a>
+    </div>
+
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <p>
+          This form is used to upload an Excel spreadsheet containing DNA concentraion values for a plate.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="text/javascript">
+
+$("[id$=_map]").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+</script>
