@@ -136,17 +136,29 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
                 from_concentration => 1,
             );
 
+            my ($success_msg, $failure_msg);
             try{
-                my $msg = $c->model('Golgi')->update_plate_dna_status( \%params );
-                $c->stash->{success_msg} .= "Uploaded dna status information onto plate $plate:<br>"
-                    . join("<br>", @{ $msg  });
+                ($success_msg, $failure_msg) = $c->model('Golgi')->update_plate_dna_status( \%params );
+                $c->stash->{success_msg} .= "<br>Uploaded dna status information onto plate $plate:<br>"
+                    . join("<br>", @{ $success_msg  });
             }
             catch {
-                $c->stash->{error_msg} .= "Error encountered while updating dna status data for plate $plate: " . $_;
+                $c->stash->{error_msg} .= "<br>Error encountered while updating dna status data for plate $plate:<br>".$_;
             };
+
+            # Update ran but problems were found along the way
+            ## FIXME: this might be ok if upload can contain data for empty wells which are not stored in LIMS2
+            if($failure_msg){
+                $c->stash->{error_msg} .= "<br>Problem found while updating dna status data for plate $plate:<br>"
+                    . join("<br>", @{ $failure_msg });
+            }
         }
         
+        # If updates for any plate produced error messages we clear out the success message
+        # and rollback the transaction so user can correct the file and start again
         if ($c->stash->{error_msg}){
+            $c->stash->{success_msg} = undef;
+            $c->log->debug("Rolling back DNA concentration update");
             $c->model('Golgi')->txn_rollback;
         }
     });

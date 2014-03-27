@@ -18,7 +18,7 @@ use List::MoreUtils qw( none );
 use LIMS2::Exception::Validation;
 use Text::CSV_XS;
 use IO::File;
-use Try::Tiny;
+use TryCatch;
 use Perl6::Slurp;
 use Text::Iconv;
 use Spreadsheet::XLSX;
@@ -28,9 +28,10 @@ Log::Log4perl->easy_init($DEBUG);
 
 sub pspec__check_dna_status {
     return {
-        well_name         => { validate  => 'well_name' },
-        dna_status_result => { validate  => 'pass_or_fail', post_filter  => 'pass_to_boolean', rename => 'pass' },
-        comments          => { validated => 'non_empty_string', optional => 1, rename => 'comment_text' },
+        well_name           => { validate => 'well_name' },
+        dna_status_result   => { validate => 'pass_or_fail', post_filter  => 'pass_to_boolean', rename => 'pass' },
+        concentration_ng_ul => { validate => 'signed_float', optional => 1 },
+        comments            => { validate => 'non_empty_string', optional => 1, rename => 'comment_text' },
     };
 }
 
@@ -48,7 +49,15 @@ sub upload_plate_dna_status {
         if($params->{from_concentration}){
             # Input is from concentration measurment spreadsheet so needs
             # some additional processing
-            _process_concentration_data($datum,$plate);
+            try{
+                ## This method fails if well is not defined on plate
+                ## do we need to allow for empty wells??
+                _process_concentration_data($datum,$plate);
+            }
+            catch ($error){
+                push @failure_message, $error;
+                next;
+            }
         }
         my $validated_params = $model->check_params( $datum, pspec__check_dna_status() );
         my $dna_status = $model->create_well_dna_status(
@@ -71,7 +80,8 @@ sub upload_plate_dna_status {
     }
 
     push my @returned_messages, ( @failure_message, @success_message );
-    return \@returned_messages;
+    # Caller can get both sets of messages in case missing well errors are not acceptable
+    return wantarray ? (\@success_message, \@failure_message) : \@returned_messages;
 }
 
 sub _process_concentration_data{
@@ -135,6 +145,7 @@ sub _process_concentration_data{
     $datum->{dna_status_result} = $result; 
     return;
 }
+
 sub check_plate_type {
     my ( $plate, $types ) = @_;
 
@@ -206,7 +217,7 @@ sub parse_csv_file {
     catch {
         DEBUG( sprintf( "Error parsing csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
         LIMS2::Exception::Validation->throw( "Invalid csv file" . $_ );
-    };
+    }
     return _clean_csv_data( $csv_data );
 }
 
