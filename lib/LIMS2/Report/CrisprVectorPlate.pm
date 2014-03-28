@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.169';
+    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.176';
 }
 ## use critic
 
@@ -29,7 +29,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name',
-        'Gene Symbol',
+        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors",
         'Crispr Plate', 'Crispr Well',
         'Backbone',
         'Created By','Created At',
@@ -67,7 +67,7 @@ override iterator => sub {
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $well->name,
-            $self->crispr_marker_symbols($crispr),
+            $self->crispr_design_and_gene_cols($crispr),
             $crispr_well->plate,
             $crispr_well->name,
             $backbone,

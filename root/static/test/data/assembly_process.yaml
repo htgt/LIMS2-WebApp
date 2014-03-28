@@ -1,0 +1,97 @@
+---
+crispr1_dna_prep:
+    type: dna_prep
+    output_wells:
+        - plate_name: DNA_T1
+          well_name: A01
+    input_wells: 
+        - plate_name: CRISPR_V_T1
+          well_name: A01
+crispr2_dna_prep:
+    type: dna_prep
+    output_wells:
+        - plate_name: DNA_T1
+          well_name: A02
+    input_wells: 
+        - plate_name: CRISPR_V_T1
+          well_name: A02
+crispr3_dna_prep:
+    type: dna_prep
+    output_wells:
+        - plate_name: DNA_T1
+          well_name: A03
+    input_wells: 
+        - plate_name: CRISPR_V_T1
+          well_name: A03
+final_pick_dna_prep:
+    type: dna_prep
+    output_wells:
+        - plate_name: DNA_FP1008
+          well_name: A01
+    input_wells: 
+        - plate_name: FP1008
+          well_name: A01
+single_ep_valid_input: 
+    type: single_crispr_assembly
+    output_wells:
+        - plate_name: ASSEMBLY_S1
+          well_name: A01
+    input_wells:
+        - plate_name: DNA_T1
+          well_name: A01
+        - plate_name: DNA_FP1008
+          well_name: A01
+single_ep_invalid_output_well:
+    type: single_crispr_assembly
+    output_wells:
+        - plate_name: XEP0006
+          well_name: A01
+    input_wells:
+        - plate_name: DNA_T1
+          well_name: A01
+        - plate_name: DNA_FP1008
+          well_name: A01
+single_ep_invalid_input_well:
+    type: single_crispr_assembly
+    output_wells:
+        - plate_name: ASSEMBLY_S1
+          well_name: A01
+    input_wells:
+        - plate_name: CRISPR_T1
+          well_name: A01
+paired_ep_valid_input: 
+    type: paired_crispr_assembly
+    output_wells:
+        - plate_name: ASSEMBLY_P1
+          well_name: A01
+    input_wells:
+        - plate_name: DNA_T1
+          well_name: A01
+        - plate_name: DNA_T1
+          well_name: A02
+        - plate_name: DNA_FP1008
+          well_name: A01
+paired_ep_invalid_input1: 
+    type: paired_crispr_assembly
+    output_wells:
+        - plate_name: ASSEMBLY_P1
+          well_name: A01
+    input_wells:
+        - plate_name: DNA_T1
+          well_name: A01
+        - plate_name: DNA_T1
+          well_name: A02
+        - plate_name: XEP0006
+          well_name: A01
+paired_ep_invalid_input2: 
+    type: paired_crispr_assembly
+    output_wells:
+        - plate_name: ASSEMBLY_P1
+          well_name: A02
+    input_wells:
+        - plate_name: DNA_T1
+          well_name: A01
+        - plate_name: DNA_T1
+          well_name: A03
+        - plate_name: DNA_FP1008
+          well_name: A01

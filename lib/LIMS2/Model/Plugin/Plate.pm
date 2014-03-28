@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.169';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.176';
 }
 ## use critic
 
@@ -377,9 +377,9 @@ sub create_plate_csv_upload {
     my $expected_csv_headers;
     if ($params->{process_type} eq 'second_electroporation') {
         $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];
-    } elsif ($params->{process_type} eq 'crispr_single_ep') {
+    } elsif ($params->{process_type} eq 'single_crispr_assembly') {
         $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector_plate', 'crispr_vector_well' ];
-    } elsif ($params->{process_type} eq 'crispr_paired_ep') {
+    } elsif ($params->{process_type} eq 'paired_crispr_assembly') {
         $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
                                 'crispr_vector2_plate', 'crispr_vector2_well' ];
     } else {

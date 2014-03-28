@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.169';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.176';
 }
 ## use critic
 
@@ -720,6 +720,14 @@ sub crispr {
     return $process_crispr ? $process_crispr->crispr : undef;
 }
 
+sub nuclease {
+    my $self = shift;
+
+    my $process_nuclease = $self->ancestors->find_process( $self, 'process_nuclease');
+
+    return $process_nuclease ? $process_nuclease->nuclease : undef;
+}
+
 sub designs{
 	my $self = shift;
 
@@ -1003,6 +1011,21 @@ sub descendant_piq {
 }
 ## use critic
 
+sub descendant_crispr_vectors {
+    my $self = shift;
+
+    my @crispr_vectors;
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ) {
+      while( my $descendant = $descendants->next ) {
+        if ( $descendant->plate->type_id eq 'CRISPR_V' ) {
+          push @crispr_vectors, $descendant;
+        }
+      }
+    }
+    return @crispr_vectors;
+}
+
 ## no critic(RequireFinalReturn)
 sub parent_crispr {
     my $self = shift;
@@ -1020,15 +1043,21 @@ sub parent_crispr {
 ## use critic
 
 ## no critic(RequireFinalReturn)
+## This returns the final set (single or paired) of CRISPR_V parents
+## It will stop traversing if it hits a CRISPR_V grandparent, 
+## i.e. if CRISPR_V plates have been rearrayed
 sub parent_crispr_v {
     my $self = shift;
 
     my @parents;
-    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
         if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
+
+            # Exit loop when we start seeing CRIPSR_V grandparents
+            last if grep { $_->plate->type_id eq 'CRISPR_V' } $self->ancestors->output_wells($ancestor);
+
             push ( @parents, $ancestor );
-            # return $ancestor;
         }
     }
 
@@ -1038,6 +1067,33 @@ sub parent_crispr_v {
 
     require LIMS2::Exception::Implementation;
     LIMS2::Exception::Implementation->throw( "Failed to determine crispr vector plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub left_and_right_crispr_wells {
+    my $self = shift;
+
+    my ($crispr_v_1, $crispr_v_2) = $self->parent_crispr_v;
+
+    my ($right_crispr, $left_crispr);
+    if (defined $crispr_v_2) {
+        if ($crispr_v_2->crispr->pam_right) {
+            $right_crispr = $crispr_v_2->parent_crispr;
+            $left_crispr = $crispr_v_1->parent_crispr;
+        } else {
+            $right_crispr = $crispr_v_1->parent_crispr;
+            $left_crispr = $crispr_v_2->parent_crispr;
+        }
+        return ($left_crispr, $right_crispr);
+    } elsif (defined $crispr_v_1) {
+        $right_crispr = undef;
+        $left_crispr = $crispr_v_1->parent_crispr;
+        return ($left_crispr, $right_crispr);
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
 }
 ## use critic
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.169';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.176';
 }
 ## use critic
 
@@ -139,7 +139,7 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
     return unless $c->request->param('gene_pick');
 
-    my $gene_id = $c->request->param('gene_id');
+    my $gene_id = $c->request->param('search_gene');
     unless ( $gene_id ) {
         $c->stash( error_msg => "Please enter a gene name" );
         return;
@@ -158,6 +158,7 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
             $exon_data = $create_design_util->c_exon_target_data( $exon_id );
         }
         catch {
+            $c->log->warn("Unable to find gene information for exon $exon_id");
             $c->stash( error_msg =>
                     "Unable to find gene information for exon $exon_id, make sure it is a valid ensembl exon id"
             );
@@ -222,14 +223,14 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
 sub generate_exon_pick_data : Private {
     my ( $self, $c ) = @_;
 
-    $c->log->debug("Pick exon targets for gene: " . $c->request->param('gene_id') );
+    $c->log->debug("Pick exon targets for gene: " . $c->request->param('search_gene') );
     try {
         my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
             catalyst => $c,
             model    => $c->model('Golgi'),
         );
         my ( $gene_data, $exon_data ) = $create_design_util->exons_for_gene(
-            $c->request->param('gene_id'),
+            $c->request->param('search_gene'),
             $c->request->param('show_exons'),
         );
 
@@ -250,21 +251,23 @@ sub generate_exon_pick_data : Private {
         }
 
         $c->stash(
-            exons      => $exon_data,
-            gene       => $gene_data,
-            assembly   => $create_design_util->assembly_id,
-            show_exons => $c->request->param('show_exons'),
+            exons       => $exon_data,
+            gene        => $gene_data,
+            search_gene => $c->request->param('search_gene'),
+            assembly    => $create_design_util->assembly_id,
+            show_exons  => $c->request->param('show_exons'),
         );
     }
     catch( LIMS2::Exception $e ) {
+        $c->log->warn("Problem finding gene: $e");
         $c->stash( error_msg => "Problem finding gene: $e" );
     };
 
     return;
 }
 
-sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
-    my ( $self, $c ) = @_;
+sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
+    my ( $self, $c, $is_redo ) = @_;
 
     $c->assert_user_roles( 'edit' );
 
@@ -272,21 +275,21 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
         catalyst => $c,
         model    => $c->model('Golgi'),
     );
-    my $primer3_conf = $create_design_util->c_primer3_default_config;
-    $c->stash( default_p3_conf => $primer3_conf );
+    $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
-    if ( exists $c->request->params->{create_design} ) {
-        $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
+    if ( $is_redo && $is_redo eq 'redo' ) {
+        # if we have redo flag all the stash variables have been setup correctly
+        return;
     }
-    else {
-        $c->stash( %{ $primer3_conf } );
+    elsif ( exists $c->request->params->{create_design} ) {
+        $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
     }
 
     return;
 }
 
-sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibson_design' ) : Args(0) {
-    my ( $self, $c ) = @_;
+sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibson_design' ) : Args {
+    my ( $self, $c, $is_redo ) = @_;
 
     $c->assert_user_roles( 'edit' );
 
@@ -294,10 +297,13 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         catalyst => $c,
         model    => $c->model('Golgi'),
     );
-    my $primer3_conf = $create_design_util->c_primer3_default_config;
-    $c->stash( default_p3_conf => $primer3_conf );
+    $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
-    if ( exists $c->request->params->{create_design} ) {
+    if ( $is_redo && $is_redo eq 'redo' ) {
+        # if we have redo flag all the stash variables have been setup correctly
+        return;
+    }
+    elsif ( exists $c->request->params->{create_design} ) {
         $self->_create_gibson_design( $c, $create_design_util, 'create_custom_target_gibson_design' );
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
@@ -305,11 +311,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         $c->stash(
             gibson_type => 'deletion',
             %{ $target_data },
-            %{ $primer3_conf },
         );
-    }
-    else {
-        $c->stash( %{ $primer3_conf } );
     }
 
     return;
@@ -326,16 +328,19 @@ sub _create_gibson_design {
         ( $design_attempt, $job_id ) = $create_design_util->$cmd;
     }
     catch ( LIMS2::Exception::Validation $err ) {
-        my $errors = $self->_format_validation_errors( $err );
+        my $errors = $create_design_util->c_format_validation_errors( $err );
+        $c->log->warn( 'User create gibson design error: ' . $errors );
         $c->stash( error_msg => $errors );
         return;
     }
     catch ($err) {
+        $c->log->warn( "Error submitting gibson design job: $err " );
         $c->stash( error_msg => "Error submitting Design Creation job: $err" );
         return;
     }
 
     unless ( $job_id ) {
+        $c->log->warn( 'Unable to submit Design Creation job' );
         $c->stash( error_msg => "Unable to submit Design Creation job" );
         return;
     }
@@ -398,8 +403,13 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
 sub view_design_attempt : PathPart('view') Chained('design_attempt') : Args(0) {
     my ( $self, $c ) = @_;
 
+    my $da = $c->stash->{da};
+    my $da_hash = $da->as_hash( { json_as_hash => 1 } );
+
     $c->stash(
-        da => $c->stash->{da}->as_hash( { pretty_print_json => 1 } ),
+        da     => $da->as_hash( { pretty_print_json => 1 } ),
+        fail   => $da_hash->{fail},
+        params => $da_hash->{design_parameters},
     );
     return;
 }
@@ -415,35 +425,41 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     return;
 }
 
-sub _format_validation_errors {
-    my ( $self, $err ) = @_;
-    my $errors;
-    my $params = $err->params;
-    my $validation_results = $err->results;
-    if ( defined $validation_results ) {
-        if ( $validation_results->has_missing ) {
-            $errors .= "Missing following required parameters:\n";
-            for my $m ( $validation_results->missing ) {
-                $errors .= "  * $m\n" ;
-            }
-            $errors .= "\n";
-        }
+## no critic(RequireFinalReturn)
+sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
+    my ( $self, $c ) = @_;
 
-        if ( $validation_results->has_invalid ) {
-            $errors .= "Following parameters are invalid:\n";
-            for my $f ( $validation_results->invalid ) {
-                my $cur_val = exists $params->{$f} ? $params->{$f} : '';
-                $errors .= "  * $f = $cur_val " . '( failed '
-                        . join( q{,}, @{ $validation_results->invalid($f) } ) . " check )\n";
-            }
-        }
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+
+    my $gibson_target_type;
+    try {
+        # this will stash all the needed design parameters
+        $gibson_target_type = $create_design_util->c_redo_design_attempt( $c->stash->{da} );
+    }
+    catch ( $err ) {
+        $c->stash(error_msg => "Error processing parameters from design attempt "
+                . $c->stash->{da}->id . ":\n" . $err
+                . "Unable to redo design" );
+        return $c->go('design_attempts');
+    }
+
+    if ( $gibson_target_type eq 'exon' ) {
+        return $c->go( 'create_gibson_design', [ 'redo' ] );
+    }
+    elsif ( $gibson_target_type eq 'location' ) {
+        return $c->go( 'create_custom_target_gibson_design' , [ 'redo' ] );
     }
     else {
-        $errors = "Error with parameters:\n" . $err->message;
+        $c->stash( error_msg => "Unknown gibson target type $gibson_target_type"  );
+        return $c->go('design_attempts');
     }
 
-    return $errors;
+    return;
 }
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 

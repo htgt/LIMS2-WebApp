@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.169';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.176';
 }
 ## use critic
 
@@ -512,7 +512,20 @@ sub _format_crispr_data {
     } values %{ $crisprs };
 
     for my $c ( @ranked_crisprs ) {
-        my $crispr_direction = $c->pam_right ? 'right' : $c->pam_right == 0 ? 'left' : undef;
+        # Blame ah19 for this unholy mess, b/c he gave undef a meaning in a
+        # booleon field ( to be fair he didn't intend for this to happen )
+        my $crispr_direction;
+        if ( defined $c->pam_right ) {
+            if ( $c->pam_right == 1 ) {
+                $crispr_direction = 'right';
+            }
+            else {
+                $crispr_direction = 'left';
+            }
+        }
+        else {
+            $crispr_direction = 'right';
+        }
         my %data = (
             crispr_id => $c->id,
             seq       => $c->seq,

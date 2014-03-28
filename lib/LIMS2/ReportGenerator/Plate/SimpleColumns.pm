@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::SimpleColumns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::SimpleColumns::VERSION = '0.169';
+    $LIMS2::ReportGenerator::Plate::SimpleColumns::VERSION = '0.176';
 }
 ## use critic
 
@@ -15,7 +15,7 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate );
 
 sub base_columns {
-    return ( "Well Name", "Design Id", "Gene Id", "Gene Symbol",  "Created By", "Created At" );
+    return ( "Well Name", "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors", "Created By", "Created At" );
 }
 
 sub base_data {

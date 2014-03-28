@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.169';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.176';
 }
 ## use critic
 
@@ -576,6 +576,7 @@ if ($self->{plate_type} eq 'PIQ') {
     foreach my $ancestors (@$result) {
         my $well_id =  @{@$ancestors[0]}[0];
         my $clone_id =  @{@$ancestors[0]}[2];
+        #TODO: avoid using retrieve well in genotyping QC - its slows the page load too much
         my $well = $self->retrieve_well( { id => $clone_id } );
         $clone_id_hash{$well_id} = $well->plate->name .'['. $well->name .']';
     }

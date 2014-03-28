@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.169';
+    $LIMS2::Model::Constants::VERSION = '0.176';
 }
 ## use critic
 
@@ -50,13 +50,14 @@ const our %PROCESS_PLATE_TYPES => (
     'xep_pool'               => [qw( XEP )],
     'dist_qc'                => [qw( PIQ )],
     'crispr_vector'          => [qw( CRISPR_V )],
-    'crispr_single_ep'       => [qw( CRISPR_EP )],
-    'crispr_paired_ep'       => [qw( CRISPR_EP )],
+    'single_crispr_assembly' => [qw( ASSEMBLY )],
+    'paired_crispr_assembly' => [qw( ASSEMBLY )],
+    'crispr_ep'              => [qw( CRISPR_EP )],
 );
 
 # Additional information required at upload for process types (none if not listed)
 const our %PROCESS_SPECIFIC_FIELDS => (
-    'int_recom'              => [qw( intermediate_cassette intermediate_backbone )],
+    'int_recom'              => [qw( intermediate_cassette backbone )],
     'cre_bac_recom'          => [qw( intermediate_cassette intermediate_backbone )],
     '2w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     '3w_gateway'             => [qw( final_cassette final_backbone recombinase )],
@@ -64,6 +65,8 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'clone_pick'             => [qw( recombinase )],
     'first_electroporation'  => [qw( cell_line recombinase )],
     'second_electroporation' => [qw( recombinase )],
+    'crispr_ep'              => [qw( cell_line nuclease )],
+    'crispr_vector'          => [qw( backbone )],
 #    'xep_pool'              => [qw( recombinase )],
 );
 
@@ -83,8 +86,9 @@ const our %PROCESS_TEMPLATE => (
     'freeze'                 => 'standard_template',
     'xep_pool'               => 'standard_template',
     'dist_qc'                => 'piq_template',
-    'crispr_single_ep'       => 'crispr_single_ep_template',
-    'crispr_paired_ep'       => 'crispr_paired_ep_template',
+    'single_crispr_assembly' => 'single_crispr_assembly_template',
+    'paired_crispr_assembly' => 'paired_crispr_assembly_template',
+    'crispr_ep'              => 'crispr_ep_template',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -123,7 +127,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1
     },
     'dna_prep' => {
-        type   => [qw( FINAL FINAL_PICK )],
+        type   => [qw( FINAL FINAL_PICK CRISPR_V )],
         number => 1,
     },
     'clone_pick' => {
@@ -158,13 +162,17 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( CRISPR )],
         number => 1,
     },
-    'crispr_single_ep' => {
-        type   => [qw( CRISPR_V FINAL_PICK )],
+    'single_crispr_assembly' => {
+        type   => [qw( DNA )],
         number => 2,
     },
-    'crispr_paired_ep' => {
-        type   => [qw( CRISPR_V CRISPR_V FINAL_PICK )],
+    'paired_crispr_assembly' => {
+        type   => [qw( DNA )],
         number => 3,
+    },
+    'crispr_ep' => {
+        type   => [qw( ASSEMBLY )],
+        number => 1,
     },
 );
 
