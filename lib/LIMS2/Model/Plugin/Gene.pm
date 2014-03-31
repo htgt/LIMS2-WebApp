@@ -8,6 +8,7 @@ use Data::Dump 'pp';
 use namespace::autoclean;
 use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util::GeneSearch qw( retrieve_solr_gene retrieve_ensembl_gene normalize_solr_result );
+use WebAppCommon::Util::FindGene qw( c_find_gene );
 use TryCatch;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -104,12 +105,14 @@ sub check_for_local_symbol {
     if ( $local_id =~ m/\A CGI /xgms ) {
         push @not_genes, {
             'gene_id' => $local_id,
-            'gene_symbol' => 'CPG_island' };
+            'gene_symbol' => 'CPG_island',
+            'ensembl_id' => '' };
     }
     elsif ( $local_id =~ m/\A LBL /xgms ) {
         push @not_genes, {
             'gene_id' => $local_id,
-            'gene_symbol' => 'enhancer' };
+            'gene_symbol' => 'enhancer',
+            'ensembl_id' => '' };
     }
 
     return \@not_genes;
@@ -152,6 +155,59 @@ sub retrieve_gene {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+# argument is an hash with species and search term
+# returns an hashref with gene_id, gene_symbol and ensembl_id
+# if gene not found, the gene_id returned is the search_term and the gene_symbol is 'unknown'
+# ensembl_id might be an empty string
+sub find_gene {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+
+    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+
+    # check species, if not mouse or human, die
+    my $species = $validated_params->{species};
+    LIMS2::Exception::Implementation->throw( "find_gene() for species '$species' not implemented" )
+    unless ($species eq 'Mouse' || $species eq 'Human');
+
+    # search for a gene in the solr index
+    my $gene = c_find_gene( $validated_params );
+
+    # if solr did not find a gene, search for local symbol
+    my $not_gene;
+    if ($gene->{gene_symbol} eq 'unknown') {
+        $not_gene = $self->check_for_local_symbol( $validated_params->{search_term} );
+        $not_gene = $not_gene->[0];
+    }
+
+    # return local symbol if exists, else return solr gene result
+    $not_gene ? return $not_gene : return $gene;
+
+}
+## use critic
+
+# wrapper around find_gene to find arrays of genes at a time.
+# argument is a species and an arrayref of search terms.
+# returns an hashref, where the keys are the search_terms and the
+# values are hashrefs containing the gene_id, gene_symbol and ensembl_id
+sub find_genes {
+    my ( $self, $species, $serch_terms ) = @_;
+
+    my %result;
+
+    foreach my $search_term ( @{$serch_terms} ) {
+
+        $result{$search_term} = $self->find_gene({
+                        species => $species,
+                        search_term => $search_term
+                    });
+    }
+
+    return \%result;
+
+}
 
 1;
 

@@ -24,7 +24,7 @@ use Sub::Exporter -setup => {
 use LIMS2::Exception;
 
 use Log::Log4perl qw(:easy);
-## New comment
+
 
 BEGIN {
     # LIMS2 environment variables start with LIMS2_
@@ -62,6 +62,7 @@ sub pick_crispr_PCR_primers {
     my $well_id = $params->{'well_id'};
     my $crispr_primers = $params->{'crispr_primers'};
     my $species = $params->{'species'};
+    my $repeat_mask = $params->{'repeat_mask'};
     my %failed_primer_regions;
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length )
@@ -69,6 +70,7 @@ sub pick_crispr_PCR_primers {
                 schema => $schema,
                 crispr_primers => $crispr_primers,
                 species => $species,
+                repeat_mask => $repeat_mask,
             } );
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' },
@@ -85,7 +87,7 @@ sub pick_crispr_PCR_primers {
         INFO ( "$well_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
     }
     else {
-        WARN ( "Failed to generate pcr primer pairs for $$well_id" );
+        INFO ( "Failed to generate pcr primer pairs for $well_id" );
         $failed_primer_regions{$well_id} = $primer3_explain;
     }
 
@@ -125,11 +127,16 @@ sub pick_genotyping_primers {
     my $design_id = $params->{'design_id'};
     my $well_id = $params->{'well_id'};
     my $species = $params->{'species'};
+    my $repeat_mask = $params->{'repeat_mask'};
 
     my %failed_primer_regions;
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos)
-        = get_genotyping_EnsEmbl_region( { schema => $schema, design_id => $design_id } );
+        = get_genotyping_EnsEmbl_region( {
+                schema => $schema,
+                design_id => $design_id,
+                repeat_mask => $repeat_mask,
+            } );
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_GIBSON_GENOTYPING_PRIMER_CONFIG' },
@@ -146,7 +153,7 @@ sub pick_genotyping_primers {
         INFO ( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
     }
     else {
-        WARN ( "Failed to generate genotyping primer pairs for $design_id" );
+        INFO ( "Failed to generate genotyping primer pairs for $design_id" );
         $failed_primer_regions{$design_id} = $primer3_explain;
 
     }
@@ -440,7 +447,7 @@ sub get_EnsEmbl_sequence {
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
 
-    my $chr_strand = $design_info->chr_strand == 1 ? 'plus' : 'minus';
+    my $chr_strand = $design_info->chr_strand eq '1' ? 'plus' : 'minus';
     my $slice_5R;
     my $slice_3F;
     my %seqs;
@@ -498,16 +505,18 @@ sub get_crispr_PCR_EnsEmbl_region{
     my $schema = $params->{'schema'};
     my $crispr_primers = $params->{'crispr_primers'};
     my $species = $params->{'species'};
+    my $repeat_mask = $params->{'repeat_mask'};
 
     my $slice_region;
 
     # Here we want a slice from the beginning of (start(left_0) - ($dead_width + $search_field))
     # to the end(right_0) + ($dead_width + $search_field)
     my $dead_field_width = 100;
-    my $search_field_width = 200;
+    my $search_field_width = 500;
 
 
     my $chr_strand = $crispr_primers->{'strand'}; # That is the gene strand
+
     my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
     my $seq;
 
@@ -524,13 +533,21 @@ sub get_crispr_PCR_EnsEmbl_region{
         $crispr_primers->{'crispr_seq'}->{'left_crispr'}->{'chr_name'},
         $start_coord,
         $end_coord,
-        $crispr_primers->{'strand'},
+        $chr_strand eq 'plus' ? '1' : '-1' ,
     );
     if ( $chr_strand eq 'plus' ) {
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 0,
+            });
     }
     elsif ( $chr_strand eq 'minus' ) {
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 )->revcom;
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 0,
+            });
     }
 
     my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
@@ -554,8 +571,9 @@ sub get_genotyping_EnsEmbl_region {
     my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
+    my $repeat_mask = $params->{'repeat_mask'};
 
-    my $chr_strand = $design_info->chr_strand == 1 ? 'plus' : 'minus';
+    my $chr_strand = $design_info->chr_strand eq '1' ? 'plus' : 'minus';
     my $slice_region;
     my $seq;
 
@@ -571,7 +589,11 @@ sub get_genotyping_EnsEmbl_region {
             $design_info->chr_strand,
 
         );
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 0,
+            });
     }
     elsif ( $chr_strand eq 'minus' ) {
         $slice_region = $design_info->slice_adaptor->fetch_by_region(
@@ -581,7 +603,11 @@ sub get_genotyping_EnsEmbl_region {
             $design_oligos->{'5F'}->{'end'} + $end_oligo_field_width,
             $design_info->chr_strand,
         );
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 )->revcom;
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 1,
+            });
     }
 
     my $target_sequence_length = $seq->length  - $start_oligo_field_width - $end_oligo_field_width;
@@ -657,12 +683,14 @@ sub update_primer_type {
 sub pick_crispr_primers {
     my $params = shift;
 
+    my $repeat_mask = $params->{'repeat_mask'};
+
     my $crispr_oligos = oligos_for_crispr_pair( $params->{'schema'}, $params->{'crispr_pair_id'} );
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
         $chr_seq_start, $chr_seq_end)
-        = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos );
+        = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos, $repeat_mask );
 
     $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
 
@@ -683,7 +711,7 @@ sub pick_crispr_primers {
         INFO ( $params->{'crispr_pair_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
     }
     else {
-        WARN ( 'Failed to generate sequencing primers for ' . $params->{'crispr_pair_id'} );
+        INFO ( 'Failed to generate sequencing primers for ' . $params->{'crispr_pair_id'} );
         $failed_primer_regions{$params->{'crispr_pair_id'}} = $primer3_explain;
 
     }
@@ -776,8 +804,9 @@ sub get_crispr_pair_EnsEmbl_region {
     my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
+    my $repeat_mask = $params->{'repeat_mask'};
 
-    my $chr_strand = $design_info->chr_strand == 1 ? 'plus' : 'minus';
+    my $chr_strand = $design_info->chr_strand eq '1' ? 'plus' : 'minus';
 
     my $slice_region;
     my $seq;
@@ -794,7 +823,6 @@ sub get_crispr_pair_EnsEmbl_region {
     my $end_coord = $crispr_oligos->{'right_crispr'}->{'chr_end'};
     my $region_end_coord = $end_coord + ($dead_field_width + $search_field_width );
 
-
     my $slice_adaptor = $registry->get_adaptor($params->{'species'}, 'Core', 'Slice');
     if ( $chr_strand eq 'plus' ) {
         $slice_region = $slice_adaptor->fetch_by_region(
@@ -802,10 +830,14 @@ sub get_crispr_pair_EnsEmbl_region {
             $crispr_oligos->{'left_crispr'}->{'chr_name'},
             $region_start_coord,
             $region_end_coord,
-            $chr_strand,
+            1,
 
         );
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 0,
+            });
     }
     elsif ( $chr_strand eq 'minus' ) {
         $slice_region = $slice_adaptor->fetch_by_region(
@@ -813,10 +845,13 @@ sub get_crispr_pair_EnsEmbl_region {
             $crispr_oligos->{'left_crispr'}->{'chr_name'},
             $region_start_coord,
             $region_end_coord,
-            $chr_strand,
+            -1,
         );
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 )->revcom;
-        # $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 1,
+            });
     }
 
     my $target_sequence_length = ($end_coord - $start_coord) + 2 * $dead_field_width;
@@ -844,7 +879,7 @@ sub get_crispr_EnsEmbl_region {
     my $species = shift;
 
 
-    my $chr_strand = $crispr_oligos->{$side}->{'chr_strand'} == 1 ? 'plus' : 'minus';
+    my $chr_strand = $crispr_oligos->{$side}->{'chr_strand'} eq '1' ? 'plus' : 'minus';
     my $slice_region;
     my $seq;
     my $crispr_length = length($crispr_oligos->{$side}->{'seq'});
@@ -886,6 +921,28 @@ sub get_crispr_EnsEmbl_region {
     my $chr_seq_start = $slice_region->start;
     my $chr_seq_end = $slice_region->end;
     return ($seq, $target_sequence_string, $target_sequence_length, $chr_seq_start, $chr_seq_end) ;
+}
+
+
+sub get_repeat_masked_sequence {
+    my $params = shift;
+
+    my $slice_region = $params->{'slice_region'};
+    my $repeat_mask = $params->{'repeat_mask'};
+    my $revcom = $params->{'revcom'};
+    my $seq;
+    if ( $repeat_mask->[0] eq 'NONE' ) {
+        DEBUG('No repeat masking selected');
+        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
+    }
+    else {
+        DEBUG('Repeat masking selected');
+        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->get_repeatmasked_seq($repeat_mask)->seq, -verbose => -1 );
+    }
+    if ( $revcom ) {
+        $seq = $seq->revcom;
+    }
+    return $seq;
 }
 
 1;

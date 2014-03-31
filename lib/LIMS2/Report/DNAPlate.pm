@@ -3,6 +3,7 @@ package LIMS2::Report::DNAPlate;
 use Moose;
 use namespace::autoclean;
 use List::MoreUtils qw(uniq);
+use TryCatch;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -45,9 +46,15 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
-        my @design_gene = $self->design_and_gene_cols( $well );
-        my $gene_id = $design_gene[1];
+        # See if we have a crispr for this well, i.e. if created from crispr_v
+        my $crispr = undef;
+        try{
+            my $crispr_well = $well->parent_crispr;
+            $crispr = $crispr_well->crispr;
+        }
 
+        my @design_gene = $self->design_and_gene_cols( $well, $crispr );
+        my $gene_id = $design_gene[1];
 
         my @ep_sep = $self->model->schema->resultset('Summary')->search({
                 design_gene_id     => $gene_id,
@@ -77,10 +84,10 @@ override iterator => sub {
 
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
-            $self->base_data( $well ),
-            $well->cassette->name,
-            $well->cassette->resistance,
-            $well->backbone->name,
+            $self->base_data( $well, $crispr ),
+            ( $well->cassette ? $well->cassette->name : '-' ),
+            ( $well->cassette ? $well->cassette->resistance : '-' ),
+            ( $well->backbone ? $well->backbone->name : '-' ),
             join( q{/}, @{ $well->vector_recombinases } ),
             $self->ancestor_cols( $well, 'FINAL_PICK' ),
             ( $dna_quality ? ( $dna_quality->quality, $dna_quality->comment_text ) : ('')x2 ),
