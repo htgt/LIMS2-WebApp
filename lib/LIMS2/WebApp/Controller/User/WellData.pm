@@ -122,7 +122,7 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
         }
 
         # This should not happen
-        my $csv_name = $c->request->params->{$worksheet_name} 
+        my $csv_name = $c->request->params->{$worksheet_name}
             or die "No temporary filepath found for worksheet $worksheet_name";
 
         $csv_for_plate{$plate_name} = $csv_name;
@@ -132,6 +132,7 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
         $c->flash->{error_msg} = "There were no plate updates to run";
     }
 
+    ## no critic (RequireBriefOpen)
     $c->model('Golgi')->txn_do( sub{
         # Perform update for each plate
         while ( my ($plate, $csv) = each %csv_for_plate){
@@ -147,6 +148,7 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
             my $msg;
             try{
                 $msg = $c->model('Golgi')->update_plate_dna_status( \%params );
+                close $fh;
                 $c->flash->{success_msg} .= "<br>Uploaded dna status information onto plate $plate:<br>"
                     . join("<br>", @{ $msg || [] });
             }
@@ -154,7 +156,7 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
                 $c->flash->{error_msg} .= "<br>Error encountered while updating dna status data for plate $plate:<br>".$_;
             };
         }
-        
+
         # If updates for any plate produced error messages we clear out the success message
         # and rollback the transaction so user can correct the file and start again
         if ($c->flash->{error_msg}){
@@ -163,8 +165,10 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
             $c->model('Golgi')->txn_rollback;
         }
     });
+    ## use critic
 
     $c->response->redirect('/user/dna_concentration_upload');
+    return;
 }
 
 sub show_genotyping_qc_data :Path('/user/show_genotyping_qc_data') :Args(0){

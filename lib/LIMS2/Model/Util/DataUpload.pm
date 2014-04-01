@@ -116,7 +116,7 @@ sub _process_concentration_data{
     unless(defined $minimum){
         LIMS2::Exception::Validation->throw(
             "No concentration threshold defined for $species $plate_type DNA"
-        );        
+        );
     }
 
     # Score as pass or fail
@@ -136,7 +136,7 @@ sub _process_concentration_data{
         $result = 'fail';
     }
     DEBUG("concentration: $concentration, minimum: $minimum, result: $result");
-    $datum->{dna_status_result} = $result; 
+    $datum->{dna_status_result} = $result;
     return;
 }
 
@@ -170,7 +170,7 @@ sub spreadsheet_to_csv {
         $worksheets{ $sheet->{Name} } = $output_fh->filename;
 
         $sheet->{MaxRow} ||= $sheet->{MinRow};
-        
+
         foreach my $row ($sheet->{MinRow} .. $sheet->{MaxRow}) {
             my @vals = map { $_->{Val} } grep{$_} @{ $sheet->{Cells}[$row] };
             $csv->print($output_fh, \@vals);
@@ -180,6 +180,9 @@ sub spreadsheet_to_csv {
     return \%worksheets;
 }
 
+## no critic (RequireFinalReturn)
+# perlcritic started complaining this sub does not end with return after
+# I switched from using Try::Tiny to TryCatch.. don't know why
 sub parse_csv_file {
     my ( $fh, $optional_header_check ) = @_;
     my $cleaned_fh = _clean_newline( $fh );
@@ -208,12 +211,13 @@ sub parse_csv_file {
             }
         }
     }
-    catch {
+    catch($e){
         DEBUG( sprintf( "Error parsing csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
-        LIMS2::Exception::Validation->throw( "Invalid csv file" . $_ );
+        LIMS2::Exception::Validation->throw( "Invalid csv file" . $e );
     }
     return _clean_csv_data( $csv_data );
 }
+## use critic
 
 sub _clean_newline {
     my $fh = shift;

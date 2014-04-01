@@ -1,7 +1,7 @@
 package LIMS2::t::WebApp::Controller::User::WellDataLegacy;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::WebApp::Controller::User::WellDataLegacy;
+use LIMS2::WebApp::Controller::User::WellData;
 
 use LIMS2::Test;
 use File::Temp ':seekable';
