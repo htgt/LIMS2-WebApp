@@ -23,6 +23,7 @@ use Perl6::Slurp;
 use Text::Iconv;
 use Spreadsheet::XLSX;
 use File::Temp;
+use LIMS2::Model::Constants qw( %VECTOR_DNA_CONCENTRATION );
 
 Log::Log4perl->easy_init($DEBUG);
 
@@ -51,7 +52,7 @@ sub upload_plate_dna_status {
             # some additional processing
             try{
                 ## This method fails if well is not defined on plate
-                ## do we need to allow for empty wells??
+                ## we need to allow for empty wells
                 _process_concentration_data($datum,$plate);
             }
             catch ($error){
@@ -74,14 +75,14 @@ sub upload_plate_dna_status {
         }
         else {
             # Some of the wells in the input were not present in LIMS2
+            # This should not happen because we catch this during '_process_concentration_data' step
             push @failure_message,
                 $validated_params->{'well_name'} . ' - well not available in LIMS2';
         }
     }
 
     push my @returned_messages, ( @failure_message, @success_message );
-    # Caller can get both sets of messages in case missing well errors are not acceptable
-    return wantarray ? (\@success_message, \@failure_message) : \@returned_messages;
+    return \@returned_messages;
 }
 
 sub _process_concentration_data{
@@ -109,20 +110,13 @@ sub _process_concentration_data{
     my $plate_type = $input_well->plate->type_id;
     my $species = $input_well->plate->species_id;
     my $minimum;
-    ## FIXME: should specify this in some config file
-    if($species eq 'Human' and $plate_type eq 'FINAL_PICK'){
-        $minimum = 20;
+    try{
+        $minimum = $VECTOR_DNA_CONCENTRATION{$species}->{$plate_type};
     }
-    elsif($species eq 'Human' and $plate_type eq 'CRISPR_V'){
-        $minimum = 30;
-    }
-    elsif($species eq 'Mouse' and $plate_type eq 'CRISPR_V'){
-        $minimum = 40;
-    }
-    else{
+    unless(defined $minimum){
         LIMS2::Exception::Validation->throw(
             "No concentration threshold defined for $species $plate_type DNA"
-        );
+        );        
     }
 
     # Score as pass or fail

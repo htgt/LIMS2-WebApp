@@ -103,10 +103,11 @@ sub dna_concentration_upload :Path( '/user/dna_concentration_upload' ) :Args(0) 
 sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    # FIXME: sanity checking and error catching required!!
-
     my @map_params = grep{ $_ =~ /_map$/ } keys %{ $c->request->params };
     $c->log->debug('Map params: ', (join ", ", @map_params) );
+    unless(@map_params){
+        $c->flash->{error_msg} = "No worksheet to plate name mappings provided";
+    }
 
     # Generate hash of plates to csv files
     my %csv_for_plate;
@@ -120,8 +121,15 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
             next;
         }
 
-        my $csv_name = $c->request->params->{$worksheet_name};
+        # This should not happen
+        my $csv_name = $c->request->params->{$worksheet_name} 
+            or die "No temporary filepath found for worksheet $worksheet_name";
+
         $csv_for_plate{$plate_name} = $csv_name;
+    }
+
+    unless(%csv_for_plate){
+        $c->flash->{error_msg} = "There were no plate updates to run";
     }
 
     $c->model('Golgi')->txn_do( sub{
@@ -136,32 +144,27 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
                 from_concentration => 1,
             );
 
-            my ($success_msg, $failure_msg);
+            my $msg;
             try{
-                ($success_msg, $failure_msg) = $c->model('Golgi')->update_plate_dna_status( \%params );
-                $c->stash->{success_msg} .= "<br>Uploaded dna status information onto plate $plate:<br>"
-                    . join("<br>", @{ $success_msg  });
+                $msg = $c->model('Golgi')->update_plate_dna_status( \%params );
+                $c->flash->{success_msg} .= "<br>Uploaded dna status information onto plate $plate:<br>"
+                    . join("<br>", @{ $msg || [] });
             }
             catch {
-                $c->stash->{error_msg} .= "<br>Error encountered while updating dna status data for plate $plate:<br>".$_;
+                $c->flash->{error_msg} .= "<br>Error encountered while updating dna status data for plate $plate:<br>".$_;
             };
-
-            # Update ran but problems were found along the way
-            ## FIXME: this might be ok if upload can contain data for empty wells which are not stored in LIMS2
-            if($failure_msg){
-                $c->stash->{error_msg} .= "<br>Problem found while updating dna status data for plate $plate:<br>"
-                    . join("<br>", @{ $failure_msg });
-            }
         }
         
         # If updates for any plate produced error messages we clear out the success message
         # and rollback the transaction so user can correct the file and start again
-        if ($c->stash->{error_msg}){
-            $c->stash->{success_msg} = undef;
+        if ($c->flash->{error_msg}){
+            $c->flash->{success_msg} = undef;
             $c->log->debug("Rolling back DNA concentration update");
             $c->model('Golgi')->txn_rollback;
         }
     });
+
+    $c->response->redirect('/user/dna_concentration_upload');
 }
 
 sub show_genotyping_qc_data :Path('/user/show_genotyping_qc_data') :Args(0){
