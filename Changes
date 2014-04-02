@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.177     2014-04-02 10:28:50 Europe/London
+
 0.176     2014-03-28 11:38:20 Europe/London
 
     Added find_gene and find_genes methods using the new gene name solr index
