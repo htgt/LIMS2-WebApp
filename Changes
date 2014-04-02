@@ -1,5 +1,23 @@
 {{$NEXT}}
 
+0.176     2014-03-28 11:38:20 Europe/London
+
+    Added find_gene and find_genes methods using the new gene name solr index
+
+0.175     2014-03-25 14:39:24 Europe/London
+
+    Bugfix: Human QC gene lookup now goes on the design id rather than the expected design id
+
+0.174     2014-03-24 15:48:12 Europe/London
+
+    Crispr assembly plate must now be created from DNA plates
+
+0.173     2014-03-20 14:47:42 Europe/London
+    
+    OligoSelection util module added
+    Accepted crisprs or crispr pairs (well locations) shown on final and final pick vector plate reportsd
+    Gene sponsors shown on plate reports alongside gene IDs and symbols
+
 0.172     2014-03-19 06:21:46 Europe/London
 
     Added candidate_oligo and candidate_region columns to design attempt table.
