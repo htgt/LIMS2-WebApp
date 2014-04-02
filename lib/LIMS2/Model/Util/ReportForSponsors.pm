@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.175';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.177';
 }
 ## use critic
 
@@ -673,12 +673,15 @@ sub genes {
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 
-    #DEBUG "sql query = ".$sql_query;
-
     my $sql_results = $self->run_select_query( $sql_query );
 
     # fetch gene symbols and return modified results set for display
     my @genes_for_display;
+
+    my @gene_list;
+    foreach my $gene_row ( @$sql_results ) {
+         unshift( @gene_list,  $gene_row->{ 'gene_id' });
+    }
 
     foreach my $gene_row ( @$sql_results ) {
         my $gene_id = $gene_row->{ 'gene_id' };
@@ -686,31 +689,11 @@ sub genes {
         my $gene_symbol = '';
         # get the gene name, the good way. TODO for human genes
         try {
-            $gene_symbol = $self->model->retrieve_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{ 'gene_symbol' };
+            $gene_symbol = $self->model->find_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{ 'gene_symbol' };
         }
         catch {
             INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
         };
-
-        # alternative way to get gene names..
-        if ( !defined $gene_symbol || $gene_symbol eq '' ) {
-            try {
-                my $gene_design_row = $self->model->schema->resultset('DesignTarget')->search({
-                        gene_id => $gene_id
-                    }, {
-                        select => 'marker_symbol',
-                        rows => 1,
-                    })->single;
-                $gene_symbol = $gene_design_row->marker_symbol;
-
-            }
-            catch {
-                INFO 'Failed to fetch through design_targets gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
-            };
-        }
-
-        # if no gene name was found, set as unknown
-        unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
 
         # get the gibson design count
         my $report_params = {

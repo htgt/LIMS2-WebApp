@@ -1,0 +1,40 @@
+use Text::Iconv;
+my $converter = Text::Iconv -> new ("utf-8", "windows-1251");
+ 
+ # Text::Iconv is not really required.
+ # This can be any object with the convert method. Or nothing.
+
+use Spreadsheet::XLSX;
+use Text::CSV;
+use Path::Class;
+ 
+my $excel = Spreadsheet::XLSX -> new ($ARGV[0], $converter);
+my $csv = Text::CSV->new( { eol => "\n" } );
+my $file = file('output.csv');
+my $output_fh = $file->openw or die $!;
+
+foreach my $sheet (@{$excel -> {Worksheet}}) {
+ 
+    printf("Sheet: %s\n", $sheet->{Name});
+        
+    $sheet -> {MaxRow} ||= $sheet -> {MinRow};
+        
+    foreach my $row ($sheet -> {MinRow} .. $sheet -> {MaxRow}) {
+         
+	$sheet -> {MaxCol} ||= $sheet -> {MinCol};
+                
+	foreach my $col ($sheet -> {MinCol} ..  $sheet -> {MaxCol}) {
+                
+            $csv->print($output_fh, $sheet->{Cells}[$row]);
+
+	    my $cell = $sheet -> {Cells} [$row] [$col];
+ 
+	    if ($cell) {
+		printf("( %s , %s ) => %s\n", $row, $col, $cell -> {Val});
+	    }
+ 
+	}
+ 
+    }
+ 
+}
