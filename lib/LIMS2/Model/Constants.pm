@@ -126,7 +126,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'clone_pick' => {
-        type   => [qw( EP XEP SEP )],
+        type   => [qw( EP XEP SEP CRISPR_EP )],
         number => 1,
     },
     'clone_pool' => {

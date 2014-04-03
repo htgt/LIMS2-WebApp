@@ -33,7 +33,12 @@ use LIMS2::Model::Util::PgUserRole qw( db_name );
 use LIMS2::Model::Util::RefdataUpload;
 use File::Basename;
 
-Log::Log4perl->easy_init($OFF);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $OFF } );
+    }
+}
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 

@@ -25,7 +25,12 @@ use Spreadsheet::XLSX;
 use File::Temp;
 use LIMS2::Model::Constants qw( %VECTOR_DNA_CONCENTRATION );
 
-Log::Log4perl->easy_init($DEBUG);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 sub pspec__check_dna_status {
     return {
