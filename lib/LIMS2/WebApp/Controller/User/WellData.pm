@@ -167,7 +167,7 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
     });
     ## use critic
 
-    $c->response->redirect('/user/dna_concentration_upload');
+    $c->response->redirect($c->uri_for('/user/dna_concentration_upload'));
     return;
 }
 
