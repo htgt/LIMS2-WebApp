@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.177';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.178';
 }
 ## use critic
 
@@ -173,7 +173,7 @@ sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) 
     });
     ## use critic
 
-    $c->response->redirect('/user/dna_concentration_upload');
+    $c->response->redirect($c->uri_for('/user/dna_concentration_upload'));
     return;
 }
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.177';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.178';
 }
 ## use critic
 
@@ -40,7 +40,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
 
-    my $gene_info = try{ $c->model('Golgi')->retrieve_gene( { search_term => $gene, species => $species_id } ) };
+    my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $gene, species => $species_id } ) };
 
     # if we dont find a gene via solr index just search directly against the gene_design table
     my $gene_id;

@@ -1,7 +1,7 @@
 package LIMS2::Model::DBConnect;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::DBConnect::VERSION = '0.177';
+    $LIMS2::Model::DBConnect::VERSION = '0.178';
 }
 ## use critic
 

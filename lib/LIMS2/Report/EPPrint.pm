@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPrint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPrint::VERSION = '0.177';
+    $LIMS2::Report::EPPrint::VERSION = '0.178';
 }
 ## use critic
 
