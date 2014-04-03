@@ -1,0 +1,16 @@
+[% META title = "WGE Design Importer"; META tab_name = "Designs" %]
+
+<form method="POST" action="[% c.uri_for( '/user/wge_design_importer' ) %]" class="well">
+
+    <legend>WGE Design Importer</legend>
+    
+    <input type="text" name="wge_design_id" placeholder="WGE design id">
+    <input type="submit" name="import_design" class="btn btn-primary" value="Import Design" />
+
+</form>
+
+[% IF design_id %]
+  <form method="link" action="[% c.uri_for('/user/view_design', { design_id => design_id } ) %]">
+    <input type="submit" class="btn btn-primary" value="View Imported Design">
+  </form>
+[% END %]

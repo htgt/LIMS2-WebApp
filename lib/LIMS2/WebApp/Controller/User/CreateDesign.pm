@@ -9,6 +9,9 @@ use Path::Class;
 use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
 
+use LIMS2::REST::Client;
+
+
 BEGIN { extends 'Catalyst::Controller' };
 
 #use this default if the env var isnt set.
@@ -454,6 +457,54 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
     return;
 }
 ## use critic
+
+
+sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    if ( $c->request->param('import_design') ) {
+
+        my $client = LIMS2::REST::Client->new_with_config();
+        my $design_id = $c->request->param('wge_design_id');
+
+        my $design_data = $client->GET( 'design', { id => $design_id } );
+        my $species = $c->session->{species};
+
+        if ( $c->session->{selected_species} ne $design_data->{species} ) {
+            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is " 
+                .$design_data->{species}.".\n" . "Plese switch to the correct species in LIMS2." );
+            return;
+        }
+
+
+        $design_data->{created_by} = $c->user->name;
+        $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
+        $design_id = 1000001;
+        $design_data->{id} = $design_id;
+
+        $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
+        delete $design_data->{assigned_genes};
+        delete $design_data->{oligos_fasta};
+
+        try {
+            my $design = $c->model('Golgi')->c_create_design( $design_data );
+            $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
+        }
+        catch ($err) {
+            $c->stash( error_msg => "Error importing WGE design: $err" );
+            return;
+        }
+
+        $c->stash(
+            design_id => $design_id,
+        );
+    }
+
+    return;
+}
+
 
 __PACKAGE__->meta->make_immutable;
 

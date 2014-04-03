@@ -42,6 +42,9 @@
             <li>
               <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
+            </li>
           </ul>
         </li>
 
