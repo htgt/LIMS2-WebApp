@@ -1,6 +1,14 @@
 {{$NEXT}}
 
+0.178     2014-04-03 14:50:41 Europe/London
+
+    Allow clone_pick from CRISPR_EP
+    bugfix: redirect after concentration upload corrected
+    bugfix: logging had been disabled
+
 0.177     2014-04-02 10:28:50 Europe/London
+
+    Added DNA concentration spreadsheet upload
 
 0.176     2014-03-28 11:38:20 Europe/London
 
