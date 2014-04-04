@@ -470,7 +470,6 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
         my $design_id = $c->request->param('wge_design_id');
 
         my $design_data = $client->GET( 'design', { id => $design_id } );
-        my $species = $c->session->{species};
 
         if ( $c->session->{selected_species} ne $design_data->{species} ) {
             $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is " 
@@ -478,10 +477,9 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
             return;
         }
 
-
         $design_data->{created_by} = $c->user->name;
         $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
-        $design_id = 1000001;
+        $design_id = 10000016;
         $design_data->{id} = $design_id;
 
         $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
@@ -489,7 +487,7 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
         delete $design_data->{oligos_fasta};
 
         try {
-            my $design = $c->model('Golgi')->c_create_design( $design_data );
+            $c->model('Golgi')->c_create_design( $design_data );
             $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
         }
         catch ($err) {
@@ -497,8 +495,10 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
             return;
         }
 
+        my $link = $c->uri_for('/user/view_design', { design_id => $design_id } )->as_string;
+
         $c->stash(
-            design_id => $design_id,
+            view_design => $link,
         );
     }
 

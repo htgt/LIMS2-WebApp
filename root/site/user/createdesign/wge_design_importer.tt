@@ -9,8 +9,8 @@
 
 </form>
 
-[% IF design_id %]
-  <form method="link" action="[% c.uri_for('/user/view_design', { design_id => design_id } ) %]">
+[% IF view_design %]
+  <form method="link" action="[% view_design %]">
     <input type="submit" class="btn btn-primary" value="View Imported Design">
   </form>
 [% END %]
