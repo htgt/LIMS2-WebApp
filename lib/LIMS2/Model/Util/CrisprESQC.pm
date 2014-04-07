@@ -1,8 +1,17 @@
 package LIMS2::Model::Util::CrisprESQC;
 
+=head1 NAME
+
+LIMS2::Model::Util::CrisprESQC -
+
+=head1 DESCRIPTION
+
+
+=cut
+
 use Moose;
 use HTGT::QC::Util::CigarParser;
-use HTGT::QC::Util::CrisprAlleleDamage; 
+use HTGT::QC::Util::CrisprAlleleDamage;
 use WebAppCommon::Util::EnsEMBL;
 use LIMS2::Exception;
 use Bio::SeqIO;
@@ -106,14 +115,13 @@ has commit => (
 
 =head2 analyse_plate
 
-desc
+Start crispr es cell qc analysis.
 
 =cut
-use Smart::Comments;
 sub analyse_plate {
     my ( $self ) = @_;
     $self->log->info( 'Running crispr es cell qc on plate: ' . $self->plate->name );
-    
+
     $self->get_primer_reads();
 
     my @well_qc_data;
@@ -122,24 +130,30 @@ sub analyse_plate {
         push @well_qc_data, $self->analyse_well( $well );
     }
 
-    ### @well_qc_data
     if ( $self->commit ) {
-        # TODO commit run though model 
+        #CREATE TABLE crispr_es_qc_runs (
+            #id                     CHAR(36) PRIMARY KEY,
+            #sequencing_project     TEXT NOT NULL,
+            #created_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            #created_by_id          INTEGER NOT NULL REFERENCES users(id),
+            #species_id             TEXT NOT NULL REFERENCES species(id)
+        #);
+        # TODO commit run though model
     }
 
-    return;
+    return \@well_qc_data;
 }
 
 =head2 analyse_well
 
-desc
+Analyse a well on the plate.
 
 =cut
 sub analyse_well {
     my ( $self, $well ) = @_;
-    
-    my $crispr_pair  = $self->crispr_for_well( $well );
-    my $target_slice = $crispr_pair->target_slice;
+
+    my $crispr       = $self->crispr_for_well( $well );
+    my $target_slice = $crispr->target_slice;
     $target_slice    = $target_slice->expand( 200, 200 );
 
     my ( $alignment_data, $well_reads );
@@ -153,14 +167,17 @@ sub analyse_well {
     }
 
     my $analysis_json
-        = $self->parse_analysis_data( $alignment_data, $crispr_pair, $target_slice );
+        = $self->parse_analysis_data( $alignment_data, $crispr, $target_slice );
 
-    return $self->build_qc_data( $well, $analysis_json, $well_reads, $crispr_pair );
+    return $self->build_qc_data( $well, $analysis_json, $well_reads, $crispr );
 }
 
 =head2 align_well_reads
 
-desc
+Gather the primer reads and align against the target region the crispr pair
+will hit.
+The alignment and analysis work is done by the HTGT::QC::Util::CrisprAlleleDamage
+module.
 
 =cut
 sub align_well_reads {
@@ -174,7 +191,7 @@ sub align_well_reads {
     );
 
     my $design = $well->design;
-    # revcomp if design is on -ve strand 
+    # revcomp if design is on -ve strand
     if ( $design->info->chr_strand == -1 ) {
         $target_genomic_region = $target_genomic_region->revcom;
     }
@@ -199,12 +216,12 @@ sub align_well_reads {
 
 =head2 crispr_for_well
 
-desc
+Return the crispr pair or crispr linked to the well.
 
 =cut
 sub crispr_for_well {
     my ( $self, $well ) = @_;
-    
+
     my ( $left_crispr_well, $right_crispr_well ) = $well->left_and_right_crispr_wells;
 
     if ( $left_crispr_well && $right_crispr_well ) {
@@ -226,9 +243,13 @@ sub crispr_for_well {
 
         return $crispr_pair;
     }
+    elsif ( $left_crispr_well ) {
+        my $crispr = $left_crispr_well->crispr;
+        $self->log->debug("Crispr pair for $well: $crispr" );
+        return $crispr;
+    }
     else {
-        # TODO: we may do qc on single crisprs, must deal with that here
-        LIMS2::Exception( "Unable to determine crispr pair for well $well" );
+        LIMS2::Exception( "Unable to determine crispr pair or crispr for well $well" );
     }
 
     return;
@@ -236,12 +257,13 @@ sub crispr_for_well {
 
 =head2 get_primer_reads
 
-desc
+Gather all the reads from a sequencing project, parse the data and put
+into a hash, keyed on well names.
 
 =cut
 sub get_primer_reads {
     my ( $self ) = @_;
-    
+
     my $seq_reads = $self->fetch_seq_reads;
 
     $self->log->debug( 'Parsing sequence read data' );
@@ -267,12 +289,12 @@ sub get_primer_reads {
 
 =head2 fetch_seq_reads
 
-desc
+Fetch the fasta file containing all the primer reads for the sequencing project.
 
 =cut
 sub fetch_seq_reads {
     my ( $self  ) = @_;
-    
+
     my $cmd = which( 'fetch-seq-reads.sh' );
     LIMS2::Exception->throw( 'Unable to find fetsch-seq-reads.sh script' ) unless $cmd;
 
@@ -286,11 +308,11 @@ sub fetch_seq_reads {
 
 =head2 parse_analysis_data
 
-desc
+Combine all the qc analysis data we want to store and convert into a json string.
 
 =cut
 sub parse_analysis_data {
-    my ( $self, $alignment_data, $crispr_pair, $target_slice ) = @_;
+    my ( $self, $alignment_data, $crispr, $target_slice ) = @_;
 
     my %parsed_data;
     for my $direction ( qw( forward reverse ) ) {
@@ -304,28 +326,31 @@ sub parse_analysis_data {
         }
     }
 
-    # TODO what to write if no reads
+    if ( $alignment_data->{no_reads} ) {
+        $parsed_data{warning} = 'No primer reads found for well' ;
+    }
 
     $parsed_data{target_sequence_start}  = $target_slice->start;
     $parsed_data{target_sequence_end}    = $target_slice->end;
-    $parsed_data{crispr_pair_id}         = $crispr_pair->id;
-    
+    $parsed_data{crispr_id}              = $crispr_pair->id;
+
     return encode_json( \%parsed_data );
 }
 
 =head2 build_qc_data
 
-desc
+Build up a hash of qc data for a well that can be perisisted to LIMS2.
 
 =cut
 sub build_qc_data {
-    my ( $self, $well, $analysis_json, $well_reads, $crispr_pair ) = @_;
+    my ( $self, $well, $analysis_json, $well_reads, $crispr ) = @_;
 
+    my $start =
     my %qc_data = (
         well_id       => $well->id,
-        crispr_start  => $crispr_pair->left_crispr_locus->chr_start,
-        crispr_end    => $crispr_pair->right_crispr_locus->chr_end,
-        crispr_chr_id => $crispr_pair->right_crispr_locus->chr_id,
+        crispr_start  => $crispr->start,
+        crispr_end    => $crispr->end,
+        crispr_chr_id => $crispr->chr_id,
         analysis_data => $analysis_json,
     );
 
@@ -338,7 +363,7 @@ sub build_qc_data {
         my $bioseq = $well_reads->{reverse};
         $qc_data{rev_read} = '>' . $bioseq->display_id . "\n" . $bioseq->seq;
     }
-    
+
     return \%qc_data;
 }
 
