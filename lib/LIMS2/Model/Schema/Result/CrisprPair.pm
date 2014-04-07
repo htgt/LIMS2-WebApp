@@ -180,6 +180,13 @@ sub as_hash {
     return \%h;
 }
 
+use overload '""' => \&as_string;
+
+sub as_string {
+    my $self = shift;
+
+    return $self->id . '(' . $self->left_crispr_id . '-' . $self->right_crispr_id . ')';
+}
 
 # Methods to link directly to locus table without having to go via Crispr table
 __PACKAGE__->belongs_to(
@@ -195,6 +202,31 @@ __PACKAGE__->belongs_to(
     { 'foreign.crispr_id' => 'self.left_crispr_id' },
     { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
+sub target_bioseq {
+    my ( $self, $flank, $ensembl_util ) = @_;
+
+    my $start   = $self->left_crispr_locus->chr_start;
+    my $end     = $self->right_crispr_locus->chr_end;
+    my $chr     = $self->right_crispr_locus->chr->name;
+
+    unless ( $ensembl_util ) {
+        require WebAppCommon::Util::EnsEMBL;
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
+    }
+
+    $flank //=  200;
+    my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome', $chr, $start, $end );
+    my $expanded_slice = $slice->expand( $flank, $flank );
+
+    require Bio::Seq;
+    return Bio::Seq->new(
+        -display_id => 'crispr_pair_' . $self->id,
+        -alphabet   => 'dna',
+        -seq        => $expanded_slice->seq
+    );
+}
 
 
 __PACKAGE__->meta->make_immutable;
