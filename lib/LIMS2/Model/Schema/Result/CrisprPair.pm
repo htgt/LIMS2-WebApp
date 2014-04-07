@@ -188,20 +188,13 @@ sub as_string {
     return $self->id . '(' . $self->left_crispr_id . '-' . $self->right_crispr_id . ')';
 }
 
-# Methods to link directly to locus table without having to go via Crispr table
-__PACKAGE__->belongs_to(
-    "right_crispr_locus",
-    "LIMS2::Model::Schema::Result::CrisprLocus",
-    { 'foreign.crispr_id' => 'self.right_crispr_id' },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
+sub right_crispr_locus {
+    return shift->right_crispr->current_locus;
+}
 
-__PACKAGE__->belongs_to(
-    "left_crispr_locus",
-    "LIMS2::Model::Schema::Result::CrisprLocus",
-    { 'foreign.crispr_id' => 'self.left_crispr_id' },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
+sub left_crispr_locus {
+    return shift->left_crispr->current_locus;
+}
 
 sub target_slice {
     my ( $self, $ensembl_util ) = @_;
@@ -221,6 +214,21 @@ sub target_slice {
     return $slice;
 }
 
+sub start {
+    return shift->left_crispr_locus->chr_start;
+}
+
+sub end {
+    return shift->right_crispr_locus->chr_start;
+}
+
+sub chr_id {
+    return shift->right_crispr_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->right_crispr_locus->chr->name;
+}
 
 __PACKAGE__->meta->make_immutable;
 1;
