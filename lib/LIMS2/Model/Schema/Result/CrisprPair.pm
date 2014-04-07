@@ -199,17 +199,17 @@ sub left_crispr_locus {
 sub target_slice {
     my ( $self, $ensembl_util ) = @_;
 
-    my $start   = $self->left_crispr_locus->chr_start;
-    my $end     = $self->right_crispr_locus->chr_end;
-    my $chr     = $self->right_crispr_locus->chr->name;
-
     unless ( $ensembl_util ) {
         require WebAppCommon::Util::EnsEMBL;
         $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
     }
 
     my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
-        'chromosome', $chr, $start, $end );
+        'chromosome',
+        $self->chr_name,
+        $self->start,
+        $self->end
+    );
 
     return $slice;
 }
