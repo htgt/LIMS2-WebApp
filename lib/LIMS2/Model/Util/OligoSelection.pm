@@ -18,6 +18,7 @@ use Sub::Exporter -setup => {
         oligos_for_gibson
         oligos_for_crispr_pair
         pick_crispr_primers
+        pick_single_crispr_primers
     ) ]
 };
 
@@ -730,6 +731,57 @@ sub pick_crispr_primers {
     return ($crispr_oligos, $primer_data, $chr_strand);
 }
 
+
+sub pick_single_crispr_primers {
+    my $params = shift;
+
+    my $repeat_mask = $params->{'repeat_mask'};
+$DB::single=1;
+    my $crispr_oligos = oligo_for_single_crispr( $params->{'schema'}, $params->{'crispr_id'} );
+
+    # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
+    my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
+        $chr_seq_start, $chr_seq_end)
+        = get_single_crispr_EnsEmbl_region($params, $crispr_oligos, $repeat_mask );
+
+    $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
+
+    my $p3 = DesignCreate::Util::Primer3->new_with_config(
+        configfile => $ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' },
+        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length + 500),
+    );
+
+    my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
+    my $logfile = $dir_out->file( $params->{'crispr_pair_id'} . '_seq_oligos.log');
+
+    my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
+            { SEQUENCE_TARGET => $target_sequence_mask ,
+            } );
+    # for sequencing dont want pairs
+    my %failed_primer_regions;
+    if ( $result->num_primer_pairs ) {
+        INFO ( $params->{'crispr_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
+    }
+    else {
+        INFO ( 'Failed to generate sequencing primers for ' . $params->{'crispr_id'} );
+        $failed_primer_regions{$params->{'crispr_id'}} = $primer3_explain;
+
+    }
+
+    my $primer_data = parse_primer3_results( $result );
+    #
+    use DesignCreate::Exception::Primer3FailedFindOligos;
+
+    if (%failed_primer_regions) {
+        DesignCreate::Exception::Primer3FailedFindOligos->throw(
+            regions             => [ keys %failed_primer_regions ],
+            primer_fail_reasons => \%failed_primer_regions,
+        );
+    }
+
+    return ($crispr_oligos, $primer_data, $chr_strand);
+}
+
 =head2 oligos_for_crispr_pair
 
 Generate sequencing primer oligos for a crispr pair
@@ -785,6 +837,79 @@ sub crispr_pair_oligos_rs {
     return $crispr_rs;
 }
 
+=head oligo_for_single_crispr
+
+returns a hr that contains lots fo information on the single crispr under the 'left_crispr' key
+
+Everything else is done wrt crispr pairs, so it is easier to use the same data structures.
+
+=cut
+
+sub oligo_for_single_crispr {
+    my $schema = shift;
+    my $crispr_id = shift;
+
+    # TODO: should be checking assembly, chromosome and species here
+
+    my $crispr_rs = crispr_oligo_rs( $schema, $crispr_id );
+    my $crispr = $crispr_rs->first;
+
+    my %crispr_pairs;
+    $crispr_pairs{'left_crispr'}->{'id'} = $crispr->id;
+    my $locus_count = $crispr->loci->count;
+    if ($locus_count != 1 ) {
+        INFO ('Found multiple loci for ' . $crispr_id);
+    }
+    my $locus = $crispr->loci->first;
+    $crispr_pairs{'left_crispr'}->{'chr_start'} = $locus->chr_start;
+    $crispr_pairs{'left_crispr'}->{'chr_end'} = $locus->chr_end;
+    $crispr_pairs{'left_crispr'}->{'chr_strand'} = $locus->chr_strand;
+    $crispr_pairs{'left_crispr'}->{'chr_id'} = $locus->chr_id;
+    $crispr_pairs{'left_crispr'}->{'chr_name'} = $locus->chr->name;
+    $crispr_pairs{'left_crispr'}->{'seq'} = $crispr->seq;
+
+    return \%crispr_pairs;
+}
+
+sub crispr_oligo_rs {
+    my $schema = shift;
+    my $crispr_id = shift;
+
+    my $crispr_rs = $schema->resultset('Crispr')->search(
+        {
+            'id' => $crispr_id,
+        },
+    );
+
+    return $crispr_rs;
+}
+
+=head junk
+
+sub crisprs_for_region {
+    my $schema = shift;
+    my $params = shift;
+
+    # Chromosome number is looked up in the chromosomes table to get the chromosome_id
+    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
+
+    my $crisprs_rs = $schema->resultset('CrisprLocus')->search(
+        {
+            'assembly_id' => $params->{assembly_id},
+            'chr_id'      => $params->{chromosome_id},
+            # need all the crisprs starting with values >= start_coord
+            # and whose start values are <= end_coord
+            'chr_start'   => { -between => [
+                $params->{start_coord},
+                $params->{end_coord},
+                ],
+            },
+        },
+    );
+
+    return $crisprs_rs;
+}
+=cut
 
 =head get_crispr_pair_EnsEmbl_region
 
@@ -794,7 +919,7 @@ We don't use the crispr strand information.
 
 [SF1] >100bp [Left_Crispr] --- [Right_Crispr] > 100bp [SR1]
 
-SF and SR with repsect to the sense of the gene (not the sense of EnsEmbl)
+SF and SR with respect to the sense of the gene (not the sense of EnsEmbl)
 =cut
 
 sub get_crispr_pair_EnsEmbl_region {
@@ -821,6 +946,74 @@ sub get_crispr_pair_EnsEmbl_region {
     my $start_coord = $crispr_oligos->{'left_crispr'}->{'chr_start'};
     my $region_start_coord = $start_coord - ($dead_field_width + $search_field_width);
     my $end_coord = $crispr_oligos->{'right_crispr'}->{'chr_end'};
+    my $region_end_coord = $end_coord + ($dead_field_width + $search_field_width );
+
+    my $slice_adaptor = $registry->get_adaptor($params->{'species'}, 'Core', 'Slice');
+    if ( $chr_strand eq 'plus' ) {
+        $slice_region = $slice_adaptor->fetch_by_region(
+            'chromosome',
+            $crispr_oligos->{'left_crispr'}->{'chr_name'},
+            $region_start_coord,
+            $region_end_coord,
+            1,
+
+        );
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 0,
+            });
+    }
+    elsif ( $chr_strand eq 'minus' ) {
+        $slice_region = $slice_adaptor->fetch_by_region(
+            'chromosome',
+            $crispr_oligos->{'left_crispr'}->{'chr_name'},
+            $region_start_coord,
+            $region_end_coord,
+            -1,
+        );
+        $seq = get_repeat_masked_sequence( {
+                slice_region => $slice_region,
+                repeat_mask => $repeat_mask,
+                revcom  => 1,
+            });
+    }
+
+    my $target_sequence_length = ($end_coord - $start_coord) + 2 * $dead_field_width;
+    # target sequence is <start, length> and in this case indicates the region we want to sequence
+
+    my $target_sequence_string =  $search_field_width . ',' . $target_sequence_length;
+
+    my $chr_seq_start = $slice_region->start;
+    my $chr_seq_end = $slice_region->end;
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand,
+            $chr_seq_start, $chr_seq_end)  ;
+}
+
+sub get_single_crispr_EnsEmbl_region {
+    my $params = shift;
+    my $crispr_oligos = shift;
+
+    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
+    my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
+    my $design_oligos = $design_info->oligos;
+    my $repeat_mask = $params->{'repeat_mask'};
+
+    my $chr_strand = $design_info->chr_strand eq '1' ? 'plus' : 'minus';
+
+    my $slice_region;
+    my $seq;
+    my $crispr_length = length($crispr_oligos->{'left_crispr'}->{'seq'});
+    # dead field width is the number of bases in which primers must not be found.
+    # This is because sequencing oligos needs some run-in to the region of interest.
+    # So, we need a region that covers from the 3' end of the crispr back to (len_crispr + dead_field + live_field)
+    # 5' (live_field + dead_field + len_crispr)
+    my $dead_field_width = 100;
+    my $search_field_width = 200;
+
+    my $start_coord = $crispr_oligos->{'left_crispr'}->{'chr_start'};
+    my $region_start_coord = $start_coord - ($dead_field_width + $search_field_width);
+    my $end_coord = $crispr_oligos->{'left_crispr'}->{'chr_end'}; # this is a singleton crispr
     my $region_end_coord = $end_coord + ($dead_field_width + $search_field_width );
 
     my $slice_adaptor = $registry->get_adaptor($params->{'species'}, 'Core', 'Slice');
