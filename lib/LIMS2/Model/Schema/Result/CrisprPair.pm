@@ -203,8 +203,8 @@ __PACKAGE__->belongs_to(
     { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-sub target_bioseq {
-    my ( $self, $flank, $ensembl_util ) = @_;
+sub target_slice {
+    my ( $self, $ensembl_util ) = @_;
 
     my $start   = $self->left_crispr_locus->chr_start;
     my $end     = $self->right_crispr_locus->chr_end;
@@ -215,17 +215,10 @@ sub target_bioseq {
         $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
     }
 
-    $flank //=  0;
     my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
         'chromosome', $chr, $start, $end );
-    $slice = $slice->expand( $flank, $flank ) if $flank;
 
-    require Bio::Seq;
-    return Bio::Seq->new(
-        -display_id => 'crispr_pair_' . $self->id,
-        -alphabet   => 'dna',
-        -seq        => $slice->seq
-    );
+    return $slice;
 }
 
 
