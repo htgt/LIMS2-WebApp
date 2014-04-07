@@ -75,6 +75,12 @@ __PACKAGE__->table("design_attempts");
   data_type: 'text'
   is_nullable: 1
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =head2 created_by
 
   data_type: 'integer'
@@ -92,12 +98,6 @@ __PACKAGE__->table("design_attempts");
 
   data_type: 'text'
   is_nullable: 1
-
-=head2 species_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
 
 =head2 candidate_oligos
 
@@ -131,6 +131,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "design_ids",
   { data_type => "text", is_nullable => 1 },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "created_by",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -142,8 +144,6 @@ __PACKAGE__->add_columns(
   },
   "comment",
   { data_type => "text", is_nullable => 1 },
-  "species_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "candidate_oligos",
   { data_type => "text", is_nullable => 1 },
   "candidate_regions",
@@ -195,8 +195,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-03-14 07:59:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p27UuhcPTDEuI77gj/gQpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v9yymcwG1QroSl7r18jxPg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

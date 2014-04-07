@@ -256,9 +256,39 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
     return;
 }
 
+sub crispr_es_qc :Path( '/user/crispr_es_qc' ) :Args(0) {
+    my ( $self, $c ) = @_;
 
+    my @wells;
 
+    my $alignment_data = {
+        reference => "CACCCGCGTCCGCGCCATGGCCATCTACAAGCAGTCACAGCACATGACGGAGGTTGTGAGGCGCTGCCCCCACCATGAGCGCTGCTCAGATAGCGATGGTGAGCAGCTGGGGCTGGAGAGA",
+        a_match   => "MMMMMMQMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDDDDDMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+        a_seq     => "CACCCGQGTCCGCGCCATGGCCATCTACAAGCAGTCACAGCAC-----GGAGGTTGTGAGGCGCTGCCCCCACCATGAGCGCTGCTCAGATAGCGATGGTGAGCAGCTGGGGCTGGAGAGA",
+        b_seq     => "CACCCGQGTCCGCGCCATGGCCATCTACAAGCAGTCACAGCACATGACGGAGGTTGTGAGGCGCTGCCCCCACCATGAGCGCTGCTCAGATAGCGATGGTGAGCAGCTGGGGCTGGAGAGA",
+        b_match   => "MMMMMMQMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+};
 
+    for my $id ( 1 .. 3 ) {
+        push @wells, {
+            well_name     => "A0$id",
+            gene          => "CBX1",
+            alignment     => $alignment_data,
+            longest_indel => "36bp",
+            accepted      => 0,
+        };
+    }
+
+    #add comment field
+
+    $c->stash(
+        qc_run_id   => '7AD72068-BB2F-11E3-B212-B10D0E841146',
+        seq_project => 'HUEPD0001',
+        wells       => \@wells,
+    );
+
+    return;
+}
 
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;

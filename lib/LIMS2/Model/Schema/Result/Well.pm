@@ -168,6 +168,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_es_qc_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcWell>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_es_qc_wells",
+  "LIMS2::Model::Schema::Result::CrisprEsQcWell",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate
 
 Type: belongs_to
@@ -459,8 +474,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-02-07 16:49:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wsh8MnCHAsvOF0X9Ngx+Zg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Wb9hsaUisz8TRYYAUVxpYQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
