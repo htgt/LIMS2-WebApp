@@ -1,0 +1,141 @@
+[% META title="Crispr ES Cell QC"; META tab_name = 'Crisprs' %]
+
+<style type="text/css">
+.alignment {
+    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
+    font-size: 11px;
+    display: block;
+    font-weight: bold
+}
+</style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    //var s = $($($(".alignment_inner")[0]).children(".seq")[0]);
+    //var m = $($($(".alignment_inner")[0]).children(".match")[0]);
+
+    $(".alignment_inner").each(function() {
+        var parent = $( this );
+
+        //should instead hide everything so we can toggle the match string
+        var seq_a = parent.children(".seq_a").text();
+        var c_a = seq_a.colour_with_cigar( parent.children(".match_a").text() );
+
+        var seq_b = parent.children(".seq_b").text();
+        var c_b = seq_b.colour_with_cigar( parent.children(".match_b").text() );
+
+        parent.empty().append(c_a).append(c_b);
+    });
+
+    //s.replaceWith(String(s.text()).colour_with_cigar(m.text()));
+});
+
+function colour_string(seq, match) {
+    seq.replaceWith( seq.colour_with_cigar(match) );
+}
+
+
+//not an actual cigar string but close enough
+String.prototype.colour_with_cigar = function colour_string(cigar) {
+    if ( cigar.length != this.length ) {
+        console.log("Warning: string lengths don't match!");
+    }
+
+    //a span to hold all the other spans
+    var base = $("<span>", {style: "display: block"});
+
+    //generates a coloured span
+    function make_span(buf, colour) {
+        //write our buffer out into a span
+        attrs = { text: buf };
+        if (colour) attrs.style =  "color:" + colour;
+
+        return $("<span>", attrs);
+    }
+
+    var colours = {
+        'M': '#468847',
+        'Q': '#48036F',
+        'D': '#b94A48',
+    };
+
+    var current_colour = "", buf = "";
+
+    for ( var i = 0; i < this.length; i++ ) {
+        var colour = colours[cigar.charAt(i)] || "";
+        var nuc = this.charAt(i);
+
+        //if the colours don't match or we're at the end of the string
+        //we need to flush the buffer
+        if ( colour != current_colour ) {            
+            //add to our base span (assuming it has something in)
+            if ( buf )
+                base.append( make_span(buf, current_colour) );
+
+            //reset colour and restart buffer with the new char
+            current_colour = colour;
+            buf = nuc;
+        }
+        else {
+            buf += nuc;
+        }
+    }
+
+    //add anything remaining on the buffer (there will always be at least 1 base)
+    base.append( make_span(buf, current_colour) );
+
+    return base;
+}
+</script>
+
+<div class="well">
+    <table class="table table-condensed">
+        <tr>
+            <th>QC Run ID</th>
+            <td>[% qc_run_id %]</td>
+        </tr>
+        <tr>
+            <th>Sequencing project</th>
+            <td>[% seq_project %]</td>
+        </tr>
+    </table>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Well</th>
+            <th>Gene</th>
+            <th>Alignment</th>
+            <th>Longest Indel</th>
+            <th>Accept</th>
+            <th>View trace</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOR row IN wells %]
+        <tr>
+            <td>[% row.well_name %]</td>
+            <td>[% row.gene %]</td>
+            <td>
+                <div class="alignment">
+                <span>[% row.alignment.reference %]</span><br/>
+                    <div class="alignment_inner">
+                        <span class="match match_a">[% row.alignment.a_match %]</span><br/>
+                        <span class="seq seq_a">[% row.alignment.a_seq %]</span><br/>
+                        <br/>
+                        <span class="seq seq_b">[% row.alignment.b_seq %]</span><br/>
+                        <span class="match match_b">[% row.alignment.b_match %]</span><br/>
+                        <span>[% row.alignment.reference %]</span></br>
+                    </div>
+                </div>
+            </td>
+            <td>[% row.longest_indel %]</td>
+            <td>
+                <input type="checkbox" name="accepted_[% row.well_id %]" [% row.accepted ? "checked" : "" %] />
+            </td>
+            <td>trace</td>
+        </tr>
+        [% END %]
+    </tbody>
+</table>
