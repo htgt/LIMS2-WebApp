@@ -14,7 +14,7 @@ sub pspec_create_crispr_es_qc {
         created_by => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         species    => { validate => 'existing_species', rename => 'species_id' },
-        wells      => { validate => 'arrayref' },
+        wells      => { },
         sequencing_project => { validate => 'non_empty_string' },
     };
 }
@@ -27,12 +27,12 @@ Create a new crispr_es_qc with attached wells.
 sub create_crispr_es_qc_run {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_crispr_es_qc );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc );
 
     #these will be created separately
     my $wells = delete $validated_params->{wells};
 
-    my $qc_run = $self->schema->resultset('CrisprEsQcRuns')->create( $params );
+    my $qc_run = $self->schema->resultset('CrisprEsQcRuns')->create( $validated_params );
 
     #later this will be moved to its own method as we won't create
     #wells when we create the qc
@@ -45,13 +45,13 @@ sub create_crispr_es_qc_run {
 
 sub pspec_create_crispr_es_qc_well {
     return {
-        well_id       => { validate => 'existing_well_id' },
-        fwd_read      => { validate => 'non_empty_string' },
-        rev_read      => { validate => 'non_empty_string' },
-        crispr_chr_id => { validate => 'existing_chromosome' },
-        crispr_start  => { validate => 'integer' },
-        crispr_end    => { validate => 'integer' },
-        analysis_data => { validate => 'non_empty_string' },
+        well_id         => { validate => 'integer' },
+        fwd_read        => { validate => 'non_empty_string' },
+        rev_read        => { validate => 'non_empty_string' },
+        crispr_chr_name => { validate => 'existing_chromosome' },
+        crispr_start    => { validate => 'integer' },
+        crispr_end      => { validate => 'integer' },
+        analysis_data   => { validate => 'json' },
     };
 }
 
@@ -63,8 +63,9 @@ Given a QC run add a well with the given parameters
 sub create_crispr_es_qc_well {
     my ( $self, $qc_run, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_crispr_es_qc );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_well );
 
+            #chr_id      => $self->_chr_id_for( @{$validated_params}{ 'assembly', 'chr_name' } ),
     return $qc_run->create_related(
         crispr_es_qc_wells => $validated_params
     );
