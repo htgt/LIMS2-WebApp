@@ -8,6 +8,7 @@ use Sub::Exporter -setup => {
         qw(
             parse_csv_file
             upload_plate_dna_status
+            spreadsheet_to_csv
           )
     ]
 };
@@ -17,14 +18,26 @@ use List::MoreUtils qw( none );
 use LIMS2::Exception::Validation;
 use Text::CSV_XS;
 use IO::File;
-use Try::Tiny;
+use TryCatch;
 use Perl6::Slurp;
+use Text::Iconv;
+use Spreadsheet::XLSX;
+use File::Temp;
+use LIMS2::Model::Constants qw( %VECTOR_DNA_CONCENTRATION );
+
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 sub pspec__check_dna_status {
     return {
-        well_name         => { validate  => 'well_name' },
-        dna_status_result => { validate  => 'pass_or_fail', post_filter  => 'pass_to_boolean', rename => 'pass' },
-        comments          => { validated => 'non_empty_string', optional => 1, rename => 'comment_text' },
+        well_name           => { validate => 'well_name' },
+        dna_status_result   => { validate => 'pass_or_fail', post_filter  => 'pass_to_boolean', rename => 'pass' },
+        concentration_ng_ul => { validate => 'signed_float', optional => 1 },
+        comments            => { validate => 'non_empty_string', optional => 1, rename => 'comment_text' },
     };
 }
 
@@ -39,6 +52,19 @@ sub upload_plate_dna_status {
     check_plate_type( $plate, [ qw(DNA) ]  );
 
     for my $datum ( @{$data} ) {
+        if($params->{from_concentration}){
+            # Input is from concentration measurment spreadsheet so needs
+            # some additional processing
+            try{
+                ## This method fails if well is not defined on plate
+                ## we need to allow for empty wells
+                _process_concentration_data($datum,$plate);
+            }
+            catch ($error){
+                push @failure_message, $error;
+                next;
+            }
+        }
         my $validated_params = $model->check_params( $datum, pspec__check_dna_status() );
         my $dna_status = $model->create_well_dna_status(
             +{
@@ -54,6 +80,7 @@ sub upload_plate_dna_status {
         }
         else {
             # Some of the wells in the input were not present in LIMS2
+            # This should not happen because we catch this during '_process_concentration_data' step
             push @failure_message,
                 $validated_params->{'well_name'} . ' - well not available in LIMS2';
         }
@@ -61,6 +88,61 @@ sub upload_plate_dna_status {
 
     push my @returned_messages, ( @failure_message, @success_message );
     return \@returned_messages;
+}
+
+sub _process_concentration_data{
+    my ($datum, $plate) = @_;
+
+    # Pad out numerical part of well name
+    my $well_name = delete $datum->{Well};
+    unless($well_name){
+        LIMS2::Exception::Validation->throw(
+            'No Well provided in DNA concentration data'
+        );
+    }
+    my ($letter, $number) = ($well_name =~ m/^([A-Z])([0-9]*)$/g);
+    my $formatted_well_name = sprintf('%s%02d', $letter, $number);
+    $datum->{'well_name'} = $formatted_well_name;
+
+    # Determine source plate type
+    my ($well) = $plate->search_related('wells', {name => $formatted_well_name});
+    unless($well){
+        LIMS2::Exception::Validation->throw(
+            "Upload contains well $formatted_well_name which was not found on plate ".$plate->name
+        );
+    }
+    my ($input_well) = $well->ancestors->input_wells($well);
+    my $plate_type = $input_well->plate->type_id;
+    my $species = $input_well->plate->species_id;
+    my $minimum;
+    try{
+        $minimum = $VECTOR_DNA_CONCENTRATION{$species}->{$plate_type};
+    }
+    unless(defined $minimum){
+        LIMS2::Exception::Validation->throw(
+            "No concentration threshold defined for $species $plate_type DNA"
+        );
+    }
+
+    # Score as pass or fail
+    my $concentration = delete $datum->{'Concentration ng/ul'};
+    unless($concentration){
+        LIMS2::Exception::Validation->throw(
+            'No concentration value provided in DNA concentration data'
+        );
+    }
+    $datum->{concentration_ng_ul} = $concentration;
+
+    my $result;
+    if ($concentration > $minimum ){
+        $result = 'pass';
+    }
+    else{
+        $result = 'fail';
+    }
+    DEBUG("concentration: $concentration, minimum: $minimum, result: $result");
+    $datum->{dna_status_result} = $result;
+    return;
 }
 
 sub check_plate_type {
@@ -76,6 +158,36 @@ sub check_plate_type {
     return;
 }
 
+sub spreadsheet_to_csv {
+    my ( $spreadsheet ) = @_;
+
+    my $converter = Text::Iconv->new("utf-8", "windows-1251");
+    my $excel = Spreadsheet::XLSX->new($spreadsheet, $converter);
+    my $csv = Text::CSV_XS->new( { eol => "\n" } );
+
+    my %worksheets;
+
+    foreach my $sheet (@{$excel->{Worksheet}}) {
+
+        my $output_fh = File::Temp->new() or die "Error creating temp file - $!";
+        $output_fh->unlink_on_destroy(0);
+
+        $worksheets{ $sheet->{Name} } = $output_fh->filename;
+
+        $sheet->{MaxRow} ||= $sheet->{MinRow};
+
+        foreach my $row ($sheet->{MinRow} .. $sheet->{MaxRow}) {
+            my @vals = map { $_->{Val} } grep{$_} @{ $sheet->{Cells}[$row] };
+            $csv->print($output_fh, \@vals);
+        }
+    }
+
+    return \%worksheets;
+}
+
+## no critic (RequireFinalReturn)
+# perlcritic started complaining this sub does not end with return after
+# I switched from using Try::Tiny to TryCatch.. don't know why
 sub parse_csv_file {
     my ( $fh, $optional_header_check ) = @_;
     my $cleaned_fh = _clean_newline( $fh );
@@ -104,12 +216,13 @@ sub parse_csv_file {
             }
         }
     }
-    catch {
+    catch($e){
         DEBUG( sprintf( "Error parsing csv file '%s': %s", $csv->error_input || '', '' . $csv->error_diag) );
-        LIMS2::Exception::Validation->throw( "Invalid csv file" . $_ );
-    };
+        LIMS2::Exception::Validation->throw( "Invalid csv file" . $e );
+    }
     return _clean_csv_data( $csv_data );
 }
+## use critic
 
 sub _clean_newline {
     my $fh = shift;
