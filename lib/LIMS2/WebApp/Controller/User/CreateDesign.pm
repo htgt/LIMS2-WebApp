@@ -467,7 +467,7 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
     if ( $c->request->param('import_design') ) {
 
         my $client = LIMS2::REST::Client->new_with_config();
-        my $design_id = $c->request->param('wge_design_id');
+        my $design_id = $c->request->param('design_id');
 
         my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
 
@@ -493,10 +493,8 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
             return;
         }
 
-        my $link = $c->uri_for('/user/view_design', { design_id => $design_id } )->as_string;
-
         $c->stash(
-            view_design => $link,
+            design_id => $design_id,
         );
     }
 

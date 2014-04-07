@@ -10,7 +10,11 @@
 </form>
 
 [% IF crispr_id %]
-  <form method="link" action="[% c.uri_for('/user/crispr', crispr_id, 'view' ) %]">
-    <input type="submit" class="btn btn-primary" value="View Imported Crispr">
+  <form method="POST" action="[% c.uri_for('/user/crispr', crispr_id, 'view' ) %]">
+    <fieldset>
+    <legend>View Imported Crispr</legend>
+    <input type="text" name="crispr_id" placeholder="crispr_id" value="[% crispr_id %]" readonly />
+    <input type="submit" name="action" class="btn btn-primary" value="View Crispr">
+    </fieldset>
   </form>
 [% END %]
