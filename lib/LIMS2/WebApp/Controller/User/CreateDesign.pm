@@ -479,7 +479,7 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         $design_data->{created_by} = $c->user->name;
         $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
-        $design_id = 10000016;
+
         $design_data->{id} = $design_id;
 
         $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
