@@ -249,6 +249,12 @@ __PACKAGE__->belongs_to(
 
 use Bio::Perl qw( revcom );
 
+use overload '""' => \&as_string;
+
+sub as_string {
+    return shift->id;
+}
+
 sub as_hash {
     my ( $self ) = @_;
 
