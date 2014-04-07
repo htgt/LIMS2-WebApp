@@ -215,16 +215,16 @@ sub target_bioseq {
         $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
     }
 
-    $flank //=  200;
+    $flank //=  0;
     my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
         'chromosome', $chr, $start, $end );
-    my $expanded_slice = $slice->expand( $flank, $flank );
+    $slice = $slice->expand( $flank, $flank ) if $flank;
 
     require Bio::Seq;
     return Bio::Seq->new(
         -display_id => 'crispr_pair_' . $self->id,
         -alphabet   => 'dna',
-        -seq        => $expanded_slice->seq
+        -seq        => $slice->seq
     );
 }
 
