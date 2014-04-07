@@ -279,6 +279,40 @@ sub as_hash {
     return \%h;
 }
 
+sub current_locus {
+    my $self = shift;
+
+    my $loci = $self->result_source->schema->resultset('CrisprLocus')->find(
+        {
+            'me.crispr_id'                          => $self->id,
+            'species_default_assemblies.species_id' => $self->species_id
+        },
+        {
+            join => {
+                assembly => 'species_default_assemblies'
+            }
+        }
+    );
+
+    return $loci;
+}
+
+sub start {
+    return shift->current_locus->chr_start;
+}
+
+sub end {
+    return shift->current_locus->chr_start;
+}
+
+sub chr_id {
+    return shift->current_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->current_locus->chr->name;
+}
+
 sub guide_rna {
     my ( $self ) = @_;
 
