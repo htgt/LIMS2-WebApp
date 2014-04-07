@@ -469,7 +469,7 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
         my $client = LIMS2::REST::Client->new_with_config();
         my $design_id = $c->request->param('wge_design_id');
 
-        my $design_data = $client->GET( 'design', { id => $design_id } );
+        my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
 
         if ( $c->session->{selected_species} ne $design_data->{species} ) {
             $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is " 
@@ -479,10 +479,8 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         $design_data->{created_by} = $c->user->name;
         $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
-
         $design_data->{id} = $design_id;
 
-        $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ],
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
 
