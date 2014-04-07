@@ -336,7 +336,7 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
         $crispr_data->{species} = $species->{$crispr_data->{species_id}};
 
         if ( $c->session->{selected_species} ne $crispr_data->{species} ) {
-            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and crispr is " 
+            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and crispr is "
                 .$crispr_data->{species}.".\n" . "Plese switch to the correct species in LIMS2." );
             return;
         }

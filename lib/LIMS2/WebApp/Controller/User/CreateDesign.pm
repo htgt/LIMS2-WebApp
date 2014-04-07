@@ -472,7 +472,7 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
         my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
 
         if ( $c->session->{selected_species} ne $design_data->{species} ) {
-            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is " 
+            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is "
                 .$design_data->{species}.".\n" . "Plese switch to the correct species in LIMS2." );
             return;
         }
