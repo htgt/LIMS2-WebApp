@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.179';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.180';
 }
 ## use critic
 
@@ -14,6 +14,9 @@ use Path::Class;
 
 use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
+
+use LIMS2::REST::Client;
+
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -460,6 +463,50 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
     return;
 }
 ## use critic
+
+
+sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    if ( $c->request->param('import_design') ) {
+
+        my $client = LIMS2::REST::Client->new_with_config();
+        my $design_id = $c->request->param('design_id');
+
+        my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
+
+        if ( $c->session->{selected_species} ne $design_data->{species} ) {
+            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is "
+                .$design_data->{species}.".\n" . "Plese switch to the correct species in LIMS2." );
+            return;
+        }
+
+        $design_data->{created_by} = $c->user->name;
+        $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ];
+        $design_data->{id} = $design_id;
+
+        delete $design_data->{assigned_genes};
+        delete $design_data->{oligos_fasta};
+
+        try {
+            $c->model('Golgi')->c_create_design( $design_data );
+            $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
+        }
+        catch ($err) {
+            $c->stash( error_msg => "Error importing WGE design: $err" );
+            return;
+        }
+
+        $c->stash(
+            design_id => $design_id,
+        );
+    }
+
+    return;
+}
+
 
 __PACKAGE__->meta->make_immutable;
 

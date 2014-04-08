@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.179';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.180';
 }
 ## use critic
 

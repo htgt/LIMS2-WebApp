@@ -290,6 +290,7 @@ root/site/user/createdesign/gibson_design_gene_pick.tt
 root/site/user/createdesign/index.tt
 root/site/user/createdesign/pending_design_attempt.tt
 root/site/user/createdesign/view_design_attempt.tt
+root/site/user/createdesign/wge_design_importer.tt
 root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
@@ -297,6 +298,7 @@ root/site/user/crisprs/genoverse_browse_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_pair.tt
+root/site/user/crisprs/wge_crispr_importer.tt
 root/site/user/designtargets/crisprs_ucsc_blat.tt
 root/site/user/designtargets/design_target_report_crispr_pick.tt
 root/site/user/designtargets/gene_report_crispr_pairs.tt

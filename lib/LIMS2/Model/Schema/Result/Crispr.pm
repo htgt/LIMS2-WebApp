@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.179';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.180';
 }
 ## use critic
 
@@ -78,6 +78,11 @@ __PACKAGE__->table("crisprs");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 wge_crispr_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -98,6 +103,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "pam_right",
   { data_type => "boolean", is_nullable => 1 },
+  "wge_crispr_id",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -111,6 +118,20 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<crisprs_wge_crispr_id_key>
+
+=over 4
+
+=item * L</wge_crispr_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("crisprs_wge_crispr_id_key", ["wge_crispr_id"]);
 
 =head1 RELATIONS
 
@@ -250,8 +271,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VJREFU/RuYm4fILRP417vA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-04 15:22:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uLp+VpMB8tLtuKMzwSVjqQ
 
 use Bio::Perl qw( revcom );
 
