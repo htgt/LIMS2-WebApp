@@ -7,7 +7,7 @@ CREATE TABLE crispr_es_qc_runs (
 );
 
 CREATE TABLE crispr_es_qc_wells (
-    id                     INTEGER PRIMARY KEY,
+    id                     SERIAL PRIMARY KEY,
     crispr_es_qc_run_id    CHAR(36) NOT NULL REFERENCES crispr_es_qc_runs(id),
     well_id                INTEGER NOT NULL REFERENCES wells(id),
     fwd_read               TEXT,
