@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.176';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.179';
 }
 ## use critic
 
@@ -69,6 +69,10 @@ sub copy_float {
         my $val = shift;
         return $val =~ qr/^\d+(\.\d+)?$/ ;
     }
+}
+
+sub signed_float {
+    return shift->regexp_matches(qr/^[-]?\d+(\.\d+)?$/);
 }
 
 sub bac_library {

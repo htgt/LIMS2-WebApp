@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.176';
+    $LIMS2::Model::Constants::VERSION = '0.179';
 }
 ## use critic
 
@@ -26,6 +26,7 @@ BEGIN {
         %ADDITIONAL_PLATE_REPORTS
         %UCSC_BLAT_DB
         %DEFAULT_SPECIES_BUILD
+        %VECTOR_DNA_CONCENTRATION 
     );
     our %EXPORT_TAGS = ();
 }
@@ -131,7 +132,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'clone_pick' => {
-        type   => [qw( EP XEP SEP )],
+        type   => [qw( EP XEP SEP CRISPR_EP )],
         number => 1,
     },
     'clone_pool' => {
@@ -245,6 +246,17 @@ const our %DEFAULT_SPECIES_BUILD => (
     human => 73,
 );
 
+# Minimun required DNA concentrations for different species and vector types
+# Unit is ng per ul
+const our %VECTOR_DNA_CONCENTRATION => (
+    'Human' => {
+        'FINAL_PICK' => 20,
+        'CRISPR_V'   => 30,
+    },
+    'Mouse' => {
+        'CRISPR_V'   => 40,
+    },
+);
 1;
 
 __END__

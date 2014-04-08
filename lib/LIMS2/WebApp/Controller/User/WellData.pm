@@ -1,13 +1,14 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.176';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.179';
 }
 ## use critic
 
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use LIMS2::Model::Util::DataUpload qw(spreadsheet_to_csv);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -70,6 +71,109 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
         }
     );
 
+    return;
+}
+
+sub dna_concentration_upload :Path( '/user/dna_concentration_upload' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    if ($c->request->params->{spreadsheet}){
+
+        my $upload = $c->request->upload('datafile');
+        unless ($upload){
+            $c->stash->{error_msg} = 'Error: No file uploaded';
+            return;
+        }
+
+        # Attempt to parse spreadsheet
+        # spreadsheet parse returns hash of worksheet names to csv files
+        my $worksheets;
+        try{
+            $c->log->debug('Parsing spreadsheet '.$upload->filename);
+            $worksheets = spreadsheet_to_csv($upload->tempname);
+            $c->log->debug('Worksheets: ', (join ", ", keys %{ $worksheets || {} }) );
+        }
+        catch{
+            $c->stash->{error_msg} = 'Error parsing spreadsheet '.$upload->filename.': '.$_;
+            return;
+        };
+
+        # Stash worksheet names and tmp file names
+        $c->stash->{worksheets} = $worksheets;
+        return;
+    }
+
+    return;
+}
+
+sub dna_concentration_update :Path( '/user/dna_concentration_update' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my @map_params = grep{ $_ =~ /_map$/ } keys %{ $c->request->params };
+    $c->log->debug('Map params: ', (join ", ", @map_params) );
+    unless(@map_params){
+        $c->flash->{error_msg} = "No worksheet to plate name mappings provided";
+    }
+
+    # Generate hash of plates to csv files
+    my %csv_for_plate;
+    foreach my $map_name (@map_params){
+        my $plate_name = $c->request->params->{$map_name};
+        my $worksheet_name = $map_name;
+        $worksheet_name =~ s/_map$//;
+
+        unless($plate_name){
+            $c->log->debug("Ignoring worksheet $worksheet_name as no plate name has been provided for it" );
+            next;
+        }
+
+        # This should not happen
+        my $csv_name = $c->request->params->{$worksheet_name}
+            or die "No temporary filepath found for worksheet $worksheet_name";
+
+        $csv_for_plate{$plate_name} = $csv_name;
+    }
+
+    unless(%csv_for_plate){
+        $c->flash->{error_msg} = "There were no plate updates to run";
+    }
+
+    ## no critic (RequireBriefOpen)
+    $c->model('Golgi')->txn_do( sub{
+        # Perform update for each plate
+        while ( my ($plate, $csv) = each %csv_for_plate){
+            open (my $fh, "<", $csv) or die $!;
+            my %params = (
+                csv_fh     => $fh,
+                plate_name => $plate,
+                species    => $c->session->{selected_species},
+                user_name  => $c->user->name,
+                from_concentration => 1,
+            );
+
+            my $msg;
+            try{
+                $msg = $c->model('Golgi')->update_plate_dna_status( \%params );
+                close $fh;
+                $c->flash->{success_msg} .= "<br>Uploaded dna status information onto plate $plate:<br>"
+                    . join("<br>", @{ $msg || [] });
+            }
+            catch {
+                $c->flash->{error_msg} .= "<br>Error encountered while updating dna status data for plate $plate:<br>".$_;
+            };
+        }
+
+        # If updates for any plate produced error messages we clear out the success message
+        # and rollback the transaction so user can correct the file and start again
+        if ($c->flash->{error_msg}){
+            $c->flash->{success_msg} = undef;
+            $c->log->debug("Rolling back DNA concentration update");
+            $c->model('Golgi')->txn_rollback;
+        }
+    });
+    ## use critic
+
+    $c->response->redirect($c->uri_for('/user/dna_concentration_upload'));
     return;
 }
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.176';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.179';
 }
 ## use critic
 
@@ -314,6 +314,7 @@ sub pspec_create_well_dna_status {
         plate_name   => { validate => 'existing_plate_name', optional => 1 },
         well_name    => { validate => 'well_name', optional => 1 },
         pass         => { validate => 'boolean' },
+        concentration_ng_ul => { validate => 'signed_float', optional => 1 },
         comment_text => { validate => 'non_empty_string', optional => 1 },
         created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
@@ -348,7 +349,7 @@ sub create_well_dna_status {
         }
 
         $dna_status = $well->create_related(
-            well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
+            well_dna_status => { slice_def $validated_params, qw( pass concentration_ng_ul comment_text created_by_id created_at ) }
         );
 
         # acs - 20_05_13 - redmine 10328 - update well accepted flag
