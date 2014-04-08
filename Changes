@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.179     2014-04-07 17:02:51 Europe/London
+
+    Added a WGE design and crispr importer
+
 0.178     2014-04-03 14:50:41 Europe/London
 
     Allow clone_pick from CRISPR_EP
