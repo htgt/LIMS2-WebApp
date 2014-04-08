@@ -327,7 +327,9 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
 
     if ( $c->request->param('import_crispr') ) {
 
-        my $client = LIMS2::REST::Client->new_with_config();
+        my $client = LIMS2::REST::Client->new_with_config(
+            configfile => $ENV{WGE_REST_CLIENT_CONFIG}
+        );
         my $wge_crispr_id = $c->request->param('wge_cripr_id');
 
         my $crispr_data = $client->GET( 'crispr', { id => $wge_crispr_id } );
