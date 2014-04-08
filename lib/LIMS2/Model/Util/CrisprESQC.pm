@@ -310,15 +310,17 @@ sub get_primer_reads {
 
     $self->log->debug( 'Parsing sequence read data' );
     my %primer_reads;
-    while ( my $seq = $seq_reads->next_seq ) {
-        next unless $seq->length;
-        my $res = $self->cigar_parser->parse_query_id( $seq->display_name );
+    while ( my $bio_seq = $seq_reads->next_seq ) {
+        next unless $bio_seq->length;
+        ( my $cleaned_seq = $bio_seq->seq ) =~ s/-/N/g;
+        $bio_seq->seq( $cleaned_seq );
+        my $res = $self->cigar_parser->parse_query_id( $bio_seq->display_name );
 
         if ( $res->{primer} eq $self->forward_primer_name ) {
-            $primer_reads{ $res->{well_name} }{forward} = $seq;
+            $primer_reads{ $res->{well_name} }{forward} = $bio_seq;
         }
         elsif ( $res->{primer} eq $self->reverse_primer_name ) {
-            $primer_reads{ $res->{well_name} }{reverse} = $seq;
+            $primer_reads{ $res->{well_name} }{reverse} = $bio_seq;
         }
         else {
             $self->log->error( "Unknown primer read name $res->{primer} on well $res->{well_name}" );
