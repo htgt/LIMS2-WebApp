@@ -20,6 +20,7 @@ use JSON qw( encode_json );
 use Try::Tiny;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 use File::Which;
+use Data::UUID;
 use namespace::autoclean;
 
 with 'MooseX::Log::Log4perl';
@@ -65,6 +66,35 @@ has species => (
     required => 1,
 );
 
+has base_dir => (
+    is       => 'ro',
+    isa      => AbsDir,
+    required => 1,
+    coerce   => 1,
+);
+
+has uuid => (
+    is         => 'ro',
+    isa        => 'Str',
+    lazy_build => 1,
+);
+
+sub _build_uuid {
+    return Data::UUID->new->create_str;
+}
+
+has user => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => 'system',
+);
+
+has commit => (
+    is      => 'ro',
+    isa     => 'Bool',
+    default => 0,
+);
+
 has ensembl_util => (
     is         => 'ro',
     isa        => 'WebAppCommon::Util::EnsEMBL',
@@ -100,18 +130,6 @@ has primer_reads => (
     }
 );
 
-has base_dir => (
-    is       => 'ro',
-    isa      => AbsDir,
-    required => 1,
-    coerce   => 1,
-);
-
-has commit => (
-    is      => 'ro',
-    isa     => 'Bool',
-    default => 0,
-);
 
 =head2 analyse_plate
 
@@ -127,21 +145,36 @@ sub analyse_plate {
     my @well_qc_data;
     for my $well ( $self->plate->wells->all ) {
         next if $self->well_name && $well->name ne $self->well_name;
-        push @well_qc_data, $self->analyse_well( $well );
+        my $well_analysis_data = $self->analyse_well( $well );
+        push @well_qc_data, $well_analysis_data if $well_analysis_data;
     }
 
-    if ( $self->commit ) {
-        #CREATE TABLE crispr_es_qc_runs (
-            #id                     CHAR(36) PRIMARY KEY,
-            #sequencing_project     TEXT NOT NULL,
-            #created_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            #created_by_id          INTEGER NOT NULL REFERENCES users(id),
-            #species_id             TEXT NOT NULL REFERENCES species(id)
-        #);
-        # TODO commit run though model
-    }
+    my $qc_run;
+    $self->model->txn_do(
+        sub{
+            try{
+                $qc_run = $self->model->create_crispr_es_qc_run(
+                    {
+                        id                 => $self->uuid,
+                        created_by         => $self->user,
+                        species            => $self->species,
+                        sequencing_project => $self->sequencing_project_name,
+                        wells              => \@well_qc_data,
+                    }
+                );
+                $self->log->info('Persisted crispr es qc data');
+                unless ( $self->commit ) {
+                    $self->model->txn_rollback;
+                }
+            }
+            catch {
+                $self->log->error("Error persisting crispr es qc: $_" );
+                $self->model->txn_rollback;
+            };
+        }
+    );
 
-    return \@well_qc_data;
+    return $qc_run;
 }
 
 =head2 analyse_well
@@ -151,6 +184,7 @@ Analyse a well on the plate.
 =cut
 sub analyse_well {
     my ( $self, $well ) = @_;
+    $self->log->info( "Analysing well $well" );
 
     my $crispr       = $self->crispr_for_well( $well );
     my $target_slice = $crispr->target_slice;
@@ -162,9 +196,10 @@ sub analyse_well {
         $alignment_data = $self->align_well_reads( $well, $target_slice, $well_reads );
     }
     else {
-        $self->log->warning("No primer reads for well " . $well->name );
+        $self->log->warn("No primer reads for well " . $well->name );
         $alignment_data = { no_reads => 1 };
     }
+    return unless $alignment_data;
 
     my $analysis_json
         = $self->parse_analysis_data( $alignment_data, $crispr, $target_slice );
@@ -209,9 +244,16 @@ sub align_well_reads {
     $params{forward_primer_read} = $well_reads->{forward} if exists $well_reads->{forward};
     $params{reverse_primer_read} = $well_reads->{reverse} if exists $well_reads->{reverse};
 
-    my $qc = HTGT::QC::Util::CrisprAlleleDamage->new( %params );
+    my $alignment_data;
+    try{
+        my $qc = HTGT::QC::Util::CrisprAlleleDamage->new( %params );
+        $alignment_data = $qc->analyse;
+    }
+    catch {
+        $self->log->error("Error running CrisprAlleleDamage alignment and analysis:\n $_");
+    };
 
-    return $qc->analyse;
+    return $alignment_data;
 }
 
 =head2 crispr_for_well
@@ -332,7 +374,7 @@ sub parse_analysis_data {
 
     $parsed_data{target_sequence_start}  = $target_slice->start;
     $parsed_data{target_sequence_end}    = $target_slice->end;
-    $parsed_data{crispr_id}              = $crispr_pair->id;
+    $parsed_data{crispr_id}              = $crispr->id;
 
     return encode_json( \%parsed_data );
 }
@@ -347,11 +389,11 @@ sub build_qc_data {
 
     my $start =
     my %qc_data = (
-        well_id       => $well->id,
-        crispr_start  => $crispr->start,
-        crispr_end    => $crispr->end,
-        crispr_chr_id => $crispr->chr_id,
-        analysis_data => $analysis_json,
+        well_id         => $well->id,
+        crispr_start    => $crispr->start,
+        crispr_end      => $crispr->end,
+        crispr_chr_name => $crispr->chr_name,
+        analysis_data   => $analysis_json,
     );
 
     if ( exists $well_reads->{forward} ) {
