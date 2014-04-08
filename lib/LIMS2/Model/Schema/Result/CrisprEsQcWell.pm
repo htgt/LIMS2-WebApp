@@ -41,7 +41,9 @@ __PACKAGE__->table("crispr_es_qc_wells");
 =head2 id
 
   data_type: 'integer'
+  is_auto_increment: 1
   is_nullable: 0
+  sequence: 'crispr_es_qc_wells_id_seq'
 
 =head2 crispr_es_qc_run_id
 
@@ -59,12 +61,12 @@ __PACKAGE__->table("crispr_es_qc_wells");
 =head2 fwd_read
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 rev_read
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 crispr_chr_id
 
@@ -96,15 +98,20 @@ __PACKAGE__->table("crispr_es_qc_wells");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_nullable => 0 },
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "crispr_es_qc_wells_id_seq",
+  },
   "crispr_es_qc_run_id",
   { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
   "well_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "fwd_read",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "text", is_nullable => 1 },
   "rev_read",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "text", is_nullable => 1 },
   "crispr_chr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "crispr_start",
@@ -177,8 +184,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 11:32:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kHQazZbHHF8mQFv8Td/bJA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-08 10:14:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Cu0mUjD8arymlPQc2zPKAg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
