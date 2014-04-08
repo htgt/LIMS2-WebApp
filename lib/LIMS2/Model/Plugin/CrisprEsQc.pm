@@ -37,17 +37,17 @@ sub create_crispr_es_qc_run {
     #later this will be moved to its own method as we won't create
     #wells when we create the qc
     for my $well ( @{ $wells } ) {
-        $self->create_crispr_es_qc_well( $qc_run, $well );
+        $self->create_crispr_es_qc_well( $qc_run, $well, $validated_params->{species_id} );
     }
 
-    return 1;
+    return $qc_run;
 }
 
 sub pspec_create_crispr_es_qc_well {
     return {
         well_id         => { validate => 'integer' },
-        fwd_read        => { validate => 'non_empty_string' },
-        rev_read        => { validate => 'non_empty_string' },
+        fwd_read        => { validate => 'non_empty_string', optional => 1 },
+        rev_read        => { validate => 'non_empty_string', optional => 1 },
         crispr_chr_name => { validate => 'existing_chromosome' },
         crispr_start    => { validate => 'integer' },
         crispr_end      => { validate => 'integer' },
@@ -61,11 +61,18 @@ Given a QC run add a well with the given parameters
 
 =cut
 sub create_crispr_es_qc_well {
-    my ( $self, $qc_run, $params ) = @_;
+    my ( $self, $qc_run, $params, $species_id ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_well );
 
-            #chr_id      => $self->_chr_id_for( @{$validated_params}{ 'assembly', 'chr_name' } ),
+    my $chr_name = delete $validated_params->{crispr_chr_name};
+    my $chr = $self->schema->resultset('Chromosome')->find(
+        {
+            name       => $chr_name,
+            species_id => $species_id,
+        }
+    );
+    $validated_params->{crispr_chr_id} = $chr->id;
     return $qc_run->create_related(
         crispr_es_qc_wells => $validated_params
     );
