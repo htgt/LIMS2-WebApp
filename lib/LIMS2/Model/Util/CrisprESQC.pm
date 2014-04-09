@@ -17,6 +17,7 @@ use LIMS2::Exception;
 use Bio::SeqIO;
 use Bio::Seq;
 use JSON qw( encode_json );
+use YAML::Any qw( DumpFile );
 use Try::Tiny;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 use File::Which;
@@ -149,19 +150,28 @@ sub analyse_plate {
         push @well_qc_data, $well_analysis_data if $well_analysis_data;
     }
 
+    for my $qc_data ( @well_qc_data ) {
+        my $analysis_data = delete $qc_data->{analysis_data};
+        $qc_data->{analysis_data} = encode_json( $analysis_data );
+    }
+
+    my $qc_run_data = {
+        id                 => $self->uuid,
+        created_by         => $self->user,
+        species            => $self->species,
+        sequencing_project => $self->sequencing_project_name,
+        wells              => \@well_qc_data,
+    };
+
+    my $qc_run_data_file = $self->base_dir->file( 'qc_run_data.yaml' );
+    $qc_run_data_file->touch;
+    DumpFile( $qc_run_data_file, $qc_run_data );
+
     my $qc_run;
     $self->model->txn_do(
         sub{
             try{
-                $qc_run = $self->model->create_crispr_es_qc_run(
-                    {
-                        id                 => $self->uuid,
-                        created_by         => $self->user,
-                        species            => $self->species,
-                        sequencing_project => $self->sequencing_project_name,
-                        wells              => \@well_qc_data,
-                    }
-                );
+                $qc_run = $self->model->create_crispr_es_qc_run( $qc_run_data );
                 $self->log->info('Persisted crispr es qc data');
                 unless ( $self->commit ) {
                     $self->log->info('rollback');
@@ -187,15 +197,20 @@ sub analyse_well {
     my ( $self, $well ) = @_;
     $self->log->info( "Analysing well $well" );
 
+    my $work_dir = $self->base_dir->subdir( $well->as_string );
+    $work_dir->mkpath;
+
     my $crispr        = $self->crispr_for_well( $well );
     my $target_slice  = $crispr->target_slice;
     $target_slice     = $target_slice->expand( 200, 200 );
-    my $design_strand = $well->design->info->chr_strand;;
+    my $design        = $well->design;
+    my $design_strand = $design->info->chr_strand;
 
     my ( $alignment_data, $well_reads );
     if ( $self->well_has_primer_reads( $well->name ) ) {
         $well_reads = $self->get_well_primer_reads( $well->name );
-        $alignment_data = $self->align_well_reads( $well, $target_slice, $well_reads, $design_strand );
+        $alignment_data
+            = $self->align_well_reads( $well, $target_slice, $well_reads, $design_strand, $work_dir );
     }
     else {
         $self->log->warn("No primer reads for well " . $well->name );
@@ -203,10 +218,16 @@ sub analyse_well {
     }
     return unless $alignment_data;
 
-    my $analysis_json
-        = $self->parse_analysis_data( $alignment_data, $crispr, $target_slice, $design_strand );
+    my $analysis_data
+        = $self->parse_analysis_data( $alignment_data, $crispr, $target_slice, $design, $design_strand );
 
-    return $self->build_qc_data( $well, $analysis_json, $well_reads, $crispr );
+    my $qc_data = $self->build_qc_data( $well, $analysis_data, $well_reads, $crispr );
+
+    my $qc_data_file = $work_dir->file( 'qc_data.yaml' );
+    $qc_data_file->touch;
+    DumpFile( $qc_data_file, $qc_data );
+
+    return $qc_data;
 }
 
 =head2 align_well_reads
@@ -218,7 +239,7 @@ module.
 
 =cut
 sub align_well_reads {
-    my ( $self, $well, $target_slice, $well_reads, $design_strand ) = @_;
+    my ( $self, $well, $target_slice, $well_reads, $design_strand, $work_dir ) = @_;
     $self->log->debug( "Aligning reads for well: $well" );
 
     my $target_genomic_region = Bio::Seq->new(
@@ -231,9 +252,6 @@ sub align_well_reads {
     if ( $design_strand == -1 ) {
         $target_genomic_region = $target_genomic_region->revcom;
     }
-
-    my $work_dir = $self->base_dir->subdir( $well->as_string );
-    $work_dir->mkpath;
 
     my %params = (
         genomic_region      => $target_genomic_region,
@@ -353,11 +371,11 @@ sub fetch_seq_reads {
 
 =head2 parse_analysis_data
 
-Combine all the qc analysis data we want to store and convert into a json string.
+Combine all the qc analysis data we want to store and return it in a hash.
 
 =cut
 sub parse_analysis_data {
-    my ( $self, $alignment_data, $crispr, $target_slice, $design_strand ) = @_;
+    my ( $self, $alignment_data, $crispr, $target_slice, $design, $design_strand ) = @_;
 
     my %parsed_data;
     for my $direction ( qw( forward reverse ) ) {
@@ -379,26 +397,28 @@ sub parse_analysis_data {
     $parsed_data{target_sequence_start}  = $target_slice->start;
     $parsed_data{target_sequence_end}    = $target_slice->end;
     $parsed_data{crispr_id}              = $crispr->id;
+    $parsed_data{design_id}              = $design->id;
     $parsed_data{target_sequence}        = $target_slice->seq;
 
-    return encode_json( \%parsed_data );
+    return \%parsed_data;
 }
 
 =head2 build_qc_data
 
 Build up a hash of qc data for a well that can be perisisted to LIMS2.
+Note that the analysis_data value is a hash-ref at the moment, it will
+be converted to json just before we persist the data.
 
 =cut
 sub build_qc_data {
-    my ( $self, $well, $analysis_json, $well_reads, $crispr ) = @_;
+    my ( $self, $well, $analysis_data, $well_reads, $crispr ) = @_;
 
-    my $start =
     my %qc_data = (
         well_id         => $well->id,
         crispr_start    => $crispr->start,
         crispr_end      => $crispr->end,
         crispr_chr_name => $crispr->chr_name,
-        analysis_data   => $analysis_json,
+        analysis_data   => $analysis_data,
     );
 
     if ( exists $well_reads->{forward} ) {
