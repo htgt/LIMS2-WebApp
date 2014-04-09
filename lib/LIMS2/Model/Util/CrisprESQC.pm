@@ -164,6 +164,7 @@ sub analyse_plate {
                 );
                 $self->log->info('Persisted crispr es qc data');
                 unless ( $self->commit ) {
+                    $self->log->info('rollback');
                     $self->model->txn_rollback;
                 }
             }
@@ -186,14 +187,15 @@ sub analyse_well {
     my ( $self, $well ) = @_;
     $self->log->info( "Analysing well $well" );
 
-    my $crispr       = $self->crispr_for_well( $well );
-    my $target_slice = $crispr->target_slice;
-    $target_slice    = $target_slice->expand( 200, 200 );
+    my $crispr        = $self->crispr_for_well( $well );
+    my $target_slice  = $crispr->target_slice;
+    $target_slice     = $target_slice->expand( 200, 200 );
+    my $design_strand = $well->design->info->chr_strand;;
 
     my ( $alignment_data, $well_reads );
     if ( $self->well_has_primer_reads( $well->name ) ) {
         $well_reads = $self->get_well_primer_reads( $well->name );
-        $alignment_data = $self->align_well_reads( $well, $target_slice, $well_reads );
+        $alignment_data = $self->align_well_reads( $well, $target_slice, $well_reads, $design_strand );
     }
     else {
         $self->log->warn("No primer reads for well " . $well->name );
@@ -202,7 +204,7 @@ sub analyse_well {
     return unless $alignment_data;
 
     my $analysis_json
-        = $self->parse_analysis_data( $alignment_data, $crispr, $target_slice );
+        = $self->parse_analysis_data( $alignment_data, $crispr, $target_slice, $design_strand );
 
     return $self->build_qc_data( $well, $analysis_json, $well_reads, $crispr );
 }
@@ -216,7 +218,7 @@ module.
 
 =cut
 sub align_well_reads {
-    my ( $self, $well, $target_slice, $well_reads ) = @_;
+    my ( $self, $well, $target_slice, $well_reads, $design_strand ) = @_;
     $self->log->debug( "Aligning reads for well: $well" );
 
     my $target_genomic_region = Bio::Seq->new(
@@ -225,9 +227,8 @@ sub align_well_reads {
         -seq        => $target_slice->seq
     );
 
-    my $design = $well->design;
     # revcomp if design is on -ve strand
-    if ( $design->info->chr_strand == -1 ) {
+    if ( $design_strand == -1 ) {
         $target_genomic_region = $target_genomic_region->revcom;
     }
 
@@ -356,7 +357,7 @@ Combine all the qc analysis data we want to store and convert into a json string
 
 =cut
 sub parse_analysis_data {
-    my ( $self, $alignment_data, $crispr, $target_slice ) = @_;
+    my ( $self, $alignment_data, $crispr, $target_slice, $design_strand ) = @_;
 
     my %parsed_data;
     for my $direction ( qw( forward reverse ) ) {
@@ -374,9 +375,11 @@ sub parse_analysis_data {
         $parsed_data{warning} = 'No primer reads found for well' ;
     }
 
+    $parsed_data{target_region_strand}   = $design_strand;
     $parsed_data{target_sequence_start}  = $target_slice->start;
     $parsed_data{target_sequence_end}    = $target_slice->end;
     $parsed_data{crispr_id}              = $crispr->id;
+    $parsed_data{target_sequence}        = $target_slice->seq;
 
     return encode_json( \%parsed_data );
 }
