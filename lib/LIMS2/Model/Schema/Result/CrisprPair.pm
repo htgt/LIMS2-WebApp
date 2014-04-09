@@ -219,7 +219,7 @@ sub start {
 }
 
 sub end {
-    return shift->right_crispr_locus->chr_start;
+    return shift->right_crispr_locus->chr_end;
 }
 
 sub chr_id {

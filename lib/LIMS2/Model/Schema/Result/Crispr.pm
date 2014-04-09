@@ -302,7 +302,7 @@ sub start {
 }
 
 sub end {
-    return shift->current_locus->chr_start;
+    return shift->current_locus->chr_end;
 }
 
 sub chr_id {
