@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.180';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.181';
 }
 ## use critic
 
@@ -472,7 +472,9 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
     if ( $c->request->param('import_design') ) {
 
-        my $client = LIMS2::REST::Client->new_with_config();
+        my $client = LIMS2::REST::Client->new_with_config(
+            configfile => $ENV{WGE_REST_CLIENT_CONFIG}
+        );
         my $design_id = $c->request->param('design_id');
 
         my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
