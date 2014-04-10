@@ -1,3 +1,7 @@
+0.182     2014-04-10 10:36:12 Europe/London
+
+    Added autocomplete method for new solr index gene search
+
 0.181     2014-04-09 09:10:05 Europe/London
 
     WGE rest client config

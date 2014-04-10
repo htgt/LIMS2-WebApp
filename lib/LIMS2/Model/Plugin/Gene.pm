@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.181';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.182';
 }
 ## use critic
 
@@ -14,7 +14,7 @@ use Data::Dump 'pp';
 use namespace::autoclean;
 use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util::GeneSearch qw( retrieve_solr_gene retrieve_ensembl_gene normalize_solr_result );
-use WebAppCommon::Util::FindGene qw( c_find_gene );
+use WebAppCommon::Util::FindGene qw( c_find_gene c_autocomplete_gene);
 use TryCatch;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -212,6 +212,28 @@ sub find_genes {
     }
 
     return \%result;
+
+}
+
+# Need as input an hash with species and search_term.
+# As output gives back an array of hashes (with gene_id, gene_symbol and ensembl_id)
+# for the genes that contain the search_term.
+sub autocomplete_gene {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+
+    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+
+    # check species, if not mouse or human, die
+    my $species = $validated_params->{species};
+    LIMS2::Exception::Implementation->throw( "find_gene() for species '$species' not implemented" )
+    unless ($species eq 'Mouse' || $species eq 'Human');
+
+    # search for a gene in the solr index
+    my @genes = c_autocomplete_gene( $validated_params );
+
+    return @genes;
 
 }
 

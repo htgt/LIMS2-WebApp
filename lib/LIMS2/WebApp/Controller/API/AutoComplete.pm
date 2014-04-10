@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.181';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.182';
 }
 ## use critic
 
@@ -121,18 +121,26 @@ sub gene_symbols_GET {
 
     my $species = $c->request->param( 'species' ) || $c->session->{selected_species} || 'Mouse';
 
-    if ( $species eq 'Mouse' ) {
-        try {
-            my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
-            @results = map { $_->{marker_symbol} } @{ $solr->query( $search_term, undef, 1 ) };
-        }
-        catch {
-            $c->log->error($_);
-        };
+    # DEPRECATED: old method based on the mouse only solr index
+    # try {
+    #     my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
+    #     @results = map { $_->{marker_symbol} } @{ $solr->query( $search_term, undef, 1 ) };
+    # }
+    # catch {
+    #     $c->log->error($_);
+    # };
+
+    try {
+        @results = map { $_->{gene_symbol} } $c->model('Golgi')->autocomplete_gene(
+            {
+                species => $species,
+                search_term => lc($search_term),
+            }
+        );
     }
-    elsif ( $species eq 'Human' ) {
-        # XXX TODO: autocompletion for human gene symbols
-    }
+    catch {
+        $c->log->error($_);
+    };
 
     return $self->status_ok( $c, entity => \@results );
 }
