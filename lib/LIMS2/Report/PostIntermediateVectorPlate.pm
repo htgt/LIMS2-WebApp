@@ -1,7 +1,7 @@
 package LIMS2::Report::PostIntermediateVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PostIntermediateVectorPlate::VERSION = '0.178';
+    $LIMS2::Report::PostIntermediateVectorPlate::VERSION = '0.183';
 }
 ## use critic
 

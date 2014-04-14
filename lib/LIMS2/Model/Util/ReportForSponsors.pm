@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.178';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.183';
 }
 ## use critic
 
@@ -423,7 +423,7 @@ sub generate_sub_report {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
             'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones', 'targeted clones accepted' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector plates', 'vector total', 'vector pass', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',

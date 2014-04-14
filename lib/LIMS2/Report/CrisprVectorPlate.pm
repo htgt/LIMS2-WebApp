@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.178';
+    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.183';
 }
 ## use critic
 
@@ -24,8 +24,6 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    ### $self
-
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name',
@@ -39,9 +37,6 @@ override _build_columns => sub {
 
 override iterator => sub {
     my $self = shift;
-
-    ### $self
-
 
     my $wells_rs = $self->plate->search_related(
         wells => {},

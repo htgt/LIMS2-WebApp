@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.178';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.183';
 }
 ## use critic
 
@@ -418,7 +418,7 @@ sub pspec_update_plate_dna_status {
         species    => { validate => 'existing_species' },
         user_name  => { validate => 'existing_user' },
         csv_fh     => { validate => 'file_handle' },
-        from_concentration => { validate => 'boolean'},
+        from_concentration => { validate => 'boolean', optional => 1, default => 0 },
     };
 }
 
