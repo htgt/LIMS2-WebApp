@@ -21,6 +21,7 @@ sub pspec_create_crispr {
         locus                => { validate => 'hashref' },
         pam_right            => { validate => 'boolean' },
         off_targets          => { optional => 1 },
+        wge_crispr_id        => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -69,7 +70,7 @@ sub _create_crispr {
         {   slice_def(
                 $validated_params,
                 qw( id species_id crispr_loci_type_id
-                    seq comment pam_right
+                    seq comment pam_right wge_crispr_id
                     )
             )
         }

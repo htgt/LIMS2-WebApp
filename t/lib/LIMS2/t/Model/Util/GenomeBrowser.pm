@@ -36,7 +36,7 @@ sub b_test_browser_crisprs_for_region : Test(14) {
         'species'           => 'Mouse',
     );
     ok my $crispr_rs = crisprs_for_region( model->schema, \%params ), 'can retrieve individual crispr resultset for region';
-    ok my $test_crispr = $crispr_rs->first, 'can get a crispr locus record';
+    ok my $test_crispr = $crispr_rs->find( '69848', $params{'assembly_id'} ), 'can get a crispr locus record';
     ok $crispr_rs = crisprs_for_region( model->schema, \%params ), 'can re-run database query';
 
     is $test_crispr->crispr_id, 69848, 'crispr_id is correct';
@@ -66,7 +66,7 @@ sub c_test_browser_crispr_pairs_for_region : Test(18) {
     );
     
     ok my $crispr_pairs_rs = crispr_pairs_for_region( model->schema, \%params ), 'can retrieve crispr pairs for chromosome region';
-    ok my $test_crispr_pair = $crispr_pairs_rs->first, 'can get a crispr pair record';
+    ok my $test_crispr_pair = $crispr_pairs_rs->find( 4423 ), 'can get a crispr pair record';
     ok $crispr_pairs_rs = crispr_pairs_for_region( model->schema, \%params ), 'can re-run database query';
     is $test_crispr_pair->pair_id , 4423 , 'crispr_pair_id is correct';
     is $test_crispr_pair->left_crispr_id, 69871, 'left_crispr_id is correct';
@@ -102,8 +102,8 @@ sub d_test_gibson_designs_for_region : Test(19) {
     );
         
     ok my $gibson_design_rs = gibson_designs_for_region( model->schema, \%params ), 'can retrieve gibson design resultset for region';
-    ok my $test_gibson = $gibson_design_rs->first, 'can get a gibson design record';
-    is $test_gibson->design_id, '1002582', 'design_id is correct';
+    ok my $test_gibson = $gibson_design_rs->find( {'oligo_id' => 54813} ), 'can get a gibson design record';
+    is $test_gibson->oligo_id, '54813', 'oligo_id is correct';
     is $test_gibson->assembly_id, 'GRCm38', 'gibson assembly_id is correct';
     is $test_gibson->chr_start, '141008069', 'gibson chr_start is correct';
     is $test_gibson->chr_end, '141008093', 'gibson chr_end is correct';
