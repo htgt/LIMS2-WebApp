@@ -580,13 +580,32 @@ sub get_genotyping_EnsEmbl_region {
 
     my $start_oligo_field_width = 1000;
     my $end_oligo_field_width = 1000;
-
+    my @oligo_keys = sort keys %$design_oligos; # make sure we always deal with the same keys in the same order
+    my $o_start_key = $oligo_keys[0];
+    my $o_end_key = $oligo_keys[0];
+    # Now find the max and min oligo coords in the oligo set
+    foreach my $o_key ( reverse @oligo_keys ) {
+        if (exists $design_oligos->{$o_key}) {
+            if ( $design_oligos->{$o_key}->{'start'} < $design_oligos->{$o_start_key}->{'start'} ) {
+                delete $design_oligos->{$o_start_key} if $o_start_key ne $o_end_key;
+                $o_start_key = $o_key;
+            }
+            elsif ( $design_oligos->{$o_key}->{'end'} > $design_oligos->{$o_end_key}->{'end'} ) {
+                delete $design_oligos->{$o_end_key} if $o_end_key ne $o_start_key;
+                $o_end_key = $o_key;
+            }
+            else {
+                delete $design_oligos->{$o_key};
+            }
+        }
+    }
+    # Now design oligos only contains keys for the max and coord oligos.
     if ( $chr_strand eq 'plus' ) {
         $slice_region = $design_info->slice_adaptor->fetch_by_region(
             'chromosome',
             $design_info->chr_name,
-            $design_oligos->{'5F'}->{'start'} - $start_oligo_field_width,
-            $design_oligos->{'3R'}->{'end'} + $end_oligo_field_width,
+            $design_oligos->{$o_start_key}->{'start'} - $start_oligo_field_width,
+            $design_oligos->{$o_end_key}->{'end'} + $end_oligo_field_width,
             $design_info->chr_strand,
 
         );
@@ -600,8 +619,8 @@ sub get_genotyping_EnsEmbl_region {
         $slice_region = $design_info->slice_adaptor->fetch_by_region(
             'chromosome',
             $design_info->chr_name,
-            $design_oligos->{'3R'}->{'start'} - $start_oligo_field_width,
-            $design_oligos->{'5F'}->{'end'} + $end_oligo_field_width,
+            $design_oligos->{$o_start_key}->{'start'} - $start_oligo_field_width,
+            $design_oligos->{$o_end_key}->{'end'} + $end_oligo_field_width,
             $design_info->chr_strand,
         );
         $seq = get_repeat_masked_sequence( {
@@ -736,7 +755,6 @@ sub pick_single_crispr_primers {
     my $params = shift;
 
     my $repeat_mask = $params->{'repeat_mask'};
-$DB::single=1;
     my $crispr_oligos = oligo_for_single_crispr( $params->{'schema'}, $params->{'crispr_id'} );
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
@@ -752,7 +770,7 @@ $DB::single=1;
     );
 
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
-    my $logfile = $dir_out->file( $params->{'crispr_pair_id'} . '_seq_oligos.log');
+    my $logfile = $dir_out->file( $params->{'crispr_id'} . '_s_seq_oligos.log');
 
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             { SEQUENCE_TARGET => $target_sequence_mask ,
@@ -987,7 +1005,7 @@ sub get_crispr_pair_EnsEmbl_region {
     my $chr_seq_start = $slice_region->start;
     my $chr_seq_end = $slice_region->end;
     return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand,
-            $chr_seq_start, $chr_seq_end)  ;
+            $chr_seq_start, $chr_seq_end);
 }
 
 sub get_single_crispr_EnsEmbl_region {
