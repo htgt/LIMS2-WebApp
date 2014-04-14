@@ -663,6 +663,8 @@ sub _build_sub_report_data {
 sub genes {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
+use Smart::Comments;
+
     DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
@@ -677,8 +679,29 @@ sub genes {
          unshift( @gene_list,  $gene_row->{ 'gene_id' });
     }
 
-    foreach my $gene_row ( @$sql_results ) {
-        my $gene_id = $gene_row->{ 'gene_id' };
+    my $genes_list = join (' ', @gene_list);
+
+    # get the gibson design count
+    my $report_params = {
+        type => 'simple',
+        off_target_algorithm => 'bwa',
+        crispr_types => 'pair'
+    };
+
+    my $build = $DEFAULT_SPECIES_BUILD{ lc($self->species) };
+    my ( $designs ) = design_target_report_for_genes( $self->model->schema, $genes_list, $self->species, $build, $report_params );
+
+	my %genes;
+	@genes{@gene_list} = undef;
+
+	foreach my $gene ( @$designs ) {
+		my $gene_id = $gene->{ 'gene_id' };
+
+		push(@{$genes{$gene_id}}, $gene);
+
+	}
+
+	foreach my $gene_id ( @gene_list ) {
 
         my $gene_symbol = '';
         # get the gene name, the good way. TODO for human genes
@@ -689,15 +712,7 @@ sub genes {
             INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
         };
 
-        # get the gibson design count
-        my $report_params = {
-            type => 'simple',
-            off_target_algorithm => 'bwa',
-            crispr_types => 'pair'
-        };
-
-        my $build = $DEFAULT_SPECIES_BUILD{ lc($self->species) };
-        my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, $self->species, $build, $report_params );
+        my $designs = $genes{$gene_id};
 
         my $design_count = sum map { $_->{ 'designs' } } @{$designs};
         if (!defined $design_count) {$design_count = 0};
