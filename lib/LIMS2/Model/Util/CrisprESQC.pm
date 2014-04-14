@@ -399,6 +399,7 @@ sub parse_analysis_data {
     $parsed_data{crispr_id}              = $crispr->id;
     $parsed_data{design_id}              = $design->id;
     $parsed_data{target_sequence}        = $target_slice->seq;
+    $parsed_data{concordant_indel}       = $alignment_data->{condordant_indel};
 
     return \%parsed_data;
 }
