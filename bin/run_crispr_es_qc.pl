@@ -10,7 +10,10 @@ use Pod::Usage;
 use feature qw( say );
 
 my $log_level = $WARN;
-my ( $plate_name, $well_name, $forward_primer_name, $reverse_primer_name, $sequencing_project, $dir, $commit );
+my ($plate_name,          $well_name,          $forward_primer_name,
+    $reverse_primer_name, $sequencing_project, $dir,
+    $commit,              $seq_plate,          $sequencing_fasta
+);
 GetOptions(
     'help'                  => sub { pod2usage( -verbose    => 1 ) },
     'man'                   => sub { pod2usage( -verbose    => 2 ) },
@@ -21,8 +24,10 @@ GetOptions(
     'forward_primer_name=s' => \$forward_primer_name,
     'reverse_primer_name=s' => \$reverse_primer_name,
     'sequencing_project=s'  => \$sequencing_project,
+    'sequencing_fasta=s'    => \$sequencing_fasta,
     'dir=s'                 => \$dir,
     'commit'                => \$commit,
+    'seq_plate=s'           => \$seq_plate,
 ) or pod2usage(2);
 
 die('Must specify a plate name') unless $plate_name;
@@ -33,6 +38,10 @@ my $model = LIMS2::Model->new( user => 'lims2' );
 
 my $plate = $model->retrieve_plate( { name => $plate_name  } );
 
+# TEMP
+my $cigar_parser = HTGT::QC::Util::CigarParser->new(
+        primers => [ 'SPF', 'SPR', 'SF1', 'SR1' ] );
+
 my %params = (
     model                   => $model,
     plate                   => $plate,
@@ -42,8 +51,11 @@ my %params = (
     species                 => 'Human',
     base_dir                => $dir,
     commit                  => $commit,
+    cigar_parser            => $cigar_parser,
 );
 $params{well_name} = $well_name if $well_name;
+$params{sequencing_plate} = $seq_plate if $seq_plate;
+$params{sequencing_fasta} = $sequencing_fasta if $sequencing_fasta;
 
 my $qc_runner = LIMS2::Model::Util::CrisprESQC->new( %params );
 
