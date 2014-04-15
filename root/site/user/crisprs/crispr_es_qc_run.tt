@@ -21,8 +21,12 @@ $(document).ready(function() {
         var seq_a = parent.children(".seq_a").text();
         var c_a = seq_a.colour_with_cigar( parent.children(".match_a").text() );
 
+        parent.children(".seq_a").replaceWith(c_a);
+
         var seq_b = parent.children(".seq_b").text();
         var c_b = seq_b.colour_with_cigar( parent.children(".match_b").text() );
+
+        //parent.children(".seq_b").replaceWith(c_b);
 
         parent.empty().append(c_a).append(c_b);
     });
@@ -48,14 +52,14 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
     function make_span(buf, colour) {
         //write our buffer out into a span
         attrs = { text: buf };
-        if (colour) attrs.style =  "color:" + colour;
+        if (colour) attrs.style =  "background-color:" + colour + "; color:#FFFFFF";
 
         return $("<span>", attrs);
     }
 
     var colours = {
         'M': '#468847',
-        'Q': '#48036F',
+        'Q': '#0000FF',
         'D': '#b94A48',
     };
 
@@ -105,28 +109,36 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
     <thead>
         <tr>
             <th>Well</th>
+            <th>ES QC Well ID</th>
             <th>Gene</th>
+            <th>Pair ID</th>
             <th>Alignment</th>
             <th>Longest Indel</th>
             <th>Accept</th>
-            <th>View trace</th>
+            <!-- <th>View trace</th> -->
         </tr>
     </thead>
     <tbody>
         [% FOR row IN wells %]
         <tr>
             <td>[% row.well_name %]</td>
+            <td>[% row.es_qc_well_id %]</td>
             <td>[% row.gene %]</td>
+            <td>[% row.crispr_id %]</td>
             <td>
                 <div class="alignment">
-                <span>[% row.alignment.reference %]</span><br/>
+                <span>
+                    [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
+                </span><br/>
                     <div class="alignment_inner">
                         <span class="match match_a">[% row.alignment.a_match %]</span><br/>
-                        <span class="seq seq_a">[% row.alignment.a_seq %]</span><br/>
+                        <span class="seq seq_a">[% row.alignment.a_seq %](F)</span><br/>
                         <br/>
-                        <span class="seq seq_b">[% row.alignment.b_seq %]</span><br/>
+                        <span class="seq seq_b">[% row.alignment.b_seq %](R)</span><br/>
                         <span class="match match_b">[% row.alignment.b_match %]</span><br/>
-                        <span>[% row.alignment.reference %]</span></br>
+                        <span>
+                            [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
+                        </span></br>
                     </div>
                 </div>
             </td>
@@ -134,7 +146,7 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
             <td>
                 <input type="checkbox" name="accepted_[% row.well_id %]" [% row.accepted ? "checked" : "" %] />
             </td>
-            <td>trace</td>
+            <!-- <td>trace</td> -->
         </tr>
         [% END %]
     </tbody>

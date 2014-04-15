@@ -6,6 +6,9 @@ use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
 use YAML::Any;
 use namespace::autoclean;
 use Path::Class;
+use JSON;
+use List::Util qw ( min max );
+use List::MoreUtils qw( uniq );
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
@@ -256,35 +259,127 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
     return;
 }
 
-sub crispr_es_qc :Path( '/user/crispr_es_qc' ) :Args(0) {
-    my ( $self, $c ) = @_;
+sub crispr_es_qc_run :Path( '/user/crispr_es_qc_run' ) :Args(1) {
+    my ( $self, $c, $qc_run_id ) = @_;
 
-    my @wells;
+    my $params = $c->request->params;
 
-    my $alignment_data = {
-        reference => "CACCCGCGTCCGCGCCATGGCCATCTACAAGCAGTCACAGCACATGACGGAGGTTGTGAGGCGCTGCCCCCACCATGAGCGCTGCTCAGATAGCGATGGTGAGCAGCTGGGGCTGGAGAGA",
-        a_match   => "MMMMMMQMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDDDDDMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-        a_seq     => "CACCCGQGTCCGCGCCATGGCCATCTACAAGCAGTCACAGCAC-----GGAGGTTGTGAGGCGCTGCCCCCACCATGAGCGCTGCTCAGATAGCGATGGTGAGCAGCTGGGGCTGGAGAGA",
-        b_seq     => "CACCCGQGTCCGCGCCATGGCCATCTACAAGCAGTCACAGCACATGACGGAGGTTGTGAGGCGCTGCCCCCACCATGAGCGCTGCTCAGATAGCGATGGTGAGCAGCTGGGGCTGGAGAGA",
-        b_match   => "MMMMMMQMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-};
+    #default is to truncate
+    my $truncate_seqs = defined $params->{truncate} ? $params->{"truncate"} : 1;
 
-    for my $id ( 1 .. 3 ) {
-        push @wells, {
-            well_name     => "A0$id",
-            gene          => "CBX1",
+    #should prefetch wells too
+    my $run = $c->model('Golgi')->schema->resultset('CrisprEsQcRuns')->find(
+        { id => $qc_run_id },
+        { prefetch => {'crispr_es_qc_wells' => 'well'} } 
+    );
+
+    unless ( $run ) {
+        $c->stash( error_msg => "Run id $qc_run_id not found" );
+        return;
+    }
+
+    my @qc_wells;
+    for my $qc_well ( $run->crispr_es_qc_wells ) {
+        my $json = decode_json( $qc_well->analysis_data );
+
+        my $pair = $c->model('Golgi')->schema->resultset('CrisprPair')->find(
+            { id => $json->{crispr_id} },
+            { prefetch => [ 'left_crispr', 'right_crispr' ] }
+        );
+
+        #get gene
+        my @genes;
+        if ( $run->species_id eq "Human" ) {
+            my @gene_ids = uniq map { $_->gene_id }
+                                    map { $_->genes } 
+                                        $pair->left_crispr->related_designs;
+
+            for my $gene ( @gene_ids ) {
+                push @genes, $c->model('Golgi')->retrieve_gene( 
+                    { species => 'Human', search_term => $gene } 
+                )->{gene_symbol};
+            }
+        }
+        else {
+            @genes = ( 'Unknown' );
+        }
+
+        #format no alignment properly
+        for my $direction ( qw( forward reverse ) ) {
+            if ( exists $json->{$direction}{no_alignment} ) {
+                $json->{$direction} = { full_match_string => '', query_align_str => 'No alignment' };
+            }
+        }
+
+        #get start, end and size data relative to our seq strings
+        my $str_start = $pair->start - $json->{target_sequence_start};
+        my $str_end = $json->{target_sequence_end} - $pair->end;
+        my $size = ($pair->end - $pair->start) + 1;
+
+        #swap start and end of crispr if its -ve strand
+        my ( $target_start, $target_end );
+        if ( exists $json->{target_region_strand} && $json->{target_region_strand} eq "-1" ) {
+            ( $str_start, $str_end ) = ( $str_end, $str_start );
+        }
+
+        #extract read sequence and its match string
+        my $alignment_data = {
+            a_match   => $json->{forward}{full_match_string},
+            a_seq     => $json->{forward}{query_align_str},
+            b_seq     => $json->{reverse}{query_align_str},
+            b_match   => $json->{reverse}{full_match_string},
+        };
+
+        #forward and reverse will have the same target_align_str
+        my $seq = $json->{forward}{target_align_str} || "";
+
+        #truncate sequences if necessary,
+        #and split the target align seq into three parts: before, crispr, after
+        if ( $truncate_seqs ) {
+            my $padding = defined $params->{padding} ? $params->{padding} : 25;
+            my $padded_start = max(0, ($str_start-$padding));
+
+            #truncate all the seqs
+            for my $s ( values %{ $alignment_data } ) {
+                next if $s eq "" or $s eq "No alignment";
+                #make sure we don't exceed the length of the string
+                my $len = min( length($s)-$padded_start, ($padding*2)+$size );
+                $s = substr($s, $padded_start, $len);
+            }
+
+            $alignment_data->{ref_start}  = substr($seq, $padded_start, $str_start-$padded_start);
+            $alignment_data->{crispr_seq} = substr($seq, $str_start, $size);
+            $alignment_data->{ref_end}    = substr($seq, $str_start+$size, $padding);
+        }
+        else {
+            $alignment_data->{ref_start}  = substr($seq, 0, $str_start);
+            $alignment_data->{crispr_seq} = substr($seq, $str_start, $size);
+            #from end of crispr -> end of seq
+            $alignment_data->{ref_end}    = substr($seq, $str_start+$size);
+        }
+
+        #match strings aren't padded with X to the right, ideally they would all be the same length
+
+        push @qc_wells, {
+            es_qc_well_id => $qc_well->id,
+            well_name     => $qc_well->well->name, #fetch the well and get name
+            crispr_id     => $json->{crispr_id},
+            gene          => join( ",", @genes ),
             alignment     => $alignment_data,
-            longest_indel => "36bp",
-            accepted      => 0,
+            longest_indel => "",
+            accepted      => $qc_well->well->accepted,
+            pair_start    => $str_start,
+            pair_end      => $str_end,
         };
     }
 
     #add comment field
 
     $c->stash(
-        qc_run_id   => '7AD72068-BB2F-11E3-B212-B10D0E841146',
-        seq_project => 'HUEPD0001',
-        wells       => \@wells,
+        qc_run_id   => $run->id,
+        seq_project => $run->sequencing_project,
+        species     => $run->species_id,
+        wells       => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
     );
 
     return;
