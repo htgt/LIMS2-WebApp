@@ -61,6 +61,12 @@ has sequencing_project_name => (
     required => 1,
 );
 
+has sequencing_fasta => (
+    is     => 'ro',
+    isa    => 'Path::Class::File',
+    coerce => 1,
+);
+
 has species => (
     is       => 'ro',
     isa      => 'Str',
@@ -119,6 +125,12 @@ sub _build_cigar_parser {
     return HTGT::QC::Util::CigarParser->new(
         primers => [ $self->forward_primer_name, $self->reverse_primer_name ] );
 }
+
+has sequencing_plate => (
+    is        => 'ro',
+    isa       => 'Str',
+    predicate => 'has_sequencing_plate',
+);
 
 has primer_reads => (
     is      => 'rw',
@@ -331,10 +343,16 @@ sub get_primer_reads {
     my %primer_reads;
     while ( my $bio_seq = $seq_reads->next_seq ) {
         next unless $bio_seq->length;
+
         ( my $cleaned_seq = $bio_seq->seq ) =~ s/-/N/g;
         $bio_seq->seq( $cleaned_seq );
         my $res = $self->cigar_parser->parse_query_id( $bio_seq->display_name );
 
+        if ( $self->has_sequencing_plate ) {
+            next unless $res->{plate_name} eq $self->sequencing_plate;
+        }
+
+        # TODO what if there are 2 forward or reverse reads for a well?
         if ( $res->{primer} eq $self->forward_primer_name ) {
             $primer_reads{ $res->{well_name} }{forward} = $bio_seq;
         }
@@ -357,6 +375,10 @@ Fetch the fasta file containing all the primer reads for the sequencing project.
 =cut
 sub fetch_seq_reads {
     my ( $self  ) = @_;
+
+    if ( $self->sequencing_fasta ) {
+        return Bio::SeqIO->new( -fh => $self->sequencing_fasta->openr, -format => 'fasta' );
+    }
 
     my $cmd = which( 'fetch-seq-reads.sh' );
     LIMS2::Exception->throw( 'Unable to find fetsch-seq-reads.sh script' ) unless $cmd;
