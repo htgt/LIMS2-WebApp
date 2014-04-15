@@ -59,7 +59,7 @@ sub update_genotyping_qc_data{
 
         push @messages, "Well ".$datum->{well_name}.":";
         # update targeting_pass and chromosome_fail if provided
-        foreach my $overall qw(targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail){
+        foreach my $overall ( qw(targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail)) {
             if (my $result = $datum->{$overall}){
 
                 # Change targeting-puro (targeting minus puro) to targeting_puro
@@ -136,7 +136,7 @@ sub _valid_column_names{
 
     # Assay specific results
     foreach my $assay (@$assay_types){
-        foreach my $colname qw( pass confidence copy_number copy_number_range vic){
+        foreach my $colname ( qw( pass confidence copy_number copy_number_range vic)){
             $recognized{$assay."_".$colname} = 1;
         }
     }
