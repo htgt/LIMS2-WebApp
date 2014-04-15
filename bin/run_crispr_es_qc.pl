@@ -38,7 +38,7 @@ my $model = LIMS2::Model->new( user => 'lims2' );
 
 my $plate = $model->retrieve_plate( { name => $plate_name  } );
 
-# TEMP
+# TEMP hack, should not really hard code all these values
 my $cigar_parser = HTGT::QC::Util::CigarParser->new(
         primers => [ 'SPF', 'SPR', 'SF1', 'SR1' ] );
 
