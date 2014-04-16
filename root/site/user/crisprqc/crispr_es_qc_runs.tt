@@ -17,7 +17,7 @@
             <td>[% run.sequencing_project %]</td>
             <td>[% run.created_by %]</td>
             <td>[% run.created_at %]</td>
-            <td>sub proj</td>
+            <td>[% run.sub_project %]</td>
         </tr>
         [% END %]
     </tbody>

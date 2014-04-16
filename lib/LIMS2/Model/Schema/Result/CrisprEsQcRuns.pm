@@ -68,6 +68,11 @@ __PACKAGE__->table("crispr_es_qc_runs");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 sub_project
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -86,6 +91,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "sub_project",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -148,8 +155,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:He7WxyLSahwO9+Az7cGhuA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-16 16:43:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KStXhk631rbpalREDS3uoA
 
 sub as_hash {
   my ( $self ) = @_;
