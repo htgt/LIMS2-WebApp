@@ -11,22 +11,23 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-    //var s = $($($(".alignment_inner")[0]).children(".seq")[0]);
-    //var m = $($($(".alignment_inner")[0]).children(".match")[0]);
-
     $(".alignment_inner").each(function() {
         var parent = $( this );
 
         //should instead hide everything so we can toggle the match string
-        var seq_a = parent.children(".seq_a").text();
-        var c_a = seq_a.colour_with_cigar( parent.children(".match_a").text() );
+        var seq_a = parent.find(".seq_a").text();
+        var c_a = seq_a.colour_with_cigar( parent.find(".match_a").text() );
+        c_a.append( $("<span>", {text: "(F)"}) );
 
-        parent.children(".seq_a").replaceWith(c_a);
+        var seq_b = parent.find(".seq_b").text();
+        var c_b = seq_b.colour_with_cigar( parent.find(".match_b").text() );
+        c_b.append( $("<span>", {text: "(R)"}) );
 
-        var seq_b = parent.children(".seq_b").text();
-        var c_b = seq_b.colour_with_cigar( parent.children(".match_b").text() );
+        //use this to not hide sequences
+        //parent.find(".seq_a").replaceWith(c_a);
+        //parent.find(".seq_b").replaceWith(c_b);
 
-        //parent.children(".seq_b").replaceWith(c_b);
+        //parent.find(".match").hide();
 
         parent.empty().append(c_a).append(c_b);
     });
@@ -41,12 +42,16 @@ function colour_string(seq, match) {
 
 //not an actual cigar string but close enough
 String.prototype.colour_with_cigar = function colour_string(cigar) {
+    //a span to hold all the other spans
+    var base = $("<span>", {style: "white-space: nowrap; display: block;"});
+
+    if ( ! this.length || ! cigar.length ) return base.text(this);
+
     if ( cigar.length != this.length ) {
         console.log("Warning: string lengths don't match!");
+        console.log(this);
+        console.log(cigar);
     }
-
-    //a span to hold all the other spans
-    var base = $("<span>", {style: "display: block"});
 
     //generates a coloured span
     function make_span(buf, colour) {
@@ -132,9 +137,13 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
                 </span><br/>
                     <div class="alignment_inner">
                         <span class="match match_a">[% row.alignment.a_match %]</span><br/>
-                        <span class="seq seq_a">[% row.alignment.a_seq %](F)</span><br/>
+                        <span style="display: block">
+                            <span class="seq seq_a">[% row.alignment.a_seq %]</span>(F)
+                        </span><br/>
                         <br/>
-                        <span class="seq seq_b">[% row.alignment.b_seq %](R)</span><br/>
+                        <span style="display: block">
+                            <span class="seq seq_b">[% row.alignment.b_seq %]</span>(R)
+                        </span><br/>
                         <span class="match match_b">[% row.alignment.b_match %]</span><br/>
                         <span>
                             [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]

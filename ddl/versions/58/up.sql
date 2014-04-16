@@ -3,7 +3,8 @@ CREATE TABLE crispr_es_qc_runs (
     sequencing_project     TEXT NOT NULL,
     created_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by_id          INTEGER NOT NULL REFERENCES users(id),
-    species_id             TEXT NOT NULL REFERENCES species(id)
+    species_id             TEXT NOT NULL REFERENCES species(id),
+    sub_project            TEXT
 );
 
 CREATE TABLE crispr_es_qc_wells (

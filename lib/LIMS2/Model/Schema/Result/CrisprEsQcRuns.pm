@@ -151,6 +151,17 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:45
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:He7WxyLSahwO9+Az7cGhuA
 
+sub as_hash {
+  my ( $self ) = @_;
+
+  my $data = { 
+    created_by => $self->created_by->name,
+    map { $_ => $self->$_ } $self->columns 
+  };
+
+  return $data;
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
