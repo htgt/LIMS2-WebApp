@@ -2,7 +2,7 @@ package LIMS2::Model::Plugin::GenotypingQC;
 
 use strict;
 use warnings FATAL => 'all';
-use Smart::Comments;
+
 use Moose::Role;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
