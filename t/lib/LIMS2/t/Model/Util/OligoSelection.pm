@@ -51,7 +51,6 @@ sub a_test_oligos_for_gibson : Test(11) {
 }
 
 sub b_test_oligos_for_gibson : Test(6) {
-$DB::single=1;
 
     my $design_id = '1002436';
     my $assembly = 'GRCh37';
@@ -72,7 +71,6 @@ $DB::single=1;
 }
 
 sub c_test_oligos_for_crispr_pair : Test(2) {
-$DB::single=1;
 
     my $crispr_pair_id = '19768';
     my $assembly = 'GRCh37';
