@@ -22,6 +22,7 @@ use JSON;
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 use List::MoreUtils qw( uniq );
+use Try::Tiny;
 
 sub pspec_generate_eng_seq_params {
 	return {
@@ -31,6 +32,7 @@ sub pspec_generate_eng_seq_params {
         cassette    => { validate => 'existing_cassette', optional => 1 },
         backbone    => { validate => 'existing_backbone', optional => 1 },
         recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
+        stage       => { validate => 'non_empty_string', optional => 1 },
 	}
 }
 
@@ -56,15 +58,21 @@ sub generate_well_eng_seq_params{
     my $design_data = $design->as_hash;
 
     # Infer stage from plate type information
+    my $stage;
     my $plate_type_descr = $well->plate->type->description;
-    my $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
+    if ( $validated_params->{stage} ) {
+        $stage = $validated_params->{stage};
+    }
+    else {
+        $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
+    }
 
     my $design_params = fetch_design_eng_seq_params($design_data);
 
     # fetch canonical transcript for the gene if it exists and add the transcript id to the params
     # required to write exon features within genbank files for display in imits
     my $transcript_id;
-    $transcript_id = $design->fetch_canonical_transcript_id;
+    $transcript_id = try{ $design->fetch_canonical_transcript_id };
     if ( $transcript_id ) {
         DEBUG( "Transcript id: $transcript_id\n" );
         $design_params->{ 'transcript' } = $transcript_id;
