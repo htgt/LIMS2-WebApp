@@ -22,9 +22,14 @@ use Try::Tiny;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 use File::Which;
 use Data::UUID;
+use Const::Fast;
 use namespace::autoclean;
 
 with 'MooseX::Log::Log4perl';
+
+# TODO change default dir
+const my $DEFAULT_QC_DIR =>  $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
+                                    '/lustre/scratch109/sanger/sp12/lims2_crispr_es_qc';
 
 has model => (
     is       => 'ro',
@@ -32,11 +37,29 @@ has model => (
     required => 1,
 );
 
+has plate_name => (
+    is       => 'ro',
+    isa      => 'Str::Model::Schema::Result::Plate',
+    required => 1,
+);
+
 has plate => (
     is       => 'ro',
     isa      => 'LIMS2::Model::Schema::Result::Plate',
-    required => 1,
+    lazy_build => 1,
 );
+
+sub _build_plate {
+    my $self = shift;
+
+    # fetch the qc plate
+    my $plate = $self->model->retrieve_plate( { name => $self->plate_name } );
+
+    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK, is: " . $plate->type_id )
+        unless $plate->type_id eq 'EP_PICK';
+
+    return $plate;
+}
 
 has well_name => (
     is  => 'ro',
@@ -61,6 +84,12 @@ has sequencing_project_name => (
     required => 1,
 );
 
+has sub_seq_project => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
+
 has sequencing_fasta => (
     is     => 'ro',
     isa    => 'Path::Class::File',
@@ -73,6 +102,7 @@ has species => (
     required => 1,
 );
 
+# TODO build this
 has base_dir => (
     is       => 'ro',
     isa      => AbsDir,
@@ -122,15 +152,10 @@ has cigar_parser => (
 
 sub _build_cigar_parser {
     my $self = shift;
+    # TODO make non strict, do not need to pass in primer names
     return HTGT::QC::Util::CigarParser->new(
         primers => [ $self->forward_primer_name, $self->reverse_primer_name ] );
 }
-
-has sequencing_plate => (
-    is        => 'ro',
-    isa       => 'Str',
-    predicate => 'has_sequencing_plate',
-);
 
 has primer_reads => (
     is      => 'rw',
@@ -143,12 +168,15 @@ has primer_reads => (
     }
 );
 
-
 =head2 analyse_plate
 
 Start crispr es cell qc analysis.
 
 =cut
+#TODO already create qc_run record
+# make it a lazy build attribute?
+# find or create?
+                #$qc_run = $self->model->create_crispr_es_qc_run( $qc_run_data );
 sub analyse_plate {
     my ( $self ) = @_;
     $self->log->info( 'Running crispr es cell qc on plate: ' . $self->plate->name );

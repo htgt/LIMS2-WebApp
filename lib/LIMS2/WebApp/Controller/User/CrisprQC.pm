@@ -6,6 +6,8 @@ use Path::Class;
 use JSON;
 use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
+use LIMS2::Model::Util::CrisprESQC;
+use TryCatch;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -188,3 +190,77 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
     );
 
 }
+
+use Smart::Comments;
+sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
+	my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $requirements = {
+    	ep_pick_plate          => { validate => 'existing_plate_name'},
+    	sequencing_project     => { validate => 'non_empty_string'},
+    	sequencing_sub_project => { validate => 'non_empty_string'},
+    	forward_primer_name    => { validate => 'non_empty_string'},
+    	reverse_primer_name    => { validate => 'non_empty_string'},
+    	submit_crispr_es_qc    => { optional => 0 },
+    };
+
+	# Store form values
+	$c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
+	$c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
+	$c->stash->{ep_pick_plate}          = $c->req->param('ep_pick_plate');
+	$c->stash->{forward_primer_name}    = $c->req->param('forward_primer_name');
+	$c->stash->{reverse_primer_name}    = $c->req->param('reverse_primer_name');
+
+	my $run_id;
+	if ( $c->req->param( 'submit_crispr_es_qc' ) ) {
+        try {
+			my $validated_params = $c->model( 'Golgi' )->check_params( $c->req->params, $requirements );
+        }
+        catch ( LIMS2::Exception::Validation $err ) {
+            $c->stash( error_msg => $err->as_webapp_string );
+            return;
+        }
+
+		try{
+
+            my %params = (
+                model                   => $c->model('Golgi'),
+                plate_name              => 
+                sequencing_project_name => 
+                sub_seq_project         => ,
+                forward_primer_name     => $forward_primer_name,
+                reverse_primer_name     => $reverse_primer_name,
+                commit                  => 1, 
+                user                    => $c->user->name,
+                species                 => $c->session->{selected_species},
+            );
+
+            my $qc_runner = LIMS2::Model::Util::CrisprESQC->new( %params );
+
+            # create qc_run record
+
+            # do this in background
+            my $qc_run = $qc_runner->analyse_plate;
+
+            # TODO forward to the qc page .. which will eventually update
+
+		}
+		catch {
+			$c->stash( error_msg => " : $_" );
+			return;
+		}
+
+        #$c->stash->{run_id} = $run_id;
+        #$c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "
+                                   #."Go to <a href=\"".$c->uri_for('/user/latest_runs')."\">Latest Runs</a>"
+                                   #." to see the progress of your job";
+	}
+
+	return;
+}
+
+__PACKAGE__->meta->make_immutable;
+
+1;
