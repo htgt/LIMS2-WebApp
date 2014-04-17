@@ -1,0 +1,78 @@
+[%- META title = 'Submit Crispr QC Job'; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Submit Crispr ES QC Job</h1>
+</div>
+
+<div class="form-horizontal">
+
+  <div class="span6 offset3">
+    <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]" class="form well"  enctype="multipart/form-data" >
+
+    <div class="control-group">
+      <label class="control-label" for="ep_pick_plate">EP Pick Plate</label>
+      <div class="controls">
+        <input name="ep_pick_plate" id="ep_pick_plate" type="text"
+          [% IF ep_pick_plate %]value="[% ep_pick_plate %]"[% END %] /> 
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="sequencing_project">Sequencing Project</label>
+      <div class="controls">
+          <input name="sequencing_project" id="sequencing_project" type="text"
+            [% IF sequencing_project %]value="[% sequencing_project %]"[% END %] /> 
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="sequencing_sub_project">Sequencing Sub Project</label>
+      <div class="controls">
+        <input name="sequencing_sub_project" id="sequencing_sub_project" type="text"
+            [% IF sequencing_sub_project %]value="[% sequencing_sub_project %]"[% END %] /> 
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="forward_primer_name">Forward Primer Names</label>
+      <div class="controls">
+          <input name="forward_primer_name" id="forward_primer_name" type="text"
+              value=[% IF reverse_primer_name %]"[% reverse_primer_name %]"[% ELSE %]"SF1"[% END %] /> 
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="reverse_primer_name">Reverse Primer Names</label>
+      <div class="controls">
+          <input name="reverse_primer_name" id="reverse_primer_name" type="text"
+              value=[% IF reverse_primer_name %]"[% reverse_primer_name %]"[% ELSE %]"SR1"[% END %] /> 
+      </div>
+    </div>
+              
+        
+    <div class="control-group">
+      <div class="controls">
+      <button name="submit_crispr_es_qc" id="submit_crispr_es_qc" type="submit" value="submit_crispr_es_qc" class="btn">
+        <i class="icon-upload"></i> Submit Crispr ES QC
+      </button>
+      </div>
+    </div>
+
+    </form>
+  </div>
+  
+</div>
+
+<script type="text/javascript" charset="utf-8">
+
+    $("#ep_pick_plate").autocomplete({
+       source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+       minLength: 2,
+     });
+
+    $("#sequencing_project").autocomplete({
+       source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
+       minLength: 5,
+     });     
+   
+</script>
