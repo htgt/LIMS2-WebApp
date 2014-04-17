@@ -20,5 +20,10 @@
             <td>[% run.sub_project %]</td>
         </tr>
         [% END %]
+        [% IF runs.size == 0 %]
+        <tr>
+            <td colspan="5">No runs available for this species yet</td>
+        </tr>
+        [% END %]
     </tbody>
 </table>

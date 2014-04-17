@@ -107,6 +107,10 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
             <th>Sequencing project</th>
             <td>[% seq_project %]</td>
         </tr>
+        <tr>
+            <th>Sub Project</th>
+            <td>[% sub_project %]</td>
+        </tr>
     </table>
 </div>
 
@@ -156,6 +160,11 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
                 <input type="checkbox" name="accepted_[% row.well_id %]" [% row.accepted ? "checked" : "" %] />
             </td>
             <!-- <td>trace</td> -->
+        </tr>
+        [% END %]
+        [% IF wells.size == 0 %]
+        <tr>
+            <td colspan="7" style="text-align: center">Well data is pending, please come back later</td>
         </tr>
         [% END %]
     </tbody>

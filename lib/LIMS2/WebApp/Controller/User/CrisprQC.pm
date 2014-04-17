@@ -51,7 +51,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         my @genes = map { $_->{gene_symbol} } 
                     values %{ $c->model('Golgi')->find_genes( $run->species_id, \@gene_ids ) };
 
-        #format no alignment properly
+        #format missing alignment properly
         for my $direction ( qw( forward reverse ) ) {
             if ( exists $json->{$direction}{no_alignment} ) {
                 $json->{$direction} = { full_match_string => '', query_align_str => 'No alignment' };
@@ -59,15 +59,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         }
 
         #get start, end and size data relative to our seq strings
-        my $str_start = $pair->start - $json->{target_sequence_start};
-        my $str_end = $json->{target_sequence_end} - $pair->end;
-        my $crispr_size = ($pair->end - $pair->start) + 1;
-
-        #swap start and end of crispr if its -ve strand
-        my ( $target_start, $target_end );
-        if ( exists $json->{target_region_strand} && $json->{target_region_strand} eq "-1" ) {
-            ( $str_start, $str_end ) = ( $str_end, $str_start );
-        }
+        my $localised = get_localised_pair_coords( $pair, $json );
 
         #extract read sequence and its match string
         my %alignment_data = (
@@ -78,6 +70,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         );
 
         #forward and reverse will have the same target_align_str
+        #this is the reference sequence
         my $seq = $json->{forward}{target_align_str} || "";
 
         #truncate sequences if necessary,
@@ -85,23 +78,20 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         my $padding;
         if ( $truncate_seqs ) {
             $padding = defined $params->{padding} ? $params->{padding} : 25;
-            my $padded_start = max(0, ($str_start-$padding));
+            my $padded_start = max(0, ($localised->{pair_start}-$padding));
 
             #truncate all the seqs
             for my $s ( values %alignment_data ) {
                 next if $s eq "" or $s eq "No alignment";
-                #make sure we don't exceed the length of the string
-                #my $len = min( length($s)-$padded_start, ($padding*2)+$crispr_size );
-                #$s = substr($s, $padded_start, $len);
 
                 #use split sequence to get crispr and surrounding region then merge back
-                $s = join "", split_sequence( $s, $str_start, $crispr_size, $padding );
+                $s = join "", split_sequence( $s, $localised->{pair_start}, $localised->{pair_size}, $padding );
             }
         }
 
         #split ref sequence into crispr and its surrounding sequence
         @alignment_data{qw(ref_start crispr_seq ref_end)}
-            = split_sequence( $seq, $str_start, $crispr_size, $padding );
+            = split_sequence( $seq, $localised->{pair_start}, $localised->{pair_size}, $padding );
 
         #match strings aren't padded with X to the right, ideally they would all be the same length
 
@@ -116,16 +106,33 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         };
     }
 
-    #add comment field
-
     $c->stash(
         qc_run_id   => $run->id,
         seq_project => $run->sequencing_project,
+        sub_project => $run->sub_project,
         species     => $run->species_id,
-        wells       => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
+        wells       => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ]
     );
 
     return;
+}
+
+#pair is a pair resultset, json is the analysis_data from crispr_es_qc_wells
+sub get_localised_pair_coords {
+    my ( $pair, $json ) = @_;
+
+    my $data = {
+        pair_start => $pair->start - $json->{target_sequence_start},
+        pair_end   => $json->{target_sequence_end} - $pair->end,
+        pair_size  => ($pair->end - $pair->start) + 1,
+    };
+
+    #swap start and end of crispr if its -ve strand
+    if ( exists $json->{target_region_strand} && $json->{target_region_strand} eq "-1" ) {
+        ( $data->{pair_start}, $data->{pair_end} ) = ( $data->{pair_end}, $data->{pair_start} );
+    }
+
+    return $data;
 }
 
 #split a string containing a crispr into 3 parts
