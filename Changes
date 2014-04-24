@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.183     2014-04-14 11:57:57 Europe/London
+
+    Bugfix: DNA status upload bug from v0.177 fixed
+
+0.182     2014-04-10 10:36:12 Europe/London
+
+    Added autocomplete method for new solr index gene search
+
 0.181     2014-04-09 09:10:05 Europe/London
 
     WGE rest client config
