@@ -1,3 +1,7 @@
+0.186     2014-04-24 16:44:21 Europe/London
+
+    Bugfix: Exonerate would always fail on crispr ES QC due to SIG{CHLD}
+
 0.185     2014-04-24 13:57:05 Europe/London
 
     Added Crispr ES QC
