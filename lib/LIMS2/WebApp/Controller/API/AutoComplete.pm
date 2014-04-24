@@ -3,7 +3,7 @@ use Moose;
 use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
-use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names);
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names get_parsed_reads);
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -93,6 +93,32 @@ sub badger_seq_projects_GET {
 
     return $self->status_ok( $c, entity => $projects );
 }
+
+=head2 GET /api/get_read_names
+
+=cut
+
+sub seq_read_names :Path( '/api/autocomplete/seq_read_names' ) :Args(0) :ActionClass( 'REST' ) {
+
+}
+
+sub seq_read_names_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    #group data by sub project name and keep a count of all the attached primers
+
+    my %data;
+    for my $read_name ( get_parsed_reads( $c->request->params->{term} ) ) {
+        my ( $plate, $primer ) = ( $read_name->{plate_name}, $read_name->{primer} );
+        $data{$plate}->{$primer}++;
+    }
+
+    return $self->status_ok( $c, entity => \%data );
+}
+
+
 
 =head1 GET /api/autocomplete/gene_symbols
 

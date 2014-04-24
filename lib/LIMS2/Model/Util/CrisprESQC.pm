@@ -19,17 +19,19 @@ use Bio::Seq;
 use JSON qw( encode_json );
 use YAML::Any qw( DumpFile );
 use Try::Tiny;
+use Path::Class;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 use File::Which;
 use Data::UUID;
 use Const::Fast;
 use namespace::autoclean;
+use Data::Dumper;
 
 with 'MooseX::Log::Log4perl';
 
 # TODO change default dir
 const my $DEFAULT_QC_DIR =>  $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
-                                    '/lustre/scratch109/sanger/sp12/lims2_crispr_es_qc';
+                                    '/lustre/scratch109/sanger/team87/lims2_crispr_es_qc';
 
 has model => (
     is       => 'ro',
@@ -39,7 +41,7 @@ has model => (
 
 has plate_name => (
     is       => 'ro',
-    isa      => 'Str::Model::Schema::Result::Plate',
+    isa      => 'Str',
     required => 1,
 );
 
@@ -102,13 +104,22 @@ has species => (
     required => 1,
 );
 
-# TODO build this
+#if specified manually no dir will be built
 has base_dir => (
-    is       => 'ro',
-    isa      => AbsDir,
-    required => 1,
-    coerce   => 1,
+    is         => 'ro',
+    isa        => AbsDir,
+    coerce     => 1,
+    lazy_build => 1,
 );
+
+sub _build_base_dir {
+    my ( $self ) = @_;
+
+    my $dir = dir( $DEFAULT_QC_DIR )->subdir( $self->uuid );
+    $dir->mkpath;
+
+    return $dir;
+}
 
 has uuid => (
     is         => 'ro',
@@ -152,9 +163,12 @@ has cigar_parser => (
 
 sub _build_cigar_parser {
     my $self = shift;
-    # TODO make non strict, do not need to pass in primer names
+    
+    #strict matches any primer name
     return HTGT::QC::Util::CigarParser->new(
-        primers => [ $self->forward_primer_name, $self->reverse_primer_name ] );
+        strict_mode  => 0,
+        #primers => [ $self->forward_primer_name, $self->reverse_primer_name ]
+    );
 }
 
 has primer_reads => (
@@ -168,51 +182,106 @@ has primer_reads => (
     }
 );
 
-=head2 analyse_plate
+has qc_run => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::CrisprEsQcRuns',
+    lazy_build => 1
+);
 
-Start crispr es cell qc analysis.
+=head2 _build_qc_run
+
+Create a crispr es qc run with no attached wells
 
 =cut
-#TODO already create qc_run record
-# make it a lazy build attribute?
-# find or create?
-                #$qc_run = $self->model->create_crispr_es_qc_run( $qc_run_data );
-sub analyse_plate {
+sub _build_qc_run {
     my ( $self ) = @_;
-    $self->log->info( 'Running crispr es cell qc on plate: ' . $self->plate->name );
 
-    $self->get_primer_reads();
-
-    my @well_qc_data;
-    for my $well ( $self->plate->wells->all ) {
-        next if $self->well_name && $well->name ne $self->well_name;
-        my $well_analysis_data = $self->analyse_well( $well );
-        push @well_qc_data, $well_analysis_data if $well_analysis_data;
-    }
-
-    for my $qc_data ( @well_qc_data ) {
-        my $analysis_data = delete $qc_data->{analysis_data};
-        $qc_data->{analysis_data} = encode_json( $analysis_data );
-    }
+    $self->log->debug( 'Creating Crispr ES QC run with id ' . $self->uuid );
 
     my $qc_run_data = {
         id                 => $self->uuid,
         created_by         => $self->user,
         species            => $self->species,
         sequencing_project => $self->sequencing_project_name,
-        wells              => \@well_qc_data,
+        sub_project        => $self->sub_seq_project,
     };
 
+    #write the run data to disk
     my $qc_run_data_file = $self->base_dir->file( 'qc_run_data.yaml' );
     $qc_run_data_file->touch;
     DumpFile( $qc_run_data_file, $qc_run_data );
 
     my $qc_run;
     $self->model->txn_do(
-        sub{
-            try{
+        sub {
+            try {
                 $qc_run = $self->model->create_crispr_es_qc_run( $qc_run_data );
-                $self->log->info('Persisted crispr es qc data');
+                $self->log->info('Persisted crispr es qc run data');
+
+                unless ( $self->commit ) {
+                    $self->log->info('rollback');
+                    $self->model->txn_rollback;
+                }
+            }
+            catch {
+                $self->log->error( "Error persisting crispr es qc: $_" );
+                $self->model->txn_rollback;
+
+                #re-throw error so it goes to webapp
+                LIMS2::Exception->throw( $_ );
+            };
+        }
+    );
+
+    return $qc_run;
+}
+
+=head2 analyse_plate
+
+Start crispr es cell qc analysis.
+
+=cut
+sub analyse_plate {
+    my ( $self ) = @_;
+
+    #initialise lazy build
+    $self->qc_run;
+
+    $self->log->info( 'Running crispr es cell qc on plate: ' . $self->plate->name );
+
+    $self->get_primer_reads();
+
+    $self->log->info ( 'Analysing wells' );
+
+    my @qc_well_data;
+    for my $well ( $self->plate->wells->all ) {
+        next if $self->well_name && $well->name ne $self->well_name;
+
+        my $qc_data = $self->analyse_well( $well );
+
+        #make analysis_data a json string
+        if ( $qc_data ) {
+            $qc_data->{analysis_data} = encode_json( $qc_data->{analysis_data} );
+            push @qc_well_data, $qc_data;
+        }
+    }
+
+    $self->log->info( 'Well analysis complete, persisting ' . scalar( @qc_well_data ) . " wells" );
+
+    $self->persist_wells( \@qc_well_data );
+}
+
+sub persist_wells {
+    my ( $self, $qc_wells ) = @_;
+
+    $self->model->txn_do(
+        sub {
+            try {
+                for my $qc_well ( @{ $qc_wells } ) {
+                    $self->model->create_crispr_es_qc_well( $self->qc_run, $qc_well );
+                }
+
+                $self->log->info('Persisted crispr es qc well data');
                 unless ( $self->commit ) {
                     $self->log->info('rollback');
                     $self->model->txn_rollback;
@@ -221,11 +290,12 @@ sub analyse_plate {
             catch {
                 $self->log->error("Error persisting crispr es qc: $_" );
                 $self->model->txn_rollback;
+
+                #re-throw error so it goes to webapp
+                LIMS2::Exception->throw( $_ );
             };
         }
     );
-
-    return $qc_run;
 }
 
 =head2 analyse_well
@@ -376,8 +446,11 @@ sub get_primer_reads {
         $bio_seq->seq( $cleaned_seq );
         my $res = $self->cigar_parser->parse_query_id( $bio_seq->display_name );
 
-        if ( $self->has_sequencing_plate ) {
-            next unless $res->{plate_name} eq $self->sequencing_plate;
+        if ( defined $self->sub_seq_project ) {
+            if ( $res->{plate_name} ne $self->sub_seq_project ) {
+                $self->log->debug( $res->{plate_name} . " differs from " . $self->sub_seq_project . ", skipping" );
+                next;
+            }
         }
 
         # TODO what if there are 2 forward or reverse reads for a well?
@@ -409,7 +482,7 @@ sub fetch_seq_reads {
     }
 
     my $cmd = which( 'fetch-seq-reads.sh' );
-    LIMS2::Exception->throw( 'Unable to find fetsch-seq-reads.sh script' ) unless $cmd;
+    LIMS2::Exception->throw( 'Unable to find fetch-seq-reads.sh script' ) unless $cmd;
 
     $self->log->info(
         "Retrieving reads from trace server for project: " . $self->sequencing_project_name );

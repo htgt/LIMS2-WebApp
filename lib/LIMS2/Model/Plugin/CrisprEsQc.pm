@@ -14,8 +14,8 @@ sub pspec_create_crispr_es_qc {
         created_by => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         species    => { validate => 'existing_species', rename => 'species_id' },
-        wells      => { },
         sequencing_project => { validate => 'non_empty_string' },
+        sub_project => { validate => 'non_empty_string' } 
     };
 }
 
@@ -61,7 +61,7 @@ Given a QC run add a well with the given parameters
 
 =cut
 sub create_crispr_es_qc_well {
-    my ( $self, $qc_run, $params, $species_id ) = @_;
+    my ( $self, $qc_run, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_well );
 
@@ -69,7 +69,7 @@ sub create_crispr_es_qc_well {
     my $chr = $self->schema->resultset('Chromosome')->find(
         {
             name       => $chr_name,
-            species_id => $species_id,
+            species_id => $qc_run->species_id,
         }
     );
     $validated_params->{crispr_chr_id} = $chr->id;
@@ -80,7 +80,7 @@ sub create_crispr_es_qc_well {
 
 sub pspec_delete_crispr_es_qc_run {
     return {
-        id => { validate => 'integer' },
+        id => { validate => 'non_empty_string' },
     };
 }
 
@@ -111,7 +111,7 @@ sub delete_crispr_es_qc_run {
 
 sub pspec_retrieve_crispr_es_qc_run {
     return {
-        id => { validate => 'integer' },
+        id => { validate => 'non_empty_string' },
     };
 }
 

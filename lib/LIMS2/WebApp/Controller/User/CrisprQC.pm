@@ -198,18 +198,17 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
 
 }
 
-use Smart::Comments;
 sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
-	my ( $self, $c ) = @_;
+    my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
 
     my $requirements = {
-    	ep_pick_plate          => { validate => 'existing_plate_name'},
-    	sequencing_project     => { validate => 'non_empty_string'},
-    	sequencing_sub_project => { validate => 'non_empty_string'},
-    	forward_primer_name    => { validate => 'non_empty_string'},
-    	reverse_primer_name    => { validate => 'non_empty_string'},
+    	ep_pick_plate          => { validate => 'existing_plate_name' },
+    	sequencing_project     => { validate => 'non_empty_string' },
+    	sequencing_sub_project => { validate => 'non_empty_string' },
+    	forward_primer_name    => { validate => 'non_empty_string' },
+    	reverse_primer_name    => { validate => 'non_empty_string' },
     	submit_crispr_es_qc    => { optional => 0 },
     };
 
@@ -222,23 +221,25 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
 
 	my $run_id;
 	if ( $c->req->param( 'submit_crispr_es_qc' ) ) {
+        my $validated_params;
         try {
-			my $validated_params = $c->model( 'Golgi' )->check_params( $c->req->params, $requirements );
+			$validated_params = $c->model( 'Golgi' )->check_params( $c->req->params, $requirements );
         }
         catch ( LIMS2::Exception::Validation $err ) {
             $c->stash( error_msg => $err->as_webapp_string );
             return;
         }
 
-		try{
+        my $qc_run;
+		try {
 
             my %params = (
                 model                   => $c->model('Golgi'),
-                plate_name              => 
-                sequencing_project_name => 
-                sub_seq_project         => ,
-                forward_primer_name     => $forward_primer_name,
-                reverse_primer_name     => $reverse_primer_name,
+                plate_name              => $validated_params->{ep_pick_plate},
+                sequencing_project_name => $validated_params->{sequencing_project},
+                sub_seq_project         => $validated_params->{sequencing_sub_project},
+                forward_primer_name     => $validated_params->{forward_primer_name},
+                reverse_primer_name     => $validated_params->{reverse_primer_name},
                 commit                  => 1, 
                 user                    => $c->user->name,
                 species                 => $c->session->{selected_species},
@@ -246,26 +247,81 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
 
             my $qc_runner = LIMS2::Model::Util::CrisprESQC->new( %params );
 
-            # create qc_run record
+            #initialize lazy build
+            $qc_run = $qc_runner->qc_run;
 
-            # do this in background
-            my $qc_run = $qc_runner->analyse_plate;
+            #avoid zombie processes. (this is the default anyway)
+            local $SIG{CHLD} = 'IGNORE';
+
+            my $pid = fork();
+            if ( $pid ) { #parent
+                $c->log->debug( "Child pid $pid created" );
+            }
+            elsif ( $pid == 0 ) {
+                $c->log->debug("Running analyse plate for " . $qc_run->id . " in child process");
+
+                $qc_runner->model->clear_schema; #force refresh
+
+                #re-initialise logger into work dir
+                use Log::Log4perl::Level;
+                Log::Log4perl->easy_init( 
+                    { level => $DEBUG, file => $qc_runner->base_dir->file( 'log' ) } 
+                );
+
+                #run analyse plate in child
+                try {
+                    $qc_runner->analyse_plate;
+                    $c->log->debug("Analyse plate for " . $qc_run->id . " finished");
+                }
+                catch ( $err ) {
+                    $qc_runner->log->debug( "Analyse plate failed: $err" );
+                }
+
+                exit 0; #exits immediately, avoiding trycatch
+            }
+            else {
+                die "Couldn't fork: $!";
+            }
 
             # TODO forward to the qc page .. which will eventually update
 
 		}
-		catch {
-			$c->stash( error_msg => " : $_" );
+		catch ( $err ) {
+            $c->log->warn( $err );
+			$c->stash( error_msg => "$err" );
 			return;
 		}
 
-        #$c->stash->{run_id} = $run_id;
-        #$c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "
-                                   #."Go to <a href=\"".$c->uri_for('/user/latest_runs')."\">Latest Runs</a>"
-                                   #." to see the progress of your job";
+        $c->stash(
+            run_id => $qc_run->id,
+            success_msg => "Your QC job has been submitted with ID " . $qc_run->id
+        );
 	}
 
 	return;
+}
+
+sub delete_crispr_es_qc :Path('/user/crisprqc/delete_qc_run') :Args(1) {
+    my ( $self, $c, $qc_run_id ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try {
+                $c->model('Golgi')->delete_crispr_es_qc_run( { id => $qc_run_id } );
+                $c->flash( success_msg => "Deleted QC Run $qc_run_id" );
+                $c->res->redirect( $c->uri_for('/user/crisprqc/es_qc_runs') );
+            }
+            catch ( $err ) {
+                $c->flash( error_msg => "Error encountered while deleting QC run: $err" );
+                $c->model('Golgi')->txn_rollback;
+                $c->res->redirect( $c->uri_for("/user/crisprqc/es_qc_run", $qc_run_id) );
+            }
+        }
+    );
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

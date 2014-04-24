@@ -112,6 +112,27 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
             <td>[% sub_project %]</td>
         </tr>
     </table>
+    <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
+        <i class="icon-remove icon-white"></i> Delete QC Run
+    </a>
+</div>
+
+<div class="modal hide fade" id="DeleteRunModal">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3 id="myModalLabel">Delete QC Run</h3>
+    </div>
+
+    <div class="modal-body" align="center">
+      Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>?
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Cancel</button>
+      <a class="btn btn-danger" href="[% c.uri_for('/user/crisprqc/delete_qc_run', qc_run_id) %]" id="delete_run_button">
+        <i class="icon-remove icon-white"></i> Confirm Delete QC Run
+      </a>
+    </div>
 </div>
 
 <table class="table table-striped">
