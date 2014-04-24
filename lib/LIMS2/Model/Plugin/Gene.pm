@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.183';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.184';
 }
 ## use critic
 
@@ -127,7 +127,8 @@ sub check_for_local_symbol {
 sub pspec_retrieve_gene {
     return {
         species     => { validate => 'existing_species' },
-        search_term => { validate => 'non_empty_string' }
+        search_term => { validate => 'non_empty_string' },
+        show_all    => { optional => 1 }
     }
 }
 

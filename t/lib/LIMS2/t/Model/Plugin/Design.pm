@@ -1,7 +1,6 @@
 package LIMS2::t::Model::Plugin::Design;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Plugin::Design;
 use JSON qw( encode_json decode_json );
 
 use LIMS2::Test;

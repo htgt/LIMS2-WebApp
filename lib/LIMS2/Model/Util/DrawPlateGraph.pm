@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DrawPlateGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DrawPlateGraph::VERSION = '0.183';
+    $LIMS2::Model::Util::DrawPlateGraph::VERSION = '0.184';
 }
 ## use critic
 
@@ -52,7 +52,6 @@ sub draw_plate_graph{
                                   },
 	                         );
 
-#    my $model = LIMS2::Model->new( user => 'tasks' );
     my $model = LIMS2::Model->new( user => 'lims2' );
 
 

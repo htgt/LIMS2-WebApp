@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreKiESDistribution;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.183';
+    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.184';
 }
 ## use critic
 
@@ -1000,25 +1000,14 @@ sub _fetch_gene_symbols_where_missing {
         my $curr_gene_hash = \% { $cre_ki_genes->{ 'genes' }->{ $mgi_gene_id } };
 
         unless ( $curr_gene_hash->{ 'marker_symbol' } ) {
-            $curr_gene_hash->{ 'marker_symbol' } = $self->_fetch_gene_symbol_for_mgi_id( $mgi_gene_id );
+            $curr_gene_hash->{ 'marker_symbol' }= $self->model->find_gene({
+                species => $self->species,
+                search_term => $mgi_gene_id
+            })->{'gene_symbol'};
         }
     }
 
     return;
-}
-
-=head2 _fetch_gene_symbol_for_mgi_id
-
-fetch a gene symbol for an mgi id
-
-=cut
-sub _fetch_gene_symbol_for_mgi_id {
-    my ( $self, $mgi_gene_id ) = @_;
-
-    # returns list string as potential for more than one name
-    my $gene_symbol = $self->model->get_gene_symbol_for_gene_id( $mgi_gene_id, $self->species );
-
-    return $gene_symbol // '';
 }
 
 =head2 summarise_cre_ki_data
@@ -1048,9 +1037,6 @@ sub _summarise_cre_ki_data {
         # add current gene summary to hash for detailed report
         $self->_add_current_gene_summary_to_genes_summary_hash();
     }
-
-    # print "summary_gene_data hash is: \n";
-    # print ( Dumper ( $self->summary_gene_data ) );
 
     return;
 }

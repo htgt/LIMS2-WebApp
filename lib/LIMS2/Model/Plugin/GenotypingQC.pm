@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.183';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.184';
 }
 ## use critic
 
@@ -65,7 +65,7 @@ sub update_genotyping_qc_data{
 
         push @messages, "Well ".$datum->{well_name}.":";
         # update targeting_pass and chromosome_fail if provided
-        foreach my $overall qw(targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail){
+        foreach my $overall ( qw(targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail)) {
             if (my $result = $datum->{$overall}){
 
                 # Change targeting-puro (targeting minus puro) to targeting_puro
@@ -142,7 +142,7 @@ sub _valid_column_names{
 
     # Assay specific results
     foreach my $assay (@$assay_types){
-        foreach my $colname qw( pass confidence copy_number copy_number_range vic){
+        foreach my $colname ( qw( pass confidence copy_number copy_number_range vic)){
             $recognized{$assay."_".$colname} = 1;
         }
     }
@@ -597,7 +597,11 @@ foreach my $row ( @{$sql_result} ) {
                 $datum->{'gene_name'} = $gene_cache->{ $datum->{'gene_id'} };
             }
             else {
-                $datum->{'gene_name'} = $self->get_gene_symbol_for_gene_id( $datum->{'gene_id'}, $species);
+                $datum->{'gene_name'} = $self->find_gene({
+                    species => $species,
+                    search_term => $datum->{'gene_id'}
+                })->{'gene_symbol'};
+
                 $gene_cache->{$datum->{'gene_id'}} = $datum->{'gene_name'};
             }
         }
@@ -688,45 +692,6 @@ sub fill_out_genotyping_results {
     return;
 }
 
-
-sub get_gene_symbol_for_gene_id{
-    my ($self, $gene_id, $species, $params) = @_;
-
-    my $genes;
-    my $gene_symbols;
-    my @gene_symbols;
-
-    $genes = $self->search_genes(
-            { search_term => $gene_id, species =>  $species } );
-    push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
-    $gene_symbols = join q{/}, @gene_symbols;
-
-    return $gene_symbols;
-}
-
-
-# This will return a '/' separated list of symbols for a given accession and species.
-sub get_gene_symbol_for_design_well{
-    my ($self, $design_well, $species, $params) = @_;
-
-    my $genes;
-    my $gene_symbols;
-    my @gene_symbols;
-
-    my ($design) = $design_well->designs;
-    if ( $design ) {
-        my @gene_ids = uniq map { $_->gene_id } $design->genes;
-        foreach my $gene_id ( @gene_ids ) {
-            $genes = $self->search_genes(
-                { search_term => $gene_id, species =>  $species } );
-            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
-        }
-    }
-    $gene_symbols = join q{/}, @gene_symbols;
-
-    return $gene_symbols;
-}
-
 sub create_design_data_cache {
     my $self = shift;
     my $well_id_list_ref = shift;
@@ -735,9 +700,6 @@ sub create_design_data_cache {
     my $design_data_hash = $self->get_design_data_for_well_id_list( $well_id_list_ref );
     return $design_data_hash;
 }
-
-
-
 
 sub sql_plate_qc_query {
     my $self = shift;
@@ -800,7 +762,6 @@ left outer
 order by wd."well"
 SQL_END
 }
-
 
 sub sql_well_qc_query {
     my $self = shift;

@@ -7,7 +7,6 @@ build_requires:
   File::Find: 0
   HTTP::Request: 0
   HTTP::Request::Common: 0
-  LIMS2::Model::Plugin::Design: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -150,4 +149,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.183
+version: 0.184

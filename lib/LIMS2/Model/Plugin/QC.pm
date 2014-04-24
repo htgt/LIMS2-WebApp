@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.183';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.184';
 }
 ## use critic
 
@@ -713,7 +713,7 @@ sub create_qc_template_from_plate {
     foreach my $well ($plate->wells->all){
         my $name = $well->name;
         $well_hash->{$name}->{well_id} = $well->id;
-        foreach my $override qw(cassette recombinase backbone phase_matched_cassette) {
+        foreach my $override ( qw(cassette recombinase backbone phase_matched_cassette)) {
             $well_hash->{$name}->{$override} = $validated_params->{$override}
                 if exists $validated_params->{$override};
         }

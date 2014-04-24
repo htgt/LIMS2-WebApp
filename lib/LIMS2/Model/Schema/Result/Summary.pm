@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.183';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.184';
 }
 ## use critic
 
@@ -1201,7 +1201,7 @@ sub satisfies_cassette_function {
 
   # If property, e.g. conditional, is specified true/false by CassetteFunction 
   # then it must match the value of final_pick_cassette_<property>
-  foreach my $property qw(conditional promoter cre){
+  foreach my $property (qw(conditional promoter cre)){
     my $required_value = $function->$property;
     if (defined $required_value){
       my $summary_property = 'final_pick_cassette_'.$property;
