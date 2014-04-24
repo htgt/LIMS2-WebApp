@@ -71,6 +71,7 @@ requires:
   Fcntl: 0
   File::Basename: 0
   File::Temp: 0
+  File::Which: 0
   File::stat: 0
   FindBin: 0
   Getopt::Long: 0
@@ -79,6 +80,7 @@ requires:
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
   HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
+  HTGT::QC::Util::CrisprAlleleDamage: 0
   HTGT::QC::Util::KillQCFarmJobs: 0
   HTGT::QC::Util::ListLatestRuns: 0
   HTTP::Status: 0
@@ -108,6 +110,7 @@ requires:
   List::Util: 0
   Log::Log4perl: 0
   Log::Log4perl::Catalyst: 0
+  Log::Log4perl::Level: 0
   Module::Pluggable::Object: 0
   Moose: 0
   Moose::Role: 0
@@ -117,9 +120,11 @@ requires:
   MooseX::NonMoose: 0
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
+  MooseX::Types::Path::Class::MoreCoercions: 0
   Parse::BooleanLogic: 0
   Path::Class: 0
   Perl6::Slurp: 0
+  Pod::Usage: 0
   Readonly: 0
   Scalar::Util: 0
   Spreadsheet::XLSX: 0
@@ -149,4 +154,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.184
+version: 0.185

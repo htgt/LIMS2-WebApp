@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.184';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.185';
 }
 ## use critic
 
@@ -12,6 +12,8 @@ use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
 use YAML::Any;
 use namespace::autoclean;
 use Path::Class;
+use JSON;
+use List::MoreUtils qw( uniq );
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
@@ -261,10 +263,6 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
 
     return;
 }
-
-
-
-
 
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;

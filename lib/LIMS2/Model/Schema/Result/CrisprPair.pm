@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.184';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.185';
 }
 ## use critic
 
@@ -186,22 +186,55 @@ sub as_hash {
     return \%h;
 }
 
+use overload '""' => \&as_string;
 
-# Methods to link directly to locus table without having to go via Crispr table
-__PACKAGE__->belongs_to(
-    "right_crispr_locus",
-    "LIMS2::Model::Schema::Result::CrisprLocus",
-    { 'foreign.crispr_id' => 'self.right_crispr_id' },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
+sub as_string {
+    my $self = shift;
 
-__PACKAGE__->belongs_to(
-    "left_crispr_locus",
-    "LIMS2::Model::Schema::Result::CrisprLocus",
-    { 'foreign.crispr_id' => 'self.left_crispr_id' },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
+    return $self->id . '(' . $self->left_crispr_id . '-' . $self->right_crispr_id . ')';
+}
 
+sub right_crispr_locus {
+    return shift->right_crispr->current_locus;
+}
+
+sub left_crispr_locus {
+    return shift->left_crispr->current_locus;
+}
+
+sub target_slice {
+    my ( $self, $ensembl_util ) = @_;
+
+    unless ( $ensembl_util ) {
+        require WebAppCommon::Util::EnsEMBL;
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
+    }
+
+    my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $self->chr_name,
+        $self->start,
+        $self->end
+    );
+
+    return $slice;
+}
+
+sub start {
+    return shift->left_crispr_locus->chr_start;
+}
+
+sub end {
+    return shift->right_crispr_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->right_crispr_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->right_crispr_locus->chr->name;
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

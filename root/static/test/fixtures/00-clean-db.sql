@@ -64,3 +64,5 @@ DELETE FROM user_role;
 DELETE FROM users;
 DELETE FROM summaries;
 DELETE FROM nucleases;
+DELETE FROM crispr_es_qc_runs;
+DELETE FROM crispr_es_qc_wells;

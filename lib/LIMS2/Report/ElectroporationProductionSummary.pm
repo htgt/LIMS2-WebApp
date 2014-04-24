@@ -1,7 +1,7 @@
 package LIMS2::Report::ElectroporationProductionSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::ElectroporationProductionSummary::VERSION = '0.184';
+    $LIMS2::Report::ElectroporationProductionSummary::VERSION = '0.185';
 }
 ## use critic
 

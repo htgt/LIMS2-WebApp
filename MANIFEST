@@ -12,6 +12,7 @@ bin/lims2_model_dump_schema.pl
 bin/lims2_setup.sh
 bin/lims2_staging_clone
 bin/process_graph.pl
+bin/run_crispr_es_qc.pl
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
 docs/testing/TestingTargets.ods
@@ -30,6 +31,7 @@ lib/LIMS2/Model/FormValidator.pm
 lib/LIMS2/Model/FormValidator/Constraint.pm
 lib/LIMS2/Model/Plugin/BAC.pm
 lib/LIMS2/Model/Plugin/Crispr.pm
+lib/LIMS2/Model/Plugin/CrisprEsQc.pm
 lib/LIMS2/Model/Plugin/Gene.pm
 lib/LIMS2/Model/Plugin/GenotypingQC.pm
 lib/LIMS2/Model/Plugin/Plate.pm
@@ -55,6 +57,8 @@ lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
 lib/LIMS2/Model/Schema/Result/Crispr.pm
 lib/LIMS2/Model/Schema/Result/CrisprBrowserPairs.pm
 lib/LIMS2/Model/Schema/Result/CrisprDesign.pm
+lib/LIMS2/Model/Schema/Result/CrisprEsQcRuns.pm
+lib/LIMS2/Model/Schema/Result/CrisprEsQcWell.pm
 lib/LIMS2/Model/Schema/Result/CrisprLociType.pm
 lib/LIMS2/Model/Schema/Result/CrisprLocus.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargetSummary.pm
@@ -150,6 +154,7 @@ lib/LIMS2/Model/Util/CreateDesign.pm
 lib/LIMS2/Model/Util/CreatePlate.pm
 lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
+lib/LIMS2/Model/Util/CrisprESQC.pm
 lib/LIMS2/Model/Util/Crisprs.pm
 lib/LIMS2/Model/Util/DataUpload.pm
 lib/LIMS2/Model/Util/DesignInfo.pm
@@ -236,6 +241,7 @@ lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
 lib/LIMS2/WebApp/Controller/User/CreateDesign.pm
+lib/LIMS2/WebApp/Controller/User/CrisprQC.pm
 lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargetsReport.pm
@@ -291,6 +297,9 @@ root/site/user/createdesign/index.tt
 root/site/user/createdesign/pending_design_attempt.tt
 root/site/user/createdesign/view_design_attempt.tt
 root/site/user/createdesign/wge_design_importer.tt
+root/site/user/crisprqc/crispr_es_qc_run.tt
+root/site/user/crisprqc/crispr_es_qc_runs.tt
+root/site/user/crisprqc/submit_crispr_es_qc.tt
 root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt

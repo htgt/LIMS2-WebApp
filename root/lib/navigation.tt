@@ -110,7 +110,17 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
-            </li>                
+            </li>    
+            
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/es_qc_runs' ) %]">CRISPR QC Results</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
+            </li>  
+
             [% END %]
           </ul>
         </li>
