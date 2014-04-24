@@ -251,9 +251,6 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
             #initialize lazy build
             $qc_run = $qc_runner->qc_run;
 
-            #avoid zombie processes. (this is the default anyway)
-            local $SIG{CHLD} = 'IGNORE';
-
             my $pid = fork();
             if ( $pid ) { #parent
                 $c->log->debug( "Child pid $pid created" );
