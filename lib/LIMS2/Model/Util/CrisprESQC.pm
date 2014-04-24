@@ -163,7 +163,7 @@ has cigar_parser => (
 
 sub _build_cigar_parser {
     my $self = shift;
-    
+
     #strict matches any primer name
     return HTGT::QC::Util::CigarParser->new(
         strict_mode  => 0,
@@ -269,6 +269,8 @@ sub analyse_plate {
     $self->log->info( 'Well analysis complete, persisting ' . scalar( @qc_well_data ) . " wells" );
 
     $self->persist_wells( \@qc_well_data );
+
+    return;
 }
 
 sub persist_wells {
@@ -296,6 +298,8 @@ sub persist_wells {
             };
         }
     );
+
+    return;
 }
 
 =head2 analyse_well
@@ -486,10 +490,12 @@ sub fetch_seq_reads {
 
     $self->log->info(
         "Retrieving reads from trace server for project: " . $self->sequencing_project_name );
+    ## no critic(RequireBriefOpen)
     open( my $seq_reads_fh, '-|', $cmd, $self->sequencing_project_name )
         or LIMS2::Exception->throw( "failed to run $cmd for " . $self->sequencing_project_name );
 
     return Bio::SeqIO->new( -fh => $seq_reads_fh, -format => 'fasta' );
+    ## use critic
 }
 
 =head2 parse_analysis_data

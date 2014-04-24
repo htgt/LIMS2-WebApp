@@ -161,9 +161,9 @@ __PACKAGE__->belongs_to(
 sub as_hash {
   my ( $self ) = @_;
 
-  my $data = { 
+  my $data = {
     created_by => $self->created_by->name,
-    map { $_ => $self->$_ } $self->columns 
+    map { $_ => $self->$_ } $self->columns
   };
 
   return $data;

@@ -8,6 +8,7 @@ use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::CrisprESQC;
 use TryCatch;
+use Log::Log4perl::Level;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -27,7 +28,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     #should prefetch wells too
     my $run = $c->model('Golgi')->schema->resultset('CrisprEsQcRuns')->find(
         { id => $qc_run_id },
-        { prefetch => {'crispr_es_qc_wells' => 'well'} } 
+        { prefetch => {'crispr_es_qc_wells' => 'well'} }
     );
 
     unless ( $run ) {
@@ -46,11 +47,11 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
         #get HGNC/MGI ids
         my @gene_ids = uniq map { $_->gene_id }
-                                map { $_->genes } 
+                                map { $_->genes }
                                     $pair->left_crispr->related_designs;
 
         #get gene symbol from the solr
-        my @genes = map { $_->{gene_symbol} } 
+        my @genes = map { $_->{gene_symbol} }
                     values %{ $c->model('Golgi')->find_genes( $run->species_id, \@gene_ids ) };
 
         #format missing alignment properly
@@ -186,9 +187,9 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
     my @runs = $c->model('Golgi')->schema->resultset('CrisprEsQcRuns')->search(
         { species_id => $c->session->{selected_species} },
         {
-            prefetch => 'created_by', 
-            rows     => 20, 
-            order_by => { -desc => "created_at" } 
+            prefetch => 'created_by',
+            rows     => 20,
+            order_by => { -desc => "created_at" }
         }
     );
 
@@ -196,6 +197,7 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
         runs => [ map { $_->as_hash } @runs ],
     );
 
+    return;
 }
 
 sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
@@ -219,7 +221,6 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
 	$c->stash->{forward_primer_name}    = $c->req->param('forward_primer_name');
 	$c->stash->{reverse_primer_name}    = $c->req->param('reverse_primer_name');
 
-	my $run_id;
 	if ( $c->req->param( 'submit_crispr_es_qc' ) ) {
         my $validated_params;
         try {
@@ -240,7 +241,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
                 sub_seq_project         => $validated_params->{sequencing_sub_project},
                 forward_primer_name     => $validated_params->{forward_primer_name},
                 reverse_primer_name     => $validated_params->{reverse_primer_name},
-                commit                  => 1, 
+                commit                  => 1,
                 user                    => $c->user->name,
                 species                 => $c->session->{selected_species},
             );
@@ -263,9 +264,8 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
                 $qc_runner->model->clear_schema; #force refresh
 
                 #re-initialise logger into work dir
-                use Log::Log4perl::Level;
-                Log::Log4perl->easy_init( 
-                    { level => $DEBUG, file => $qc_runner->base_dir->file( 'log' ) } 
+                Log::Log4perl->easy_init(
+                    { level => $DEBUG, file => $qc_runner->base_dir->file( 'log' ) }
                 );
 
                 #run analyse plate in child

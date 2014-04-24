@@ -15,7 +15,7 @@ sub pspec_create_crispr_es_qc {
         created_at => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         species    => { validate => 'existing_species', rename => 'species_id' },
         sequencing_project => { validate => 'non_empty_string' },
-        sub_project => { validate => 'non_empty_string' } 
+        sub_project => { validate => 'non_empty_string' }
     };
 }
 
