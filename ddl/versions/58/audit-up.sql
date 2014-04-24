@@ -39,7 +39,8 @@ id character(36),
 sequencing_project text,
 created_at timestamp without time zone,
 created_by_id integer,
-species_id text
+species_id text,
+sub_project text
 );
 CREATE OR REPLACE FUNCTION public.process_crispr_es_qc_runs_audit()
 RETURNS TRIGGER AS $crispr_es_qc_runs_audit$
