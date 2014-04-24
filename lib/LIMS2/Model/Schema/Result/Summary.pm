@@ -1195,7 +1195,7 @@ sub satisfies_cassette_function {
 
   # If property, e.g. conditional, is specified true/false by CassetteFunction 
   # then it must match the value of final_pick_cassette_<property>
-  foreach my $property qw(conditional promoter cre){
+  foreach my $property (qw(conditional promoter cre)){
     my $required_value = $function->$property;
     if (defined $required_value){
       my $summary_property = 'final_pick_cassette_'.$property;

@@ -680,29 +680,39 @@ sub genes {
     foreach my $gene_row ( @$sql_results ) {
         my $gene_id = $gene_row->{ 'gene_id' };
 
-        my $gene_symbol = '';
+        my $gene_info;
         # get the gene name, the good way. TODO for human genes
         try {
-            $gene_symbol = $self->model->find_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{ 'gene_symbol' };
+            $gene_info = $self->model->find_gene( {
+                search_term => $gene_id,
+                species     => $self->species,
+                show_all    => 1
+            } );
         }
         catch {
             INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
         };
 
-        # get the gibson design count
-        my $report_params = {
-            type => 'simple',
-            off_target_algorithm => 'bwa',
-            crispr_types => 'pair'
-        };
+        # Now we grab this from the solr index
+        my $gene_symbol = $gene_info->{'gene_symbol'};
+        my $design_count = $gene_info->{'design_count'} // '0';
+        my $crispr_pairs_count = $gene_info->{'crispr_pairs_count'} // '0';
 
-        my $build = $DEFAULT_SPECIES_BUILD{ lc($self->species) };
-        my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, $self->species, $build, $report_params );
+        #     # get the gibson design count
+        #     my $report_params = {
+        #         type => 'simple',
+        #         off_target_algorithm => 'bwa',
+        #         crispr_types => 'pair'
+        #     };
 
-        my $design_count = sum map { $_->{ 'designs' } } @{$designs};
-        if (!defined $design_count) {$design_count = 0};
-        my $crispr_pairs_count = sum map { $_->{ 'crispr_pairs' } } @{$designs};
-        if (!defined $crispr_pairs_count) {$crispr_pairs_count = 0};
+        #     my $build = $DEFAULT_SPECIES_BUILD{ lc($self->species) };
+        #     my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, $self->species, $build, $report_params );
+
+        #     my $design_count = sum map { $_->{ 'designs' } } @{$designs};
+        #     if (!defined $design_count) {$design_count = 0};
+        #     my $crispr_pairs_count = sum map { $_->{ 'crispr_pairs' } } @{$designs};
+        #     if (!defined $crispr_pairs_count) {$crispr_pairs_count = 0};
+
 
         # get the plates
         my $sql =  <<"SQL_END";
