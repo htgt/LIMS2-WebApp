@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.185     2014-04-24 13:57:05 Europe/London
+
+    Added Crispr ES QC
+
 0.184     2014-04-24 10:21:05 Europe/London
 
     Speeding up of the Sponsor Report using the gene solr index
