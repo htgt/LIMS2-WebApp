@@ -22,13 +22,13 @@
             <th>[% disp_col %]
               <i class="icon-question-sign" id="vector_wells" href="#" data-content="Number of wells starting vector construction" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
-        [% ELSIF disp_col == "vector total" %]
+        [% ELSIF disp_col == "targeting vector wells" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="vector_total" href="#" data-content="Number of electroporatable targeting vectors clones (may not have passed sequencing and DNA quality QC)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="targeting_vector_wells" href="#" data-content="Number of targeting vector clones" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
-        [% ELSIF disp_col == "vector pass" %]
+        [% ELSIF disp_col == "passing vector wells" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="vector_pass" href="#" data-content="Number of electroporatable targeting vectors clones (passing sequencing and DNA quality QC)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="passing_vector_wells" href="#" data-content="Number of electroporatable targeting vectors clones (passing sequencing and DNA quality QC)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSIF disp_col == "electroporations" %]
             <th>[% disp_col %]
@@ -87,10 +87,8 @@
 <script type="text/javascript">
     $('#vector_designs').popover();
     $('#vector_wells').popover();
-
-    $('#vector_total').popover();
-    $('#vector_pass').popover();
-
+    $('#targeting_vector_wells').popover();
+    $('#passing_vector_wells').popover();
     $('#electroporations').popover();
     $('#colonies_picked').popover();
     $('#targeted_clones').popover();
