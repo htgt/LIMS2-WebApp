@@ -417,7 +417,7 @@ sub generate_sub_report {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
             'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector plates', 'vector total', 'vector pass', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'vector total', 'vector pass', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',

@@ -14,7 +14,37 @@
   <thead>
     <tr>
       [% FOR disp_col IN display_columns %]
-        <th>[% disp_col %]</th>
+        [% IF disp_col == "vector designs" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="vector_designs" href="#" data-content="Number of gibson designs created for this gene (may not yet be plated)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "vector wells" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="vector_wells" href="#" data-content="Number of wells starting vector construction" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "vector total" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="vector_total" href="#" data-content="Number of electroporatable targeting vectors clones (may not have passed sequencing and DNA quality QC)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "vector pass" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="vector_pass" href="#" data-content="Number of electroporatable targeting vectors clones (passing sequencing and DNA quality QC)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "electroporations" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="electroporations" href="#" data-content="Number of electroporated wells" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "colonies picked" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="colonies_picked" href="#" data-content="Number of electroporated colonies picked for screening" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "targeted clones" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="targeted_clones" href="#" data-content="Number of electroporated colonies passing genotyping screens" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSE %]
+            <th>[% disp_col %]</th>
+        [% END %]
       [% END %]
     </tr>
   </thead>
@@ -38,9 +68,11 @@
 						<td style="color:red">no</td>
 					[% ELSE %]
 						<td style="color:orange">---</td>
-					[% END %] 
+					[% END %]
+                [% ELSIF col == "gene_id" %]
+                    <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
                 [% ELSE %]
-				<td>[% colval %]</td>
+				    <td>[% colval %]</td>
 				[% END %]
 			[% END %]
 		</tr>
@@ -51,3 +83,15 @@
 [% ELSE %]
 <h3>Error: No rows found for this report!</h3>
 [% END %]
+
+<script type="text/javascript">
+    $('#vector_designs').popover();
+    $('#vector_wells').popover();
+
+    $('#vector_total').popover();
+    $('#vector_pass').popover();
+
+    $('#electroporations').popover();
+    $('#colonies_picked').popover();
+    $('#targeted_clones').popover();
+</script>
