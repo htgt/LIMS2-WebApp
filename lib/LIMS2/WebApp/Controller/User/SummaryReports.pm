@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::SummaryReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.186';
+    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.187';
 }
 ## use critic
 
