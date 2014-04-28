@@ -101,6 +101,11 @@ __PACKAGE__->table("designs");
   default_value: true
   is_nullable: 0
 
+=head2 global_arm_shortened
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -136,6 +141,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "cassette_first",
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "global_arm_shortened",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -288,8 +295,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SMeFB4r9ZhVln+z3REjP/A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-28 13:18:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r2LyLO9xtOpiwsxLWyyQQQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
