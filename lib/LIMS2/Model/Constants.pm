@@ -20,7 +20,8 @@ BEGIN {
         %ADDITIONAL_PLATE_REPORTS
         %UCSC_BLAT_DB
         %DEFAULT_SPECIES_BUILD
-        %VECTOR_DNA_CONCENTRATION 
+        %VECTOR_DNA_CONCENTRATION
+        %GLOBAL_SHORTENED_OLIGO_APPEND
     );
     our %EXPORT_TAGS = ();
 }
@@ -203,6 +204,11 @@ const our %GIBSON_OLIGO_APPENDS => (
     "ER" => "AGCCAATTGGCGGCCGAAGA",
     "3F" => "CTGAGCTAGCCATCAGTGAT",
     "3R" => "CCATGATTACGCCAAGCTTGAT",
+);
+
+const our %GLOBAL_SHORTENED_OLIGO_APPEND => (
+    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
+    "G3" => "CCACTGGCCGTCGTTTTACA",
 );
 
 # When creating additional report classes override the additional_report sub to return 1
