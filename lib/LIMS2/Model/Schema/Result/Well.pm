@@ -555,6 +555,7 @@ has is_double_targeted => (
     lazy_build => 1
 );
 
+# TODO check this for modified designs this
 sub _build_is_double_targeted {
     my $self = shift;
 
@@ -714,10 +715,13 @@ sub design {
 
     $self->assert_not_double_targeted;
 
+    # TODO modify here to return correct process for merged designs
     my $process_design = $self->ancestors->find_process( $self, 'process_design' );
 
     return $process_design ? $process_design->design : undef;
 }
+
+#TODO add method to check if this well comes from a merged short arm design
 
 sub crispr {
     my $self = shift;
@@ -737,6 +741,8 @@ sub nuclease {
     return $process_nuclease ? $process_nuclease->nuclease : undef;
 }
 
+# TODO check this is what we want for merged designs
+#      I think we only really want to return 1 design, not two here
 sub designs{
 	my $self = shift;
 

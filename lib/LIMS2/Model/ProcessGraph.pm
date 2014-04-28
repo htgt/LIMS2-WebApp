@@ -364,6 +364,7 @@ sub process_data_for {
         if ( my @recombinases = $p->process_recombinases ) {
             push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );
         }
+        # TODO add new short arm process data to here
     }
 
     return @data;

@@ -249,6 +249,7 @@ sub fetch_values_for_type_INT {
     my $stored_values = $params->{ stored_values };
     my $curr_well = $params->{ curr_well };
 
+    # TODO maybe add extra field for short arm designs
     if( (not exists $stored_values->{ stored_int_well_id }) || ($curr_well->id != $stored_values->{ stored_int_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
 		TRACE caller()." Fetching new values for INT well : ".$curr_well->id;

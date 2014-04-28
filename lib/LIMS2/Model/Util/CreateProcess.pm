@@ -420,6 +420,7 @@ sub _check_wells_freeze {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+# TODO the design_data_From well_id will not work with short_arm designs
 sub _check_wells_xep_pool {
     my ( $model, $process ) = @_;
     check_input_wells( $model, $process);
