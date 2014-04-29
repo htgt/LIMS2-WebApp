@@ -117,11 +117,43 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     }
 
 
+use Smart::Comments;
+## $gene_info
+## %designs_hash
+## %wells_hash
+### %sorted_wells
+
+    my @timeline;
+
+    my @designs_date;
+    foreach my $key ( keys %designs_hash ) {
+        push @designs_date, $designs_hash{$key}->{design_details}->{created_at};
+    }
+    sort(@designs_date);
+    push @timeline, ['Designs', $designs_date[0], $designs_date[$#designs_date], '-' ];
+
+
+# ('design','int','final','final_pick','dna','ep','ep_pick','xep','sep','sep_pick','fp','piq','sfp')
+    
+    # if ( %sorted_wells->{'design'} ) {
+    #     print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+    # }
+
+
+
+
+
+
+
+
+
+
     $c->stash(
         'info'         => $gene_info,
         'designs'      => \%designs_hash,
         'wells'        => \%wells_hash,
         'sorted_wells' => \%sorted_wells,
+        'timeline'     => \@timeline,
     );
 
     return;
