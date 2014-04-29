@@ -75,7 +75,7 @@
                     <td>[% colval %]</td>
                 [% ELSIF colval == "0" %]
                     <td></td>
-                [% ELSIF colval > "0" %]
+                [% ELSIF colval %]
                     [% IF col == 'passing_vector_wells' || col == 'targeted_clones' %]
                     <td style="background:#8AD95A" >[% colval %]</td>
                     [% ELSE %]
