@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.187';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.188';
 }
 ## use critic
 
@@ -422,8 +422,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector plates', 'vector total', 'vector pass', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -776,16 +776,16 @@ SQL_END
 
         # push the data for the report
         push @genes_for_display, {
-            'gene_id'           => $gene_id,
-            'gene_symbol'       => $gene_symbol,
-            'crispr_pairs'      => $crispr_pairs_count,
-            'gibson_design'     => $design_count,
-            'gibson_plated'     => scalar @design,
-            'vector_total'      => scalar @final_pick,
-            'vector_pass'       => $vector_pass,
-            'eps'               => scalar @ep,
-            'targeted'          => scalar @ep_pick,
-            'targeted_accepted' => $ep_pick_pass,
+            'gene_id'                => $gene_id,
+            'gene_symbol'            => $gene_symbol,
+            'crispr_pairs'           => $crispr_pairs_count,
+            'vector_designs'         => $design_count,
+            'vector_wells'           => scalar @design,
+            'targeting_vector_wells' => scalar @final_pick,
+            'passing_vector_wells'   => $vector_pass,
+            'electroporations'       => scalar @ep,
+            'colonies_picked'        => scalar @ep_pick,
+            'targeted_clones'        => $ep_pick_pass,
         };
     }
 
