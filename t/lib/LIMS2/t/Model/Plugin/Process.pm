@@ -831,7 +831,7 @@ sub freeze_process : Tests() {
     qr/freeze process output well should be type (FP|,|SFP)+ \(got SEP\)/;
 }
 
-sub disc_qc_process : Tests() {
+sub dist_qc_process : Tests() {
     note("Testing dist_qc process creation");
     my $dist_qc_process_data = test_data('dist_qc_process.yaml');
 
@@ -1100,6 +1100,66 @@ sub crispr_ep_process : Tests() {
         my $process = model->create_process( $crispr_ep_process_data->{ep_invalid_input_well} );
     }
     qr/crispr_ep process input well should be type ASSEMBLY \(got CRISPR\)/;
+}
+
+sub global_arm_shortening_process : Tests() {
+    note("Testing global_arm_shortening process creation");
+    my $global_arm_shortening_process_data = test_data('global_arm_shortening_process.yaml');
+
+    {
+        ok my $process = model->create_process( $global_arm_shortening_process_data->{valid_input} ),
+            'create_process for type global_arm_shortening should succeed';
+        isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+        is $process->type->id, 'global_arm_shortening', 'process is of correct type';
+
+        ok my $process_backbone = $process->process_backbone, 'process has a process_backbone';
+        is $process_backbone->backbone->name, 'R3R4_pBR_amp',
+            'process_backbone has correct intermediate backbone';
+
+        ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+        is $input_wells->count, 1, 'only one input well';
+        my $input_well = $input_wells->next;
+        is $input_well->name, 'C04', 'input well has correct name';
+        is $input_well->plate->name, 'PCS00035_A', '..and is on correct plate';
+
+        ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+        is $output_wells->count, 1, 'only one output well';
+        my $output_well = $output_wells->next;
+        is $output_well->name, 'C04', 'output well has correct name';
+        is $output_well->plate->name, 'INT_ARM_SHORTEN_TEST', '..and is on correct plate';
+
+        lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+    }
+
+    throws_ok {
+        my $process = model->create_process( $global_arm_shortening_process_data->{missing_input_well} );
+    }
+    qr/global_arm_shortening process should have 1 input well\(s\) \(got 0\)/;
+
+    throws_ok {
+        my $process = model->create_process( $global_arm_shortening_process_data->{invalid_input_well} );
+    }
+    qr/global_arm_shortening process input well should be type INT \(got EP\)/;
+
+    throws_ok {
+        my $process = model->create_process( $global_arm_shortening_process_data->{invalid_output_well} );
+    }
+    qr/global_arm_shortening process output well should be type INT \(got EP\)/;
+
+    throws_ok {
+        my $process = model->create_process( $global_arm_shortening_process_data->{multiple_output_wells} );
+    }
+    qr/Process should have 1 output well \(got 2\)/;
+
+    throws_ok {
+        my $process = model->create_process( $global_arm_shortening_process_data->{non_arm_shortened_design} );
+    }
+    qr/The specified design 372441 is not set as a short arm design/;
+
+    throws_ok {
+        my $process = model->create_process( $global_arm_shortening_process_data->{wrong_arm_shortened_design} );
+    }
+    qr/The short arm design 222222 is not linked to the intermediate wells original design 103/;
 }
 
 1;
