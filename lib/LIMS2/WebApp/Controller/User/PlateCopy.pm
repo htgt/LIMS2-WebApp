@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateCopy;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateCopy::VERSION = '0.188';
+    $LIMS2::WebApp::Controller::User::PlateCopy::VERSION = '0.189';
 }
 ## use critic
 

@@ -1,3 +1,9 @@
+0.189     2014-05-01 11:12:55 Europe/London
+
+    Add new shorten_global_arm process.
+    New column on design table to indication shorten arm design.
+    Let users upload a plate using this process, specifying a short arm design to merge into.
+
 0.188     2014-04-29 09:24:18 Europe/London
 
     Sponsor Report - cell coloring, link to gene summary page

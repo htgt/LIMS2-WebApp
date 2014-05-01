@@ -13,6 +13,7 @@ DELETE FROM process_cassette;
 DELETE FROM process_backbone;
 DELETE FROM process_cell_line;
 DELETE FROM process_nuclease;
+DELETE FROM process_global_arm_shortening_design;
 DELETE FROM processes;
 DELETE FROM genotyping_primers;
 DELETE FROM design_comments;

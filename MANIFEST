@@ -96,6 +96,7 @@ lib/LIMS2/Model/Schema/Result/ProcessCellLine.pm
 lib/LIMS2/Model/Schema/Result/ProcessCrispr.pm
 lib/LIMS2/Model/Schema/Result/ProcessDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessElectroporation.pm
+lib/LIMS2/Model/Schema/Result/ProcessGlobalArmShorteningDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessInputWell.pm
 lib/LIMS2/Model/Schema/Result/ProcessNuclease.pm
 lib/LIMS2/Model/Schema/Result/ProcessOutputWell.pm
@@ -2166,6 +2167,8 @@ root/static/files/plate_upload/first_electroporation_template_es.csv
 root/static/files/plate_upload/first_electroporation_template_vector.csv
 root/static/files/plate_upload/gateway_template_es.csv
 root/static/files/plate_upload/gateway_template_vector.csv
+root/static/files/plate_upload/global_arm_shortening_template_es.csv
+root/static/files/plate_upload/global_arm_shortening_template_vector.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_es.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/piq_template_es.csv
@@ -2270,6 +2273,7 @@ root/static/test/data/final_pick_process.yaml
 root/static/test/data/find_crispr_by_seq.yaml
 root/static/test/data/first_electroporation.yaml
 root/static/test/data/freeze_process.yaml
+root/static/test/data/global_arm_shortening_process.yaml
 root/static/test/data/int_recom_process.yaml
 root/static/test/data/invalid_csv_upload.csv
 root/static/test/data/legacy_gateway_process.yaml
