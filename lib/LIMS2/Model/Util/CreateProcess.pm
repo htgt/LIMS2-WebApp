@@ -771,6 +771,7 @@ sub _create_process_aux_global_arm_shortening {
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_global_arm_shortening );
 
+    # TODO maybe just one type of int backbone??? 
     # check specified design has a global_arm_shortened value and
     # that design_id is the same as the root design of the input well
     my $input_well = ( $process->input_wells )[0]; # we already checked there is only one input well

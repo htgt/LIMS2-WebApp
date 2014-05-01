@@ -213,6 +213,7 @@ const our %GIBSON_OLIGO_APPENDS => (
     "3R" => "CCATGATTACGCCAAGCTTGAT",
 );
 
+# TODO get these new appends
 const our %GLOBAL_SHORTENED_OLIGO_APPEND => (
     "G5" => "TCCTGTGTGAAATTGTTATCCGC",
     "G3" => "CCACTGGCCGTCGTTTTACA",
