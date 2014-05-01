@@ -368,6 +368,7 @@ sub as_hash {
         species                 => $self->species_id,
         assigned_genes          => [ map { $_->gene_id } $self->genes ],
         cassette_first          => $self->cassette_first,
+        global_arm_shortened    => $self->global_arm_shortened,
     );
 
     if ( ! $suppress_relations ) {
