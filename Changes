@@ -1,5 +1,21 @@
 {{$NEXT}}
 
+0.188     2014-04-29 09:24:18 Europe/London
+
+    Sponsor Report - cell coloring, link to gene summary page
+
+0.187     2014-04-28 15:33:20 Europe/London
+
+    Sponsor Report - column header renaming and description
+
+0.186     2014-04-24 16:44:21 Europe/London
+
+    Bugfix: Exonerate would always fail on crispr ES QC due to SIG{CHLD}
+
+0.185     2014-04-24 13:57:05 Europe/London
+
+    Added Crispr ES QC
+
 0.184     2014-04-24 10:21:05 Europe/London
 
     Speeding up of the Sponsor Report using the gene solr index
