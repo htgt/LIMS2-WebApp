@@ -137,6 +137,7 @@ my %process_check_well = (
     'create_di'              => \&_check_wells_create_di,
     'create_crispr'          => \&_check_wells_create_crispr,
     'int_recom'              => \&_check_wells_int_recom,
+    'global_arm_shortening'  => \&_check_wells_global_arm_shortening,
     '2w_gateway'             => \&_check_wells_2w_gateway,
     '3w_gateway'             => \&_check_wells_3w_gateway,
     'legacy_gateway'         => \&_check_wells_legacy_gateway,
@@ -252,6 +253,16 @@ sub _check_wells_create_crispr {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_int_recom {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_global_arm_shortening {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -614,6 +625,7 @@ my %process_aux_data = (
     'create_di'              => \&_create_process_aux_data_create_di,
     'create_crispr'          => \&_create_process_aux_data_create_crispr,
     'int_recom'              => \&_create_process_aux_data_int_recom,
+    'global_arm_shortening'  => \&_create_process_aux_global_arm_shortening,
     '2w_gateway'             => \&_create_process_aux_data_2w_gateway,
     '3w_gateway'             => \&_create_process_aux_data_3w_gateway,
     'legacy_gateway'         => \&_create_process_aux_data_legacy_gateway,
@@ -740,6 +752,47 @@ sub _create_process_aux_data_int_recom {
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_global_arm_shortening {
+    return {
+        backbone  => { validate => 'existing_intermediate_backbone' },
+        design_id => { validate => 'existing_design_id' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_global_arm_shortening {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_global_arm_shortening );
+
+    # TODO maybe just one type of int backbone??? 
+    # check specified design has a global_arm_shortened value and
+    # that design_id is the same as the root design of the input well
+    my $input_well = ( $process->input_wells )[0]; # we already checked there is only one input well
+    my $root_design_id = $input_well->design->id;
+    my $design = $model->c_retrieve_design( { id => $validated_params->{design_id} } );
+
+    LIMS2::Exception::Validation->throw(
+        "The specified design $design is not set as a short arm design"
+    ) unless $design->global_arm_shortened;
+
+    if ( $root_design_id != $design->global_arm_shortened ) {
+        LIMS2::Exception::Validation->throw(
+            "The short arm design $design "
+            . "is not linked to the intermediate wells original design $root_design_id"
+        );
+    }
+
+    $process->create_related(
+        process_global_arm_shortening_design => { design_id => $validated_params->{design_id} } );
+    $process->create_related( process_backbone =>
+            { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
 
     return;
 }

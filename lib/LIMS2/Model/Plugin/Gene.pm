@@ -121,7 +121,8 @@ sub check_for_local_symbol {
 sub pspec_retrieve_gene {
     return {
         species     => { validate => 'existing_species' },
-        search_term => { validate => 'non_empty_string' }
+        search_term => { validate => 'non_empty_string' },
+        show_all    => { optional => 1 }
     }
 }
 

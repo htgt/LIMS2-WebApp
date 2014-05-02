@@ -357,6 +357,10 @@ sub process_data_for {
                 push @data, 'Genes: ' . join( q{, }, map { $_->gene_id } @genes );
             }
         }
+        if ( $p->process_crispr ) {
+            my $crispr = $p->process_crispr->crispr;
+            push @data, 'Crispr: ' . $crispr->id;
+        }
         if ( my @recombinases = $p->process_recombinases ) {
             push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );
         }
@@ -379,7 +383,10 @@ sub render {
 
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
-        $graph->add_node( name => $well->as_string, label => [ $well->as_string, process_data_for( $well ) ] );
+        $graph->add_node(
+            name  => $well->as_string,
+            label => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, process_data_for($well) ]
+        );
     }
 
     my %seen_process;

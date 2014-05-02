@@ -270,6 +270,12 @@ __PACKAGE__->belongs_to(
 
 use Bio::Perl qw( revcom );
 
+use overload '""' => \&as_string;
+
+sub as_string {
+    return shift->id;
+}
+
 sub as_hash {
     my ( $self ) = @_;
 
@@ -292,6 +298,40 @@ sub as_hash {
     $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
+}
+
+sub current_locus {
+    my $self = shift;
+
+    my $loci = $self->result_source->schema->resultset('CrisprLocus')->find(
+        {
+            'me.crispr_id'                          => $self->id,
+            'species_default_assemblies.species_id' => $self->species_id
+        },
+        {
+            join => {
+                assembly => 'species_default_assemblies'
+            }
+        }
+    );
+
+    return $loci;
+}
+
+sub start {
+    return shift->current_locus->chr_start;
+}
+
+sub end {
+    return shift->current_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->current_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->current_locus->chr->name;
 }
 
 sub guide_rna {

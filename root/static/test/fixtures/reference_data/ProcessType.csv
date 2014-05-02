@@ -21,3 +21,4 @@
 "single_crispr_assembly","Single crispr assembly"
 "paired_crispr_assembly","Paired crispr assembly"
 "crispr_ep","Crispr electroporation"
+"global_arm_shortening","Shorten the global arms of a intermediate vector using new G oligos"
