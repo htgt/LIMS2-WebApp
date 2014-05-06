@@ -230,5 +230,7 @@ sub chr_name {
     return shift->right_crispr_locus->chr->name;
 }
 
+sub is_pair { return 1; }
+
 __PACKAGE__->meta->make_immutable;
 1;
