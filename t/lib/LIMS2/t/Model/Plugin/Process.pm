@@ -1113,7 +1113,7 @@ sub global_arm_shortening_process : Tests() {
         is $process->type->id, 'global_arm_shortening', 'process is of correct type';
 
         ok my $process_backbone = $process->process_backbone, 'process has a process_backbone';
-        is $process_backbone->backbone->name, 'R3R4_pBR_amp',
+        is $process_backbone->backbone->name, 'pAYAC184',
             'process_backbone has correct intermediate backbone';
 
         ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
@@ -1160,6 +1160,11 @@ sub global_arm_shortening_process : Tests() {
         my $process = model->create_process( $global_arm_shortening_process_data->{wrong_arm_shortened_design} );
     }
     qr/The short arm design 222222 is not linked to the intermediate wells original design 103/;
+
+    throws_ok {
+        my $process = model->create_process( $global_arm_shortening_process_data->{backbone_wrong_resistance} );
+    }
+    qr/The antibiotic resistance on the intermediate backbone used in a global_arm_shortening process should be Chloramphenicol/;
 }
 
 1;
