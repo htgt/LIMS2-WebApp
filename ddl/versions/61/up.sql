@@ -1,4 +1,4 @@
---ALTER TABLE genotyping_primers ADD COLUMN tm NUMERIC(5,3), ADD COLUMN gc_content NUMERIC(5,3);
+ALTER TABLE genotyping_primers ADD COLUMN tm NUMERIC(5,3), ADD COLUMN gc_content NUMERIC(5,3);
 CREATE TABLE crispr_primer_types(
         primer_name         TEXT NOT NULL PRIMARY KEY
 );
