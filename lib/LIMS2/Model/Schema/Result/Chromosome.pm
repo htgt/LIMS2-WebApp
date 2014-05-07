@@ -147,6 +147,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_primers_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers_locis",
+  "LIMS2::Model::Schema::Result::CrisprPrimersLoci",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 design_oligo_loci
 
 Type: has_many
@@ -177,6 +192,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 genotyping_primers_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "genotyping_primers_locis",
+  "LIMS2::Model::Schema::Result::GenotypingPrimersLoci",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 species
 
 Type: belongs_to
@@ -193,8 +223,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ho4cVuSKpr/IT0q+5b/yWA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z03KBcSQ9CpThrRh/UL69A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
