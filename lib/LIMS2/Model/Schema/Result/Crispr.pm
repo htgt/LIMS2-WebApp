@@ -438,6 +438,8 @@ sub accepted_vector_wells{
     return grep { $_->plate_id == $most_recent_plate->id } @accepted_wells;
 }
 
+sub is_pair { return; }
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
