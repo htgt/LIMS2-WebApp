@@ -10,7 +10,7 @@
 
 [% IF report_id %]
 
-<table class="table table-striped table-bordered">
+<table class="table table-striped table-bordered table-condensed">
   <thead>
     <tr>
       [% FOR disp_col IN display_columns %]
@@ -71,6 +71,16 @@
 					[% END %]
                 [% ELSIF col == "gene_id" %]
                     <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+                [% ELSIF col == "gene_symbol" %]
+                    <td>[% colval %]</td>
+                [% ELSIF colval == "0" %]
+                    <td></td>
+                [% ELSIF colval %]
+                    [% IF col == 'passing_vector_wells' || col == 'targeted_clones' %]
+                    <td style="background:#8AD95A" >[% colval %]</td>
+                    [% ELSE %]
+                    <td style="background:#E5E4E2" >[% colval %]</td>
+                    [% END %]
                 [% ELSE %]
 				    <td>[% colval %]</td>
 				[% END %]

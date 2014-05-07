@@ -20,7 +20,8 @@ BEGIN {
         %ADDITIONAL_PLATE_REPORTS
         %UCSC_BLAT_DB
         %DEFAULT_SPECIES_BUILD
-        %VECTOR_DNA_CONCENTRATION 
+        %VECTOR_DNA_CONCENTRATION
+        %GLOBAL_SHORTENED_OLIGO_APPEND
     );
     our %EXPORT_TAGS = ();
 }
@@ -31,6 +32,7 @@ const our %PROCESS_PLATE_TYPES => (
     'create_crispr'          => [qw( CRISPR )],
     'int_recom'              => [qw( INT )],
     'cre_bac_recom'          => [qw( INT )],
+    'global_arm_shortening'  => [qw( INT )],
     '2w_gateway'             => [qw( POSTINT FINAL )],
     '3w_gateway'             => [qw( POSTINT FINAL )],
     'legacy_gateway'         => [qw( FINAL_PICK )],
@@ -54,6 +56,7 @@ const our %PROCESS_PLATE_TYPES => (
 const our %PROCESS_SPECIFIC_FIELDS => (
     'int_recom'              => [qw( intermediate_cassette backbone )],
     'cre_bac_recom'          => [qw( intermediate_cassette intermediate_backbone )],
+    'global_arm_shortening'  => [qw( intermediate_backbone )],
     '2w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     '3w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     'recombinase'            => [qw( recombinase )],
@@ -69,6 +72,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
 const our %PROCESS_TEMPLATE => (
     'int_recom'              => 'recombineering_template',
     'cre_bac_recom'          => 'recombineering_template',
+    'global_arm_shortening'  => 'global_arm_shortening_template',
     '2w_gateway'             => 'gateway_template',
     '3w_gateway'             => 'gateway_template',
     'final_pick'             => 'standard_template',
@@ -104,6 +108,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'legacy_gateway' => {
+        type   => [qw( INT )],
+        number => 1,
+    },
+    'global_arm_shortening' => {
         type   => [qw( INT )],
         number => 1,
     },
@@ -203,6 +211,11 @@ const our %GIBSON_OLIGO_APPENDS => (
     "ER" => "AGCCAATTGGCGGCCGAAGA",
     "3F" => "CTGAGCTAGCCATCAGTGAT",
     "3R" => "CCATGATTACGCCAAGCTTGAT",
+);
+
+const our %GLOBAL_SHORTENED_OLIGO_APPEND => (
+    "G5" => "ACAACTTATATCGTATGGGGC",
+    "G3" => "TTACGCCCCGCCCTGCCACTC",
 );
 
 # When creating additional report classes override the additional_report sub to return 1
