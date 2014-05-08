@@ -94,6 +94,12 @@ __PACKAGE__->table("crispr_es_qc_wells");
   data_type: 'text'
   is_nullable: 0
 
+=head2 accepted
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -122,6 +128,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "analysis_data",
   { data_type => "text", is_nullable => 0 },
+  "accepted",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -184,8 +192,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-08 10:14:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Cu0mUjD8arymlPQc2zPKAg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 14:29:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v4JT/r2+CTz1PY54Qbv45A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
