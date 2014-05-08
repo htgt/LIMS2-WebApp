@@ -203,11 +203,12 @@ sub check_xep_pool_wells {
 
 sub pspec_retrieve_plate {
     return {
-        name => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
-        id   => { validate => 'integer',             optional => 1, rename => 'me.id' },
-        type => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
-        species => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
-        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
+        name         => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
+        id           => { validate => 'integer',             optional => 1, rename => 'me.id' },
+        barcode      => { validate => 'alphanumeric_string', optional => 1, rename => 'me.barcode' },
+        type         => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
+        species      => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
+        REQUIRE_SOME => { name_or_id_or_barcode => [ 1, qw( name id barcode ) ] }
     };
 }
 
@@ -218,7 +219,7 @@ sub retrieve_plate {
         = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
     return $self->retrieve(
-        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id ) },
+        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id me.barcode ) },
         $search_opts
     );
 }
