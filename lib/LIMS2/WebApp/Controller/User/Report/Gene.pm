@@ -2,6 +2,7 @@ package LIMS2::WebApp::Controller::User::Report::Gene;
 use Moose;
 use Try::Tiny;
 use namespace::autoclean;
+use Date::Calc qw(Delta_Days);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -103,7 +104,6 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
 
-
     # created a hash that will contain the sorted data, from the wells_hash
     my %sorted_wells;
     foreach my $type (@plate_types) {
@@ -116,37 +116,48 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
 
-
-use Smart::Comments;
-## $gene_info
-## %designs_hash
-## %wells_hash
-### %sorted_wells
-
+    # prepare data for the top Date Report
     my @timeline;
-
     my @designs_date;
+    my $previous;
+
+    # product type 'Designs' is separate and taken care here
     foreach my $key ( keys %designs_hash ) {
         push @designs_date, $designs_hash{$key}->{design_details}->{created_at};
     }
-    sort(@designs_date);
-    push @timeline, ['Designs', $designs_date[0], $designs_date[$#designs_date], '-' ];
+    @designs_date = sort(@designs_date);
+    push @timeline, ['Designs', $designs_date[0], $designs_date[-1], '-' ];
+    $previous = $designs_date[0];
 
+    # prepare the product type names
+    my $names = {
+        'design'     => 'Design Instances',
+        'int'        => 'Intermediate Vectors',
+        'final'      => 'Final Vectors',
+        'final_pick' => 'Final Pick Vectors',
+        'dna'        => 'DNA Preparations',
+        'ep'         => 'First Electroporations',
+        'ep_pick'    => 'First Electroporation Picks',
+        'xep'        => 'XEP Pools',
+        'sep'        => 'Second Electroporations',
+        'sep_pick'   => 'Second Electroporation Picks',
+        'fp'         => 'First Electroporation Freezer Instances',
+        'piq'        => 'Pre-Injection QCs',
+        'sfp'        => 'Second Electroporation Freezes',
+    };
 
-# ('design','int','final','final_pick','dna','ep','ep_pick','xep','sep','sep_pick','fp','piq','sfp')
-    
-    # if ( %sorted_wells->{'design'} ) {
-    #     print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-    # }
-
-
-
-
-
-
-
-
-
+    # all the other product types
+    for my $plate_type( @plate_types ) {
+        if ( $sorted_wells{$plate_type} ) {
+            my $start = $sorted_wells{$plate_type}[0]->{created_at};
+            my @start_array = split(/-/, $previous);
+            my $end = $sorted_wells{$plate_type}[-1]->{created_at};
+            my @end_array = split(/-/, $start);
+            my $transition = Delta_Days(@start_array, @end_array);
+            push @timeline, [$names->{$plate_type}, $start, $end, $transition];
+            $previous = $start;
+        }
+    }
 
     $c->stash(
         'info'         => $gene_info,

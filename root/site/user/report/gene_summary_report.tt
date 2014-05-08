@@ -18,12 +18,10 @@
 <div class="accordion" id="gene_report_accordion">
 [%- END %]
 
-
-
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseTimeline">Timeline</a>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseTimeline">Date Report</a>
       </h3>
     </div>
     <div id="collapseTimeline" class="accordion-body collapse in">
@@ -33,9 +31,9 @@
           <thead>
             <tr>
               <th>Product Type</th>
-              <th>Minimum Date</th>
-              <th>Maximum Date</th>
-              <th>Transition Time</th>
+              <th>Earliest Date</th>
+              <th>Latest Date</th>
+              <th>Transition Time (days)</th>
             </tr>
           </thead>
           <tbody>
@@ -54,10 +52,6 @@
       </div>
     </div>
   </div>
-
-
-
-
 
 [%- IF designs.defined %]
   <div class="accordion-group">
