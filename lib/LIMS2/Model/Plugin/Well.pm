@@ -18,11 +18,12 @@ requires qw( schema check_params throw retrieve log trace );
 
 sub pspec_retrieve_well {
     return {
-        id                => { validate   => 'integer',    optional => 1 },
-        plate_name        => { validate   => 'plate_name', optional => 1 },
-        well_name         => { validate   => 'well_name',  optional => 1 },
+        id                => { validate => 'integer', optional => 1 },
+        plate_name        => { validate => 'plate_name', optional => 1 },
+        well_name         => { validate => 'well_name', optional => 1 },
+        barcode           => { validate => 'alphanumeric_string', optional => 1 },
         DEPENDENCY_GROUPS => { name_group => [qw( plate_name well_name )] },
-        REQUIRE_SOME      => { id_or_name => [ 1, qw( id plate_name well_name ) ] }
+        REQUIRE_SOME      => { id_or_name_or_barcode => [ 1, qw( id plate_name well_name barcode ) ] }
     };
 }
 
@@ -32,6 +33,11 @@ sub retrieve_well {
     my $data = $self->check_params( $params, $self->pspec_retrieve_well, ignore_unknown => 1 );
 
     my %search;
+    my %joins = (
+        join     => 'plate',
+        prefetch => 'plate',
+     );
+
     if ( $data->{id} ) {
         $search{'me.id'} = $data->{id};
     }
@@ -41,8 +47,12 @@ sub retrieve_well {
     if ( $data->{plate_name} ) {
         $search{'plate.name'} = $data->{plate_name};
     }
+    if ( $data->{barcode} ) {
+        $search{'well_barcode.barcode'} = $data->{barcode};
+        $joins{join} = [ 'plate', 'well_barcode' ];
+    }
 
-    return $self->retrieve( Well => \%search, { join => 'plate', prefetch => 'plate' } );
+    return $self->retrieve( Well => \%search, \%joins );
 }
 
 sub pspec_create_well {
@@ -118,8 +128,10 @@ sub delete_well {
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
                                  well_qc_sequencing_result well_recombineering_results well_colony_counts
-                                 well_primer_bands well_chromosome_fail well_genotyping_results well_targeting_pass 
-                                 well_targeting_puro_pass well_targeting_neo_pass well_lab_number );
+                                 well_primer_bands well_chromosome_fail well_genotyping_results
+                                 well_targeting_pass well_targeting_puro_pass well_targeting_neo_pass
+                                 well_lab_number well_barcode
+                               );
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
