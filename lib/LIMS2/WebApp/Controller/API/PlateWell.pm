@@ -558,6 +558,24 @@ sub genotyping_qc_save_distribute_changes_GET {
     return $self->status_ok( $c, entity => \@plate_data );
 }
 
+sub well_genotyping_crispr_qc :Path('/api/fetch_genotyping_info_for_well') :Args(1) :ActionClass('REST') {
+}
+
+sub well_genotyping_crispr_qc_GET {
+    my ( $self, $c, $well_id ) = @_;
+
+    #well_id will become barcode
+    my $well = $c->model('Golgi')->schema->resultset('Well')->find( $well_id );
+
+    unless ( $well->is_epd_or_later ) {
+        $self->status_bad_request( $c, message => "Provided well must be an epd well or later" );
+    }
+
+    my %data = ( id => $well->id, name => $well->name );
+
+    return $self->status_ok( $c, entity => \%data );
+}
+
 =head1 AUTHOR
 
 Ray Miller

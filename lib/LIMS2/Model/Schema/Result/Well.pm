@@ -924,6 +924,23 @@ sub first_ep_pick {
 }
 ## use critic
 
+#maybe think of a better name for this
+#it just means it must be ep_pick or later
+sub is_epd_or_later {
+  my $self = shift;
+
+  #epd is ok with us
+  return 1 if $self->plate->type_id eq 'EP_PICK';
+
+  my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+  while ( my $ancestor = $ancestors->next ) {
+    return 1 if $ancestor->plate->type_id eq 'EP_PICK';
+  }
+
+  #we didn't find any ep picks further up so its not 
+  return;
+}
+
 ## no critic(RequireFinalReturn)
 sub second_ep {
     my $self = shift;
