@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.189';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.190';
 }
 ## use critic
 
@@ -777,7 +777,15 @@ sub _create_process_aux_global_arm_shortening {
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_global_arm_shortening );
 
-    # TODO maybe just one type of int backbone??? 
+    my $backbone = $model->schema->resultset('Backbone')->find( { name => $validated_params->{backbone} } );
+    if ( $backbone->antibiotic_res !~ /chloramphenicol/i ) {
+        LIMS2::Exception::Validation->throw(
+            "The antibiotic resistance on the intermediate backbone used in a "
+            . "global_arm_shortening process should be Chloramphenicol, not: "
+            . $backbone->antibiotic_res
+        );
+    }
+
     # check specified design has a global_arm_shortened value and
     # that design_id is the same as the root design of the input well
     my $input_well = ( $process->input_wells )[0]; # we already checked there is only one input well

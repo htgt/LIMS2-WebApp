@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.189';
+    $LIMS2::Model::Constants::VERSION = '0.190';
 }
 ## use critic
 
@@ -219,10 +219,9 @@ const our %GIBSON_OLIGO_APPENDS => (
     "3R" => "CCATGATTACGCCAAGCTTGAT",
 );
 
-# TODO get these new appends
 const our %GLOBAL_SHORTENED_OLIGO_APPEND => (
-    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
-    "G3" => "CCACTGGCCGTCGTTTTACA",
+    "G5" => "ACAACTTATATCGTATGGGGC",
+    "G3" => "TTACGCCCCGCCCTGCCACTC",
 );
 
 # When creating additional report classes override the additional_report sub to return 1

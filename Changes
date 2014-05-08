@@ -1,3 +1,9 @@
+0.190     2014-05-08 15:10:06 Europe/London
+
+    Support for well barcodes
+    Accepted field on CrisprEsQcWells table
+    Support for single and paired crisprs in crispr es qc
+
 0.189     2014-05-01 11:12:55 Europe/London
 
     Add new shorten_global_arm process.
