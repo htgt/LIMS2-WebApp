@@ -128,7 +128,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     }
     @designs_date = sort(@designs_date);
     @product = ( 'Designs', $designs_date[0], $designs_date[-1] );
-    $previous = $designs_date[0];
+    $previous = $designs_date[0] // POSIX::strftime( "%Y-%m-%d", localtime() );
     # prepare the product type names
     my $names = {
         'design'     => 'Design Instances',
