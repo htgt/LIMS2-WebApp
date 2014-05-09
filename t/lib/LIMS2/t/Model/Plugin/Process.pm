@@ -618,7 +618,7 @@ sub dna_prep_process : Tests() {
     qr/dna_prep process output well should be type DNA \(got INT\)/;
 }
 
-sub first_electroporation_process : Test() {
+sub first_electroporation_process : Tests() {
     note("Testing first_electroporation process creation");
     my $first_electroporation_data = test_data('first_electroporation.yaml');
 
