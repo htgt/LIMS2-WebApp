@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.188';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.191';
 }
 ## use critic
 
@@ -177,6 +177,7 @@ use LIMS2::Model::Constants qw(
 %STANDARD_KO_OLIGO_APPENDS
 %STANDARD_INS_DEL_OLIGO_APPENDS
 %GIBSON_OLIGO_APPENDS
+%GLOBAL_SHORTENED_OLIGO_APPEND
 );
 
 sub as_hash {
@@ -261,9 +262,15 @@ sub append_seq {
 
     my $append_seq;
     $design_type ||= $self->design->design_type_id;
+    my $shortened_global_arm = $self->design->global_arm_shortened;
     my $oligo_type = $self->design_oligo_type_id;
 
     ## no critic (ProhibitCascadingIfElse)
+    # TODO add tests for global arm shortened design oligo appends
+    if ( $shortened_global_arm && $oligo_type =~ /G[5|3]/ ) {
+        $append_seq = $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type }
+            if exists $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type };
+    }
     if ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
         $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type }
             if exists $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };

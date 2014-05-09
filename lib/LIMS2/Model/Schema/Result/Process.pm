@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Process::VERSION = '0.188';
+    $LIMS2::Model::Schema::Result::Process::VERSION = '0.191';
 }
 ## use critic
 
@@ -175,6 +175,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_global_arm_shortening_design
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessGlobalArmShorteningDesign>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_global_arm_shortening_design",
+  "LIMS2::Model::Schema::Result::ProcessGlobalArmShorteningDesign",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_input_wells
 
 Type: has_many
@@ -271,8 +286,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-03-10 12:23:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nCot/xkTfiD6KCXvFalMDQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-28 15:28:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hW7RnTKw29lsZSnZqM66xw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

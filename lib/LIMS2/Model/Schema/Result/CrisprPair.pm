@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.188';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.191';
 }
 ## use critic
 
@@ -235,6 +235,8 @@ sub chr_id {
 sub chr_name {
     return shift->right_crispr_locus->chr->name;
 }
+
+sub is_pair { return 1; }
 
 __PACKAGE__->meta->make_immutable;
 1;

@@ -18,6 +18,14 @@
     <th>[% title %]</th> <td>[% design.$accessor %]</td>
   </tr>
   [%- END %]
+  [% IF design.global_arm_shortened.defined %]
+  <tr>
+    <th>Short arm version of this design</th>
+    <td>
+    <a href="[% c.uri_for( '/user/view_design', { design_id => design.global_arm_shortened } ) %]"> [% design.global_arm_shortened %] </a>
+    </td>
+  </tr>
+  [% END %]
 </table>
 
 <h2>Comments</h2>

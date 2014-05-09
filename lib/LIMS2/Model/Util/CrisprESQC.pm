@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.188';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.191';
 }
 ## use critic
 
@@ -535,6 +535,7 @@ sub parse_analysis_data {
     $parsed_data{design_id}              = $design->id;
     $parsed_data{target_sequence}        = $target_slice->seq;
     $parsed_data{concordant_indel}       = $alignment_data->{condordant_indel};
+    $parsed_data{is_pair}                = $crispr->is_pair;
 
     return \%parsed_data;
 }
