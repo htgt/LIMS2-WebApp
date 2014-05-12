@@ -21,7 +21,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
-        'Left Crispr Well', 'Left Crispr Designs', 'Right Crispr Well','Right Crispr Designs',        
+        'Left Crispr Well', 'Left Crispr Designs', 'Right Crispr Well','Right Crispr Designs',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
         'Created By','Created At',
     ];
@@ -49,7 +49,7 @@ override iterator => sub {
 
         my $left_designs = '-';
         my $right_designs = '-';
-        
+
         if($left_crispr){
             $left_designs = join "/", map { $_->id } $left_crispr->crispr->related_designs;
         }
@@ -64,7 +64,7 @@ override iterator => sub {
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $left_designs,
             $right_crispr ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
-            $right_designs,            
+            $right_designs,
             $final_vector->cassette->name,
             $final_vector->cassette->resistance,
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
