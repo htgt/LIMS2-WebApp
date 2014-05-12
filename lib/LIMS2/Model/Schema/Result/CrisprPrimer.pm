@@ -116,6 +116,42 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("crispr_oligo_id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<crispr_id and primer name must be unique>
+
+=over 4
+
+=item * L</crispr_id>
+
+=item * L</primer_name>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "crispr_id and primer name must be unique",
+  ["crispr_id", "primer_name"],
+);
+
+=head2 C<crispr_pair_id and primer name must be unique>
+
+=over 4
+
+=item * L</crispr_pair_id>
+
+=item * L</primer_name>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "crispr_pair_id and primer name must be unique",
+  ["crispr_pair_id", "primer_name"],
+);
+
 =head1 RELATIONS
 
 =head2 crispr
@@ -189,8 +225,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9MvrPW0i2/BLDNAqQwAgMQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-12 12:07:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tsvQLc/HU9S3Ml3ufmTgkQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

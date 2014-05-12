@@ -16,7 +16,11 @@ CREATE TABLE crispr_primers (
         gc_content           NUMERIC(5,3),
         CONSTRAINT "crispr primer name must belong to allowed list" FOREIGN KEY(primer_name)
           REFERENCES crispr_primer_types(primer_name) MATCH SIMPLE
-          ON UPDATE NO ACTION ON DELETE NO ACTION
+          ON UPDATE NO ACTION ON DELETE NO ACTION,
+        CONSTRAINT "crispr_pair_id and primer name must be unique"
+        UNIQUE (crispr_pair_id, primer_name),
+        CONSTRAINT "crispr_id and primer name must be unique"
+        UNIQUE (crispr_id, primer_name)
 );
 ALTER TABLE crispr_primers
   OWNER TO lims2;

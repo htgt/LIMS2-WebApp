@@ -66,7 +66,7 @@ sub pick_crispr_PCR_primers {
     my $repeat_mask = $params->{'repeat_mask'};
     my %failed_primer_regions;
     # Return the design oligos as well so that we can report them to provide context later on
-    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length )
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_seq_start )
         = get_crispr_PCR_EnsEmbl_region( {
                 schema => $schema,
                 crispr_primers => $crispr_primers,
@@ -102,7 +102,7 @@ $DB::single=1;
     #TODO: If no primer pairs pass the genomic check, need to call this method recursively with a different
     #set of parameters until two pairs of primers are found.
 
-    return ($primer_data, $primer_passes);
+    return ($primer_data, $primer_passes, $chr_seq_start);
 }
 
 =head pick_genotyping_primers
@@ -124,7 +124,7 @@ sub pick_genotyping_primers {
     my $repeat_mask = $params->{'repeat_mask'};
 
     # Return the design oligos as well so that we can report them to provide context later on
-    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos)
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos, $chr_seq_start)
         = get_genotyping_EnsEmbl_region( {
                 schema => $schema,
                 design_id => $design_id,
@@ -155,7 +155,7 @@ sub pick_genotyping_primers {
         INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
 
-    return ($primer_data, $primer_passes, $chr_strand, $design_oligos);
+    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start));
 }
 
 sub pcr_genomic_check {
@@ -533,8 +533,9 @@ sub get_crispr_PCR_EnsEmbl_region{
     my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
     my $target_sequence_string = $search_field_width . ',' . $target_sequence_length;
 
+    my $chr_region_start = $slice_region->start;
 
-    return ( $seq, $target_sequence_string, $target_sequence_length );
+    return ( $seq, $target_sequence_string, $target_sequence_length, $chr_region_start );
 }
 
 
@@ -611,8 +612,9 @@ sub get_genotyping_EnsEmbl_region {
 
     my $target_sequence_length = $seq->length  - $start_oligo_field_width - $end_oligo_field_width;
     my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
+    my $chr_region_start = $slice_region->start;
 
-    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos);
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos, $chr_region_start);
 
 }
 
@@ -691,6 +693,7 @@ $DB::single=1;
         $chr_seq_start, $chr_seq_end)
         = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos, $repeat_mask );
 
+        # FIXME:do we need this? we now return as a $chr_seq_start separate list item
     $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
@@ -704,7 +707,6 @@ $DB::single=1;
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             { SEQUENCE_TARGET => $target_sequence_mask ,
             } );
-    # for sequencing don't want pairs
     my $primer_data;
     if ( $result->num_primer_pairs ) {
         INFO ( $params->{'crispr_pair_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
@@ -712,10 +714,10 @@ $DB::single=1;
     }
     else {
         INFO ( 'Failed to generate sequencing primers for ' . $params->{'crispr_pair_id'} );
-
-        #TODO: Interpret results of primer3 explain.
+        INFO ( 'Primer3 reported: ');
+        INFO ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
+        INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
-
 
     return ($crispr_oligos, $primer_data, $chr_strand, $chr_seq_start);
 }
@@ -757,7 +759,7 @@ sub pick_single_crispr_primers {
         INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
 
-    return ($crispr_oligos, $primer_data, $chr_strand);
+    return ($crispr_oligos, $primer_data, $chr_strand, $chr_seq_start);
 }
 
 =head2 oligos_for_crispr_pair
