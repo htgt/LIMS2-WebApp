@@ -9,7 +9,9 @@
     <span class="help-block">More than one crispr can be imported if provided a list of WGE crispr ids separated by whitespace or commas.</span>
 </form>
 
-<legend>View Imported Crisprs</legend>
-[% FOREACH id IN crispr %]
-  <p>WGE crispr id [% id.wge_id %]: <a class="brand" href="[% c.uri_for('/user/crispr', id.lims2_id, 'view' ) %]">[% id.lims2_id %]</a></p> 
+[% IF crispr %]
+  <legend>View Imported Crisprs</legend>
+  [% FOREACH id IN crispr %]
+    <p>WGE crispr id [% id.wge_id %]: <a class="brand" href="[% c.uri_for('/user/crispr', id.lims2_id, 'view' ) %]">[% id.lims2_id %]</a></p> 
+  [% END %]
 [% END %]
