@@ -37,6 +37,23 @@ sub design : Tests() {
     is $design2->global_arm_shortened, $design->id, '.. and this is the right short arm design';
 }
 
+sub designs : Tests() {
+    ok my $well = model->retrieve_well( { plate_name => 'PCS00037_A', well_name => 'A03' } ),
+        'can retrive test well';
+
+    ok my @designs = $well->designs, "can call designs from $well";
+    is scalar( @designs ), 1, 'we only have one design';
+    is $designs[0]->id, 42232, '.. and that is the correct design';
+
+    ok my $sep_well= model->retrieve_well( { plate_name => 'SEP0029_7', well_name => 'A01' } ),
+        'can retrive sep test well';
+
+    ok my @sep_designs = $sep_well->designs, "can call designs from $sep_well";
+    is scalar( @sep_designs ), 2, 'we have two designs from the sep well';
+    is $sep_designs[0]->id, 95204, '.. first design is correct';
+    is $sep_designs[1]->id, 95204, '.. second design is correct';
+}
+
 1;
 
 __END__
