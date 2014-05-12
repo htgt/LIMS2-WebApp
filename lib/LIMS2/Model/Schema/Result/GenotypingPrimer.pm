@@ -125,6 +125,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 genotyping_primer_loci
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "genotyping_primer_loci",
+  "LIMS2::Model::Schema::Result::GenotypingPrimersLoci",
+  { "foreign.genotyping_primer_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 genotyping_primer_type
 
 Type: belongs_to
@@ -140,24 +155,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 genotyping_primers_locis
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimersLoci>
-
-=cut
-
-__PACKAGE__->has_many(
-  "genotyping_primers_locis",
-  "LIMS2::Model::Schema::Result::GenotypingPrimersLoci",
-  { "foreign.genotyping_primer_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:elocRzQsV+hzmKGPes5yCg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-12 15:07:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RqkQ6SlE+JL87KP0Kmwd4A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -155,7 +155,7 @@ sub pick_genotyping_primers {
         INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
 
-    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start));
+    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
 }
 
 sub pcr_genomic_check {

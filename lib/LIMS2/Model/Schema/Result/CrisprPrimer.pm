@@ -194,7 +194,7 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 crispr_primers_locis
+=head2 crispr_primer_loci
 
 Type: has_many
 
@@ -203,7 +203,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprPrimersLoci>
 =cut
 
 __PACKAGE__->has_many(
-  "crispr_primers_locis",
+  "crispr_primer_loci",
   "LIMS2::Model::Schema::Result::CrisprPrimersLoci",
   { "foreign.crispr_oligo_id" => "self.crispr_oligo_id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -225,8 +225,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-12 12:07:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tsvQLc/HU9S3Ml3ufmTgkQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-12 15:07:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xe1Go17MXKZOBqnNR6pJew
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
