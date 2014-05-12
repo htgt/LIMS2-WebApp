@@ -40,15 +40,25 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     for my $qc_well ( $run->crispr_es_qc_wells ) {
         my $json = decode_json( $qc_well->analysis_data );
 
-        my $pair = $c->model('Golgi')->schema->resultset('CrisprPair')->find(
+        my ( $rs, $options );
+        if ( $json->{is_pair} ) {
+            $rs = 'CrisprPair';
+            $options = { prefetch => [ 'left_crispr', 'right_crispr', 'crispr_designs' ] };
+        }
+        else {
+            $rs = 'Crispr';
+            $options = { prefetch => [ 'crispr_designs' ] };
+        }
+
+        my $pair = $c->model('Golgi')->schema->resultset($rs)->find(
             { id => $json->{crispr_id} },
-            { prefetch => [ 'left_crispr', 'right_crispr' ] }
+            $options
         );
 
         #get HGNC/MGI ids
         my @gene_ids = uniq map { $_->gene_id }
-                                map { $_->genes }
-                                    $pair->left_crispr->related_designs;
+                                map { $_->design->genes }
+                                    $pair->crispr_designs;
 
         #get gene symbol from the solr
         my @genes = map { $_->{gene_symbol} }

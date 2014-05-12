@@ -4,17 +4,17 @@ valid_input:
     output_wells:
         - plate_name: INT_ARM_SHORTEN_TEST
           well_name: C04
-    input_wells: 
+    input_wells:
         - plate_name: PCS00035_A
           well_name: C04
-    backbone: R3R4_pBR_amp
+    backbone: pAYAC184
     design_id: 111111
 missing_input_well:
     type: global_arm_shortening
     output_wells:
         - plate_name: INT_ARM_SHORTEN_TEST
           well_name: C04
-    backbone: R3R4_pBR_amp
+    backbone: pAYAC184
     design_id: 111111
 invalid_input_well:
     type: global_arm_shortening
@@ -24,17 +24,17 @@ invalid_input_well:
     input_wells:
         - plate_name: FEP0006
           well_name: A01
-    backbone: R3R4_pBR_amp
+    backbone: pAYAC184
     design_id: 111111
 invalid_output_well:
     type: global_arm_shortening
     output_wells:
         - plate_name: FEP0006
           well_name: A01
-    input_wells: 
+    input_wells:
         - plate_name: PCS00035_A
           well_name: C04
-    backbone: R3R4_pBR_amp
+    backbone: pAYAC184
     design_id: 111111
 multiple_output_wells:
     type: global_arm_shortening
@@ -43,28 +43,38 @@ multiple_output_wells:
           well_name: C04
         - plate_name: INT_ARM_SHORTEN_TEST
           well_name: C05
-    input_wells: 
+    input_wells:
         - plate_name: PCS00035_A
           well_name: C04
-    backbone: R3R4_pBR_amp
+    backbone: pAYAC184
     design_id: 111111
 non_arm_shortened_design:
     type: global_arm_shortening
     output_wells:
         - plate_name: INT_ARM_SHORTEN_TEST
           well_name: C04
-    input_wells: 
+    input_wells:
         - plate_name: PCS00035_A
           well_name: C04
-    backbone: R3R4_pBR_amp
+    backbone: pAYAC184
     design_id: 372441
 wrong_arm_shortened_design:
     type: global_arm_shortening
     output_wells:
         - plate_name: INT_ARM_SHORTEN_TEST
           well_name: C04
-    input_wells: 
+    input_wells:
+        - plate_name: PCS00035_A
+          well_name: C04
+    backbone: pAYAC184
+    design_id: 222222
+backbone_wrong_resistance:
+    type: global_arm_shortening
+    output_wells:
+        - plate_name: INT_ARM_SHORTEN_TEST
+          well_name: C04
+    input_wells:
         - plate_name: PCS00035_A
           well_name: C04
     backbone: R3R4_pBR_amp
-    design_id: 222222
+    design_id: 111111
