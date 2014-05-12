@@ -4,17 +4,12 @@
 
     <legend>WGE Crispr Importer</legend>
     
-    <input type="text" name="wge_cripr_id" placeholder="WGE crispr id">
+    <input type="text" class="input-xxlarge" name="wge_cripr_id" placeholder="WGE crispr id">
     <input type="submit" name="import_crispr" class="btn btn-primary" value="Import Crispr" />
-
+    <span class="help-block">More than one crispr can be imported if provided a list of WGE crispr ids separated by whitespace or commas.</span>
 </form>
 
-[% IF crispr_id %]
-  <form method="POST" action="[% c.uri_for('/user/crispr', crispr_id, 'view' ) %]">
-    <fieldset>
-    <legend>View Imported Crispr</legend>
-    <input type="text" name="crispr_id" placeholder="crispr_id" value="[% crispr_id %]" readonly />
-    <input type="submit" name="action" class="btn btn-primary" value="View Crispr">
-    </fieldset>
-  </form>
+<legend>View Imported Crisprs</legend>
+[% FOREACH id IN crispr %]
+  <p>WGE crispr id [% id.wge_id %]: <a class="brand" href="[% c.uri_for('/user/crispr', id.lims2_id, 'view' ) %]">[% id.lims2_id %]</a></p> 
 [% END %]
