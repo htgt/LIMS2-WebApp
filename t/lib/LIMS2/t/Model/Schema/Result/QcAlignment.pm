@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'QcAlignment';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::QcAlignment not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::QcAlignment" );
 
     #note("Accessing the schema");

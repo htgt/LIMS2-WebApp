@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'ProjectAllele';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::ProjectAllele not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::ProjectAllele" );
 
     #note("Accessing the schema");

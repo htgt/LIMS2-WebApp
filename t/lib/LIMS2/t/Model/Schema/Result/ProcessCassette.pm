@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'ProcessCassette';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::ProcessCassette not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::ProcessCassette" );
 
     #note("Accessing the schema");

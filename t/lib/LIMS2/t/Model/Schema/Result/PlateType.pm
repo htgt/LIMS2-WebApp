@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'PlateType';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::PlateType not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::PlateType" );
 
     #note("Accessing the schema");

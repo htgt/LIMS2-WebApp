@@ -82,8 +82,6 @@ Code to execute all tests
 =cut
 
 sub all_tests : Test(1) {
-    local $TODO
-        = 'Test of LIMS2::Model::Schema::Result::DefaultDesignOligoLocus not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::DefaultDesignOligoLocus" );
 }
 
