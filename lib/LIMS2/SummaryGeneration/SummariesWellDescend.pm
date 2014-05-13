@@ -249,7 +249,6 @@ sub fetch_values_for_type_INT {
     my $stored_values = $params->{ stored_values };
     my $curr_well = $params->{ curr_well };
 
-    # TODO maybe add extra field for short arm designs
     if( (not exists $stored_values->{ stored_int_well_id }) || ($curr_well->id != $stored_values->{ stored_int_well_id }) ) {
 	    # different well to previous cycle, so must fetch and store new values
 		TRACE caller()." Fetching new values for INT well : ".$curr_well->id;
@@ -268,6 +267,10 @@ sub fetch_values_for_type_INT {
         $stored_values->{ 'stored_int_backbone_name' }        = try{ $curr_well->backbone->name };   # backbone name
 		$stored_values->{ 'stored_int_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_int_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)        
+        # is well the output of a global_arm_shortening process
+        if ( my $short_arm_design = $curr_well->global_arm_shortened_design ) {
+            $stored_values->{ 'stored_int_global_arm_shortening_design' } = $short_arm_design->id;
+        }
     }
 
     # copy stored values into the current summary output row
@@ -286,6 +289,10 @@ sub fetch_values_for_type_INT {
     $summary_row_values->{ 'int_backbone_name' }        = $stored_values->{ stored_int_backbone_name };
     $summary_row_values->{ 'int_well_assay_complete' }  = $stored_values->{ stored_int_well_assay_complete };
     $summary_row_values->{ 'int_well_accepted' }        = $stored_values->{ stored_int_well_accepted };
+
+    $summary_row_values->{'int_well_global_arm_shortening_design'}
+        = $stored_values->{'stored_int_global_arm_shortening_design'}
+        if exists $stored_values->{'stored_int_global_arm_shortening_design'};
 
     # valid primers?    -> qc test result and valid primers are outputs of QC system and should be linked to each well for INT, FINAL, POSTINT, DNA, EP_PICK
     return;
