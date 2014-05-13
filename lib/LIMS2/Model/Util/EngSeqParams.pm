@@ -43,7 +43,6 @@ sub generate_well_eng_seq_params{
     my $well = $model->retrieve_well( { slice_def $validated_params, qw( plate_name well_name id ) } );
     DEBUG("Generate eng seq params for well: $well ");
 
-    # TODO deal with merged designs here
     my $design = $well->design;
     # If there is no design then the well may be linked to a crispr well
     # in that case call a seperate method to generate this type of eng seq
