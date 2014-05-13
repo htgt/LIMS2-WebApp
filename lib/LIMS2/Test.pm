@@ -263,6 +263,7 @@ sub load_static_files {
             CassetteFunction
             CellLine
             ColonyCountType
+            CrisprPrimerType
             CrisprLociType
             DesignCommentCategory
             DesignOligoType
