@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.190';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.192';
 }
 ## use critic
 
@@ -437,6 +437,11 @@ sub _check_wells_freeze {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+# NOTE if global_arm_shortening process used in a wells ancestors the design ids
+#      will be of the root design well, not the global shortened arm design
+#      Currently this process only used for single targetted cells so should not turn
+#      up in the xep well. If this changes modify the method below to the $well->design
+#      which will return the correct shortedn arm design for a well
 sub _check_wells_xep_pool {
     my ( $model, $process ) = @_;
     check_input_wells( $model, $process);

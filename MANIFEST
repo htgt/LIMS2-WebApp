@@ -2318,6 +2318,7 @@ root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessBackbone.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessCassette.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessCellLine.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessDesign.csv
+root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessGlobalArmShorteningDesign.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessInputWell.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessNuclease.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessOutputWell.csv

@@ -18,14 +18,49 @@
 <div class="accordion" id="gene_report_accordion">
 [%- END %]
 
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseTimeline">Date Report</a>
+      </h3>
+    </div>
+    <div id="collapseTimeline" class="accordion-body collapse in">
+      <div class="accordion-inner">
+        [% IF timeline %]
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Product Type</th>
+              <th>Earliest Date</th>
+              <th>Latest Date</th>
+              <th>Transition Time <i class="icon-question-sign" id="transition_time" href="#" data-content="Number of days that have passed since the first instance of a product type and the first instance of the next product type (or to date if there is no next product type yet)" rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+            </tr>
+          </thead>
+          <tbody>
+            [% FOREACH line IN timeline %]
+            <tr>
+              [% FOREACH item IN line %]
+              <td>[% item %]</td>
+              [%- END %]
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+        [%- ELSE %]
+        <p><em>No data<em></p>
+        [%- END %]
+      </div>
+    </div>
+  </div>
+
 [%- IF designs.defined %]
-<div class="accordion-group">
+  <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesigns">Designs</a>
       </h3>
     </div>
-    <div id="collapseDesigns" class="accordion-body collapse in">
+    <div id="collapseDesigns" class="accordion-body collapse">
       <div class="accordion-inner">
         [%- IF designs.defined AND designs.size > 0 %]
         <table class="table table-striped">
@@ -596,4 +631,6 @@ $("#gene_id_input").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
   minLength: 2,
 });
+
+$('#transition_time').popover();
 </script>

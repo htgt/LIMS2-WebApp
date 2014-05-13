@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.190';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.192';
 }
 ## use critic
 
@@ -369,6 +369,9 @@ sub process_data_for {
         }
         if ( my @recombinases = $p->process_recombinases ) {
             push @data, 'Recombinases: ' . join( q{, }, map { $_->recombinase_id } @recombinases );
+        }
+        if ( $p->process_global_arm_shortening_design ) {
+            push @data, 'Global Arm Shorten Design: ' . $p->process_global_arm_shortening_design->design_id;
         }
     }
 

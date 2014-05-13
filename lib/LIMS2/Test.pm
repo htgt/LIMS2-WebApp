@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.190';
+    $LIMS2::Test::VERSION = '0.192';
 }
 ## use critic
 
@@ -333,6 +333,7 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessCrispr
             ProcessNuclease
+            ProcessGlobalArmShorteningDesign
             Plate
             Well
             ProcessInputWell
