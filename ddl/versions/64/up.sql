@@ -1,0 +1,1 @@
+ALTER TABLE summaries ADD COLUMN int_well_global_arm_shortening_design INTEGER;

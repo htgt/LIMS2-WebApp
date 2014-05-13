@@ -347,6 +347,7 @@ GROUP BY w.output_well_id, pd.design_id,"original_well", gd.gene_id;
 QUERY_END
 }
 
+# TODO will not work with short arm designs
 sub get_design_data_for_well_id_list {
     my $self = shift;
     my $wells = shift;

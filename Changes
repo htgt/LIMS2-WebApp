@@ -1,5 +1,20 @@
 {{$NEXT}}
 
+0.192     2014-05-13 07:52:57 Europe/London
+
+    Make modifications to deal with global_arm_shortening process and the 'correct' design we
+    must link to wells that come from this process.
+
+0.191     2014-05-09 11:39:48 Europe/London
+
+    Date Report in the Gene Summary Report
+
+0.190     2014-05-08 15:10:06 Europe/London
+
+    Support for well barcodes
+    Accepted field on CrisprEsQcWells table
+    Support for single and paired crisprs in crispr es qc
+
 0.189     2014-05-01 11:12:55 Europe/London
 
     Add new shorten_global_arm process.

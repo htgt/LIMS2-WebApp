@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'ProcessBac';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::ProcessBac not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::ProcessBac" );
 
     #note("Accessing the schema");
