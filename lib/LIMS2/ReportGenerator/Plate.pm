@@ -91,7 +91,7 @@ has crispr_wells => (
 
 sub _build_crispr_wells {
     my ($self) = @_;
-    
+
     my $crispr_wells = {};
 
     my $start = time();
@@ -155,7 +155,7 @@ sub _build_crispr_well_descendants {
     my $result = $self->model->get_descendants_for_well_id_list(\@ids);
     $end = time();
     TRACE(sprintf "All descendants query took: %.2f",$end - $start);
-    
+
     # Store list of child well ids for each crispr well
     my $child_well_ids = {};
     foreach my $path (@$result){
@@ -237,7 +237,7 @@ sub _find_accepted_vector_wells{
     my ($start, $end);
 
     my @ids = map { $_->id } @{ $crispr_wells || [] };
-    
+
     return () unless @ids;
 
     # Fetch crispr well descendant IDs from cache
@@ -260,7 +260,7 @@ sub _find_accepted_vector_wells{
     # Assume we are only interested in vectors on the most recently created crispr_v plate
     my @accepted_wells;
     my $most_recent_plate;
-    
+
     $start = time();
     foreach my $well (@vectors){
 
@@ -279,17 +279,17 @@ sub _find_accepted_vector_wells{
     $end = time();
     TRACE(sprintf "Newest accepted filter took: %.2f",$end - $start);
 
-    return @return;    
+    return @return;
 }
 
 sub accepted_crispr_data {
     my ( $self, $well ) = @_;
-    
+
     my $f_start = time();
     my (@single_crisprs, @paired_crisprs);
 
     DEBUG("Finding accepted crispr wells for ".$well->as_string);
-    
+
     # Generate a list of single crispr wells related to well
     my @single_cr_wells;
 
@@ -314,7 +314,7 @@ sub accepted_crispr_data {
             push @paired_crisprs, $pair_as_string;
         }
     }
-    
+
     # Handle the single crisprs for this well
     @single_crisprs = $self->_find_accepted_vector_wells(\@single_cr_wells);
 
