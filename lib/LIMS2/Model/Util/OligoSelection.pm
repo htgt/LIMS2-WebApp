@@ -64,7 +64,6 @@ sub pick_crispr_PCR_primers {
     my $crispr_primers = $params->{'crispr_primers'};
     my $species = $params->{'species'};
     my $repeat_mask = $params->{'repeat_mask'};
-    my %failed_primer_regions;
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_seq_start )
         = get_crispr_PCR_EnsEmbl_region( {
@@ -93,7 +92,6 @@ sub pick_crispr_PCR_primers {
     }
     else {
         INFO ( "Failed to generate pcr primer pairs for $well_id" );
-$DB::single=1;
         INFO ( 'Primer3 reported: ');
         INFO ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
         INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
@@ -683,7 +681,6 @@ sub update_primer_type {
 
 sub pick_crispr_primers {
     my $params = shift;
-$DB::single=1;
     my $repeat_mask = $params->{'repeat_mask'};
 
     my $crispr_oligos = oligos_for_crispr_pair( $params->{'schema'}, $params->{'crispr_pair_id'} );
