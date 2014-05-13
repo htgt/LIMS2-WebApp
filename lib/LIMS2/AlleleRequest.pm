@@ -71,8 +71,8 @@ sub design_wells {
 }
 
 # TODO won't work properly with merged designs
-#      the sort arm design does not have a design well
-#      the original design will return FINAL wells with the new / merged design ( may not be bad thing )
+#      the short arm design does not have a design well
+#      the original design will return FINAL wells with both the new / merged design ( may not be bad thing )
 sub final_vector_wells {
     my ( $self, $design_wells, $cassette_function ) = @_;
 
