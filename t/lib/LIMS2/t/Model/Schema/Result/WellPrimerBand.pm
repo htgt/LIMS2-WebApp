@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'WellPrimerBand';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::WellPrimerBand not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::WellPrimerBand" );
 
     #note("Accessing the schema");

@@ -44,6 +44,9 @@ my %REL_NAME_MAP = (
     CrisprLociType => {
         crisprs_off_targets => 'crispr_off_targets',
     },
+    CrisprPrimer => {
+        crispr_primers_locis         => 'crispr_primer_loci',
+    },
     Design => {
         design_oligos   => 'oligos',
         design_comments => 'comments',
@@ -52,6 +55,9 @@ my %REL_NAME_MAP = (
     },
     DesignOligo => {
         design_oligo_locis => 'loci'
+    },
+    GenotypingPrimer => {
+        genotyping_primers_locis     => 'genotyping_primer_loci',
     },
     QcSeqProject => {
         qc_seqs_reads        => 'qc_seq_reads',

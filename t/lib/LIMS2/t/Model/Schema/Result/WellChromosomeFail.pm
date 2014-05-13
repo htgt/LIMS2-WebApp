@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'WellChromosomeFail';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::WellChromosomeFail not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::WellChromosomeFail" );
 
     #note("Accessing the schema");

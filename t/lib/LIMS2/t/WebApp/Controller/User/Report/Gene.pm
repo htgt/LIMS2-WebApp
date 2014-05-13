@@ -95,19 +95,15 @@ sub all_tests  : Tests
         is( $results->{exit_code},      0,     "Exit code for design well id : ".$design_well_id );
     }
 
-    local $TODO = 'Test of LIMS2::WebApp::Controller::User::Report::Gene under development';
-    ok(1, "Test of LIMS2::WebApp::Controller::User::Report::Gene");
-
     note( 'Testing Gene Report Summaries' );
 
     my $species = 'Mouse'; # NB. need to add tests for human reports later
 
     ok( my $mech = mech(), 'Created mech object, empty front page' );
 
-
     $mech->get_ok( 'user/report/gene?gene_id=Brd3' , 'Page requested');
 
-    $mech->content_like(qr'>Showing details for Brd3 (MGI:1914632)<', 'Checked Gene');
+    $mech->content_like(qr'Showing details for Brd3', 'Checked Gene');
 
     $mech->content_like(qr'>34188</a></td>
               <td>EUCTV3754</td>

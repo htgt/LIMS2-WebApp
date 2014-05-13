@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'WellAcceptedOverride';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::WellAcceptedOverride not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::WellAcceptedOverride" );
 
     #note("Accessing the schema");

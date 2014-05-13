@@ -583,6 +583,25 @@ sub _build_is_double_targeted {
     return 0;
 }
 
+# if this well has a global arm shortened design then
+# populate this attribute, otherwise it is undef
+has global_arm_shortened_design => (
+    is         => 'ro',
+    isa        => 'Maybe[LIMS2::Model::Schema::Result::Design]',
+    lazy_build => 1
+);
+
+sub _build_global_arm_shortened_design {
+    my $self = shift;
+
+    my $process_arm_shortening = $self->ancestors->find_process( $self, 'process_global_arm_shortening_design' );
+    if ( $process_arm_shortening ) {
+        return $process_arm_shortening->design;
+    }
+
+    return;
+}
+
 sub assert_not_double_targeted {
     my $self = shift;
 
@@ -705,7 +724,6 @@ sub cell_recombinases {
     return [ map { $_->recombinase_id } @cell_recombinases ];
 }
 
-
 # fetches first cell line
 sub first_cell_line {
     my $self = shift;
@@ -728,6 +746,12 @@ sub design {
     my $self = shift;
 
     $self->assert_not_double_targeted;
+
+    # If the well has a global_arm_shortening_design process then its real
+    # design is linked to this process, it is not the root design well
+    if ( $self->global_arm_shortened_design ) {
+        return $self->global_arm_shortened_design;
+    }
 
     my $process_design = $self->ancestors->find_process( $self, 'process_design' );
 
@@ -752,23 +776,19 @@ sub nuclease {
     return $process_nuclease ? $process_nuclease->nuclease : undef;
 }
 
-sub designs{
+sub designs {
 	my $self = shift;
 
-	my $edges = $self->ancestors->edges;
+    # if its not double targeted then there is only one design
+    if ( !$self->is_double_targeted ) {
+        return ( $self->design );
+    }
 
+    # ok its double targeted, grab design from the first and second allele wells
 	my @designs;
+    push @designs, $self->first_allele->design;
+    push @designs, $self->second_allele->design;
 
-	foreach my $edge (@$edges){
-		my ($process, $input, $output) = @$edge;
-		# Edges with no input node are (probably!) design processes
-		if(not defined $input){
-			my $process_design = $self->result_source->schema->resultset('ProcessDesign')->find({ process_id => $process });
-			if ($process_design){
-			    push @designs, $process_design->design;
-			}
-		}
-	}
     return @designs;
 }
 
@@ -1068,7 +1088,7 @@ sub parent_crispr {
 
 ## no critic(RequireFinalReturn)
 ## This returns the final set (single or paired) of CRISPR_V parents
-## It will stop traversing if it hits a CRISPR_V grandparent, 
+## It will stop traversing if it hits a CRISPR_V grandparent,
 ## i.e. if CRISPR_V plates have been rearrayed
 sub parent_crispr_v {
     my $self = shift;
