@@ -23,6 +23,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
+        $self->accepted_crispr_columns,
         "Cassette", "Cassette Resistance", "Backbone", "Recombinases",
         "Final Pick Vector Well", "Final Pick Vector QC Test Result", "Final Pick Vector Valid Primers", "Final Pick Vector Mixed Reads?", "Final Pick Vector Sequencing QC Pass?",
         "DNA Quality", "DNA Quality Comment", "DNA Pass?", "DNA Concentration(ng/ul)", "Already Electroporated", "Child Well List", "Well Name"
@@ -82,9 +83,22 @@ override iterator => sub {
         my $dna_status = $well->well_dna_status;
         my $dna_quality = $well->well_dna_quality;
 
+        my @accepted_crispr_data;
+        if($crispr){
+            # We don't need to show accepted crispr info if this is a crispr DNA plate
+            # return the correct number of 'empty' values
+            foreach my $col ($self->accepted_crispr_columns){
+                push @accepted_crispr_data, '-';
+            }
+        }
+        else{
+            @accepted_crispr_data = $self->accepted_crispr_data( $well );
+        }
+
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well, $crispr ),
+            @accepted_crispr_data,
             ( $well->cassette ? $well->cassette->name : '-' ),
             ( $well->cassette ? $well->cassette->resistance : '-' ),
             ( $well->backbone ? $well->backbone->name : '-' ),

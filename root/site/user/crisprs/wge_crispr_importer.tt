@@ -1,20 +1,34 @@
 [% META title = "WGE Crispr Importer"; META tab_name = "Crisprs" %]
 
-<form method="POST" action="[% c.uri_for( '/user/wge_crispr_importer' ) %]" class="well">
-
+<form method="POST" action="[% c.uri_for( '/user/wge_crispr_importer' ) %]" class="well form-inline" >
     <legend>WGE Crispr Importer</legend>
-    
-    <input type="text" name="wge_cripr_id" placeholder="WGE crispr id">
+    <textarea class="input-xxlarge" name="wge_crispr_id" placeholder="WGE crispr id"></textarea>
+    <span class="help-block">
+      More than one crispr pair can be imported if provided a list of WGE crispr pair ids separated by whitespace or commas.
+      <br /> Please do not mix species.
+    </span>
+    <br />
     <input type="submit" name="import_crispr" class="btn btn-primary" value="Import Crispr" />
-
 </form>
 
-[% IF crispr_id %]
-  <form method="POST" action="[% c.uri_for('/user/crispr', crispr_id, 'view' ) %]">
-    <fieldset>
-    <legend>View Imported Crispr</legend>
-    <input type="text" name="crispr_id" placeholder="crispr_id" value="[% crispr_id %]" readonly />
-    <input type="submit" name="action" class="btn btn-primary" value="View Crispr">
-    </fieldset>
-  </form>
+[% IF crispr %]
+<div class="well">
+  <legend>View Imported Crisprs</legend>
+    <table class="table table-bordered table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>WGE Crispr ID</th>
+          <th>LIMS2 Crispr ID</th>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH id IN crispr %]
+        <tr>
+          <td>[% id.wge_id %]</td>
+          <td><a class="brand" href="[% c.uri_for('/user/crispr', id.lims2_id, 'view' ) %]">[% id.lims2_id %]</a></td>
+        </tr>
+      [% END %]
+      </tbody>
+    </table>
+</div>
 [% END %]
