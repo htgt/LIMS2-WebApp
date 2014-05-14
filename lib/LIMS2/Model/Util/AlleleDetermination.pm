@@ -1478,18 +1478,88 @@ Apply test for is LRPCR primer bands pass.
 sub _is_lrpcr_pass {
     my ( $self ) = @_;
 
-    my $gf3 = $self->current_well->{ 'gf3' };
-    my $gr3 = $self->current_well->{ 'gr3' };
-    my $gf4 = $self->current_well->{ 'gf4' };
-    my $gr4 = $self->current_well->{ 'gr4' };
+    # modified to use partial lrpcr data
+    # these are an lrpcr 'pass'
+    if ( $self->_is_lrpcr_gf3_pass() && $self->_is_lrpcr_gr3_pass() && !$self->_is_lrpcr_gf4_fail() && !$self->_is_lrpcr_gr4_fail() ) { return 1; }
+    if ( !$self->_is_lrpcr_gf3_fail() && $self->_is_lrpcr_gr3_pass() && $self->_is_lrpcr_gf4_pass() && $self->_is_lrpcr_gr4_pass() ) { return 1; }
 
-    # expecting 'pass' in all four fields
+    # these are an lrpcr 'passb'
+    if ( !$self->_is_lrpcr_gf3_fail() && $self->_is_lrpcr_gr3_pass() && !$self->_is_lrpcr_gf4_fail() && $self->_is_lrpcr_gr4_pass() ) { return 1; }
+    if ( !$self->_is_lrpcr_gf3_fail() && $self->_is_lrpcr_gr3_pass() && !$self->_is_lrpcr_gf4_fail() && !$self->_is_lrpcr_gr4_fail() ) { return 1; }
+
+    return 0;
+}
+
+sub _is_lrpcr_gf3_pass {
+    my ( $self ) = @_;
+
+    my $gf3 = $self->current_well->{ 'gf3' };
     unless ( defined $gf3 && $gf3 eq 'pass' ) { return 0; }
-    unless ( defined $gr3 && $gr3 eq 'pass' ) { return 0; }
-    unless ( defined $gf4 && $gf4 eq 'pass' ) { return 0; }
-    unless ( defined $gr4 && $gr4 eq 'pass' ) { return 0; }
 
     return 1;
+}
+
+sub _is_lrpcr_gf3_fail {
+    my ( $self ) = @_;
+
+    my $gf3 = $self->current_well->{ 'gf3' };
+    unless ( defined $gf3 && $gf3 eq 'fail' ) { return 0; }
+
+    return 1;
+}
+
+sub _is_lrpcr_gr3_pass {
+    my ( $self ) = @_;
+
+    my $gr3 = $self->current_well->{ 'gr3' };
+    unless ( defined $gr3 && $gr3 eq 'pass' ) { return 0; }
+
+    return 1;  
+}
+
+sub _is_lrpcr_gr3_fail {
+    my ( $self ) = @_;
+
+    my $gr3 = $self->current_well->{ 'gr3' };
+    unless ( defined $gr3 && $gr3 eq 'fail' ) { return 0; }
+
+    return 1;  
+}
+
+sub _is_lrpcr_gf4_pass {
+    my ( $self ) = @_;
+
+    my $gf4 = $self->current_well->{ 'gf4' };
+    unless ( defined $gf4 && $gf4 eq 'pass' ) { return 0; }
+
+    return 1; 
+}
+
+sub _is_lrpcr_gf4_fail {
+    my ( $self ) = @_;
+
+    my $gf4 = $self->current_well->{ 'gf4' };
+    unless ( defined $gf4 && $gf4 eq 'fail' ) { return 0; }
+
+    return 1; 
+}
+
+sub _is_lrpcr_gr4_pass {
+    my ( $self ) = @_;
+
+    my $gr4 = $self->current_well->{ 'gr4' };
+    unless ( defined $gr4 && $gr4 eq 'pass' ) { return 0; }
+
+    return 1; 
+}
+
+sub _is_lrpcr_gr4_fail {
+    my ( $self ) = @_;
+
+    my $gr4 = $self->current_well->{ 'gr4' };
+    unless ( defined $gr4 && $gr4 eq 'fail' ) { return 0; }
+
+    return 1; 
 }
 
 =head2 _is_assay_copy_number_in_rng
@@ -1645,28 +1715,49 @@ sub _validate_assay {
         return 0;
     }
 
-    unless ( defined $vic && $vic ne '-' ) {
+    # vic check made optional; if vic data is present it must be within range
 
-        # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number not present' );
-        $self->current_well_validation_msg(
-            $self->current_well_validation_msg . $assay_name.' assay validation: Vic number not present. ' );
-        return 0;
-    }
+    # unless ( defined $vic && $vic ne '-' ) {
 
-    unless ( $vic >= $vic_lower_bound ) {
+    #     # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number not present' );
+    #     $self->current_well_validation_msg(
+    #         $self->current_well_validation_msg . $assay_name.' assay validation: Vic number not present. ' );
+    #     return 0;
+    # }
 
-        # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number low DNA concentration HIGH' );
-        $self->current_well_validation_msg(
-            $self->current_well_validation_msg . $assay_name.' assay validation: Vic number low so DNA concentration HIGH. ' );
-        return 0;
-    }
+    # unless ( $vic >= $vic_lower_bound ) {
 
-    unless ( $vic <= $vic_upper_bound ) {
+    #     # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number low DNA concentration HIGH' );
+    #     $self->current_well_validation_msg(
+    #         $self->current_well_validation_msg . $assay_name.' assay validation: Vic number low so DNA concentration HIGH. ' );
+    #     return 0;
+    # }
 
-        # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number high so DNA concentration LOW ' );
-        $self->current_well_validation_msg(
-            $self->current_well_validation_msg . $assay_name.' assay validation: Vic number high so DNA concentration LOW. ' );
-        return 0;
+    # unless ( $vic <= $vic_upper_bound ) {
+
+    #     # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number high so DNA concentration LOW ' );
+    #     $self->current_well_validation_msg(
+    #         $self->current_well_validation_msg . $assay_name.' assay validation: Vic number high so DNA concentration LOW. ' );
+    #     return 0;
+    # }
+
+    if ( defined $vic && $vic ne '-' ) {
+
+        unless ( $vic >= $vic_lower_bound ) {
+
+            # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number low DNA concentration HIGH' );
+            $self->current_well_validation_msg(
+                $self->current_well_validation_msg . $assay_name.' assay validation: Vic number low so DNA concentration HIGH. ' );
+            return 0;
+        }
+
+        unless ( $vic <= $vic_upper_bound ) {
+
+            # LIMS2::Exception->throw( $assay_name.' assay validation: Vic number high so DNA concentration LOW ' );
+            $self->current_well_validation_msg(
+                $self->current_well_validation_msg . $assay_name.' assay validation: Vic number high so DNA concentration LOW. ' );
+            return 0;
+        }
     }
 
     # TODO: add validation for confidence
@@ -1687,23 +1778,23 @@ sub _validate_primers {
     my $gf4 = $self->current_well->{ 'gf4' };
     my $gr4 = $self->current_well->{ 'gr4' };
 
-    # expecting 'pass','fail' (or blank if not done)
-    unless ( defined $gf3 && ( $gf3 ~~ [ qw( pass fail ) ] ) ) {
+    # expecting 'pass','fail' (or blank or '-' if not done)
+    unless ( defined $gf3 && ( $gf3 ~~ [ qw( pass fail - ) ] ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gf3 value not present. " );
         return 0;
     }
 
-    unless ( defined $gr3 && ( $gr3 ~~ [ qw( pass fail ) ] ) ) {
+    unless ( defined $gr3 && ( $gr3 ~~ [ qw( pass fail - ) ] ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gr3 value not present. " );
         return 0;
     }
 
-    unless ( defined $gf4 && ( $gf4 ~~ [ qw( pass fail ) ] ) ) {
+    unless ( defined $gf4 && ( $gf4 ~~ [ qw( pass fail - ) ] ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gf4 value not present. " );
         return 0;
     }
 
-    unless ( defined $gr4 && ( $gr4 ~~ [ qw( pass fail ) ] ) ) {
+    unless ( defined $gr4 && ( $gr4 ~~ [ qw( pass fail - ) ] ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gr4 value not present. " );
         return 0;
     }
