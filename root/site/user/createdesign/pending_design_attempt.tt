@@ -1,0 +1,14 @@
+[% META title = "Design Pending"; META tab_name = "Designs" %]
+
+<div class="page-header">
+  <h1>
+    Design Attempt Progress
+    <small>[% id %]</small>
+  </h1>
+</div>
+
+[% INCLUDE 'create_design/pending_design_attempt.tt'
+    design_target_report_url = '/user/design_target_report'
+    design_attempt_url = '/user/design_attempt'
+    design_attempt_status_url = '/api/design_attempt_status'
+%]

@@ -107,6 +107,36 @@ __PACKAGE__->add_unique_constraint("users_name_key", ["name"]);
 
 =head1 RELATIONS
 
+=head2 crispr_es_qcs_runs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcRuns>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_es_qcs_runs",
+  "LIMS2::Model::Schema::Result::CrisprEsQcRuns",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 design_attempts
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignAttempt>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_attempts",
+  "LIMS2::Model::Schema::Result::DesignAttempt",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 design_comments
 
 Type: has_many
@@ -377,6 +407,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_neo_passes
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingNeoPass>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_targeting_neo_passes",
+  "LIMS2::Model::Schema::Result::WellTargetingNeoPass",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_targeting_passes
 
 Type: has_many
@@ -433,8 +478,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yYenS8+85vH8Ot1MoiarSQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VUTNwLMb/+caQrbZ6FT+DQ
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

@@ -112,6 +112,10 @@ sub all_tests  : Tests
 
 	# insert each project row
 	for my $project ( @$projects ) {
+        if ($project->{gene_id} eq 'MGI:1914632') {
+            ok my $project_allele_deleted = model('Golgi')->schema->resultset( 'ProjectAllele' )->search({ project_id => $project->{id} })->delete, 'project_allele should be deleted from DB';
+            ok my $project_deleted = $project_rs->find({ gene_id => $project->{gene_id} })->delete, 'project should be deleted from DB';
+        }
 	    ok my $project_inserted = $project_rs->create( $project ), 'project should be inserted into DB';
 	}
 

@@ -1,0 +1,32 @@
+[% META title = "Create Exon Target Gibson Design"; META tab_name = "Designs" %]
+
+[% INCLUDE 'create_design/exon_target_gibson_parameter_diagram.tt' %]
+
+
+[%  IF c.session.selected_species == 'Mouse';
+      gene_id_label = 'MGI Gene ID';
+    ELSIF c.session.selected_species == 'Human';
+      gene_id_label = 'HGNC Gene ID';
+    END;
+%]
+
+<form method="POST" action="[% c.uri_for( '/user/create_gibson_design' ) %]" class="well">
+  [% INCLUDE 'create_design/diagram_placeholder.tt' %]
+  [% INCLUDE 'create_design/exon_target_specific_parameters.tt' %]
+  [% INCLUDE 'create_design/common_gibson_form_parameters.tt' %]
+</form>
+
+[% IF da %]
+[% INCLUDE 'create_design/redo_design_attempt_data.tt' %]
+[% END %]
+
+<div class="well">
+<p>
+<a href="[% c.uri_for( '/user/create_custom_target_gibson_design' , { 'five_prime_exon' => five_prime_exon, 'three_prime_exon' => three_prime_exon, 'gene_id' => gene_id, 'ensembl_gene_id' => ensembl_gene_id 'target_from_exons' => '1' } ) %]" class="btn btn-info">
+Modify Target</a>
+</p>
+<p>
+This enables you to easily modify the target coordinates for these exon(s).<br>
+For example if you only want to target a subsection of a exon.
+</p>
+</div>

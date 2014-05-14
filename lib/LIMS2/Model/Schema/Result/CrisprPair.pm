@@ -132,6 +132,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers",
+  "LIMS2::Model::Schema::Result::CrisprPrimer",
+  { "foreign.crispr_pair_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 left_crispr
 
 Type: belongs_to
@@ -163,10 +178,74 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sB0a32DAqlmFSoESfhBv9Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bQqPDhB8jeHZ6KrzPo+pjg
 
+sub as_hash {
+    my ( $self ) = @_;
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+    my %h = (
+        id                 => $self->id,
+        left_crispr_id     => $self->left_crispr_id,
+        right_crispr_id    => $self->right_crispr_id,
+        spacer             => $self->spacer,
+        off_target_summary => $self->off_target_summary,
+    );
+
+    return \%h;
+}
+
+use overload '""' => \&as_string;
+
+sub as_string {
+    my $self = shift;
+
+    return $self->id . '(' . $self->left_crispr_id . '-' . $self->right_crispr_id . ')';
+}
+
+sub right_crispr_locus {
+    return shift->right_crispr->current_locus;
+}
+
+sub left_crispr_locus {
+    return shift->left_crispr->current_locus;
+}
+
+sub target_slice {
+    my ( $self, $ensembl_util ) = @_;
+
+    unless ( $ensembl_util ) {
+        require WebAppCommon::Util::EnsEMBL;
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
+    }
+
+    my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $self->chr_name,
+        $self->start,
+        $self->end
+    );
+
+    return $slice;
+}
+
+sub start {
+    return shift->left_crispr_locus->chr_start;
+}
+
+sub end {
+    return shift->right_crispr_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->right_crispr_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->right_crispr_locus->chr->name;
+}
+
+sub is_pair { return 1; }
+
 __PACKAGE__->meta->make_immutable;
 1;

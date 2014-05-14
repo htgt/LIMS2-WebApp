@@ -88,7 +88,6 @@ Code to execute all tests
 =cut
 
 sub all_tests : Test(1) {
-    local $TODO = 'Complete testing of LIMS2::Model::Util::EngSeqParams not implemented yet';
     ok( 1, "Test of LIMS2::Model::Util::EngSeqParams" );
 }
 
@@ -275,12 +274,14 @@ sub generate_well_eng_seq_params_test : Test(10) {
         test_data("well_850_user_params.yaml"),
         'engseq params as expected for well 850 with user specified params'
     );
+
     is $method2, 'conditional_vector_seq', 'engseq method correct for well 850';
 
     ok my ( $method3, $well_id3, $params3 )
         = generate_well_eng_seq_params( model, { well_id => 848, %user_params } ),
         'generate_well_eng_seq_params for well 848 should succeed';
     is_deeply( $params3, test_data('well_848.yaml'), 'engseq params as expected for well 848' );
+
 }
 
 sub generate_crispr_eng_seq_params_test : Test(8) {

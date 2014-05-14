@@ -203,11 +203,12 @@ sub check_xep_pool_wells {
 
 sub pspec_retrieve_plate {
     return {
-        name => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
-        id   => { validate => 'integer',             optional => 1, rename => 'me.id' },
-        type => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
-        species => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
-        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] }
+        name         => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
+        id           => { validate => 'integer',             optional => 1, rename => 'me.id' },
+        barcode      => { validate => 'alphanumeric_string', optional => 1, rename => 'me.barcode' },
+        type         => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
+        species      => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
+        REQUIRE_SOME => { name_or_id_or_barcode => [ 1, qw( name id barcode ) ] }
     };
 }
 
@@ -218,7 +219,7 @@ sub retrieve_plate {
         = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
     return $self->retrieve(
-        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id ) },
+        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id me.barcode ) },
         $search_opts
     );
 }
@@ -371,9 +372,9 @@ sub create_plate_csv_upload {
     my $expected_csv_headers;
     if ($params->{process_type} eq 'second_electroporation') {
         $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];
-    } elsif ($params->{process_type} eq 'crispr_single_ep') {
+    } elsif ($params->{process_type} eq 'single_crispr_assembly') {
         $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector_plate', 'crispr_vector_well' ];
-    } elsif ($params->{process_type} eq 'crispr_paired_ep') {
+    } elsif ($params->{process_type} eq 'paired_crispr_assembly') {
         $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
                                 'crispr_vector2_plate', 'crispr_vector2_well' ];
     } else {
@@ -412,6 +413,7 @@ sub pspec_update_plate_dna_status {
         species    => { validate => 'existing_species' },
         user_name  => { validate => 'existing_user' },
         csv_fh     => { validate => 'file_handle' },
+        from_concentration => { validate => 'boolean', optional => 1, default => 0 },
     };
 }
 

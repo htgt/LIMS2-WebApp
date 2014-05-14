@@ -126,7 +126,7 @@ has ensembl_util => (
     lazy_build => 1,
     handles    => {
         map { 'ensembl_' . $_ => $_ }
-            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor constrained_element_adaptor repeat_feature_adaptor )
+            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor exon_adaptor constrained_element_adaptor repeat_feature_adaptor )
     }
 );
 
@@ -185,7 +185,9 @@ sub parse_date_time {
 sub plugins {
     my $class = shift;
 
-    return Module::Pluggable::Object->new( search_path => [ $class . '::Plugin' ] )->plugins;
+    return Module::Pluggable::Object->new(
+        search_path => [ $class . '::Plugin', 'WebAppCommon::Plugin' ],
+        except => 'LIMS2::Model::Plugin::Design')->plugins;
 }
 
 ## no critic(RequireFinalReturn)

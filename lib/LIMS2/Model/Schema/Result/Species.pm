@@ -106,6 +106,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_es_qcs_runs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcRuns>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_es_qcs_runs",
+  "LIMS2::Model::Schema::Result::CrisprEsQcRuns",
+  { "foreign.species_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crisprs
 
 Type: has_many
@@ -132,6 +147,21 @@ Related object: L<LIMS2::Model::Schema::Result::SpeciesDefaultAssembly>
 __PACKAGE__->might_have(
   "default_assembly",
   "LIMS2::Model::Schema::Result::SpeciesDefaultAssembly",
+  { "foreign.species_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 design_attempts
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignAttempt>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_attempts",
+  "LIMS2::Model::Schema::Result::DesignAttempt",
   { "foreign.species_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -227,8 +257,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vw5dmQb+hFNaB/CAizaavA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PIsAginEtdabRiKXK4vd5w
 
 sub check_assembly_belongs {
     my ( $self, $assembly ) = @_;

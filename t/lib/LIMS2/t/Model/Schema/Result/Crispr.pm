@@ -97,6 +97,7 @@ sub all_tests : Tests {
         'crispr_loci_type_id' => 'Alionic',
         'comment'             => 'comment',
         'pam_right'           => 1,
+        'wge_crispr_id'       => undef,
     );
 
     note("Accessing the schema");

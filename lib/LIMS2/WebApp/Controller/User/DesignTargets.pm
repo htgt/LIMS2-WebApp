@@ -2,6 +2,7 @@ package LIMS2::WebApp::Controller::User::DesignTargets;
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Util::Crisprs qw( crispr_pick );
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use Try::Tiny;
 use namespace::autoclean;
 
@@ -40,31 +41,25 @@ sub gene_report : Path('/user/design_target_report') {
 
     $c->assert_user_roles( 'read' );
     my $species = $c->session->{selected_species};
+    my $build   = $DEFAULT_SPECIES_BUILD{ lc($species) };
 
-
+    # if no gene specified run report against all genes from that species projects
     if ( !$c->request->param('genes') && !$gene ) {
+        my @gene_ids = $c->model('Golgi')->schema->resultset('Project')->search_rs(
+            { species_id => $species },
+            {   columns  => [qw(gene_id)],
+                distinct => 1
+            }
+        )->get_column('gene_id')->all;
 
-        my $this_user = $ENV{'USER'} . '@sanger.ac.uk';
-        my $model = LIMS2::Model->new( { user => 'webapp', audit_user => $this_user } );
-
-        my @rows = $model->schema->resultset('Project')->search({
-                species_id => $species,
-            }, {
-            columns =>  [ qw(gene_id) ],
-            distinct => 1
-            })->all;
-        foreach my $data (@rows) {
-            $gene .= $data->gene_id."\n";
-        }
-
+        $gene = join("\n", @gene_ids);
     }
-
-    my $build   = $species eq 'Mouse' ? 70 : $species eq 'Human' ? 73 : undef;
 
     my %report_parameters = (
         type                 => $c->request->param('report_type') || 'standard',
         off_target_algorithm => $c->request->param('off_target_algorithm') || 'bwa',
         crispr_types         => $c->request->param('crispr_types') || 'pair',
+        filter               => $c->request->param('filter') // 1,
     );
 
     my ( $design_targets_data, $search_terms ) = design_target_report_for_genes(
@@ -76,7 +71,7 @@ sub gene_report : Path('/user/design_target_report') {
     );
 
     unless ( @{ $design_targets_data } ) {
-        $c->flash( error_msg => "No design targets found matching search terms" );
+        $c->stash( error_msg => "No design targets found matching search terms" );
     }
 
     if ( $report_parameters{type} eq 'simple' ) {

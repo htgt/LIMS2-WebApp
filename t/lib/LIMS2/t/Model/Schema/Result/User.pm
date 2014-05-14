@@ -100,7 +100,6 @@ sub all_tests : Tests {
     my $rs            = 'User';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::User not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::User" );
 
     #note("Accessing the schema");

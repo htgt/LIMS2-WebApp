@@ -3,6 +3,7 @@ package LIMS2::Report::DNAPlate;
 use Moose;
 use namespace::autoclean;
 use List::MoreUtils qw(uniq);
+use TryCatch;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -22,9 +23,10 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
+        $self->accepted_crispr_columns,
         "Cassette", "Cassette Resistance", "Backbone", "Recombinases",
         "Final Pick Vector Well", "Final Pick Vector QC Test Result", "Final Pick Vector Valid Primers", "Final Pick Vector Mixed Reads?", "Final Pick Vector Sequencing QC Pass?",
-        "DNA Quality", "DNA Quality Comment", "DNA Pass?", "Already Electroporated", "Child Well List", "Well Name"
+        "DNA Quality", "DNA Quality Comment", "DNA Pass?", "DNA Concentration(ng/ul)", "Already Electroporated", "Child Well List", "Well Name"
     ];
 };
 
@@ -45,9 +47,15 @@ override iterator => sub {
         my $well = $wells_rs->next
             or return;
 
-        my @design_gene = $self->design_and_gene_cols( $well );
-        my $gene_id = $design_gene[1];
+        # See if we have a crispr for this well, i.e. if created from crispr_v
+        my $crispr = undef;
+        try{
+            my $crispr_well = $well->parent_crispr;
+            $crispr = $crispr_well->crispr;
+        }
 
+        my @design_gene = $self->design_and_gene_cols( $well, $crispr );
+        my $gene_id = $design_gene[1];
 
         my @ep_sep = $self->model->schema->resultset('Summary')->search({
                 design_gene_id     => $gene_id,
@@ -75,16 +83,30 @@ override iterator => sub {
         my $dna_status = $well->well_dna_status;
         my $dna_quality = $well->well_dna_quality;
 
+        my @accepted_crispr_data;
+        if($crispr){
+            # We don't need to show accepted crispr info if this is a crispr DNA plate
+            # return the correct number of 'empty' values
+            foreach my $col ($self->accepted_crispr_columns){
+                push @accepted_crispr_data, '-';
+            }
+        }
+        else{
+            @accepted_crispr_data = $self->accepted_crispr_data( $well );
+        }
+
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
-            $self->base_data( $well ),
-            $well->cassette->name,
-            $well->cassette->resistance,
-            $well->backbone->name,
+            $self->base_data( $well, $crispr ),
+            @accepted_crispr_data,
+            ( $well->cassette ? $well->cassette->name : '-' ),
+            ( $well->cassette ? $well->cassette->resistance : '-' ),
+            ( $well->backbone ? $well->backbone->name : '-' ),
             join( q{/}, @{ $well->vector_recombinases } ),
             $self->ancestor_cols( $well, 'FINAL_PICK' ),
             ( $dna_quality ? ( $dna_quality->quality, $dna_quality->comment_text ) : ('')x2 ),
             ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' ),
+            ( $dna_status  ? (sprintf "%.2f", $dna_status->concentration_ng_ul) : '' ),
             join (' ', @already_ep),
             $well->get_output_wells_as_string,
             $well->name,

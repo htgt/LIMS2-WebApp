@@ -33,6 +33,13 @@ use LIMS2::Model::Util::PgUserRole qw( db_name );
 use LIMS2::Model::Util::RefdataUpload;
 use File::Basename;
 
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $OFF } );
+    }
+}
+
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
 # These must match the user/password created in t/fixtures/10-users-roles.t
@@ -256,6 +263,7 @@ sub load_static_files {
             CassetteFunction
             CellLine
             ColonyCountType
+            CrisprPrimerType
             CrisprLociType
             DesignCommentCategory
             DesignOligoType
@@ -264,6 +272,7 @@ sub load_static_files {
             GenotypingPrimerType
             GenotypingResultType
             MutationDesignType
+            Nuclease
             PlateType
             PrimerBandType
             ProcessType
@@ -297,6 +306,7 @@ sub load_dynamic_files {
     my @reference_tables = (
         qw(
             User
+            UserRole
             Design
             DesignOligo
             DesignOligoLocus
@@ -317,12 +327,15 @@ sub load_dynamic_files {
             ProcessRecombinase
             ProcessDesign
             ProcessCrispr
+            ProcessNuclease
+            ProcessGlobalArmShorteningDesign
             Plate
             Well
             ProcessInputWell
             ProcessOutputWell
             ProcessDesign
             ProcessRecombinase
+            Project
         )
     );
 

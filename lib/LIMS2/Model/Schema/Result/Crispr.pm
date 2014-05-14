@@ -72,6 +72,11 @@ __PACKAGE__->table("crisprs");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 wge_crispr_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -92,6 +97,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "pam_right",
   { data_type => "boolean", is_nullable => 1 },
+  "wge_crispr_id",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -105,6 +112,20 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<crisprs_wge_crispr_id_key>
+
+=over 4
+
+=item * L</wge_crispr_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("crisprs_wge_crispr_id_key", ["wge_crispr_id"]);
 
 =head1 RELATIONS
 
@@ -165,6 +186,21 @@ __PACKAGE__->has_many(
   "crispr_pairs_right_crisprs",
   "LIMS2::Model::Schema::Result::CrisprPair",
   { "foreign.right_crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 crispr_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers",
+  "LIMS2::Model::Schema::Result::CrisprPrimer",
+  { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -244,8 +280,16 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VJREFU/RuYm4fILRP417vA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iCBcK0B07XGoh/EQgHXNfA
+
+use Bio::Perl qw( revcom );
+
+use overload '""' => \&as_string;
+
+sub as_string {
+    return shift->id;
+}
 
 sub as_hash {
     my ( $self ) = @_;
@@ -271,27 +315,145 @@ sub as_hash {
     return \%h;
 }
 
+sub current_locus {
+    my $self = shift;
+
+    my $loci = $self->result_source->schema->resultset('CrisprLocus')->find(
+        {
+            'me.crispr_id'                          => $self->id,
+            'species_default_assemblies.species_id' => $self->species_id
+        },
+        {
+            join => {
+                assembly => 'species_default_assemblies'
+            }
+        }
+    );
+
+    return $loci;
+}
+
+sub start {
+    return shift->current_locus->chr_start;
+}
+
+sub end {
+    return shift->current_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->current_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->current_locus->chr->name;
+}
+
+sub guide_rna {
+    my ( $self ) = @_;
+
+    if ( ! defined $self->pam_right ) {
+        return substr( $self->seq, 1, 19 );
+    }
+    elsif ( $self->pam_right == 1 ) {
+        return substr( $self->seq, 1, 19 );
+    }
+    elsif ( $self->pam_right == 0 ) {
+        #its pam left, so strip first three characters and the very last one,
+        #we revcom so that the grna is always relative to the NGG sequence
+        return revcom( substr( $self->seq, 3, 19 ) )->seq;
+    }
+    else {
+        die "Unexpected value in pam_right: " . $self->pam_right;
+    }
+
+}
+
 sub forward_order_seq {
     my ( $self ) = @_;
 
-    my $site = substr( $self->seq, 1, 19 );
-    return  "ACCG" . $site;
+    return  "ACCG" . $self->guide_rna;
 }
 
 sub reverse_order_seq {
     my ( $self ) = @_;
 
-    require Bio::Seq;
-    my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => substr( $self->seq, 1,19) );
-    my $revcomp_seq = $bio_seq->revcom->seq;
-    return "AAAC" . $revcomp_seq;
+    #require Bio::Seq;
+    #my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->guide_rna );
+    #my $revcomp_seq = $bio_seq->revcom->seq;
+    return "AAAC" . revcom( $self->guide_rna )->seq;
 }
 
+#we need to add the G here so its the full forward grna
 sub vector_seq {
     my ( $self ) = @_;
 
-    return substr( $self->seq, 0, 20 );
+    return  "G" . $self->guide_rna;
 }
+
+sub pairs {
+  my $self = shift;
+
+  return ($self->pam_right) ? $self->crispr_pairs_right_crisprs : $self->crispr_pairs_left_crisprs;
+}
+
+# Designs may be linked to single crispr directly or to crispr pair
+sub related_designs {
+  my $self = shift;
+
+  my @designs;
+      foreach my $crispr_design ($self->crispr_designs->all){
+        my $design = $crispr_design->design;
+        push @designs, $design;
+    }
+
+    foreach my $pair ($self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all){
+        foreach my $pair_crispr_design ($pair->crispr_designs->all){
+            my $pair_design = $pair_crispr_design->design;
+            push @designs, $pair_design;
+        }
+    }
+
+    return @designs;
+}
+
+sub crispr_wells{
+    my $self = shift;
+
+    return map { $_->process->output_wells } $self->process_crisprs;
+}
+
+sub vector_wells{
+    my $self = shift;
+
+    my @wells = $self->crispr_wells;
+
+    return map { $_->descendant_crispr_vectors } @wells;
+}
+
+sub accepted_vector_wells{
+    my $self = shift;
+
+    # Assume we are only interested in vectors on the most recently created crispr_v plate
+    my @accepted_wells;
+    my $most_recent_plate;
+    foreach my $well ($self->vector_wells){
+
+        next unless $well->is_accepted;
+
+        push @accepted_wells, $well;
+
+        my $plate = $well->plate;
+        $most_recent_plate ||= $plate;
+        if ($plate->created_at > $most_recent_plate->created_at){
+            $most_recent_plate = $plate;
+        }
+    }
+
+    return grep { $_->plate_id == $most_recent_plate->id } @accepted_wells;
+}
+
+sub is_pair { return; }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -12,7 +12,7 @@ LIMS2::Model::Util::Crisprs
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ 'crispr_pick' ]
+    exports => [ 'crispr_pick', 'crisprs_for_design' ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -164,7 +164,7 @@ sub create_crispr_pair_design_links {
     my ( @create_log, @fail_log );
 
     for my $datum ( @{ $create_links } ) {
-        my $design = $model->retrieve_design( { id => $datum->{design_id} } );
+        my $design = $model->c_retrieve_design( { id => $datum->{design_id} } );
         my $crispr_pair = $model->schema->resultset( 'CrisprPair' )->find(
             { id => $datum->{crispr_pair_id} },
             { prefetch => [ 'left_crispr', 'right_crispr' ] },
@@ -199,7 +199,7 @@ sub create_crispr_design_links {
     my ( @create_log, @fail_log );
 
     for my $datum ( @{ $create_links } ) {
-        my $design = $model->retrieve_design( { id => $datum->{design_id} } );
+        my $design = $model->c_retrieve_design( { id => $datum->{design_id} } );
         my $crispr = $model->schema->resultset( 'Crispr' )->find(
             { id => $datum->{crispr_id} },
             { prefetch => 'loci' },
@@ -269,27 +269,16 @@ sub crispr_pair_hits_design {
         default_assembly => $default_assembly,
     );
 
-    unless (
-        crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) )
+    if (
+        !crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) &&
+        !crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info )
+    )
     {
-        ERROR( 'Left crispr ' . $crispr_pair->left_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
+        ERROR( 'Crispr Pair ' . $crispr_pair->id . ' does not hit design ' . $design->id );
         push @{$fail_log},
               'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
-        return 0;
-    }
-
-    unless (
-        crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info ) )
-    {
-        ERROR( 'Right crispr ' . $crispr_pair->right_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
-        push @{$fail_log},
-              'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
+            . ' & crispr pair: ' . $crispr_pair->id
+            . ', neither crispr lies wholly within target region of design';
         return 0;
     }
 
@@ -319,6 +308,55 @@ sub crispr_hits_design {
     }
 
     return;
+}
+
+=head2 crisprs_for_design
+
+Find all crisprs that intersect with a given design
+
+=cut
+sub crisprs_for_design {
+    my ( $model, $design ) = @_;
+
+    my $design_info = LIMS2::Model::Util::DesignInfo->new(
+        design => $design,
+    );
+
+    my $chr_id = $model->_chr_id_for( $design_info->default_assembly, $design_info->chr_name );
+    my @crisprs = $model->schema->resultset('Crispr')->search(
+        {
+            'loci.assembly_id' => $design_info->default_assembly,
+            'loci.chr_id'      => $chr_id,
+            'loci.chr_start'   => { '>' => $design_info->target_region_start },
+            'loci.chr_end'     => { '<' => $design_info->target_region_end },
+        },
+        {
+            join => 'loci',
+        }
+    );
+
+    my ( @left_crispr_ids, @right_crispr_ids );
+    for my $crispr ( @crisprs ) {
+        my $direction = $crispr->pam_right;
+        # if undef crispr does not have a stored direction and is not part of a pair
+        next unless defined $direction;
+        if ( $direction == 1 ) {
+            push @right_crispr_ids, $crispr->id;
+        }
+        elsif ( $direction == 0 ) {
+            push @left_crispr_ids, $crispr->id;
+        }
+
+    }
+
+    my @crispr_pairs = $model->schema->resultset( 'CrisprPair' )->search(
+        {
+            left_crispr_id  => { 'IN' => \@left_crispr_ids },
+            right_crispr_id => { 'IN' => \@right_crispr_ids },
+        }
+    );
+
+    return ( \@crisprs, \@crispr_pairs );
 }
 
 1;

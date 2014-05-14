@@ -32,6 +32,7 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
     $c->assert_user_roles( 'read' );
 
     my $params = $c->request->params;
+
     $params->{species} ||= $c->session->{selected_species};
     delete $params->{sponsor} if $params->{sponsor} eq 'All';
 
@@ -121,6 +122,7 @@ sub download_report :Path( '/user/report/download' ) :Args(1) {
     $c->assert_user_roles( 'read' );
 
     my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    $report_name =~ s/\s/_/g;
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
@@ -205,9 +207,13 @@ sub _count_rows {
 sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
 
+    # Human project sponsors list
+    my @human_sponsors = ['Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
     $c->stash(
         template    => 'user/report/select_sponsor.tt',
-        report_name => $report
+        report_name => $report,
+        sponsors    => @human_sponsors,
+        species     => $c->session->{selected_species},
     );
 
     return;

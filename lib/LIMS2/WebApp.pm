@@ -44,12 +44,24 @@ __PACKAGE__->config(
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
     enable_catalyst_header                      => 1,    # Send X-Catalyst header
-    'View::HTML' =>
-        { INCLUDE_PATH => [ __PACKAGE__->path_to( 'root', 'lib' ), __PACKAGE__->path_to( 'root', 'site' ) ], },
+    'View::HTML' => {
+        INCLUDE_PATH => [
+            __PACKAGE__->path_to( 'root', 'lib' ),
+            __PACKAGE__->path_to( 'root', 'site' ),
+            $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
+        ],
+    },
     'Plugin::Session' => {
         expires => 28800,                                # 8 hours
         storage => $ENV{LIMS2_SESSION_STORE}
-    }
+    },
+    'static' => {
+        include_path => [
+            $ENV{SHARED_WEBAPP_STATIC_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_static',
+            __PACKAGE__->path_to( 'root' ),
+        ],
+        ignore_extensions => [ qw{ tt } ],
+    },
 );
 
 # Configure Log4perl

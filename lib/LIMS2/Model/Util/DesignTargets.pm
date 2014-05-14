@@ -20,6 +20,8 @@ use Sub::Exporter -setup => {
                      design_target_report_for_genes
                      bulk_designs_for_design_targets
                      get_design_targets_data
+                     prebuild_oligos
+                     target_overlaps_exon
                     ) ]
 };
 
@@ -121,9 +123,14 @@ sub bulk_designs_for_design_targets {
 
     my @gene_designs = $schema->resultset('GeneDesign')->search(
         {
-            gene_id => { 'IN' => [ map{ $_->gene_id } @{ $design_targets } ] },
-            'design.species_id'     => $species_id,
-            'design.design_type_id' => 'gibson',
+            -and => [
+                gene_id => { 'IN' => [ map{ $_->gene_id } @{ $design_targets } ] },
+                'design.species_id'     => $species_id,
+                -or => [
+                    'design.design_type_id' => 'gibson',
+                    'design.design_type_id' => 'gibson-deletion',
+                ],
+            ],
         },
         {
             join     => 'design',
@@ -136,6 +143,7 @@ sub bulk_designs_for_design_targets {
     for my $dt ( @{ $design_targets } ) {
         my @matching_designs;
         my @dt_designs = map{ $_->design } grep{ $_->gene_id eq $dt->gene_id } @gene_designs;
+        #TODO refactor, we are working out same design coordinates multiple times sp12 Mon 24 Feb 2014 13:20:23 GMT
         for my $design ( @dt_designs ) {
             my $oligo_data = prebuild_oligos( $design, $assembly );
             # if no oligo data then design does not have oligos on assembly
@@ -145,10 +153,12 @@ sub bulk_designs_for_design_targets {
                 default_assembly => $assembly,
                 oligos           => $oligo_data,
             );
-            if ( $dt->chr_start > $di->target_region_start
-                && $dt->chr_end < $di->target_region_end
-                && $dt->chr->name eq $di->chr_name
-            ) {
+            next if $dt->chr->name ne $di->chr_name;
+
+            if (target_overlaps_exon(
+                    $di->target_region_start, $di->target_region_end, $dt->chr_start, $dt->chr_end )
+                )
+            {
                 push @matching_designs, $design;
                 push @design_ids, $design->id;
             }
@@ -312,9 +322,9 @@ sub find_design_targets {
     my @design_targets = $schema->resultset('DesignTarget')->search(
         {
             -or => [
-                gene_id         => { 'IN' => $sorted_genes->{gene_ids}  },
-                marker_symbol   => { 'IN' => $sorted_genes->{marker_symbols} },
-                ensembl_gene_id => { 'IN' => $sorted_genes->{ensembl_gene_ids} },
+                gene_id                   => { 'IN' => $sorted_genes->{gene_ids}  },
+                'lower(me.marker_symbol)' => { 'IN' => $sorted_genes->{marker_symbols} },
+                ensembl_gene_id           => { 'IN' => $sorted_genes->{ensembl_gene_ids} },
             ],
             'me.species_id'  => $species_id,
             'me.assembly_id' => $assembly,
@@ -470,6 +480,7 @@ sub format_crispr_data {
             $datum->{crisprs},
             $report_parameters->{off_target_algorithm},
             $default_assembly,
+            $report_parameters->{filter}
         );
     }
     else {
@@ -495,7 +506,20 @@ sub _format_crispr_data {
     } values %{ $crisprs };
 
     for my $c ( @ranked_crisprs ) {
-        my $crispr_direction = $c->pam_right ? 'right' : $c->pam_right == 0 ? 'left' : undef;
+        # Blame ah19 for this unholy mess, b/c he gave undef a meaning in a
+        # booleon field ( to be fair he didn't intend for this to happen )
+        my $crispr_direction;
+        if ( defined $c->pam_right ) {
+            if ( $c->pam_right == 1 ) {
+                $crispr_direction = 'right';
+            }
+            else {
+                $crispr_direction = 'left';
+            }
+        }
+        else {
+            $crispr_direction = 'right';
+        }
         my %data = (
             crispr_id => $c->id,
             seq       => $c->seq,
@@ -539,12 +563,18 @@ Get the first 5 pairs ( ranked according to _rank_crisp_pair )
 
 =cut
 sub _format_crispr_pair_data {
-    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $default_assembly ) = @_;
+    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $default_assembly , $filter) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
 
-    my @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
-        grep { _valid_crispr_pair($_) } values %{$crispr_pairs};
+    my @valid_ranked_crispr_pairs;
+    if ($filter) {
+        @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
+            grep { _valid_crispr_pair($_) } values %{$crispr_pairs};
+    } else {
+        @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
+            grep { $_ } values %{$crispr_pairs};
+    }
 
     for my $c ( @valid_ranked_crispr_pairs ) {
         my $left_crispr = $crisprs->{ $c->left_crispr_id };
@@ -703,7 +733,7 @@ sub _format_crispr_off_target_summary {
         return $summary_details;
     }
 
-    return;
+    return '';
 }
 
 =head2 _format_crispr_pair_off_target_summary
@@ -717,12 +747,12 @@ sub _format_crispr_pair_off_target_summary {
 
     if ( $crispr_pair->off_target_summary ) {
         my $summary = Load($crispr_pair->off_target_summary);
-        if ( my $distance = $summary->{distance} ) {
-            return $distance;
+        if ( exists $summary->{distance} ) {
+            return $summary->{distance};
         }
     }
 
-    return;
+    return '';
 }
 
 =head2 _formated_crispr_locus
@@ -766,7 +796,7 @@ sub _sort_gene_ids {
         }
         else {
             #assume its a marker symbol
-            push @{ $sorted_genes{marker_symbols} }, $gene;
+            push @{ $sorted_genes{marker_symbols} }, lc($gene);
         }
     }
 
@@ -859,5 +889,35 @@ sub get_design_targets_data {
     return @dt;
 }
 
+=head2 target_overlaps_exon
+
+Check if target overlaps a exon ( or any two sets of coordiantes overlap )
+- First 2 parameters should be the target start and target end
+- Next 2 parameters should be the exon start and exon end
+
+Note: this does not check if the chromosome is the same.
+
+=cut
+sub target_overlaps_exon {
+    my ( $target_start, $target_end, $exon_start, $exon_end ) = @_;
+
+    if (   $target_start < $exon_start
+        && $target_end > $exon_end )
+    {
+        return 1;
+    }
+    elsif ($target_start >= $exon_start
+        && $target_start <= $exon_end )
+    {
+        return 1;
+    }
+    elsif ($target_end >= $exon_start
+        && $target_end <= $exon_end )
+    {
+        return 1;
+    }
+
+    return;
+}
 
 1;

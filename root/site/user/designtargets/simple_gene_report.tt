@@ -23,7 +23,10 @@
 
   <tbody>
     [% FOR datum IN design_targets_data %]
-      <tr>
+      <tr [% IF datum.designs > 0 && datum.crispr_pairs > 0 %]
+            class="success"
+          [% END %]
+      >
         <td>[% datum.marker_symbol %]</td>
         <td>[% datum.gene_id %]</td>
         <td>[% datum.ensembl_exon_id %]</td>
@@ -38,10 +41,17 @@
           single crispr details</a>
         </td>
         <td>
-          <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm } ) %]" target="_blank" class="btn btn-info btn-mini btn-block">
+          <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '1' } ) %]" target="_blank" class="btn btn-info btn-mini btn-block">
           crispr pair details</a>
         </td>
       </tr>
     [% END %]
   </tbody>
 </table>
+
+<div class="row">
+  <div class="span3">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn">
+    <i class="icon-hand-left"></i> Back to search </a>
+  </div>
+</div>

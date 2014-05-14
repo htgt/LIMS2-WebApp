@@ -168,6 +168,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_es_qc_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcWell>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_es_qc_wells",
+  "LIMS2::Model::Schema::Result::CrisprEsQcWell",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate
 
 Type: belongs_to
@@ -239,6 +254,21 @@ Related object: L<LIMS2::Model::Schema::Result::WellAcceptedOverride>
 __PACKAGE__->might_have(
   "well_accepted_override",
   "LIMS2::Model::Schema::Result::WellAcceptedOverride",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_barcode
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_barcode",
+  "LIMS2::Model::Schema::Result::WellBarcode",
   { "foreign.well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -393,6 +423,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_targeting_neo_pass
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellTargetingNeoPass>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_targeting_neo_pass",
+  "LIMS2::Model::Schema::Result::WellTargetingNeoPass",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_targeting_pass
 
 Type: might_have
@@ -444,8 +489,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-17 16:23:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N8U5K2O0YHOdBoq5jDFTGw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 07:55:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iz4NYMMseKHv6Mu5W0EJpw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -536,6 +581,25 @@ sub _build_is_double_targeted {
     }
 
     return 0;
+}
+
+# if this well has a global arm shortened design then
+# populate this attribute, otherwise it is undef
+has global_arm_shortened_design => (
+    is         => 'ro',
+    isa        => 'Maybe[LIMS2::Model::Schema::Result::Design]',
+    lazy_build => 1
+);
+
+sub _build_global_arm_shortened_design {
+    my $self = shift;
+
+    my $process_arm_shortening = $self->ancestors->find_process( $self, 'process_global_arm_shortening_design' );
+    if ( $process_arm_shortening ) {
+        return $process_arm_shortening->design;
+    }
+
+    return;
 }
 
 sub assert_not_double_targeted {
@@ -660,7 +724,6 @@ sub cell_recombinases {
     return [ map { $_->recombinase_id } @cell_recombinases ];
 }
 
-
 # fetches first cell line
 sub first_cell_line {
     my $self = shift;
@@ -684,6 +747,12 @@ sub design {
 
     $self->assert_not_double_targeted;
 
+    # If the well has a global_arm_shortening_design process then its real
+    # design is linked to this process, it is not the root design well
+    if ( $self->global_arm_shortened_design ) {
+        return $self->global_arm_shortened_design;
+    }
+
     my $process_design = $self->ancestors->find_process( $self, 'process_design' );
 
     return $process_design ? $process_design->design : undef;
@@ -699,23 +768,27 @@ sub crispr {
     return $process_crispr ? $process_crispr->crispr : undef;
 }
 
-sub designs{
+sub nuclease {
+    my $self = shift;
+
+    my $process_nuclease = $self->ancestors->find_process( $self, 'process_nuclease');
+
+    return $process_nuclease ? $process_nuclease->nuclease : undef;
+}
+
+sub designs {
 	my $self = shift;
 
-	my $edges = $self->ancestors->edges;
+    # if its not double targeted then there is only one design
+    if ( !$self->is_double_targeted ) {
+        return ( $self->design );
+    }
 
+    # ok its double targeted, grab design from the first and second allele wells
 	my @designs;
+    push @designs, $self->first_allele->design;
+    push @designs, $self->second_allele->design;
 
-	foreach my $edge (@$edges){
-		my ($process, $input, $output) = @$edge;
-		# Edges with no input node are (probably!) design processes
-		if(not defined $input){
-			my $process_design = $self->result_source->schema->resultset('ProcessDesign')->find({ process_id => $process });
-			if ($process_design){
-			    push @designs, $process_design->design;
-			}
-		}
-	}
     return @designs;
 }
 
@@ -982,6 +1055,21 @@ sub descendant_piq {
 }
 ## use critic
 
+sub descendant_crispr_vectors {
+    my $self = shift;
+
+    my @crispr_vectors;
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ) {
+      while( my $descendant = $descendants->next ) {
+        if ( $descendant->plate->type_id eq 'CRISPR_V' ) {
+          push @crispr_vectors, $descendant;
+        }
+      }
+    }
+    return @crispr_vectors;
+}
+
 ## no critic(RequireFinalReturn)
 sub parent_crispr {
     my $self = shift;
@@ -999,15 +1087,21 @@ sub parent_crispr {
 ## use critic
 
 ## no critic(RequireFinalReturn)
+## This returns the final set (single or paired) of CRISPR_V parents
+## It will stop traversing if it hits a CRISPR_V grandparent,
+## i.e. if CRISPR_V plates have been rearrayed
 sub parent_crispr_v {
     my $self = shift;
 
     my @parents;
-    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
         if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
+
+            # Exit loop when we start seeing CRIPSR_V grandparents
+            last if grep { $_->plate->type_id eq 'CRISPR_V' } $self->ancestors->output_wells($ancestor);
+
             push ( @parents, $ancestor );
-            # return $ancestor;
         }
     }
 
@@ -1017,6 +1111,33 @@ sub parent_crispr_v {
 
     require LIMS2::Exception::Implementation;
     LIMS2::Exception::Implementation->throw( "Failed to determine crispr vector plate/well for $self" );
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub left_and_right_crispr_wells {
+    my $self = shift;
+
+    my ($crispr_v_1, $crispr_v_2) = $self->parent_crispr_v;
+
+    my ($right_crispr, $left_crispr);
+    if (defined $crispr_v_2) {
+        if ($crispr_v_2->crispr->pam_right) {
+            $right_crispr = $crispr_v_2->parent_crispr;
+            $left_crispr = $crispr_v_1->parent_crispr;
+        } else {
+            $right_crispr = $crispr_v_1->parent_crispr;
+            $left_crispr = $crispr_v_2->parent_crispr;
+        }
+        return ($left_crispr, $right_crispr);
+    } elsif (defined $crispr_v_1) {
+        $right_crispr = undef;
+        $left_crispr = $crispr_v_1->parent_crispr;
+        return ($left_crispr, $right_crispr);
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
 }
 ## use critic
 

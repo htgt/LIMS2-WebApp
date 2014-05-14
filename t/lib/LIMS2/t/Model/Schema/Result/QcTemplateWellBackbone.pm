@@ -88,8 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'QcTemplateWellBackbone';
     my %record        = ();
 
-    local $TODO
-        = 'Test of LIMS2::Model::Schema::Result::QcTemplateWellBackbone not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::QcTemplateWellBackbone" );
 
     #note("Accessing the schema");

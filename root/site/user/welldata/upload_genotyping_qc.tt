@@ -55,6 +55,8 @@
               <dd>Values accepted: na, fa, fail, potential, present, passb, pass</dd>
               <dt>targeting-puro_pass</dt>
               <dd>Values accepted: na, fa, fail, potential, present, passb, pass</dd>
+              <dt>targeting-neo_pass</dt>
+              <dd>Values accepted: na, fa, fail, potential, present, passb, pass</dd>
               <dt>chromosome_fail</dt>
               <dd>Values accepted: 0, 1, 2, 3, 4, Y</dd>
             </dl>

@@ -1,7 +1,8 @@
 package LIMS2::t::Model::FormValidator::Constraint;
+
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::FormValidator::Constraint;
+use LIMS2::Test model => { classname => __PACKAGE__ }, 'test_data';
 
 use strict;
 
@@ -11,88 +12,81 @@ use strict;
 
 LIMS2/t/Model/FormValidator/Constraint.pm - test class for LIMS2::Model::FormValidator::Constraint
 
-=head1 DESCRIPTION
-
-Test module structured for running under Test::Class
-
-=head1 METHODS
+NOTE: Only a handful of constraints have been tested, many more
+that could be tested.
 
 =cut
 
-=head2 BEGIN
+sub startup : Test(startup => 4) {
+    my $test = shift;
 
-Loading other test classes at compile time
+    my $class = 'LIMS2::Model::FormValidator::Constraint';
+    use_ok $class;
+    can_ok $class, 'new';
+    ok my $o = $class->new( model => model() ), 'can create a new object';
 
-=cut
+    isa_ok $o, $class;
 
-BEGIN
-{
-    # compile time requirements
-    #{REQUIRE_PARENT}
+    $test->{o} = $o;
 };
 
-=head2 before
+=head2
 
-Code to run before every test
-
-=cut
-
-sub before : Test(setup)
-{
-    #diag("running before test");
-};
-
-=head2 after
-
-Code to run after every test
+Test a handful of constraints that use different underlying methods.
+These are from WebApp::Common::FormValidator::Constraint and
+LIMS2::Model::FormValidator::Constraint
 
 =cut
 
-sub after  : Test(teardown)
-{
-    #diag("running after test");
-};
+# in_set
+sub strand : Tests(3) {
+    my $test = shift;
+    my $constraint = $test->{o}->strand();
 
-
-=head2 startup
-
-Code to run before all tests for the whole test class
-
-=cut
-
-sub startup : Test(startup)
-{
-    #diag("running before all tests");
-};
-
-=head2 shutdown
-
-Code to run after all tests for the whole test class
-
-=cut
-
-sub shutdown  : Test(shutdown)
-{
-    #diag("running after all tests");
-};
-
-=head2 all_tests
-
-Code to execute all tests
-
-=cut
-
-sub all_tests  : Test(1)
-{
-    local $TODO = 'Test of LIMS2::Model::FormValidator::Constraint not implemented yet';
-    ok(1, "Test of LIMS2::Model::FormValidator::Constraint");
+    ok $constraint->(1), '1 is valid ';
+    ok $constraint->(-1), '-1 is valid';
+    ok !$constraint->(2), '2 is not valid';
 }
 
-=head1 AUTHOR
+# regexp_matches
+sub alphanumeric_string : Tests(3) {
+    my $test = shift;
+    my $constraint = $test->{o}->alphanumeric_string();
 
-Lars G. Erlandsen
+    ok $constraint->('abc123'), 'abc123 is valid';
+    ok $constraint->('word'), 'word is valid';
+    ok !$constraint->('%^&'), '%^& is not valid';
+}
 
-=cut
+# in_resultset
+sub existing_species : Tests(3) {
+    my $test = shift;
+    my $constraint = $test->{o}->existing_species();
+
+    ok $constraint->('Mouse'), 'mouse is valid';
+    ok $constraint->('Human'), 'human is valid';
+    ok !$constraint->('Unicorn'), 'unicorn is not valid';
+}
+
+# existing_row
+sub existing_plate_name : Tests(3) {
+    my $test = shift;
+    my $constraint = $test->{o}->existing_plate_name();
+
+    ok $constraint->('FP4637'), 'FP4637 is valid';
+    ok $constraint->('CEPD0011_2'), 'CEPD0011_2 is valid';
+    ok !$constraint->('Foo'), 'Foo is not valid';
+}
+
+# eng_seq_of_type
+sub existing_final_cassette : Tests(3) {
+    my $test = shift;
+    my $constraint = $test->{o}->existing_final_cassette();
+
+    ok $constraint->('L1L2_gt0'), 'L1L2_gt0 is valid';
+    ok $constraint->('L1L2_Bact_P'), 'L1L2_Bact_P is valid';
+    ok !$constraint->('Foo'), 'Foo is not valid';
+}
 
 ## use critic
 
