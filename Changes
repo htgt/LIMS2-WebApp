@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.193     2014-05-14 09:57:20 Europe/London
+
+    Improved speed of finding accepted crispr vectors for plate reports
+    Added accepted crispr vectors to DNA plate report
+
 0.192     2014-05-13 07:52:57 Europe/London
 
     Make modifications to deal with global_arm_shortening process and the 'correct' design we
