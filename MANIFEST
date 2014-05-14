@@ -315,6 +315,7 @@ root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_pair.tt
 root/site/user/crisprs/wge_crispr_importer.tt
+root/site/user/crisprs/wge_crispr_pair_importer.tt
 root/site/user/designtargets/crisprs_ucsc_blat.tt
 root/site/user/designtargets/design_target_report_crispr_pick.tt
 root/site/user/designtargets/gene_report_crispr_pairs.tt

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BacsForDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BacsForDesign::VERSION = '0.193';
+    $LIMS2::Model::Util::BacsForDesign::VERSION = '0.194';
 }
 ## use critic
 
