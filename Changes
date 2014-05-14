@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.194     2014-05-14 11:02:49 Europe/London
+
+    WGE crispr importer now supports import from id lists
+    Added WGE crispr pair importer
+
 0.193     2014-05-14 09:57:20 Europe/London
 
     Improved speed of finding accepted crispr vectors for plate reports
