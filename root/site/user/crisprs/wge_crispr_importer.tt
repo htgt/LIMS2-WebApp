@@ -14,8 +14,21 @@
 [% IF crispr %]
 <div class="well">
   <legend>View Imported Crisprs</legend>
-  [% FOREACH id IN crispr %]
-    <p>WGE crispr id [% id.wge_id %]: <a class="brand" href="[% c.uri_for('/user/crispr', id.lims2_id, 'view' ) %]">[% id.lims2_id %]</a></p>
-  [% END %]
+    <table class="table table-bordered table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>WGE Crispr ID</th>
+          <th>LIMS2 Crispr ID</th>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH id IN crispr %]
+        <tr>
+          <td>[% id.wge_id %]</td>
+          <td><a class="brand" href="[% c.uri_for('/user/crispr', id.lims2_id, 'view' ) %]">[% id.lims2_id %]</a></td>
+        </tr>
+      [% END %]
+      </tbody>
+    </table>
 </div>
 [% END %]

@@ -385,7 +385,7 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
             push @output, {wge_id => $wge_crispr_id, lims2_id => $crispr->id};
         }
         catch ($err) {
-            $c->stash( error_msg => "Error importing WGE crispr with id $wge_crispr_id" );
+            $c->stash( error_msg => "Error importing WGE crispr with id $wge_crispr_id\n$err" );
             return;
         }
     }
@@ -523,11 +523,17 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
                 spacer => $crispr_pair_data->{spacer},
             });
             push @succeeded, $wge_crispr_pair_id;
-            push @output, {wge_id => $wge_crispr_pair_id, lims2_id => $lims2_crispr_pair->id};
+            push @output, {
+                wge_id      => $wge_crispr_pair_id,
+                lims2_id    => $lims2_crispr_pair->id,
+                left_id     => $lims2_left_crispr->id,
+                right_id    => $lims2_right_crispr->id,
+                spacer      => $crispr_pair_data->{spacer},
+            };
 
         }
         catch ($err) {
-            $c->stash( error_msg => "Invalid WGE crispr pair id: $wge_crispr_pair_id\n $err" );
+            $c->stash( error_msg => "Error importing WGE crispr pair with id $wge_crispr_pair_id\n$err" );
             return;
         }
 
