@@ -51,12 +51,11 @@
         <li class="dropdown[% IF template.tab_name == "Crisprs" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Crisprs <b class="caret"></b></a>
           <ul class="dropdown-menu">
-<!-- 
             <li>
-              <a href="[% c.uri_for( '/user/browse_crisprs' ) %]">Browse Crisprs</a>
-            </li>
- -->
               <a href="[% c.uri_for( '/user/wge_crispr_importer' ) %]">Import Crispr From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_pair_importer' ) %]">Import Crispr Pair From WGE</a>
             </li>
           </ul>
         </li>
