@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.192';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.193';
 }
 ## use critic
 
@@ -17,8 +17,17 @@ use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
+use Time::HiRes qw(time);
+use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator );
+
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 sub _report_plugins {
     return grep { $_->isa( 'LIMS2::ReportGenerator::Plate' ) }
@@ -62,6 +71,110 @@ has plate => (
 has '+param_names' => (
     default => sub { [ 'plate_name' ] }
 );
+
+has time_taken => (
+    is => 'rw',
+    default => 0,
+    isa => 'Num',
+);
+
+# HashRef linking each well on the plate to crispr wells via crispr_design
+# Structure is like this:
+#   crispr_wells => {
+#       <well_id> => {  
+#          <crispr_design_id> => { 
+#              single => [ <array of crispr wells> ], 
+#              left   => [ <array of crispr wells> ], 
+#              right  => [ <array of crispr wells> ], 
+#          } 
+#       }
+#   }
+has crispr_wells => (
+    is => 'ro',
+    isa => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_crispr_wells {
+    my ($self) = @_;
+
+    my $crispr_wells = {};
+
+    my $start = time();
+    foreach my $well ($self->plate->wells){
+        $crispr_wells->{ $well->id } = {};
+        my $well_ref = $crispr_wells->{ $well->id };
+        if (my $design = $well->design){
+            foreach my $crispr_design ($design->crispr_designs){
+                $well_ref->{ $crispr_design->id } = {};
+                my $crispr_design_ref = $well_ref->{ $crispr_design->id };
+                if(my $crispr = $crispr_design->crispr){
+                    $crispr_design_ref->{sinlge} = [ $crispr->crispr_wells ];
+                }
+                elsif(my $crispr_pair = $crispr_design->crispr_pair){
+                    $crispr_design_ref->{left} = [ $crispr_pair->left_crispr->crispr_wells ];
+                    $crispr_design_ref->{right} = [ $crispr_pair->right_crispr->crispr_wells ];
+                }
+            }
+        }
+        else{
+            LIMS2::Exception::Implementation->throw("Cannot find design for well ".$well->as_string);
+        }
+    }
+    my $end = time();
+    TRACE(sprintf "Finding crispr wells for each well took: %.2f",$end - $start);
+
+    return $crispr_wells;
+}
+
+has crispr_well_descendants => (
+    is => 'ro',
+    isa => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_crispr_well_descendants {
+    my ($self) = @_;
+    my ($start, $end);
+
+    # Find crispr wells for all designs on the plate
+    # using the crispr_wells cache
+    $start = time();
+    my @crispr_wells;
+
+    my @types = qw(single left right);
+    foreach my $well ($self->plate->wells){
+        my $crispr_designs = $self->crispr_wells->{ $well->id };
+        foreach my $crispr_design_id ( keys %{ $crispr_designs || {} } ){
+            foreach my $type (@types){
+                push @crispr_wells, @{ $crispr_designs->{$crispr_design_id}->{$type} || [] };
+            }
+        }
+    }
+
+    my @ids = uniq map { $_->id } @crispr_wells;
+    $end = time();
+    TRACE(sprintf "Search for all crispr wells took: %.2f",$end - $start);
+
+    # Search for descendants of all crispr wells using single recursive query
+    $start = time();
+    my $result = $self->model->get_descendants_for_well_id_list(\@ids);
+    $end = time();
+    TRACE(sprintf "All descendants query took: %.2f",$end - $start);
+
+    # Store list of child well ids for each crispr well
+    my $child_well_ids = {};
+    foreach my $path (@$result){
+        my ($root, @children) = @{ $path->[0]  };
+        unless(exists $child_well_ids->{$root}){
+            $child_well_ids->{$root} = [];
+        }
+        my $arrayref = $child_well_ids->{$root};
+        push @$arrayref, @children;
+    }
+
+    return $child_well_ids;
+}
 
 # Needed way of having multiple plate type reports but having only one of these
 # reports as the default report for that plate type.
@@ -124,31 +237,98 @@ sub accepted_crispr_columns {
     return ("Accepted Crispr Single", "Accepted Crispr Pairs");
 }
 
+sub _find_accepted_vector_wells{
+    my ($self,$crispr_wells) = @_;
+
+    my ($start, $end);
+
+    my @ids = map { $_->id } @{ $crispr_wells || [] };
+
+    return () unless @ids;
+
+    # Fetch crispr well descendant IDs from cache
+    $start = time();
+    my @descendant_ids = uniq map { @{ $self->crispr_well_descendants->{$_} || [] } } @ids;
+
+    # Fetch CRISPR_V wells from db
+    my @vectors = $self->model->schema->resultset('Well')->search(
+        {
+            'me.id' => { -in => \@descendant_ids },
+            'plate.type_id' => 'CRISPR_V'
+        },
+        {
+            prefetch => ['plate','well_accepted_override']
+        }
+    )->all;
+    $end = time();
+    TRACE(sprintf "Well search took: %.2f",$end - $start);
+
+    # Assume we are only interested in vectors on the most recently created crispr_v plate
+    my @accepted_wells;
+    my $most_recent_plate;
+
+    $start = time();
+    foreach my $well (@vectors){
+
+        next unless $well->is_accepted;
+
+        push @accepted_wells, $well;
+
+        my $plate = $well->plate;
+        $most_recent_plate ||= $plate;
+        if ($plate->created_at > $most_recent_plate->created_at){
+            $most_recent_plate = $plate;
+        }
+    }
+
+    my @return = grep { $_->plate_id == $most_recent_plate->id } @accepted_wells;
+    $end = time();
+    TRACE(sprintf "Newest accepted filter took: %.2f",$end - $start);
+
+    return @return;
+}
+
 sub accepted_crispr_data {
     my ( $self, $well ) = @_;
 
+    my $f_start = time();
     my (@single_crisprs, @paired_crisprs);
 
-    if (my $design = $well->design){
-        foreach my $crispr_design ($design->crispr_designs){
-            if(my $crispr = $crispr_design->crispr){
-                push @single_crisprs, $crispr->accepted_vector_wells;
-            }
-            elsif(my $crispr_pair = $crispr_design->crispr_pair){
-                my @left_crisprs = $crispr_pair->left_crispr->accepted_vector_wells;
-                my @right_crisprs = $crispr_pair->right_crispr->accepted_vector_wells;
-                if (@left_crisprs and @right_crisprs){
-                    my $left_as_string = join( q{/}, map {$_->as_string} @left_crisprs);
-                    my $right_as_string = join( q{/}, map {$_->as_string} @right_crisprs);
-                    my $pair_as_string = "[left:$left_as_string-right:$right_as_string]";
-                    push @paired_crisprs, $pair_as_string;
-                }
-            }
+    DEBUG("Finding accepted crispr wells for ".$well->as_string);
+
+    # Generate a list of single crispr wells related to well
+    my @single_cr_wells;
+
+    my $crispr_designs = $self->crispr_wells->{ $well->id };
+    foreach my $crispr_design_id ( keys %{ $crispr_designs || {} } ){
+        my $crispr_design = $crispr_designs->{$crispr_design_id};
+
+        # Store single crisprs for handling later
+        push @single_cr_wells, @{ $crispr_design->{single} || [] };
+
+        # Handle paired crisprs for each crispr_design because 
+        # left and right wells need to be reported together
+        my @left_cr_wells = @{ $crispr_design->{left} || [] };
+        my @right_cr_wells = @{ $crispr_design->{right} || [] };
+
+        my @left_accepted = $self->_find_accepted_vector_wells(\@left_cr_wells);
+        my @right_accepted = $self->_find_accepted_vector_wells(\@right_cr_wells);
+        if (@left_accepted and @right_accepted){
+            my $left_as_string = join( q{/}, map {$_->as_string} @left_accepted);
+            my $right_as_string = join( q{/}, map {$_->as_string} @right_accepted);
+            my $pair_as_string = "[left:$left_as_string-right:$right_as_string]";
+            push @paired_crisprs, $pair_as_string;
         }
     }
-    else{
-        LIMS2::Exception::Implementation->throw("Cannot find design for well ".$well->as_string);
-    }
+
+    # Handle the single crisprs for this well
+    @single_crisprs = $self->_find_accepted_vector_wells(\@single_cr_wells);
+
+    my $f_end = time();
+    my $elapsed = $f_end - $f_start;
+    TRACE(sprintf "Accepted crispr well search took: %.2f",$elapsed);
+    $self->time_taken($self->time_taken + $elapsed);
+    TRACE("total time taken: ".$self->time_taken);
     return (
         join( q{/}, map {$_->as_string} @single_crisprs ),
         join( q{ }, @paired_crisprs ),

@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'WellTargetingPuroPass';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::WellTargetingPuroPass not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::WellTargetingPuroPass" );
 
     #note("Accessing the schema");

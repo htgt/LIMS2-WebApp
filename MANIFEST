@@ -64,6 +64,9 @@ lib/LIMS2/Model/Schema/Result/CrisprLocus.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargetSummary.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargets.pm
 lib/LIMS2/Model/Schema/Result/CrisprPair.pm
+lib/LIMS2/Model/Schema/Result/CrisprPrimer.pm
+lib/LIMS2/Model/Schema/Result/CrisprPrimerType.pm
+lib/LIMS2/Model/Schema/Result/CrisprPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
 lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
@@ -78,8 +81,10 @@ lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/ExonCrisprs.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
 lib/LIMS2/Model/Schema/Result/GeneType.pm
+lib/LIMS2/Model/Schema/Result/GenericDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimer.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimerType.pm
+lib/LIMS2/Model/Schema/Result/GenotypingPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
@@ -2401,6 +2406,7 @@ root/static/test/fixtures/reference_data/CellLine.csv
 root/static/test/fixtures/reference_data/Chromosome.csv
 root/static/test/fixtures/reference_data/ColonyCountType.csv
 root/static/test/fixtures/reference_data/CrisprLociType.csv
+root/static/test/fixtures/reference_data/CrisprPrimerType.csv
 root/static/test/fixtures/reference_data/DesignCommentCategory.csv
 root/static/test/fixtures/reference_data/DesignOligoType.csv
 root/static/test/fixtures/reference_data/DesignType.csv

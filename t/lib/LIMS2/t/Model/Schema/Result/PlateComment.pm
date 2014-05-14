@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'PlateComment';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::PlateComment not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::PlateComment" );
 
     #note("Accessing the schema");

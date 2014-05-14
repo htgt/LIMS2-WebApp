@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GenotypingPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.192';
+    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.193';
 }
 ## use critic
 
@@ -68,6 +68,18 @@ __PACKAGE__->table("genotyping_primers");
   data_type: 'text'
   is_nullable: 0
 
+=head2 tm
+
+  data_type: 'numeric'
+  is_nullable: 1
+  size: [5,3]
+
+=head2 gc_content
+
+  data_type: 'numeric'
+  is_nullable: 1
+  size: [5,3]
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -84,6 +96,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "seq",
   { data_type => "text", is_nullable => 0 },
+  "tm",
+  { data_type => "numeric", is_nullable => 1, size => [5, 3] },
+  "gc_content",
+  { data_type => "numeric", is_nullable => 1, size => [5, 3] },
 );
 
 =head1 PRIMARY KEY
@@ -115,6 +131,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 genotyping_primer_loci
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "genotyping_primer_loci",
+  "LIMS2::Model::Schema::Result::GenotypingPrimersLoci",
+  { "foreign.genotyping_primer_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 genotyping_primer_type
 
 Type: belongs_to
@@ -131,8 +162,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:s/D2sf7MJ9TL0I3FzwhWlg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-12 15:07:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RqkQ6SlE+JL87KP0Kmwd4A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

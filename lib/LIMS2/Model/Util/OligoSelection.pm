@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.192';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.193';
 }
 ## use critic
 
@@ -70,9 +70,8 @@ sub pick_crispr_PCR_primers {
     my $crispr_primers = $params->{'crispr_primers'};
     my $species = $params->{'species'};
     my $repeat_mask = $params->{'repeat_mask'};
-    my %failed_primer_regions;
     # Return the design oligos as well so that we can report them to provide context later on
-    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length )
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_seq_start )
         = get_crispr_PCR_EnsEmbl_region( {
                 schema => $schema,
                 crispr_primers => $crispr_primers,
@@ -90,32 +89,24 @@ sub pick_crispr_PCR_primers {
             {
                 SEQUENCE_TARGET => $target_sequence_mask ,
             } );
+    my $primer_data;
+    my $primer_passes;
     if ( $result->num_primer_pairs ) {
-        INFO ( "$well_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
+        INFO ( "$well_id pcr primer region primer pairs: " . $result->num_primer_pairs );
+        $primer_data = parse_primer3_results( $result );
+        $primer_passes = pcr_genomic_check( $well_id, $species, $primer_data );
     }
     else {
         INFO ( "Failed to generate pcr primer pairs for $well_id" );
-        $failed_primer_regions{$well_id} = $primer3_explain;
+        INFO ( 'Primer3 reported: ');
+        INFO ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
+        INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
-
-
-    my $primer_data = parse_primer3_results( $result );
-
-    use DesignCreate::Exception::Primer3FailedFindOligos;
-
-    if (%failed_primer_regions) {
-        DesignCreate::Exception::Primer3FailedFindOligos->throw(
-            regions             => [ keys %failed_primer_regions ],
-            primer_fail_reasons => \%failed_primer_regions,
-        );
-    }
-
-    my $primer_passes = pcr_genomic_check( $well_id, $species, $primer_data );
 
     #TODO: If no primer pairs pass the genomic check, need to call this method recursively with a different
     #set of parameters until two pairs of primers are found.
 
-    return ($primer_data, $primer_passes);
+    return ($primer_data, $primer_passes, $chr_seq_start);
 }
 
 =head pick_genotyping_primers
@@ -136,9 +127,8 @@ sub pick_genotyping_primers {
     my $species = $params->{'species'};
     my $repeat_mask = $params->{'repeat_mask'};
 
-    my %failed_primer_regions;
     # Return the design oligos as well so that we can report them to provide context later on
-    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos)
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos, $chr_seq_start)
         = get_genotyping_EnsEmbl_region( {
                 schema => $schema,
                 design_id => $design_id,
@@ -156,33 +146,20 @@ sub pick_genotyping_primers {
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             { SEQUENCE_TARGET => $target_sequence_mask ,
             } );
+    my $primer_data;
+    my $primer_passes;
     if ( $result->num_primer_pairs ) {
         INFO ( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
+        $primer_data = parse_primer3_results( $result );
+        $primer_passes = genomic_check( $design_id, $well_id, $species, $primer_data, $chr_strand );
     }
     else {
         INFO ( "Failed to generate genotyping primer pairs for $design_id" );
-        $failed_primer_regions{$design_id} = $primer3_explain;
-
+        INFO ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
+        INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
 
-
-    my $primer_data = parse_primer3_results( $result );
-
-    use DesignCreate::Exception::Primer3FailedFindOligos;
-
-    if (%failed_primer_regions) {
-        DesignCreate::Exception::Primer3FailedFindOligos->throw(
-            regions             => [ keys %failed_primer_regions ],
-            primer_fail_reasons => \%failed_primer_regions,
-        );
-    }
-
-    my $primer_passes = genomic_check( $design_id, $well_id, $species, $primer_data, $chr_strand );
-
-    #TODO: If no primer pairs pass the genomic check, need to call this method recursively with a different
-    #set of parameters until two pairs of primers are found.
-
-    return ($primer_data, $primer_passes, $chr_strand, $design_oligos);
+    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
 }
 
 sub pcr_genomic_check {
@@ -560,8 +537,9 @@ sub get_crispr_PCR_EnsEmbl_region{
     my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
     my $target_sequence_string = $search_field_width . ',' . $target_sequence_length;
 
+    my $chr_region_start = $slice_region->start;
 
-    return ( $seq, $target_sequence_string, $target_sequence_length );
+    return ( $seq, $target_sequence_string, $target_sequence_length, $chr_region_start );
 }
 
 
@@ -638,8 +616,9 @@ sub get_genotyping_EnsEmbl_region {
 
     my $target_sequence_length = $seq->length  - $start_oligo_field_width - $end_oligo_field_width;
     my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
+    my $chr_region_start = $slice_region->start;
 
-    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos);
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos, $chr_region_start);
 
 }
 
@@ -708,7 +687,6 @@ sub update_primer_type {
 
 sub pick_crispr_primers {
     my $params = shift;
-
     my $repeat_mask = $params->{'repeat_mask'};
 
     my $crispr_oligos = oligos_for_crispr_pair( $params->{'schema'}, $params->{'crispr_pair_id'} );
@@ -718,6 +696,7 @@ sub pick_crispr_primers {
         $chr_seq_start, $chr_seq_end)
         = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos, $repeat_mask );
 
+        # FIXME:do we need this? we now return as a $chr_seq_start separate list item
     $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
@@ -731,29 +710,19 @@ sub pick_crispr_primers {
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             { SEQUENCE_TARGET => $target_sequence_mask ,
             } );
-    # for sequencing dont want pairs
-    my %failed_primer_regions;
+    my $primer_data;
     if ( $result->num_primer_pairs ) {
         INFO ( $params->{'crispr_pair_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
+        $primer_data = parse_primer3_results( $result );
     }
     else {
         INFO ( 'Failed to generate sequencing primers for ' . $params->{'crispr_pair_id'} );
-        $failed_primer_regions{$params->{'crispr_pair_id'}} = $primer3_explain;
-
+        INFO ( 'Primer3 reported: ');
+        INFO ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
+        INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
 
-    my $primer_data = parse_primer3_results( $result );
-    #
-    use DesignCreate::Exception::Primer3FailedFindOligos;
-
-    if (%failed_primer_regions) {
-        DesignCreate::Exception::Primer3FailedFindOligos->throw(
-            regions             => [ keys %failed_primer_regions ],
-            primer_fail_reasons => \%failed_primer_regions,
-        );
-    }
-
-    return ($crispr_oligos, $primer_data, $chr_strand);
+    return ($crispr_oligos, $primer_data, $chr_strand, $chr_seq_start);
 }
 
 
@@ -781,29 +750,19 @@ sub pick_single_crispr_primers {
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             { SEQUENCE_TARGET => $target_sequence_mask ,
             } );
-    # for sequencing dont want pairs
-    my %failed_primer_regions;
+    my $primer_data;
     if ( $result->num_primer_pairs ) {
         INFO ( $params->{'crispr_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
+        $primer_data = parse_primer3_results( $result );
     }
     else {
         INFO ( 'Failed to generate sequencing primers for ' . $params->{'crispr_id'} );
-        $failed_primer_regions{$params->{'crispr_id'}} = $primer3_explain;
-
+        INFO ( 'Primer3 reported: ');
+        INFO ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
+        INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
     }
 
-    my $primer_data = parse_primer3_results( $result );
-    #
-    use DesignCreate::Exception::Primer3FailedFindOligos;
-
-    if (%failed_primer_regions) {
-        DesignCreate::Exception::Primer3FailedFindOligos->throw(
-            regions             => [ keys %failed_primer_regions ],
-            primer_fail_reasons => \%failed_primer_regions,
-        );
-    }
-
-    return ($crispr_oligos, $primer_data, $chr_strand);
+    return ($crispr_oligos, $primer_data, $chr_strand, $chr_seq_start);
 }
 
 =head2 oligos_for_crispr_pair

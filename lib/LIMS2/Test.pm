@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.192';
+    $LIMS2::Test::VERSION = '0.193';
 }
 ## use critic
 
@@ -269,6 +269,7 @@ sub load_static_files {
             CassetteFunction
             CellLine
             ColonyCountType
+            CrisprPrimerType
             CrisprLociType
             DesignCommentCategory
             DesignOligoType

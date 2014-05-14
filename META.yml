@@ -63,7 +63,6 @@ requires:
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
   DateTime::Format::Strptime: 0
-  DesignCreate::Exception::Primer3FailedFindOligos: 0
   DesignCreate::Util::BWA: 0
   DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
@@ -137,6 +136,7 @@ requires:
   Text::CSV: 0
   Text::CSV_XS: 0
   Text::Iconv: 0
+  Time::HiRes: 0
   Try::Tiny: 0
   TryCatch: 0
   URI: 0
@@ -155,4 +155,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.192
+version: 0.193
