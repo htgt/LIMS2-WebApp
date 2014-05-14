@@ -1140,6 +1140,23 @@ sub left_and_right_crispr_wells {
     LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
 }
 ## use critic
+sub crispr_pair {
+    my $self = shift;
+
+    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
+
+    # Now lookup left and right crispr in the crispr_pair table and return the object to the caller
+    my $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
+           'left_crispr_id' => $left_crispr->crispr->id,
+           'right_crispr_id' => $right_crispr->crispr->id,
+        });
+
+    if (! $crispr_pair) {
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
+    }
+    return $crispr_pair;
+}
 
 __PACKAGE__->meta->make_immutable;
 1;
