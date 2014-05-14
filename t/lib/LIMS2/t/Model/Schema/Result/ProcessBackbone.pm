@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'ProcessBackbone';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::ProcessBackbone not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::ProcessBackbone" );
 
     #note("Accessing the schema");

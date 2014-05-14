@@ -1,2 +1,7 @@
-"id","name","password","active"
-"1081","test_user@example.org","","1"
+id,name,password,active
+1101,ka5@sanger.ac.uk,,t
+1102,apw@sanger.ac.uk,,t
+1103,unknown,,t
+1104,erb@sanger.ac.uk,,t
+1105,np7@sanger.ac.uk,,t
+1081,test_user@example.org,"",t

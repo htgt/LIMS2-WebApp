@@ -263,6 +263,7 @@ sub load_static_files {
             CassetteFunction
             CellLine
             ColonyCountType
+            CrisprPrimerType
             CrisprLociType
             DesignCommentCategory
             DesignOligoType
@@ -327,6 +328,7 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessCrispr
             ProcessNuclease
+            ProcessGlobalArmShorteningDesign
             Plate
             Well
             ProcessInputWell

@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'Recombinase';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::Recombinase not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::Recombinase" );
 
     #note("Accessing the schema");

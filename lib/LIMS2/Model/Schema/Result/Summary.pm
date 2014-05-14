@@ -837,6 +837,11 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 int_well_global_arm_shortening_design
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1163,6 +1168,8 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "sfp_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
+  "int_well_global_arm_shortening_design",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1178,8 +1185,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-03-12 11:18:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JXuD6ULiYapJxGzUtmRkQQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-12 11:05:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8o6MBb28r2NHm7MMZzXLWA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

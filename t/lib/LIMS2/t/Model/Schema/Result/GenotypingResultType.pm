@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'GenotypingResultType';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::GenotypingResultType not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::GenotypingResultType" );
 
     #note("Accessing the schema");
