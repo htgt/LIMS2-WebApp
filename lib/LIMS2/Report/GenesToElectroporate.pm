@@ -39,7 +39,7 @@ sub _build_gene_electroporate_list {
     my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
 
     my $project_rs;
-    if ( $self->has_sponsor ) {
+    if ( $self->has_sponsor && $self->sponsor ne 'All' ) {
         $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
     }
     else {
