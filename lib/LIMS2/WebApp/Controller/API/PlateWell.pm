@@ -596,14 +596,16 @@ sub well_genotyping_crispr_qc :Path('/api/fetch_genotyping_info_for_well') :Args
 }
 
 sub well_genotyping_crispr_qc_GET {
-    my ( $self, $c, $well_id ) = @_;
+    my ( $self, $c, $barcode ) = @_;
 
     #if this is slow we should use processgraph instead of 1 million traversals
 
     #well_id will become barcode
-    my $well = $c->model('Golgi')->schema->resultset('Well')->find( $well_id );
+    #my $well = $c->model('Golgi')->schema->resultset('Well')->find( $well_id );
 
-    return $self->status_bad_request( $c, message => "Well $well_id doesn't exist" )
+    my $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
+
+    return $self->status_bad_request( $c, message => "Barcode $barcode doesn't exist" )
         unless $well;
 
     my ( $data, $error );
@@ -613,10 +615,10 @@ sub well_genotyping_crispr_qc_GET {
     }
     catch {
         #get string representation if its a lims2::exception
-        $error = ref $_ ? $_->as_string : $_;
+        $error = ref $_ && $_->can('as_string') ? $_->as_string : $_;
     };
 
-    return $error ? $self->status_bad_request( $c, message => $error ) 
+    return $error ? $self->status_bad_request( $c, message => $error )
                   : $self->status_ok( $c, entity => $data );
 }
 

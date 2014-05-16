@@ -171,7 +171,7 @@ sub as_hash {
   if ( exists $options->{include_plate_name} ) {
     #wells might not exist yet, so for now just show a -
     #TODO: make this work even without a well
-    my $qc_well = $self->crispr_es_qc_wells->single;
+    my $qc_well = $self->crispr_es_qc_wells->first;
     $data->{plate_name} = $qc_well ? $qc_well->well->plate->name : "-";
   }
 

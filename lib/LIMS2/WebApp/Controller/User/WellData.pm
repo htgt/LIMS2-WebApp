@@ -390,14 +390,14 @@ sub well_genotyping_info :Path( '/user/well_genotyping_info' ) :Args() {
 
     if ( @args == 1 ) {
         my $well_id = shift @args;
-        
+
         $self->_stash_well_genotyping_info( $c, { id => $well_id } );
     }
     elsif ( @args == 2 ) {
         my ( $plate_name, $well_name ) = @args;
-        
-        $self->_stash_well_genotyping_info( 
-            $c, { plate_name => $plate_name, well_name => $well_name } 
+
+        $self->_stash_well_genotyping_info(
+            $c, { plate_name => $plate_name, well_name => $well_name }
         );
     }
     else {
@@ -418,10 +418,9 @@ sub _stash_well_genotyping_info {
         return;
     }
 
-    my ( $data, $error );
     try {
         #needs to be given a method for finding genes
-        $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
         $c->stash( data => $data );
     }
     catch {

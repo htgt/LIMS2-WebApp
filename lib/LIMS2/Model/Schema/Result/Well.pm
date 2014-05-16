@@ -966,11 +966,11 @@ sub is_epd_or_later {
   my $self = shift;
 
   #epd is ok with us
-  return 1 if $self->plate->type_id eq 'EP_PICK';
+  return $self if $self->plate->type_id eq 'EP_PICK';
 
   my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
   while ( my $ancestor = $ancestors->next ) {
-    return 1 if $ancestor->plate->type_id eq 'EP_PICK';
+    return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
   }
 
   #we didn't find any ep picks further up so its not 
@@ -1183,15 +1183,24 @@ sub genotyping_info {
 
   require LIMS2::Exception;
 
-  LIMS2::Exception->throw( "Provided well must be an epd well or later" )
-      unless $self->is_epd_or_later;
+  #get the epd well if one exists (could be ourself)
+  my $epd = $self->is_epd_or_later;
 
-  LIMS2::Exception->throw( "Well is not accepted" )
-      unless $self->accepted;
+  print "EPD plate is " . $epd->plate->name . "\n";
+  print "EPD well is " . $epd->name . "\n";
+
+  LIMS2::Exception->throw( "Provided well must be an epd well or later" )
+      unless $epd;
+
+  LIMS2::Exception->throw( "EPD well is not accepted" )
+     unless $epd->accepted;
 
   my @qc_wells = $self->result_source->schema->resultset('CrisprEsQcWell')->search(
-    { well_id => $self->id }
+    { well_id => $epd->id }
   );
+
+  LIMS2::Exception->throw( "No QC Wells found" )
+    unless @qc_wells;
 
   my $accepted_qc_well;
   for my $qc_well ( @qc_wells ) {
@@ -1202,7 +1211,9 @@ sub genotyping_info {
   }
 
   LIMS2::Exception->throw( "No QC wells are accepted" )
-      unless $accepted_qc_well;
+     unless $accepted_qc_well;
+
+  my ( $fwd_primer, $rev_primer ) = $accepted_qc_well->get_crispr_primers;
 
   my $vector_well = $self->final_vector;
 
@@ -1222,6 +1233,8 @@ sub genotyping_info {
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
+      fwd_primer => $fwd_primer->primer_seq,
+      rev_primer => $rev_primer->primer_seq,
   };
 }
 

@@ -195,6 +195,31 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 14:29:44
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v4JT/r2+CTz1PY54Qbv45A
 
+use JSON;
+
+sub get_crispr_primers {
+  my $self = shift;
+
+  #get crispr primers
+  my $analysis_data = decode_json( $self->analysis_data );
+
+  #see whether we're searching for crispr pair or crispr primers
+  my $field = $analysis_data->{is_pair} ? 'crispr_pair_id' : 'crispr_id';
+
+  my $search = {
+    $field      => $analysis_data->{crispr_id},
+    primer_name => $analysis_data->{forward}{primer},
+  };
+
+  #shouldn't really be 2 queries, this is ugly
+  my $fwd_primer = $self->result_source->schema->resultset('CrisprPrimer')->find( $search );
+
+  #now get the reverse
+  $search->{primer_name} = $analysis_data->{reverse}{primer};
+  my $rev_primer = $self->result_source->schema->resultset('CrisprPrimer')->find( $search );
+
+  return $fwd_primer, $rev_primer;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
