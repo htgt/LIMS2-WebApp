@@ -33,7 +33,7 @@
               <th>Product Type</th>
               <th>Earliest Date</th>
               <th>Latest Date</th>
-              <th>Transition Time (days)</th>
+              <th>Transition Time <i class="icon-question-sign" id="transition_time" href="#" data-content="Number of days that have passed since the first instance of a product type and the first instance of the next product type (or to date if there is no next product type yet)" rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
             </tr>
           </thead>
           <tbody>
@@ -631,4 +631,6 @@ $("#gene_id_input").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
   minLength: 2,
 });
+
+$('#transition_time').popover();
 </script>

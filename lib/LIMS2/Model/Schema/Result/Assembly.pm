@@ -117,6 +117,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_primers_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers_locis",
+  "LIMS2::Model::Schema::Result::CrisprPrimersLoci",
+  { "foreign.assembly_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 design_oligo_loci
 
 Type: has_many
@@ -143,6 +158,21 @@ Related object: L<LIMS2::Model::Schema::Result::DesignTarget>
 __PACKAGE__->has_many(
   "design_targets",
   "LIMS2::Model::Schema::Result::DesignTarget",
+  { "foreign.assembly_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 genotyping_primers_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "genotyping_primers_locis",
+  "LIMS2::Model::Schema::Result::GenotypingPrimersLoci",
   { "foreign.assembly_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -178,8 +208,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bWlElt9mequLm4Q8zk40Kg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w6AXpcHDohAOZ7MWQzza7g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

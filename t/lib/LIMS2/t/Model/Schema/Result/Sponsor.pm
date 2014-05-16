@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'Sponsor';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::Sponsor not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::Sponsor" );
 
     #note("Accessing the schema");

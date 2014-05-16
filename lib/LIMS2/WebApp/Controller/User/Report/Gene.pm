@@ -120,15 +120,15 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     my @timeline;
     my @designs_date;
     my $previous;
+    my @product;
 
     # product type 'Designs' is separate and taken care here
     foreach my $key ( keys %designs_hash ) {
         push @designs_date, $designs_hash{$key}->{design_details}->{created_at};
     }
     @designs_date = sort(@designs_date);
-    push @timeline, ['Designs', $designs_date[0], $designs_date[-1], '-' ];
-    $previous = $designs_date[0];
-
+    @product = ( 'Designs', $designs_date[0], $designs_date[-1] );
+    $previous = $designs_date[0] // POSIX::strftime( "%Y-%m-%d", localtime() );
     # prepare the product type names
     my $names = {
         'design'     => 'Design Instances',
@@ -146,6 +146,8 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'sfp'        => 'Second Electroporation Freezes',
     };
 
+
+
     # all the other product types
     for my $plate_type( @plate_types ) {
         if ( $sorted_wells{$plate_type} ) {
@@ -153,11 +155,16 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
             my @start_array = split(/-/, $previous);
             my $end = $sorted_wells{$plate_type}[-1]->{created_at};
             my @end_array = split(/-/, $start);
-            my $transition = Delta_Days(@start_array, @end_array);
-            push @timeline, [$names->{$plate_type}, $start, $end, $transition];
+            push @timeline, [@product, Delta_Days(@start_array, @end_array) ];
+            @product = ( $names->{$plate_type}, $start, $end );
             $previous = $start;
         }
     }
+    # print the last product, with the current date in transition time
+    my @start_array = split(/-/, $previous);
+    my @end_array = split(/-/, POSIX::strftime( "%Y-%m-%d", localtime() ) );
+    push @timeline, [@product, Delta_Days(@start_array, @end_array) ];
+    my $curr = POSIX::strftime( "%Y-%m-%d", localtime());
 
     $c->stash(
         'info'         => $gene_info,

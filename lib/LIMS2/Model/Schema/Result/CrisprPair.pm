@@ -132,6 +132,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers",
+  "LIMS2::Model::Schema::Result::CrisprPrimer",
+  { "foreign.crispr_pair_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 left_crispr
 
 Type: belongs_to
@@ -163,8 +178,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sB0a32DAqlmFSoESfhBv9Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bQqPDhB8jeHZ6KrzPo+pjg
 
 sub as_hash {
     my ( $self ) = @_;
