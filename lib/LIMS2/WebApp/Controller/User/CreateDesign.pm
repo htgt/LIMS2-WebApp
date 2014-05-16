@@ -481,10 +481,19 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         $design_data->{created_by} = $c->user->name;
         $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ];
-        $design_data->{id} = $design_id;
+        $design_data->{gene_ids} = [ map { $c->model('Golgi')->find_gene({ species => 'Mouse', search_term => $_ }) } @{ $design_data->{assigned_genes} } ];
+
+        my $gene_type_id;
+        if ($design_data->{species} eq 'Mouse') { $gene_type_id = 'MGI' };
+        if ($design_data->{species} eq 'Human') { $gene_type_id = 'HGNC' };
+        for (my $i=0; $i < scalar @{$design_data->{gene_ids}}; $i++ ) {
+            @{$design_data->{gene_ids}}[$i]->{gene_type_id} = $gene_type_id;
+        }
 
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
+
+        $design_data->{id} = $design_id;
 
         try {
             $c->model('Golgi')->c_create_design( $design_data );
