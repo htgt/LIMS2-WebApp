@@ -511,6 +511,7 @@ sub is_accepted {
 }
 
 use overload '""' => \&as_string;
+use List::MoreUtils qw( uniq );
 
 sub as_string {
     my $self = shift;
@@ -1137,6 +1138,55 @@ sub left_and_right_crispr_wells {
     LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
 }
 ## use critic
+
+#gene finder should be a method that accepts a species id and some gene ids,
+#returning a hashref 
+sub genotyping_info {
+  my ( $self, $gene_finder ) = @_;
+
+  require LIMS2::Exception;
+
+  LIMS2::Exception->throw( "Provided well must be an epd well or later" )
+      unless $self->is_epd_or_later;
+
+  LIMS2::Exception->throw( "Well is not accepted" )
+      unless $self->accepted;
+
+  my @qc_wells = $self->result_source->schema->resultset('CrisprEsQcWell')->search(
+    { well_id => $self->id }
+  );
+
+  my $accepted_qc_well;
+  for my $qc_well ( @qc_wells ) {
+    if ( $qc_well->accepted ) {
+      $accepted_qc_well = $qc_well;
+      last;
+    }
+  }
+
+  LIMS2::Exception->throw( "No QC wells are accepted" )
+      unless $accepted_qc_well;
+
+  my $vector_well = $self->final_vector;
+
+  my @gene_ids = uniq map { $_->gene_id } $vector_well->design->genes;
+
+  #get gene symbol from the solr
+  my @genes = map { $_->{gene_symbol} }
+                  values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
+
+  return {
+      gene      => @genes == 1 ? $genes[0] : [ @genes ],
+      well_id   => $self->id,
+      well_name => $self->name,
+      fwd_read  => $accepted_qc_well->fwd_read,
+      rev_read  => $accepted_qc_well->rev_read,
+      accepted  => $self->accepted,
+      targeting_vector => $vector_well->plate->name,
+      vector_cassette  => $vector_well->cassette->name,
+      qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
+  };
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

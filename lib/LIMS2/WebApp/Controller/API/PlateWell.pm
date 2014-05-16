@@ -558,22 +558,66 @@ sub genotyping_qc_save_distribute_changes_GET {
     return $self->status_ok( $c, entity => \@plate_data );
 }
 
+sub update_well_accepted :Path('/api/update_well_accepted') :Args(0) :ActionClass('REST') {
+}
+
+sub update_well_accepted_POST {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    my $qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
+        {
+            well_id             => $params->{well_id},
+            crispr_es_qc_run_id => $params->{qc_run_id},
+        },
+        { prefetch => 'well' }
+    );
+
+    #TODO: validate params
+
+    #set both the qc well and the actual well to accepted
+    try {
+        $c->model('Golgi')->txn_do(
+            sub {
+                $qc_well->update( { accepted => $params->{accepted} } );
+                $qc_well->well->update( { accepted => $params->{accepted} } );
+            }
+        );
+    }
+    catch {
+        $self->status_bad_request( $c, message => "Error: $_" );
+    };
+
+    return $self->status_ok( $c, entity => { success => 1 } );
+}
+
 sub well_genotyping_crispr_qc :Path('/api/fetch_genotyping_info_for_well') :Args(1) :ActionClass('REST') {
 }
 
 sub well_genotyping_crispr_qc_GET {
     my ( $self, $c, $well_id ) = @_;
 
+    #if this is slow we should use processgraph instead of 1 million traversals
+
     #well_id will become barcode
     my $well = $c->model('Golgi')->schema->resultset('Well')->find( $well_id );
 
-    unless ( $well->is_epd_or_later ) {
-        $self->status_bad_request( $c, message => "Provided well must be an epd well or later" );
+    return $self->status_bad_request( $c, message => "Well $well_id doesn't exist" )
+        unless $well;
+
+    my ( $data, $error );
+    try {
+        #needs to be given a method for finding genes
+        $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
     }
+    catch {
+        #get string representation if its a lims2::exception
+        $error = ref $_ ? $_->as_string : $_;
+    };
 
-    my %data = ( id => $well->id, name => $well->name );
-
-    return $self->status_ok( $c, entity => \%data );
+    return $error ? $self->status_bad_request( $c, message => $error ) 
+                  : $self->status_ok( $c, entity => $data );
 }
 
 =head1 AUTHOR

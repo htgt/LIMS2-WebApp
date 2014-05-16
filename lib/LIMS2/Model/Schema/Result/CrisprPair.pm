@@ -232,5 +232,17 @@ sub chr_name {
 
 sub is_pair { return 1; }
 
+sub related_designs {
+  my $self = shift;
+
+  my @crispr_designs = (
+    $self->crispr_designs,
+    $self->left_crispr->crispr_designs,
+    $self->right_crispr->crispr_designs,
+  );
+
+  return map { $_->design } @crispr_designs;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
