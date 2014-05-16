@@ -10,6 +10,7 @@ use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
 
 use LIMS2::REST::Client;
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
 
 BEGIN { extends 'Catalyst::Controller' };
@@ -495,8 +496,30 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         $design_data->{id} = $design_id;
 
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+
         try {
-            $c->model('Golgi')->c_create_design( $design_data );
+            my $design = $c->model('Golgi')->c_create_design( $design_data );
+            foreach my $gene ( @{ $design_data->{gene_ids} }) {
+                my $species = $design_data->{species};
+                my $build = $DEFAULT_SPECIES_BUILD{ lc($species) };
+                my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+                        { species_id => $species } )->assembly_id;
+                $create_design_util->calculate_design_targets( {
+                    ensembl_gene_id => $gene->{ensembl_id},
+                    gene_id         => $gene->{gene_id},
+                    target_start    => $design->target_region_start,
+                    target_end      => $design->target_region_end,
+                    chr_name        => $design->chr_name,
+                    user            => $design_data->{created_by},
+                    species         => $species,
+                    build_id        => $build,
+                    assembly_id     => $assembly,
+                } );
+            }
             $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
         }
         catch ($err) {
