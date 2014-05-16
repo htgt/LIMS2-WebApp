@@ -5,7 +5,6 @@
     <textarea class="input-xxlarge" name="wge_crispr_id" placeholder="WGE crispr id"></textarea>
     <span class="help-block">
       More than one crispr pair can be imported if provided a list of WGE crispr pair ids separated by whitespace or commas.
-      <br /> Please do not mix species.
     </span>
     <br />
     <input type="submit" name="import_crispr" class="btn btn-primary" value="Import Crispr" />

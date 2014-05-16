@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.194';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.195';
 }
 ## use critic
 
@@ -725,6 +725,7 @@ sub genes {
 SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN, 
 concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
 concat(ep_plate_name, '_', ep_well_name) AS EP, 
+concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP, 
 concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
 FROM summaries where design_gene_id = '$gene_id' AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );
 SQL_END
@@ -737,6 +738,7 @@ SQL_END
             push (@design, $row->{design}) unless ($row->{design} eq '_');
             push (@final_pick_info, $row->{final_pick}) unless ($row->{final_pick} eq '_');
             push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
+            push (@ep, $row->{crispr_ep}) unless ($row->{crispr_ep} eq '_');
             push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
         }
 

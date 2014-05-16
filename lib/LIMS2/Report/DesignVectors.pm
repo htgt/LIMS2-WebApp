@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignVectors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignVectors::VERSION = '0.194';
+    $LIMS2::Report::DesignVectors::VERSION = '0.195';
 }
 ## use critic
 

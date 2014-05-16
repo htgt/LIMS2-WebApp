@@ -1,3 +1,9 @@
+0.195     2014-05-16 12:51:40 Europe/London
+
+    Electroporation Summary report changed to cache
+    Gene sponsor report electroporations count crispr_ep in addition to ep
+    WGE design importer now assigns genes to designs and creates design targets
+
 0.194     2014-05-14 11:02:49 Europe/London
 
     WGE crispr importer now supports import from id lists

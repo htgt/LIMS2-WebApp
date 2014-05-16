@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.194';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.195';
 }
 ## use critic
 
@@ -40,7 +40,6 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
     my $params = $c->request->params;
 
     $params->{species} ||= $c->session->{selected_species};
-    delete $params->{sponsor} if $params->{sponsor} eq 'All';
 
     my $report_id = LIMS2::Report::cached_report(
         model      => $c->model( 'Golgi' ),
