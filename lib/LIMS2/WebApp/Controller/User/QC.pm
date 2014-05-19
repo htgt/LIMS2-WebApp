@@ -15,6 +15,8 @@ use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
+use List::MoreUtils qw( uniq firstval any );
+
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -215,6 +217,7 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
     $c->assert_user_roles( 'edit' );
 
     $c->stash->{profiles} = $self->_list_all_profiles;
+    $c->stash->{run_type} = 'vector';
 
     my $requirements = {
     	template_plate      => { validate => 'existing_qc_template_name'},
@@ -271,6 +274,76 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 	return;
 }
 
+sub submit_es_cell :Path('/user/submit_es_cell') :Args(0) {
+    my ( $self, $c ) = @_;
+
+use Smart::Comments;
+
+    $c->assert_user_roles( 'edit' );
+
+    $c->stash->{profiles} = $self->_list_all_profiles;
+    $c->stash->{run_type} = 'es_cell';
+
+    my $requirements = {
+        #template_plate      => { validate => 'existing_qc_template_name'},
+        profile             => { validate => 'non_empty_string'},
+        epd_plate           => { validate => 'non_empty_string'},
+        submit_initial_info => { optional => 0 },
+    };
+
+    # Store form values
+    $c->stash->{epd_plate} = $self->_clean_input( $c->req->param('epd_plate') );
+    # $c->stash->{sequencing_project} = [ $c->req->param('sequencing_project') ];
+    # $c->stash->{template_plate} = $c->req->param('template_plate');
+    $c->stash->{profile} = $c->req->param('profile');
+
+    $c->stash->{template_plate} = 'T' . $c->stash->{epd_plate};
+
+
+    print "epd_plate: ". $c->stash->{epd_plate} . "\n";
+    print "profile: ". $c->stash->{profile} . "\n";
+    print "template: ". $c->stash->{template_plate} . "\n";
+
+    my $run_id;
+
+    if ( $c->req->param( 'submit_initial_info' ) ) {
+        try{
+            # validate input params before doing anything else
+            $c->model( 'Golgi' )->check_params( $c->req->params, $requirements );
+            my $template_check = $c->model( 'Golgi' )->schema->resultset('QcTemplate')->find( { name => $c->stash->{template_plate} } );
+            if (!$template_check) {
+                die "Template plate ".$c->stash->{template_plate}." does not exist";
+            }
+            $c->stash->{epd_plate_request} = 1;
+        }
+        catch{
+            $c->stash( error_msg => "QC plate map generation failed with error $_" );
+            return;
+        };
+    }
+    elsif ( $c->req->param('launch_qc') ){
+
+        if ( $run_id = $self->_launch_es_cell_qc( $c ) ){
+        print "run_id: ". $run_id . "\n";
+        ### $run_id
+
+            $c->stash->{run_id} = $run_id;
+            $c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "
+                                       ."Go to <a href=\"".$c->uri_for('/user/latest_runs')."\">Latest Runs</a>"
+                                       ." to see the progress of your job";
+        }
+    }
+
+    return;
+}
+
+
+
+
+
+
+
+
 sub _launch_qc{
     my ($self, $c, $plate_map ) = @_;
 
@@ -283,12 +356,33 @@ sub _launch_qc{
         plate_map           => $plate_map,
         created_by          => $c->user->name,
         species             => $c->session->{ selected_species },
+        run_type            => $c->stash->{run_type},
     };
 
     my $content = htgt_api_call( $c, $params, 'submit_uri' );
 
     return $content->{ qc_run_id };
 }
+
+sub _launch_es_cell_qc{
+    my ($self, $c ) = @_;
+
+    my $params = {
+        profile             => $c->stash->{ profile },
+        template_plate      => $c->stash->{ template_plate },
+        sequencing_projects => $c->stash->{ epd_plate },
+        created_by          => $c->user->name,
+        species             => $c->session->{ selected_species },
+        run_type            => $c->stash->{run_type},
+    };
+
+    ### $params
+
+    my $content = htgt_api_call( $c, $params, 'submit_uri' );
+
+    return $content->{ qc_run_id };
+}
+
 
 sub latest_runs :Path('/user/latest_runs') :Args(0) {
     my ( $self, $c ) = @_;
@@ -401,7 +495,7 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
     $c->assert_user_roles( 'edit' );
 
     # Store form values
-    foreach my $param ( qw(template_plate source_plate cassette backbone phase_matched_cassette) ){
+    foreach my $param qw(template_plate source_plate cassette backbone phase_matched_cassette){
     	$c->stash->{$param} = $c->req->param($param);
     }
     $c->stash->{recombinase} = [ $c->req->param('recombinase') ];

@@ -191,6 +191,7 @@ sub htgt_api_call {
 
     #do everythign in a try because if it fails there's no template and you get a useless error
     try {
+
         die "No URI specified." unless $conf_uri_key;
 
         my $ua = LWP::UserAgent->new();
@@ -238,7 +239,14 @@ sub _create_qc_test_result_alignment_region {
 sub get_qc_run_seq_well_from_alignments {
     my ( $model, $qc_run_id, $alignments ) = @_;
 
-    my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{$alignments};
+    my @qc_seq_read_ids;
+
+    for my $a (uniq map { $_->{qc_seq_read_id} } @{$alignments} ) {
+
+        my ($fixed_start, $fixed_end) = $a =~ /(EPD\d*1012_\d)_[A-Z]_(?:\d_)?\d(.*)/;
+
+        push (@qc_seq_read_ids, $fixed_start.$fixed_end );
+    }
 
     my @wells = $model->schema->resultset('QcRunSeqWell')->search(
         {   'me.qc_run_id'                                => $qc_run_id,
@@ -252,7 +260,7 @@ sub get_qc_run_seq_well_from_alignments {
 
     LIMS2::Exception::Validation->throw(
         {
-            message => 'Alignments must belong to exactly one well',
+            message => 'Alignments must belong to exactly one well, have '. scalar (@wells),
             params  => { alignments => $alignments }
         }
     ) unless @wells == 1;
