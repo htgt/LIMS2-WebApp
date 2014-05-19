@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.195';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.196';
 }
 ## use critic
 
@@ -517,6 +517,7 @@ sub is_accepted {
 }
 
 use overload '""' => \&as_string;
+use List::MoreUtils qw( uniq );
 
 sub as_string {
     my $self = shift;
@@ -965,6 +966,23 @@ sub first_ep_pick {
 }
 ## use critic
 
+#maybe think of a better name for this
+#it just means it must be ep_pick or later
+sub is_epd_or_later {
+  my $self = shift;
+
+  #epd is ok with us
+  return $self if $self->plate->type_id eq 'EP_PICK';
+
+  my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+  while ( my $ancestor = $ancestors->next ) {
+    return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
+  }
+
+  #we didn't find any ep picks further up so its not 
+  return;
+}
+
 ## no critic(RequireFinalReturn)
 sub second_ep {
     my $self = shift;
@@ -1162,6 +1180,98 @@ sub crispr_pair {
         LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
     }
     return $crispr_pair;
+}
+
+#gene finder should be a method that accepts a species id and some gene ids,
+#returning a hashref 
+sub genotyping_info {
+  my ( $self, $gene_finder ) = @_;
+
+  require LIMS2::Exception;
+
+  #get the epd well if one exists (could be ourself)
+  my $epd = $self->is_epd_or_later;
+
+  LIMS2::Exception->throw( "Provided well must be an epd well or later" )
+      unless $epd;
+
+  LIMS2::Exception->throw( "EPD well is not accepted" )
+     unless $epd->accepted;
+
+  my @qc_wells = $self->result_source->schema->resultset('CrisprEsQcWell')->search(
+    { well_id => $epd->id }
+  );
+
+  LIMS2::Exception->throw( "No QC Wells found" )
+    unless @qc_wells;
+
+  my $accepted_qc_well;
+  for my $qc_well ( @qc_wells ) {
+    if ( $qc_well->accepted ) {
+      $accepted_qc_well = $qc_well;
+      last;
+    }
+  }
+
+  LIMS2::Exception->throw( "No QC wells are accepted" )
+     unless $accepted_qc_well;
+
+  # store primers in a hash of primer name -> seq
+  my %primers;
+  for my $primer ( $accepted_qc_well->get_crispr_primers ) {
+    #val is hash with name + seq
+    my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
+
+    push @{ $primers{$key} }, $val;
+  }
+
+  my $vector_well = $self->final_vector;
+  my $design = $vector_well->design;
+
+  #find primers related to the design
+  my @design_primers = $self->result_source->schema->resultset('GenotypingPrimer')->search(
+    { design_id => $design->id },
+    { order_by => { -asc => 'me.id'} }
+  );
+
+  for my $primer ( @design_primers ) {
+    my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
+
+    push @{ $primers{$key} }, $val;
+  }
+
+  my @gene_ids = uniq map { $_->gene_id } $design->genes;
+
+  #get gene symbol from the solr
+  my @genes = map { $_->{gene_symbol} }
+                  values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
+
+  return {
+      gene      => @genes == 1 ? $genes[0] : [ @genes ],
+      design_id => $design->id,
+      well_id   => $self->id,
+      well_name => $self->name,
+      plate_name => $self->plate->name,
+      fwd_read  => $accepted_qc_well->fwd_read,
+      rev_read  => $accepted_qc_well->rev_read,
+      epd_plate_name  => $epd->plate->name,
+      accepted  => $epd->accepted,
+      targeting_vector => $vector_well->plate->name,
+      vector_cassette  => $vector_well->cassette->name,
+      qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
+      primers          => \%primers,
+  };
+}
+
+sub _group_primers {
+  my ( $name, $seq ) = @_;
+
+  #split SF1 into qw(S F 1) so we can group properly
+  my @fields = split //, $name;
+
+  my $key = $fields[0] . $fields[-1];
+
+  return $key, { name => $name, seq => $seq };
 }
 
 __PACKAGE__->meta->make_immutable;

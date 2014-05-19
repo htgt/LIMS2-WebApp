@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcRuns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.195';
+    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.196';
 }
 ## use critic
 
@@ -165,12 +165,21 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KStXhk631rbpalREDS3uoA
 
 sub as_hash {
-  my ( $self ) = @_;
+  my ( $self, $options ) = @_;
 
   my $data = {
     created_by => $self->created_by->name,
     map { $_ => $self->$_ } $self->columns
   };
+
+  #if you enable this you should do a prefetch with:
+  #{'crispr_es_qc_wells' => { well => 'plate' }
+  if ( exists $options->{include_plate_name} ) {
+    #wells might not exist yet, so for now just show a -
+    #TODO: make this work even without a well
+    my $qc_well = $self->crispr_es_qc_wells->first;
+    $data->{plate_name} = $qc_well ? $qc_well->well->plate->name : "-";
+  }
 
   return $data;
 }

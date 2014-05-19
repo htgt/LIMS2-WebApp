@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.195';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.196';
 }
 ## use critic
 
@@ -63,8 +63,8 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
         #get HGNC/MGI ids
         my @gene_ids = uniq map { $_->gene_id }
-                                map { $_->design->genes }
-                                    $pair->crispr_designs;
+                                map { $_->genes }
+                                    $pair->related_designs;
 
         #get gene symbol from the solr
         my @genes = map { $_->{gene_symbol} }
@@ -114,14 +114,24 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
         #match strings aren't padded with X to the right, ideally they would all be the same length
 
+        my $well_accepted = $qc_well->well->accepted;
+        my $show_checkbox = 1; #by default we show the accepted checkbox
+        #if the well itself is accepted, we need to see if it was this run that made it so
+        if ( $well_accepted && ! $qc_well->accepted ) {
+            #the well was accepted on another QC run
+            $show_checkbox = 0;
+        }
+
         push @qc_wells, {
             es_qc_well_id => $qc_well->id,
+            well_id       => $qc_well->well->id,
             well_name     => $qc_well->well->name, #fetch the well and get name
             crispr_id     => $json->{crispr_id},
             gene          => join( ",", @genes ),
             alignment     => \%alignment_data,
             longest_indel => "",
-            accepted      => $qc_well->well->accepted
+            well_accepted => $well_accepted,
+            show_checkbox => $show_checkbox,
         };
     }
 
@@ -201,16 +211,16 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my @runs = $c->model('Golgi')->schema->resultset('CrisprEsQcRuns')->search(
-        { species_id => $c->session->{selected_species} },
+        { 'me.species_id' => $c->session->{selected_species} },
         {
-            prefetch => 'created_by',
+            prefetch => [ 'created_by', {'crispr_es_qc_wells' => { well => 'plate' }} ],
             rows     => 20,
-            order_by => { -desc => "created_at" }
+            order_by => { -desc => "me.created_at" }
         }
     );
 
     $c->stash(
-        runs => [ map { $_->as_hash } @runs ],
+        runs => [ map { $_->as_hash({ include_plate_name => 1}) } @runs ],
     );
 
     return;

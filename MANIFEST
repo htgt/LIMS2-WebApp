@@ -358,6 +358,8 @@ root/site/user/welldata/show_genotyping_qc_data.tt
 root/site/user/welldata/update_colony_picks_step_1.tt
 root/site/user/welldata/update_colony_picks_step_2.tt
 root/site/user/welldata/upload_genotyping_qc.tt
+root/site/user/welldata/well_genotyping_info.tt
+root/site/user/welldata/well_genotyping_info_search.tt
 root/static/appjs/DesignTargetsApp.js
 root/static/appjs/DesignTargetsApp_dev.js
 root/static/appjs/controller/LoadDesignTargetsView.js
