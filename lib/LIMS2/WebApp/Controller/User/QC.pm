@@ -370,7 +370,7 @@ sub _launch_es_cell_qc{
     my $params = {
         profile             => $c->stash->{ profile },
         template_plate      => $c->stash->{ template_plate },
-        sequencing_projects => $c->stash->{ epd_plate },
+        sequencing_projects => [ $c->stash->{ epd_plate } ],
         created_by          => $c->user->name,
         species             => $c->session->{ selected_species },
         run_type            => $c->stash->{run_type},
