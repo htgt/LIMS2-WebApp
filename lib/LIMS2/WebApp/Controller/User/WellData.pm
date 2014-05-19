@@ -389,9 +389,9 @@ sub well_genotyping_info :Path( '/user/well_genotyping_info' ) :Args() {
     my ( $self, $c, @args ) = @_;
 
     if ( @args == 1 ) {
-        my $well_id = shift @args;
+        my $barcode = shift @args;
 
-        $self->_stash_well_genotyping_info( $c, { id => $well_id } );
+        $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
     }
     elsif ( @args == 2 ) {
         my ( $plate_name, $well_name ) = @args;
@@ -425,7 +425,7 @@ sub _stash_well_genotyping_info {
     }
     catch {
         #get string representation if its a lims2::exception
-        $c->stash( error_msg => ref $_ ? $_->as_string : $_ );
+        $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
     };
 
     return;

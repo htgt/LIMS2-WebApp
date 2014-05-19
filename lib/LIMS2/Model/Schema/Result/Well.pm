@@ -1186,9 +1186,6 @@ sub genotyping_info {
   #get the epd well if one exists (could be ourself)
   my $epd = $self->is_epd_or_later;
 
-  print "EPD plate is " . $epd->plate->name . "\n";
-  print "EPD well is " . $epd->name . "\n";
-
   LIMS2::Exception->throw( "Provided well must be an epd well or later" )
       unless $epd;
 
@@ -1213,11 +1210,31 @@ sub genotyping_info {
   LIMS2::Exception->throw( "No QC wells are accepted" )
      unless $accepted_qc_well;
 
-  my ( $fwd_primer, $rev_primer ) = $accepted_qc_well->get_crispr_primers;
+  # store primers in a hash of primer name -> seq
+  my %primers;
+  for my $primer ( $accepted_qc_well->get_crispr_primers ) {
+    #val is hash with name + seq
+    my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
+
+    push @{ $primers{$key} }, $val;
+  }
 
   my $vector_well = $self->final_vector;
+  my $design = $vector_well->design;
 
-  my @gene_ids = uniq map { $_->gene_id } $vector_well->design->genes;
+  #find primers related to the design
+  my @design_primers = $self->result_source->schema->resultset('GenotypingPrimer')->search(
+    { design_id => $design->id },
+    { order_by => { -asc => 'me.id'} }
+  );
+
+  for my $primer ( @design_primers ) {
+    my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
+
+    push @{ $primers{$key} }, $val;
+  }
+
+  my @gene_ids = uniq map { $_->gene_id } $design->genes;
 
   #get gene symbol from the solr
   my @genes = map { $_->{gene_symbol} }
@@ -1225,17 +1242,30 @@ sub genotyping_info {
 
   return {
       gene      => @genes == 1 ? $genes[0] : [ @genes ],
+      design_id => $design->id,
       well_id   => $self->id,
       well_name => $self->name,
+      plate_name => $self->plate->name,
       fwd_read  => $accepted_qc_well->fwd_read,
       rev_read  => $accepted_qc_well->rev_read,
-      accepted  => $self->accepted,
+      epd_plate_name  => $epd->plate->name,
+      accepted  => $epd->accepted,
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
-      fwd_primer => $fwd_primer->primer_seq,
-      rev_primer => $rev_primer->primer_seq,
+      primers          => \%primers,
   };
+}
+
+sub _group_primers {
+  my ( $name, $seq ) = @_;
+
+  #split SF1 into qw(S F 1) so we can group properly
+  my @fields = split //, $name;
+
+  my $key = $fields[0] . $fields[-1];
+
+  return $key, { name => $name, seq => $seq };
 }
 
 __PACKAGE__->meta->make_immutable;
