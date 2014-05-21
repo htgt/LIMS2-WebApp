@@ -56,7 +56,6 @@ sub build_summary_data {
 
     my @projects = $self->model->schema->resultset('Project')->search({
         sponsor_id     => $sponsor,
-        targeting_type => 'double_targeted',
     },{
         select => [ 'gene_id' ],
     });
