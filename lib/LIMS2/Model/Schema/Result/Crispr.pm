@@ -349,6 +349,24 @@ sub chr_name {
     return shift->current_locus->chr->name;
 }
 
+sub target_slice {
+    my ( $self, $ensembl_util ) = @_;
+
+    unless ( $ensembl_util ) {
+        require WebAppCommon::Util::EnsEMBL;
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->species_id );
+    }
+
+    my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $self->chr_name,
+        $self->start,
+        $self->end
+    );
+
+    return $slice;
+}
+
 sub guide_rna {
     my ( $self ) = @_;
 
