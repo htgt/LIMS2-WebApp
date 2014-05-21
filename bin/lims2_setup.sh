@@ -5,6 +5,7 @@ export LIMS2_DEBUG_DEFINITION="perl -d"
 
 #TODO: check that we are in the correct directory
 export LIMS2_MIGRATION_ROOT=`pwd`;
+export LIMS2_SHARED=~/git-checkout
 
 function lims2 {
 case $1 in
@@ -138,7 +139,8 @@ function lims2_load_generic {
 
 function lims2_replicate_generic {
     if [[ `$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $1` == $1 ]] ; then
-        printf "$L2I_STRING: preparing to replicate LIMS2_LIVE_MIGRATE into $1 (db: $1)\n"
+        dbname=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $1 --dbname`
+        printf "$L2I_STRING: preparing to replicate LIMS2_LIVE into $1 (db: $dbname)\n"
         read -p "Are you sure you want to continue with replication? (Type y to continue) " -n 1
         if [[ ! $REPLY =~ ^[Yy]$ ]]
         then
@@ -147,11 +149,11 @@ function lims2_replicate_generic {
         fi
         printf "\n$L2I_STRING: continuing with database replication\n"
            perl $LIMS2_DEV_ROOT/script/lims2_clone_database.pl \
-            --source_defn LIMS2_LIVE_MIGRATE \
+            --source_defn LIMS2_LIVE \
             --source_role lims2 \
             --destination_defn $1 \
             --destination_role lims2 \
-            --destination_db $2 \
+            --destination_db $dbname \
             --overwrite 1 \
             --with_data 1 \
             --create_test_role 0 
@@ -163,6 +165,18 @@ function lims2_replicate_generic {
 
 function lims2_load_staging {
     source $LIMS2_DEV_ROOT/bin/lims2_staging_clone 
+}
+
+function lims2_devel {
+    unset PERL5LIB
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-WebApp/lib
+    export PERL5LIB="$PERL5LIB:$LIMS2_SHARED/Eng-Seq-Builder/lib:$LIMS2_SHARED/HTGT-QC-Common/lib:$LIMS2_SHARED/LIMS2-REST-Client/lib"
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Exception/lib
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Utils/lib
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/WebApp-Common/lib
+    export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
 }
 
 function lims2_show {
