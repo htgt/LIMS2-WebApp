@@ -148,6 +148,7 @@ requires:
   WebAppCommon::Util::EnsEMBL: 0
   WebAppCommon::Util::FindGene: 0
   YAML::Any: 0
+  YAML::XS: 0
   base: 0
   feature: 0
   namespace::autoclean: 0
@@ -155,4 +156,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.195
+version: 0.198

@@ -32,6 +32,27 @@ $(document).ready(function() {
         parent.empty().append(c_a).append(c_b);
     });
 
+    $(".accepted").click(function() {
+        console.log( this.value );
+        console.log( $("#qc_run_id").text() );
+
+        //fade element out until its saved, waiting at least 500ms
+        var element = $(this).parent().parent();
+        element.fadeTo( "slow", 0.5 ).delay(500);
+
+        $.post(
+            '[% c.uri_for("/api/update_well_accepted") %]', 
+            { "well_id": this.value, "qc_run_id": $("#qc_run_id").text(), "accepted": this.checked },
+            
+            function (data) {
+                console.log(data);
+                //fade back in
+                element.fadeTo( "slow", 1 );
+            },
+            'json'
+        );
+    });
+
     //s.replaceWith(String(s.text()).colour_with_cigar(m.text()));
 });
 
@@ -101,7 +122,7 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
     <table class="table table-condensed">
         <tr>
             <th>QC Run ID</th>
-            <td>[% qc_run_id %]</td>
+            <td id="qc_run_id">[% qc_run_id %]</td>
         </tr>
         <tr>
             <th>Sequencing project</th>
@@ -178,7 +199,11 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
             </td>
             <td>[% row.longest_indel %]</td>
             <td>
-                <input type="checkbox" name="accepted_[% row.well_id %]" [% row.accepted ? "checked" : "" %] />
+                [% IF row.show_checkbox %]
+                <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
+                [% ELSE %]
+                Accepted in another run
+                [% END %]
             </td>
             <!-- <td>trace</td> -->
         </tr>

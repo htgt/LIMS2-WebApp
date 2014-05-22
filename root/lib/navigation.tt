@@ -187,6 +187,15 @@
                 Cre Knockin ES Distribution Genes
               </a>
             </li>
+
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]">
+                Well Genotyping Info
+              </a>
+            </li>
+
           </ul>
         </li>
       </ul>

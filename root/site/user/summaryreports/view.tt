@@ -16,31 +16,43 @@
       [% FOR disp_col IN display_columns %]
         [% IF disp_col == "vector designs" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="vector_designs" href="#" data-content="Number of gibson designs created for this gene (may not yet be plated)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="vector_designs" href="#" data-content="Number of gibson designs created for this gene
+              <br /><small>(may not yet be plated)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSIF disp_col == "vector wells" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="vector_wells" href="#" data-content="Number of wells starting vector construction" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="vector_wells" href="#" data-content="Number of wells starting vector construction
+              <br /><small>(DESIGN wells)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSIF disp_col == "targeting vector wells" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="targeting_vector_wells" href="#" data-content="Number of targeting vector clones" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="targeting_vector_wells" href="#" data-content="Number of targeting vector clones
+              <br /><small>(FINAL wells)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "accepted vector wells" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="accepted_vector_wells" href="#" data-content="Number of accepted targeting vector clones
+              <br /><small>(FINAL wells accepted)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSIF disp_col == "passing vector wells" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="passing_vector_wells" href="#" data-content="Number of electroporatable targeting vectors clones (passing sequencing and DNA quality QC)" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="passing_vector_wells" href="#" data-content="Number of electroporatable targeting vectors clones
+              <br /><small>(DNA wells accepted)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSIF disp_col == "electroporations" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="electroporations" href="#" data-content="Number of electroporated wells" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="electroporations" href="#" data-content="Number of electroporated wells
+              <br /><small>(EP/CRISPR_EP wells)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSIF disp_col == "colonies picked" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="colonies_picked" href="#" data-content="Number of electroporated colonies picked for screening" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="colonies_picked" href="#" data-content="Number of electroporated colonies picked for screening
+              <br /><small>(EP_PICK wells)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSIF disp_col == "targeted clones" %]
             <th>[% disp_col %]
-              <i class="icon-question-sign" id="targeted_clones" href="#" data-content="Number of electroporated colonies passing genotyping screens" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+              <i class="icon-question-sign" id="targeted_clones" href="#" data-content="Number of electroporated colonies passing genotyping screens
+              <br /><small>(EP_PICK wells accepted)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
         [% ELSE %]
             <th>[% disp_col %]</th>
@@ -69,20 +81,26 @@
 					[% ELSE %]
 						<td style="color:orange">---</td>
 					[% END %]
-                [% ELSIF col == "gene_id" %]
-                    <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
-                [% ELSIF col == "gene_symbol" %]
-                    <td>[% colval %]</td>
-                [% ELSIF colval == "0" %]
-                    <td></td>
-                [% ELSIF colval %]
-                    [% IF col == 'passing_vector_wells' || col == 'targeted_clones' %]
-                    <td style="background:#8AD95A" >[% colval %]</td>
-                    [% ELSE %]
-                    <td style="background:#E5E4E2" >[% colval %]</td>
-                    [% END %]
-                [% ELSE %]
-				    <td>[% colval %]</td>
+        [% ELSIF col == "gene_id" %]
+            <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+        [% ELSIF col == "gene_symbol" %]
+            <td>[% colval %]</td>
+        [% ELSIF colval == "0" %]
+            <td></td>
+        [% ELSE %]
+          [% IF col == 'passing_vector_wells' || col == 'targeted_clones' %]
+            <td style="background:#8AD95A" >[% colval %]</td>
+          [% ELSIF col == 'crispr_pairs' 
+                || col == 'vector_designs' 
+                || col == 'vector_wells' 
+                || col == 'targeting_vector_wells' 
+                || col == 'accepted_vector_wells' 
+                || col == 'electroporations' 
+                || col == 'colonies_picked' %]
+            <td style="background:#E5E4E2" >[% colval %]</td>
+          [% ELSE %]
+            <td>[% colval %]</td>
+          [% END %]
 				[% END %]
 			[% END %]
 		</tr>
@@ -99,6 +117,7 @@
     $('#vector_wells').popover();
     $('#targeting_vector_wells').popover();
     $('#passing_vector_wells').popover();
+    $('#accepted_vector_wells').popover();
     $('#electroporations').popover();
     $('#colonies_picked').popover();
     $('#targeted_clones').popover();

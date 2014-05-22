@@ -1,7 +1,7 @@
 package LIMS2::Report::DNAPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DNAPlate::VERSION = '0.195';
+    $LIMS2::Report::DNAPlate::VERSION = '0.198';
 }
 ## use critic
 
@@ -98,7 +98,8 @@ override iterator => sub {
             }
         }
         else{
-            @accepted_crispr_data = $self->accepted_crispr_data( $well );
+            # Find accepted crispr DNA wells
+            @accepted_crispr_data = $self->accepted_crispr_data( $well, 'DNA' );
         }
 
         # acs - 20_05_13 - redmine 10545 - add cassette resistance

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.195';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.198';
 }
 ## use critic
 
@@ -201,6 +201,23 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 14:29:44
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v4JT/r2+CTz1PY54Qbv45A
 
+use JSON;
+
+sub get_crispr_primers {
+  my $self = shift;
+
+  #get crispr primers
+  my $analysis_data = decode_json( $self->analysis_data );
+
+  #see whether we're searching for crispr pair or crispr primers
+  my $field = $analysis_data->{is_pair} ? 'crispr_pair_id' : 'crispr_id';
+
+  #return a resultset of all the relevant crispr primers
+  return $self->result_source->schema->resultset('CrisprPrimer')->search(
+    { $field => $analysis_data->{crispr_id} },
+    { order_by => { -asc => 'me.primer_name' } }
+  );
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

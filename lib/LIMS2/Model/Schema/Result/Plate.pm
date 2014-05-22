@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.195';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.198';
 }
 ## use critic
 
@@ -97,6 +97,12 @@ __PACKAGE__->table("plates");
   data_type: 'text'
   is_nullable: 1
 
+=head2 sponsor_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -128,6 +134,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "barcode",
   { data_type => "text", is_nullable => 1 },
+  "sponsor_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -203,6 +211,26 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 sponsor
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Sponsor>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "sponsor",
+  "LIMS2::Model::Schema::Result::Sponsor",
+  { id => "sponsor_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 type
 
 Type: belongs_to
@@ -234,8 +262,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 07:55:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+AXaNCLnzHRrCT1SptfvFg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OfsVGCbzXEf/u17IzAJlmw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

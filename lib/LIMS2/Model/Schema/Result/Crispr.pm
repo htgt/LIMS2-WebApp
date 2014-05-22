@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.195';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.198';
 }
 ## use critic
 
@@ -312,7 +312,7 @@ sub as_hash {
         species   => $self->species_id,
         comment   => $self->comment,
         locus     => $locus ? $locus->as_hash : undef,
-        pam_right => $self->pam_right == 1 ? 'true' : $self->pam_right == 0 ? 'false' : '',
+        pam_right => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
     );
 
     $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
@@ -353,6 +353,24 @@ sub chr_id {
 
 sub chr_name {
     return shift->current_locus->chr->name;
+}
+
+sub target_slice {
+    my ( $self, $ensembl_util ) = @_;
+
+    unless ( $ensembl_util ) {
+        require WebAppCommon::Util::EnsEMBL;
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->species_id );
+    }
+
+    my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $self->chr_name,
+        $self->start,
+        $self->end
+    );
+
+    return $slice;
 }
 
 sub guide_rna {
