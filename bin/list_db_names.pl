@@ -52,11 +52,11 @@ Returns the profile name of the specified database, if it is present in dbconnec
 Returns the list of database profiles from dbconnect.yaml
 
 If the dbname option is specified, returns the database name listed in the postgresql
-connection string from dbconnect.yaml. 
+connection string from dbconnect.yaml.
 
 END_DIE
 }
-    
+
 sub get_db_names {
     if (exists $ENV{'LIMS2_DBCONNECT_CONFIG'} ) {
         return LoadFile($ENV{'LIMS2_DBCONNECT_CONFIG'})
@@ -65,6 +65,8 @@ sub get_db_names {
     else {
         print STDERR "You need to set LIMS2_DBCONNECT_CONFIG - have you run the correct setup script?\n";
     }
+
+    return;
 }
 
 sub list_db_names {
@@ -101,7 +103,6 @@ sub check_db_name {
     }
     # Process the full database name information
     my $dbname;
-    my @return_list;
     # check the dsn line and parse out the database name
     # dsn: 'dbi:Pg:host=mcs16;port=5527;dbname=lims2_local_dp10'
     if ( $config->{$match}->{'dsn'} ) {
