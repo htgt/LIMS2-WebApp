@@ -1,7 +1,7 @@
 package LIMS2::Catalyst::Controller::REST;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Catalyst::Controller::REST::VERSION = '0.196';
+    $LIMS2::Catalyst::Controller::REST::VERSION = '0.197';
 }
 ## use critic
 

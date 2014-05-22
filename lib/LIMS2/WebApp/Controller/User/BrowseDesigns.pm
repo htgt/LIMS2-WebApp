@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.196';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.197';
 }
 ## use critic
 
@@ -68,6 +68,7 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
     my $design_id  = $c->request->param('design_id');
+    $c->log->debug( "view design $design_id" );
 
     my $design;
     try {
@@ -85,8 +86,6 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
     $design_data->{assigned_genes} = join q{, }, @{ $design_data->{assigned_genes} || [] };
 
     my $ucsc_db = $UCSC_BLAT_DB{ lc( $species_id) };
-
-    $c->log->debug( "Design: " . pp $design_data );
 
     my ( $crisprs, $crispr_pairs ) = crisprs_for_design( $c->model('Golgi'), $design );
 

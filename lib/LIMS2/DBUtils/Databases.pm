@@ -1,7 +1,7 @@
 package LIMS2::DBUtils::Databases;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::DBUtils::Databases::VERSION = '0.196';
+    $LIMS2::DBUtils::Databases::VERSION = '0.197';
 }
 ## use critic
 
@@ -82,7 +82,7 @@ has 'postgres_dump' => (
     is => 'rw',
     isa => 'Str',
     required => 1,
-    default => '/usr/bin/pg_dump',
+    default => $ENV{'PG_DUMP_EXE'} // '/usr/bin/pg_dump',
 );
 
 # Postgres restore binary
@@ -90,7 +90,7 @@ has 'postgres_restore' => (
     is => 'rw',
     isa => 'Str',
     required => 1,
-    default => '/usr/bin/pg_restore',
+    default => $ENV{'PG_RESTORE_EXE'} // '/usr/bin/pg_restore',
 );
 
 # Postgres 'psql' binary
@@ -98,7 +98,7 @@ has 'psql' => (
     is => 'rw',
     isa => 'Str',
     required => 1,
-    default => '/usr/bin/psql',
+    default => $ENV{'PSQL_EXE'} // '/usr/bin/psql',
 );
 
 =head1 METHODS

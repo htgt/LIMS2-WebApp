@@ -1,7 +1,7 @@
 package LIMS2::Report::EPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPSummary::VERSION = '0.196';
+    $LIMS2::Report::EPSummary::VERSION = '0.197';
 }
 ## use critic
 
@@ -62,7 +62,6 @@ sub build_summary_data {
 
     my @projects = $self->model->schema->resultset('Project')->search({
         sponsor_id     => $sponsor,
-        targeting_type => 'double_targeted',
     },{
         select => [ 'gene_id' ],
     });
