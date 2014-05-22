@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.196     2014-05-19 15:45:18 Europe/London
+
+    Added a REST page and a web page to view genotyping information for a well, with a barcode lookup. 
+
 0.195     2014-05-16 12:51:40 Europe/London
 
     Electroporation Summary report changed to cache
