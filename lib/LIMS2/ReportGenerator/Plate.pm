@@ -231,7 +231,8 @@ sub accepted_crispr_columns {
     return ("Accepted Crispr Single", "Accepted Crispr Pairs");
 }
 
-sub _find_accepted_vector_wells{
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _find_accepted_CRISPR_V_wells{
     my ($self,$crispr_wells) = @_;
 
     my ($start, $end);
@@ -281,9 +282,45 @@ sub _find_accepted_vector_wells{
 
     return @return;
 }
+## use critic
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _find_accepted_DNA_wells {
+    my ($self,$crispr_wells) = @_;
+
+    my ($start, $end);
+
+    my @ids = map { $_->id } @{ $crispr_wells || [] };
+
+    return () unless @ids;
+
+    # Fetch crispr well descendant IDs from cache
+    $start = time();
+    my @descendant_ids = uniq map { @{ $self->crispr_well_descendants->{$_} || [] } } @ids;
+
+    # Fetch CRISPR_V wells from db
+    my @dna_wells = $self->model->schema->resultset('Well')->search(
+        {
+            'me.id' => { -in => \@descendant_ids },
+            'plate.type_id' => 'DNA'
+        },
+        {
+            prefetch => ['plate','well_accepted_override']
+        }
+    )->all;
+    $end = time();
+    TRACE(sprintf "Well search took: %.2f",$end - $start);
+
+    return grep { $_->is_accepted } @dna_wells;
+}
+## use critic
 
 sub accepted_crispr_data {
-    my ( $self, $well ) = @_;
+    my ( $self, $well, $well_type ) = @_;
+
+    # Find accepted CRISPR_V wells as default
+    $well_type ||= 'CRISPR_V';
+    my $find_method = '_find_accepted_'.$well_type.'_wells';
 
     my $f_start = time();
     my (@single_crisprs, @paired_crisprs);
@@ -295,6 +332,7 @@ sub accepted_crispr_data {
 
     my $crispr_designs = $self->crispr_wells->{ $well->id };
     foreach my $crispr_design_id ( keys %{ $crispr_designs || {} } ){
+
         my $crispr_design = $crispr_designs->{$crispr_design_id};
 
         # Store single crisprs for handling later
@@ -305,18 +343,23 @@ sub accepted_crispr_data {
         my @left_cr_wells = @{ $crispr_design->{left} || [] };
         my @right_cr_wells = @{ $crispr_design->{right} || [] };
 
-        my @left_accepted = $self->_find_accepted_vector_wells(\@left_cr_wells);
-        my @right_accepted = $self->_find_accepted_vector_wells(\@right_cr_wells);
+        my @left_accepted = $self->$find_method(\@left_cr_wells);
+        my @right_accepted = $self->$find_method(\@right_cr_wells);
         if (@left_accepted and @right_accepted){
+            # Fetch the pair ID to display
+            my $pair_id = $self->model->schema->resultset('CrisprDesign')->find({
+                id => $crispr_design_id,
+            })->crispr_pair_id;
+
             my $left_as_string = join( q{/}, map {$_->as_string} @left_accepted);
             my $right_as_string = join( q{/}, map {$_->as_string} @right_accepted);
-            my $pair_as_string = "[left:$left_as_string-right:$right_as_string]";
+            my $pair_as_string = "Pair $pair_id"."[left:$left_as_string-right:$right_as_string]";
             push @paired_crisprs, $pair_as_string;
         }
     }
 
     # Handle the single crisprs for this well
-    @single_crisprs = $self->_find_accepted_vector_wells(\@single_cr_wells);
+    @single_crisprs = $self->$find_method(\@single_cr_wells);
 
     my $f_end = time();
     my $elapsed = $f_end - $f_start;
