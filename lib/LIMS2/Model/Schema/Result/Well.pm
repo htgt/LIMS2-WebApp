@@ -1176,6 +1176,61 @@ sub crispr_pair {
     return $crispr_pair;
 }
 
+sub crispr_primer_for{
+    my $self = shift;
+    my $params = shift;
+    #does params need validation?
+    my $crispr_primer_seq = '-'; # default sequence is hyphen - no sequence available
+
+    # Decide if well relates to a pair or a single crispr
+    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
+
+    my $primer_type = $params->{'primer_label'} =~ m/\A [SP] /xms ? 'crispr_primer' : 'genotyping_primer';
+
+    my $crispr_col_label;
+    my $crispr_id_value;
+    if (! $right_crispr ) {
+       $crispr_col_label = 'crispr_id'; 
+       $crispr_id_value = $left_crispr->crispr->id;
+    }
+    else {
+        $crispr_col_label = 'crispr_pair_id';
+        $crispr_id_value = $self->crispr_pair->id;
+    }
+
+    if ( $primer_type eq 'crispr_primer' ){
+        my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
+            $crispr_col_label => $crispr_id_value, 
+            'primer_name' => $params->{'primer_label'},
+        });
+        if ($result) {
+            $crispr_primer_seq = $result->primer_seq;
+        }   
+    }
+    else {
+        # it's a genotyping primer
+        my $genotyping_primer_rs = $self->result_source->schema->resultset('GenotypingPrimer')->search({
+                'design_id' => $self->design->id,
+                'genotyping_primer_type_id' => $params->{'primer_label'},
+            },
+            {
+                'columns' => [ qw/design_id genotyping_primer_type_id seq/ ],
+                'distinct' => 1,
+            }
+        );
+        if ($genotyping_primer_rs){
+            if ($genotyping_primer_rs->count == 1) {
+                $crispr_primer_seq = $genotyping_primer_rs->first->seq;
+            }
+            elsif ( $genotyping_primer_rs->count > 1) {
+                $crispr_primer_seq = 'multiple results!';
+            }
+        }
+    }
+
+    return $crispr_primer_seq;
+}
+
 #gene finder should be a method that accepts a species id and some gene ids,
 #returning a hashref 
 sub genotyping_info {

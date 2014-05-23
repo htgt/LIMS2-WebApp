@@ -21,8 +21,10 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
+        'Crispr Pair ID', 'Genoverse View',
         'Left Crispr Well', 'Left Crispr Designs', 'Right Crispr Well','Right Crispr Designs',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
+        'SF1', 'SR1', 'PF1', 'PR1', 'PF2', 'PR2', 'GF1', 'GR1', 'GF2', 'GR2', # primers
         'Created By','Created At',
     ];
 };
@@ -61,6 +63,8 @@ override iterator => sub {
         return [
             $well->name,
             $self->design_and_gene_cols($well),
+            $well->crispr_pair ? $well->crispr_pair->id : '-',
+            $self->button_for_genoverse(),
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $left_designs,
             $right_crispr ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
@@ -70,11 +74,30 @@ override iterator => sub {
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
             $final_vector->backbone->name,
             # join( q{/}, @{ $final_vector->recombinases } ),
+            $well->crispr_primer_for({ 'primer_label' => 'SF1' }),
+            $well->crispr_primer_for({ 'primer_label' => 'SR1' }),
+            $well->crispr_primer_for({ 'primer_label' => 'PF1' }),
+            $well->crispr_primer_for({ 'primer_label' => 'PR1' }),
+            $well->crispr_primer_for({ 'primer_label' => 'PF2' }),
+            $well->crispr_primer_for({ 'primer_label' => 'PR2' }),
+            $well->crispr_primer_for({ 'primer_label' => 'GF1' }),
+            $well->crispr_primer_for({ 'primer_label' => 'GR1' }),
+            $well->crispr_primer_for({ 'primer_label' => 'GF2' }),
+            $well->crispr_primer_for({ 'primer_label' => 'GR2' }),
             $well->created_by->name,
             $well->created_at->ymd,
         ];
     }
 };
+
+sub button_for_genoverse {
+    my $self = shift;
+        
+    return <<'END_BUTTON';
+<a class="btn btn-info btn-small" href="http://t87-dev.internal.sanger.ac.uk:3131/user/report/download/699A0CA0-E287-11E3-982F-C04BDB13ECEA">
+    <i class="icon-download-alt icon-white"></i>Browse</a>
+END_BUTTON
+}
 
 __PACKAGE__->meta->make_immutable;
 
