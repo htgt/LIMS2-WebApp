@@ -4,6 +4,7 @@
     <thead>
         <tr>
             <th>QC Run ID</th>
+            <th>Plate Name</th>
             <th>Sequencing Project</th>
             <th>Created By</th>
             <th>Created At</th>
@@ -14,6 +15,7 @@
         [% FOR run IN runs %]
         <tr>
             <td><a href="[% c.uri_for('es_qc_run', run.id) %]">[% run.id.substr(0, 8) %]</a></td>
+            <td>[% run.plate_name %]</dt>
             <td>[% run.sequencing_project %]</td>
             <td>[% run.created_by %]</td>
             <td>[% run.created_at %]</td>

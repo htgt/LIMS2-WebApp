@@ -72,6 +72,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Plate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "plates",
+  "LIMS2::Model::Schema::Result::Plate",
+  { "foreign.sponsor_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 projects
 
 Type: has_many
@@ -88,8 +103,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j+ncnrQtnpocRfBrWYpLzg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TjB+q2UTptKB+iI7jvzYpg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
