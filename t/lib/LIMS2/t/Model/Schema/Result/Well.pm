@@ -15,8 +15,8 @@ Test module structured for running under Test::Class
 
 =cut
 
-use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init($DEBUG);
+#use Log::Log4perl qw(:easy);
+#Log::Log4perl->easy_init($DEBUG);
 
 sub get_output_wells_as_string : Tests(3) {
     ok my $well = model->retrieve_well( { plate_name => 'CEPD0024_1', well_name => 'F08' } ),
