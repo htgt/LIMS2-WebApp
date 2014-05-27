@@ -1,1 +1,2 @@
-ALTER TABLE audit.well_dna_quality ADD COLUMN egel_pass boolean;
+ALTER TABLE audit.plates ADD COLUMN sponsor_id TEXT REFERENCES sponsors(id);
+

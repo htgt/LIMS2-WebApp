@@ -1,2 +1,3 @@
-ALTER TABLE well_dna_quality ADD COLUMN egel_pass BOOLEAN;
-ALTER TABLE well_dna_quality ALTER COLUMN quality DROP NOT NULL;
+ALTER TABLE plates ADD COLUMN sponsor_id TEXT REFERENCES sponsors(id);
+ALTER TABLE summaries ADD COLUMN sponsor_id TEXT;
+

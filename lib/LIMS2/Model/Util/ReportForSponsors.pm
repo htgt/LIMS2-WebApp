@@ -416,8 +416,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -445,8 +445,8 @@ sub generate_sub_report {
     my $dt_rpt_flds = {
         'Targeted Genes'            => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol' ],
-            'display_columns'       => [ 'gene id', 'gene' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                   => {
             'display_stage'         => 'Vectors',
@@ -717,58 +717,51 @@ sub genes {
         # get the plates
         my $sql =  <<"SQL_END";
 SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN, 
-concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
+concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL, 
+concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA, 
 concat(ep_plate_name, '_', ep_well_name) AS EP, 
 concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP, 
 concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
-FROM summaries where design_gene_id = '$gene_id' AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );
+FROM summaries where design_gene_id = '$gene_id'
 SQL_END
 
+        # project specific filtering
+        if ($self->species eq 'Human') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
+        } elsif ($sponsor_id eq 'Pathogens') {
+            $sql .= " AND ( sponsor_id = 'Pathogens' );";
+        } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+            $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        }
+
+        # run the query
         my $results = $self->run_select_query( $sql );
 
         # get the plates into arrays
-        my (@design, @final_pick_info, @final_pick, @ep, @ep_pick_info, @ep_pick);
+        my (@design, @final_info, @dna_info, @ep, @ep_pick_info);
         foreach my $row (@$results) {
             push (@design, $row->{design}) unless ($row->{design} eq '_');
-            push (@final_pick_info, $row->{final_pick}) unless ($row->{final_pick} eq '_');
+            push (@final_info, $row->{final}) unless ($row->{final} eq '_');
+            push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
             push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
             push (@ep, $row->{crispr_ep}) unless ($row->{crispr_ep} eq '_');
             push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
         }
 
-        # check for vector passes and count them
-        @final_pick_info = uniq @final_pick_info;
-        my ($vector_plate, $vector_string);
-        my $vector_pass = 0;
-        foreach my $vector (@final_pick_info) {
-            if ( $vector =~ m/(.*?)([^\d]*)$/ ) {
-                ($vector_plate, $vector_string) = ($1, $2);
-            }
-            push (@final_pick, $vector_plate);
-            if ($vector_string eq 'tt') {
-                $vector_pass++;
-            }
-        }
-
-        # check for targeted clone passes and count them
-        @ep_pick_info = uniq @ep_pick_info;
-        my ($ep_pick_plate, $ep_pick_string);
-        my $ep_pick_pass = 0;
-        foreach my $ep_pick (@ep_pick_info) {
-            if ( $ep_pick =~ m/(.*?)([^\d]*)$/ ) {
-                ($ep_pick_plate, $ep_pick_string) = ($1, $2);
-            }
-            push (@ep_pick, $ep_pick_plate);
-            if ($ep_pick_string eq 't') {
-                $ep_pick_pass++;
-            }
-        }
-
-        # remove all duplicates
+        # DESIGN
         @design = uniq @design;
-        @final_pick = uniq @final_pick;
+
+        # FINAL
+        my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
+
+        # DNA
+        my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
+
+        # EP/CRISPR_EP
         @ep = uniq @ep;
-        @ep_pick = uniq @ep_pick;
+
+        # EP_PICK
+        my ($ep_pick_count, $ep_pick_pass_count) = get_well_counts(\@ep_pick_info);
 
         # push the data for the report
         push @genes_for_display, {
@@ -777,11 +770,12 @@ SQL_END
             'crispr_pairs'           => $crispr_pairs_count,
             'vector_designs'         => $design_count,
             'vector_wells'           => scalar @design,
-            'targeting_vector_wells' => scalar @final_pick,
-            'passing_vector_wells'   => $vector_pass,
+            'targeting_vector_wells' => $final_count,
+            'accepted_vector_wells'  => $final_pass_count,
+            'passing_vector_wells'   => $dna_pass_count,
             'electroporations'       => scalar @ep,
-            'colonies_picked'        => scalar @ep_pick,
-            'targeted_clones'        => $ep_pick_pass,
+            'colonies_picked'        => $ep_pick_count,
+            'targeted_clones'        => $ep_pick_pass_count,
         };
     }
 
@@ -789,6 +783,25 @@ SQL_END
     my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
 
     return \@sorted_genes_for_display;
+}
+
+sub get_well_counts {
+    my ($list) = @_;
+
+    my (@well, @well_pass);
+    foreach my $row ( @{$list} ) {
+        if ( $row =~ m/(.*?)([^\d]*)$/ ) {
+            my ($well_well, $well_well_pass) = ($1, $2);
+            push (@well, $well_well);
+            if ($well_well_pass eq 't') {
+                push (@well_pass, $well_well);
+            }
+        }
+    }
+    @well = uniq @well;
+    @well_pass = uniq @well_pass;
+
+    return (scalar @well, scalar @well_pass);
 }
 
 sub vectors {
