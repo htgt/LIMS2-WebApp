@@ -1312,10 +1312,11 @@ sub compute_final_pick_dna_well_accepted {
         my $dna_status = $self->well_dna_status;
         my $dna_quality = $self->well_dna_quality;
         if ($final_pick_qc_seq and $dna_status and $dna_quality){
-            # FIXME: add dna_quality_status->egel_pass when this has been added to schema
             DEBUG("Computing final pick DNA accepted status");
+            DEBUG("Final pick QC status: ".$final_pick_qc_seq->pass);
             DEBUG("DNA status: ".$dna_status->pass);
-            if ( $final_pick_qc_seq->pass and $dna_status->pass ){
+            DEBUG("DNA egel pass: ".$dna_quality->egel_pass);
+            if ( $final_pick_qc_seq->pass and $dna_status->pass and $dna_quality->egel_pass){
                 DEBUG("Setting accepted to true");
                 $self->update({ accepted => 1 }); 
             }
@@ -1326,7 +1327,8 @@ sub compute_final_pick_dna_well_accepted {
         }
         else{
             # We do not have enough data to compute the accepted flag
-            # FIXME: unset accepted flag which may have been set elsewhere??
+            # unset accepted flag which may have been set elsewhere
+            $self->update({accepted => 0 });
             DEBUG("Not enough info to set accepted flag");
             return;
         }

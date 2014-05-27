@@ -362,6 +362,11 @@ sub create_well_dna_status {
         $well->accepted($dna_status->pass);
         $well->update();
 
+        # If this DNA well was generated from a FINAL_PICK then the accepted flag
+        # will be computed according to a more complex set of rules
+        # redmine ticket #11642
+        $well->compute_final_pick_dna_well_accepted();
+
         $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
     }
     else {
@@ -420,6 +425,11 @@ sub create_well_dna_quality {
         well_dna_quality => { slice_def $validated_params, qw( quality egel_pass comment_text created_by_id created_at ) }
     );
 
+    # If this DNA well was generated from a FINAL_PICK then the accepted flag
+    # will be computed
+    # redmine ticket #11642
+    $well->compute_final_pick_dna_well_accepted();
+
     return $dna_quality;
 }
 
@@ -433,6 +443,11 @@ sub update_or_create_well_dna_quality {
     my $dna_quality = $well->update_or_create_related(
         well_dna_quality => { slice_def $validated_params, qw( quality egel_pass comment_text created_by_id created_at ) }
     );
+
+    # If this DNA well was generated from a FINAL_PICK then the accepted flag
+    # will be computed
+    # redmine ticket #11642
+    $well->compute_final_pick_dna_well_accepted();
 
     return $dna_quality;
 }
