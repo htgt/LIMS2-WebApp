@@ -1290,7 +1290,7 @@ sub compute_final_pick_dna_well_accepted {
 
     my $final_pick_parent;
     while ( my $ancestor = $ancestors->next ) {
-        
+
         # Allow for rearraying of DNA plates
         next if $ancestor->plate->type_id eq 'DNA';
 
@@ -1318,7 +1318,7 @@ sub compute_final_pick_dna_well_accepted {
             DEBUG("DNA egel pass: ".$dna_quality->egel_pass);
             if ( $final_pick_qc_seq->pass and $dna_status->pass and $dna_quality->egel_pass){
                 DEBUG("Setting accepted to true");
-                $self->update({ accepted => 1 }); 
+                $self->update({ accepted => 1 });
             }
             else{
                 DEBUG("Setting accepted to false");
