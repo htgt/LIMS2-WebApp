@@ -400,10 +400,12 @@ sub pspec_create_well_dna_quality {
         well_id      => { validate => 'integer', optional => 1, rename => 'id' },
         plate_name   => { validate => 'existing_plate_name', optional => 1 },
         well_name    => { validate => 'well_name', optional => 1 },
-        quality      => { validate => 'dna_quality' },
+        quality      => { validate => 'dna_quality', optional => 1 },
+        egel_pass    => { validate => 'boolean', optional => 1 },
         comment_text => { validate => 'non_empty_string', optional => 1 },
         created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
-        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
+        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        REQUIRE_SOME => { quality_or_egel_pass => [ 1, qw(quality egel_pass) ] },
     }
 }
 
@@ -415,7 +417,21 @@ sub create_well_dna_quality {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $dna_quality = $well->create_related(
-        well_dna_quality => { slice_def $validated_params, qw( quality comment_text created_by_id created_at ) }
+        well_dna_quality => { slice_def $validated_params, qw( quality egel_pass comment_text created_by_id created_at ) }
+    );
+
+    return $dna_quality;
+}
+
+sub update_or_create_well_dna_quality {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_dna_quality );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $dna_quality = $well->update_or_create_related(
+        well_dna_quality => { slice_def $validated_params, qw( quality egel_pass comment_text created_by_id created_at ) }
     );
 
     return $dna_quality;
