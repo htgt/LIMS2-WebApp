@@ -1,7 +1,7 @@
 package LIMS2::Report::FinalPickVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FinalPickVectorPlate::VERSION = '0.197';
+    $LIMS2::Report::FinalPickVectorPlate::VERSION = '0.199';
 }
 ## use critic
 
@@ -55,7 +55,7 @@ override iterator => sub {
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well ),
-            $self->accepted_crispr_data( $well ),
+            $self->accepted_crispr_data( $well, 'CRISPR_V' ),
             $well->cassette->name,
             $well->cassette->resistance,
             ( $well->cassette->promoter ? 'promoter' : 'promoterless' ),
