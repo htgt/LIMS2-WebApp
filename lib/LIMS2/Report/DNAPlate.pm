@@ -1,7 +1,7 @@
 package LIMS2::Report::DNAPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DNAPlate::VERSION = '0.198';
+    $LIMS2::Report::DNAPlate::VERSION = '0.200';
 }
 ## use critic
 
@@ -32,7 +32,7 @@ override _build_columns => sub {
         $self->accepted_crispr_columns,
         "Cassette", "Cassette Resistance", "Backbone", "Recombinases",
         "Final Pick Vector Well", "Final Pick Vector QC Test Result", "Final Pick Vector Valid Primers", "Final Pick Vector Mixed Reads?", "Final Pick Vector Sequencing QC Pass?",
-        "DNA Quality", "DNA Quality Comment", "DNA Pass?", "DNA Concentration(ng/ul)", "Already Electroporated", "Child Well List", "Well Name"
+        "DNA Quality", "DNA Quality EGel Pass?", "DNA Quality Comment", "DNA Pass?", "DNA Concentration(ng/ul)", "Already Electroporated", "Child Well List", "Well Name"
     ];
 };
 
@@ -111,7 +111,7 @@ override iterator => sub {
             ( $well->backbone ? $well->backbone->name : '-' ),
             join( q{/}, @{ $well->vector_recombinases } ),
             $self->ancestor_cols( $well, 'FINAL_PICK' ),
-            ( $dna_quality ? ( $dna_quality->quality, $dna_quality->comment_text ) : ('')x2 ),
+            ( $dna_quality ? ( $dna_quality->quality, $self->boolean_str($dna_quality->egel_pass), $dna_quality->comment_text ) : ('')x3 ),
             ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' ),
             ( $dna_status  ? (sprintf "%.2f", $dna_status->concentration_ng_ul) : '' ),
             join (' ', @already_ep),

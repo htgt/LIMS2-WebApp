@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.198';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.200';
 }
 ## use critic
 
@@ -502,6 +502,14 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 use List::MoreUtils qw( any );
+
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 sub is_accepted {
     my $self = shift;
@@ -1274,5 +1282,65 @@ sub _group_primers {
   return $key, { name => $name, seq => $seq };
 }
 
+# Compute accepted flag for DNA created from FINAL_PICK
+# accepted = true if:
+# FINAL_PICK qc_sequencing_result pass == true AND
+# DNA well_dna_status pass == true AND
+# DNA well_dna_quality egel_pass == true
+sub compute_final_pick_dna_well_accepted {
+    my ( $self ) = @_;
+
+    return unless $self->plate->type_id eq 'DNA';
+
+    my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
+
+    my $final_pick_parent;
+    while ( my $ancestor = $ancestors->next ) {
+
+        # Allow for rearraying of DNA plates
+        next if $ancestor->plate->type_id eq 'DNA';
+
+        # Check plate type of parent well
+        if ( $ancestor->plate->type_id eq 'FINAL_PICK' ) {
+            $final_pick_parent = $ancestor;
+            DEBUG("Found final pick parent ".$ancestor->as_string);
+            last;
+        }
+        else{
+            # Parent is not a FINAL_PICK so skip accepted flag computation
+            DEBUG("Parent is not FINAL_PICK");
+            return;
+        }
+    }
+
+    if ($final_pick_parent){
+        my $final_pick_qc_seq = $final_pick_parent->well_qc_sequencing_result;
+        my $dna_status = $self->well_dna_status;
+        my $dna_quality = $self->well_dna_quality;
+        if ($final_pick_qc_seq and $dna_status and $dna_quality){
+            DEBUG("Computing final pick DNA accepted status");
+            DEBUG("Final pick QC status: ".$final_pick_qc_seq->pass);
+            DEBUG("DNA status: ".$dna_status->pass);
+            DEBUG("DNA egel pass: ".$dna_quality->egel_pass);
+            if ( $final_pick_qc_seq->pass and $dna_status->pass and $dna_quality->egel_pass){
+                DEBUG("Setting accepted to true");
+                $self->update({ accepted => 1 });
+            }
+            else{
+                DEBUG("Setting accepted to false");
+                $self->update({ accepted => 0 });
+            }
+        }
+        else{
+            # We do not have enough data to compute the accepted flag
+            # unset accepted flag which may have been set elsewhere
+            $self->update({accepted => 0 });
+            DEBUG("Not enough info to set accepted flag");
+            return;
+        }
+    }
+
+    return;
+}
 __PACKAGE__->meta->make_immutable;
 1;
