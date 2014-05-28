@@ -3,6 +3,8 @@ use Moose;
 use Try::Tiny;
 use namespace::autoclean;
 use Date::Calc qw(Delta_Days);
+use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
+use List::MoreUtils qw( uniq );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -72,6 +74,9 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     my %designs_hash;
     my %wells_hash;
 
+    # HashRefs
+    my $design_crisprs = {};
+
     # for each design fetch its summary table rows and build a hash of well details
     for my $design ( @{$designs} ) {
 
@@ -80,6 +85,14 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         unless ( exists $designs_hash{ $design_id } ) {
 
             $self->_add_design_details( $design_id, $design, \%designs_hash );
+
+            # Fetch crisprs and pairs targetting the design
+            my ($crisprs, $pairs) = crisprs_for_design($c->model('Golgi'),$design);
+            $designs_hash{ $design_id }->{ design_details }->{ crispr_count } = scalar(@$crisprs);
+            $designs_hash{ $design_id }->{ design_details }->{ crispr_pair_count } = scalar(@$pairs);
+
+            $design_crisprs->{ $design_id }->{ all } = $crisprs;
+            $design_crisprs->{ $design_id }->{ all_pairs } = $pairs;
 
         }
 
@@ -104,9 +117,105 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
 
+    # Add crispr information to wells_hash
+    $wells_hash{crispr} = {};
+    my @crispr_well_ids;
+    while (my ($design_id, $crispr_products) = each (%$design_crisprs) ){
+        
+        # Identify crisprs that have been plated
+        my @crispr_ids = map { $_->id } @{ $crispr_products->{all} };
+        my $process_crispr_rs = $c->model('Golgi')->schema->resultset('ProcessCrispr')->search(
+            { crispr_id => { '-in' => \@crispr_ids } },
+        );
+
+        while (my $process_crispr = $process_crispr_rs->next){
+            my $crispr_id = $process_crispr->crispr_id;
+            foreach my $well ($process_crispr->process->output_wells){
+
+                my $well_info = {
+                    well_id_string => $well->as_string,
+                    well_name      => $well->name,
+                    plate_id       => $well->plate->id,
+                    plate_name     => $well->plate->name,
+                    created_at     => $well->created_at->ymd,
+                    crispr_id      => $crispr_id,
+                    design_id      => $design_id,
+                };
+                $wells_hash{crispr}->{$well->as_string} = $well_info;
+
+                # Store list of well IDs to fetch descendants from
+                push @crispr_well_ids, $well->id;
+            }
+        }
+    }
+
+    # Get all crispr well descendants
+    my $result = $c->model('Golgi')->get_descendants_for_well_id_list(\@crispr_well_ids);
+
+    # Store list of child well ids
+    my @child_well_ids;
+    foreach my $path (@$result){
+        my ($root, @children) = @{ $path->[0]  };
+        push @child_well_ids, @children;
+    }
+    my @unique_well_ids = uniq @child_well_ids;
+
+    # Find descendant crispr vectors
+    my $crispr_vector_rs = $c->model('Golgi')->schema->resultset('Well')->search(
+        {
+            'me.id' => { -in => \@unique_well_ids },
+            'plate.type_id' => 'CRISPR_V'
+        },
+        {
+            prefetch => ['plate']
+        }
+    );
+
+    $wells_hash{crispr_vector} = {};
+    while (my $well = $crispr_vector_rs->next){
+        # FIXME: add crispr id, pair id, design id??
+        my $well_info = {
+            well_id_string => $well->as_string,
+            well_name      => $well->name,
+            plate_id       => $well->plate->id,
+            plate_name     => $well->plate->name,
+            created_at     => $well->created_at->ymd,
+            is_accepted    => $well->is_accepted,
+        };
+        $wells_hash{crispr_vector}->{ $well->as_string } = $well_info;
+    }
+    
+
+    my $crispr_dna_rs = $c->model('Golgi')->schema->resultset('Well')->search(
+        {
+            'me.id' => { -in => \@unique_well_ids },
+            'plate.type_id' => 'DNA'
+        },
+        {
+            prefetch => ['plate']
+        }
+    );
+    
+    $wells_hash{crispr_dna} = {};
+    while (my $well = $crispr_dna_rs->next){
+        # FIXME: add crispr id, pair id, design id??
+        my $well_info = {
+            well_id_string => $well->as_string,
+            well_name      => $well->name,
+            plate_id       => $well->plate->id,
+            plate_name     => $well->plate->name,
+            created_at     => $well->created_at->ymd,
+            status_pass    => ( $well->well_dna_status ? $well->well_dna_status->pass : '' ),
+            is_accepted    => $well->is_accepted,
+        };
+        $wells_hash{crispr_dna}->{ $well->as_string } = $well_info;
+    }
+
+    my @crispr_plate_types = qw(crispr crispr_vector crispr_dna);
+
     # created a hash that will contain the sorted data, from the wells_hash
     my %sorted_wells;
-    foreach my $type (@plate_types) {
+    foreach my $type (@plate_types, @crispr_plate_types) {
         if ($wells_hash{$type}) {
             my @sorted = sort { $a->{created_at} cmp $b->{created_at} ||
                                 $a->{plate_name} cmp $b->{plate_name} ||
