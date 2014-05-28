@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.200     2014-05-28 16:41:02 Europe/London
+
+    Added CSV download button to the Sponsor summary report
+
 0.199     2014-05-28 09:55:29 Europe/London
 
     Addition of EGel pass flag and form to upload them 
