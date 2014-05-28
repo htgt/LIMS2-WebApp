@@ -43,6 +43,8 @@ override iterator => sub {
     );
 
     return Iterator::Simple::iter sub {
+        $DB::single=1;
+
         my $well = $wells_rs->next
             or return;
 
@@ -92,11 +94,15 @@ override iterator => sub {
 
 sub button_for_genoverse {
     my $self = shift;
-        
-    return <<'END_BUTTON';
-<a class="btn btn-info btn-small" href="http://t87-dev.internal.sanger.ac.uk:3131/user/report/download/699A0CA0-E287-11E3-982F-C04BDB13ECEA">
-    <i class="icon-download-alt icon-white"></i>Browse</a>
-END_BUTTON
+
+    my $chr_start = 100000;
+    my $chr_end = 300000;
+    my $html_value =<<"END_ROW";
+custom:chr_start=$chr_start;chr_end=$chr_end;label=Genoverse
+END_ROW
+    chomp $html_value;
+    return $html_value; 
+
 }
 
 __PACKAGE__->meta->make_immutable;

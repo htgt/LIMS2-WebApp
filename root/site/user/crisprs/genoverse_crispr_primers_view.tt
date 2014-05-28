@@ -1,0 +1,88 @@
+[% META title="Browse Crispr Primers"; META tab_name = '' %]
+<div class="page-header">
+  <h1>[%- gene_symbol -%] 
+  <small>exon: <strong>[%exon_id%]</strong>
+  chr: [%- chromosome -%]
+  assembly: [%- genome -%]</small>
+  </h1>
+</div>
+
+    <script type="text/javascript" src="[% c.uri_for('/static/genoverse/js/genoverse.wtsi.js')%]">
+       {
+        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
+        // If no genome supplied, it must have at least chromosomeSize, e.g.:
+        // chromosomeSize : 249250621, // chromosome 1, human
+        [% USE String(genome) %]
+        genome    : '[% String.lower() %]', // see js/genomes/
+        chr       : '[% chromosome %]',
+        start     : [% exon_start %] - 2000,  // 2Kb context
+        end       : [% exon_end %] + 2000,
+        plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+        tracks    : [
+          Genoverse.Track.Scalebar,
+          Genoverse.Track.extend({
+            name      : 'Sequence',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url       : 'http://beta.rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
+            [% END %]            
+            model     : Genoverse.Track.Model.Sequence.Ensembl,
+            view      : Genoverse.Track.View.Sequence,
+            resizable : 'auto',
+            100000    : false
+          }),
+          Genoverse.Track.extend({
+            name      : 'Designs',
+            url       : "[% c.uri_for('/api/gibson_designs')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            model     : Genoverse.Track.Model.Transcript.GFF3,
+            view      : Genoverse.Track.View.Transcript,
+            resizable : 'auto',
+            height    : 150
+          }),
+[% IF view_single %]
+          Genoverse.Track.extend({
+            name      : 'Crisprs',
+            url       : "[% c.uri_for('/api/crispr')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            model     : Genoverse.Track.Model.Transcript.GFF3,
+            view      : Genoverse.Track.View.Transcript,
+            resizable : 'auto',
+            height    : 150
+          }),
+[% END %]
+[% IF view_paired %]
+          Genoverse.Track.extend({
+            name      : 'Crispr_pairs',
+            url       : "[% c.uri_for('/api/crispr_pairs')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            model     : Genoverse.Track.Model.Transcript.GFF3,
+            view      : Genoverse.Track.View.Transcript,
+            resizable : 'auto',
+            height    : 150
+          }),
+[% END %]
+          Genoverse.Track.extend({
+            name   : 'Genes',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url    : 'http://beta.rest.ensembl.org/feature/region/mouse/__CHR__:__START__-__END__?feature=gene;content-type=application/json',
+            [% END %]
+            height : 200,
+            info   : 'Ensembl API genes & transcripts, see <a href="http://beta.rest.ensembl.org/" target="_blank">beta.rest.ensembl.org</a> for more details',
+            
+            // Different settings for different zoom level
+            2000000: { // This one applies when > 2M base-pairs per screen
+              labels : false
+            },
+            100000: { // more than 100K but less then 2M
+              labels : true,
+              model  : Genoverse.Track.Model.Gene.Ensembl,
+              view   : Genoverse.Track.View.Gene.Ensembl
+            },
+            1: { // > 1 base-pair, but less then 100K
+              labels : true,
+              model  : Genoverse.Track.Model.Transcript.Ensembl,
+              view   : Genoverse.Track.View.Transcript.Ensembl
+            }
+          })
+        ]
+      }
+    </script>
+
+    <div id="genoverse"></div>
