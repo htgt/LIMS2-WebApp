@@ -89,19 +89,21 @@ sub get_crispr_summaries_for_designs{
     foreach my $design_id (@{ $params->{id_list} }){
         
         my $design = $self->c_retrieve_design({ id => $design_id });
+        
+        my @crispr_ids;
+        my @design_crispr_links = $design->crispr_designs;
+        foreach my $link (@design_crispr_links){
+            if ($link->crispr_id){
+                push @crispr_ids, $link->crispr_id;
+            }
+            elsif(my $pair = $link->crispr_pair){
+                push @crispr_ids, $pair->left_crispr_id, $pair->right_crispr_id;
+            }
+        }
 
-        # Fetch all crisprs and pairs targetting the design
-        my ($crisprs, $pairs) = crisprs_for_design($self,$design);
-
-        $result->{$design_id}->{all_crisprs} = $crisprs;
-        $result->{$design_id}->{all_pairs} = $pairs;
-
-        # Preserve crispr to design connection here and add crisp id to list
-        # We have to do this so that we can do a single well descend query
-        # and then organise the summary results by design id afterwards
-        foreach my $crispr (@$crisprs){
-        	$design_id_for_crispr->{ $crispr->id } = $design_id;
-        	push @crispr_id_list, $crispr->id;
+        foreach my $crispr_id (@crispr_ids){
+        	$design_id_for_crispr->{ $crispr_id } = $design_id;
+        	push @crispr_id_list, $crispr_id;
         }
     }
     DEBUG "crisprs found";
