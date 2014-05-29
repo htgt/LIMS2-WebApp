@@ -33,10 +33,6 @@ e.g
       [ crispr_pairs array ]
     plated_crisprs
       <crispr id>
-        CRISPR_array
-          [ crispr wells ]
-        crispr_well_id_list
-          [ well ids ]
         <crispr well id>
           CRISPR_V
             [ well resultset ]
@@ -140,23 +136,10 @@ sub get_summaries_for_crisprs{
     while (my $process_crispr = $process_crispr_rs->next){
         my $crispr_id = $process_crispr->crispr_id;
 
-        unless (exists $result->{$crispr_id}->{crispr_well_id_list} ){
-            $result->{$crispr_id}->{crispr_well_id_list} = [];
-        }
-        my $well_id_list = $result->{$crispr_id}->{crispr_well_id_list};
-
-        unless (exists $result->{$crispr_id}->{CRISPR_array} ){
-            $result->{$crispr_id}->{CRISPR_array} = [];
-        }
-        my $crispr_well_array = $result->{$crispr_id}->{CRISPR_array};
-
         foreach my $well ($process_crispr->process->output_wells){
             # Store list of well IDs to fetch descendants from
             $crispr_id_for_well->{ $well->id } = $crispr_id;
             push @crispr_well_id_list, $well->id;
-            # Store wells and IDs by crispr
-            push @$well_id_list, $well->id;
-            push @$crispr_well_array, $well;
         }
     }
     DEBUG "Crispr wells found";

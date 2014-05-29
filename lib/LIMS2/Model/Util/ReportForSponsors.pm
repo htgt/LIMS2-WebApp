@@ -775,10 +775,9 @@ SQL_END
         foreach my $design_id (keys %$crispr_summary){
             my $plated_crispr_summary = $crispr_summary->{$design_id}->{plated_crisprs};
             foreach my $crispr_id (keys %$plated_crispr_summary){
-                my $crispr_well_array = $plated_crispr_summary->{$crispr_id}->{CRISPR_array};
-                $crispr_count += scalar( @$crispr_well_array );
-                foreach my $crispr_well (@$crispr_well_array){
-                    my $crispr_well_id = $crispr_well->id;
+                my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
+                $crispr_count += scalar( @crispr_well_ids );
+                foreach my $crispr_well_id (@crispr_well_ids){
 
                     # CRISPR_V well count
                     my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};

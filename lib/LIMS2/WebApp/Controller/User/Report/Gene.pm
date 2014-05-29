@@ -122,7 +122,8 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         foreach my $crispr_id (keys %{ $design_summary->{plated_crisprs} }){
 
             my $crispr_summary = $design_summary->{plated_crisprs}->{$crispr_id};
-            foreach my $crispr_well (@{ $crispr_summary->{CRISPR_array} }){
+            foreach my $crispr_well_id (keys %{ $crispr_summary }){
+                my $crispr_well = $c->model('Golgi')->retrieve_well({ id => $crispr_well_id });
                 my $crispr_well_info = {
                     well_id_string => $crispr_well->as_string,
                     well_name      => $crispr_well->name,
