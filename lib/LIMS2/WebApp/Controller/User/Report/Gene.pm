@@ -2,6 +2,7 @@ package LIMS2::WebApp::Controller::User::Report::Gene;
 use Moose;
 use Try::Tiny;
 use namespace::autoclean;
+use Date::Calc qw(Delta_Days);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -34,7 +35,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
 
-    my $gene_info = try{ $c->model('Golgi')->retrieve_gene( { search_term => $gene, species => $species_id } ) };
+    my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $gene, species => $species_id } ) };
 
     # if we dont find a gene via solr index just search directly against the gene_design table
     my $gene_id;
@@ -47,7 +48,8 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     }
 
     # fetch designs for this gene
-    my $designs = $c->model('Golgi')->list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
+    # Uses WebAppCommon::Plugin::Design
+    my $designs = $c->model('Golgi')->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
 
     my $dispatch_fetch_values = {
         design     => \&fetch_values_for_type_design,
@@ -102,7 +104,6 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
 
-
     # created a hash that will contain the sorted data, from the wells_hash
     my %sorted_wells;
     foreach my $type (@plate_types) {
@@ -115,12 +116,62 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
 
+    # prepare data for the top Date Report
+    my @timeline;
+    my @designs_date;
+    my $previous;
+    my @product;
+
+    # product type 'Designs' is separate and taken care here
+    foreach my $key ( keys %designs_hash ) {
+        push @designs_date, $designs_hash{$key}->{design_details}->{created_at};
+    }
+    @designs_date = sort(@designs_date);
+    @product = ( 'Designs', $designs_date[0], $designs_date[-1] );
+    $previous = $designs_date[0] // POSIX::strftime( "%Y-%m-%d", localtime() );
+    # prepare the product type names
+    my $names = {
+        'design'     => 'Design Instances',
+        'int'        => 'Intermediate Vectors',
+        'final'      => 'Final Vectors',
+        'final_pick' => 'Final Pick Vectors',
+        'dna'        => 'DNA Preparations',
+        'ep'         => 'First Electroporations',
+        'ep_pick'    => 'First Electroporation Picks',
+        'xep'        => 'XEP Pools',
+        'sep'        => 'Second Electroporations',
+        'sep_pick'   => 'Second Electroporation Picks',
+        'fp'         => 'First Electroporation Freezer Instances',
+        'piq'        => 'Pre-Injection QCs',
+        'sfp'        => 'Second Electroporation Freezes',
+    };
+
+
+
+    # all the other product types
+    for my $plate_type( @plate_types ) {
+        if ( $sorted_wells{$plate_type} ) {
+            my $start = $sorted_wells{$plate_type}[0]->{created_at};
+            my @start_array = split(/-/, $previous);
+            my $end = $sorted_wells{$plate_type}[-1]->{created_at};
+            my @end_array = split(/-/, $start);
+            push @timeline, [@product, Delta_Days(@start_array, @end_array) ];
+            @product = ( $names->{$plate_type}, $start, $end );
+            $previous = $start;
+        }
+    }
+    # print the last product, with the current date in transition time
+    my @start_array = split(/-/, $previous);
+    my @end_array = split(/-/, POSIX::strftime( "%Y-%m-%d", localtime() ) );
+    push @timeline, [@product, Delta_Days(@start_array, @end_array) ];
+    my $curr = POSIX::strftime( "%Y-%m-%d", localtime());
 
     $c->stash(
         'info'         => $gene_info,
         'designs'      => \%designs_hash,
         'wells'        => \%wells_hash,
         'sorted_wells' => \%sorted_wells,
+        'timeline'     => \@timeline,
     );
 
     return;

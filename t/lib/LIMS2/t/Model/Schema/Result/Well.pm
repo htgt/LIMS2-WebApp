@@ -1,13 +1,9 @@
 package LIMS2::t::Model::Schema::Result::Well;
+use strict;
+
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Schema::Result::Well;
-use LIMS2::Model::DBConnect;
-use LIMS2::Model;
-use strict;
 use LIMS2::Test model => { classname => __PACKAGE__ };
-
-##  critic
 
 =head1 NAME
 
@@ -17,91 +13,95 @@ LIMS2/t/Model/Schema/Result/Well.pm - test class for LIMS2::Model::Schema::Resul
 
 Test module structured for running under Test::Class
 
-=head1 METHODS
-
 =cut
 
-=head2 BEGIN
+#use Log::Log4perl qw(:easy);
+#Log::Log4perl->easy_init($DEBUG);
 
-Loading other test classes at compile time
-
-=cut
-
-BEGIN {
-
-    # compile time requirements
-    #{REQUIRE_PARENT}
-}
-
-=head2 before
-
-Code to run before every test
-
-=cut
-
-sub before : Test(setup) {
-
-    #diag("running before test");
-}
-
-=head2 after
-
-Code to run after every test
-
-=cut
-
-sub after : Test(teardown) {
-
-    #diag("running after test");
-}
-
-=head2 startup
-
-Code to run before all tests for the whole test class
-
-=cut
-
-sub startup : Test(startup) {
-
-    #diag("running before all tests");
-}
-
-=head2 shutdown
-
-Code to run after all tests for the whole test class
-
-=cut
-
-sub shutdown : Test(shutdown) {
-
-    #diag("running after all tests");
-}
-
-=head2 all_tests
-
-Code to execute all tests
-
-=cut
-
-sub all_tests : Tests {
-    my $user          = 'lims2';
-    my $connect_entry = 'LIMS2_DB';
-    my $rs            = 'Well';
-    my %record        = ();
-
-    my $model = model();
-    ok( $model, 'Creating model' );
-
-    my $well = $model->retrieve_well( { plate_name => 'CEPD0024_1', well_name => 'F08' } );
-    ok( $well, "Retrieving well $well" );
-
-    my $children = $well->get_output_wells_as_string;
-    ok( $children, "Retrieving well data $children" );
+sub get_output_wells_as_string : Tests(3) {
+    ok my $well = model->retrieve_well( { plate_name => 'CEPD0024_1', well_name => 'F08' } ),
+        'can retrieve test well';
+    ok my $children = $well->get_output_wells_as_string, 'can call get_output_wells_as_string';
     is( $children, 'FP4734[F08]', "Checking well child" );
 }
 
-## use critic
+sub design : Tests() {
+    ok my $well = model->retrieve_well( { plate_name => 'PCS00037_A', well_name => 'A03' } ),
+        'can retrive test well';
 
+    ok my $design = $well->design, "can retrieve design from $well";
+    is $design->id, 42232, 'we get expected design from well';
+
+    ok my $well2 = model->retrieve_well( { plate_name => 'SHORTEN_ARM_INT', well_name => 'F08' } ),
+        'can retrive test well with short arm design';
+
+    ok my $design2 = $well2->design, "can retrieve a design from well $well2";
+    is $design2->id, 99992, 'we get expected design from well';
+    is $design2->global_arm_shortened, $design->id, '.. and this is the right short arm design';
+}
+
+sub designs : Tests() {
+    ok my $well = model->retrieve_well( { plate_name => 'PCS00037_A', well_name => 'A03' } ),
+        'can retrive test well';
+
+    ok my @designs = $well->designs, "can call designs from $well";
+    is scalar( @designs ), 1, 'we only have one design';
+    is $designs[0]->id, 42232, '.. and that is the correct design';
+
+    ok my $sep_well= model->retrieve_well( { plate_name => 'SEP0029_7', well_name => 'A01' } ),
+        'can retrive sep test well';
+
+    ok my @sep_designs = $sep_well->designs, "can call designs from $sep_well";
+    is scalar( @sep_designs ), 2, 'we have two designs from the sep well';
+    is $sep_designs[0]->id, 95204, '.. first design is correct';
+    is $sep_designs[1]->id, 95204, '.. second design is correct';
+}
+
+sub final_pick_dna_well_status : Tests() {
+    my %well_hash = ( plate_name => 'ETGRQ0007_A_1', well_name => 'C01' );
+    my %parent_hash = ( plate_name => 'ETGRD0007_A_1', well_name => 'C01' );
+    
+    ok my $well = model->retrieve_well({ %well_hash }) ,
+        'got well from DNA plate';
+    ok my $parent_well = model->retrieve_well({ %parent_hash }) ,
+        'got well from FINAL_PICK parent plate';
+    is $well->well_dna_status, undef, 'DNA well has no dna_status';
+    is $well->well_dna_quality, undef, 'DNA well has no dna_quality';
+    is $parent_well->well_qc_sequencing_result, undef, 'Parent well has no qc seq result';
+    $well->compute_final_pick_dna_well_accepted();
+    is $well->accepted, 0, 'well is not accepted';
+    
+    # Add related DNA and QC scores
+    ok model->create_well_qc_sequencing_result({ %parent_hash, pass => '1', created_by => 'test_user@example.org', test_result_url =>'http://www.test.com/stuff' }),
+        'created parent well qc seq result';
+    $well->compute_final_pick_dna_well_accepted();
+    $well = model->retrieve_well({ %well_hash });
+    is $well->accepted, 0, 'well is not accepted';
+
+    # compute_final_pick_dna_well_accepted will be run by create_well_dna_status
+    ok model->create_well_dna_status({ %well_hash, pass => '1', created_by => 'test_user@example.org'}),
+        'created well dna status';
+    $well = model->retrieve_well({ %well_hash });    
+    is $well->accepted, 0, 'well is not accepted';
+
+    # compute_final_pick_dna_well_accepted will be run by create_well_dna_quality
+    ok model->create_well_dna_quality({ %well_hash, egel_pass => 1, created_by => 'test_user@example.org'}),
+        'created well dna quality';
+    $well = model->retrieve_well({ %well_hash });
+    is $well->accepted, 1, 'well is accepted';
+
+    model->delete_well_dna_status({ %well_hash });
+    ok model->create_well_dna_status({ %well_hash, pass => '0', created_by => 'test_user@example.org'}),
+        'created fail well dna status';
+    $well = model->retrieve_well({ %well_hash }); 
+    is $well->accepted, 0, 'well is not accepted';
+
+    ok my $well2 = model->retrieve_well( { plate_name => 'PCS00037_A', well_name => 'A03' } ),
+        'can retrieve non-DNA test well';
+    $well2->compute_final_pick_dna_well_accepted();
+    is $well2->accepted, 0, 'well is not accepted';
+
+}
 1;
 
 __END__

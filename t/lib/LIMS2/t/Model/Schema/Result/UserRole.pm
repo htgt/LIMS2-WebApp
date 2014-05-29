@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'UserRole';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::UserRole not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::UserRole" );
 
     #note("Accessing the schema");

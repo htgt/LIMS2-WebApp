@@ -29,8 +29,8 @@ sub index :Path( '/user/sponsor_report' ) {
         $self->_generate_front_page_report ( $c, $targeting_type );
     }
     else {
-        # by default show the double-targeted page
-        $self->_generate_front_page_report ( $c, 'double_targeted' );
+        # by default show the single_targeted report
+        $self->_generate_front_page_report ( $c, 'single_targeted' );
     }
 
     return;

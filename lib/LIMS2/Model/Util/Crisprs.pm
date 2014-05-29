@@ -164,7 +164,7 @@ sub create_crispr_pair_design_links {
     my ( @create_log, @fail_log );
 
     for my $datum ( @{ $create_links } ) {
-        my $design = $model->retrieve_design( { id => $datum->{design_id} } );
+        my $design = $model->c_retrieve_design( { id => $datum->{design_id} } );
         my $crispr_pair = $model->schema->resultset( 'CrisprPair' )->find(
             { id => $datum->{crispr_pair_id} },
             { prefetch => [ 'left_crispr', 'right_crispr' ] },
@@ -199,7 +199,7 @@ sub create_crispr_design_links {
     my ( @create_log, @fail_log );
 
     for my $datum ( @{ $create_links } ) {
-        my $design = $model->retrieve_design( { id => $datum->{design_id} } );
+        my $design = $model->c_retrieve_design( { id => $datum->{design_id} } );
         my $crispr = $model->schema->resultset( 'Crispr' )->find(
             { id => $datum->{crispr_id} },
             { prefetch => 'loci' },
@@ -269,27 +269,16 @@ sub crispr_pair_hits_design {
         default_assembly => $default_assembly,
     );
 
-    unless (
-        crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) )
+    if (
+        !crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) &&
+        !crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info )
+    )
     {
-        ERROR( 'Left crispr ' . $crispr_pair->left_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
+        ERROR( 'Crispr Pair ' . $crispr_pair->id . ' does not hit design ' . $design->id );
         push @{$fail_log},
               'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
-        return 0;
-    }
-
-    unless (
-        crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info ) )
-    {
-        ERROR( 'Right crispr ' . $crispr_pair->right_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
-        push @{$fail_log},
-              'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
+            . ' & crispr pair: ' . $crispr_pair->id
+            . ', neither crispr lies wholly within target region of design';
         return 0;
     }
 

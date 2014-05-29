@@ -1,2 +1,3 @@
-"gene_id","design_id","created_by","created_at","gene_type_id"
-"MGI:1914724","42232","1081","2013-09-05 16:23:57.112484","MGI"
+gene_id,design_id,created_by,created_at,gene_type_id
+MGI:1921370,95204,1103,2014-05-09 14:39:28.333823,MGI
+MGI:1914724,42232,1081,2013-09-05 16:23:57.112484,MGI

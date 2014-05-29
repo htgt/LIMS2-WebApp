@@ -2,37 +2,27 @@ package LIMS2::WebApp::Controller::User::CreateDesign;
 
 use Moose;
 use namespace::autoclean;
-use Data::UUID;
-use Path::Class;
 use Const::Fast;
 use TryCatch;
+use Path::Class;
 
-use IPC::Run 'run';
-use LIMS2::Util::FarmJobRunner;
 use LIMS2::Exception::System;
-use LIMS2::Model::Util::CreateDesign qw( exons_for_gene get_ensembl_gene );
+use LIMS2::Model::Util::CreateDesign;
+
+use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+
 
 BEGIN { extends 'Catalyst::Controller' };
 
 #use this default if the env var isnt set.
-const my $DEFAULT_DESIGNS_DIR => dir( $ENV{ DEFAULT_DESIGNS_DIR } //
+const my $DEFAULT_DESIGNS_DIR => dir( $ENV{DEFAULT_DESIGNS_DIR} //
                                     '/lustre/scratch109/sanger/team87/lims2_designs' );
 const my @DESIGN_TYPES => (
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
             #{ cmd => 'insertion-design', display_name => 'Insertion' },
             #{ cmd => 'conditional-design', display_name => 'Conditional' },
         ); #display name is used to populate the dropdown
-
-#oligo select will be something like:
-#const my @OLIGO_SELECT_METHODS => (
-#        { cmd => 'block', display_name => 'Block Specified' },
-#        { cmd => 'location', display_name => 'Location Specified' }
-#    );
-
-#
-# TODO: add javascript to make sure target start isnt > target end
-#
 
 sub index : Path( '/user/create_design' ) : Args(0) {
     my ( $self, $c ) = @_;
@@ -145,6 +135,50 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
     $c->assert_user_roles( 'edit' );
 
+    return unless $c->request->param('gene_pick');
+
+    my $gene_id = $c->request->param('search_gene');
+    unless ( $gene_id ) {
+        $c->stash( error_msg => "Please enter a gene name" );
+        return;
+    }
+
+    # if user entered a exon id
+    if ( $gene_id =~ qr/^ENS[A-Z]*E\d+$/ ) {
+        my $exon_id = $gene_id;
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+
+        my $exon_data;
+        try{
+            $exon_data = $create_design_util->c_exon_target_data( $exon_id );
+        }
+        catch {
+            $c->log->warn("Unable to find gene information for exon $exon_id");
+            $c->stash( error_msg =>
+                    "Unable to find gene information for exon $exon_id, make sure it is a valid ensembl exon id"
+            );
+            return;
+        }
+
+        $c->stash(
+            gene_id         => $exon_data->{gene_id},
+            ensembl_gene_id => $exon_data->{ensembl_gene_id},
+            gibson_type     => 'deletion',
+            five_prime_exon => $exon_id,
+        );
+        $c->go( 'create_gibson_design' );
+    }
+    else {
+        # generate and display data for exon pick table
+        $c->forward( 'generate_exon_pick_data' );
+        return if $c->stash->{error_msg};
+
+        $c->go( 'gibson_design_exon_pick' );
+    }
+
     return;
 }
 
@@ -152,282 +186,170 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-    my $gene_name = $c->request->param('gene');
-    unless ( $gene_name ) {
-        $c->stash( error_msg => "Please enter a gene name" );
-        return $c->go('gibson_design_gene_pick');
-    }
 
-    my $species = $c->session->{selected_species};
-    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-        { species_id => $species } )->assembly_id;
+    if ( $c->request->params->{pick_exons} ) {
+        my $exon_picks = $c->request->params->{exon_pick};
 
-    $c->log->debug("Pick exon targets for gene $gene_name");
-    try {
-        my ( $gene_data, $exon_data )= exons_for_gene(
-            $c->model('Golgi'),
-            $c->request->param('gene'),
-            $c->request->param('show_exons'),
-            $species,
-        );
-
-        $c->stash(
-            exons    => $exon_data,
-            gene     => $gene_data,
-            assembly => $default_assembly,
-            species  => $species,
-        );
-    }
-    catch( LIMS2::Exception $e ) {
-        $c->stash( error_msg => "Problem finding gene: $e" );
-        $c->go('gibson_design_gene_pick');
-    };
-
-    return;
-}
-
-sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles( 'edit' );
-
-    if ( exists $c->request->params->{create_design} ) {
-        $c->log->info('Creating new design');
-        # parse and validate params
-        my $params = $self->parse_and_validate_gibson_params( $c );
-
-        # create design attempt record
-        my $design_attempt = $c->model('Golgi')->create_design_attempt(
-            {
-                gene_id    => $params->{gene_id},
-                status     => 'pending',
-                created_by => $c->user->name,
-                species    => $c->session->{selected_species},
-            }
-        );
-        $params->{da_id} = $design_attempt->id;
-
-        $self->find_or_create_design_target( $c, $params );
-
-        try {
-            my $cmd = $self->generate_gibson_design_cmd( $params );
-            $c->log->debug('Design create command: ' . join(' ', @{ $cmd } ) );
-
-            $self->run_design_create_cmd( $c, $cmd, $params );
-        }
-        catch ($err) {
-            $c->flash( error_msg => "Error submitting Design Creation job: $err" );
-            $c->res->redirect( 'gibson_design_gene_pick' );
+        unless ( $exon_picks ) {
+            $c->stash( error_msg => "No exons selected" );
+            $c->forward( 'generate_exon_pick_data' );
             return;
         }
 
-        $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
-    }
-    elsif ( exists $c->request->params->{exon_pick} ) {
-        my $gene_id = $c->request->param('gene_id');
-        my $exon_id = $c->request->param('exon_id');
-        my $ensembl_gene_id = $c->request->param('ensembl_gene_id');
-        $c->stash(
-            exon_id => $exon_id,
-            gene_id => $gene_id,
-            ensembl_gene_id => $ensembl_gene_id,
+        my %stash_hash = (
+            gene_id         => $c->request->param('gene_id'),
+            ensembl_gene_id => $c->request->param('ensembl_gene_id'),
+            gibson_type     => 'deletion',
         );
+
+        # if multiple exons, its an array_ref
+        if (ref($exon_picks) eq 'ARRAY') {
+            $stash_hash{five_prime_exon}  = $exon_picks->[0];
+            $stash_hash{three_prime_exon} = $exon_picks->[-1];
+        }
+        # if its not an array_ref, it is a string with a single exon
+        else {
+            $stash_hash{five_prime_exon} = $exon_picks;
+        }
+        $c->stash( %stash_hash );
+        $c->go( 'create_gibson_design' );
     }
-    return;
-}
-
-#TODO maybe move these methods to a seperate util module, this controller is getting fat sp12 Fri 13 Dec 2013 08:33:44 GMT
-sub run_design_create_cmd {
-    my ( $self, $c, $cmd, $params ) = @_;
-
-    my $runner = LIMS2::Util::FarmJobRunner->new(
-        default_memory     => 2500,
-        default_processors => 2,
-    );
-
-    my $job_id = $runner->submit(
-        out_file => $params->{ output_dir }->file( "design_creation.out" ),
-        err_file => $params->{ output_dir }->file( "design_creation.err" ),
-        cmd      => $cmd,
-    );
-
-    $c->log->info( "Successfully submitted gibson design create job $job_id with run id $params->{uuid}" );
 
     return;
 }
 
-sub pspec_create_gibson_design {
-    return {
-        gene_id         => { validate => 'non_empty_string' },
-        exon_id         => { validate => 'ensembl_exon_id' },
-        ensembl_gene_id => { validate => 'ensembl_gene_id' },
-        # fields from the diagram
-        '5F_length'    => { validate => 'integer' },
-        '5F_offset'    => { validate => 'integer' },
-        '5R_EF_length' => { validate => 'integer' },
-        '5R_EF_offset' => { validate => 'integer' },
-        'ER_3F_length' => { validate => 'integer' },
-        'ER_3F_offset' => { validate => 'integer' },
-        '3R_length'    => { validate => 'integer' },
-        '3R_offset'    => { validate => 'integer' },
-        # other options
-        exon_check_flank_length => { validate => 'integer', optional => 1 },
-        repeat_mask_classes     => { validate => 'repeat_mask_class', optional => 1 },
-        alt_designs             => { validate => 'boolean', optional => 1 },
-        #submit
-        create_design => { optional => 0 }
-    };
-}
-
-sub parse_and_validate_gibson_params {
+sub generate_exon_pick_data : Private {
     my ( $self, $c ) = @_;
 
-    my $validated_params = $c->model('Golgi')->check_params(
-        $c->request->params, $self->pspec_create_gibson_design );
-    $validated_params->{user} = $c->user->name;
+    $c->log->debug("Pick exon targets for gene: " . $c->request->param('search_gene') );
+    try {
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+        my ( $gene_data, $exon_data ) = $create_design_util->exons_for_gene(
+            $c->request->param('search_gene'),
+            $c->request->param('show_exons'),
+        );
 
-    my $species = $c->session->{selected_species};
-    my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-        { species_id => $species } )->assembly_id;
+        my $exon_ids_string = join(',', map{ $_->{id} } @{ $exon_data } );
+        my @crisprs = $c->model('Golgi')->schema->resultset('ExonCrisprs')->search( {},
+            {
+                bind => [ '{' . $exon_ids_string . '}' ],
+            }
+        );
 
-    my $uuid = Data::UUID->new->create_str;
-    $validated_params->{uuid}        = $uuid;
-    $validated_params->{output_dir}  = $DEFAULT_DESIGNS_DIR->subdir( $uuid );
-    $validated_params->{species}     = $species;
-    $validated_params->{build_id}    = $DEFAULT_SPECIES_BUILD{ lc($species) };
-    $validated_params->{assembly_id} = $default_assembly;
+        my %crispr_count;
+        foreach my $row (@crisprs) {
+            ++$crispr_count{$row->ensembl_exon_id};
+        }
 
-    #create dir
-    $validated_params->{output_dir}->mkpath();
+        for my $datum ( @{ $exon_data } ) {
+            $datum->{crispr_count} = $crispr_count{ $datum->{id} } || 0;
+        }
 
-    $c->stash( {
-        gene_id => $validated_params->{gene_id},
-        exon_id => $validated_params->{exon_id}
-    } );
+        $c->stash(
+            exons       => $exon_data,
+            gene        => $gene_data,
+            search_gene => $c->request->param('search_gene'),
+            assembly    => $create_design_util->assembly_id,
+            show_exons  => $c->request->param('show_exons'),
+        );
+    }
+    catch( LIMS2::Exception $e ) {
+        $c->log->warn("Problem finding gene: $e");
+        $c->stash( error_msg => "Problem finding gene: $e" );
+    };
 
-    return $validated_params;
+    return;
 }
 
-sub generate_gibson_design_cmd {
-    my ( $self, $params ) = @_;
+sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
+    my ( $self, $c, $is_redo ) = @_;
 
-    my @gibson_cmd_parameters = (
-        'design-create',
-        'gibson-design',
-        '--debug',
-        #required parameters
-        '--created-by',  $params->{user},
-        '--target-gene', $params->{gene_id},
-        '--target-exon', $params->{exon_id},
-        '--species',     $params->{species},
-        '--dir',         $params->{output_dir}->subdir('workdir')->stringify,
-        '--da-id',       $params->{da_id},
-        #user specified params
-        '--region-length-5f',    $params->{'5F_length'},
-        '--region-offset-5f',    $params->{'5F_offset'},
-        '--region-length-5r-ef', $params->{'5R_EF_length'},
-        '--region-offset-5r-ef', $params->{'5R_EF_offset'},
-        '--region-length-er-3f', $params->{'ER_3F_length'},
-        '--region-offset-er-3f', $params->{'ER_3F_offset'},
-        '--region-length-3r',    $params->{'3R_length'},
-        '--region-offset-3r',    $params->{'3R_offset'},
-        '--persist',
+    $c->assert_user_roles( 'edit' );
+
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
     );
+    $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
-    if ( $params->{repeat_mask_classes} ) {
-        for my $class ( @{ $params->{repeat_mask_classes} } ){
-            push @gibson_cmd_parameters, '--repeat-mask-class ' . $class;
-        }
+    if ( $is_redo && $is_redo eq 'redo' ) {
+        # if we have redo flag all the stash variables have been setup correctly
+        return;
+    }
+    elsif ( exists $c->request->params->{create_design} ) {
+        $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
     }
 
-    if ( $params->{alt_designs} ) {
-        push @gibson_cmd_parameters, '--alt-designs';
-    }
-
-    if ( $params->{exon_check_flank_length} ) {
-        push @gibson_cmd_parameters,
-            '--exon-check-flank-length ' . $params->{exon_check_flank_length};
-    }
-
-    return \@gibson_cmd_parameters;
+    return;
 }
 
-sub find_or_create_design_target {
-    my ( $self, $c, $params ) = @_;
+sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibson_design' ) : Args {
+    my ( $self, $c, $is_redo ) = @_;
 
-    my $existing_design_target = $c->model('Golgi')->schema->resultset('DesignTarget')->find(
-        {
-            species_id      => $params->{species},
-            ensembl_exon_id => $params->{exon_id},
-            build_id        => $params->{build_id},
-        }
+    $c->assert_user_roles( 'edit' );
+
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
     );
+    $c->stash( default_p3_conf => $create_design_util->c_primer3_default_config );
 
-    if ( $existing_design_target ) {
-        $c->log->debug( 'Design target ' . $existing_design_target->id
-                . ' already exists for exon: ' . $params->{exon_id} );
+    if ( $is_redo && $is_redo eq 'redo' ) {
+        # if we have redo flag all the stash variables have been setup correctly
+        return;
+    }
+    elsif ( exists $c->request->params->{create_design} ) {
+        $self->_create_gibson_design( $c, $create_design_util, 'create_custom_target_gibson_design' );
+    }
+    elsif ( exists $c->request->params->{target_from_exons} ) {
+        my $target_data = $create_design_util->c_target_params_from_exons;
+        $c->stash(
+            gibson_type => 'deletion',
+            %{ $target_data },
+        );
+    }
+
+    return;
+}
+
+sub _create_gibson_design {
+    my ( $self, $c, $create_design_util, $cmd ) = @_;
+
+    $c->log->info('Creating new gibson design');
+
+    my ($design_attempt, $job_id);
+    $c->stash( $c->request->params );
+    try {
+        ( $design_attempt, $job_id ) = $create_design_util->$cmd;
+    }
+    catch ( LIMS2::Exception::Validation $err ) {
+        my $errors = $create_design_util->c_format_validation_errors( $err );
+        $c->log->warn( 'User create gibson design error: ' . $errors );
+        $c->stash( error_msg => $errors );
+        return;
+    }
+    catch ($err) {
+        $c->log->warn( "Error submitting gibson design job: $err " );
+        $c->stash( error_msg => "Error submitting Design Creation job: $err" );
         return;
     }
 
-    my $gene = get_ensembl_gene( $c->model('Golgi'), $params->{ensembl_gene_id}, $params->{species} );
-    LIMS2::Exception->throw( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
-        unless $gene;
-    my $canonical_transcript = $gene->canonical_transcript;
-
-    my $exon;
-    try {
-        $exon = $c->model('Golgi')->ensembl_exon_adaptor( $params->{species} )
-            ->fetch_by_stable_id( $params->{exon_id} );
+    unless ( $job_id ) {
+        $c->log->warn( 'Unable to submit Design Creation job' );
+        $c->stash( error_msg => "Unable to submit Design Creation job" );
+        return;
     }
-    LIMS2::Exception->throw( "Unable to find ensembl exon for: " . $params->{exon_id} )
-        unless $exon;
 
-    my %design_target_params = (
-        species              => $params->{species},
-        gene_id              => $params->{gene_id},
-        marker_symbol        => $gene->external_name,
-        ensembl_gene_id      => $gene->stable_id,
-        ensembl_exon_id      => $params->{exon_id},
-        exon_size            => $exon->length,
-        canonical_transcript => $canonical_transcript->stable_id,
-        assembly             => $params->{assembly_id},
-        build                => $params->{build_id},
-        chr_name             => $exon->seq_region_name,
-        chr_start            => $exon->seq_region_start,
-        chr_end              => $exon->seq_region_end,
-        chr_strand           => $exon->seq_region_strand,
-        automatically_picked => 0,
-        comment              => 'picked via gibson design creation interface, by user: ' . $params->{user},
-
-    );
-    my $exon_rank = get_exon_rank( $exon, $canonical_transcript );
-    $design_target_params{exon_rank} = $exon_rank if $exon_rank;
-    my $design_target = $c->model('Golgi')->create_design_target( \%design_target_params );
-
-    return;
-}
-
-=head2 get_exon_rank
-
-Get rank of exon on canonical transcript
-
-=cut
-sub get_exon_rank {
-    my ( $exon, $canonical_transcript ) = @_;
-
-    my $rank = 1;
-    for my $current_exon ( @{ $canonical_transcript->get_all_Exons } ) {
-        return $rank if $current_exon->stable_id eq $exon->stable_id;
-        $rank++;
-    }
+    $c->res->redirect( $c->uri_for('/user/design_attempt', $design_attempt->id , 'pending') );
 
     return;
 }
 
 sub design_attempts :Path( '/user/design_attempts' ) : Args(0) {
     my ( $self, $c ) = @_;
-
-    #TODO add filtering, e.g. by user, status, gene etc
 
     my @design_attempts = $c->model('Golgi')->schema->resultset('DesignAttempt')->search(
         {
@@ -455,7 +377,7 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     my $design_attempt;
     try {
         $design_attempt = $c->model('Golgi')
-            ->retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
+            ->c_retrieve_design_attempt( { id => $design_attempt_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design attempt id" );
@@ -479,8 +401,13 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
 sub view_design_attempt : PathPart('view') Chained('design_attempt') : Args(0) {
     my ( $self, $c ) = @_;
 
+    my $da = $c->stash->{da};
+    my $da_hash = $da->as_hash( { json_as_hash => 1 } );
+
     $c->stash(
-        da => $c->stash->{da}->as_hash( { pretty_print_json => 1 } ),
+        da     => $da->as_hash( { pretty_print_json => 1 } ),
+        fail   => $da_hash->{fail},
+        params => $da_hash->{design_parameters},
     );
     return;
 }
@@ -495,6 +422,119 @@ sub pending_design_attempt : PathPart('pending') Chained('design_attempt') : Arg
     );
     return;
 }
+
+## no critic(RequireFinalReturn)
+sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+
+    my $gibson_target_type;
+    try {
+        # this will stash all the needed design parameters
+        $gibson_target_type = $create_design_util->c_redo_design_attempt( $c->stash->{da} );
+    }
+    catch ( $err ) {
+        $c->stash(error_msg => "Error processing parameters from design attempt "
+                . $c->stash->{da}->id . ":\n" . $err
+                . "Unable to redo design" );
+        return $c->go('design_attempts');
+    }
+
+    if ( $gibson_target_type eq 'exon' ) {
+        return $c->go( 'create_gibson_design', [ 'redo' ] );
+    }
+    elsif ( $gibson_target_type eq 'location' ) {
+        return $c->go( 'create_custom_target_gibson_design' , [ 'redo' ] );
+    }
+    else {
+        $c->stash( error_msg => "Unknown gibson target type $gibson_target_type"  );
+        return $c->go('design_attempts');
+    }
+
+    return;
+}
+## use critic
+
+
+sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    if ( $c->request->param('import_design') ) {
+
+        my $client = LIMS2::REST::Client->new_with_config(
+            configfile => $ENV{WGE_REST_CLIENT_CONFIG}
+        );
+        my $design_id = $c->request->param('design_id');
+
+        my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
+
+        if ( $c->session->{selected_species} ne $design_data->{species} ) {
+            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is "
+                .$design_data->{species}.".\n" . "Plese switch to the correct species in LIMS2." );
+            return;
+        }
+
+        $design_data->{created_by} = $c->user->name;
+        $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ];
+        $design_data->{gene_ids} = [ map { $c->model('Golgi')->find_gene({ species => 'Mouse', search_term => $_ }) } @{ $design_data->{assigned_genes} } ];
+
+        my $gene_type_id;
+        if ($design_data->{species} eq 'Mouse') { $gene_type_id = 'MGI' };
+        if ($design_data->{species} eq 'Human') { $gene_type_id = 'HGNC' };
+        for (my $i=0; $i < scalar @{$design_data->{gene_ids}}; $i++ ) {
+            @{$design_data->{gene_ids}}[$i]->{gene_type_id} = $gene_type_id;
+        }
+
+        delete $design_data->{assigned_genes};
+        delete $design_data->{oligos_fasta};
+
+        $design_data->{id} = $design_id;
+
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+
+        try {
+            my $design = $c->model('Golgi')->c_create_design( $design_data );
+            foreach my $gene ( @{ $design_data->{gene_ids} }) {
+                my $species = $design_data->{species};
+                my $build = $DEFAULT_SPECIES_BUILD{ lc($species) };
+                my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+                        { species_id => $species } )->assembly_id;
+                $create_design_util->calculate_design_targets( {
+                    ensembl_gene_id => $gene->{ensembl_id},
+                    gene_id         => $gene->{gene_id},
+                    target_start    => $design->target_region_start,
+                    target_end      => $design->target_region_end,
+                    chr_name        => $design->chr_name,
+                    user            => $design_data->{created_by},
+                    species         => $species,
+                    build_id        => $build,
+                    assembly_id     => $assembly,
+                } );
+            }
+            $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
+        }
+        catch ($err) {
+            $c->stash( error_msg => "Error importing WGE design: $err" );
+            return;
+        }
+
+        $c->stash(
+            design_id => $design_id,
+        );
+    }
+
+    return;
+}
+
 
 __PACKAGE__->meta->make_immutable;
 

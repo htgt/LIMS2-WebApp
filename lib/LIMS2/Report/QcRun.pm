@@ -1,7 +1,8 @@
 package LIMS2::Report::QcRun;
 
 use Moose;
-use LIMS2::Model::Util::QCResults qw( retrieve_qc_run_results );
+use LIMS2::Model::Util::QCResults qw( retrieve_qc_run_results_fast );
+use HTGT::QC::Config;
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
@@ -18,6 +19,12 @@ has qc_run => (
     lazy_build => 1,
 );
 
+has is_crispr_run => (
+    is         => 'ro',
+    isa        => 'Bool',
+    lazy_build => 1,
+);
+
 has '+param_names' => (
     default => sub { [ 'qc_run_id' ] }
 );
@@ -26,6 +33,12 @@ sub _build_qc_run {
     my $self = shift;
 
     return $self->model->retrieve( 'QcRun' => { id => $self->qc_run_id } );
+}
+
+sub _build_is_crispr_run {
+  my $self = shift;
+
+  return HTGT::QC::Config->new->profile( $self->qc_run->profile )->vector_stage eq "crispr";
 }
 
 override _build_name => sub {
@@ -42,31 +55,40 @@ override _build_columns => sub {
     my @primer_fields;
     for my $primer ( @{ $primers } ) {
         push @primer_fields, map { $primer.'_'.$_ }
-            qw( pass critical_regions target_align_length read_length score  );
+            qw( pass target_align_length read_length score );
     }
-    my @columns = ( qw(
-                          plate_name
-                          well_name
-                          well_name_384
-                          gene_symbol
-                          design_id
-                          expected_design_id
-                          pass
-                          score
-                          num_reads
-                          num_valid_primers
-                          valid_primers_score
-                  ),
-                  @primer_fields,
-                  map( { $_.'_features' } @{ $primers } )
-                );
+    my @columns = qw(
+        plate_name
+        well_name
+        well_name_384
+        gene_symbol
+    );
+
+    if ( $self->is_crispr_run ) {
+        push @columns, qw( crispr_id expected_crispr_id );
+    }
+    else {
+        push @columns, qw( design_id expected_design_id );
+    }
+
+    push @columns, qw(
+        pass
+        score
+        num_reads
+        num_valid_primers
+        valid_primers_score
+    );
+
+    push @columns, @primer_fields;
+    push @columns, map { $_ . "_features" } @{ $primers }; #put at the end
+
     return \@columns;
 };
 
 override iterator => sub {
     my ( $self ) = @_;
 
-    my $qc_results = retrieve_qc_run_results( $self->qc_run );
+    my $qc_results = retrieve_qc_run_results_fast( $self->qc_run, $self->model->schema, $self->is_crispr_run );
 
     my $qc_result = shift @{ $qc_results };
 

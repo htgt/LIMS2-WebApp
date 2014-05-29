@@ -12,7 +12,7 @@ extends qw( LIMS2::ReportGenerator::Plate );
 sub base_columns {
 # acs - 20_05_13 - redmine 10545 - add cassette resistance
 #    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Cassette", "Recombinases" );
-    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Cassette", "Cassette Resistance", "Vector Recombinases", "Cell Recombinases" );
+    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Gene Sponsors", "Cassette", "Cassette Resistance", "Vector Recombinases", "Cell Recombinases" );
     return ( "Well Name", "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?",
         map( { "First Allele $_" } @allele_cols ),
 		map( { "Second Alelle $_" } @allele_cols ),

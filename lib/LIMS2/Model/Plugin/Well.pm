@@ -18,11 +18,12 @@ requires qw( schema check_params throw retrieve log trace );
 
 sub pspec_retrieve_well {
     return {
-        id                => { validate   => 'integer',    optional => 1 },
-        plate_name        => { validate   => 'plate_name', optional => 1 },
-        well_name         => { validate   => 'well_name',  optional => 1 },
+        id                => { validate => 'integer', optional => 1 },
+        plate_name        => { validate => 'plate_name', optional => 1 },
+        well_name         => { validate => 'well_name', optional => 1 },
+        barcode           => { validate => 'alphanumeric_string', optional => 1 },
         DEPENDENCY_GROUPS => { name_group => [qw( plate_name well_name )] },
-        REQUIRE_SOME      => { id_or_name => [ 1, qw( id plate_name well_name ) ] }
+        REQUIRE_SOME      => { id_or_name_or_barcode => [ 1, qw( id plate_name well_name barcode ) ] }
     };
 }
 
@@ -32,6 +33,11 @@ sub retrieve_well {
     my $data = $self->check_params( $params, $self->pspec_retrieve_well, ignore_unknown => 1 );
 
     my %search;
+    my %joins = (
+        join     => 'plate',
+        prefetch => 'plate',
+     );
+
     if ( $data->{id} ) {
         $search{'me.id'} = $data->{id};
     }
@@ -41,8 +47,12 @@ sub retrieve_well {
     if ( $data->{plate_name} ) {
         $search{'plate.name'} = $data->{plate_name};
     }
+    if ( $data->{barcode} ) {
+        $search{'well_barcode.barcode'} = $data->{barcode};
+        $joins{join} = [ 'plate', 'well_barcode' ];
+    }
 
-    return $self->retrieve( Well => \%search, { join => 'plate', prefetch => 'plate' } );
+    return $self->retrieve( Well => \%search, \%joins );
 }
 
 sub pspec_create_well {
@@ -117,8 +127,11 @@ sub delete_well {
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
-                                 well_qc_sequencing_result well_recombineering_results well_colony_counts well_primer_bands 
-                                 well_chromosome_fail well_genotyping_results well_targeting_pass well_targeting_puro_pass well_lab_number );
+                                 well_qc_sequencing_result well_recombineering_results well_colony_counts
+                                 well_primer_bands well_chromosome_fail well_genotyping_results
+                                 well_targeting_pass well_targeting_puro_pass well_targeting_neo_pass
+                                 well_lab_number well_barcode
+                               );
 
     for my $rs ( @related_resultsets ) {
         $well->search_related_rs( $rs )->delete;
@@ -307,6 +320,7 @@ sub pspec_create_well_dna_status {
         plate_name   => { validate => 'existing_plate_name', optional => 1 },
         well_name    => { validate => 'well_name', optional => 1 },
         pass         => { validate => 'boolean' },
+        concentration_ng_ul => { validate => 'signed_float', optional => 1 },
         comment_text => { validate => 'non_empty_string', optional => 1 },
         created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
@@ -341,12 +355,17 @@ sub create_well_dna_status {
         }
 
         $dna_status = $well->create_related(
-            well_dna_status => { slice_def $validated_params, qw( pass comment_text created_by_id created_at ) }
+            well_dna_status => { slice_def $validated_params, qw( pass concentration_ng_ul comment_text created_by_id created_at ) }
         );
 
         # acs - 20_05_13 - redmine 10328 - update well accepted flag
         $well->accepted($dna_status->pass);
         $well->update();
+
+        # If this DNA well was generated from a FINAL_PICK then the accepted flag
+        # will be computed according to a more complex set of rules
+        # redmine ticket #11642
+        $well->compute_final_pick_dna_well_accepted();
 
         $self->log->debug( 'Well DNA status set to ' . $dna_status->pass . ' for well  ' . $dna_status->well_id );
     }
@@ -386,10 +405,12 @@ sub pspec_create_well_dna_quality {
         well_id      => { validate => 'integer', optional => 1, rename => 'id' },
         plate_name   => { validate => 'existing_plate_name', optional => 1 },
         well_name    => { validate => 'well_name', optional => 1 },
-        quality      => { validate => 'dna_quality' },
+        quality      => { validate => 'dna_quality', optional => 1 },
+        egel_pass    => { validate => 'boolean', optional => 1 },
         comment_text => { validate => 'non_empty_string', optional => 1 },
         created_by   => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
-        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' }
+        created_at   => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        REQUIRE_SOME => { quality_or_egel_pass => [ 1, qw(quality egel_pass) ] },
     }
 }
 
@@ -401,8 +422,32 @@ sub create_well_dna_quality {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $dna_quality = $well->create_related(
-        well_dna_quality => { slice_def $validated_params, qw( quality comment_text created_by_id created_at ) }
+        well_dna_quality => { slice_def $validated_params, qw( quality egel_pass comment_text created_by_id created_at ) }
     );
+
+    # If this DNA well was generated from a FINAL_PICK then the accepted flag
+    # will be computed
+    # redmine ticket #11642
+    $well->compute_final_pick_dna_well_accepted();
+
+    return $dna_quality;
+}
+
+sub update_or_create_well_dna_quality {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_well_dna_quality );
+
+    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+
+    my $dna_quality = $well->update_or_create_related(
+        well_dna_quality => { slice_def $validated_params, qw( quality egel_pass comment_text created_by_id created_at ) }
+    );
+
+    # If this DNA well was generated from a FINAL_PICK then the accepted flag
+    # will be computed
+    # redmine ticket #11642
+    $well->compute_final_pick_dna_well_accepted();
 
     return $dna_quality;
 }
@@ -817,7 +862,7 @@ sub pspec_create_well_targeting_pass {
         overwrite   => { validate => 'boolean', optional => 1, default => 0 },
         created_by  => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
         created_at  => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
-        minus_puro  => { validate => 'boolean', optional => 0, default => 0 },
+        type        => { optional => 0, default => 'well_targeting_pass' },
     }
 }
 
@@ -826,7 +871,15 @@ sub pspec_create_well_targeting_pass {
 sub create_well_targeting_puro_pass {
     my ( $self, $params ) = @_;
 
-    $params->{minus_puro} = 1;
+    $params->{type} = 'well_targeting_puro_pass';
+
+    return $self->create_well_targeting_pass( $params );
+}
+
+sub create_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    $params->{type} = 'well_targeting_neo_pass';
 
     return $self->create_well_targeting_pass( $params );
 }
@@ -837,7 +890,7 @@ sub create_well_targeting_pass {
 
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
-    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+    my $targ_pass_type = $validated_params->{type};
 
     if ( my $targeting_pass = $well->$targ_pass_type ) {
          $self->throw( Validation => "Well $well already has a $targ_pass_type value of "
@@ -857,9 +910,17 @@ sub create_well_targeting_pass {
 sub update_or_create_well_targeting_puro_pass {
 	my ( $self, $params ) = @_;
 
-	$params->{minus_puro} = 1;
+    $params->{type} = 'well_targeting_puro_pass';
 
 	return $self->update_or_create_well_targeting_pass( $params );
+}
+
+sub update_or_create_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    $params->{type} = 'well_targeting_neo_pass';
+
+    return $self->update_or_create_well_targeting_pass( $params );
 }
 
 sub update_or_create_well_targeting_pass {
@@ -867,7 +928,7 @@ sub update_or_create_well_targeting_pass {
     my $message;
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_targeting_pass );
 
-    my $targ_pass_type = $validated_params->{minus_puro} ? "well_targeting_puro_pass" : "well_targeting_pass";
+    my $targ_pass_type = $validated_params->{type};
 
     my $targeting_pass;
 
@@ -910,6 +971,20 @@ sub retrieve_well_targeting_puro_pass {
     return $targeting_pass;
 }
 
+sub retrieve_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
+    # retrieve_well() will validate the parameters
+    my $well = $self->retrieve_well( $params );
+
+    my $targeting_pass = $well->well_targeting_neo_pass
+        or $self->throw( NotFound => { entity_class => 'WellTargetingNeoPass', search_params => $params } );
+
+    return $targeting_pass;
+}
+
+
 sub retrieve_well_targeting_pass {
     my ( $self, $params ) = @_;
 
@@ -931,6 +1006,18 @@ sub delete_well_targeting_puro_pass {
 
     $targeting_pass->delete;
     $self->log->debug( 'Well targeting-puro_pass result deleted for well  ' . $targeting_pass->well_id );
+
+    return;
+}
+
+sub delete_well_targeting_neo_pass {
+    my ( $self, $params ) = @_;
+
+    # retrieve_well() will validate the parameters
+    my $targeting_pass = $self->retrieve_well_targeting_neo_pass( $params );
+
+    $targeting_pass->delete;
+    $self->log->debug( 'Well targeting-neo_pass result deleted for well  ' . $targeting_pass->well_id );
 
     return;
 }

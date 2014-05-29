@@ -91,7 +91,6 @@ sub all_tests  : Tests
     my %record = (
     );
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::CrisprDesign not implemented yet';
     ok(1, "Test of LIMS2::Model::Schema::Result::CrisprDesign");
 
     #note("Accessing the schema");

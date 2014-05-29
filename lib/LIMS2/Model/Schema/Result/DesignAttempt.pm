@@ -75,6 +75,12 @@ __PACKAGE__->table("design_attempts");
   data_type: 'text'
   is_nullable: 1
 
+=head2 species_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =head2 created_by
 
   data_type: 'integer'
@@ -93,11 +99,15 @@ __PACKAGE__->table("design_attempts");
   data_type: 'text'
   is_nullable: 1
 
-=head2 species_id
+=head2 candidate_oligos
 
   data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
+
+=head2 candidate_regions
+
+  data_type: 'text'
+  is_nullable: 1
 
 =cut
 
@@ -121,6 +131,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "design_ids",
   { data_type => "text", is_nullable => 1 },
+  "species_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "created_by",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -132,8 +144,10 @@ __PACKAGE__->add_columns(
   },
   "comment",
   { data_type => "text", is_nullable => 1 },
-  "species_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "candidate_oligos",
+  { data_type => "text", is_nullable => 1 },
+  "candidate_regions",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -181,9 +195,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-12-11 08:18:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oOfJULVnJ2drFZoyc2AWBw
-
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v9yymcwG1QroSl7r18jxPg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
@@ -198,9 +211,9 @@ sub as_hash {
     use JSON;
     use Try::Tiny;
 
+    my $json = JSON->new;
     my ( $design_params, $fail_reason );
     if ( $opts->{pretty_print_json} ) {
-        my $json = JSON->new;
         $design_params
             = $self->design_parameters
             ? try { $json->pretty->encode( $json->decode( $self->design_parameters ) ) }
@@ -209,16 +222,17 @@ sub as_hash {
             = $self->fail ? try { $json->pretty->encode( $json->decode( $self->fail ) ) } : '';
     }
     elsif ( $opts->{json_as_hash} ) {
-        my $json = JSON->new;
         $design_params
-            = $self->design_parameters ? try { $json->decode( $self->design_parameters ) } : {};
-        $fail_reason = $self->fail ? try { $json->decode( $self->fail_reason ) } : {};
+            = $self->design_parameters ? try { $json->decode( $self->design_parameters ) } : undef;
+        $fail_reason = $self->fail ? try { $json->decode( $self->fail ) } : undef;
     }
     else {
         $design_params = $self->design_parameters;
         $fail_reason = $self->fail;
     }
     my @design_ids = $self->design_ids ? split( ' ', $self->design_ids ) : ();
+    my $candidate_oligos  = $self->candidate_oligos  ? try { $json->decode( $self->candidate_oligos ) }  : undef;
+    my $candidate_regions = $self->candidate_regions ? try { $json->decode( $self->candidate_regions ) } : undef;
 
     my %h = (
         id                => $self->id,
@@ -232,6 +246,8 @@ sub as_hash {
         created_at        => $self->created_at->iso8601,
         created_by        => $self->created_by->name,
         comment           => $self->comment,
+        candidate_oligos  => $candidate_oligos,
+        candidate_regions => $candidate_regions,
     );
 
     return \%h;

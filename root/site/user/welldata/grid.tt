@@ -26,6 +26,7 @@
                     {name: 'chromosome_fail', type: 'string'},
                     {name: 'targeting_pass', type: 'string'},
                     {name: 'targeting_puro_pass', type: 'string'},
+                    {name: 'targeting_neo_pass', type: 'string'},
                     {name: 'tr_pcr', type: 'string'},
                     {name: 'gr3', type: 'string'},
                     {name: 'gr4', type: 'string'},
@@ -195,14 +196,14 @@
 
             var columns = [
                 {header: "Well", dataIndex: 'well', locked: true, columnWidth: 3, width: 40 },
-                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true, width: 50 },
+                {header: "Gene<br>Name", dataIndex: 'gene_name', locked: true, width: 60 },
                 {header: "Gene<br>ID", dataIndex: 'gene_id', locked:true, hidden: true, width: 50 },
                 {header: "Design<br>ID", dataIndex: 'design_id', locked: true, width: 50 },
             [% IF PIQ %]
                 {header: "Clone ID", dataIndex: 'clone_id', locked: true, width: 110 },
                 {header: "Lab Number", dataIndex: 'lab_number', editor: lab_number_field, locked: true, width: 75 },
             [% END %]
-                {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 75 },
+                {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 40 },
                 {header: "Calculated<br>Pass", dataIndex: 'genotyping_pass', locked:true, width: 70 },
                 {header: "Distribute", dataIndex: 'accepted', locked: true, width: 60 },
                 {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
@@ -216,11 +217,12 @@
                     {header: "Vector<br>recombinase",            dataIndex: 'final_pick_recombinase_id',      hidden: true, width: 60 },
                     {header: "First EP<br>recombinase",          dataIndex: 'ep_well_recombinase_id',         hidden: true, width: 60 },
                 ]},
-                {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo, width: 85},
-                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_lrpcr_combo, width: 85},
-                {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo, width: 85}, 
-                {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo, width: 85 },
-                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo, width: 85 },
+                {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo, width: 80},
+                {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_lrpcr_combo, width: 70},
+                {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo, width: 70}, 
+                {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo, width: 70 },
+                {header: "Targeting<br>Neo Pass", dataIndex: 'targeting_neo_pass', editor: call_types_targeting_combo, width: 70 },
+                {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo, width: 70 },
                 {header: "LRPCR bands", columns: [
                     {header: "gr3", dataIndex: 'gr3', editor: pcr_combo, width: 50 },
                     {header: "gr4", dataIndex: 'gr4', editor: pcr_combo, width: 50 },
@@ -238,16 +240,16 @@
                                 editor: call_types_targeting_combo, hideable: true, width: 85 },
                             [% ELSIF name.title == "Copy Number" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 60 },
                             [% ELSIF name.title == "Range" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 60 },
                             [% ELSIF name.title == "Confidence" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: { xtype: 'textfield' }, hidden: true, width: 85 },
+                                editor: { xtype: 'textfield' }, hidden: true, width: 60 },
                             [% ELSIF name.title == "VIC" %]
                                 {header: "[% name.title %]", dataIndex: "[% assay _ '#' _ name.field %]",
-                                editor: { xtype: 'numberfield' }, hidden: true, width: 85 },
+                                editor: { xtype: 'numberfield' }, hidden: true, width: 60 },
                             [% END %]
                         [% END %]
                       ]},

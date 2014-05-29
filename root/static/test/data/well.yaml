@@ -13,6 +13,8 @@ well_create:
 well_retrieve:
     plate_name: PCS00177_A
     well_name: B01
+well_retrieve_barcode:
+    barcode: DOF123045
 well_accepted_override_create:
     plate_name: PCS00177_A
     well_name: B01

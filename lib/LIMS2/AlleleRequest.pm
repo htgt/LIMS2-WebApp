@@ -36,7 +36,8 @@ has [ qw( species gene_id ) ] => (
 sub _build_designs {
     my ( $self, $mutation_type ) = @_;
 
-    return $self->model->list_assigned_designs_for_gene(
+    # Uses WebAppCommon::Plugin::Design
+    return $self->model->c_list_assigned_designs_for_gene(
         {
             species => $self->species,
             gene_id => $self->gene_id,
@@ -63,11 +64,15 @@ sub design_types_for {
 }
 ## use critic
 
+#TODO will not return design wells for a short arm merged design
 sub design_wells {
     my ( $self, $design ) = @_;
     return map { $_->output_wells } $design->process_designs_rs->search_related( process => { type_id => 'create_di' } );
 }
 
+# TODO won't work properly with merged designs
+#      the short arm design does not have a design well
+#      the original design will return FINAL wells with both the new / merged design ( may not be bad thing )
 sub final_vector_wells {
     my ( $self, $design_wells, $cassette_function ) = @_;
 
