@@ -495,6 +495,42 @@ sub _symbols_from_design{
     return;
 }
 
+=head create_button
+Returns a custom string for interpretation by the view (template toolkit).
+
+The string format is:
+
+custom:key1=val1;key2=val2;...;
+
+The order of keys is irrelevant.
+
+NB. We cannot simply send back a hashref as the reporting framework writes out the csv file and it is this that
+gets laid out in the table. All we end up with is a HASHxOOOOO string, which is meaningless and cannot
+be interpreted properly by TT. Thus, we have to create a custom string to pass key=value pairs to the view.
+
+Note that you must provide key/value pairs for:
+api_url - the view will use a c.uri_for call using this as the api method used to render the view
+button_label - text to be used to label the button for this cell
+browser_target - an html keyword or arbitrary string to indicate whether the button will create a new tab or window, or render in the curent window
+
+These key/value pairs are not passed on as parameters in the c.uri_for call, any other parameters you define will be passed through.
+
+=cut
+
+sub create_button {
+    my $self = shift;
+    my $params = shift;
+
+    my $custom_value = 'custom:';
+    foreach my $custom_key ( keys %$params ) {
+        $custom_value .= $custom_key
+            . '='
+            . $params->{$custom_key}
+            . ';';
+    }
+    return $custom_value; 
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

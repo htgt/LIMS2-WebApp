@@ -61,12 +61,20 @@ override iterator => sub {
         if($right_crispr){
             $right_designs = join "/", map { $_->id } $right_crispr->crispr->related_designs;
         }
+
+        my $crispr_pair_id = $well->crispr_pair ? $well->crispr_pair->id : '-';
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $well->name,
             $self->design_and_gene_cols($well),
-            $well->crispr_pair ? $well->crispr_pair->id : '-',
-            $self->button_for_genoverse(),
+            $crispr_pair_id,
+            $self->create_button({
+                    'crispr_pair_id'   => $crispr_pair_id,
+                    'well_name'        => $well->name,
+                    'button_label'     => 'Genoverse',
+                    'browser_target'   => $well->name,
+                    'api_url'          => '/usr/genoverse_crispr_primers',
+            }),
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $left_designs,
             $right_crispr ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
@@ -91,19 +99,6 @@ override iterator => sub {
         ];
     }
 };
-
-sub button_for_genoverse {
-    my $self = shift;
-
-    my $chr_start = 100000;
-    my $chr_end = 300000;
-    my $html_value =<<"END_ROW";
-custom:chr_start=$chr_start;chr_end=$chr_end;label=Genoverse
-END_ROW
-    chomp $html_value;
-    return $html_value; 
-
-}
 
 __PACKAGE__->meta->make_immutable;
 
