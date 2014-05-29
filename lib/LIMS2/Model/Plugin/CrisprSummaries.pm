@@ -4,9 +4,17 @@ use Moose::Role;
 use LIMS2::Model;
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use List::MoreUtils qw( uniq );
+use Log::Log4perl qw( :easy );
 
 use strict;
 use warnings;
+
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 =head
 
@@ -46,6 +54,29 @@ sub get_crispr_summaries_for_genes{
 
     ref $params->{id_list} eq ref []
         or die "id_list must be an arrayref";
+
+    my $result = {};
+    my $gene_id_for_design = {};
+
+    my @design_id_list;
+    DEBUG "Fetching assigned designs for genes";
+    foreach my $gene_id (@{ $params->{id_list} }){
+        my $designs = $self->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $params->{species} } );
+        foreach my $design (@$designs){
+            $gene_id_for_design->{$design->id} = $gene_id;
+            push @design_id_list, $design->id;
+        }
+    }
+    DEBUG "Designs found";
+
+    my $summaries = $self->get_crispr_summaries_for_designs({ id_list => \@design_id_list });
+
+    foreach my $design_id (keys %$summaries){
+        my $gene_id = $gene_id_for_design->{$design_id};
+        $result->{$gene_id}->{$design_id} = $summaries->{$design_id};
+    }
+
+    return $result;
 }
 
 sub get_crispr_summaries_for_designs{
@@ -58,6 +89,7 @@ sub get_crispr_summaries_for_designs{
     my $design_id_for_crispr = {};
 
     my @crispr_id_list;
+    DEBUG "Finding crisprs for designs";
     foreach my $design_id (@{ $params->{id_list} }){
         
         my $design = $self->c_retrieve_design({ id => $design_id });
@@ -76,6 +108,7 @@ sub get_crispr_summaries_for_designs{
         	push @crispr_id_list, $crispr->id;
         }
     }
+    DEBUG "crisprs found";
 
     my $summaries = $self->get_summaries_for_crisprs({ id_list => \@crispr_id_list });
 
@@ -99,6 +132,7 @@ sub get_summaries_for_crisprs{
 
     my @crispr_well_id_list;
 
+    DEBUG "Finding crispr wells";
     my $process_crispr_rs = $self->schema->resultset('ProcessCrispr')->search(
         { crispr_id => { '-in' => $params->{id_list} } },
     );
@@ -125,6 +159,7 @@ sub get_summaries_for_crisprs{
             push @$crispr_well_array, $well;
         }
     }
+    DEBUG "Crispr wells found";
 
     my $summaries = $self->get_summaries_for_crispr_wells({ id_list => \@crispr_well_id_list });
     
@@ -147,7 +182,9 @@ sub get_summaries_for_crispr_wells{
     my $result = {};
 
     # Get all crispr well descendants
+    DEBUG "Running descendant query";
     my $paths = $self->get_descendants_for_well_id_list($params->{id_list});
+    DEBUG "Descendant query done";
 
     # Store list of child well ids for each starting well
     foreach my $path (@$paths){

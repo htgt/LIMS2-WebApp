@@ -416,8 +416,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'plated_crisprs', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'plated crisprs', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -677,6 +677,9 @@ sub genes {
          unshift( @gene_list,  $gene_row->{ 'gene_id' });
     }
 
+    DEBUG "Fetching crispr summary info for report";
+    my $gene_crispr_summary = $self->model->get_crispr_summaries_for_genes({ id_list => \@gene_list, species => $self->species });
+
     foreach my $gene_row ( @$sql_results ) {
         my $gene_id = $gene_row->{ 'gene_id' };
 
@@ -763,16 +766,46 @@ SQL_END
         # EP_PICK
         my ($ep_pick_count, $ep_pick_pass_count) = get_well_counts(\@ep_pick_info);
 
+        # CRISPR product well counts
+        my $crispr_summary = $gene_crispr_summary->{$gene_id};
+        my $crispr_count = 0;
+        my $crispr_vector_count = 0;
+        my $crispr_dna_count = 0;
+        my $crispr_dna_accepted_count = 0;
+        foreach my $design_id (keys %$crispr_summary){
+            my $plated_crispr_summary = $crispr_summary->{$design_id}->{plated_crisprs};
+            foreach my $crispr_id (keys %$plated_crispr_summary){
+                my $crispr_well_array = $plated_crispr_summary->{$crispr_id}->{CRISPR_array};
+                $crispr_count += scalar( @$crispr_well_array );
+                foreach my $crispr_well (@$crispr_well_array){
+                    my $crispr_well_id = $crispr_well->id;
+
+                    # CRISPR_V well count
+                    my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
+                    $crispr_vector_count += $vector_rs->count;
+                    
+                    # DNA well counts
+                    my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
+                    $crispr_dna_count += $dna_rs->count;
+                    my @accepted = grep { $_->is_accepted } $dna_rs->all;
+                    $crispr_dna_accepted_count += scalar(@accepted);
+                }
+            }
+        }
         # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
             'crispr_pairs'           => $crispr_pairs_count,
             'vector_designs'         => $design_count,
+            'plated_crisprs'         => $crispr_count,
             'vector_wells'           => scalar @design,
+            'crispr_vector_wells'    => $crispr_vector_count,
             'targeting_vector_wells' => $final_count,
             'accepted_vector_wells'  => $final_pass_count,
             'passing_vector_wells'   => $dna_pass_count,
+            'crispr_dna_wells'       => $crispr_dna_count,
+            'accepted_crispr_dna_wells' => $crispr_dna_accepted_count,
             'electroporations'       => scalar @ep,
             'colonies_picked'        => $ep_pick_count,
             'targeted_clones'        => $ep_pick_pass_count,
