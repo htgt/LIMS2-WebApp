@@ -325,6 +325,8 @@
             <th>Well</th>
             <th>Created on</th>
             <th>Accepted?</th>
+            <th>Crispr ID</th>
+            <th>Design ID</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.crispr_vector %]
@@ -334,6 +336,8 @@
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.is_accepted %]</td>
+              <td>[% well.crispr_id %]</td>
+              <td>[% well.design_id %]</td>
             </tr>
             [%- END %]
           </tbody>
@@ -400,9 +404,10 @@
             <th>Plate</td>
             <th>Well</th>
             <th>Created on</th>
-            <th>Crispr Vector</th>
             <th>DNA Status</th>
             <th>Accepted?</th>
+            <th>Crispr ID</th>
+            <th>Design ID</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.crispr_dna %]
@@ -411,9 +416,10 @@
               <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
-              <td>FIXME</td>
               <td>[% well.status_pass %]</td>
               <td>[% well.is_accepted %]</td>
+              <td>[% well.crispr_id %]</td>
+              <td>[% well.design_id %]</td>
             </tr>
             [%- END %]
           </tbody>

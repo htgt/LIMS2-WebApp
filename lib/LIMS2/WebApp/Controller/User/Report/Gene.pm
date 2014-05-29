@@ -5,6 +5,7 @@ use namespace::autoclean;
 use Date::Calc qw(Delta_Days);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use List::MoreUtils qw( uniq );
+use Data::Dumper;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -86,6 +87,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
             $self->_add_design_details( $design_id, $design, \%designs_hash );
 
+=head
             # Fetch crisprs and pairs targetting the design
             my ($crisprs, $pairs) = crisprs_for_design($c->model('Golgi'),$design);
             $designs_hash{ $design_id }->{ design_details }->{ crispr_count } = scalar(@$crisprs);
@@ -93,7 +95,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
             $design_crisprs->{ $design_id }->{ all } = $crisprs;
             $design_crisprs->{ $design_id }->{ all_pairs } = $pairs;
-
+=cut
         }
 
         # for each design fetch all rows from summaries table
@@ -117,6 +119,66 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
 
+    my @design_ids = map { $_->id } @$designs;
+    my $summary = $c->model('Golgi')->get_crispr_summaries_for_designs({ id_list => \@design_ids });
+    foreach my $design_id (keys %$summary){
+        my $design_summary = $summary->{ $design_id };
+        $designs_hash{$design_id}->{ design_details }->{ crispr_count } 
+            = scalar(@{ $design_summary->{ all_crisprs } });
+        $designs_hash{$design_id}->{ design_details }->{ crispr_pair_count }
+            = scalar(@{ $design_summary->{ all_pairs } });
+
+        foreach my $crispr_id (keys %{ $design_summary->{plated_crisprs} }){
+
+            my $crispr_summary = $design_summary->{plated_crisprs}->{$crispr_id};
+            foreach my $crispr_well (@{ $crispr_summary->{CRISPR_array} }){
+                my $crispr_well_info = {
+                    well_id_string => $crispr_well->as_string,
+                    well_name      => $crispr_well->name,
+                    plate_id       => $crispr_well->plate->id,
+                    plate_name     => $crispr_well->plate->name,
+                    created_at     => $crispr_well->created_at->ymd,
+                    crispr_id      => $crispr_id,
+                    design_id      => $design_id,
+                };
+                $wells_hash{crispr}->{$crispr_well->as_string} = $crispr_well_info;
+
+                my $crispr_well_id = $crispr_well->id;
+                my $crispr_vector_rs = $crispr_summary->{$crispr_well_id}->{CRISPR_V};
+                my $crispr_dna_rs = $crispr_summary->{$crispr_well_id}->{DNA};
+
+                while (my $vector_well = $crispr_vector_rs->next){
+                    my $vector_well_info = {
+                        well_id_string => $vector_well->as_string,
+                        well_name      => $vector_well->name,
+                        plate_id       => $vector_well->plate->id,
+                        plate_name     => $vector_well->plate->name,
+                        created_at     => $vector_well->created_at->ymd,
+                        is_accepted    => $vector_well->is_accepted,
+                        crispr_id      => $crispr_id,
+                        design_id      => $design_id,
+                    };
+                    $wells_hash{crispr_vector}->{ $vector_well->as_string } = $vector_well_info;                    
+                }
+
+                while (my $dna_well = $crispr_dna_rs->next){
+                    my $dna_well_info = {
+                        well_id_string => $dna_well->as_string,
+                        well_name      => $dna_well->name,
+                        plate_id       => $dna_well->plate->id,
+                        plate_name     => $dna_well->plate->name,
+                        created_at     => $dna_well->created_at->ymd,
+                        status_pass    => ( $dna_well->well_dna_status ? $dna_well->well_dna_status->pass : '' ),
+                        is_accepted    => $dna_well->is_accepted,
+                        crispr_id      => $crispr_id,
+                        design_id      => $design_id,
+                    };
+                    $wells_hash{crispr_dna}->{ $dna_well->as_string } = $dna_well_info;
+                }
+            }
+        }
+    }
+=head
     # Add crispr information to wells_hash
     $wells_hash{crispr} = {};
     my @crispr_well_ids;
@@ -211,6 +273,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         $wells_hash{crispr_dna}->{ $well->as_string } = $well_info;
     }
 
+=cut
     my @crispr_plate_types = qw(crispr crispr_vector crispr_dna);
 
     # created a hash that will contain the sorted data, from the wells_hash
