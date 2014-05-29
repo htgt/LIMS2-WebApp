@@ -416,8 +416,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'plated_crisprs', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'plated crisprs', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'crispr wells', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -798,7 +798,7 @@ SQL_END
             'gene_symbol'            => $gene_symbol,
             'crispr_pairs'           => $crispr_pairs_count,
             'vector_designs'         => $design_count,
-            'plated_crisprs'         => $crispr_count,
+            'crispr_wells'           => $crispr_count,
             'vector_wells'           => scalar @design,
             'crispr_vector_wells'    => $crispr_vector_count,
             'targeting_vector_wells' => $final_count,
