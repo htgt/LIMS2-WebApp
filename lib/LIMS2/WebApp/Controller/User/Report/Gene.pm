@@ -221,7 +221,7 @@ sub _add_crispr_well_values {
                         plate_id       => $vector_well->plate->id,
                         plate_name     => $vector_well->plate->name,
                         created_at     => $vector_well->created_at->ymd,
-                        is_accepted    => $vector_well->is_accepted,
+                        is_accepted    => _accepted_as_text( $vector_well->is_accepted ),
                         crispr_id      => $crispr_id,
                         design_id      => $design_id,
                     };
@@ -235,8 +235,8 @@ sub _add_crispr_well_values {
                         plate_id       => $dna_well->plate->id,
                         plate_name     => $dna_well->plate->name,
                         created_at     => $dna_well->created_at->ymd,
-                        status_pass    => ( $dna_well->well_dna_status ? $dna_well->well_dna_status->pass : '' ),
-                        is_accepted    => $dna_well->is_accepted,
+                        status_pass    => _status_as_text( $dna_well->well_dna_status ),
+                        is_accepted    => _accepted_as_text( $dna_well->is_accepted ),
                         crispr_id      => $crispr_id,
                         design_id      => $design_id,
                     };
@@ -268,6 +268,39 @@ sub _add_design_details {
     $designs_hash->{ $design_id }->{ 'design_details' }->{ 'genes' } = \%genes_in_design;
 
     return;
+}
+
+sub _status_as_text{
+    my ($status) = @_;
+
+    if(defined $status){
+        if ($status->pass){
+            return 'pass';
+        }
+        else{
+            return 'fail';
+        }
+    }
+    else{
+        return '';
+    }
+}
+
+sub _accepted_as_text{
+    my ($accepted) = @_;
+
+    if(defined $accepted){
+        if($accepted){
+            return 'yes';
+        }
+        else{
+            return 'no';
+        }
+    }
+    else{
+        return '';
+    }
+
 }
 
 sub fetch_values_for_type_design {
