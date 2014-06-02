@@ -7,7 +7,7 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
-use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status parse_csv_file );
+use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status upload_plate_dna_quality parse_csv_file );
 use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_data );
 use LIMS2::Model::Util::QCTemplates qw( create_qc_template_from_wells );
 use LIMS2::Model::Constants
@@ -423,6 +423,23 @@ sub update_plate_dna_status {
     my $validated_params = $self->check_params( $params, $self->pspec_update_plate_dna_status );
 
     return upload_plate_dna_status( $self, $validated_params );
+}
+
+sub pspec_update_plate_dna_quality {
+    return {
+        plate_name => { validate => 'existing_plate_name' },
+        species    => { validate => 'existing_species' },
+        user_name  => { validate => 'existing_user' },
+        csv_fh     => { validate => 'file_handle' },
+    };
+}
+
+sub update_plate_dna_quality {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_plate_dna_quality );
+
+    return upload_plate_dna_quality( $self, $validated_params );
 }
 
 sub pspec_rename_plate {
