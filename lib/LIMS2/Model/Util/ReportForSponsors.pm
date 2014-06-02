@@ -768,29 +768,9 @@ SQL_END
 
         # CRISPR product well counts
         my $crispr_summary = $gene_crispr_summary->{$gene_id};
-        my $crispr_count = 0;
-        my $crispr_vector_count = 0;
-        my $crispr_dna_count = 0;
-        my $crispr_dna_accepted_count = 0;
-        foreach my $design_id (keys %$crispr_summary){
-            my $plated_crispr_summary = $crispr_summary->{$design_id}->{plated_crisprs};
-            foreach my $crispr_id (keys %$plated_crispr_summary){
-                my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
-                $crispr_count += scalar( @crispr_well_ids );
-                foreach my $crispr_well_id (@crispr_well_ids){
+        my ($crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count)
+            = get_crispr_well_counts($crispr_summary);
 
-                    # CRISPR_V well count
-                    my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
-                    $crispr_vector_count += $vector_rs->count;
-                    
-                    # DNA well counts
-                    my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
-                    $crispr_dna_count += $dna_rs->count;
-                    my @accepted = grep { $_->is_accepted } $dna_rs->all;
-                    $crispr_dna_accepted_count += scalar(@accepted);
-                }
-            }
-        }
         # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
@@ -815,6 +795,37 @@ SQL_END
     my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
 
     return \@sorted_genes_for_display;
+}
+
+sub get_crispr_well_counts {
+    my ($crispr_summary) = @_;
+
+    # Generate well counts using the summary information from CrisprSummaries Plugin
+    my $crispr_count = 0;
+    my $crispr_vector_count = 0;
+    my $crispr_dna_count = 0;
+    my $crispr_dna_accepted_count = 0;
+    foreach my $design_id (keys %$crispr_summary){
+        my $plated_crispr_summary = $crispr_summary->{$design_id}->{plated_crisprs};
+        foreach my $crispr_id (keys %$plated_crispr_summary){
+            my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
+            $crispr_count += scalar( @crispr_well_ids );
+            foreach my $crispr_well_id (@crispr_well_ids){
+
+                # CRISPR_V well count
+                my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
+                $crispr_vector_count += $vector_rs->count;
+                    
+                # DNA well counts
+                my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
+                $crispr_dna_count += $dna_rs->count;
+                my @accepted = grep { $_->is_accepted } $dna_rs->all;
+                $crispr_dna_accepted_count += scalar(@accepted);
+            }
+        }
+    }
+
+    return $crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count;    
 }
 
 sub get_well_counts {

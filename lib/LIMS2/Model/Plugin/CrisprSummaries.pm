@@ -63,7 +63,7 @@ sub get_crispr_summaries_for_genes{
             push @design_id_list, $design->id;
         }
     }
-    DEBUG "Designs found";
+    DEBUG scalar(@design_id_list)." Designs found";
 
     my $summaries = $self->get_crispr_summaries_for_designs({ id_list => \@design_id_list });
 
@@ -86,27 +86,41 @@ sub get_crispr_summaries_for_designs{
 
     my @crispr_id_list;
     DEBUG "Finding crisprs for designs";
-    foreach my $design_id (@{ $params->{id_list} }){
-        
-        my $design = $self->c_retrieve_design({ id => $design_id });
-        
+    
+    if($params->{find_all_crisprs}){
+        # Fetch all crisprs and pairs targetting the design
+        # Not done by default as this is slow
+        DEBUG "finding all crisprs targetting design";
+        foreach my $design_id (@{ $params->{id_list} }){
+            my $design = $self->c_retrieve_design({ id => $design_id });
+
+            my ($crisprs, $pairs) = crisprs_for_design($self,$design);
+            $result->{$design_id}->{all_crisprs} = $crisprs;
+            $result->{$design_id}->{all_pairs} = $pairs;
+        }
+    }
+
+    my $crispr_design_rs = $self->schema->resultset('CrisprDesign')->search(
+        { 
+            design_id => { -in => $params->{id_list} }
+        }
+    );
+    while (my $link = $crispr_design_rs->next){
         my @crispr_ids;
-        my @design_crispr_links = $design->crispr_designs;
-        foreach my $link (@design_crispr_links){
-            if ($link->crispr_id){
-                push @crispr_ids, $link->crispr_id;
-            }
-            elsif(my $pair = $link->crispr_pair){
-                push @crispr_ids, $pair->left_crispr_id, $pair->right_crispr_id;
-            }
+        
+        if ($link->crispr_id){
+            push @crispr_ids, $link->crispr_id;
+        }
+        elsif(my $pair = $link->crispr_pair){
+            push @crispr_ids, $pair->left_crispr_id, $pair->right_crispr_id;
         }
 
         foreach my $crispr_id (@crispr_ids){
-        	$design_id_for_crispr->{ $crispr_id } = $design_id;
-        	push @crispr_id_list, $crispr_id;
-        }
+            $design_id_for_crispr->{ $crispr_id } = $link->design_id;
+            push @crispr_id_list, $crispr_id;
+        }        
     }
-    DEBUG "crisprs found";
+    DEBUG scalar(@crispr_id_list)." crisprs found";
 
     my $summaries = $self->get_summaries_for_crisprs({ id_list => \@crispr_id_list });
 
@@ -133,18 +147,20 @@ sub get_summaries_for_crisprs{
     DEBUG "Finding crispr wells";
     my $process_crispr_rs = $self->schema->resultset('ProcessCrispr')->search(
         { crispr_id => { '-in' => $params->{id_list} } },
+        { prefetch => { process => 'process_output_wells'}}
     );
 
     while (my $process_crispr = $process_crispr_rs->next){
         my $crispr_id = $process_crispr->crispr_id;
 
-        foreach my $well ($process_crispr->process->output_wells){
+        foreach my $output_well ($process_crispr->process->process_output_wells){
             # Store list of well IDs to fetch descendants from
-            $crispr_id_for_well->{ $well->id } = $crispr_id;
-            push @crispr_well_id_list, $well->id;
+            my $well_id = $output_well->well_id;
+            $crispr_id_for_well->{ $well_id } = $crispr_id;
+            push @crispr_well_id_list, $well_id;
         }
     }
-    DEBUG "Crispr wells found";
+    DEBUG scalar(@crispr_well_id_list)." Crispr wells found";
 
     my $summaries = $self->get_summaries_for_crispr_wells({ id_list => \@crispr_well_id_list });
     
