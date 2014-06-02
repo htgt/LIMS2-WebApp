@@ -54,6 +54,26 @@
               <i class="icon-question-sign" id="targeted_clones" href="#" data-content="Number of electroporated colonies passing genotyping screens
               <br /><small>(EP_PICK wells accepted)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
             </th>
+        [% ELSIF disp_col == "crispr wells" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="crispr_wells" href="#" data-content="Number of crisprs linked to the vector designs
+              <br /><small>(CRISPR wells)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "crispr vector wells" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="crispr_vector_wells" href="#" data-content="Number of crispr vector wells
+              <br /><small>(CRISPR_V wells)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "crispr dna wells" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="crispr_dna_wells" href="#" data-content="Number of crispr vector DNA wells
+              <br /><small>(DNA wells from CRISPR_V)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>
+        [% ELSIF disp_col == "accepted crispr dna wells" %]
+            <th>[% disp_col %]
+              <i class="icon-question-sign" id="accepted_crispr_dna_wells" href="#" data-content="Number of accepted crispr vector DNA wells
+              <br /><small>(DNA wells accepted from CRISPR_V)</small>" rel="popover" data-placement="bottom" data-trigger="hover"></i>
+            </th>                   
         [% ELSE %]
             <th>[% disp_col %]</th>
         [% END %]
@@ -88,7 +108,7 @@
         [% ELSIF colval == "0" %]
             <td></td>
         [% ELSE %]
-          [% IF col == 'passing_vector_wells' || col == 'targeted_clones' %]
+          [% IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_dna_wells' %]
             <td style="background:#8AD95A" >[% colval %]</td>
           [% ELSIF col == 'crispr_pairs' 
                 || col == 'vector_designs' 
@@ -96,7 +116,10 @@
                 || col == 'targeting_vector_wells' 
                 || col == 'accepted_vector_wells' 
                 || col == 'electroporations' 
-                || col == 'colonies_picked' %]
+                || col == 'colonies_picked'
+                || col == 'crispr_wells'
+                || col == 'crispr_vector_wells'
+                || col == 'crispr_dna_wells' %]
             <td style="background:#E5E4E2" >[% colval %]</td>
           [% ELSE %]
             <td>[% colval %]</td>
@@ -121,4 +144,8 @@
     $('#electroporations').popover();
     $('#colonies_picked').popover();
     $('#targeted_clones').popover();
+    $('#crispr_wells').popover();
+    $('#crispr_vector_wells').popover();
+    $('#crispr_dna_wells').popover();
+    $('#accepted_crispr_dna_wells').popover();
 </script>
