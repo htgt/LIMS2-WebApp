@@ -190,9 +190,8 @@ sub get_summaries_for_crispr_wells{
     # Store list of child well ids for each starting well
     foreach my $path (@$paths){
         my ($root, @children) = @{ $path->[0]  };
-        unless(exists $child_well_id_lists->{$root}){
-            $child_well_id_lists->{$root} = [];
-        }
+        $child_well_id_lists->{$root} ||= [];
+
         my $arrayref = $child_well_id_lists->{$root};
         push @$arrayref, @children;
     }
