@@ -793,15 +793,18 @@ SQL_END
         };
     }
 
-    # Get the crispr summary information for all designs found in previous gene loop
-    # We do this after the main loop so we do not have to search for the designs for each gene again
-    DEBUG "Fetching crispr summary info for report";
-    my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
-    DEBUG "Adding crispr counts to gene data";
-    foreach my $gene_data (@genes_for_display){
-        add_crispr_well_counts_for_gene($gene_data, $designs_for_gene, $design_crispr_summary);
+    # Only used in the single targeted report... for now
+    if($self->targeting_type eq 'single_targeted'){
+        # Get the crispr summary information for all designs found in previous gene loop
+        # We do this after the main loop so we do not have to search for the designs for each gene again
+        DEBUG "Fetching crispr summary info for report";
+        my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
+        DEBUG "Adding crispr counts to gene data";
+        foreach my $gene_data (@genes_for_display){
+            add_crispr_well_counts_for_gene($gene_data, $designs_for_gene, $design_crispr_summary);
+        }
+        DEBUG "crispr counts done";
     }
-    DEBUG "crispr counts done";
 
     # sort the array by gene symbol
     my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
