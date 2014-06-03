@@ -189,6 +189,12 @@ sub get_summaries_for_crispr_wells{
     my $child_well_id_lists = {};
     my $result = {};
 
+    # return if id list is empty
+    unless (scalar @{ $params->{id_list} }){
+        DEBUG "Empty ID list passed to get_summaries_for_crispr_wells";
+        return {};
+    }
+
     # Get all crispr well descendants
     DEBUG "Running descendant query";
     my $paths = $self->get_descendants_for_well_id_list($params->{id_list});
