@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.201     2014-06-03 13:09:41 Europe/London
+
+    Added crispr well counts to Targeted Genes summary report
+    Added crispr well details to Gene report
+
 0.200     2014-05-28 16:41:02 Europe/London
 
     Added CSV download button to the Sponsor summary report
