@@ -31,6 +31,12 @@ e.g
       [ crisprs array ]
     all_pairs
       [ crispr_pairs array ]
+    plated_pairs
+      <pair id>
+        left_id
+          <left crispr id>
+        right_id
+          <right crispr id>
     plated_crisprs
       <crispr id>
         <crispr well id>
@@ -40,8 +46,6 @@ e.g
             [ well resultset ]
           child_well_id_list
             [ well ids ]
-
-FIXME: should probably wrap this data structure in a Moose Class
 
 =cut
 
@@ -86,7 +90,7 @@ sub get_crispr_summaries_for_designs{
 
     my @crispr_id_list;
     DEBUG "Finding crisprs for designs";
-    
+
     if($params->{find_all_crisprs}){
         # Fetch all crisprs and pairs targetting the design
         # Not done by default as this is slow
@@ -101,24 +105,27 @@ sub get_crispr_summaries_for_designs{
     }
 
     my $crispr_design_rs = $self->schema->resultset('CrisprDesign')->search(
-        { 
+        {
             design_id => { -in => $params->{id_list} }
         }
     );
     while (my $link = $crispr_design_rs->next){
         my @crispr_ids;
-        
+
         if ($link->crispr_id){
             push @crispr_ids, $link->crispr_id;
         }
         elsif(my $pair = $link->crispr_pair){
             push @crispr_ids, $pair->left_crispr_id, $pair->right_crispr_id;
+            # Store pairs of IDs
+            $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{left_id} = $pair->left_crispr_id;
+            $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{right_id} = $pair->right_crispr_id;
         }
 
         foreach my $crispr_id (@crispr_ids){
             $design_id_for_crispr->{ $crispr_id } = $link->design_id;
             push @crispr_id_list, $crispr_id;
-        }        
+        }
     }
     DEBUG scalar(@crispr_id_list)." crisprs found";
 
@@ -135,7 +142,7 @@ sub get_crispr_summaries_for_designs{
 
 sub get_summaries_for_crisprs{
 	my ($self, $params) = @_;
-    
+
     ref $params->{id_list} eq ref []
         or die "id_list must be an arrayref";
 
@@ -163,7 +170,7 @@ sub get_summaries_for_crisprs{
     DEBUG scalar(@crispr_well_id_list)." Crispr wells found";
 
     my $summaries = $self->get_summaries_for_crispr_wells({ id_list => \@crispr_well_id_list });
-    
+
     # Store each summary under correct crispr id
     foreach my $crispr_well_id (keys %$summaries){
         my $crispr_id = $crispr_id_for_well->{$crispr_well_id};
@@ -212,12 +219,12 @@ sub get_summaries_for_crispr_wells{
                     prefetch => ['plate']
                 }
             );
-            $result->{$crispr_well_id}->{$type} = $well_rs;           
+            $result->{$crispr_well_id}->{$type} = $well_rs;
         }
         $result->{$crispr_well_id}->{child_well_id_list} = $unique_well_ids;
     }
 
-    return $result;    
+    return $result;
 }
 
 1;

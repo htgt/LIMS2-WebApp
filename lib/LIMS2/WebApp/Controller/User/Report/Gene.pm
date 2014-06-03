@@ -189,7 +189,7 @@ sub _add_crispr_well_values {
     my $summary = $model->get_crispr_summaries_for_designs({ id_list => \@design_ids, find_all_crisprs => 1 });
     foreach my $design_id (keys %$summary){
         my $design_summary = $summary->{ $design_id };
-        $designs_hash->{$design_id}->{ design_details }->{ crispr_count } 
+        $designs_hash->{$design_id}->{ design_details }->{ crispr_count }
             = scalar(@{ $design_summary->{ all_crisprs } });
         $designs_hash->{$design_id}->{ design_details }->{ crispr_pair_count }
             = scalar(@{ $design_summary->{ all_pairs } });
@@ -225,7 +225,7 @@ sub _add_crispr_well_values {
                         crispr_id      => $crispr_id,
                         design_id      => $design_id,
                     };
-                    $wells_hash->{crispr_vector}->{ $vector_well->as_string } = $vector_well_info;                    
+                    $wells_hash->{crispr_vector}->{ $vector_well->as_string } = $vector_well_info;
                 }
 
                 while (my $dna_well = $crispr_dna_rs->next){
