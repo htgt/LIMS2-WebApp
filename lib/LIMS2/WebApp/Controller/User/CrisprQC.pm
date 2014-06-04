@@ -17,6 +17,9 @@ with qw(
     WebAppCommon::Crispr::SubmitInterface
 );
 
+#todo: factor some more of this stuff out
+
+## no critic(ProhibitExcessComplexity)
 sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     my ( $self, $c, $qc_run_id ) = @_;
 
@@ -153,6 +156,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
     return;
 }
+## use critic
 
 #pair is a pair resultset, json is the analysis_data from crispr_es_qc_wells
 sub get_localised_pair_coords {
