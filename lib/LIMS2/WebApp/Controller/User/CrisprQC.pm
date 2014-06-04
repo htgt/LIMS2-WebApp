@@ -64,11 +64,15 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         my @genes = map { $_->{gene_symbol} }
                     values %{ $c->model('Golgi')->find_genes( $run->species_id, \@gene_ids ) };
 
+        my $insertions;
+
         #format missing alignment properly
         for my $direction ( qw( forward reverse ) ) {
             if ( exists $json->{$direction}{no_alignment} ) {
                 $json->{$direction} = { full_match_string => '', query_align_str => 'No alignment' };
             }
+
+            $insertions->{$direction} = $json->{$direction}{insertion_details};
         }
 
         #get start, end and size data relative to our seq strings
@@ -92,6 +96,15 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         if ( $truncate_seqs ) {
             $padding = defined $params->{padding} ? $params->{padding} : 25;
             my $padded_start = max(0, ($localised->{pair_start}-$padding));
+            my $end = ($localised->{pair_start}+$localised->{pair_size}+$padding);
+
+            #loop through all the insertions, and see if they are inside our new truncated range.
+            for my $read ( values %{ $insertions } ) {
+                while ( my ( $loc, $insertion ) = each %{ $read } ) {
+                    #its not inside the region we're viewing so delete it
+                    delete $read->{$loc} if $loc < $padded_start || $loc > $end;
+                }
+            }
 
             #truncate all the seqs
             for my $s ( values %alignment_data ) {
@@ -117,15 +130,16 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         }
 
         push @qc_wells, {
-            es_qc_well_id => $qc_well->id,
-            well_id       => $qc_well->well->id,
-            well_name     => $qc_well->well->name, #fetch the well and get name
-            crispr_id     => $json->{crispr_id},
-            gene          => join( ",", @genes ),
-            alignment     => \%alignment_data,
-            longest_indel => "",
-            well_accepted => $well_accepted,
-            show_checkbox => $show_checkbox,
+            es_qc_well_id    => $qc_well->id,
+            well_id          => $qc_well->well->id,
+            well_name        => $qc_well->well->name, #fetch the well and get name
+            crispr_id        => $json->{crispr_id},
+            gene             => join( ",", @genes ),
+            alignment        => \%alignment_data,
+            longest_indel    => $json->{concordant_indel} || "",
+            well_accepted    => $well_accepted,
+            show_checkbox    => $show_checkbox,
+            insertions       => $insertions,
         };
     }
 
