@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.200';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.203';
 }
 ## use critic
 
@@ -1191,7 +1191,8 @@ sub crispr_pair {
 }
 
 #gene finder should be a method that accepts a species id and some gene ids,
-#returning a hashref 
+#returning a hashref
+#see code in WellData for an example
 sub genotyping_info {
   my ( $self, $gene_finder ) = @_;
 
@@ -1255,19 +1256,20 @@ sub genotyping_info {
                   values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
 
   return {
-      gene      => @genes == 1 ? $genes[0] : [ @genes ],
-      design_id => $design->id,
-      well_id   => $self->id,
-      well_name => $self->name,
-      plate_name => $self->plate->name,
-      fwd_read  => $accepted_qc_well->fwd_read,
-      rev_read  => $accepted_qc_well->rev_read,
-      epd_plate_name  => $epd->plate->name,
-      accepted  => $epd->accepted,
+      gene             => @genes == 1 ? $genes[0] : [ @genes ],
+      design_id        => $design->id,
+      well_id          => $self->id,
+      well_name        => $self->name,
+      plate_name       => $self->plate->name,
+      fwd_read         => $accepted_qc_well->fwd_read,
+      rev_read         => $accepted_qc_well->rev_read,
+      epd_plate_name   => $epd->plate->name,
+      accepted         => $epd->accepted,
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
+      vcf_file         => $accepted_qc_well->vcf_file,
   };
 }
 

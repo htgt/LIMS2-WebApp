@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.200';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.203';
 }
 ## use critic
 
@@ -106,6 +106,11 @@ __PACKAGE__->table("crispr_es_qc_wells");
   default_value: false
   is_nullable: 0
 
+=head2 vcf_file
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -136,6 +141,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "accepted",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "vcf_file",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -198,8 +205,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 14:29:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v4JT/r2+CTz1PY54Qbv45A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-06-03 11:11:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mz66Gj+ri1K3tVK0VuKTEw
 
 use JSON;
 

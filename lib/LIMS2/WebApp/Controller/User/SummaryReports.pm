@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::SummaryReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.200';
+    $LIMS2::WebApp::Controller::User::SummaryReports::VERSION = '0.203';
 }
 ## use critic
 
@@ -53,16 +53,33 @@ sub view : Path( '/user/view_summary_report' ) : Args(3) {
     my $display_columns  = $report_params->{ 'display_columns' };
     my $data             = $report_params->{ 'data' };
 
+    # csv download
+    if ($c->request->params->{csv}) {
+        $c->response->status( 200 );
+        $c->response->content_type( 'text/csv' );
+        $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+
+        my $body = join(',', map { $_ } @{$display_columns}) . "\n";
+        foreach my $column ( @{$data} ) {
+            $body .= join(',', map { $column->{$_} } @{$columns}) . "\n";
+        }
+
+        $c->response->body( $body );
+
+    } else {
+
     # Store report values in stash for display onscreen
-    $c->stash(
-        'report_id'            => $report_id,
-        'disp_target_type'     => $disp_target_type,
-        'disp_stage'           => $disp_stage,
-        'sponsor_id'           => $sponsor_id,
-        'columns'              => $columns,
-        'display_columns'      => $display_columns,
-        'data'                 => $data,
-    );
+        $c->stash(
+            'report_id'            => $report_id,
+            'disp_target_type'     => $disp_target_type,
+            'disp_stage'           => $disp_stage,
+            'sponsor_id'           => $sponsor_id,
+            'columns'              => $columns,
+            'display_columns'      => $display_columns,
+            'data'                 => $data,
+        );
+
+    }
 
     return;
 }

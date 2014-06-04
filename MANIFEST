@@ -33,6 +33,7 @@ lib/LIMS2/Model/FormValidator/Constraint.pm
 lib/LIMS2/Model/Plugin/BAC.pm
 lib/LIMS2/Model/Plugin/Crispr.pm
 lib/LIMS2/Model/Plugin/CrisprEsQc.pm
+lib/LIMS2/Model/Plugin/CrisprSummaries.pm
 lib/LIMS2/Model/Plugin/Gene.pm
 lib/LIMS2/Model/Plugin/GenotypingQC.pm
 lib/LIMS2/Model/Plugin/Plate.pm
