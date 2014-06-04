@@ -68,6 +68,10 @@
         <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
       </td>
     </tr>
+    <tr>
+      <th>VCF</th>
+      <td>[% data.vcf_file %]</td>
+    </tr>
 </table>
 
 <div class="well">
