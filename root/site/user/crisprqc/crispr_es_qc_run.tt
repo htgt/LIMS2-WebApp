@@ -164,6 +164,7 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
             <th>Gene</th>
             <th>Pair ID</th>
             <th>Alignment</th>
+            <th>Inserts</th>
             <th>Longest Indel</th>
             <th>Accept</th>
             <!-- <th>View trace</th> -->
@@ -197,6 +198,15 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
                     </div>
                 </div>
             </td>
+            <td>
+                [% FOR dir IN row.insertions.keys %]
+                    [% NEXT UNLESS row.insertions.$dir.keys.size > 0 %]
+                    [% dir %]:<br/>
+                        [% FOR loc IN row.insertions.$dir.keys.sort %]
+                            [% loc %] - [% row.insertions.$dir.$loc %] ([% row.insertions.$dir.$loc.length %])<br/>
+                        [% END %]
+                [% END %]
+            </td>
             <td>[% row.longest_indel %]</td>
             <td>
                 [% IF row.show_checkbox %]
@@ -210,7 +220,7 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
         [% END %]
         [% IF wells.size == 0 %]
         <tr>
-            <td colspan="7" style="text-align: center">Well data is pending, please come back later</td>
+            <td colspan="8" style="text-align: center">Well data is pending, please come back later</td>
         </tr>
         [% END %]
     </tbody>
