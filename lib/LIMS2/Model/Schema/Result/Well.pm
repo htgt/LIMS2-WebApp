@@ -497,6 +497,14 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 use List::MoreUtils qw( any );
 
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
+
 sub is_accepted {
     my $self = shift;
 
@@ -1233,6 +1241,8 @@ sub crispr_primer_for{
 
 #gene finder should be a method that accepts a species id and some gene ids,
 #returning a hashref
+#see code in WellData for an example
+
 sub genotyping_info {
   my ( $self, $gene_finder ) = @_;
 
@@ -1296,19 +1306,20 @@ sub genotyping_info {
                   values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
 
   return {
-      gene      => @genes == 1 ? $genes[0] : [ @genes ],
-      design_id => $design->id,
-      well_id   => $self->id,
-      well_name => $self->name,
-      plate_name => $self->plate->name,
-      fwd_read  => $accepted_qc_well->fwd_read,
-      rev_read  => $accepted_qc_well->rev_read,
-      epd_plate_name  => $epd->plate->name,
-      accepted  => $epd->accepted,
+      gene             => @genes == 1 ? $genes[0] : [ @genes ],
+      design_id        => $design->id,
+      well_id          => $self->id,
+      well_name        => $self->name,
+      plate_name       => $self->plate->name,
+      fwd_read         => $accepted_qc_well->fwd_read,
+      rev_read         => $accepted_qc_well->rev_read,
+      epd_plate_name   => $epd->plate->name,
+      accepted         => $epd->accepted,
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
+      vcf_file         => $accepted_qc_well->vcf_file,
   };
 }
 
@@ -1323,5 +1334,65 @@ sub _group_primers {
   return $key, { name => $name, seq => $seq };
 }
 
+# Compute accepted flag for DNA created from FINAL_PICK
+# accepted = true if:
+# FINAL_PICK qc_sequencing_result pass == true AND
+# DNA well_dna_status pass == true AND
+# DNA well_dna_quality egel_pass == true
+sub compute_final_pick_dna_well_accepted {
+    my ( $self ) = @_;
+
+    return unless $self->plate->type_id eq 'DNA';
+
+    my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
+
+    my $final_pick_parent;
+    while ( my $ancestor = $ancestors->next ) {
+
+        # Allow for rearraying of DNA plates
+        next if $ancestor->plate->type_id eq 'DNA';
+
+        # Check plate type of parent well
+        if ( $ancestor->plate->type_id eq 'FINAL_PICK' ) {
+            $final_pick_parent = $ancestor;
+            DEBUG("Found final pick parent ".$ancestor->as_string);
+            last;
+        }
+        else{
+            # Parent is not a FINAL_PICK so skip accepted flag computation
+            DEBUG("Parent is not FINAL_PICK");
+            return;
+        }
+    }
+
+    if ($final_pick_parent){
+        my $final_pick_qc_seq = $final_pick_parent->well_qc_sequencing_result;
+        my $dna_status = $self->well_dna_status;
+        my $dna_quality = $self->well_dna_quality;
+        if ($final_pick_qc_seq and $dna_status and $dna_quality){
+            DEBUG("Computing final pick DNA accepted status");
+            DEBUG("Final pick QC status: ".$final_pick_qc_seq->pass);
+            DEBUG("DNA status: ".$dna_status->pass);
+            DEBUG("DNA egel pass: ".$dna_quality->egel_pass);
+            if ( $final_pick_qc_seq->pass and $dna_status->pass and $dna_quality->egel_pass){
+                DEBUG("Setting accepted to true");
+                $self->update({ accepted => 1 });
+            }
+            else{
+                DEBUG("Setting accepted to false");
+                $self->update({ accepted => 0 });
+            }
+        }
+        else{
+            # We do not have enough data to compute the accepted flag
+            # unset accepted flag which may have been set elsewhere
+            $self->update({accepted => 0 });
+            DEBUG("Not enough info to set accepted flag");
+            return;
+        }
+    }
+
+    return;
+}
 __PACKAGE__->meta->make_immutable;
 1;

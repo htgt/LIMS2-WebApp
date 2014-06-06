@@ -41,7 +41,7 @@
           single crispr details</a>
         </td>
         <td>
-          <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '1' } ) %]" target="_blank" class="btn btn-info btn-mini btn-block">
+          <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" target="_blank" class="btn btn-info btn-mini btn-block">
           crispr pair details</a>
         </td>
       </tr>

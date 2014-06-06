@@ -8,6 +8,7 @@ use Sub::Exporter -setup => {
         qw(
             parse_csv_file
             upload_plate_dna_status
+            upload_plate_dna_quality
             spreadsheet_to_csv
           )
     ]
@@ -81,6 +82,56 @@ sub upload_plate_dna_status {
         else {
             # Some of the wells in the input were not present in LIMS2
             # This should not happen because we catch this during '_process_concentration_data' step
+            push @failure_message,
+                $validated_params->{'well_name'} . ' - well not available in LIMS2';
+        }
+    }
+
+    push my @returned_messages, ( @failure_message, @success_message );
+    return \@returned_messages;
+}
+
+sub pspec__check_dna_quality {
+    return {
+        well_name           => { validate => 'well_name' },
+        egel_status     => { validate => 'pass_or_fail', post_filter  => 'pass_to_boolean', rename => 'egel_pass', optional => 1 },
+        quality             => { validate => 'dna_quality', optional => 1 },
+        comments            => { validate => 'non_empty_string', optional => 1, rename => 'comment_text' },
+        REQUIRE_SOME        => { quality_or_egel_status => [ 1, qw(quality egel_status) ] },
+    };
+}
+
+sub upload_plate_dna_quality {
+    my ( $model, $params ) = @_;
+    my @success_message;
+    my @failure_message;
+
+    my $data = parse_csv_file( $params->{csv_fh} );
+
+    my $plate = $model->retrieve_plate( { name => $params->{plate_name} } );
+    check_plate_type( $plate, [ qw(DNA) ]  );
+
+    for my $datum ( @{$data} ) {
+        my $validated_params = $model->check_params( $datum, pspec__check_dna_quality() );
+        my $dna_quality = $model->update_or_create_well_dna_quality(
+            +{
+                %{ $validated_params },
+                plate_name => $params->{plate_name},
+                created_by => $params->{user_name},
+            }
+        );
+
+        if ( $dna_quality) {
+            if(defined $dna_quality->egel_pass){
+            push @success_message,
+                $dna_quality->well->name . ' - egel ' . ( $dna_quality->egel_pass == 1 ? 'pass' : 'fail' );
+            }
+            if(defined $dna_quality->quality){
+                $dna_quality->well->name . ' - quality: ' . ( $dna_quality->quality );
+            }
+        }
+        else {
+            # Some of the wells in the input were not present in LIMS2
             push @failure_message,
                 $validated_params->{'well_name'} . ' - well not available in LIMS2';
         }

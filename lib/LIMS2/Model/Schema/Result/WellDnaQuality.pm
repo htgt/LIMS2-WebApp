@@ -47,7 +47,7 @@ __PACKAGE__->table("well_dna_quality");
 =head2 quality
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 comment_text
 
@@ -68,13 +68,18 @@ __PACKAGE__->table("well_dna_quality");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 egel_pass
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
   "well_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "quality",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "text", is_nullable => 1 },
   "comment_text",
   { data_type => "text", default_value => "", is_nullable => 0 },
   "created_at",
@@ -86,6 +91,8 @@ __PACKAGE__->add_columns(
   },
   "created_by_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "egel_pass",
+  { data_type => "boolean", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -133,8 +140,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zAnMqldNmdjAHhvdnkEykw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-27 11:14:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EAuE2OtF3f0QPKxhKsRb0w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

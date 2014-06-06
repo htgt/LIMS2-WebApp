@@ -416,8 +416,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr wells', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'accepted crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -677,6 +677,10 @@ sub genes {
          unshift( @gene_list,  $gene_row->{ 'gene_id' });
     }
 
+    # Store list of designs to get crispr summary info for later
+    my $designs_for_gene = {};
+    my @all_design_ids;
+
     foreach my $gene_row ( @$sql_results ) {
         my $gene_id = $gene_row->{ 'gene_id' };
 
@@ -716,7 +720,7 @@ sub genes {
 
         # get the plates
         my $sql =  <<"SQL_END";
-SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN, 
+SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN, 
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL, 
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA, 
 concat(ep_plate_name, '_', ep_well_name) AS EP, 
@@ -738,8 +742,9 @@ SQL_END
         my $results = $self->run_select_query( $sql );
 
         # get the plates into arrays
-        my (@design, @final_info, @dna_info, @ep, @ep_pick_info);
+        my (@design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
         foreach my $row (@$results) {
+            push @design_ids, $row->{design_id};
             push (@design, $row->{design}) unless ($row->{design} eq '_');
             push (@final_info, $row->{final}) unless ($row->{final} eq '_');
             push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
@@ -750,6 +755,15 @@ SQL_END
 
         # DESIGN
         @design = uniq @design;
+
+        # Store design IDs to use in crispr summary query
+        foreach my $design_id (uniq @design_ids){
+            $designs_for_gene->{$gene_id} ||= [];
+
+            my $arrayref = $designs_for_gene->{$gene_id};
+            push @$arrayref, $design_id;
+            push @all_design_ids, $design_id;
+        }
 
         # FINAL
         my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
@@ -779,10 +793,75 @@ SQL_END
         };
     }
 
+    # Only used in the single targeted report... for now
+    if($self->targeting_type eq 'single_targeted'){
+        # Get the crispr summary information for all designs found in previous gene loop
+        # We do this after the main loop so we do not have to search for the designs for each gene again
+        DEBUG "Fetching crispr summary info for report";
+        my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
+        DEBUG "Adding crispr counts to gene data";
+        foreach my $gene_data (@genes_for_display){
+            add_crispr_well_counts_for_gene($gene_data, $designs_for_gene, $design_crispr_summary);
+        }
+        DEBUG "crispr counts done";
+    }
+
     # sort the array by gene symbol
     my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
 
     return \@sorted_genes_for_display;
+}
+
+sub add_crispr_well_counts_for_gene{
+    my ($gene_data, $designs_for_gene, $design_crispr_summary) = @_;
+
+    my $gene_id = $gene_data->{gene_id};
+    my $crispr_count = 0;
+    my $crispr_vector_count = 0;
+    my $crispr_dna_count = 0;
+    my $crispr_dna_accepted_count = 0;
+    my $crispr_pair_accepted_count = 0;
+    foreach my $design_id (@{ $designs_for_gene->{$gene_id} || []}){
+        my $plated_crispr_summary = $design_crispr_summary->{$design_id}->{plated_crisprs};
+        my %has_accepted_dna;
+        foreach my $crispr_id (keys %$plated_crispr_summary){
+            my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
+            $crispr_count += scalar( @crispr_well_ids );
+            foreach my $crispr_well_id (@crispr_well_ids){
+
+                # CRISPR_V well count
+                my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
+                $crispr_vector_count += $vector_rs->count;
+
+                # DNA well counts
+                my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
+                $crispr_dna_count += $dna_rs->count;
+                my @accepted = grep { $_->is_accepted } $dna_rs->all;
+                $crispr_dna_accepted_count += scalar(@accepted);
+
+                if(@accepted){
+                    $has_accepted_dna{$crispr_id} = 1;
+                }
+            }
+        }
+        # Count pairs for this design which have accepted DNA for both left and right crisprs
+        my $crispr_pairs = $design_crispr_summary->{$design_id}->{plated_pairs} || {};
+        foreach my $pair_id (keys %$crispr_pairs){
+            my $left_id = $crispr_pairs->{$pair_id}->{left_id};
+            my $right_id = $crispr_pairs->{$pair_id}->{right_id};
+            if ($has_accepted_dna{$left_id} and $has_accepted_dna{$right_id}){
+                DEBUG "Crispr pair $pair_id accepted";
+                $crispr_pair_accepted_count++;
+            }
+        }
+    }
+    $gene_data->{crispr_wells} = $crispr_count;
+    $gene_data->{crispr_vector_wells} = $crispr_vector_count;
+    $gene_data->{crispr_dna_wells} = $crispr_dna_count;
+    $gene_data->{accepted_crispr_dna_wells} = $crispr_dna_accepted_count;
+    $gene_data->{accepted_crispr_pairs} = $crispr_pair_accepted_count;
+
+    return;
 }
 
 sub get_well_counts {

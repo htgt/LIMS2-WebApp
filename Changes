@@ -1,5 +1,31 @@
 {{$NEXT}}
 
+0.203     2014-06-04 12:11:38 Europe/London
+
+    Sponsor report: csv download and column names updated
+
+0.202     2014-06-04 08:08:57 Europe/London
+
+    Add vcf_file column to crispr_es_qc_wells table.
+
+0.201     2014-06-03 13:09:41 Europe/London
+
+    Added crispr well counts to Targeted Genes summary report
+    Added crispr well details to Gene report
+
+0.200     2014-05-28 16:41:02 Europe/London
+
+    Added CSV download button to the Sponsor summary report
+
+0.199     2014-05-28 09:55:29 Europe/London
+
+    Addition of EGel pass flag and form to upload them 
+    Changes to final pick DNA well accepted criteria and DNA plate report to include EGel pass
+
+0.198     2014-05-22 15:32:50 Europe/London
+
+    Changes to the Sponsor Summary reports to make them project-specific
+
 0.197     2014-05-22 07:57:36 Europe/London
 
     Added crispr information to design page.
