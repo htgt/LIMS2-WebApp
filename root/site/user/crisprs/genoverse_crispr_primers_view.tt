@@ -1,22 +1,37 @@
 [% META title="Browse Crispr Primers"; META tab_name = '' %]
 <div class="page-header">
-  <h1>[%- gene_symbol -%] 
-  <small>exon: <strong>[%exon_id%]</strong>
-  chr: [%- chromosome -%]
-  assembly: [%- genome -%]</small>
+<SCRIPT LANGUAGE = JavaScript >
+document.title = "[%- context.browser_target _ ':' _ context.crispr_pair_id %]";
+</SCRIPT>
+  <h1>Crispr Pair Id: [%- context.crispr_pair_id %] </h1>
+  <small><h1>Well: [%- context.plate_name _ '_' _ context.well_name %]
+  symbol: [%- context.gene_symbol -%] 
+  chr: [%- extent.chr_name -%]
+  assembly: [%- extent.assembly -%]
+  design: [%- context.design_id %]</small>
   </h1>
 </div>
-
+[% crispr_primers_params = {
+    design_id = context.design_id
+    crispr_pair_id = context.crispr_pair_id
+    well_name = context.well_name
+    assembly_id = extent.assembly
+    species = c.session.selected_species
+    chr   = '__CHR__'
+    start = '__START__'
+    end   = '__END__' 
+}
+%]
     <script type="text/javascript" src="[% c.uri_for('/static/genoverse/js/genoverse.wtsi.js')%]">
        {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
         // chromosomeSize : 249250621, // chromosome 1, human
-        [% USE String(genome) %]
+        [% USE String(extent.assembly) %]
         genome    : '[% String.lower() %]', // see js/genomes/
-        chr       : '[% chromosome %]',
-        start     : [% exon_start %] - 2000,  // 2Kb context
-        end       : [% exon_end %] + 2000,
+        chr       : '[% extent.chr_name %]',
+        start     : [% extent.chr_start %] - 2000,  // 2Kb context
+        end       : [% extent.chr_end %] + 2000,
         plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
         tracks    : [
           Genoverse.Track.Scalebar,
@@ -38,26 +53,14 @@
             resizable : 'auto',
             height    : 150
           }),
-[% IF view_single %]
           Genoverse.Track.extend({
-            name      : 'Crisprs',
-            url       : "[% c.uri_for('/api/crispr')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            name      : 'Crispr_primers',
+            url       : "[% c.uri_for('/api/crispr_primers', crispr_primers_params)%]" ,
             model     : Genoverse.Track.Model.Transcript.GFF3,
             view      : Genoverse.Track.View.Transcript,
             resizable : 'auto',
             height    : 150
           }),
-[% END %]
-[% IF view_paired %]
-          Genoverse.Track.extend({
-            name      : 'Crispr_pairs',
-            url       : "[% c.uri_for('/api/crispr_pairs')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
-            model     : Genoverse.Track.Model.Transcript.GFF3,
-            view      : Genoverse.Track.View.Transcript,
-            resizable : 'auto',
-            height    : 150
-          }),
-[% END %]
           Genoverse.Track.extend({
             name   : 'Genes',
             [% IF c.session.selected_species == 'Mouse' %]
