@@ -19,6 +19,8 @@ use Sub::Exporter -setup => {
         oligos_for_crispr_pair
         pick_crispr_primers
         pick_single_crispr_primers
+        retrieve_crispr_primers
+        get_genotyping_primer_extent
     ) ]
 };
 
@@ -1113,6 +1115,145 @@ sub get_repeat_masked_sequence {
         $seq = $seq->revcom;
     }
     return $seq;
+}
+
+# Retrieve crispr primer sets
+
+=head retrieve_crispr_primers
+Given
+    params => {
+        'schema'         => LIMS2::Schema,
+        'crispr_pair_id' => value,
+        'crispr_id'      => value,
+    }
+Returns a hashref keyed on primer labels that contains assembly and coordinate information
+
+=cut
+
+sub retrieve_crispr_primers {
+    my $schema = shift;
+    my $params = shift;
+
+    my $crispr_pair_id  = $params->{'crispr_pair_id'};
+    my $single_crispr_id = $params->{'crispr_id'};
+
+    my $crispr_col_label;
+    my $crispr_id_value;
+    if ($single_crispr_id ) {
+       $crispr_col_label = 'crispr_id';
+       $crispr_id_value = $single_crispr_id;
+    }
+    else {
+        $crispr_col_label = 'crispr_pair_id';
+        $crispr_id_value = $crispr_pair_id;
+    }
+
+    my %crispr_primers_hash;
+
+    my $crispr_primers_rs = $schema->resultset('CrisprPrimer')->search({
+        $crispr_col_label => $crispr_id_value,
+    });
+    if ($crispr_primers_rs) {
+        my $count = 0;
+        while ( my $crispr_primers_row = $crispr_primers_rs->next ) {
+#FIXME: Owing to the primer_name column also being the name of the belongs to relationship...
+            $crispr_primers_hash{$crispr_id_value}->{$crispr_primers_row->primer_name->primer_name} = {
+                'primer_seq' => $crispr_primers_row->primer_seq,
+                'chr_start' => $crispr_primers_row->crispr_primer_loci->single->chr_start,
+                'chr_end'  => $crispr_primers_row->crispr_primer_loci->single->chr_end,
+                'chr_strand' => $crispr_primers_row->crispr_primer_loci->single->chr_strand,
+                'chr_id' => $crispr_primers_row->crispr_primer_loci->single->chr_id,
+                'assembly_id' => $crispr_primers_row->crispr_primer_loci->single->assembly_id,
+            };
+        }
+    }
+    # Now the genotyping primers
+    my $g_primer_hash = get_db_genotyping_primers_as_hash($schema, $params );
+    while ( my ($label, $val) = each %$g_primer_hash ) {
+        $crispr_primers_hash{$crispr_id_value}->{$label} = $val;
+    }
+
+    return \%crispr_primers_hash;
+}
+
+# Return the maximum distance between GF and GR
+#
+
+
+sub get_db_genotyping_primers_as_hash {
+    my $schema = shift;
+    my $params = shift;
+
+    my $genotyping_primer_rs = $schema->resultset('GenotypingPrimer')->search({
+            'design_id' => $params->{'design_id'},
+        },
+        {
+            'prefetch'   => ['genotyping_primer_loci'],
+        },
+    );
+    my %g_primer_hash;
+    # The genotyping primer table has no unique constraint and may have multiple redundant entries
+    # So the %g_primer_hash gets rid of the redundancy
+    while ( my $g_primer = $genotyping_primer_rs->next ) {
+        $g_primer_hash{ $g_primer->genotyping_primer_type_id } = {
+            'primer_seq' => $g_primer->seq,
+            'chr_start' => $g_primer->genotyping_primer_loci->first->chr_start,
+            'chr_end' => $g_primer->genotyping_primer_loci->first->chr_end,
+            'chr_id' => $g_primer->genotyping_primer_loci->first->chr_id,
+            'chr_name' => $g_primer->genotyping_primer_loci->first->chr->name,
+            'chr_strand' => $g_primer->genotyping_primer_loci->first->chr_strand,
+            'assembly_id' => $g_primer->genotyping_primer_loci->single->assembly_id,
+
+        }
+    }
+
+    return \%g_primer_hash;
+}
+
+
+=head get_genotyping_extent
+
+Given
+
+Returns
+hashref:
+    start_coord
+    end_coord
+    chr_name
+    assembly
+=cut
+
+sub get_genotyping_primer_extent {
+    my $schema = shift;
+    my $params = shift;
+    my $species = shift;
+
+    my $g_primer_hash = get_db_genotyping_primers_as_hash($schema, $params );
+
+    my %extent_hash;
+
+    # Simply compare all the start and end positions (chr_start, chr_end) and take the min of chr_start and the max of chr_end
+
+    $extent_hash{'chr_start'} = $g_primer_hash->{'GF1'}->{'chr_start'};
+    $extent_hash{'chr_end'} = $g_primer_hash->{'GF1'}->{'chr_end'};
+    while ( my ($primer, $vals) = each %$g_primer_hash ) {
+        $extent_hash{'chr_start'} = $vals->{'chr_start'} if $extent_hash{'chr_start'} > $vals->{'chr_start'};
+        $extent_hash{'chr_end'} = $vals->{'chr_end'} if $extent_hash{'chr_end'} < $vals->{'chr_start'};
+    }
+    $extent_hash{'chr_name'} = $g_primer_hash->{'GF1'}->{'chr_name'};
+    $extent_hash{'assembly'} = get_species_default_assembly( $schema, $species);
+
+    return \%extent_hash;
+}
+
+sub get_species_default_assembly {
+    my $schema = shift;
+    my $species = shift;
+
+    my $assembly_r = $schema->resultset('SpeciesDefaultAssembly')->find( { species_id => $species } );
+
+    return $assembly_r->assembly_id || undef;
+
 }
 
 1;

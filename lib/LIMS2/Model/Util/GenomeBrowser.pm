@@ -17,15 +17,17 @@ use Sub::Exporter -setup => {
         crisprs_for_region
         crisprs_to_gff
         crispr_pairs_for_region
-        crispr_pairs_to_gff 
+        crispr_pairs_to_gff
         gibson_designs_for_region
         design_oligos_to_gff
+        primers_for_crispr_pair
+        crispr_primers_to_gff
     ) ]
 };
 
 use Log::Log4perl qw( :easy );
 
-=head2 crisprs_for_region 
+=head2 crisprs_for_region
 
 Find crisprs for a specific chromosome region. The search is not design
 related. The method accepts species, chromosome id, start and end coordinates.
@@ -91,7 +93,7 @@ sub crispr_pairs_for_region {
 }
 
 
-=head crisprs_for_region_as_arrayref 
+=head crisprs_for_region_as_arrayref
 
 Return and array of hashrefs properly inflated for the browser.
 This is suitable for serialisation as JSON.
@@ -188,8 +190,8 @@ sub crisprs_to_gff {
 }
 
 
-=head crispr_pairs_to_gff 
-Returns an array representing a set of strings ready for 
+=head crispr_pairs_to_gff
+Returns an array representing a set of strings ready for
 concatenation to produce a GFF3 format file.
 
 =cut
@@ -331,7 +333,7 @@ sub design_oligos_to_gff {
         . '-'
         . $params->{'end_coord'} ;
 
-        my $gibson_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs. 
+        my $gibson_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs.
         $gibson_designs = parse_gibson_designs( $oligo_rs );
         my $design_meta_data;
         $design_meta_data = generate_design_meta_data ( $gibson_designs );
@@ -462,5 +464,105 @@ sub gibson_colour {
     );
     return $colours{ $oligo_type_id };
 }
+
+# Methods for crispr primer generation and formatting to gff
+
+sub primers_for_crispr_pair{
+    my $schema = shift;
+    my $params = shift;
+
+    use LIMS2::Model::Util::OligoSelection qw/ retrieve_crispr_primers/;
+    my $crispr_primers = LIMS2::Model::Util::OligoSelection::retrieve_crispr_primers($schema, $params  ) ;
+
+    return $crispr_primers;
+}
+
+sub crispr_primers_to_gff {
+    my $crispr_primers = shift;
+    my $params = shift;
+$DB::single=1;
+    my @crispr_primers_gff;
+
+    push @crispr_primers_gff, "##gff-version 3";
+    push @crispr_primers_gff, '##sequence-region lims2-region '
+        . $params->{'start'}
+        . ' '
+        . $params->{'end'};
+    push @crispr_primers_gff, '# Crispr primers for region '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chr'}
+        . ':'
+        . $params->{'start'}
+        . '-'
+        . $params->{'end'} ;
+
+        # Crispr primers are pairs consisting of 2 chars and a digit. These will form the object to be rendered.
+        # However, there is no LIMS2 identifier for a primer pair combination - so we invent one here. 
+        # Each (GF1,GR1) is a pair, so is (GF2,GR2), (SF1,SR1), (SF2,SR2) etc.
+        # So, the hash need splitting into sub-hashes, grouped by 1st character of label, then by last character of label.
+        # The middle character gives the orientation.
+        #
+        my $primer_groups = group_primers_by_pair( $crispr_primers->{$params->{'crispr_pair_id'}} );
+
+
+        while ( my ($primer_group, $val) = each %$primer_groups ) {
+            my %primer_format_hash = (
+                'seqid' => $params->{'chr'},
+                'source' => 'LIMS2',
+                'type' => 'CrisprPrimer',
+                'start' => $primer_groups->{$primer_group}->{'chr_start'},
+                'end' => $primer_groups->{$primer_group}->{'chr_end'},
+                'score' => '.',
+                'strand' => '+' ,
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . $primer_group . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $primer_group
+                );
+            my $primer_parent_datum = prep_gff_datum( \%primer_format_hash );
+            my @primer_child_data;
+            $primer_format_hash{'type'} = 'CDS';
+            foreach my $primer_key ( grep { $_ !~ /chr_/ } keys %$val ) {
+                $primer_format_hash{'start'} = $val->{$primer_key}->{'chr_start'};
+                $primer_format_hash{'end'} = $val->{$primer_key}->{'chr_end'};
+                $primer_format_hash{'strand'} = ( $val->{$primer_key}->{'chr_strand'} eq '-1' ) ? '-' : '+';
+                $primer_format_hash{'attributes'} =     'ID='
+                    . $primer_key . ';'
+                    . 'Parent=' . $primer_group . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $primer_key . ';'
+                    . 'color=#45A825'; # greenish
+                 my $primer_child_datum = prep_gff_datum( \%primer_format_hash );
+                 push @primer_child_data, $primer_child_datum;
+            }
+            push @crispr_primers_gff, $primer_parent_datum, @primer_child_data ;
+        }
+
+    return \@crispr_primers_gff;
+}
+
+sub group_primers_by_pair {
+    my $crispr_primers = shift;
+
+    my %primer_groups;
+
+    foreach my $tag ( qw/ G P S / ) {
+        for my $num ( 1..2 ){
+            $primer_groups{$tag . '_' . $num} = {
+                $tag . 'F' . $num => $crispr_primers->{ $tag . 'F' . $num},
+                $tag . 'R' . $num => $crispr_primers->{ $tag . 'R' . $num},
+                # Add the start and end coords
+                'chr_start' => $crispr_primers->{ $tag . 'F' . $num}->{'chr_start'},
+                'chr_end'   => $crispr_primers->{ $tag . 'R' . $num}->{'chr_end'},
+            }
+        }
+    }
+    delete $primer_groups{'S_2'}; # only one set of sequencing primers
+
+    return \%primer_groups;
+}
+
 
 1;

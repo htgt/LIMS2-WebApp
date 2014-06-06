@@ -11,6 +11,7 @@ use List::MoreUtils qw( uniq );
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -253,6 +254,32 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
         'exon_end'      => $exon_coords->chr_end,
         'view_single'   => $c->request->params->{'view_single'},
         'view_paired'   => $c->request->params->{'view_paired'},
+    );
+
+    return;
+}
+
+=head genoverse_crispr_primers_view
+Given
+
+Renders
+
+With
+
+=cut
+
+sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $genotyping_primer_extent = get_genotyping_primer_extent(
+        $c->model('Golgi')->schema,
+        $c->request->params,
+        $c->session->{'selected_species'},
+    );
+#   my $exon_coords = $exon_coords_rs->single;
+    $c->stash(
+        'extent'  => $genotyping_primer_extent,
+        'context' => $c->request->params,
     );
 
     return;

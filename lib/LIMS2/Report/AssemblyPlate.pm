@@ -43,8 +43,6 @@ override iterator => sub {
     );
 
     return Iterator::Simple::iter sub {
-        $DB::single=1;
-
         my $well = $wells_rs->next
             or return;
 
@@ -64,16 +62,21 @@ override iterator => sub {
 
         my $crispr_pair_id = $well->crispr_pair ? $well->crispr_pair->id : '-';
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
+        my ($design_id, $gene_ids, $gene_symbols, $sponsors) = $self->design_and_gene_cols($well);
         return [
             $well->name,
-            $self->design_and_gene_cols($well),
+            $design_id, $gene_ids, $gene_symbols, $sponsors,
             $crispr_pair_id,
             $self->create_button({
+                    'design_id'        => $well->design->id,
                     'crispr_pair_id'   => $crispr_pair_id,
+                    'plate_name'       => $self->plate_name,
                     'well_name'        => $well->name,
+                    'gene_symbol'      => $gene_symbols,
+                    'gene_ids'         => $gene_ids,
                     'button_label'     => 'Genoverse',
                     'browser_target'   => $well->name,
-                    'api_url'          => '/usr/genoverse_crispr_primers',
+                    'api_url'          => '/user/genoverse_crispr_primers',
             }),
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $left_designs,
