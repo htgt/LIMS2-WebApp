@@ -21,7 +21,7 @@
 <div class="well">
   <b>Production Graph: </b>
     [% FOREACH well IN sorted_wells.design %]
-      <a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'go' => 'Go' } ) %]">[% well.well_id_string %]</a>
+      <a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]">[% well.well_id_string %]</a>
     [%- END %]
 </div>
 [%- END %]
@@ -148,7 +148,7 @@
               <td>[% well.design_id %]</td>
               <td>[% well.recombineering_result %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'go' => 'Go' } ) %]" class="btn btn-info btn-mini" type="submit">Show</a></td>
+              <td><a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]" class="btn btn-info btn-mini" type="submit">Show</a></td>
             </tr>
             [%- END %]
           </tbody>
