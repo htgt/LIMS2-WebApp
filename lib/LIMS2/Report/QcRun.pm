@@ -100,6 +100,8 @@ override iterator => sub {
             for my $column ( @{ $self->columns } ) {
                 next if $column eq 'valid_primers';
                 my $datum = defined $qc_result->{$column} ? $qc_result->{$column} : '';
+                #make well names uppercase so the lab staff don't have to change it to upload
+                $datum = uc $datum if $column =~ /well_name/;
                 push @data, $datum;
             }
 
