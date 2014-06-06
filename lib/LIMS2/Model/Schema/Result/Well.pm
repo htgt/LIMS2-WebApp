@@ -973,7 +973,7 @@ sub is_epd_or_later {
     return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
   }
 
-  #we didn't find any ep picks further up so its not 
+  #we didn't find any ep picks further up so its not
   return;
 }
 
@@ -1190,7 +1190,7 @@ sub crispr_primer_for{
     my $crispr_col_label;
     my $crispr_id_value;
     if (! $right_crispr ) {
-       $crispr_col_label = 'crispr_id'; 
+       $crispr_col_label = 'crispr_id';
        $crispr_id_value = $left_crispr->crispr->id;
     }
     else {
@@ -1200,12 +1200,12 @@ sub crispr_primer_for{
 
     if ( $primer_type eq 'crispr_primer' ){
         my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
-            $crispr_col_label => $crispr_id_value, 
+            $crispr_col_label => $crispr_id_value,
             'primer_name' => $params->{'primer_label'},
         });
         if ($result) {
             $crispr_primer_seq = $result->primer_seq;
-        }   
+        }
     }
     else {
         # it's a genotyping primer
@@ -1232,7 +1232,7 @@ sub crispr_primer_for{
 }
 
 #gene finder should be a method that accepts a species id and some gene ids,
-#returning a hashref 
+#returning a hashref
 sub genotyping_info {
   my ( $self, $gene_finder ) = @_;
 

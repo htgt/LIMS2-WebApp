@@ -75,12 +75,12 @@ has time_taken => (
 # HashRef linking each well on the plate to crispr wells via crispr_design
 # Structure is like this:
 #   crispr_wells => {
-#       <well_id> => {  
-#          <crispr_design_id> => { 
-#              single => [ <array of crispr wells> ], 
-#              left   => [ <array of crispr wells> ], 
-#              right  => [ <array of crispr wells> ], 
-#          } 
+#       <well_id> => {
+#          <crispr_design_id> => {
+#              single => [ <array of crispr wells> ],
+#              left   => [ <array of crispr wells> ],
+#              right  => [ <array of crispr wells> ],
+#          }
 #       }
 #   }
 has crispr_wells => (
@@ -338,7 +338,7 @@ sub accepted_crispr_data {
         # Store single crisprs for handling later
         push @single_cr_wells, @{ $crispr_design->{single} || [] };
 
-        # Handle paired crisprs for each crispr_design because 
+        # Handle paired crisprs for each crispr_design because
         # left and right wells need to be reported together
         my @left_cr_wells = @{ $crispr_design->{left} || [] };
         my @right_cr_wells = @{ $crispr_design->{right} || [] };
@@ -528,7 +528,7 @@ sub create_button {
             . $params->{$custom_key}
             . ';';
     }
-    return $custom_value; 
+    return $custom_value;
 }
 
 __PACKAGE__->meta->make_immutable;
