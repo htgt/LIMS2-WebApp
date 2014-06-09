@@ -270,7 +270,7 @@ With
 
 sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
     my ( $self, $c ) = @_;
-
+$DB::single=1;
     my $genotyping_primer_extent = get_genotyping_primer_extent(
         $c->model('Golgi')->schema,
         $c->request->params,

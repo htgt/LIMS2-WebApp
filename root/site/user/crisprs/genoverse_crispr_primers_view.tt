@@ -11,17 +11,37 @@ document.title = "[%- context.browser_target _ ':' _ context.crispr_pair_id %]";
   design: [%- context.design_id %]</small>
   </h1>
 </div>
-[% crispr_primers_params = {
-    design_id = context.design_id
-    crispr_pair_id = context.crispr_pair_id
-    well_name = context.well_name
-    assembly_id = extent.assembly
-    species = c.session.selected_species
-    chr   = '__CHR__'
-    start = '__START__'
-    end   = '__END__' 
+
+
+<script>
+var crispr_primers_params = [
+    "design_id=[%context.design_id%]",
+    "crispr_pair_id=[%context.crispr_pair_id%]",
+    "well_name=[%context.well_name%]",
+    "assembly_id=[%extent.assembly%]",
+    "species=[%c.session.selected_species%]"
+];
+
+var unique_crispr_params = [
+    "crispr_ref"=[%context.crispr_type%]",
+    "crispr_ref_id"=[%context.crispr_type_id%]"
+];
+
+function build_uri_params( params_to_build ) {
+    var param_stub = "?";
+    var param_end = [
+        "chr=__CHR__",
+        "start=__START__",
+        "end=__END__" 
+    ];
+    params_to_build = params_to_build.concat( param_end );
+    var param_str = params_to_build.join("&");
+    return param_stub.concat( param_str );
 }
-%]
+</script>
+
+
+
     <script type="text/javascript" src="[% c.uri_for('/static/genoverse/js/genoverse.wtsi.js')%]">
        {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
@@ -55,12 +75,20 @@ document.title = "[%- context.browser_target _ ':' _ context.crispr_pair_id %]";
           }),
           Genoverse.Track.extend({
             name      : 'Crispr_primers',
-            url       : "[% c.uri_for('/api/crispr_primers', crispr_primers_params)%]" ,
+            url       : "[% c.uri_for('/api/crispr_primers')%]" + build_uri_params( crispr_primers_params ) ,
             model     : Genoverse.Track.Model.Transcript.GFF3,
             view      : Genoverse.Track.View.Transcript,
             resizable : 'auto',
             height    : 150
           }),
+//          Genoverse.Track.extend({
+//            name      : 'Crispr',
+//            url       : "[% c.uri_for('/api/unique_crispr')%]" + unique_crispr_params ,
+//            model     : Genoverse.Track.Model.Transcript.GFF3,
+//            view      : Genoverse.Track.View.Transcript,
+//            resizable : 'auto',
+//            height    : 150
+//          }),
           Genoverse.Track.extend({
             name   : 'Genes',
             [% IF c.session.selected_species == 'Mouse' %]

@@ -500,7 +500,7 @@ $DB::single=1;
         . $params->{'end'} ;
 
         # Crispr primers are pairs consisting of 2 chars and a digit. These will form the object to be rendered.
-        # However, there is no LIMS2 identifier for a primer pair combination - so we invent one here. 
+        # However, there is no LIMS2 identifier for a primer pair combination - so we invent one here.
         # Each (GF1,GR1) is a pair, so is (GF2,GR2), (SF1,SR1), (SF2,SR2) etc.
         # So, the hash need splitting into sub-hashes, grouped by 1st character of label, then by last character of label.
         # The middle character gives the orientation.
@@ -509,14 +509,17 @@ $DB::single=1;
 
 
         while ( my ($primer_group, $val) = each %$primer_groups ) {
+            next if ! $primer_groups->{$primer_group}->{'chr_start'};
+            my $g_start = $primer_groups->{$primer_group}->{'chr_start'};
+            my $g_end = $primer_groups->{$primer_group}->{'chr_end'};
             my %primer_format_hash = (
                 'seqid' => $params->{'chr'},
                 'source' => 'LIMS2',
                 'type' => 'CrisprPrimer',
-                'start' => $primer_groups->{$primer_group}->{'chr_start'},
-                'end' => $primer_groups->{$primer_group}->{'chr_end'},
+                'start' => ($g_start < $g_end ? $g_start : $g_end),
+                'end' => ($g_end > $g_start ? $g_end : $g_start),
                 'score' => '.',
-                'strand' => '+' ,
+                'strand' => ($g_start < $g_end ? '+' : '-') ,
                 'phase' => '.',
                 'attributes' => 'ID='
                     . $primer_group . ';'
@@ -526,8 +529,10 @@ $DB::single=1;
             my @primer_child_data;
             $primer_format_hash{'type'} = 'CDS';
             foreach my $primer_key ( grep { $_ !~ /chr_/ } keys %$val ) {
-                $primer_format_hash{'start'} = $val->{$primer_key}->{'chr_start'};
-                $primer_format_hash{'end'} = $val->{$primer_key}->{'chr_end'};
+                my $start = $val->{$primer_key}->{'chr_start'};
+                my $end = $val->{$primer_key}->{'chr_end'};
+                $primer_format_hash{'start'} = $start < $end ? $start : $end;
+                $primer_format_hash{'end'} = $end > $start ? $end : $start;
                 $primer_format_hash{'strand'} = ( $val->{$primer_key}->{'chr_strand'} eq '-1' ) ? '-' : '+';
                 $primer_format_hash{'attributes'} =     'ID='
                     . $primer_key . ';'
