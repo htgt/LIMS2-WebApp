@@ -21,6 +21,7 @@ use Sub::Exporter -setup => {
         pick_single_crispr_primers
         retrieve_crispr_primers
         get_genotyping_primer_extent
+        retrieve_crispr_data_for_id
     ) ]
 };
 
@@ -1123,8 +1124,8 @@ sub get_repeat_masked_sequence {
 Given
     params => {
         'schema'         => LIMS2::Schema,
-        'crispr_pair_id' => value,
-        'crispr_id'      => value,
+        'crispr_type'    => crispr_pair_id or crispr_id,
+        'crispr_type_id'      => value of crispr_type
     }
 Returns a hashref keyed on primer labels that contains assembly and coordinate information
 
@@ -1134,30 +1135,29 @@ sub retrieve_crispr_primers {
     my $schema = shift;
     my $params = shift;
 
-    my $crispr_pair_id  = $params->{'crispr_pair_id'};
-    my $single_crispr_id = $params->{'crispr_id'};
-
-    my $crispr_col_label;
-    my $crispr_id_value;
-    if ($single_crispr_id ) {
-       $crispr_col_label = 'crispr_id';
-       $crispr_id_value = $single_crispr_id;
-    }
-    else {
-        $crispr_col_label = 'crispr_pair_id';
-        $crispr_id_value = $crispr_pair_id;
-    }
+    my $crispr_id_ref  = $params->{'crispr_id_ref'};
+    my $crispr_id = $params->{'crispr_id'};
 
     my %crispr_primers_hash;
 
     my $crispr_primers_rs = $schema->resultset('CrisprPrimer')->search({
-        $crispr_col_label => $crispr_id_value,
+        $crispr_id_ref => $crispr_id,
     });
+
+    my $crispr_type_string;
+
+    if ( $crispr_id_ref eq 'crispr_id' ) {
+       $crispr_type_string = 'crispr_single';
+    }
+    elsif ( $crispr_id_ref eq 'crispr_pair_id' ) {
+       $crispr_type_string = 'crispr_pair';
+    }
+
     if ($crispr_primers_rs) {
         my $count = 0;
         while ( my $crispr_primers_row = $crispr_primers_rs->next ) {
 #FIXME: Owing to the primer_name column also being the name of the belongs to relationship...
-            $crispr_primers_hash{$crispr_id_value}->{$crispr_primers_row->primer_name->primer_name} = {
+            $crispr_primers_hash{$crispr_type_string}->{$crispr_id}->{$crispr_primers_row->primer_name->primer_name} = {
                 'primer_seq' => $crispr_primers_row->primer_seq,
                 'chr_start' => $crispr_primers_row->crispr_primer_loci->single->chr_start,
                 'chr_end'  => $crispr_primers_row->crispr_primer_loci->single->chr_end,
@@ -1169,8 +1169,11 @@ sub retrieve_crispr_primers {
     }
     # Now the genotyping primers
     my $g_primer_hash = get_db_genotyping_primers_as_hash($schema, $params );
-    while ( my ($label, $val) = each %$g_primer_hash ) {
-        $crispr_primers_hash{$crispr_id_value}->{$label} = $val;
+    # If the hash is empty - there were no genotyping primers for this design that we can use
+    if ( %$g_primer_hash ) {
+        while ( my ($label, $val) = each %$g_primer_hash ) {
+            $crispr_primers_hash{$crispr_type_string}->{$crispr_id}->{$label} = $val;
+        }
     }
 
     return \%crispr_primers_hash;
@@ -1191,19 +1194,23 @@ sub get_db_genotyping_primers_as_hash {
             'prefetch'   => ['genotyping_primer_loci'],
         },
     );
+    if ( $genotyping_primer_rs->count == 0 ) {
+         LIMS2::Exception->throw( 'No primer data found for design: ' . $params->{'design_id'});
+    }
     my %g_primer_hash;
     # The genotyping primer table has no unique constraint and may have multiple redundant entries
     # So the %g_primer_hash gets rid of the redundancy
     while ( my $g_primer = $genotyping_primer_rs->next ) {
-        $g_primer_hash{ $g_primer->genotyping_primer_type_id } = {
-            'primer_seq' => $g_primer->seq,
-            'chr_start' => $g_primer->genotyping_primer_loci->first->chr_start,
-            'chr_end' => $g_primer->genotyping_primer_loci->first->chr_end,
-            'chr_id' => $g_primer->genotyping_primer_loci->first->chr_id,
-            'chr_name' => $g_primer->genotyping_primer_loci->first->chr->name,
-            'chr_strand' => $g_primer->genotyping_primer_loci->first->chr_strand,
-            'assembly_id' => $g_primer->genotyping_primer_loci->single->assembly_id,
-
+        if ( $g_primer->genotyping_primer_type_id =~ m/G[FR][12]/ ) {
+            $g_primer_hash{ $g_primer->genotyping_primer_type_id } = {
+                'primer_seq' => $g_primer->seq,
+                'chr_start' => $g_primer->genotyping_primer_loci->first->chr_start,
+                'chr_end' => $g_primer->genotyping_primer_loci->first->chr_end,
+                'chr_id' => $g_primer->genotyping_primer_loci->first->chr_id,
+                'chr_name' => $g_primer->genotyping_primer_loci->first->chr->name,
+                'chr_strand' => $g_primer->genotyping_primer_loci->first->chr_strand,
+                'assembly_id' => $g_primer->genotyping_primer_loci->single->assembly_id,
+            }
         }
     }
 
@@ -1230,6 +1237,10 @@ sub get_genotyping_primer_extent {
 
     my $g_primer_hash = get_db_genotyping_primers_as_hash($schema, $params );
 
+    if ( ! %{$g_primer_hash} ) {
+        LIMS2::Exception->throw( 'No data returned for design primers' );
+    }
+
     my %extent_hash;
 
     # Simply compare all the start and end positions (chr_start, chr_end) and take the min of chr_start and the max of chr_end
@@ -1254,6 +1265,30 @@ sub get_species_default_assembly {
 
     return $assembly_r->assembly_id || undef;
 
+}
+
+sub retrieve_crispr_data_for_id {
+    my $schema = shift;
+    my $params = shift;
+
+    my $crispr_id_ref  = $params->{'crispr_id_ref'};
+    my $crispr_id = $params->{'crispr_id'};
+
+    my %crispr_data_hash;
+
+    if ( $crispr_id_ref eq 'crispr_pair_id' ) {
+        $crispr_data_hash{'crispr_pair'}->{$crispr_id} = oligos_for_crispr_pair( $schema, $crispr_id );
+    }
+    elsif ($crispr_id_ref eq 'crispr_id' ) {
+        $crispr_data_hash{'crispr_single'}->{$crispr_id} = oligo_for_single_crispr( $schema, $crispr_id );
+    }
+    else {
+        ERROR ('crispr identifier: ' . $crispr_id . ' was not found in the database');
+        # signal an error
+        die;
+    }
+
+    return \%crispr_data_hash;
 }
 
 1;

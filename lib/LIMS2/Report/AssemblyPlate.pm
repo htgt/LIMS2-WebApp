@@ -45,7 +45,6 @@ override iterator => sub {
     return Iterator::Simple::iter sub {
         my $well = $wells_rs->next
             or return;
-
         my $final_vector = $well->final_vector;
         my ($left_crispr,$right_crispr) = $well->left_and_right_crispr_wells;
 
@@ -60,7 +59,8 @@ override iterator => sub {
             $right_designs = join "/", map { $_->id } $right_crispr->crispr->related_designs;
         }
 
-        my $crispr_pair_id = $well->crispr_pair ? $well->crispr_pair->id : '-';
+        my $crispr_pair_id = $right_crispr ? $well->crispr_pair->id : $left_crispr->crispr->id;
+        my $crispr_id = $left_crispr->crispr->id;
         # acs - 20_05_13 - redmine 10545 - add cassette resistance
         my ($design_id, $gene_ids, $gene_symbols, $sponsors) = $self->design_and_gene_cols($well);
         return [
@@ -69,7 +69,8 @@ override iterator => sub {
             $crispr_pair_id,
             $self->create_button({
                     'design_id'        => $well->design->id,
-                    'crispr_pair_id'   => $crispr_pair_id,
+                    'crispr_type'      => $right_crispr ? 'crispr_pair_id' : 'crispr_id',
+                    'crispr_type_id'   => $right_crispr ? $crispr_pair_id : $crispr_id,
                     'plate_name'       => $self->plate_name,
                     'well_name'        => $well->name,
                     'gene_symbol'      => $gene_symbols,

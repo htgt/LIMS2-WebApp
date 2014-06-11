@@ -3,7 +3,12 @@
 <SCRIPT LANGUAGE = JavaScript >
 document.title = "[%- context.browser_target _ ':' _ context.crispr_pair_id %]";
 </SCRIPT>
-  <h1>Crispr Pair Id: [%- context.crispr_pair_id %] </h1>
+  <h1>Crispr [%- IF context.crispr_type == 'crispr_pair_id' %]
+    Pair
+    [%- ELSE %]
+    Singlet
+    [%- END %]
+  : [%- context.crispr_type_id %] </h1>
   <small><h1>Well: [%- context.plate_name _ '_' _ context.well_name %]
   symbol: [%- context.gene_symbol -%] 
   chr: [%- extent.chr_name -%]
@@ -13,18 +18,21 @@ document.title = "[%- context.browser_target _ ':' _ context.crispr_pair_id %]";
 </div>
 
 
-<script>
+<script type="text/javascript">
 var crispr_primers_params = [
     "design_id=[%context.design_id%]",
-    "crispr_pair_id=[%context.crispr_pair_id%]",
+    "crispr_id_ref=[%context.crispr_type%]",
+    "crispr_id=[%context.crispr_type_id%]",
     "well_name=[%context.well_name%]",
     "assembly_id=[%extent.assembly%]",
     "species=[%c.session.selected_species%]"
 ];
 
 var unique_crispr_params = [
-    "crispr_ref"=[%context.crispr_type%]",
-    "crispr_ref_id"=[%context.crispr_type_id%]"
+    "crispr_id_ref=[%context.crispr_type%]",
+    "crispr_id=[%context.crispr_type_id%]",
+    "assembly_id=[%extent.assembly%]",
+    "species=[%c.session.selected_species%]"
 ];
 
 function build_uri_params( params_to_build ) {
@@ -81,14 +89,14 @@ function build_uri_params( params_to_build ) {
             resizable : 'auto',
             height    : 150
           }),
-//          Genoverse.Track.extend({
-//            name      : 'Crispr',
-//            url       : "[% c.uri_for('/api/unique_crispr')%]" + unique_crispr_params ,
-//            model     : Genoverse.Track.Model.Transcript.GFF3,
-//            view      : Genoverse.Track.View.Transcript,
-//            resizable : 'auto',
-//            height    : 150
-//          }),
+          Genoverse.Track.extend({
+            name      : 'Crispr',
+            url       : "[% c.uri_for('/api/unique_crispr')%]" + build_uri_params( unique_crispr_params ),
+            model     : Genoverse.Track.Model.Transcript.GFF3,
+            view      : Genoverse.Track.View.Transcript,
+            resizable : 'auto',
+            height    : 150
+          }),
           Genoverse.Track.extend({
             name   : 'Genes',
             [% IF c.session.selected_species == 'Mouse' %]

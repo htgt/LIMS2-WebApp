@@ -270,17 +270,28 @@ With
 
 sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
     my ( $self, $c ) = @_;
-$DB::single=1;
-    my $genotyping_primer_extent = get_genotyping_primer_extent(
-        $c->model('Golgi')->schema,
-        $c->request->params,
-        $c->session->{'selected_species'},
-    );
+
+    my $genotyping_primer_extent;
+   try {
+        $genotyping_primer_extent = get_genotyping_primer_extent(
+            $c->model('Golgi')->schema,
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch ( LIMS2::Exception $e ){
+       $c->stash( error_msg => $e->as_string );
+    }
+    if (! $genotyping_primer_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a Gibson design with genotyping primers to display Genoverse view' );
+    }
+    else {
 #   my $exon_coords = $exon_coords_rs->single;
-    $c->stash(
-        'extent'  => $genotyping_primer_extent,
-        'context' => $c->request->params,
-    );
+        $c->stash(
+            'extent'  => $genotyping_primer_extent,
+            'context' => $c->request->params,
+        );
+    }
 
     return;
 }
