@@ -592,7 +592,7 @@ sub unique_crispr_data  {
 sub unique_crispr_data_to_gff {
     my $crispr_data = shift;
     my $params = shift;
-$DB::single=1;
+
     my @crispr_data_gff;
 
     push @crispr_data_gff, "##gff-version 3";
