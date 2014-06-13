@@ -1177,11 +1177,7 @@ sub crispr_pair {
            'right_crispr_id' => $right_crispr->crispr->id,
         });
 
-    if (! $crispr_pair) {
-        require LIMS2::Exception::Implementation;
-        LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
-    }
-    return $crispr_pair;
+    return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
 }
 
 sub crispr_primer_for{
@@ -1189,6 +1185,7 @@ sub crispr_primer_for{
     my $params = shift;
     #does params need validation?
     my $crispr_primer_seq = '-'; # default sequence is hyphen - no sequence available
+    return $crispr_primer_seq if $params->{'crispr_pair_id'} eq 'Invalid';
 
     # Decide if well relates to a pair or a single crispr
     my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
