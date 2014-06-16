@@ -8,6 +8,7 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 
+use Smart::Comments;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -59,8 +60,6 @@ override _build_columns => sub {
 override iterator => sub {
     my ( $self ) = @_;
 
-use Smart::Comments;
-
 
     my $plate = $self->model->retrieve_plate( { name => $self->plate_name } );
 
@@ -79,24 +78,11 @@ use Smart::Comments;
         my $design_id = $well->design->id;
         ### $design_id
 
-        my @rs = $self->model->schema->resultset( 'GeneDesign' )->search({
-            design_id => $design_id,
-        });
-
-        my @gene_list = map { $_->gene_id } @rs;
-        ### @gene_list
-        my $gene_id = join(', ', @gene_list);
-
-        my $gene = $self->model->find_gene({
-                species => $self->species,
-                search_term => $gene_id,
-        });
-        ### $gene
-
         my $row_data = $self->get_row_for_design_list( [$design_id], $self->plate_name, $well->name );
 
-        unshift @{$row_data}, $well->name, $design_id, $gene_id, $gene->{'gene_symbol'};
+        unshift @{$row_data}, $well->name, $design_id;
         push @data, $row_data;
+
 
     }
 
@@ -121,7 +107,9 @@ sub get_row_for_design_list {
     ### $search_condition
 
     my $sql =  <<"SQL_END";
-SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN,
+SELECT
+design_gene_id, design_gene_symbol,
+concat(design_plate_name, '_', design_well_name) AS DESIGN,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
@@ -135,8 +123,10 @@ SQL_END
     my $results = $self->run_select_query( $sql );
 
     # get the plates into arrays
-    my (@design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+    my (@gene_ids, @gene_symbols, @design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
     foreach my $row (@$results) {
+        push @gene_ids, $row->{design_gene_id};
+        push @gene_symbols, $row->{design_gene_symbol};
         push @design_ids, $row->{design_id};
         push (@design, $row->{design}) unless ($row->{design} eq '_');
         push (@final_info, $row->{final}) unless ($row->{final} eq '_');
@@ -145,6 +135,12 @@ SQL_END
         push (@ep, $row->{crispr_ep}) unless ($row->{crispr_ep} eq '_');
         push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
     }
+
+    # Gene info
+    @gene_ids = uniq @gene_ids;
+    my $gene_id = join(', ', @gene_ids );
+    @gene_symbols = uniq @gene_symbols;
+    my $gene_symbol = join(', ', @gene_symbols );
 
     # DESIGN
     @design = uniq @design;
@@ -224,6 +220,8 @@ SQL_END
 
 
     my $data_row = [
+        $gene_id,
+        $gene_symbol,
         $crispr_count,
         $crispr_vector_count,
         $crispr_dna_count,
