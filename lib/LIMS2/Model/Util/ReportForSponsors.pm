@@ -416,8 +416,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'crispr wells', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'accepted crispr pairs', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr wells', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'accepted crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',

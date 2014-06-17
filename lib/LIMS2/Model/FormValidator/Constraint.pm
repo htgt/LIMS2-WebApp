@@ -211,7 +211,7 @@ sub existing_nuclease {
 }
 
 sub qc_seq_read_id {
-    return shift->regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9]+$/);
+    return shift->regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/);
 }
 
 sub cigar_string {
