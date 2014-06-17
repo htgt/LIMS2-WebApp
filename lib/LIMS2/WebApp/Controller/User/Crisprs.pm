@@ -417,6 +417,8 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
 
     my @succeeded;
     my @output;
+    #these fields need to be deleted to pass crispr parameter validation
+    my @fields_to_remove = qw( id species_id chr_name chr_start chr_end genic exonic );
     foreach my $wge_crispr_pair_id (@wge_crispr_pairs) {
 
         my ($wge_left_crispr_id, $wge_right_crispr_id);
@@ -463,11 +465,8 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
 
         $left_crispr_data->{locus}->{assembly} = $assembly;
 
-        delete $left_crispr_data->{id};
-        delete $left_crispr_data->{species_id};
-        delete $left_crispr_data->{chr_name};
-        delete $left_crispr_data->{chr_start};
-        delete $left_crispr_data->{chr_end};
+        #use hash slice to delete fields we dont want
+        delete @{ $left_crispr_data }{ @fields_to_remove };
 
         my $right_crispr_data;
         try {
@@ -501,11 +500,7 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
 
         $right_crispr_data->{locus}->{assembly} = $assembly;
 
-        delete $right_crispr_data->{id};
-        delete $right_crispr_data->{species_id};
-        delete $right_crispr_data->{chr_name};
-        delete $right_crispr_data->{chr_start};
-        delete $right_crispr_data->{chr_end};
+        delete @{ $right_crispr_data }{ @fields_to_remove };
 
         try {
             my $crispr_pair_data = $client->GET( 'find_or_create_crispr_pair', {
