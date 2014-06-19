@@ -226,6 +226,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             method => 'async',
             name   => 'Design Plate Order Sheet',
         },
+        {
+            class  => 'SummaryOligoPlate',
+            method => 'sync',
+            name   => 'Summary by Oligo Plate',
+        },
     ],
     CRISPR => [
         {
