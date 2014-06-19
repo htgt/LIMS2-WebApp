@@ -313,6 +313,7 @@ root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/genoverse_browse_view.tt
+root/site/user/crisprs/genoverse_crispr_primers_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_pair.tt
@@ -343,8 +344,10 @@ root/site/user/qc/view_qc_result.tt
 root/site/user/qc/view_qc_run.tt
 root/site/user/recombinaseupload/recombinase_upload.tt
 root/site/user/report/await_report.tt
+root/site/user/report/extjs_report_table.tt
 root/site/user/report/gene_report.tt
 root/site/user/report/gene_summary_report.tt
+root/site/user/report/generic_report_grid.tt
 root/site/user/report/select_sponsor.tt
 root/site/user/report/select_vector_params.tt
 root/site/user/report/simple_table.tt
@@ -2197,8 +2200,8 @@ root/static/files/plate_upload/single_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/standard_template_es.csv
 root/static/files/plate_upload/standard_template_vector.csv
 root/static/files/qc_upload/dna_concentrations.xlsx
+root/static/files/qc_upload/dna_egel_status_upload_template.csv
 root/static/files/qc_upload/dna_status_upload_template.csv
-root/static/files/qc_upload/egel_test.csv
 root/static/files/qc_upload/genotyping_upload_template.csv
 root/static/genoverse/css/controlPanel.css
 root/static/genoverse/css/fileDrop.css
@@ -2282,6 +2285,7 @@ root/static/test/data/dist_qc_process.yaml
 root/static/test/data/dna_prep_process.yaml
 root/static/test/data/dna_status.yaml
 root/static/test/data/dna_test_plate.yaml
+root/static/test/data/egel_test.csv
 root/static/test/data/final_pick_process.yaml
 root/static/test/data/find_crispr_by_seq.yaml
 root/static/test/data/first_electroporation.yaml

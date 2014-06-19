@@ -17,6 +17,7 @@ const my %IGNORE_TABLE => (
     fixture_md5                 => 1,
     crispr_off_target_summaries => 1,
     design_attempts             => 1,
+    crisprs                     => 1,
 );
 
 const my $MAIN_SCHEMA  => 'public';

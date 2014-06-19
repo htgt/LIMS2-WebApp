@@ -1,3 +1,13 @@
+0.206     2014-06-19 10:23:23 Europe/London
+
+    Added Genoverse button to Assembly Plate report
+    Added alternative extJS grid view to all reports
+    Added Summary by Oligo Plate
+
+0.205     2014-06-06 16:00:46 Europe/London
+
+    Added crispr branch to plate relation graphs
+
 0.204     2014-06-04 17:22:28 Europe/London
 
     Added insert sizes and sequences to crispr es qc run page

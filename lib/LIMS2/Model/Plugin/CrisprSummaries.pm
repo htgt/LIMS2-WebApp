@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprSummaries;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprSummaries::VERSION = '0.204';
+    $LIMS2::Model::Plugin::CrisprSummaries::VERSION = '0.206';
 }
 ## use critic
 
@@ -237,6 +237,62 @@ sub get_summaries_for_crispr_wells{
     }
 
     return $result;
+}
+
+
+sub get_crispr_wells_for_design {
+    my ($self, $design_id) = @_;
+
+    my $result = {};
+
+    my @crispr_id_list;
+    DEBUG "Finding crisprs for design";
+
+    my $crispr_design_rs = $self->schema->resultset('CrisprDesign')->search(
+        {
+            design_id => { -in => $design_id }
+        }
+    );
+    while (my $link = $crispr_design_rs->next){
+        my @crispr_ids;
+
+        if ($link->crispr_id){
+            push @crispr_ids, $link->crispr_id;
+        }
+        elsif(my $pair = $link->crispr_pair){
+            push @crispr_ids, $pair->left_crispr_id, $pair->right_crispr_id;
+            # Store pairs of IDs
+            $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{left_id} = $pair->left_crispr_id;
+            $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{right_id} = $pair->right_crispr_id;
+        }
+
+        foreach my $crispr_id (@crispr_ids){
+            push @crispr_id_list, $crispr_id;
+        }
+    }
+    DEBUG scalar(@crispr_id_list)." crisprs found";
+
+
+    my @crispr_well_list;
+
+    DEBUG "Finding crispr wells";
+    my $process_crispr_rs = $self->schema->resultset('ProcessCrispr')->search(
+        { crispr_id => { '-in' => \@crispr_id_list } },
+        { prefetch => { process => 'process_output_wells'}}
+    );
+
+    while (my $process_crispr = $process_crispr_rs->next){
+        my $crispr_id = $process_crispr->crispr_id;
+
+        foreach my $output_well ($process_crispr->process->process_output_wells){
+            # Store list of wells
+            my $well_id = $output_well->well_id;;
+            push @crispr_well_list, $self->retrieve_well( { id => $well_id } );
+        }
+    }
+    DEBUG scalar(@crispr_well_list)." Crispr wells found";
+
+    return @crispr_well_list;
 }
 
 1;

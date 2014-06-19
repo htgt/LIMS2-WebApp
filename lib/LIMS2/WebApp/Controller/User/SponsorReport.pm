@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::SponsorReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::SponsorReport::VERSION = '0.204';
+    $LIMS2::WebApp::Controller::User::SponsorReport::VERSION = '0.206';
 }
 ## use critic
 
