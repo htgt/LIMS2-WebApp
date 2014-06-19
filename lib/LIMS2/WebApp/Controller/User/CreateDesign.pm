@@ -493,6 +493,9 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
+        foreach my $comments (@{$design_data->{comments}}) {
+            delete $comments->{id};
+        }
 
         $design_data->{id} = $design_id;
 
