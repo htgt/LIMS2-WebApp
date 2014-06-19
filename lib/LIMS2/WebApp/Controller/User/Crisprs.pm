@@ -11,6 +11,7 @@ use List::MoreUtils qw( uniq );
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -257,6 +258,47 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
 
     return;
 }
+
+=head genoverse_crispr_primers_view
+Given
+
+Renders
+
+With
+
+=cut
+# Percritic can't see the return at the end of this sub
+
+## no critic (RequireFinalReturn)
+sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $genotyping_primer_extent;
+   try {
+        $genotyping_primer_extent = get_genotyping_primer_extent(
+            $c->model('Golgi')->schema,
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch ( LIMS2::Exception $e ){
+       $c->stash( error_msg => $e->as_string );
+    }
+    if (! $genotyping_primer_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a Gibson design with genotyping primers to display Genoverse view' );
+    }
+    else {
+#   my $exon_coords = $exon_coords_rs->single;
+        $c->stash(
+            'extent'  => $genotyping_primer_extent,
+            'context' => $c->request->params,
+        );
+    }
+
+return;
+}
+
+## use critic
 
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;

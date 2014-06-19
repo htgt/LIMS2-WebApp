@@ -259,6 +259,7 @@
 
 <h2>Wells</h2>
 <a class="btn btn-primary" href="[% well_report_uri %]"><i class="icon-list icon-white"></i> Well Details</a>
+<a class="btn btn-primary" href="[% grid_report_uri %]"><i class="icon-list icon-white"></i> Well Grid</a>
 [% IF additional_plate_reports %]
 <h3>Additional Reports</h3>
   [% FOREACH report IN additional_plate_reports %]

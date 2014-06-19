@@ -177,6 +177,7 @@ function lims2_devel {
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-73/modules
 }
 
 function lims2_show {
