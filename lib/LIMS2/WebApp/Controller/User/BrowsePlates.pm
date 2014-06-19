@@ -105,7 +105,7 @@ sub get_additional_plate_reports : Private {
     for my $report ( @{ $ADDITIONAL_PLATE_REPORTS{ $plate->type_id } } ) {
         my $url = $c->uri_for(
             '/user/report/' . $report->{method} . '/' . $report->{class},
-            { plate_id => $plate->id }
+            { plate_id => $plate->id, plate_name => $plate->name }
         );
         push @additional_reports, { report_url => $url, name => $report->{name} };
     }

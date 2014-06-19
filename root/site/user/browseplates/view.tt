@@ -92,7 +92,7 @@
       [% IF plate.plate_comments.size %]
       <dl>
         [% FOR comment IN plate.plate_comments %]
-        <dt>[% comment.created_by.name %], [% comment.created_at.ymd %] 
+        <dt>[% comment.created_by.name %], [% comment.created_at.ymd %]
           [% IF comment.created_by.name == username %]
             <a class="btn btn-danger" role="button" href="#DeleteCommentModal" data-toggle="modal">
               <i class="icon-remove icon-white"></i> <span style="font-weight: normal;">Delete</span>
@@ -262,6 +262,6 @@
 [% IF additional_plate_reports %]
 <h3>Additional Reports</h3>
   [% FOREACH report IN additional_plate_reports %]
-<a class="btn btn-small" href="[% report.report_url %]"><i class="icon-list"></i> [% report.name %]</a>
+<a class="btn btn-small" href="[% report.report_url %]"><i class="icon-list"></i> [% report.name %]</a><br /><br />
   [% END %]
 [% END %]
