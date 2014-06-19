@@ -267,7 +267,9 @@ Renders
 With
 
 =cut
+# Percritic can't see the return at the end of this sub
 
+## no critic (RequireFinalReturn)
 sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -293,8 +295,10 @@ sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : A
         );
     }
 
-    return;
+return;
 }
+
+## use critic
 
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
