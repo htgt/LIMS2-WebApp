@@ -24,13 +24,20 @@ use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 use File::Which;
 use Data::UUID;
 use Const::Fast;
-use namespace::autoclean;
 use Data::Dumper;
+use IPC::Run 'run';
+use namespace::autoclean;
 
 with 'MooseX::Log::Log4perl';
 
 const my $DEFAULT_QC_DIR =>  $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_crispr_es_qc';
+const my $BWA_MEM_CMD  => $ENV{BWA_MEM_CMD}
+    // '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
+const my %BWA_REF_GENOMES => (
+    human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh37.toplevel.clean_chr_names.fa',
+    mouse => '/lustre/scratch109/blastdb/Users/team87/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
+);
 
 has model => (
     is       => 'ro',
@@ -172,6 +179,22 @@ sub _build_cigar_parser {
     );
 }
 
+has sam_header => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
+has sam_for_well => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    default => sub{ {} },
+    traits  => [ 'Hash' ],
+    handles => {
+        well_has_read_alignments => 'exists',
+        get_well_read_alignments => 'get',
+    }
+);
+
 has primer_reads => (
     is      => 'rw',
     isa     => 'HashRef',
@@ -250,8 +273,9 @@ sub analyse_plate {
 
     $self->log->info( 'Running crispr es cell qc on plate: ' . $self->plate->name );
 
-    $self->get_primer_reads();
+    #$self->get_primer_reads();
     # TODO run bwa mem against all reads, store file
+    $self->align_primer_reads;
 
     $self->log->info ( 'Analysing wells' );
 
@@ -319,18 +343,25 @@ sub analyse_well {
     my $crispr = $self->crispr_for_well( $well );
     my $design = $well->design;
 
-    my ( $analyser, $parsed_analysis_data, $well_reads );
+    my ( $analyser, %analysis_data, $well_reads );
     if ( $self->well_has_primer_reads( $well->name ) ) {
         $well_reads = $self->get_well_primer_reads( $well->name );
-        $analyser = $self->align_and_analyse_well_reads( $well, $crispr, $well_reads, $work_dir );
-        $parsed_analysis_data = $self->parse_analysis_data( $analyser, $crispr, $design );
+
+        unless ( $self->well_has_read_alignments( $well->name ) ) {
+            $self->log->warn( "No alignments for reads from well: " . $well->name );
+            $analysis_data{no_read_alignments} = 1;
+        }
+
+        my $sam_file = $self->build_sam_file_for_well( $well->name, $work_dir );
+        $analyser = $self->align_and_analyse_well_reads( $well, $crispr, $sam_file, $work_dir, $design );
     }
     else {
         $self->log->warn( "No primer reads for well " . $well->name );
-        $parsed_analysis_data = { no_reads => 1 };
+        $analysis_data{no_reads} = 1;
     }
 
-    my $qc_data = $self->build_qc_data( $well, $analyser, $parsed_analysis_data, $well_reads, $crispr );
+    $self->parse_analysis_data( $analyser, $crispr, $design, \%analysis_data );
+    my $qc_data = $self->build_qc_data( $well, $analyser, \%analysis_data, $well_reads, $crispr );
 
     my $qc_data_file = $work_dir->file( 'qc_data.yaml' );
     $qc_data_file->touch;
@@ -348,22 +379,18 @@ module.
 
 =cut
 sub align_and_analyse_well_reads {
-    my ( $self, $well, $crispr, $well_reads, $work_dir ) = @_;
+    my ( $self, $well, $crispr, $sam_file, $work_dir, $design ) = @_;
     $self->log->debug( "Aligning reads for well: $well" );
 
     my %params = (
-        species      => $self->species,
-        target_start => $crispr->start,
-        target_end   => $crispr->end,
-        target_chr   => $crispr->chr_name,
-        dir          => $work_dir,
+        species       => $self->species,
+        target_start  => $crispr->start,
+        target_end    => $crispr->end,
+        target_chr    => $crispr->chr_name,
+        design_strand => $design->chr_strand,
+        dir           => $work_dir,
+        sam_file      => $sam_file,
     );
-    $params{forward_primer_read} = $well_reads->{forward} if exists $well_reads->{forward};
-    $params{reverse_primer_read} = $well_reads->{reverse} if exists $well_reads->{reverse};
-
-    #TODO sam file
-    #TODO no read info
-    #TODO no alignment info
 
     my $crispr_damage_analyser;
     try{
@@ -461,6 +488,138 @@ sub get_primer_reads {
     return;
 }
 
+=head2 align_primer_reads
+
+
+=cut
+sub align_primer_reads {
+    my ( $self ) = @_;
+
+    my $seq_reads = $self->fetch_seq_reads();
+    my $query_file = $self->parse_primer_reads( $seq_reads );
+    my $sam_file = $self->bwa_mem( $query_file );
+    $self->parse_sam_file( $sam_file );
+
+}
+
+=head2 parse_primer_reads
+
+desc
+
+=cut
+sub parse_primer_reads {
+    my ( $self, $seq_reads ) = @_;
+
+    $self->log->debug( 'Parsing sequence read data' );
+    my $query_file    = $self->base_dir->file('parsed_primer_reads.fa')->absolute;
+    my $query_fh      = $query_file->openw;
+    my $query_seq_out = Bio::SeqIO->new( -fh => $query_fh, -format => 'fasta' );
+
+    my %primer_reads;
+    while ( my $bio_seq = $seq_reads->next_seq ) {
+        next unless $bio_seq->length;
+
+        ( my $cleaned_seq = $bio_seq->seq ) =~ s/-/N/g;
+        $bio_seq->seq( $cleaned_seq );
+        my $res = $self->cigar_parser->parse_query_id( $bio_seq->display_name );
+
+        if ( defined $self->sub_seq_project ) {
+            if ( $res->{plate_name} ne $self->sub_seq_project ) {
+                $self->log->debug(
+                    $res->{plate_name} . " differs from " . $self->sub_seq_project . ", skipping" );
+                next;
+            }
+        }
+
+        if ( $res->{primer} eq $self->forward_primer_name ) {
+            $primer_reads{ $res->{well_name} }{forward} = $bio_seq;
+            $query_seq_out->write_seq( $bio_seq );
+        }
+        elsif ( $res->{primer} eq $self->reverse_primer_name ) {
+            $primer_reads{ $res->{well_name} }{reverse} = $bio_seq;
+            $query_seq_out->write_seq( $bio_seq );
+        }
+        else {
+            $self->log->error( "Unknown primer read name $res->{primer} on well $res->{well_name}" );
+        }
+    }
+
+    $self->primer_reads( \%primer_reads );
+
+    return $query_file;
+}
+
+=head2 bwa_mem
+
+Run bwa mem, return the output sam file
+
+=cut
+sub bwa_mem {
+    my ( $self, $query_file ) = @_;
+
+    $self->log->info( "Running bwa mem to align reads, may take a while..." );
+    my @mem_command = (
+        $BWA_MEM_CMD,
+        'mem',                                    # align command
+        '-O', 2,                                  # reduce gap open penalty ( default 6 )
+        $BWA_REF_GENOMES{ lc( $self->species ) }, # target genome file, indexed for bwa
+        $query_file->stringify,                   # query file with read sequences
+    );
+
+    $self->log->debug( "BWA mem command: " . join( ' ', @mem_command ) );
+    my $bwa_output_sam_file = $self->base_dir->file('read_alignment.sam')->absolute;
+    my $bwa_mem_log_file = $self->base_dir->file( 'bwa_mem.log' )->absolute;
+    run( \@mem_command,
+        '>', $bwa_output_sam_file->stringify,
+        '2>', $bwa_mem_log_file->stringify
+    ) or die(
+            "Failed to run bwa mem command, see log file: $bwa_mem_log_file" );
+
+    return $bwa_output_sam_file;
+}
+
+=head2 parse_sam_file
+
+desc
+
+=cut
+sub parse_sam_file {
+    my ( $self, $sam_file ) = @_;
+
+    my @sam_file = $sam_file->slurp( chomp => 1 );
+    my @header = grep { /^@/ } @sam_file;
+    $self->sam_header( join("\n", @header) );
+
+    my %sam_for_well;
+    my @sam_lines = grep { !/^@/ } @sam_file;
+    for my $sam_line ( @sam_lines ) {
+        my ( $id ) = split(/\t/, $sam_line);
+        my $res = $self->cigar_parser->parse_query_id( $id );
+        push @{ $sam_for_well{ $res->{well_name} } }, $sam_line;
+    }
+    $self->sam_for_well( \%sam_for_well );
+
+    return;
+}
+
+=head2 build_sam_file_for_well
+
+desc
+
+=cut
+sub build_sam_file_for_well {
+    my ( $self, $well_name, $dir ) = @_;
+
+    my $sam_lines = $self->get_well_read_alignments( $well_name );
+
+    my $sam_file = $dir->file('alignment.sam')->absolute;
+    my $sam_fh   = $sam_file->openw;
+    print $sam_fh $self->sam_header;
+    print $sam_fh "\n". $_ for @{ $sam_lines };
+
+    return $sam_file;
+}
+
 =head2 fetch_seq_reads
 
 Fetch the fasta file containing all the primer reads for the sequencing project.
@@ -492,31 +651,41 @@ Combine all the qc analysis data we want to store and return it in a hash.
 
 =cut
 sub parse_analysis_data {
-    my ( $self, $analyser, $crispr, $design ) = @_;
+    my ( $self, $analyser, $crispr, $design, $analysis_data ) = @_;
 
-    my %parsed_data;
-    my $seqs = $analyser->pileup_parser->seqs;
-    for my $seq_type ( qw( ref forward reverse ) ) {
-        $parsed_data{ $seq_type . '_sequence'} = $seqs->{$seq_type}
-            if exists $seqs->{ $seq_type };
+    $analysis_data->{crispr_id}  = $crispr->id;
+    $analysis_data->{design_id}  = $design->id;
+    $analysis_data->{is_pair}    = $crispr->is_pair;
+
+    return unless $analyser;
+
+    $analysis_data->{vep_output} = $analyser->vep_file->slurp if $analyser->vep_file;
+
+    if ( $analyser->num_target_region_alignments == 0 ) {
+        $analysis_data->{ 'forward_no_alignment' } = 1;
+        $analysis_data->{ 'reverse_no_alignment' } = 1;
+        return;
     }
 
-    #TODO strand ?? is it always +ve?
-    #$parsed_data{target_region_strand}   = $design->chr_strand;
-    $parsed_data{target_region_strand}   = 1;
-    $parsed_data{target_sequence_start}  = $analyser->pileup_parser->genome_start;
-    $parsed_data{target_sequence_end}    = $analyser->pileup_parser->genome_end;
+    if ( $analyser->pileup_parser ) {
+        my $seqs = $analyser->pileup_parser->seqs;
+        for my $seq_type ( qw( ref forward reverse ) ) {
+            if ( exists $seqs->{ $seq_type } ) {
+                $analysis_data->{ $seq_type . '_sequence'} = $seqs->{$seq_type}
+            }
+            else {
+                $analysis_data->{ $seq_type . '_no_alignment' } = 1;
+            }
+        }
 
-    $parsed_data{vep_output} = $analyser->vep_file->slurp;
-    $parsed_data{insertions} = $analyser->pileup_parser->insertions;
-    #TODO concordant indel details
-    #$parsed_data{concordant_indel}       = $alignment_data->{condordant_indel};
+        $analysis_data->{design_strand}         = $design->chr_strand;
+        $analysis_data->{target_sequence_start} = $analyser->pileup_parser->genome_start;
+        $analysis_data->{target_sequence_end}   = $analyser->pileup_parser->genome_end;
+        $analysis_data->{insertions}            = $analyser->pileup_parser->insertions;
+        $analysis_data->{deletions}             = $analyser->pileup_parser->deletions;
+    }
 
-    $parsed_data{crispr_id}              = $crispr->id;
-    $parsed_data{design_id}              = $design->id;
-    $parsed_data{is_pair}                = $crispr->is_pair;
-
-    return \%parsed_data;
+    return;
 }
 
 =head2 build_qc_data
@@ -537,8 +706,8 @@ sub build_qc_data {
         analysis_data   => $analysis_data,
     );
 
-    if ( $analyser && $analyser->vcf_file ) {
-        $qc_data{vcf_file} = $analyser->vcf_file->slurp;
+    if ( $analyser && $analyser->vcf_file_target_region ) {
+        $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp;
     }
 
     if ( exists $well_reads->{forward} ) {
