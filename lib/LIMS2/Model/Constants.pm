@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.206';
+    $LIMS2::Model::Constants::VERSION = '0.207';
 }
 ## use critic
 
@@ -231,6 +231,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             class  => 'DesignPlateOrderSheet',
             method => 'async',
             name   => 'Design Plate Order Sheet',
+        },
+        {
+            class  => 'SummaryOligoPlate',
+            method => 'sync',
+            name   => 'Summary by Oligo Plate',
         },
     ],
     CRISPR => [
