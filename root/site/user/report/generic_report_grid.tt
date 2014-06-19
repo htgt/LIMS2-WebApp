@@ -49,6 +49,10 @@
                 "Gene ID" = 1
                 "Gene Symbol" = 1
                 } %]
+            [% alt_render = {
+                "Genoverse View" = 1
+                }
+            %]
 
             var columns = [
                 [%- FOREACH col IN columns %]
@@ -57,11 +61,28 @@
                     [%- IF locked.$col == 1 %]
                     locked: true,
                     [%- END %]
+                    [%- IF alt_render.$col == 1%]
+                    renderer: genoverse,
+                    [%- ELSE %]
                     sortable: true,
+                    [%- END %]
                     dataIndex: '[%- col %]'
                 },
                 [%- END %]
             ];
+
+            function genoverse(val, meta, row) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: 'Genverse' + row.get('Crispr Pair ID'),
+                            width: 75,
+                            handler: function () { Ext.Msg.alert('Info', row.get('Crispr Pair ID')) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
 
             var grid = Ext.create('Ext.grid.Panel', {
                 height: 750,
@@ -73,7 +94,11 @@
                 invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
                 viewConfig: {
-                    stripeRows: true
+                    stripeRows: true,
+                    getRowClass: function(){
+                        return "lims2-cell-inner";
+                    },
+                    firstCls: 'lims2-first-cell-format'
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,

@@ -32,6 +32,8 @@
 [%- END %]
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/lims2_extjs.css') %]" />
+
 <script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
 
 [% PROCESS 'user/report/generic_report_grid.tt' %]
