@@ -1,3 +1,7 @@
+0.209     2014-06-20 09:25:17 Europe/London
+
+    Removed constraint for FP wells to only have 1 child PIQ well
+
 0.208     2014-06-20 07:50:31 Europe/London
 
     Switched to a new version of the Crispr ES cell QC.
