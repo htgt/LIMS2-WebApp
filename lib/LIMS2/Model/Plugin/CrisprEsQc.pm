@@ -52,6 +52,7 @@ sub pspec_create_crispr_es_qc_well {
         crispr_start    => { validate => 'integer' },
         crispr_end      => { validate => 'integer' },
         analysis_data   => { validate => 'json' },
+        vcf_file        => { validate => 'non_empty_string', optional => 1 },
     };
 }
 
