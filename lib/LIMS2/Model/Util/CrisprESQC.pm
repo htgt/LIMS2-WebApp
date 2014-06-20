@@ -2,10 +2,15 @@ package LIMS2::Model::Util::CrisprESQC;
 
 =head1 NAME
 
-LIMS2::Model::Util::CrisprESQC -
+LIMS2::Model::Util::CrisprESQC - Run crispr es cell qc
 
 =head1 DESCRIPTION
 
+Run QC to determine damaged cause to second allele by the crispr.
+Align reads from primer pair flanking the crispr target region against the reference genome.
+Analyse alignments to check for any damage.
+
+Produce variant call files as well as output from Ensembl variant effect predictor software.
 
 =cut
 
@@ -30,9 +35,9 @@ use namespace::autoclean;
 
 with 'MooseX::Log::Log4perl';
 
-const my $DEFAULT_QC_DIR =>  $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
+const my $DEFAULT_QC_DIR => $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_crispr_es_qc';
-const my $BWA_MEM_CMD  => $ENV{BWA_MEM_CMD}
+const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD}
     // '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
 const my %BWA_REF_GENOMES => (
     human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh37.toplevel.clean_chr_names.fa',
@@ -297,6 +302,11 @@ sub analyse_plate {
     return;
 }
 
+=head2 persist_wells
+
+Persist all the crispr_es_qc_well data in one go.
+
+=cut
 sub persist_wells {
     my ( $self, $qc_wells ) = @_;
 
@@ -445,6 +455,8 @@ sub crispr_for_well {
 
 =head2 align_primer_reads
 
+Align the primer reads against the reference genome.
+Store data in a hash keyed against well names for easy access.
 
 =cut
 sub align_primer_reads {
@@ -460,7 +472,8 @@ sub align_primer_reads {
 
 =head2 parse_primer_reads
 
-desc
+Parse the primer reads fasta file, store reads in hash against well name
+and primer type.
 
 =cut
 sub parse_primer_reads {
@@ -507,7 +520,7 @@ sub parse_primer_reads {
 
 =head2 bwa_mem
 
-Run bwa mem, return the output sam file
+Run bwa mem to align all the primer reads, return the output sam file.
 
 =cut
 sub bwa_mem {
@@ -536,7 +549,8 @@ sub bwa_mem {
 
 =head2 parse_sam_file
 
-desc
+Once we have aligned all the reads parse the resultant sam file
+and store alignment details in hash, keyed against well names.
 
 =cut
 sub parse_sam_file {
@@ -560,7 +574,7 @@ sub parse_sam_file {
 
 =head2 build_sam_file_for_well
 
-desc
+Build a sam file with its primer read alignment details for a given well.
 
 =cut
 sub build_sam_file_for_well {
