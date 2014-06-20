@@ -1,4 +1,4 @@
-[% META title="Crispr ES Cell QC"; META tab_name = 'Crisprs' %]
+[% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
 <table class="table table-striped">
     <thead>
