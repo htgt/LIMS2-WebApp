@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.207';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.208';
 }
 ## use critic
 
@@ -58,6 +58,7 @@ sub pspec_create_crispr_es_qc_well {
         crispr_start    => { validate => 'integer' },
         crispr_end      => { validate => 'integer' },
         analysis_data   => { validate => 'json' },
+        vcf_file        => { validate => 'non_empty_string', optional => 1 },
     };
 }
 
