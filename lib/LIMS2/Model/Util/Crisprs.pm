@@ -327,8 +327,8 @@ sub crisprs_for_design {
         {
             'loci.assembly_id' => $design_info->default_assembly,
             'loci.chr_id'      => $chr_id,
-            'loci.chr_start'   => { '>' => $design_info->target_region_start },
-            'loci.chr_end'     => { '<' => $design_info->target_region_end },
+            'loci.chr_start'   => { '>' => $design_info->target_region_start - 50 },
+            'loci.chr_end'     => { '<' => $design_info->target_region_end + 50 },
         },
         {
             join => 'loci',
