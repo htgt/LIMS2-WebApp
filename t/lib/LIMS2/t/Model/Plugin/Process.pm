@@ -858,11 +858,11 @@ sub dist_qc_process : Tests() {
         is $output_well->plate->name, 'PIQ0001', '..and is on correct plate';
 
         # check that additional process using same source well cannot be created
-        throws_ok {
-            my $invalid_process = model->create_process( $dist_qc_process_data->{invalid_input} );
-        }
-        qr/FP well FFP0001_A01 would be linked to PIQ wells PIQ0001_A01 and PIQ0002_A01/,
-            'correctly throws create failure when FP source well already used';
+        #throws_ok {
+        #    my $invalid_process = model->create_process( $dist_qc_process_data->{invalid_input} );
+        #}
+        #qr/FP well FFP0001_A01 would be linked to PIQ wells PIQ0001_A01 and PIQ0002_A01/,
+        #    'correctly throws create failure when FP source well already used';
 
         # check that process can be deleted
         lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
