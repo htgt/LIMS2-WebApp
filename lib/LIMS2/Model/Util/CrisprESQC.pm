@@ -443,49 +443,6 @@ sub crispr_for_well {
     return;
 }
 
-=head2 get_primer_reads
-
-Gather all the reads from a sequencing project, parse the data and put
-into a hash, keyed on well names.
-
-=cut
-sub get_primer_reads {
-    my ( $self ) = @_;
-
-    my $seq_reads = $self->fetch_seq_reads;
-
-    $self->log->debug( 'Parsing sequence read data' );
-    my %primer_reads;
-    while ( my $bio_seq = $seq_reads->next_seq ) {
-        next unless $bio_seq->length;
-
-        ( my $cleaned_seq = $bio_seq->seq ) =~ s/-/N/g;
-        $bio_seq->seq( $cleaned_seq );
-        my $res = $self->cigar_parser->parse_query_id( $bio_seq->display_name );
-
-        if ( defined $self->sub_seq_project ) {
-            if ( $res->{plate_name} ne $self->sub_seq_project ) {
-                $self->log->debug( $res->{plate_name} . " differs from " . $self->sub_seq_project . ", skipping" );
-                next;
-            }
-        }
-
-        # TODO what if there are 2 forward or reverse reads for a well?
-        if ( $res->{primer} eq $self->forward_primer_name ) {
-            $primer_reads{ $res->{well_name} }{forward} = $bio_seq;
-        }
-        elsif ( $res->{primer} eq $self->reverse_primer_name ) {
-            $primer_reads{ $res->{well_name} }{reverse} = $bio_seq;
-        }
-        else {
-            $self->log->error( "Unknown primer read name $res->{primer} on well $res->{well_name}" );
-        }
-    }
-
-    $self->primer_reads( \%primer_reads );
-    return;
-}
-
 =head2 align_primer_reads
 
 
