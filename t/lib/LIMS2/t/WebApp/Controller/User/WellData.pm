@@ -167,7 +167,7 @@ sub egel_status_upload : Tests() {
 
     note("plate does not exist");
     $mech->get_ok('/user/dna_quality_update');
-    my $example_ss_path = 'root/static/files/qc_upload/egel_test.csv'; 
+    my $example_ss_path = 'root/static/test/data/egel_test.csv'; 
     ok $mech->submit_form(
         form_id => 'dna_quality_update',
         fields => { 
