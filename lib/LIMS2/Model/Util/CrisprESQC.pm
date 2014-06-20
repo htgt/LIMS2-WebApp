@@ -273,8 +273,6 @@ sub analyse_plate {
 
     $self->log->info( 'Running crispr es cell qc on plate: ' . $self->plate->name );
 
-    #$self->get_primer_reads();
-    # TODO run bwa mem against all reads, store file
     $self->align_primer_reads;
 
     $self->log->info ( 'Analysing wells' );
@@ -500,6 +498,7 @@ sub align_primer_reads {
     my $sam_file = $self->bwa_mem( $query_file );
     $self->parse_sam_file( $sam_file );
 
+    return;
 }
 
 =head2 parse_primer_reads
@@ -656,6 +655,7 @@ sub parse_analysis_data {
     $analysis_data->{crispr_id}  = $crispr->id;
     $analysis_data->{design_id}  = $design->id;
     $analysis_data->{is_pair}    = $crispr->is_pair;
+    #$analysis_data->{new_qc}     = 1;
 
     return unless $analyser;
 
