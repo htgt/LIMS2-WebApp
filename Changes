@@ -1,5 +1,26 @@
 {{$NEXT}}
 
+0.208     2014-06-20 07:50:31 Europe/London
+
+    Switched to a new version of the Crispr ES cell QC.
+
+0.207     2014-06-19 11:10:37 Europe/London
+
+    Added Summary by Oligo Plate
+
+0.206     2014-06-19 10:23:23 Europe/London
+
+    Added Genoverse button to Assembly Plate report
+    Added alternative extJS grid view to all reports
+
+0.205     2014-06-06 16:00:46 Europe/London
+
+    Added crispr branch to plate relation graphs
+
+0.204     2014-06-04 17:22:28 Europe/London
+
+    Added insert sizes and sequences to crispr es qc run page
+
 0.203     2014-06-04 12:11:38 Europe/London
 
     Sponsor report: csv download and column names updated
