@@ -33,6 +33,12 @@ case $1 in
     replicate)
         lims2_replicate $2
         ;;
+    devel)
+        lims2_devel
+        ;;
+    'pg9.3')
+        lims2_pg9.3
+        ;;
     *) 
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -180,6 +186,13 @@ function lims2_devel {
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-73/modules
 }
 
+function lims2_pg9.3 {
+    check_and_set PSQL_EXE /opt/t87/global/software/postgres/9.3.4/bin/psql
+    check_and_set PG_DUMP_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_dump
+    check_and_set PG_RESTORE_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_restore
+    use pg9.3
+}
+
 function lims2_show {
 cat << END
 LIMS2 useful environment variables:
@@ -195,6 +208,10 @@ LIMS2 useful environment variables:
 
 \$PATH :
 `perl -e 'print( join("\n", split(":", $ENV{PATH}))."\n")'`
+
+\$PG_DUMP_EXE                  : $PG_DUMP_EXE
+\$PG_RESTORE_EXE               : $PG_RESTORE_EXE
+\$PSQL_EXE                     : $PSQL_EXE
 
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG
