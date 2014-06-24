@@ -1,7 +1,16 @@
 [%- META title = "Summary Report" %]
 
 <div class="page-header">
-  <h2>Sponsor Progress Sub-Report <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"><i class="icon-download-alt icon-white"></i>Download CSV</a></h2>
+  <h2>Sponsor Progress Sub-Report
+
+  [% IF type == 'full' %]
+  <a id='type_simple' type='button' class='btn btn-info btn-small' href="[% c.uri_for( link ) %]"><i class="icon-zoom-out icon-white"></i>Simple Report</a>
+  [% ELSIF type == 'simple' %]
+  <a id='type_full' type='button' class='btn btn-info btn-small' href="[% c.uri_for( link, {type => 'full'} ) %]"><i class="icon-zoom-in icon-white"></i>Show Numbers</a>
+  [% END %]
+
+  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"><i class="icon-download-alt icon-white"></i>Download CSV</a>
+  </h2>
 </div>
 <p>
 <big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
@@ -73,7 +82,7 @@
   </thead>
   <tbody>
 	[% FOREACH row IN data %]
-		<tr>	
+		<tr>
 			[% FOREACH col IN columns %]
 				[% colval = row.item(col) %]
 				[% IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
@@ -83,7 +92,7 @@
 						<td style="color:red">fail</td>
 					[% ELSE %]
 						<td style="color:orange">----</td>
-					[% END %] 
+					[% END %]
 				[% ELSIF col == "cassette_promotor" || col == "neo_p" || col == "neo_pl" || col == "bsd_p" || col == "bsd_pl" %]
 					[% IF colval == "1" %]
 						<td style="color:green">yes</td>
@@ -96,21 +105,21 @@
             <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
         [% ELSIF col == "gene_symbol" %]
             <td>[% colval %]</td>
-        [% ELSIF colval == "0" %]
+        [% ELSIF !colval %]
             <td></td>
         [% ELSE %]
           [% IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_pairs' %]
             <td style="background:#8AD95A" >[% colval %]</td>
-          [% ELSIF col == 'crispr_pairs' 
-                || col == 'vector_designs' 
-                || col == 'vector_wells' 
-                || col == 'targeting_vector_wells' 
-                || col == 'accepted_vector_wells' 
-                || col == 'electroporations' 
+          [% ELSIF col == 'crispr_pairs'
+                || col == 'vector_designs'
+                || col == 'vector_wells'
+                || col == 'targeting_vector_wells'
+                || col == 'accepted_vector_wells'
+                || col == 'electroporations'
                 || col == 'colonies_picked'
                 || col == 'crispr_wells'
                 || col == 'crispr_vector_wells'
-                || col == 'crispr_dna_wells' 
+                || col == 'crispr_dna_wells'
                 || col == 'accepted_crispr_dna_wells' %]
             <td style="background:#E5E4E2" >[% colval %]</td>
           [% ELSE %]
@@ -145,7 +154,12 @@
 
   // download csv
   $(document).ready(function() {
-    $("#csv_download").attr('href', document.location + "?csv=1");
+    if ( window.location.href.indexOf('?') == -1 ) {
+      $("#csv_download").attr('href', document.location + "?csv=1");
+    } else {
+      $("#csv_download").attr('href', document.location + "&csv=1");
+    }
   });
+
 </script>
 

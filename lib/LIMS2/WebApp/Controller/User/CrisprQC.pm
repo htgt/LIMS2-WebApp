@@ -414,7 +414,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
 
                 #re-initialise logger into work dir
                 Log::Log4perl->easy_init(
-                    { level => $DEBUG, file => $qc_runner->base_dir->file( 'log' ) }
+                    { level => $DEBUG, file => $qc_runner->base_dir->file( 'log' ), layout => '%p %m%n' }
                 );
 
                 #run analyse plate in child
