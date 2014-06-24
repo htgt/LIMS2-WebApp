@@ -76,7 +76,7 @@
                     Ext.defer(function () {
                         Ext.widget('button', {
                             renderTo: id,
-                            text: 'Genverse' + row.get('Crispr Pair ID'),
+                            text: 'Genoverse' + row.get('Crispr Pair ID'),
                             width: 75,
                             handler: function () { Ext.Msg.alert('Info', row.get('Crispr Pair ID')) }
                         });
@@ -98,7 +98,8 @@
                     getRowClass: function(){
                         return "lims2-cell-inner";
                     },
-                    firstCls: 'lims2-first-cell-format'
+                    firstCls: 'lims2-first-cell-format',
+                    enableTextSelection: true
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,
