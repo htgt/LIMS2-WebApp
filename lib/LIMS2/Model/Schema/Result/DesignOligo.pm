@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.205';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.210';
 }
 ## use critic
 
@@ -271,7 +271,7 @@ sub append_seq {
         $append_seq = $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type }
             if exists $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type };
     }
-    if ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
+    elsif ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
         $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type }
             if exists $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };
     }

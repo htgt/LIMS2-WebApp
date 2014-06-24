@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Browser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.205';
+    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.210';
 }
 ## use critic
 
@@ -15,7 +15,11 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crispr_pairs_to_gff 
     gibson_designs_for_region
     design_oligos_to_gff
-    /;
+    primers_for_crispr_pair
+    crispr_primers_to_gff
+    unique_crispr_data 
+    unique_crispr_data_to_gff
+/;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -120,4 +124,53 @@ sub gibson_designs_GET {
     my $body = join "\n", @{$gibson_gff};
     return $c->response->body( $body );
 }
+
+# Methods for crispr primers
+
+sub crispr_primers :Path('/api/crispr_primers') :Args(0) :ActionClass('REST') {
+}
+
+sub crispr_primers_GET {
+    my ( $self, $c ) = @_;
+
+    my $schema = $c->model('Golgi')->schema;
+
+    my $crispr_primers = primers_for_crispr_pair (
+         $schema,
+         $c->request->params,
+    );
+
+    my $crispr_primer_gff = crispr_primers_to_gff( $crispr_primers, $c->request->params );
+    $c->response->content_type( 'text/plain' );
+    my $body = join "\n", @{$crispr_primer_gff};
+    return $c->response->body( $body );
+}
+
+=head unique_crispr
+Given:
+
+    a crispr_id_type (crispr_pair_id or crispr_id - this is the column to lookup)
+    a crispr_type_id (crispr_pair_id or crispr_id)
+returns:
+    a response body that is a GFF/GTF format file intended for Genoverse rendering
+=cut
+
+sub unique_crispr :Path('/api/unique_crispr') :Args(0) :ActionClass('REST') {
+}
+
+sub unique_crispr_GET {
+    my ( $self, $c ) = @_;
+
+    my $schema = $c->model('Golgi')->schema;
+    my $crispr_data = unique_crispr_data (
+         $schema,
+         $c->request->params,
+    );
+
+    my $unique_crispr_data_gff = unique_crispr_data_to_gff( $crispr_data, $c->request->params );
+    $c->response->content_type( 'text/plain' );
+    my $body = join "\n", @{$unique_crispr_data_gff};
+    return $c->response->body( $body );
+}
+
 1;

@@ -70,7 +70,9 @@
     </tr>
     <tr>
       <th>VCF</th>
-      <td>[% data.vcf_file %]</td>
+      <td>
+        <pre>[% data.vcf_file %]</pre>
+      </td>
     </tr>
 </table>
 

@@ -43,6 +43,9 @@
               <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
             </li>
           </ul>
@@ -91,7 +94,7 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/browse_templates' ) %]">Browse QC Templates</a>
-            </li>            
+            </li>
             [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
@@ -109,8 +112,8 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
-            </li>    
-            
+            </li>
+
             <li class="divider"></li>
 
             <li>
@@ -118,7 +121,7 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
-            </li>  
+            </li>
 
             [% END %]
           </ul>
@@ -139,7 +142,7 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/dna_quality_update' ) %]">Update DNA EGel Status</a>
-            </li>            
+            </li>
             <li>
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
@@ -179,7 +182,7 @@
                 Electroporation Production Summary
               </a>
             </li>
--->       
+-->
             <li>
               <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionSummary' ) %]">
                 Cre Knockin ES Distribution Summary

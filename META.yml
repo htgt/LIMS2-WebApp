@@ -80,7 +80,7 @@ requires:
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
   HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
-  HTGT::QC::Util::CrisprAlleleDamage: 0
+  HTGT::QC::Util::CrisprDamageVEP: 0
   HTGT::QC::Util::KillQCFarmJobs: 0
   HTGT::QC::Util::ListLatestRuns: 0
   HTTP::Status: 0
@@ -156,4 +156,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.205
+version: 0.210

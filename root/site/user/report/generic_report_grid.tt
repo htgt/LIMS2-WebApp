@@ -1,0 +1,85 @@
+<script type="text/javascript" charset="utf-8">
+        Ext.onReady( function() {
+
+            Ext.define('Report', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    [%- FOREACH col IN columns %]
+                    { name: '[%- col %]', type: 'string' },
+                    [%- END %]
+                ]
+            });
+
+            var arrayData = [
+                    [%- first_time_outer = 1 %]
+                    [%- FOREACH datum IN data %]
+                        [%- IF first_time_outer == 1 %]
+                            [% first_time_outer = 0 %]
+                            {
+                        [%- ELSE %]
+                            ,{
+                        [%- END %]
+
+                            [%- first_time_inner = 1 %]
+                            [%- index = 0 %]
+                            [%- FOREACH val IN datum %]
+                                [%- IF first_time_inner == 1 %]
+                                    [%- first_time_inner = 0 %]
+                                    "[%- columns.$index %]": "[%- val %]"
+                                [%- ELSE %]
+                                    ,"[%- columns.$index %]": "[%- val %]"
+                                [%- END %]
+                                [%- index = index + 1 %]
+                            [%- END %]
+                        }
+                    [%- END %]
+                    ];
+
+            // Save plateName for later use
+            var plateName= '[%- title _ ' (' _ data.size _ ' rows)'%]';
+
+            var store = Ext.create('Ext.data.Store', {
+                model: Report,
+                data: arrayData
+            });
+
+            [% locked = {
+                "Well Name" = 1
+                "Design ID" = 1
+                "Gene ID" = 1
+                "Gene Symbol" = 1
+                } %]
+
+            var columns = [
+                [%- FOREACH col IN columns %]
+                {
+                    header: "[%- col %]",
+                    [%- IF locked.$col == 1 %]
+                    locked: true,
+                    [%- END %]
+                    sortable: true,
+                    dataIndex: '[%- col %]'
+                },
+                [%- END %]
+            ];
+
+            var grid = Ext.create('Ext.grid.Panel', {
+                height: 750,
+                width: 1200,
+                store: store,
+                columnLines: true,
+                columns: columns,
+                title: plateName,
+                invalidateScrollerOnRefresh: false,
+                renderTo: 'my_results',
+                viewConfig: {
+                    stripeRows: true
+                },
+                selType: 'cellmodel',
+                simpleSelect: true,
+                plugins: [
+                    Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
+                ]
+            });
+    });
+</script>
