@@ -17,7 +17,6 @@ Produce variant call files as well as output from Ensembl variant effect predict
 use Moose;
 use HTGT::QC::Util::CigarParser;
 use HTGT::QC::Util::CrisprDamageVEP;
-use WebAppCommon::Util::EnsEMBL;
 use LIMS2::Exception;
 use Bio::SeqIO;
 use Bio::Seq;
@@ -155,18 +154,6 @@ has commit => (
     isa     => 'Bool',
     default => 0,
 );
-
-has ensembl_util => (
-    is         => 'ro',
-    isa        => 'WebAppCommon::Util::EnsEMBL',
-    lazy_build => 1,
-);
-
-sub _build_ensembl_util {
-    my $self = shift;
-
-    return WebAppCommon::Util::EnsEMBL->new( species => $self->species );
-}
 
 has cigar_parser => (
     is         => 'ro',
@@ -391,13 +378,12 @@ sub align_and_analyse_well_reads {
     $self->log->debug( "Aligning reads for well: $well" );
 
     my %params = (
-        species       => $self->species,
-        target_start  => $crispr->start,
-        target_end    => $crispr->end,
-        target_chr    => $crispr->chr_name,
-        design_strand => $design->chr_strand,
-        dir           => $work_dir,
-        sam_file      => $sam_file,
+        species      => $self->species,
+        target_start => $crispr->start,
+        target_end   => $crispr->end,
+        target_chr   => $crispr->chr_name,
+        dir          => $work_dir,
+        sam_file     => $sam_file,
     );
 
     my $crispr_damage_analyser;
