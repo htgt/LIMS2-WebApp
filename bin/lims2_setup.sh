@@ -238,7 +238,7 @@ Summary of commands in the lims2 environment:
 
 lims2 <command> <optional parameter>
 (most variables can be set to your default favourites in ~/.lims2_local)
-commands avaiable:
+Commands avaiable:
 
     webapp       - starts the webapp server on the default port, or the port specified in
                  \$LIMS2_WEBAPP_SERVER_PORT (*) with the options specified in
@@ -251,10 +251,16 @@ commands avaiable:
     replicate < test | local | staging >
                  - replicates test into your own test_db (*), or live into your local db (*)
                  - replicates staging by copying from live - stop staging db first
+    replicate < target_profile >
+                 - replicates live into target_profile (a check is made to exclude LIMS2_LIVE as target)
     show         - show the value of useful LIMS2 variables
 
     local        - sets LIMS2 up to use your local database (*)
     test         - sets LIMS2 up to use your own test database (*)
+
+    devel        - sets the environment to use entirely local checkouts (no production code)
+
+    setdb        - lists the available database profiles, highlighting the profile currently in use
     setdb <db_name> - sets the LIMS2_DB (*) environment variable 
 
     help         - displays this help message
