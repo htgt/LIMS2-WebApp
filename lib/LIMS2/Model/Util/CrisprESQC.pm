@@ -612,11 +612,12 @@ sub parse_analysis_data {
     $analysis_data->{crispr_id}  = $crispr->id;
     $analysis_data->{design_id}  = $design->id;
     $analysis_data->{is_pair}    = $crispr->is_pair;
-    #$analysis_data->{new_qc}     = 1;
 
     return unless $analyser;
 
     $analysis_data->{vep_output} = $analyser->vep_file->slurp if $analyser->vep_file;
+    $analysis_data->{ref_aa_seq} = $analyser->ref_aa_file->slurp if $analyser->ref_aa_file;
+    $analysis_data->{mut_aa_seq} = $analyser->mut_aa_file->slurp if $analyser->mut_aa_file;
 
     if ( $analyser->num_target_region_alignments == 0 ) {
         $analysis_data->{ 'forward_no_alignment' } = 1;
