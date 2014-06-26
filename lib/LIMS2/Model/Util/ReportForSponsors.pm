@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.209';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.211';
 }
 ## use critic
 
@@ -423,7 +423,7 @@ sub generate_sub_report {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
             'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr wells', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'accepted crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr design oligos', 'crispr vectors', 'DNA crispr vectors', 'DNA QC-passing crispr vectors', 'DNA QC-passing crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -726,12 +726,12 @@ sub genes {
 
         # get the plates
         my $sql =  <<"SQL_END";
-SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN, 
-concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL, 
-concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA, 
-concat(ep_plate_name, '_', ep_well_name) AS EP, 
-concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP, 
-concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
+SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
+concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
+concat(ep_plate_name, '_', ep_well_name) AS EP,
+concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP,
+concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK
 FROM summaries where design_gene_id = '$gene_id'
 SQL_END
 
@@ -2371,7 +2371,7 @@ AND (
     )
 )
 AND s.final_pick_qc_seq_pass = true
-AND s.final_pick_cassette_resistance = 'neo' 
+AND s.final_pick_cassette_resistance = 'neo'
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
@@ -2685,7 +2685,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'bsd' 
+AND s.final_pick_cassette_resistance = 'bsd'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3655,7 +3655,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'neo' 
+AND s.final_pick_cassette_resistance = 'neo'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3699,7 +3699,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'bsd' 
+AND s.final_pick_cassette_resistance = 'bsd'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -4221,7 +4221,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN project_alleles pa ON pa.project_id = p.id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
@@ -4234,36 +4234,36 @@ FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
-    (pr.conditional IS NULL) 
-    OR 
+    (pr.conditional IS NULL)
+    OR
     (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
-    (pr.promoter IS NULL) 
-    OR 
+    (pr.promoter IS NULL)
+    OR
     (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
-    (pr.cre IS NULL) 
-    OR 
+    (pr.cre IS NULL)
+    OR
     (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
-    (pr.well_has_cre IS NULL) 
-    OR 
+    (pr.well_has_cre IS NULL)
+    OR
     (
-        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre') 
-        OR 
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
+        OR
         (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
-    (pr.well_has_no_recombinase IS NULL) 
-    OR 
-    (        
+    (pr.well_has_no_recombinase IS NULL)
+    OR
+    (
      pr.well_has_no_recombinase IS NOT NULL AND (
       (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
-       OR 
+       OR
       (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
@@ -4296,7 +4296,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4305,7 +4305,7 @@ and cd.crispr_id=prc.crispr_id
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -4336,7 +4336,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4345,7 +4345,7 @@ and cd.crispr_id=prc.crispr_id
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -4376,7 +4376,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4386,7 +4386,7 @@ and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -4417,7 +4417,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4427,7 +4427,7 @@ and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id

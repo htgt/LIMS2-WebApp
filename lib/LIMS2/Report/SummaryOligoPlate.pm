@@ -1,7 +1,7 @@
 package LIMS2::Report::SummaryOligoPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.209';
+    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.211';
 }
 ## use critic
 
@@ -28,6 +28,9 @@ has plate_name => (
     required => 0
 );
 
+has '+param_names' => (
+    default => sub { [ 'species' ] }
+);
 
 override _build_name => sub {
     my $self = shift;
@@ -47,11 +50,11 @@ override _build_columns => sub {
             'Design ID',
             'Gene ID',
             'Gene Symbol',
-            'crispr wells',
-            'crispr vector wells',
-            'crispr dna wells',
-            'accepted crispr dna wells',
-            'accepted crispr pairs',
+            'crispr design oligos',
+            'crispr vectors',
+            'DNA crispr vectors',
+            'DNA QC-passing crispr vectors',
+            'DNA QC-passing crispr pairs',
             'design oligos',
             'final vector clones',
             'QC-verified vectors',
@@ -64,11 +67,11 @@ override _build_columns => sub {
         return [
             'Plate Name',
             'Gene Count',
-            'Genes with crispr wells',
-            'Genes with crispr vector wells',
-            'Genes with crispr dna wells',
-            'Genes with accepted crispr dna wells',
-            'Genes with accepted crispr pairs',
+            'Genes with crispr design oligos',
+            'Genes with crispr vectors',
+            'Genes with DNA crispr vectors',
+            'Genes with DNA QC-passing crispr vectors',
+            'Genes with DNA QC-passing crispr pairs',
             'Genes with design oligos',
             'Genes with final vector clones',
             'Genes with QC-verified vectors',
