@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.211     2014-06-26 07:55:08 Europe/London
+
+    Generate and display reference and mutant protein sequences for crispr es qc.
+
 0.210     2014-06-24 10:15:08 Europe/London
 
     Added simplified version of Sponsor progress summary report
