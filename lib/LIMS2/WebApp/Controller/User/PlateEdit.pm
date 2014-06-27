@@ -175,49 +175,6 @@ sub add_comment_plate :Path( '/user/add_comment_plate' ) :Args(0) {
     return;
 }
 
-sub edit_comment_plate :Path( '/user/edit_comment_plate' ) :Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $timestamp = scalar localtime;
-    my $user = $c->user->id;
-    my $params = $c->request->params;
-
-    unless ( $params->{comment} ) {
-         $c->flash->{error_msg} = "Comments can't be empty";
-         $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
-         return;
-    }
-
-    $c->model('Golgi')->txn_do(
-        sub {
-            try{
-                $c->model('Golgi')->schema->resultset('PlateComment')->find(
-                    {
-                         id    => $params->{comment_id}
-                    })->delete;
-
-                $c->model('Golgi')->schema->resultset('PlateComment')->create(
-                    {
-                         id            => $params->{comment_id},
-                         plate_id      => $params->{id},
-                         comment_text  => $params->{comment},
-                         created_by_id => $user,
-                         created_at    => $timestamp,
-                    });
-
-                $c->flash->{success_msg} = 'Comment edited for plate ' . $params->{name};
-            }
-            catch {
-                $c->flash->{error_msg} = 'Error encountered while editing comment: ' . $_;
-                $c->model('Golgi')->txn_rollback;
-            };
-        }
-    );
-
-    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
-    return;
-}
-
 sub delete_comment_plate :Path( '/user/delete_comment_plate' ) :Args(0) {
     my ( $self, $c ) = @_;
 
