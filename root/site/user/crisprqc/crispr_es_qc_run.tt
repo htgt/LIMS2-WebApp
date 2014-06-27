@@ -191,6 +191,7 @@ String.prototype.colour_alignment = function colour_string() {
             <th>Pair ID</th>
             <th>Alignment</th>
             <th>Variant Files</th>
+            <th>Protein Sequences</th>
             <th>Reads</th>
             <th>Deletions</th>
             <th>Inserts</th>
@@ -219,33 +220,35 @@ String.prototype.colour_alignment = function colour_string() {
 
             <td>
                 <div class="alignment">
-                <span>
-                    [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
-                </span><br/>
-                    <div class="alignment_inner">
-                        <span style="display: block">
-                            <span class="seq seq_a">
-                              [% IF row.alignment.no_forward_read %]
-                                No Read
-                              [% ELSIF row.alignment.no_forward_alignment %]
-                                No alignment to target region
-                              [% ELSE %]
-                                [% row.alignment.forward %]
-                              [% END %]
-                            </span>(F)
-                        </span>
-                        <span style="display: block">
-                            <span class="seq seq_b">
-                              [% IF row.alignment.no_reverse_read %]
-                                No Read
-                              [% ELSIF row.alignment.no_reverse_alignment %]
-                                No alignment to target region
-                              [% ELSE %]
-                                [% row.alignment.reverse %]
-                              [% END %]
-                            </span>(R)
-                        </span>
-                    </div>
+                  <div class="alignment_reference">
+                    <span>
+                        [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
+                    </span><br/>
+                  </div>
+                  <div class="alignment_inner">
+                    <span style="display: block">
+                       <span class="seq seq_a">
+                          [% IF row.alignment.no_forward_read %]
+                            No Read
+                          [% ELSIF row.alignment.no_forward_alignment %]
+                            No alignment to target region
+                          [% ELSE %]
+                            [% row.alignment.forward %]
+                          [% END %]
+                       </span>(F)
+                    </span>
+                    <span style="display: block">
+                        <span class="seq seq_b">
+                          [% IF row.alignment.no_reverse_read %]
+                            No Read
+                          [% ELSIF row.alignment.no_reverse_alignment %]
+                            No alignment to target region
+                          [% ELSE %]
+                            [% row.alignment.reverse %]
+                          [% END %]
+                        </span>(R)
+                    </span>
+                  </div>
                 </div>
             </td>
 
@@ -257,6 +260,17 @@ String.prototype.colour_alignment = function colour_string() {
               [% IF row.has_vep_file %]
                 <a href="[% c.uri_for( '/user/crisprqc/vep_file', row.es_qc_well_id ) %]" target="_blank" >vep_file</a>
               [% END %]
+            </td>
+
+            <td>
+              [% IF row.has_ref_aa_file %]
+                <a href="[% c.uri_for( '/user/crisprqc/aa_file', 'ref', row.es_qc_well_id ) %]" target="_blank" >reference</a>
+              [% END %]
+              <br>
+              [% IF row.has_mut_aa_file %]
+                <a href="[% c.uri_for( '/user/crisprqc/aa_file', 'mut', row.es_qc_well_id ) %]" target="_blank" >mutated</a>
+              [% END %]
+
             </td>
 
             <td>

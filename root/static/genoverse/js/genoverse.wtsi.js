@@ -13005,7 +13005,7 @@ Genoverse.Track.View.Transcript = Genoverse.Track.View.extend({
         featureContext.fillRect(
           transcript.x + (cds.start - transcript.start) * scale,
           transcript.y, 
-          Math.max(1, (cds.end - cds.start) * scale),
+          Math.max(1, ((cds.end - cds.start) + 1) * scale),
           transcript.height
         );
       }
