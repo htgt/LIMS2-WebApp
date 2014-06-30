@@ -33,6 +33,12 @@ case $1 in
     replicate)
         lims2_replicate $2
         ;;
+    devel)
+        lims2_devel
+        ;;
+    'pg9.3')
+        lims2_pg9.3
+        ;;
     *) 
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -177,6 +183,14 @@ function lims2_devel {
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-73/modules
+}
+
+function lims2_pg9.3 {
+    check_and_set PSQL_EXE /opt/t87/global/software/postgres/9.3.4/bin/psql
+    check_and_set PG_DUMP_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_dump
+    check_and_set PG_RESTORE_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_restore
+    use pg9.3
 }
 
 function lims2_show {
@@ -194,6 +208,10 @@ LIMS2 useful environment variables:
 
 \$PATH :
 `perl -e 'print( join("\n", split(":", $ENV{PATH}))."\n")'`
+
+\$PG_DUMP_EXE                  : $PG_DUMP_EXE
+\$PG_RESTORE_EXE               : $PG_RESTORE_EXE
+\$PSQL_EXE                     : $PSQL_EXE
 
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG
@@ -220,7 +238,7 @@ Summary of commands in the lims2 environment:
 
 lims2 <command> <optional parameter>
 (most variables can be set to your default favourites in ~/.lims2_local)
-commands avaiable:
+Commands avaiable:
 
     webapp       - starts the webapp server on the default port, or the port specified in
                  \$LIMS2_WEBAPP_SERVER_PORT (*) with the options specified in
@@ -233,10 +251,16 @@ commands avaiable:
     replicate < test | local | staging >
                  - replicates test into your own test_db (*), or live into your local db (*)
                  - replicates staging by copying from live - stop staging db first
+    replicate < target_profile >
+                 - replicates live into target_profile (a check is made to exclude LIMS2_LIVE as target)
     show         - show the value of useful LIMS2 variables
 
     local        - sets LIMS2 up to use your local database (*)
     test         - sets LIMS2 up to use your own test database (*)
+
+    devel        - sets the environment to use entirely local checkouts (no production code)
+
+    setdb        - lists the available database profiles, highlighting the profile currently in use
     setdb <db_name> - sets the LIMS2_DB (*) environment variable 
 
     help         - displays this help message

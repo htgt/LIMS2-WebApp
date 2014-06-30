@@ -11,6 +11,7 @@ use List::MoreUtils qw( uniq );
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -258,6 +259,47 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
     return;
 }
 
+=head genoverse_crispr_primers_view
+Given
+
+Renders
+
+With
+
+=cut
+# Percritic can't see the return at the end of this sub
+
+## no critic (RequireFinalReturn)
+sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $genotyping_primer_extent;
+   try {
+        $genotyping_primer_extent = get_genotyping_primer_extent(
+            $c->model('Golgi')->schema,
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch ( LIMS2::Exception $e ){
+       $c->stash( error_msg => $e->as_string );
+    }
+    if (! $genotyping_primer_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a Gibson design with genotyping primers to display Genoverse view' );
+    }
+    else {
+#   my $exon_coords = $exon_coords_rs->single;
+        $c->stash(
+            'extent'  => $genotyping_primer_extent,
+            'context' => $c->request->params,
+        );
+    }
+
+return;
+}
+
+## use critic
+
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -417,6 +459,8 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
 
     my @succeeded;
     my @output;
+    #these fields need to be deleted to pass crispr parameter validation
+    my @fields_to_remove = qw( id species_id chr_name chr_start chr_end genic exonic );
     foreach my $wge_crispr_pair_id (@wge_crispr_pairs) {
 
         my ($wge_left_crispr_id, $wge_right_crispr_id);
@@ -463,11 +507,8 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
 
         $left_crispr_data->{locus}->{assembly} = $assembly;
 
-        delete $left_crispr_data->{id};
-        delete $left_crispr_data->{species_id};
-        delete $left_crispr_data->{chr_name};
-        delete $left_crispr_data->{chr_start};
-        delete $left_crispr_data->{chr_end};
+        #use hash slice to delete fields we dont want
+        delete @{ $left_crispr_data }{ @fields_to_remove };
 
         my $right_crispr_data;
         try {
@@ -501,11 +542,7 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
 
         $right_crispr_data->{locus}->{assembly} = $assembly;
 
-        delete $right_crispr_data->{id};
-        delete $right_crispr_data->{species_id};
-        delete $right_crispr_data->{chr_name};
-        delete $right_crispr_data->{chr_start};
-        delete $right_crispr_data->{chr_end};
+        delete @{ $right_crispr_data }{ @fields_to_remove };
 
         try {
             my $crispr_pair_data = $client->GET( 'find_or_create_crispr_pair', {

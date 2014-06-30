@@ -493,6 +493,9 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
+        foreach my $comments (@{$design_data->{comments}}) {
+            delete $comments->{id};
+        }
 
         $design_data->{id} = $design_id;
 
@@ -501,35 +504,36 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
             model    => $c->model('Golgi'),
         );
 
-        try {
-            my $design = $c->model('Golgi')->c_create_design( $design_data );
-            foreach my $gene ( @{ $design_data->{gene_ids} }) {
-                my $species = $design_data->{species};
-                my $build = $DEFAULT_SPECIES_BUILD{ lc($species) };
-                my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-                        { species_id => $species } )->assembly_id;
-                $create_design_util->calculate_design_targets( {
-                    ensembl_gene_id => $gene->{ensembl_id},
-                    gene_id         => $gene->{gene_id},
-                    target_start    => $design->target_region_start,
-                    target_end      => $design->target_region_end,
-                    chr_name        => $design->chr_name,
-                    user            => $design_data->{created_by},
-                    species         => $species,
-                    build_id        => $build,
-                    assembly_id     => $assembly,
-                } );
-            }
-            $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Error importing WGE design: $err" );
-            return;
-        }
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                my $design = $c->model('Golgi')->c_create_design( $design_data );
+                foreach my $gene ( @{ $design_data->{gene_ids} }) {
 
-        $c->stash(
-            design_id => $design_id,
-        );
+                    my $species = $design_data->{species};
+                    my $build = $DEFAULT_SPECIES_BUILD{ lc($species) };
+                    my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+                            { species_id => $species } )->assembly_id;
+                    $create_design_util->calculate_design_targets( {
+                        ensembl_gene_id => $gene->{ensembl_id},
+                        gene_id         => $gene->{gene_id},
+                        target_start    => $design->target_region_start,
+                        target_end      => $design->target_region_end,
+                        chr_name        => $design->chr_name,
+                        user            => $design_data->{created_by},
+                        species         => $species,
+                        build_id        => $build,
+                        assembly_id     => $assembly,
+                    } );
+                }
+                $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
+            }
+            catch ($err) {
+                $c->stash( error_msg => "Error importing WGE design: $err" );
+                $c->model('Golgi')->txn_rollback;
+                return;
+            }
+            $c->stash( design_id => $design_id );
+        });
     }
 
     return;

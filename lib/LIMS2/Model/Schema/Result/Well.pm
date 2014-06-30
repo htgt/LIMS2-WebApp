@@ -981,7 +981,7 @@ sub is_epd_or_later {
     return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
   }
 
-  #we didn't find any ep picks further up so its not 
+  #we didn't find any ep picks further up so its not
   return;
 }
 
@@ -1177,15 +1177,69 @@ sub crispr_pair {
            'right_crispr_id' => $right_crispr->crispr->id,
         });
 
-    if (! $crispr_pair) {
-        require LIMS2::Exception::Implementation;
-        LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
+    return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
+}
+
+sub crispr_primer_for{
+    my $self = shift;
+    my $params = shift;
+    #does params need validation?
+    my $crispr_primer_seq = '-'; # default sequence is hyphen - no sequence available
+    return $crispr_primer_seq if $params->{'crispr_pair_id'} eq 'Invalid';
+
+    # Decide if well relates to a pair or a single crispr
+    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
+
+    my $primer_type = $params->{'primer_label'} =~ m/\A [SP] /xms ? 'crispr_primer' : 'genotyping_primer';
+
+    my $crispr_col_label;
+    my $crispr_id_value;
+    if (! $right_crispr ) {
+       $crispr_col_label = 'crispr_id';
+       $crispr_id_value = $left_crispr->crispr->id;
     }
-    return $crispr_pair;
+    else {
+        $crispr_col_label = 'crispr_pair_id';
+        $crispr_id_value = $self->crispr_pair->id;
+    }
+
+    if ( $primer_type eq 'crispr_primer' ){
+        my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
+            $crispr_col_label => $crispr_id_value,
+            'primer_name' => $params->{'primer_label'},
+        });
+        if ($result) {
+            $crispr_primer_seq = $result->primer_seq;
+        }
+    }
+    else {
+        # it's a genotyping primer
+        my $genotyping_primer_rs = $self->result_source->schema->resultset('GenotypingPrimer')->search({
+                'design_id' => $self->design->id,
+                'genotyping_primer_type_id' => $params->{'primer_label'},
+            },
+            {
+                'columns' => [ qw/design_id genotyping_primer_type_id seq/ ],
+                'distinct' => 1,
+            }
+        );
+        if ($genotyping_primer_rs){
+            if ($genotyping_primer_rs->count == 1) {
+                $crispr_primer_seq = $genotyping_primer_rs->first->seq;
+            }
+            elsif ( $genotyping_primer_rs->count > 1) {
+                $crispr_primer_seq = 'multiple results!';
+            }
+        }
+    }
+
+    return $crispr_primer_seq;
 }
 
 #gene finder should be a method that accepts a species id and some gene ids,
-#returning a hashref 
+#returning a hashref
+#see code in WellData for an example
+
 sub genotyping_info {
   my ( $self, $gene_finder ) = @_;
 
@@ -1249,19 +1303,20 @@ sub genotyping_info {
                   values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
 
   return {
-      gene      => @genes == 1 ? $genes[0] : [ @genes ],
-      design_id => $design->id,
-      well_id   => $self->id,
-      well_name => $self->name,
-      plate_name => $self->plate->name,
-      fwd_read  => $accepted_qc_well->fwd_read,
-      rev_read  => $accepted_qc_well->rev_read,
-      epd_plate_name  => $epd->plate->name,
-      accepted  => $epd->accepted,
+      gene             => @genes == 1 ? $genes[0] : [ @genes ],
+      design_id        => $design->id,
+      well_id          => $self->id,
+      well_name        => $self->name,
+      plate_name       => $self->plate->name,
+      fwd_read         => $accepted_qc_well->fwd_read,
+      rev_read         => $accepted_qc_well->rev_read,
+      epd_plate_name   => $epd->plate->name,
+      accepted         => $epd->accepted,
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
+      vcf_file         => $accepted_qc_well->vcf_file,
   };
 }
 

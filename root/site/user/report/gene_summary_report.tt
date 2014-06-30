@@ -15,9 +15,18 @@
 
 [%- IF info.defined %]
 <h2>Showing details for [% info.gene_symbol %] ([% info.gene_id %])</h2>
-<div class="accordion" id="gene_report_accordion">
 [%- END %]
 
+[%- IF sorted_wells.design %]
+<div class="well">
+  <b>Production Graph: </b>
+    [% FOREACH well IN sorted_wells.design %]
+      <a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]">[% well.well_id_string %]</a>
+    [%- END %]
+</div>
+[%- END %]
+
+<div class="accordion" id="gene_report_accordion">
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -53,7 +62,7 @@
     </div>
   </div>
 
-[%- IF designs.defined %]
+  [%- IF designs.defined %]
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -74,6 +83,8 @@
               <th>Validated by annotation</th>
               <th>Target transcript</th>
               <th>Assigned genes</th>
+              <th>Crispr Count</th>
+              <th>Crispr Pair Count</th>
             </tr>
           </thead>
           <tbody>
@@ -92,6 +103,8 @@
                 END;
                 genes.join(", ");
                 %]</td>
+              <td>[% designs.item(skey).design_details.crispr_count %]</td>
+              <td>[% designs.item(skey).design_details.crispr_pair_count %]</td>
             </tr>
             [%- END %]
           </tbody>
@@ -102,7 +115,7 @@
       </div>
     </div>
   </div>
-  [% END %]
+[% END %]
 
 [%- IF wells.defined %]
   [%- IF sorted_wells.design %]
@@ -123,6 +136,7 @@
             <th>Design ID</th>
             <th>Recombineering Result</th>
             <th>Accepted?</th>
+            <th>Relations</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.design %]
@@ -134,6 +148,43 @@
               <td>[% well.design_id %]</td>
               <td>[% well.recombineering_result %]</td>
               <td>[% well.is_accepted %]</td>
+              <td><a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]" class="btn btn-info btn-mini" type="submit">Show</a></td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.crispr %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprInstances">Crispr Instances</a>
+      </h3>
+    </div>
+    <div id="collapseCrisprInstances" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</th>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Crispr ID</th>
+            <th>Design ID</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.crispr %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.crispr_id %]</td>
+              <td>[% well.design_id %]</td>
             </tr>
             [%- END %]
           </tbody>
@@ -269,6 +320,44 @@
   </div>
   [%- END %]
 
+  [%- IF sorted_wells.crispr_vector %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprVector">Crispr Vectors</a>
+      </h3>
+    </div>
+    <div id="collapseCrisprVector" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Accepted?</th>
+            <th>Crispr ID</th>
+            <th>Design ID</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.crispr_vector %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.is_accepted %]</td>
+              <td>[% well.crispr_id %]</td>
+              <td>[% well.design_id %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
   [%- IF sorted_wells.dna %]
   <div class="accordion-group">
     <div class="accordion-heading">
@@ -302,6 +391,46 @@
               <td>[% well.quality_comment %]</td>
               <td>[% well.status_pass %]</td>
               <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF sorted_wells.crispr_dna %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprDNA">Crispr DNA Preparations</a>
+      </h3>
+    </div>
+    <div id="collapseCrisprDNA" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>DNA Status</th>
+            <th>Accepted?</th>
+            <th>Crispr ID</th>
+            <th>Design ID</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.crispr_dna %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.status_pass %]</td>
+              <td>[% well.is_accepted %]</td>
+              <td>[% well.crispr_id %]</td>
+              <td>[% well.design_id %]</td>
             </tr>
             [%- END %]
           </tbody>

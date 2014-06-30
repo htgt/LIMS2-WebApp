@@ -89,6 +89,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     $c->stash(
         plate           => $plate,
         well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
+        grid_report_uri => $c->uri_for( "/user/report/sync/grid/$report_class", { plate_id => $plate->id } ),
         additional_plate_reports => $additional_plate_reports,
         username  => $c->user->name,
     );
@@ -105,7 +106,7 @@ sub get_additional_plate_reports : Private {
     for my $report ( @{ $ADDITIONAL_PLATE_REPORTS{ $plate->type_id } } ) {
         my $url = $c->uri_for(
             '/user/report/' . $report->{method} . '/' . $report->{class},
-            { plate_id => $plate->id }
+            { plate_id => $plate->id, plate_name => $plate->name }
         );
         push @additional_reports, { report_url => $url, name => $report->{name} };
     }

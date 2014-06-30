@@ -1,5 +1,64 @@
 {{$NEXT}}
 
+0.211     2014-06-26 07:55:08 Europe/London
+
+    Generate and display reference and mutant protein sequences for crispr es qc.
+
+0.210     2014-06-24 10:15:08 Europe/London
+
+    Added simplified version of Sponsor progress summary report
+
+0.209     2014-06-20 09:25:17 Europe/London
+
+    Removed constraint for FP wells to only have 1 child PIQ well
+
+0.208     2014-06-20 07:50:31 Europe/London
+
+    Switched to a new version of the Crispr ES cell QC.
+
+0.207     2014-06-19 11:10:37 Europe/London
+
+    Added Summary by Oligo Plate
+
+0.206     2014-06-19 10:23:23 Europe/London
+
+    Added Genoverse button to Assembly Plate report
+    Added alternative extJS grid view to all reports
+
+0.205     2014-06-06 16:00:46 Europe/London
+
+    Added crispr branch to plate relation graphs
+
+0.204     2014-06-04 17:22:28 Europe/London
+
+    Added insert sizes and sequences to crispr es qc run page
+
+0.203     2014-06-04 12:11:38 Europe/London
+
+    Sponsor report: csv download and column names updated
+
+0.202     2014-06-04 08:08:57 Europe/London
+
+    Add vcf_file column to crispr_es_qc_wells table.
+
+0.201     2014-06-03 13:09:41 Europe/London
+
+    Added crispr well counts to Targeted Genes summary report
+    Added crispr well details to Gene report
+
+0.200     2014-05-28 16:41:02 Europe/London
+
+    Added CSV download button to the Sponsor summary report
+
+0.199     2014-05-28 09:55:29 Europe/London
+
+    Addition of EGel pass flag and form to upload them 
+    Changes to final pick DNA well accepted criteria and DNA plate report to include EGel pass
+
+0.198     2014-05-22 15:32:50 Europe/London
+
+    Changes to the Sponsor Summary reports to make them project-specific
+
 0.197     2014-05-22 07:57:36 Europe/London
 
     Added crispr information to design page.
