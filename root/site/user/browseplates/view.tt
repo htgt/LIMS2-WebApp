@@ -92,12 +92,8 @@
       [% IF plate.plate_comments.size %]
       <dl>
         [% FOR comment IN plate.plate_comments %]
-        <dt>[% comment.created_by.name %], [% comment.created_at.ymd %]
-          [% IF comment.created_by.name == username %]
-            <a class="btn btn-danger" role="button" href="#DeleteCommentModal" data-toggle="modal">
-              <i class="icon-remove icon-white"></i> <span style="font-weight: normal;">Delete</span>
-            </a>
-          [% END %]
+        <dt>
+          [% comment.created_by.name %], [% comment.created_at.ymd %]
         </dt>
         <dd>
           <p>[% comment.comment_text %]</p>
@@ -109,6 +105,9 @@
       [% END %]
       <a class="btn btn-primary" role="button" href="#AddCommentModal" data-toggle="modal">
        <i class="icon-pencil icon-white"></i> Add Comment
+      </a>
+      <a class="btn btn-danger" role="button" href="#DeleteCommentModal" data-toggle="modal">
+        <i class="icon-remove icon-white"></i> Delete Comment
       </a>
     </div>
   </div>
