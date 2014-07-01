@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.211';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.212';
 }
 ## use critic
 
@@ -11,6 +11,8 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
+use TryCatch;
+use LIMS2::Exception;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -58,6 +60,13 @@ sub create_crispr {
     # If crispr with same seq and locus exists we need to just deal with the crispr off target data
     if ( $crispr ) {
         $self->log->debug( 'Found identical crispr site, just updating off target data: ' . $crispr->id );
+        #also update the wge_crispr_id if its set
+        if ( $params->{wge_crispr_id} ) {
+            if ( (! $crispr->{wge_crispr_id}) || $crispr->{wge_crispr_id} ne $params->{wge_crispr_id} ) {
+                $crispr->update( { wge_crispr_id => $params->{wge_crispr_id} } );
+            }
+        }
+
         return $self->update_or_create_crispr_off_targets( $crispr, $validated_params );
     }
 
@@ -441,6 +450,90 @@ sub update_or_create_crispr_pair{
             );
 
     return $pair;
+}
+
+sub import_wge_crisprs {
+    my ( $self, $ids, $species, $assembly ) = @_;
+
+    my $wge = LIMS2::Util::WGE->new;
+
+    my @output;
+    for my $crispr_id ( @{ $ids } ) {
+        next unless $crispr_id; #skip blank lines
+
+        try {
+            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly );
+
+            if ( $species ne $crispr_data->{species} ) {
+                LIMS2::Exception->throw(
+                    "LIMS2 is set to '$species' and crispr is '" . $crispr_data->{species} . "'\n"
+                  . "Please switch to the correct species"
+                );
+            }
+
+            my $crispr = $self->create_crispr( $crispr_data );
+            push @output, { wge_id => $crispr_id, lims2_id => $crispr->id, db_crispr => $crispr };
+        }
+        catch ($err) {
+            LIMS2::Exception->throw( "Error importing WGE crispr with id $crispr_id\n$err" );
+        }
+    }
+
+    return @output;
+}
+
+sub import_wge_pairs {
+    my ( $self, $pair_ids, $species, $assembly ) = @_;
+
+    my $wge = LIMS2::Util::WGE->new;
+
+    my @output;
+    for my $pair_id ( @{ $pair_ids } ) {
+        next unless $pair_id;
+
+        my @ids = $pair_id =~ /^(\d+)_(\d+)$/;
+
+        unless ( @ids == 2 ) {
+            LIMS2::Exception->throw( "Invalid WGE crispr pair id: $pair_id" );
+        }
+
+        try {
+            my $crispr_pair_data = $wge->get_crispr_pair( @ids, $species );
+            if ( $species ne $crispr_pair_data->{species} ) {
+                LIMS2::Exception->throw(
+                    "LIMS2 is set to '$species' and pair is '" . $crispr_pair_data->{species} . "'\n"
+                  . "Please switch to the correct species"
+                );
+            }
+
+            #this creates the two crisprs in lims2
+            my @crisprs = $self->import_wge_crisprs( \@ids, $species, $assembly );
+
+            #pull out the dbix rows so its clear what we're actually doing
+            my $lims2_left_crispr  = $crisprs[0]->{db_crispr};
+            my $lims2_right_crispr = $crisprs[1]->{db_crispr};
+
+            #now create the lims2 crispr pair
+            my $lims2_crispr_pair = $self->update_or_create_crispr_pair( {
+                l_id   => $lims2_left_crispr->id,
+                r_id   => $lims2_right_crispr->id,
+                spacer => $crispr_pair_data->{spacer},
+            } );
+
+            push @output, {
+                wge_id      => $pair_id,
+                lims2_id    => $lims2_crispr_pair->id,
+                left_id     => $lims2_left_crispr->id,
+                right_id    => $lims2_right_crispr->id,
+                spacer      => $crispr_pair_data->{spacer},
+            };
+        }
+        catch ( $err ) {
+            LIMS2::Exception->throw( "Error importing WGE pair with id $pair_id\n$err" );
+        }
+    }
+
+    return @output;
 }
 
 

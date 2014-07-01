@@ -3,17 +3,6 @@
   width: 1000px;
 }
 
-ul.label_container {
-  background-color: #5F8CB0;
-  background-image: -moz-linear-gradient(right center , #5F8CB0, #4A7496); 
-  background-image: -webkit-linear-gradient(right, #5F8CB0, #4A7496);
-  border-radius: 5px 0 0 5px;
-  border: 1px solid #1C5380;
-  border-right: none;
-  box-shadow: 0 0 1px rgba(255, 255, 255, 0.4) inset, 0 1px 3px rgba(0, 0, 0, 0.1), -2px 0 2px rgba(0, 0, 0, 0.1);        
-  width: 90px;
-}
-
 .canvas_container {
   cursor: pointer;
   -webkit-touch-callout: none;
@@ -51,6 +40,12 @@ ul.label_container {
 .canvas_container .track_container_static {
   overflow: visible;
   position: relative;
+}
+
+.canvas_container .track_container_legend {
+  border-top: 1px solid #000000;
+  margin-top: -1px;
+  z-index: 1;
 }
 
 .canvas_container .track_container_static .image_container,
@@ -102,10 +97,8 @@ ul.label_container {
 }
 
 .canvas_container .message_container .control {
-  position: absolute; 
-  top: 50%; 
+  position: absolute;
   height: 14px;
-  margin-top: -7px; 
   font-size: 12px; 
   cursor: pointer; 
 }
@@ -114,16 +107,14 @@ ul.label_container {
 .canvas_container .message_container .expand,
 .canvas_container .message_container.collapsed .messages,
 .canvas_container .message_container.collapsed .collapse { display: none; }
+.canvas_container .message_container .collapse           { display: inline; }
 .canvas_container .message_container.collapsed .expand   { display: inline; position: relative; }
-
-
 
 .canvas_container .image_container {
   height: 100%;
   overflow-x: visible;
   overflow-y: hidden;
   position: absolute;
-  /*background: #ccc;*/
   margin: 0;
 }
 
@@ -136,7 +127,6 @@ ul.label_container {
 }
 
 .canvas_container .image_container img {
-  /*display: none;*/
   position: absolute;
   z-index: 1;
 }
@@ -144,10 +134,6 @@ ul.label_container {
 .canvas_container .image_container img.data {
   max-width: none;
 }
-
-/*.canvas_container .image_container img.data {
-  display:none;
-}*/
 
 .canvas_container .image_container img.bg {
   display: block;
@@ -178,6 +164,14 @@ ul.label_container {
   margin: 0;
   padding: 0;
   list-style: none;
+  background-color: #5F8CB0;
+  background-image: -moz-linear-gradient(right center , #5F8CB0, #4A7496);
+  background-image: -webkit-linear-gradient(right, #5F8CB0, #4A7496);
+  border-radius: 5px 0 0 5px;
+  border: 1px solid #1C5380;
+  border-right: none;
+  box-shadow: 0 0 1px rgba(255, 255, 255, 0.4) inset, 0 1px 3px rgba(0, 0, 0, 0.1), -2px 0 2px rgba(0, 0, 0, 0.1);
+  width: 100px;
 }
 
 .canvas_container .label_container li {
@@ -195,8 +189,8 @@ ul.label_container {
   background-image: url(../i/Grabbar.png);
   cursor: move;
   display: inline-block;
-  height: 90%;
-  margin: 8px 0;
+  height: 80%;
+  top: 10%;
   width: 10px;
   opacity: 0.7;
 }
@@ -216,7 +210,7 @@ li.sortHandle {
   vertical-align: top;
   margin: 8px 0;
   left: 5px; 
-  width: 90%;
+  width: 85%;
   color: #F2F5F7;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.75);
   text-overflow: ellipsis;
@@ -238,7 +232,8 @@ li.sortHandle {
   padding-bottom: 100px;
 }
 
-.track_container .track_border {
+.track_container .track_border,
+.track_container_static .track_border {
   position: absolute;
   display: block;
   height: 1px;
@@ -248,8 +243,17 @@ li.sortHandle {
   width: 100%;
 }
 
-.track_container.fullHeight .track_border {
+.track_container.fullHeight .track_border,
+.track_container_static.fullHeight .track_border {
   border: none;
+}
+
+.canvas_container .track_container_legend .track_border {
+  border-color: #000;
+}
+
+.canvas_container .gv_wrapper > :last-child.track_container_legend .track_border {
+  display: none;
 }
 
 .canvas_container .expander {
@@ -287,7 +291,7 @@ li.sortHandle {
   min-width: 200px;
   padding: 0;
   position: absolute;
-  z-index: 20;
+  z-index: 100;
   box-shadow: 3px 3px 10px #666666;
   margin-left: 5px;  
 }
@@ -301,8 +305,6 @@ li.sortHandle {
 }
 
 .gv_menu table {
-  width: 80%;
-  margin: 0 15% 0 0;
   color: white;
   font-family: monospace;
   font-size: 12px;
@@ -317,34 +319,33 @@ li.sortHandle {
 }
 
 .gv_menu table .title {
+  padding-right: 20px;
   font-weight: bold;
   text-align: left;
 }
 
 .gv_menu:not(.trackSelection) table td {
-  /*width: 50%;*/
   padding: 0 1em 0 0;
 }
 
-.gv_menu>.close {
-  float: right;
-}
-
 .gv_menu .close {
-  background-color: #CCCCCC;
-  border-radius : 20px;
-  height        : 20px;
-  width         : 20px;
-  line-height   : 17px;
-  font-size     : 13px;
-  font-family   : Comic Sans MS;
-  font-weight   : bold;
-  color: #2E2E2E;
-  text-shadow : #F5F5F5 1px 1px 0px;
-  cursor: pointer;
+  position: absolute;
+  right: 0;
+  height: 20px;
+  width: 20px;
   padding: 0 0 0 1px;
-  text-align: center;
   margin: 3px;
+  background-color: #CCCCCC;
+  border-radius: 20px;
+  line-height: 17px;
+  font-size: 13px;
+  font-family: Comic Sans MS;
+  font-weight: bold;
+  color: #2E2E2E;
+  text-shadow: #F5F5F5 1px 1px 0;
+  cursor: pointer;
+  text-align: center;
+  opacity: 1;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -355,7 +356,7 @@ li.sortHandle {
 
 .gv_menu .close:hover {
   background-color: #FFF;
-  box-shadow: 0px 0px 5px #FFFFFF;
+  box-shadow: 0 0 5px #FFFFFF;
 }
 
 .selector {
@@ -393,4 +394,3 @@ li.sortHandle {
   color: white;
   z-index: 11;
 }
-
