@@ -12,6 +12,7 @@ use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent );
+use LIMS2::Util::WGE;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -303,6 +304,8 @@ return;
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
+    LIMS2::Exception->throw( 'This method is deprecated -- please use WGE for off targets.' );
+
     my $job_id;
 
     my %stash_data = (
@@ -359,7 +362,7 @@ sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     return;
 }
 
-
+#crispr and pair importer should be served by the same method
 sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -367,73 +370,21 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
 
     return unless $c->request->param('import_crispr');
 
-    my $client = LIMS2::REST::Client->new_with_config(
-        configfile => $ENV{WGE_REST_CLIENT_CONFIG}
-    );
-
-    my @wge_crisprs = split /[,\s]+/, $c->request->param('wge_crispr_id');
-    shift @wge_crisprs if !$wge_crisprs[0];
-
-    my @succeeded;
     my @output;
-    foreach my $wge_crispr_id (@wge_crisprs) {
-        my $crispr_data;
-        try {
-            $crispr_data = $client->GET( 'crispr', { id => $wge_crispr_id } );
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Invalid WGE crispr id: $wge_crispr_id" );
-            return;
-        }
-        my $species = $client->GET( 'get_all_species');
-
-        $crispr_data->{species} = $species->{$crispr_data->{species_id}};
-
-        if ( $c->session->{selected_species} ne $crispr_data->{species} ) {
-            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and crispr is "
-                .$crispr_data->{species}.".\n" . "Please switch to the correct species in LIMS2." );
-            return;
-        }
-
-        # for now, algorithm is always bwa and type is always exonic. should be variable...
-        $crispr_data->{off_target_algorithm} = 'bwa';
-        $crispr_data->{type} = 'Exonic';
-
-        $crispr_data->{wge_crispr_id} = $crispr_data->{id};
-        $crispr_data->{locus} = {
-            chr_name  => $crispr_data->{chr_name},
-            chr_start => $crispr_data->{chr_start},
-            chr_end   => $crispr_data->{chr_end},
-        };
-
-        $crispr_data->{pam_right} ? $crispr_data->{locus}->{chr_strand} = 1 : $crispr_data->{locus}->{chr_strand} = -1;
-
-        my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-            { species_id => $crispr_data->{species} } )->assembly_id;
-
-        $crispr_data->{locus}->{assembly} = $assembly;
-
-        delete $crispr_data->{id};
-        delete $crispr_data->{species_id};
-        delete $crispr_data->{chr_name};
-        delete $crispr_data->{chr_start};
-        delete $crispr_data->{chr_end};
-
-        my $crispr;
-
-        try {
-            $crispr = $c->model('Golgi')->create_crispr( $crispr_data );
-            push @succeeded, $wge_crispr_id;
-            push @output, {wge_id => $wge_crispr_id, lims2_id => $crispr->id};
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Error importing WGE crispr with id $wge_crispr_id\n$err" );
-            return;
-        }
+    try {
+        @output = $self->wge_importer(
+            $c,
+            'crispr'
+        );
+    }
+    catch ( $err ) {
+        $c->stash( error_msg => "$err" );
+        return;
     }
 
-    if (@succeeded) {
-        $c->stash( success_msg => "Successfully imported from WGE crispr with id ". join(', ', @succeeded) );
+    if ( @output ) {
+        $c->stash( success_msg => "Successfully imported the following WGE ids:\n"
+                                . join ', ', map { $_->{wge_id} } @output );
     }
 
     $c->stash(
@@ -443,6 +394,7 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
     return;
 }
 
+#identical but 1 line to the above function, should be merged
 sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -450,134 +402,21 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
 
     return unless $c->request->param('import_crispr');
 
-    my $client = LIMS2::REST::Client->new_with_config(
-        configfile => $ENV{WGE_REST_CLIENT_CONFIG}
-    );
-
-    my @wge_crispr_pairs = split /[,\s]+/, $c->request->param('wge_crispr_pair_id');
-    shift @wge_crispr_pairs if !$wge_crispr_pairs[0];
-
-    my @succeeded;
     my @output;
-    #these fields need to be deleted to pass crispr parameter validation
-    my @fields_to_remove = qw( id species_id chr_name chr_start chr_end genic exonic );
-    foreach my $wge_crispr_pair_id (@wge_crispr_pairs) {
-
-        my ($wge_left_crispr_id, $wge_right_crispr_id);
-        if ( $wge_crispr_pair_id =~ m/^(\d*)_(\d*)$/ ) {
-            ($wge_left_crispr_id, $wge_right_crispr_id) = ($1, $2);
-        } else {
-            $c->stash( error_msg => "Invalid WGE crispr pair id: $wge_crispr_pair_id" );
-            return;
-        }
-
-        my $left_crispr_data;
-        try {
-            $left_crispr_data = $client->GET( 'crispr', { id => $wge_left_crispr_id } );
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Invalid WGE crispr id: $wge_left_crispr_id" );
-            return;
-        }
-        my $species = $client->GET( 'get_all_species');
-
-        $left_crispr_data->{species} = $species->{$left_crispr_data->{species_id}};
-
-        if ( $c->session->{selected_species} ne $left_crispr_data->{species} ) {
-            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and crispr is "
-                .$left_crispr_data->{species}.".\n" . "Please switch to the correct species in LIMS2." );
-            return;
-        }
-
-        # for now, algorithm is always bwa and type is always exonic. should be variable...
-        $left_crispr_data->{off_target_algorithm} = 'bwa';
-        $left_crispr_data->{type} = 'Exonic';
-
-        $left_crispr_data->{wge_crispr_id} = $left_crispr_data->{id};
-        $left_crispr_data->{locus} = {
-            chr_name  => $left_crispr_data->{chr_name},
-            chr_start => $left_crispr_data->{chr_start},
-            chr_end   => $left_crispr_data->{chr_end},
-        };
-
-        $left_crispr_data->{pam_right} ? $left_crispr_data->{locus}->{chr_strand} = 1 : $left_crispr_data->{locus}->{chr_strand} = -1;
-
-        my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-            { species_id => $left_crispr_data->{species} } )->assembly_id;
-
-        $left_crispr_data->{locus}->{assembly} = $assembly;
-
-        #use hash slice to delete fields we dont want
-        delete @{ $left_crispr_data }{ @fields_to_remove };
-
-        my $right_crispr_data;
-        try {
-            $right_crispr_data = $client->GET( 'crispr', { id => $wge_right_crispr_id } );
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Invalid WGE crispr id: $wge_right_crispr_id" );
-            return;
-        }
-
-        $right_crispr_data->{species} = $species->{$right_crispr_data->{species_id}};
-
-        if ( $c->session->{selected_species} ne $right_crispr_data->{species} ) {
-            $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and crispr is "
-                .$right_crispr_data->{species}.".\n" . "Please switch to the correct species in LIMS2." );
-            return;
-        }
-
-        # for now, algorithm is always bwa and type is always exonic. should be variable...
-        $right_crispr_data->{off_target_algorithm} = 'bwa';
-        $right_crispr_data->{type} = 'Exonic';
-
-        $right_crispr_data->{wge_crispr_id} = $right_crispr_data->{id};
-        $right_crispr_data->{locus} = {
-            chr_name  => $right_crispr_data->{chr_name},
-            chr_start => $right_crispr_data->{chr_start},
-            chr_end   => $right_crispr_data->{chr_end},
-        };
-
-        $right_crispr_data->{pam_right} ? $right_crispr_data->{locus}->{chr_strand} = 1 : $right_crispr_data->{locus}->{chr_strand} = -1;
-
-        $right_crispr_data->{locus}->{assembly} = $assembly;
-
-        delete @{ $right_crispr_data }{ @fields_to_remove };
-
-        try {
-            my $crispr_pair_data = $client->GET( 'find_or_create_crispr_pair', {
-                left_id  => $wge_left_crispr_id,
-                right_id => $wge_right_crispr_id,
-                species  => $c->session->{selected_species}
-            } );
-
-            my $lims2_left_crispr = $c->model('Golgi')->create_crispr( $left_crispr_data );
-            my $lims2_right_crispr = $c->model('Golgi')->create_crispr( $right_crispr_data );
-
-            my $lims2_crispr_pair = $c->model('Golgi')->update_or_create_crispr_pair({
-                l_id => $lims2_left_crispr->id,
-                r_id => $lims2_right_crispr->id,
-                spacer => $crispr_pair_data->{spacer},
-            });
-            push @succeeded, $wge_crispr_pair_id;
-            push @output, {
-                wge_id      => $wge_crispr_pair_id,
-                lims2_id    => $lims2_crispr_pair->id,
-                left_id     => $lims2_left_crispr->id,
-                right_id    => $lims2_right_crispr->id,
-                spacer      => $crispr_pair_data->{spacer},
-            };
-
-        }
-        catch ($err) {
-            $c->stash( error_msg => "Error importing WGE crispr pair with id $wge_crispr_pair_id\n$err" );
-            return;
-        }
-
+    try {
+        @output = $self->wge_importer(
+            $c,
+            'pair'
+        );
+    }
+    catch ( $err ) {
+        $c->stash( error_msg => "$err" );
+        return;
     }
 
-    if (@succeeded) {
-        $c->stash( success_msg => "Successfully imported from WGE crispr pair with id ". join(', ', @succeeded) );
+    if ( @output ) {
+        $c->stash( success_msg => "Successfully imported the following WGE pair ids:\n"
+                                . join ', ', map { $_->{wge_id} } @output );
     }
 
     $c->stash(
@@ -585,6 +424,35 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
     );
 
     return;
+}
+
+#generic function to import crisprs or pairs to avoid duplication
+sub wge_importer {
+    my ( $self, $c, $type ) = @_;
+
+    my ( $method, $user_input );
+    if ( $type =~ /^crispr/ ) {
+        $method     = 'import_wge_crisprs';
+        $user_input = $c->request->param('wge_crispr_id');
+    }
+    elsif ( $type =~ /^pair/ ) {
+        $method     = 'import_wge_pairs';
+        $user_input = $c->request->param('wge_crispr_pair_id');
+    }
+    else {
+        LIMS2::Exception->throw( "Unknown importer type: $type" );
+    }
+
+    my $species = $c->session->{selected_species};
+    my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species }
+    )->assembly_id;
+
+    my @ids = split /[,\s]+/, $user_input;
+
+    my @output = $c->model('Golgi')->$method( \@ids, $species, $assembly );
+
+    return @output;
 }
 
 
