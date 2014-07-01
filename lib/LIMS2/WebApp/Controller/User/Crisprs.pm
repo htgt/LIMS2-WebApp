@@ -12,7 +12,6 @@ use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent );
-use LIMS2::Util::WGE;
 
 BEGIN { extends 'Catalyst::Controller' };
 

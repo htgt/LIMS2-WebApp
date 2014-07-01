@@ -7,6 +7,7 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use TryCatch;
 use LIMS2::Exception;
+use LIMS2::Util::WGE;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
