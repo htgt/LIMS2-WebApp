@@ -60,28 +60,27 @@ function create_alert(text, alert_class) {
 }
 </script>
 
-  <div class="well" id="barcode_group">
-    <fieldset>
-      <legend>Barcode Search</legend>
-        <div class="control-group">
-          <div class="form-inline">
-            <input type="text" name="well_id" id="well_id" placeholder="Well ID" />
-            <input type="button" id="id_button" name="action" class="btn btn-primary" value="Get data" />
-          </div>
+<div class="well" id="barcode_group">
+  <fieldset>
+    <legend>Barcode Search</legend>
+      <div class="control-group">
+        <div class="form-inline">
+          <input type="text" name="well_id" id="well_id" placeholder="Well ID" />
+          <input type="button" id="id_button" name="action" class="btn btn-primary" value="Get data" />
         </div>
-    </fieldset>
-  </div>
+      </div>
+  </fieldset>
+</div>
 
-  <div class="well">
-    <fieldset>
-      <legend>Plate/Well Search</legend>
-        <div class="control-group">
-          <div class="form-inline">
-            <input type="text" name="plate_name" id="plate_name" placeholder="Plate Name" />
-            <input type="text" name="well_name" id="well_name" placeholder="Well Name" />
-            <input type="button" id="search_button" name="action" class="btn btn-primary" value="Get data" />
-          </div>
+<div class="well">
+  <fieldset>
+    <legend>Plate/Well Search</legend>
+      <div class="control-group">
+        <div class="form-inline">
+          <input type="text" name="plate_name" id="plate_name" placeholder="Plate Name" />
+          <input type="text" name="well_name" id="well_name" placeholder="Well Name" />
+          <input type="button" id="search_button" name="action" class="btn btn-primary" value="Get data" />
         </div>
-    </fieldset>
-  </div>
-</form>
+      </div>
+  </fieldset>
+</div>
