@@ -300,13 +300,14 @@ sub as_hash {
     }
 
     my %h = (
-        id        => $self->id,
-        type      => $self->crispr_loci_type_id,
-        seq       => $self->seq,
-        species   => $self->species_id,
-        comment   => $self->comment,
-        locus     => $locus ? $locus->as_hash : undef,
-        pam_right => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
+        id            => $self->id,
+        type          => $self->crispr_loci_type_id,
+        seq           => $self->seq,
+        species       => $self->species_id,
+        comment       => $self->comment,
+        locus         => $locus ? $locus->as_hash : undef,
+        pam_right     => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
+        wge_crispr_id => $self->wge_crispr_id,
     );
 
     $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
