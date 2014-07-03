@@ -492,9 +492,11 @@ sub get_crispr_PCR_EnsEmbl_region{
 
     # Here we want a slice from the beginning of (start(left_0) - ($dead_width + $search_field))
     # to the end(right_0) + ($dead_width + $search_field)
-    my $dead_field_width = 100;
-    my $search_field_width = 500;
+    my $dead_field_width = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 100;
+    my $search_field_width = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 500;
 
+    INFO ('dead field width: ' . $dead_field_width );
+    INFO ('search_field_width: ' . $search_field_width);
 
     my $chr_strand = $crispr_primers->{'strand'}; # That is the gene strand
 
@@ -698,7 +700,8 @@ sub pick_crispr_primers {
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' },
-        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length + 500),
+        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
+            + ($ENV{'LIMS2_PCR_SEARCH_FIELD' } // 500) ),
     );
 
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
