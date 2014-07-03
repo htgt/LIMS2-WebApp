@@ -7,6 +7,7 @@ use Moose;
 use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
+use Try::Tiny;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -138,6 +139,7 @@ sub get_row_plate_by_plate {
     my $sql =  <<"SQL_END";
 SELECT design_gene_id, design_id,
 concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
@@ -158,7 +160,7 @@ SQL_END
 
     my $gene_id = @{$results}[0]->{design_gene_id};
 
-    my (@design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+    my (@design, @int, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
     foreach my $row (@$results) {
 
         if ( $gene_id ne $row->{design_gene_id} ) {
@@ -172,10 +174,43 @@ SQL_END
                 $gene_design_count++;
             };
 
-            # FINAL
+            # FINAL / INT
             my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
-            if ($final_count) {$gene_final_count++};
+
             if ($final_pass_count) {$gene_final_pass_count++};
+
+            my $sum = 0;
+            @int = uniq @int;
+
+            foreach my $well (@int) {
+                $well =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+                my $plate_id = $self->model->retrieve_plate({
+                    name => $well,
+                })->id;
+
+                my $comment = '';
+
+                try{
+                    $comment = $self->model->schema->resultset('PlateComment')->find({
+                        plate_id     => $plate_id,
+                        comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
+                    },{
+                        select => [ 'comment_text' ],
+                    })->comment_text || 'shit';
+                }catch{
+                    DEBUG "No comment found for well " . $well;
+                };
+
+                if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+                    $sum += $1;
+                }
+            }
+            if ($sum) {
+                $final_count = $sum;
+            }
+
+            if ($final_count) {$gene_final_count++};
 
             # DNA
             my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
@@ -203,6 +238,7 @@ SQL_END
         }
 
         push @design_ids, $row->{design_id};
+        push (@int, $row->{int}) unless ($row->{int} eq '_');
         push (@design, $row->{design}) unless ($row->{design} eq '_');
         push (@final_info, $row->{final}) unless ($row->{final} eq '_');
         push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
@@ -353,6 +389,7 @@ sub build_well_based_data {
 }
 
 
+## no critic(ProhibitExcessComplexity)
 sub get_row_well_by_well {
     my ($self, $design_list, $plate_name, $well_name) = @_;
 
@@ -362,6 +399,7 @@ sub get_row_well_by_well {
 SELECT
 design_gene_id, design_gene_symbol,
 concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
@@ -374,11 +412,12 @@ SQL_END
     my $results = $self->run_select_query( $sql );
 
     # get the plates into arrays
-    my (@gene_ids, @gene_symbols, @design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+    my (@gene_ids, @int, @gene_symbols, @design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
     foreach my $row (@$results) {
         push @gene_ids, $row->{design_gene_id};
         push @gene_symbols, $row->{design_gene_symbol};
         push @design_ids, $row->{design_id};
+        push (@int, $row->{int}) unless ($row->{int} eq '_');
         push (@design, $row->{design}) unless ($row->{design} eq '_');
         push (@final_info, $row->{final}) unless ($row->{final} eq '_');
         push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
@@ -396,8 +435,40 @@ SQL_END
     # DESIGN
     @design = uniq @design;
 
-    # FINAL
+    # FINAL / INT
     my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
+
+    my $sum = 0;
+    @int = uniq @int;
+
+    foreach my $well (@int) {
+        $well =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+
+        my $plate_id = $self->model->retrieve_plate({
+            name => $well,
+        })->id;
+
+        my $comment = '';
+
+        try{
+            $comment = $self->model->schema->resultset('PlateComment')->find({
+                plate_id     => $plate_id,
+                comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
+            },{
+                select => [ 'comment_text' ],
+            })->comment_text || 'shit';
+        }catch{
+            DEBUG "No comment found for well " . $well;
+        };
+
+        if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+            $sum += $1;
+        }
+    }
+    if ($sum) {
+        $final_count = $sum;
+    }
 
     # DNA
     my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
@@ -476,6 +547,7 @@ SQL_END
 
     return $data_row;
 }
+## use critic
 
 
 sub get_designs_for_plate {
