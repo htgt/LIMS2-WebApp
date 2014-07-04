@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+    Added plate comment describing number of planned FINAL wells when uploading an INT plate.
+    Updated Sponsor report final vector clones count to use this number
+
 0.212     2014-07-01 11:51:13 Europe/London
 
     Refactored WGE importer code into the model so we can call it from scripts

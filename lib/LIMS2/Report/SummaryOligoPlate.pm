@@ -197,7 +197,7 @@ SQL_END
                         comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
                     },{
                         select => [ 'comment_text' ],
-                    })->comment_text || 'shit';
+                    })->comment_text;
                 }catch{
                     DEBUG "No comment found for well " . $well;
                 };
@@ -457,7 +457,7 @@ SQL_END
                 comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
             },{
                 select => [ 'comment_text' ],
-            })->comment_text || 'shit';
+            })->comment_text;
         }catch{
             DEBUG "No comment found for well " . $well;
         };

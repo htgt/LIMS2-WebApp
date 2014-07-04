@@ -660,6 +660,7 @@ sub _build_sub_report_data {
 # Methods for Stages
 #----------------------------------------------------------
 
+## no critic(ProhibitExcessComplexity)
 sub genes {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
@@ -788,7 +789,7 @@ SQL_END
                     comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
                 },{
                     select => [ 'comment_text' ],
-                })->comment_text || 'shit';
+                })->comment_text;
             }catch{
                 DEBUG "No comment found for well " . $well;
             };
@@ -844,6 +845,7 @@ SQL_END
 
     return \@sorted_genes_for_display;
 }
+## use critic
 
 sub add_crispr_well_counts_for_gene{
     my ($gene_data, $designs_for_gene, $design_crispr_summary) = @_;
