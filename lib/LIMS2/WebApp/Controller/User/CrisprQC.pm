@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.210';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.213';
 }
 ## use critic
 
@@ -112,6 +112,25 @@ sub crispr_es_qc_reads :Path( '/user/crisprqc/read' ) :Args(2) {
     return;
 }
 
+sub crispr_es_qc_aa_file :Path( '/user/crisprqc/aa_file' ) :Args(2) {
+    my ( $self, $c, $seq_type, $qc_well_id ) = @_;
+
+    my $crispr_es_qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
+        { id => $qc_well_id },
+    );
+    unless ( $crispr_es_qc_well ) {
+        $c->stash( error_msg => "Crispr ES QC Well id $qc_well_id not found" );
+        return;
+    }
+    my $json = decode_json( $crispr_es_qc_well->analysis_data );
+    my $seq_name = $seq_type . '_aa_seq';
+    my $aa_seq = exists $json->{ $seq_name } ? $json->{$seq_name} : 'Sequence Not Available';
+
+    $c->res->content_type('text/plain');
+    $c->res->body( $aa_seq );
+    return;
+}
+
 sub format_crispr_es_qc_well_data {
     my ( $self, $c, $qc_well, $run, $truncate_seqs, $params ) = @_;
 
@@ -153,24 +172,28 @@ sub format_crispr_es_qc_well_data {
     }
     my $has_vcf_file = $qc_well->vcf_file ? 1 : 0;
     my $has_vep_file = exists $json->{vep_output} ? 1 : 0;
+    my $has_ref_aa_file = exists $json->{ref_aa_seq} ? 1 : 0;
+    my $has_mut_aa_file = exists $json->{mut_aa_seq} ? 1 : 0;
 
     return {
-        es_qc_well_id    => $qc_well->id,
-        well_id          => $qc_well->well->id,
-        well_name        => $qc_well->well->name, #fetch the well and get name
-        crispr_id        => $json->{crispr_id},
-        is_crispr_pair   => $json->{is_pair},
-        gene             => join( ",", @genes ),
-        alignment        => $alignment_data,
-        longest_indel    => $json->{concordant_indel} || "",
-        well_accepted    => $well_accepted,
-        show_checkbox    => $show_checkbox,
-        insertions       => $insertions,
-        deletions        => $deletions,
-        has_vcf_file     => $has_vcf_file,
-        has_vep_file     => $has_vep_file,
-        fwd_read         => $qc_well->fwd_read,
-        rev_read         => $qc_well->rev_read,
+        es_qc_well_id   => $qc_well->id,
+        well_id         => $qc_well->well->id,
+        well_name       => $qc_well->well->name, #fetch the well and get name
+        crispr_id       => $json->{crispr_id},
+        is_crispr_pair  => $json->{is_pair},
+        gene            => join( ",", @genes ),
+        alignment       => $alignment_data,
+        longest_indel   => $json->{concordant_indel} || "",
+        well_accepted   => $well_accepted,
+        show_checkbox   => $show_checkbox,
+        insertions      => $insertions,
+        deletions       => $deletions,
+        has_vcf_file    => $has_vcf_file,
+        has_vep_file    => $has_vep_file,
+        has_ref_aa_file => $has_ref_aa_file,
+        has_mut_aa_file => $has_mut_aa_file,
+        fwd_read        => $qc_well->fwd_read,
+        rev_read        => $qc_well->rev_read,
     };
 }
 

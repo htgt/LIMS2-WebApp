@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.210';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.213';
 }
 ## use critic
 
@@ -23,7 +23,6 @@ Produce variant call files as well as output from Ensembl variant effect predict
 use Moose;
 use HTGT::QC::Util::CigarParser;
 use HTGT::QC::Util::CrisprDamageVEP;
-use WebAppCommon::Util::EnsEMBL;
 use LIMS2::Exception;
 use Bio::SeqIO;
 use Bio::Seq;
@@ -161,18 +160,6 @@ has commit => (
     isa     => 'Bool',
     default => 0,
 );
-
-has ensembl_util => (
-    is         => 'ro',
-    isa        => 'WebAppCommon::Util::EnsEMBL',
-    lazy_build => 1,
-);
-
-sub _build_ensembl_util {
-    my $self = shift;
-
-    return WebAppCommon::Util::EnsEMBL->new( species => $self->species );
-}
 
 has cigar_parser => (
     is         => 'ro',
@@ -397,13 +384,12 @@ sub align_and_analyse_well_reads {
     $self->log->debug( "Aligning reads for well: $well" );
 
     my %params = (
-        species       => $self->species,
-        target_start  => $crispr->start,
-        target_end    => $crispr->end,
-        target_chr    => $crispr->chr_name,
-        design_strand => $design->chr_strand,
-        dir           => $work_dir,
-        sam_file      => $sam_file,
+        species      => $self->species,
+        target_start => $crispr->start,
+        target_end   => $crispr->end,
+        target_chr   => $crispr->chr_name,
+        dir          => $work_dir,
+        sam_file     => $sam_file,
     );
 
     my $crispr_damage_analyser;
@@ -632,11 +618,12 @@ sub parse_analysis_data {
     $analysis_data->{crispr_id}  = $crispr->id;
     $analysis_data->{design_id}  = $design->id;
     $analysis_data->{is_pair}    = $crispr->is_pair;
-    #$analysis_data->{new_qc}     = 1;
 
     return unless $analyser;
 
     $analysis_data->{vep_output} = $analyser->vep_file->slurp if $analyser->vep_file;
+    $analysis_data->{ref_aa_seq} = $analyser->ref_aa_file->slurp if $analyser->ref_aa_file;
+    $analysis_data->{mut_aa_seq} = $analyser->mut_aa_file->slurp if $analyser->mut_aa_file;
 
     if ( $analyser->num_target_region_alignments == 0 ) {
         $analysis_data->{ 'forward_no_alignment' } = 1;

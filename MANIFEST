@@ -381,6 +381,7 @@ root/static/bootstrap/js/bootstrap.js
 root/static/bootstrap/js/bootstrap.min.js
 root/static/css/jquery.qtip.min.css
 root/static/css/lims2.css
+root/static/css/lims2_extjs.css
 root/static/extjs/bootstrap.js
 root/static/extjs/ext-all-debug-w-comments.js
 root/static/extjs/ext-all-debug.js

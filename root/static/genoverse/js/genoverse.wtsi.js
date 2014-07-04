@@ -15,400 +15,6 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
 
 
 
-/*jslint browser: true, eqeqeq: true, bitwise: true, newcap: true, immed: true, regexp: false */
-
-/**
-LazyLoad makes it easy and painless to lazily load one or more external
-JavaScript or CSS files on demand either during or after the rendering of a web
-page.
-
-Supported browsers include Firefox 2+, IE6+, Safari 3+ (including Mobile
-Safari), Google Chrome, and Opera 9+. Other browsers may or may not work and
-are not officially supported.
-
-Visit https://github.com/rgrove/lazyload/ for more info.
-
-Copyright (c) 2011 Ryan Grove <ryan@wonko.com>
-All rights reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the 'Software'), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-@module lazyload
-@class LazyLoad
-@static
-@version 2.0.3 (git)
-*/
-
-LazyLoad = (function (doc) {
-  // -- Private Variables ------------------------------------------------------
-
-  // User agent and feature test information.
-  var env,
-
-  // Reference to the <head> element (populated lazily).
-  head,
-
-  // Requests currently in progress, if any.
-  pending = {},
-
-  // Number of times we've polled to check whether a pending stylesheet has
-  // finished loading. If this gets too high, we're probably stalled.
-  pollCount = 0,
-
-  // Queued requests.
-  queue = {css: [], js: []},
-
-  // Reference to the browser's list of stylesheets.
-  styleSheets = doc.styleSheets;
-
-  // -- Private Methods --------------------------------------------------------
-
-  /**
-  Creates and returns an HTML element with the specified name and attributes.
-
-  @method createNode
-  @param {String} name element name
-  @param {Object} attrs name/value mapping of element attributes
-  @return {HTMLElement}
-  @private
-  */
-  function createNode(name, attrs) {
-    var node = doc.createElement(name), attr;
-
-    for (attr in attrs) {
-      if (attrs.hasOwnProperty(attr)) {
-        node.setAttribute(attr, attrs[attr]);
-      }
-    }
-
-    return node;
-  }
-
-  /**
-  Called when the current pending resource of the specified type has finished
-  loading. Executes the associated callback (if any) and loads the next
-  resource in the queue.
-
-  @method finish
-  @param {String} type resource type ('css' or 'js')
-  @private
-  */
-  function finish(type) {
-    var p = pending[type],
-        callback,
-        urls;
-
-    if (p) {
-      callback = p.callback;
-      urls     = p.urls;
-
-      urls.shift();
-      pollCount = 0;
-
-      // If this is the last of the pending URLs, execute the callback and
-      // start the next request in the queue (if any).
-      if (!urls.length) {
-        callback && callback.call(p.context, p.obj);
-        pending[type] = null;
-        queue[type].length && load(type);
-      }
-    }
-  }
-
-  /**
-  Populates the <code>env</code> variable with user agent and feature test
-  information.
-
-  @method getEnv
-  @private
-  */
-  function getEnv() {
-    var ua = navigator.userAgent;
-
-    env = {
-      // True if this browser supports disabling async mode on dynamically
-      // created script nodes. See
-      // http://wiki.whatwg.org/wiki/Dynamic_Script_Execution_Order
-      async: doc.createElement('script').async === true
-    };
-
-    (env.webkit = /AppleWebKit\//.test(ua))
-      || (env.ie = /MSIE/.test(ua))
-      || (env.opera = /Opera/.test(ua))
-      || (env.gecko = /Gecko\//.test(ua))
-      || (env.unknown = true);
-  }
-
-  /**
-  Loads the specified resources, or the next resource of the specified type
-  in the queue if no resources are specified. If a resource of the specified
-  type is already being loaded, the new request will be queued until the
-  first request has been finished.
-
-  When an array of resource URLs is specified, those URLs will be loaded in
-  parallel if it is possible to do so while preserving execution order. All
-  browsers support parallel loading of CSS, but only Firefox and Opera
-  support parallel loading of scripts. In other browsers, scripts will be
-  queued and loaded one at a time to ensure correct execution order.
-
-  @method load
-  @param {String} type resource type ('css' or 'js')
-  @param {String|Array} urls (optional) URL or array of URLs to load
-  @param {Function} callback (optional) callback function to execute when the
-    resource is loaded
-  @param {Object} obj (optional) object to pass to the callback function
-  @param {Object} context (optional) if provided, the callback function will
-    be executed in this object's context
-  @private
-  */
-  function load(type, urls, callback, obj, context) {
-    var _finish = function () { finish(type); },
-        isCSS   = type === 'css',
-        nodes   = [],
-        i, len, node, p, pendingUrls, url;
-
-    env || getEnv();
-
-    if (urls) {
-      // If urls is a string, wrap it in an array. Otherwise assume it's an
-      // array and create a copy of it so modifications won't be made to the
-      // original.
-      urls = typeof urls === 'string' ? [urls] : urls.concat();
-
-      // Create a request object for each URL. If multiple URLs are specified,
-      // the callback will only be executed after all URLs have been loaded.
-      //
-      // Sadly, Firefox and Opera are the only browsers capable of loading
-      // scripts in parallel while preserving execution order. In all other
-      // browsers, scripts must be loaded sequentially.
-      //
-      // All browsers respect CSS specificity based on the order of the link
-      // elements in the DOM, regardless of the order in which the stylesheets
-      // are actually downloaded.
-      if (isCSS || env.async || env.gecko || env.opera) {
-        // Load in parallel.
-        queue[type].push({
-          urls    : urls,
-          callback: callback,
-          obj     : obj,
-          context : context
-        });
-      } else {
-        // Load sequentially.
-        for (i = 0, len = urls.length; i < len; ++i) {
-          queue[type].push({
-            urls    : [urls[i]],
-            callback: i === len - 1 ? callback : null, // callback is only added to the last URL
-            obj     : obj,
-            context : context
-          });
-        }
-      }
-    }
-
-    // If a previous load request of this type is currently in progress, we'll
-    // wait our turn. Otherwise, grab the next item in the queue.
-    if (pending[type] || !(p = pending[type] = queue[type].shift())) {
-      return;
-    }
-
-    head || (head = doc.head || doc.getElementsByTagName('head')[0]);
-    pendingUrls = p.urls;
-
-    for (i = 0, len = pendingUrls.length; i < len; ++i) {
-      url = pendingUrls[i];
-
-      if (isCSS) {
-          node = env.gecko ? createNode('style') : createNode('link', {
-            href: url,
-            rel : 'stylesheet'
-          });
-      } else {
-        node = createNode('script', {src: url});
-        node.async = false;
-      }
-
-      node.className = 'lazyload';
-      node.setAttribute('charset', 'utf-8');
-
-      if (env.ie && !isCSS) {
-        node.onreadystatechange = function () {
-          if (/loaded|complete/.test(node.readyState)) {
-            node.onreadystatechange = null;
-            _finish();
-          }
-        };
-      } else if (isCSS && (env.gecko || env.webkit)) {
-        // Gecko and WebKit don't support the onload event on link nodes.
-        if (env.webkit) {
-          // In WebKit, we can poll for changes to document.styleSheets to
-          // figure out when stylesheets have loaded.
-          p.urls[i] = node.href; // resolve relative URLs (or polling won't work)
-          pollWebKit();
-        } else {
-          // In Gecko, we can import the requested URL into a <style> node and
-          // poll for the existence of node.sheet.cssRules. Props to Zach
-          // Leatherman for calling my attention to this technique.
-          node.innerHTML = '@import "' + url + '";';
-          pollGecko(node);
-        }
-      } else {
-        node.onload = node.onerror = _finish;
-      }
-
-      nodes.push(node);
-    }
-
-    for (i = 0, len = nodes.length; i < len; ++i) {
-      head.appendChild(nodes[i]);
-    }
-  }
-
-  /**
-  Begins polling to determine when the specified stylesheet has finished loading
-  in Gecko. Polling stops when all pending stylesheets have loaded or after 10
-  seconds (to prevent stalls).
-
-  Thanks to Zach Leatherman for calling my attention to the @import-based
-  cross-domain technique used here, and to Oleg Slobodskoi for an earlier
-  same-domain implementation. See Zach's blog for more details:
-  http://www.zachleat.com/web/2010/07/29/load-css-dynamically/
-
-  @method pollGecko
-  @param {HTMLElement} node Style node to poll.
-  @private
-  */
-  function pollGecko(node) {
-    var hasRules;
-
-    try {
-      // We don't really need to store this value or ever refer to it again, but
-      // if we don't store it, Closure Compiler assumes the code is useless and
-      // removes it.
-      hasRules = !!node.sheet.cssRules;
-    } catch (ex) {
-      // An exception means the stylesheet is still loading.
-      pollCount += 1;
-
-      if (pollCount < 200) {
-        setTimeout(function () { pollGecko(node); }, 50);
-      } else {
-        // We've been polling for 10 seconds and nothing's happened. Stop
-        // polling and finish the pending requests to avoid blocking further
-        // requests.
-        hasRules && finish('css');
-      }
-
-      return;
-    }
-
-    // If we get here, the stylesheet has loaded.
-    finish('css');
-  }
-
-  /**
-  Begins polling to determine when pending stylesheets have finished loading
-  in WebKit. Polling stops when all pending stylesheets have loaded or after 10
-  seconds (to prevent stalls).
-
-  @method pollWebKit
-  @private
-  */
-  function pollWebKit() {
-    var css = pending.css, i;
-
-    if (css) {
-      i = styleSheets.length;
-
-      // Look for a stylesheet matching the pending URL.
-      while (--i >= 0) {
-        if (styleSheets[i].href === css.urls[0]) {
-          finish('css');
-          break;
-        }
-      }
-
-      pollCount += 1;
-
-      if (css) {
-        if (pollCount < 200) {
-          setTimeout(pollWebKit, 50);
-        } else {
-          // We've been polling for 10 seconds and nothing's happened, which may
-          // indicate that the stylesheet has been removed from the document
-          // before it had a chance to load. Stop polling and finish the pending
-          // request to prevent blocking further requests.
-          finish('css');
-        }
-      }
-    }
-  }
-
-  return {
-
-    /**
-    Requests the specified CSS URL or URLs and executes the specified
-    callback (if any) when they have finished loading. If an array of URLs is
-    specified, the stylesheets will be loaded in parallel and the callback
-    will be executed after all stylesheets have finished loading.
-
-    @method css
-    @param {String|Array} urls CSS URL or array of CSS URLs to load
-    @param {Function} callback (optional) callback function to execute when
-      the specified stylesheets are loaded
-    @param {Object} obj (optional) object to pass to the callback function
-    @param {Object} context (optional) if provided, the callback function
-      will be executed in this object's context
-    @static
-    */
-    css: function (urls, callback, obj, context) {
-      load('css', urls, callback, obj, context);
-    },
-
-    /**
-    Requests the specified JavaScript URL or URLs and executes the specified
-    callback (if any) when they have finished loading. If an array of URLs is
-    specified and the browser supports it, the scripts will be loaded in
-    parallel and the callback will be executed after all scripts have
-    finished loading.
-
-    Currently, only Firefox and Opera support parallel loading of scripts while
-    preserving execution order. In other browsers, scripts will be
-    queued and loaded one at a time to ensure correct execution order.
-
-    @method js
-    @param {String|Array} urls JS URL or array of JS URLs to load
-    @param {Function} callback (optional) callback function to execute when
-      the specified scripts are loaded
-    @param {Object} obj (optional) object to pass to the callback function
-    @param {Object} context (optional) if provided, the callback function
-      will be executed in this object's context
-    @static
-    */
-    js: function (urls, callback, obj, context) {
-      load('js', urls, callback, obj, context);
-    }
-
-  };
-})(this.document);
-
-
-
 /*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
  * Licensed under the MIT License (LICENSE.txt).
  *
@@ -550,6 +156,267 @@ $.fn.mousehold = function(timeout, f) {
 
 })(jQuery);
 
+
+
+
+// tipsy, facebook style tooltips for jquery
+// version 1.0.0a
+// (c) 2008-2010 jason frame [jason@onehackoranother.com]
+// released under the MIT license
+
+(function($) {
+    
+    function maybeCall(thing, ctx) {
+        return (typeof thing == 'function') ? (thing.call(ctx)) : thing;
+    };
+    
+    function isElementInDOM(ele) {
+      while (ele = ele.parentNode) {
+        if (ele == document) return true;
+      }
+      return false;
+    };
+    
+    function Tipsy(element, options) {
+        this.$element = $(element);
+        this.options = options;
+        this.enabled = true;
+        this.fixTitle();
+    };
+    
+    Tipsy.prototype = {
+        show: function() {
+            var title = this.getTitle();
+            if (title && this.enabled) {
+                var $tip = this.tip();
+                
+                $tip.find('.tipsy-inner')[this.options.html ? 'html' : 'text'](title);
+                $tip[0].className = 'tipsy'; // reset classname in case of dynamic gravity
+                $tip.remove().css({top: 0, left: 0, visibility: 'hidden', display: 'block'}).prependTo(document.body);
+                
+                var pos = $.extend({}, this.$element.offset(), {
+                    width: this.$element[0].offsetWidth,
+                    height: this.$element[0].offsetHeight
+                });
+                
+                var actualWidth = $tip[0].offsetWidth,
+                    actualHeight = $tip[0].offsetHeight,
+                    gravity = maybeCall(this.options.gravity, this.$element[0]);
+                
+                var tp;
+                switch (gravity.charAt(0)) {
+                    case 'n':
+                        tp = {top: pos.top + pos.height + this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2};
+                        break;
+                    case 's':
+                        tp = {top: pos.top - actualHeight - this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2};
+                        break;
+                    case 'e':
+                        tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth - this.options.offset};
+                        break;
+                    case 'w':
+                        tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width + this.options.offset};
+                        break;
+                }
+                
+                if (gravity.length == 2) {
+                    if (gravity.charAt(1) == 'w') {
+                        tp.left = pos.left + pos.width / 2 - 15;
+                    } else {
+                        tp.left = pos.left + pos.width / 2 - actualWidth + 15;
+                    }
+                }
+                
+                $tip.css(tp).addClass('tipsy-' + gravity);
+                $tip.find('.tipsy-arrow')[0].className = 'tipsy-arrow tipsy-arrow-' + gravity.charAt(0);
+                if (this.options.className) {
+                    $tip.addClass(maybeCall(this.options.className, this.$element[0]));
+                }
+                
+                if (this.options.fade) {
+                    $tip.stop().css({opacity: 0, display: 'block', visibility: 'visible'}).animate({opacity: this.options.opacity});
+                } else {
+                    $tip.css({visibility: 'visible', opacity: this.options.opacity});
+                }
+            }
+        },
+        
+        hide: function() {
+            if (this.options.fade) {
+                this.tip().stop().fadeOut(function() { $(this).remove(); });
+            } else {
+                this.tip().remove();
+            }
+        },
+        
+        fixTitle: function() {
+            var $e = this.$element;
+            if ($e.attr('title') || typeof($e.attr('original-title')) != 'string') {
+                $e.attr('original-title', $e.attr('title') || '').removeAttr('title');
+            }
+        },
+        
+        getTitle: function() {
+            var title, $e = this.$element, o = this.options;
+            this.fixTitle();
+            var title, o = this.options;
+            if (typeof o.title == 'string') {
+                title = $e.attr(o.title == 'title' ? 'original-title' : o.title);
+            } else if (typeof o.title == 'function') {
+                title = o.title.call($e[0]);
+            }
+            title = ('' + title).replace(/(^\s*|\s*$)/, "");
+            return title || o.fallback;
+        },
+        
+        tip: function() {
+            if (!this.$tip) {
+                this.$tip = $('<div class="tipsy"></div>').html('<div class="tipsy-arrow"></div><div class="tipsy-inner"></div>');
+                this.$tip.data('tipsy-pointee', this.$element[0]);
+            }
+            return this.$tip;
+        },
+        
+        validate: function() {
+            if (!this.$element[0].parentNode) {
+                this.hide();
+                this.$element = null;
+                this.options = null;
+            }
+        },
+        
+        enable: function() { this.enabled = true; },
+        disable: function() { this.enabled = false; },
+        toggleEnabled: function() { this.enabled = !this.enabled; }
+    };
+    
+    $.fn.tipsy = function(options) {
+        
+        if (options === true) {
+            return this.data('tipsy');
+        } else if (typeof options == 'string') {
+            var tipsy = this.data('tipsy');
+            if (tipsy) tipsy[options]();
+            return this;
+        }
+        
+        options = $.extend({}, $.fn.tipsy.defaults, options);
+        
+        function get(ele) {
+            var tipsy = $.data(ele, 'tipsy');
+            if (!tipsy) {
+                tipsy = new Tipsy(ele, $.fn.tipsy.elementOptions(ele, options));
+                $.data(ele, 'tipsy', tipsy);
+            }
+            return tipsy;
+        }
+        
+        function enter() {
+            var tipsy = get(this);
+            tipsy.hoverState = 'in';
+            if (options.delayIn == 0) {
+                tipsy.show();
+            } else {
+                tipsy.fixTitle();
+                setTimeout(function() { if (tipsy.hoverState == 'in') tipsy.show(); }, options.delayIn);
+            }
+        };
+        
+        function leave() {
+            var tipsy = get(this);
+            tipsy.hoverState = 'out';
+            if (options.delayOut == 0) {
+                tipsy.hide();
+            } else {
+                setTimeout(function() { if (tipsy.hoverState == 'out') tipsy.hide(); }, options.delayOut);
+            }
+        };
+        
+        if (!options.live) this.each(function() { get(this); });
+        
+        if (options.trigger != 'manual') {
+            var binder   = options.live ? 'live' : 'bind',
+                eventIn  = options.trigger == 'hover' ? 'mouseenter' : 'focus',
+                eventOut = options.trigger == 'hover' ? 'mouseleave' : 'blur';
+            this[binder](eventIn, enter)[binder](eventOut, leave);
+        }
+        
+        return this;
+        
+    };
+    
+    $.fn.tipsy.defaults = {
+        className: null,
+        delayIn: 0,
+        delayOut: 0,
+        fade: false,
+        fallback: '',
+        gravity: 'n',
+        html: false,
+        live: false,
+        offset: 0,
+        opacity: 0.8,
+        title: 'title',
+        trigger: 'hover'
+    };
+    
+    $.fn.tipsy.revalidate = function() {
+      $('.tipsy').each(function() {
+        var pointee = $.data(this, 'tipsy-pointee');
+        if (!pointee || !isElementInDOM(pointee)) {
+          $(this).remove();
+        }
+      });
+    };
+    
+    // Overwrite this method to provide options on a per-element basis.
+    // For example, you could store the gravity in a 'tipsy-gravity' attribute:
+    // return $.extend({}, options, {gravity: $(ele).attr('tipsy-gravity') || 'n' });
+    // (remember - do not modify 'options' in place!)
+    $.fn.tipsy.elementOptions = function(ele, options) {
+        return $.metadata ? $.extend({}, options, $(ele).metadata()) : options;
+    };
+    
+    $.fn.tipsy.autoNS = function() {
+        return $(this).offset().top > ($(document).scrollTop() + $(window).height() / 2) ? 's' : 'n';
+    };
+    
+    $.fn.tipsy.autoWE = function() {
+        return $(this).offset().left > ($(document).scrollLeft() + $(window).width() / 2) ? 'e' : 'w';
+    };
+    
+    /**
+     * yields a closure of the supplied parameters, producing a function that takes
+     * no arguments and is suitable for use as an autogravity function like so:
+     *
+     * @param margin (int) - distance from the viewable region edge that an
+     *        element should be before setting its tooltip's gravity to be away
+     *        from that edge.
+     * @param prefer (string, e.g. 'n', 'sw', 'w') - the direction to prefer
+     *        if there are no viewable region edges effecting the tooltip's
+     *        gravity. It will try to vary from this minimally, for example,
+     *        if 'sw' is preferred and an element is near the right viewable 
+     *        region edge, but not the top edge, it will set the gravity for
+     *        that element's tooltip to be 'se', preserving the southern
+     *        component.
+     */
+     $.fn.tipsy.autoBounds = function(margin, prefer) {
+		return function() {
+			var dir = {ns: prefer[0], ew: (prefer.length > 1 ? prefer[1] : false)},
+			    boundTop = $(document).scrollTop() + margin,
+			    boundLeft = $(document).scrollLeft() + margin,
+			    $this = $(this);
+
+			if ($this.offset().top < boundTop) dir.ns = 'n';
+			if ($this.offset().left < boundLeft) dir.ew = 'w';
+			if ($(window).width() + $(document).scrollLeft() - $this.offset().left < margin) dir.ew = 'e';
+			if ($(window).height() + $(document).scrollTop() - $this.offset().top < margin) dir.ns = 's';
+
+			return dir.ns + (dir.ew ? dir.ew : '');
+		}
+	};
+    
+})(jQuery);
 
 
 
@@ -9604,7 +9471,6 @@ var Genoverse = Base.extend({
   urlParamTemplate   : 'r=__CHR__:__START__-__END__', // Overwrite this for your URL style
   width              : 1000,
   height             : 200,
-  labelWidth         : 90,
   buffer             : 1,
   longestLabel       : 30,
   defaultLength      : 5000,
@@ -9613,6 +9479,7 @@ var Genoverse = Base.extend({
   plugins            : [],
   dragAction         : 'scroll', // options are: scroll, select, off
   wheelAction        : 'off',    // options are: zoom, off
+  isStatic           : false,    // if true, will stop drag, select and zoom actions occurring
   genome             : undefined,
   autoHideMessages   : true,
   trackAutoHeight    : false,
@@ -9643,6 +9510,8 @@ var Genoverse = Base.extend({
 
     $.extend(this, config);
     
+    this.events = { browser: {}, tracks: {} };
+    
     $.when(this.loadGenome(), this.loadPlugins()).always(function () {
       Genoverse.wrapFunctions(browser);
       browser.init();
@@ -9670,41 +9539,52 @@ var Genoverse = Base.extend({
   },
 
   loadPlugins: function () {
-    if (typeof LazyLoad === 'undefined') {
-      return;
-    }
-    
     var browser         = this;
     var loadPluginsTask = $.Deferred();
     
+    function loadPlugin(plugin) {
+      if (typeof Genoverse.Plugins[plugin] === 'function') {
+        Genoverse.Plugins[plugin].call(browser);
+        return true;
+      }
+    }
+    
+    function getScript(deferred, plugin) {
+      $.getScript(browser.origin + 'js/plugins/' + plugin + '.js', function () {
+        deferred.resolve.apply(deferred, [].slice.call(arguments).concat(plugin));
+      });
+    }
+    
     // Load plugins css file
     $.when.apply($, $.map(browser.plugins, function (plugin) {
-      var dfd = $.Deferred();
+      if (loadPlugin(plugin)) {
+        return undefined;
+      }
       
-      LazyLoad.css(browser.origin + 'css/' + plugin + '.css', function () {
-        $.ajax({
-          url      : browser.origin + 'js/plugins/' + plugin + '.js',
-          dataType : 'text',
-          success  : dfd.resolve
-        });
-      });
+      var deferred = $.Deferred();
       
-      return dfd;
+      if ($('link[href="' + browser.origin + 'css/' + plugin + '.css"]').length) {
+        getScript(deferred, plugin);
+      } else {
+        $('<link href="' + browser.origin + 'css/' + plugin + '.css" rel="stylesheet">').on('load', function () { getScript(deferred, plugin); }).appendTo('body');
+      }
+      
+      return deferred;
     })).done(function () {
-      (function (jq, scripts) {
-        // Localize variables
-        var $ = jq;
+      var scripts = browser.plugins.length === 1 ? [ arguments ] : arguments;
+      var plugin;
+      
+      for (var i = 0; i < scripts.length; i++) {
+        plugin = scripts[i][scripts[i].length - 1];
         
-        for (var i = 0; i < scripts.length; i++) {
-          try {
-            eval(scripts[i][0]);
-          } catch (e) {
-            // TODO: add plugin name to this message
-            console.log('Error evaluating plugin script: ' + e);
-            console.log(scripts[i][0]);
-          }
+        try {
+          eval(scripts[i][0]);
+          loadPlugin(plugin);
+        } catch (e) {
+          console.log('Error evaluating plugin script "' + plugin + ': "' + e);
+          console.log(scripts[i][0]);
         }
-      })($, browser.plugins.length === 1 ? [ arguments ] : arguments);
+      }
     }).always(loadPluginsTask.resolve);
     
     return loadPluginsTask;
@@ -9716,10 +9596,15 @@ var Genoverse = Base.extend({
     this.addDomElements(width);
     this.addUserEventHandlers();
     
+    if (this.isStatic) {
+      this.dragAction       = this.wheelAction = 'off';
+      this.urlParamTemplate = false;
+    }
+    
     this.tracksById       = {};
     this.prev             = {};
     this.urlParamTemplate = this.urlParamTemplate || '';
-    this.useHash          = typeof window.history.pushState !== 'function';
+    this.useHash          = typeof this.useHash === 'boolean' ? this.useHash : typeof window.history.pushState !== 'function';
     this.textWidth        = document.createElement('canvas').getContext('2d').measureText('W').width;
     this.labelWidth       = this.labelContainer.outerWidth(true);
     this.wrapperLeft      = this.labelWidth - width;
@@ -9820,6 +9705,10 @@ var Genoverse = Base.extend({
         }
       },
       dblclick: function (e) {
+        if (browser.isStatic) {
+          return true;
+        }
+        
         browser.hideMessages();
         browser.mousewheelZoom(e, 1);
       }
@@ -9863,6 +9752,10 @@ var Genoverse = Base.extend({
     var mvc;
     
     for (var i = 0; i < this.tracks.length; i++) {
+      if (this.tracks[i].disabled) {
+        continue;
+      }
+      
       mvc = this.tracks[i]._interface[func];
       
       if (mvc) {
@@ -10227,7 +10120,6 @@ var Genoverse = Base.extend({
     this.setRange(start, end, true);
   },
   
-  
   addTrack: function (track, index) {
     return this.addTracks([ track ], index)[0];
   },
@@ -10330,13 +10222,14 @@ var Genoverse = Base.extend({
   
   updateTrackOrder: function (e, ui) {
     var track = ui.item.data('track');
-    
-    var p = ui.item.prev().data('track').prop('order') || 0;
-    var n = ui.item.next().data('track').prop('order') || 0;
-    var o = p || n;
+    var prev  = ui.item.prev().data('track');
+    var next  = ui.item.next().data('track');
+    var p     = prev ? prev.prop('order') : 0;
+    var n     = next ? next.prop('order') : 0;
+    var o     = p || n;
     var order;
     
-    if (Math.floor(n) === Math.floor(p)) {
+    if (prev && next && Math.floor(n) === Math.floor(p)) {
       order = p + (n - p) / 2;
     } else {
       order = o + (p ? 1 : -1) * (Math.round(o) - o || 1) / 2;
@@ -10445,7 +10338,7 @@ var Genoverse = Base.extend({
             (f.title ? '<tr class="header"><th colspan="2" class="title">' + f.title + '</th></tr>' : '') +
             $.map(f, function (value, key) {
               if (key !== 'title') {
-                return '<tr><td>'+ key +'</td><td>'+ value +'</td></tr>';
+                return '<tr><td>' + key + '</td><td>' + value + '</td></tr>';
               }
             }).join()
           );
@@ -10458,7 +10351,7 @@ var Genoverse = Base.extend({
         }
       });
       
-      feature.menuEl = menu;
+      feature.menuEl = menu.appendTo(this.superContainer || this.container);
     }
     
     this.menus = this.menus.add(feature.menuEl);
@@ -10467,18 +10360,20 @@ var Genoverse = Base.extend({
       track.prop('menus', track.prop('menus').add(feature.menuEl));
     }
     
-    feature.menuEl.appendTo('body');
+    feature.menuEl.show(); // Must show before positioning, else position will be wrong
     
     if (event) {
       feature.menuEl.css({ left: 0, top: 0 }).position({ of: event, my: 'left top', collision: 'flipfit' });
     }
 
-    return feature.menuEl.show();
+    return feature.menuEl;
   },
   
-  closeMenus: function () {
-    this.menus.filter(':visible').children('.close').trigger('click');
-    this.menus = $();
+  closeMenus: function (obj) {
+    obj = obj || this;
+    
+    obj.menus.filter(':visible').children('.close').trigger('click');
+    obj.menus = $();
   },
   
   hideMessages: function () {
@@ -10508,30 +10403,55 @@ var Genoverse = Base.extend({
   
   saveConfig: $.noop,
   
-  systemEventHandlers: {}
-}, {
-  on: function (events, handler) {
-    $.each(events.split(' '), function () {
-      if (typeof Genoverse.prototype.systemEventHandlers[this] === 'undefined') {
-        Genoverse.prototype.systemEventHandlers[this] = [];
-      }
+  on: function (events, obj, fn) {
+    var browser  = this;
+    var eventMap = {};
+    var i, fnString;
+    
+    function makeEventMap(types, handler) {
+      types = types.split(' ');
       
-      Genoverse.prototype.systemEventHandlers[this].push(handler);
-    });
-  },
-  
-  wrapFunctions: function (obj) {
-    // Push all before* and after* functions to systemEventHandlers array
-    for (var key in obj) {
-      if (typeof obj[key] === 'function' && key.match(/^(before|after)/)) {
-        obj.systemEventHandlers[key] = obj.systemEventHandlers[key] || [];
-        obj.systemEventHandlers[key].push(obj[key]);
+      for (var j = 0; j < types.length; j++) {
+        eventMap[types[j]] = (eventMap[types[j]] || []).concat(handler);
       }
     }
     
-    // Wrap it up
-    for (key in obj) {
-      if (typeof obj[key] === 'function' && !key.match(/^(base|extend|constructor|loadPlugins|loadGenome|controller|model|view)$/)) {
+    function compare(func) {
+      return func.toString() === fnString;
+    }
+    
+    if (typeof events === 'object') {
+      for (i in events) {
+        makeEventMap(i, events[i]);
+      }
+      
+      obj = obj || this;
+    } else {
+      if (typeof fn === 'undefined') {
+        fn  = obj;
+        obj = this;
+      }
+      
+      makeEventMap(events, fn);
+    }
+    
+    var type = obj instanceof Genoverse.Track || obj === 'tracks' ? 'tracks' : 'browser';
+    
+    for (i in eventMap) {
+      browser.events[type][i] = browser.events[type][i] || [];
+      fnString = eventMap[i].toString();
+      
+      if (!$.grep(browser.events[type][i], compare).length) {
+        browser.events[type][i].push.apply(browser.events[type][i], eventMap[i]);
+      }
+    }
+  }
+}, {
+  Plugins: {},
+  
+  wrapFunctions: function (obj) {
+    for (var key in obj) {
+      if (typeof obj[key] === 'function' && typeof obj[key].ancestor !== 'function' && !key.match(/^(base|extend|constructor|on|prop|loadPlugins|loadGenome)$/)) {
         Genoverse.functionWrap(key, obj);
       }
     }
@@ -10541,104 +10461,71 @@ var Genoverse = Base.extend({
    * functionWrap - wraps event handlers and adds debugging functionality
    **/
   functionWrap: function (key, obj) {
-    var name = (obj ? (obj.name || 'Track' + (obj.type || '')) : 'Genoverse') + '.' + key;
+    obj.functions = obj.functions || {};
     
-    if (key.match(/^(before|after|__original)/)) {
+    if (obj.functions[key] || key.match(/^(before|after)/)) {
       return;
     }
     
-    var func = key.substring(0, 1).toUpperCase() + key.substring(1);
+    var func      = key.substring(0, 1).toUpperCase() + key.substring(1);
+    var isBrowser = obj instanceof Genoverse;
+    var mainObj   = isBrowser || obj instanceof Genoverse.Track ? obj : obj.track;
+    var events    = isBrowser ? obj.events.browser : obj.browser.events.tracks;
+    var debug     = (isBrowser ? 'Genoverse' : obj.id || obj.name || 'Track') + '.' + key;
     
-    if (obj.debug) {
-      Genoverse.debugWrap(obj, key, name, func);
-    }
+    obj.functions[key] = obj[key];
     
-    // turn function into system event, enabling eventHandlers for before/after the event
-    if (obj.systemEventHandlers['before' + func] || obj.systemEventHandlers['after' + func]) {
-      obj['__original' + func] = obj[key];
+    obj[key] = function () {
+      var i, rtn;
       
-      obj[key] = function () {
-        var i, rtn;
-        
-        if (this.systemEventHandlers['before' + func]) {
-          for (i = 0; i < this.systemEventHandlers['before' + func].length; i++) {
-            // TODO: Should it end when beforeFunc returned false??
-            this.systemEventHandlers['before' + func][i].apply(this, arguments);
-          }
+      // Debugging functionality
+      // Enabled by "debug": true || { functionName: true, ...} option
+      if (obj.debug === true) {                                     // if "debug": true, simply log function call
+        console.log(debug);
+      } else if (typeof obj.debug === 'object' && obj.debug[key]) { // if debug: { functionName: true, ...}, log function time
+        console.time('time: ' + debug);
+      }
+      
+      if (events['before' + func]) {
+        for (i = 0; i < events['before' + func].length; i++) {
+          // TODO: Should it end when beforeFunc returned false??
+          events['before' + func][i].apply(this, arguments);
         }
-        
-        rtn = this['__original' + func].apply(this, arguments);
-        
-        if (this.systemEventHandlers['after' + func]) {
-          for (i = 0; i < this.systemEventHandlers['after' + func].length; i++) {
-            // TODO: Should it end when afterFunc returned false??
-            this.systemEventHandlers['after' + func][i].apply(this, arguments);
-          }
+      }
+      
+      if (typeof mainObj['before' + func] === 'function') {
+        mainObj['before' + func].apply(this, arguments);
+      }
+      
+      rtn = this.functions[key].apply(this, arguments);
+      
+      if (typeof mainObj['after' + func] === 'function') {
+        mainObj['after' + func].apply(this, arguments);
+      }
+      
+      if (events['after' + func]) {
+        for (i = 0; i < events['after' + func].length; i++) {
+          // TODO: Should it end when afterFunc returned false??
+          events['after' + func][i].apply(this, arguments);
         }
-        
-        return rtn;
-      };
-    }
-  },
-  
-  debugWrap: function (obj, key, name, func) {
-    // Debugging functionality
-    // Enabled by "debug": true || { functionName: true, ...} option
-    // if "debug": true, simply log function call
-    if (obj.debug === true) {
-      if (!obj.systemEventHandlers['before' + func]) {
-        obj.systemEventHandlers['before' + func] = [];
       }
       
-      obj.systemEventHandlers['before' + func].unshift(function () {
-        console.log(name);
-      });
-    }
-    
-    // if debug: { functionName: true, ...}, log function time
-    if (typeof obj.debug === 'object' && obj.debug[key]) {
-      if (!obj.systemEventHandlers['before' + func]) {
-        obj.systemEventHandlers['before' + func] = [];
+      if (typeof obj.debug === 'object' && obj.debug[key]) {
+        console.timeEnd('time: ' + debug);
       }
       
-      if (!obj.systemEventHandlers['after' + func]) {
-        obj.systemEventHandlers['after' + func] = [];
-      }
-      
-      obj.systemEventHandlers['before' + func].unshift(function () {
-        //console.log(name, arguments);        
-        console.time('time: ' + name);
-      });
-      
-      obj.systemEventHandlers['after' + func].push(function () {
-        console.timeEnd('time: ' + name);
-      });
-    }
+      return rtn;
+    };
   }
 });
 
 Genoverse.prototype.origin = ($('script:last').attr('src').match(/(.*)js\/\w+/) || [])[1];
 
-if (typeof LazyLoad !== 'undefined') {
-  LazyLoad.css(Genoverse.prototype.origin + 'css/genoverse.css');
-}
-
-String.prototype.hashCode = function () {
-  var hash = 0;
-  var chr;
-  
-  if (!this.length) {
-    return hash;
+$(function () {
+  if (!$('link[href="' + Genoverse.prototype.origin + 'css/genoverse.css"]').length) {
+    $('<link href="' + Genoverse.prototype.origin + 'css/genoverse.css" rel="stylesheet">').appendTo('body');
   }
-  
-  for (var i = 0; i < this.length; i++) {
-    chr  = this.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  
-  return '' + hash;
-};
+});
 
 window.Genoverse = Genoverse;
 
@@ -10650,7 +10537,6 @@ Genoverse.Track = Base.extend({
   margin     : 2,         // The spacing between this track and the next
   resizable  : true,      // Is the track resizable - can be true, false or 'auto'. Auto means the track will automatically resize to show all features, but the user cannot resize it themselves.
   border     : true,      // Does the track have a bottom border
-  hidden     : false,     // Is the track hidden by default
   unsortable : false,     // Is the track unsortable
   name       : undefined, // The name of the track, which appears in its label
   autoHeight : undefined, // Does the track automatically resize so that all the features are visible
@@ -10664,6 +10550,7 @@ Genoverse.Track = Base.extend({
     this.setInterface();
     this.extend(config);
     this.setDefaults();
+    this.setEvents();
     
     Genoverse.wrapFunctions(this);
     
@@ -10671,17 +10558,15 @@ Genoverse.Track = Base.extend({
     this.setMVC();
   },
   
+  setEvents: $.noop,
+  
   setDefaults: function () {
-    this.order             = this.order || this.index;
+    this.order             = typeof this.order !== 'undefined' ? this.order : this.index;
     this.defaultHeight     = this.height;
     this.defaultAutoHeight = this.autoHeight;
     this.autoHeight        = typeof this.autoHeight !== 'undefined' ? this.autoHeight : this.browser.trackAutoHeight;
     this.height           += this.margin;
     this.initialHeight     = this.height;
-    
-    if (this.hidden) {
-      this.height = 0;
-    }
     
     if (this.resizable === 'auto') {
       this.autoHeight = true;
@@ -10710,23 +10595,22 @@ Genoverse.Track = Base.extend({
     }
     
     var lengthSettings = this.getSettingsForLength();
-    var settings       = $.extend(true, {}, this.constructor.prototype, lengthSettings); // model, view, options
+    var settings       = $.extend(true, {}, this.constructor.prototype, lengthSettings[1]); // model, view, options
     var mvc            = [ 'model', 'view', 'controller' ];
-    var propFunc       = $.proxy(this.prop, this);
     var mvcSettings    = {};
     var trackSettings  = {};
     var obj, j;
     
     settings.controller = settings.controller || this.controller || Genoverse.Track.Controller;
-    settings.model      = settings.model      || this.model      || Genoverse.Track.Model;
-    settings.view       = settings.view       || this.view       || Genoverse.Track.View;
+    settings.model      = this.models[lengthSettings[0]] || settings.model || this.model || Genoverse.Track.Model;
+    settings.view       = this.views[lengthSettings[0]]  || settings.view  || this.view  || Genoverse.Track.View;
     
     for (var i = 0; i < 3; i++) {
       mvcSettings[mvc[i]] = { prop: {}, func: {} };
     }
     
     for (i in settings) {
-      if (!/^(constructor|init|setDefaults|base|extend|lengthMap)$/.test(i) && isNaN(i)) {
+      if (!/^(constructor|init|reset|setDefaults|base|extend|lengthMap)$/.test(i) && isNaN(i)) {
         if (this._interface[i]) {
           mvcSettings[this._interface[i]][typeof settings[i] === 'function' ? 'func' : 'prop'][i] = settings[i];
         } else if (!Genoverse.Track.prototype.hasOwnProperty(i) && !/^(controller|model|view)$/.test(i)) {
@@ -10740,23 +10624,16 @@ Genoverse.Track = Base.extend({
     for (i = 0; i < 3; i++) {
       obj = mvc[i];
       
-      mvcSettings[obj].func.prop                = propFunc;
-      mvcSettings[obj].func.systemEventHandlers = this.systemEventHandlers;
-      mvcSettings[obj].prop.browser             = this.browser;
-      mvcSettings[obj].prop.width               = this.width;
-      mvcSettings[obj].prop.index               = this.index;
-      mvcSettings[obj].prop.track               = this;
-      
       if (obj === 'controller') {
         continue;
       }
       
       if (typeof settings[obj] === 'function' && (!this[obj] || this[obj].constructor.ancestor !== settings[obj])) {
         // Make a new instance of model/view if there isn't one already, or the model/view in lengthSettings is different from the existing model/view
-        this[obj] = new (settings[obj].extend($.extend(true, {}, settings[obj].prototype, mvcSettings[obj].func)))(mvcSettings[obj].prop);
+        this[obj] = this.newMVC(settings[obj], mvcSettings[obj].func, mvcSettings[obj].prop);
       } else {
         // Update the model/view with the values in mvcSettings.
-        var test = typeof settings[obj] === 'object' && this[obj] !== settings[obj] ? this[obj] = settings[obj] : lengthSettings && this.lengthMap.length > 1 ? lengthSettings : false;
+        var test = typeof settings[obj] === 'object' && this[obj] !== settings[obj] ? this[obj] = settings[obj] : this[obj + 's'][lengthSettings[0]] && this.lengthMap.length > 1 ? this[obj + 's'][lengthSettings[0]] : false;
         
         if (test) {
           for (j in mvcSettings[obj].prop) {
@@ -10775,7 +10652,7 @@ Genoverse.Track = Base.extend({
     }
     
     if (!this.controller || typeof this.controller === 'function') {
-      this.controller = new (settings.controller.extend($.extend(true, {}, settings.controller.prototype, mvcSettings.controller.func)))($.extend(mvcSettings.controller.prop, { model: this.model, view: this.view }));
+      this.controller = this.newMVC(settings.controller, mvcSettings.controller.func, $.extend(mvcSettings.controller.prop, { model: this.model, view: this.view }));
     } else {
       $.extend(this.controller, { model: this.model, view: this.view, threshold: mvcSettings.controller.prop.threshold || this.controller.constructor.prototype.threshold });
     }
@@ -10784,23 +10661,40 @@ Genoverse.Track = Base.extend({
       this.order = this.orderReverse;
     }
     
-    if (lengthSettings) {
-      lengthSettings.model = this.model;
-      lengthSettings.view  = this.view;
+    if (lengthSettings[1]) {
+      this.models[lengthSettings[0]] = this.model;
+      this.views[lengthSettings[0]]  = this.view;
     }
+  },
+  
+  newMVC: function (object, functions, properties) {
+    return new (object.extend(
+      $.extend(true, {}, object.prototype, functions, {
+        prop: $.proxy(this.prop, this)
+      })
+    ))(
+      $.extend(properties, {
+        browser : this.browser,
+        width   : this.width,
+        index   : this.index,
+        track   : this
+      })
+    );
   },
   
   setLengthMap: function () {
     var value, j, deepCopy;
     
     this.lengthMap = [];
+    this.models    = {};
+    this.views     = {};
     
     for (var key in this) { // Find all scale-map like keys
       if (!isNaN(key)) {
         key   = parseInt(key, 10);
         value = this[key];
         delete this[key];
-        this.lengthMap.push([ key, value === false ? { threshold: key, resizable: 'auto' } : value ]);
+        this.lengthMap.push([ key, value === false ? { threshold: key, resizable: 'auto', featureHeight: 0, model: Genoverse.Track.Model, view: Genoverse.Track.View } : value ]);
       }
     }
     
@@ -10843,9 +10737,11 @@ Genoverse.Track = Base.extend({
   getSettingsForLength: function () {
     for (var i = 0; i < this.lengthMap.length; i++) {
       if (this.browser.length > this.lengthMap[i][0] || this.browser.length === 1 && this.lengthMap[i][0] === 1) {
-        return this.lengthMap[i][1];
+        return this.lengthMap[i];
       }
     }
+    
+    return [];
   },
   
   prop: function (key, value) {
@@ -10878,7 +10774,7 @@ Genoverse.Track = Base.extend({
   },
   
   setHeight: function (height, forceShow) {
-    if (this.prop('hidden') || (forceShow !== true && height < this.prop('featureHeight'))) {
+    if (this.disabled || (forceShow !== true && height < this.prop('featureHeight')) || (this.prop('threshold') && !this.prop('thresholdMessage') && this.browser.length > this.prop('threshold'))) {
       height = 0;
     } else {
       height = Math.max(height, this.prop('minLabelHeight'));
@@ -10902,27 +10798,29 @@ Genoverse.Track = Base.extend({
     }
   },
   
-  show: function () {
-    this.hidden = false;
-    this.controller.resize(this.initialHeight);
-  },
-  
-  hide: function () {
-    this.hidden = true;
-    this.controller.resize(0);
-  },
-  
   enable: function () {
-    this.disabled = false;
-    this.show();
-    this.controller.makeFirstImage();
+    if (this.disabled === true) {
+      this.disabled = false;
+      this.controller.resize(this.initialHeight);
+      this.reset();
+    }
   },
   
   disable: function () {
-    this.hide();
-    this.controller.scrollContainer.css('left', 0);
+    if (!this.disabled) {
+      this.disabled = true;
+      this.controller.resize(0);
+    }
+  },
+  
+  reset: function () {
+    if (this.prop('url') !== false) {
+      this.model.init(true);
+    }
+    
+    this.view.init();
+    this.setLengthMap();
     this.controller.reset();
-    this.disabled = true;
   },
   
   remove: function () {
@@ -10939,18 +10837,6 @@ Genoverse.Track = Base.extend({
         delete obj[key];
       }
     }
-  },
-  
-  systemEventHandlers: {}
-}, {
-  on: function (events, handler) {
-    $.each(events.split(' '), function () {
-      if (typeof Genoverse.Track.prototype.systemEventHandlers[this] === 'undefined') {
-        Genoverse.Track.prototype.systemEventHandlers[this] = [];
-      }
-      
-      Genoverse.Track.prototype.systemEventHandlers[this].push(handler);
-    });
   }
 });
 
@@ -10991,13 +10877,9 @@ Genoverse.Track.Controller = Base.extend({
   
   reset: function () {
     this.resetImages();
-    this.browser.closeMenus.call(this);
-    
-    if (this.url !== false) {
-      this.model.init(true);
-    }
-    
-    this.view.init();
+    this.browser.closeMenus(this);
+    this.setScale();
+    this.makeFirstImage();
   },
   
   resetImages: function () {
@@ -11018,7 +10900,7 @@ Genoverse.Track.Controller = Base.extend({
   rename: function (name) {
     this.track.name     = name;
     this.minLabelHeight = $('span.name', this.label).html(name).outerHeight(true);
-    this.label.height(this.prop('hidden') ? 0 : Math.max(this.prop('height'), this.minLabelHeight));
+    this.label.height(this.prop('disabled') ? 0 : Math.max(this.prop('height'), this.minLabelHeight));
   },
   
   addDomElements: function () {
@@ -11044,7 +10926,7 @@ Genoverse.Track.Controller = Base.extend({
     
     this.minLabelHeight = $('<span class="name" title="' + name + '">' + name + '</span>').appendTo(this.label).outerHeight(true);
     
-    var h = this.prop('hidden') ? 0 : Math.max(this.prop('height'), this.minLabelHeight);
+    var h = this.prop('disabled') ? 0 : Math.max(this.prop('height'), this.minLabelHeight);
     
     if (this.minLabelHeight) {
       this.label.height(h);
@@ -11058,7 +10940,7 @@ Genoverse.Track.Controller = Base.extend({
     var browser    = this.browser;
     
     this.container.on('mouseup', '.image_container', function (e) {
-      if ((e.which && e.which !== 1) || browser.start !== browser.dragStart || (browser.dragAction === 'select' && browser.selector.outerWidth(true) > 2)) {
+      if ((e.which && e.which !== 1) || (typeof browser.dragStart === 'number' && browser.start !== browser.dragStart) || (browser.dragAction === 'select' && browser.selector.outerWidth(true) > 2)) {
         return; // Only show menus on left click when not dragging and not selecting
       }
 
@@ -11203,7 +11085,7 @@ Genoverse.Track.Controller = Base.extend({
     // Therefore fullVisibleHeight includes this margin for the bottom-most feature.
     // The correct value (for a track using the default positionFeatures code) is:
     // fullVisibleHeight - ([there are labels in this region] ? (labels === 'separate' ? 0 : featureMargin.bottom + 1) + 2 : featureMargin.bottom)
-    if (this.fullVisibleHeight - featureMargin.top - featureMargin.bottom > height) {
+    if (this.fullVisibleHeight - featureMargin.top - featureMargin.bottom > height && !this.prop('disabled')) {
       this.showMessage('resize');
       
       var controller = this;
@@ -11646,7 +11528,7 @@ Genoverse.Track.Model = Base.extend({
   insertFeature: function (feature) {
     // Make sure we have a unique ID, this method is not efficient, so better supply your own id
     if (!feature.id) {
-      feature.id = JSON.stringify(feature).hashCode();
+      feature.id = this.hashCode(JSON.stringify(feature));
     }
     
     if (!this.featuresById[feature.id]) {
@@ -11665,6 +11547,23 @@ Genoverse.Track.Model = Base.extend({
     }
     
     this.dataLoading = [];
+  },
+  
+  hashCode: function (string) {
+    var hash = 0;
+    var chr;
+    
+    if (!string.length) {
+      return hash;
+    }
+    
+    for (var i = 0; i < string.length; i++) {
+      chr  = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    return '' + hash;
   }
 });
 
@@ -11915,7 +11814,7 @@ Genoverse.Track.View = Base.extend({
     var original = feature.untruncated;
     var width    = (original || feature).width;
     
-    if (this.labels === 'overlay' && feature.labelWidth >= width) {
+    if (this.labels === 'overlay' && feature.labelWidth >= Math.floor(width)) {
       return;
     }
     
@@ -12000,11 +11899,13 @@ Genoverse.Track.View = Base.extend({
 
 
 Genoverse.Track.Controller.Static = Genoverse.Track.Controller.extend({
-  constructor: function (properties) {
-    this.base(properties);
+  addDomElements: function () {
+    this.base();
     
     this.image = $('<img>').appendTo(this.imgContainer);
-    this.container.toggleClass('track_container track_container_static').html(this.imgContainer);
+    
+    this.container.toggleClass('track_container track_container_static').prepend(this.imgContainer);
+    this.scrollContainer.add(this.messageContainer).remove();
   },
   
   reset: $.noop,
@@ -12021,6 +11922,10 @@ Genoverse.Track.Controller.Static = Genoverse.Track.Controller.extend({
   },
   
   makeImage: function (params) {
+    if (this.prop('disabled')) {
+      return $.Deferred().resolve();
+    }
+    
     var features = this.view.positionFeatures(this.model.findFeatures(params.start, params.end), params);
     
     if (features) {
@@ -12070,6 +11975,99 @@ Genoverse.Track.Static = Genoverse.Track.extend({
   view       : Genoverse.Track.View.Static
 });
 
+
+
+
+Genoverse.Track.Controller.Configurable = Genoverse.Track.Controller.extend({
+  addDomElements: function () {
+    var controls      = this.prop('controls');
+    var defaultConfig = this.prop('defaultConfig');
+    
+    for (var i in controls) {
+      if (typeof controls[i] === 'string') {
+        controls[i] = $(controls[i]);
+        
+        // TODO: other control types
+        if (controls[i].is('select')) {
+          controls[i].children('[value=' + defaultConfig[controls[i].data('control')] + ']').attr('selected', true).end().change(function () {
+            $(this).data('track').setConfig($(this).data('control'), this.value);
+          });
+        }
+      }
+    }
+    
+    this.base.apply(this, arguments);
+  }
+});
+
+Genoverse.Track.Configurable = Genoverse.Track.extend({
+  controller     : Genoverse.Track.Controller.Configurable,
+  configSettings : {},
+  defaultConfig  : {},
+  controls       : [],
+  
+  setDefaults: function () {
+    this.config = this.config || {};
+    
+    for (var i in this.defaultConfig) {
+      if (typeof this.config[i] === 'undefined') {
+        this.config[i] = this.defaultConfig[i];
+      }
+    }
+    
+    this.base();
+  },
+  
+  setLengthMap: function () {
+    var args           = [ true, {} ];
+    var featureFilters = [];
+    var settings;
+    
+    for (var i in this.configSettings) {
+      settings = this.getConfig(i);
+      
+      if (settings) {
+        args.push(settings);
+        
+        if (settings.featureFilter) {
+          featureFilters.push(settings.featureFilter);
+        }
+      }
+    }
+    
+    this.extend({ 1: $.extend.apply($, args.concat({ featureFilters: featureFilters })) });
+    this.base();
+  },
+  
+  setConfig: function (type, config) {
+    if (this.configSettings[type][config]) {
+      this.config[type] = config;
+      
+      var features = this.prop('featuresById');
+      
+      for (var i in features) {
+        delete features[i].menuEl;
+      }
+    }
+    
+    this.reset();
+  },
+  
+  getConfig: function (type) {
+    return this.configSettings[type][this.config[type]];
+  },
+  
+  findFeatures: function () {
+    var features = this.base.apply(this, arguments);
+    var filters  = this.prop('featureFilters');
+    
+    for (var i in filters) {
+      features = $.grep(features, filters[i]);
+    }
+    
+    return features;
+  }
+});
 
 
 
@@ -12158,6 +12156,143 @@ Genoverse.Track.Model.Stranded = Genoverse.Track.Model.extend({
 
 
 
+Genoverse.Track.Chromosome = Genoverse.Track.extend({
+  id            : 'chromosome',
+  margin        : 1,
+  featureMargin : { top: 0, right: 0, bottom: 0, left: 0 },
+  labels        : 'overlay',
+  url           : false,
+  allData       : true,
+  colors        : {
+    acen    : '#708090',
+    gneg    : '#FFFFFF',
+    gpos    : '#000000',
+    gpos100 : '#000000',
+    gpos25  : '#D9D9D9',
+    gpos33  : '#BFBFBF',
+    gpos50  : '#999999',
+    gpos66  : '#7F7F7F',
+    gpos75  : '#666666',
+    gvar    : '#E0E0E0',
+    stalk   : '#708090'
+  },
+  labelColors: {
+    gneg   : '#000000',
+    gvar   : '#000000',
+    gpos25 : '#000000',
+    gpos33 : '#000000'
+  },
+  
+  getData: function (start, end) {
+    this.receiveData([].slice.call(grch37[this.browser.chr].bands), start, end);
+    return $.Deferred().resolveWith(this);
+  },
+  
+  insertFeature: function (feature) {
+    feature.label      = feature.type === 'acen' || feature.type === 'stalk' ? false : feature.id;
+    feature.color      = this.prop('colors')[feature.type];
+    feature.labelColor = this.prop('labelColors')[feature.type] || '#FFFFFF';
+    
+    this.base(feature);
+  },
+  
+  drawFeature: function (feature, featureContext, labelContext, scale) {
+    if (feature.type === 'acen') {
+      featureContext.fillStyle   = feature.color;
+      featureContext.strokeStyle = '#000000';
+      
+      featureContext.beginPath();
+      
+      if (feature.sort === 1) {
+        featureContext.moveTo(feature.x, 0);
+        featureContext.lineTo(feature.x + feature.width, feature.height / 2);
+        featureContext.lineTo(feature.x, feature.height + 0.5);
+      } else {
+        featureContext.moveTo(feature.x + feature.width, 0);
+        featureContext.lineTo(feature.x + feature.width, feature.height + 0.5);
+        featureContext.lineTo(feature.x, feature.height / 2);
+      }
+      
+      featureContext.closePath();
+      featureContext.fill();
+      featureContext.stroke();
+    } else if (feature.type === 'stalk') {
+      featureContext.fillStyle   = feature.color;
+      featureContext.strokeStyle = '#000000';
+      
+      for (var i = 0; i < 2; i++) {
+        featureContext.beginPath();
+        
+        featureContext.moveTo(feature.x, 0);
+        featureContext.lineTo(feature.x + feature.width * 0.25, feature.height * 0.25 + 0.5);
+        featureContext.lineTo(feature.x + feature.width * 0.75, feature.height * 0.25 + 0.5);
+        featureContext.lineTo(feature.x + feature.width, 0);
+        
+        featureContext[i ? 'moveTo' : 'lineTo'](feature.x + feature.width, feature.height);
+        featureContext.lineTo(feature.x + feature.width * 0.75, feature.height * 0.75 - 0.5);
+        featureContext.lineTo(feature.x + feature.width * 0.25, feature.height * 0.75 - 0.5);
+        featureContext.lineTo(feature.x, feature.height);
+        
+        featureContext[i ? 'stroke' : 'fill']();
+      }
+    } else {
+      this.base(feature, featureContext, labelContext, scale);
+      
+      featureContext.strokeStyle = '#000000';
+      
+      featureContext.beginPath();
+      
+      if (feature.start === 1) {
+        featureContext.clearRect(0, 0, 5, this.prop('height'));
+        
+        featureContext.fillStyle = feature.color;
+        featureContext.moveTo(5, 0.5);
+        featureContext.lineTo(feature.x + feature.width, 0.5);
+        featureContext.moveTo(5, feature.height + 0.5);
+        featureContext.lineTo(feature.x + feature.width, feature.height + 0.5);
+        featureContext.moveTo(5, 0.5);
+        featureContext.bezierCurveTo(-1, 0.5, -1, feature.height + 0.5, 5, feature.height + 0.5);
+        featureContext.fill();
+      } else if (feature.end === this.browser.chromosomeSize) {
+        featureContext.clearRect(feature.x + feature.width - 5, 0, 10, this.prop('height'));
+        
+        featureContext.fillStyle = feature.color;
+        featureContext.moveTo(feature.x, 0.5);
+        featureContext.lineTo(feature.x + feature.width - 5, 0.5);
+        featureContext.moveTo(feature.x, feature.height + 0.5);
+        featureContext.lineTo(feature.x + feature.width - 5, feature.height + 0.5);
+        featureContext.moveTo(feature.x + feature.width - 5, 0.5);
+        featureContext.bezierCurveTo(this.width + 1, 0.5, this.width + 1, feature.height + 0.5, feature.x + feature.width - 5, feature.height + 0.5);
+        featureContext.fill();
+      } else {
+        featureContext.moveTo(feature.x, 0.5);
+        featureContext.lineTo(feature.x + feature.width, 0.5);
+        featureContext.moveTo(feature.x, feature.height + 0.5);
+        featureContext.lineTo(feature.x + feature.width, feature.height + 0.5);
+      }
+      
+      featureContext.stroke();
+    }
+  },
+  
+  drawLabel: function (feature) {
+    if ((feature.start === 1 || feature.end === this.browser.chromosomeSize) && feature.labelWidth >= Math.floor(feature.width - 5)) {
+      return;
+    }
+    
+    this.base.apply(this, arguments);
+  },
+  
+  populateMenu: function (feature) {
+    return {
+      title    : feature.id,
+      Position : this.browser.chr + ':' + feature.start + '-' + feature.end
+    };
+  }
+});
+
+
+
 Genoverse.Track.Scaleline = Genoverse.Track.Static.extend({
   strand     : 1,
   color      : '#000000',
@@ -12233,7 +12368,7 @@ Genoverse.Track.Scaleline = Genoverse.Track.Static.extend({
 
 Genoverse.Track.Scalebar = Genoverse.Track.extend({
   unsortable     : true,
-  order          : 1,
+  order          : 0,
   orderReverse   : 1e5,
   featureStrand  : 1,
   controls       : 'off',
@@ -12247,9 +12382,21 @@ Genoverse.Track.Scalebar = Genoverse.Track.extend({
   labels         : true,
   bump           : false,
   resizable      : false,
+  click          : $.noop,
   colors         : {
     majorGuideLine : '#CCCCCC',
     minorGuideLine : '#E5E5E5'
+  },
+  
+  setEvents: function () {
+    var browser = this.browser;
+    
+    function resize() {
+      $('.bg.fullHeight', browser.container).height(browser.wrapper.outerHeight(true));
+    }
+    
+    browser.on('afterAddTracks', resize);
+    browser.on('afterResize', this, resize);
   },
   
   setScale: function () {
@@ -12438,12 +12585,182 @@ Genoverse.Track.Scalebar = Genoverse.Track.extend({
   }
 });
 
-Genoverse.Track.on('afterResize', function () {
-  $('.bg.fullHeight', this.browser.container).height(this.browser.wrapper.outerHeight(true));
+
+
+Genoverse.Track.Legend = Genoverse.Track.Static.extend({
+  textColor     : '#000000',
+  labels        : 'overlay',
+  unsortable    : true,
+  featureHeight : 12,
+  
+  controller: Genoverse.Track.Controller.Static.extend({
+    init: function () {
+      this.base();
+      
+      this.container.addClass('track_container_legend');
+      
+      this.tracks = [];
+      
+      if (!this.browser.legends) {
+        this.browser.legends = {};
+      }
+      
+      this.browser.legends[this.track.id] = this;
+      this.track.setTracks();
+    }
+  }),
+  
+  setEvents: function () {
+    this.browser.on({
+      'afterInit afterAddTracks afterRemoveTracks': function () {
+        for (var i in this.legends) {
+          this.legends[i].track.setTracks();
+        }
+      },
+      afterRemoveTracks: function () {
+        for (var i in this.legends) {
+          this.legends[i].makeImage({});
+        }
+      }
+    });
+    
+    this.browser.on({
+      afterPositionFeatures: function (features, params) {
+        var legend = this.prop('legend');
+        
+        if (legend) {
+          setTimeout(function () { legend.makeImage(params); }, 1);
+        }
+      },
+      afterResize: function (height, userResize) {
+        var legend = this.prop('legend');
+        
+        if (legend && userResize === true) {
+          legend.makeImage({});
+        }
+      },
+      afterCheckHeight: function () {
+        var legend = this.prop('legend');
+        
+        if (legend) {
+          legend.makeImage({});
+        }
+      }
+    }, this);
+  },
+  
+  setTracks: function () {
+    var legend = this;
+    var type   = this.featureType;
+    
+    this.tracks = $.grep(this.browser.tracks, function (t) { if (t.type === type) { t.controller.legend = legend.controller; return true; } });
+  },
+  
+  findFeatures: function () {
+    var bounds   = { x: this.browser.scaledStart, y: 0, w: this.width };
+    var features = {};
+    
+    $.each($.map(this.track.tracks, function (track) {
+      var featurePositions = track.prop('featurePositions');
+      bounds.h = track.prop('height');
+      return featurePositions ? featurePositions.search(bounds).concat(track.prop('labelPositions').search(bounds)) : [];
+    }), function () {
+      if (this.legend) {
+        features[this.legend] = this.color;
+      }
+    });
+    
+    // sort legend alphabetically
+    return $.map(features, function (color, text) { return [[ text, color ]]; }).sort(function (a, b) {
+      var x = a[0].toLowerCase();
+      var y = b[0].toLowerCase();
+      return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+    });
+  },
+  
+  positionFeatures: function (f, params) {
+    if (params.positioned) {
+      return f;
+    }
+    
+    var cols     = 2;
+    var pad      = 5;
+    var w        = 20;
+    var x        = 0;
+    var y        = 0;
+    var xScale   = this.width / cols;
+    var yScale   = this.fontHeight + pad;
+    var features = [];
+    var xPos, yPos, labelWidth;
+    
+    for (var i = 0; i < f.length; i++) {
+      xPos       = (x * xScale) + pad;
+      yPos       = (y * yScale) + pad;
+      labelWidth = this.context.measureText(f[i][0]).width;
+      
+      features.push(
+        { x: xPos,           y: yPos, width: w,              height: this.featureHeight, color: f[i][1] },
+        { x: xPos + pad + w, y: yPos, width: labelWidth + 1, height: this.featureHeight, color: false, labelColor: this.textColor, labelWidth: labelWidth, label: f[i][0] }
+      );
+      
+      if (++x === cols) {
+        x = 0;
+        y++;
+      }
+    }
+    
+    params.height     = this.prop('height', f.length ? ((y + (x ? 1 : 0)) * yScale) + pad : 0);
+    params.width      = this.width;
+    params.positioned = true;
+    
+    return this.base(features, params);
+  },
+  
+  enable: function () {
+    this.base();
+    this.controller.makeImage({});
+  },
+  
+  disable: function () {
+    delete this.controller.stringified;
+    this.base();
+  },
+  
+  destroy: function () {
+    delete this.browser.legends[this.id];
+    this.base();
+  }
 });
 
-Genoverse.on('afterAddTracks', function () {
-  $('.bg.fullHeight', this.container).height(this.wrapper.outerHeight(true));
+
+
+
+Genoverse.Track.Controller.Sequence = Genoverse.Track.Controller.extend({
+  click: function (e) {
+    var x        = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+    var y        = e.pageY - $(e.target).offset().top;
+    var features = this[e.target.className === 'labels' ? 'labelPositions' : 'featurePositions'].search({ x: x, y: y, w: 1, h: 1 }).sort(function (a, b) { return a.sort - b.sort; });
+    var seq;
+    
+    if (features.length) {
+      x = Math.floor(x / this.scale);
+      
+      for (var i = 0; i < features.length; i++) {
+        if (features[i].alt_allele) {
+          return this.browser.makeMenu(features[i], e, this.track);
+        }
+        
+        seq = features[i].sequence.charAt(x - features[i].start);
+        
+        if (seq) {
+          return this.browser.makeMenu({
+            title    : seq,
+            Location : this.browser.chr + ':' + x
+          }, e, this.track);
+        }
+      }
+    }
+  }
 });
 
 
@@ -12463,8 +12780,8 @@ Genoverse.Track.Model.Sequence = Genoverse.Track.Model.extend({
   },
   
   getData: function (start, end) {
-    var start = start - start % this.chunkSize + 1;
-    var end  = end + this.chunkSize - end % this.chunkSize;    
+    start = start - start % this.chunkSize + 1;
+    end   = end + this.chunkSize - end % this.chunkSize;
     return this.base(start, end);
   },
   
@@ -12485,6 +12802,7 @@ Genoverse.Track.Model.Sequence = Genoverse.Track.Model.extend({
         start    : start + i,
         end      : start + i + this.chunkSize,
         sequence : data.substr(i, this.chunkSize),
+        sort     : start + i
       };
       
       this.chunks[feature.start] = feature;
@@ -12492,6 +12810,7 @@ Genoverse.Track.Model.Sequence = Genoverse.Track.Model.extend({
     }
   }
 });
+
 
 
 
@@ -12595,8 +12914,7 @@ Genoverse.Track.Model.Sequence.DAS = Genoverse.Track.Model.Sequence.extend({
 
       track.base.apply(track, [ sequence, start ]);
     });
-  },
-
+  }
 });  
 
 
@@ -12666,15 +12984,41 @@ Genoverse.Track.View.Sequence = Genoverse.Track.View.extend({
         context.fillText(bp, start + (width - this.labelWidth[bp]) / 2, feature.position[scale].Y + this.labelYOffset);
       }
     }
-  },
-  
-  click: $.noop
+  }
 });
 
 
 
 Genoverse.Track.Model.SequenceVariation = Genoverse.Track.Model.extend({
-  // Nothing specific, all specisics are in the derived classes
+  seqModel: Genoverse.Track.Model.Sequence.Ensembl,
+  
+  constructor: function () {
+    this.base.apply(this, arguments);
+    this.prop('models').seq = this.track.newMVC(this.seqModel);
+  },
+  
+  getData: function (start, end) {
+    var deferred = $.Deferred();
+    var seqData  = this.prop('models').seq.checkDataRange(start, end);
+    
+    this.base(start, end).done(function () {
+      if (seqData) {
+        deferred.resolve();
+      } else {
+        this.prop('models').seq.getData(start, end).done(deferred.resolve);
+      }
+    });
+    
+    return deferred;
+  },
+  
+  checkDataRange: function (start, end) {
+    return this.base(start, end) && this.prop('models').seq.checkDataRange(start, end);
+  },
+  
+  findFeatures: function (start, end) {
+    return this.prop('models').seq.findFeatures(start, end).concat(this.base(start, end));
+  }
 });
 
 
@@ -12804,8 +13148,7 @@ Genoverse.Track.Model.Transcript = Genoverse.Track.Model.extend({
 
 // Ensembl REST API Transcript model
 Genoverse.Track.Model.Transcript.Ensembl = Genoverse.Track.Model.Transcript.extend({
-  url              : 'http://beta.rest.ensembl.org/feature/region/human/__CHR__:__START__-__END__?content-type=application/json',
-  urlParams        : { feature: 'transcript' },
+  url              : 'http://beta.rest.ensembl.org/feature/region/human/__CHR__:__START__-__END__?feature=transcript;feature=exon;feature=cds;content-type=application/json',
   dataRequestLimit : 5000000, // As per e! REST API restrictions
   
   // The url above responds in json format, data is an array
@@ -12837,38 +13180,9 @@ Genoverse.Track.Model.Transcript.Ensembl = Genoverse.Track.Model.Transcript.exte
         }
       }
     }
-  },
-  
-  getData: function (start, end, dfd) {
-    start = Math.max(1, start);
-    end   = Math.min(this.browser.chromosomeSize, end);
-    
-    var deferred = dfd || $.Deferred();
-    
-    this.base(start, end, function (data, state, request) {
-      if (dfd) {
-        this.parseData(data, request.coords[0], request.coords[1]);
-      } else { // Non modified (transcript) url, loop through the transcripts and see if any extend beyond start and end
-        for (var i = 0; i < data.length; i++) {
-          start = Math.min(start, data[i].start);
-          end   = Math.max(end,   data[i].end);
-        }
-        
-        this.receiveData(data, request.coords[0], request.coords[1]); 
-      }
-    }).done(function () {
-      if (dfd) { // Now get me the exons and cds for start-end
-        dfd.resolveWith(this);
-      } else {
-        this.setURL({ feature: [ 'exon', 'cds' ]}, true);
-        this.getData(start, end, deferred);
-        this.setURL(this.urlParams, true);
-      }
-    });
-    
-    return deferred;
   }
 });
+
 
 
 
@@ -12982,7 +13296,7 @@ Genoverse.Track.View.Transcript = Genoverse.Track.View.extend({
       featureContext.strokeRect(
         transcript.x + (exon.start - transcript.start) * scale,
         transcript.y + 1.5,
-        Math.max(1, (exon.end - exon.start) * scale), 
+        Math.max(1, ((exon.end - exon.start) + 1) * scale), 
         transcript.height - 3
       );
       
@@ -12991,7 +13305,7 @@ Genoverse.Track.View.Transcript = Genoverse.Track.View.extend({
           x: transcript.x + (exons[i - 1].end - transcript.start) * scale,
           y: transcript.y + transcript.height / 2 + 0.5,
           width: (exon.start - exons[i - 1].end) * scale,
-          height: transcript.strand > 0 ? -transcript.height / 2 : transcript.height / 2,
+          height: transcript.strand > 0 ? -transcript.height / 2 : transcript.height / 2
         }, featureContext);
       }
     }
@@ -13005,14 +13319,14 @@ Genoverse.Track.View.Transcript = Genoverse.Track.View.extend({
         featureContext.fillRect(
           transcript.x + (cds.start - transcript.start) * scale,
           transcript.y, 
-          Math.max(1, (cds.end - cds.start) * scale),
+          Math.max(1, ((cds.end - cds.start) +1) * scale),
           transcript.height
         );
       }
     }
     
     if (this.labels && transcript.label) {
-      this.drawLabel(transcript, labelContext, scale)
+      this.drawLabel(transcript, labelContext, scale);
     }
   },  
   

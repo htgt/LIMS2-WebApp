@@ -105,6 +105,7 @@ requires:
   LIMS2::Util::Errbit: 0
   LIMS2::Util::Solr: 0
   LIMS2::Util::Tarmits: 0
+  LIMS2::Util::WGE: 0
   LWP::UserAgent: 0
   List::MoreUtils: 0
   List::Util: 0
@@ -156,4 +157,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.210
+version: 0.213
