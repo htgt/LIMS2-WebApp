@@ -14,6 +14,7 @@
   <tr><th>Strand</th> <td>[% crispr_data.locus.chr_strand %]</td></tr>
   <tr><th>Location Type</th> <td>[% crispr_data.type %]</td></tr>
   <tr><th>PAM Right</th> <td>[% crispr_data.pam_right %]</td></tr>
+  <tr><th>WGE ID</th> <td>[% crispr_data.wge_crispr_id %]</td></tr>
   <tr><th>Comment</th> <td>[% crispr_data.comment %]</td></tr>
 </table>
 
@@ -37,7 +38,7 @@
             <table class="table table-condensed table-bordered">
             [% FOR key IN datum.summary.keys.sort %]
               <tr>
-              
+
                 <td>[% IF key.match('^\d$') %]Off Targets with <span class="badge">[% key %]</span> mismatches[% ELSE %][% key %][% END %]</td>
                 <td>[% datum.summary.$key %]</td>
               </tr>
