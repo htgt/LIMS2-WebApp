@@ -44,7 +44,7 @@ sub all_tests : Tests {
         'validated_by_annotation' => 'not done',
         'target_transcript'       => 'ENSMUST00000085065',
         'species_id'              => 'Alien',
-        'design_parameters'       => 'design_parameters',
+        'design_parameters'       => undef,
         'cassette_first'          => 1,
         'global_arm_shortened'    => undef,
     );
