@@ -50,6 +50,15 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         $gene_info->{gene_symbol} = $gene;
     }
 
+    # fetch projects for this gene
+    my @sponsors = $c->model('Golgi')->schema->resultset('Project')->search({
+        gene_id  => $gene_id,
+    },{
+        select   => [ 'sponsor_id' ],
+        order_by => 'sponsor_id',
+    });
+    my $sponsor = join (', ', (map {$_->sponsor_id} @sponsors) );
+
     # fetch designs for this gene
     # Uses WebAppCommon::Plugin::Design
     my $designs = $c->model('Golgi')->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
@@ -177,6 +186,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'wells'        => \%wells_hash,
         'sorted_wells' => \%sorted_wells,
         'timeline'     => \@timeline,
+        'sponsor'      => $sponsor,
     );
 
     return;
