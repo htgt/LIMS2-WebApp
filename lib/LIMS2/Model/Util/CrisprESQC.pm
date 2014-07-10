@@ -70,8 +70,6 @@ sub _build_plate {
     # fetch the qc plate
     my $plate = $self->model->retrieve_plate( { name => $self->plate_name } );
 
-    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK or PIQ, is: " . $plate->type_id )
-        if $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ';
 
     return $plate;
 }
@@ -261,6 +259,11 @@ Start crispr es cell qc analysis.
 =cut
 sub analyse_plate {
     my ( $self ) = @_;
+
+    # check plate is or right type
+    my $plate = $self->plate;
+    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK or PIQ, is: " . $plate->type_id )
+        if $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ';
 
     #initialise lazy build
     $self->qc_run;
