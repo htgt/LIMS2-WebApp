@@ -151,6 +151,35 @@ $DB::single=1;
 sub pick_genotyping_primers {
     my $params = shift;
 
+    $params->{'start_oligo_field_width'} = $ENV{'LIMS2_GENOTYPING_START_FIELD'} // 1000;
+    $params->{'end_oligo_field_width'} = $ENV{'LIMS2_GENOTYPING_END_FIELD'} // 1000;
+
+    # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
+    my ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
+    GENO_TRIALS: foreach my $step ( 1..4 ) {
+        INFO ('Genotyping attempt No. ' . $step );
+        ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start) = genotyping_calculate( $params );
+        if ($primer_data->{'error_flag'} eq 'pass') {
+            INFO ('Genotyping Primer3 attempt No. ' . $step . ' succeeded');
+            if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
+                INFO ('Genotyping genomic check returned ' . $primer_passes->{'pair_count'} . ' unique primer pairs');
+                last GENO_TRIALS;
+            }
+            else {
+                INFO ( 'Genotyping genomic checked failed: found non-unique genomic alignmemts');
+            }
+        }
+        # increment the fields for searching next time round.
+        # for genotyping we just go in steps of 1Kb - there is no dead field defined for genotyping
+        $params->{'start_oligo_field_width'} += 1000;
+        $params->{'end_oligo_field_width'} += 1000;
+    }
+    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
+}
+
+sub genotyping_calculate {
+    my $params = shift;
+
     my $schema = $params->{'schema'};
     my $design_id = $params->{'design_id'};
     my $well_id = $params->{'well_id'};
@@ -163,11 +192,14 @@ sub pick_genotyping_primers {
                 schema => $schema,
                 design_id => $design_id,
                 repeat_mask => $repeat_mask,
+                start_oligo_field_width => $params->{'start_oligo_field_width'},
+                end_oligo_field_width => $params->{'end_oligo_field_width'},
             } );
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_GIBSON_GENOTYPING_PRIMER_CONFIG' },
-        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length + 500),
+        primer_product_size_range => $target_sequence_length . '-'
+            . ($target_sequence_length + $params->{'start_oligo_field_width'} - 500), # ?? was static 500
     );
 
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
@@ -181,16 +213,20 @@ sub pick_genotyping_primers {
     if ( $result->num_primer_pairs ) {
         INFO ( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
+        $primer_data->{'error_flag'} = 'pass';
         $primer_passes = genomic_check( $design_id, $well_id, $species, $primer_data, $chr_strand );
+        $primer_passes->{'genomic_error_flag'} = $primer_passes->{'pair_count'} > 0 ? 'pass' : 'fail';
     }
     else {
-        INFO ( "Failed to generate genotyping primer pairs for $design_id" );
-        INFO ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
-        INFO ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
-    }
-
-    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
+        WARN ( "Failed to generate genotyping primer pairs for $design_id" );
+        WARN ( 'Primer3 reported: ');
+        WARN ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
+        WARN ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
+        $primer_data->{'error_flag'} = 'fail';
+   }
+   return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
 }
+
 
 sub pcr_genomic_check {
     my $well_id = shift;
@@ -595,8 +631,8 @@ sub get_genotyping_EnsEmbl_region {
     my $slice_region;
     my $seq;
 
-    my $start_oligo_field_width = 1000;
-    my $end_oligo_field_width = 1000;
+    my $start_oligo_field_width = $params->{'start_oligo_field_width'}; #1000;
+    my $end_oligo_field_width = $params->{'end_oligo_field_width'}; #1000;
     my @oligo_keys = sort keys %$design_oligos; # make sure we always deal with the same keys in the same order
     my $o_start_key = $oligo_keys[0];
     my $o_end_key = $oligo_keys[0];
