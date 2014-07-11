@@ -185,9 +185,6 @@ sub crisprs_to_gff {
             push @crisprs_gff, $crispr_parent_datum, $crispr_child_datum ;
         }
 
-
-
-
     return \@crisprs_gff;
 }
 
