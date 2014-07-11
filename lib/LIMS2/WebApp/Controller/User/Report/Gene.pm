@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.212';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.214';
 }
 ## use critic
 
@@ -55,6 +55,15 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         $gene_id = $gene;
         $gene_info->{gene_symbol} = $gene;
     }
+
+    # fetch projects for this gene
+    my @sponsors = $c->model('Golgi')->schema->resultset('Project')->search({
+        gene_id  => $gene_id,
+    },{
+        select   => [ 'sponsor_id' ],
+        order_by => 'sponsor_id',
+    });
+    my $sponsor = join (', ', (map {$_->sponsor_id} @sponsors) );
 
     # fetch designs for this gene
     # Uses WebAppCommon::Plugin::Design
@@ -183,6 +192,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'wells'        => \%wells_hash,
         'sorted_wells' => \%sorted_wells,
         'timeline'     => \@timeline,
+        'sponsor'      => $sponsor,
     );
 
     return;

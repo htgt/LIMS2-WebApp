@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.212';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.214';
 }
 ## use critic
 
@@ -452,7 +452,7 @@ sub generate_sub_report {
         'Targeted Genes'            => {
             'display_stage'         => 'Targeted genes',
             'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                   => {
             'display_stage'         => 'Vectors',
@@ -666,6 +666,7 @@ sub _build_sub_report_data {
 # Methods for Stages
 #----------------------------------------------------------
 
+## no critic(ProhibitExcessComplexity)
 sub genes {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
@@ -727,6 +728,7 @@ sub genes {
         # get the plates
         my $sql =  <<"SQL_END";
 SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
@@ -736,21 +738,26 @@ FROM summaries where design_gene_id = '$gene_id'
 SQL_END
 
         # project specific filtering
+        ## no critic (ProhibitCascadingIfElse)
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
-        } elsif ($sponsor_id eq 'Pathogens') {
-            $sql .= " AND ( sponsor_id = 'Pathogens' );";
+        } elsif ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
         } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
             $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
         }
+        ## use critic
 
         # run the query
         my $results = $self->run_select_query( $sql );
 
         # get the plates into arrays
-        my (@design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+        my (@design, @int, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
         foreach my $row (@$results) {
             push @design_ids, $row->{design_id};
+            push (@int, $row->{int}) unless ($row->{int} eq '_');
             push (@design, $row->{design}) unless ($row->{design} eq '_');
             push (@final_info, $row->{final}) unless ($row->{final} eq '_');
             push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
@@ -771,8 +778,39 @@ SQL_END
             push @all_design_ids, $design_id;
         }
 
-        # FINAL
+        # FINAL / INT
         my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
+
+        my $sum = 0;
+        @int = uniq @int;
+
+        foreach my $well (@int) {
+            $well =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+            my $plate_id = $self->model->retrieve_plate({
+                name => $well,
+            })->id;
+
+            my $comment = '';
+
+            try{
+                $comment = $self->model->schema->resultset('PlateComment')->find({
+                    plate_id     => $plate_id,
+                    comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
+                },{
+                    select => [ 'comment_text' ],
+                })->comment_text;
+            }catch{
+                DEBUG "No comment found for well " . $well;
+            };
+
+            if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+                $sum += $1;
+            }
+        }
+        if ($sum) {
+            $final_count = $sum;
+        }
 
         # DNA
         my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
@@ -817,6 +855,7 @@ SQL_END
 
     return \@sorted_genes_for_display;
 }
+## use critic
 
 sub add_crispr_well_counts_for_gene{
     my ($gene_data, $designs_for_gene, $design_crispr_summary) = @_;

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.212';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.214';
 }
 ## use critic
 
@@ -55,27 +55,27 @@ has model => (
     required => 1,
 );
 
-# EP plate name
+# EP_PICK or PIQ plate name
 has plate_name => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
+    is  => 'ro',
+    isa => 'Str',
 );
 
 has plate => (
-    is       => 'ro',
-    isa      => 'LIMS2::Model::Schema::Result::Plate',
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::Plate',
     lazy_build => 1,
 );
 
 sub _build_plate {
     my $self = shift;
 
+    LIMS2::Exception->throw( 'Must specify plate_name attribute if not sending in a plate object' )
+        unless $self->plate_name;
+
     # fetch the qc plate
     my $plate = $self->model->retrieve_plate( { name => $self->plate_name } );
 
-    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK, is: " . $plate->type_id )
-        unless $plate->type_id eq 'EP_PICK';
 
     return $plate;
 }
@@ -265,6 +265,11 @@ Start crispr es cell qc analysis.
 =cut
 sub analyse_plate {
     my ( $self ) = @_;
+
+    # check plate is or right type
+    my $plate = $self->plate;
+    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK or PIQ, is: " . $plate->type_id )
+        if $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ';
 
     #initialise lazy build
     $self->qc_run;

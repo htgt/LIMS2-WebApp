@@ -37,6 +37,18 @@
           <span class="input uneditable-input">[% plate_types.0 %]</span>
         [%- END %]
 
+        [% IF process_type == 'int_recom' %]
+        <label>Number of Planned Post-gateway Wells</label>
+          <select name="planned_wells">
+            <option value="" selected="selected">-</option>
+            [% total = 4 %]
+            [% WHILE total < 33 %]
+              <option value="[% total %]">[% total %]</option>
+              [% total = total + 4 %]
+        [%- END %]
+          </select>
+        [%- END %]
+
         [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
 
         <label>Well Data File</label>

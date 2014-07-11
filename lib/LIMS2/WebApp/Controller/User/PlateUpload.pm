@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.212';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.214';
 }
 ## use critic
 
@@ -71,8 +71,10 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
 
 sub process_plate_upload_form :Private {
     my ( $self, $c ) = @_;
+
     $c->stash( $c->request->params );
     my $params = $c->request->params;
+
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';
@@ -89,6 +91,19 @@ sub process_plate_upload_form :Private {
         return;
     }
 
+    my $comment;
+    if ( $params->{process_type} eq 'int_recom' ) {
+        unless ( $params->{planned_wells} ) {
+            $c->stash->{error_msg} = 'Must specify the number of planned post-gateway wells';
+            return;
+        }
+        $comment = {
+             comment_text  => $params->{planned_wells} .' post-gateway wells planned for wells on plate '. $params->{plate_name},
+             created_by_id => $c->user->id,
+             created_at    => scalar localtime,
+        }
+    }
+
     $params->{species} ||= $c->session->{selected_species};
     $params->{created_by} = $c->user->name;
 
@@ -102,6 +117,10 @@ sub process_plate_upload_form :Private {
                 $c->stash->{error_msg} = 'Error encountered while creating plate: ' . $_;
                 $c->model('Golgi')->txn_rollback;
             };
+            if ( $comment ) {
+                $comment->{plate_id} = $plate->id;
+                $c->model('Golgi')->schema->resultset('PlateComment')->create( $comment );
+            }
         }
     );
 

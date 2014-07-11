@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.212';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.214';
 }
 ## use critic
 
@@ -274,14 +274,14 @@ sub format_alignment_strings {
     if ( !$qc_well->fwd_read ) {
         $alignment_data{no_forward_read} = 1;
     }
-    elsif ( !$qc_well->rev_read ) {
+    if ( !$qc_well->rev_read ) {
         $alignment_data{no_reverse_read} = 1;
     }
 
     if ( $json->{forward_no_alignment} ) {
         $alignment_data{no_forward_alignment} = 1;
     }
-    elsif ( $json->{reverse_no_alignment} ) {
+    if ( $json->{reverse_no_alignment} ) {
         $alignment_data{no_reverse_alignment} = 1;
     }
 
@@ -387,7 +387,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
     $c->assert_user_roles( 'edit' );
 
     my $requirements = {
-    	ep_pick_plate          => { validate => 'existing_plate_name' },
+    	plate_name             => { validate => 'existing_plate_name' },
     	sequencing_project     => { validate => 'non_empty_string' },
     	sequencing_sub_project => { validate => 'non_empty_string' },
     	forward_primer_name    => { validate => 'non_empty_string' },
@@ -398,7 +398,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
 	# Store form values
 	$c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
 	$c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
-	$c->stash->{ep_pick_plate}          = $c->req->param('ep_pick_plate');
+	$c->stash->{plate_name}             = $c->req->param('plate_name');
 	$c->stash->{forward_primer_name}    = $c->req->param('forward_primer_name');
 	$c->stash->{reverse_primer_name}    = $c->req->param('reverse_primer_name');
 
@@ -412,12 +412,18 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
             return;
         }
 
+        my $plate = $c->model('Golgi')->retrieve_plate( { name => $validated_params->{plate_name} } );
+        if ( $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ' ) {
+            $c->stash( error_msg => "Plate must be of EP_PICK or PIQ type, $plate is " . $plate->type_id );
+            return;
+        }
+
         my $qc_run;
 		try {
 
             my %params = (
                 model                   => $c->model('Golgi'),
-                plate_name              => $validated_params->{ep_pick_plate},
+                plate                   => $plate,
                 sequencing_project_name => $validated_params->{sequencing_project},
                 sub_seq_project         => $validated_params->{sequencing_sub_project},
                 forward_primer_name     => $validated_params->{forward_primer_name},

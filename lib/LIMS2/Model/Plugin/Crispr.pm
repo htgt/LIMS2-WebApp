@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.212';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.214';
 }
 ## use critic
 
@@ -13,6 +13,7 @@ use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use TryCatch;
 use LIMS2::Exception;
+use LIMS2::Util::WGE;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
