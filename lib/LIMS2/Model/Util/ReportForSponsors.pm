@@ -734,10 +734,12 @@ SQL_END
         # project specific filtering
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
-        } elsif ($sponsor_id eq 'Pathogens') {
-            $sql .= " AND ( sponsor_id = 'Pathogens' );";
+        } elsif ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
         } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
             $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
         }
 
         # run the query
