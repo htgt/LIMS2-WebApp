@@ -732,6 +732,7 @@ FROM summaries where design_gene_id = '$gene_id'
 SQL_END
 
         # project specific filtering
+        ## no critic (ProhibitCascadingIfElse)
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
         } elsif ($sponsor_id eq 'Pathogen Group 1') {
@@ -741,6 +742,7 @@ SQL_END
         } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
             $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
         }
+        ## use critic
 
         # run the query
         my $results = $self->run_select_query( $sql );
