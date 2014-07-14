@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.214';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.215';
 }
 ## use critic
 
@@ -27,7 +27,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
-        'Crispr Pair ID', 'Genoverse View',
+        'Crispr or Pair ID', 'Genoverse View',
         'Left Crispr Well', 'Left Crispr Designs', 'Right Crispr Well','Right Crispr Designs',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
         'SF1', 'SR1', 'PF1', 'PR1', 'PF2', 'PR2', 'GF1', 'GR1', 'GF2', 'GR2', # primers
@@ -76,8 +76,10 @@ override iterator => sub {
         return [
             $well->name,
             $design_id, $gene_ids, $gene_symbols, $sponsors,
-            $crispr_pair_id,
-            $crispr_pair_id ne 'Invalid' ?
+            ($crispr_pair_id ne 'Invalid') ? $crispr_pair_id
+                : (($crispr_pair_id eq 'Invalid') && ($left_crispr && !$right_crispr) ? $crispr_id : 'N/A'),
+            ($left_crispr && !$right_crispr)
+                || ($crispr_pair_id ne 'Invalid') ?
                 $self->create_button({
                     'design_id'        => $well->design->id,
                     'crispr_type'      => $right_crispr ? 'crispr_pair_id' : 'crispr_id',
@@ -87,7 +89,7 @@ override iterator => sub {
                     'gene_symbol'      => $gene_symbols,
                     'gene_ids'         => $gene_ids,
                     'button_label'     => 'Genoverse',
-                    'browser_target'   => $well->name,
+                    'browser_target'   => $self->plate_name . $well->name,
                     'api_url'          => '/user/genoverse_crispr_primers',
             }) : 'Invalid Crispr Pair',
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',

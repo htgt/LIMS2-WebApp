@@ -1,3 +1,8 @@
+0.215     2014-07-14 07:15:29 Europe/London
+
+    Store JSON data in json type columns.
+    Add design instance link to designs page.
+
 0.214     2014-07-11 07:20:09 Europe/London
 
     Allow PIQ plates to be used in Crispr Es Cell Qc.

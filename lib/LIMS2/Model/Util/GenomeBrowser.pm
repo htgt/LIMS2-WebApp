@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.214';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.215';
 }
 ## use critic
 
@@ -190,9 +190,6 @@ sub crisprs_to_gff {
             my $crispr_child_datum = prep_gff_datum( \%crispr_format_hash );
             push @crisprs_gff, $crispr_parent_datum, $crispr_child_datum ;
         }
-
-
-
 
     return \@crisprs_gff;
 }

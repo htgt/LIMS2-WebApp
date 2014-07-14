@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignAttempt;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignAttempt::VERSION = '0.214';
+    $LIMS2::Model::Schema::Result::DesignAttempt::VERSION = '0.215';
 }
 ## use critic
 
@@ -53,7 +53,7 @@ __PACKAGE__->table("design_attempts");
 
 =head2 design_parameters
 
-  data_type: 'text'
+  data_type: 'json'
   is_nullable: 1
 
 =head2 gene_id
@@ -68,7 +68,7 @@ __PACKAGE__->table("design_attempts");
 
 =head2 fail
 
-  data_type: 'text'
+  data_type: 'json'
   is_nullable: 1
 
 =head2 error
@@ -78,7 +78,7 @@ __PACKAGE__->table("design_attempts");
 
 =head2 design_ids
 
-  data_type: 'text'
+  data_type: 'integer[]'
   is_nullable: 1
 
 =head2 species_id
@@ -107,12 +107,12 @@ __PACKAGE__->table("design_attempts");
 
 =head2 candidate_oligos
 
-  data_type: 'text'
+  data_type: 'json'
   is_nullable: 1
 
 =head2 candidate_regions
 
-  data_type: 'text'
+  data_type: 'json'
   is_nullable: 1
 
 =cut
@@ -126,17 +126,17 @@ __PACKAGE__->add_columns(
     sequence          => "design_attempts_id_seq",
   },
   "design_parameters",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "json", is_nullable => 1 },
   "gene_id",
   { data_type => "text", is_nullable => 1 },
   "status",
   { data_type => "text", is_nullable => 1 },
   "fail",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "json", is_nullable => 1 },
   "error",
   { data_type => "text", is_nullable => 1 },
   "design_ids",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "integer[]", is_nullable => 1 },
   "species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "created_by",
@@ -151,9 +151,9 @@ __PACKAGE__->add_columns(
   "comment",
   { data_type => "text", is_nullable => 1 },
   "candidate_oligos",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "json", is_nullable => 1 },
   "candidate_regions",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "json", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -201,8 +201,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v9yymcwG1QroSl7r18jxPg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 14:53:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2kQTTRWH3zFYh6kLt5ye4g
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
@@ -236,7 +236,7 @@ sub as_hash {
         $design_params = $self->design_parameters;
         $fail_reason = $self->fail;
     }
-    my @design_ids = $self->design_ids ? split( ' ', $self->design_ids ) : ();
+    #my @design_ids = $self->design_ids ? split( ' ', $self->design_ids ) : ();
     my $candidate_oligos  = $self->candidate_oligos  ? try { $json->decode( $self->candidate_oligos ) }  : undef;
     my $candidate_regions = $self->candidate_regions ? try { $json->decode( $self->candidate_regions ) } : undef;
 
@@ -247,7 +247,7 @@ sub as_hash {
         status            => $self->status,
         fail              => $fail_reason,
         error             => $self->error,
-        design_ids        => \@design_ids,
+        design_ids        => $self->design_ids,
         species           => $self->species_id,
         created_at        => $self->created_at->iso8601,
         created_by        => $self->created_by->name,
