@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.216     2014-07-14 15:40:32 Europe/London
+
+    Fixed display of primers and genoverse for single crispr plates 
+    Added PCR status upload interface. Added this value to Summary by Oligo report.
+
 0.215     2014-07-14 07:15:29 Europe/London
 
     Store JSON data in json type columns.
