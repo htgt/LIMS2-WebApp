@@ -17,6 +17,7 @@ my %MONIKER_MAP = (
     qc_seq_reads                => 'QcSeqRead',
     qc_runs                     => 'QcRun',
     crispr_off_target_summaries => 'CrisprOffTargetSummary',
+    crispr_es_qc_runs           => 'CrisprEsQcRuns',
 );
 
 my %REL_NAME_MAP = (

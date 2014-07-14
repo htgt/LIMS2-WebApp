@@ -1,5 +1,16 @@
 {{$NEXT}}
 
+0.215     2014-07-14 07:15:29 Europe/London
+
+    Store JSON data in json type columns.
+    Add design instance link to designs page.
+
+0.214     2014-07-11 07:20:09 Europe/London
+
+    Allow PIQ plates to be used in Crispr Es Cell Qc.
+
+0.213     2014-07-04 08:41:50 Europe/London
+
     Added plate comment describing number of planned FINAL wells when uploading an INT plate.
     Updated Sponsor report final vector clones count to use this number
 
