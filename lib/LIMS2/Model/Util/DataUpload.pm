@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.213';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.216';
 }
 ## use critic
 
@@ -15,6 +15,7 @@ use Sub::Exporter -setup => {
             parse_csv_file
             upload_plate_dna_status
             upload_plate_dna_quality
+            upload_plate_pcr_status
             spreadsheet_to_csv
           )
     ]
@@ -96,6 +97,66 @@ sub upload_plate_dna_status {
     push my @returned_messages, ( @failure_message, @success_message );
     return \@returned_messages;
 }
+
+
+sub pspec__check_pcr_status {
+    return {
+        well_name     => { validate => 'well_name' },
+        l_pcr_result  => { validate => 'pass_or_fail' },
+        l_pcr_comment => { validate => 'non_empty_string', optional => 1 },
+        r_pcr_result  => { validate => 'pass_or_fail' },
+        r_pcr_comment => { validate => 'non_empty_string', optional => 1 },
+    };
+}
+
+
+# pcr status is being stored as a recombineering result, using pcr_u as left 5'-pcr and  pcr_d as right 3'-pcr
+sub upload_plate_pcr_status {
+    my ( $model, $params ) = @_;
+    my @success_message;
+    my @failure_message;
+
+    my $data = parse_csv_file( $params->{csv_fh} );
+
+    my $plate = $model->retrieve_plate( { name => $params->{plate_name} } );
+    check_plate_type( $plate, [ qw(DESIGN) ]  );
+
+    for my $datum ( @{$data} ) {
+
+        my $validated_params = $model->check_params( $datum, pspec__check_pcr_status() );
+
+        my $l_pcr_status = $model->create_well_recombineering_result( {
+            result_type    => 'pcr_u',
+            well_name      => $validated_params->{'well_name'},
+            result         => $validated_params->{'l_pcr_result'},
+            comment_text   => $validated_params->{'l_pcr_comment'},
+            plate_name     => $params->{plate_name},
+            created_by     => $params->{user_name},
+        } );
+
+        my $r_pcr_status = $model->create_well_recombineering_result( {
+            result_type    => 'pcr_d',
+            well_name      => $validated_params->{'well_name'},
+            result         => $validated_params->{'r_pcr_result'},
+            comment_text   => $validated_params->{'r_pcr_comment'},
+            plate_name     => $params->{plate_name},
+            created_by     => $params->{user_name},
+        } );
+
+        if ( $l_pcr_status && $r_pcr_status ) {
+            push @success_message, $l_pcr_status->well->name . " - 5'-PCR " . $l_pcr_status->result .
+                ", 3'-PCR " . $r_pcr_status->result;
+        } else {
+            # Some of the wells in the input were not present in LIMS2
+            push @failure_message, $validated_params->{'well_name'} . ' - well not available in LIMS2';
+        }
+    }
+
+    push my @returned_messages, ( @failure_message, @success_message );
+    return \@returned_messages;
+}
+
+
 
 sub pspec__check_dna_quality {
     return {

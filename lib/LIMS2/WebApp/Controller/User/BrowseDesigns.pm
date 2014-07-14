@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.213';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.216';
 }
 ## use critic
 
@@ -88,6 +88,7 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
     my $ucsc_db = $UCSC_BLAT_DB{ lc( $species_id) };
 
     my ( $crisprs, $crispr_pairs ) = crisprs_for_design( $c->model('Golgi'), $design );
+    my $design_attempt = $design->design_attempt;
 
     $c->stash(
         design         => $design_data,
@@ -96,6 +97,7 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
         uscs_db        => $ucsc_db,
         crisprs        => [ map{ $_->as_hash } @{ $crisprs } ],
         crispr_pairs   => [ map{ $_->as_hash } @{ $crispr_pairs } ],
+        design_attempt => $design_attempt ? $design_attempt->id : undef,
     );
 
     return;

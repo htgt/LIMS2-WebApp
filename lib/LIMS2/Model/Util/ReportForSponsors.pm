@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.213';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.216';
 }
 ## use critic
 
@@ -738,13 +738,17 @@ FROM summaries where design_gene_id = '$gene_id'
 SQL_END
 
         # project specific filtering
+        ## no critic (ProhibitCascadingIfElse)
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
-        } elsif ($sponsor_id eq 'Pathogens') {
-            $sql .= " AND ( sponsor_id = 'Pathogens' );";
+        } elsif ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
         } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
             $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
         }
+        ## use critic
 
         # run the query
         my $results = $self->run_select_query( $sql );

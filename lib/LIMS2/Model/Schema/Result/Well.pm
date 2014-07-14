@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.213';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.216';
 }
 ## use critic
 
@@ -1176,13 +1176,14 @@ sub crispr_pair {
     my $self = shift;
 
     my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-
+    my $crispr_pair;
     # Now lookup left and right crispr in the crispr_pair table and return the object to the caller
-    my $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
-           'left_crispr_id' => $left_crispr->crispr->id,
-           'right_crispr_id' => $right_crispr->crispr->id,
-        });
-
+    if ( $left_crispr && $right_crispr ) {
+        $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
+               'left_crispr_id' => $left_crispr->crispr->id,
+               'right_crispr_id' => $right_crispr->crispr->id,
+            });
+    }
     return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
 }
 

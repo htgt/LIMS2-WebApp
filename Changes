@@ -1,3 +1,17 @@
+0.216     2014-07-14 15:40:32 Europe/London
+
+    Fixed display of primers and genoverse for single crispr plates 
+    Added PCR status upload interface. Added this value to Summary by Oligo report.
+
+0.215     2014-07-14 07:15:29 Europe/London
+
+    Store JSON data in json type columns.
+    Add design instance link to designs page.
+
+0.214     2014-07-11 07:20:09 Europe/London
+
+    Allow PIQ plates to be used in Crispr Es Cell Qc.
+
 0.213     2014-07-04 08:41:50 Europe/London
 
     Added plate comment describing number of planned FINAL wells when uploading an INT plate.
