@@ -146,6 +146,21 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+=head2 genotyping_primer_loci
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "genotyping_primer_loci",
+  "LIMS2::Model::Schema::Result::GenotypingPrimersLoci",
+  { "foreign.genotyping_primer_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 
 sub as_hash {
     my $self = shift;
