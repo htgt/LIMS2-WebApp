@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.215';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.217';
 }
 ## use critic
 
@@ -512,7 +512,7 @@ sub crispr_primers_to_gff {
         # Crispr primers are pairs consisting of 2 chars and a digit. These will form the object to be rendered.
         # However, there is no LIMS2 identifier for a primer pair combination - so we invent one here.
         # Each (GF1,GR1) is a pair, so is (GF2,GR2), (SF1,SR1), (SF2,SR2) etc.
-        # So, the hash need splitting into sub-hashes, grouped by 1st character of label, then by last character of label.
+        # So, the hash needs splitting into sub-hashes, grouped by 1st character of label, then by last character of label.
         # The middle character gives the orientation.
         #
         my $primer_groups = group_primers_by_pair( $crispr_primers->{$crispr_type}->{$crispr_id} );

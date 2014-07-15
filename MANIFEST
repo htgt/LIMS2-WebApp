@@ -362,6 +362,7 @@ root/site/user/welldata/dna_status_update.tt
 root/site/user/welldata/genotyping_grid_help.tt
 root/site/user/welldata/genotyping_qc_data.tt
 root/site/user/welldata/grid.tt
+root/site/user/welldata/pcr_status_update.tt
 root/site/user/welldata/show_genotyping_qc_data.tt
 root/site/user/welldata/update_colony_picks_step_1.tt
 root/site/user/welldata/update_colony_picks_step_2.tt
@@ -2206,6 +2207,7 @@ root/static/files/qc_upload/dna_concentrations.xlsx
 root/static/files/qc_upload/dna_egel_status_upload_template.csv
 root/static/files/qc_upload/dna_status_upload_template.csv
 root/static/files/qc_upload/genotyping_upload_template.csv
+root/static/files/qc_upload/pcr_status_upload_template.csv
 root/static/genoverse/css/controlPanel.css
 root/static/genoverse/css/fileDrop.css
 root/static/genoverse/css/genoverse.css
