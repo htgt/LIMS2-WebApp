@@ -85,7 +85,7 @@ sub pick_crispr_PCR_primers {
         $params->{'dead_field_width'} += $params->{'search_field_width'};
         $params->{'search_field_width'} += 1000;
     }
-    
+
     return ($primer_data, $primer_passes, $chr_seq_start);
 }
 
@@ -105,7 +105,7 @@ sub crispr_PCR_calculate {
                 species => $species,
                 repeat_mask => $repeat_mask,
                 dead_field_width => $params->{'dead_field_width'},
-                search_field_width => $params->{'search_field_width'}, 
+                search_field_width => $params->{'search_field_width'},
             } );
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' },
@@ -784,7 +784,7 @@ sub crispr_primer_calculate {
     my $crispr_oligos = shift;
 
     my $repeat_mask = $params->{'repeat_mask'};
-    
+
     my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
         $chr_seq_start, $chr_seq_end)
         = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos, $repeat_mask);
@@ -799,7 +799,7 @@ sub crispr_primer_calculate {
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' },
         primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
-            + $params->{'search_field_width' } + 300), 
+            + $params->{'search_field_width' } + 300),
     );
 
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
