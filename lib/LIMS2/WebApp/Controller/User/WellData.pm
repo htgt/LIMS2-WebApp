@@ -68,6 +68,49 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
     return;
 }
 
+sub pcr_status_update :Path( '/user/pcr_status_update' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    return unless $c->request->params->{update_pcr_status};
+
+    my $plate_name = $c->request->params->{plate_name};
+    unless ( $plate_name ) {
+        $c->stash->{error_msg} = 'You must specify a plate name';
+        return;
+    }
+    $c->stash->{plate_name} = $plate_name;
+
+    my $pcr_status_data = $c->request->upload('datafile');
+    unless ( $pcr_status_data ) {
+        $c->stash->{error_msg} = 'No csv file with pcr status data specified';
+        return;
+    }
+
+    my %params = (
+        csv_fh     => $pcr_status_data->fh,
+        plate_name => $plate_name,
+        species    => $c->session->{selected_species},
+        user_name  => $c->user->name,
+    );
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $msg = $c->model('Golgi')->update_plate_pcr_status( \%params );
+                $c->stash->{success_msg} = "Uploaded pcr status information onto plate $plate_name:<br>"
+                    . join("<br>", @{ $msg  });
+                $c->stash->{plate_name} = '';
+            }
+            catch {
+                $c->stash->{error_msg} = 'Error encountered while updating pcr status data for plate: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    return;
+}
+
 ## Can be used to upload egel_pass or quality values to well_dna_quality table
 sub dna_quality_update :Path( '/user/dna_quality_update' ) :Args(0) {
     my ( $self, $c ) = @_;
