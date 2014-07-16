@@ -172,7 +172,7 @@ sub crisprs_to_gff {
                 'attributes' => 'ID='
                     . 'C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
-                    . 'seq=' . $crispr_r->crispr->seq . '   ;' # add space otherwise window decoration gets in the way
+                    . 'seq=' . $crispr_r->crispr->seq . ';'
                     . 'pam_right=' . ($crispr_r->crispr->pam_right // 'N/A') . ';'
                     . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id // 'N/A')
                 );
@@ -180,24 +180,28 @@ sub crisprs_to_gff {
             $crispr_format_hash{'type'} = 'CDS';
             if ($crispr_r->crispr->pam_right) {
                 # pam_right was 1
-                $crispr_format_hash{'end'} = $crispr_r->chr_end - 3;
+                $crispr_format_hash{'end'} = $crispr_r->chr_end - 2;
             }
-            #else {
+            else {
                 # pam_right was 0
-                
-                #}
+                $crispr_format_hash{'start'} = $crispr_r->chr_start + 2;
+            }
             $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->crispr_id . ';'
+                    . '1_' . $crispr_r->crispr_id . ';'
                     . 'Parent=C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                     . 'color=#45A825'; # greenish
             my $crispr_child_a_datum = prep_gff_datum( \%crispr_format_hash );
             if ($crispr_r->crispr->pam_right){
                 $crispr_format_hash{'end'} = $crispr_r->chr_end;
-                $crispr_format_hash{'start'} = $crispr_r->chr_end -3;
+                $crispr_format_hash{'start'} = $crispr_r->chr_end - 2;
+            }
+            else {
+                $crispr_format_hash{'start'} = $crispr_r->chr_start;
+                $crispr_format_hash{'end'} = $crispr_r->chr_start + 2
             }
             $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->crispr_id . ';'
+                    . '2_' . $crispr_r->crispr_id . ';'
                     . 'Parent=C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                     . 'color=#DDC808'; # yellowish

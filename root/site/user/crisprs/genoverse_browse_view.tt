@@ -75,6 +75,7 @@
         start     : [% exon_start %] - 2000,  // 2Kb context
         end       : [% exon_end %] + 2000,
         plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+        //plugins   : [ 'controlPanel', 'trackControls', 'resizer', 'fileDrop' ],
         tracks    : [
           Genoverse.Track.Scalebar,
           Genoverse.Track.extend({
@@ -114,7 +115,8 @@
                   Strand : feature.strand,
                   Seq    : feature.seq,
                   Name   : feature.name,
-                  PAM_right : feature.pam_right
+                  PAM_right : feature.pam_right,
+                  WGE_id : feature.wge_ref
               };
               return atts;
             },
