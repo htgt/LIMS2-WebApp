@@ -763,7 +763,7 @@ SQL_END
         # DESIGN
         @design = uniq @design;
 
-        my $pcr_passes;
+        my $pcr_passes = 0;
         foreach my $well (@design) {
 
             my ($plate_name, $well_name ) = ('', '');
