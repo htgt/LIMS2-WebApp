@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.216';
+    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.218';
 }
 ## use critic
 
@@ -221,5 +221,21 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+=head2 crispr_primer_loci
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primer_loci",
+  "LIMS2::Model::Schema::Result::CrisprPrimersLoci",
+  { "foreign.crispr_oligo_id" => "self.crispr_oligo_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 __PACKAGE__->meta->make_immutable;
 1;

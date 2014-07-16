@@ -1,3 +1,12 @@
+0.218     2014-07-16 12:15:32 Europe/London
+
+    Added PCP passing oligos count to sponsor report
+    Added support for other stages at the human Sponsor Report
+
+0.217     2014-07-15 15:35:12 Europe/London
+
+    Fixed schema files for crispr primer display in genoverse
+
 0.216     2014-07-14 15:40:32 Europe/London
 
     Fixed display of primers and genoverse for single crispr plates 
