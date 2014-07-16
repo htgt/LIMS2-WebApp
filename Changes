@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.217     2014-07-15 15:35:12 Europe/London
+
+    Fixed schema files for crispr primer display in genoverse
+
 0.216     2014-07-14 15:40:32 Europe/London
 
     Fixed display of primers and genoverse for single crispr plates 
