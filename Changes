@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.221     2014-07-17 16:31:04 Europe/London
+
+    Added pam right colouring to genoverse for single crisprs
+    Enabled genoverse button in extJS grid view for assembly plate reports
+
 0.220     2014-07-17 10:22:15 Europe/London
 
     Sorting of Sponsor Report changed to progress
