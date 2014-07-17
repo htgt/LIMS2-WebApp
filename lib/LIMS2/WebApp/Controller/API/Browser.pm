@@ -44,7 +44,6 @@ sub crispr_GET {
     $params->{chromosome_number}= $c->request->params->{'chr'};
     $params->{start_coord}= $c->request->params->{'start'};
     $params->{end_coord}= $c->request->params->{'end'};
-$DB::single=1;
 
     my $crisprs = crisprs_for_region(
          $schema,
