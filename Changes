@@ -1,5 +1,26 @@
 {{$NEXT}}
 
+0.220     2014-07-17 10:22:15 Europe/London
+
+    Sorting of Sponsor Report changed to progress
+
+0.219     2014-07-16 16:04:11 Europe/London
+
+    Added PCP passing oligos count to sponsor report
+
+0.218     2014-07-16 12:15:32 Europe/London
+
+    Added support for other stages at the human Sponsor Report
+
+0.217     2014-07-15 15:35:12 Europe/London
+
+    Fixed schema files for crispr primer display in genoverse
+
+0.216     2014-07-14 15:40:32 Europe/London
+
+    Fixed display of primers and genoverse for single crispr plates 
+    Added PCR status upload interface. Added this value to Summary by Oligo report.
+
 0.215     2014-07-14 07:15:29 Europe/London
 
     Store JSON data in json type columns.

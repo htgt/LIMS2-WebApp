@@ -125,7 +125,6 @@ sub crispr_PCR_calculate {
         INFO ( "$well_id pcr primer region primer pairs: " . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
         $primer_data->{'error_flag'} = 'pass';
-$DB::single=1;
         $primer_passes = pcr_genomic_check( $well_id, $species, $primer_data );
         $primer_passes->{'genomic_error_flag'} = $primer_passes->{'pair_count'} > 0 ? 'pass' : 'fail';
     }
@@ -761,7 +760,6 @@ sub pick_crispr_primers {
     $params->{crispr_oligos} = $crispr_oligos;
     $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 200;
     $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 100;
-$DB::single=1;
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $chr_strand, $chr_seq_start);
     TRIALS: foreach my $step ( 1..4 ) {
@@ -857,7 +855,6 @@ sub pick_single_crispr_primers {
         $primer_data = parse_primer3_results( $result );
     }
     else {
-$DB::single=1;
         WARN ( 'Failed to generate sequencing primers for ' . $params->{'crispr_id'} );
         WARN ( 'Primer3 reported: ');
         WARN ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
