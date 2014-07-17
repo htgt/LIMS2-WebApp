@@ -10,7 +10,7 @@ document.title = "[%- context.well_name _ ':' _ context.crispr_type_id %]";
     [%- END %]
   : [%- context.crispr_type_id %] </h1>
   <small><h1>Well: [%- context.plate_name _ '_' _ context.well_name %]
-  symbol: [%- context.gene_symbol -%] 
+  symbol: [%- context.gene_symbol -%]
   chr: [%- extent.chr_name -%]
   assembly: [%- extent.assembly -%]
   design: [%- context.design_id %]</small>
@@ -40,7 +40,7 @@ function build_uri_params( params_to_build ) {
     var param_end = [
         "chr=__CHR__",
         "start=__START__",
-        "end=__END__" 
+        "end=__END__"
     ];
     params_to_build = params_to_build.concat( param_end );
     var param_str = params_to_build.join("&");
@@ -67,7 +67,7 @@ function build_uri_params( params_to_build ) {
             name      : 'Sequence',
             [% IF c.session.selected_species == 'Mouse' %]
             url       : 'http://beta.rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
-            [% END %]            
+            [% END %]
             model     : Genoverse.Track.Model.Sequence.Ensembl,
             view      : Genoverse.Track.View.Sequence,
             resizable : 'auto',
@@ -104,7 +104,7 @@ function build_uri_params( params_to_build ) {
             [% END %]
             height : 200,
             info   : 'Ensembl API genes & transcripts, see <a href="http://beta.rest.ensembl.org/" target="_blank">beta.rest.ensembl.org</a> for more details',
-            
+
             // Different settings for different zoom level
             2000000: { // This one applies when > 2M base-pairs per screen
               labels : false

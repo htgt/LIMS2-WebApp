@@ -48,11 +48,11 @@ sub b_test_browser_crisprs_for_region : Test(14) {
 
     ok my $test_gff_crisprs =  crisprs_to_gff( $crispr_rs, \%params ), 'converted and returned gff3 format single crispr data';
     is ref $test_gff_crisprs, 'ARRAY', 'result is an array reference';
-    is scalar @$test_gff_crisprs, 11, 'Array has the correct number of elements';
-    my @example = grep { /ID=69848/ } @$test_gff_crisprs;
+    is scalar @$test_gff_crisprs, 15, 'Array has the correct number of elements';
+    my @example = grep { /ID=1_69848/ } @$test_gff_crisprs;
     is scalar @example, 1, 'Example contains just one example crispr';
     is $example[0],
-    "7\tLIMS2\tCDS\t141009904\t141009926\t.\t+\t.\tID=69848;Parent=C_69848;Name=LIMS2-69848;color=#45A825",
+    "7\tLIMS2\tCDS\t141009904\t141009924\t.\t+\t.\tID=1_69848;Parent=C_69848;Name=LIMS2-69848;color=#45A825",
     'Element 0 is in the correct format';
 }
 

@@ -1,7 +1,7 @@
 package LIMS2::Report::SummaryOligoPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.217';
+    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.221';
 }
 ## use critic
 
@@ -161,7 +161,7 @@ SQL_END
     # run the query
     my $results = $self->run_select_query( $sql );
 
-    my ($gene_count, $gene_design_count, $pcr_count, $gene_final_count, $gene_final_pass_count, $gene_dna_pass_count, $gene_ep_count, $gene_ep_pick_count, $gene_ep_pick_pass_count) = (0, 0, 0, 0, 0, 0, 0, 0);
+    my ($gene_count, $gene_design_count, $pcr_count, $gene_final_count, $gene_final_pass_count, $gene_dna_pass_count, $gene_ep_count, $gene_ep_pick_count, $gene_ep_pick_pass_count) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
     my ($gene_crispr_count, $gene_crispr_vector_count, $gene_crispr_dna_count, $gene_crispr_dna_accepted_count, $gene_crispr_pair_accepted_count) = (0, 0, 0, 0, 0);
 
     # get the plates into arrays
