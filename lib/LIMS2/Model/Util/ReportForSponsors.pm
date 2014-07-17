@@ -763,7 +763,7 @@ SQL_END
         # DESIGN
         @design = uniq @design;
 
-        my $pcr_passes;
+        my $pcr_passes = 0;
         foreach my $well (@design) {
 
             my ($plate_name, $well_name ) = ('', '');
@@ -879,8 +879,16 @@ SQL_END
         DEBUG "crispr counts done";
     }
 
-    # sort the array by gene symbol
-    my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
+    my @sorted_genes_for_display =  sort {
+            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+            $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
+            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
+            $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+        } @genes_for_display;
 
     return \@sorted_genes_for_display;
 }
