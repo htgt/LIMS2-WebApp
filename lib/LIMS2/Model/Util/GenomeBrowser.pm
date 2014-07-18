@@ -167,22 +167,54 @@ sub crisprs_to_gff {
                 'start' => $crispr_r->chr_start,
                 'end' => $crispr_r->chr_end,
                 'score' => '.',
-                'strand' => '+' ,
-#                'strand' => '.',
+                'strand' => $crispr_r->chr_strand eq '-1' ? '-' : '+' ,
                 'phase' => '.',
                 'attributes' => 'ID='
                     . 'C_' . $crispr_r->crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
+                    . 'seq=' . $crispr_r->crispr->seq . ';'
+                    . 'pam_right=' . ($crispr_r->crispr->pam_right // 'N/A') . ';'
+                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id // 'N/A')
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             $crispr_format_hash{'type'} = 'CDS';
+            if ( defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '1') ) {
+                # pam_right was 1
+                $crispr_format_hash{'end'} = $crispr_r->chr_end - 2;
+            }
+            elsif (defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '0') ) {
+                # pam_right was 0
+                $crispr_format_hash{'start'} = $crispr_r->chr_start + 2;
+            }
+            # for a few vwery old examples, PAM right is not defined, so we can't colour it
             $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->crispr_id . ';'
+                    . '1_' . $crispr_r->crispr_id . ';'
                     . 'Parent=C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                     . 'color=#45A825'; # greenish
-            my $crispr_child_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crisprs_gff, $crispr_parent_datum, $crispr_child_datum ;
+            my $crispr_child_a_datum = prep_gff_datum( \%crispr_format_hash );
+            if (defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '1') ) {
+                $crispr_format_hash{'end'} = $crispr_r->chr_end;
+                $crispr_format_hash{'start'} = $crispr_r->chr_end - 2;
+            }
+            elsif (defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '0') ) {
+                $crispr_format_hash{'start'} = $crispr_r->chr_start;
+                $crispr_format_hash{'end'} = $crispr_r->chr_start + 2
+            }
+            my $crispr_child_b_datum;
+            if ( defined $crispr_r->crispr->pam_right ) {
+                $crispr_format_hash{'attributes'} =     'ID='
+                    . '2_' . $crispr_r->crispr_id . ';'
+                    . 'Parent=C_' . $crispr_r->crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
+                    . 'color=#DDC808'; # yellowish
+                $crispr_child_b_datum = prep_gff_datum( \%crispr_format_hash );
+
+                push @crisprs_gff, $crispr_parent_datum, $crispr_child_a_datum, $crispr_child_b_datum ;
+            }
+            else {
+                push @crisprs_gff, $crispr_parent_datum, $crispr_child_a_datum ;
+            }
         }
 
     return \@crisprs_gff;
