@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPPlate::VERSION = '0.221';
+    $LIMS2::Report::CrisprEPPlate::VERSION = '0.222';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use namespace::autoclean;
 use TryCatch;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
+with qw( LIMS2::ReportGenerator::ColonyCounts );
 
 override plate_types => sub {
     return [ 'CRISPR_EP' ];
@@ -23,12 +24,13 @@ override _build_name => sub {
 };
 
 override _build_columns => sub {
-    # my $self = shift;
+    my $self = shift;
 
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
+        $self->colony_count_column_names,
         'Left Crispr', 'Right Crispr',
         'Created By','Created At',
     ];
@@ -41,7 +43,7 @@ override iterator => sub {
         wells => {},
         {
             prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
+                'well_accepted_override', 'well_qc_sequencing_result', 'well_colony_counts'
             ],
             order_by => { -asc => 'me.name' }
         }
@@ -63,6 +65,7 @@ override iterator => sub {
             $final_vector->backbone ? $final_vector->backbone->name       : '-',
             $well->nuclease         ? $well->nuclease->name               : '-',
             $well->first_cell_line  ? $well->first_cell_line->name        : '-',
+            $self->colony_counts( $well ),
             $left_crispr            ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $right_crispr           ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
             # join( q{/}, @{ $final_vector->recombinases } ),

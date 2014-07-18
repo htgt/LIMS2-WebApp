@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.221';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.222';
 }
 ## use critic
 
@@ -741,7 +741,7 @@ sub update_well_colony_picks{
         }
     );
     $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-    unless any {$well->plate->type_id eq $_} qw(EP XEP SEP);
+    unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
 
     foreach my $colony_type (@colony_types){
         if (exists $params->{$colony_type} and $params->{$colony_type} =~ /^\d+$/){
@@ -797,7 +797,7 @@ sub get_well_colony_pick_fields_values {
         my $well = $self->retrieve_well( $params );
 
         $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-        unless any {$well->plate->type_id eq $_} qw(EP XEP SEP);
+        unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
 
         @colony_data = $well->well_colony_counts;
 

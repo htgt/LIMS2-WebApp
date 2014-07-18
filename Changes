@@ -1,3 +1,9 @@
+0.222     2014-07-18 10:28:01 Europe/London
+
+    Added Colony counts to CRISPR_EP report
+    Ability to add colony count data to a CRISPR_EP 
+    Methods for generating T7 oligo order sequences
+
 0.221     2014-07-17 16:31:04 Europe/London
 
     Added pam right colouring to genoverse for single crisprs
