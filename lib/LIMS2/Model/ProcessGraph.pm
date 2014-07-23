@@ -387,8 +387,10 @@ sub render {
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
         $graph->add_node(
-            name  => $well->as_string,
-            label => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, process_data_for($well) ]
+            name   => $well->as_string,
+            label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, process_data_for($well) ],
+            URL    => "/user/view_plate?id=" . $well->plate->id,
+            target => '_blank',
         );
     }
 

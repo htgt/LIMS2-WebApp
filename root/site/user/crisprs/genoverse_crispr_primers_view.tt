@@ -1,7 +1,7 @@
 [% META title="Browse Crispr Primers"; META tab_name = '' %]
 <div class="page-header">
 <SCRIPT LANGUAGE = JavaScript >
-document.title = "[%- context.browser_target _ ':' _ context.crispr_type_id %]";
+document.title = "[%- context.well_name _ ':' _ context.crispr_type_id %]";
 </SCRIPT>
   <h1>Crispr [%- IF context.crispr_type == 'crispr_pair_id' %]
     Pair

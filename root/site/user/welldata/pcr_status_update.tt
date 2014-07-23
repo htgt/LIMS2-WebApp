@@ -1,0 +1,89 @@
+[%- META title = 'PCR Status Update'; META tab_name = 'Cells' %]
+
+<div class="page-header">
+  <h1>Plate PCR Status Upload</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="pcr_status_update" action="[% c.uri_for( '/user/pcr_status_update' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>Plate Name</label>
+        <input name="plate_name" id="plate_name" type="text"
+          [% IF plate_name %]value="[% plate_name %]"[% END %]
+        />
+
+        <label>PCR Status Data File</label>
+        <input name="datafile" type="file">
+
+        <br>
+        <br>
+        <button name="update_pcr_status" id="update_pcr_status" type="submit" value="update_pcr_status" class="btn">
+            <i class="icon-upload"></i> Upload PCR Status
+        </button>
+    </form>
+  </div>
+
+</div>
+
+<div class="accordion" id="accordian">
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="icon-question-sign"></i> Plate PCR Status Upload Help
+      </a>
+    </div>
+
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <p>
+          This form is used to upload the pcr status value of the wells on a given plate, using a csv file.
+        </p>
+        <p>
+          If there are any errors in the data or missing data a warning will show up and the pcr status values will not
+          be changed. If all the data is valid then the pcr status data will be uploaded and a success message shown detailing
+          the exact data that was added.
+        </p>
+
+        <div class="well">
+          <h6>Plate Name</h6>
+          <p>
+            A valid DESIGN plate name must be typed in.
+          </p>
+          <h6>PCR Status Data File</h6>
+          <p>
+            A csv file with 5 column headers is used to upload the data:
+            <dl class="dl-horizontal">
+              <dt>well_name</dt>
+              <dd>Name of the well</dd>
+              <dt>l_pcr_result</dt>
+              <dd>5'-PCR result. Values accepted: pass or fail</dd>
+              <dt>l_pcr_comment</dt>
+              <dd>Optional field for any extra information you want to add about this result</dd>
+              <dt>r_pcr_result</dt>
+              <dd>3'-PCR result. Values accepted: pass or fail</dd>
+              <dt>r_pcr_comment</dt>
+              <dd>Optional field for any extra information you want to add about this result</dd>
+            </dl>
+            <p>A template for the upload file can be found <a href="[% c.uri_for('/static/files/qc_upload/') %]pcr_status_upload_template.csv">here</a>.
+
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+</script>

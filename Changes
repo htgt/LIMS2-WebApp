@@ -1,10 +1,68 @@
 {{$NEXT}}
 
+0.220     2014-07-17 10:22:15 Europe/London
+
+    Sorting of Sponsor Report changed to progress
+
+0.219     2014-07-16 16:04:11 Europe/London
+
+    Added PCP passing oligos count to sponsor report
+
+0.218     2014-07-16 12:15:32 Europe/London
+
+    Added support for other stages at the human Sponsor Report
+
+0.217     2014-07-15 15:35:12 Europe/London
+
+    Fixed schema files for crispr primer display in genoverse
+
+0.216     2014-07-14 15:40:32 Europe/London
+
+    Fixed display of primers and genoverse for single crispr plates 
+    Added PCR status upload interface. Added this value to Summary by Oligo report.
+
+0.215     2014-07-14 07:15:29 Europe/London
+
+    Store JSON data in json type columns.
+    Add design instance link to designs page.
+
+0.214     2014-07-11 07:20:09 Europe/London
+
+    Allow PIQ plates to be used in Crispr Es Cell Qc.
+
+0.213     2014-07-04 08:41:50 Europe/London
+
+    Added plate comment describing number of planned FINAL wells when uploading an INT plate.
+    Updated Sponsor report final vector clones count to use this number
+
+0.212     2014-07-01 11:51:13 Europe/London
+
+    Refactored WGE importer code into the model so we can call it from scripts
+
+0.211     2014-06-26 07:55:08 Europe/London
+
+    Generate and display reference and mutant protein sequences for crispr es qc.
+
+0.210     2014-06-24 10:15:08 Europe/London
+
+    Added simplified version of Sponsor progress summary report
+
+0.209     2014-06-20 09:25:17 Europe/London
+
+    Removed constraint for FP wells to only have 1 child PIQ well
+
+0.208     2014-06-20 07:50:31 Europe/London
+
+    Switched to a new version of the Crispr ES cell QC.
+
+0.207     2014-06-19 11:10:37 Europe/London
+
+    Added Summary by Oligo Plate
+
 0.206     2014-06-19 10:23:23 Europe/London
 
     Added Genoverse button to Assembly Plate report
     Added alternative extJS grid view to all reports
-    Added Summary by Oligo Plate
 
 0.205     2014-06-06 16:00:46 Europe/London
 

@@ -300,13 +300,14 @@ sub as_hash {
     }
 
     my %h = (
-        id        => $self->id,
-        type      => $self->crispr_loci_type_id,
-        seq       => $self->seq,
-        species   => $self->species_id,
-        comment   => $self->comment,
-        locus     => $locus ? $locus->as_hash : undef,
-        pam_right => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
+        id            => $self->id,
+        type          => $self->crispr_loci_type_id,
+        seq           => $self->seq,
+        species       => $self->species_id,
+        comment       => $self->comment,
+        locus         => $locus ? $locus->as_hash : undef,
+        pam_right     => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
+        wge_crispr_id => $self->wge_crispr_id,
     );
 
     $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
@@ -367,6 +368,9 @@ sub target_slice {
     return $slice;
 }
 
+#
+# Methods for U6 specific order sequences
+#
 sub guide_rna {
     my ( $self ) = @_;
 
@@ -407,6 +411,40 @@ sub vector_seq {
     my ( $self ) = @_;
 
     return  "G" . $self->guide_rna;
+}
+
+#
+#Methods for T7 specific order sequences
+#
+sub t7_guide_rna {
+    my ( $self ) = @_;
+
+    if ( ! defined $self->pam_right ) {
+        return substr( $self->seq, 0, 20 );
+    }
+    elsif ( $self->pam_right == 1 ) {
+        return substr( $self->seq, 0, 20 );
+    }
+    elsif ( $self->pam_right == 0 ) {
+        #its pam left, so strip first three characters
+        #we revcom so that the grna is always relative to the NGG sequence
+        return revcom( substr( $self->seq, 3, 20 ) )->seq;
+    }
+    else {
+        die "Unexpected value in pam_right: " . $self->pam_right;
+    }
+}
+
+sub t7_forward_order_seq {
+  my ( $self ) = @_;
+
+  return "ATAGG" . $self->t7_guide_rna;
+}
+
+sub t7_reverse_order_seq {
+  my ( $self ) = @_;
+
+  return "AAAC" . revcom( $self->t7_guide_rna )->seq . "C";
 }
 
 sub pairs {

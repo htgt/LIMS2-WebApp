@@ -49,6 +49,10 @@
                 "Gene ID" = 1
                 "Gene Symbol" = 1
                 } %]
+            [% alt_render = {
+                "Genoverse View" = 1
+                }
+            %]
 
             var columns = [
                 [%- FOREACH col IN columns %]
@@ -57,11 +61,34 @@
                     [%- IF locked.$col == 1 %]
                     locked: true,
                     [%- END %]
+                    [%- IF alt_render.$col == 1%]
+                    renderer: genoverse,
+                    [%- ELSE %]
                     sortable: true,
+                    [%- END %]
                     dataIndex: '[%- col %]'
                 },
                 [%- END %]
             ];
+
+            function genoverse(val, meta, row) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        var api_url = row.get('Genoverse View').match( /api_url=(.*crispr_primers).(.*$)/ );
+                        console.log(api_url);
+                        var api_url_t = api_url[1] + '?'; 
+                        var api_replace = api_url[2].replace(/;/g , '&' );
+                        api_url_t = api_url_t + api_replace;
+                        console.log(api_url_t);
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: 'Genoverse',
+                            width: 75,
+                            handler: function () { window.open( api_url_t ) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
 
             var grid = Ext.create('Ext.grid.Panel', {
                 height: 750,
@@ -73,7 +100,12 @@
                 invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
                 viewConfig: {
-                    stripeRows: true
+                    stripeRows: true,
+                    getRowClass: function(){
+                        return "lims2-cell-inner";
+                    },
+                    firstCls: 'lims2-first-cell-format',
+                    enableTextSelection: true
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,

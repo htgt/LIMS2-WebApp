@@ -91,7 +91,7 @@ __PACKAGE__->table("crispr_es_qc_wells");
 
 =head2 analysis_data
 
-  data_type: 'text'
+  data_type: 'json'
   is_nullable: 0
 
 =head2 accepted
@@ -132,7 +132,7 @@ __PACKAGE__->add_columns(
   "comment",
   { data_type => "text", is_nullable => 1 },
   "analysis_data",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "json", is_nullable => 0 },
   "accepted",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "vcf_file",
@@ -199,8 +199,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-06-03 11:11:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mz66Gj+ri1K3tVK0VuKTEw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 10:08:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jDlhBESJHmYBBqTF5AMBIg
 
 use JSON;
 

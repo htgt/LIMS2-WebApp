@@ -416,8 +416,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr wells', 'crispr vector wells', 'crispr dna wells', 'accepted crispr dna wells', 'accepted crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'vector_pcr_passes', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr design oligos', 'crispr vectors', 'DNA crispr vectors', 'DNA QC-passing crispr vectors', 'DNA QC-passing crispr pairs', 'vector designs', 'design oligos', "PCR-passing design oligos", 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -446,7 +446,7 @@ sub generate_sub_report {
         'Targeted Genes'            => {
             'display_stage'         => 'Targeted genes',
             'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'vector wells', 'targeting vector wells', 'accepted vector wells', 'passing vector wells', 'electroporations', 'colonies picked', 'targeted clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
         'Vectors'                   => {
             'display_stage'         => 'Vectors',
@@ -660,6 +660,7 @@ sub _build_sub_report_data {
 # Methods for Stages
 #----------------------------------------------------------
 
+## no critic(ProhibitExcessComplexity)
 sub genes {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
@@ -720,31 +721,37 @@ sub genes {
 
         # get the plates
         my $sql =  <<"SQL_END";
-SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN, 
-concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL, 
-concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA, 
-concat(ep_plate_name, '_', ep_well_name) AS EP, 
-concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP, 
-concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
+SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
+concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
+concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
+concat(ep_plate_name, '_', ep_well_name) AS EP,
+concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP,
+concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK
 FROM summaries where design_gene_id = '$gene_id'
 SQL_END
 
         # project specific filtering
+        ## no critic (ProhibitCascadingIfElse)
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
-        } elsif ($sponsor_id eq 'Pathogens') {
-            $sql .= " AND ( sponsor_id = 'Pathogens' );";
+        } elsif ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
         } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
             $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
         }
+        ## use critic
 
         # run the query
         my $results = $self->run_select_query( $sql );
 
         # get the plates into arrays
-        my (@design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+        my (@design, @int, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
         foreach my $row (@$results) {
             push @design_ids, $row->{design_id};
+            push (@int, $row->{int}) unless ($row->{int} eq '_');
             push (@design, $row->{design}) unless ($row->{design} eq '_');
             push (@final_info, $row->{final}) unless ($row->{final} eq '_');
             push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
@@ -756,6 +763,40 @@ SQL_END
         # DESIGN
         @design = uniq @design;
 
+        my $pcr_passes = 0;
+        foreach my $well (@design) {
+
+            my ($plate_name, $well_name ) = ('', '');
+            if ( $well =~ m/^(.*?)_([a-z]\d\d)$/i ) {
+                ($plate_name, $well_name ) = ($1, $2);
+            }
+
+            my ($l_pcr, $r_pcr) = ('', '');
+            try{
+                my $well_id = $self->model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } )->id;
+
+                $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_u',
+                },{
+                    select => [ 'result' ],
+                })->result;
+
+                $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_d',
+                },{
+                    select => [ 'result' ],
+                })->result;
+            }catch{
+                DEBUG "No pcr status found for well " . $well_name;
+            };
+
+            if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
+                $pcr_passes++;
+            }
+        }
+
         # Store design IDs to use in crispr summary query
         foreach my $design_id (uniq @design_ids){
             $designs_for_gene->{$gene_id} ||= [];
@@ -765,8 +806,39 @@ SQL_END
             push @all_design_ids, $design_id;
         }
 
-        # FINAL
+        # FINAL / INT
         my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
+
+        my $sum = 0;
+        @int = uniq @int;
+
+        foreach my $well (@int) {
+            $well =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+            my $plate_id = $self->model->retrieve_plate({
+                name => $well,
+            })->id;
+
+            my $comment = '';
+
+            try{
+                $comment = $self->model->schema->resultset('PlateComment')->find({
+                    plate_id     => $plate_id,
+                    comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
+                },{
+                    select => [ 'comment_text' ],
+                })->comment_text;
+            }catch{
+                DEBUG "No comment found for well " . $well;
+            };
+
+            if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+                $sum += $1;
+            }
+        }
+        if ($sum) {
+            $final_count = $sum;
+        }
 
         # DNA
         my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
@@ -784,6 +856,7 @@ SQL_END
             'crispr_pairs'           => $crispr_pairs_count,
             'vector_designs'         => $design_count,
             'vector_wells'           => scalar @design,
+            'vector_pcr_passes'      => $pcr_passes,
             'targeting_vector_wells' => $final_count,
             'accepted_vector_wells'  => $final_pass_count,
             'passing_vector_wells'   => $dna_pass_count,
@@ -806,11 +879,20 @@ SQL_END
         DEBUG "crispr counts done";
     }
 
-    # sort the array by gene symbol
-    my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
+    my @sorted_genes_for_display =  sort {
+            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+            $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
+            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
+            $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+        } @genes_for_display;
 
     return \@sorted_genes_for_display;
 }
+## use critic
 
 sub add_crispr_well_counts_for_gene{
     my ($gene_data, $designs_for_gene, $design_crispr_summary) = @_;
@@ -1334,6 +1416,7 @@ sub electroporations {
         my $sql_query;
         $sql_query = $self->sql_count_st_eps ( $sponsor_id );
         $count = $self->run_count_query( $sql_query );
+
         return $count;
     }
     elsif ( $query_type eq 'select' ) {
@@ -1613,9 +1696,12 @@ SQL_END
 sub sql_count_st_vectors {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1679,6 +1765,24 @@ AND (
 AND s.final_pick_qc_seq_pass = true
 SQL_END
 
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.final_pick_qc_seq_pass = true
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1686,9 +1790,12 @@ SQL_END
 sub sql_count_st_dna {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1752,6 +1859,24 @@ AND (
 AND s.dna_status_pass = true
 SQL_END
 
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.dna_well_accepted = true
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1759,9 +1884,12 @@ SQL_END
 sub sql_count_st_eps {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1825,6 +1953,24 @@ AND (
 AND s.ep_well_id > 0
 SQL_END
 
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1832,9 +1978,12 @@ SQL_END
 sub sql_count_st_accepted_clones {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1898,6 +2047,24 @@ AND (
 AND s.ep_pick_well_accepted = true
 SQL_END
 
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_pick_well_accepted = true
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1908,9 +2075,12 @@ SQL_END
 sub sql_select_st_vectors {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1979,6 +2149,30 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
 SQL_END
 
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.final_pick_qc_seq_pass = true
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name
+ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
+
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1986,9 +2180,12 @@ SQL_END
 sub sql_select_st_dna {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -2059,6 +2256,31 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
+, s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.dna_status_pass = true
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name
+, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -2066,9 +2288,12 @@ SQL_END
 sub sql_select_st_electroporations {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -2137,6 +2362,29 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, concat(s.ep_plate_name, s.crispr_ep_plate_name) AS plate_name, concat(s.ep_well_name, s.crispr_ep_well_name)  AS well_name
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promoter
+, s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.crispr_ep_plate_name, s.ep_well_name, s.crispr_ep_well_name, s.final_pick_cassette_name
+, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -2144,9 +2392,12 @@ SQL_END
 sub sql_select_st_accepted_clones {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+    if ($species_id eq 'Mouse') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -2216,6 +2467,31 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 , s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_END
+
+    } elsif ($species_id eq 'Human') {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
+, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass
+, s.final_pick_qc_seq_pass, s.dna_status_pass
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_pick_well_accepted = true
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass
+, s.final_pick_qc_seq_pass, s.dna_status_pass
+ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
+SQL_END
+
+    }
 
     return $sql_query;
 }
@@ -2365,7 +2641,7 @@ AND (
     )
 )
 AND s.final_pick_qc_seq_pass = true
-AND s.final_pick_cassette_resistance = 'neo' 
+AND s.final_pick_cassette_resistance = 'neo'
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
@@ -2679,7 +2955,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'bsd' 
+AND s.final_pick_cassette_resistance = 'bsd'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3649,7 +3925,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'neo' 
+AND s.final_pick_cassette_resistance = 'neo'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3693,7 +3969,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'bsd' 
+AND s.final_pick_cassette_resistance = 'bsd'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -4215,7 +4491,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN project_alleles pa ON pa.project_id = p.id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
@@ -4228,36 +4504,36 @@ FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
-    (pr.conditional IS NULL) 
-    OR 
+    (pr.conditional IS NULL)
+    OR
     (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
-    (pr.promoter IS NULL) 
-    OR 
+    (pr.promoter IS NULL)
+    OR
     (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
-    (pr.cre IS NULL) 
-    OR 
+    (pr.cre IS NULL)
+    OR
     (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
-    (pr.well_has_cre IS NULL) 
-    OR 
+    (pr.well_has_cre IS NULL)
+    OR
     (
-        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre') 
-        OR 
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
+        OR
         (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
-    (pr.well_has_no_recombinase IS NULL) 
-    OR 
-    (        
+    (pr.well_has_no_recombinase IS NULL)
+    OR
+    (
      pr.well_has_no_recombinase IS NOT NULL AND (
       (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
-       OR 
+       OR
       (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
@@ -4290,7 +4566,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4299,7 +4575,7 @@ and cd.crispr_id=prc.crispr_id
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -4330,7 +4606,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4339,7 +4615,7 @@ and cd.crispr_id=prc.crispr_id
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -4370,7 +4646,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4380,7 +4656,7 @@ and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -4411,7 +4687,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro 
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where pr.sponsor_id='$sponsor_id'
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
@@ -4421,7 +4697,7 @@ and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )
     UNION ALL
--- Recursive term    
+-- Recursive term
     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
