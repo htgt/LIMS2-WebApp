@@ -1,6 +1,6 @@
 [% META title="Browse Crisprs"; META tab_name = 'Designs' %]
 <div class="page-header">
-  <h1>[%- gene_symbol -%] 
+  <h1>[%- gene_symbol -%]
   <small>exon: <strong>[%exon_id%]</strong>
   chr: [%- chromosome -%]
   assembly: [%- genome -%]</small>
@@ -64,7 +64,7 @@
 </div>
 
 
-    <script type="text/javascript" src="[% c.uri_for('/static/genoverse/js/genoverse.wtsi.js')%]">
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js')%]">
        {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
@@ -81,7 +81,7 @@
             name      : 'Sequence',
             [% IF c.session.selected_species == 'Mouse' %]
             url       : 'http://beta.rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
-            [% END %]            
+            [% END %]
             model     : Genoverse.Track.Model.Sequence.Ensembl,
             view      : Genoverse.Track.View.Sequence,
             resizable : 'auto',
@@ -122,7 +122,7 @@
             [% END %]
             height : 200,
             info   : 'Ensembl API genes & transcripts, see <a href="http://beta.rest.ensembl.org/" target="_blank">beta.rest.ensembl.org</a> for more details',
-            
+
             // Different settings for different zoom level
             2000000: { // This one applies when > 2M base-pairs per screen
               labels : false
