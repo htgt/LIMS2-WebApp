@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Graph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.222';
+    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.223';
 }
 ## use critic
 
@@ -214,8 +214,10 @@ sub render_crispr {
         for my $well ( $pgraph->wells ) {
             $pgraph->log->debug( "Adding $well to GraphViz" );
             $graph->add_node(
-                name  => $well->as_string,
-                label => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ]
+                name   => $well->as_string,
+                label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ],
+                URL    => "/user/view_plate?id=" . $well->plate->id,
+                target => '_blank',
             );
         }
 
