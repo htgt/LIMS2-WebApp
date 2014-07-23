@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.223     2014-07-23 15:48:48 Europe/London
+
+   Now using Genoverse code from WebApp-Common shared_static
+
 0.222     2014-07-18 10:28:01 Europe/London
 
     Added Colony counts to CRISPR_EP report
