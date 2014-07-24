@@ -64,6 +64,14 @@ sub b_tests  : Test(9)
  
 }
 
+=head
+sub c_tests : Test(2)
+{
+    my $design_id = 1002379;
+    ok my $GeneEPSummary = LIMS2::Report::GeneEPSummary->new('model' => model, 'species' => 'Human' ), 'GeneEPSummary object created';
+    ok my $crispr_wells = $GeneEPSummary->crispr_acc_wells( $design_id ), 'retrieve crispr wells for design id';
+}
+=cut
 =head2 BEGIN
 
 Loading other test classes at compile time

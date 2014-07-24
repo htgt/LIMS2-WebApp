@@ -47,58 +47,7 @@ sub build_summary_data {
     my $self = shift;
     my $sponsor = shift(@_);
 #    my %report_data;
-
-    my @projects = $self->model->schema->resultset('Project')->search({
-        sponsor_id     => $sponsor,
-    },{
-        select => [ 'gene_id' ],
-    });
-
-    my @output;
-    # Loop through genes
-    foreach my $project (@projects) {
-
-        my @gene_designs = $self->model->schema->resultset('GeneDesign')->search({
-            gene_id => $project->gene_id
-        },{
-            select => [ 'design_id' ],
-        });
-
-        # Loop through designs
-        foreach my $gene_design (@gene_designs) {
-            my @table_row;
-
-            my $summary_design = $self->design_summary( $gene_design->design_id );
-
-            push @table_row,
-                $summary_design->design_gene_symbol,
-                $sponsor;
-            push @table_row,
-                $self->final_dna_wells( $summary_design );
-
-            push @table_row,
-                $self->crispr_acc_wells( $gene_design->design_id );
-
-            push @table_row,
-                $self->crispr_ep_wells( $summary_design );            
-            push @table_row,
-                $self->ep_pick_wells( $summary_design );            
-
-            push @output, @table_row;
-       } 
-    }
-
-
-#    while ( my ($key, $value) = each %report_data ) {
-#
-#        push(@output, [
-#            $value->{'gene'},
-#            $value->{'project'},
-#        ] );
-#    }
-#
-    return \@output;
-
+$DB::single=1;
 }
 
 sub design_summary {
@@ -238,7 +187,7 @@ $DB::single=1;
 
 override iterator => sub {
     my ( $self ) = @_;
-
+$DB::single=1;
     my $summary_data;
     my @sponsors;
 
@@ -253,12 +202,70 @@ override iterator => sub {
         }
     }
 
-    foreach my $sponsor (@sponsors) {
-    	my $sponsor_data = $self->build_summary_data($sponsor);
-    	push ( @{$summary_data},  @{$sponsor_data});
-	}
+#    foreach my $sponsor (@sponsors) {
+#    	my $sponsor_data = $self->build_summary_data($sponsor);
+#    	push ( @{$summary_data},  @{$sponsor_data});
+#	}
 
-    return Iterator::Simple::iter( $summary_data );
+    my $projects_rs = $self->model->schema->resultset('Project')->search({
+        sponsor_id     => $sponsor,
+    },{
+        select => [ 'gene_id' ],
+    }); 
+    my @gene_list;
+
+    while (my $project = $project_rs->next) {
+# create list of genes
+        push @gene_list, $project->gene_id;
+    }
+    my $gene_designs_rs = $self->model->schema->resultset('GeneDesign')->search({
+        gene_id => $project->gene_id
+    },{
+        select => [ 'design_id' ],
+    });
+
+    
+
+    return Iterator::Simple::iter sub {
+        my @output;
+
+        # Loop through designs
+        foreach my $gene_design (@gene_designs) {
+            my @table_row;
+
+            my $summary_design = $self->design_summary( $gene_design->design_id );
+
+            push @table_row,
+                $summary_design->design_gene_symbol,
+                $sponsor;
+            push @table_row,
+                $self->final_dna_wells( $summary_design );
+
+            push @table_row,
+                $self->crispr_acc_wells( $gene_design->design_id );
+
+            push @table_row,
+                $self->crispr_ep_wells( $summary_design );            
+            push @table_row,
+                $self->ep_pick_wells( $summary_design );            
+
+            push @output, @table_row;
+       } 
+    }
+
+
+#    while ( my ($key, $value) = each %report_data ) {
+#
+#        push(@output, [
+#            $value->{'gene'},
+#            $value->{'project'},
+#        ] );
+#    }
+#
+    return \@output;
+
+
+    } 
 };
 
 __PACKAGE__->meta->make_immutable;
