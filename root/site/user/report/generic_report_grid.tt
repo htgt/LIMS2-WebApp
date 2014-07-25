@@ -74,11 +74,17 @@
             function genoverse(val, meta, row) {
                     var id = Ext.id();
                     Ext.defer(function () {
+                        var api_url = row.get('Genoverse View').match( /api_url=(.*crispr_primers).(.*$)/ );
+                        console.log(api_url);
+                        var api_url_t = api_url[1] + '?'; 
+                        var api_replace = api_url[2].replace(/;/g , '&' );
+                        api_url_t = api_url_t + api_replace;
+                        console.log(api_url_t);
                         Ext.widget('button', {
                             renderTo: id,
-                            text: 'Genoverse' + row.get('Crispr Pair ID'),
+                            text: 'Genoverse',
                             width: 75,
-                            handler: function () { Ext.Msg.alert('Info', row.get('Crispr Pair ID')) }
+                            handler: function () { window.open( api_url_t ) }
                         });
                     }, 50);
                     return Ext.String.format('<div id="{0}"></div>', id);

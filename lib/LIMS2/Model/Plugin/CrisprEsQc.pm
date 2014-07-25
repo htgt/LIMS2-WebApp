@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.220';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.224';
 }
 ## use critic
 
