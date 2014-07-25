@@ -8,7 +8,6 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
-use Smart::Comments;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -35,6 +34,7 @@ override _build_columns => sub {
     return [
         'Gene ID',
         'Gene Symbol',
+        'Design ID',
         'EP Well',
         'Assembly Well',
         'Vector',
@@ -57,27 +57,27 @@ override iterator => sub {
 
 };
 
-## no critic(ProhibitExcessComplexity,ProhibitDeepNests)
 sub build_ep_detail {
     my ( $self ) = @_;
 
     my $species = $self->species;
     my @data;
 
+    # get all crispr_ep plates
     my @crispr_ep_plates = $self->model->schema->resultset('Plate')->search({
         type_id => 'CRISPR_EP',
         species_id => $species,
     });
 
-my $well_count = 0;
-    # This is the actual summaries table rows
+    # for every crispr_ep well
     foreach my $crispr_ep_plate (@crispr_ep_plates) {
         foreach my $crispr_ep_well ($crispr_ep_plate->wells->all){
-$well_count++;
+
+            # $wells will store the wells to report
             my $wells = {};
-            my $wells_test = {};
             $wells->{'crispr_ep'} = $crispr_ep_well;
 
+            # get the design and gene
             my $design = $wells->{'crispr_ep'}->design;
             my $design_id = $design->id;
 
@@ -91,41 +91,36 @@ $well_count++;
             my $gene_id = join( q{/}, @gene_ids );
             my $gene_symbol = join( q{/}, @gene_symbols );
 
-            foreach my $ep_process ($crispr_ep_well->parent_processes){
-                foreach my $input ($ep_process->input_wells){
-                    $wells->{'assembly'} = $input;
-                }
-            }
+            # get assembly well
+            my @ep_process = $crispr_ep_well->parent_processes;
+            my @assembly = $ep_process[0]->input_wells;
+            $wells->{'assembly'} = $assembly[0];
 
-            foreach my $assembly_process ($wells->{'assembly'}->parent_processes){
-                foreach my $dna_well ($assembly_process->input_wells){
-
-                    foreach my $dna_process ($dna_well->parent_processes){
-                        foreach my $vector_well ($dna_process->input_wells){
-                            if ($vector_well->plate->type_id eq 'FINAL_PICK') {
-                                $wells->{'vector'} = $vector_well;
-                                $wells->{'vector_dna'} = $dna_well;
-                            } else {
-                                if ($vector_well->crispr->pam_right) {
-                                    $wells->{'r_vector'} = $vector_well;
-                                    $wells->{'r_dna'} = $dna_well;
-                                } else {
-                                    $wells->{'l_vector'} = $vector_well;
-                                    $wells->{'l_dna'} = $dna_well;
-                                }
-                            }
-                        }
+            # get dna and vector wells
+            my @assembly_process = $wells->{'assembly'}->parent_processes;
+            foreach my $dna_well ($assembly_process[0]->input_wells){
+                my @dna_process = $dna_well->parent_processes;
+                my @vector = $dna_process[0]->input_wells;
+                my $vector_well = shift @vector;
+                my $vector_well_type = $vector_well->plate->type_id;
+                if ($vector_well->plate->type_id eq 'FINAL_PICK') {
+                    $wells->{'vector'} = $vector_well;
+                    $wells->{'vector_dna'} = $dna_well;
+                } else {
+                    if ($vector_well->crispr->pam_right) {
+                        $wells->{'r_vector'} = $vector_well;
+                        $wells->{'r_dna'} = $dna_well;
+                    } else {
+                        $wells->{'l_vector'} = $vector_well;
+                        $wells->{'l_dna'} = $dna_well;
                     }
                 }
             }
 
-            my $ep_pick_list;
-            my $ep_pick_pass_list;
-            my $ep_pick_count = 0;
-            my $ep_pick_pass_count = 0;
-
+            # get EPD wells
+            my ($ep_pick_list, $ep_pick_pass_list);
+            my ($ep_pick_count, $ep_pick_pass_count) = (0, 0);
             foreach my $process ($crispr_ep_well->child_processes){
-                my $proc_name = $process->id;
                 foreach my $output ($process->output_wells){
                     $ep_pick_count++;
                     my $plate_name = $output->plate->name;
@@ -141,9 +136,11 @@ $well_count++;
                 }
             }
 
+            # a row is complete
             push @data, [
                 $gene_id,
                 $gene_symbol,
+                $design_id,
                 $wells->{'crispr_ep'}->plate->name . "_" . $wells->{'crispr_ep'}->name,
                 $wells->{'assembly'}->plate->name . "_" . $wells->{'assembly'}->name,
                 $wells->{'vector'}->plate->name . "_" . $wells->{'vector'}->name,
@@ -159,11 +156,10 @@ $well_count++;
             ];
         }
     }
-### $well_count
+
     return \@data;
 
 }
-## use critic
 
 __PACKAGE__->meta->make_immutable;
 

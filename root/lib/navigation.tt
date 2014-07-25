@@ -179,6 +179,11 @@
                 Electroporation Summary
               </a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPDetail' ) %]">
+                Crispr Electroporation Detail
+              </a>
+            </li>
 <!--
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
