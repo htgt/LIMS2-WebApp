@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.223';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.225';
 }
 ## use critic
 
@@ -350,7 +350,11 @@ sub analyse_well {
     my $design = $well->design;
 
     my ( $analyser, %analysis_data, $well_reads );
-    if ( $self->well_has_primer_reads( $well->name ) ) {
+    if ( !$crispr ) {
+        $self->log->warn( "No crispr found for well " . $well->name );
+        $analysis_data{no_crispr} = 1;
+    }
+    elsif ( $self->well_has_primer_reads( $well->name ) ) {
         $well_reads = $self->get_well_primer_reads( $well->name );
 
         unless ( $self->well_has_read_alignments( $well->name ) ) {
@@ -431,8 +435,9 @@ sub crispr_for_well {
         );
 
         unless ( $crispr_pair ) {
-            LIMS2::Exception(
+            $self->log->error(
                 "Unable to find crispr pair: left crispr $left_crispr, right crispr $right_crispr" );
+            return;
         }
         $self->log->debug("Crispr pair for well $well: $crispr_pair" );
 
@@ -444,7 +449,7 @@ sub crispr_for_well {
         return $crispr;
     }
     else {
-        LIMS2::Exception( "Unable to determine crispr pair or crispr for well $well" );
+        $self->log->error( "Unable to determine crispr pair or crispr for well $well" );
     }
 
     return;
@@ -620,9 +625,9 @@ Combine all the qc analysis data we want to store and return it in a hash.
 sub parse_analysis_data {
     my ( $self, $analyser, $crispr, $design, $analysis_data ) = @_;
 
-    $analysis_data->{crispr_id}  = $crispr->id;
+    $analysis_data->{crispr_id}  = $crispr->id if $crispr;
     $analysis_data->{design_id}  = $design->id;
-    $analysis_data->{is_pair}    = $crispr->is_pair;
+    $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
 
     return unless $analyser;
 
@@ -669,11 +674,14 @@ sub build_qc_data {
 
     my %qc_data = (
         well_id         => $well->id,
-        crispr_start    => $crispr->start,
-        crispr_end      => $crispr->end,
-        crispr_chr_name => $crispr->chr_name,
         analysis_data   => $analysis_data,
     );
+
+    if ( $crispr ) {
+        $qc_data{crispr_start}    = $crispr->start;
+        $qc_data{crispr_end}      = $crispr->end;
+        $qc_data{crispr_chr_name} = $crispr->chr_name;
+    }
 
     if ( $analyser && $analyser->vcf_file_target_region ) {
         $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp;

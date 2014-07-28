@@ -185,6 +185,7 @@ lib/LIMS2/Report.pm
 lib/LIMS2/Report/AssemblyPlate.pm
 lib/LIMS2/Report/CreKiESDistributionGenes.pm
 lib/LIMS2/Report/CreKiESDistributionSummary.pm
+lib/LIMS2/Report/CrisprEPDetail.pm
 lib/LIMS2/Report/CrisprEPPlate.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
@@ -2205,7 +2206,6 @@ root/static/files/plate_upload/standard_template_es.csv
 root/static/files/plate_upload/standard_template_vector.csv
 root/static/files/qc_upload/dna_concentrations.xlsx
 root/static/files/qc_upload/dna_egel_status_upload_template.csv
-root/static/files/qc_upload/dna_egel_status_upload_template.csv~
 root/static/files/qc_upload/dna_status_upload_template.csv
 root/static/files/qc_upload/genotyping_upload_template.csv
 root/static/files/qc_upload/pcr_status_upload_template.csv

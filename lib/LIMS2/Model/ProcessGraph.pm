@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.223';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.225';
 }
 ## use critic
 
@@ -390,12 +390,13 @@ sub render {
         verbose => 0,
     );
 
+    # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
         $graph->add_node(
             name   => $well->as_string,
             label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, process_data_for($well) ],
-            URL    => "/user/view_plate?id=" . $well->plate->id,
+            URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
             target => '_blank',
         );
     }

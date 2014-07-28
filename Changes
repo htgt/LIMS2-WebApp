@@ -1,3 +1,11 @@
+0.225     2014-07-28 09:10:26 Europe/London
+
+    Deal with crispr qc where well has no valid crispr pair.
+
+0.224     2014-07-25 12:04:55 Europe/London
+
+    Added Crispr Electroporation Detail (CrisprEPDetail) Report 
+
 0.223     2014-07-23 15:48:48 Europe/London
 
    Now using Genoverse code from WebApp-Common shared_static

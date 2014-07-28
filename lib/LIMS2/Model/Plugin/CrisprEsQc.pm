@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.223';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.225';
 }
 ## use critic
 
@@ -54,9 +54,9 @@ sub pspec_create_crispr_es_qc_well {
         well_id         => { validate => 'integer' },
         fwd_read        => { validate => 'non_empty_string', optional => 1 },
         rev_read        => { validate => 'non_empty_string', optional => 1 },
-        crispr_chr_name => { validate => 'existing_chromosome' },
-        crispr_start    => { validate => 'integer' },
-        crispr_end      => { validate => 'integer' },
+        crispr_chr_name => { validate => 'existing_chromosome', optional => 1 },
+        crispr_start    => { validate => 'integer', optional => 1},
+        crispr_end      => { validate => 'integer', optional => 1},
         analysis_data   => { validate => 'json' },
         vcf_file        => { validate => 'non_empty_string', optional => 1 },
     };
@@ -72,14 +72,17 @@ sub create_crispr_es_qc_well {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_well );
 
-    my $chr_name = delete $validated_params->{crispr_chr_name};
-    my $chr = $self->schema->resultset('Chromosome')->find(
-        {
-            name       => $chr_name,
-            species_id => $qc_run->species_id,
-        }
-    );
-    $validated_params->{crispr_chr_id} = $chr->id;
+    if ( $validated_params->{crispr_chr_name} ) {
+        my $chr_name = delete $validated_params->{crispr_chr_name};
+        my $chr = $self->schema->resultset('Chromosome')->find(
+            {
+                name       => $chr_name,
+                species_id => $qc_run->species_id,
+            }
+        );
+        $validated_params->{crispr_chr_id} = $chr->id;
+    }
+
     return $qc_run->create_related(
         crispr_es_qc_wells => $validated_params
     );

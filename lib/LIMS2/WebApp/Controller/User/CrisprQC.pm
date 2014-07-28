@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.223';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.225';
 }
 ## use critic
 
@@ -136,25 +136,31 @@ sub format_crispr_es_qc_well_data {
 
     my $json = decode_json( $qc_well->analysis_data );
 
-    my ( $rs, $options );
-    if ( $json->{is_pair} ) {
-        $rs = 'CrisprPair';
-        $options = { prefetch => [ 'left_crispr', 'right_crispr', 'crispr_designs' ] };
+    my ( @gene_ids, $pair);
+    if ( !$json->{no_crispr} ) {
+        my ( $rs, $options );
+        if ( $json->{is_pair} ) {
+            $rs = 'CrisprPair';
+            $options = { prefetch => [ 'left_crispr', 'right_crispr', 'crispr_designs' ] };
+        }
+        else {
+            $rs = 'Crispr';
+            $options = { prefetch => [ 'crispr_designs' ] };
+        }
+
+        $pair = $c->model('Golgi')->schema->resultset($rs)->find(
+            { id => $json->{crispr_id} },
+            $options
+        );
+
+        #get HGNC/MGI ids
+        @gene_ids = uniq map { $_->gene_id }
+                                map { $_->genes }
+                                    $pair->related_designs;
     }
     else {
-        $rs = 'Crispr';
-        $options = { prefetch => [ 'crispr_designs' ] };
+        @gene_ids = uniq map { $_->gene_id } $qc_well->well->design->genes;
     }
-
-    my $pair = $c->model('Golgi')->schema->resultset($rs)->find(
-        { id => $json->{crispr_id} },
-        $options
-    );
-
-    #get HGNC/MGI ids
-    my @gene_ids = uniq map { $_->gene_id }
-                            map { $_->genes }
-                                $pair->related_designs;
 
     #get gene symbol from the solr
     my @genes = map { $_->{gene_symbol} }
@@ -179,8 +185,8 @@ sub format_crispr_es_qc_well_data {
         es_qc_well_id   => $qc_well->id,
         well_id         => $qc_well->well->id,
         well_name       => $qc_well->well->name, #fetch the well and get name
-        crispr_id       => $json->{crispr_id},
-        is_crispr_pair  => $json->{is_pair},
+        crispr_id       => $json->{crispr_id} || "",
+        is_crispr_pair  => $json->{is_pair} || "",
         gene            => join( ",", @genes ),
         alignment       => $alignment_data,
         longest_indel   => $json->{concordant_indel} || "",
@@ -202,6 +208,7 @@ sub format_alignment_strings {
     my ( $self, $params, $pair, $json, $truncate_seqs, $qc_well ) = @_;
 
     return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
+    return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
 
     # TODO refactor this
     my $insertion_data = $json->{insertions};
@@ -458,7 +465,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
                     $c->log->debug("Analyse plate for " . $qc_run->id . " finished");
                 }
                 catch ( $err ) {
-                    $qc_runner->log->debug( "Analyse plate failed: $err" );
+                    $qc_runner->log->error( "Analyse plate failed: $err" );
                 }
 
                 exit 0; #exits immediately, avoiding trycatch
