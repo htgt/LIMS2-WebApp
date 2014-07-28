@@ -72,17 +72,17 @@ __PACKAGE__->table("crispr_es_qc_wells");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 crispr_start
 
   data_type: 'integer'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 crispr_end
 
   data_type: 'integer'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 comment
 
@@ -124,11 +124,11 @@ __PACKAGE__->add_columns(
   "rev_read",
   { data_type => "text", is_nullable => 1 },
   "crispr_chr_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "crispr_start",
-  { data_type => "integer", is_nullable => 0 },
+  { data_type => "integer", is_nullable => 1 },
   "crispr_end",
-  { data_type => "integer", is_nullable => 0 },
+  { data_type => "integer", is_nullable => 1 },
   "comment",
   { data_type => "text", is_nullable => 1 },
   "analysis_data",
@@ -165,7 +165,12 @@ __PACKAGE__->belongs_to(
   "crispr_chr",
   "LIMS2::Model::Schema::Result::Chromosome",
   { id => "crispr_chr_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 crispr_es_qc_run
@@ -199,8 +204,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 10:08:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jDlhBESJHmYBBqTF5AMBIg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-28 07:58:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XO/o3tRU/YDgyM588TWtzg
 
 use JSON;
 
