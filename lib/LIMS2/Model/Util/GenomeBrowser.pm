@@ -705,9 +705,9 @@ sub _make_crispr_and_pam_cds{
         # This is the crispr without PAM
         $crispr_format_hash->{'type'} = 'CDS';
         $crispr_format_hash->{'attributes'} =     'ID='
-            . $crispr->{id} . ';'
+            . 'Crispr_' . $crispr->{id} . ';'
             . 'Parent=' . $parent_id . ';'
-            . 'Name=' . $crispr->{id} . ';'
+            . 'Name=LIMS2-' . $crispr->{id} . ';'
             . 'color=' .$crispr->{colour};
         my $crispr_datum = prep_gff_datum( $crispr_format_hash );
 
@@ -717,7 +717,7 @@ sub _make_crispr_and_pam_cds{
         $crispr_format_hash->{'attributes'} = 'ID='
                 . 'PAM_' . $crispr->{id} . ';'
                 . 'Parent=' . $parent_id . ';'
-                . 'Name=' . $crispr->{id} . ';'
+                . 'Name=LIMS2-' . $crispr->{id} . ';'
                 . 'color=#DDC808'; # yellowish
         my $pam_child_datum = prep_gff_datum( $crispr_format_hash );
 
