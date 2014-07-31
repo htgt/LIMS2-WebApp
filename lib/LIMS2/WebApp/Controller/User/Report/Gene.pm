@@ -543,7 +543,6 @@ sub fetch_values_for_type_ep {
     my ( $self, $summary_row, $wells_hash ) = @_;
 
     if ( defined $summary_row->ep_well_id && $summary_row->ep_well_id > 0 ) {
-
         my $plate_name     = $summary_row->ep_plate_name;
         my $well_name      = $summary_row->ep_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
@@ -576,7 +575,41 @@ sub fetch_values_for_type_ep {
 
             $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
         }
+    } elsif ( defined $summary_row->crispr_ep_well_id && $summary_row->crispr_ep_well_id > 0 ) {
+        my $plate_name     = $summary_row->crispr_ep_plate_name;
+        my $well_name      = $summary_row->crispr_ep_well_name;
+        my $well_id_string = $plate_name . '_' . $well_name;
+        my $well_is_accepted;
+        if ( $summary_row->crispr_ep_well_accepted ) {
+            $well_is_accepted = 'yes';
+        }
+        else {
+            $well_is_accepted = 'no';
+        }
+        my $final_pick_plate_name     = $summary_row->final_pick_plate_name ? $summary_row->final_pick_plate_name : '';
+        my $final_pick_well_name      = $summary_row->final_pick_well_name ? $summary_row->final_pick_well_name : '';
+        my $final_pick_well = $final_pick_plate_name . '_' . $final_pick_well_name;
+        my $dna_plate_name     = $summary_row->dna_plate_name;
+        my $dna_well_name      = $summary_row->dna_well_name;
+        my $dna_well = $dna_plate_name . '_' . $dna_well_name;
+        unless ( exists $wells_hash->{ 'ep' }->{ $well_id_string } ) {
+            my $well_hash = {
+                'well_id'           => $summary_row->crispr_ep_well_id,
+                'well_id_string'    => $well_id_string,
+                'plate_id'          => $summary_row->crispr_ep_plate_id,
+                'plate_name'        => $summary_row->crispr_ep_plate_name,
+                'well_name'         => $summary_row->crispr_ep_well_name,
+                'created_at'        => $summary_row->crispr_ep_well_created_ts->ymd,
+                'recombinases'      => $summary_row->crispr_ep_well_nuclease,
+                'final_pick_well'   => $final_pick_well,
+                'dna_well'          => $dna_well,
+                'is_accepted'       => $well_is_accepted,
+            };
+
+            $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
+        }
     }
+
     return;
 }
 

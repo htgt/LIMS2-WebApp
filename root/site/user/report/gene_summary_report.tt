@@ -463,7 +463,7 @@
             <th>Created on</th>
             <th>Final Pick Vector Well</th>
             <th>DNA Well</th>
-            <th>Recombinase</th>
+            <th>Recombinase / Nuclease</th>
             <th>Accepted?</th>
           </thead>
           <tbody>
