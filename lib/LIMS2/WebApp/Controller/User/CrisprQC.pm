@@ -370,7 +370,7 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
         { 'me.species_id' => $c->session->{selected_species} },
         {
             prefetch => [ 'created_by', {'crispr_es_qc_wells' => { well => 'plate' }} ],
-            rows     => 20,
+            #rows     => 20,
             order_by => { -desc => "me.created_at" }
         }
     );
