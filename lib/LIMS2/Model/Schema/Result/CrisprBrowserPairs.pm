@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::CrisprBrowserPairs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprBrowserPairs::VERSION = '0.224';
+    $LIMS2::Model::Schema::Result::CrisprBrowserPairs::VERSION = '0.226';
 }
 ## use critic
 
@@ -37,11 +37,13 @@ select b.id "pair_id"
 	, d.seq "left_crispr_seq"
 	, a.chr_start "left_crispr_start"
 	, a.chr_end "left_crispr_end"
+	, d.pam_right "left_crispr_pam_right"
 	, c.crispr_id "right_crispr_id"
 	, e.seq "right_crispr_seq"
 	, c.chr_start "right_crispr_start"
 	, c.chr_end "right_crispr_end"
-	
+	, e.pam_right "right_crispr_pam_right"
+
 	from crispr_loci a
 	join crispr_pairs b on a.crispr_id = b.left_crispr_id
 	join crispr_loci c on b.right_crispr_id = c.crispr_id
@@ -60,10 +62,12 @@ __PACKAGE__->add_columns(
         left_crispr_seq
         left_crispr_start
         left_crispr_end
+        left_crispr_pam_right
         right_crispr_id
         right_crispr_seq
         right_crispr_start
         right_crispr_end
+        right_crispr_pam_right
     /
 );
 
