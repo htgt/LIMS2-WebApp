@@ -628,6 +628,7 @@ sub parse_analysis_data {
     $analysis_data->{vep_output} = $analyser->vep_file->slurp if $analyser->vep_file;
     $analysis_data->{ref_aa_seq} = $analyser->ref_aa_file->slurp if $analyser->ref_aa_file;
     $analysis_data->{mut_aa_seq} = $analyser->mut_aa_file->slurp if $analyser->mut_aa_file;
+    $analysis_data->{non_merged_vcf} = $analyser->non_merged_vcf_file->slurp if $analyser->non_merged_vcf_file;
 
     if ( $analyser->num_target_region_alignments == 0 ) {
         $analysis_data->{ 'forward_no_alignment' } = 1;
@@ -667,8 +668,8 @@ sub build_qc_data {
     my ( $self, $well, $analyser, $analysis_data, $well_reads, $crispr ) = @_;
 
     my %qc_data = (
-        well_id         => $well->id,
-        analysis_data   => $analysis_data,
+        well_id       => $well->id,
+        analysis_data => $analysis_data,
     );
 
     if ( $crispr ) {
