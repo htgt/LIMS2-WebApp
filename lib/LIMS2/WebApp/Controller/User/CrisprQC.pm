@@ -53,25 +53,12 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     return;
 }
 
-sub crispr_es_qc_vcf_file :Path( '/user/crisprqc/vcf_file' ) :Args(1) {
-    my ( $self, $c, $qc_well_id ) = @_;
+#
+# START OF CHAINED METHODS
+# Used to display files associated with a crispr es qc well
+#
 
-    my $crispr_es_qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
-        { id => $qc_well_id },
-    );
-    unless ( $crispr_es_qc_well ) {
-        $c->stash( error_msg => "Crispr ES QC Well id $qc_well_id not found" );
-        return;
-    }
-
-    my $filename = 'es_crispr_qc.vcf';
-    $c->res->content_type('text/plain');
-    $c->res->header('Content-Disposition', qq[filename="$filename"]);
-    $c->res->body( $crispr_es_qc_well->vcf_file );
-    return;
-}
-
-sub crispr_es_qc_vep_file :Path( '/user/crisprqc/vep_file' ) :Args(1) {
+sub crispr_qc_well : PathPart('user/crispr_qc_well') Chained('/') CaptureArgs(1) {
     my ( $self, $c, $qc_well_id ) = @_;
 
     my $crispr_es_qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
@@ -83,22 +70,53 @@ sub crispr_es_qc_vep_file :Path( '/user/crisprqc/vep_file' ) :Args(1) {
     }
     my $json = decode_json( $crispr_es_qc_well->analysis_data );
 
-    $c->res->content_type('text/plain');
-    $c->res->body( $json->{vep_output} );
+    $c->log->debug( "Retrived crispr es qc well, id: $qc_well_id" );
+
+    $c->stash(
+        crispr_es_qc_well => $crispr_es_qc_well,
+        analysis_data     => $json,
+    );
+
     return;
 }
 
-sub crispr_es_qc_reads :Path( '/user/crisprqc/read' ) :Args(2) {
-    my ( $self, $c, $read_type, $qc_well_id ) = @_;
+sub crispr_es_qc_vcf_file :PathPart( 'vcf_file' ) Chained('crispr_qc_well') :Args(0) {
+    my ( $self, $c ) = @_;
 
-    my $crispr_es_qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
-        { id => $qc_well_id },
-    );
-    unless ( $crispr_es_qc_well ) {
-        $c->stash( error_msg => "Crispr ES QC Well id $qc_well_id not found" );
-        return;
+    $c->res->content_type('text/plain');
+    $c->res->header('Content-Disposition', qq[filename="es_crispr_qc_vcf"]);
+    $c->res->body( $c->stash->{crispr_es_qc_well}->vcf_file );
+    return;
+}
+
+sub crispr_es_qc_non_merged_vcf_file :PathPart( 'non_merged_vcf_file' ) Chained('crispr_qc_well') :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $data = $c->stash->{analysis_data}{non_merged_vcf} || '';
+    $c->res->content_type('text/plain');
+    $c->res->body( $data );
+    return;
+}
+
+sub crispr_es_qc_vep_file :PathPart( 'vep_file' ) Chained('crispr_qc_well') :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $data = $c->stash->{analysis_data}{vep_output} || '';
+    $c->res->content_type('text/plain');
+    $c->res->body( $data );
+    return;
+}
+
+sub crispr_es_qc_reads :PathPart( 'read' ) Chained('crispr_qc_well') :Args(1) {
+    my ( $self, $c, $read_type ) = @_;
+
+    unless ( $read_type eq 'fwd' || $read_type eq 'rev' ) {
+        $c->stash( error_msg => "Not a valid read type: $read_type" );
+        return $c->go( 'Controller::User::CrisprQC', 'crispr_es_qc_runs' );
     }
+
     my $read_name = $read_type . '_read';
+    my $crispr_es_qc_well = $c->stash->{crispr_es_qc_well};
     my $read = $crispr_es_qc_well->$read_name;
 
     $c->res->content_type('text/plain');
@@ -106,24 +124,25 @@ sub crispr_es_qc_reads :Path( '/user/crisprqc/read' ) :Args(2) {
     return;
 }
 
-sub crispr_es_qc_aa_file :Path( '/user/crisprqc/aa_file' ) :Args(2) {
-    my ( $self, $c, $seq_type, $qc_well_id ) = @_;
+sub crispr_es_qc_aa_file :PathPart( 'aa_file' ) Chained('crispr_qc_well') :Args(1) {
+    my ( $self, $c, $seq_type ) = @_;
 
-    my $crispr_es_qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
-        { id => $qc_well_id },
-    );
-    unless ( $crispr_es_qc_well ) {
-        $c->stash( error_msg => "Crispr ES QC Well id $qc_well_id not found" );
-        return;
+    unless ( $seq_type eq 'mut' || $seq_type eq 'ref' ) {
+        $c->stash( error_msg => "Not a valid protein sequence type: $seq_type" );
+        return $c->go( 'Controller::User::CrisprQC', 'crispr_es_qc_runs' );
     }
-    my $json = decode_json( $crispr_es_qc_well->analysis_data );
     my $seq_name = $seq_type . '_aa_seq';
-    my $aa_seq = exists $json->{ $seq_name } ? $json->{$seq_name} : 'Sequence Not Available';
+    my $analysis_data = $c->stash->{analysis_data};
+    my $aa_seq = exists $analysis_data->{ $seq_name } ? $analysis_data->{$seq_name} : 'Sequence Not Available';
 
     $c->res->content_type('text/plain');
     $c->res->body( $aa_seq );
     return;
 }
+
+#
+# END OF CHAINED METHODS
+#
 
 sub format_crispr_es_qc_well_data {
     my ( $self, $c, $qc_well, $run, $truncate_seqs, $params ) = @_;
@@ -172,28 +191,30 @@ sub format_crispr_es_qc_well_data {
     }
     my $has_vcf_file = $qc_well->vcf_file ? 1 : 0;
     my $has_vep_file = exists $json->{vep_output} ? 1 : 0;
+    my $has_non_merged_vcf_file = exists $json->{non_merged_vcf} ? 1 : 0;
     my $has_ref_aa_file = exists $json->{ref_aa_seq} ? 1 : 0;
     my $has_mut_aa_file = exists $json->{mut_aa_seq} ? 1 : 0;
 
     return {
-        es_qc_well_id   => $qc_well->id,
-        well_id         => $qc_well->well->id,
-        well_name       => $qc_well->well->name, #fetch the well and get name
-        crispr_id       => $json->{crispr_id} || "",
-        is_crispr_pair  => $json->{is_pair} || "",
-        gene            => join( ",", @genes ),
-        alignment       => $alignment_data,
-        longest_indel   => $json->{concordant_indel} || "",
-        well_accepted   => $well_accepted,
-        show_checkbox   => $show_checkbox,
-        insertions      => $insertions,
-        deletions       => $deletions,
-        has_vcf_file    => $has_vcf_file,
-        has_vep_file    => $has_vep_file,
-        has_ref_aa_file => $has_ref_aa_file,
-        has_mut_aa_file => $has_mut_aa_file,
-        fwd_read        => $qc_well->fwd_read,
-        rev_read        => $qc_well->rev_read,
+        es_qc_well_id           => $qc_well->id,
+        well_id                 => $qc_well->well->id,
+        well_name               => $qc_well->well->name, #fetch the well and get name
+        crispr_id               => $json->{crispr_id} || "",
+        is_crispr_pair          => $json->{is_pair} || "",
+        gene                    => join( ",", @genes ),
+        alignment               => $alignment_data,
+        longest_indel           => $json->{concordant_indel} || "",
+        well_accepted           => $well_accepted,
+        show_checkbox           => $show_checkbox,
+        insertions              => $insertions,
+        deletions               => $deletions,
+        has_vcf_file            => $has_vcf_file,
+        has_non_merged_vcf_file => $has_non_merged_vcf_file,
+        has_vep_file            => $has_vep_file,
+        has_ref_aa_file         => $has_ref_aa_file,
+        has_mut_aa_file         => $has_mut_aa_file,
+        fwd_read                => $qc_well->fwd_read,
+        rev_read                => $qc_well->rev_read,
     };
 }
 
@@ -203,6 +224,17 @@ sub format_alignment_strings {
 
     return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
     return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
+    if ( $json->{forward_no_alignment} && $json->{forward_no_alignment} ) {
+        if ( !$qc_well->fwd_read ) {
+            return { forward => 'No Read', no_reverse_alignment => 1 };
+        }
+        elsif ( !$qc_well->rev_read ) {
+            return { reverse => 'No Read', no_forward_alignment => 1 };
+        }
+        else {
+            return { no_forward_alignment => 1, no_reverse_alignment => 1 };
+        }
+    }
 
     # TODO refactor this
     my $insertion_data = $json->{insertions};
