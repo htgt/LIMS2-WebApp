@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.225';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.227';
 }
 ## use critic
 
@@ -900,6 +900,7 @@ sub oligos_for_crispr_pair {
     $crispr_pairs{'left_crispr'}->{'chr_id'} = $crispr_pair->left_crispr_locus->chr_id;
     $crispr_pairs{'left_crispr'}->{'chr_name'} = $crispr_pair->left_crispr_locus->chr->name;
     $crispr_pairs{'left_crispr'}->{'seq'} = $crispr_pair->left_crispr_locus->crispr->seq;
+    $crispr_pairs{'left_crispr'}->{'pam_right'} = $crispr_pair->left_crispr_locus->crispr->pam_right;
 
     $crispr_pairs{'right_crispr'}->{'id'} = $crispr_pair->right_crispr_locus->crispr_id;
     $crispr_pairs{'right_crispr'}->{'chr_start'} = $crispr_pair->right_crispr_locus->chr_start;
@@ -908,6 +909,7 @@ sub oligos_for_crispr_pair {
     $crispr_pairs{'right_crispr'}->{'chr_id'} = $crispr_pair->right_crispr_locus->chr_id;
     $crispr_pairs{'right_crispr'}->{'chr_name'} = $crispr_pair->right_crispr_locus->chr->name;
     $crispr_pairs{'right_crispr'}->{'seq'} = $crispr_pair->right_crispr_locus->crispr->seq;
+    $crispr_pairs{'right_crispr'}->{'pam_right'} = $crispr_pair->right_crispr_locus->crispr->pam_right;
 
     return \%crispr_pairs;
 }
@@ -955,6 +957,7 @@ sub oligo_for_single_crispr {
     $crispr_pairs{'left_crispr'}->{'chr_id'} = $locus->chr_id;
     $crispr_pairs{'left_crispr'}->{'chr_name'} = $locus->chr->name;
     $crispr_pairs{'left_crispr'}->{'seq'} = $crispr->seq;
+    $crispr_pairs{'left_crispr'}->{'pam_right'} = $crispr->pam_right;
 
     return \%crispr_pairs;
 }

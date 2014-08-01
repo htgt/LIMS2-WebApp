@@ -254,32 +254,35 @@ String.prototype.colour_alignment = function colour_string() {
 
             <td>
               [% IF row.has_vcf_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/vcf_file', row.es_qc_well_id ) %]" target="_blank" >vcf_file</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
               [% END %]
               <br>
               [% IF row.has_vep_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/vep_file', row.es_qc_well_id ) %]" target="_blank" >vep_file</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vep_file' ) %]" target="_blank" >vep_file</a>
+              [% END %]
+              [% IF row.has_non_merged_vcf_file %]
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'non_merged_vcf_file' ) %]" target="_blank" >non_merged_vcf_file</a>
               [% END %]
             </td>
 
             <td>
               [% IF row.has_ref_aa_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/aa_file', 'ref', row.es_qc_well_id ) %]" target="_blank" >reference</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'ref' ) %]" target="_blank" >reference</a>
               [% END %]
               <br>
               [% IF row.has_mut_aa_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/aa_file', 'mut', row.es_qc_well_id ) %]" target="_blank" >mutated</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'mut' ) %]" target="_blank" >mutated</a>
               [% END %]
 
             </td>
 
             <td>
               [% IF row.fwd_read %]
-                <a href="[% c.uri_for( '/user/crisprqc/read', 'fwd', row.es_qc_well_id ) %]" target="_blank" >fwd_read</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'fwd' ) %]" target="_blank" >fwd_read</a>
               [% END %]
               <br>
               [% IF row.rev_read %]
-                <a href="[% c.uri_for( '/user/crisprqc/read', 'rev', row.es_qc_well_id ) %]" target="_blank" >rev_read</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'rev' ) %]" target="_blank" >rev_read</a>
               [% END %]
             </td>
 

@@ -1,13 +1,10 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.225';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.227';
 }
 ## use critic
 
-
-use strict;
-use warnings FATAL => 'all';
 
 use Moose;
 use Hash::MoreUtils qw( slice_def );
@@ -102,7 +99,7 @@ sub _build_sponsors {
        push( @sponsor_ids, $sponsor_id );
     }
 
-    return [ @sponsor_ids ];
+    return \@sponsor_ids;
 }
 
 has sponsor_data => (
@@ -741,13 +738,19 @@ SQL_END
         ## no critic (ProhibitCascadingIfElse)
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
-        } elsif ($sponsor_id eq 'Pathogen Group 1') {
-            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
-        } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
-            $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
-        } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
-            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
         }
+        if ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) AND ( sponsor_id = 'Pathogen Group 1' );";
+        } elsif ($sponsor_id eq 'Pathogen Group 2') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) ;";
+        } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        } elsif ($sponsor_id eq 'MGP Recovery') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) ;";
+        } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) AND ( sponsor_id = 'Barry Short Arm Recovery' );";
+        }
+
         ## use critic
 
         # run the query
