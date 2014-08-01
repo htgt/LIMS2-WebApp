@@ -117,6 +117,10 @@ sub upload_plate_pcr_status {
 
     for my $datum ( @{$data} ) {
 
+        # remove any whitespace and get it lowercased
+        $datum->{'l_pcr_result'} = lc trim_string($datum->{'l_pcr_result'});
+        $datum->{'r_pcr_result'} = lc trim_string($datum->{'r_pcr_result'});
+
         my $validated_params = $model->check_params( $datum, pspec__check_pcr_status() );
 
         my $l_pcr_status = $model->create_well_recombineering_result( {
@@ -295,6 +299,15 @@ sub spreadsheet_to_csv {
     }
 
     return \%worksheets;
+}
+
+# remove whitespace from beginning and end of string
+sub trim_string {
+    my $string = shift;
+
+    $string =~ s/(^\s+|\s+$)//g;
+
+    return $string;
 }
 
 ## no critic (RequireFinalReturn)
