@@ -235,8 +235,8 @@ function create_plot(placeholder, name, search_seq, reverse) {
     //var name = "HUEPD0007_1_G_6_1a05.p1kaSF1";
     //var search_seq = "ATCAGTTCTCCAATCTTGAGGCTCTCCTCATCGACCAAAGGAATGTGTTTTACCCGGAGGAGAGAC";
 
-    //temporarily just always get the same data, later we get what they select
-    $.getJSON("http://t87-dev.internal.sanger.ac.uk:3069/api/trace_data", {name: name, search_seq: search_seq, reverse: reverse }, function(data) { _create_plot(placeholder, data); });
+    //fetch the users data and add a new graph when the data comes back
+    $.getJSON("[% c.uri_for('/api/trace_data') %]", {name: name, search_seq: search_seq, reverse: reverse }, function(data) { _create_plot(placeholder, data); });
 
 }
 
