@@ -119,14 +119,14 @@ input:
 Hashref of loci: {{G5=>{chr_name=>11,...}{G3=>{chr_name=>11,}}}
 Type ("conditional" or "gibson" or "gibson-deletion")
 
-Interrogates the oligo loci for the parameters to set to allow eng-seq-builder to run later: 
-the oligo loci are either G5/U5(U3/D5)/D3/G3 OR '5F', '5R', (EF, ER), '3F', '3R' 
+Interrogates the oligo loci for the parameters to set to allow eng-seq-builder to run later:
+the oligo loci are either G5/U5(U3/D5)/D3/G3 OR '5F', '5R', (EF, ER), '3F', '3R'
 
 Returns hashref of params:
-values: chromosome, strand, assembly, five_arm_start, five_arm_end, three_arm_start, three_arm_end, 
-(and optionally) target_region_start, target_region_end 
+values: chromosome, strand, assembly, five_arm_start, five_arm_end, three_arm_start, three_arm_end,
+(and optionally) target_region_start, target_region_end
 
-=cut 
+=cut
 sub build_eng_seq_params_from_loci{
 	my ($loci, $type) = @_;
 
@@ -259,7 +259,7 @@ sub fetch_well_eng_seq_params{
 	    }
 	    elsif ( $design_type eq 'deletion' || $design_type =~ /gibson/ ) {
                 # This needs fixing for a gibson: when we generate the expected sequence, we have to know
-	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion 
+	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion
 		# I'm leaving it as a deletion because this will be made by the lab for the foreseeable future.
 	        $method = 'deletion_allele_seq';
 	        $well_params->{insertion}->{name} = $params->{cassette};
@@ -292,7 +292,7 @@ sub fetch_well_eng_seq_params{
 	    }
 	    elsif ( $design_type eq 'deletion' || $design_type =~ /gibson/ ) {
                 # This needs fixing for a gibson: when we generate the expected sequence, we have to know
-	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion 
+	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion
 		# I'm leaving it as a deletion because this will be made by the lab for the foreseeable future.
 	        $method = 'deletion_vector_seq';
 	        $well_params->{insertion}->{name} = $params->{cassette};
@@ -364,10 +364,15 @@ sub generate_crispr_eng_seq_params {
         $backbone = $well_backbone->name;
 	}
 
+    #backbones in this list need to have the full guide rna
+    #normally we take 19 bases and add a G at the start
+    my %t7_backbones = map { $_ => 1 } qw( T7_gRNA_BSA1 );
+    my $crispr_seq = exists $t7_backbones{ $backbone } ? $crispr->t7_guide_rna : $crispr->vector_seq;
+
     my $method = 'crispr_vector_seq';
     my $display_id = $backbone . '#' . $crispr->id;
     my %eng_seq_params = (
-        crispr_seq => $crispr->vector_seq,
+        crispr_seq => $crispr_seq,
         backbone   => { name => $backbone },
         display_id => $display_id,
         crispr_id  => $crispr->id,
