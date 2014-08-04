@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.229';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.230';
 }
 ## use critic
 
@@ -814,6 +814,14 @@ sub parent_processes{
 	my @parent_processes = map { $_->process } $self->process_output_wells->all;
 
 	return @parent_processes;
+}
+
+sub parent_wells {
+    my $self = shift;
+
+    my @parent_processes = $self->parent_processes;
+
+    return map{ $_->input_wells } @parent_processes;
 }
 
 sub child_processes{
