@@ -195,6 +195,35 @@ sub format_crispr_es_qc_well_data {
     my $has_ref_aa_file = exists $json->{ref_aa_seq} ? 1 : 0;
     my $has_mut_aa_file = exists $json->{mut_aa_seq} ? 1 : 0;
 
+    #move this to its own function
+
+    #could have used tr///
+    my %special_map = (
+      J => 'N',
+      L => 'A',
+      P => 'T',
+      Y => 'C',
+      Z => 'G',
+    );
+
+    #build entire sequence. insertions hash will be empty if there are none
+    for my $dir ( keys %{ $insertions } ) {
+        my @positions = sort keys %{ $insertions->{$dir} };
+
+        my ( $res, $i ) = ( "", 0 );
+        #loop through the whole string, replacing any special chars with their insert
+        for my $char ( split "", $alignment_data->{$dir} ) {
+            next if $char =~ /[-X]/; #skip dashes and Xs
+            #this just gets the sequence out of the insertions hash, what a nightmare
+            $res .= ($char =~ /[JLPYZ]/)
+                  ? $special_map{$char} . $insertions->{$dir}{ $positions[$i++] }{seq}
+                  : uc $char;
+        }
+
+        #store with the other alignment data for easy access
+        $alignment_data->{$dir."_full"} = $res;
+    }
+
     return {
         es_qc_well_id           => $qc_well->id,
         well_id                 => $qc_well->well->id,
