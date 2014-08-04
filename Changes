@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.230     2014-08-04 15:37:08 Europe/London
+
+    Bugfix: T7 crispr backbone needs all 20 bases of guide RNA
+
 0.229     2014-08-01 12:42:46 Europe/London
     
     Previous release did not work for some reason
