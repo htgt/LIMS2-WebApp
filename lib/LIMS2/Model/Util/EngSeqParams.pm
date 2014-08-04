@@ -361,7 +361,7 @@ sub generate_crispr_eng_seq_params {
 	unless ($backbone) {
 		my $well_backbone = $well->backbone;
         LIMS2::Exception->throw( "No backbone found for well $well" ) unless $well_backbone;
-        $backbone = $well_backbone;
+        $backbone = $well_backbone->name;
 	}
 
     my $method = 'crispr_vector_seq';
