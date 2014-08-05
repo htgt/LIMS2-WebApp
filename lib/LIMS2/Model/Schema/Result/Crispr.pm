@@ -144,6 +144,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_group_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroupCrispr>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_group_crisprs",
+  "LIMS2::Model::Schema::Result::CrisprGroupCrispr",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_loci_type
 
 Type: belongs_to
@@ -279,9 +294,19 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_groups
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iCBcK0B07XGoh/EQgHXNfA
+Type: many_to_many
+
+Composing rels: L</crispr_group_crisprs> -> crispr_group
+
+=cut
+
+__PACKAGE__->many_to_many("crispr_groups", "crispr_group_crisprs", "crispr_group");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-05 11:24:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r1DV0y0PnOHpGFMIqc0UOA
 
 use Bio::Perl qw( revcom );
 
