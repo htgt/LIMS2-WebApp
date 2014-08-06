@@ -1,3 +1,5 @@
+ALTER TABLE audit.crispr_primers ADD COLUMN crispr_group_id integer;
+
 CREATE TABLE audit.crispr_groups (
 audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
 audit_user TEXT NOT NULL,

@@ -9,3 +9,7 @@ CREATE TABLE crispr_group_crisprs (
     crispr_id            INTEGER NOT NULL REFERENCES crisprs(id),
     PRIMARY KEY(crispr_group_id, crispr_id)
 );
+
+ALTER TABLE crispr_primers ADD COLUMN crispr_group_id INTEGER REFERENCES crispr_groups(id);
+ALTER TABLE crispr_primers ADD CONSTRAINT "crispr_group_id and and primer_name must be unique" UNIQUE (crispr_group_id,primer_name);
+
