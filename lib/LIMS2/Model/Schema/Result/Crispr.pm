@@ -536,6 +536,8 @@ sub accepted_vector_wells{
 
 sub is_pair { return; }
 
+sub is_group { return; }
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

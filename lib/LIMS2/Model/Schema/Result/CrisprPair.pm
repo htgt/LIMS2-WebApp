@@ -247,6 +247,8 @@ sub chr_name {
 
 sub is_pair { return 1; }
 
+sub is_group { return; }
+
 sub related_designs {
   my $self = shift;
 
