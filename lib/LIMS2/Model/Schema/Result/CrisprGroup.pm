@@ -135,7 +135,103 @@ __PACKAGE__->many_to_many("crisprs", "crispr_group_crisprs", "crispr");
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-05 11:24:20
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ObWhOEVIrkCKQIFZhDgbNg
 
+has ranked_crisprs => (
+    is         => 'ro',
+    isa        => 'ArrayRef[LIMS2::Model::Schema::Result::Crispr]',
+    lazy_build => 1,
+);
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub _build_ranked_crisprs {
+    my $self;
+    return [ sort { $a->chr_start <=> $b->chr_start } map{ $_->current_locus } $self->crisprs ];
+}
+
+has left_crispr  => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::Crispr',
+    lazy_build => 1,
+);
+
+sub _build_left_crispr {
+    return shift->ranked_crisprs->[0];
+}
+
+has right_crispr  => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::Crispr',
+    lazy_build => 1,
+);
+
+sub _build_right_crispr {
+    return shift->ranked_crisprs->[-1];
+}
+
+sub as_hash {
+    my ( $self ) = @_;
+
+    my %h = (
+        id           => $self->id,
+        gene_id      => $self->gene_id,
+        gene_type_id => $self->gene_type_id,
+        crispr_ids   => [ map{ $_->id  } $self->crisprs ],
+    );
+
+    return \%h;
+}
+
+use overload '""' => \&as_string;
+
+sub as_string {
+    my $self = shift;
+
+    return $self->id . '(' . join( '-', map { $_->id } $self->crisprs ) . ')';
+}
+
+sub right_crispr_locus {
+    return shift->right_crispr->current_locus;
+}
+
+sub left_crispr_locus {
+    return shift->left_crispr->current_locus;
+}
+
+sub start {
+    return shift->left_crispr->current_locus->chr_start;
+}
+
+sub end {
+    return shift->right_crispr->current_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->right_crispr->current_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->right_crispr->current_locus->chr->name;
+}
+
+sub target_slice {
+    my ( $self, $ensembl_util ) = @_;
+
+    unless ( $ensembl_util ) {
+        require WebAppCommon::Util::EnsEMBL;
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
+    }
+
+    my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $self->chr_name,
+        $self->start,
+        $self->end
+    );
+
+    return $slice;
+}
+
+sub is_pair { return; }
+
+sub is_group { return 1; }
+
 __PACKAGE__->meta->make_immutable;
 1;
