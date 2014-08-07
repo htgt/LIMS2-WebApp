@@ -2,6 +2,8 @@
 
 0.231     2014-08-07 13:37:00 Europe/London
 
+    Mouse single targeted sponsor report counts fix
+
 0.230     2014-08-04 15:37:08 Europe/London
 
     Bugfix: T7 crispr backbone needs all 20 bases of guide RNA
