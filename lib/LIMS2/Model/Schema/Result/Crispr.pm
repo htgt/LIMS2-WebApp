@@ -416,6 +416,12 @@ sub vector_seq {
 #
 #Methods for T7 specific order sequences
 #
+sub t7_vector_seq {
+    my ( $self ) = @_;
+
+    return "G" . $self->t7_guide_rna;
+}
+
 sub t7_guide_rna {
     my ( $self ) = @_;
 

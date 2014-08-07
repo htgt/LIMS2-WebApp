@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.227     2014-08-01 08:47:24 Europe/London
+
+    Attempt to merge variants in target region VCF file for crispr es qc.
+
+0.226     2014-07-31 16:13:34 Europe/London
+
+    Added support for crispr_ep and assembly plates to the gene summary page
+
 0.225     2014-07-28 09:10:26 Europe/London
 
     Deal with crispr qc where well has no valid crispr pair.
