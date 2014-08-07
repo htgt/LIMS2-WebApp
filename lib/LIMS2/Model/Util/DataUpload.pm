@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.226';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.231';
 }
 ## use critic
 
@@ -122,6 +122,10 @@ sub upload_plate_pcr_status {
     check_plate_type( $plate, [ qw(DESIGN) ]  );
 
     for my $datum ( @{$data} ) {
+
+        # remove any whitespace and get it lowercased
+        $datum->{'l_pcr_result'} = lc trim_string($datum->{'l_pcr_result'});
+        $datum->{'r_pcr_result'} = lc trim_string($datum->{'r_pcr_result'});
 
         my $validated_params = $model->check_params( $datum, pspec__check_pcr_status() );
 
@@ -301,6 +305,15 @@ sub spreadsheet_to_csv {
     }
 
     return \%worksheets;
+}
+
+# remove whitespace from beginning and end of string
+sub trim_string {
+    my $string = shift;
+
+    $string =~ s/(^\s+|\s+$)//g;
+
+    return $string;
 }
 
 ## no critic (RequireFinalReturn)

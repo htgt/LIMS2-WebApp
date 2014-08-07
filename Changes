@@ -1,3 +1,21 @@
+0.231     2014-08-07 13:37:00 Europe/London
+
+0.230     2014-08-04 15:37:08 Europe/London
+
+    Bugfix: T7 crispr backbone needs all 20 bases of guide RNA
+
+0.229     2014-08-01 12:42:46 Europe/London
+    
+    Previous release did not work for some reason
+
+0.228     2014-08-01 11:08:14 Europe/London
+
+    Added traces to crispr qc page
+
+0.227     2014-08-01 08:47:24 Europe/London
+
+    Attempt to merge variants in target region VCF file for crispr es qc.
+
 0.226     2014-07-31 16:13:34 Europe/London
 
     Added support for crispr_ep and assembly plates to the gene summary page

@@ -241,6 +241,7 @@ lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
 lib/LIMS2/WebApp/Controller/API/QC.pm
 lib/LIMS2/WebApp/Controller/API/Report.pm
+lib/LIMS2/WebApp/Controller/API/Traces.pm
 lib/LIMS2/WebApp/Controller/Admin.pm
 lib/LIMS2/WebApp/Controller/Auth.pm
 lib/LIMS2/WebApp/Controller/FixtureData.pm
@@ -2235,7 +2236,11 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
+root/static/js/excanvas.min.js
 root/static/js/jquery-1.7.2.min.js
+root/static/js/jquery.flot.min.js
+root/static/js/jquery.flot.navigate.min.js
+root/static/js/jquery.flot.traceviewer.js
 root/static/js/jquery.qtip.min.js
 root/static/js/poller.js
 root/static/js/raphael-min.js
