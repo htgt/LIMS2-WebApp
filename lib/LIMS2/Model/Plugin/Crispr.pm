@@ -531,6 +531,39 @@ sub import_wge_pairs {
     return @output;
 }
 
+sub pspec_retrieve_crispr_group {
+    return {
+        id => { validate => 'integer' },
+    };
+}
+
+sub retrieve_crispr_group {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_group );
+
+    my $crispr_group = $self->retrieve(
+        CrisprGroup => {  'me.id' => $validated_params->{id} },
+    );
+
+    return $crispr_group;
+}
+
+sub pspec_create_crispr_group {
+    return {
+        #crispr_ids
+        #gene_id
+        #gene_type_id
+    };
+}
+
+sub create_crispr_group {
+    my ( $self, $params ) = @_;
+
+    # validate params
+    # create crispr group
+    # add links in crispr_group_crisprs table
+}
 
 1;
 
