@@ -142,8 +142,8 @@ has ranked_crisprs => (
 );
 
 sub _build_ranked_crisprs {
-    my $self;
-    return [ sort { $a->chr_start <=> $b->chr_start } map{ $_->current_locus } $self->crisprs ];
+    my $self = shift;
+    return [ sort { $a->current_locus->chr_start <=> $b->current_locus->chr_start } $self->crisprs ];
 }
 
 has left_crispr  => (
@@ -187,14 +187,6 @@ sub as_string {
     return $self->id . '(' . join( '-', map { $_->id } $self->crisprs ) . ')';
 }
 
-sub right_crispr_locus {
-    return shift->right_crispr->current_locus;
-}
-
-sub left_crispr_locus {
-    return shift->left_crispr->current_locus;
-}
-
 sub start {
     return shift->left_crispr->current_locus->chr_start;
 }
@@ -209,6 +201,10 @@ sub chr_id {
 
 sub chr_name {
     return shift->right_crispr->current_locus->chr->name;
+}
+
+sub species {
+    return shift->right_crispr->species_id;
 }
 
 sub target_slice {
@@ -234,4 +230,5 @@ sub is_pair { return; }
 sub is_group { return 1; }
 
 __PACKAGE__->meta->make_immutable;
+
 1;
