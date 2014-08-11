@@ -810,6 +810,14 @@ sub parent_processes{
 	return @parent_processes;
 }
 
+sub parent_wells {
+    my $self = shift;
+
+    my @parent_processes = $self->parent_processes;
+
+    return map{ $_->input_wells } @parent_processes;
+}
+
 sub child_processes{
     my $self = shift;
 

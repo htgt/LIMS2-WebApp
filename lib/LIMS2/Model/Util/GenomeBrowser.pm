@@ -28,6 +28,7 @@ use Sub::Exporter -setup => {
 };
 
 use Log::Log4perl qw( :easy );
+use Data::Dumper;
 
 =head2 crisprs_for_region
 
@@ -173,48 +174,20 @@ sub crisprs_to_gff {
                     . 'C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                     . 'seq=' . $crispr_r->crispr->seq . ';'
-                    . 'pam_right=' . ($crispr_r->crispr->pam_right // 'N/A') . ';'
-                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id // 'N/A')
+                    . 'pam_right=' . ($crispr_r->crispr->pam_right || 'N/A') . ';'
+                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id || 'N/A')
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'type'} = 'CDS';
-            if ( defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '1') ) {
-                # pam_right was 1
-                $crispr_format_hash{'end'} = $crispr_r->chr_end - 2;
-            }
-            elsif (defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '0') ) {
-                # pam_right was 0
-                $crispr_format_hash{'start'} = $crispr_r->chr_start + 2;
-            }
-            # for a few vwery old examples, PAM right is not defined, so we can't colour it
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . '1_' . $crispr_r->crispr_id . ';'
-                    . 'Parent=C_' . $crispr_r->crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
-                    . 'color=#45A825'; # greenish
-            my $crispr_child_a_datum = prep_gff_datum( \%crispr_format_hash );
-            if (defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '1') ) {
-                $crispr_format_hash{'end'} = $crispr_r->chr_end;
-                $crispr_format_hash{'start'} = $crispr_r->chr_end - 2;
-            }
-            elsif (defined $crispr_r->crispr->pam_right && ($crispr_r->crispr->pam_right eq '0') ) {
-                $crispr_format_hash{'start'} = $crispr_r->chr_start;
-                $crispr_format_hash{'end'} = $crispr_r->chr_start + 2
-            }
-            my $crispr_child_b_datum;
-            if ( defined $crispr_r->crispr->pam_right ) {
-                $crispr_format_hash{'attributes'} =     'ID='
-                    . '2_' . $crispr_r->crispr_id . ';'
-                    . 'Parent=C_' . $crispr_r->crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
-                    . 'color=#DDC808'; # yellowish
-                $crispr_child_b_datum = prep_gff_datum( \%crispr_format_hash );
+            push @crisprs_gff, $crispr_parent_datum;
 
-                push @crisprs_gff, $crispr_parent_datum, $crispr_child_a_datum, $crispr_child_b_datum ;
-            }
-            else {
-                push @crisprs_gff, $crispr_parent_datum, $crispr_child_a_datum ;
-            }
+            my $crispr_display_info = {
+                id => $crispr_r->crispr_id,
+                chr_start => $crispr_r->chr_start,
+                chr_end => $crispr_r->chr_end,
+                pam_right => $crispr_r->crispr->pam_right,
+                colour => '#45A825', # greenish
+            };
+            push @crisprs_gff, _make_crispr_and_pam_cds($crispr_display_info, \%crispr_format_hash, 'C_' . $crispr_r->crispr_id);
         }
 
     return \@crisprs_gff;
@@ -250,6 +223,7 @@ sub crispr_pairs_to_gff {
         . $params->{'end_coord'} ;
 
         while ( my $crispr_r = $crisprs_rs->next ) {
+            my $pair_id = $crispr_r->pair_id;
             my %crispr_format_hash = (
                 'seqid' => $params->{'chromosome_number'},
                 'source' => 'LIMS2',
@@ -261,28 +235,33 @@ sub crispr_pairs_to_gff {
 #                'strand' => '.',
                 'phase' => '.',
                 'attributes' => 'ID='
-                    . $crispr_r->pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->pair_id
+                    . $pair_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $pair_id
                 );
             my $crispr_pair_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'type'} = 'CDS';
-            $crispr_format_hash{'end'} = $crispr_r->left_crispr_end;
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->left_crispr_id . ';'
-                    . 'Parent=' . $crispr_r->pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->left_crispr_id . ';'
-                    . 'color=#AA2424'; # reddish
-            my $crispr_left_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'start'} = $crispr_r->right_crispr_start;
-            $crispr_format_hash{'end'} = $crispr_r->right_crispr_end;
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->right_crispr_id . ';'
-                    . 'Parent=' . $crispr_r->pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->right_crispr_id . ';'
-                    . 'color=#1A8599'; # blueish
-#            $crispr_format_hash{'attributes'} = $crispr_r->pair_id;
-            my $crispr_right_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crisprs_gff, $crispr_pair_parent_datum, $crispr_left_datum, $crispr_right_datum ;
+            push @crisprs_gff, $crispr_pair_parent_datum;
+
+            my $crispr_display_info = {
+                left => {
+                    id    => $crispr_r->left_crispr_id,
+                    chr_start => $crispr_r->left_crispr_start,
+                    chr_end   => $crispr_r->left_crispr_end,
+                    pam_right => $crispr_r->left_crispr_pam_right,
+                    colour => '#AA2424', # reddish
+                },
+                right => {
+                    id    => $crispr_r->right_crispr_id,
+                    chr_start => $crispr_r->right_crispr_start,
+                    chr_end   => $crispr_r->right_crispr_end,
+                    pam_right => $crispr_r->right_crispr_pam_right,
+                    colour => '#1A8599', # blueish
+                }
+            };
+
+            foreach my $side ( qw(left right) ){
+                my $crispr = $crispr_display_info->{$side};
+                push @crisprs_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $pair_id);
+            }
         }
 
 
@@ -661,23 +640,19 @@ sub unique_crispr_data_to_gff {
                     . 'Name=' . 'LIMS2' . '-' . $crispr_id
                 );
             my $crispr_pair_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'type'} = 'CDS';
-            $crispr_format_hash{'end'} = $pair->{'left_crispr'}->{'chr_end'};
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $pair->{'left_crispr'}->{'id'} . ';'
-                    . 'Parent=' . $crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $pair->{'left_crispr'}->{'id'} . ';'
-                    . 'color=#AA2424'; # reddish
-            my $crispr_left_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'start'} = $pair->{'right_crispr'}->{'chr_start'};
-            $crispr_format_hash{'end'} = $pair->{'right_crispr'}->{'chr_end'};
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $pair->{'right_crispr'}->{'id'} . ';'
-                    . 'Parent=' . $crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $pair->{'right_crispr'}->{'id'} . ';'
-                    . 'color=#1A8599'; # blueish
-            my $crispr_right_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crispr_data_gff, $crispr_pair_parent_datum, $crispr_left_datum, $crispr_right_datum ;
+            push @crispr_data_gff, $crispr_pair_parent_datum;
+
+            my $crispr_display_info = {
+                left => $pair->{left_crispr},
+                right => $pair->{right_crispr},
+            };
+            $crispr_display_info->{left}->{colour} = '#AA2424'; # reddish
+            $crispr_display_info->{right}->{colour} = '#1A8599'; # blueish
+
+            foreach my $side ( qw(left right) ){
+                my $crispr = $crispr_display_info->{$side};
+                push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_id);
+            }
 
         }
         elsif ($crispr_type eq 'crispr_single') {
@@ -696,16 +671,72 @@ sub unique_crispr_data_to_gff {
                     . 'Name=' . 'LIMS2' . '-' . $crispr_id
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'type'} = 'CDS';
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_id . ';'
-                    . 'Parent=C_' . $crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_id . ';'
-                    . 'color=#45A825'; # greenish
-            my $crispr_child_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crispr_data_gff, $crispr_parent_datum, $crispr_child_datum ;
+            push @crispr_data_gff, $crispr_parent_datum;
+
+            $crispr->{colour} = '#45A825'; # greenish
+            push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$crispr_id);
         }
+
     return \@crispr_data_gff;
 }
 
+sub _make_crispr_and_pam_cds{
+    my ($crispr_display_info, $crispr_format_hash, $parent_id) = @_;
+
+    # crispr display info must contain keys:
+    # id, chr_start, chr_end, pam_right, colour
+
+    my $crispr = $crispr_display_info;
+    if(defined $crispr->{pam_right}){
+        my ($pam_start, $pam_end);
+        if($crispr->{pam_right}){
+            $crispr_format_hash->{'start'} = $crispr->{chr_start};
+            $crispr_format_hash->{'end'} = $crispr->{chr_end} - 2;
+            $pam_start =  $crispr->{chr_end} - 2;
+            $pam_end = $crispr->{chr_end};
+        }
+        else{
+            $crispr_format_hash->{'start'} = $crispr->{chr_start} + 2;
+            $crispr_format_hash->{'end'} = $crispr->{chr_end};
+            $pam_start = $crispr->{chr_start};
+            $pam_end = $crispr->{chr_start} + 2;
+        }
+
+        # This is the crispr without PAM
+        $crispr_format_hash->{'type'} = 'CDS';
+        $crispr_format_hash->{'attributes'} =     'ID='
+            . 'Crispr_' . $crispr->{id} . ';'
+            . 'Parent=' . $parent_id . ';'
+            . 'Name=LIMS2-' . $crispr->{id} . ';'
+            . 'color=' .$crispr->{colour};
+        my $crispr_datum = prep_gff_datum( $crispr_format_hash );
+
+        # This is the PAM
+        $crispr_format_hash->{start} = $pam_start;
+        $crispr_format_hash->{end} = $pam_end;
+        $crispr_format_hash->{'attributes'} = 'ID='
+                . 'PAM_' . $crispr->{id} . ';'
+                . 'Parent=' . $parent_id . ';'
+                . 'Name=LIMS2-' . $crispr->{id} . ';'
+                . 'color=#DDC808'; # yellowish
+        my $pam_child_datum = prep_gff_datum( $crispr_format_hash );
+
+        return ($crispr_datum, $pam_child_datum);
+    }
+    else{
+        # We don't have pam right flag so just make the crispr cds
+        $crispr_format_hash->{start} = $crispr->{chr_start};
+        $crispr_format_hash->{end} = $crispr->{chr_end};
+        $crispr_format_hash->{'type'} = 'CDS';
+        $crispr_format_hash->{'attributes'} =     'ID='
+            . $crispr->{id} . ';'
+            . 'Parent=' . $parent_id . ';'
+            . 'Name=' . $crispr->{id} . ';'
+            . 'color=' .$crispr->{colour};
+        my $crispr_datum = prep_gff_datum( $crispr_format_hash );
+        return $crispr_datum;
+    }
+
+    return;
+}
 1;

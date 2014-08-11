@@ -135,12 +135,6 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
     $c->assert_user_roles( 'edit' );
 
-    # certain users do not want to see design creation in LIMS2
-    if ( $c->user->name eq 'mt4@sanger.ac.uk' ) {
-        $c->stash( template => 'user/createdesign/redirect_wge.tt' );
-        return;
-    }
-
     return unless $c->request->param('gene_pick');
 
     my $gene_id = $c->request->param('search_gene');

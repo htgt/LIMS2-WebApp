@@ -20,6 +20,16 @@
       [% FOR col IN columns %]
         [% IF col == "Stage" %]
            <th style="width:240px">[% col %]</th>
+        [% ELSIF col == "Barry Short Arm Recovery" %]
+          <th>[% col %]<br /> <font size="1" face="arial" color="dimgray">Recombineering, Short arm, Crispr in LoxP, Zygote</font></th>
+        [% ELSIF col == "EUCOMMTools Recovery" %]
+          <th>[% col %]<br /> <font size="1" face="arial" color="dimgray">Recombineering, Long/Short arm, Crispr in LoxP, Het ES cell</font></th>
+        [% ELSIF col == "MGP Recovery" %]
+          <th>[% col %]<br /> <font size="1" face="arial" color="dimgray">No vector, Exon flank crisprs, Zygote</font></th>
+        [% ELSIF col == "Pathogen Group 1" %]
+          <th>[% col %]<br /> <font size="1" face="arial" color="dimgray">Recombineering, Long arm, Crispr in exon, Hom ES cell</font></th>
+        [% ELSIF col == "Pathogen Group 2" %]
+          <th>[% col %]<br /> <font size="1" face="arial" color="dimgray">Gibson, Crispr in exon, Hom ES cell</font></th>
         [% ELSE %]
            <th>[% col %]</th>
         [% END %]
