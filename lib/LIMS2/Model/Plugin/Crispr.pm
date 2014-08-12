@@ -567,18 +567,14 @@ sub create_crispr_group {
         try {
             # create the group for the given gene
             $crispr_group = $self->schema->resultset('CrisprGroup')->create({
-                gene_id      => ${$validated_params}{'gene_id'},
-                gene_type_id => ${$validated_params}{'gene_type_id'},
+                gene_id      => $validated_params->{'gene_id'},
+                gene_type_id => $validated_params->{'gene_type_id'},
             });
             $self->log->debug( 'Create crispr group ' . $crispr_group->id );
 
             # add the given crisprs to that group
-            foreach my $crispr_id ( @{${$validated_params}{'crispr_ids'}} ) {
-                my $crispr_group_crispr = $self->schema->resultset('CrisprGroupCrispr')->create({
-                    crispr_group_id => $crispr_group->id,
-                    crispr_id       => $crispr_id,
-                });
-                $self->log->debug( 'Create crispr group crispr ' . $crispr_group_crispr->id );
+            foreach my $crispr_id ( @{ $validated_params->{'crispr_ids'} } ) {
+                $crispr_group->crispr_group_crisprs->create( { crispr_id => $crispr_id } );
             }
 
         }
