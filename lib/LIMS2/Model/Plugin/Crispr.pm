@@ -551,18 +551,45 @@ sub retrieve_crispr_group {
 
 sub pspec_create_crispr_group {
     return {
-        #crispr_ids
-        #gene_id
-        #gene_type_id
+        crispr_ids   => { validate => 'integer' },
+        gene_id      => { validate => 'non_empty_string' },
+        gene_type_id => { validate => 'non_empty_string' },
     };
 }
 
 sub create_crispr_group {
     my ( $self, $params ) = @_;
 
-    # validate params
-    # create crispr group
-    # add links in crispr_group_crisprs table
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_group );
+
+    my $crispr_group;
+    $self->schema->txn_do( sub {
+        try {
+            # create the group for the given gene
+            $crispr_group = $self->schema->resultset('CrisprGroup')->create({
+                gene_id      => ${$validated_params}{'gene_id'},
+                gene_type_id => ${$validated_params}{'gene_type_id'},
+            });
+            $self->log->debug( 'Create crispr group ' . $crispr_group->id );
+
+            # add the given crisprs to that group
+            foreach my $crispr_id ( @{${$validated_params}{'crispr_ids'}} ) {
+                my $crispr_group_crispr = $self->schema->resultset('CrisprGroupCrispr')->create({
+                    crispr_group_id => $crispr_group->id,
+                    crispr_id       => $crispr_id,
+                });
+                $self->log->debug( 'Create crispr group crispr ' . $crispr_group_crispr->id );
+            }
+
+        }
+        catch ($err) {
+            $self->schema->txn_rollback;
+            LIMS2::Exception->throw( "Error creating crispr group: $err" );
+        }
+
+    });
+
+    return $crispr_group;
 }
 
 1;
