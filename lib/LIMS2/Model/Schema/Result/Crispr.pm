@@ -294,19 +294,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 crispr_groups
 
-Type: many_to_many
-
-Composing rels: L</crispr_group_crisprs> -> crispr_group
-
-=cut
-
-__PACKAGE__->many_to_many("crispr_groups", "crispr_group_crisprs", "crispr_group");
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-05 11:24:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r1DV0y0PnOHpGFMIqc0UOA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y6PtCetsdH2ctfQWcfNotQ
 
 use Bio::Perl qw( revcom );
 

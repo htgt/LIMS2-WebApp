@@ -101,6 +101,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers",
+  "LIMS2::Model::Schema::Result::CrisprPrimer",
+  { "foreign.crispr_group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 gene_type
 
 Type: belongs_to
@@ -121,19 +136,9 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 crisprs
 
-Type: many_to_many
-
-Composing rels: L</crispr_group_crisprs> -> crispr
-
-=cut
-
-__PACKAGE__->many_to_many("crisprs", "crispr_group_crisprs", "crispr");
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-05 11:24:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ObWhOEVIrkCKQIFZhDgbNg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L64+4SL07Gv0mJ+k8wxPWg
 
 has ranked_crisprs => (
     is         => 'ro',

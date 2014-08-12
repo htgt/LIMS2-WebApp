@@ -7,6 +7,7 @@ CREATE TABLE crispr_groups (
 CREATE TABLE crispr_group_crisprs (
     crispr_group_id      INTEGER NOT NULL REFERENCES crispr_groups(id),
     crispr_id            INTEGER NOT NULL REFERENCES crisprs(id),
+    five_prime           BOOLEAN NOT NULL,
     PRIMARY KEY(crispr_group_id, crispr_id)
 );
 

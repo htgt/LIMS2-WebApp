@@ -50,6 +50,11 @@ __PACKAGE__->table("crispr_group_crisprs");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 five_prime
+
+  data_type: 'boolean'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -57,6 +62,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "crispr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "five_prime",
+  { data_type => "boolean", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -106,8 +113,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-05 11:24:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7aK6+qD+LiX+ZUvKiCH8Aw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ud07GGrvSsexnqj6gmoMTA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
