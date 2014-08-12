@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.230';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.231';
 }
 ## use critic
 
@@ -422,6 +422,12 @@ sub vector_seq {
 #
 #Methods for T7 specific order sequences
 #
+sub t7_vector_seq {
+    my ( $self ) = @_;
+
+    return "G" . $self->t7_guide_rna;
+}
+
 sub t7_guide_rna {
     my ( $self ) = @_;
 

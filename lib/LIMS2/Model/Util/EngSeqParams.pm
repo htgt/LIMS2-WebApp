@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.230';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.231';
 }
 ## use critic
 
@@ -373,7 +373,7 @@ sub generate_crispr_eng_seq_params {
     #backbones in this list need to have the full guide rna
     #normally we take 19 bases and add a G at the start
     my %t7_backbones = map { $_ => 1 } qw( T7_gRNA_BSA1 );
-    my $crispr_seq = exists $t7_backbones{ $backbone } ? $crispr->t7_guide_rna : $crispr->vector_seq;
+    my $crispr_seq = exists $t7_backbones{ $backbone } ? $crispr->t7_vector_seq : $crispr->vector_seq;
 
     my $method = 'crispr_vector_seq';
     my $display_id = $backbone . '#' . $crispr->id;
