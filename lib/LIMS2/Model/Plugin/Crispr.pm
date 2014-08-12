@@ -551,12 +551,13 @@ sub retrieve_crispr_group {
 
 sub pspec_create_crispr_group {
     return {
-        crispr_ids   => { validate => 'integer' },
+        crisprs      => { validate => 'hashref' },
         gene_id      => { validate => 'non_empty_string' },
         gene_type_id => { validate => 'non_empty_string' },
     };
 }
 
+# needs as params the gene_id and gene_type_id, and an array of hashes containing the crispr_id and the five_prime boolean
 sub create_crispr_group {
     my ( $self, $params ) = @_;
 
@@ -573,8 +574,11 @@ sub create_crispr_group {
             $self->log->debug( 'Create crispr group ' . $crispr_group->id );
 
             # add the given crisprs to that group
-            foreach my $crispr_id ( @{ $validated_params->{'crispr_ids'} } ) {
-                $crispr_group->crispr_group_crisprs->create( { crispr_id => $crispr_id } );
+            foreach my $crispr ( @{ $validated_params->{'crisprs'} } ) {
+                $crispr_group->crispr_group_crisprs->create( {
+                    crispr_id  => $crispr->{'crispr_id'},
+                    five_prime => $crispr->{'five_prime'},
+                } );
             }
 
         }
