@@ -32,23 +32,17 @@ override _build_name => sub {
 override _build_columns => sub {
     return [
         'Gene',
-        'Project',
+        'Design Id',
         'Sponsor',
+        'Project',
         'Final DNA', # dna_ from summaries
-        'Left Crispr DNA',
-        'Right Crispr DNA',
+        'Crispr DNA',
         'Assembly Wells', # with vector, left and right crispr DNA wells
         'EP wells', # crispr_ep from summaries with parent assembly well
         'EPD wells', # ep_picks from summaries
     ];
 };
 
-sub build_summary_data {
-    my $self = shift;
-    my $sponsor = shift(@_);
-#    my %report_data;
-$DB::single=1;
-}
 
 sub design_summary {
     my $self = shift;
@@ -179,9 +173,20 @@ sub crispr_acc_wells {
     my $self = shift;
     my $design_id = shift;
 $DB::single=1;
-    my $crispr_design_wells = $self->get_crispr_wells_for_design( $design_id); 
+    my @crispr_design_wells = $self->model->get_crispr_wells_for_design( $design_id); 
+    my $crispr_acc_wells;
+    if (scalar (@crispr_design_wells) > 0 ) {
+        my @crispr_well_names;
+        foreach my $crispr_well ( @crispr_design_wells ) {
+            push @crispr_well_names, $crispr_well->plate->name . '[' . $crispr_well->name . ']';
+        }
+        $crispr_acc_wells = join(',', @crispr_well_names);
+    }
+    else {
+        $crispr_acc_wells = 'None';
+    }
 
-    return;
+    return $crispr_acc_wells;
 }
 
 
@@ -197,7 +202,8 @@ $DB::single=1;
     else {
         if ($self->species eq 'Mouse') {
                 @sponsors = ('Core', 'Syboss', 'Pathogens');
-        } else {
+        }
+        elsif ( $self->species eq 'Human') {
                 @sponsors = ('Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
         }
     }
@@ -207,50 +213,72 @@ $DB::single=1;
 #    	push ( @{$summary_data},  @{$sponsor_data});
 #	}
 
-    my $projects_rs = $self->model->schema->resultset('Project')->search({
-        sponsor_id     => $sponsor,
+    my $project_rs = $self->model->schema->resultset('Project')->search({
+        sponsor_id     => { -in => @sponsors },
     },{
         select => [ 'gene_id' ],
     }); 
     my @gene_list;
 
     while (my $project = $project_rs->next) {
-# create list of genes
+    # create list of genes
         push @gene_list, $project->gene_id;
     }
     my $gene_designs_rs = $self->model->schema->resultset('GeneDesign')->search({
-        gene_id => $project->gene_id
+        gene_id => { -in => [@gene_list] },
     },{
         select => [ 'design_id' ],
     });
+    # Further restrict the design_id list by checking whether there are any rows for them in the summaries table
+    #
 
-    
+    my @design_id_list;
+    while ( my $gene_design = $gene_designs_rs->next ) {
+        push @design_id_list, $gene_design->design_id;
+    }
+    DEBUG ( 'First pass design_id count: ' . scalar(@design_id_list) );
+    my $summary_design_id_rs = $self->model->schema->resultset('Summary')->search({
+            design_id => { -in => [@design_id_list] },
+        },
+        {
+            select => [ 'design_id' ],
+            distinct => 1,
+        });
+    DEBUG ( 'Summary design_id count: ' . $summary_design_id_rs->count ); 
 
     return Iterator::Simple::iter sub {
-        my @output;
+$DB::single=1;
 
-        # Loop through designs
-        foreach my $gene_design (@gene_designs) {
-            my @table_row;
+        my $gene_design = $summary_design_id_rs->next
+            or return; 
+        DEBUG ( 'Preparing row for design_id: ' . $gene_design->design_id);
 
-            my $summary_design = $self->design_summary( $gene_design->design_id );
+        my @table_row;
 
+        my $summary_design = $self->design_summary( $gene_design->design_id );
+
+
+        if ($summary_design->count > 0) {
             push @table_row,
-                $summary_design->design_gene_symbol,
-                $sponsor;
+                $summary_design->first->design_gene_symbol; # Gene
+            push @table_row, $gene_design->design_id;       # Design
+            push @table_row, 'Not yet';#$project;                      # Project
+            push @table_row, 'Nearly'; #$sponsor;                      # Sponsor
+
             push @table_row,
                 $self->final_dna_wells( $summary_design );
-
             push @table_row,
                 $self->crispr_acc_wells( $gene_design->design_id );
-
+            push @table_row,
+                'Not implemented';
             push @table_row,
                 $self->crispr_ep_wells( $summary_design );            
             push @table_row,
                 $self->ep_pick_wells( $summary_design );            
+        }
+        DEBUG ( join( '::', @table_row)); 
 
-            push @output, @table_row;
-       } 
+        return \@table_row;
     }
 
 
@@ -262,10 +290,6 @@ $DB::single=1;
 #        ] );
 #    }
 #
-    return \@output;
-
-
-    } 
 };
 
 __PACKAGE__->meta->make_immutable;
