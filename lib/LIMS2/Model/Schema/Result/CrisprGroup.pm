@@ -139,6 +139,16 @@ __PACKAGE__->belongs_to(
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L64+4SL07Gv0mJ+k8wxPWg
+#
+=head2 crisprs
+
+Type: many_to_many
+
+Composing rels: L</crispr_group_crisprs> -> crispr
+
+=cut
+
+__PACKAGE__->many_to_many("crisprs", "crispr_group_crisprs", "crispr");
 
 has ranked_crisprs => (
     is         => 'ro',
