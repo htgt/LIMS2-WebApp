@@ -43,6 +43,12 @@ override _build_columns => sub {
     ];
 };
 
+has concat_str => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => ', ',
+);
+
 
 sub design_summary {
     my $self = shift;
@@ -78,13 +84,57 @@ sub final_dna_wells {
         push @dna_wells, ($dna_well->dna_plate_name . '[' . $dna_well->dna_well_name . ']');
     }
     if ( scalar(@dna_wells) > 0 ) {
-        $final_dna_wells = join( ',', @dna_wells);
+        $final_dna_wells = join( $self->concat_str, @dna_wells);
     }
     else {
         $final_dna_wells = 'None';
-    }   
+    }
 
     return $final_dna_wells;
+}
+
+
+sub assembly_wells {
+    my $self = shift;
+    my $source_rs = shift;
+
+    my $source_conditions = {
+#        'assembly_well_accepted' => 't',
+    };
+
+    my $other_conditions = {
+        columns => [ qw/assembly_plate_name assembly_well_name assembly_well_left_crispr_well_id assembly_well_right_crispr_well_id/ ],
+        distinct => 1,
+        order_by => 'assembly_plate_name, assembly_well_name, assembly_well_left_crispr_well_id, assembly_well_right_crispr_well_id',
+    };
+
+    my $assembly_data = $source_rs->search(
+        $source_conditions,
+        $other_conditions,
+    );
+
+    my $assembly_wells;
+    my @assembly_wells_list;
+    while ( my $assembly_well = $assembly_data->next ) {
+        if ( $assembly_well->assembly_plate_name && $assembly_well->assembly_well_name ) {
+            my $left_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->assembly_well_left_crispr_well_id });
+            my $left_crispr_well_string = $left_crispr_res->plate->name . '[' . $left_crispr_res->name . ']';
+            my $right_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->assembly_well_right_crispr_well_id });
+            my $right_crispr_well_string = $right_crispr_res->plate->name . '[' . $right_crispr_res->name . ']';
+            push @assembly_wells_list, ($assembly_well->assembly_plate_name . '[' . $assembly_well->assembly_well_name . ']'
+                . ':' . $left_crispr_well_string
+                . ':' . $right_crispr_well_string
+            );
+        }
+    }
+    if ( scalar(@assembly_wells_list) > 0 ) {
+        $assembly_wells = join( $self->concat_str , @assembly_wells_list );
+    }
+    else {
+        $assembly_wells = 'None';
+    }
+
+    return $assembly_wells;
 }
 
 sub crispr_ep_wells {
@@ -101,7 +151,7 @@ sub crispr_ep_wells {
             'crispr_ep_well_name' => { '!=', undef },
         ],
     };
-    
+
     $other_conditions = {
          columns => [ qw/crispr_ep_plate_name crispr_ep_well_name/ ],
          distinct => 1,
@@ -125,7 +175,7 @@ sub crispr_ep_wells {
         }
     }
     if (scalar (@crispr_ep_wells) > 0 ) {
-        $final_crispr_ep_wells = join( ',', @crispr_ep_wells);
+        $final_crispr_ep_wells = join( $self->concat_str, @crispr_ep_wells);
     }
     else {
         $final_crispr_ep_wells = 'None';
@@ -143,7 +193,7 @@ sub ep_pick_wells {
     };
     my $other_conditions = {
         columns => [ qw/ep_pick_plate_name ep_pick_well_name/ ],
-        distinct => 1, 
+        distinct => 1,
         order_by => 'ep_pick_plate_name, ep_pick_well_name',
     };
 
@@ -160,7 +210,7 @@ sub ep_pick_wells {
     }
 
     if (scalar (@ep_wells) > 0 ) {
-        $ep_pick_wells = join( ',', @ep_wells);
+        $ep_pick_wells = join( $self->concat_str, @ep_wells);
     }
     else {
         $ep_pick_wells = 'None';
@@ -172,15 +222,15 @@ sub ep_pick_wells {
 sub crispr_acc_wells {
     my $self = shift;
     my $design_id = shift;
-$DB::single=1;
-    my @crispr_design_wells = $self->model->get_crispr_wells_for_design( $design_id); 
+
+    my @crispr_design_wells = $self->model->get_crispr_wells_for_design( $design_id);
     my $crispr_acc_wells;
     if (scalar (@crispr_design_wells) > 0 ) {
         my @crispr_well_names;
         foreach my $crispr_well ( @crispr_design_wells ) {
             push @crispr_well_names, $crispr_well->plate->name . '[' . $crispr_well->name . ']';
         }
-        $crispr_acc_wells = join(',', @crispr_well_names);
+        $crispr_acc_wells = join($self->concat_str, @crispr_well_names);
     }
     else {
         $crispr_acc_wells = 'None';
@@ -192,8 +242,7 @@ $DB::single=1;
 
 override iterator => sub {
     my ( $self ) = @_;
-$DB::single=1;
-    my $summary_data;
+
     my @sponsors;
 
     if ( $self->sponsor ne 'All' ) {
@@ -217,7 +266,7 @@ $DB::single=1;
         sponsor_id     => { -in => @sponsors },
     },{
         select => [ 'gene_id' ],
-    }); 
+    });
     my @gene_list;
 
     while (my $project = $project_rs->next) {
@@ -244,13 +293,12 @@ $DB::single=1;
             select => [ 'design_id' ],
             distinct => 1,
         });
-    DEBUG ( 'Summary design_id count: ' . $summary_design_id_rs->count ); 
+    DEBUG ( 'Summary design_id count: ' . $summary_design_id_rs->count );
 
     return Iterator::Simple::iter sub {
-$DB::single=1;
 
         my $gene_design = $summary_design_id_rs->next
-            or return; 
+            or return;
         DEBUG ( 'Preparing row for design_id: ' . $gene_design->design_id);
 
         my @table_row;
@@ -262,21 +310,21 @@ $DB::single=1;
             push @table_row,
                 $summary_design->first->design_gene_symbol; # Gene
             push @table_row, $gene_design->design_id;       # Design
-            push @table_row, 'Not yet';#$project;                      # Project
-            push @table_row, 'Nearly'; #$sponsor;                      # Sponsor
+            push @table_row, 'Not yet';#$project;           # Project
+            push @table_row, 'Nearly'; #$sponsor;           # Sponsor
 
             push @table_row,
                 $self->final_dna_wells( $summary_design );
             push @table_row,
                 $self->crispr_acc_wells( $gene_design->design_id );
             push @table_row,
-                'Not implemented';
+                $self->assembly_wells( $summary_design );
             push @table_row,
-                $self->crispr_ep_wells( $summary_design );            
+                $self->crispr_ep_wells( $summary_design );
             push @table_row,
-                $self->ep_pick_wells( $summary_design );            
+                $self->ep_pick_wells( $summary_design );
         }
-        DEBUG ( join( '::', @table_row)); 
+        DEBUG ( join( '::', @table_row));
 
         return \@table_row;
     }
