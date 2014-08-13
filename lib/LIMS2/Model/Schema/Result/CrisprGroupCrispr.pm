@@ -50,7 +50,7 @@ __PACKAGE__->table("crispr_group_crisprs");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 five_prime
+=head2 left_of_target
 
   data_type: 'boolean'
   is_nullable: 0
@@ -62,7 +62,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "crispr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "five_prime",
+  "left_of_target",
   { data_type => "boolean", is_nullable => 0 },
 );
 
@@ -113,8 +113,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ud07GGrvSsexnqj6gmoMTA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-13 10:59:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jYbbFSlBsaH2FCvzeFoflw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

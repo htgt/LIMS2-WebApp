@@ -557,7 +557,7 @@ sub pspec_create_crispr_group {
     };
 }
 
-# needs as params the gene_id and gene_type_id, and an array of hashes containing the crispr_id and the five_prime boolean
+# needs as params the gene_id and gene_type_id, and an array of hashes containing the crispr_id and the left_of_target boolean
 sub create_crispr_group {
     my ( $self, $params ) = @_;
 
@@ -577,7 +577,7 @@ sub create_crispr_group {
             foreach my $crispr ( @{ $validated_params->{'crisprs'} } ) {
                 $crispr_group->crispr_group_crisprs->create( {
                     crispr_id  => $crispr->{'crispr_id'},
-                    five_prime => $crispr->{'five_prime'},
+                    left_of_target => $crispr->{'left_of_target'},
                 } );
             }
 
