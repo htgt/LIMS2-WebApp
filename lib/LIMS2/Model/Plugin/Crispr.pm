@@ -277,8 +277,10 @@ sub delete_crispr {
 
 sub pspec_retrieve_crispr {
     return {
-        id      => { validate => 'integer' },
-        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
+        id      => { validate => 'integer', optional => 1},
+        wge_crispr_id  => { validate => 'integer', optional => 1 },
+        REQUIRE_SOME => { id_or_wge_crispr_id => [ 1, qw( id wge_crispr_id ) ] },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 },
     };
 }
 
@@ -287,7 +289,7 @@ sub retrieve_crispr {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr );
 
-    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id species_id ) } );
+    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id wge_crispr_id species_id ) } );
 
     return $crispr;
 }

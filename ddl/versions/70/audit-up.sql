@@ -32,7 +32,8 @@ audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
 crispr_group_id integer,
-crispr_id integer
+crispr_id integer,
+left_of_target boolean
 );
 CREATE OR REPLACE FUNCTION public.process_crispr_group_crisprs_audit()
 RETURNS TRIGGER AS $crispr_group_crisprs_audit$

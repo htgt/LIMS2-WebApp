@@ -189,6 +189,7 @@ sub as_hash {
         gene_id      => $self->gene_id,
         gene_type_id => $self->gene_type_id,
         crispr_ids   => [ map{ $_->id  } $self->crisprs ],
+        group_crisprs => [ map{ $_->as_hash} $self->crispr_group_crisprs ],
     );
 
     return \%h;
