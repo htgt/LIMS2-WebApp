@@ -118,5 +118,18 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub as_hash {
+    my ( $self ) = @_;
+
+    my %h = (
+        crispr_group_id => $self->crispr_group_id,
+        crispr_id       => $self->crispr_id,
+        left_of_target  => $self->left_of_target,
+        wge_crispr_id   => $self->crispr->wge_crispr_id,
+    );
+
+    return \%h;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
