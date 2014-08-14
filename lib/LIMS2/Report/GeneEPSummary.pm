@@ -304,7 +304,6 @@ override iterator => sub {
         {
             select => [ 'design_id' ],
             distinct => 1,
-            cache => 1,
         });
     DEBUG ( 'Summary design_id count: ' . $summary_design_id_rs->count );
 
@@ -316,7 +315,6 @@ override iterator => sub {
         DEBUG ( 'Preparing row for design_id: ' . $gene_design->design_id);
 
         my @table_row;
-
         my $summary_design = $self->design_summary( $gene_design->design_id );
 
 
