@@ -31,15 +31,15 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
+        'Row id',
         'Gene',
         'Design Id',
         'Sponsor',
-        'Project',
-        'Final DNA', # dna_ from summaries
+        'Accepted Final DNA', # dna_ from summaries
         'Crispr DNA',
         'Assembly Wells', # with vector, left and right crispr DNA wells
         'EP wells', # crispr_ep from summaries with parent assembly well
-        'EPD wells', # ep_picks from summaries
+        'Accepted EP pick wells', # ep_picks from summaries
     ];
 };
 
@@ -49,6 +49,17 @@ has concat_str => (
     default => ', ',
 );
 
+has any_accepted_attribute => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => "{ '=', [ 't', 'f', undef ] },",
+);
+
+has only_accepted_attribute => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => 't',
+);
 
 sub design_summary {
     my $self = shift;
@@ -66,7 +77,8 @@ sub final_dna_wells {
     my $source_rs = shift;
 
     my $source_conditions = {
-        'dna_well_accepted' => 't',
+#        'dna_well_accepted' => eval($self->any_accepted_attribute),
+         'dna_well_accepted' => $self->only_accepted_attribute,
     };
 
     my $other_conditions = {
@@ -292,9 +304,11 @@ override iterator => sub {
         {
             select => [ 'design_id' ],
             distinct => 1,
+            cache => 1,
         });
     DEBUG ( 'Summary design_id count: ' . $summary_design_id_rs->count );
 
+    my $row_id =  0;
     return Iterator::Simple::iter sub {
 
         my $gene_design = $summary_design_id_rs->next
@@ -307,10 +321,10 @@ override iterator => sub {
 
 
         if ($summary_design->count > 0) {
+            push @table_row, ++$row_id;
             push @table_row,
                 $summary_design->first->design_gene_symbol; # Gene
             push @table_row, $gene_design->design_id;       # Design
-            push @table_row, 'Not yet';#$project;           # Project
             push @table_row, 'Nearly'; #$sponsor;           # Sponsor
 
             push @table_row,
@@ -329,15 +343,6 @@ override iterator => sub {
         return \@table_row;
     }
 
-
-#    while ( my ($key, $value) = each %report_data ) {
-#
-#        push(@output, [
-#            $value->{'gene'},
-#            $value->{'project'},
-#        ] );
-#    }
-#
 };
 
 __PACKAGE__->meta->make_immutable;
