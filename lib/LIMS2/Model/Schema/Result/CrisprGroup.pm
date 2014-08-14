@@ -161,23 +161,51 @@ sub _build_ranked_crisprs {
     return [ sort { $a->current_locus->chr_start <=> $b->current_locus->chr_start } $self->crisprs ];
 }
 
-has left_crispr  => (
+has left_ranked_crisprs => (
+    is         => 'ro',
+    isa        => 'ArrayRef[LIMS2::Model::Schema::Result::Crispr]',
+    lazy_build => 1,
+);
+
+sub _build_left_ranked_crisprs {
+    my $self = shift;
+    return [
+        sort { $a->current_locus->chr_start <=> $b->current_locus->chr_start } map { $_->crispr }
+        grep { $_->left_of_target } $self->crispr_group_crisprs
+    ];
+}
+
+has right_ranked_crisprs => (
+    is         => 'ro',
+    isa        => 'ArrayRef[LIMS2::Model::Schema::Result::Crispr]',
+    lazy_build => 1,
+);
+
+sub _build_right_ranked_crisprs {
+    my $self = shift;
+    return [
+        sort { $a->current_locus->chr_start <=> $b->current_locus->chr_start } map { $_->crispr }
+        grep { !$_->left_of_target } $self->crispr_group_crisprs
+    ];
+}
+
+has left_most_crispr  => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Crispr',
     lazy_build => 1,
 );
 
-sub _build_left_crispr {
+sub _build_left_most_crispr {
     return shift->ranked_crisprs->[0];
 }
 
-has right_crispr  => (
+has right_most_crispr  => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Crispr',
     lazy_build => 1,
 );
 
-sub _build_right_crispr {
+sub _build_right_most_crispr {
     return shift->ranked_crisprs->[-1];
 }
 
@@ -204,23 +232,23 @@ sub as_string {
 }
 
 sub start {
-    return shift->left_crispr->current_locus->chr_start;
+    return shift->left_most_crispr->current_locus->chr_start;
 }
 
 sub end {
-    return shift->right_crispr->current_locus->chr_end;
+    return shift->right_most_crispr->current_locus->chr_end;
 }
 
 sub chr_id {
-    return shift->right_crispr->current_locus->chr_id;
+    return shift->right_most_crispr->current_locus->chr_id;
 }
 
 sub chr_name {
-    return shift->right_crispr->current_locus->chr->name;
+    return shift->right_most_crispr->current_locus->chr->name;
 }
 
 sub species {
-    return shift->right_crispr->species_id;
+    return shift->right_most_crispr->species_id;
 }
 
 sub target_slice {
@@ -228,7 +256,7 @@ sub target_slice {
 
     unless ( $ensembl_util ) {
         require WebAppCommon::Util::EnsEMBL;
-        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_most_crispr->species_id );
     }
 
     my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
