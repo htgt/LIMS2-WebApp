@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.156';
+    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.233';
 }
 ## use critic
 
@@ -270,8 +270,7 @@ sub design_attempt_status_GET {
     my $status = $da->status;
     my $design_links;
     if ( $status eq 'success' ) {
-        my @design_ids = split( ' ', $da->design_ids );
-        for my $design_id ( @design_ids ) {
+        for my $design_id ( @{ $da->design_ids } ) {
             my $link = $c->uri_for('/user/view_design', { design_id => $design_id } )->as_string;
             $design_links .= '<a href="' . $link . '">'. $design_id .'</a><br>';
         }

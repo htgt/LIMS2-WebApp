@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.156';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.233';
 }
 ## use critic
 
@@ -177,6 +177,7 @@ use LIMS2::Model::Constants qw(
 %STANDARD_KO_OLIGO_APPENDS
 %STANDARD_INS_DEL_OLIGO_APPENDS
 %GIBSON_OLIGO_APPENDS
+%GLOBAL_SHORTENED_OLIGO_APPEND
 );
 
 sub as_hash {
@@ -197,16 +198,17 @@ sub as_hash {
 
 =head2 oligo_strand_vs_design_strand
 
-What is the orientation of the oligo in relation to the strand of the design it is targeted against.
+What is the orientation of the oligo in relation to the strand of the design it belongs to.
+1 means it is the same strand as the design, -1 means it is the opposite strand to the design.
 Remember, all oligo sequence is stored on the +ve strand, no matter the design strand.
 
 For example, the U5 oligo is on the same strand as the design ( 1 )
 So a U5 oligo for a +ve stranded design is on the +ve strand ( i.e do not revcomp )
-Conversly, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e revcomp it )
+Conversely, a U5 oligo for a -ve stranded design is on the -ve strand ( i.e revcomp it )
 
 The U3 oligo is on the opposite strand as the design ( -1 )
 So a U3 oligo for a +ve stranded design is on the -ve strand ( i.e revcomp it )
-Conversly, a U3 oligo for a -ve stranded design is on the +ve strand ( i.e do not revcomp )
+Conversely, a U3 oligo for a -ve stranded design is on the +ve strand ( i.e do not revcomp )
 
 =cut
 my %OLIGO_STRAND_VS_DESIGN_STRAND = (
@@ -260,10 +262,16 @@ sub append_seq {
 
     my $append_seq;
     $design_type ||= $self->design->design_type_id;
+    my $shortened_global_arm = $self->design->global_arm_shortened;
     my $oligo_type = $self->design_oligo_type_id;
 
     ## no critic (ProhibitCascadingIfElse)
-    if ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
+    # TODO add tests for global arm shortened design oligo appends
+    if ( $shortened_global_arm && $oligo_type =~ /G[5|3]/ ) {
+        $append_seq = $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type }
+            if exists $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type };
+    }
+    elsif ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
         $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type }
             if exists $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };
     }

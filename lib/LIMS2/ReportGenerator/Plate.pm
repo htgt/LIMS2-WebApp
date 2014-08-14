@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.156';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.233';
 }
 ## use critic
 
@@ -15,9 +15,19 @@ use LIMS2::Exception::Implementation;
 use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
+use Log::Log4perl qw( :easy );
 use namespace::autoclean;
+use Time::HiRes qw(time);
+use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator );
+
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 sub _report_plugins {
     return grep { $_->isa( 'LIMS2::ReportGenerator::Plate' ) }
@@ -61,6 +71,110 @@ has plate => (
 has '+param_names' => (
     default => sub { [ 'plate_name' ] }
 );
+
+has time_taken => (
+    is => 'rw',
+    default => 0,
+    isa => 'Num',
+);
+
+# HashRef linking each well on the plate to crispr wells via crispr_design
+# Structure is like this:
+#   crispr_wells => {
+#       <well_id> => {
+#          <crispr_design_id> => {
+#              single => [ <array of crispr wells> ],
+#              left   => [ <array of crispr wells> ],
+#              right  => [ <array of crispr wells> ],
+#          }
+#       }
+#   }
+has crispr_wells => (
+    is => 'ro',
+    isa => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_crispr_wells {
+    my ($self) = @_;
+
+    my $crispr_wells = {};
+
+    my $start = time();
+    foreach my $well ($self->plate->wells){
+        $crispr_wells->{ $well->id } = {};
+        my $well_ref = $crispr_wells->{ $well->id };
+        if (my $design = $well->design){
+            foreach my $crispr_design ($design->crispr_designs){
+                $well_ref->{ $crispr_design->id } = {};
+                my $crispr_design_ref = $well_ref->{ $crispr_design->id };
+                if(my $crispr = $crispr_design->crispr){
+                    $crispr_design_ref->{sinlge} = [ $crispr->crispr_wells ];
+                }
+                elsif(my $crispr_pair = $crispr_design->crispr_pair){
+                    $crispr_design_ref->{left} = [ $crispr_pair->left_crispr->crispr_wells ];
+                    $crispr_design_ref->{right} = [ $crispr_pair->right_crispr->crispr_wells ];
+                }
+            }
+        }
+        else{
+            LIMS2::Exception::Implementation->throw("Cannot find design for well ".$well->as_string);
+        }
+    }
+    my $end = time();
+    TRACE(sprintf "Finding crispr wells for each well took: %.2f",$end - $start);
+
+    return $crispr_wells;
+}
+
+has crispr_well_descendants => (
+    is => 'ro',
+    isa => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_crispr_well_descendants {
+    my ($self) = @_;
+    my ($start, $end);
+
+    # Find crispr wells for all designs on the plate
+    # using the crispr_wells cache
+    $start = time();
+    my @crispr_wells;
+
+    my @types = qw(single left right);
+    foreach my $well ($self->plate->wells){
+        my $crispr_designs = $self->crispr_wells->{ $well->id };
+        foreach my $crispr_design_id ( keys %{ $crispr_designs || {} } ){
+            foreach my $type (@types){
+                push @crispr_wells, @{ $crispr_designs->{$crispr_design_id}->{$type} || [] };
+            }
+        }
+    }
+
+    my @ids = uniq map { $_->id } @crispr_wells;
+    $end = time();
+    TRACE(sprintf "Search for all crispr wells took: %.2f",$end - $start);
+
+    # Search for descendants of all crispr wells using single recursive query
+    $start = time();
+    my $result = $self->model->get_descendants_for_well_id_list(\@ids);
+    $end = time();
+    TRACE(sprintf "All descendants query took: %.2f",$end - $start);
+
+    # Store list of child well ids for each crispr well
+    my $child_well_ids = {};
+    foreach my $path (@$result){
+        my ($root, @children) = @{ $path->[0]  };
+        unless(exists $child_well_ids->{$root}){
+            $child_well_ids->{$root} = [];
+        }
+        my $arrayref = $child_well_ids->{$root};
+        push @$arrayref, @children;
+    }
+
+    return $child_well_ids;
+}
 
 # Needed way of having multiple plate type reports but having only one of these
 # reports as the default report for that plate type.
@@ -119,8 +233,158 @@ sub base_data {
     confess "base_data() must be implemented by a subclass";
 }
 
+sub accepted_crispr_columns {
+    return ("Accepted Crispr Single", "Accepted Crispr Pairs");
+}
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _find_accepted_CRISPR_V_wells{
+    my ($self,$crispr_wells) = @_;
+
+    my ($start, $end);
+
+    my @ids = map { $_->id } @{ $crispr_wells || [] };
+
+    return () unless @ids;
+
+    # Fetch crispr well descendant IDs from cache
+    $start = time();
+    my @descendant_ids = uniq map { @{ $self->crispr_well_descendants->{$_} || [] } } @ids;
+
+    # Fetch CRISPR_V wells from db
+    my @vectors = $self->model->schema->resultset('Well')->search(
+        {
+            'me.id' => { -in => \@descendant_ids },
+            'plate.type_id' => 'CRISPR_V'
+        },
+        {
+            prefetch => ['plate','well_accepted_override']
+        }
+    )->all;
+    $end = time();
+    TRACE(sprintf "Well search took: %.2f",$end - $start);
+
+    # Assume we are only interested in vectors on the most recently created crispr_v plate
+    my @accepted_wells;
+    my $most_recent_plate;
+
+    $start = time();
+    foreach my $well (@vectors){
+
+        next unless $well->is_accepted;
+
+        push @accepted_wells, $well;
+
+        my $plate = $well->plate;
+        $most_recent_plate ||= $plate;
+        if ($plate->created_at > $most_recent_plate->created_at){
+            $most_recent_plate = $plate;
+        }
+    }
+
+    my @return = grep { $_->plate_id == $most_recent_plate->id } @accepted_wells;
+    $end = time();
+    TRACE(sprintf "Newest accepted filter took: %.2f",$end - $start);
+
+    return @return;
+}
+## use critic
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _find_accepted_DNA_wells {
+    my ($self,$crispr_wells) = @_;
+
+    my ($start, $end);
+
+    my @ids = map { $_->id } @{ $crispr_wells || [] };
+
+    return () unless @ids;
+
+    # Fetch crispr well descendant IDs from cache
+    $start = time();
+    my @descendant_ids = uniq map { @{ $self->crispr_well_descendants->{$_} || [] } } @ids;
+
+    # Fetch CRISPR_V wells from db
+    my @dna_wells = $self->model->schema->resultset('Well')->search(
+        {
+            'me.id' => { -in => \@descendant_ids },
+            'plate.type_id' => 'DNA'
+        },
+        {
+            prefetch => ['plate','well_accepted_override']
+        }
+    )->all;
+    $end = time();
+    TRACE(sprintf "Well search took: %.2f",$end - $start);
+
+    return grep { $_->is_accepted } @dna_wells;
+}
+## use critic
+
+sub accepted_crispr_data {
+    my ( $self, $well, $well_type ) = @_;
+
+    # Find accepted CRISPR_V wells as default
+    $well_type ||= 'CRISPR_V';
+    my $find_method = '_find_accepted_'.$well_type.'_wells';
+
+    my $f_start = time();
+    my (@single_crisprs, @paired_crisprs);
+
+    DEBUG("Finding accepted crispr wells for ".$well->as_string);
+
+    # Generate a list of single crispr wells related to well
+    my @single_cr_wells;
+
+    my $crispr_designs = $self->crispr_wells->{ $well->id };
+    foreach my $crispr_design_id ( keys %{ $crispr_designs || {} } ){
+
+        my $crispr_design = $crispr_designs->{$crispr_design_id};
+
+        # Store single crisprs for handling later
+        push @single_cr_wells, @{ $crispr_design->{single} || [] };
+
+        # Handle paired crisprs for each crispr_design because
+        # left and right wells need to be reported together
+        my @left_cr_wells = @{ $crispr_design->{left} || [] };
+        my @right_cr_wells = @{ $crispr_design->{right} || [] };
+
+        my @left_accepted = $self->$find_method(\@left_cr_wells);
+        my @right_accepted = $self->$find_method(\@right_cr_wells);
+        if (@left_accepted and @right_accepted){
+            # Fetch the pair ID to display
+            my $pair_id = $self->model->schema->resultset('CrisprDesign')->find({
+                id => $crispr_design_id,
+            })->crispr_pair_id;
+
+            my $left_as_string = join( q{/}, map {$_->as_string} @left_accepted);
+            my $right_as_string = join( q{/}, map {$_->as_string} @right_accepted);
+            my $pair_as_string = "Pair $pair_id"."[left:$left_as_string-right:$right_as_string]";
+            push @paired_crisprs, $pair_as_string;
+        }
+    }
+
+    # Handle the single crisprs for this well
+    @single_crisprs = $self->$find_method(\@single_cr_wells);
+
+    my $f_end = time();
+    my $elapsed = $f_end - $f_start;
+    TRACE(sprintf "Accepted crispr well search took: %.2f",$elapsed);
+    $self->time_taken($self->time_taken + $elapsed);
+    TRACE("total time taken: ".$self->time_taken);
+    return (
+        join( q{/}, map {$_->as_string} @single_crisprs ),
+        join( q{ }, @paired_crisprs ),
+    );
+}
+
 sub design_and_gene_cols {
-    my ( $self, $well ) = @_;
+    my ( $self, $well, $crispr ) = @_;
+
+    # If well crispr is provided we need to get design and gene info via crispr_designs
+    if($crispr){
+        return $self->crispr_design_and_gene_cols($crispr);
+    }
 
     my $design        = $well->design;
     my @gene_ids      = uniq map { $_->gene_id } $design->genes;
@@ -131,8 +395,10 @@ sub design_and_gene_cols {
         } @gene_ids;
     };
 
+    my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
+    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
 
-    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ) );
+    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
 }
 
 sub qc_result_cols {
@@ -181,6 +447,94 @@ sub pick_counts {
     my $accepted = scalar grep { $_->is_accepted } @picks;
 
     return ( $picked, $accepted );
+}
+
+sub crispr_marker_symbols{
+    my ($self, $crispr) = @_;
+
+    my %symbols;
+    foreach my $design ($crispr->related_designs){
+        $self->_symbols_from_design($design, \%symbols);
+    }
+
+    return join ", ", keys %symbols;
+}
+
+sub crispr_design_and_gene_cols{
+    my ($self, $crispr) = @_;
+
+    my %symbols;
+    my (@design_ids, @gene_ids);
+
+    foreach my $design ($crispr->related_designs){
+        $self->_symbols_from_design($design, \%symbols);
+        push @design_ids, $design->id;
+        push @gene_ids,  map { $_->gene_id } $design->genes;
+    }
+
+    my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
+    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+
+    return (
+        join( q{/}, uniq @design_ids ),
+        join( q{/}, uniq @gene_ids ),
+        join( q{/}, keys %symbols ),
+        join( q{/}, @sponsors )
+    );
+}
+
+sub _symbols_from_design{
+    my ($self, $design, $symbols) = @_;
+
+    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
+    my @gene_symbols;
+    try {
+        @gene_symbols  = uniq map {
+            $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
+        } @gene_ids;
+    };
+
+    # Add any symbols we found to the hash
+    foreach my $symbol (@gene_symbols){
+        $symbols->{$symbol} = 1;
+    }
+    return;
+}
+
+=head create_button
+Returns a custom string for interpretation by the view (template toolkit).
+
+The string format is:
+
+custom:key1=val1;key2=val2;...;
+
+The order of keys is irrelevant.
+
+NB. We cannot simply send back a hashref as the reporting framework writes out the csv file and it is this that
+gets laid out in the table. All we end up with is a HASHxOOOOO string, which is meaningless and cannot
+be interpreted properly by TT. Thus, we have to create a custom string to pass key=value pairs to the view.
+
+Note that you must provide key/value pairs for:
+api_url - the view will use a c.uri_for call using this as the api method used to render the view
+button_label - text to be used to label the button for this cell
+browser_target - an html keyword or arbitrary string to indicate whether the button will create a new tab or window, or render in the curent window
+
+These key/value pairs are not passed on as parameters in the c.uri_for call, any other parameters you define will be passed through.
+
+=cut
+
+sub create_button {
+    my $self = shift;
+    my $params = shift;
+
+    my $custom_value = 'custom:';
+    foreach my $custom_key ( keys %$params ) {
+        $custom_value .= $custom_key
+            . '='
+            . $params->{$custom_key}
+            . ';';
+    }
+    return $custom_value;
 }
 
 __PACKAGE__->meta->make_immutable;

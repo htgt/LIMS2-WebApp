@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.156';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.233';
 }
 ## use critic
 
@@ -98,7 +98,7 @@ __PACKAGE__->table("designs");
 
 =head2 design_parameters
 
-  data_type: 'text'
+  data_type: 'json'
   is_nullable: 1
 
 =head2 cassette_first
@@ -106,6 +106,11 @@ __PACKAGE__->table("designs");
   data_type: 'boolean'
   default_value: true
   is_nullable: 0
+
+=head2 global_arm_shortened
+
+  data_type: 'integer'
+  is_nullable: 1
 
 =cut
 
@@ -139,9 +144,11 @@ __PACKAGE__->add_columns(
   "species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "design_parameters",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "json", is_nullable => 1 },
   "cassette_first",
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "global_arm_shortened",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -263,6 +270,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_global_arm_shortening_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessGlobalArmShorteningDesign>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_global_arm_shortening_designs",
+  "LIMS2::Model::Schema::Result::ProcessGlobalArmShorteningDesign",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 species
 
 Type: belongs_to
@@ -294,8 +316,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SMeFB4r9ZhVln+z3REjP/A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 10:08:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y003qJa2tDYf+S/ExLwtUA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -352,6 +374,7 @@ sub as_hash {
         species                 => $self->species_id,
         assigned_genes          => [ map { $_->gene_id } $self->genes ],
         cassette_first          => $self->cassette_first,
+        global_arm_shortened    => $self->global_arm_shortened,
     );
 
     if ( ! $suppress_relations ) {
@@ -457,6 +480,23 @@ sub fetch_canonical_transcript_id {
     }
 
     return 0;
+}
+
+=head2 design_attempt
+
+Find the design attempt record linked to this design and return it.
+Returns undef if no design attempt record found.
+
+=cut
+sub design_attempt {
+    my $self = shift;
+
+    my $schema = $self->result_source->schema;
+    my $design_attempts = $schema->resultset('DesignAttempt')->search_literal(
+        '? = ANY ( design_ids )', $self->id
+    );
+
+    return $design_attempts->first;
 }
 
 __PACKAGE__->meta->make_immutable;

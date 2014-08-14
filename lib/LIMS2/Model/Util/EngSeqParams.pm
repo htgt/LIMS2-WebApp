@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.156';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.233';
 }
 ## use critic
 
@@ -28,6 +28,7 @@ use JSON;
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 use List::MoreUtils qw( uniq );
+use Try::Tiny;
 
 sub pspec_generate_eng_seq_params {
 	return {
@@ -37,6 +38,7 @@ sub pspec_generate_eng_seq_params {
         cassette    => { validate => 'existing_cassette', optional => 1 },
         backbone    => { validate => 'existing_backbone', optional => 1 },
         recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
+        stage       => { validate => 'non_empty_string', optional => 1 },
 	}
 }
 
@@ -62,15 +64,21 @@ sub generate_well_eng_seq_params{
     my $design_data = $design->as_hash;
 
     # Infer stage from plate type information
+    my $stage;
     my $plate_type_descr = $well->plate->type->description;
-    my $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
+    if ( $validated_params->{stage} ) {
+        $stage = $validated_params->{stage};
+    }
+    else {
+        $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
+    }
 
     my $design_params = fetch_design_eng_seq_params($design_data);
 
     # fetch canonical transcript for the gene if it exists and add the transcript id to the params
     # required to write exon features within genbank files for display in imits
     my $transcript_id;
-    $transcript_id = $design->fetch_canonical_transcript_id;
+    $transcript_id = try{ $design->fetch_canonical_transcript_id };
     if ( $transcript_id ) {
         DEBUG( "Transcript id: $transcript_id\n" );
         $design_params->{ 'transcript' } = $transcript_id;
@@ -106,41 +114,97 @@ sub fetch_design_eng_seq_params{
 
 	my $params = build_eng_seq_params_from_loci(\%locus_for, $design->{type});
 	$params->{design_id} = $design->{id};
+    $params->{species}   = lc($design->{species});
 
     return $params;
 }
 
+=item
+
+input:
+Hashref of loci: {{G5=>{chr_name=>11,...}{G3=>{chr_name=>11,}}}
+Type ("conditional" or "gibson" or "gibson-deletion")
+
+Interrogates the oligo loci for the parameters to set to allow eng-seq-builder to run later:
+the oligo loci are either G5/U5(U3/D5)/D3/G3 OR '5F', '5R', (EF, ER), '3F', '3R'
+
+Returns hashref of params:
+values: chromosome, strand, assembly, five_arm_start, five_arm_end, three_arm_start, three_arm_end,
+(and optionally) target_region_start, target_region_end
+
+=cut
 sub build_eng_seq_params_from_loci{
 	my ($loci, $type) = @_;
 
     my $params;
 
-    $params->{chromosome} = $loci->{G5}->{chr_name};
-    $params->{strand} = $loci->{G5}->{chr_strand};
-    $params->{assembly} = $loci->{G5}->{assembly};
+    if($type =~ /gibson/){
+        $params->{chromosome} = $loci->{'5F'}->{chr_name};
+        $params->{strand} = $loci->{'5F'}->{chr_strand};
+        $params->{assembly} = $loci->{'5F'}->{assembly};
+    }else{
+        $params->{chromosome} = $loci->{G5}->{chr_name};
+        $params->{strand} = $loci->{G5}->{chr_strand};
+        $params->{assembly} = $loci->{G5}->{assembly};
+    }
 
     if ( $params->{strand} == 1 ) {
-        $params->{five_arm_start} = $loci->{G5}->{chr_start};
-        $params->{five_arm_end} = $loci->{U5}->{chr_end};
-        $params->{three_arm_start} = $loci->{D3}->{chr_start};
-        $params->{three_arm_end} = $loci->{G3}->{chr_end};
+
+	    if($type =~ /gibson/){
+
+               $params->{five_arm_start} = $loci->{'5F'}->{chr_start};
+               $params->{five_arm_end} = $loci->{'5R'}->{chr_end};
+               $params->{three_arm_start} = $loci->{'3F'}->{chr_start};
+               $params->{three_arm_end} = $loci->{'3R'}->{chr_end};
+
+	    }else{
+
+               $params->{five_arm_start} = $loci->{G5}->{chr_start};
+               $params->{five_arm_end} = $loci->{U5}->{chr_end};
+               $params->{three_arm_start} = $loci->{D3}->{chr_start};
+               $params->{three_arm_end} = $loci->{G3}->{chr_end};
+
+            }
     }
     else {
-        $params->{five_arm_start} = $loci->{U5}->{chr_start};
-        $params->{five_arm_end} = $loci->{G5}->{chr_end};
-        $params->{three_arm_start} = $loci->{G3}->{chr_start};
-        $params->{three_arm_end} = $loci->{D3}->{chr_end};
+	    if($type =~ /gibson/){
+
+                 $params->{five_arm_start} = $loci->{'5R'}->{chr_start};
+                 $params->{five_arm_end} = $loci->{'5F'}->{chr_end};
+                 $params->{three_arm_start} = $loci->{'3R'}->{chr_start};
+                 $params->{three_arm_end} = $loci->{'3F'}->{chr_end};
+
+	    }else{
+
+                 $params->{five_arm_start} = $loci->{U5}->{chr_start};
+                 $params->{five_arm_end} = $loci->{G5}->{chr_end};
+                 $params->{three_arm_start} = $loci->{G3}->{chr_start};
+                 $params->{three_arm_end} = $loci->{D3}->{chr_end};
+
+	    }
     }
 
-    return $params if ( $type eq 'deletion' or $type eq 'insertion');
+    return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
 
     if ( $params->{strand} == 1 ) {
-    	$params->{target_region_start} = $loci->{U3}->{chr_start};
-    	$params->{target_region_end} = $loci->{D5}->{chr_end};
+	    if ( $type eq 'gibson' ) {
+    	        $params->{target_region_start} = $loci->{EF}->{chr_start};
+    	        $params->{target_region_end} = $loci->{ER}->{chr_end};
+	    }
+        else {
+    	        $params->{target_region_start} = $loci->{U3}->{chr_start};
+    	        $params->{target_region_end} = $loci->{D5}->{chr_end};
+	    }
     }
     else{
-    	$params->{target_region_start} = $loci->{D5}->{chr_start};
-    	$params->{target_region_end} = $loci->{U3}->{chr_end};
+	    if ( $type eq 'gibson' ) {
+    	        $params->{target_region_start} = $loci->{ER}->{chr_start};
+    	        $params->{target_region_end} = $loci->{EF}->{chr_end};
+	    }
+        else {
+    	        $params->{target_region_start} = $loci->{D5}->{chr_start};
+    	        $params->{target_region_end} = $loci->{U3}->{chr_end};
+	    }
     }
 
     return $params;
@@ -199,7 +263,10 @@ sub fetch_well_eng_seq_params{
 	        $method = 'insertion_allele_seq';
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
-	    elsif ( $design_type eq 'deletion' ) {
+	    elsif ( $design_type eq 'deletion' || $design_type =~ /gibson/ ) {
+                # This needs fixing for a gibson: when we generate the expected sequence, we have to know
+	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion
+		# I'm leaving it as a deletion because this will be made by the lab for the foreseeable future.
 	        $method = 'deletion_allele_seq';
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
@@ -229,7 +296,10 @@ sub fetch_well_eng_seq_params{
 	        $method = 'insertion_vector_seq';
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
-	    elsif ( $design_type eq 'deletion' ) {
+	    elsif ( $design_type eq 'deletion' || $design_type =~ /gibson/ ) {
+                # This needs fixing for a gibson: when we generate the expected sequence, we have to know
+	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion
+		# I'm leaving it as a deletion because this will be made by the lab for the foreseeable future.
 	        $method = 'deletion_vector_seq';
 	        $well_params->{insertion}->{name} = $params->{cassette};
 	    }
@@ -297,13 +367,18 @@ sub generate_crispr_eng_seq_params {
 	unless ($backbone) {
 		my $well_backbone = $well->backbone;
         LIMS2::Exception->throw( "No backbone found for well $well" ) unless $well_backbone;
-        $backbone = $well_backbone;
+        $backbone = $well_backbone->name;
 	}
+
+    #backbones in this list need to have the full guide rna
+    #normally we take 19 bases and add a G at the start
+    my %t7_backbones = map { $_ => 1 } qw( T7_gRNA_BSA1 );
+    my $crispr_seq = exists $t7_backbones{ $backbone } ? $crispr->t7_vector_seq : $crispr->vector_seq;
 
     my $method = 'crispr_vector_seq';
     my $display_id = $backbone . '#' . $crispr->id;
     my %eng_seq_params = (
-        crispr_seq => $crispr->vector_seq,
+        crispr_seq => $crispr_seq,
         backbone   => { name => $backbone },
         display_id => $display_id,
         crispr_id  => $crispr->id,

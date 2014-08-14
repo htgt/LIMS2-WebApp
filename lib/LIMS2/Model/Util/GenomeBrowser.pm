@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.156';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.233';
 }
 ## use critic
 
@@ -23,15 +23,20 @@ use Sub::Exporter -setup => {
         crisprs_for_region
         crisprs_to_gff
         crispr_pairs_for_region
-        crispr_pairs_to_gff 
+        crispr_pairs_to_gff
         gibson_designs_for_region
         design_oligos_to_gff
+        primers_for_crispr_pair
+        crispr_primers_to_gff
+        unique_crispr_data
+        unique_crispr_data_to_gff
     ) ]
 };
 
 use Log::Log4perl qw( :easy );
+use Data::Dumper;
 
-=head2 crisprs_for_region 
+=head2 crisprs_for_region
 
 Find crisprs for a specific chromosome region. The search is not design
 related. The method accepts species, chromosome id, start and end coordinates.
@@ -97,7 +102,7 @@ sub crispr_pairs_for_region {
 }
 
 
-=head crisprs_for_region_as_arrayref 
+=head crisprs_for_region_as_arrayref
 
 Return and array of hashrefs properly inflated for the browser.
 This is suitable for serialisation as JSON.
@@ -169,33 +174,34 @@ sub crisprs_to_gff {
                 'start' => $crispr_r->chr_start,
                 'end' => $crispr_r->chr_end,
                 'score' => '.',
-                'strand' => '+' ,
-#                'strand' => '.',
+                'strand' => $crispr_r->chr_strand eq '-1' ? '-' : '+' ,
                 'phase' => '.',
                 'attributes' => 'ID='
                     . 'C_' . $crispr_r->crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
+                    . 'seq=' . $crispr_r->crispr->seq . ';'
+                    . 'pam_right=' . ($crispr_r->crispr->pam_right || 'N/A') . ';'
+                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id || 'N/A')
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'type'} = 'CDS';
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->crispr_id . ';'
-                    . 'Parent=C_' . $crispr_r->crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
-                    . 'color=#45A825'; # greenish
-            my $crispr_child_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crisprs_gff, $crispr_parent_datum, $crispr_child_datum ;
+            push @crisprs_gff, $crispr_parent_datum;
+
+            my $crispr_display_info = {
+                id => $crispr_r->crispr_id,
+                chr_start => $crispr_r->chr_start,
+                chr_end => $crispr_r->chr_end,
+                pam_right => $crispr_r->crispr->pam_right,
+                colour => '#45A825', # greenish
+            };
+            push @crisprs_gff, _make_crispr_and_pam_cds($crispr_display_info, \%crispr_format_hash, 'C_' . $crispr_r->crispr_id);
         }
-
-
-
 
     return \@crisprs_gff;
 }
 
 
-=head crispr_pairs_to_gff 
-Returns an array representing a set of strings ready for 
+=head crispr_pairs_to_gff
+Returns an array representing a set of strings ready for
 concatenation to produce a GFF3 format file.
 
 =cut
@@ -223,6 +229,7 @@ sub crispr_pairs_to_gff {
         . $params->{'end_coord'} ;
 
         while ( my $crispr_r = $crisprs_rs->next ) {
+            my $pair_id = $crispr_r->pair_id;
             my %crispr_format_hash = (
                 'seqid' => $params->{'chromosome_number'},
                 'source' => 'LIMS2',
@@ -234,28 +241,33 @@ sub crispr_pairs_to_gff {
 #                'strand' => '.',
                 'phase' => '.',
                 'attributes' => 'ID='
-                    . $crispr_r->pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->pair_id
+                    . $pair_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $pair_id
                 );
             my $crispr_pair_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'type'} = 'CDS';
-            $crispr_format_hash{'end'} = $crispr_r->left_crispr_end;
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->left_crispr_id . ';'
-                    . 'Parent=' . $crispr_r->pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->left_crispr_id . ';'
-                    . 'color=#AA2424'; # reddish
-            my $crispr_left_datum = prep_gff_datum( \%crispr_format_hash );
-            $crispr_format_hash{'start'} = $crispr_r->right_crispr_start;
-            $crispr_format_hash{'end'} = $crispr_r->right_crispr_end;
-            $crispr_format_hash{'attributes'} =     'ID='
-                    . $crispr_r->right_crispr_id . ';'
-                    . 'Parent=' . $crispr_r->pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->right_crispr_id . ';'
-                    . 'color=#1A8599'; # blueish
-#            $crispr_format_hash{'attributes'} = $crispr_r->pair_id;
-            my $crispr_right_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crisprs_gff, $crispr_pair_parent_datum, $crispr_left_datum, $crispr_right_datum ;
+            push @crisprs_gff, $crispr_pair_parent_datum;
+
+            my $crispr_display_info = {
+                left => {
+                    id    => $crispr_r->left_crispr_id,
+                    chr_start => $crispr_r->left_crispr_start,
+                    chr_end   => $crispr_r->left_crispr_end,
+                    pam_right => $crispr_r->left_crispr_pam_right,
+                    colour => '#AA2424', # reddish
+                },
+                right => {
+                    id    => $crispr_r->right_crispr_id,
+                    chr_start => $crispr_r->right_crispr_start,
+                    chr_end   => $crispr_r->right_crispr_end,
+                    pam_right => $crispr_r->right_crispr_pam_right,
+                    colour => '#1A8599', # blueish
+                }
+            };
+
+            foreach my $side ( qw(left right) ){
+                my $crispr = $crispr_display_info->{$side};
+                push @crisprs_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $pair_id);
+            }
         }
 
 
@@ -337,7 +349,7 @@ sub design_oligos_to_gff {
         . '-'
         . $params->{'end_coord'} ;
 
-        my $gibson_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs. 
+        my $gibson_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs.
         $gibson_designs = parse_gibson_designs( $oligo_rs );
         my $design_meta_data;
         $design_meta_data = generate_design_meta_data ( $gibson_designs );
@@ -469,4 +481,268 @@ sub gibson_colour {
     return $colours{ $oligo_type_id };
 }
 
+# Methods for crispr primer generation and formatting to gff
+
+sub primers_for_crispr_pair{
+    my $schema = shift;
+    my $params = shift;
+
+    use LIMS2::Model::Util::OligoSelection qw/ retrieve_crispr_primers/;
+    my $crispr_primers = LIMS2::Model::Util::OligoSelection::retrieve_crispr_primers($schema, $params  ) ;
+
+    return $crispr_primers;
+}
+
+sub crispr_primers_to_gff {
+    my $crispr_primers = shift;
+    my $params = shift;
+
+    my @crispr_primers_gff;
+
+    my @type_keys = keys %$crispr_primers;
+    my $crispr_type = shift @type_keys;
+    my ($crispr_id) = keys %{$crispr_primers->{$crispr_type}};
+
+    push @crispr_primers_gff, "##gff-version 3";
+    push @crispr_primers_gff, '##sequence-region lims2-region '
+        . $params->{'start'}
+        . ' '
+        . $params->{'end'};
+    push @crispr_primers_gff, '# Crispr primers for '
+        . $crispr_type . ':' . $crispr_id . ' '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chr'}
+        . ':'
+        . $params->{'start'}
+        . '-'
+        . $params->{'end'} ;
+
+        # Crispr primers are pairs consisting of 2 chars and a digit. These will form the object to be rendered.
+        # However, there is no LIMS2 identifier for a primer pair combination - so we invent one here.
+        # Each (GF1,GR1) is a pair, so is (GF2,GR2), (SF1,SR1), (SF2,SR2) etc.
+        # So, the hash needs splitting into sub-hashes, grouped by 1st character of label, then by last character of label.
+        # The middle character gives the orientation.
+        #
+        my $primer_groups = group_primers_by_pair( $crispr_primers->{$crispr_type}->{$crispr_id} );
+
+        while ( my ($primer_group, $val) = each %$primer_groups ) {
+            next if ! $primer_groups->{$primer_group}->{'chr_start'};
+            my $g_start = $primer_groups->{$primer_group}->{'chr_start'};
+            my $g_end = $primer_groups->{$primer_group}->{'chr_end'};
+            my %primer_format_hash = (
+                'seqid' => $params->{'chr'},
+                'source' => 'LIMS2',
+                'type' => 'CrisprPrimer',
+                'start' => ($g_start < $g_end ? $g_start : $g_end),
+                'end' => ($g_end > $g_start ? $g_end : $g_start),
+                'score' => '.',
+                'strand' => ($g_start < $g_end ? '+' : '-') ,
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . $primer_group . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $primer_group
+                );
+            my $primer_parent_datum = prep_gff_datum( \%primer_format_hash );
+            my @primer_child_data;
+            $primer_format_hash{'type'} = 'CDS';
+            foreach my $primer_key ( grep { $_ !~ /chr_/ } keys %$val ) {
+                my $start = $val->{$primer_key}->{'chr_start'};
+                my $end = $val->{$primer_key}->{'chr_end'};
+                $primer_format_hash{'start'} = $start < $end ? $start : $end;
+                $primer_format_hash{'end'} = $end > $start ? $end : $start;
+                $primer_format_hash{'strand'} = ( $val->{$primer_key}->{'chr_strand'} eq '-1' ) ? '-' : '+';
+                $primer_format_hash{'attributes'} =     'ID='
+                    . $primer_key . ';'
+                    . 'Parent=' . $primer_group . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $primer_key . ';'
+                    . 'color=#45A825'; # greenish
+                 my $primer_child_datum = prep_gff_datum( \%primer_format_hash );
+                 push @primer_child_data, $primer_child_datum;
+            }
+            push @crispr_primers_gff, $primer_parent_datum, @primer_child_data ;
+        }
+
+    return \@crispr_primers_gff;
+}
+
+sub group_primers_by_pair {
+    my $crispr_primers = shift;
+
+    my %primer_groups;
+
+    foreach my $tag ( qw/ G P S / ) {
+        for my $num ( 1..2 ){
+            $primer_groups{$tag . '_' . $num} = {
+                $tag . 'F' . $num => $crispr_primers->{ $tag . 'F' . $num},
+                $tag . 'R' . $num => $crispr_primers->{ $tag . 'R' . $num},
+                # Add the start and end coords
+                'chr_start' => $crispr_primers->{ $tag . 'F' . $num}->{'chr_start'},
+                'chr_end'   => $crispr_primers->{ $tag . 'R' . $num}->{'chr_end'},
+            }
+        }
+    }
+    delete $primer_groups{'S_2'}; # only one set of sequencing primers
+
+    return \%primer_groups;
+}
+
+=head unique_crispr_data
+
+=cut
+
+sub unique_crispr_data  {
+    my $schema = shift;
+    my $params = shift;
+
+    use LIMS2::Model::Util::OligoSelection qw/ retrieve_crispr_data_for_id/;
+    my $crispr_primers = LIMS2::Model::Util::OligoSelection::retrieve_crispr_data_for_id($schema, $params  ) ;
+
+    return $crispr_primers;
+}
+
+sub unique_crispr_data_to_gff {
+    my $crispr_data = shift;
+    my $params = shift;
+
+    my @crispr_data_gff;
+
+    push @crispr_data_gff, "##gff-version 3";
+    push @crispr_data_gff, '##sequence-region lims2-region '
+        . $params->{'start'}
+        . ' '
+        . $params->{'end'};
+    my @type_keys = keys %$crispr_data;
+    my $crispr_type = shift @type_keys;
+    my ($crispr_id) = keys %{$crispr_data->{$crispr_type}};
+    push @crispr_data_gff, '# Unique Crispr data for '
+        . $crispr_type . ':' . $crispr_id . ' '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chr'}
+        . ':'
+        . $params->{'start'}
+        . '-'
+        . $params->{'end'} ;
+
+        if ( $crispr_type eq 'crispr_pair') {
+            my $pair = $crispr_data->{$crispr_type}->{$crispr_id};
+            my %crispr_format_hash = (
+                'seqid' => $params->{'chr'},
+                'source' => 'LIMS2',
+                'type' => 'crispr_pair',
+                'start' => $pair->{'left_crispr'}->{'chr_start'},
+                'end' => $pair->{'right_crispr'}->{'chr_end'},
+                'score' => '.',
+                'strand' => '+' ,
+#                'strand' => '.',
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . $crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_id
+                );
+            my $crispr_pair_parent_datum = prep_gff_datum( \%crispr_format_hash );
+            push @crispr_data_gff, $crispr_pair_parent_datum;
+
+            my $crispr_display_info = {
+                left => $pair->{left_crispr},
+                right => $pair->{right_crispr},
+            };
+            $crispr_display_info->{left}->{colour} = '#AA2424'; # reddish
+            $crispr_display_info->{right}->{colour} = '#1A8599'; # blueish
+
+            foreach my $side ( qw(left right) ){
+                my $crispr = $crispr_display_info->{$side};
+                push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_id);
+            }
+
+        }
+        elsif ($crispr_type eq 'crispr_single') {
+            my $crispr = $crispr_data->{$crispr_type}->{$crispr_id}->{'left_crispr'};
+            my %crispr_format_hash = (
+                'seqid' => $params->{'chr'},
+                'source' => 'LIMS2',
+                'type' => 'Crispr',
+                'start' => $crispr->{'chr_start'},
+                'end' => $crispr->{'chr_end'},
+                'score' => '.',
+                'strand' => '+' ,
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . 'C_' . $crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_id
+                );
+            my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
+            push @crispr_data_gff, $crispr_parent_datum;
+
+            $crispr->{colour} = '#45A825'; # greenish
+            push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$crispr_id);
+        }
+
+    return \@crispr_data_gff;
+}
+
+sub _make_crispr_and_pam_cds{
+    my ($crispr_display_info, $crispr_format_hash, $parent_id) = @_;
+
+    # crispr display info must contain keys:
+    # id, chr_start, chr_end, pam_right, colour
+
+    my $crispr = $crispr_display_info;
+    if(defined $crispr->{pam_right}){
+        my ($pam_start, $pam_end);
+        if($crispr->{pam_right}){
+            $crispr_format_hash->{'start'} = $crispr->{chr_start};
+            $crispr_format_hash->{'end'} = $crispr->{chr_end} - 2;
+            $pam_start =  $crispr->{chr_end} - 2;
+            $pam_end = $crispr->{chr_end};
+        }
+        else{
+            $crispr_format_hash->{'start'} = $crispr->{chr_start} + 2;
+            $crispr_format_hash->{'end'} = $crispr->{chr_end};
+            $pam_start = $crispr->{chr_start};
+            $pam_end = $crispr->{chr_start} + 2;
+        }
+
+        # This is the crispr without PAM
+        $crispr_format_hash->{'type'} = 'CDS';
+        $crispr_format_hash->{'attributes'} =     'ID='
+            . 'Crispr_' . $crispr->{id} . ';'
+            . 'Parent=' . $parent_id . ';'
+            . 'Name=LIMS2-' . $crispr->{id} . ';'
+            . 'color=' .$crispr->{colour};
+        my $crispr_datum = prep_gff_datum( $crispr_format_hash );
+
+        # This is the PAM
+        $crispr_format_hash->{start} = $pam_start;
+        $crispr_format_hash->{end} = $pam_end;
+        $crispr_format_hash->{'attributes'} = 'ID='
+                . 'PAM_' . $crispr->{id} . ';'
+                . 'Parent=' . $parent_id . ';'
+                . 'Name=LIMS2-' . $crispr->{id} . ';'
+                . 'color=#DDC808'; # yellowish
+        my $pam_child_datum = prep_gff_datum( $crispr_format_hash );
+
+        return ($crispr_datum, $pam_child_datum);
+    }
+    else{
+        # We don't have pam right flag so just make the crispr cds
+        $crispr_format_hash->{start} = $crispr->{chr_start};
+        $crispr_format_hash->{end} = $crispr->{chr_end};
+        $crispr_format_hash->{'type'} = 'CDS';
+        $crispr_format_hash->{'attributes'} =     'ID='
+            . $crispr->{id} . ';'
+            . 'Parent=' . $parent_id . ';'
+            . 'Name=' . $crispr->{id} . ';'
+            . 'color=' .$crispr->{colour};
+        my $crispr_datum = prep_gff_datum( $crispr_format_hash );
+        return $crispr_datum;
+    }
+
+    return;
+}
 1;

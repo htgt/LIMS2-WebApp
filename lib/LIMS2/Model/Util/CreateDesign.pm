@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.156';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.233';
 }
 ## use critic
 
@@ -9,8 +9,9 @@ package LIMS2::Model::Util::CreateDesign;
 use warnings FATAL => 'all';
 
 use Moose;
-use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos );
+use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
 use Path::Class;
 use Const::Fast;
@@ -122,11 +123,18 @@ Optionally get all exons or just exons from canonical transcript.
 sub exons_for_gene {
     my ( $self, $gene_name, $exon_types ) = @_;
 
-    my $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
-    return unless $gene;
+    my $gene;
+    try {
+        $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
+        die "Unable to find gene $gene_name in Ensemble database" unless $gene;
+    }
+    catch ( $err ){
+        LIMS2::Exception::Validation->throw(
+            message => $err,
+        );
+    }
 
     my $gene_data = $self->c_build_gene_data( $gene );
-
     my $exon_data = $self->c_build_gene_exon_data( $gene, $gene_data->{gene_id}, $exon_types );
     $self->designs_for_exons( $exon_data, $gene_data->{gene_id} );
     $self->design_targets_for_exons( $exon_data, $gene->stable_id );
@@ -165,6 +173,7 @@ sub designs_for_exons {
     for my $exon ( @{ $exons } ) {
         my @matching_designs;
 
+        #TODO refactor, we are working out same design coordinates multiple times sp12 Mon 24 Feb 2014 13:20:23 GMT
         for my $design ( @designs ) {
             my $oligo_data = prebuild_oligos( $design, $assembly );
             # if no oligo data then design does not have oligos on assembly
@@ -173,10 +182,13 @@ sub designs_for_exons {
                 design => $design,
                 oligos => $oligo_data,
             );
-            if ( $exon->{start} > $di->target_region_start
-                && $exon->{end} < $di->target_region_end
-                && $exon->{chr} eq $di->chr_name
-            ) {
+            next unless $exon->{chr} eq $di->chr_name;
+
+            if (target_overlaps_exon(
+                    $di->target_region_start, $di->target_region_end,
+                    $exon->{start},           $exon->{end} )
+               )
+            {
                 push @matching_designs, $design;
             }
         }
@@ -212,22 +224,109 @@ sub design_targets_for_exons {
     return;
 }
 
-=head2 create_gibson_design
+=head2 create_exon_target_gibson_design
 
 Wrapper for all the seperate subroutines we need to run to
-initiate the creation of a gibson design
+initiate the creation of a gibson design with a exon target.
 
 =cut
-sub create_gibson_design {
+sub create_exon_target_gibson_design {
     my ( $self ) = @_;
 
-    my $params         = $self->c_parse_and_validate_gibson_params();
+    my $params         = $self->c_parse_and_validate_exon_target_gibson_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
-    my $design_target  = $self->find_or_create_design_target( $params );
+    $self->calculate_design_targets( $params );
     my $cmd            = $self->c_generate_gibson_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
     return ( $design_attempt, $job_id );
+}
+
+=head2 create_custom_target_gibson_design
+
+Wrapper for all the seperate subroutines we need to run to
+initiate the creation of a gibson design with a custom target.
+
+=cut
+sub create_custom_target_gibson_design {
+    my ( $self ) = @_;
+
+    my $params         = $self->c_parse_and_validate_custom_target_gibson_params();
+    my $design_attempt = $self->c_initiate_design_attempt( $params );
+    $self->calculate_design_targets( $params );
+    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
+
+    return ( $design_attempt, $job_id );
+}
+
+=head2 calculate_design_targets
+
+Try to work out the design targets for a gibson design
+and create any appropriate design targets.
+
+=cut
+sub calculate_design_targets {
+    my ( $self, $params ) = @_;
+
+    # get gene
+    my $gene_name = $params->{ensembl_gene_id} || $params->{gene_id};
+    my $gene = $self->ensembl_util->get_ensembl_gene( $gene_name );
+    return unless $gene;
+    my $exon_adaptor = $self->ensembl_util->exon_adaptor;
+
+    # if no 3 prime, only 5 prime exon. target it
+    if ( $params->{five_prime_exon} && !$params->{three_prime_exon} ) {
+        my $five_prime_exon = $exon_adaptor->fetch_by_stable_id( $params->{five_prime_exon} );
+        $self->find_or_create_design_target( $params, $five_prime_exon, $gene );
+
+        return;
+    }
+
+    # get target start and end
+    my $target_start;
+    my $target_end;
+    my $chromosome;
+    if ( $params->{target_start} && $params->{target_end} ) {
+        $target_start = $params->{target_start};
+        $target_end   = $params->{target_end};
+        $chromosome   = $params->{chr_name};
+    }
+    else {
+        if ( $params->{five_prime_exon} && $params->{three_prime_exon} ) {
+            my $five_prime_exon  = $exon_adaptor->fetch_by_stable_id( $params->{five_prime_exon} );
+            my $three_prime_exon = $exon_adaptor->fetch_by_stable_id( $params->{three_prime_exon} );
+            if ( $gene->strand == 1 ) {
+                $target_start = $five_prime_exon->seq_region_start;
+                $target_end   = $three_prime_exon->seq_region_end;
+            }
+            else {
+                $target_start = $three_prime_exon->seq_region_start;
+                $target_end   = $five_prime_exon->seq_region_end;
+            }
+            $chromosome = $five_prime_exon->seq_region_name;
+        }
+    }
+
+    # grab canonical exons for gene
+    my $exons = $gene->canonical_transcript->get_all_Exons;
+
+    # identify all canonical exons which land between target start and target end
+    # is a match if the exon is a partial hit as well
+    my @target_exons;
+    for my $exon ( @{$exons} ) {
+        next unless $chromosome eq $exon->seq_region_name;
+        if (target_overlaps_exon(
+                $target_start, $target_end, $exon->seq_region_start, $exon->seq_region_end )
+            )
+        {
+            push @target_exons, $exon;
+        }
+    }
+
+    $self->find_or_create_design_target( $params, $_, $gene ) for @target_exons;
+
+    return;
 }
 
 =head2 find_or_create_design_target
@@ -238,33 +337,34 @@ show up in the reports based on the design targets table.
 
 =cut
 sub find_or_create_design_target {
-    my ( $self, $params ) = @_;
+    my ( $self, $params, $exon, $gene ) = @_;
+
+    my $exon_id = $exon ? $exon->stable_id : $params->{exon_id};
 
     my $existing_design_target = $self->model->schema->resultset('DesignTarget')->find(
         {
             species_id      => $params->{species},
-            ensembl_exon_id => $params->{exon_id},
+            ensembl_exon_id => $exon_id,
             build_id        => $params->{build_id},
         }
     );
 
     if ( $existing_design_target ) {
         $self->log->info( 'Design target ' . $existing_design_target->id
-                . ' already exists for exon: ' . $params->{exon_id} );
+                . ' already exists for exon: ' . $exon_id );
         return $existing_design_target;
     }
 
-    my $gene = $self->ensembl_util->get_ensembl_gene( $params->{ensembl_gene_id} );
+    $gene ||= $self->ensembl_util->get_ensembl_gene( $params->{ensembl_gene_id} );
     die( "Unable to find ensembl gene: " . $params->{ensembl_gene_id} )
         unless $gene;
     my $canonical_transcript = $gene->canonical_transcript;
 
-    my $exon;
     try {
-        $exon = $self->ensembl_util->exon_adaptor( $self->species )
-            ->fetch_by_stable_id( $params->{exon_id} );
+        $exon ||= $self->ensembl_util->exon_adaptor( $self->species )
+            ->fetch_by_stable_id( $exon_id );
     }
-    die( "Unable to find ensembl exon for: " . $params->{exon_id} )
+    die( "Unable to find ensembl exon for: " . $exon_id )
         unless $exon;
 
     my %design_target_params = (
@@ -272,7 +372,7 @@ sub find_or_create_design_target {
         gene_id              => $params->{gene_id},
         marker_symbol        => $gene->external_name,
         ensembl_gene_id      => $gene->stable_id,
-        ensembl_exon_id      => $params->{exon_id},
+        ensembl_exon_id      => $exon_id,
         exon_size            => $exon->length,
         canonical_transcript => $canonical_transcript->stable_id,
         assembly             => $params->{assembly_id},
@@ -285,12 +385,28 @@ sub find_or_create_design_target {
         comment              => 'picked via gibson design creation interface, by user: ' . $params->{user},
 
     );
+
     my $exon_rank = try{ $self->ensembl_util->get_exon_rank( $canonical_transcript, $exon->stable_id ) };
     $design_target_params{exon_rank} = $exon_rank if $exon_rank;
     my $design_target = $self->model->c_create_design_target( \%design_target_params );
 
     return $design_target;
 }
+
+=head2 throw_validation_error
+
+Override parent throw method to use LIMS2::Exception::Validation.
+
+=cut
+around 'throw_validation_error' => sub {
+    my $orig = shift;
+    my $self = shift;
+    my $errors = shift;
+
+    LIMS2::Exception::Validation->throw(
+        message => $errors,
+    );
+};
 
 __PACKAGE__->meta->make_immutable;
 

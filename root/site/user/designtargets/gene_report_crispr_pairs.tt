@@ -60,6 +60,14 @@
             <p> Chromosome: <span class="label"> [% datum.chromosome %] </span> </p>
             <p> Size: <span class="label"> [% datum.exon_size %] </span> </p>
             <p> Rank: <span class="label"> [% datum.exon_rank %] </span> </p>
+            <p>
+              <a href="[% c.uri_for( '/user/create_gibson_design', {
+                  gene_id         => datum.gene_id,
+                  ensembl_gene_id => datum.ensembl_gene_id,
+                  exon_pick       => datum.ensembl_exon_id,
+                } ) %]"
+                target="_blank" class="btn btn-mini">Create Design</a> </p>
+            </p>
           </td>
 
           <!-- No designs or crisprs for design target, show empty cells -->

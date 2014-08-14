@@ -1,0 +1,7 @@
+[% META title="Get Crisprs"; META tab_name = 'Crisprs' %]
+
+
+<h4>Successfully submited job for gene [% gene_id %], exon [% exon_id %].</h4>
+<h5>It may take a while to finish, please be patient.</h5>
+<br />
+<a href = "javascript:history.back()" class="btn btn-primary" >Back to previous page</a>

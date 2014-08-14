@@ -7,6 +7,8 @@
 </div>
 
 [% INCLUDE 'create_design/view_design_attempt.tt'
-    view_design_url = '//user/view_design'
+    view_design_url          = '/user/view_design'
     design_target_report_url = '/user/design_target_report'
+    redo_design_url          = 'redo'
+    base_design_attempt_url  = '/user/design_attempt'
 %]

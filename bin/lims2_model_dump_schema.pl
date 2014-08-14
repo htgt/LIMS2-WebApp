@@ -17,6 +17,7 @@ my %MONIKER_MAP = (
     qc_seq_reads                => 'QcSeqRead',
     qc_runs                     => 'QcRun',
     crispr_off_target_summaries => 'CrisprOffTargetSummary',
+    crispr_es_qc_runs           => 'CrisprEsQcRuns',
 );
 
 my %REL_NAME_MAP = (
@@ -44,6 +45,9 @@ my %REL_NAME_MAP = (
     CrisprLociType => {
         crisprs_off_targets => 'crispr_off_targets',
     },
+    CrisprPrimer => {
+        crispr_primers_locis         => 'crispr_primer_loci',
+    },
     Design => {
         design_oligos   => 'oligos',
         design_comments => 'comments',
@@ -52,6 +56,9 @@ my %REL_NAME_MAP = (
     },
     DesignOligo => {
         design_oligo_locis => 'loci'
+    },
+    GenotypingPrimer => {
+        genotyping_primers_locis     => 'genotyping_primer_loci',
     },
     QcSeqProject => {
         qc_seqs_reads        => 'qc_seq_reads',

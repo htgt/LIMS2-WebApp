@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::LegacyCreKnockInProjectReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.156';
+    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.233';
 }
 ## use critic
 

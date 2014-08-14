@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'ProcessInputWell';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::ProcessInputWell not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::ProcessInputWell" );
 
     #note("Accessing the schema");

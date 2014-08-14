@@ -1,0 +1,117 @@
+<script type="text/javascript" charset="utf-8">
+        Ext.onReady( function() {
+
+            Ext.define('Report', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    [%- FOREACH col IN columns %]
+                    { name: '[%- col %]', type: 'string' },
+                    [%- END %]
+                ]
+            });
+
+            var arrayData = [
+                    [%- first_time_outer = 1 %]
+                    [%- FOREACH datum IN data %]
+                        [%- IF first_time_outer == 1 %]
+                            [% first_time_outer = 0 %]
+                            {
+                        [%- ELSE %]
+                            ,{
+                        [%- END %]
+
+                            [%- first_time_inner = 1 %]
+                            [%- index = 0 %]
+                            [%- FOREACH val IN datum %]
+                                [%- IF first_time_inner == 1 %]
+                                    [%- first_time_inner = 0 %]
+                                    "[%- columns.$index %]": "[%- val %]"
+                                [%- ELSE %]
+                                    ,"[%- columns.$index %]": "[%- val %]"
+                                [%- END %]
+                                [%- index = index + 1 %]
+                            [%- END %]
+                        }
+                    [%- END %]
+                    ];
+
+            // Save plateName for later use
+            var plateName= '[%- title _ ' (' _ data.size _ ' rows)'%]';
+
+            var store = Ext.create('Ext.data.Store', {
+                model: Report,
+                data: arrayData
+            });
+
+            [% locked = {
+                "Well Name" = 1
+                "Design ID" = 1
+                "Gene ID" = 1
+                "Gene Symbol" = 1
+                } %]
+            [% alt_render = {
+                "Genoverse View" = 1
+                }
+            %]
+
+            var columns = [
+                [%- FOREACH col IN columns %]
+                {
+                    header: "[%- col %]",
+                    [%- IF locked.$col == 1 %]
+                    locked: true,
+                    [%- END %]
+                    [%- IF alt_render.$col == 1%]
+                    renderer: genoverse,
+                    [%- ELSE %]
+                    sortable: true,
+                    [%- END %]
+                    dataIndex: '[%- col %]'
+                },
+                [%- END %]
+            ];
+
+            function genoverse(val, meta, row) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        var api_url = row.get('Genoverse View').match( /api_url=(.*crispr_primers).(.*$)/ );
+                        console.log(api_url);
+                        var api_url_t = api_url[1] + '?'; 
+                        var api_replace = api_url[2].replace(/;/g , '&' );
+                        api_url_t = api_url_t + api_replace;
+                        console.log(api_url_t);
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: 'Genoverse',
+                            width: 75,
+                            handler: function () { window.open( api_url_t ) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
+
+            var grid = Ext.create('Ext.grid.Panel', {
+                height: 750,
+                width: 1200,
+                store: store,
+                columnLines: true,
+                columns: columns,
+                title: plateName,
+                invalidateScrollerOnRefresh: false,
+                renderTo: 'my_results',
+                viewConfig: {
+                    stripeRows: true,
+                    getRowClass: function(){
+                        return "lims2-cell-inner";
+                    },
+                    firstCls: 'lims2-first-cell-format',
+                    enableTextSelection: true
+                },
+                selType: 'cellmodel',
+                simpleSelect: true,
+                plugins: [
+                    Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
+                ]
+            });
+    });
+</script>

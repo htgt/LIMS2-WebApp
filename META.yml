@@ -7,7 +7,6 @@ build_requires:
   File::Find: 0
   HTTP::Request: 0
   HTTP::Request::Common: 0
-  LIMS2::Model::Plugin::Design: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -21,7 +20,9 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
+  Bio::EnsEMBL::Registry: 0
   Bio::Perl: 0
+  Bio::SCF: 0
   Bio::Seq: 0
   Bio::SeqIO: 0
   CHI: 0
@@ -57,17 +58,21 @@ requires:
   Data::Pageset: 0
   Data::Printer: 0
   Data::UUID: 0
+  Date::Calc: 0
   DateTime: 0
   DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
   DateTime::Format::Strptime: 0
+  DesignCreate::Util::BWA: 0
+  DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
   EngSeqBuilder: 0
   Exporter: 0
   Fcntl: 0
   File::Basename: 0
   File::Temp: 0
+  File::Which: 0
   File::stat: 0
   FindBin: 0
   Getopt::Long: 0
@@ -76,6 +81,7 @@ requires:
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
   HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
+  HTGT::QC::Util::CrisprDamageVEP: 0
   HTGT::QC::Util::KillQCFarmJobs: 0
   HTGT::QC::Util::ListLatestRuns: 0
   HTTP::Status: 0
@@ -94,16 +100,20 @@ requires:
   LIMS2::Exception::NotFound: 0
   LIMS2::Exception::System: 0
   LIMS2::Exception::Validation: 0
+  LIMS2::REST::Client: 0
   LIMS2::Util: 0
   LIMS2::Util::EnsEMBL: 0
   LIMS2::Util::Errbit: 0
   LIMS2::Util::Solr: 0
   LIMS2::Util::Tarmits: 0
+  LIMS2::Util::TraceServer: 0
+  LIMS2::Util::WGE: 0
   LWP::UserAgent: 0
   List::MoreUtils: 0
   List::Util: 0
   Log::Log4perl: 0
   Log::Log4perl::Catalyst: 0
+  Log::Log4perl::Level: 0
   Module::Pluggable::Object: 0
   Moose: 0
   Moose::Role: 0
@@ -113,11 +123,14 @@ requires:
   MooseX::NonMoose: 0
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
+  MooseX::Types::Path::Class::MoreCoercions: 0
   Parse::BooleanLogic: 0
   Path::Class: 0
   Perl6::Slurp: 0
+  Pod::Usage: 0
   Readonly: 0
   Scalar::Util: 0
+  Spreadsheet::XLSX: 0
   Sub::Exporter: 0
   Template::AutoFilter: 0
   Term::ReadPassword: 0
@@ -125,15 +138,20 @@ requires:
   Test::WWW::Mechanize::Catalyst: 0
   Text::CSV: 0
   Text::CSV_XS: 0
+  Text::Iconv: 0
+  Time::HiRes: 0
   Try::Tiny: 0
   TryCatch: 0
   URI: 0
   URI::QueryParam: 0
+  WebAppCommon::Crispr::SubmitInterface: 0
   WebAppCommon::Design::CreateInterface: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
   WebAppCommon::Util::EnsEMBL: 0
+  WebAppCommon::Util::FindGene: 0
   YAML::Any: 0
+  YAML::XS: 0
   base: 0
   feature: 0
   namespace::autoclean: 0
@@ -141,4 +159,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.156
+version: 0.233

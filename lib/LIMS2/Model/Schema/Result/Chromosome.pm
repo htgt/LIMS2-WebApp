@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Chromosome;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.156';
+    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.233';
 }
 ## use critic
 
@@ -123,6 +123,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_es_qc_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcWell>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_es_qc_wells",
+  "LIMS2::Model::Schema::Result::CrisprEsQcWell",
+  { "foreign.crispr_chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_loci
 
 Type: has_many
@@ -134,6 +149,21 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprLocus>
 __PACKAGE__->has_many(
   "crispr_loci",
   "LIMS2::Model::Schema::Result::CrisprLocus",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 crispr_primers_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers_locis",
+  "LIMS2::Model::Schema::Result::CrisprPrimersLoci",
   { "foreign.chr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -168,6 +198,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 genotyping_primers_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimersLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "genotyping_primers_locis",
+  "LIMS2::Model::Schema::Result::GenotypingPrimersLoci",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 species
 
 Type: belongs_to
@@ -184,8 +229,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8R0Xhsdl3o2aHLC8gZ6tzQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z03KBcSQ9CpThrRh/UL69A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

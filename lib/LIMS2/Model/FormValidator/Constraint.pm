@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.156';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.233';
 }
 ## use critic
 
@@ -69,6 +69,10 @@ sub copy_float {
         my $val = shift;
         return $val =~ qr/^\d+(\.\d+)?$/ ;
     }
+}
+
+sub signed_float {
+    return shift->regexp_matches(qr/^[-]?\d+(\.\d+)?$/);
 }
 
 sub bac_library {
@@ -208,8 +212,16 @@ sub existing_cassette {
     return shift->existing_row( 'Cassette', 'name' );
 }
 
+sub existing_nuclease {
+    return shift->existing_row( 'Nuclease', 'name');
+}
+
+sub existing_crispr_primer_type {
+	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
+}
+
 sub qc_seq_read_id {
-    return shift->regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9]+$/);
+    return shift->regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/);
 }
 
 sub cigar_string {

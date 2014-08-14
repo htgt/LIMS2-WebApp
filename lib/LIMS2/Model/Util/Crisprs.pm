@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.156';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.233';
 }
 ## use critic
 
@@ -275,27 +275,16 @@ sub crispr_pair_hits_design {
         default_assembly => $default_assembly,
     );
 
-    unless (
-        crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) )
+    if (
+        !crispr_hits_design( $design, $crispr_pair->left_crispr, $default_assembly, $design_info ) &&
+        !crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info )
+    )
     {
-        ERROR( 'Left crispr ' . $crispr_pair->left_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
+        ERROR( 'Crispr Pair ' . $crispr_pair->id . ' does not hit design ' . $design->id );
         push @{$fail_log},
               'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
-        return 0;
-    }
-
-    unless (
-        crispr_hits_design( $design, $crispr_pair->right_crispr, $default_assembly, $design_info ) )
-    {
-        ERROR( 'Right crispr ' . $crispr_pair->right_crispr->id
-                . ' from crispr pair ' . $crispr_pair->id . ' does not hit design '
-                . $design->id );
-        push @{$fail_log},
-              'Additional validation failed between design: ' . $design->id
-            . ' & crispr pair: ' . $crispr_pair->id;
+            . ' & crispr pair: ' . $crispr_pair->id
+            . ', neither crispr lies wholly within target region of design';
         return 0;
     }
 
@@ -344,8 +333,8 @@ sub crisprs_for_design {
         {
             'loci.assembly_id' => $design_info->default_assembly,
             'loci.chr_id'      => $chr_id,
-            'loci.chr_start'   => { '>' => $design_info->target_region_start },
-            'loci.chr_end'     => { '<' => $design_info->target_region_end },
+            'loci.chr_start'   => { '>' => $design_info->target_region_start - 50 },
+            'loci.chr_end'     => { '<' => $design_info->target_region_end + 50 },
         },
         {
             join => 'loci',

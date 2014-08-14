@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GeneDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GeneDesign::VERSION = '0.156';
+    $LIMS2::Model::Schema::Result::GeneDesign::VERSION = '0.233';
 }
 ## use critic
 
@@ -198,12 +198,16 @@ sub _fetch_by_external_name {
     my ( $ga, $gene_name, $type ) = @_;
 
     my @genes = @{ $ga->fetch_all_by_external_name($gene_name, $type) };
-    unless( @genes ) {
+
+    #Remove stable ids that don't look like ENS... - human build has stable ids like LRG_...
+    my @reduced_genes = grep {($_->stable_id =~ /ENS/) && ($_->seq_region_name !~ /PATCH/)} @genes;
+
+    unless( @reduced_genes ) {
         LIMS2::Exception->throw("Unable to find gene $gene_name in EnsEMBL" );
     }
 
-    if ( scalar(@genes) > 1 ) {
-        my @stable_ids = map{ $_->stable_id } @genes;
+    if ( scalar(@reduced_genes) > 1 ) {
+        my @stable_ids = map{ $_->stable_id } @reduced_genes;
         $type ||= 'marker symbol';
 
         LIMS2::Exception->throw( "Found multiple EnsEMBL genes with $type id $gene_name,"
@@ -211,7 +215,7 @@ sub _fetch_by_external_name {
                 . join( ', ', @stable_ids ) );
     }
     else {
-        return shift @genes;
+        return shift @reduced_genes;
     }
 
     return;

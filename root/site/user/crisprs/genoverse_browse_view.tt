@@ -1,6 +1,6 @@
 [% META title="Browse Crisprs"; META tab_name = 'Designs' %]
 <div class="page-header">
-  <h1>[%- gene_symbol -%] 
+  <h1>[%- gene_symbol -%]
   <small>exon: <strong>[%exon_id%]</strong>
   chr: [%- chromosome -%]
   assembly: [%- genome -%]</small>
@@ -64,7 +64,7 @@
 </div>
 
 
-    <script type="text/javascript" src="[% c.uri_for('/static/genoverse/js/genoverse.wtsi.js')%]">
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js')%]">
        {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
@@ -75,10 +75,16 @@
         start     : [% exon_start %] - 2000,  // 2Kb context
         end       : [% exon_end %] + 2000,
         plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+        //plugins   : [ 'controlPanel', 'trackControls', 'resizer', 'fileDrop' ],
         tracks    : [
           Genoverse.Track.Scalebar,
           Genoverse.Track.extend({
             name      : 'Sequence',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url       : 'http://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
+            [% ELSE  %]
+            url       : 'http://grch37.rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
+            [% END %]
             model     : Genoverse.Track.Model.Sequence.Ensembl,
             view      : Genoverse.Track.View.Sequence,
             resizable : 'auto',
@@ -99,7 +105,24 @@
             model     : Genoverse.Track.Model.Transcript.GFF3,
             view      : Genoverse.Track.View.Transcript,
             resizable : 'auto',
-            height    : 150
+            height    : 150,
+
+            populateMenu : function (f) {
+              // get up to date feature object
+              var feature = this.track.model.featuresById[f.id];
+
+              var atts = {
+                  Start  : feature.start,
+                  End    : feature.end,
+                  Strand : feature.strand,
+                  Seq    : feature.seq,
+                  Name   : feature.name,
+                  PAM_right : feature.pam_right,
+                  WGE_id : feature.wge_ref
+              };
+              return atts;
+            },
+
           }),
 [% END %]
 [% IF view_paired %]
@@ -115,11 +138,13 @@
           Genoverse.Track.extend({
             name   : 'Genes',
             [% IF c.session.selected_species == 'Mouse' %]
-            url    : 'http://beta.rest.ensembl.org/feature/region/mouse/__CHR__:__START__-__END__?feature=gene;content-type=application/json',
+            url    : 'http://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            [% ELSE %]
+            url    : 'http://grch37.rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
             [% END %]
             height : 200,
-            info   : 'Ensembl API genes & transcripts, see <a href="http://beta.rest.ensembl.org/" target="_blank">beta.rest.ensembl.org</a> for more details',
-            
+            info   : 'Ensembl API genes & transcripts, see <a href="http://rest.ensembl.org/" target="_blank">rest.ensembl.org</a> for more details',
+
             // Different settings for different zoom level
             2000000: { // This one applies when > 2M base-pairs per screen
               labels : false

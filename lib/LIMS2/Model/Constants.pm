@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.156';
+    $LIMS2::Model::Constants::VERSION = '0.233';
 }
 ## use critic
 
@@ -26,6 +26,9 @@ BEGIN {
         %ADDITIONAL_PLATE_REPORTS
         %UCSC_BLAT_DB
         %DEFAULT_SPECIES_BUILD
+        %VECTOR_DNA_CONCENTRATION
+        %GLOBAL_SHORTENED_OLIGO_APPEND
+        %GENE_TYPE_REGEX
     );
     our %EXPORT_TAGS = ();
 }
@@ -36,6 +39,7 @@ const our %PROCESS_PLATE_TYPES => (
     'create_crispr'          => [qw( CRISPR )],
     'int_recom'              => [qw( INT )],
     'cre_bac_recom'          => [qw( INT )],
+    'global_arm_shortening'  => [qw( INT )],
     '2w_gateway'             => [qw( POSTINT FINAL )],
     '3w_gateway'             => [qw( POSTINT FINAL )],
     'legacy_gateway'         => [qw( FINAL_PICK )],
@@ -50,20 +54,24 @@ const our %PROCESS_PLATE_TYPES => (
     'xep_pool'               => [qw( XEP )],
     'dist_qc'                => [qw( PIQ )],
     'crispr_vector'          => [qw( CRISPR_V )],
-    'crispr_single_ep'       => [qw( CRISPR_EP )],
-    'crispr_paired_ep'       => [qw( CRISPR_EP )],
+    'single_crispr_assembly' => [qw( ASSEMBLY )],
+    'paired_crispr_assembly' => [qw( ASSEMBLY )],
+    'crispr_ep'              => [qw( CRISPR_EP )],
 );
 
 # Additional information required at upload for process types (none if not listed)
 const our %PROCESS_SPECIFIC_FIELDS => (
-    'int_recom'              => [qw( intermediate_cassette intermediate_backbone )],
+    'int_recom'              => [qw( intermediate_cassette backbone )],
     'cre_bac_recom'          => [qw( intermediate_cassette intermediate_backbone )],
+    'global_arm_shortening'  => [qw( intermediate_backbone )],
     '2w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     '3w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     'recombinase'            => [qw( recombinase )],
     'clone_pick'             => [qw( recombinase )],
     'first_electroporation'  => [qw( cell_line recombinase )],
     'second_electroporation' => [qw( recombinase )],
+    'crispr_ep'              => [qw( cell_line nuclease )],
+    'crispr_vector'          => [qw( backbone )],
 #    'xep_pool'              => [qw( recombinase )],
 );
 
@@ -71,6 +79,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
 const our %PROCESS_TEMPLATE => (
     'int_recom'              => 'recombineering_template',
     'cre_bac_recom'          => 'recombineering_template',
+    'global_arm_shortening'  => 'global_arm_shortening_template',
     '2w_gateway'             => 'gateway_template',
     '3w_gateway'             => 'gateway_template',
     'final_pick'             => 'standard_template',
@@ -83,8 +92,9 @@ const our %PROCESS_TEMPLATE => (
     'freeze'                 => 'standard_template',
     'xep_pool'               => 'standard_template',
     'dist_qc'                => 'piq_template',
-    'crispr_single_ep'       => 'crispr_single_ep_template',
-    'crispr_paired_ep'       => 'crispr_paired_ep_template',
+    'single_crispr_assembly' => 'single_crispr_assembly_template',
+    'paired_crispr_assembly' => 'paired_crispr_assembly_template',
+    'crispr_ep'              => 'crispr_ep_template',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -108,6 +118,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( INT )],
         number => 1,
     },
+    'global_arm_shortening' => {
+        type   => [qw( INT )],
+        number => 1,
+    },
     'final_pick' => {
         type   => [qw( FINAL FINAL_PICK )],
         number => 1,
@@ -123,11 +137,11 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1
     },
     'dna_prep' => {
-        type   => [qw( FINAL FINAL_PICK )],
+        type   => [qw( FINAL FINAL_PICK CRISPR_V )],
         number => 1,
     },
     'clone_pick' => {
-        type   => [qw( EP XEP SEP )],
+        type   => [qw( EP XEP SEP CRISPR_EP )],
         number => 1,
     },
     'clone_pool' => {
@@ -158,13 +172,17 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( CRISPR )],
         number => 1,
     },
-    'crispr_single_ep' => {
-        type   => [qw( CRISPR_V FINAL_PICK )],
+    'single_crispr_assembly' => {
+        type   => [qw( DNA )],
         number => 2,
     },
-    'crispr_paired_ep' => {
-        type   => [qw( CRISPR_V CRISPR_V FINAL_PICK )],
+    'paired_crispr_assembly' => {
+        type   => [qw( DNA )],
         number => 3,
+    },
+    'crispr_ep' => {
+        type   => [qw( ASSEMBLY )],
+        number => 1,
     },
 );
 
@@ -202,6 +220,11 @@ const our %GIBSON_OLIGO_APPENDS => (
     "3R" => "CCATGATTACGCCAAGCTTGAT",
 );
 
+const our %GLOBAL_SHORTENED_OLIGO_APPEND => (
+    "G5" => "ACAACTTATATCGTATGGGGC",
+    "G3" => "TTACGCCCCGCCCTGCCACTC",
+);
+
 # When creating additional report classes override the additional_report sub to return 1
 const our %ADDITIONAL_PLATE_REPORTS => (
     DESIGN => [
@@ -209,6 +232,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             class  => 'DesignPlateOrderSheet',
             method => 'async',
             name   => 'Design Plate Order Sheet',
+        },
+        {
+            class  => 'SummaryOligoPlate',
+            method => 'sync',
+            name   => 'Summary by Oligo Plate',
         },
     ],
     CRISPR => [
@@ -235,6 +263,25 @@ const our %UCSC_BLAT_DB => (
 const our %DEFAULT_SPECIES_BUILD => (
     mouse => 73,
     human => 73,
+);
+
+# Minimun required DNA concentrations for different species and vector types
+# Unit is ng per ul
+const our %VECTOR_DNA_CONCENTRATION => (
+    'Human' => {
+        'FINAL_PICK' => 20,
+        'CRISPR_V'   => 30,
+    },
+    'Mouse' => {
+        'CRISPR_V'   => 40,
+    },
+);
+
+# Regex for checking format of gene IDs by gene_type
+const our %GENE_TYPE_REGEX => (
+    'HGNC'       => qr/HGNC:\d+/,
+    'MGI'        => qr/MGI:\d+/,
+    'CPG-island' => qr/CGI_\d+/,
 );
 
 1;

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.156';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.233';
 }
 ## use critic
 
@@ -138,6 +138,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_primers",
+  "LIMS2::Model::Schema::Result::CrisprPrimer",
+  { "foreign.crispr_pair_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 left_crispr
 
 Type: belongs_to
@@ -169,8 +184,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sB0a32DAqlmFSoESfhBv9Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bQqPDhB8jeHZ6KrzPo+pjg
 
 sub as_hash {
     my ( $self ) = @_;
@@ -186,14 +201,71 @@ sub as_hash {
     return \%h;
 }
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+use overload '""' => \&as_string;
 
-# Method to link directly to locus table without having to go via Crispr table
-__PACKAGE__->belongs_to(
-    "right_crispr_locus",
-    "LIMS2::Model::Schema::Result::Crispr",
-    { 'foreign.crispr_id' => 'self.right_crispr' },
-    { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
+sub as_string {
+    my $self = shift;
+
+    return $self->id . '(' . $self->left_crispr_id . '-' . $self->right_crispr_id . ')';
+}
+
+sub right_crispr_locus {
+    return shift->right_crispr->current_locus;
+}
+
+sub left_crispr_locus {
+    return shift->left_crispr->current_locus;
+}
+
+sub target_slice {
+    my ( $self, $ensembl_util ) = @_;
+
+    unless ( $ensembl_util ) {
+        require WebAppCommon::Util::EnsEMBL;
+        $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->right_crispr->species_id );
+    }
+
+    my $slice = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $self->chr_name,
+        $self->start,
+        $self->end
+    );
+
+    return $slice;
+}
+
+sub start {
+    return shift->left_crispr_locus->chr_start;
+}
+
+sub end {
+    return shift->right_crispr_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->right_crispr_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->right_crispr_locus->chr->name;
+}
+
+sub is_pair { return 1; }
+
+sub is_group { return; }
+
+sub related_designs {
+  my $self = shift;
+
+  my @crispr_designs = (
+    $self->crispr_designs,
+    $self->left_crispr->crispr_designs,
+    $self->right_crispr->crispr_designs,
+  );
+
+  return map { $_->design } @crispr_designs;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

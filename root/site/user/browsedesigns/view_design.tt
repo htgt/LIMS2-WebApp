@@ -18,6 +18,22 @@
     <th>[% title %]</th> <td>[% design.$accessor %]</td>
   </tr>
   [%- END %]
+  [% IF design.global_arm_shortened.defined %]
+  <tr>
+    <th>Short arm version of this design</th>
+    <td>
+    <a href="[% c.uri_for( '/user/view_design', { design_id => design.global_arm_shortened } ) %]"> [% design.global_arm_shortened %] </a>
+    </td>
+  </tr>
+  [% END %]
+  [% IF design_attempt %]
+  <tr>
+    <th>Design Attempt</th>
+    <td>
+    <a href="[% c.uri_for( '/user/design_attempt', design_attempt, 'view' ) %]">[% design_attempt %]</a>
+    </td>
+  </tr>
+  [% END %]
 </table>
 
 <h2>Comments</h2>
@@ -35,8 +51,8 @@
     <tbody>
       [%- FOR comment IN design.comments %]
       <tr>
-        <td>[% comment.category     %]</td>
-        <td>[% comment.comment_text %]</td>
+        <td>[% comment.category %]</td>
+        <td>[% comment.comment_text | html_line_break %]</td>
         <td>
           [% IF comment.is_public %]
           yes
@@ -115,4 +131,58 @@
   </table>
 [% ELSE %]
   <p><em>No genotyping primers for this design</em></p>
+[% END %]
+
+<h2>Crisprs</h2>
+[% IF crisprs %]
+  <table class="table table-striped">
+    <thead>
+      <th>ID</th>
+      <th>Sequence</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Chromosome</th>
+      <th>Strand</th>
+      <th>PAM Right</th>
+    </thead>
+    <tbody>
+      [%- FOR crispr IN crisprs %]
+      <tr>
+        <td><a href="[% c.uri_for( '/user/crispr', crispr.id , 'view'  ) %]" target="_blank"> [% crispr.id %]</a></td>
+        <td>[% crispr.seq %]</td>
+        <td>[% crispr.locus.chr_start %]</td>
+        <td>[% crispr.locus.chr_end %]</td>
+        <td>[% crispr.locus.chr_name %]</td>
+        <td>[% crispr.locus.chr_strand %]</td>
+        <td>[% crispr.pam_right %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No crisprs linked to this design</em></p>
+[% END %]
+
+<h2>Crispr Pairs</h2>
+[% IF crispr_pairs %]
+  <table class="table table-striped">
+    <thead>
+      <th>ID</th>
+      <th>Left Crispr</th>
+      <th>Right Crispr</th>
+      <th>Spacer</th>
+    </thead>
+    <tbody>
+      [%- FOR cp IN crispr_pairs %]
+      <tr>
+        <td><a href="[% c.uri_for( '/user/crispr_pair', cp.id , 'view'  ) %]" target="_blank"> [% cp.id %]</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr', cp.left_crispr_id , 'view'  ) %]" target="_blank"> [% cp.left_crispr_id %]</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr', cp.right_crispr_id , 'view'  ) %]" target="_blank"> [% cp.right_crispr_id %]</a></td>
+        <td>[% cp.spacer %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No crispr pairs linked to this design</em></p>
 [% END %]
