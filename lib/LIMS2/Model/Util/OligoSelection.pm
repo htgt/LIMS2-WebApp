@@ -587,6 +587,7 @@ sub get_crispr_PCR_EnsEmbl_region{
         $end_coord,
         $chr_strand eq 'plus' ? '1' : '-1' ,
     );
+    # TODO check the code below with David
     if ( $chr_strand eq 'plus' ) {
         $seq = get_repeat_masked_sequence( {
                 slice_region => $slice_region,

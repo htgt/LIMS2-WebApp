@@ -60,6 +60,9 @@
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_pair_importer' ) %]">Import Crispr Pair From WGE</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
+            </li>
           </ul>
         </li>
 
