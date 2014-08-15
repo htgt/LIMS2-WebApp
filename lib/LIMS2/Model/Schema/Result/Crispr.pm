@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.232';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.234';
 }
 ## use critic
 
@@ -150,6 +150,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_group_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroupCrispr>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_group_crisprs",
+  "LIMS2::Model::Schema::Result::CrisprGroupCrispr",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_loci_type
 
 Type: belongs_to
@@ -286,8 +301,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iCBcK0B07XGoh/EQgHXNfA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y6PtCetsdH2ctfQWcfNotQ
 
 use Bio::Perl qw( revcom );
 
@@ -522,6 +537,8 @@ sub accepted_vector_wells{
 }
 
 sub is_pair { return; }
+
+sub is_group { return; }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

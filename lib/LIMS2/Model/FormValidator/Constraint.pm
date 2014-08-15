@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.232';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.234';
 }
 ## use critic
 
@@ -214,6 +214,10 @@ sub existing_cassette {
 
 sub existing_nuclease {
     return shift->existing_row( 'Nuclease', 'name');
+}
+
+sub existing_crispr_primer_type {
+	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
 }
 
 sub qc_seq_read_id {

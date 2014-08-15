@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.232';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.234';
 }
 ## use critic
 
@@ -14,9 +14,10 @@ use namespace::autoclean;
 use Path::Class;
 use JSON;
 use List::MoreUtils qw( uniq );
+use Data::Dumper;
 
 use LIMS2::Model::Util::CreateDesign;
-use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
 use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent );
 
 BEGIN { extends 'Catalyst::Controller' };
@@ -431,6 +432,105 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
     return;
 }
 
+sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->log->debug( 'Attempting to import crispr group' );
+    $c->assert_user_roles( 'edit' );
+
+    my @gene_types = map { $_->id } $c->model('Golgi')->schema->resultset('GeneType')->all;
+    $c->stash->{gene_types} = \@gene_types;
+
+    return unless $c->request->param('import_crispr_group');
+
+    # Check the gene input here
+    # wge_importer will check wge_crispr_id fields
+    my $error;
+    my $gene_id = $c->req->param('gene_id');
+    my $type_id = $c->req->param('gene_type_id');
+    if( $gene_id and $type_id ){
+        if(my $regex = $GENE_TYPE_REGEX{ $type_id }){
+            unless($gene_id =~ $regex){
+                $error = "Gene ID $gene_id does not look like a $type_id ID";
+            }
+        }
+    }
+    else{
+        $error = "You must provide and gene ID and gene type ID for this crispr group";
+    }
+
+    if($error){
+        $c->stash->{error_msg} = $error;
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    my @output;
+    try {
+        @output = $self->wge_importer(
+            $c,
+            'group'
+        );
+    }
+    catch ( $err ) {
+        $c->stash( error_msg => "$err" );
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    if ( @output ) {
+        $c->stash->{success_msg} = "Successfully imported the following WGE ids: "
+                                  . join ', ', map { $_->{wge_id} } @output ;
+    }
+    else{
+        $c->log->debug("No output from wge_importer");
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    # Create array of { lims2 crispr ids and left_of_target boolean }
+    my @crisprs;
+    my @wge_left_ids = split /[,\s]+/, $c->req->param('wge_crispr_id_left');
+    $c->log->debug("left crispr IDs: @wge_left_ids");
+    foreach my $crispr_info (@output){
+        my $left_of_target = ( grep { $_ == $crispr_info->{wge_id} } @wge_left_ids ) ? 1 : 0 ;
+        push @crisprs, { crispr_id => $crispr_info->{lims2_id}, left_of_target => $left_of_target };
+    }
+
+    my $group;
+    try{
+        $group = $c->model('Golgi')->create_crispr_group({
+            gene_id      => $c->req->param('gene_id'),
+            gene_type_id => $c->req->param('gene_type_id'),
+            crisprs      => \@crisprs,
+        });
+    }
+    catch( $err ){
+        $c->stash( error_msg => "$err" );
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    $c->stash(
+        group  => $group->as_hash,
+    );
+
+    return;
+}
+
+sub _stash_crispr_group_importer_input{
+    my ( $c ) = @_;
+
+    my @input_names = qw(gene_id gene_type_id wge_crispr_id_left wge_crispr_id_right);
+    foreach my $name (@input_names){
+        if(my $value = $c->req->param($name)){
+            $c->log->debug("stashing value \"$value\" param $name");
+            $c->stash->{$name} = $value;
+        }
+    }
+    return;
+}
+
 #generic function to import crisprs or pairs to avoid duplication
 sub wge_importer {
     my ( $self, $c, $type ) = @_;
@@ -438,11 +538,21 @@ sub wge_importer {
     my ( $method, $user_input );
     if ( $type =~ /^crispr/ ) {
         $method     = 'import_wge_crisprs';
-        $user_input = $c->request->param('wge_crispr_id');
+        $user_input = $c->request->param('wge_crispr_id')
+            or die "No crispr IDs provided";
     }
     elsif ( $type =~ /^pair/ ) {
         $method     = 'import_wge_pairs';
-        $user_input = $c->request->param('wge_crispr_pair_id');
+        $user_input = $c->request->param('wge_crispr_pair_id')
+            or die "No crispr pair IDs provided";
+    }
+    elsif ( $type =~ /^group/ ){
+        $method     = 'import_wge_crisprs';
+        my $left_ids = $c->request->param('wge_crispr_id_left')
+            or die "No left of target crispr IDs provided";
+        my $right_ids = $c->request->param('wge_crispr_id_right')
+            or die "No right of target crispr IDs provided";
+        $user_input = join ",", $left_ids, $right_ids;
     }
     else {
         LIMS2::Exception->throw( "Unknown importer type: $type" );

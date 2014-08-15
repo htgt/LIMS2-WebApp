@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.232';
+    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.234';
 }
 ## use critic
 
@@ -86,6 +86,12 @@ __PACKAGE__->table("crispr_primers");
   is_nullable: 1
   size: [5,3]
 
+=head2 crispr_group_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -108,6 +114,8 @@ __PACKAGE__->add_columns(
   { data_type => "numeric", is_nullable => 1, size => [5, 3] },
   "gc_content",
   { data_type => "numeric", is_nullable => 1, size => [5, 3] },
+  "crispr_group_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -123,6 +131,23 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("crispr_oligo_id");
 
 =head1 UNIQUE CONSTRAINTS
+
+=head2 C<crispr_group_id and and primer_name must be unique>
+
+=over 4
+
+=item * L</crispr_group_id>
+
+=item * L</primer_name>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "crispr_group_id and and primer_name must be unique",
+  ["crispr_group_id", "primer_name"],
+);
 
 =head2 C<crispr_id and primer name must be unique>
 
@@ -180,6 +205,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 crispr_group
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroup>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "crispr_group",
+  "LIMS2::Model::Schema::Result::CrisprGroup",
+  { id => "crispr_group_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 crispr_pair
 
 Type: belongs_to
@@ -216,8 +261,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 08:54:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J822CPubQcRELBzqhM9wjw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-06 07:29:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N+7sfYly1Hn9jVvWx8MQ8Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

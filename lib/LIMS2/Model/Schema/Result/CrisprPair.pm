@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.232';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.234';
 }
 ## use critic
 
@@ -252,6 +252,8 @@ sub chr_name {
 }
 
 sub is_pair { return 1; }
+
+sub is_group { return; }
 
 sub related_designs {
   my $self = shift;

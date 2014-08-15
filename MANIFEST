@@ -16,6 +16,7 @@ bin/process_graph.pl
 bin/run_crispr_es_qc.pl
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
+docs/lims2_util_oligo_selection_overview.txt
 docs/testing/TestingTargets.ods
 lib/LIMS2/AlleleRequest.pm
 lib/LIMS2/AlleleRequest/DoubleTargeted.pm
@@ -37,6 +38,7 @@ lib/LIMS2/Model/Plugin/CrisprSummaries.pm
 lib/LIMS2/Model/Plugin/Gene.pm
 lib/LIMS2/Model/Plugin/GenotypingQC.pm
 lib/LIMS2/Model/Plugin/Plate.pm
+lib/LIMS2/Model/Plugin/Primer.pm
 lib/LIMS2/Model/Plugin/Process.pm
 lib/LIMS2/Model/Plugin/ProcessTree.pm
 lib/LIMS2/Model/Plugin/QC.pm
@@ -61,6 +63,8 @@ lib/LIMS2/Model/Schema/Result/CrisprBrowserPairs.pm
 lib/LIMS2/Model/Schema/Result/CrisprDesign.pm
 lib/LIMS2/Model/Schema/Result/CrisprEsQcRuns.pm
 lib/LIMS2/Model/Schema/Result/CrisprEsQcWell.pm
+lib/LIMS2/Model/Schema/Result/CrisprGroup.pm
+lib/LIMS2/Model/Schema/Result/CrisprGroupCrispr.pm
 lib/LIMS2/Model/Schema/Result/CrisprLociType.pm
 lib/LIMS2/Model/Schema/Result/CrisprLocus.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargetSummary.pm
@@ -321,6 +325,7 @@ root/site/user/crisprs/genoverse_crispr_primers_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_pair.tt
+root/site/user/crisprs/wge_crispr_group_importer.tt
 root/site/user/crisprs/wge_crispr_importer.tt
 root/site/user/crisprs/wge_crispr_pair_importer.tt
 root/site/user/designtargets/crisprs_ucsc_blat.tt
@@ -386,6 +391,7 @@ root/static/bootstrap/js/bootstrap.min.js
 root/static/css/jquery.qtip.min.css
 root/static/css/lims2.css
 root/static/css/lims2_extjs.css
+root/static/css/traceviewer.css
 root/static/extjs/bootstrap.js
 root/static/extjs/ext-all-debug-w-comments.js
 root/static/extjs/ext-all-debug.js
@@ -2236,6 +2242,7 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
+root/static/js/crispr-qc.js
 root/static/js/excanvas.min.js
 root/static/js/jquery-1.7.2.min.js
 root/static/js/jquery.flot.min.js

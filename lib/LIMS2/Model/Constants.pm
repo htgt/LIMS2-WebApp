@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.232';
+    $LIMS2::Model::Constants::VERSION = '0.234';
 }
 ## use critic
 
@@ -28,6 +28,7 @@ BEGIN {
         %DEFAULT_SPECIES_BUILD
         %VECTOR_DNA_CONCENTRATION
         %GLOBAL_SHORTENED_OLIGO_APPEND
+        %GENE_TYPE_REGEX
     );
     our %EXPORT_TAGS = ();
 }
@@ -275,6 +276,14 @@ const our %VECTOR_DNA_CONCENTRATION => (
         'CRISPR_V'   => 40,
     },
 );
+
+# Regex for checking format of gene IDs by gene_type
+const our %GENE_TYPE_REGEX => (
+    'HGNC'       => qr/HGNC:\d+/,
+    'MGI'        => qr/MGI:\d+/,
+    'CPG-island' => qr/CGI_\d+/,
+);
+
 1;
 
 __END__

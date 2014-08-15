@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.232';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.234';
 }
 ## use critic
 
@@ -214,6 +214,8 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XO/o3tRU/YDgyM588TWtzg
 
 use JSON;
+use List::Util qw ( min max );
+use List::MoreUtils qw( uniq );
 
 sub get_crispr_primers {
   my $self = shift;
@@ -229,6 +231,315 @@ sub get_crispr_primers {
     { $field => $analysis_data->{crispr_id} },
     { order_by => { -asc => 'me.primer_name' } }
   );
+}
+
+#gene finder should be a coderef pointing to a method that finds genes.
+#usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
+sub format_well_data {
+    my ( $self, $gene_finder, $params, $run ) = @_;
+
+    my $json = decode_json( $self->analysis_data );
+
+    #allow user to specify the run so we don't have to retrieve it for every well
+    unless ( $run ) {
+      $run = $self->crispr_es_qc_run;
+    }
+
+    #get the crispr/pair linked to this es qc well
+    my $pair = $self->crispr;
+
+    #get HGNC/MGI ids
+    my @gene_ids;
+    if ( $pair ) {
+        @gene_ids = uniq map { $_->gene_id }
+                            map { $_->genes }
+                                $pair->related_designs;
+    }
+    else {
+        @gene_ids = uniq map { $_->gene_id } $self->well->design->genes;
+    }
+
+    #get gene symbol from the solr
+    my @genes = map { $_->{gene_symbol} }
+                  values %{ $gene_finder->( $run->species_id, \@gene_ids ) };
+
+    my ( $alignment_data, $insertions, $deletions )
+        = $self->format_alignment_strings( $params, $pair, $json );
+
+    my $well_accepted = $self->well->accepted;
+    my $show_checkbox = 1; #by default we show the accepted checkbox
+    #if the well itself is accepted, we need to see if it was this run that made it so
+    if ( $well_accepted && ! $self->accepted ) {
+        #the well was accepted on another QC run
+        $show_checkbox = 0;
+    }
+    my $has_vcf_file = $self->vcf_file ? 1 : 0;
+    my $has_vep_file = exists $json->{vep_output} ? 1 : 0;
+    my $has_non_merged_vcf_file = exists $json->{non_merged_vcf} ? 1 : 0;
+    my $has_ref_aa_file = exists $json->{ref_aa_seq} ? 1 : 0;
+    my $has_mut_aa_file = exists $json->{mut_aa_seq} ? 1 : 0;
+
+    #move this to its own function
+
+    #could have used tr///
+    my %special_map = (
+      J => 'N',
+      L => 'A',
+      P => 'T',
+      Y => 'C',
+      Z => 'G',
+    );
+
+    #rebuild entire sequence. insertions hash will be empty if there are none
+    #this is to make finding the sequence within a trace easier
+    for my $dir ( keys %{ $insertions } ) {
+        my @positions = sort keys %{ $insertions->{$dir} };
+
+        my ( $res, $i ) = ( "", 0 );
+        #loop through the whole string, replacing any special chars with their insert
+        for my $char ( split "", $alignment_data->{$dir} ) {
+            next if $char =~ /[-X]/; #skip dashes and Xs
+            #this just gets the sequence out of the insertions hash, what a nightmare
+            $res .= ($char =~ /[JLPYZ]/)
+                  ? $special_map{$char} . $insertions->{$dir}{ $positions[$i++] }{seq}
+                  : uc $char;
+        }
+
+        #store with the other alignment data for easy access
+        $alignment_data->{$dir."_full"} = $res;
+    }
+
+    return {
+        es_qc_well_id           => $self->id,
+        well_id                 => $self->well->id,
+        well_name               => $self->well->name, #fetch the well and get name
+        crispr_id               => $json->{crispr_id} || "",
+        is_crispr_pair          => $json->{is_pair} || "",
+        gene                    => join( ",", @genes ),
+        alignment               => $alignment_data,
+        longest_indel           => $json->{concordant_indel} || "",
+        well_accepted           => $well_accepted,
+        show_checkbox           => $show_checkbox,
+        insertions              => $insertions,
+        deletions               => $deletions,
+        has_vcf_file            => $has_vcf_file,
+        has_non_merged_vcf_file => $has_non_merged_vcf_file,
+        has_vep_file            => $has_vep_file,
+        has_ref_aa_file         => $has_ref_aa_file,
+        has_mut_aa_file         => $has_mut_aa_file,
+        fwd_read                => $self->fwd_read,
+        rev_read                => $self->rev_read,
+    };
+}
+
+#will actually return a crispr OR a pair, but it doesn't really matter
+sub crispr {
+  my ( $self, $json ) = @_;
+
+  #optionally allow user to provide the json string so we don't have to always decode
+  unless ( $json ) {
+    $json = decode_json( $self->analysis_data );
+  }
+
+  return if $json->{no_crispr};
+
+  my $crispr;
+
+  my ( $rs, $prefetch );
+  if ( $json->{is_pair} ) {
+      $rs = 'CrisprPair';
+      $prefetch = [ 'left_crispr', 'right_crispr', 'crispr_designs' ];
+  }
+  else {
+      $rs = 'Crispr';
+      $prefetch = [ 'crispr_designs' ];
+  }
+
+  $crispr = $self->result_source->schema->resultset($rs)->find(
+      { id => $json->{crispr_id} },
+      { prefetch => $prefetch }
+  );
+
+  return $crispr;
+}
+
+## no critic(ProhibitExcessComplexity)
+sub format_alignment_strings {
+    my ( $self, $params, $pair, $json ) = @_;
+
+    return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
+    return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
+    if ( $json->{forward_no_alignment} && $json->{forward_no_alignment} ) {
+        if ( !$self->fwd_read ) {
+            return { forward => 'No Read', no_reverse_alignment => 1 };
+        }
+        elsif ( !$self->rev_read ) {
+            return { reverse => 'No Read', no_forward_alignment => 1 };
+        }
+        else {
+            return { no_forward_alignment => 1, no_reverse_alignment => 1 };
+        }
+    }
+
+    # TODO refactor this
+    my $insertion_data = $json->{insertions};
+    my $insertions;
+    for my $position ( keys %{ $insertion_data } ) {
+        for my $insertion ( @{ $insertion_data->{$position} } ) {
+            $insertions->{ $insertion->{read} }{ $position } = $insertion;
+        }
+    }
+
+    my $deletion_data = $json->{deletions};
+    my $deletions;
+    for my $position ( keys %{ $deletion_data } ) {
+        for my $deletion ( @{ $deletion_data->{$position} } ) {
+            $deletions->{ $deletion->{read} }{ $position } = $deletion;
+        }
+    }
+
+    #get start, end and size data relative to our seq strings
+    my $localised = _get_localised_pair_coords( $pair, $json );
+
+    #extract read sequence and its match string
+    my %alignment_data = (
+        forward => $json->{forward_sequence} || '',
+        reverse => $json->{reverse_sequence} || '',
+    );
+
+    #forward and reverse will have the same target_align_str
+    #this is the reference sequence
+    my $seq = $json->{ref_sequence} || "";
+
+    #truncate sequences if necessary,
+    #and split the target align seq into three parts: before, crispr, after
+    my $padding;
+    if ( $params->{truncate} ) {
+        $padding = defined $params->{padding} ? $params->{padding} : 25;
+        my $padded_start = max(0, ($localised->{pair_start}-$padding));
+        my $end = ($localised->{pair_start}+$localised->{pair_size}+$padding);
+
+        # TODO refactor this
+        #loop through all the insertions, and see if they are inside our new truncated range.
+        for my $read ( values %{ $insertions } ) {
+            while ( my ( $loc, $insertion ) = each %{ $read } ) {
+                #its not inside the region we're viewing so delete it
+                delete $read->{$loc} if $loc < $padded_start || $loc > $end;
+            }
+        }
+
+        #loop through all the deletions, and see if they are inside our new truncated range.
+        for my $read ( values %{ $deletions } ) {
+            while ( my ( $loc, $deletion ) = each %{ $read } ) {
+                #its not inside the region we're viewing so delete it
+                delete $read->{$loc} if $loc < $padded_start || $loc > $end;
+            }
+        }
+
+        #truncate all the seqs
+        for my $s ( values %alignment_data ) {
+            next if $s eq "" or $s eq "No alignment";
+
+            #use split sequence to get crispr and surrounding region then merge back
+            $s = join "", _split_sequence( $s, $localised->{pair_start}, $localised->{pair_size}, $padding );
+        }
+    }
+
+    #split ref sequence into crispr and its surrounding sequence
+    @alignment_data{qw(ref_start crispr_seq ref_end)}
+        = _split_sequence( $seq, $localised->{pair_start}, $localised->{pair_size}, $padding );
+
+    if ( !$self->fwd_read ) {
+        $alignment_data{no_forward_read} = 1;
+    }
+    if ( !$self->rev_read ) {
+        $alignment_data{no_reverse_read} = 1;
+    }
+
+    if ( $json->{forward_no_alignment} ) {
+        $alignment_data{no_forward_alignment} = 1;
+    }
+    if ( $json->{reverse_no_alignment} ) {
+        $alignment_data{no_reverse_alignment} = 1;
+    }
+
+    return ( \%alignment_data, $insertions, $deletions );
+}
+## use critic
+
+#pair is a pair resultset, json is the analysis_data from crispr_es_qc_wells
+#no $self as it should never be called externally
+sub _get_localised_pair_coords {
+    my ( $pair, $json ) = @_;
+
+    my $data = {
+        pair_start => $pair->start - $json->{target_sequence_start},
+        pair_end   => $json->{target_sequence_end} - $pair->end,
+        pair_size  => ($pair->end - $pair->start) + 1,
+    };
+
+    #$data->{pair_start} = 0 if $json->{target_sequence_start} > $pair->start;
+    # Fix errors introduced by insertion symbol (Q) in ref sequence
+    if ( my $ref = $json->{ref_sequence} ) {
+        my $start_substr = substr( $ref, 0, $data->{pair_start} );
+        my $start_Q_count = () = $start_substr =~ /Q/g;
+        $data->{pair_start} += $start_Q_count;
+
+        my $crispr_substr = substr( $ref, $data->{pair_start}, $data->{pair_size} );
+        my $crispr_Q_count = () = $crispr_substr =~ /Q/g;
+        $data->{pair_size} += $crispr_Q_count;
+    }
+
+    return $data;
+}
+
+#split a string containing a crispr into 3 parts
+#no self because it's not needed
+sub _split_sequence {
+    my ( $seq, $crispr_start, $crispr_size, $padding ) = @_;
+
+    return ( "" ) x 3 unless $seq;
+
+    my $crispr_end = $crispr_start + $crispr_size;
+
+    # if the crispr is not in the sequence return empty strings
+    return ("") x 3 if $crispr_end <= 0;
+
+    my $ref_end = "";
+    my $start = 0; #default is beginning of string
+    if ( $padding ) {
+        $start = max(0, $crispr_start-$padding);
+        #make sure we don't go over the end of the sequence
+        #$last_size = min($padding, $last_size);
+
+        #if the string is too short, add Xs to the right hand side to fill the space
+        #this should really be done in the qc
+        if ( length($seq) < $crispr_end+$padding ) {
+            $seq .= "X" x (($crispr_end+$padding) - length($seq));
+        }
+
+        $ref_end = substr( $seq, $crispr_end, $padding );
+
+        unless ( $ref_end ) {
+            print $seq . "\n";
+            print join ", ", $crispr_start, $crispr_end, $padding, "\n";
+        }
+    }
+    else {
+        #we want to the end of the string with no padding
+        $ref_end = substr( $seq, $crispr_end );
+    }
+
+    #start can be 0 to do untruncated
+    my $ref_start  =  substr( $seq, $start, $crispr_start-$start );
+    #the actual crispr seq
+    my $crispr_seq = substr( $seq, $crispr_start, $crispr_size );
+    if ( $crispr_start <= 0 ) {
+        $ref_start = '' if $crispr_start <= 0;
+        $crispr_seq = substr( $seq, 0, $crispr_size + $crispr_start );
+    }
+
+    return $ref_start, $crispr_seq, $ref_end;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

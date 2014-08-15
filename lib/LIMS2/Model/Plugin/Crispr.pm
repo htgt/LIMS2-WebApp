@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.232';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.234';
 }
 ## use critic
 
@@ -283,8 +283,10 @@ sub delete_crispr {
 
 sub pspec_retrieve_crispr {
     return {
-        id      => { validate => 'integer' },
-        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
+        id      => { validate => 'integer', optional => 1},
+        wge_crispr_id  => { validate => 'integer', optional => 1 },
+        REQUIRE_SOME => { id_or_wge_crispr_id => [ 1, qw( id wge_crispr_id ) ] },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 },
     };
 }
 
@@ -293,7 +295,7 @@ sub retrieve_crispr {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr );
 
-    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id species_id ) } );
+    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id wge_crispr_id species_id ) } );
 
     return $crispr;
 }
@@ -537,6 +539,66 @@ sub import_wge_pairs {
     return @output;
 }
 
+sub pspec_retrieve_crispr_group {
+    return {
+        id => { validate => 'integer' },
+    };
+}
+
+sub retrieve_crispr_group {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_group );
+
+    my $crispr_group = $self->retrieve(
+        CrisprGroup => {  'me.id' => $validated_params->{id} },
+    );
+
+    return $crispr_group;
+}
+
+sub pspec_create_crispr_group {
+    return {
+        crisprs      => { validate => 'hashref' },
+        gene_id      => { validate => 'non_empty_string' },
+        gene_type_id => { validate => 'non_empty_string' },
+    };
+}
+
+# needs as params the gene_id and gene_type_id, and an array of hashes containing the crispr_id and the left_of_target boolean
+sub create_crispr_group {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_group );
+
+    my $crispr_group;
+    $self->schema->txn_do( sub {
+        try {
+            # create the group for the given gene
+            $crispr_group = $self->schema->resultset('CrisprGroup')->create({
+                gene_id      => $validated_params->{'gene_id'},
+                gene_type_id => $validated_params->{'gene_type_id'},
+            });
+            $self->log->debug( 'Create crispr group ' . $crispr_group->id );
+
+            # add the given crisprs to that group
+            foreach my $crispr ( @{ $validated_params->{'crisprs'} } ) {
+                $crispr_group->crispr_group_crisprs->create( {
+                    crispr_id  => $crispr->{'crispr_id'},
+                    left_of_target => $crispr->{'left_of_target'},
+                } );
+            }
+
+        }
+        catch ($err) {
+            $self->schema->txn_rollback;
+            LIMS2::Exception->throw( "Error creating crispr group: $err" );
+        }
+
+    });
+
+    return $crispr_group;
+}
 
 1;
 
