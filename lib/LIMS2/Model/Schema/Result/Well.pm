@@ -1250,7 +1250,7 @@ sub crispr_primer_for{
 #see code in WellData for an example
 
 sub genotyping_info {
-  my ( $self, $gene_finder ) = @_;
+  my ( $self, $gene_finder, $only_qc_data ) = @_;
 
   require LIMS2::Exception;
 
@@ -1280,6 +1280,10 @@ sub genotyping_info {
 
   LIMS2::Exception->throw( "No QC wells are accepted" )
      unless $accepted_qc_well;
+
+  if ( $only_qc_data ) {
+    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+  }
 
   # store primers in a hash of primer name -> seq
   my %primers;
@@ -1326,6 +1330,7 @@ sub genotyping_info {
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
       vcf_file         => $accepted_qc_well->vcf_file,
+      qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
   };
 }
 
