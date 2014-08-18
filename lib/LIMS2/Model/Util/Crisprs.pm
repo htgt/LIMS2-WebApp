@@ -50,6 +50,9 @@ sub crispr_pick {
         $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_link' );
         $crispr_id_column = 'crispr_id';
     }
+    elsif ( $crispr_types eq 'group' ){
+        ## FIXME: implement this
+    }
     else {
         LIMS2::Exception->throw("Unknown crispr type $crispr_types");
     }
@@ -70,6 +73,9 @@ sub crispr_pick {
     elsif ( $crispr_types eq 'single' ) {
         ( $create_log, $create_fail_log )
             = create_crispr_design_links( $model, $create_links, $default_assembly );
+    }
+    elsif ( $crispr_types eq 'group' ){
+        ## FIXME: implement this
     }
     my ( $delete_log, $delete_fail_log ) = delete_crispr_design_links( $model, $delete_links );
 

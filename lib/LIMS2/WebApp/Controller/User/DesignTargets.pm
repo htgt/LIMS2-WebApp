@@ -83,6 +83,9 @@ sub gene_report : Path('/user/design_target_report') {
     elsif ( $report_parameters{crispr_types} eq 'pair' ) {
         $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
     }
+    elsif ( $report_parameters{crispr_types} eq 'group' ) {
+        $c->stash( template => 'user/designtargets/gene_report_crispr_groups.tt');
+    }
 
     my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species } )->assembly_id;
