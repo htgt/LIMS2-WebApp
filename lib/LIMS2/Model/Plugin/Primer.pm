@@ -58,7 +58,7 @@ First check to see crispr does not already have primer of same type.
 sub create_crispr_primer {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_primer );
 
     my $crispr_primer = $self->schema->resultset('CrisprPrimer')->create(
         {   slice_def(
