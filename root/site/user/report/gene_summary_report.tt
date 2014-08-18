@@ -1,5 +1,38 @@
 [%- META title = "Gene Summary"; META tab_name = 'Genes' %]
 
+<style type="text/css">
+.popover {
+  max-width: 1100px;
+  width: auto;
+}
+.alignment {
+    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
+    font-size: 11px;
+    display: block;
+    font-weight: bold
+}
+</style>
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".crispr_qc_accepted").each(function () {
+        $(this).click(function(e) {
+            e.preventDefault();
+        });
+
+        $(this).popover({
+            content: $(this).parent().find(".alignment"), 
+//          trigger: "hover", 
+//          title: "test", 
+            container: 'body', 
+            html: true, 
+            placement: 'left'
+        }) 
+    });
+});
+</script>
+
 <div class="page-header">
   <h1>[% template.title %]</h1>
 </div>
@@ -557,7 +590,49 @@
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.ep_well %]</td>
-              <td>[% well.is_accepted %]</td>
+              <td>
+                [% IF well.crispr_qc_data %]
+                <a href="#" class="crispr_qc_accepted">
+                <!-- insert alignments but hidden -->
+                <div style="display:none">
+                  <div class="alignment">
+                    <div class="alignment_reference">
+                      <span>
+                          [% well.crispr_qc_data.alignment.ref_start %]<span style="color:#FF0000">[% well.crispr_qc_data.alignment.crispr_seq %]</span>[% well.crispr_qc_data.alignment.ref_end %]
+                      </span><br/>
+                    </div>
+                    <div class="alignment_inner">
+                      <span style="display: block">
+                         <span class="seq seq_a">
+                            [% IF well.crispr_qc_data.alignment.no_forward_read %]
+                              No Read
+                            [% ELSIF well.crispr_qc_data.alignment.no_forward_alignment %]
+                              No alignment to target region
+                            [% ELSE %]
+                              [% well.crispr_qc_data.alignment.forward %]
+                            [% END %]
+                         </span>(F)
+                      </span>
+                      <span style="display: block">
+                          <span class="seq seq_b">
+                            [% IF well.crispr_qc_data.alignment.no_reverse_read %]
+                              No Read
+                            [% ELSIF well.crispr_qc_data.alignment.no_reverse_alignment %]
+                              No alignment to target region
+                            [% ELSE %]
+                              [% well.crispr_qc_data.alignment.reverse %]
+                            [% END %]
+                          </span>(R)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                [% END %]
+
+                [% well.is_accepted %]
+
+                [% IF well.crispr_qc_data %]</a>[% END %]
+              </td>
             </tr>
             [%- END %]
           </tbody>

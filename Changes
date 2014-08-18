@@ -1,5 +1,31 @@
 {{$NEXT}}
 
+0.233     2014-08-14 16:20:38 Europe/London
+
+    Crispr groups added
+
+0.232     2014-08-12 14:52:18 Europe/London
+
+0.231     2014-08-12 12:16:37 Europe/London
+
+   Genoverse updated to use rest.ensembl.org for mouse and grch37.rest.ensembl.org for human
+
+0.231     2014-08-07 13:37:00 Europe/London
+
+    Mouse single targeted sponsor report counts fix
+
+0.230     2014-08-04 15:37:08 Europe/London
+
+    Bugfix: T7 crispr backbone needs all 20 bases of guide RNA
+
+0.229     2014-08-01 12:42:46 Europe/London
+    
+    Previous release did not work for some reason
+
+0.228     2014-08-01 11:08:14 Europe/London
+
+    Added traces to crispr qc page
+
 0.227     2014-08-01 08:47:24 Europe/London
 
     Attempt to merge variants in target region VCF file for crispr es qc.
