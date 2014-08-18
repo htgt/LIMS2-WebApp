@@ -210,6 +210,10 @@ sub existing_nuclease {
     return shift->existing_row( 'Nuclease', 'name');
 }
 
+sub existing_crispr_primer_type {
+	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
+}
+
 sub qc_seq_read_id {
     return shift->regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/);
 }
