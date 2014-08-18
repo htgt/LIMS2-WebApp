@@ -105,6 +105,40 @@ sub final_dna_wells {
     return $final_dna_wells;
 }
 
+sub final_dna_wells_as_hash {
+    my $self = shift;
+    my $source_rs = shift;
+
+    my $source_conditions = {
+#        'dna_well_accepted' => eval($self->any_accepted_attribute),
+         'dna_well_accepted' => $self->only_accepted_attribute,
+    };
+
+    my $other_conditions = {
+        'columns' => [ qw/dna_plate_name dna_well_name/ ],
+        'distinct' => 1,
+        'order_by' => 'dna_plate_name, dna_well_name',
+        'result_class' => 'DBIx::Class::ResultClass::HashRefInflator',
+    };
+    my $dna_data = $source_rs->search(
+        $source_conditions,
+        $other_conditions,
+    );
+    my $final_dna_wells;
+    my @dna_wells;
+    while ( my $dna_well = $dna_data->next ) {
+        push @dna_wells, ($dna_well->{dna_plate_name} . '[' . $dna_well->{dna_well_name} . ']');
+    }
+    if ( scalar(@dna_wells) > 0 ) {
+        $final_dna_wells = join( $self->concat_str, @dna_wells);
+    }
+    else {
+        $final_dna_wells = 'None';
+    }
+
+    return $final_dna_wells;
+}
+
 
 sub assembly_wells {
     my $self = shift;
@@ -134,6 +168,52 @@ sub assembly_wells {
             my $right_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->assembly_well_right_crispr_well_id });
             my $right_crispr_well_string = $right_crispr_res->plate->name . '[' . $right_crispr_res->name . ']';
             push @assembly_wells_list, ($assembly_well->assembly_plate_name . '[' . $assembly_well->assembly_well_name . ']'
+                . ':' . $left_crispr_well_string
+                . ':' . $right_crispr_well_string
+            );
+        }
+    }
+    if ( scalar(@assembly_wells_list) > 0 ) {
+        $assembly_wells = join( $self->concat_str , @assembly_wells_list );
+    }
+    else {
+        $assembly_wells = 'None';
+    }
+
+    return $assembly_wells;
+}
+
+sub assembly_wells_as_hash {
+    my $self = shift;
+    my $source_rs = shift;
+
+    my $source_conditions = {
+#        'assembly_well_accepted' => 't',
+    };
+
+    my $other_conditions = {
+        columns => [ qw/assembly_plate_name assembly_well_name assembly_well_left_crispr_well_id assembly_well_right_crispr_well_id/ ],
+        distinct => 1,
+        order_by => 'assembly_plate_name, assembly_well_name, assembly_well_left_crispr_well_id, assembly_well_right_crispr_well_id',
+        'result_class' => 'DBIx::Class::ResultClass::HashRefInflator',
+    };
+
+    my $assembly_data = $source_rs->search(
+        $source_conditions,
+        $other_conditions,
+    );
+
+    my $assembly_wells;
+    my @assembly_wells_list;
+    while ( my $assembly_well = $assembly_data->next ) {
+        if ( $assembly_well->{assembly_plate_name} && $assembly_well->{assembly_well_name} ) {
+            my $left_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->{assembly_well_left_crispr_well_id} },
+                {'result_class' => 'DBIx::Class::ResultClass::HashRefInflator'});
+            my $left_crispr_well_string = $left_crispr_res->{plate}->{name} . '[' . $left_crispr_res->{name} . ']';
+            my $right_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->{assembly_well_right_crispr_well_id} },
+                {'result_class' => 'DBIx::Class::ResultClass::HashRefInflator'});
+            my $right_crispr_well_string = $right_crispr_res->{plate}->{name} . '[' . $right_crispr_res->{name} . ']';
+            push @assembly_wells_list, ($assembly_well->{assembly_plate_name} . '[' . $assembly_well->{assembly_well_name} . ']'
                 . ':' . $left_crispr_well_string
                 . ':' . $right_crispr_well_string
             );
@@ -326,7 +406,7 @@ override iterator => sub {
             push @table_row, 'Nearly'; #$sponsor;           # Sponsor
 
             push @table_row,
-                $self->final_dna_wells( $summary_design );
+                $self->final_dna_wells_as_hash( $summary_design );
             push @table_row,
                 $self->crispr_acc_wells( $gene_design->design_id );
             push @table_row,
