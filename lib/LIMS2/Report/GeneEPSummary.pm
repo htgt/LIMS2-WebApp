@@ -331,6 +331,18 @@ sub crispr_acc_wells {
     return $crispr_acc_wells;
 }
 
+sub sponsor_list_as_string {
+    my $self = shift;
+    my $gene_id = shift;
+    my $gene_hashref = shift;
+
+    my $sponsors_arrayref = $gene_hashref->{$gene_id};
+
+    my $sponsor_string = join(',', @$sponsors_arrayref);
+
+    return $sponsor_string;
+}
+
 
 override iterator => sub {
     my ( $self ) = @_;
@@ -357,14 +369,15 @@ override iterator => sub {
     my $project_rs = $self->model->schema->resultset('Project')->search({
         sponsor_id     => { -in => @sponsors },
     },{
-        select => [ 'gene_id' ],
+        select => [ 'gene_id', 'sponsor_id'],
     });
-    my @gene_list;
+    my %gene_sponsor_hash;
 
     while (my $project = $project_rs->next) {
     # create list of genes
-        push @gene_list, $project->gene_id;
+       push @{$gene_sponsor_hash{$project->gene_id}}, $project->sponsor_id;
     }
+    my @gene_list = keys %gene_sponsor_hash;
     my $gene_designs_rs = $self->model->schema->resultset('GeneDesign')->search({
         gene_id => { -in => [@gene_list] },
     },{
@@ -382,8 +395,9 @@ override iterator => sub {
             design_id => { -in => [@design_id_list] },
         },
         {
-            select => [ 'design_id' ],
+            select => [ 'design_id', 'design_gene_symbol' ],
             distinct => 1,
+            order_by => 'design_gene_symbol',
         });
     DEBUG ( 'Summary design_id count: ' . $summary_design_id_rs->count );
 
@@ -397,13 +411,18 @@ override iterator => sub {
         my @table_row;
         my $summary_design = $self->design_summary( $gene_design->design_id );
 
+        my $gene_symbol;
+        my $gene_id;
 
         if ($summary_design->count > 0) {
             push @table_row, ++$row_id;
+            $gene_symbol = $summary_design->first->design_gene_symbol;
+            $gene_id = $summary_design->first->design_gene_id;
             push @table_row,
-                $summary_design->first->design_gene_symbol; # Gene
-            push @table_row, $gene_design->design_id;       # Design
-            push @table_row, 'Nearly'; #$sponsor;           # Sponsor
+                $gene_symbol;                                               # Gene
+            push @table_row, $gene_design->design_id;                       # Design
+            push @table_row, $self->sponsor_list_as_string(
+                $gene_id, \%gene_sponsor_hash );                        # Sponsor
 
             push @table_row,
                 $self->final_dna_wells_as_hash( $summary_design );
