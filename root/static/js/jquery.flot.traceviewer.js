@@ -96,3 +96,149 @@
             version: "0.1"
         });
 })(jQuery);
+
+//add a TraceViewer object for easy creation of plots
+//this is incredibly specific to our layout, though.
+
+function TraceViewer(trace_url, button) {
+    if ( ! button && trace_url ) {
+        console.log("Please provide a trace button and trace URL");
+        return;
+    }
+
+    this.url = trace_url;
+    this.show_traces(button);
+}
+
+TraceViewer.prototype.toString = function() { return "TraceViewer"; };
+
+TraceViewer.prototype.extract_sequence = function(elem) {
+    if ( elem.text().match(/(?:No alignment)|(?:No Read)/) ) return "";
+
+    var m = elem.text().match(/([ACGTacgt]+)/g);
+    if ( ! m ) return "";
+
+    return m.join("").toUpperCase();
+};
+
+
+TraceViewer.prototype.show_traces = function(button) {
+    //create two container divs with placeholder divs inside to hold the two
+    //graphs. Placeholder is where the graph actually gets isnerted
+    var fwd_placeholder = $("<div>", {"class":"demo-placeholder"});
+    this.fwd_container   = $("<div>", {"class":"demo-container"} ).append( fwd_placeholder );
+
+    var rev_placeholder = $("<div>", {"class":"demo-placeholder"});
+    this.rev_container   = $("<div>", {"class":"demo-container"} ).append( rev_placeholder );
+
+    //pull up the coloured sequence that is nearby to our button
+    var seqs = button.parent().find(".coloured_seq");
+
+    //should maybe just do this in perl and always take forward/rev_full
+    //if there's a full sequence take it, if not strip away everythign but the nucleotides
+    var fwd_seq = button.closest("td").find(".forward_full").text() || this.extract_sequence( seqs.first() );
+    var rev_seq = button.closest("td").find(".reverse_full").text() || this.extract_sequence( seqs.last() );
+
+    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq);
+    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1);
+
+    //add both the graphs into a single div and replace the button
+    button.replaceWith( $("<div>").append(this.fwd_container).append(this.rev_container) );
+};
+
+//wait for data then give it to the real plot creation method
+TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse) {
+    if ( ! search_seq ) { placeholder.parent().hide(); return }; //skip blank sequence
+
+    //create local var for this, as "this" in getJSON is different
+    var parent = this;
+
+    //fetch the users data and add a new graph when the data comes back
+    $.getJSON(
+        this.url,
+        { "name": name, "search_seq": search_seq, "reverse": reverse },
+        function(data) {
+            parent._create_plot(placeholder, data);
+        }
+    );
+};
+
+//function that actually creates the plot
+TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
+    var set = graph_data.series[0]["data"];
+    var left_boundary = parseInt(set[0][0]);
+    var right_boundary = set[set.length - 1][0];
+
+    var plot = $.plot(placeholder, graph_data.series, {
+        labels: graph_data.labels,
+        series: {
+            lines: {
+                show: true
+            },
+            shadowSize: 0
+        },
+        xaxis: {
+            zoomRange: [50, set.length],
+            panRange: [left_boundary, right_boundary],
+            min: left_boundary,
+            max: left_boundary+250,
+            show: false,
+            reserveSpace: true
+        },
+        yaxis: {
+            zoomRange: [100, 10000],
+            panRange: false,
+            reserveSpace: true,
+            show: false
+        },
+        zoom: {
+            interactive: false
+        },
+        pan: {
+            interactive: true
+        },
+        legend: {
+            show: false,
+            position: "nw"
+        }
+    });
+
+    function addZoom(text, left, top, args) {
+        $("<div class='button' style='left:" + left + "px;top:" + top + "px;width:7px;text-align:center'>" + text + "</div>")
+        .appendTo(placeholder)
+        .click(function (e) {
+            e.preventDefault();
+            plot.zoom( args );
+        });
+    }
+
+    //todo: add a loop to do this rubbish
+    $("<div style='left:2px;top:7px;width:7px;text-align:center;position:absolute;'>X</div>")
+    .appendTo(placeholder);
+    addZoom("+", 0, 25, {
+        axis: "xaxis",
+        center: { left: plot.width() / 2, top: plot.height() },
+        amount: 1.2
+    });
+    addZoom("-", 0, 47, {
+        axis: "xaxis",
+        center: { left: plot.width() / 2, top: plot.height() },
+        amount: 1/1.2
+    });
+
+    $("<div style='left:14px;top:7px;width:7px;text-align:center;position: absolute;'>Y</div>")
+    .appendTo(placeholder);
+    addZoom("+", 14, 25, {
+        axis: "yaxis",
+        center: { left: plot.width() / 2, top: plot.height() },
+        amount: 1.2
+    });
+    addZoom("-", 14, 47, {
+        axis: "yaxis",
+        center: { left: plot.width() / 2, top: plot.height() },
+        amount: 1/1.2
+    });
+
+    //make world accessible
+    this.plot = plot;
+};

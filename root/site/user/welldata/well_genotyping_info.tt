@@ -1,5 +1,6 @@
 [% META title="Well Genotyping Information"; META tab_name = "Cells" %]
 
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <style type="text/css">
 .alignment {
     font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
@@ -69,6 +70,48 @@
       </td>
     </tr>
     <tr>
+      <th>QC damage data</th>
+      <td>
+        [% IF data.qc_data.alignment.forward_full %]
+            <div class="forward_full" style="display:none">[% data.qc_data.alignment.forward_full %]</div>
+        [% END %]
+        [% IF data.qc_data.alignment.reverse_full %]
+            <div class="reverse_full" style="display:none">[% data.qc_data.alignment.reverse_full %]</div>
+        [% END %]
+        <div class="alignment">
+          <div class="alignment_reference">
+            <span>
+                [% data.qc_data.alignment.ref_start %]<span style="color:#FF0000">[% data.qc_data.alignment.crispr_seq %]</span>[% data.qc_data.alignment.ref_end %]
+            </span><br/>
+          </div>
+          <div class="alignment_inner">
+            <span style="display: block">
+               <span class="seq seq_a">
+                  [% IF data.qc_data.alignment.no_forward_read %]
+                    No Read
+                  [% ELSIF data.qc_data.alignment.no_forward_alignment %]
+                    No alignment to target region
+                  [% ELSE %]
+                    [% data.qc_data.alignment.forward %]
+                  [% END %]
+               </span>(F)
+            </span>
+            <span style="display: block">
+                <span class="seq seq_b">
+                  [% IF data.qc_data.alignment.no_reverse_read %]
+                    No Read
+                  [% ELSIF data.qc_data.alignment.no_reverse_alignment %]
+                    No alignment to target region
+                  [% ELSE %]
+                    [% data.qc_data.alignment.reverse %]
+                  [% END %]
+                </span>(R)
+            </span>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr>
       <th>VCF</th>
       <td>
         <pre>[% data.vcf_file %]</pre>
@@ -87,7 +130,7 @@
   </p>
 </div>
 
-<div class="row">
+<div class="data.qc_data">
   <div class="span3">
     <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]" class="btn">
     <i class="icon-hand-left"></i> Back to search </a>

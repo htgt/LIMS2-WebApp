@@ -667,7 +667,7 @@ sub fetch_values_for_type_ep {
 }
 
 sub fetch_values_for_type_ep_pick {
-    my ( $self, $summary_row, $wells_hash ) = @_;
+    my ( $self, $summary_row, $wells_hash, $model ) = @_;
 
     if ( defined $summary_row->ep_pick_well_id && $summary_row->ep_pick_well_id > 0 ) {
 
@@ -697,6 +697,17 @@ sub fetch_values_for_type_ep_pick {
                 'ep_well'           => $ep_well,
                 'is_accepted'       => $well_is_accepted,
             };
+
+            if ( $summary_row->crispr_ep_well_name and $summary_row->ep_pick_well_accepted ) {
+                my $well = $model->schema->resultset('Well')->find( $summary_row->ep_pick_well_id );
+                #its an accepted crispr well, so try and get the qc data
+                my $gene_finder = sub { $model->find_genes( @_ ) };
+                try {
+                    $well_hash->{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 );
+                };
+            }
+
+            #die Dumper( $well_hash ) if $well_id_string eq "HUEPD0011_1_C07";
 
             $wells_hash->{ 'ep_pick' }->{ $well_id_string } = $well_hash;
         }

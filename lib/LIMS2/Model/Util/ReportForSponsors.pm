@@ -731,18 +731,22 @@ SQL_END
         # project specific filtering
         ## no critic (ProhibitCascadingIfElse)
         if ($self->species eq 'Human') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );"
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
-        if ($sponsor_id eq 'Pathogen Group 1') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) AND ( sponsor_id = 'Pathogen Group 1' );";
-        } elsif ($sponsor_id eq 'Pathogen Group 2') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) ;";
-        } elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) AND ( sponsor_id = 'EUCOMMTools Recovery' );";
-        } elsif ($sponsor_id eq 'MGP Recovery') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) ;";
-        } elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ) AND ( sponsor_id = 'Barry Short Arm Recovery' );";
+        if ($sponsor_id eq 'Pathogen Group 2') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        elsif ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
+        }
+        elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+            $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        }
+        elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
+        }
+        elsif ($sponsor_id eq 'MGP Recovery') {
+            $sql .= " AND ( sponsor_id = 'MGP Recovery' );";
         }
 
         ## use critic
@@ -1702,7 +1706,29 @@ sub sql_count_st_vectors {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -1768,7 +1794,8 @@ AND (
 AND s.final_pick_qc_seq_pass = true
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
+
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -1782,6 +1809,7 @@ SELECT count(distinct(s.design_gene_id))
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.final_pick_qc_seq_pass = true
+$condition
 SQL_END
 
     }
@@ -1796,7 +1824,29 @@ sub sql_count_st_dna {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -1862,7 +1912,7 @@ AND (
 AND s.dna_status_pass = true
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -1876,6 +1926,7 @@ SELECT count(distinct(s.design_gene_id))
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.dna_well_accepted = true
+$condition
 SQL_END
 
     }
@@ -1890,7 +1941,29 @@ sub sql_count_st_eps {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -1956,7 +2029,7 @@ AND (
 AND s.ep_well_id > 0
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -1970,6 +2043,7 @@ SELECT count(distinct(s.design_gene_id))
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+$condition
 SQL_END
 
     }
@@ -1984,7 +2058,29 @@ sub sql_count_st_accepted_clones {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2050,7 +2146,7 @@ AND (
 AND s.ep_pick_well_accepted = true
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2064,6 +2160,7 @@ SELECT count(distinct(s.design_gene_id))
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.ep_pick_well_accepted = true
+$condition
 SQL_END
 
     }
@@ -2081,7 +2178,29 @@ sub sql_select_st_vectors {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2152,7 +2271,7 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2168,6 +2287,7 @@ SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cas
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.final_pick_qc_seq_pass = true
+$condition
 GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
 , s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name
 ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
@@ -2186,7 +2306,29 @@ sub sql_select_st_dna {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2259,7 +2401,7 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2276,6 +2418,7 @@ SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cas
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.dna_status_pass = true
+$condition
 GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
 , s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name
 , s.final_qc_seq_pass, s.final_pick_qc_seq_pass
@@ -2294,7 +2437,29 @@ sub sql_select_st_electroporations {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2365,7 +2530,7 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2381,6 +2546,7 @@ SELECT s.design_gene_id, s.design_gene_symbol, concat(s.ep_plate_name, s.crispr_
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+$condition
 GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.crispr_ep_plate_name, s.ep_well_name, s.crispr_ep_well_name, s.final_pick_cassette_name
 , s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
@@ -2398,7 +2564,29 @@ sub sql_select_st_accepted_clones {
     my $sql_query;
     my $species_id = $self->species;
 
-    if ($species_id eq 'Mouse') {
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2471,7 +2659,7 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_END
 
-    } elsif ($species_id eq 'Human') {
+    } else {
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
@@ -2488,6 +2676,7 @@ SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cas
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.ep_pick_well_accepted = true
+$condition
 GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
 , s.final_pick_cassette_resistance, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass
 , s.final_pick_qc_seq_pass, s.dna_status_pass
@@ -4745,4 +4934,5 @@ and s.crispr_ep_well_accepted='true'
 SQL_END
 return $sql_query
 }
+
 1;
