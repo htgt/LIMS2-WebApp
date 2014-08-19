@@ -55,6 +55,7 @@
                 }
             %]
             [% hidden = {
+                "gene id" = 1
                 "row id" = 1
                 } %]
 
@@ -85,16 +86,14 @@
                     var id = Ext.id();
                     Ext.defer(function () {
                         var api_url = row.get('Genoverse View').match( /api_url=(.*crispr_primers).(.*$)/ );
-                        console.log(api_url);
-                        var api_url_t = api_url[1] + '?'; 
-                        var api_replace = api_url[2].replace(/;/g , '&' );
-                        api_url_t = api_url_t + api_replace;
-                        console.log(api_url_t);
+                        var api_base = api_url[1].substr(1); // remove the opening slash as c.uri_for provides it
+                        var api_replace = api_url[2].replace(/;/g , '&' ); // construct argument list for URL as we cannot do that in TT
+                        api_replace = api_replace.substr(0, api_replace.length - 1); // remove the stray ampersand at the end of the URL 
                         Ext.widget('button', {
                             renderTo: id,
                             text: 'Genoverse',
                             width: 75,
-                            handler: function () { window.open( api_url_t ) }
+                            handler: function () { window.open( "[% c.uri_for('/') %]" + api_base + '?' + api_replace ) }
                         });
                     }, 50);
                     return Ext.String.format('<div id="{0}"></div>', id);
