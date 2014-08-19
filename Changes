@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.234     2014-08-15 10:21:23 Europe/London
+
+    Added CRISPR ES QC damage view to gene summary and well genotyping info page
+
 0.233     2014-08-14 16:20:38 Europe/London
 
     Crispr groups added
