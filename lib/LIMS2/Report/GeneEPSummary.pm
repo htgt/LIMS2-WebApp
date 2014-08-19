@@ -32,7 +32,7 @@ override _build_name => sub {
 override _build_columns => sub {
     return [
         'Row id',
-        'Gene',
+        'Gene Symbol',
         'Design Id',
         'Sponsor',
         'Accepted Final DNA', # dna_ from summaries
@@ -164,9 +164,15 @@ sub assembly_wells {
     while ( my $assembly_well = $assembly_data->next ) {
         if ( $assembly_well->assembly_plate_name && $assembly_well->assembly_well_name ) {
             my $left_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->assembly_well_left_crispr_well_id });
-            my $left_crispr_well_string = $left_crispr_res->plate->name . '[' . $left_crispr_res->name . ']';
+            my $left_crispr_well_string = 'ND';
+            if ( $left_crispr_res ) {
+                $left_crispr_well_string = $left_crispr_res->plate->name . '[' . $left_crispr_res->name . ']';
+            }
             my $right_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->assembly_well_right_crispr_well_id });
-            my $right_crispr_well_string = $right_crispr_res->plate->name . '[' . $right_crispr_res->name . ']';
+            my $right_crispr_well_string = 'ND';
+            if ( $right_crispr_res ) {
+                $right_crispr_well_string = $right_crispr_res->plate->name . '[' . $right_crispr_res->name . ']';
+            }
             push @assembly_wells_list, ($assembly_well->assembly_plate_name . '[' . $assembly_well->assembly_well_name . ']'
                 . ':' . $left_crispr_well_string
                 . ':' . $right_crispr_well_string
@@ -338,7 +344,7 @@ sub sponsor_list_as_string {
 
     my $sponsors_arrayref = $gene_hashref->{$gene_id};
 
-    my $sponsor_string = join(',', @$sponsors_arrayref);
+    my $sponsor_string = join(', ', @$sponsors_arrayref);
 
     return $sponsor_string;
 }
@@ -367,7 +373,7 @@ override iterator => sub {
 #	}
 
     my $project_rs = $self->model->schema->resultset('Project')->search({
-        sponsor_id     => { -in => @sponsors },
+        sponsor_id     => { -in => [@sponsors] },
     },{
         select => [ 'gene_id', 'sponsor_id'],
     });

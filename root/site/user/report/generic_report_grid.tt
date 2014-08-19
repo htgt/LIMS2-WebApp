@@ -44,24 +44,34 @@
             });
 
             [% locked = {
-                "Well Name" = 1
-                "Design ID" = 1
-                "Gene ID" = 1
-                "Gene Symbol" = 1
+                "row id" = 1
+                "well name" = 1
+                "design id" = 1
+                "gene id" = 1
+                "gene symbol" = 1
                 } %]
             [% alt_render = {
-                "Genoverse View" = 1
+                "genoverse view" = 1
                 }
             %]
+            [% hidden = {
+                "row id" = 1
+                } %]
 
             var columns = [
                 [%- FOREACH col IN columns %]
                 {
                     header: "[%- col %]",
-                    [%- IF locked.$col == 1 %]
+                    [%- USE String %]
+                    [%- tcol = String.new(col) %]
+                    [%- lcol = tcol.lower %]
+                    [%- IF locked.$lcol == 1 %]
                     locked: true,
                     [%- END %]
-                    [%- IF alt_render.$col == 1%]
+                    [%- IF hidden.$lcol == 1 %]
+                    hidden: true,
+                    [% END %]
+                    [%- IF alt_render.$lcol == 1%]
                     renderer: genoverse,
                     [%- ELSE %]
                     sortable: true,
