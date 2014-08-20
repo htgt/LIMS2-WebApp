@@ -186,3 +186,27 @@
 [% ELSE %]
   <p><em>No crispr pairs linked to this design</em></p>
 [% END %]
+
+<h2>Crispr Groups</h2>
+[% IF crispr_groups %]
+  <table class="table table-striped">
+    <thead>
+      <th>ID</th>
+      <th>Group Target</th>
+      <th>Num Crisprs</th>
+      <th>Crisprs</th>
+    </thead>
+    <tbody>
+      [%- FOR cg IN crispr_groups %]
+      <tr>
+        <td><a href="[% c.uri_for( '/user/crispr_group', cg.id , 'view'  ) %]" target="_blank"> [% cg.id %]</a></td>
+        <td>[% cg.gene_id %]</td>
+        <td>[% cg.crispr_ids.size %]</td>
+        <td>[% cg.crispr_ids.join(', ') %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No crispr pairs linked to this design</em></p>
+[% END %]

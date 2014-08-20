@@ -192,6 +192,7 @@ sub fetch_existing_design_crispr_links {
 
     # there is nothing stopping a record having a link to both a crispr_id and
     # a crispr_pair_id so check for both
+    # and now check for crispr_group_id too
     for my $crispr_design ( @crispr_designs ) {
         # if we have a single crispr linked to a design store that id
         if ( $crispr_design->crispr_id ) {
@@ -207,6 +208,11 @@ sub fetch_existing_design_crispr_links {
                 #$crispr_pair->left_crispr_id,
                 #$crispr_pair->right_crispr_id,
             #);
+        }
+
+        if ( $crispr_design->crispr_group_id ) {
+            push @{ $design_crispr_links{ $crispr_design->design_id }{group} },
+                $crispr_design->crispr_group_id;
         }
     }
 
