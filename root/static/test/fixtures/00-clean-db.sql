@@ -28,6 +28,8 @@ DELETE FROM crispr_off_targets;
 DELETE FROM crispr_off_target_summaries;
 DELETE FROM crispr_loci;
 DELETE FROM crispr_pairs;
+DELETE FROM crispr_group_crisprs;
+DELETE FROM crispr_groups;
 DELETE FROM crisprs;
 DELETE FROM qc_alignment_regions;
 DELETE FROM qc_alignments;
