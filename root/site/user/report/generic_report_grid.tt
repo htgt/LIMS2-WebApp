@@ -10,11 +10,11 @@
                 ]
             });
 
+[%# first_time_outer is all about where to put the comma to avoid trailing commas that confuse some browsers %]
             var arrayData = [
                     [%- first_time_outer = 1 %]
                     [%- FOREACH datum IN data %]
                         [%- IF first_time_outer == 1 %]
-                            [% first_time_outer = 0 %]
                             {
                         [%- ELSE %]
                             ,{
@@ -27,11 +27,19 @@
                                     [%- first_time_inner = 0 %]
                                     "[%- columns.$index %]": "[%- val %]"
                                 [%- ELSE %]
+                                    [%#- first time, check whether there is a 'custom:' flag
+                                        this will be rendered as a button so save it to the alt_render array
+                                    %]
+                                    [%- IF (first_time_outer == 1) && (val.match('custom')) %]
+                                    // string matched 'custom' specifier
+                                        [%- alt_render.${columns.$index} = 1 %]
+                                    [%- END %]
                                     ,"[%- columns.$index %]": "[%- val %]"
                                 [%- END %]
                                 [%- index = index + 1 %]
                             [%- END %]
                         }
+                    [% first_time_outer = 0 %]
                     [%- END %]
                     ];
 
@@ -50,10 +58,6 @@
                 "gene id" = 1
                 "gene symbol" = 1
                 } %]
-            [% alt_render = {
-                "genoverse view" = 1
-                }
-            %]
             [% hidden = {
                 "gene id" = 1
                 "row id" = 1
@@ -63,17 +67,15 @@
                 [%- FOREACH col IN columns %]
                 {
                     header: "[%- col %]",
-                    [%- USE String %]
-                    [%- tcol = String.new(col) %]
-                    [%- lcol = tcol.lower %]
-                    [%- IF locked.$lcol == 1 %]
+                    [%- IF locked.${col.lower} == 1 %]
                     locked: true,
                     [%- END %]
-                    [%- IF hidden.$lcol == 1 %]
+                    [%- IF hidden.${col.lower} == 1 %]
                     hidden: true,
-                    [% END %]
-                    [%- IF alt_render.$lcol == 1%]
-                    renderer: genoverse,
+                    [%- END %]
+                    [%# alt_render values are case sensitive %]
+                    [%- IF alt_render.$col == 1%]
+                    renderer: lims2_action_button,
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
@@ -81,17 +83,32 @@
                 },
                 [%- END %]
             ];
+    
+            // locked columns cause the colIndex to return a value of (expected - locked_col_count)
+            // ExtJS4.2.1 bug?
+            var locked_column_count = 0;
+            var col_arr_length = columns.length;
+            for (var c = 0; c < col_arr_length;  c++) {
+                if (columns[c].hasOwnProperty('locked')) {
+                    ++locked_column_count;
+                }
+            }
 
-            function genoverse(val, meta, row) {
+            // For a renderer, val is data value for the current cell
+            // Rec is the object representing the current record from the model
+            // 
+            function lims2_action_button(val, meta, rec, rowindex, colindex) {
                     var id = Ext.id();
                     Ext.defer(function () {
-                        var api_url = row.get('Genoverse View').match( /api_url=(.*crispr_primers).(.*$)/ );
-                        var api_base = api_url[1].substr(1); // remove the opening slash as c.uri_for provides it
-                        var api_replace = api_url[2].replace(/;/g , '&' ); // construct argument list for URL as we cannot do that in TT
+                        var col_head = columns[colindex + locked_column_count].header;
+                        var api_url = rec.get(col_head).match( /button_label=(.*?[^;]);api_url=(.*?[^;]);(.*$)/ );
+                        var button_label = api_url[1];
+                        var api_base = api_url[2].substr(1); // remove the opening slash as c.uri_for provides it
+                        var api_replace = api_url[3].replace(/;/g , '&' ); // construct argument list for URL as we cannot do that in TT
                         api_replace = api_replace.substr(0, api_replace.length - 1); // remove the stray ampersand at the end of the URL 
                         Ext.widget('button', {
                             renderTo: id,
-                            text: 'Genoverse',
+                            text: button_label,
                             width: 75,
                             handler: function () { window.open( "[% c.uri_for('/') %]" + api_base + '?' + api_replace ) }
                         });
