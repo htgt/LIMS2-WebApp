@@ -44,8 +44,8 @@
         <th>Category</th>
         <th>Comment</th>
         <th>Public?</th>
-        <th>Created at</th>
         <th>Created by</th>
+        <th>Created at</th>
       </tr>
     </thead>
     <tbody>

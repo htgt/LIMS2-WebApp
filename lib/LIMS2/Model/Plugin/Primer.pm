@@ -58,13 +58,13 @@ First check to see crispr does not already have primer of same type.
 sub create_crispr_primer {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_primer );
 
     my $crispr_primer = $self->schema->resultset('CrisprPrimer')->create(
         {   slice_def(
                 $validated_params,
-                qw( crispr_id crispr_pair_id crispr_group_id 
-                    primer_seq primer_name tm gc_content 
+                qw( crispr_id crispr_pair_id crispr_group_id
+                    primer_seq primer_name tm gc_content
                     )
             )
         }
@@ -80,12 +80,12 @@ sub create_crispr_primer {
 
 sub pspec_create_crispr_primer_locus {
     return {
-        assembly         => { validate => 'existing_assembly' },
-        chr_name         => { validate => 'existing_chromosome' },
-        chr_start        => { validate => 'integer' },
-        chr_end          => { validate => 'integer' },
-        chr_strand       => { validate => 'strand' },
-        crispr_oligo_id  => { validate => 'integer' },
+        assembly        => { validate => 'existing_assembly' },
+        chr_name        => { validate => 'existing_chromosome' },
+        chr_start       => { validate => 'integer' },
+        chr_end         => { validate => 'integer' },
+        chr_strand      => { validate => 'strand' },
+        crispr_oligo_id => { validate => 'integer' },
     };
 }
 
