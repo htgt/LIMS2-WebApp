@@ -84,24 +84,14 @@
                 [%- END %]
             ];
     
-            // locked columns cause the colIndex to return a value of (expected - locked_col_count)
-            // ExtJS4.2.1 bug?
-            var locked_column_count = 0;
-            var col_arr_length = columns.length;
-            for (var c = 0; c < col_arr_length;  c++) {
-                if (columns[c].hasOwnProperty('locked')) {
-                    ++locked_column_count;
-                }
-            }
 
             // For a renderer, val is data value for the current cell
-            // Rec is the object representing the current record from the model
             // 
-            function lims2_action_button(val, meta, rec, rowindex, colindex) {
+            function lims2_action_button(val) {
                     var id = Ext.id();
                     Ext.defer(function () {
-                        var col_head = columns[colindex + locked_column_count].header;
-                        var api_url = rec.get(col_head).match( /button_label=(.*?[^;]);api_url=(.*?[^;]);(.*$)/ );
+                        console.log(val);
+                        var api_url = val.match( /button_label=(.*?[^;]);api_url=(.*?[^;]);(.*$)/ );
                         var button_label = api_url[1];
                         var api_base = api_url[2].substr(1); // remove the opening slash as c.uri_for provides it
                         var api_replace = api_url[3].replace(/;/g , '&' ); // construct argument list for URL as we cannot do that in TT
