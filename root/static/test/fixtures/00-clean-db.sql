@@ -19,6 +19,7 @@ DELETE FROM genotyping_primers;
 DELETE FROM design_comments;
 DELETE FROM design_oligo_loci;
 DELETE FROM design_oligos;
+DELETE FROM design_targets;
 DELETE FROM gene_design;
 DELETE FROM crispr_designs;
 DELETE FROM designs;
