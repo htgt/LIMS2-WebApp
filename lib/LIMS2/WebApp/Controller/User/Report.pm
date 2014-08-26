@@ -28,7 +28,7 @@ Retrieve a cached report. Generate the report asynchronously if there is no vail
 
 sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
-$DB::single=1;
+
     $c->assert_user_roles( 'read' );
 
     my $params = $c->request->params;
