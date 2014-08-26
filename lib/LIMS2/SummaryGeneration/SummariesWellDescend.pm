@@ -756,8 +756,14 @@ sub fetch_values_for_type_ASSEMBLY {
         if($left_well){
             $stored_values->{ 'stored_assembly_well_left_crispr_well_id' }   = try{ $left_well->id };
         }
+        else {
+            $stored_values->{ 'stored_assembly_well_left_crispr_well_id' } = undef;
+        }
         if($right_well){
             $stored_values->{ 'stored_assembly_well_right_crispr_well_id' }  = try{ $right_well->id };
+        }
+        else {
+            $stored_values->{ 'stored_assembly_well_right_crispr_well_id' } = undef;
         }
     }
 
