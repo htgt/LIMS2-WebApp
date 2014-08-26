@@ -367,11 +367,6 @@ override iterator => sub {
         }
     }
 
-#    foreach my $sponsor (@sponsors) {
-#    	my $sponsor_data = $self->build_summary_data($sponsor);
-#    	push ( @{$summary_data},  @{$sponsor_data});
-#	}
-
     my $project_rs = $self->model->schema->resultset('Project')->search({
         sponsor_id     => { -in => [@sponsors] },
     },{
