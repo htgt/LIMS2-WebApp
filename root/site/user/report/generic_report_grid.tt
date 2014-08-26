@@ -5,7 +5,13 @@
                 extend: 'Ext.data.Model',
                 fields: [
                     [%- FOREACH col IN columns %]
-                    { name: '[%- col %]', type: 'string' },
+                    [%#- we need some metadata to tell us the data type of the column so that it sorts properly %]
+                    [%#- for now, deisgn ids need to be treated as integers for sorting, not strings %]
+                        [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
+                            { name: '[%- col %]', type: 'int' },
+                        [%- ELSE %]
+                            { name: '[%- col %]', type: 'string' },
+                        [%- END %]
                     [%- END %]
                 ]
             });
