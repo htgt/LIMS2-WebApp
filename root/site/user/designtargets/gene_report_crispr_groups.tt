@@ -176,6 +176,8 @@ $('.crispr-info').popover();
     <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'view' ) %]" target="_blank">
       [% crispr_group.id %]
     </a>
+    <br>
+    Group Target: [% crispr_group.gene_id %]
     <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'blat' ) %]" target="_blank" class="btn btn-mini btn-block">
     blat
     </a>
