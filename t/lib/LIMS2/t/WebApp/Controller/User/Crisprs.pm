@@ -12,7 +12,7 @@ BEGIN
     # compile time requirements
     #{REQUIRE_PARENT}
     use Log::Log4perl qw(:easy);
-    Log::Log4perl->easy_init($DEBUG);
+    Log::Log4perl->easy_init($OFF);
 };
 
 sub all_tests  : Test(21)
@@ -41,7 +41,7 @@ sub all_tests  : Test(21)
     # load design target
     # Check new group is found for target
     my $target_data = test_data('create_design_targets_atad2.yaml');
-    lives_ok { model->c_create_design_target( $target_data->{valid_design_target} ) }, 'design target loaded';
+    lives_ok { model->c_create_design_target( $target_data->{valid_design_target} ) } 'design target loaded';
 
     $mech->get_ok('/user/design_target_gene_search');
     ok $res = $mech->submit_form(
