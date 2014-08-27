@@ -5,16 +5,22 @@
                 extend: 'Ext.data.Model',
                 fields: [
                     [%- FOREACH col IN columns %]
-                    { name: '[%- col %]', type: 'string' },
+                    [%#- we need some metadata to tell us the data type of the column so that it sorts properly %]
+                    [%#- for now, deisgn ids need to be treated as integers for sorting, not strings %]
+                        [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
+                            { name: '[%- col %]', type: 'int' },
+                        [%- ELSE %]
+                            { name: '[%- col %]', type: 'string' },
+                        [%- END %]
                     [%- END %]
                 ]
             });
 
+[%# first_time_outer is all about where to put the comma to avoid trailing commas that confuse some browsers %]
             var arrayData = [
                     [%- first_time_outer = 1 %]
                     [%- FOREACH datum IN data %]
                         [%- IF first_time_outer == 1 %]
-                            [% first_time_outer = 0 %]
                             {
                         [%- ELSE %]
                             ,{
@@ -27,11 +33,22 @@
                                     [%- first_time_inner = 0 %]
                                     "[%- columns.$index %]": "[%- val %]"
                                 [%- ELSE %]
-                                    ,"[%- columns.$index %]": "[%- val %]"
+                                    [%#- first time, check whether there is a 'custom:' flag
+                                        this will be rendered as a button so save it to the alt_render array
+                                    %]
+                                    [%- IF (first_time_outer == 1) && (val.match('lims2_custom')) %]
+                                    // string matched 'custom' specifier
+                                        [%- alt_render.${columns.$index} = 1 %]
+                                    [%- END %]
+                                    ,"[%- columns.$index %]": "[%- val.dquote | none%]"
+                                    [%#- This 'none' FILTER comes from Template::AutoFilter and is otherwise
+                                         undocumented. It prevents TT from the &quote quoting of strings
+                                         which confuses JSON.parse %]
                                 [%- END %]
                                 [%- index = index + 1 %]
                             [%- END %]
                         }
+                    [% first_time_outer = 0 %]
                     [%- END %]
                     ];
 
@@ -44,25 +61,30 @@
             });
 
             [% locked = {
-                "Well Name" = 1
-                "Design ID" = 1
-                "Gene ID" = 1
-                "Gene Symbol" = 1
+                "row id" = 1
+                "well name" = 1
+                "design id" = 1
+                "gene id" = 1
+                "gene symbol" = 1
                 } %]
-            [% alt_render = {
-                "Genoverse View" = 1
-                }
-            %]
+            [% hidden = {
+                "gene id" = 1
+                "row id" = 1
+                } %]
 
             var columns = [
                 [%- FOREACH col IN columns %]
                 {
                     header: "[%- col %]",
-                    [%- IF locked.$col == 1 %]
+                    [%- IF locked.${col.lower} == 1 %]
                     locked: true,
                     [%- END %]
+                    [%- IF hidden.${col.lower} == 1 %]
+                    hidden: true,
+                    [%- END %]
+                    [%# alt_render values are case sensitive %]
                     [%- IF alt_render.$col == 1%]
-                    renderer: genoverse,
+                    renderer: lims2_action_button_json,
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
@@ -70,21 +92,28 @@
                 },
                 [%- END %]
             ];
+    
 
-            function genoverse(val, meta, row) {
+
+            function lims2_action_button_json(val) {
                     var id = Ext.id();
                     Ext.defer(function () {
-                        var api_url = row.get('Genoverse View').match( /api_url=(.*crispr_primers).(.*$)/ );
-                        console.log(api_url);
-                        var api_url_t = api_url[1] + '?'; 
-                        var api_replace = api_url[2].replace(/;/g , '&' );
-                        api_url_t = api_url_t + api_replace;
-                        console.log(api_url_t);
+                        console.log(val);
+                        var j_val = JSON.parse(val);
+                        var button_label = j_val.lims2_custom.button_label;
+                        var api_base = j_val.lims2_custom.api_url.substr(1); // remove the opening slash as c.uri_for provides it
+                        var api_params_array = [];
+                        for (var key in j_val.lims2_custom) {
+                          if (j_val.lims2_custom.hasOwnProperty(key)) {
+                                api_params_array.push( key + '=' + j_val.lims2_custom[key]);
+                            }
+                        }
+                        var api_params_string = api_params_array.join( '&' );
                         Ext.widget('button', {
                             renderTo: id,
-                            text: 'Genoverse',
+                            text: button_label,
                             width: 75,
-                            handler: function () { window.open( api_url_t ) }
+                            handler: function () { window.open( "[% c.uri_for('/') %]" + api_base + '?' + api_params_string ) }
                         });
                     }, 50);
                     return Ext.String.format('<div id="{0}"></div>', id);
