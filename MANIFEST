@@ -206,6 +206,7 @@ lib/LIMS2/Report/FPPlate.pm
 lib/LIMS2/Report/FinalPickVectorPlate.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/FirstElectroporationProductionDetail.pm
+lib/LIMS2/Report/GeneEPSummary.pm
 lib/LIMS2/Report/GenesToElectroporate.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
 lib/LIMS2/Report/LegacyCreKnockInProjects.pm
@@ -2355,6 +2356,7 @@ root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligo.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligoLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/User.csv
+root/static/test/fixtures/LIMS2/t/Report/GeneEPSummary/Summary.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Design.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/GeneDesign.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Plate.csv
@@ -2597,6 +2599,7 @@ t/LIMS2/Report/10_LIMS2_Report_FPPlate.t
 t/LIMS2/Report/10_LIMS2_Report_FinalPickVectorPlate.t
 t/LIMS2/Report/10_LIMS2_Report_FinalVectorPlate.t
 t/LIMS2/Report/10_LIMS2_Report_FirstElectroporationProductionDetail.t
+t/LIMS2/Report/10_LIMS2_Report_GeneEPSummary.t
 t/LIMS2/Report/10_LIMS2_Report_GenesToElectroporate.t
 t/LIMS2/Report/10_LIMS2_Report_IntermediateVectorPlate.t
 t/LIMS2/Report/10_LIMS2_Report_PICKPlate.t
@@ -2810,6 +2813,7 @@ t/lib/LIMS2/t/Report/FPPlate.pm
 t/lib/LIMS2/t/Report/FinalPickVectorPlate.pm
 t/lib/LIMS2/t/Report/FinalVectorPlate.pm
 t/lib/LIMS2/t/Report/FirstElectroporationProductionDetail.pm
+t/lib/LIMS2/t/Report/GeneEPSummary.pm
 t/lib/LIMS2/t/Report/GenesToElectroporate.pm
 t/lib/LIMS2/t/Report/IntermediateVectorPlate.pm
 t/lib/LIMS2/t/Report/PICKPlate.pm

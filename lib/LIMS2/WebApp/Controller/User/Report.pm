@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.235';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.236';
 }
 ## use critic
 
@@ -284,6 +284,10 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
 
     # Human project sponsors list
+
+    if ( ($report eq 'EPSummary') && ( $c->session->{selected_species} eq 'Human')) {
+        $report = 'GeneEPSummary';
+    }
     my @human_sponsors = ['Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
     $c->stash(
         template    => 'user/report/select_sponsor.tt',

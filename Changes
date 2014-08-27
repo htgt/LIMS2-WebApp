@@ -1,3 +1,9 @@
+0.236     2014-08-27 10:04:26 Europe/London
+
+Fixed genoverse button in both ExtJS grid and standard reporting
+Added GeneEPSUmmary report for human to cells menu
+Fixed bug in Summary generation when reporting singloe crispr wells
+
 0.235     2014-08-19 07:13:57 Europe/London
 
     Bugfix to crispr_primer_create code

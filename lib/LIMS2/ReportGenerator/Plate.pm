@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.235';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.236';
 }
 ## use critic
 
@@ -19,6 +19,7 @@ use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use Time::HiRes qw(time);
 use Data::Dumper;
+use JSON;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -501,40 +502,30 @@ sub _symbols_from_design{
     return;
 }
 
-=head create_button
-Returns a custom string for interpretation by the view (template toolkit).
-
-The string format is:
-
-custom:key1=val1;key2=val2;...;
-
-The order of keys is irrelevant.
-
-NB. We cannot simply send back a hashref as the reporting framework writes out the csv file and it is this that
-gets laid out in the table. All we end up with is a HASHxOOOOO string, which is meaningless and cannot
-be interpreted properly by TT. Thus, we have to create a custom string to pass key=value pairs to the view.
+=head create_button_json
+Returns a custom json string ( lims2_custom ) for interpretation by the view (template toolkit).
 
 Note that you must provide key/value pairs for:
 api_url - the view will use a c.uri_for call using this as the api method used to render the view
 button_label - text to be used to label the button for this cell
 browser_target - an html keyword or arbitrary string to indicate whether the button will create a new tab or window, or render in the curent window
 
-These key/value pairs are not passed on as parameters in the c.uri_for call, any other parameters you define will be passed through.
+All key value pairs are passed by the uri_for call to render the action/view.
 
 =cut
 
-sub create_button {
+sub create_button_json {
     my $self = shift;
     my $params = shift;
 
-    my $custom_value = 'custom:';
-    foreach my $custom_key ( keys %$params ) {
-        $custom_value .= $custom_key
-            . '='
-            . $params->{$custom_key}
-            . ';';
-    }
-    return $custom_value;
+    my $custom_value = {
+        'lims2_custom' => {
+            %{$params}
+        },
+    };
+    my $json_text = encode_json( $custom_value );
+
+    return $json_text;
 }
 
 __PACKAGE__->meta->make_immutable;
