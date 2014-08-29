@@ -174,7 +174,11 @@ sub find_gene {
     unless ($species eq 'Mouse' || $species eq 'Human');
 
     # search for a gene in the solr index
-    my $gene = c_find_gene( $validated_params );
+    my $gene;
+    try { $gene = c_find_gene( $validated_params ) };
+
+    $self->throw( Implementation => "find_gene() failed to reach solr" )
+    unless defined($gene);
 
     # if solr did not find a gene, search for local symbol
     my $not_gene;
