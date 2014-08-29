@@ -49,27 +49,27 @@ has model => (
     required => 1,
 );
 
-# EP plate name
+# EP_PICK or PIQ plate name
 has plate_name => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
+    is  => 'ro',
+    isa => 'Str',
 );
 
 has plate => (
-    is       => 'ro',
-    isa      => 'LIMS2::Model::Schema::Result::Plate',
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Schema::Result::Plate',
     lazy_build => 1,
 );
 
 sub _build_plate {
     my $self = shift;
 
+    LIMS2::Exception->throw( 'Must specify plate_name attribute if not sending in a plate object' )
+        unless $self->plate_name;
+
     # fetch the qc plate
     my $plate = $self->model->retrieve_plate( { name => $self->plate_name } );
 
-    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK, is: " . $plate->type_id )
-        unless $plate->type_id eq 'EP_PICK';
 
     return $plate;
 }
@@ -260,6 +260,11 @@ Start crispr es cell qc analysis.
 sub analyse_plate {
     my ( $self ) = @_;
 
+    # check plate is or right type
+    my $plate = $self->plate;
+    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK or PIQ, is: " . $plate->type_id )
+        if $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ';
+
     #initialise lazy build
     $self->qc_run;
 
@@ -339,7 +344,11 @@ sub analyse_well {
     my $design = $well->design;
 
     my ( $analyser, %analysis_data, $well_reads );
-    if ( $self->well_has_primer_reads( $well->name ) ) {
+    if ( !$crispr ) {
+        $self->log->warn( "No crispr found for well " . $well->name );
+        $analysis_data{no_crispr} = 1;
+    }
+    elsif ( $self->well_has_primer_reads( $well->name ) ) {
         $well_reads = $self->get_well_primer_reads( $well->name );
 
         unless ( $self->well_has_read_alignments( $well->name ) ) {
@@ -420,8 +429,9 @@ sub crispr_for_well {
         );
 
         unless ( $crispr_pair ) {
-            LIMS2::Exception(
+            $self->log->error(
                 "Unable to find crispr pair: left crispr $left_crispr, right crispr $right_crispr" );
+            return;
         }
         $self->log->debug("Crispr pair for well $well: $crispr_pair" );
 
@@ -433,7 +443,7 @@ sub crispr_for_well {
         return $crispr;
     }
     else {
-        LIMS2::Exception( "Unable to determine crispr pair or crispr for well $well" );
+        $self->log->error( "Unable to determine crispr pair or crispr for well $well" );
     }
 
     return;
@@ -609,15 +619,16 @@ Combine all the qc analysis data we want to store and return it in a hash.
 sub parse_analysis_data {
     my ( $self, $analyser, $crispr, $design, $analysis_data ) = @_;
 
-    $analysis_data->{crispr_id}  = $crispr->id;
+    $analysis_data->{crispr_id}  = $crispr->id if $crispr;
     $analysis_data->{design_id}  = $design->id;
-    $analysis_data->{is_pair}    = $crispr->is_pair;
+    $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
 
     return unless $analyser;
 
     $analysis_data->{vep_output} = $analyser->vep_file->slurp if $analyser->vep_file;
     $analysis_data->{ref_aa_seq} = $analyser->ref_aa_file->slurp if $analyser->ref_aa_file;
     $analysis_data->{mut_aa_seq} = $analyser->mut_aa_file->slurp if $analyser->mut_aa_file;
+    $analysis_data->{non_merged_vcf} = $analyser->non_merged_vcf_file->slurp if $analyser->non_merged_vcf_file;
 
     if ( $analyser->num_target_region_alignments == 0 ) {
         $analysis_data->{ 'forward_no_alignment' } = 1;
@@ -657,12 +668,15 @@ sub build_qc_data {
     my ( $self, $well, $analyser, $analysis_data, $well_reads, $crispr ) = @_;
 
     my %qc_data = (
-        well_id         => $well->id,
-        crispr_start    => $crispr->start,
-        crispr_end      => $crispr->end,
-        crispr_chr_name => $crispr->chr_name,
-        analysis_data   => $analysis_data,
+        well_id       => $well->id,
+        analysis_data => $analysis_data,
     );
+
+    if ( $crispr ) {
+        $qc_data{crispr_start}    = $crispr->start;
+        $qc_data{crispr_end}      = $crispr->end;
+        $qc_data{crispr_chr_name} = $crispr->chr_name;
+    }
 
     if ( $analyser && $analyser->vcf_file_target_region ) {
         $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp;

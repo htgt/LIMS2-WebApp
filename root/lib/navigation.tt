@@ -60,6 +60,9 @@
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_pair_importer' ) %]">Import Crispr Pair From WGE</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
+            </li>
           </ul>
         </li>
 
@@ -147,6 +150,9 @@
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
             </li>
             [% END %]
@@ -174,6 +180,11 @@
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/EPSummary' ) %]">
                 Electroporation Summary
+              </a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPDetail' ) %]">
+                Crispr Electroporation Detail
               </a>
             </li>
 <!--

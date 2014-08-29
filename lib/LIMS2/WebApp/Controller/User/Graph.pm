@@ -204,12 +204,15 @@ sub render_crispr {
 
     my %seen_process;
 
+    # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
     foreach my $pgraph (@pgraphs) {
         for my $well ( $pgraph->wells ) {
             $pgraph->log->debug( "Adding $well to GraphViz" );
             $graph->add_node(
-                name  => $well->as_string,
-                label => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ]
+                name   => $well->as_string,
+                label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ],
+                URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
+                target => '_blank',
             );
         }
 

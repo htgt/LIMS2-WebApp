@@ -26,6 +26,14 @@
     </td>
   </tr>
   [% END %]
+  [% IF design_attempt %]
+  <tr>
+    <th>Design Attempt</th>
+    <td>
+    <a href="[% c.uri_for( '/user/design_attempt', design_attempt, 'view' ) %]">[% design_attempt %]</a>
+    </td>
+  </tr>
+  [% END %]
 </table>
 
 <h2>Comments</h2>
@@ -36,8 +44,8 @@
         <th>Category</th>
         <th>Comment</th>
         <th>Public?</th>
-        <th>Created at</th>
         <th>Created by</th>
+        <th>Created at</th>
       </tr>
     </thead>
     <tbody>

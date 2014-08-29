@@ -50,6 +50,15 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         $gene_info->{gene_symbol} = $gene;
     }
 
+    # fetch projects for this gene
+    my @sponsors = $c->model('Golgi')->schema->resultset('Project')->search({
+        gene_id  => $gene_id,
+    },{
+        select   => [ 'sponsor_id' ],
+        order_by => 'sponsor_id',
+    });
+    my $sponsor = join (', ', (map {$_->sponsor_id} @sponsors) );
+
     # fetch designs for this gene
     # Uses WebAppCommon::Plugin::Design
     my $designs = $c->model('Golgi')->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
@@ -60,6 +69,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         final      => \&fetch_values_for_type_final,
         final_pick => \&fetch_values_for_type_final_pick,
         dna        => \&fetch_values_for_type_dna,
+        assembly   => \&fetch_values_for_type_assembly,
         ep         => \&fetch_values_for_type_ep,
         ep_pick    => \&fetch_values_for_type_ep_pick,
         xep        => \&fetch_values_for_type_xep,
@@ -70,7 +80,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         sfp        => \&fetch_values_for_type_sfp,
     };
 
-    my @plate_types = ('design','int','final','final_pick','dna','ep','ep_pick','xep','sep','sep_pick','fp','piq','sfp');
+    my @plate_types = ('design','int','final','final_pick','dna','assembly','ep','ep_pick','xep','sep','sep_pick','fp','piq','sfp');
 
     my %designs_hash;
     my %wells_hash;
@@ -101,7 +111,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
                 # for each summary row append well data to hash rows depending on plate type, do not add if already exists in hash
                 for my $curr_plate_type_id( @plate_types ) {
-                    $dispatch_fetch_values->{ $curr_plate_type_id }->( $self, $summary_row, \%wells_hash);
+                    $dispatch_fetch_values->{ $curr_plate_type_id }->( $self, $summary_row, \%wells_hash, $c->model('Golgi'));
                 }
             }
         }
@@ -143,6 +153,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'final'      => 'Final Vectors',
         'final_pick' => 'Final Pick Vectors',
         'dna'        => 'DNA Preparations',
+        'assembly'   => 'Assemblies',
         'ep'         => 'First Electroporations',
         'ep_pick'    => 'First Electroporation Picks',
         'xep'        => 'XEP Pools',
@@ -177,6 +188,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'wells'        => \%wells_hash,
         'sorted_wells' => \%sorted_wells,
         'timeline'     => \@timeline,
+        'sponsor'      => $sponsor,
     );
 
     return;
@@ -529,11 +541,61 @@ sub fetch_values_for_type_dna {
     return;
 }
 
+sub fetch_values_for_type_assembly {
+    my ( $self, $summary_row, $wells_hash, $model ) = @_;
+
+    if ( defined $summary_row->assembly_well_id && $summary_row->assembly_well_id > 0 ) {
+
+        my $plate_name     = $summary_row->assembly_plate_name;
+        my $well_name      = $summary_row->assembly_well_name;
+        my $well_id_string = $plate_name . '_' . $well_name;
+        my $well_is_accepted;
+        if ( $summary_row->assembly_well_accepted ) {
+            $well_is_accepted = 'yes';
+        }
+        else {
+            $well_is_accepted = 'no';
+        }
+
+        unless ( exists $wells_hash->{ 'assembly' }->{ $well_id_string } ) {
+
+            my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+
+            my ($left_crispr,$right_crispr) = $well->left_and_right_crispr_wells;
+            my $crispr_pair = $well->crispr_pair;
+            my $crispr_pair_id = 'Invalid';
+            if ( $crispr_pair ) { # would be an invalid crispr pair (left and right crisprs but not linked into valid pair)
+                $crispr_pair_id = $right_crispr ? $well->crispr_pair->id : $left_crispr->crispr->id;
+            }
+            my $crispr_id = $left_crispr->crispr->id;
+
+            my $well_hash = {
+                'well_id'           => $summary_row->assembly_well_id,
+                'well_id_string'    => $well_id_string,
+                'plate_id'          => $summary_row->assembly_plate_id,
+                'plate_name'        => $summary_row->assembly_plate_name,
+                'well_name'         => $summary_row->assembly_well_name,
+                'created_at'        => $summary_row->assembly_well_created_ts->ymd,
+                'is_accepted'       => $well_is_accepted,
+                'design_id'        => $well->design->id,
+                'crispr_type'      => $right_crispr ? 'crispr_pair_id' : 'crispr_id',
+                'crispr_type_id'   => $right_crispr ? $crispr_pair_id : $crispr_id,
+                'gene_symbol'      => $summary_row->design_gene_symbol,
+                'gene_ids'         => $summary_row->design_gene_id,
+                'browser_target'   => $plate_name . $well_name,
+
+            };
+
+            $wells_hash->{ 'assembly' }->{ $well_id_string } = $well_hash;
+        }
+    }
+    return;
+}
+
 sub fetch_values_for_type_ep {
     my ( $self, $summary_row, $wells_hash ) = @_;
 
     if ( defined $summary_row->ep_well_id && $summary_row->ep_well_id > 0 ) {
-
         my $plate_name     = $summary_row->ep_plate_name;
         my $well_name      = $summary_row->ep_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
@@ -566,12 +628,46 @@ sub fetch_values_for_type_ep {
 
             $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
         }
+    } elsif ( defined $summary_row->crispr_ep_well_id && $summary_row->crispr_ep_well_id > 0 ) {
+        my $plate_name     = $summary_row->crispr_ep_plate_name;
+        my $well_name      = $summary_row->crispr_ep_well_name;
+        my $well_id_string = $plate_name . '_' . $well_name;
+        my $well_is_accepted;
+        if ( $summary_row->crispr_ep_well_accepted ) {
+            $well_is_accepted = 'yes';
+        }
+        else {
+            $well_is_accepted = 'no';
+        }
+        my $final_pick_plate_name     = $summary_row->final_pick_plate_name ? $summary_row->final_pick_plate_name : '';
+        my $final_pick_well_name      = $summary_row->final_pick_well_name ? $summary_row->final_pick_well_name : '';
+        my $final_pick_well = $final_pick_plate_name . '_' . $final_pick_well_name;
+        my $dna_plate_name     = $summary_row->dna_plate_name;
+        my $dna_well_name      = $summary_row->dna_well_name;
+        my $dna_well = $dna_plate_name . '_' . $dna_well_name;
+        unless ( exists $wells_hash->{ 'ep' }->{ $well_id_string } ) {
+            my $well_hash = {
+                'well_id'           => $summary_row->crispr_ep_well_id,
+                'well_id_string'    => $well_id_string,
+                'plate_id'          => $summary_row->crispr_ep_plate_id,
+                'plate_name'        => $summary_row->crispr_ep_plate_name,
+                'well_name'         => $summary_row->crispr_ep_well_name,
+                'created_at'        => $summary_row->crispr_ep_well_created_ts->ymd,
+                'recombinases'      => $summary_row->crispr_ep_well_nuclease,
+                'final_pick_well'   => $final_pick_well,
+                'dna_well'          => $dna_well,
+                'is_accepted'       => $well_is_accepted,
+            };
+
+            $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
+        }
     }
+
     return;
 }
 
 sub fetch_values_for_type_ep_pick {
-    my ( $self, $summary_row, $wells_hash ) = @_;
+    my ( $self, $summary_row, $wells_hash, $model ) = @_;
 
     if ( defined $summary_row->ep_pick_well_id && $summary_row->ep_pick_well_id > 0 ) {
 
@@ -585,8 +681,8 @@ sub fetch_values_for_type_ep_pick {
         else {
             $well_is_accepted = 'no';
         }
-        my $ep_plate_name     = $summary_row->ep_plate_name;
-        my $ep_well_name      = $summary_row->ep_well_name;
+        my $ep_plate_name     = $summary_row->ep_plate_name // $summary_row->crispr_ep_plate_name;
+        my $ep_well_name      = $summary_row->ep_well_name // $summary_row->crispr_ep_well_name;
         my $ep_well = $ep_plate_name . '_' . $ep_well_name;
 
         unless ( exists $wells_hash->{ 'ep_pick' }->{ $well_id_string } ) {
@@ -601,6 +697,17 @@ sub fetch_values_for_type_ep_pick {
                 'ep_well'           => $ep_well,
                 'is_accepted'       => $well_is_accepted,
             };
+
+            if ( $summary_row->crispr_ep_well_name and $summary_row->ep_pick_well_accepted ) {
+                my $well = $model->schema->resultset('Well')->find( $summary_row->ep_pick_well_id );
+                #its an accepted crispr well, so try and get the qc data
+                my $gene_finder = sub { $model->find_genes( @_ ) };
+                try {
+                    $well_hash->{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 );
+                };
+            }
+
+            #die Dumper( $well_hash ) if $well_id_string eq "HUEPD0011_1_C07";
 
             $wells_hash->{ 'ep_pick' }->{ $well_id_string } = $well_hash;
         }
@@ -757,8 +864,8 @@ sub fetch_values_for_type_fp {
         else {
             $well_is_accepted = 'no';
         }
-        my $ep_plate_name     = $summary_row->ep_plate_name;
-        my $ep_well_name      = $summary_row->ep_well_name;
+        my $ep_plate_name     = $summary_row->ep_plate_name // $summary_row->crispr_ep_plate_name;
+        my $ep_well_name      = $summary_row->ep_well_name // $summary_row->crispr_ep_well_name;
         my $ep_well = $ep_plate_name . '_' . $ep_well_name;
         my $ep_pick_plate_name     = $summary_row->ep_pick_plate_name;
         my $ep_pick_well_name      = $summary_row->ep_pick_well_name;

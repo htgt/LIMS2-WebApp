@@ -1,5 +1,38 @@
 [%- META title = "Gene Summary"; META tab_name = 'Genes' %]
 
+<style type="text/css">
+.popover {
+  max-width: 1100px;
+  width: auto;
+}
+.alignment {
+    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
+    font-size: 11px;
+    display: block;
+    font-weight: bold
+}
+</style>
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".crispr_qc_accepted").each(function () {
+        $(this).click(function(e) {
+            e.preventDefault();
+        });
+
+        $(this).popover({
+            content: $(this).parent().find(".alignment"), 
+//          trigger: "hover", 
+//          title: "test", 
+            container: 'body', 
+            html: true, 
+            placement: 'left'
+        }) 
+    });
+});
+</script>
+
 <div class="page-header">
   <h1>[% template.title %]</h1>
 </div>
@@ -17,12 +50,18 @@
 <h2>Showing details for [% info.gene_symbol %] ([% info.gene_id %])</h2>
 [%- END %]
 
-[%- IF sorted_wells.design %]
+[%- IF sorted_wells.design OR sponsor %]
 <div class="well">
+  [%- IF sorted_wells.design %]
   <b>Production Graph: </b>
     [% FOREACH well IN sorted_wells.design %]
       <a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]">[% well.well_id_string %]</a>
-    [%- END %]
+    [%- END %] &nbsp;&nbsp;&nbsp;&nbsp;
+  [%- END %]
+  [%- IF sponsor %]
+  <b>Sponsor: </b>
+    [%- sponsor %]
+  [%- END %]
 </div>
 [%- END %]
 
@@ -440,6 +479,51 @@
   </div>
   [%- END %]
 
+  [%- IF sorted_wells.assembly %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseAssembly">Assemblies</a>
+      </h3>
+    </div>
+    <div id="collapseAssembly" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>Well name</td>
+            <th>Plate</td>
+            <th>Well</th>
+            <th>Created on</th>
+            <th>Accepted?</th>
+            <th>Genoverse View</th>
+          </thead>
+          <tbody>
+            [% FOREACH well IN sorted_wells.assembly %]
+            <tr>
+              <td>[% well.well_id_string %]</td>
+              <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+              <td>[% well.well_name %]</td>
+              <td>[% well.created_at %]</td>
+              <td>[% well.is_accepted %]</td>
+              <td><a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_crispr_primers', {
+                      crispr_type_id => well.crispr_type_id,
+                      design_id => well.design_id,
+                      crispr_type => well.crispr_type,
+                      gene_symbol => well.gene_symbol,
+                      gene_ids => well.gene_ids,
+                      browser_target => well.browser_target,
+                      plate_name => well.plate_name,
+                      well_name => well.well_name
+                    } ) %]" target="_blank">Genoverse</a></td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
   [%- IF sorted_wells.ep %]
   <div class="accordion-group">
     <div class="accordion-heading">
@@ -457,7 +541,7 @@
             <th>Created on</th>
             <th>Final Pick Vector Well</th>
             <th>DNA Well</th>
-            <th>Recombinase</th>
+            <th>Recombinase / Nuclease</th>
             <th>Accepted?</th>
           </thead>
           <tbody>
@@ -506,7 +590,49 @@
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.ep_well %]</td>
-              <td>[% well.is_accepted %]</td>
+              <td>
+                [% IF well.crispr_qc_data %]
+                <a href="#" class="crispr_qc_accepted">
+                <!-- insert alignments but hidden -->
+                <div style="display:none">
+                  <div class="alignment">
+                    <div class="alignment_reference">
+                      <span>
+                          [% well.crispr_qc_data.alignment.ref_start %]<span style="color:#FF0000">[% well.crispr_qc_data.alignment.crispr_seq %]</span>[% well.crispr_qc_data.alignment.ref_end %]
+                      </span><br/>
+                    </div>
+                    <div class="alignment_inner">
+                      <span style="display: block">
+                         <span class="seq seq_a">
+                            [% IF well.crispr_qc_data.alignment.no_forward_read %]
+                              No Read
+                            [% ELSIF well.crispr_qc_data.alignment.no_forward_alignment %]
+                              No alignment to target region
+                            [% ELSE %]
+                              [% well.crispr_qc_data.alignment.forward %]
+                            [% END %]
+                         </span>(F)
+                      </span>
+                      <span style="display: block">
+                          <span class="seq seq_b">
+                            [% IF well.crispr_qc_data.alignment.no_reverse_read %]
+                              No Read
+                            [% ELSIF well.crispr_qc_data.alignment.no_reverse_alignment %]
+                              No alignment to target region
+                            [% ELSE %]
+                              [% well.crispr_qc_data.alignment.reverse %]
+                            [% END %]
+                          </span>(R)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                [% END %]
+
+                [% well.is_accepted %]
+
+                [% IF well.crispr_qc_data %]</a>[% END %]
+              </td>
             </tr>
             [%- END %]
           </tbody>

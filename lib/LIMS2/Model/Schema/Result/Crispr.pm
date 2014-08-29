@@ -144,6 +144,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_group_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroupCrispr>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_group_crisprs",
+  "LIMS2::Model::Schema::Result::CrisprGroupCrispr",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_loci_type
 
 Type: belongs_to
@@ -280,8 +295,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iCBcK0B07XGoh/EQgHXNfA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y6PtCetsdH2ctfQWcfNotQ
 
 use Bio::Perl qw( revcom );
 
@@ -368,6 +383,9 @@ sub target_slice {
     return $slice;
 }
 
+#
+# Methods for U6 specific order sequences
+#
 sub guide_rna {
     my ( $self ) = @_;
 
@@ -408,6 +426,46 @@ sub vector_seq {
     my ( $self ) = @_;
 
     return  "G" . $self->guide_rna;
+}
+
+#
+#Methods for T7 specific order sequences
+#
+sub t7_vector_seq {
+    my ( $self ) = @_;
+
+    return "G" . $self->t7_guide_rna;
+}
+
+sub t7_guide_rna {
+    my ( $self ) = @_;
+
+    if ( ! defined $self->pam_right ) {
+        return substr( $self->seq, 0, 20 );
+    }
+    elsif ( $self->pam_right == 1 ) {
+        return substr( $self->seq, 0, 20 );
+    }
+    elsif ( $self->pam_right == 0 ) {
+        #its pam left, so strip first three characters
+        #we revcom so that the grna is always relative to the NGG sequence
+        return revcom( substr( $self->seq, 3, 20 ) )->seq;
+    }
+    else {
+        die "Unexpected value in pam_right: " . $self->pam_right;
+    }
+}
+
+sub t7_forward_order_seq {
+  my ( $self ) = @_;
+
+  return "ATAGG" . $self->t7_guide_rna;
+}
+
+sub t7_reverse_order_seq {
+  my ( $self ) = @_;
+
+  return "AAAC" . revcom( $self->t7_guide_rna )->seq . "C";
 }
 
 sub pairs {
@@ -473,6 +531,8 @@ sub accepted_vector_wells{
 }
 
 sub is_pair { return; }
+
+sub is_group { return; }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -7,6 +7,7 @@ use Moose;
 use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
+use Try::Tiny;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -50,6 +51,8 @@ override _build_columns => sub {
             'DNA QC-passing crispr vectors',
             'DNA QC-passing crispr pairs',
             'design oligos',
+            "5'-PCR",
+            "3'-PCR",
             'final vector clones',
             'QC-verified vectors',
             'DNA QC-passing vectors',
@@ -67,6 +70,7 @@ override _build_columns => sub {
             'Genes with DNA QC-passing crispr vectors',
             'Genes with DNA QC-passing crispr pairs',
             'Genes with design oligos',
+            "Genes with 5' and 3'-PCR passes",
             'Genes with final vector clones',
             'Genes with QC-verified vectors',
             'Genes with DNA QC-passing vectors',
@@ -138,6 +142,7 @@ sub get_row_plate_by_plate {
     my $sql =  <<"SQL_END";
 SELECT design_gene_id, design_id,
 concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
@@ -150,15 +155,14 @@ SQL_END
     # run the query
     my $results = $self->run_select_query( $sql );
 
-
-    my ($gene_count, $gene_design_count, $gene_final_count, $gene_final_pass_count, $gene_dna_pass_count, $gene_ep_count, $gene_ep_pick_count, $gene_ep_pick_pass_count) = (0, 0, 0, 0, 0, 0, 0, 0);
+    my ($gene_count, $gene_design_count, $pcr_count, $gene_final_count, $gene_final_pass_count, $gene_dna_pass_count, $gene_ep_count, $gene_ep_pick_count, $gene_ep_pick_pass_count) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
     my ($gene_crispr_count, $gene_crispr_vector_count, $gene_crispr_dna_count, $gene_crispr_dna_accepted_count, $gene_crispr_pair_accepted_count) = (0, 0, 0, 0, 0);
 
     # get the plates into arrays
 
     my $gene_id = @{$results}[0]->{design_gene_id};
 
-    my (@design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+    my (@design, @int, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
     foreach my $row (@$results) {
 
         if ( $gene_id ne $row->{design_gene_id} ) {
@@ -172,10 +176,77 @@ SQL_END
                 $gene_design_count++;
             };
 
-            # FINAL
+            my $pcr_passes;
+            foreach my $well (@design) {
+                $well =~ s/^(.*?)_([a-z]\d\d)$/$2/i;
+
+                my ($l_pcr, $r_pcr) = ('', '');
+                try{
+                    my $well_id = $self->model->retrieve_well( { plate_name => $plate_name, well_name => $well } )->id;
+
+                    $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                        well_id     => $well_id,
+                        result_type_id => 'pcr_u',
+                    },{
+                        select => [ 'result' ],
+                    })->result;
+
+                    $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                        well_id     => $well_id,
+                        result_type_id => 'pcr_d',
+                    },{
+                        select => [ 'result' ],
+                    })->result;
+                }catch{
+                    DEBUG "No pcr status found for well " . $well;
+                };
+
+                if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
+                    $pcr_passes++;
+                }
+            }
+            if ($pcr_passes) {
+                $pcr_count++;
+            }
+
+
+            # FINAL / INT
             my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
-            if ($final_count) {$gene_final_count++};
+
             if ($final_pass_count) {$gene_final_pass_count++};
+
+            my $sum = 0;
+            @int = uniq @int;
+
+            foreach my $plate (@int) {
+                $plate =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+                my $plate_id = $self->model->retrieve_plate({
+                    name => $plate,
+                })->id;
+
+                my $comment = '';
+
+                try{
+                    $comment = $self->model->schema->resultset('PlateComment')->find({
+                        plate_id     => $plate_id,
+                        comment_text => { like => '% post-gateway wells planned for wells on plate ' . $plate }
+                    },{
+                        select => [ 'comment_text' ],
+                    })->comment_text;
+                }catch{
+                    DEBUG "No comment found for plate " . $plate;
+                };
+
+                if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+                    $sum += $1;
+                }
+            }
+            if ($sum) {
+                $final_count = $sum;
+            }
+
+            if ($final_count) {$gene_final_count++};
 
             # DNA
             my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
@@ -203,6 +274,7 @@ SQL_END
         }
 
         push @design_ids, $row->{design_id};
+        push (@int, $row->{int}) unless ($row->{int} eq '_');
         push (@design, $row->{design}) unless ($row->{design} eq '_');
         push (@final_info, $row->{final}) unless ($row->{final} eq '_');
         push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
@@ -260,6 +332,7 @@ SQL_END
         $gene_crispr_dna_accepted_count,
         $gene_crispr_pair_accepted_count,
         $gene_design_count,
+        $pcr_count,
         $gene_final_count,
         $gene_final_pass_count,
         $gene_dna_pass_count,
@@ -353,6 +426,7 @@ sub build_well_based_data {
 }
 
 
+## no critic(ProhibitExcessComplexity)
 sub get_row_well_by_well {
     my ($self, $design_list, $plate_name, $well_name) = @_;
 
@@ -362,6 +436,7 @@ sub get_row_well_by_well {
 SELECT
 design_gene_id, design_gene_symbol,
 concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
@@ -374,11 +449,12 @@ SQL_END
     my $results = $self->run_select_query( $sql );
 
     # get the plates into arrays
-    my (@gene_ids, @gene_symbols, @design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+    my (@gene_ids, @int, @gene_symbols, @design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
     foreach my $row (@$results) {
         push @gene_ids, $row->{design_gene_id};
         push @gene_symbols, $row->{design_gene_symbol};
         push @design_ids, $row->{design_id};
+        push (@int, $row->{int}) unless ($row->{int} eq '_');
         push (@design, $row->{design}) unless ($row->{design} eq '_');
         push (@final_info, $row->{final}) unless ($row->{final} eq '_');
         push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
@@ -396,8 +472,62 @@ SQL_END
     # DESIGN
     @design = uniq @design;
 
-    # FINAL
+    my ($l_pcr, $r_pcr) = ('', '');
+
+    try{
+        my $well_id = $self->model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } )->id;
+
+        $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+            well_id     => $well_id,
+            result_type_id => 'pcr_u',
+        },{
+            select => [ 'result' ],
+        })->result;
+
+        $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+            well_id     => $well_id,
+            result_type_id => 'pcr_d',
+        },{
+            select => [ 'result' ],
+        })->result;
+    }catch{
+        DEBUG "No pcr status found for well " . $well_name;
+    };
+
+    # FINAL / INT
     my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
+
+    my $sum = 0;
+    @int = uniq @int;
+
+    foreach my $well (@int) {
+        $well =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+
+        my $plate_id = $self->model->retrieve_plate({
+            name => $well,
+        })->id;
+
+        my $comment = '';
+
+        try{
+            $comment = $self->model->schema->resultset('PlateComment')->find({
+                plate_id     => $plate_id,
+                comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
+            },{
+                select => [ 'comment_text' ],
+            })->comment_text;
+        }catch{
+            DEBUG "No comment found for well " . $well;
+        };
+
+        if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+            $sum += $1;
+        }
+    }
+    if ($sum) {
+        $final_count = $sum;
+    }
 
     # DNA
     my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
@@ -466,6 +596,8 @@ SQL_END
         $crispr_dna_accepted_count,
         $crispr_pair_accepted_count,
         scalar @design,
+        $l_pcr,
+        $r_pcr,
         $final_count,
         $final_pass_count,
         $dna_pass_count,
@@ -476,6 +608,7 @@ SQL_END
 
     return $data_row;
 }
+## use critic
 
 
 sub get_designs_for_plate {

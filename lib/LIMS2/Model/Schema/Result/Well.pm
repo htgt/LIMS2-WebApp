@@ -810,6 +810,14 @@ sub parent_processes{
 	return @parent_processes;
 }
 
+sub parent_wells {
+    my $self = shift;
+
+    my @parent_processes = $self->parent_processes;
+
+    return map{ $_->input_wells } @parent_processes;
+}
+
 sub child_processes{
     my $self = shift;
 
@@ -1170,13 +1178,14 @@ sub crispr_pair {
     my $self = shift;
 
     my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-
+    my $crispr_pair;
     # Now lookup left and right crispr in the crispr_pair table and return the object to the caller
-    my $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
-           'left_crispr_id' => $left_crispr->crispr->id,
-           'right_crispr_id' => $right_crispr->crispr->id,
-        });
-
+    if ( $left_crispr && $right_crispr ) {
+        $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
+               'left_crispr_id' => $left_crispr->crispr->id,
+               'right_crispr_id' => $right_crispr->crispr->id,
+            });
+    }
     return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
 }
 
@@ -1241,7 +1250,7 @@ sub crispr_primer_for{
 #see code in WellData for an example
 
 sub genotyping_info {
-  my ( $self, $gene_finder ) = @_;
+  my ( $self, $gene_finder, $only_qc_data ) = @_;
 
   require LIMS2::Exception;
 
@@ -1271,6 +1280,10 @@ sub genotyping_info {
 
   LIMS2::Exception->throw( "No QC wells are accepted" )
      unless $accepted_qc_well;
+
+  if ( $only_qc_data ) {
+    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+  }
 
   # store primers in a hash of primer name -> seq
   my %primers;
@@ -1317,6 +1330,7 @@ sub genotyping_info {
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
       vcf_file         => $accepted_qc_well->vcf_file,
+      qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
   };
 }
 

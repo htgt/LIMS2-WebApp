@@ -41,7 +41,6 @@ __PACKAGE__->table("crispr_primers_loci");
 =head2 crispr_oligo_id
 
   data_type: 'integer'
-  is_foreign_key: 1
   is_nullable: 0
 
 =head2 assembly_id
@@ -75,7 +74,7 @@ __PACKAGE__->table("crispr_primers_loci");
 
 __PACKAGE__->add_columns(
   "crispr_oligo_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_nullable => 0 },
   "assembly_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "chr_id",
@@ -134,6 +133,13 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 08:54:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OWL0dF4e5OJuFefp0bs0LQ
+
+
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
+
 =head2 crispr_oligo
 
 Type: belongs_to
@@ -149,11 +155,5 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5qPUl6phBxPCQ34y8wNBuw
-
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

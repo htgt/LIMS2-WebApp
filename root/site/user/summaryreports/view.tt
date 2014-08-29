@@ -113,6 +113,7 @@
           [% ELSIF col == 'crispr_pairs'
                 || col == 'vector_designs'
                 || col == 'vector_wells'
+                || col == 'vector_pcr_passes'
                 || col == 'targeting_vector_wells'
                 || col == 'accepted_vector_wells'
                 || col == 'electroporations'

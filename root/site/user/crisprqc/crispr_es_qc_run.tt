@@ -1,38 +1,24 @@
 [% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
-<style type="text/css">
-.alignment {
-    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
-    font-size: 11px;
-    display: block;
-    font-weight: bold
-}
-.indel_sequence {
-    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
-    font-size: 11px;
-    font-weight: bold;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
 
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-    $(".alignment_inner").each(function() {
-        var parent = $( this );
+    $(".traces").click(function(e) {
+        e.preventDefault();
 
-        var seq_a = parent.find(".seq_a").text();
-        var c_a = seq_a.colour_alignment();
-        c_a.append( $("<span>", {text: "(F)"}) );
+        //the code for this is inside jquery.flot.traceviewer.js
+        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
 
-        var seq_b = parent.find(".seq_b").text();
-        var c_b = seq_b.colour_alignment();
-        c_b.append( $("<span>", {text: "(R)"}) );
-
-        parent.empty().append(c_a).append(c_b);
+        //show_traces( $(this) );
     });
 
     $(".accepted").click(function() {
-        console.log( this.value );
-        console.log( $("#qc_run_id").text() );
 
         //fade element out until its saved, waiting at least 500ms
         var element = $(this).parent().parent();
@@ -50,98 +36,7 @@ $(document).ready(function() {
             'json'
         );
     });
-
 });
-
-function colour_string(seq) {
-    seq.replaceWith( seq.colour_alignment() );
-}
-
-String.prototype.colour_alignment = function colour_string() {
-    //a span to hold all the other spans
-    var base = $("<span>", {style: "white-space: nowrap; display: block;"});
-
-    var match_no_read = /No/;
-    if ( this.match(match_no_read) ) {
-      return base.text(this);
-    }
-
-    //generates a coloured span
-    function make_span(buf, colour) {
-        //write our buffer out into a span
-        attrs = { text: buf };
-        if (colour) attrs.style =  "background-color:" + colour + "; color:#FFFFFF";
-
-        return $("<span>", attrs);
-    }
-
-    var match_char    = /[ACTGN]/;
-    var mismatch_char = /[actgn]/;
-    var delete_char   = /-/;
-    var insert_char   = /[JLPYZ]/;
-
-    //get colour of read base
-    function calculate_base_colour(base) {
-      var base_colour = "";
-      if ( match_char.test(base) ) {
-        base_colour = '#468847';
-      }
-      else if ( mismatch_char.test(base) ) {
-        base_colour = '#FE9A2E';
-      }
-      else if ( delete_char.test(base) ) {
-        base_colour = '#b94A48';
-      }
-      else if ( insert_char.test(base) ) {
-        base_colour = '#0000FF';
-      }
-
-      return base_colour;
-    }
-
-    var base_map = {
-      'A': 'A',
-      'T': 'T',
-      'C': 'C',
-      'G': 'G',
-      'N': 'N',
-      'J': 'N',
-      'L': 'A',
-      'P': 'T',
-      'Y': 'C',
-      'Z': 'G',
-      'X': 'X',
-    };
-
-    var current_colour = "";
-    var buf = "";
-
-    for ( var i = 0; i < this.length; i++ ) {
-        var nuc = this.charAt(i);
-        var colour = calculate_base_colour( nuc );
-
-        //if the colours don't match or we're at the end of the string
-        //we need to flush the buffer
-        if ( colour != current_colour ) {
-            //add to our base span (assuming it has something in)
-            if ( buf )
-                base.append( make_span(buf, current_colour) );
-
-            //reset colour and restart buffer with the new char
-            current_colour = colour;
-            buf = base_map[nuc] || nuc;
-        }
-        else {
-            buf += base_map[nuc] || nuc;
-        }
-    }
-
-    //add anything remaining on the buffer (there will always be at least 1 base)
-    base.append( make_span(buf, current_colour) );
-
-    return base;
-}
-
 </script>
 
 <div class="well">
@@ -219,6 +114,12 @@ String.prototype.colour_alignment = function colour_string() {
             </td>
 
             <td>
+                [% IF row.alignment.forward_full %]
+                    <div class="forward_full" style="display:none">[% row.alignment.forward_full %]</div>
+                [% END %]
+                [% IF row.alignment.reverse_full %]
+                    <div class="reverse_full" style="display:none">[% row.alignment.reverse_full %]</div>
+                [% END %]
                 <div class="alignment">
                   <div class="alignment_reference">
                     <span>
@@ -250,36 +151,42 @@ String.prototype.colour_alignment = function colour_string() {
                     </span>
                   </div>
                 </div>
+                [% IF row.fwd_read or row.rev_read %]
+                    <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+                [% END %]
             </td>
 
             <td>
               [% IF row.has_vcf_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/vcf_file', row.es_qc_well_id ) %]" target="_blank" >vcf_file</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
               [% END %]
               <br>
               [% IF row.has_vep_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/vep_file', row.es_qc_well_id ) %]" target="_blank" >vep_file</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vep_file' ) %]" target="_blank" >vep_file</a>
+              [% END %]
+              [% IF row.has_non_merged_vcf_file %]
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'non_merged_vcf_file' ) %]" target="_blank" >non_merged_vcf_file</a>
               [% END %]
             </td>
 
             <td>
               [% IF row.has_ref_aa_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/aa_file', 'ref', row.es_qc_well_id ) %]" target="_blank" >reference</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'ref' ) %]" target="_blank" >reference</a>
               [% END %]
               <br>
               [% IF row.has_mut_aa_file %]
-                <a href="[% c.uri_for( '/user/crisprqc/aa_file', 'mut', row.es_qc_well_id ) %]" target="_blank" >mutated</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'mut' ) %]" target="_blank" >mutated</a>
               [% END %]
 
             </td>
 
             <td>
               [% IF row.fwd_read %]
-                <a href="[% c.uri_for( '/user/crisprqc/read', 'fwd', row.es_qc_well_id ) %]" target="_blank" >fwd_read</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'fwd' ) %]" target="_blank" >fwd_read</a>
               [% END %]
               <br>
               [% IF row.rev_read %]
-                <a href="[% c.uri_for( '/user/crisprqc/read', 'rev', row.es_qc_well_id ) %]" target="_blank" >rev_read</a>
+                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'rev' ) %]" target="_blank" >rev_read</a>
               [% END %]
             </td>
 

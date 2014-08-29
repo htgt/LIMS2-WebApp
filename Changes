@@ -1,5 +1,115 @@
 {{$NEXT}}
 
+0.236     2014-08-27 10:04:26 Europe/London
+
+Fixed genoverse button in both ExtJS grid and standard reporting
+Added GeneEPSUmmary report for human to cells menu
+Fixed bug in Summary generation when reporting singloe crispr wells
+
+0.235     2014-08-19 07:13:57 Europe/London
+
+    Bugfix to crispr_primer_create code
+
+0.234     2014-08-15 10:21:23 Europe/London
+
+    Added CRISPR ES QC damage view to gene summary and well genotyping info page
+
+0.233     2014-08-14 16:20:38 Europe/London
+
+    Crispr groups added
+
+0.232     2014-08-12 14:52:18 Europe/London
+
+0.231     2014-08-12 12:16:37 Europe/London
+
+   Genoverse updated to use rest.ensembl.org for mouse and grch37.rest.ensembl.org for human
+
+0.231     2014-08-07 13:37:00 Europe/London
+
+    Mouse single targeted sponsor report counts fix
+
+0.230     2014-08-04 15:37:08 Europe/London
+
+    Bugfix: T7 crispr backbone needs all 20 bases of guide RNA
+
+0.229     2014-08-01 12:42:46 Europe/London
+    
+    Previous release did not work for some reason
+
+0.228     2014-08-01 11:08:14 Europe/London
+
+    Added traces to crispr qc page
+
+0.227     2014-08-01 08:47:24 Europe/London
+
+    Attempt to merge variants in target region VCF file for crispr es qc.
+
+0.226     2014-07-31 16:13:34 Europe/London
+
+    Added support for crispr_ep and assembly plates to the gene summary page
+
+0.225     2014-07-28 09:10:26 Europe/London
+
+    Deal with crispr qc where well has no valid crispr pair.
+
+0.224     2014-07-25 12:04:55 Europe/London
+
+    Added Crispr Electroporation Detail (CrisprEPDetail) Report 
+
+0.223     2014-07-23 15:48:48 Europe/London
+
+   Now using Genoverse code from WebApp-Common shared_static
+
+0.222     2014-07-18 10:28:01 Europe/London
+
+    Added Colony counts to CRISPR_EP report
+    Ability to add colony count data to a CRISPR_EP 
+    Methods for generating T7 oligo order sequences
+
+0.221     2014-07-17 16:31:04 Europe/London
+
+    Added pam right colouring to genoverse for single crisprs
+    Enabled genoverse button in extJS grid view for assembly plate reports
+
+0.220     2014-07-17 10:22:15 Europe/London
+
+    Sorting of Sponsor Report changed to progress
+
+0.219     2014-07-16 16:04:11 Europe/London
+
+    Added PCP passing oligos count to sponsor report
+
+0.218     2014-07-16 12:15:32 Europe/London
+
+    Added support for other stages at the human Sponsor Report
+
+0.217     2014-07-15 15:35:12 Europe/London
+
+    Fixed schema files for crispr primer display in genoverse
+
+0.216     2014-07-14 15:40:32 Europe/London
+
+    Fixed display of primers and genoverse for single crispr plates 
+    Added PCR status upload interface. Added this value to Summary by Oligo report.
+
+0.215     2014-07-14 07:15:29 Europe/London
+
+    Store JSON data in json type columns.
+    Add design instance link to designs page.
+
+0.214     2014-07-11 07:20:09 Europe/London
+
+    Allow PIQ plates to be used in Crispr Es Cell Qc.
+
+0.213     2014-07-04 08:41:50 Europe/London
+
+    Added plate comment describing number of planned FINAL wells when uploading an INT plate.
+    Updated Sponsor report final vector clones count to use this number
+
+0.212     2014-07-01 11:51:13 Europe/London
+
+    Refactored WGE importer code into the model so we can call it from scripts
+
 0.211     2014-06-26 07:55:08 Europe/London
 
     Generate and display reference and mutant protein sequences for crispr es qc.

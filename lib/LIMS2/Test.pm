@@ -187,7 +187,6 @@ sub _build_fixture_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
     my ( $fixture_directory, $new );
-
     # Fixture data processing
     if ( $args->{classname} ) {
         # Fixture data is derived from the caller's classname, i.e
@@ -222,7 +221,6 @@ sub _build_model {
 
         # Reference data (part of every test)
         load_static_files( $model, $mech );
-
         # Finally load the test data
         if ( $new ) {
             # A complete set of csv files, to be loaded in a specific order
@@ -297,7 +295,6 @@ sub load_static_files {
 
 sub load_dynamic_files {
     my ( $model, $mech, $path ) = @_;
-
     # Default path
     $path ||= '/static/test/fixtures';
 
@@ -336,6 +333,7 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessRecombinase
             Project
+            Summary
         )
     );
 
