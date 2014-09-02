@@ -160,13 +160,12 @@
               <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
             </li>
             <li class="divider"></li>
-
+<!--
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/GenesToElectroporate' ) %]">
                 Genes To Electroporate
               </a>
             </li>
-
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
                 First Allele Electroporation Detail
@@ -177,6 +176,7 @@
                 Second Allele Electroporation Detail
               </a>
             </li>
+-->
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/EPSummary' ) %]">
                 Electroporation Summary
