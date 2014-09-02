@@ -1,7 +1,7 @@
 package LIMS2::Report::SponsorProgress;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SponsorProgress::VERSION = '0.236';
+    $LIMS2::Report::SponsorProgress::VERSION = '0.237';
 }
 ## use critic
 

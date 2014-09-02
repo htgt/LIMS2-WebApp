@@ -319,18 +319,21 @@ root/site/user/crisprqc/crispr_es_qc_run.tt
 root/site/user/crisprqc/crispr_es_qc_runs.tt
 root/site/user/crisprqc/submit_crispr_es_qc.tt
 root/site/user/crisprs/browse_crisprs.tt
+root/site/user/crisprs/crispr_group_ucsc_blat.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/genoverse_browse_view.tt
 root/site/user/crisprs/genoverse_crispr_primers_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
+root/site/user/crisprs/view_crispr_group.tt
 root/site/user/crisprs/view_crispr_pair.tt
 root/site/user/crisprs/wge_crispr_group_importer.tt
 root/site/user/crisprs/wge_crispr_importer.tt
 root/site/user/crisprs/wge_crispr_pair_importer.tt
 root/site/user/designtargets/crisprs_ucsc_blat.tt
 root/site/user/designtargets/design_target_report_crispr_pick.tt
+root/site/user/designtargets/gene_report_crispr_groups.tt
 root/site/user/designtargets/gene_report_crispr_pairs.tt
 root/site/user/designtargets/gene_report_single_crisprs.tt
 root/site/user/designtargets/index.tt
@@ -2266,6 +2269,8 @@ root/static/test/data/cre_bac_recom_process.yaml
 root/static/test/data/create_crispr.yaml
 root/static/test/data/create_crispr_process.yaml
 root/static/test/data/create_design_targets.yaml
+root/static/test/data/create_design_targets_atad2.yaml
+root/static/test/data/create_design_targets_atad2.yaml~
 root/static/test/data/create_di_process.yaml
 root/static/test/data/crispr_ep_process.yaml
 root/static/test/data/crispr_vector_process.yaml
@@ -2638,6 +2643,7 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseDesigns.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesign.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Crisprs.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_DesignTargets.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Graph.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateCopy.t
@@ -2855,6 +2861,7 @@ t/lib/LIMS2/t/WebApp/Controller/User/BrowseDesigns.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowsePlates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesign.pm
+t/lib/LIMS2/t/WebApp/Controller/User/Crisprs.pm
 t/lib/LIMS2/t/WebApp/Controller/User/DesignTargets.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Graph.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateCopy.pm

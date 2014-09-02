@@ -1,17 +1,15 @@
 package LIMS2::Report::GeneEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GeneEPSummary::VERSION = '0.236';
+    $LIMS2::Report::GeneEPSummary::VERSION = '0.237';
 }
 ## use critic
 
 
-use warnings;
-use strict;
-
 use Moose;
-use Log::Log4perl qw(:easy);
 use namespace::autoclean;
+use Log::Log4perl qw( :easy );
+
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -360,6 +358,7 @@ override iterator => sub {
     my ( $self ) = @_;
 
     my @sponsors;
+    ERROR ('Starting report generation for Gene Electroporation Summary (Human)');
 
     if ( $self->sponsor ne 'All' ) {
         @sponsors = ($self->sponsor);
@@ -397,7 +396,7 @@ override iterator => sub {
     while ( my $gene_design = $gene_designs_rs->next ) {
         push @design_id_list, $gene_design->design_id;
     }
-    DEBUG ( 'First pass design_id count: ' . scalar(@design_id_list) );
+    INFO ( 'First pass design_id count: ' . scalar(@design_id_list) );
     my $summary_design_id_rs = $self->model->schema->resultset('Summary')->search({
             design_id => { -in => [@design_id_list] },
         },
@@ -406,14 +405,14 @@ override iterator => sub {
             distinct => 1,
             order_by => 'design_gene_symbol',
         });
-    DEBUG ( 'Summary design_id count: ' . $summary_design_id_rs->count );
+    INFO ( 'Summary design_id count: ' . $summary_design_id_rs->count );
 
     my $row_id =  0;
     return Iterator::Simple::iter sub {
 
         my $gene_design = $summary_design_id_rs->next
             or return;
-        DEBUG ( 'Preparing row for design_id: ' . $gene_design->design_id);
+        INFO ( 'Preparing row for design_id: ' . $gene_design->design_id);
 
         my @table_row;
         my $summary_design = $self->design_summary( $gene_design->design_id );
@@ -442,7 +441,7 @@ override iterator => sub {
             push @table_row,
                 $self->ep_pick_wells( $summary_design );
         }
-        DEBUG ( join( '::', @table_row));
+        INFO ( join( '::', @table_row));
 
         return \@table_row;
     }

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.236';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.237';
 }
 ## use critic
 
@@ -304,6 +304,8 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y6PtCetsdH2ctfQWcfNotQ
 
+__PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
+
 use Bio::Perl qw( revcom );
 
 use overload '""' => \&as_string;
@@ -485,19 +487,25 @@ sub related_designs {
   my $self = shift;
 
   my @designs;
-      foreach my $crispr_design ($self->crispr_designs->all){
-        my $design = $crispr_design->design;
-        push @designs, $design;
-    }
+  foreach my $crispr_design ($self->crispr_designs->all){
+      my $design = $crispr_design->design;
+      push @designs, $design;
+  }
 
-    foreach my $pair ($self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all){
-        foreach my $pair_crispr_design ($pair->crispr_designs->all){
-            my $pair_design = $pair_crispr_design->design;
-            push @designs, $pair_design;
-        }
-    }
+  foreach my $pair ($self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all){
+      foreach my $pair_crispr_design ($pair->crispr_designs->all){
+          my $pair_design = $pair_crispr_design->design;
+          push @designs, $pair_design;
+      }
+  }
 
-    return @designs;
+  foreach my $group ($self->crispr_groups->all){
+      foreach my $group_design ($group->crispr_designs){
+          push @designs, $group_design->design;
+      }
+  }
+
+  return @designs;
 }
 
 sub crispr_wells{
