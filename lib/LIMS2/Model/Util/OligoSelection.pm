@@ -152,10 +152,13 @@ sub pick_genotyping_primers {
 
     $params->{'start_oligo_field_width'} = $ENV{'LIMS2_GENOTYPING_START_FIELD'} // 1000;
     $params->{'end_oligo_field_width'} = $ENV{'LIMS2_GENOTYPING_END_FIELD'} // 1000;
+    INFO ('start_oligo_field_width = ' . $params->{'start_oligo_field_width'});
+    INFO ('end_oligo_field_width = ' . $params->{'end_oligo_field_width'});
+
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
-    GENO_TRIALS: foreach my $step ( 1..4 ) {
+    GENO_TRIALS: foreach my $step ( 1..($ENV{'LIMS2_GENOTYPING_ITERATION_MAX'}//4) ) {
         INFO ('Genotyping attempt No. ' . $step );
         ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start) = genotyping_calculate( $params );
         if ($primer_data->{'error_flag'} eq 'pass') {
@@ -170,8 +173,9 @@ sub pick_genotyping_primers {
         }
         # increment the fields for searching next time round.
         # for genotyping we just go in steps of 1Kb - there is no dead field defined for genotyping
-        $params->{'start_oligo_field_width'} += 1000;
-        $params->{'end_oligo_field_width'} += 1000;
+        INFO ('Genotyping chunk size set to: ' . ($ENV{'LIMS2_GENOTYPING_CHUNK_SIZE'} // 1000));
+        $params->{'start_oligo_field_width'} += $ENV{'LIMS2_GENOTYPING_CHUNK_SIZE'} // 1000;
+        $params->{'end_oligo_field_width'} += $ENV{'LIMS2_GENOTYPING_CHUNK_SIZE'} // 1000;
     }
     return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
 }
@@ -198,7 +202,7 @@ sub genotyping_calculate {
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_GIBSON_GENOTYPING_PRIMER_CONFIG' },
         primer_product_size_range => $target_sequence_length . '-'
-            . ($target_sequence_length + $params->{'start_oligo_field_width'} - 500), # ?? was static 500
+            . ($target_sequence_length + $params->{'start_oligo_field_width'} - ($ENV{'LIMS2_PRIMER_OFFSET'}//500)), # ?? was static 500
     );
 
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
