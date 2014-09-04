@@ -691,7 +691,7 @@ sub get_genotyping_EnsEmbl_region {
     my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
     my $chr_region_start = $slice_region->start;
 
-    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos, $chr_region_start);
+    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos, $chr_region_start, $design_info->chr_name);
 
 }
 
