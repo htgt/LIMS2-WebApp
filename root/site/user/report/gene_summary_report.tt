@@ -49,16 +49,13 @@ $(document).ready(function() {
 });
 
 function show_or_hide_non_accepted_rows(table, show_or_hide) {
-    console.log( show_or_hide );
     table.children('tbody').children('tr').each(function() {
         var accepted_value = $(this).find('.accepted').text().trim();
         if ( accepted_value == 'no' ) {
             if ( show_or_hide == 'hide' ) {
-                console.log('accepted: hide');
                 $(this).hide();
             }
             else {
-                console.log('accepted: show');
                 $(this).show();
             }
         }
