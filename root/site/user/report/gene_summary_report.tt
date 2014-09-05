@@ -15,6 +15,7 @@
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <script type="text/javascript">
+
 $(document).ready(function() {
     $(".crispr_qc_accepted").each(function () {
         $(this).click(function(e) {
@@ -30,7 +31,51 @@ $(document).ready(function() {
             placement: 'left'
         }) 
     });
+
+  show_or_hide_non_accepted_rows( $( '#epd_well_table' ), 'hide' );
+  $("#epd_accepted_show_toggle").click(function(){
+    var show_or_hide = $(this).attr('data');
+    toggle_btn( $(this), show_or_hide )
+    show_or_hide_non_accepted_rows( $( '#epd_well_table' ), show_or_hide );
+  });
+
+  show_or_hide_non_accepted_rows( $( '#piq_well_table' ), 'hide' );
+  $("#piq_accepted_show_toggle").click(function(){
+    var show_or_hide = $(this).attr('data');
+    toggle_btn( $(this), show_or_hide )
+    show_or_hide_non_accepted_rows( $( '#piq_well_table' ), show_or_hide );
+  });
+
 });
+
+function show_or_hide_non_accepted_rows(table, show_or_hide) {
+    console.log( show_or_hide );
+    table.children('tbody').children('tr').each(function() {
+        var accepted_value = $(this).find('.accepted').text().trim();
+        if ( accepted_value == 'no' ) {
+            if ( show_or_hide == 'hide' ) {
+                console.log('accepted: hide');
+                $(this).hide();
+            }
+            else {
+                console.log('accepted: show');
+                $(this).show();
+            }
+        }
+    });
+}
+
+function toggle_btn(btn, show_or_hide) {
+    if ( show_or_hide == 'show' ) {
+        btn.text( 'Hide Non Accepted Wells' );
+        btn.attr('data', 'hide')
+    }
+    else {
+        btn.text( 'Show Non Accepted Wells' );
+        btn.attr('data', 'show')
+    }
+}
+
 </script>
 
 <div class="page-header">
@@ -95,7 +140,7 @@ $(document).ready(function() {
           </tbody>
         </table>
         [%- ELSE %]
-        <p><em>No data<em></p>
+        <p><em>No data</em></p>
         [%- END %]
       </div>
     </div>
@@ -149,7 +194,7 @@ $(document).ready(function() {
           </tbody>
         </table>
         [%- ELSE %]
-        <p><em>No assigned designs<em></p>
+        <p><em>No assigned designs</em></p>
         [%- END %]
       </div>
     </div>
@@ -573,7 +618,8 @@ $(document).ready(function() {
     </div>
     <div id="collapseEpPick" class="accordion-body collapse">
       <div class="accordion-inner">
-        <table class="table table-striped">
+        <button type="button" class="btn btn-info" data-toggle="button" id="epd_accepted_show_toggle" data="show">Show Non Accepted Wells</button>
+        <table class="table table-striped" id="epd_well_table">
           <thead>
             <th>Well name</td>
             <th>Plate</td>
@@ -590,7 +636,7 @@ $(document).ready(function() {
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.ep_well %]</td>
-              <td>
+              <td class="accepted">
                 [% IF well.crispr_qc_data %]
                 <a href="#" class="crispr_qc_accepted">
                 <!-- insert alignments but hidden -->
@@ -811,7 +857,8 @@ $(document).ready(function() {
     </div>
     <div id="collapsePIQ" class="accordion-body collapse">
       <div class="accordion-inner">
-        <table class="table table-striped">
+        <button type="button" class="btn btn-info" data-toggle="button" id="piq_accepted_show_toggle" data="show">Show Non Accepted Wells</button>
+        <table class="table table-striped" id="piq_well_table">
           <thead>
             <th>Well name</td>
             <th>Plate</td>
@@ -828,7 +875,7 @@ $(document).ready(function() {
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.fp_well %]</td>
-              <td>[% well.is_accepted %]</td>
+              <td class="accepted">[% well.is_accepted %]</td>
             </tr>
             [%- END %]
           </tbody>
