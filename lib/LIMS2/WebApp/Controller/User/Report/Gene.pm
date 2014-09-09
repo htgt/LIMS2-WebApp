@@ -935,12 +935,19 @@ sub fetch_values_for_type_piq {
             };
 
             if ( $summary_row->crispr_ep_well_name ) {
-                my $well = $model->schema->resultset('Well')->find( $summary_row->piq_well_id );
-                #its an accepted crispr well, so try and get the qc data
-                my $gene_finder = sub { $model->find_genes( @_ ) };
-                try {
-                    $well_hash->{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 );
-                };
+                my @qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+                    {
+                        well_id  => $summary_row->piq_well_id,
+                        accepted => 1,
+                    },
+                );
+
+                if ( my $accepted_qc_well = shift @qc_wells ) {
+                    my $gene_finder = sub { $model->find_genes(@_) };
+                    try {
+                        $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+                    };
+                }
             }
 
             $wells_hash->{ 'piq' }->{ $well_id_string } = $well_hash;
