@@ -913,7 +913,7 @@ function toggle_btn(btn, show_or_hide) {
       <div class="accordion-inner">
         <table class="table table-striped">
           <thead>
-            <th>EPD ( accepted only ) and PIQ crispr qc</td>
+            <th>EP Pick and PIQ crispr qc ( accepted )</td>
           </thead>
           <tbody>
             [% FOREACH qc IN crispr_qc %]
@@ -927,7 +927,7 @@ function toggle_btn(btn, show_or_hide) {
                     [% IF qc.piq_accepted == 'yes' %]<span class="label label-success">Accepted</span>[% END %]
                     [% INCLUDE 'crispr_qc_alignment.tt' qc = qc.piq_qc %]
                 [% ELSE %]
-                    <span class="label label-info">No PIQ Crispr QC</span>
+                    <span class="label label-info">No Accepted PIQ Crispr QC</span>
                 [% END %]
               </td>
             </tr>
