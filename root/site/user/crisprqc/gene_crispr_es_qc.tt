@@ -1,0 +1,69 @@
+[% META title = "Gene Crispr ES QC"; META tab_name = 'QC' %]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".traces").click(function(e) {
+        e.preventDefault();
+
+        //the code for this is inside jquery.flot.traceviewer.js
+        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+    });
+});
+</script>
+
+<div class="page-header">
+  <h1>[% template.title %]</h1>
+</div>
+
+<form id="gene_crispr_es_qc_form" class="well form-horizontal">
+  <input type="text" class="span3" id="gene_id_input" name="gene_id" placeholder="Gene identifier" autocomplete="off" />
+  <button type="submit" class="btn">Show Crispr ES QC</button>
+</form>
+
+[% IF gene.defined %]
+    <h2>Showing details for [% gene.gene_symbol %] ([% gene.gene_id %])</h2>
+[% END %]
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Well</th>
+            <th>Crispr ID</th>
+            <th>Alignment</th>
+            <th>Variant Files</th>
+            <th>Protein Sequences</th>
+            <th>Reads</th>
+            <th>Deletions</th>
+            <th>Inserts</th>
+        </tr>
+    </thead>
+    <tbody>
+    [% FOR qc IN crispr_qc %]
+        <tr>
+            [% INCLUDE 'crispr_qc_view.tt'
+                row = qc.ep_pick_qc
+                accept = 0
+            %]
+        </tr>
+        [% IF qc.piq_qc %]
+            <tr class=[% IF qc.piq_accepted %]"success"[% ELSE %]"warning"[% END %]>
+                [% INCLUDE 'crispr_qc_view.tt'
+                    row = qc.piq_qc
+                    accept = 0
+                %]
+            </tr>
+        [% ELSE %]
+            <tr class="info">
+                <td colspan="8"><strong>No PIQ QC</strong></td>
+            </tr>
+        [% END %]
+    [% END %]
+    </tbody>
+</table>
