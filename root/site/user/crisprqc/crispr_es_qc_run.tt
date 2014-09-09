@@ -120,37 +120,7 @@ $(document).ready(function() {
                 [% IF row.alignment.reverse_full %]
                     <div class="reverse_full" style="display:none">[% row.alignment.reverse_full %]</div>
                 [% END %]
-                <div class="alignment">
-                  <div class="alignment_reference">
-                    <span>
-                        [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
-                    </span><br/>
-                  </div>
-                  <div class="alignment_inner">
-                    <span style="display: block">
-                       <span class="seq seq_a">
-                          [% IF row.alignment.no_forward_read %]
-                            No Read
-                          [% ELSIF row.alignment.no_forward_alignment %]
-                            No alignment to target region
-                          [% ELSE %]
-                            [% row.alignment.forward %]
-                          [% END %]
-                       </span>(F)
-                    </span>
-                    <span style="display: block">
-                        <span class="seq seq_b">
-                          [% IF row.alignment.no_reverse_read %]
-                            No Read
-                          [% ELSIF row.alignment.no_reverse_alignment %]
-                            No alignment to target region
-                          [% ELSE %]
-                            [% row.alignment.reverse %]
-                          [% END %]
-                        </span>(R)
-                    </span>
-                  </div>
-                </div>
+                [% INCLUDE 'crispr_qc_alignment.tt' qc = row %]
                 [% IF row.fwd_read or row.rev_read %]
                     <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
                 [% END %]
