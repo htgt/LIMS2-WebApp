@@ -634,41 +634,11 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.created_at %]</td>
               <td>[% well.ep_well %]</td>
               <td class="accepted">
-                [% IF well.crispr_qc_data %]
+                [% IF well.crispr_qc_data && well.is_accepted == 'yes' %]
                 <a href="#" class="crispr_qc_accepted">
                 <!-- insert alignments but hidden -->
                 <div style="display:none">
-                  <div class="alignment">
-                    <div class="alignment_reference">
-                      <span>
-                          [% well.crispr_qc_data.alignment.ref_start %]<span style="color:#FF0000">[% well.crispr_qc_data.alignment.crispr_seq %]</span>[% well.crispr_qc_data.alignment.ref_end %]
-                      </span><br/>
-                    </div>
-                    <div class="alignment_inner">
-                      <span style="display: block">
-                         <span class="seq seq_a">
-                            [% IF well.crispr_qc_data.alignment.no_forward_read %]
-                              No Read
-                            [% ELSIF well.crispr_qc_data.alignment.no_forward_alignment %]
-                              No alignment to target region
-                            [% ELSE %]
-                              [% well.crispr_qc_data.alignment.forward %]
-                            [% END %]
-                         </span>(F)
-                      </span>
-                      <span style="display: block">
-                          <span class="seq seq_b">
-                            [% IF well.crispr_qc_data.alignment.no_reverse_read %]
-                              No Read
-                            [% ELSIF well.crispr_qc_data.alignment.no_reverse_alignment %]
-                              No alignment to target region
-                            [% ELSE %]
-                              [% well.crispr_qc_data.alignment.reverse %]
-                            [% END %]
-                          </span>(R)
-                      </span>
-                    </div>
-                  </div>
+                [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
                 </div>
                 [% END %]
 
@@ -872,7 +842,17 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.fp_well %]</td>
-              <td class="accepted">[% well.is_accepted %]</td>
+              <td class="accepted">
+                [% IF well.crispr_qc_data && well.is_accepted == 'yes' %]
+                <a href="#" class="crispr_qc_accepted">
+                <!-- insert alignments but hidden -->
+                <div style="display:none">
+                [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
+                </div>
+                [% END %]
+                [% well.is_accepted %]
+                [% IF well.crispr_qc_data %]</a>[% END %]
+              </td>
             </tr>
             [%- END %]
           </tbody>
@@ -913,6 +893,43 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.sep_well %]</td>
               <td>[% well.sepd_well %]</td>
               <td>[% well.is_accepted %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  [%- END %]
+
+  [%- IF crispr_qc %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Crispr QC</a>
+      </h3>
+    </div>
+    <div id="collapseCrisprQC" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <table class="table table-striped">
+          <thead>
+            <th>EPD ( accepted only ) and PIQ crispr qc</td>
+          </thead>
+          <tbody>
+            [% FOREACH qc IN crispr_qc %]
+            <tr>
+              <td>
+                <strong>[% qc.epd_well %]</strong>
+                [% INCLUDE 'crispr_qc_alignment.tt' qc = qc.epd_qc %]
+                <br>
+                [% IF qc.piq_qc %]
+                    <strong>[% qc.piq_well %]</strong>
+                    [% IF qc.piq_accepted == 'yes' %]<span class="label label-success">Accepted</span>[% END %]
+                    [% INCLUDE 'crispr_qc_alignment.tt' qc = qc.piq_qc %]
+                [% ELSE %]
+                    <span class="label label-info">No PIQ Crispr QC</span>
+                [% END %]
+              </td>
             </tr>
             [%- END %]
           </tbody>
