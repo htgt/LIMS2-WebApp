@@ -20,6 +20,9 @@
             <li>
               <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
+            </li>
           </ul>
         </li>
 
