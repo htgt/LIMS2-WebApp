@@ -88,11 +88,11 @@ sub c_test_browser_crispr_pairs_for_region : Test(19) {
     'Parent element [3] is in the correct format';
     my @crispr_child = grep { /ID=Crispr_69871/ } @$test_gff_crisprs;
     is $crispr_child[0],
-    "7\tLIMS2\tCDS\t141009870\t141009890\t.\t+\t.\tID=Crispr_69871;Parent=4423;Name=LIMS2-69871;color=#AA2424",
+    "7\tLIMS2\tCDS\t141009870\t141009890\t.\t+\t.\tID=Crispr_69871;Parent=4423;Name=LIMS2-69871;color=#45A825",
     'Child crispr element is in the correct format';
     my @pam_child = grep { /ID=PAM_69871/ } @$test_gff_crisprs;
     is $pam_child[0],
-    "7\tLIMS2\tCDS\t141009868\t141009870\t.\t+\t.\tID=PAM_69871;Parent=4423;Name=LIMS2-69871;color=#DDC808",
+    "7\tLIMS2\tCDS\t141009868\t141009870\t.\t+\t.\tID=PAM_69871;Parent=4423;Name=LIMS2-69871;color=#1A8599",
     'Child PAM element is in the correct format';
 }
 

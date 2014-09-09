@@ -77,11 +77,16 @@ sub gene_report : Path('/user/design_target_report') {
     if ( $report_parameters{type} eq 'simple' ) {
         $c->stash( template => 'user/designtargets/simple_gene_report.tt');
     }
-    elsif ( $report_parameters{crispr_types} eq 'single' ) {
-        $c->stash( template => 'user/designtargets/gene_report_single_crisprs.tt');
-    }
-    elsif ( $report_parameters{crispr_types} eq 'pair' ) {
-        $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
+    else{
+        if ( $report_parameters{crispr_types} eq 'single' ) {
+            $c->stash( template => 'user/designtargets/gene_report_single_crisprs.tt');
+        }
+        elsif ( $report_parameters{crispr_types} eq 'pair' ) {
+            $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
+        }
+        elsif ( $report_parameters{crispr_types} eq 'group' ) {
+            $c->stash( template => 'user/designtargets/gene_report_crispr_groups.tt');
+        }
     }
 
     my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
