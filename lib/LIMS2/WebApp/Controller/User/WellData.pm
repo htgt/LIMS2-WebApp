@@ -68,6 +68,93 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
     return;
 }
 
+sub pcr_status_update :Path( '/user/pcr_status_update' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    return unless $c->request->params->{update_pcr_status};
+
+    my $plate_name = $c->request->params->{plate_name};
+    unless ( $plate_name ) {
+        $c->stash->{error_msg} = 'You must specify a plate name';
+        return;
+    }
+    $c->stash->{plate_name} = $plate_name;
+
+    my $pcr_status_data = $c->request->upload('datafile');
+    unless ( $pcr_status_data ) {
+        $c->stash->{error_msg} = 'No csv file with pcr status data specified';
+        return;
+    }
+
+    my %params = (
+        csv_fh     => $pcr_status_data->fh,
+        plate_name => $plate_name,
+        species    => $c->session->{selected_species},
+        user_name  => $c->user->name,
+    );
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $msg = $c->model('Golgi')->update_plate_pcr_status( \%params );
+                $c->stash->{success_msg} = "Uploaded pcr status information onto plate $plate_name:<br>"
+                    . join("<br>", @{ $msg  });
+                $c->stash->{plate_name} = '';
+            }
+            catch {
+                $c->stash->{error_msg} = 'Error encountered while updating pcr status data for plate: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    return;
+}
+
+## Can be used to upload egel_pass or quality values to well_dna_quality table
+sub dna_quality_update :Path( '/user/dna_quality_update' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    return unless $c->request->params->{update_dna_quality};
+
+    my $plate_name = $c->request->params->{plate_name};
+    unless ( $plate_name ) {
+        $c->stash->{error_msg} = 'You must specify a plate name';
+        return;
+    }
+    $c->stash->{plate_name} = $plate_name;
+
+    my $dna_status_data = $c->request->upload('datafile');
+    unless ( $dna_status_data ) {
+        $c->stash->{error_msg} = 'No csv file with dna quality data specified';
+        return;
+    }
+
+    my %params = (
+        csv_fh     => $dna_status_data->fh,
+        plate_name => $plate_name,
+        species    => $c->session->{selected_species},
+        user_name  => $c->user->name,
+    );
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $msg = $c->model('Golgi')->update_plate_dna_quality( \%params );
+                $c->stash->{success_msg} = "Uploaded dna quality information onto plate $plate_name:<br>"
+                    . join("<br>", @{ $msg  });
+                $c->stash->{plate_name} = '';
+            }
+            catch {
+                $c->stash->{error_msg} = 'Error encountered while updating dna quality data for plate: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    return;
+}
+
 sub dna_concentration_upload :Path( '/user/dna_concentration_upload' ) :Args(0) {
     my ( $self, $c ) = @_;
 
@@ -365,6 +452,68 @@ sub upload_genotyping_qc : Path( '/user/upload_genotyping_qc') : Args(0){
             };
         }
     );
+
+    return;
+}
+
+=head2 well_genotyping_info
+
+Page to choose the desired well, no arguments
+
+=cut
+sub well_genotyping_info_search :Path( '/user/well_genotyping_info_search' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    return;
+}
+
+=head2 well_genotyping_info
+
+Page to display chosen well, takes a well id (later a barcode) or a plate/well combo
+
+=cut
+sub well_genotyping_info :Path( '/user/well_genotyping_info' ) :Args() {
+    my ( $self, $c, @args ) = @_;
+
+    if ( @args == 1 ) {
+        my $barcode = shift @args;
+
+        $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+    }
+    elsif ( @args == 2 ) {
+        my ( $plate_name, $well_name ) = @args;
+
+        $self->_stash_well_genotyping_info(
+            $c, { plate_name => $plate_name, well_name => $well_name }
+        );
+    }
+    else {
+        $c->stash( error_msg => "Invalid number of arguments" );
+    }
+
+    return;
+}
+
+sub _stash_well_genotyping_info {
+    my ( $self, $c, $search ) = @_;
+
+    #well_id will become barcode
+    my $well = $c->model('Golgi')->retrieve_well( $search );
+
+    unless ( $well ) {
+        $c->stash( error_msg => "Well doesn't exist" );
+        return;
+    }
+
+    try {
+        #needs to be given a method for finding genes
+        my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        $c->stash( data => $data );
+    }
+    catch {
+        #get string representation if its a lims2::exception
+        $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
+    };
 
     return;
 }

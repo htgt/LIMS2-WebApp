@@ -22,6 +22,7 @@ BEGIN {
         %DEFAULT_SPECIES_BUILD
         %VECTOR_DNA_CONCENTRATION
         %GLOBAL_SHORTENED_OLIGO_APPEND
+        %GENE_TYPE_REGEX
     );
     our %EXPORT_TAGS = ();
 }
@@ -226,6 +227,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             method => 'async',
             name   => 'Design Plate Order Sheet',
         },
+        {
+            class  => 'SummaryOligoPlate',
+            method => 'sync',
+            name   => 'Summary by Oligo Plate',
+        },
     ],
     CRISPR => [
         {
@@ -264,6 +270,14 @@ const our %VECTOR_DNA_CONCENTRATION => (
         'CRISPR_V'   => 40,
     },
 );
+
+# Regex for checking format of gene IDs by gene_type
+const our %GENE_TYPE_REGEX => (
+    'HGNC'       => qr/HGNC:\d+/,
+    'MGI'        => qr/MGI:\d+/,
+    'CPG-island' => qr/CGI_\d+/,
+);
+
 1;
 
 __END__

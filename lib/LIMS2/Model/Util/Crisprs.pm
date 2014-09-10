@@ -50,6 +50,11 @@ sub crispr_pick {
         $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_link' );
         $crispr_id_column = 'crispr_id';
     }
+    elsif ( $crispr_types eq 'group' ){
+        $checked_design_crispr_links = parse_request_param( $request_params, 'crispr_group_pick' );
+        $existing_design_crispr_links = parse_request_param( $request_params, 'design_crispr_group_link' );
+        $crispr_id_column = 'crispr_group_id';
+    }
     else {
         LIMS2::Exception->throw("Unknown crispr type $crispr_types");
     }
@@ -70,6 +75,10 @@ sub crispr_pick {
     elsif ( $crispr_types eq 'single' ) {
         ( $create_log, $create_fail_log )
             = create_crispr_design_links( $model, $create_links, $default_assembly );
+    }
+    elsif ( $crispr_types eq 'group' ){
+        ( $create_log, $create_fail_log )
+            = create_crispr_group_design_links( $model, $create_links, $default_assembly );
     }
     my ( $delete_log, $delete_fail_log ) = delete_crispr_design_links( $model, $delete_links );
 
@@ -151,6 +160,41 @@ sub compare_design_crispr_links {
     }
 
     return \@change_links;
+}
+
+=head2 create_crispr_group_design_links
+
+Create a link between a design and a crispr group after validating that the
+crispr group and design hit the same location.
+
+=cut
+sub create_crispr_group_design_links {
+    my ( $model, $create_links, $default_assembly ) = @_;
+    my ( @create_log, @fail_log );
+
+    for my $datum ( @{ $create_links } ) {
+        my $design = $model->c_retrieve_design( { id => $datum->{design_id} } );
+        my $crispr_group = $model->schema->resultset( 'CrisprGroup' )->find(
+            { id => $datum->{crispr_group_id} },
+            { prefetch => [ 'crispr_group_crisprs' ] },
+        );
+        LIMS2::Exception->throw( 'Can not find crispr group: ' . $datum->{crispr_group_id} )
+            unless $crispr_group;
+
+        next unless crispr_group_hits_design( $design, $crispr_group, $default_assembly, \@fail_log );
+
+        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+            {
+                design_id      => $design->id,
+                crispr_group_id => $crispr_group->id,
+            }
+        );
+        INFO('Crispr design record created: ' . $crispr_design->id );
+
+        push @create_log, 'Linked design & crispr group ' . p(%$datum);
+    }
+
+    return ( \@create_log, \@fail_log );
 }
 
 =head2 create_crispr_pair_design_links
@@ -256,6 +300,39 @@ sub delete_crispr_design_links {
     return ( \@delete_log, \@fail_log );
 }
 
+=head2 crispr_group_hits_design
+
+Check that the crispr group's crispr locations match with the design target region.
+
+=cut
+sub crispr_group_hits_design {
+    my ( $design, $crispr_group, $default_assembly, $fail_log ) = @_;
+
+    my $design_info = LIMS2::Model::Util::DesignInfo->new(
+        design           => $design,
+        default_assembly => $default_assembly,
+    );
+
+    # FIXME: is this correct? group hits design if one or more crisprs hit design
+    my $crispr_hits_design = 0;
+    foreach my $crispr ($crispr_group->crisprs){
+        if ( crispr_hits_design( $design, $crispr, $default_assembly, $design_info ) ){
+            $crispr_hits_design = 1;
+        }
+    }
+    unless ($crispr_hits_design)
+    {
+        ERROR( 'Crispr Group ' . $crispr_group->id . ' does not hit design ' . $design->id );
+        push @{$fail_log},
+              'Additional validation failed between design: ' . $design->id
+            . ' & crispr group: ' . $crispr_group->id
+            . ', no crispr in the group lies wholly within target region of design';
+        return 0;
+    }
+
+    return 1;
+}
+
 =head2 crispr_pair_hits_design
 
 Check that the crispr pairs 2 crisprs location matches with the designs target region.
@@ -327,8 +404,8 @@ sub crisprs_for_design {
         {
             'loci.assembly_id' => $design_info->default_assembly,
             'loci.chr_id'      => $chr_id,
-            'loci.chr_start'   => { '>' => $design_info->target_region_start },
-            'loci.chr_end'     => { '<' => $design_info->target_region_end },
+            'loci.chr_start'   => { '>' => $design_info->target_region_start - 50 },
+            'loci.chr_end'     => { '<' => $design_info->target_region_end + 50 },
         },
         {
             join => 'loci',
@@ -356,7 +433,17 @@ sub crisprs_for_design {
         }
     );
 
-    return ( \@crisprs, \@crispr_pairs );
+    my @crispr_groups = $model->schema->resultset( 'CrisprGroup' )->search(
+        {
+            'crispr_group_crisprs.crispr_id' => { 'IN' => \@crisprs },
+        },
+        {
+            join => 'crispr_group_crisprs',
+            distinct => 1,
+        }
+    );
+
+    return ( \@crisprs, \@crispr_pairs, \@crispr_groups );
 }
 
 1;

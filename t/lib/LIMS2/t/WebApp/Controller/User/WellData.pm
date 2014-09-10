@@ -81,13 +81,7 @@ sub shutdown  : Test(shutdown)
     #diag("running after all tests");
 };
 
-=head2 all_tests
-
-Code to execute all tests
-
-=cut
-
-sub all_tests  : Test(23)
+sub concentration_upload  : Test(23)
 {
     my $mech = mech();
 
@@ -150,6 +144,83 @@ sub all_tests  : Test(23)
     $mech->content_contains('Well HCL_DNA_A01 already has a dna status');
 }
 
+sub egel_status_upload : Tests() {
+    my $mech = mech();
+
+    note("upload no plate name");
+    $mech->get_ok('/user/select_species?species=Human');
+    $mech->get_ok('/user/dna_quality_update');  
+    $mech->title_is('DNA EGel Status Update');
+    ok $mech->click_button( name => 'update_dna_quality' ), 'submit without plate name ok';
+    $mech->content_contains('You must specify a plate name');
+
+    note("upload no spreadsheet");
+    $mech->get_ok('/user/dna_quality_update'); 
+    ok $mech->submit_form(
+        form_id => 'dna_quality_update',
+        fields => { 
+            plate_name => 'HCL_DNA',
+        },
+        button  => 'update_dna_quality',
+    ), 'submit without spreadsheet ok';
+    $mech->content_contains('No csv file with dna quality data specified');   
+
+    note("plate does not exist");
+    $mech->get_ok('/user/dna_quality_update');
+    my $example_ss_path = 'root/static/test/data/egel_test.csv'; 
+    ok $mech->submit_form(
+        form_id => 'dna_quality_update',
+        fields => { 
+            datafile => $example_ss_path,
+            plate_name => 'rubbish',
+        },
+        button  => 'update_dna_quality',
+    ), 'submit with plate that does not exist';
+    $mech->content_contains('plate_name, is invalid: existing_plate_name');
+
+
+    note("plate is not DNA");
+    $mech->get_ok('/user/dna_quality_update');
+    ok $mech->submit_form(
+        form_id => 'dna_quality_update',
+        fields => { 
+            datafile => $example_ss_path,
+            plate_name => 'HCL1',
+        },
+        button  => 'update_dna_quality',
+    ), 'submit with non DNA plate';
+    $mech->content_contains('Invalid plate type');
+ 
+    note("plate update");
+    $mech->get_ok('/user/dna_quality_update');
+    ok $mech->submit_form(
+        form_id => 'dna_quality_update',
+        fields => { 
+            datafile => $example_ss_path,
+            plate_name => 'HCL_DNA',
+        },
+        button  => 'update_dna_quality',
+    ), 'dna egel pass data uploaded';
+    $mech->content_contains('Uploaded dna quality information onto plate HCL_DNA');
+ 
+    my $well = model->retrieve_well({ plate_name=>'HCL_DNA', well_name=>'A01'});
+    is $well->well_dna_quality->egel_pass, 1, 'DNA egel status is pass for A01';
+    my $well6 = model->retrieve_well({ plate_name=>'HCL_DNA', well_name=>'A06'});
+    is $well6->well_dna_quality->egel_pass, 0, 'DNA egel status is fail for A06';
+
+    note("repeated plate update ok");
+    $mech->get_ok('/user/dna_quality_update');
+    ok $mech->submit_form(
+        form_id => 'dna_quality_update',
+        fields => { 
+            datafile => $example_ss_path,
+            plate_name => 'HCL_DNA',
+        },
+        button  => 'update_dna_quality',
+    ), 'dna egel pass data uploaded';
+    $mech->content_contains('Uploaded dna quality information onto plate HCL_DNA');
+
+}
 =head1 AUTHOR
 
 Lars G. Erlandsen

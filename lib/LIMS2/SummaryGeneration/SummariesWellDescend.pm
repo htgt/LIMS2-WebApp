@@ -219,6 +219,7 @@ sub fetch_values_for_type_DESIGN {
         my @genes_array = fetch_well_gene_symbols_and_ids( $curr_well, $model );
         $stored_values->{ 'stored_design_gene_symbols' }        = $genes_array[0]; # gene symbols
         $stored_values->{ 'stored_design_gene_ids' }            = $genes_array[1]; # gene ids
+        $stored_values->{ 'stored_design_sponsor' }             = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
 	# copy stored values into the current summary output row
@@ -237,6 +238,7 @@ sub fetch_values_for_type_DESIGN {
     $summary_row_values->{ 'design_bacs' }                = $stored_values->{ stored_design_bacs_string };
     $summary_row_values->{ 'design_gene_symbol' }         = $stored_values->{ stored_design_gene_symbols };
     $summary_row_values->{ 'design_gene_id' }             = $stored_values->{ stored_design_gene_ids };
+    if ($stored_values->{ 'stored_design_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_design_sponsor } };
     return;
 }
 
@@ -266,7 +268,8 @@ sub fetch_values_for_type_INT {
         $stored_values->{ 'stored_int_cassette_resistance' }  = try{ $curr_well->cassette->resistance }; # cassette_resistance, e.g. neoR
         $stored_values->{ 'stored_int_backbone_name' }        = try{ $curr_well->backbone->name };   # backbone name
 		$stored_values->{ 'stored_int_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values->{ 'stored_int_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)        
+        $stored_values->{ 'stored_int_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
+        $stored_values->{ 'stored_int_sponsor' }              = try{ $curr_well->plate->sponsor_id }; # sponsor
         # is well the output of a global_arm_shortening process
         if ( my $short_arm_design = $curr_well->global_arm_shortened_design ) {
             $stored_values->{ 'stored_int_global_arm_shortening_design' } = $short_arm_design->id;
@@ -289,6 +292,7 @@ sub fetch_values_for_type_INT {
     $summary_row_values->{ 'int_backbone_name' }        = $stored_values->{ stored_int_backbone_name };
     $summary_row_values->{ 'int_well_assay_complete' }  = $stored_values->{ stored_int_well_assay_complete };
     $summary_row_values->{ 'int_well_accepted' }        = $stored_values->{ stored_int_well_accepted };
+    if ($stored_values->{ 'stored_int_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_int_sponsor } };
 
     $summary_row_values->{'int_well_global_arm_shortening_design'}
         = $stored_values->{'stored_int_global_arm_shortening_design'}
@@ -323,8 +327,9 @@ sub fetch_values_for_type_FINAL {
         $stored_values->{ 'stored_final_cassette_promoter' }    = try{ $curr_well->cassette->promoter }; # final_cassette_promoter
 		$stored_values->{ 'stored_final_cassette_cre' }         = try{ $curr_well->cassette->cre }; # final_cassette_cre
 		$stored_values->{ 'stored_final_cassette_conditional' } = try{ $curr_well->cassette->conditional };      # final_cassette_conditional
-		$stored_values->{ 'stored_final_cassette_resistance' } = try{ $curr_well->cassette->resistance };      # final_cassette_resistance, e.g. neoR
+		$stored_values->{ 'stored_final_cassette_resistance' }  = try{ $curr_well->cassette->resistance };      # final_cassette_resistance, e.g. neoR
 		$stored_values->{ 'stored_final_recombinase_id' }       = join( '_', @{$curr_well->recombinases}); # process recombinase
+        $stored_values->{ 'stored_final_sponsor' }              = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'final_well_id' }              = $stored_values->{ stored_final_well_id };
@@ -342,6 +347,7 @@ sub fetch_values_for_type_FINAL {
     $summary_row_values->{ 'final_cassette_conditional' } = $stored_values->{ stored_final_cassette_conditional };
     $summary_row_values->{ 'final_cassette_resistance' }  = $stored_values->{ stored_final_cassette_resistance };
     $summary_row_values->{ 'final_recombinase_id' }       = $stored_values->{ stored_final_recombinase_id };
+    if ($stored_values->{ 'stored_final_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_final_sponsor } };
     # valid primers?
     return;
 }
@@ -371,8 +377,9 @@ sub fetch_values_for_type_FINAL_PICK {
         $stored_values->{ 'stored_final_pick_cassette_promoter' }    = try{ $curr_well->cassette->promoter }; # final_cassette_promoter
 		$stored_values->{ 'stored_final_pick_cassette_cre' }         = try{ $curr_well->cassette->cre }; # final_cassette_cre
 		$stored_values->{ 'stored_final_pick_cassette_conditional' } = try{ $curr_well->cassette->conditional }; # final_cassette_conditional
-		$stored_values->{ 'stored_final_pick_cassette_resistance' } = try{ $curr_well->cassette->resistance }; # final_pick_cassette_resistance, e.g. neoR
+		$stored_values->{ 'stored_final_pick_cassette_resistance' }  = try{ $curr_well->cassette->resistance }; # final_pick_cassette_resistance, e.g. neoR
 		$stored_values->{ 'stored_final_pick_recombinase_id' }       = join( '_', @{$curr_well->recombinases}); # process recombinase
+        $stored_values->{ 'stored_final_pick_sponsor' }              = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'final_pick_well_id' }              = $stored_values->{ stored_final_pick_well_id };
@@ -390,6 +397,7 @@ sub fetch_values_for_type_FINAL_PICK {
     $summary_row_values->{ 'final_pick_cassette_conditional' } = $stored_values->{ stored_final_pick_cassette_conditional };
     $summary_row_values->{ 'final_pick_cassette_resistance' }  = $stored_values->{ stored_final_pick_cassette_resistance };
     $summary_row_values->{ 'final_pick_recombinase_id' }       = $stored_values->{ stored_final_pick_recombinase_id };
+    if ($stored_values->{ 'stored_final_pick_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_final_pick_sponsor } };
     return;
 }
 # --------------DNA-----------------
@@ -415,6 +423,7 @@ sub fetch_values_for_type_DNA {
         $stored_values->{ 'stored_dna_quality_comment' }      = try{ $curr_well->well_dna_quality->comment }; # well dna quality comment
         $stored_values->{ 'stored_dna_status_pass' }          = try{ $curr_well->well_dna_status->pass }; # well dna status e.g. t or f
         $stored_values->{ 'stored_dna_qc_seq_pass' }          = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
+        $stored_values->{ 'stored_dna_sponsor' }              = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
     $summary_row_values->{ 'dna_well_id' }             = $stored_values->{ stored_dna_well_id };
     $summary_row_values->{ 'dna_well_name' }           = $stored_values->{ stored_dna_well_name };
@@ -427,6 +436,7 @@ sub fetch_values_for_type_DNA {
     $summary_row_values->{ 'dna_quality_comment' }     = $stored_values->{ stored_dna_quality_comment };
     $summary_row_values->{ 'dna_status_pass' }         = $stored_values->{ stored_dna_status_pass };
     $summary_row_values->{ 'dna_qc_seq_pass' }         = $stored_values->{ stored_dna_qc_seq_pass };
+    if ($stored_values->{ 'stored_dna_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_dna_sponsor } };
     # valid primers?
     return;
 }
@@ -455,6 +465,7 @@ sub fetch_values_for_type_EP {
         $stored_values->{ 'stored_ep_colonies_picked' }        = fetch_well_colony_count_picked( $curr_well ); # count colonies picked
         $stored_values->{ 'stored_ep_first_cell_line_name' }   = try { $curr_well->first_cell_line->name }; # first cell line name
         $stored_values->{ 'stored_ep_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
+        $stored_values->{ 'stored_ep_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'ep_well_id' }                = $stored_values->{ stored_ep_well_id };
@@ -469,6 +480,7 @@ sub fetch_values_for_type_EP {
     $summary_row_values->{ 'ep_colonies_picked' }        = $stored_values->{ stored_ep_colonies_picked };
     $summary_row_values->{ 'ep_first_cell_line_name' }   = $stored_values->{ stored_ep_first_cell_line_name };
     $summary_row_values->{ 'ep_well_recombinase_id' }    = $stored_values->{ stored_ep_well_recombinase_id };
+    if ($stored_values->{ 'stored_ep_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_ep_sponsor } };
     return;
 }
 
@@ -493,6 +505,7 @@ sub fetch_values_for_type_EP_PICK {
         $stored_values->{ 'stored_ep_pick_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_ep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass };  # qc sequencing test result
         $stored_values->{ 'stored_ep_pick_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
+        $stored_values->{ 'stored_ep_pick_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'ep_pick_well_id' }              = $stored_values->{ stored_ep_pick_well_id };
@@ -504,6 +517,7 @@ sub fetch_values_for_type_EP_PICK {
     $summary_row_values->{ 'ep_pick_well_accepted' }        = $stored_values->{ stored_ep_pick_well_accepted };
     $summary_row_values->{ 'ep_pick_qc_seq_pass' }          = $stored_values->{ stored_ep_pick_qc_seq_pass };
     $summary_row_values->{ 'ep_pick_well_recombinase_id' }  = $stored_values->{ stored_ep_pick_well_recombinase_id };
+    if ($stored_values->{ 'stored_ep_pick_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_ep_pick_sponsor } };
     return;
 }
 
@@ -528,6 +542,7 @@ sub fetch_values_for_type_XEP {
         $stored_values->{ 'stored_xep_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_xep_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass };  # qc sequencing test result
         $stored_values->{ 'stored_xep_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
+        $stored_values->{ 'stored_xep_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'xep_well_id' }              = $stored_values->{ stored_xep_well_id };
@@ -539,6 +554,7 @@ sub fetch_values_for_type_XEP {
     $summary_row_values->{ 'xep_well_accepted' }        = $stored_values->{ stored_xep_well_accepted };
     $summary_row_values->{ 'xep_qc_seq_pass' }          = $stored_values->{ stored_xep_qc_seq_pass };
     $summary_row_values->{ 'xep_well_recombinase_id' }  = $stored_values->{ stored_xep_well_recombinase_id };
+    if ($stored_values->{ 'stored_xep_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_xep_sponsor } };
 
     return;
 }
@@ -563,6 +579,7 @@ sub fetch_values_for_type_SEP {
         $stored_values->{ 'stored_sep_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_sep_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_sep_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
+        $stored_values->{ 'stored_sep_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'sep_well_id' }               = $stored_values->{ stored_sep_well_id };
@@ -573,6 +590,7 @@ sub fetch_values_for_type_SEP {
     $summary_row_values->{ 'sep_well_created_ts' }       = $stored_values->{ stored_sep_well_created_ts };
     $summary_row_values->{ 'sep_well_accepted' }         = $stored_values->{ stored_sep_well_accepted };
     $summary_row_values->{ 'sep_well_recombinase_id' }   = $stored_values->{ stored_sep_well_recombinase_id };
+    if ($stored_values->{ 'stored_sep_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_sep_sponsor } };
     return;
 }
 
@@ -597,6 +615,7 @@ sub fetch_values_for_type_SEP_PICK {
         $stored_values->{ 'stored_sep_pick_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_sep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
         $stored_values->{ 'stored_sep_pick_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
+        $stored_values->{ 'stored_sep_pick_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'sep_pick_well_id' }               = $stored_values->{ stored_sep_pick_well_id };
@@ -608,6 +627,7 @@ sub fetch_values_for_type_SEP_PICK {
     $summary_row_values->{ 'sep_pick_well_accepted' }         = $stored_values->{ stored_sep_pick_well_accepted };
     $summary_row_values->{ 'sep_pick_qc_seq_pass' }           = $stored_values->{ stored_sep_pick_qc_seq_pass };
     $summary_row_values->{ 'sep_pick_well_recombinase_id' }   = $stored_values->{ stored_sep_pick_well_recombinase_id };
+    if ($stored_values->{ 'stored_sep_pick_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_sep_pick_sponsor } };
     return;
 }
 
@@ -630,6 +650,7 @@ sub fetch_values_for_type_FP {
         $stored_values->{ 'stored_fp_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
         $stored_values->{ 'stored_fp_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_fp_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
+        $stored_values->{ 'stored_fp_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'fp_well_id' }               = $stored_values->{ stored_fp_well_id };
@@ -639,6 +660,7 @@ sub fetch_values_for_type_FP {
     $summary_row_values->{ 'fp_well_assay_complete' }   = $stored_values->{ stored_fp_well_assay_complete };
     $summary_row_values->{ 'fp_well_created_ts' }       = $stored_values->{ stored_fp_well_created_ts };
     $summary_row_values->{ 'fp_well_accepted' }         = $stored_values->{ stored_fp_well_accepted };
+    if ($stored_values->{ 'stored_fp_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_fp_sponsor } };
     return;
 }
 
@@ -661,6 +683,7 @@ sub fetch_values_for_type_PIQ {
         $stored_values->{ 'stored_piq_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
         $stored_values->{ 'stored_piq_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_piq_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
+        $stored_values->{ 'stored_piq_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'piq_well_id' }               = $stored_values->{ stored_piq_well_id };
@@ -670,6 +693,7 @@ sub fetch_values_for_type_PIQ {
     $summary_row_values->{ 'piq_well_assay_complete' }   = $stored_values->{ stored_piq_well_assay_complete };
     $summary_row_values->{ 'piq_well_created_ts' }       = $stored_values->{ stored_piq_well_created_ts };
     $summary_row_values->{ 'piq_well_accepted' }         = $stored_values->{ stored_piq_well_accepted };
+    if ($stored_values->{ 'stored_piq_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_piq_sponsor } };
 
     return;
 }
@@ -693,6 +717,7 @@ sub fetch_values_for_type_SFP {
         $stored_values->{ 'stored_sfp_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
         $stored_values->{ 'stored_sfp_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_sfp_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
+        $stored_values->{ 'stored_sfp_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'sfp_well_id' }               = $stored_values->{ stored_sfp_well_id };
@@ -702,6 +727,7 @@ sub fetch_values_for_type_SFP {
     $summary_row_values->{ 'sfp_well_assay_complete' }   = $stored_values->{ stored_sfp_well_assay_complete };
     $summary_row_values->{ 'sfp_well_created_ts' }       = $stored_values->{ stored_sfp_well_created_ts };
     $summary_row_values->{ 'sfp_well_accepted' }         = $stored_values->{ stored_sfp_well_accepted };
+    if ($stored_values->{ 'stored_sfp_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_sfp_sponsor } };
     return;
 }
 
@@ -724,13 +750,20 @@ sub fetch_values_for_type_ASSEMBLY {
         $stored_values->{ 'stored_assembly_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
         $stored_values->{ 'stored_assembly_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_assembly_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
+        $stored_values->{ 'stored_assembly_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
 
         my ($left_well, $right_well) = try{ $curr_well->left_and_right_crispr_wells };
         if($left_well){
             $stored_values->{ 'stored_assembly_well_left_crispr_well_id' }   = try{ $left_well->id };
         }
+        else {
+            $stored_values->{ 'stored_assembly_well_left_crispr_well_id' } = undef;
+        }
         if($right_well){
             $stored_values->{ 'stored_assembly_well_right_crispr_well_id' }  = try{ $right_well->id };
+        }
+        else {
+            $stored_values->{ 'stored_assembly_well_right_crispr_well_id' } = undef;
         }
     }
 
@@ -744,6 +777,8 @@ sub fetch_values_for_type_ASSEMBLY {
 
     $summary_row_values->{ 'assembly_well_left_crispr_well_id' }   = $stored_values->{ 'stored_assembly_well_left_crispr_well_id' };
     $summary_row_values->{ 'assembly_well_right_crispr_well_id' } = $stored_values->{ 'stored_assembly_well_right_crispr_well_id' };
+
+    if ($stored_values->{ 'stored_assembly_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_assembly_sponsor } };
     return;
 }
 
@@ -769,6 +804,7 @@ sub fetch_values_for_type_CRISPR_EP {
         $stored_values->{ 'stored_crispr_ep_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_crispr_ep_well_nuclease' }          = try{ $curr_well->nuclease->name };
         $stored_values->{ 'stored_crispr_ep_well_cell_line' }         = try{ $curr_well->first_cell_line->name };
+        $stored_values->{ 'stored_crispr_ep_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
     $summary_row_values->{ 'crispr_ep_well_id' }               = $stored_values->{ stored_crispr_ep_well_id };
@@ -780,6 +816,7 @@ sub fetch_values_for_type_CRISPR_EP {
     $summary_row_values->{ 'crispr_ep_well_accepted' }         = $stored_values->{ stored_crispr_ep_well_accepted };
     $summary_row_values->{ 'crispr_ep_well_nuclease' }         = $stored_values->{ stored_crispr_ep_well_nuclease };
     $summary_row_values->{ 'crispr_ep_well_cell_line' }        = $stored_values->{ stored_crispr_ep_well_cell_line };
+    if ($stored_values->{ 'stored_crispr_ep_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_crispr_ep_sponsor } };
     return;
 }
 

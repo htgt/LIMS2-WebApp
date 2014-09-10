@@ -59,7 +59,7 @@ sub gene_report : Path('/user/design_target_report') {
         type                 => $c->request->param('report_type') || 'standard',
         off_target_algorithm => $c->request->param('off_target_algorithm') || 'bwa',
         crispr_types         => $c->request->param('crispr_types') || 'pair',
-        filter               => $c->request->param('filter') // 1,
+        filter               => $c->request->param('filter') || 0,
     );
 
     my ( $design_targets_data, $search_terms ) = design_target_report_for_genes(
@@ -77,11 +77,16 @@ sub gene_report : Path('/user/design_target_report') {
     if ( $report_parameters{type} eq 'simple' ) {
         $c->stash( template => 'user/designtargets/simple_gene_report.tt');
     }
-    elsif ( $report_parameters{crispr_types} eq 'single' ) {
-        $c->stash( template => 'user/designtargets/gene_report_single_crisprs.tt');
-    }
-    elsif ( $report_parameters{crispr_types} eq 'pair' ) {
-        $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
+    else{
+        if ( $report_parameters{crispr_types} eq 'single' ) {
+            $c->stash( template => 'user/designtargets/gene_report_single_crisprs.tt');
+        }
+        elsif ( $report_parameters{crispr_types} eq 'pair' ) {
+            $c->stash( template => 'user/designtargets/gene_report_crispr_pairs.tt');
+        }
+        elsif ( $report_parameters{crispr_types} eq 'group' ) {
+            $c->stash( template => 'user/designtargets/gene_report_crispr_groups.tt');
+        }
     }
 
     my $default_assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(

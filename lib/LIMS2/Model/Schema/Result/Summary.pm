@@ -842,6 +842,11 @@ __PACKAGE__->table("summaries");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 sponsor_id
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1170,6 +1175,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "int_well_global_arm_shortening_design",
   { data_type => "integer", is_nullable => 1 },
+  "sponsor_id",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1185,8 +1192,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-12 11:05:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8o6MBb28r2NHm7MMZzXLWA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L6Q+AwfNoA7QuMB/boNm/Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

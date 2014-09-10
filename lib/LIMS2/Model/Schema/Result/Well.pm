@@ -497,6 +497,14 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 use List::MoreUtils qw( any );
 
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
+
 sub is_accepted {
     my $self = shift;
 
@@ -511,6 +519,7 @@ sub is_accepted {
 }
 
 use overload '""' => \&as_string;
+use List::MoreUtils qw( uniq );
 
 sub as_string {
     my $self = shift;
@@ -801,6 +810,14 @@ sub parent_processes{
 	return @parent_processes;
 }
 
+sub parent_wells {
+    my $self = shift;
+
+    my @parent_processes = $self->parent_processes;
+
+    return map{ $_->input_wells } @parent_processes;
+}
+
 sub child_processes{
     my $self = shift;
 
@@ -958,6 +975,23 @@ sub first_ep_pick {
     LIMS2::Exception::Implementation->throw( "Failed to determine first electroporation pick plate/well for $self" );
 }
 ## use critic
+
+#maybe think of a better name for this
+#it just means it must be ep_pick or later
+sub is_epd_or_later {
+  my $self = shift;
+
+  #epd is ok with us
+  return $self if $self->plate->type_id eq 'EP_PICK';
+
+  my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+  while ( my $ancestor = $ancestors->next ) {
+    return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
+  }
+
+  #we didn't find any ep picks further up so its not
+  return;
+}
 
 ## no critic(RequireFinalReturn)
 sub second_ep {
@@ -1144,19 +1178,232 @@ sub crispr_pair {
     my $self = shift;
 
     my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-
+    my $crispr_pair;
     # Now lookup left and right crispr in the crispr_pair table and return the object to the caller
-    my $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
-           'left_crispr_id' => $left_crispr->crispr->id,
-           'right_crispr_id' => $right_crispr->crispr->id,
-        });
-
-    if (! $crispr_pair) {
-        require LIMS2::Exception::Implementation;
-        LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
+    if ( $left_crispr && $right_crispr ) {
+        $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
+               'left_crispr_id' => $left_crispr->crispr->id,
+               'right_crispr_id' => $right_crispr->crispr->id,
+            });
     }
-    return $crispr_pair;
+    return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
 }
 
+sub crispr_primer_for{
+    my $self = shift;
+    my $params = shift;
+    #does params need validation?
+    my $crispr_primer_seq = '-'; # default sequence is hyphen - no sequence available
+    return $crispr_primer_seq if $params->{'crispr_pair_id'} eq 'Invalid';
+
+    # Decide if well relates to a pair or a single crispr
+    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
+
+    my $primer_type = $params->{'primer_label'} =~ m/\A [SP] /xms ? 'crispr_primer' : 'genotyping_primer';
+
+    my $crispr_col_label;
+    my $crispr_id_value;
+    if (! $right_crispr ) {
+       $crispr_col_label = 'crispr_id';
+       $crispr_id_value = $left_crispr->crispr->id;
+    }
+    else {
+        $crispr_col_label = 'crispr_pair_id';
+        $crispr_id_value = $self->crispr_pair->id;
+    }
+
+    if ( $primer_type eq 'crispr_primer' ){
+        my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
+            $crispr_col_label => $crispr_id_value,
+            'primer_name' => $params->{'primer_label'},
+        });
+        if ($result) {
+            $crispr_primer_seq = $result->primer_seq;
+        }
+    }
+    else {
+        # it's a genotyping primer
+        my $genotyping_primer_rs = $self->result_source->schema->resultset('GenotypingPrimer')->search({
+                'design_id' => $self->design->id,
+                'genotyping_primer_type_id' => $params->{'primer_label'},
+            },
+            {
+                'columns' => [ qw/design_id genotyping_primer_type_id seq/ ],
+                'distinct' => 1,
+            }
+        );
+        if ($genotyping_primer_rs){
+            if ($genotyping_primer_rs->count == 1) {
+                $crispr_primer_seq = $genotyping_primer_rs->first->seq;
+            }
+            elsif ( $genotyping_primer_rs->count > 1) {
+                $crispr_primer_seq = 'multiple results!';
+            }
+        }
+    }
+
+    return $crispr_primer_seq;
+}
+
+#gene finder should be a method that accepts a species id and some gene ids,
+#returning a hashref
+#see code in WellData for an example
+
+sub genotyping_info {
+  my ( $self, $gene_finder, $only_qc_data ) = @_;
+
+  require LIMS2::Exception;
+
+  #get the epd well if one exists (could be ourself)
+  my $epd = $self->is_epd_or_later;
+
+  LIMS2::Exception->throw( "Provided well must be an epd well or later" )
+      unless $epd;
+
+  LIMS2::Exception->throw( "EPD well is not accepted" )
+     unless $epd->accepted;
+
+  my @qc_wells = $self->result_source->schema->resultset('CrisprEsQcWell')->search(
+    { well_id => $epd->id }
+  );
+
+  LIMS2::Exception->throw( "No QC Wells found" )
+    unless @qc_wells;
+
+  my $accepted_qc_well;
+  for my $qc_well ( @qc_wells ) {
+    if ( $qc_well->accepted ) {
+      $accepted_qc_well = $qc_well;
+      last;
+    }
+  }
+
+  LIMS2::Exception->throw( "No QC wells are accepted" )
+     unless $accepted_qc_well;
+
+  if ( $only_qc_data ) {
+    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+  }
+
+  # store primers in a hash of primer name -> seq
+  my %primers;
+  for my $primer ( $accepted_qc_well->get_crispr_primers ) {
+    #val is hash with name + seq
+    my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
+
+    push @{ $primers{$key} }, $val;
+  }
+
+  my $vector_well = $self->final_vector;
+  my $design = $vector_well->design;
+
+  #find primers related to the design
+  my @design_primers = $self->result_source->schema->resultset('GenotypingPrimer')->search(
+    { design_id => $design->id },
+    { order_by => { -asc => 'me.id'} }
+  );
+
+  for my $primer ( @design_primers ) {
+    my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
+
+    push @{ $primers{$key} }, $val;
+  }
+
+  my @gene_ids = uniq map { $_->gene_id } $design->genes;
+
+  #get gene symbol from the solr
+  my @genes = map { $_->{gene_symbol} }
+                  values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
+
+  return {
+      gene             => @genes == 1 ? $genes[0] : [ @genes ],
+      design_id        => $design->id,
+      well_id          => $self->id,
+      well_name        => $self->name,
+      plate_name       => $self->plate->name,
+      fwd_read         => $accepted_qc_well->fwd_read,
+      rev_read         => $accepted_qc_well->rev_read,
+      epd_plate_name   => $epd->plate->name,
+      accepted         => $epd->accepted,
+      targeting_vector => $vector_well->plate->name,
+      vector_cassette  => $vector_well->cassette->name,
+      qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
+      primers          => \%primers,
+      vcf_file         => $accepted_qc_well->vcf_file,
+      qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
+  };
+}
+
+sub _group_primers {
+  my ( $name, $seq ) = @_;
+
+  #split SF1 into qw(S F 1) so we can group properly
+  my @fields = split //, $name;
+
+  my $key = $fields[0] . $fields[-1];
+
+  return $key, { name => $name, seq => $seq };
+}
+
+# Compute accepted flag for DNA created from FINAL_PICK
+# accepted = true if:
+# FINAL_PICK qc_sequencing_result pass == true AND
+# DNA well_dna_status pass == true AND
+# DNA well_dna_quality egel_pass == true
+sub compute_final_pick_dna_well_accepted {
+    my ( $self ) = @_;
+
+    return unless $self->plate->type_id eq 'DNA';
+
+    my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
+
+    my $final_pick_parent;
+    while ( my $ancestor = $ancestors->next ) {
+
+        # Allow for rearraying of DNA plates
+        next if $ancestor->plate->type_id eq 'DNA';
+
+        # Check plate type of parent well
+        if ( $ancestor->plate->type_id eq 'FINAL_PICK' ) {
+            $final_pick_parent = $ancestor;
+            DEBUG("Found final pick parent ".$ancestor->as_string);
+            last;
+        }
+        else{
+            # Parent is not a FINAL_PICK so skip accepted flag computation
+            DEBUG("Parent is not FINAL_PICK");
+            return;
+        }
+    }
+
+    if ($final_pick_parent){
+        my $final_pick_qc_seq = $final_pick_parent->well_qc_sequencing_result;
+        my $dna_status = $self->well_dna_status;
+        my $dna_quality = $self->well_dna_quality;
+        if ($final_pick_qc_seq and $dna_status and $dna_quality){
+            DEBUG("Computing final pick DNA accepted status");
+            DEBUG("Final pick QC status: ".$final_pick_qc_seq->pass);
+            DEBUG("DNA status: ".$dna_status->pass);
+            DEBUG("DNA egel pass: ".$dna_quality->egel_pass);
+            if ( $final_pick_qc_seq->pass and $dna_status->pass and $dna_quality->egel_pass){
+                DEBUG("Setting accepted to true");
+                $self->update({ accepted => 1 });
+            }
+            else{
+                DEBUG("Setting accepted to false");
+                $self->update({ accepted => 0 });
+            }
+        }
+        else{
+            # We do not have enough data to compute the accepted flag
+            # unset accepted flag which may have been set elsewhere
+            $self->update({accepted => 0 });
+            DEBUG("Not enough info to set accepted flag");
+            return;
+        }
+    }
+
+    return;
+}
 __PACKAGE__->meta->make_immutable;
 1;

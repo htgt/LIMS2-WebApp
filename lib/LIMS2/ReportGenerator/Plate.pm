@@ -13,6 +13,7 @@ use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use Time::HiRes qw(time);
 use Data::Dumper;
+use JSON;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -75,12 +76,12 @@ has time_taken => (
 # HashRef linking each well on the plate to crispr wells via crispr_design
 # Structure is like this:
 #   crispr_wells => {
-#       <well_id> => {  
-#          <crispr_design_id> => { 
-#              single => [ <array of crispr wells> ], 
-#              left   => [ <array of crispr wells> ], 
-#              right  => [ <array of crispr wells> ], 
-#          } 
+#       <well_id> => {
+#          <crispr_design_id> => {
+#              single => [ <array of crispr wells> ],
+#              left   => [ <array of crispr wells> ],
+#              right  => [ <array of crispr wells> ],
+#          }
 #       }
 #   }
 has crispr_wells => (
@@ -231,7 +232,8 @@ sub accepted_crispr_columns {
     return ("Accepted Crispr Single", "Accepted Crispr Pairs");
 }
 
-sub _find_accepted_vector_wells{
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _find_accepted_CRISPR_V_wells{
     my ($self,$crispr_wells) = @_;
 
     my ($start, $end);
@@ -281,9 +283,45 @@ sub _find_accepted_vector_wells{
 
     return @return;
 }
+## use critic
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _find_accepted_DNA_wells {
+    my ($self,$crispr_wells) = @_;
+
+    my ($start, $end);
+
+    my @ids = map { $_->id } @{ $crispr_wells || [] };
+
+    return () unless @ids;
+
+    # Fetch crispr well descendant IDs from cache
+    $start = time();
+    my @descendant_ids = uniq map { @{ $self->crispr_well_descendants->{$_} || [] } } @ids;
+
+    # Fetch CRISPR_V wells from db
+    my @dna_wells = $self->model->schema->resultset('Well')->search(
+        {
+            'me.id' => { -in => \@descendant_ids },
+            'plate.type_id' => 'DNA'
+        },
+        {
+            prefetch => ['plate','well_accepted_override']
+        }
+    )->all;
+    $end = time();
+    TRACE(sprintf "Well search took: %.2f",$end - $start);
+
+    return grep { $_->is_accepted } @dna_wells;
+}
+## use critic
 
 sub accepted_crispr_data {
-    my ( $self, $well ) = @_;
+    my ( $self, $well, $well_type ) = @_;
+
+    # Find accepted CRISPR_V wells as default
+    $well_type ||= 'CRISPR_V';
+    my $find_method = '_find_accepted_'.$well_type.'_wells';
 
     my $f_start = time();
     my (@single_crisprs, @paired_crisprs);
@@ -295,28 +333,34 @@ sub accepted_crispr_data {
 
     my $crispr_designs = $self->crispr_wells->{ $well->id };
     foreach my $crispr_design_id ( keys %{ $crispr_designs || {} } ){
+
         my $crispr_design = $crispr_designs->{$crispr_design_id};
 
         # Store single crisprs for handling later
         push @single_cr_wells, @{ $crispr_design->{single} || [] };
 
-        # Handle paired crisprs for each crispr_design because 
+        # Handle paired crisprs for each crispr_design because
         # left and right wells need to be reported together
         my @left_cr_wells = @{ $crispr_design->{left} || [] };
         my @right_cr_wells = @{ $crispr_design->{right} || [] };
 
-        my @left_accepted = $self->_find_accepted_vector_wells(\@left_cr_wells);
-        my @right_accepted = $self->_find_accepted_vector_wells(\@right_cr_wells);
+        my @left_accepted = $self->$find_method(\@left_cr_wells);
+        my @right_accepted = $self->$find_method(\@right_cr_wells);
         if (@left_accepted and @right_accepted){
+            # Fetch the pair ID to display
+            my $pair_id = $self->model->schema->resultset('CrisprDesign')->find({
+                id => $crispr_design_id,
+            })->crispr_pair_id;
+
             my $left_as_string = join( q{/}, map {$_->as_string} @left_accepted);
             my $right_as_string = join( q{/}, map {$_->as_string} @right_accepted);
-            my $pair_as_string = "[left:$left_as_string-right:$right_as_string]";
+            my $pair_as_string = "Pair $pair_id"."[left:$left_as_string-right:$right_as_string]";
             push @paired_crisprs, $pair_as_string;
         }
     }
 
     # Handle the single crisprs for this well
-    @single_crisprs = $self->_find_accepted_vector_wells(\@single_cr_wells);
+    @single_crisprs = $self->$find_method(\@single_cr_wells);
 
     my $f_end = time();
     my $elapsed = $f_end - $f_start;
@@ -450,6 +494,32 @@ sub _symbols_from_design{
         $symbols->{$symbol} = 1;
     }
     return;
+}
+
+=head create_button_json
+Returns a custom json string ( lims2_custom ) for interpretation by the view (template toolkit).
+
+Note that you must provide key/value pairs for:
+api_url - the view will use a c.uri_for call using this as the api method used to render the view
+button_label - text to be used to label the button for this cell
+browser_target - an html keyword or arbitrary string to indicate whether the button will create a new tab or window, or render in the curent window
+
+All key value pairs are passed by the uri_for call to render the action/view.
+
+=cut
+
+sub create_button_json {
+    my $self = shift;
+    my $params = shift;
+
+    my $custom_value = {
+        'lims2_custom' => {
+            %{$params}
+        },
+    };
+    my $json_text = encode_json( $custom_value );
+
+    return $json_text;
 }
 
 __PACKAGE__->meta->make_immutable;
