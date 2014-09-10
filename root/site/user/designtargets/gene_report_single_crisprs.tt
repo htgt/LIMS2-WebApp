@@ -80,6 +80,10 @@
               [% IF dt_first_row == 0 %]<tr>[% END %]
               <td class="crispr">
                 <a href="[% c.uri_for( '/user/crispr' , crispr.crispr_id , 'view' ) %]" target="_blank">[% crispr.crispr_id %]</a>
+                [% IF crispr.wge_id %]
+                <br/>
+                (WGE: [% crispr.wge_id %])
+                [% END %]
                 <a href="[% c.uri_for( '/user/crispr', crispr.crispr_id , 'blat' ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
               </td>
               <td class="crispr">[% crispr.seq %]</td>

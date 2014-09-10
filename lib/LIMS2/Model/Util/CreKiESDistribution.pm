@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreKiESDistribution;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.233';
+    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.238';
 }
 ## use critic
 
@@ -682,13 +682,13 @@ sub _create_current_gene_well_ident_lists {
     my ( $self, $curr_gene_hash ) = @_;
 
     # add lists of well ids into gene hash
-    $curr_gene_hash->{ 'accepted_final_pick_wells_list' }          = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_final_pick_wells_array' } } );
-    $curr_gene_hash->{ 'accepted_ep_pick_wells_list' }             = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_ep_pick_wells_array' } } );
-    $curr_gene_hash->{ 'failed_ep_pick_wells_list' }               = join ( ' : ', @{ $curr_gene_hash->{ 'failed_ep_pick_wells_array' } } );
-    $curr_gene_hash->{ 'fp_wells_list' }                           = join ( ' : ', @{ $curr_gene_hash->{ 'fp_wells_array' } } );
-    $curr_gene_hash->{ 'piq_wells_list' }                          = join ( ' : ', @{ $curr_gene_hash->{ 'piq_wells_array' } } );
-    $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_list' } = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_array' } } );
-    $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_list' } = join ( ' : ', @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_array' } } );
+    $curr_gene_hash->{ 'accepted_final_pick_wells_list' }          = join ( ' ', @{ $curr_gene_hash->{ 'accepted_final_pick_wells_array' } } );
+    $curr_gene_hash->{ 'accepted_ep_pick_wells_list' }             = join ( ' ', @{ $curr_gene_hash->{ 'accepted_ep_pick_wells_array' } } );
+    $curr_gene_hash->{ 'failed_ep_pick_wells_list' }               = join ( ' ', @{ $curr_gene_hash->{ 'failed_ep_pick_wells_array' } } );
+    $curr_gene_hash->{ 'fp_wells_list' }                           = join ( ' ', @{ $curr_gene_hash->{ 'fp_wells_array' } } );
+    $curr_gene_hash->{ 'piq_wells_list' }                          = join ( ' ', @{ $curr_gene_hash->{ 'piq_wells_array' } } );
+    $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_list' } = join ( ' ', @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_passed_array' } } );
+    $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_list' } = join ( ' ', @{ $curr_gene_hash->{ 'accepted_clone_secondary_qc_failed_array' } } );
 
     return;
 }
@@ -909,10 +909,10 @@ sub _fuse_lims2_and_imits_data {
             }
         }
 
-        if ( @mi_attempt_gtc_clones_array ) { $curr_gene_hash->{ 'mi_attempts_gtc_clones_list' }    = join ( ' : ', @mi_attempt_gtc_clones_array ) };
-        if ( @mi_attempt_chr_clones_array ) { $curr_gene_hash->{ 'mi_attempts_chr_clones_list' }    = join ( ' : ', @mi_attempt_chr_clones_array ) };
-        if ( @mi_attempt_mip_clones_array ) { $curr_gene_hash->{ 'mi_attempts_mip_clones_list' }    = join ( ' : ', @mi_attempt_mip_clones_array ) };
-        if ( @mi_attempt_abt_clones_array ) { $curr_gene_hash->{ 'mi_attempts_abt_clones_list' }    = join ( ' : ', @mi_attempt_abt_clones_array ) };
+        if ( @mi_attempt_gtc_clones_array ) { $curr_gene_hash->{ 'mi_attempts_gtc_clones_list' }    = join ( ' ', @mi_attempt_gtc_clones_array ) };
+        if ( @mi_attempt_chr_clones_array ) { $curr_gene_hash->{ 'mi_attempts_chr_clones_list' }    = join ( ' ', @mi_attempt_chr_clones_array ) };
+        if ( @mi_attempt_mip_clones_array ) { $curr_gene_hash->{ 'mi_attempts_mip_clones_list' }    = join ( ' ', @mi_attempt_mip_clones_array ) };
+        if ( @mi_attempt_abt_clones_array ) { $curr_gene_hash->{ 'mi_attempts_abt_clones_list' }    = join ( ' ', @mi_attempt_abt_clones_array ) };
     }
 
     return;
@@ -973,7 +973,7 @@ sub _create_production_centres_display_lists {
     $curr_gene_hash->{ 'count_imits_production_centres' }        = scalar @production_centres_list;
 
     if ( @production_centres_list ) {
-        $curr_gene_hash->{ 'production_centres_list' }           = join ( ' : ', @production_centres_list );
+        $curr_gene_hash->{ 'production_centres_list' }           = join ( ' ', @production_centres_list );
     };
 
     # plan priorities
@@ -982,7 +982,7 @@ sub _create_production_centres_display_lists {
         push ( @production_centre_priorities_list, $priority );
     }
     if ( @production_centre_priorities_list ) {
-        $curr_gene_hash->{ 'production_centre_priorities_list' } = join ( ' : ', @production_centre_priorities_list );
+        $curr_gene_hash->{ 'production_centre_priorities_list' } = join ( ' ', @production_centre_priorities_list );
     }
 
     return;

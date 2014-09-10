@@ -6,3 +6,7 @@
 .lims2-first-cell-format {
     font-weight: bold;
 }
+
+.x-grid-cell-inner {
+    white-space: normal;
+}

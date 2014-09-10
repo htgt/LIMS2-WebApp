@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.233';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.238';
 }
 ## use critic
 
@@ -253,14 +253,14 @@ sub crispr_pairs_to_gff {
                     chr_start => $crispr_r->left_crispr_start,
                     chr_end   => $crispr_r->left_crispr_end,
                     pam_right => $crispr_r->left_crispr_pam_right,
-                    colour => '#AA2424', # reddish
+                    colour => crispr_colour('left'),
                 },
                 right => {
                     id    => $crispr_r->right_crispr_id,
                     chr_start => $crispr_r->right_crispr_start,
                     chr_end   => $crispr_r->right_crispr_end,
                     pam_right => $crispr_r->right_crispr_pam_right,
-                    colour => '#1A8599', # blueish
+                    colour => crispr_colour('right'),
                 }
             };
 
@@ -481,6 +481,28 @@ sub gibson_colour {
     return $colours{ $oligo_type_id };
 }
 
+sub crispr_colour {
+    my $type = shift;
+
+    my %colours = (
+        single => '#45A825', # green
+        left   => '#45A825', # green
+        right  => '#52CCCC', # bright blue
+        pam    => '#1A8599', # blue
+        primer => '#45A825', # green
+    );
+=head
+    my %colours = (
+        single => '#45A825', # greenish
+        left   => '#AA2424', # reddish
+        right  => '#1A8599', # blueish
+        pam    => '#DDC808', # yellowish
+        primer => '#45A825', # greenish
+    );
+=cut
+    return $colours{ $type };
+}
+
 # Methods for crispr primer generation and formatting to gff
 
 sub primers_for_crispr_pair{
@@ -558,7 +580,7 @@ sub crispr_primers_to_gff {
                     . $primer_key . ';'
                     . 'Parent=' . $primer_group . ';'
                     . 'Name=' . 'LIMS2' . '-' . $primer_key . ';'
-                    . 'color=#45A825'; # greenish
+                    . 'color=' . crispr_colour('primer');
                  my $primer_child_datum = prep_gff_datum( \%primer_format_hash );
                  push @primer_child_data, $primer_child_datum;
             }
@@ -652,8 +674,8 @@ sub unique_crispr_data_to_gff {
                 left => $pair->{left_crispr},
                 right => $pair->{right_crispr},
             };
-            $crispr_display_info->{left}->{colour} = '#AA2424'; # reddish
-            $crispr_display_info->{right}->{colour} = '#1A8599'; # blueish
+            $crispr_display_info->{left}->{colour} = crispr_colour('left');
+            $crispr_display_info->{right}->{colour} = crispr_colour('right');
 
             foreach my $side ( qw(left right) ){
                 my $crispr = $crispr_display_info->{$side};
@@ -679,7 +701,7 @@ sub unique_crispr_data_to_gff {
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             push @crispr_data_gff, $crispr_parent_datum;
 
-            $crispr->{colour} = '#45A825'; # greenish
+            $crispr->{colour} = crispr_colour('single');
             push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$crispr_id);
         }
 
@@ -724,7 +746,7 @@ sub _make_crispr_and_pam_cds{
                 . 'PAM_' . $crispr->{id} . ';'
                 . 'Parent=' . $parent_id . ';'
                 . 'Name=LIMS2-' . $crispr->{id} . ';'
-                . 'color=#DDC808'; # yellowish
+                . 'color=' . crispr_colour('pam');
         my $pam_child_datum = prep_gff_datum( $crispr_format_hash );
 
         return ($crispr_datum, $pam_child_datum);

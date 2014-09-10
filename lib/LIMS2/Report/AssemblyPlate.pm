@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.233';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.238';
 }
 ## use critic
 
@@ -80,7 +80,7 @@ override iterator => sub {
                 : (($crispr_pair_id eq 'Invalid') && ($left_crispr && !$right_crispr) ? $crispr_id : 'N/A'),
             ($left_crispr && !$right_crispr)
                 || ($crispr_pair_id ne 'Invalid') ?
-                $self->create_button({
+                $self->create_button_json({
                     'design_id'        => $well->design->id,
                     'crispr_type'      => $right_crispr ? 'crispr_pair_id' : 'crispr_id',
                     'crispr_type_id'   => $right_crispr ? $crispr_pair_id : $crispr_id,

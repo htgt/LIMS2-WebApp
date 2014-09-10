@@ -41,6 +41,7 @@ lib/LIMS2/Model/Plugin/Plate.pm
 lib/LIMS2/Model/Plugin/Primer.pm
 lib/LIMS2/Model/Plugin/Process.pm
 lib/LIMS2/Model/Plugin/ProcessTree.pm
+lib/LIMS2/Model/Plugin/Project.pm
 lib/LIMS2/Model/Plugin/QC.pm
 lib/LIMS2/Model/Plugin/Species.pm
 lib/LIMS2/Model/Plugin/User.pm
@@ -206,6 +207,7 @@ lib/LIMS2/Report/FPPlate.pm
 lib/LIMS2/Report/FinalPickVectorPlate.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/FirstElectroporationProductionDetail.pm
+lib/LIMS2/Report/GeneEPSummary.pm
 lib/LIMS2/Report/GenesToElectroporate.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
 lib/LIMS2/Report/LegacyCreKnockInProjects.pm
@@ -243,6 +245,7 @@ lib/LIMS2/WebApp/Controller/API/Crispr.pm
 lib/LIMS2/WebApp/Controller/API/Design.pm
 lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
+lib/LIMS2/WebApp/Controller/API/Project.pm
 lib/LIMS2/WebApp/Controller/API/QC.pm
 lib/LIMS2/WebApp/Controller/API/Report.pm
 lib/LIMS2/WebApp/Controller/API/Traces.pm
@@ -265,6 +268,7 @@ lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
+lib/LIMS2/WebApp/Controller/User/Projects.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/RecombinaseUpload.pm
 lib/LIMS2/WebApp/Controller/User/Report.pm
@@ -318,18 +322,21 @@ root/site/user/crisprqc/crispr_es_qc_run.tt
 root/site/user/crisprqc/crispr_es_qc_runs.tt
 root/site/user/crisprqc/submit_crispr_es_qc.tt
 root/site/user/crisprs/browse_crisprs.tt
+root/site/user/crisprs/crispr_group_ucsc_blat.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/genoverse_browse_view.tt
 root/site/user/crisprs/genoverse_crispr_primers_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
+root/site/user/crisprs/view_crispr_group.tt
 root/site/user/crisprs/view_crispr_pair.tt
 root/site/user/crisprs/wge_crispr_group_importer.tt
 root/site/user/crisprs/wge_crispr_importer.tt
 root/site/user/crisprs/wge_crispr_pair_importer.tt
 root/site/user/designtargets/crisprs_ucsc_blat.tt
 root/site/user/designtargets/design_target_report_crispr_pick.tt
+root/site/user/designtargets/gene_report_crispr_groups.tt
 root/site/user/designtargets/gene_report_crispr_pairs.tt
 root/site/user/designtargets/gene_report_single_crisprs.tt
 root/site/user/designtargets/index.tt
@@ -342,6 +349,7 @@ root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
 root/site/user/pool/DesignTargetsLoader.tt
+root/site/user/projects/index.tt
 root/site/user/qc/create_plates.tt
 root/site/user/qc/create_template_plate.tt
 root/site/user/qc/index.tt
@@ -391,6 +399,7 @@ root/static/bootstrap/js/bootstrap.min.js
 root/static/css/jquery.qtip.min.css
 root/static/css/lims2.css
 root/static/css/lims2_extjs.css
+root/static/css/traceviewer.css
 root/static/extjs/bootstrap.js
 root/static/extjs/ext-all-debug-w-comments.js
 root/static/extjs/ext-all-debug.js
@@ -2241,6 +2250,7 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
+root/static/js/crispr-qc.js
 root/static/js/excanvas.min.js
 root/static/js/jquery-1.7.2.min.js
 root/static/js/jquery.flot.min.js
@@ -2263,6 +2273,7 @@ root/static/test/data/cre_bac_recom_process.yaml
 root/static/test/data/create_crispr.yaml
 root/static/test/data/create_crispr_process.yaml
 root/static/test/data/create_design_targets.yaml
+root/static/test/data/create_design_targets_atad2.yaml
 root/static/test/data/create_di_process.yaml
 root/static/test/data/crispr_ep_process.yaml
 root/static/test/data/crispr_vector_process.yaml
@@ -2353,6 +2364,7 @@ root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligo.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligoLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/User.csv
+root/static/test/fixtures/LIMS2/t/Report/GeneEPSummary/Summary.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Design.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/GeneDesign.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Plate.csv
@@ -2595,6 +2607,7 @@ t/LIMS2/Report/10_LIMS2_Report_FPPlate.t
 t/LIMS2/Report/10_LIMS2_Report_FinalPickVectorPlate.t
 t/LIMS2/Report/10_LIMS2_Report_FinalVectorPlate.t
 t/LIMS2/Report/10_LIMS2_Report_FirstElectroporationProductionDetail.t
+t/LIMS2/Report/10_LIMS2_Report_GeneEPSummary.t
 t/LIMS2/Report/10_LIMS2_Report_GenesToElectroporate.t
 t/LIMS2/Report/10_LIMS2_Report_IntermediateVectorPlate.t
 t/LIMS2/Report/10_LIMS2_Report_PICKPlate.t
@@ -2633,6 +2646,7 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseDesigns.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesign.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Crisprs.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_DesignTargets.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Graph.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateCopy.t
@@ -2808,6 +2822,7 @@ t/lib/LIMS2/t/Report/FPPlate.pm
 t/lib/LIMS2/t/Report/FinalPickVectorPlate.pm
 t/lib/LIMS2/t/Report/FinalVectorPlate.pm
 t/lib/LIMS2/t/Report/FirstElectroporationProductionDetail.pm
+t/lib/LIMS2/t/Report/GeneEPSummary.pm
 t/lib/LIMS2/t/Report/GenesToElectroporate.pm
 t/lib/LIMS2/t/Report/IntermediateVectorPlate.pm
 t/lib/LIMS2/t/Report/PICKPlate.pm
@@ -2849,6 +2864,7 @@ t/lib/LIMS2/t/WebApp/Controller/User/BrowseDesigns.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowsePlates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesign.pm
+t/lib/LIMS2/t/WebApp/Controller/User/Crisprs.pm
 t/lib/LIMS2/t/WebApp/Controller/User/DesignTargets.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Graph.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateCopy.pm
