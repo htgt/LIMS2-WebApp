@@ -1,0 +1,1 @@
+ALTER TABLE audit.projects ADD COLUMN effort_concluded BOOLEAN NOT NULL DEFAULT FALSE;
