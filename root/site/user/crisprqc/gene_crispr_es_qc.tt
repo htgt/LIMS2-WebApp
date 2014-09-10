@@ -29,9 +29,11 @@ $(document).ready(function() {
 
 [% IF gene.defined %]
     <h2>Showing details for [% gene.gene_symbol %] ([% gene.gene_id %])</h2>
+[% ELSE %]
+    [% RETURN %]
 [% END %]
 
-<table class="table table-striped">
+<table class="table">
     <thead>
         <tr>
             <th>Well</th>
@@ -42,6 +44,7 @@ $(document).ready(function() {
             <th>Reads</th>
             <th>Deletions</th>
             <th>Inserts</th>
+            <th>Accepted</th>
         </tr>
     </thead>
     <tbody>
@@ -51,17 +54,23 @@ $(document).ready(function() {
                 row = qc.ep_pick_qc
                 accept = 0
             %]
+            <td><span class="label label-success">Accepted</span></td>
         </tr>
         [% IF qc.piq_qc %]
-            <tr class=[% IF qc.piq_accepted %]"success"[% ELSE %]"warning"[% END %]>
+            <tr class="info">
                 [% INCLUDE 'crispr_qc_view.tt'
                     row = qc.piq_qc
                     accept = 0
                 %]
+                <td>
+                [% IF qc.piq_accepted %]
+                    <span class="label label-success">Accepted</span>
+                [% END %]
+                </td>
             </tr>
         [% ELSE %]
             <tr class="info">
-                <td colspan="8"><strong>No PIQ QC</strong></td>
+                <td colspan="9">No PIQ QC</td>
             </tr>
         [% END %]
     [% END %]
