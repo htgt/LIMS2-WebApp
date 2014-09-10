@@ -308,11 +308,11 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
 
-    my ( $gene_info, $crispr_qc ) = find_gene_crispr_es_qc( $c->model('Golgi'), $gene, $species_id );
+    my ( $gene_info, $sorted_crispr_qc ) = find_gene_crispr_es_qc( $c->model('Golgi'), $gene, $species_id );
 
     $c->stash(
         gene      => $gene_info,
-        crispr_qc => [ sort { $a->{ep_pick_well} cmp $b->{ep_pick_well} } @{ $crispr_qc } ],
+        crispr_qc => $sorted_crispr_qc,
     );
     return;
 }

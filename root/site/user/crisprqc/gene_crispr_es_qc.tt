@@ -57,17 +57,19 @@ $(document).ready(function() {
             <td><span class="label label-success">Accepted</span></td>
         </tr>
         [% IF qc.piq_qc %]
-            <tr class="info">
-                [% INCLUDE 'crispr_qc_view.tt'
-                    row = qc.piq_qc
-                    accept = 0
-                %]
-                <td>
-                [% IF qc.piq_accepted %]
-                    <span class="label label-success">Accepted</span>
-                [% END %]
-                </td>
-            </tr>
+            [% FOR piq_qc IN qc.piq_qc %]
+                <tr class="info">
+                    [% INCLUDE 'crispr_qc_view.tt'
+                        row = piq_qc.qc
+                        accept = 0
+                    %]
+                    <td>
+                    [% IF piq_qc.accepted %]
+                        <span class="label label-success">Accepted</span>
+                    [% END %]
+                    </td>
+                </tr>
+            [% END %]
         [% ELSE %]
             <tr class="info">
                 <td colspan="9">No PIQ QC</td>

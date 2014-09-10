@@ -40,23 +40,25 @@ sub find_gene_crispr_es_qc {
 
     my $design_summaries_rs = summary_rows_for_gene( $model, $gene_id, $species_id );
 
-    my @crispr_qc;
+    my $gene_finder = sub { $model->find_genes( @_ ) };
+    my %crispr_qc;
     while ( my $summary_row = $design_summaries_rs->next ) {
-        my %data;
         # has accepted ep_pick_well and has crispr ep well
         if (   $summary_row->ep_pick_well_id
             && $summary_row->ep_pick_well_accepted
             && $summary_row->crispr_ep_well_id )
         {
-            my $gene_finder = sub { $model->find_genes( @_ ) };
-            ep_pick_crispr_es_qc_data( $model, $summary_row, \%data, $gene_finder );
-            piq_crispr_es_qc_data( $model, $summary_row, \%data, $gene_finder);
-
-            push @crispr_qc, \%data;
+            # TODO pile up piq qc against single ep_pick
+            #      FEEDBACK from Wendy
+            #      TEST output is ok, check qc is right
+            #      UPDATED overnight, note this down somewhere
+            my $data = ep_pick_crispr_es_qc_data( $model, $summary_row, \%crispr_qc, $gene_finder );
+            piq_crispr_es_qc_data( $model, $summary_row, $data, $gene_finder);
         }
     }
 
-    return ( $gene_info, \@crispr_qc );
+    my @sorted_crispr_qc = map{ $crispr_qc{$_} } sort { $a cmp $b } keys %crispr_qc;
+    return ( $gene_info, \@sorted_crispr_qc );
 }
 
 =head2 summary_rows_for_gene
@@ -105,23 +107,27 @@ already been marked as accepted.
 
 =cut
 sub ep_pick_crispr_es_qc_data {
-    my ( $model, $summary_row, $data, $gene_finder ) = @_;
+    my ( $model, $summary_row, $crispr_qc, $gene_finder ) = @_;
 
     my $ep_pick_well_name = $summary_row->ep_pick_plate_name . '_' . $summary_row->ep_pick_well_name;
-    $data->{ep_pick_well} = $ep_pick_well_name;
+    return $crispr_qc->{$ep_pick_well_name} if exists $crispr_qc->{$ep_pick_well_name};
+
+    my %data;
+    $data{ep_pick_well} = $ep_pick_well_name;
     my $ep_pick_well = $model->schema->resultset('Well')->find(
         $summary_row->ep_pick_well_id );
 
     # find the crispr es qc data
     try {
-        $data->{ep_pick_qc}= $ep_pick_well->genotyping_info( $gene_finder, 1 );
+        $data{ep_pick_qc}= $ep_pick_well->genotyping_info( $gene_finder, 1 );
     };
 
-    delete $data->{ep_pick_qc}{es_qc_well_id};
-    delete $data->{ep_pick_qc}{gene};
-    $data->{ep_pick_qc}{well_name} = $ep_pick_well_name;
+    delete $data{ep_pick_qc}{es_qc_well_id};
+    delete $data{ep_pick_qc}{gene};
+    $data{ep_pick_qc}{well_name} = $ep_pick_well_name;
+    $crispr_qc->{$ep_pick_well_name} = \%data;
 
-    return;
+    return \%data;
 }
 
 =head2 piq_crispr_es_qc_data
@@ -144,19 +150,26 @@ sub piq_crispr_es_qc_data {
     my $qc_well = first { $_->accepted } @qc_wells;
     $qc_well //= shift @qc_wells;
 
+    my $qc_data;
     if ( $qc_well ) {
         try {
-            $data->{piq_qc} = $qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+            $qc_data = $qc_well->format_well_data( $gene_finder, { truncate => 1 } );
         };
     }
 
-    if ( $data->{piq_qc} ) {
+    if ( $qc_data ) {
         my $piq_well_name = $summary_row->piq_plate_name . '_' . $summary_row->piq_well_name;
+        delete $qc_data->{es_qc_well_id};
+        delete $qc_data->{gene};
+        $qc_data->{well_name} = $piq_well_name;
+
         $data->{piq_well} = $piq_well_name;
         $data->{piq_accepted} = $summary_row->piq_well_accepted;
-        delete $data->{piq_qc}{es_qc_well_id};
-        delete $data->{piq_qc}{gene};
-        $data->{piq_qc}{well_name} = $piq_well_name;
+        push @{ $data->{piq_qc} }, {
+            piq_well => $piq_well_name,
+            accepted => $summary_row->piq_well_accepted,
+            qc       => $qc_data,
+        }
     }
 
     return;
