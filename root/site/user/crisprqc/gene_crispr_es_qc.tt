@@ -29,7 +29,9 @@ $(document).ready(function() {
 
 [% IF gene.defined %]
     <h2>Showing details for [% gene.gene_symbol %] ([% gene.gene_id %])</h2>
-[% ELSE %]
+[% END %]
+
+[% UNLESS crispr_qc.size %]
     [% RETURN %]
 [% END %]
 
@@ -54,7 +56,11 @@ $(document).ready(function() {
                 row = qc.ep_pick_qc
                 accept = 0
             %]
-            <td><span class="label label-success">Accepted</span></td>
+            <td>
+            [% IF qc.accepted %]
+                <span class="label label-success">Accepted</span>
+            [% END %]
+            </td>
         </tr>
         [% IF qc.piq_qc %]
             [% FOR piq_qc IN qc.piq_qc %]
