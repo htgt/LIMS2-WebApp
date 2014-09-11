@@ -31,9 +31,7 @@ $(document).ready(function() {
     <h2>Showing details for [% gene.gene_symbol %] ([% gene.gene_id %])</h2>
 [% END %]
 
-[% UNLESS crispr_qc.size %]
-    [% RETURN %]
-[% END %]
+[% IF crispr_qc.size %]
 
 <table class="table">
     <thead>
@@ -84,3 +82,14 @@ $(document).ready(function() {
     [% END %]
     </tbody>
 </table>
+
+[% END %]
+
+<script type="text/javascript">
+    $("#gene_id_input").autocomplete({
+      source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+      minLength: 2,
+    });
+
+    $('#transition_time').popover();
+</script>
