@@ -41,6 +41,7 @@ lib/LIMS2/Model/Plugin/Plate.pm
 lib/LIMS2/Model/Plugin/Primer.pm
 lib/LIMS2/Model/Plugin/Process.pm
 lib/LIMS2/Model/Plugin/ProcessTree.pm
+lib/LIMS2/Model/Plugin/Project.pm
 lib/LIMS2/Model/Plugin/QC.pm
 lib/LIMS2/Model/Plugin/Species.pm
 lib/LIMS2/Model/Plugin/User.pm
@@ -244,6 +245,7 @@ lib/LIMS2/WebApp/Controller/API/Crispr.pm
 lib/LIMS2/WebApp/Controller/API/Design.pm
 lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
+lib/LIMS2/WebApp/Controller/API/Project.pm
 lib/LIMS2/WebApp/Controller/API/QC.pm
 lib/LIMS2/WebApp/Controller/API/Report.pm
 lib/LIMS2/WebApp/Controller/API/Traces.pm
@@ -266,6 +268,7 @@ lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
+lib/LIMS2/WebApp/Controller/User/Projects.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/RecombinaseUpload.pm
 lib/LIMS2/WebApp/Controller/User/Report.pm
@@ -346,6 +349,7 @@ root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
 root/site/user/pool/DesignTargetsLoader.tt
+root/site/user/projects/index.tt
 root/site/user/qc/create_plates.tt
 root/site/user/qc/create_template_plate.tt
 root/site/user/qc/index.tt
@@ -2270,7 +2274,6 @@ root/static/test/data/create_crispr.yaml
 root/static/test/data/create_crispr_process.yaml
 root/static/test/data/create_design_targets.yaml
 root/static/test/data/create_design_targets_atad2.yaml
-root/static/test/data/create_design_targets_atad2.yaml~
 root/static/test/data/create_di_process.yaml
 root/static/test/data/crispr_ep_process.yaml
 root/static/test/data/crispr_vector_process.yaml
