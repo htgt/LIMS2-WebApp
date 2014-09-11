@@ -13,6 +13,7 @@ use JSON;
 use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::CrisprESQC;
+use LIMS2::Model::Util::CrisprESQCView qw( find_gene_crispr_es_qc );
 use TryCatch;
 use Log::Log4perl::Level;
 
@@ -51,7 +52,6 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
             $params,
             $run
         );
-        #my $well_data = $self->format_crispr_es_qc_well_data( $c, $qc_well, $run, $truncate_seqs, $params );
         push @qc_wells, $well_data;
     }
 
@@ -300,6 +300,26 @@ sub delete_crispr_es_qc :Path('/user/crisprqc/delete_qc_run') :Args(1) {
         }
     );
 
+    return;
+}
+
+sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $gene = $c->request->param( 'gene_id' )
+        or return;
+    $self->log->info( "Generate crispr es qc view for gene: $gene" );
+
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    my ( $gene_info, $sorted_crispr_qc ) = find_gene_crispr_es_qc( $c->model('Golgi'), $gene, $species_id );
+
+    $c->stash(
+        gene      => $gene_info,
+        crispr_qc => $sorted_crispr_qc,
+    );
     return;
 }
 

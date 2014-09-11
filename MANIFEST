@@ -169,6 +169,7 @@ lib/LIMS2/Model/Util/CreatePlate.pm
 lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
 lib/LIMS2/Model/Util/CrisprESQC.pm
+lib/LIMS2/Model/Util/CrisprESQCView.pm
 lib/LIMS2/Model/Util/Crisprs.pm
 lib/LIMS2/Model/Util/DataUpload.pm
 lib/LIMS2/Model/Util/DesignInfo.pm
@@ -284,6 +285,8 @@ lib/LIMS2/WebApp/Script/FastCGI.pm
 lib/LIMS2/WebApp/View/HTML.pm
 root/favicon.ico
 root/lib/colony_count_upload_help.tt
+root/lib/crispr_qc_alignment.tt
+root/lib/crispr_qc_view.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_copy_help.tt
@@ -320,6 +323,7 @@ root/site/user/createdesign/view_design_attempt.tt
 root/site/user/createdesign/wge_design_importer.tt
 root/site/user/crisprqc/crispr_es_qc_run.tt
 root/site/user/crisprqc/crispr_es_qc_runs.tt
+root/site/user/crisprqc/gene_crispr_es_qc.tt
 root/site/user/crisprqc/submit_crispr_es_qc.tt
 root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_group_ucsc_blat.tt
@@ -362,7 +366,6 @@ root/site/user/qc/view_qc_run.tt
 root/site/user/recombinaseupload/recombinase_upload.tt
 root/site/user/report/await_report.tt
 root/site/user/report/extjs_report_table.tt
-root/site/user/report/gene_report.tt
 root/site/user/report/gene_summary_report.tt
 root/site/user/report/generic_report_grid.tt
 root/site/user/report/select_sponsor.tt

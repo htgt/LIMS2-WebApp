@@ -499,5 +499,22 @@ sub design_attempt {
     return $design_attempts->first;
 }
 
+=head2 design_wells
+
+Gather all the design wells for the design.
+
+=cut
+sub design_wells {
+    my ( $self ) = @_;
+
+    my @design_wells;
+    for my $pd ( $self->process_designs ) {
+        my $well = $pd->process->output_wells->first;
+        push @design_wells, $well if $well;
+    }
+
+    return \@design_wells;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
