@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.239     2014-09-11 07:33:22 Europe/London
+
+    Added Gene Crispr ES QC page view, shows crispr es qc results for a genes
+    EP_PICK and PIQ wells.
+    Add toggle to hide non accepted EP_PICK and PIQ wells in gene summary page.
+
 0.238     2014-09-10 09:25:52 Europe/London
 
     Added Project Efforts, under the Genes tab
