@@ -200,6 +200,68 @@ sub crispr_pair_ucsc_blat : PathPart('blat') Chained('crispr_pair') : Args(0) {
     return;
 }
 
+sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
+    my ( $self, $c, $crispr_group_id ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    my $crispr_group;
+    try {
+        $crispr_group = $c->model('Golgi')->retrieve_crispr_group( { id => $crispr_group_id } );
+    }
+    catch( LIMS2::Exception::Validation $e ) {
+        $c->stash( error_msg => "Please enter a valid crispr group id" );
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
+    }
+    catch( LIMS2::Exception::NotFound $e ) {
+        $c->stash( error_msg => "Crispr Group $crispr_group_id not found" );
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
+    }
+
+    $c->log->debug( "Retrived crispr group: $crispr_group_id" );
+
+    $c->stash(
+        cg           => $crispr_group,
+        group_crisprs => [ map { $_->as_hash } $crispr_group->crispr_group_crisprs ],
+        species      => $species_id,
+    );
+
+    return;
+}
+
+=head2 view_crispr_pair
+
+=cut
+sub view_crispr_group : PathPart('view') Chained('crispr_group') Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $crispr_group = $c->stash->{cg};
+
+    $c->stash(
+        designs => [ $crispr_group->crispr_designs->all ],
+    );
+
+    return;
+}
+
+sub crispr_group_ucsc_blat : PathPart('blat') Chained('crispr_group') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $cg = $c->stash->{cg};
+    my $ucsc_db = $UCSC_BLAT_DB{ lc($c->stash->{species}) };
+    my $blat_seq = '>' . "Crispr_Group_" . $cg->id . "\n";
+    my $crispr_seq = join "", map { $_->seq } $cg->crisprs;
+    $blat_seq .= $crispr_seq;
+
+    $c->stash(
+        sequence => $blat_seq,
+        uscs_db  => $ucsc_db,
+    );
+
+    return;
+}
 
 =head for genoverse browser
 =cut

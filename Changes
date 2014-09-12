@@ -1,5 +1,19 @@
 {{$NEXT}}
 
+0.239     2014-09-11 08:08:55 Europe/London
+
+    Added Gene Crispr ES QC page view, shows crispr es qc results for a genes
+    EP_PICK and PIQ wells.
+    Add toggle to hide non accepted EP_PICK and PIQ wells in gene summary page.
+
+0.238     2014-09-10 09:25:52 Europe/London
+
+    Added Project Efforts, under the Genes tab
+
+0.237     2014-09-02 14:50:23 Europe/London
+
+    Add interface to link crispr groups to designs
+
 0.236     2014-08-27 10:04:26 Europe/London
 
 Fixed genoverse button in both ExtJS grid and standard reporting

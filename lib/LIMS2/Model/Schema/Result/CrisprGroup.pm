@@ -86,6 +86,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 crispr_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_designs",
+  "LIMS2::Model::Schema::Result::CrisprDesign",
+  { "foreign.crispr_group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_group_crisprs
 
 Type: has_many
@@ -137,8 +152,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L64+4SL07Gv0mJ+k8wxPWg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-20 10:31:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SkMuB4XI9ZdjyfoF28i6GA
 #
 =head2 crisprs
 
