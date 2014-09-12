@@ -13,7 +13,7 @@ sub get_chr_id_for_name {
     my $species = shift;
     my $chr_name = shift;
 
-    my $chr_id = $schema->resultset('Chromosome')->find( {
+    my $chr_id = $self->schema->resultset('Chromosome')->find( {
             'species_id' => $species,
             'name'       => $chr_name,
         }

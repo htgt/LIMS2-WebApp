@@ -22,6 +22,7 @@ use Sub::Exporter -setup => {
         pick_crispr_PCR_primers
         retrieve_crispr_primers
         get_genotyping_primer_extent
+        get_design_extent
         retrieve_crispr_data_for_id
     ) ]
 };
@@ -157,10 +158,11 @@ sub pick_genotyping_primers {
 
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
-    my ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
+    my ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start, $chr_name);
     GENO_TRIALS: foreach my $step ( 1..($ENV{'LIMS2_GENOTYPING_ITERATION_MAX'}//4) ) {
         INFO ('Genotyping attempt No. ' . $step );
-        ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start) = genotyping_calculate( $params );
+        ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start, $chr_name)
+            = genotyping_calculate( $params );
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('Genotyping Primer3 attempt No. ' . $step . ' succeeded');
             if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
@@ -177,7 +179,7 @@ sub pick_genotyping_primers {
         $params->{'start_oligo_field_width'} += $ENV{'LIMS2_GENOTYPING_CHUNK_SIZE'} // 1000;
         $params->{'end_oligo_field_width'} += $ENV{'LIMS2_GENOTYPING_CHUNK_SIZE'} // 1000;
     }
-    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
+    return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start, $chr_name);
 }
 
 sub genotyping_calculate {
@@ -190,7 +192,7 @@ sub genotyping_calculate {
     my $repeat_mask = $params->{'repeat_mask'};
 
     # Return the design oligos as well so that we can report them to provide context later on
-    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos, $chr_seq_start)
+    my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos, $chr_seq_start, $chr_name)
         = get_genotyping_EnsEmbl_region( {
                 schema => $schema,
                 design_id => $design_id,
@@ -227,7 +229,7 @@ sub genotyping_calculate {
         WARN ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
         $primer_data->{'error_flag'} = 'fail';
    }
-   return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start);
+   return ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start, $chr_name);
 }
 
 
@@ -691,7 +693,13 @@ sub get_genotyping_EnsEmbl_region {
     my $target_sequence_string = $start_oligo_field_width . ',' . $target_sequence_length;
     my $chr_region_start = $slice_region->start;
 
-    return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand, $design_oligos, $chr_region_start, $design_info->chr_name);
+    return ($seq,
+            $target_sequence_string,
+            $target_sequence_length,
+            $chr_strand, $design_oligos,
+            $chr_region_start,
+            $design_info->chr_name
+        );
 
 }
 
@@ -1369,6 +1377,35 @@ sub get_genotyping_primer_extent {
 
     return \%extent_hash;
 }
+
+sub get_design_extent {
+    my $schema = shift;
+    my $params = shift;
+    my $species = shift;
+
+    my $design_r = $schema->resultset('Design')->find($params->{'design_id'});
+    my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
+    my $design_oligos = $design_info->oligos;
+
+    my %extent_hash;
+
+    # Simply compare all the start and end positions (chr_start, chr_end) and take the min of chr_start and the max of chr_end
+    my @label_keys = keys %$design_oligos;
+    my $arbitrary_key = $label_keys[0];
+
+    $extent_hash{'chr_start'} = $design_oligos->{$arbitrary_key}->{'start'};
+    $extent_hash{'chr_end'} = $design_oligos->{$arbitrary_key}->{'end'};
+    while ( my ($primer, $vals) = each %$design_oligos ) {
+        $extent_hash{'chr_start'} = $vals->{'start'} if $extent_hash{'chr_start'} > $vals->{'start'};
+        $extent_hash{'chr_end'} = $vals->{'end'} if $extent_hash{'chr_end'} < $vals->{'start'};
+    }
+    $extent_hash{'chr_name'} = $design_oligos->{$arbitrary_key}->{'chromosome'};
+    $extent_hash{'assembly'} = get_species_default_assembly( $schema, $species);
+
+    return \%extent_hash;
+}
+
+
 
 sub get_species_default_assembly {
     my $schema = shift;

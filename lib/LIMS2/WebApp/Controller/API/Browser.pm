@@ -9,6 +9,8 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crispr_pairs_to_gff 
     gibson_designs_for_region
     design_oligos_to_gff
+    generic_designs_for_region
+    generic_design_oligos_to_gff
     primers_for_crispr_pair
     crispr_primers_to_gff
     unique_crispr_data 
@@ -116,6 +118,32 @@ sub gibson_designs_GET {
     my $gibson_gff = design_oligos_to_gff( $crisprs, $params );
     $c->response->content_type( 'text/plain' );
     my $body = join "\n", @{$gibson_gff};
+    return $c->response->body( $body );
+}
+
+sub generic_designs :Path('/api/generic_designs') :Args(0) :ActionClass('REST') {
+}
+
+sub generic_designs_GET {
+    my ( $self, $c ) = @_;
+
+    my $schema = $c->model('Golgi')->schema;
+
+    my $params = ();
+    $params->{species} = $c->session->{'selected_species'} // 'Human';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // get_species_default_assembly($schema, $params->{species} ) // 'GRCh37';
+    $params->{chromosome_number}= $c->request->params->{'chr'};
+    $params->{start_coord}= $c->request->params->{'start'};
+    $params->{end_coord}= $c->request->params->{'end'};
+
+    my $crisprs = generic_designs_for_region (
+         $schema,
+         $params,
+    );
+
+    my $generic_designs_gff = generic_design_oligos_to_gff( $crisprs, $params );
+    $c->response->content_type( 'text/plain' );
+    my $body = join "\n", @{$generic_designs_gff};
     return $c->response->body( $body );
 }
 
