@@ -1318,11 +1318,16 @@ sub get_db_genotyping_primers_as_hash {
     if ( $genotyping_primer_rs->count == 0 ) {
          LIMS2::Exception->throw( 'No primer data found for design: ' . $params->{'design_id'});
     }
+
     my %g_primer_hash;
     # The genotyping primer table has no unique constraint and may have multiple redundant entries
     # So the %g_primer_hash gets rid of the redundancy
+    # Old Mouse GF/GR primers have no locus information
+    #
+
     while ( my $g_primer = $genotyping_primer_rs->next ) {
         if ( $g_primer->genotyping_primer_type_id =~ m/G[FR][12]/ ) {
+            last if $g_primer->genotyping_primer_loci->count == 0;
             $g_primer_hash{ $g_primer->genotyping_primer_type_id } = {
                 'primer_seq' => $g_primer->seq,
                 'chr_start' => $g_primer->genotyping_primer_loci->first->chr_start,

@@ -655,7 +655,7 @@ sub generic_colour {
 sub crispr_colour {
     my $type = shift;
 
-    my %colours = (git-checkout/LIMS2-WebApp/root/site/user/report/simple_table.tt
+    my %colours = (
         single => '#45A825', # green
         left   => '#45A825', # green
         right  => '#52CCCC', # bright blue
@@ -682,7 +682,7 @@ sub primers_for_crispr_pair{
 
     use LIMS2::Model::Util::OligoSelection qw/ retrieve_crispr_primers/;
     my $crispr_primers = LIMS2::Model::Util::OligoSelection::retrieve_crispr_primers($schema, $params  ) ;
-git-checkout/LIMS2-WebApp/root/site/user/report/simple_table.tt
+
     return $crispr_primers;
 }
 
@@ -691,6 +691,15 @@ sub crispr_primers_to_gff {
     my $params = shift;
 
     my @crispr_primers_gff;
+    if ( scalar keys %$crispr_primers == 0 ) {
+        push @crispr_primers_gff, "##gff-version 3";
+        push @crispr_primers_gff, '##sequence-region lims2-region '
+            . $params->{'start'}
+            . ' '
+            . $params->{'end'};
+        return \@crispr_primers_gff;
+    }
+
 
     my @type_keys = keys %$crispr_primers;
     my $crispr_type = shift @type_keys;
@@ -721,7 +730,7 @@ sub crispr_primers_to_gff {
         #
         my $primer_groups = group_primers_by_pair( $crispr_primers->{$crispr_type}->{$crispr_id} );
 
-        while ( my ($primer_git-checkout/LIMS2-WebApp/root/site/user/report/simple_table.ttgroup, $val) = each %$primer_groups ) {
+        while ( my ($primer_group, $val) = each %$primer_groups ) {
             next if ! $primer_groups->{$primer_group}->{'chr_start'};
             my $g_start = $primer_groups->{$primer_group}->{'chr_start'};
             my $g_end = $primer_groups->{$primer_group}->{'chr_end'};
