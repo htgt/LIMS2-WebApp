@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.239';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.240';
 }
 ## use critic
 
@@ -90,7 +90,7 @@ override iterator => sub {
                     'gene_ids'         => $gene_ids,
                     'button_label'     => 'Genoverse',
                     'browser_target'   => $self->plate_name . $well->name,
-                    'api_url'          => '/user/genoverse_crispr_primers',
+                    'api_url'          => '/user/genoverse_design_view',
             }) : 'Invalid Crispr Pair',
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $left_designs,

@@ -32,6 +32,7 @@ lib/LIMS2/Model/DBConnect.pm
 lib/LIMS2/Model/FormValidator.pm
 lib/LIMS2/Model/FormValidator/Constraint.pm
 lib/LIMS2/Model/Plugin/BAC.pm
+lib/LIMS2/Model/Plugin/Chromosome.pm
 lib/LIMS2/Model/Plugin/Crispr.pm
 lib/LIMS2/Model/Plugin/CrisprEsQc.pm
 lib/LIMS2/Model/Plugin/CrisprSummaries.pm
@@ -331,6 +332,7 @@ root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/genoverse_browse_view.tt
 root/site/user/crisprs/genoverse_crispr_primers_view.tt
+root/site/user/crisprs/genoverse_design_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_group.tt
