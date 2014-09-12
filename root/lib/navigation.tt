@@ -184,7 +184,7 @@
             </li>
 -->
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/EPSummary' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
                 Electroporation Summary
               </a>
             </li>
