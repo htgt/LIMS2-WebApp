@@ -2,6 +2,9 @@ package LIMS2::WebApp::Controller::User::PlateEdit;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use JSON;
+
+use Data::Dumper; # TODO remove
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -200,6 +203,202 @@ sub delete_comment_plate :Path( '/user/delete_comment_plate' ) :Args(0) {
     $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
     return;
 }
+
+sub update_plate_barcode :Path( '/user/update_plate_barcode' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    unless ( $params->{new_plate_barcode} ) {
+        $c->flash->{error_msg} = 'You must specify a new plate barcode';
+        $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+        return;
+    }
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->set_plate_barcode(
+                    {   id                => $params->{id},
+                        new_plate_barcode => $params->{new_plate_barcode}
+                    }
+                );
+
+                if ( $params->{curr_barcode} ) {
+                    $c->flash->{success_msg} = 'Updated plate barcode from ' . $params->{curr_barcode}
+                                         . ' to ' . $params->{new_plate_barcode};
+                }
+                else {
+                    $c->flash->{success_msg} = 'Set plate barcode to ' . $params->{new_plate_barcode};
+                }
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while updating plate barcode: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
+
+sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+    my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
+
+    unless ( $csv_barcodes_data_file ) {
+        $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
+        $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $params->{ 'id' } }) );
+        return;
+    }
+
+    my $csv_barcodes_data = $self->parse_plate_well_barcodes_csv_file( $c, $csv_barcodes_data_file->fh );
+
+    unless ( $csv_barcodes_data && keys %$csv_barcodes_data > 0 ) {
+        $c->flash->{ 'error_msg' } = 'Error encountered while parsing plate well barcodes file, no data found in file';
+    }
+
+    my $count_errors_with_wells = 0;
+    my @list_messages = ();
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                my $plate = $c->model('Golgi')->retrieve_plate(
+                    { 'id' => $params->{ 'id' } },
+                    { 'prefetch' => { 'wells' => 'well_barcode' } }
+                );
+
+                my $wells_list = {};
+                for my $well ( $plate->wells ) {
+                    $wells_list->{ $well->name } = $well;
+                }
+
+                my @sorted_keys = sort keys %$wells_list;
+
+                # check each well on the plate in alphabetic order
+                for my $ordered_well_key ( @sorted_keys ) {
+                    my $ordered_well = $wells_list->{ $ordered_well_key };
+
+                    # all well names should have a barcode in the list
+                    unless ( exists $csv_barcodes_data->{ $ordered_well->name } ) {
+                        $count_errors_with_wells += 1;
+                        push ( @list_messages, {
+                            'well_name' => $ordered_well->name,
+                            'error' => 1,
+                            'message' => 'A barcode is missing from the uploaded file for this tube and needs to be included.'
+                        } );
+                        next;
+                    }
+
+                    # TODO: check for 'no scan' text
+                    if ( $csv_barcodes_data->{ $ordered_well->name } eq 'No scan' ) {
+                        $count_errors_with_wells += 1;
+                        push ( @list_messages, {
+                            'well_name' => $ordered_well->name,
+                            'error' => 1,
+                            'message' => 'The barcode scanner failed to scan the tube in this location, please rescan the tube rack.'
+                        } );
+                        next;
+                    }
+
+                    # check whether the well already has a barcode
+                    if ( $ordered_well->well_barcode ) {
+                        # check if the barcode has changed
+                        if ( $ordered_well->well_barcode->barcode eq $csv_barcodes_data->{ $ordered_well->name } ) {
+                            # barcode unchanged
+                            push ( @list_messages, {
+                                'well_name' => $ordered_well->name,
+                                'error' => 0,
+                                'message' => 'This tube barcode was already set <' . $ordered_well->well_barcode->barcode . '>, so no update was needed.'
+                            } );
+                        } else {
+                            # barcode differs
+                            # TODO: need to eventually allow for movements of wells/tubes
+                            $count_errors_with_wells += 1;
+                            push ( @list_messages, {
+                                'well_name' => $ordered_well->name,
+                                'error' => 1,
+                                'message' => 'A barcode is already recorded for this tube location <' . $ordered_well->well_barcode->barcode . '>, which does not match the uploaded barcode <' . $csv_barcodes_data->{ $ordered_well->name } . '>.'
+                            } );
+                        }
+                    } else {
+                        # no barcode set for this well yet, set it
+                        $ordered_well->create_related( 'well_barcode', { 'barcode' => $csv_barcodes_data->{ $ordered_well->name } } );
+
+                        push ( @list_messages, {
+                            'well_name' => $ordered_well->name,
+                            'error' => 0,
+                            'message' => 'This tube barcode will be set to the uploaded value <' . $csv_barcodes_data->{ $ordered_well->name } . '>.'
+                        } );
+                    }
+               }
+            }
+            catch {
+                $c->flash->{ 'error_msg' } = 'Error encountered while updating plate tube barcodes: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+                $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $params->{ 'id' } }) );
+            };
+        }
+    );
+
+    # encode as json string to redirect information to well results view
+    my $json_text = encode_json( \@list_messages );
+    $c->res->redirect( $c->uri_for('/user/view_well_barcode_results', { 'id' => $params->{ 'id' }, 'well_results_list' => $json_text } ) );
+
+    return;
+}
+
+sub parse_plate_well_barcodes_csv_file {
+    my ( $self, $c, $fh ) = @_;
+
+    print "IN parse_plate_well_barcodes_csv_file\n";
+
+    my $csv_data = {};
+
+    try {
+        my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
+
+        while ( my $line = $csv->getline( $fh )) {
+            print "row extracted = " . $line . "\n";
+            my @fields = split "," , $line;
+            my $curr_well = $line->[0];
+            my $curr_barcode = $line->[1];
+            print "well: $curr_well\n";
+            print "barcode: $curr_barcode\n";
+            $csv_data->{ $curr_well } = $curr_barcode;
+        }
+    }
+    catch{
+        $c->flash->{error_msg} = 'Error encountered while parsing plate well barcodes file: ' . $_;
+        return;
+    };
+
+    unless ( keys %$csv_data > 0 ) {
+        $c->flash->{error_msg} = 'Error encountered while parsing plate well barcodes file, no data found in file';
+        return;
+    }
+
+    return $csv_data;
+}
+
+# sub create_well_results_json {
+#     my $self = shift;
+#     my $params = shift;
+
+#     # my $custom_value = {
+#     #     'lims2_custom' => {
+#     #         %{$params}
+#     #     },
+#     # };
+#     my $json_text = encode_json( $custom_value );
+
+#     return $json_text;
+# }
+
 =head1 AUTHOR
 
 Sajith Perera

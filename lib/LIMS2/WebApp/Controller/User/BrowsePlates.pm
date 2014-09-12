@@ -5,6 +5,8 @@ use LIMS2::ReportGenerator::Plate;
 use LIMS2::Model::Constants qw( %ADDITIONAL_PLATE_REPORTS );
 use namespace::autoclean;
 
+use Data::Dumper;
+
 BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -87,11 +89,11 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     my $additional_plate_reports = $self->get_additional_plate_reports( $c, $plate );
 
     $c->stash(
-        plate           => $plate,
-        well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
-        grid_report_uri => $c->uri_for( "/user/report/sync/grid/$report_class", { plate_id => $plate->id } ),
+        plate                    => $plate,
+        well_report_uri          => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
+        grid_report_uri          => $c->uri_for( "/user/report/sync/grid/$report_class", { plate_id => $plate->id } ),
         additional_plate_reports => $additional_plate_reports,
-        username  => $c->user->name,
+        username                 => $c->user->name,
     );
 
     return;
@@ -112,6 +114,26 @@ sub get_additional_plate_reports : Private {
     }
 
     return \@additional_reports;
+}
+
+sub view_well_barcode_results :Path( '/user/view_well_barcode_results' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $params = $c->request->params;
+
+    my $plate = $c->model('Golgi')->retrieve_plate( { id => $params->{ 'id' } } );
+
+    print Dumper( $params->{ 'well_results_list' } );
+
+    $c->stash(
+        plate               => $plate,
+        well_results_list   => $params->{ 'well_results_list' },
+        username            => $c->user->name,
+    );
+
+    return;
 }
 
 =head1 AUTHOR
