@@ -111,18 +111,31 @@
         [% END %]
     [% END %]
 
-    <h3>Results from well barcodes upload:</h3>
-    [% IF updates_errored > 0 %]
-        <h5><font style="color: red;">
-        [% IF updates_errored == 1 %]
-            There was 1 error,
+    <div class="row">
+      <div class="span10">
+        <h3>Results from well barcodes upload:</h3>
+        [% IF updates_errored > 0 %]
+            <h5><font style="color: red;">
+            [% IF updates_errored == 1 %]
+                There was 1 error,
+            [% ELSE %]
+                There were [% updates_errored %] errors,
+            [% END %]
+            please check the details below and the barcode file which was uploaded. </br>No changes have been saved and you will need to re-upload a corrected file.</font></h5>
         [% ELSE %]
-            There were [% updates_errored %] errors,
+            <h5><font style="color: green;">All uploaded tube barcodes were either unchanged or saved successfully. Details below:</font></h5>
         [% END %]
-        please check the details below and the barcode file which was uploaded. </br>No changes have been saved and you will need to re-upload a corrected file.</font></h5>
-    [% ELSE %]
-        <h5><font style="color: green;">All uploaded tube barcodes were either unchanged or saved successfully. Details below:</font></h5>
-    [% END %]
+      </div>
+      <div class="span2">
+        <form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/view_plate' ) %]" enctype="multipart/form-data" >
+          <input type="hidden" name="id" value="[% plate.id %]" />
+          <input type="hidden" name="name" value="[% plate.name %]" />
+          <button class="btn btn-primary" name="btn_return_to_plate_view" id="btn_return_to_plate_view" type="submit" value="btn_return_to_plate_view" >
+            <i class="icon-upload"></i> Return to plate view
+          </button>
+        </form>
+      </div>
+    </div>
 
     <div class="row">
       <table class="table">
@@ -146,10 +159,16 @@
     <h3>Error: no information passed for well results.</h3>
 [% END %]
 
-<form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/view_plate' ) %]" enctype="multipart/form-data" >
-  <input type="hidden" name="id" value="[% plate.id %]" />
-  <input type="hidden" name="name" value="[% plate.name %]" />
-  <button class="btn btn-primary" name="btn_return_to_plate_view" id="btn_return_to_plate_view" type="submit" value="btn_return_to_plate_view" class="btn">
-    <i class="icon-upload"></i> Return to plate view
-  </button>
-</form>
+<div class="row">
+  <div class="span10">
+  </div>
+  <div class="span2">
+    <form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/view_plate' ) %]" enctype="multipart/form-data" >
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      <input type="hidden" name="name" value="[% plate.name %]" />
+      <button class="btn btn-primary" name="btn_return_to_plate_view" id="btn_return_to_plate_view" type="submit" value="btn_return_to_plate_view" >
+        <i class="icon-upload"></i> Return to plate view
+      </button>
+    </form>
+  </div>
+</div>

@@ -277,10 +277,28 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
                     $wells_list->{ $well->name } = $well;
                 }
 
-                my @sorted_keys = sort keys %$wells_list;
+                # check here to see if we have scanned more barcodes than there are tubes in the rack
+                my @ordered_barcode_keys = sort keys %$csv_barcodes_data;
+
+                for my $ordered_barcode_key ( @ordered_barcode_keys ) {
+
+                    next if $csv_barcodes_data->{ $ordered_barcode_key } eq 'No Read';
+
+                    unless ( exists $wells_list->{ $ordered_barcode_key } ) {
+                        $count_errors_with_wells += 1;
+                        push ( @list_messages, {
+                            'well_name' => $ordered_barcode_key,
+                            'error' => 1,
+                            'message' => 'A barcode <' . $csv_barcodes_data->{ $ordered_barcode_key } . '> has been scanned for a location where no tube was expected to be present.'
+                        } );
+                        next;
+                    }
+                }
+
+                my @ordered_well_keys = sort keys %$wells_list;
 
                 # check each well on the plate in alphabetic order
-                for my $ordered_well_key ( @sorted_keys ) {
+                for my $ordered_well_key ( @ordered_well_keys ) {
                     my $ordered_well = $wells_list->{ $ordered_well_key };
 
                     # all well names should have a barcode in the list
@@ -294,13 +312,13 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
                         next;
                     }
 
-                    # TODO: check for 'no scan' text
-                    if ( $csv_barcodes_data->{ $ordered_well->name } eq 'No scan' ) {
+                    # check for unsuccessful scan text
+                    if ( $csv_barcodes_data->{ $ordered_well->name } eq 'No Read' ) {
                         $count_errors_with_wells += 1;
                         push ( @list_messages, {
                             'well_name' => $ordered_well->name,
                             'error' => 1,
-                            'message' => 'The barcode scanner failed to scan the tube in this location, please rescan the tube rack.'
+                            'message' => 'Expected a tube in this location but the barcode scanner failed to read one, please re-scan the tube rack.'
                         } );
                         next;
                     }

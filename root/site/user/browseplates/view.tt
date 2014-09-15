@@ -334,7 +334,7 @@
               <input name="wellbarcodesfile" type="file">
               <br>
               <button class="btn btn-primary" name="btn_update_plate_well_barcodes" id="btn_update_plate_well_barcodes" type="submit" value="update_plate_well_barcodes" class="btn">
-                <i class="icon-upload"></i> Upload Well Barcodes
+                <i class="icon-upload"></i> Upload Tube Barcodes
               </button>
           </td>
         </tr>
