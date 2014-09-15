@@ -222,11 +222,6 @@ sub _build_qc_run {
         sub_project        => $self->sub_seq_project,
     };
 
-    #write the run data to disk
-    my $qc_run_data_file = $self->base_dir->file( 'qc_run_data.yaml' );
-    $qc_run_data_file->touch;
-    DumpFile( $qc_run_data_file, $qc_run_data );
-
     my $qc_run;
     $self->model->txn_do(
         sub {
@@ -248,6 +243,12 @@ sub _build_qc_run {
             };
         }
     );
+
+    #write the run data to disk
+    my $qc_run_data_file = $self->base_dir->file( 'qc_run_data.yaml' );
+    $qc_run_data_file->touch;
+    $qc_run_data->{plate} = $self->plate->name;
+    DumpFile( $qc_run_data_file, $qc_run_data );
 
     return $qc_run;
 }

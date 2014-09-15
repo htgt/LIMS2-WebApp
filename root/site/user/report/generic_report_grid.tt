@@ -1,4 +1,7 @@
 <script type="text/javascript" charset="utf-8">
+
+    var grid;
+
         Ext.onReady( function() {
 
             Ext.define('Report', {
@@ -9,6 +12,8 @@
                     [%#- for now, deisgn ids need to be treated as integers for sorting, not strings %]
                         [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
                             { name: '[%- col %]', type: 'int' },
+                        [%- ELSIF col.match( 'concluded\?' ) %]
+                            { name: '[%- col %]', type: 'boolean' },
                         [%- ELSE %]
                             { name: '[%- col %]', type: 'string' },
                         [%- END %]
@@ -70,6 +75,7 @@
             [% hidden = {
                 "gene id" = 1
                 "row id" = 1
+                "id" = 1
                 } %]
 
             var columns = [
@@ -88,11 +94,19 @@
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
+                    [%- IF col.match( 'concluded\?' ) %]
+                    xtype: 'checkcolumn',
+                    listeners: {
+                        checkchange: function (column, recordIndex, checked) {
+                            var record = grid.store.getAt(recordIndex);
+                            $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(data){record.commit()})
+                        }
+                    },
+                    [%- END %]
                     dataIndex: '[%- col %]'
                 },
                 [%- END %]
             ];
-    
 
 
             function lims2_action_button_json(val) {
@@ -119,7 +133,8 @@
                     return Ext.String.format('<div id="{0}"></div>', id);
                 };
 
-            var grid = Ext.create('Ext.grid.Panel', {
+
+            grid = Ext.create('Ext.grid.Panel', {
                 height: 750,
                 width: 1200,
                 store: store,
