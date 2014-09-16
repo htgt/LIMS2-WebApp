@@ -447,6 +447,16 @@ sub parse_primer {
     return \%oligo_data;
 }
 
+sub list_primers {
+    my $primer_data = shift;
+    use Data::Dumper;
+    return if ! $ENV{'LIMS2_DUMP_PRIMERS'};
+
+    print Dumper( $primer_data );
+
+    return;
+}
+
 sub primer_driver {
     my %params;
 
@@ -823,6 +833,7 @@ sub crispr_primer_calculate {
     if ( $result->num_primer_pairs ) {
         INFO ( $params->{'crispr_pair_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
+        list_primers( $primer_data );
         $primer_data->{'error_flag'} = 'pass';
     }
     else {
