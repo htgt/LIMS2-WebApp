@@ -122,7 +122,7 @@ sub crispr_ucsc_blat : PathPart('blat') Chained('crispr') : Args(0) {
 
     $c->stash(
         sequence => $blat_seq,
-        uscs_db  => $ucsc_db,
+        ucsc_db  => $ucsc_db,
     );
 
     return;
@@ -194,7 +194,7 @@ sub crispr_pair_ucsc_blat : PathPart('blat') Chained('crispr_pair') : Args(0) {
 
     $c->stash(
         sequence => $blat_seq,
-        uscs_db  => $ucsc_db,
+        ucsc_db  => $ucsc_db,
     );
 
     return;
@@ -257,7 +257,7 @@ sub crispr_group_ucsc_blat : PathPart('blat') Chained('crispr_group') : Args(0) 
 
     $c->stash(
         sequence => $blat_seq,
-        uscs_db  => $ucsc_db,
+        ucsc_db  => $ucsc_db,
     );
 
     return;
