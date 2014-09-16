@@ -310,6 +310,7 @@ root/site/user/browsedesigns/list_designs_compact.tt
 root/site/user/browsedesigns/view_design.tt
 root/site/user/browseplates/index.tt
 root/site/user/browseplates/view.tt
+root/site/user/browseplates/view_well_barcode_results.tt
 root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
 root/site/user/createdesign/create_custom_target_gibson_design.tt
