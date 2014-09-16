@@ -103,6 +103,14 @@ sub well_name {
     return shift->regexp_matches(qr/^[A-O](0[1-9]|1[0-9]|2[0-4])$/);
 }
 
+sub plate_barcode {
+    return shift->regexp_matches(qr/^[A-Za-z0-9]+$/);
+}
+
+sub well_barcode {
+    return shift->regexp_matches(qr/^[A-Za-z0-9]+$/);
+}
+
 sub bac_plate {
     return shift->regexp_matches(qr/^[abcd]$/);
 }

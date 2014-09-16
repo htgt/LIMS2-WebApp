@@ -485,6 +485,32 @@ sub rename_plate {
     return $plate->update( { name => $validated_params->{new_name} } );
 }
 
+sub pspec_set_plate_barcode {
+    return {
+        name              => { validate => 'plate_name', optional => 1  },
+        id                => { validate => 'integer',  optional => 1 },
+        species           => { validate => 'existing_species', optional => 1 },
+        new_plate_barcode => { validate => 'plate_barcode' },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    };
+}
+
+sub set_plate_barcode {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_barcode );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+    $self->log->info( "Setting plate barcode: $plate to" . $validated_params->{new_plate_barcode} );
+
+    $self->throw( Validation => 'Plate barcode '
+            . $validated_params->{new_plate_barcode}
+            . ' already exists for another plate, can not use this new plate barcode' )
+        if try { $self->retrieve_plate( { barcode => $validated_params->{new_plate_barcode} } ) };
+
+    return $plate->update( { barcode => $validated_params->{new_plate_barcode} } );
+}
+
 1;
 
 __END__

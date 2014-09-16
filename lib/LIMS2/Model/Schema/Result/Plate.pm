@@ -331,5 +331,29 @@ sub child_plates_by_process_type{
 	return $children;
 }
 
+sub number_of_wells {
+    my $self = shift;
+
+    my $count = 0;
+    for my $well ( $self->wells ){
+      $count += 1;
+    }
+
+    return $count;
+}
+
+sub number_of_wells_with_barcodes {
+    my $self = shift;
+
+    my $count = 0;
+    for my $well ( $self->wells ){
+      if( $well->well_barcode ) {
+        $count += 1;
+      }
+    }
+
+    return $count;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
