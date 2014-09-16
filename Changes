@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.241     2014-09-16 10:13:49 Europe/London
+	Added plate barcode update to FP and PIQ plate views
+	Added well barcodes upload to FP and PIQ plate views, and well results view
+
 0.240     2014-09-12 13:59:16 Europe/London
 
     Updated Genoverse with an all designs track
