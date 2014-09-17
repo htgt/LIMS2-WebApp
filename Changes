@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.243     2014-09-17 15:44:39 Europe/London
+
+    Added effort concluded flag to the sponsor report
+
 0.242     2014-09-17 07:17:37 Europe/London
 
     Allow any type of backbone for INT mouse plates.
