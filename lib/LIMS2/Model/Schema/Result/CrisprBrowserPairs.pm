@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::CrisprBrowserPairs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprBrowserPairs::VERSION = '0.241';
+    $LIMS2::Model::Schema::Result::CrisprBrowserPairs::VERSION = '0.242';
 }
 ## use critic
 

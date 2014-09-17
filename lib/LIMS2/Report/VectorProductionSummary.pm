@@ -1,7 +1,7 @@
 package LIMS2::Report::VectorProductionSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VectorProductionSummary::VERSION = '0.241';
+    $LIMS2::Report::VectorProductionSummary::VERSION = '0.242';
 }
 ## use critic
 

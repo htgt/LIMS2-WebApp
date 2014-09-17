@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.241';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.242';
 }
 ## use critic
 
@@ -748,18 +748,14 @@ sub _create_process_aux_data_int_recom {
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
     my $species_id = $input_well->well->plate->species_id;
-    if($species_id eq "Human"){
-        # Allow any type of backbone
-        DEBUG("Allowing any backbone on human int_recom");
-        $pspec->{backbone} = { validate => 'existing_backbone' };
-    }
-    else{
-        # Must be an intermediate backbone
-        $pspec->{backbone} = { validate => 'existing_intermediate_backbone'};
-    }
 
-    my $validated_params
-        = $model->check_params( $params, $pspec );
+    # allow any type of backbone for int_recom process now...
+    # backbone puc19_RV_GIBSON is used in both int and final wells
+    # and our final / intermediate backbone system does not handle this
+    # case yet so for now allow anything
+    $pspec->{backbone} = { validate => 'existing_backbone' };
+
+    my $validated_params = $model->check_params( $params, $pspec );
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
