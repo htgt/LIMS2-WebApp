@@ -103,6 +103,8 @@
 					[% END %]
         [% ELSIF col == "gene_id" %]
             <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+        [% ELSIF col == "effort_concluded" && colval == "1" %]
+            <td>✔</td>
         [% ELSIF col == "gene_symbol" %]
             <td>[% colval %]</td>
         [% ELSIF !colval %]
@@ -121,7 +123,8 @@
                 || col == 'crispr_wells'
                 || col == 'crispr_vector_wells'
                 || col == 'crispr_dna_wells'
-                || col == 'accepted_crispr_dna_wells' %]
+                || col == 'accepted_crispr_dna_wells'
+                || col == 'effort_concluded' %]
             <td style="background:#E5E4E2" >[% colval %]</td>
           [% ELSE %]
             <td>[% colval %]</td>
