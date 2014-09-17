@@ -1,7 +1,7 @@
 package LIMS2::Report::GenesToElectroporate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GenesToElectroporate::VERSION = '0.141';
+    $LIMS2::Report::GenesToElectroporate::VERSION = '0.243';
 }
 ## use critic
 
@@ -45,26 +45,46 @@ sub _build_gene_electroporate_list {
     my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
 
     my $project_rs;
-    if ( $self->has_sponsor ) {
+    if ( $self->has_sponsor && $self->sponsor ne 'All' ) {
         $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
     }
     else {
-        $project_rs = $self->model->schema->resultset('Project')->search( {} );
+        if ($self->species eq 'Mouse') {
+            $project_rs = $self->model->schema->resultset('Project')->search(
+                { sponsor_id => { -in => ['Core', 'Syboss', 'Pathogens'] }
+            } );
+        } else {
+            $project_rs = $self->model->schema->resultset('Project')->search(
+                { sponsor_id => { -in => ['Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'] }
+            } );
+        }
     }
 
     my @electroporate_list;
+
     while ( my $project = $project_rs->next ) {
     	my %wells;
         my %data;
-        $data{gene_id}       = $project->gene_id;
-        $data{marker_symbol} = $self->model->retrieve_gene(
-            { species => $self->species, search_term => $project->gene_id } )->{gene_symbol};
+
+        $data{gene_id} = $project->gene_id;
+
+        # Temporarily shut down Human gene search while there is no Human gene index
+        my $gene_symbol = '';
+
+        if ($self->species eq 'Mouse') {
+
+            $gene_symbol = $self->model->retrieve_gene({
+                                    species => $self->species,
+                                    search_term => $project->gene_id
+                                })->{gene_symbol};
+        }
+        $data{marker_symbol} = $gene_symbol;
 
         # Find vector wells for the project
         $self->vectors($project, \%wells, 'first');
         $self->vectors($project, \%wells, 'second');
 
-        # Then identify DNA and EP wells        
+        # Then identify DNA and EP wells
         $data{first_allele_promoter_dna_wells}
             = $self->valid_dna_wells( $project, \%wells, { allele => 'first', promoter => 1 } );
         $data{first_allele_promoterless_dna_wells}
@@ -76,10 +96,8 @@ sub _build_gene_electroporate_list {
 
         $data{fep_wells} = $self->electroporation_wells( $project, \%wells, 'first' );
         $data{sep_wells} = $self->electroporation_wells( $project, \%wells, 'second' );
-
         push @electroporate_list, \%data;
     }
-
     return \@electroporate_list;
 }
 

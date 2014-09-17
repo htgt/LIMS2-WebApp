@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.141';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.243';
 }
 ## use critic
 
@@ -27,6 +27,7 @@ use Sub::Exporter -setup => {
                      bulk_designs_for_design_targets
                      get_design_targets_data
                      prebuild_oligos
+                     target_overlaps_exon
                     ) ]
 };
 
@@ -128,9 +129,14 @@ sub bulk_designs_for_design_targets {
 
     my @gene_designs = $schema->resultset('GeneDesign')->search(
         {
-            gene_id => { 'IN' => [ map{ $_->gene_id } @{ $design_targets } ] },
-            'design.species_id'     => $species_id,
-            'design.design_type_id' => 'gibson',
+            -and => [
+                gene_id => { 'IN' => [ map{ $_->gene_id } @{ $design_targets } ] },
+                'design.species_id'     => $species_id,
+                -or => [
+                    'design.design_type_id' => 'gibson',
+                    'design.design_type_id' => 'gibson-deletion',
+                ],
+            ],
         },
         {
             join     => 'design',
@@ -143,6 +149,7 @@ sub bulk_designs_for_design_targets {
     for my $dt ( @{ $design_targets } ) {
         my @matching_designs;
         my @dt_designs = map{ $_->design } grep{ $_->gene_id eq $dt->gene_id } @gene_designs;
+        #TODO refactor, we are working out same design coordinates multiple times sp12 Mon 24 Feb 2014 13:20:23 GMT
         for my $design ( @dt_designs ) {
             my $oligo_data = prebuild_oligos( $design, $assembly );
             # if no oligo data then design does not have oligos on assembly
@@ -152,10 +159,12 @@ sub bulk_designs_for_design_targets {
                 default_assembly => $assembly,
                 oligos           => $oligo_data,
             );
-            if ( $dt->chr_start > $di->target_region_start
-                && $dt->chr_end < $di->target_region_end
-                && $dt->chr->name eq $di->chr_name
-            ) {
+            next if $dt->chr->name ne $di->chr_name;
+
+            if (target_overlaps_exon(
+                    $di->target_region_start, $di->target_region_end, $dt->chr_start, $dt->chr_end )
+                )
+            {
                 push @matching_designs, $design;
                 push @design_ids, $design->id;
             }
@@ -189,6 +198,7 @@ sub fetch_existing_design_crispr_links {
 
     # there is nothing stopping a record having a link to both a crispr_id and
     # a crispr_pair_id so check for both
+    # and now check for crispr_group_id too
     for my $crispr_design ( @crispr_designs ) {
         # if we have a single crispr linked to a design store that id
         if ( $crispr_design->crispr_id ) {
@@ -204,6 +214,11 @@ sub fetch_existing_design_crispr_links {
                 #$crispr_pair->left_crispr_id,
                 #$crispr_pair->right_crispr_id,
             #);
+        }
+
+        if ( $crispr_design->crispr_group_id ) {
+            push @{ $design_crispr_links{ $crispr_design->design_id }{group} },
+                $crispr_design->crispr_group_id;
         }
     }
 
@@ -265,9 +280,6 @@ sub crisprs_for_design_target {
     return \@crisprs;
 }
 
-
-
-
 =head2 bulk_crisprs_for_design_targets
 
 Using the custom DesignTargetCrisprs view find all the crisprs for a set of
@@ -295,6 +307,7 @@ sub bulk_crisprs_for_design_targets {
     }
 
     my %crispr_pairs;
+    my %crispr_groups;
     for my $dt_id ( keys %crisprs ) {
         my @left_crisprs  = map{ $_->id } grep{ !$_->pam_right } values %{ $crisprs{ $dt_id } };
         my @right_crisprs = map { $_->id } grep{ $_->pam_right } values %{ $crisprs{ $dt_id } };
@@ -306,9 +319,24 @@ sub bulk_crisprs_for_design_targets {
             }
         );
         $crispr_pairs{ $dt_id } = { map{ $_->id => $_ } @crispr_pairs };
+
+        my @crisprs = map { $_->id } values %{ $crisprs{ $dt_id } };
+        # Find any groups containing a crispr for the design target
+        # Should we check all the crisprs in the group are for this design target??
+        my @groups = $schema->resultset( 'CrisprGroup' )->search(
+            {
+                'crispr_group_crisprs.crispr_id' => { 'IN' => \@crisprs },
+            },
+            {
+                join => 'crispr_group_crisprs',
+                distinct => 1,
+            }
+        );
+        $crispr_groups{ $dt_id } = { map{ $_->id => $_ } @groups };
+        DEBUG("Crispr groups for $dt_id:".join ",", map{ $_->id } @groups );
     }
 
-    return ( \%crisprs, \%crispr_pairs );
+    return ( \%crisprs, \%crispr_pairs, \%crispr_groups );
 }
 
 =head2 find_design_targets
@@ -358,7 +386,7 @@ sub design_target_report_for_genes {
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id, $assembly, $build );
     my ( $design_data, $design_crispr_links )
         = bulk_designs_for_design_targets( $schema, $design_targets, $species_id, $assembly );
-    my ( $crispr_data, $crispr_pair_data ) = bulk_crisprs_for_design_targets(
+    my ( $crispr_data, $crispr_pair_data, $crispr_group_data ) = bulk_crisprs_for_design_targets(
         $schema,
         $design_targets,
         $report_parameters->{off_target_algorithm},
@@ -374,6 +402,7 @@ sub design_target_report_for_genes {
         $data{'designs'} = $design_data->{ $dt->id };
         $data{'crisprs'} = $crispr_data->{ $dt->id };
         $data{'crispr_pairs'} = $crispr_pair_data->{ $dt->id };
+        $data{'crispr_groups'} = $crispr_group_data->{ $dt->id };
 
         push @report_data, \%data;
     }
@@ -403,6 +432,7 @@ sub format_report_data {
             $design_target_data->{designs} = scalar( @{ $datum->{designs} } );
             $design_target_data->{crisprs} = scalar( keys %{ $datum->{crisprs} } );
             $design_target_data->{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
+            $design_target_data->{crispr_groups} = scalar( keys %{ $datum->{crispr_groups} } );
         }
         else {
             my ( $crispr_data, $display_crispr_num )
@@ -480,6 +510,15 @@ sub format_crispr_data {
             $datum->{crisprs},
             $report_parameters->{off_target_algorithm},
             $default_assembly,
+            $report_parameters->{filter}
+        );
+    }
+    elsif ( $report_parameters->{crispr_types} eq 'group' ){
+        $crispr_data = _format_crispr_group_data(
+            $datum->{crispr_groups},
+            $datum->{crisprs},
+            $report_parameters->{off_target_algorithm},
+            $default_assembly,
         );
     }
     else {
@@ -505,9 +544,23 @@ sub _format_crispr_data {
     } values %{ $crisprs };
 
     for my $c ( @ranked_crisprs ) {
-        my $crispr_direction = $c->pam_right ? 'right' : $c->pam_right == 0 ? 'left' : undef;
+        # Blame ah19 for this unholy mess, b/c he gave undef a meaning in a
+        # booleon field ( to be fair he didn't intend for this to happen )
+        my $crispr_direction;
+        if ( defined $c->pam_right ) {
+            if ( $c->pam_right == 1 ) {
+                $crispr_direction = 'right';
+            }
+            else {
+                $crispr_direction = 'left';
+            }
+        }
+        else {
+            $crispr_direction = 'right';
+        }
         my %data = (
             crispr_id => $c->id,
+            wge_id    => $c->wge_crispr_id,
             seq       => $c->seq,
             blat_seq  => '>' . $c->id . "\n" . $c->seq,
             direction => $crispr_direction,
@@ -549,12 +602,18 @@ Get the first 5 pairs ( ranked according to _rank_crisp_pair )
 
 =cut
 sub _format_crispr_pair_data {
-    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $default_assembly ) = @_;
+    my ( $crispr_pairs, $crisprs, $off_target_algorithm, $default_assembly , $filter) = @_;
     my @crispr_data;
     $off_target_algorithm ||= 'strict';
 
-    my @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
-        grep { _valid_crispr_pair($_) } values %{$crispr_pairs};
+    my @valid_ranked_crispr_pairs;
+    if ($filter) {
+        @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
+            grep { _valid_crispr_pair($_) } values %{$crispr_pairs};
+    } else {
+        @valid_ranked_crispr_pairs = sort { _rank_crispr_pairs($a) <=> _rank_crispr_pairs($b) }
+            grep { $_ } values %{$crispr_pairs};
+    }
 
     for my $c ( @valid_ranked_crispr_pairs ) {
         my $left_crispr = $crisprs->{ $c->left_crispr_id };
@@ -563,9 +622,11 @@ sub _format_crispr_pair_data {
         my %data = (
             crispr_pair_id     => $c->id,
             left_crispr_id     => $left_crispr->id,
+            left_crispr_wge_id => $left_crispr->wge_crispr_id,
             left_crispr_seq    => $left_crispr->seq,
             left_crispr_locus  => _formated_crispr_locus( $left_crispr, $default_assembly ),
             right_crispr_id    => $right_crispr->id,
+            right_crispr_wge_id => $right_crispr->wge_crispr_id,
             right_crispr_seq   => $right_crispr->seq,
             right_crispr_locus => _formated_crispr_locus( $right_crispr, $default_assembly ),
             spacer             => $c->spacer,
@@ -576,6 +637,44 @@ sub _format_crispr_pair_data {
 
         #TODO crispr well data??
         push @crispr_data, \%data;
+    }
+
+    return \@crispr_data;
+}
+
+=head2 _format_crispr_group_data
+
+Format the crispr group data for report.
+
+=cut
+sub _format_crispr_group_data {
+    my ( $crispr_groups, $crisprs, $off_target_algorithm, $default_assembly) = @_;
+    my @crispr_data;
+    $off_target_algorithm ||= 'strict';
+
+    my @crispr_groups = grep { $_ } values %{$crispr_groups};
+
+    for my $group ( @crispr_groups ) {
+        my $h = $group->as_hash;
+        my @crispr_details;
+
+        for my $crispr ($group->crisprs){
+            DEBUG("Getting details for group crispr ".$crispr->id);
+            my $details = {
+                crispr_id  => $crispr->id,
+                wge_id     => $crispr->wge_crispr_id,
+                seq        => $crispr->seq,
+                locus      => _formated_crispr_locus($crispr, $default_assembly),
+                off_target => _format_crispr_off_target_summary($crispr, $off_target_algorithm),
+            };
+            push @crispr_details, $details;
+        }
+=head
+
+                off_target => _format_crispr_off_target_summary($crispr, $off_target_algorithm),
+=cut
+        $h->{crispr_details} = [ sort { $a->{crispr_id} <=> $b->{crispr_id} } @crispr_details ];
+        push @crispr_data, $h;
     }
 
     return \@crispr_data;
@@ -713,7 +812,7 @@ sub _format_crispr_off_target_summary {
         return $summary_details;
     }
 
-    return;
+    return '';
 }
 
 =head2 _format_crispr_pair_off_target_summary
@@ -727,12 +826,12 @@ sub _format_crispr_pair_off_target_summary {
 
     if ( $crispr_pair->off_target_summary ) {
         my $summary = Load($crispr_pair->off_target_summary);
-        if ( my $distance = $summary->{distance} ) {
-            return $distance;
+        if ( exists $summary->{distance} ) {
+            return $summary->{distance};
         }
     }
 
-    return;
+    return '';
 }
 
 =head2 _formated_crispr_locus
@@ -869,5 +968,35 @@ sub get_design_targets_data {
     return @dt;
 }
 
+=head2 target_overlaps_exon
+
+Check if target overlaps a exon ( or any two sets of coordiantes overlap )
+- First 2 parameters should be the target start and target end
+- Next 2 parameters should be the exon start and exon end
+
+Note: this does not check if the chromosome is the same.
+
+=cut
+sub target_overlaps_exon {
+    my ( $target_start, $target_end, $exon_start, $exon_end ) = @_;
+
+    if (   $target_start < $exon_start
+        && $target_end > $exon_end )
+    {
+        return 1;
+    }
+    elsif ($target_start >= $exon_start
+        && $target_start <= $exon_end )
+    {
+        return 1;
+    }
+    elsif ($target_end >= $exon_start
+        && $target_end <= $exon_end )
+    {
+        return 1;
+    }
+
+    return;
+}
 
 1;

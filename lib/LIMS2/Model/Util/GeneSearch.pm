@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GeneSearch;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GeneSearch::VERSION = '0.141';
+    $LIMS2::Model::Util::GeneSearch::VERSION = '0.243';
 }
 ## use critic
 
@@ -23,9 +23,11 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use LIMS2::Exception::NotFound;
 use LIMS2::Exception::Implementation;
+use Data::Dumper;
 
 const my $MGI_ACCESSION_ID_RX => qr/^MGI:\d+$/;
 const my $ENSEMBL_GENE_ID_RX  => qr/^ENS[A-Z]*G\d+$/;
+const my $HGNC_GENE_ID_RX =>qr/^HGNC:\d+$/;
 
 sub retrieve_solr_gene {
     my ( $model, $params ) = @_;
@@ -71,21 +73,42 @@ sub retrieve_ensembl_gene {
         return { gene_id => $gene->stable_id, gene_symbol => $gene->external_name };
     }
 
+    my $term = $params->{search_term};
+    my $db_name = undef;
+
+    if( $params->{search_term} =~ $HGNC_GENE_ID_RX ){
+        $term =~ s/^HGNC://;
+        $db_name = 'HGNC';
+    }
+
     my $genes = $model->ensembl_gene_adaptor( $params->{species} )
-        ->fetch_all_by_external_name( $params->{search_term} );
+        ->fetch_all_by_external_name( $term, $db_name );
 
-    if ( @{$genes} == 0 ) {
-        LIMS2::Exception::NotFound->throw( { entity_class => 'Gene', search_params => $params } );
+    my $filtered = _remove_ensembl_lrg_results($genes);
+
+    if ( @{$filtered} == 0 ) {
+	    #    LIMS2::Exception::NotFound->throw( { entity_class => 'Gene', search_params => $params } );
+	    return [{gene_id=>$params->{search_term}, gene_symbol=>"unknown"}];
     }
 
-    if ( @{$genes} > 1 ) {
-        LIMS2::Exception::Implementation->throw(
-            "Retrieval of gene $params->{species}/$params->{search_term} returned "
-            . @{$genes} . " genes"
-        );
-    }
+#    if ( @{$filtered} > 1 ) {
+#        LIMS2::Exception::Implementation->throw(
+#            "Retrieval of gene $params->{species}/$params->{search_term} returned "
+#            . @{$filtered} . " genes"
+#        );
+#    }
 
-    return { gene_id => $genes->[0]->stable_id, gene_symbol => $genes->[0]->external_name };
+    #TODO: return a complete list of gene_id and gene_symbol, not just the first one
+    return { gene_id => $filtered->[0]->stable_id, gene_symbol => $filtered->[0]->external_name };
+}
+
+sub _remove_ensembl_lrg_results{
+    my ($genes) = @_;
+
+    my @all = @{ $genes || [] };
+    my @filtered = grep { $_->source ne 'LRG database' } @all;
+
+    return \@filtered;
 }
 
 sub normalize_solr_result {

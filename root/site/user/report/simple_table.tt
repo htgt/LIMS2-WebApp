@@ -9,13 +9,21 @@
 [% INCLUDE 'pagination.tt' pageset = pageset %]
 
 [%- MACRO linkify(v) BLOCK %]
-[% IF v.match( '^https?:' ) %]
+    [% IF v.match( '^https?:' ) %]
 <a href="[% v %]">Test result</a>
-[% ELSE %]
-[% v %]
+    [% ELSIF v.match( 'lims2_custom' ) %]
+        [%- USE JSON %]
+        [%- v_json = JSON.json_decode( v ) %]
+        [%- button_label = v_json.lims2_custom.button_label %]
+        [%- tab_target = v_json.lims2_custom.browser_target %] 
+        [%- api_url = v_json.lims2_custom.api_url %]
+<a class="btn btn-info btn-small" 
+        <a href="[% c.uri_for( api_url, v_json.lims2_custom )
+                 %]" target="[% tab_target %]">[% button_label %]</a>
+    [% ELSE %]
+        [% v %]
+    [% END %]
 [% END %]
-[% END %]
-
 <br/>
 
 <table class="table table-striped table-bordered">

@@ -1,7 +1,7 @@
 package LIMS2::Report::EPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPSummary::VERSION = '0.141';
+    $LIMS2::Report::EPSummary::VERSION = '0.243';
 }
 ## use critic
 
@@ -14,6 +14,22 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator );
+
+has species => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1
+);
+
+has sponsor => (
+    is        => 'ro',
+    isa       => 'Str',
+    predicate => 'has_sponsor'
+);
+
+has '+param_names' => (
+    default => sub { [ 'species', 'sponsor' ] }
+);
 
 override _build_name => sub {
     return 'Electroporation Summary';
@@ -41,26 +57,27 @@ override _build_columns => sub {
 
 sub build_summary_data {
     my $self = shift;
-
     my $sponsor = shift(@_);
     my %report_data;
 
     my @projects = $self->model->schema->resultset('Project')->search({
         sponsor_id     => $sponsor,
-        targeting_type => 'double_targeted',
+    },{
+        select => [ 'gene_id' ],
     });
-
 
     # Loop through genes
     foreach my $project (@projects) {
-        # print "=== gene_id:\t". $project->gene_id ." ===\n";
+
         my @gene_designs = $self->model->schema->resultset('GeneDesign')->search({
             gene_id => $project->gene_id
-        })->all;
+        },{
+            select => [ 'design_id' ],
+        });
 
         # Loop through designs
         foreach my $gene_design (@gene_designs) {
-            # print "=== design_id:\t". $gene_design->design_id ." ===\n";
+
             my @design_rows = $self->model->schema->resultset('Summary')->search({
                 design_id => $gene_design->design_id,
                 final_pick_cassette_cre => '0',
@@ -71,9 +88,6 @@ sub build_summary_data {
                      },
                 ],
             });
-
-
-
 
             my (%current_well, %fepd_plates, %sepd_plates, %fepd_wells, %sepd_wells);
 
@@ -121,7 +135,6 @@ sub build_summary_data {
                 }
                 $current_well{$allele_number."_targeting_vector_plate"} = $data->final_pick_plate_name;
 
-
             }
             $current_well{'fepd_number'} = join ":", keys %fepd_plates;
             $current_well{'fepd_targeted_clones'} = scalar grep { $_ } values %fepd_wells;
@@ -130,11 +143,9 @@ sub build_summary_data {
         }
     }
 
-
     my @output;
 
     while ( my ($key, $value) = each %report_data ) {
-    # print "$key\n";
 
         push(@output, [
             $value->{'gene'},
@@ -155,7 +166,7 @@ sub build_summary_data {
         ] );
     }
 
-     return \@output;
+    return \@output;
 
 }
 
@@ -166,7 +177,19 @@ override iterator => sub {
     my ( $self ) = @_;
 
     my $summary_data;
-    my @sponsors = ('Syboss', 'Pathogens', 'Core', 'Cre Knockin');
+    my @sponsors;
+
+    if ( $self->sponsor ne 'All' ) {
+        @sponsors = ($self->sponsor);
+    }
+    else {
+        if ($self->species eq 'Mouse') {
+                @sponsors = ('Core', 'Syboss', 'Pathogens');
+        } else {
+                @sponsors = ('Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
+        }
+    }
+
     foreach my $sponsor (@sponsors) {
     	my $sponsor_data = $self->build_summary_data($sponsor);
     	push ( @{$summary_data},  @{$sponsor_data});

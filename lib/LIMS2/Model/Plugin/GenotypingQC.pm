@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.141';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.243';
 }
 ## use critic
 
@@ -65,13 +65,14 @@ sub update_genotyping_qc_data{
 
         push @messages, "Well ".$datum->{well_name}.":";
         # update targeting_pass and chromosome_fail if provided
-        foreach my $overall qw(targeting_pass targeting-puro_pass chromosome_fail){
+        foreach my $overall ( qw(targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail)) {
             if (my $result = $datum->{$overall}){
 
                 # Change targeting-puro (targeting minus puro) to targeting_puro
                 # for consistency with naming of db tables
                 my $table = $overall;
                 $table =~ s/targeting-puro/targeting_puro/;
+                $table =~ s/targeting-puro/targeting_neo/;
 
                 # Tidy up result input values
                 $result =~ s/\s*//g;
@@ -103,9 +104,7 @@ sub update_genotyping_qc_data{
                 else {
                     die "Invalid data \"$value\" provided for well ".$datum->{well_name}." $primer" unless ($value eq 'pass' || $value eq 'fail');
                 }
-                # FIXME: need an update or create method
-                # update_or_create_well_primer_band now implemented and this code should be updated to use it
-                $self->create_well_primer_bands({
+                $self->update_or_create_well_primer_bands({
                     well_id          => $well->id,
                     primer_band_type => $primer,
                     pass             => $value,
@@ -138,12 +137,12 @@ sub hash_keys_to_lc {
 sub _valid_column_names{
     my ($self, $assay_types, $primer_bands) = @_;
     # Overall results including primer bands
-    my %recognized = map { lc $_ => 1 } qw(well_name targeting_pass targeting-puro_pass chromosome_fail),
+    my %recognized = map { lc $_ => 1 } qw(well_name targeting_pass targeting-puro_pass targeting-neo_pass chromosome_fail),
                                      @$primer_bands;
 
     # Assay specific results
     foreach my $assay (@$assay_types){
-        foreach my $colname qw( pass confidence copy_number copy_number_range vic){
+        foreach my $colname ( qw( pass confidence copy_number copy_number_range vic)){
             $recognized{$assay."_".$colname} = 1;
         }
     }
@@ -230,6 +229,7 @@ sub update_genotyping_qc_value {
         'chromosome_fail'       => \&well_assay_update,
         'targeting_pass'        => \&well_assay_update,
         'targeting_puro_pass'   => \&well_assay_update,
+        'targeting_neo_pass'    => \&well_assay_update,
         'accepted_override'     => \&well_assay_update,
         'lab_number'            => \&well_assay_update,
         'tr_pcr'                => \&primer_band_update,
@@ -433,6 +433,10 @@ sub delete_genotyping_qc_data {
         $params->{'assay_name'} = 'targeting_puro_pass';
         $self->update_genotyping_qc_value( $params );
     }
+    if ( $qc_row->{'targeting_neo_pass'} ne '-' ) {
+        $params->{'assay_name'} = 'targeting_neo_pass';
+        $self->update_genotyping_qc_value( $params );
+    }
     if ( $qc_row->{'accepted_override'} ne '-' ) {
         $params->{'assay_name'} = 'accepted_override';
         $self->update_genotyping_qc_value( $params );
@@ -532,6 +536,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
              'Chr fail' => 1,
              'Tgt pass' => 1,
              'Puro pass' => 1,
+             'Neo pass' => 1,
              'Primer band type' => 1,
              'Primer pass?' => 1,
              'genotyping_result_type_id' => 1,
@@ -571,6 +576,7 @@ if ($self->{plate_type} eq 'PIQ') {
     foreach my $ancestors (@$result) {
         my $well_id =  @{@$ancestors[0]}[0];
         my $clone_id =  @{@$ancestors[0]}[2];
+        #TODO: avoid using retrieve well in genotyping QC - its slows the page load too much
         my $well = $self->retrieve_well( { id => $clone_id } );
         $clone_id_hash{$well_id} = $well->plate->name .'['. $well->name .']';
     }
@@ -591,7 +597,11 @@ foreach my $row ( @{$sql_result} ) {
                 $datum->{'gene_name'} = $gene_cache->{ $datum->{'gene_id'} };
             }
             else {
-                $datum->{'gene_name'} = $self->get_gene_symbol_for_gene_id( $datum->{'gene_id'}, $species);
+                $datum->{'gene_name'} = $self->find_gene({
+                    species => $species,
+                    search_term => $datum->{'gene_id'}
+                })->{'gene_symbol'};
+
                 $gene_cache->{$datum->{'gene_id'}} = $datum->{'gene_name'};
             }
         }
@@ -659,6 +669,7 @@ sub populate_well_attributes {
     $datum->{'chromosome_fail'} = $row->{'Chr fail'} // '-';
     $datum->{'targeting_pass'} = $row->{'Tgt pass'} // '-';
     $datum->{'targeting_puro_pass'} = $row->{'Puro pass'} // '-';
+    $datum->{'targeting_neo_pass'} = $row->{'Neo pass'} // '-';
     return;
 }
 
@@ -681,45 +692,6 @@ sub fill_out_genotyping_results {
     return;
 }
 
-
-sub get_gene_symbol_for_gene_id{
-    my ($self, $gene_id, $species, $params) = @_;
-
-    my $genes;
-    my $gene_symbols;
-    my @gene_symbols;
-
-    $genes = $self->search_genes(
-            { search_term => $gene_id, species =>  $species } );
-    push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
-    $gene_symbols = join q{/}, @gene_symbols;
-
-    return $gene_symbols;
-}
-
-
-# This will return a '/' separated list of symbols for a given accession and species.
-sub get_gene_symbol_for_design_well{
-    my ($self, $design_well, $species, $params) = @_;
-
-    my $genes;
-    my $gene_symbols;
-    my @gene_symbols;
-
-    my ($design) = $design_well->designs;
-    if ( $design ) {
-        my @gene_ids = uniq map { $_->gene_id } $design->genes;
-        foreach my $gene_id ( @gene_ids ) {
-            $genes = $self->search_genes(
-                { search_term => $gene_id, species =>  $species } );
-            push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
-        }
-    }
-    $gene_symbols = join q{/}, @gene_symbols;
-
-    return $gene_symbols;
-}
-
 sub create_design_data_cache {
     my $self = shift;
     my $well_id_list_ref = shift;
@@ -728,9 +700,6 @@ sub create_design_data_cache {
     my $design_data_hash = $self->get_design_data_for_well_id_list( $well_id_list_ref );
     return $design_data_hash;
 }
-
-
-
 
 sub sql_plate_qc_query {
     my $self = shift;
@@ -762,6 +731,7 @@ select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.g
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
+    well_targeting_neo_pass.result "Neo pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
     well_accepted_override.accepted "Override",
@@ -777,6 +747,9 @@ left outer
     join well_targeting_puro_pass
         on wd."Well ID" = well_targeting_puro_pass.well_id
 left outer
+    join well_targeting_neo_pass
+        on wd."Well ID" = well_targeting_neo_pass.well_id
+left outer
     join well_primer_bands
         on wd."Well ID" = well_primer_bands.well_id
 left outer
@@ -789,7 +762,6 @@ left outer
 order by wd."well"
 SQL_END
 }
-
 
 sub sql_well_qc_query {
     my $self = shift;
@@ -824,6 +796,7 @@ select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.g
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
     well_targeting_puro_pass.result "Puro pass",
+    well_targeting_neo_pass.result "Neo pass",
     well_primer_bands.primer_band_type_id "Primer band type",
     well_primer_bands.pass "Primer pass?",
     well_accepted_override.accepted "Override",
@@ -838,6 +811,9 @@ left outer
 left outer
     join well_targeting_puro_pass
         on wd."Well ID" = well_targeting_puro_pass.well_id
+left outer
+    join well_targeting_neo_pass
+        on wd."Well ID" = well_targeting_neo_pass.well_id
 left outer
     join well_primer_bands
         on wd."Well ID" = well_primer_bands.well_id
@@ -972,6 +948,7 @@ sub create_csv_header_array {
         'Allele Info#First EP recombinase',
         'Targeting Pass',
         'Targeting Puro Pass',
+        'Targeting Neo Pass',
         'TRPCR band',
         'gr3',
         'gr4',
@@ -1019,6 +996,7 @@ sub translate_header_items {
         'Allele Info#First EP recombinase'      => 'ep_well_recombinase_id',
         'Targeting Pass'                        => 'targeting_pass',
         'Targeting Puro Pass'                   => 'targeting_puro_pass',
+        'Targeting Neo Pass'                    => 'targeting_neo_pass',
         'TRPCR band'                            => 'trpcr',
     );
 

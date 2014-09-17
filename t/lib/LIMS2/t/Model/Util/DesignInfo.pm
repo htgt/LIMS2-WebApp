@@ -91,7 +91,7 @@ sub all_tests  : Tests
     note('Test Valid Conditional -ve Stranded Design');
 
     {
-	ok my $design = model->retrieve_design( { id => 81136  } ), 'can grab design 81136';
+	ok my $design = model->c_retrieve_design( { id => 81136  } ), 'can grab design 81136';
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
@@ -118,7 +118,7 @@ sub all_tests  : Tests
     note('Test Valid Conditional +ve Stranded Design');
 
     {
-	ok my $design = model->retrieve_design( { id => 39833  } ), 'can grab design 39833';
+	ok my $design = model->c_retrieve_design( { id => 39833  } ), 'can grab design 39833';
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
@@ -145,7 +145,7 @@ sub all_tests  : Tests
     note('Test Valid Conditional -ve Stranded Deletion');
 
     {
-	ok my $design = model->retrieve_design( { id => 88505  } ), 'can grab design 88505';
+	ok my $design = model->c_retrieve_design( { id => 88505  } ), 'can grab design 88505';
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
@@ -172,7 +172,7 @@ sub all_tests  : Tests
     note('Test Valid Conditional +ve Stranded Deletion');
 
     {
-	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512  } ), 'can grab design 88512';
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
 
@@ -199,7 +199,7 @@ sub all_tests  : Tests
     note( 'Test Getting Info via Design Object' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512  } ), 'can grab design 88512';
 	is $design->chr_name, 18, 'chromosome correct';
 	is $design->chr_strand, 1, 'chromosome correct';
 	is $design->target_region_start, 60956803, 'correct target region start';
@@ -209,7 +209,7 @@ sub all_tests  : Tests
     note( 'Test Invalid Design' );
 
     {
-	ok my $design = model->retrieve_design( { id => 81136  } ), 'can grab design 81136';
+	ok my $design = model->c_retrieve_design( { id => 81136  } ), 'can grab design 81136';
 	ok my $G5_oligo = model->schema->resultset( 'DesignOligo' )->find(
 	    {
 		design_id => 81136,
@@ -242,7 +242,7 @@ sub all_tests  : Tests
     note( 'Test ensembl adapters' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -256,7 +256,7 @@ sub all_tests  : Tests
     note( 'Test target region slice' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -273,7 +273,7 @@ sub all_tests  : Tests
     note ( 'Test target gene' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -284,7 +284,7 @@ sub all_tests  : Tests
     note( 'Test design with more than one target gene' );
 
     {
-	ok my $design = model->retrieve_design( { id => 39977  } ), 'can grab design 39977';
+	ok my $design = model->c_retrieve_design( { id => 39977  } ), 'can grab design 39977';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -295,7 +295,7 @@ sub all_tests  : Tests
     note( 'Test MGI Accession ID' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -306,7 +306,7 @@ sub all_tests  : Tests
     note( 'Test design with target transcript' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512  } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512  } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';
@@ -320,7 +320,7 @@ sub all_tests  : Tests
     note( 'Test design without target transcript' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
 	#make sure we get the right transcript even if one isn't set.
 	$design->target_transcript( "" );
@@ -339,7 +339,7 @@ sub all_tests  : Tests
     note ( 'Test floxed exons' );
 
     {
-	ok my $design = model->retrieve_design( { id => 88512 } ), 'can grab design 88512';
+	ok my $design = model->c_retrieve_design( { id => 88512 } ), 'can grab design 88512';
 
 	ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ), 'can grab new design info object';
 	isa_ok $di, 'LIMS2::Model::Util::DesignInfo';

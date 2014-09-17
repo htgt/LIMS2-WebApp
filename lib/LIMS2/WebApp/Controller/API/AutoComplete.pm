@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.141';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.243';
 }
 ## use critic
 
@@ -9,7 +9,7 @@ use Moose;
 use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
-use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names);
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names get_parsed_reads);
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -100,6 +100,32 @@ sub badger_seq_projects_GET {
     return $self->status_ok( $c, entity => $projects );
 }
 
+=head2 GET /api/get_read_names
+
+=cut
+
+sub seq_read_names :Path( '/api/autocomplete/seq_read_names' ) :Args(0) :ActionClass( 'REST' ) {
+
+}
+
+sub seq_read_names_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    #group data by sub project name and keep a count of all the attached primers
+
+    my %data;
+    for my $read_name ( get_parsed_reads( $c->request->params->{term} ) ) {
+        my ( $plate, $primer ) = ( $read_name->{plate_name}, $read_name->{primer} );
+        $data{$plate}->{$primer}++;
+    }
+
+    return $self->status_ok( $c, entity => \%data );
+}
+
+
+
 =head1 GET /api/autocomplete/gene_symbols
 
 Autocomplete for gene symbols
@@ -121,18 +147,26 @@ sub gene_symbols_GET {
 
     my $species = $c->request->param( 'species' ) || $c->session->{selected_species} || 'Mouse';
 
-    if ( $species eq 'Mouse' ) {
-        try {
-            my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
-            @results = map { $_->{marker_symbol} } @{ $solr->query( $search_term, undef, 1 ) };
-        }
-        catch {
-            $c->log->error($_);
-        };
+    # DEPRECATED: old method based on the mouse only solr index
+    # try {
+    #     my $solr = $c->model('Golgi')->solr_util( solr_rows => 25 );
+    #     @results = map { $_->{marker_symbol} } @{ $solr->query( $search_term, undef, 1 ) };
+    # }
+    # catch {
+    #     $c->log->error($_);
+    # };
+
+    try {
+        @results = map { $_->{gene_symbol} } $c->model('Golgi')->autocomplete_gene(
+            {
+                species => $species,
+                search_term => lc($search_term),
+            }
+        );
     }
-    elsif ( $species eq 'Human' ) {
-        # XXX TODO: autocompletion for human gene symbols
-    }
+    catch {
+        $c->log->error($_);
+    };
 
     return $self->status_ok( $c, entity => \@results );
 }

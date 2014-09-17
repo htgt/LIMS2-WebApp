@@ -23,10 +23,6 @@ use LIMS2::t::Model::Util::EngSeqParams;
 
 Test module structured for running under Test::Class
 
-=head1 AUTHOR
-
-Lars G. Erlandsen
-
 =cut
 
 Test::Class->runtests;

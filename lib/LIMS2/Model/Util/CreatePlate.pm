@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreatePlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreatePlate::VERSION = '0.141';
+    $LIMS2::Model::Util::CreatePlate::VERSION = '0.243';
 }
 ## use critic
 
@@ -39,7 +39,6 @@ sub create_plate_well {
 
     my $validated_params
         = $model->check_params( $params, pspec_create_plate_well, ignore_unknown => 1 );
-
     my $parent_well_ids = find_parent_well_ids( $model, $params );
 
     my %well_params = (
@@ -109,7 +108,7 @@ sub find_parent_well_ids {
             );
             delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
-        when ( 'crispr_single_ep' ) {
+        when ( 'single_crispr_assembly' ) {
             push @parent_well_ids, well_id_for(
                 $model, {
                     plate_name => $validated_params->{final_pick_plate},
@@ -124,7 +123,7 @@ sub find_parent_well_ids {
             );
             delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
-        when ( 'crispr_paired_ep' ) {
+        when ( 'paired_crispr_assembly' ) {
             push @parent_well_ids, well_id_for(
                 $model, {
                     plate_name => $validated_params->{final_pick_plate},

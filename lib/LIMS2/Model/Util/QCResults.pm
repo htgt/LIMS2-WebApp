@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.141';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.243';
 }
 ## use critic
 
@@ -62,16 +62,12 @@ sub retrieve_qc_run_results {
 
 #this is functionally the same as retrieve_qc_run_results but with raw sql so pages don't time out.
 #eventually this should replace retrive_qc_run_results
+## no critic ( Subroutines::ProhibitExcessComplexity )
 sub retrieve_qc_run_results_fast {
     my ( $qc_run, $schema, $crispr_run ) = @_;
-    my $name_id;
-    if ($crispr_run) {
-        $name_id = 'crispr_id';
-    } else {
-        $name_id = 'design_id';
-    }
+    my $name_id = $crispr_run ? 'crispr_id' : 'design_id';
 
-    my $expected_loc = _loc_for_qc_template_plate($qc_run, $crispr_run);
+    my $expected_loc = _loc_for_qc_template_plate( $qc_run, $crispr_run );
 
     #query to fetch all the data we need. we need left joins on alignments/test_results/engseqs
     #because failed wells don't get a qc_test_result or qc_alignment, but we still need to show them.
@@ -79,8 +75,9 @@ sub retrieve_qc_run_results_fast {
     my $sql = <<'EOT';
 select qc_alignments.qc_eng_seq_id as qc_alignment_eng_seq_id, qc_eng_seqs.id as qc_eng_seq_id, qc_eng_seqs.params as params, 
 qc_run_seq_wells.plate_name, qc_run_seq_wells.well_name, qc_test_results.pass as overall_pass, 
-qc_seq_reads.primer_name, qc_alignments.score, qc_alignments.pass primer_valid, 
-qc_alignments.qc_run_id alignment_qc_run_id
+qc_seq_reads.primer_name, qc_seq_reads.length as read_length, qc_alignments.score, qc_alignments.pass primer_valid, 
+qc_alignments.qc_run_id alignment_qc_run_id, qc_alignments.features alignment_features,
+qc_alignments.target_start alignment_target_start, qc_alignments.target_end alignment_target_end 
 from qc_runs 
 join qc_run_seq_wells on qc_run_seq_wells.qc_run_id = qc_runs.id
 left join qc_test_results on qc_test_results.qc_run_seq_well_id = qc_run_seq_wells.id
@@ -153,8 +150,16 @@ EOT
                         score     => $r->{score} || 0, #0 instead of undef so the sum still works
                         pass      => $r->{primer_valid},
                         qc_run_id => $r->{alignment_qc_run_id},
+                        features  => $r->{alignment_features},
+                        read_length => $r->{read_length},
                     );
 
+                    if ( defined $r->{alignment_target_start} and defined $r->{alignment_target_end} ) {
+                        $primer{target_align_length}
+                            = abs( $r->{alignment_target_start} - $r->{alignment_target_end} );
+                    }
+
+                    #get the next row before we do a next or it will loop forever
                     $r = $sth->fetchrow_hashref;
 
                     #skip alignments that aren't for this run (not all alignments have a qc_run_id)
@@ -163,6 +168,15 @@ EOT
                     }
 
                     push @{ $result{primers} }, \%primer;
+
+                    #we no longer have the following field:
+                    #$result->{ $primer_name.'_critical_regions' }    = $primer->{regions};
+
+                    #add fields for the report
+                    #should really make the report do this as the data is in the result hash
+                    for my $f ( qw( pass target_align_length score features read_length ) ) {
+                        $result{ $primer{name}.'_'.$f } = $primer{$f};
+                    }
                 }
 
                 #before this was just the number of seq reads,
@@ -193,6 +207,7 @@ EOT
 
     return \@qc_run_results;
 }
+## use critic
 
 sub retrieve_qc_run_summary_results {
     my ( $qc_run ) = @_;
@@ -563,6 +578,11 @@ sub infer_qc_process_type{
     }
     elsif ( $source_plate_type eq 'CRISPR' ) {
         $process_type = _crispr_source_plate( $new_plate_type, $reagent_count, $params );
+    }
+    elsif ( $source_plate_type eq 'CRISPR_V' ) {
+        # CRISPR_V QC can only be done to create a rearrayed CRISPR_V plate
+        # rearray creation will check that input and output well types are the same
+        $process_type = 'rearray';
     }
     elsif ( $source_plate_type eq 'FINAL_PICK' ) {
         $process_type = _final_pick_source_plate( $new_plate_type, $reagent_count, $params );

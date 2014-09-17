@@ -1,0 +1,115 @@
+[% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".traces").click(function(e) {
+        e.preventDefault();
+
+        //the code for this is inside jquery.flot.traceviewer.js
+        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+
+        //show_traces( $(this) );
+    });
+
+    $(".accepted").click(function() {
+
+        //fade element out until its saved, waiting at least 500ms
+        var element = $(this).parent().parent();
+        element.fadeTo( "slow", 0.5 ).delay(500);
+
+        $.post(
+            '[% c.uri_for("/api/update_well_accepted") %]',
+            { "well_id": this.value, "qc_run_id": $("#qc_run_id").text(), "accepted": this.checked },
+
+            function (data) {
+                console.log(data);
+                //fade back in
+                element.fadeTo( "slow", 1 );
+            },
+            'json'
+        );
+    });
+});
+</script>
+
+<div class="well">
+    <table class="table table-condensed">
+        <tr>
+            <th>QC Run ID</th>
+            <td id="qc_run_id">[% qc_run_id %]</td>
+        </tr>
+        <tr>
+            <th>Sequencing project</th>
+            <td>[% seq_project %]</td>
+        </tr>
+        <tr>
+            <th>Sub Project</th>
+            <td>[% sub_project %]</td>
+        </tr>
+    </table>
+    <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
+        <i class="icon-remove icon-white"></i> Delete QC Run
+    </a>
+</div>
+
+<div class="modal hide fade" id="DeleteRunModal">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3 id="myModalLabel">Delete QC Run</h3>
+    </div>
+
+    <div class="modal-body" align="center">
+      Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>?
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Cancel</button>
+      <a class="btn btn-danger" href="[% c.uri_for('/user/crisprqc/delete_qc_run', qc_run_id) %]" id="delete_run_button">
+        <i class="icon-remove icon-white"></i> Confirm Delete QC Run
+      </a>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Well</th>
+            <th>ES QC Well ID</th>
+            <th>Gene</th>
+            <th>Pair ID</th>
+            <th>Alignment</th>
+            <th>Variant Files</th>
+            <th>Protein Sequences</th>
+            <th>Reads</th>
+            <th>Deletions</th>
+            <th>Inserts</th>
+            <th>Accept</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOR row IN wells %]
+            <tr>
+
+                [% INCLUDE 'crispr_qc_view.tt'
+                    row    = row
+                    accept = 1
+                %]
+
+            </tr>
+        [% END %]
+
+        [% IF wells.size == 0 %]
+        <tr>
+            <td colspan="8" style="text-align: center">Well data is pending, please come back later</td>
+        </tr>
+        [% END %]
+    </tbody>
+</table>

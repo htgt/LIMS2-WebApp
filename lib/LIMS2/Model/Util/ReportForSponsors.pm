@@ -1,13 +1,10 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.141';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.243';
 }
 ## use critic
 
-
-use strict;
-use warnings FATAL => 'all';
 
 use Moose;
 use Hash::MoreUtils qw( slice_def );
@@ -15,7 +12,9 @@ use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
 
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
+use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
@@ -23,9 +22,14 @@ use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
 
+
 extends qw( LIMS2::ReportGenerator );
 
 # Rows on report view
+# These crispr counts now work but sub reports do not
+# 'Crispr Vectors Single',
+# 'Crispr Vectors Paired',
+# 'Crispr Electroporations',
 Readonly my @ST_REPORT_CATEGORIES => (
     'Targeted Genes',
     'Vectors',
@@ -96,7 +100,7 @@ sub _build_sponsors {
        push( @sponsor_ids, $sponsor_id );
     }
 
-    return [ @sponsor_ids ];
+    return \@sponsor_ids;
 }
 
 has sponsor_data => (
@@ -142,6 +146,7 @@ sub _build_sponsor_column_data {
     return;
 }
 
+## no critic(ProhibitExcessComplexity)
 sub _build_column_data {
 
     my ( $self, $sponsor_id, $sponsor_data, $number_genes ) = @_;
@@ -151,6 +156,28 @@ sub _build_column_data {
     # --------- Targeted Genes -----------
     my $count_tgs = $number_genes;
     $sponsor_data->{'Targeted Genes'}{$sponsor_id} = $count_tgs;
+
+=head
+    # FIXME: This is not fully implemented yet
+    # ------------ Crispr Vectors and Electroporations --------
+    my $count_crispr_vectors_single = 0;
+    if( $count_tgs > 0 ){
+        $count_crispr_vectors_single = $self->crispr_vectors_single($sponsor_id, 'count');
+    }
+    $sponsor_data->{'Crispr Vectors Single'}{$sponsor_id} = $count_crispr_vectors_single;
+
+    my $count_crispr_vectors_paired = 0;
+    if( $count_tgs > 0 ){
+        $count_crispr_vectors_paired = $self->crispr_vectors_paired($sponsor_id, 'count');
+    }
+    $sponsor_data->{'Crispr Vectors Paired'}{$sponsor_id} = $count_crispr_vectors_paired;
+
+    my $count_crispr_eps = 0;
+    if( $count_crispr_vectors_single or $count_crispr_vectors_paired){
+        $count_crispr_eps = $self->crispr_electroporations($sponsor_id, 'count');
+    }
+    $sponsor_data->{'Crispr Electroporations'}{$sponsor_id} = $count_crispr_eps;
+=cut
 
     # ------------ Vectors ---------------
     # only look if targeted genes found
@@ -287,6 +314,7 @@ sub _build_column_data {
 
     return;
 }
+## use critic
 
 sub select_sponsors_with_projects {
     my ( $self ) = @_;
@@ -392,8 +420,8 @@ sub generate_sub_report {
     my $st_rpt_flds = {
         'Targeted Genes'                    => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol' ],
-            'display_columns'       => [ 'gene id', 'gene symbol' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'vector_pcr_passes', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones', 'effort_concluded' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr design oligos', 'crispr vectors', 'DNA crispr vectors', 'DNA QC-passing crispr vectors', 'DNA QC-passing crispr pairs', 'vector designs', 'design oligos', "PCR-passing design oligos", 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones', 'effort concluded' ],
         },
         'Vectors'                           => {
             'display_stage'         => 'Vectors',
@@ -417,17 +445,12 @@ sub generate_sub_report {
         },
     };
 
-    # For Human genes, show extra info such as Gibson designs
-    if ($self->species eq 'Human') {
-        $st_rpt_flds->{'Targeted Genes'}->{'columns'} = [ 'gene_id', 'gene_symbol', 'gibson_design', 'gibson_plated', 'vector_total', 'vector_pass', 'eps', 'targeted', 'targeted_accepted' ];
-        $st_rpt_flds->{'Targeted Genes'}->{'display_columns'} = [ 'gene id', 'gene symbol', 'gibson designs', 'gibson plates', 'vector total', 'vector pass', 'electroporations', 'targeted clones', 'targeted clones accepted' ];
-    }
     # for double-targeted projects
     my $dt_rpt_flds = {
         'Targeted Genes'            => {
             'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol' ],
-            'display_columns'       => [ 'gene id', 'gene' ],
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones', 'effort_concluded' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones', 'effort concluded' ],
         },
         'Vectors'                   => {
             'display_stage'         => 'Vectors',
@@ -641,6 +664,7 @@ sub _build_sub_report_data {
 # Methods for Stages
 #----------------------------------------------------------
 
+## no critic(ProhibitExcessComplexity)
 sub genes {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
@@ -648,121 +672,317 @@ sub genes {
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 
-    #DEBUG "sql query = ".$sql_query;
-
     my $sql_results = $self->run_select_query( $sql_query );
 
     # fetch gene symbols and return modified results set for display
     my @genes_for_display;
 
+    my @gene_list;
+    foreach my $gene_row ( @$sql_results ) {
+         unshift( @gene_list,  $gene_row->{ 'gene_id' });
+    }
+
+    # Store list of designs to get crispr summary info for later
+    my $designs_for_gene = {};
+    my @all_design_ids;
+
     foreach my $gene_row ( @$sql_results ) {
         my $gene_id = $gene_row->{ 'gene_id' };
 
-        my $gene_symbol;
+        my $gene_info;
+        # get the gene name, the good way. TODO for human genes
         try {
-            $gene_symbol = $self->model->retrieve_gene( { 'search_term' => $gene_id,  'species' => $self->species } )->{ 'gene_symbol' };
+            $gene_info = $self->model->find_gene( {
+                search_term => $gene_id,
+                species     => $self->species,
+                show_all    => 1
+            } );
         }
         catch {
             INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
         };
 
-        if ( !defined $gene_symbol || $gene_symbol eq '' ) {
-            try {
-                my $gene_design_row = $self->model->schema->resultset('DesignTarget')->search({
-                        gene_id => $gene_id
-                    }, {
-                        select => 'marker_symbol',
-                        rows => 1,
-                    })->single;
-                $gene_symbol = $gene_design_row->marker_symbol;
+        # Now we grab this from the solr index
+        my $gene_symbol = $gene_info->{'gene_symbol'};
+        my $design_count = $gene_info->{'design_count'} // '0';
+        my $crispr_pairs_count = $gene_info->{'crispr_pairs_count'} // '0';
 
-            }
-            catch {
-                INFO 'Failed to fetch through design_targets gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
-            };
-        }
+        #     # get the gibson design count
+        #     my $report_params = {
+        #         type => 'simple',
+        #         off_target_algorithm => 'bwa',
+        #         crispr_types => 'pair'
+        #     };
 
-        unless ( defined $gene_symbol && $gene_symbol ne '' ) { $gene_symbol = 'unknown'; }
+        #     my $build = $DEFAULT_SPECIES_BUILD{ lc($self->species) };
+        #     my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, $self->species, $build, $report_params );
 
-        # for human genes, give a more complete report with gibson design, vector and ep counts
-        if ($self->species eq 'Human' && $gene_symbol ne 'unknown') {
+        #     my $design_count = sum map { $_->{ 'designs' } } @{$designs};
+        #     if (!defined $design_count) {$design_count = 0};
+        #     my $crispr_pairs_count = sum map { $_->{ 'crispr_pairs' } } @{$designs};
+        #     if (!defined $crispr_pairs_count) {$crispr_pairs_count = 0};
 
-            # get the plates
-            my $sql =  <<"SQL_END";
-SELECT concat(design_plate_name, '_', design_well_name) AS DESIGN, 
-concat(final_pick_plate_name, '_', final_pick_well_name, final_pick_well_accepted, dna_well_accepted) AS FINAL_PICK, 
-concat(ep_plate_name, '_', ep_well_name) AS EP, 
-concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK 
-FROM summaries where design_gene_id = '$gene_id';
+
+        # get the plates
+        my $sql =  <<"SQL_END";
+SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
+concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
+concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
+concat(ep_plate_name, '_', ep_well_name) AS EP,
+concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP,
+concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK
+FROM summaries where design_gene_id = '$gene_id'
 SQL_END
 
-            my $results = $self->run_select_query( $sql );
-
-            # get the plates into arrays
-            my (@design, @final_pick_info, @final_pick, @ep, @ep_pick_info, @ep_pick);
-            foreach my $row (@$results) {
-                push (@design, $row->{design}) unless ($row->{design} eq '_');
-                push (@final_pick_info, $row->{final_pick}) unless ($row->{final_pick} eq '_');
-                push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
-                push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
-            }
-
-            # check for vector passes and count them
-            @final_pick_info = uniq @final_pick_info;
-            my ($vector_plate, $vector_string);
-            my $vector_pass = 0;
-            foreach my $vector (@final_pick_info) {
-                if ( $vector =~ m/(.*?)([^\d]*)$/ ) {
-                    ($vector_plate, $vector_string) = ($1, $2);
-                }
-                push (@final_pick, $vector_plate);
-                if ($vector_string eq 'tt') {
-                    $vector_pass++;
-                }
-            }
-
-            # check for targeted clone passes and count them
-            @ep_pick_info = uniq @ep_pick_info;
-            my ($ep_pick_plate, $ep_pick_string);
-            my $ep_pick_pass = 0;
-            foreach my $ep_pick (@ep_pick_info) {
-                if ( $ep_pick =~ m/(.*?)([^\d]*)$/ ) {
-                    ($ep_pick_plate, $ep_pick_string) = ($1, $2);
-                }
-                push (@ep_pick, $ep_pick_plate);
-                if ($ep_pick_string eq 't') {
-                    $ep_pick_pass++;
-                }
-            }
-
-            # remove all duplicates
-            @design = uniq @design;
-            @final_pick = uniq @final_pick;
-            @ep = uniq @ep;
-            @ep_pick = uniq @ep_pick;
-
-            # get the gibson design count
-            my $report_params = {
-                type => 'simple',
-                off_target_algorithm => 'bwa',
-                crispr_types => 'pair'
-            };
-
-            my ( $designs ) = design_target_report_for_genes( $self->model->schema, $gene_id, 'Human', '73', $report_params );
-
-            # push the data for the report
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol, 'gibson_design' => $#{ $designs },
-            'gibson_plated' => scalar @design, 'vector_total' => scalar @final_pick, 'vector_pass' => $vector_pass, 'eps' => scalar @ep, 'targeted' => scalar @ep_pick,  'targeted_accepted' => $ep_pick_pass };
-        } else {
-            push @genes_for_display, { 'gene_id' => $gene_id, 'gene_symbol' => $gene_symbol};
+        # project specific filtering
+        ## no critic (ProhibitCascadingIfElse)
+        if ($self->species eq 'Human') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        if ($sponsor_id eq 'Pathogen Group 2') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        elsif ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
+        }
+        elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+            $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        }
+        elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
+        }
+        elsif ($sponsor_id eq 'MGP Recovery') {
+            $sql .= " AND ( sponsor_id = 'MGP Recovery' );";
         }
 
+        ## use critic
+
+        # run the query
+        my $results = $self->run_select_query( $sql );
+
+        # get the plates into arrays
+        my (@design, @int, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+        foreach my $row (@$results) {
+            push @design_ids, $row->{design_id};
+            push (@int, $row->{int}) unless ($row->{int} eq '_');
+            push (@design, $row->{design}) unless ($row->{design} eq '_');
+            push (@final_info, $row->{final}) unless ($row->{final} eq '_');
+            push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
+            push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
+            push (@ep, $row->{crispr_ep}) unless ($row->{crispr_ep} eq '_');
+            push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
+        }
+
+        # DESIGN
+        @design = uniq @design;
+
+        my $pcr_passes = 0;
+        foreach my $well (@design) {
+
+            my ($plate_name, $well_name ) = ('', '');
+            if ( $well =~ m/^(.*?)_([a-z]\d\d)$/i ) {
+                ($plate_name, $well_name ) = ($1, $2);
+            }
+
+            my ($l_pcr, $r_pcr) = ('', '');
+            try{
+                my $well_id = $self->model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } )->id;
+
+                $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_u',
+                },{
+                    select => [ 'result' ],
+                })->result;
+
+                $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_d',
+                },{
+                    select => [ 'result' ],
+                })->result;
+            }catch{
+                DEBUG "No pcr status found for well " . $well_name;
+            };
+
+            if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
+                $pcr_passes++;
+            }
+        }
+
+        # Store design IDs to use in crispr summary query
+        foreach my $design_id (uniq @design_ids){
+            $designs_for_gene->{$gene_id} ||= [];
+
+            my $arrayref = $designs_for_gene->{$gene_id};
+            push @$arrayref, $design_id;
+            push @all_design_ids, $design_id;
+        }
+
+        # FINAL / INT
+        my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
+
+        my $sum = 0;
+        @int = uniq @int;
+
+        foreach my $well (@int) {
+            $well =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+            my $plate_id = $self->model->retrieve_plate({
+                name => $well,
+            })->id;
+
+            my $comment = '';
+
+            try{
+                $comment = $self->model->schema->resultset('PlateComment')->find({
+                    plate_id     => $plate_id,
+                    comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
+                },{
+                    select => [ 'comment_text' ],
+                })->comment_text;
+            }catch{
+                DEBUG "No comment found for well " . $well;
+            };
+
+            if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+                $sum += $1;
+            }
+        }
+        if ($sum) {
+            $final_count = $sum;
+        }
+
+        # DNA
+        my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
+
+        # EP/CRISPR_EP
+        @ep = uniq @ep;
+
+        # EP_PICK
+        my ($ep_pick_count, $ep_pick_pass_count) = get_well_counts(\@ep_pick_info);
+
+        # push the data for the report
+        push @genes_for_display, {
+            'gene_id'                => $gene_id,
+            'gene_symbol'            => $gene_symbol,
+            'crispr_pairs'           => $crispr_pairs_count,
+            'vector_designs'         => $design_count,
+            'vector_wells'           => scalar @design,
+            'vector_pcr_passes'      => $pcr_passes,
+            'targeting_vector_wells' => $final_count,
+            'accepted_vector_wells'  => $final_pass_count,
+            'passing_vector_wells'   => $dna_pass_count,
+            'electroporations'       => scalar @ep,
+            'colonies_picked'        => $ep_pick_count,
+            'targeted_clones'        => $ep_pick_pass_count,
+            'effort_concluded'       => $self->model->retrieve_project({
+                                            sponsor_id => $sponsor_id,
+                                            gene_id => $gene_id,
+                                            targeting_type => $self->targeting_type,
+                                            species_id => $self->species,
+                                        })->effort_concluded,
+        };
     }
 
-    # sort the array by gene symbol
-    my @sorted_genes_for_display =  sort { $a->{ 'gene_symbol' } cmp $b-> { 'gene_symbol' } } @genes_for_display;
+    # Only used in the single targeted report... for now
+    if($self->targeting_type eq 'single_targeted'){
+        # Get the crispr summary information for all designs found in previous gene loop
+        # We do this after the main loop so we do not have to search for the designs for each gene again
+        DEBUG "Fetching crispr summary info for report";
+        my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
+        DEBUG "Adding crispr counts to gene data";
+        foreach my $gene_data (@genes_for_display){
+            add_crispr_well_counts_for_gene($gene_data, $designs_for_gene, $design_crispr_summary);
+        }
+        DEBUG "crispr counts done";
+    }
+
+    my @sorted_genes_for_display =  sort {
+            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+            $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
+            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
+            $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+        } @genes_for_display;
 
     return \@sorted_genes_for_display;
+}
+## use critic
+
+sub add_crispr_well_counts_for_gene{
+    my ($gene_data, $designs_for_gene, $design_crispr_summary) = @_;
+
+    my $gene_id = $gene_data->{gene_id};
+    my $crispr_count = 0;
+    my $crispr_vector_count = 0;
+    my $crispr_dna_count = 0;
+    my $crispr_dna_accepted_count = 0;
+    my $crispr_pair_accepted_count = 0;
+    foreach my $design_id (@{ $designs_for_gene->{$gene_id} || []}){
+        my $plated_crispr_summary = $design_crispr_summary->{$design_id}->{plated_crisprs};
+        my %has_accepted_dna;
+        foreach my $crispr_id (keys %$plated_crispr_summary){
+            my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
+            $crispr_count += scalar( @crispr_well_ids );
+            foreach my $crispr_well_id (@crispr_well_ids){
+
+                # CRISPR_V well count
+                my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
+                $crispr_vector_count += $vector_rs->count;
+
+                # DNA well counts
+                my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
+                $crispr_dna_count += $dna_rs->count;
+                my @accepted = grep { $_->is_accepted } $dna_rs->all;
+                $crispr_dna_accepted_count += scalar(@accepted);
+
+                if(@accepted){
+                    $has_accepted_dna{$crispr_id} = 1;
+                }
+            }
+        }
+        # Count pairs for this design which have accepted DNA for both left and right crisprs
+        my $crispr_pairs = $design_crispr_summary->{$design_id}->{plated_pairs} || {};
+        foreach my $pair_id (keys %$crispr_pairs){
+            my $left_id = $crispr_pairs->{$pair_id}->{left_id};
+            my $right_id = $crispr_pairs->{$pair_id}->{right_id};
+            if ($has_accepted_dna{$left_id} and $has_accepted_dna{$right_id}){
+                DEBUG "Crispr pair $pair_id accepted";
+                $crispr_pair_accepted_count++;
+            }
+        }
+    }
+    $gene_data->{crispr_wells} = $crispr_count;
+    $gene_data->{crispr_vector_wells} = $crispr_vector_count;
+    $gene_data->{crispr_dna_wells} = $crispr_dna_count;
+    $gene_data->{accepted_crispr_dna_wells} = $crispr_dna_accepted_count;
+    $gene_data->{accepted_crispr_pairs} = $crispr_pair_accepted_count;
+
+    return;
+}
+
+sub get_well_counts {
+    my ($list) = @_;
+
+    my (@well, @well_pass);
+    foreach my $row ( @{$list} ) {
+        if ( $row =~ m/(.*?)([^\d]*)$/ ) {
+            my ($well_well, $well_well_pass) = ($1, $2);
+            push (@well, $well_well);
+            if ($well_well_pass eq 't') {
+                push (@well_pass, $well_well);
+            }
+        }
+    }
+    @well = uniq @well;
+    @well_pass = uniq @well_pass;
+
+    return (scalar @well, scalar @well_pass);
 }
 
 sub vectors {
@@ -795,6 +1015,65 @@ sub vectors {
     }
 }
 
+sub crispr_vectors_single {
+    my ( $self, $sponsor_id, $query_type ) = @_;
+
+    DEBUG 'Crispr Vectors Single: sponsor id = '.$sponsor_id.' , targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
+
+    if ( $query_type eq 'count' ) {
+        my $count = 0;
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_count_st_crispr_vectors_single ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        $count = $self->run_count_query( $sql_query );
+        return $count;
+    }
+    elsif ( $query_type eq 'select' ) {
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_select_st_crispr_vectors_single ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        my $sql_results = $self->run_select_query( $sql_query );
+        return $sql_results;
+    }
+}
+
+sub crispr_vectors_paired {
+    my ( $self, $sponsor_id, $query_type ) = @_;
+
+    DEBUG 'Crispr Vectors Paired: sponsor id = '.$sponsor_id.' , targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
+
+    if ( $query_type eq 'count' ) {
+        my $count = 0;
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_count_st_crispr_vectors_paired ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        $count = $self->run_count_query( $sql_query );
+        return $count;
+    }
+    elsif ( $query_type eq 'select' ) {
+        my $sql_query;
+        if ( $self->targeting_type eq 'single_targeted' ) {
+            $sql_query = $self->sql_select_st_crispr_vectors_paired ( $sponsor_id );
+        }
+        elsif ( $self->targeting_type eq 'double_targeted' ) {
+            die 'No sql query defined for double_targeted crispr vectors'
+        }
+        my $sql_results = $self->run_select_query( $sql_query );
+        return $sql_results;
+    }
+}
 sub vector_pairs_neo_and_bsd {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
@@ -1157,11 +1436,32 @@ sub electroporations {
         my $sql_query;
         $sql_query = $self->sql_count_st_eps ( $sponsor_id );
         $count = $self->run_count_query( $sql_query );
+
         return $count;
     }
     elsif ( $query_type eq 'select' ) {
         my $sql_query;
         $sql_query = $self->sql_select_st_electroporations ( $sponsor_id );
+        my $sql_results = $self->run_select_query( $sql_query );
+        return $sql_results;
+    }
+}
+
+sub crispr_electroporations {
+    my ( $self, $sponsor_id, $query_type ) = @_;
+
+    DEBUG 'Crispr electroporations: sponsor id = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', query type = '.$query_type.' and species = '.$self->species;
+
+    if ( $query_type eq 'count' ) {
+        my $count = 0;
+        my $sql_query;
+        $sql_query = $self->sql_count_crispr_eps ( $sponsor_id );
+        $count = $self->run_count_query( $sql_query );
+        return $count;
+    }
+    elsif ( $query_type eq 'select' ) {
+        my $sql_query;
+        $sql_query = $self->sql_select_crispr_electroporations ( $sponsor_id );
         my $sql_results = $self->run_select_query( $sql_query );
         return $sql_results;
     }
@@ -1416,9 +1716,34 @@ SQL_END
 sub sql_count_st_vectors {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1482,6 +1807,26 @@ AND (
 AND s.final_pick_qc_seq_pass = true
 SQL_END
 
+    } else {
+
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.final_pick_qc_seq_pass = true
+$condition
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1489,9 +1834,34 @@ SQL_END
 sub sql_count_st_dna {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1555,6 +1925,25 @@ AND (
 AND s.dna_status_pass = true
 SQL_END
 
+    } else {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.dna_well_accepted = true
+$condition
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1562,9 +1951,34 @@ SQL_END
 sub sql_count_st_eps {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1628,6 +2042,25 @@ AND (
 AND s.ep_well_id > 0
 SQL_END
 
+    } else {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+$condition
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1635,9 +2068,34 @@ SQL_END
 sub sql_count_st_accepted_clones {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1701,6 +2159,25 @@ AND (
 AND s.ep_pick_well_accepted = true
 SQL_END
 
+    } else {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_pick_well_accepted = true
+$condition
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1711,9 +2188,34 @@ SQL_END
 sub sql_select_st_vectors {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1782,6 +2284,31 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
 SQL_END
 
+    } else {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS plate_name, s.final_pick_well_name AS well_name
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.final_pick_qc_seq_pass = true
+$condition
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name
+ORDER BY s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_plate_name, s.final_pick_well_name
+
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1789,9 +2316,34 @@ SQL_END
 sub sql_select_st_dna {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1862,6 +2414,32 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
 SQL_END
 
+    } else {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
+, s.final_pick_plate_name AS parent_plate_name, s.final_pick_well_name AS parent_well_name, s.dna_plate_name AS plate_name
+, s.dna_well_name AS well_name, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.dna_status_pass = true
+$condition
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.final_pick_plate_name, s.final_pick_well_name, s.dna_plate_name, s.dna_well_name
+, s.final_qc_seq_pass, s.final_pick_qc_seq_pass
+ORDER BY s.design_gene_symbol, s.dna_plate_name, s.dna_well_name
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1869,9 +2447,34 @@ SQL_END
 sub sql_select_st_electroporations {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -1940,6 +2543,30 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
 SQL_END
 
+    } else {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, concat(s.ep_plate_name, s.crispr_ep_plate_name) AS plate_name, concat(s.ep_well_name, s.crispr_ep_well_name)  AS well_name
+, s.final_pick_cassette_name AS cassette_name, s.final_pick_cassette_promoter AS cassette_promoter
+, s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+$condition
+GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.crispr_ep_plate_name, s.ep_well_name, s.crispr_ep_well_name, s.final_pick_cassette_name
+, s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
+ORDER BY s.design_gene_symbol, s.ep_plate_name, s.ep_well_name
+SQL_END
+
+    }
+
     return $sql_query;
 }
 
@@ -1947,9 +2574,34 @@ SQL_END
 sub sql_select_st_accepted_clones {
     my ( $self, $sponsor_id ) = @_;
 
-    my $species_id      = $self->species;
+    my $sql_query;
+    my $species_id = $self->species;
 
-my $sql_query =  <<"SQL_END";
+## no critic (ProhibitCascadingIfElse)
+    my $condition = '';
+    if ($self->species eq 'Human') {
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+    }
+    if ($sponsor_id eq 'Pathogen Group 2') {
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+    }
+    elsif ($sponsor_id eq 'Pathogen Group 1') {
+        $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
+    }
+    elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+        $condition = "AND ( s.sponsor_id = 'EUCOMMTools Recovery' )";
+    }
+    elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+        $condition = "AND ( s.sponsor_id = 'Barry Short Arm Recovery' )";
+    }
+    elsif ($sponsor_id eq 'MGP Recovery') {
+        $condition = " AND ( s.sponsor_id = 'MGP Recovery' )";
+    }
+## use critic
+
+    if ($sponsor_id eq 'Cre Knockin') {
+
+$sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
  p.sponsor_id,
@@ -2019,6 +2671,32 @@ GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.f
 , s.final_pick_qc_seq_pass, s.dna_status_pass
 ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
 SQL_END
+
+    } else {
+
+$sql_query =  <<"SQL_END";
+WITH project_requests AS (
+SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p
+WHERE p.sponsor_id = '$sponsor_id'
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species_id'
+)
+SELECT s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name AS cassette_name
+, s.final_pick_cassette_promoter AS cassette_promoter, s.final_pick_cassette_resistance AS cassette_resistance
+, s.ep_pick_plate_name AS plate_name, s.ep_pick_well_name AS well_name, s.final_qc_seq_pass
+, s.final_pick_qc_seq_pass, s.dna_status_pass
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+WHERE s.ep_pick_well_accepted = true
+$condition
+GROUP by s.design_gene_id, s.design_gene_symbol, s.final_pick_cassette_name, s.final_pick_cassette_promoter
+, s.final_pick_cassette_resistance, s.ep_pick_plate_name, s.ep_pick_well_name, s.final_qc_seq_pass
+, s.final_pick_qc_seq_pass, s.dna_status_pass
+ORDER BY s.design_gene_symbol, s.ep_pick_plate_name, s.ep_pick_well_name
+SQL_END
+
+    }
 
     return $sql_query;
 }
@@ -2168,7 +2846,7 @@ AND (
     )
 )
 AND s.final_pick_qc_seq_pass = true
-AND s.final_pick_cassette_resistance = 'neo' 
+AND s.final_pick_cassette_resistance = 'neo'
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
 , bsd_vectors AS (
@@ -2482,7 +3160,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'bsd' 
+AND s.final_pick_cassette_resistance = 'bsd'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3452,7 +4130,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'neo' 
+AND s.final_pick_cassette_resistance = 'neo'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -3496,7 +4174,7 @@ AND (
      )
     )
 )
-AND s.final_pick_cassette_resistance = 'bsd' 
+AND s.final_pick_cassette_resistance = 'bsd'
 AND s.dna_status_pass = true
 GROUP by pr.project_id, s.design_id, s.design_gene_id, s.design_gene_symbol
 )
@@ -4018,7 +4696,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id 
+INNER JOIN project_alleles pa ON pa.project_id = p.id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 WHERE p.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
@@ -4031,36 +4709,36 @@ FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 WHERE s.design_type IN (SELECT design_type FROM mutation_design_types WHERE mutation_id = pr.mutation_type)
 AND (
-    (pr.conditional IS NULL) 
-    OR 
+    (pr.conditional IS NULL)
+    OR
     (pr.conditional IS NOT NULL AND s.final_pick_cassette_conditional = pr.conditional)
 )
 AND (
-    (pr.promoter IS NULL) 
-    OR 
+    (pr.promoter IS NULL)
+    OR
     (pr.promoter IS NOT NULL AND pr.promoter = s.final_pick_cassette_promoter)
 )
 AND (
-    (pr.cre IS NULL) 
-    OR 
+    (pr.cre IS NULL)
+    OR
     (pr.cre IS NOT NULL AND s.final_pick_cassette_cre = pr.cre)
 )
 AND (
-    (pr.well_has_cre IS NULL) 
-    OR 
+    (pr.well_has_cre IS NULL)
+    OR
     (
-        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre') 
-        OR 
+        (pr.well_has_cre = true AND s.final_pick_recombinase_id = 'Cre')
+        OR
         (pr.well_has_cre = false AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
     )
 )
 AND (
-    (pr.well_has_no_recombinase IS NULL) 
-    OR 
-    (        
+    (pr.well_has_no_recombinase IS NULL)
+    OR
+    (
      pr.well_has_no_recombinase IS NOT NULL AND (
       (pr.well_has_no_recombinase = true AND (s.final_pick_recombinase_id = '' OR s.final_pick_recombinase_id IS NULL))
-       OR 
+       OR
       (pr.well_has_no_recombinase = false AND s.final_pick_recombinase_id IS NOT NULL)
      )
     )
@@ -4075,5 +4753,199 @@ SQL_END
     return $sql_query;
 }
 
+#----------- Crispr Vector SQL ------------
+#
+#  FIXME: these queries do not check well_accepted_override
+#
+#-------------------------------------------
+sub sql_count_st_crispr_vectors_single {
+    my ( $self, $sponsor_id ) = @_;
+
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_id=prc.crispr_id
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT count(distinct w.input_well_id)
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query;
+}
+
+sub sql_select_st_crispr_vectors_single {
+    my ( $self, $sponsor_id ) = @_;
+
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+-- Descendants by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_id=prc.crispr_id
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT distinct w.input_well_id
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query;
+}
+
+sub sql_count_st_crispr_vectors_paired {
+    my ( $self, $sponsor_id ) = @_;
+
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+-- Descendants by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_pair_id=cp.id
+and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT count(distinct w.input_well_id)
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query;
+}
+
+sub sql_select_st_crispr_vectors_paired {
+    my ( $self, $sponsor_id ) = @_;
+
+    my $species_id      = $self->species;
+
+my $sql_query =  <<"SQL_END";
+-- Descendants by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in (
+select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=gd.gene_id
+and cd.design_id=gd.design_id
+and cd.crispr_pair_id=cp.id
+and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
+and pro.process_id=prc.process_id
+)
+    UNION ALL
+-- Recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT distinct w.input_well_id
+FROM well_hierarchy w, wells, plates
+where w.output_well_id=wells.id
+and wells.plate_id=plates.id
+and plates.type_id='CRISPR_V'
+and wells.accepted='true'
+SQL_END
+return $sql_query;
+}
+
+sub sql_count_crispr_eps{
+    my ($self, $sponsor_id) = @_;
+    my $species_id = $self->species;
+
+my $sql_query = <<"SQL_END";
+select count(distinct s.design_gene_id) from projects pr, summaries s
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=s.design_gene_id
+and s.crispr_ep_well_accepted='true'
+SQL_END
+return $sql_query
+}
+
+sub sql_select_crispr_eps{
+    my ($self, $sponsor_id) = @_;
+    my $species_id = $self->species;
+
+my $sql_query = <<"SQL_END";
+select s.design_gene_id, s.design_gene_symbol, s.crispr_ep_well_cell_line, s.crispr_ep_well_nuclease
+from projects pr, summaries s
+where pr.sponsor_id='$sponsor_id'
+and pr.species_id='$species_id'
+and pr.gene_id=s.design_gene_id
+and s.crispr_ep_well_accepted='true'
+SQL_END
+return $sql_query
+}
 
 1;

@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'WellComment';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::WellComment not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::WellComment" );
 
     #note("Accessing the schema");

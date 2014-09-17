@@ -1,0 +1,2 @@
+id,left_crispr_id,right_crispr_id,spacer,off_target_summary
+19768,65619,65638,20,"{distance: ""5247"", left: ""22:47904567-47904589"", right: ""22:47909836-47909858"", type: ""Tail to tail"", id: ""65619A_65638B"", total_in_9k: ""3"", algorithm: ""bwa""}"

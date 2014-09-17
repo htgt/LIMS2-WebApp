@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.141';
+    $LIMS2::Test::VERSION = '0.243';
 }
 ## use critic
 
@@ -38,6 +38,13 @@ use Digest::MD5;
 use LIMS2::Model::Util::PgUserRole qw( db_name );
 use LIMS2::Model::Util::RefdataUpload;
 use File::Basename;
+
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $OFF } );
+    }
+}
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
 
@@ -186,7 +193,6 @@ sub _build_fixture_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
     my ( $fixture_directory, $new );
-
     # Fixture data processing
     if ( $args->{classname} ) {
         # Fixture data is derived from the caller's classname, i.e
@@ -221,7 +227,6 @@ sub _build_model {
 
         # Reference data (part of every test)
         load_static_files( $model, $mech );
-
         # Finally load the test data
         if ( $new ) {
             # A complete set of csv files, to be loaded in a specific order
@@ -262,6 +267,7 @@ sub load_static_files {
             CassetteFunction
             CellLine
             ColonyCountType
+            CrisprPrimerType
             CrisprLociType
             DesignCommentCategory
             DesignOligoType
@@ -270,6 +276,7 @@ sub load_static_files {
             GenotypingPrimerType
             GenotypingResultType
             MutationDesignType
+            Nuclease
             PlateType
             PrimerBandType
             ProcessType
@@ -294,7 +301,6 @@ sub load_static_files {
 
 sub load_dynamic_files {
     my ( $model, $mech, $path ) = @_;
-
     # Default path
     $path ||= '/static/test/fixtures';
 
@@ -303,6 +309,7 @@ sub load_dynamic_files {
     my @reference_tables = (
         qw(
             User
+            UserRole
             Design
             DesignOligo
             DesignOligoLocus
@@ -323,12 +330,16 @@ sub load_dynamic_files {
             ProcessRecombinase
             ProcessDesign
             ProcessCrispr
+            ProcessNuclease
+            ProcessGlobalArmShorteningDesign
             Plate
             Well
             ProcessInputWell
             ProcessOutputWell
             ProcessDesign
             ProcessRecombinase
+            Project
+            Summary
         )
     );
 

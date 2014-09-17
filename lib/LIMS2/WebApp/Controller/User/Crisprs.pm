@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.141';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.243';
 }
 ## use critic
 
@@ -11,8 +11,25 @@ use TryCatch;
 use LIMS2::Model::Constants qw( %UCSC_BLAT_DB );
 use YAML::Any;
 use namespace::autoclean;
+use Path::Class;
+use JSON;
+use List::MoreUtils qw( uniq );
+use Data::Dumper;
 
-BEGIN { extends 'Catalyst::Controller'; }
+use LIMS2::Model::Util::CreateDesign;
+use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
+use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent get_design_extent );
+
+BEGIN { extends 'Catalyst::Controller' };
+
+with qw(
+MooseX::Log::Log4perl
+WebAppCommon::Crispr::SubmitInterface
+);
+
+
+
+
 
 =head1 NAME
 
@@ -189,6 +206,68 @@ sub crispr_pair_ucsc_blat : PathPart('blat') Chained('crispr_pair') : Args(0) {
     return;
 }
 
+sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
+    my ( $self, $c, $crispr_group_id ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    my $crispr_group;
+    try {
+        $crispr_group = $c->model('Golgi')->retrieve_crispr_group( { id => $crispr_group_id } );
+    }
+    catch( LIMS2::Exception::Validation $e ) {
+        $c->stash( error_msg => "Please enter a valid crispr group id" );
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
+    }
+    catch( LIMS2::Exception::NotFound $e ) {
+        $c->stash( error_msg => "Crispr Group $crispr_group_id not found" );
+        return $c->go( 'Controller::User::DesignTargets', 'index' );
+    }
+
+    $c->log->debug( "Retrived crispr group: $crispr_group_id" );
+
+    $c->stash(
+        cg           => $crispr_group,
+        group_crisprs => [ map { $_->as_hash } $crispr_group->crispr_group_crisprs ],
+        species      => $species_id,
+    );
+
+    return;
+}
+
+=head2 view_crispr_pair
+
+=cut
+sub view_crispr_group : PathPart('view') Chained('crispr_group') Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $crispr_group = $c->stash->{cg};
+
+    $c->stash(
+        designs => [ $crispr_group->crispr_designs->all ],
+    );
+
+    return;
+}
+
+sub crispr_group_ucsc_blat : PathPart('blat') Chained('crispr_group') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $cg = $c->stash->{cg};
+    my $ucsc_db = $UCSC_BLAT_DB{ lc($c->stash->{species}) };
+    my $blat_seq = '>' . "Crispr_Group_" . $cg->id . "\n";
+    my $crispr_seq = join "", map { $_->seq } $cg->crisprs;
+    $blat_seq .= $crispr_seq;
+
+    $c->stash(
+        sequence => $blat_seq,
+        uscs_db  => $ucsc_db,
+    );
+
+    return;
+}
 
 =head for genoverse browser
 =cut
@@ -235,7 +314,6 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
 
     my $exon_coords = $exon_coords_rs->single;
     $c->stash(
-        'crispr_style'  => $c->request->params->{'crispr_style'},
         'genome'        => $c->request->params->{'genome'},
         'chromosome'    => $c->request->params->{'chromosome'},
         'gene_symbol'   => $c->request->params->{'symbol'},
@@ -243,10 +321,347 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
         'exon_id'       => $c->request->params->{'exon_id'},
         'exon_start'    => $exon_coords->chr_start,
         'exon_end'      => $exon_coords->chr_end,
+        'view_single'   => $c->request->params->{'view_single'},
+        'view_paired'   => $c->request->params->{'view_paired'},
     );
 
     return;
 }
+
+=head genoverse_crispr_primers_view
+Given
+
+Renders
+
+With
+
+=cut
+# Percritic can't see the return at the end of this sub
+
+## no critic (RequireFinalReturn)
+sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $genotyping_primer_extent;
+   try {
+        $genotyping_primer_extent = get_genotyping_primer_extent(
+            $c->model('Golgi')->schema,
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch ( LIMS2::Exception $e ){
+       $c->stash( error_msg => $e->as_string );
+    }
+    if (! $genotyping_primer_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a Gibson design with genotyping primers to display Genoverse view' );
+    }
+    else {
+#   my $exon_coords = $exon_coords_rs->single;
+        $c->stash(
+            'extent'  => $genotyping_primer_extent,
+            'context' => $c->request->params,
+        );
+    }
+
+return;
+}
+
+## use critic
+
+## no critic (RequireFinalReturn)
+sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $design_extent;
+   try {
+        $design_extent = get_design_extent(
+            $c->model('Golgi')->schema,
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch ( LIMS2::Exception $e ){
+       $c->stash( error_msg => $e->as_string );
+    }
+    if (! $design_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a design to display Genoverse view' );
+    }
+    else {
+#   my $exon_coords = $exon_coords_rs->single;
+        $c->stash(
+            'extent'  => $design_extent,
+            'context' => $c->request->params,
+        );
+    }
+
+    return;
+}
+
+sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    LIMS2::Exception->throw( 'This method is deprecated -- please use WGE for off targets.' );
+
+    my $job_id;
+
+    my %stash_data = (
+        template => 'user/crisprs/get_crisprs.tt',
+        exon_id  => $c->request->param('exon_id'),
+        gene_id  => $c->request->param('gene_id'),
+        species  => $c->session->{selected_species},
+    );
+
+    my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $c->session->{selected_species} } )->assembly_id;
+
+    my $params = {
+        species         => $c->session->{selected_species},
+        exon_id         => $c->request->param('exon_id'),
+        ensembl_gene_id => $c->request->param('ensembl_gene_id'),
+        gene_id         => $c->request->param('gene_id'),
+        build_id        => $DEFAULT_SPECIES_BUILD{ lc($c->session->{selected_species}) },
+        assembly_id     => $assembly,
+        user            => $c->user->name,
+    };
+
+    my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+        catalyst => $c,
+        model    => $c->model('Golgi'),
+    );
+
+    my $design_target  = $create_design_util->find_or_create_design_target( $params );
+
+    try {
+
+        my $cmd = [
+        "/nfs/team87/farm3_lims2_vms/software/Crisprs/paired_crisprs_lims2.sh",
+            $c->request->param('exon_id'),
+            $c->session->{selected_species},
+            $c->request->param('exon_id'),
+        ];
+
+        my $bsub_params = {
+            output_dir => dir( '/lustre/scratch109/sanger/team87/crispr_logs' ),
+            id         => $c->request->param('exon_id'),
+        };
+
+        #we need to provide $self->log for this to work
+        $job_id = $self->c_run_crispr_search_cmd( $cmd, $bsub_params );
+        $stash_data{job_id} = $job_id;
+    }
+    catch ($err) {
+            $stash_data{error_msg} = $err;
+    }
+
+    $c->stash( %stash_data );
+
+    return;
+}
+
+#crispr and pair importer should be served by the same method
+sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    return unless $c->request->param('import_crispr');
+
+    my @output;
+    try {
+        @output = $self->wge_importer(
+            $c,
+            'crispr'
+        );
+    }
+    catch ( $err ) {
+        $c->stash( error_msg => "$err" );
+        return;
+    }
+
+    if ( @output ) {
+        $c->stash( success_msg => "Successfully imported the following WGE ids:\n"
+                                . join ', ', map { $_->{wge_id} } @output );
+    }
+
+    $c->stash(
+        crispr => \@output,
+    );
+
+    return;
+}
+
+#identical but 1 line to the above function, should be merged
+sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    return unless $c->request->param('import_crispr');
+
+    my @output;
+    try {
+        @output = $self->wge_importer(
+            $c,
+            'pair'
+        );
+    }
+    catch ( $err ) {
+        $c->stash( error_msg => "$err" );
+        return;
+    }
+
+    if ( @output ) {
+        $c->stash( success_msg => "Successfully imported the following WGE pair ids:\n"
+                                . join ', ', map { $_->{wge_id} } @output );
+    }
+
+    $c->stash(
+        crispr => \@output,
+    );
+
+    return;
+}
+
+sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->log->debug( 'Attempting to import crispr group' );
+    $c->assert_user_roles( 'edit' );
+
+    my @gene_types = map { $_->id } $c->model('Golgi')->schema->resultset('GeneType')->all;
+    $c->stash->{gene_types} = \@gene_types;
+
+    return unless $c->request->param('import_crispr_group');
+
+    # Check the gene input here
+    # wge_importer will check wge_crispr_id fields
+    my $error;
+    my $gene_id = $c->req->param('gene_id');
+    my $type_id = $c->req->param('gene_type_id');
+    if( $gene_id and $type_id ){
+        if(my $regex = $GENE_TYPE_REGEX{ $type_id }){
+            unless($gene_id =~ $regex){
+                $error = "Gene ID $gene_id does not look like a $type_id ID";
+            }
+        }
+    }
+    else{
+        $error = "You must provide and gene ID and gene type ID for this crispr group";
+    }
+
+    if($error){
+        $c->stash->{error_msg} = $error;
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    my @output;
+    try {
+        @output = $self->wge_importer(
+            $c,
+            'group'
+        );
+    }
+    catch ( $err ) {
+        $c->stash( error_msg => "$err" );
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    if ( @output ) {
+        $c->stash->{success_msg} = "Successfully imported the following WGE ids: "
+                                  . join ', ', map { $_->{wge_id} } @output ;
+    }
+    else{
+        $c->log->debug("No output from wge_importer");
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    # Create array of { lims2 crispr ids and left_of_target boolean }
+    my @crisprs;
+    my @wge_left_ids = split /[,\s]+/, $c->req->param('wge_crispr_id_left');
+    $c->log->debug("left crispr IDs: @wge_left_ids");
+    foreach my $crispr_info (@output){
+        my $left_of_target = ( grep { $_ == $crispr_info->{wge_id} } @wge_left_ids ) ? 1 : 0 ;
+        push @crisprs, { crispr_id => $crispr_info->{lims2_id}, left_of_target => $left_of_target };
+    }
+
+    my $group;
+    try{
+        $group = $c->model('Golgi')->create_crispr_group({
+            gene_id      => $c->req->param('gene_id'),
+            gene_type_id => $c->req->param('gene_type_id'),
+            crisprs      => \@crisprs,
+        });
+    }
+    catch( $err ){
+        $c->stash( error_msg => "$err" );
+        _stash_crispr_group_importer_input($c);
+        return;
+    }
+
+    $c->stash(
+        group  => $group->as_hash,
+    );
+
+    return;
+}
+
+sub _stash_crispr_group_importer_input{
+    my ( $c ) = @_;
+
+    my @input_names = qw(gene_id gene_type_id wge_crispr_id_left wge_crispr_id_right);
+    foreach my $name (@input_names){
+        if(my $value = $c->req->param($name)){
+            $c->log->debug("stashing value \"$value\" param $name");
+            $c->stash->{$name} = $value;
+        }
+    }
+    return;
+}
+
+#generic function to import crisprs or pairs to avoid duplication
+sub wge_importer {
+    my ( $self, $c, $type ) = @_;
+
+    my ( $method, $user_input );
+    if ( $type =~ /^crispr/ ) {
+        $method     = 'import_wge_crisprs';
+        $user_input = $c->request->param('wge_crispr_id')
+            or die "No crispr IDs provided";
+    }
+    elsif ( $type =~ /^pair/ ) {
+        $method     = 'import_wge_pairs';
+        $user_input = $c->request->param('wge_crispr_pair_id')
+            or die "No crispr pair IDs provided";
+    }
+    elsif ( $type =~ /^group/ ){
+        $method     = 'import_wge_crisprs';
+        my $left_ids = $c->request->param('wge_crispr_id_left')
+            or die "No left of target crispr IDs provided";
+        my $right_ids = $c->request->param('wge_crispr_id_right')
+            or die "No right of target crispr IDs provided";
+        $user_input = join ",", $left_ids, $right_ids;
+    }
+    else {
+        LIMS2::Exception->throw( "Unknown importer type: $type" );
+    }
+
+    my $species = $c->session->{selected_species};
+    my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species }
+    )->assembly_id;
+
+    my @ids = split /[,\s]+/, $user_input;
+
+    my @output = $c->model('Golgi')->$method( \@ids, $species, $assembly );
+
+    return @output;
+}
+
+
 
 __PACKAGE__->meta->make_immutable;
 

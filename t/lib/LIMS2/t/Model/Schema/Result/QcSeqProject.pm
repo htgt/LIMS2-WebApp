@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'QcSeqProject';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::QcSeqProject not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::QcSeqProject" );
 
     #note("Accessing the schema");

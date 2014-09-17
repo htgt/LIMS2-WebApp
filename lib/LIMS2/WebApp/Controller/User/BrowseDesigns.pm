@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.141';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.243';
 }
 ## use critic
 
@@ -39,7 +39,7 @@ sub index : Path( '/user/browse_designs' ) : Args(0) {
     $c->stash(
         design_id => $c->request->param('design_id') || undef,
         gene_id   => $c->request->param('gene_id')   || undef,
-        design_types => $c->model('Golgi')->list_design_types
+        design_types => $c->model('Golgi')->c_list_design_types
     );
 
     return;
@@ -68,10 +68,11 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
     my $design_id  = $c->request->param('design_id');
+    $c->log->debug( "view design $design_id" );
 
     my $design;
     try {
-        $design = $c->model('Golgi')->retrieve_design( { id => $design_id, species => $species_id } );
+        $design = $c->model('Golgi')->c_retrieve_design( { id => $design_id, species => $species_id } );
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design id" );
@@ -86,10 +87,11 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
 
     my $ucsc_db = $UCSC_BLAT_DB{ lc( $species_id) };
 
-    $c->log->debug( "Design: " . pp $design_data );
+    my ( $crisprs, $crispr_pairs, $crispr_groups ) = crisprs_for_design( $c->model('Golgi'), $design );
+    my $design_attempt = $design->design_attempt;
 
-    my ( $crisprs, $crispr_pairs ) = crisprs_for_design( $c->model('Golgi'), $design );
-
+    my $group_ids = join ", ", map { $_->id } @$crispr_groups;
+    $c->log->debug("crispr groups found: $group_ids" );
     $c->stash(
         design         => $design_data,
         display_design => \@DISPLAY_DESIGN,
@@ -97,6 +99,8 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
         uscs_db        => $ucsc_db,
         crisprs        => [ map{ $_->as_hash } @{ $crisprs } ],
         crispr_pairs   => [ map{ $_->as_hash } @{ $crispr_pairs } ],
+        crispr_groups  => [ map{ $_->as_hash } @{ $crispr_groups } ],
+        design_attempt => $design_attempt ? $design_attempt->id : undef,
     );
 
     return;
@@ -117,7 +121,7 @@ sub design_ucsc_blat : Path( '/user/design_ucsc_blat' ) : Args(0) {
 
     my $design;
     try {
-        $design = $c->model('Golgi')->retrieve_design( { id => $design_id, species => $species_id } )->as_hash;
+        $design = $c->model('Golgi')->c_retrieve_design( { id => $design_id, species => $species_id } )->as_hash;
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid design id" );
@@ -152,7 +156,7 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
     my $gene_id    = $params->{ gene_id };
 
     #search the gene designs table. if we're generating a csv we need a much larger pagesize
-    my ( $gene_designs, $pager ) = $c->model('Golgi')->search_gene_designs( {
+    my ( $gene_designs, $pager ) = $c->model('Golgi')->c_search_gene_designs( {
         search_term => $gene_id,
         species     => $species_id,
         page        => $params->{ page },
@@ -218,10 +222,10 @@ sub list_designs : Path( '/user/list_designs' ) : Args(0) {
     my $method;
 
     if ( $params->{ list_candidate_designs } ) {
-        $method = 'list_candidate_designs_for_gene';
+        $method = 'c_list_candidate_designs_for_gene';
     }
     else {
-        $method = 'list_assigned_designs_for_gene';
+        $method = 'c_list_assigned_designs_for_gene';
     }
 
     my %search_params = ( species => $species_id );

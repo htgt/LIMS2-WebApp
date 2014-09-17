@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'MutationDesignType';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::MutationDesignType not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::MutationDesignType" );
 
     #note("Accessing the schema");

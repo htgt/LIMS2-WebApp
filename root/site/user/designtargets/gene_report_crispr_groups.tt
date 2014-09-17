@@ -1,0 +1,239 @@
+[% META title="Design Target Report"; META tab_name = "Designs" %]
+
+<div class="page-header">
+  <h1>Design Target Report
+  <small>off target algorithm: [% params.off_target_algorithm %],</small>
+  <small>assembly: [% assembly %],</small>
+  <small>build: [% build %]</small>
+  </h1>
+</div>
+
+[% crispr_col_span = 3 %]
+[% design_col_span = 1 %]
+
+<form method"POST" id="crispr_pick" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
+<div class="row">
+<div class="span12" >
+  <table id="design-target-report" class="table table-bordered table-condensed" style="max-width: none">
+    <thead>
+      <tr>
+        <th class="design-target group-header" colspan="2">Design Target</th>
+        <th class="design group-header" colspan="[% design_col_span %]">Vector Design</th>
+        <th class="crispr group-header" colspan="[% crispr_col_span %]">Crispr Group Guide RNA</th>
+      </tr>
+
+      <tr>
+        <th class="design-target">Gene</th>
+        <th class="design-target">Target Exon</th>
+        <th class="design">Design ID</th>
+        <th class="crispr">Crispr Group ID</th>
+        <th class="crispr">Crispr Details</th>
+        <th class="crispr">Pick Group</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      [%- FOR datum IN design_targets_data %]
+        [% dt_first_row = 1 %]
+        <tr>
+          <td rowspan="[% datum.dt_rowspan %]" class="design-target">
+            <p> [% datum.marker_symbol %] </p>
+            <p> [% datum.gene_id %] </p>
+            <p> <a href="[% datum.ensembl_gene_link %]" target="_blank" class="btn btn-mini">[% datum.ensembl_gene_id %]</a> </p>
+          </td>
+          <td rowspan="[% datum.dt_rowspan %]" class="design-target">
+            <p> <a href="[% c.uri_for( '/user/genoverse_browse',
+                { genome => assembly,
+                  chromosome => datum.chromosome,
+                  symbol => datum.marker_symbol,
+                  gene_id => datum.gene_id,
+                  exon_id => datum.ensembl_exon_id,
+                  view_single => 0,
+                  view_paired => 1 }
+                  )
+                  %]" target="_blank" class="btn btn-mini">[% datum.ensembl_exon_id %]</a> </p>
+            <p> Chromosome: <span class="label"> [% datum.chromosome %] </span> </p>
+            <p> Size: <span class="label"> [% datum.exon_size %] </span> </p>
+            <p> Rank: <span class="label"> [% datum.exon_rank %] </span> </p>
+            <p>
+              <a href="[% c.uri_for( '/user/create_gibson_design', {
+                  gene_id         => datum.gene_id,
+                  ensembl_gene_id => datum.ensembl_gene_id,
+                  exon_pick       => datum.ensembl_exon_id,
+                } ) %]"
+                target="_blank" class="btn btn-mini">Create Design</a> </p>
+            </p>
+          </td>
+
+          [% IF datum.designs.size == 0 && datum.crisprs.size == 0 %]
+          <!-- No designs or crisprs for design target, show empty cells -->
+            <td class="design" colspan="[% design_col_span %]"></td>
+            <td class="crispr" colspan="[% crispr_col_span %]"></td>
+            </tr>
+            [% NEXT %]
+          [% END %]
+
+          [% IF datum.designs.size == 0 %]
+          <!-- No designs for design target but we have crisprs, show all crisprs -->
+            <td class="design" rowspan="[% datum.design_rowspan %]" colspan="[% design_col_span %]"></td>
+            [% FOR crispr_group IN datum.crisprs %]
+              [% IF dt_first_row == 0 %]<tr>[% END %]
+              [% INCLUDE display_crisprs
+                crispr_group = crispr_group
+                design      = undef
+              %]
+              [% dt_first_row = 0 IF dt_first_row == 1 %]
+              </tr>
+            [% END %]
+          [% ELSE %]
+            <!-- We have designs and possibly crispr pairs, for each design show all crispr pairs -->
+            [% FOR design IN datum.designs %]
+              [% design_first_row = 1 %]
+              [% IF dt_first_row == 0 %]<tr>[% END %]
+              <td rowspan="[% datum.design_rowspan %]" class="design">
+                <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]">
+                  [% design.design_id %]
+                </a>
+                <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+              </td>
+              [% IF datum.crisprs.size == 0 %]
+                <td class="crispr" colspan="[% crispr_col_span %]"></td>
+                </tr>
+                [% dt_first_row = 0 IF dt_first_row == 1 %]
+              [% ELSE %]
+                [% FOR crispr_group IN datum.crisprs %]
+                  [% UNLESS design_first_row %]<tr>[% END %]
+                  [% INCLUDE display_crisprs
+                    crispr_group = crispr_group
+                    design      = design
+                  %]
+                  </tr>
+                  [% design_first_row = 0 IF design_first_row == 1 %]
+                  [% dt_first_row = 0 IF dt_first_row == 1 %]
+                [% END %]
+              [% END %]
+            [% END %]
+          [% END %]
+      [%- END %]
+    </tbody>
+  </table>
+</div>
+</div>
+
+<div class="row">
+  <div class="span3">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn">
+    <i class="icon-hand-left"></i> Back to search </a>
+  </div>
+  <div class="span3 offset6" align="right">
+    <input type="hidden"  name="crispr_types" value="[% params.crispr_types %]" />
+    [% IF params.filter %]
+      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" class="btn btn-info">
+        Show All Crisprs</a>
+    [% ELSE %]
+      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '1' } ) %]" class="btn btn-info">
+        Filter Crisprs</a>
+    [% END %]
+    <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" />
+  </div>
+</div>
+
+</form>
+
+<div class="row">
+
+  <div class="span7 offset2 well">
+    <h5 align="center"><strong>Search Terms</strong></h5>
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>[% IF species == 'Human' %]HGNC IDs[% ELSE %]MGI IDs[% END %]</th>
+          <th>Ensembl Gene IDs</th>
+          <th>Marker Symbols</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td>[% search_terms.gene_ids.join(', ') %]</td>
+          <td>[% search_terms.ensembl_gene_ids.join(', ') %]</td>
+          <td>[% search_terms.marker_symbols.join(', ') %]</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+<script type="text/javascript">
+
+$('.crispr-info').popover();
+
+</script>
+
+
+[% BLOCK display_crisprs %]
+  <td class="crispr">
+    <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'view' ) %]" target="_blank">
+      [% crispr_group.id %]
+    </a>
+    <br>
+    Group Target: [% crispr_group.gene_id %]
+    <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'blat' ) %]" target="_blank" class="btn btn-mini btn-block">
+    blat
+    </a>
+  </td>
+  <td class="crispr">
+    <table>
+    [% FOREACH crispr IN crispr_group.crispr_details %]
+      <tr>
+        <td class="crispr">
+          Crispr ID:
+          <a href="[% c.uri_for( '/user/crispr' , crispr.crispr_id , 'view' ) %]" target="_blank">
+          [% crispr.crispr_id %]
+          </a>
+          [% IF crispr.wge_id %]
+          <br/>
+          (WGE: [% crispr.wge_id %])
+          [% END %]
+          <div class="btn crispr-info btn-mini btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr.seq, locus = crispr.locus %]" data-animation="false" title="Crispr Info">Info</div>
+        </td>
+        <td class="crispr">
+          <table>
+            <tr>
+              <th>Mismatch</th>
+              [% FOREACH num IN [ 0 .. 5 ] %]<th>[% num %]</th>[% END %]
+            </tr>
+            <tr>
+              <td>Freq</td>
+              [% FOREACH num IN [ 0 .. 5 ] %]<td>[% crispr.off_target.$num %]</td>[% END %]
+            </tr>
+          </table>
+        </td>
+      </tr>
+    [% END %]
+    </table>
+  </td>
+
+  <td class="crispr">
+    [% IF design && crispr_group.id %]
+      [% linked = 0 %]
+      [% FOR crispr_id IN design.linked_crispr_ids %]
+        <!-- we have a crispr already linked to a design -->
+        [% IF crispr_group.id == crispr_id %]
+          [% linked = 1 %]
+          <input type="checkbox" name="crispr_group_pick" value="[% crispr_group.id %]:[% design.design_id %]" checked />
+          <input type="hidden"  name="design_crispr_group_link" value="[% crispr_group.id %]:[% design.design_id %]" />
+        [% END %]
+      [% END %]
+
+      [% IF linked == 0 %]
+        <input type="checkbox" name="crispr_group_pick" value="[% crispr_group.id %]:[% design.design_id %]" />
+      [% END %]
+    [% END %]
+  </td>
+[% END %]
+
+[% BLOCK crispr_info %]
+  <p><strong>Sequence:</strong> [% seq %] </p>
+  <p><strong>Locus:</strong> [% locus %] </p>
+[% END %]

@@ -20,6 +20,9 @@
             <li>
               <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
+            </li>
           </ul>
         </li>
 
@@ -41,6 +44,27 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
+            </li>
+          </ul>
+        </li>
+
+        <li class="dropdown[% IF template.tab_name == "Crisprs" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Crisprs <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_importer' ) %]">Import Crispr From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_pair_importer' ) %]">Import Crispr Pair From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
             </li>
           </ul>
         </li>
@@ -76,7 +100,7 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/browse_templates' ) %]">Browse QC Templates</a>
-            </li>            
+            </li>
             [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
@@ -94,7 +118,20 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
-            </li>                
+            </li>
+
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/es_qc_runs' ) %]">CRISPR QC Results</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/gene_crispr_es_qc' ) %]">Gene CRISPR ES QC</a>
+            </li>
+
             [% END %]
           </ul>
         </li>
@@ -110,7 +147,16 @@
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload Plate</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/dna_concentration_upload' ) %]">Upload DNA Concentrations</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/dna_quality_update' ) %]">Update DNA EGel Status</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
@@ -120,13 +166,12 @@
               <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
             </li>
             <li class="divider"></li>
-
+<!--
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/GenesToElectroporate' ) %]">
                 Genes To Electroporate
               </a>
             </li>
-
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
                 First Allele Electroporation Detail
@@ -137,17 +182,24 @@
                 Second Allele Electroporation Detail
               </a>
             </li>
+-->
             <li>
-              <a href="[% c.uri_for( '/user/report/sync/EPSummary' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
                 Electroporation Summary
               </a>
             </li>
-<!--        <li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPDetail' ) %]">
+                Crispr Electroporation Detail
+              </a>
+            </li>
+<!--
+            <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
                 Electroporation Production Summary
               </a>
             </li>
--->       
+-->
             <li>
               <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionSummary' ) %]">
                 Cre Knockin ES Distribution Summary
@@ -158,6 +210,15 @@
                 Cre Knockin ES Distribution Genes
               </a>
             </li>
+
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]">
+                Well Genotyping Info
+              </a>
+            </li>
+
           </ul>
         </li>
       </ul>

@@ -53,12 +53,21 @@
                   symbol => datum.marker_symbol,
                   gene_id => datum.gene_id,
                   exon_id => datum.ensembl_exon_id,
-                  crispr_style => "pairs" }
+                  view_single => 0,
+                  view_paired => 1 }
                   )
                   %]" target="_blank" class="btn btn-mini">[% datum.ensembl_exon_id %]</a> </p>
             <p> Chromosome: <span class="label"> [% datum.chromosome %] </span> </p>
             <p> Size: <span class="label"> [% datum.exon_size %] </span> </p>
             <p> Rank: <span class="label"> [% datum.exon_rank %] </span> </p>
+            <p>
+              <a href="[% c.uri_for( '/user/create_gibson_design', {
+                  gene_id         => datum.gene_id,
+                  ensembl_gene_id => datum.ensembl_gene_id,
+                  exon_pick       => datum.ensembl_exon_id,
+                } ) %]"
+                target="_blank" class="btn btn-mini">Create Design</a> </p>
+            </p>
           </td>
 
           <!-- No designs or crisprs for design target, show empty cells -->
@@ -123,6 +132,13 @@
   </div>
   <div class="span3 offset6" align="right">
     <input type="hidden"  name="crispr_types" value="[% params.crispr_types %]" />
+    [% IF params.filter %]
+      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" class="btn btn-info">
+        Show All Crisprs</a>
+    [% ELSE %]
+      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '1' } ) %]" class="btn btn-info">
+        Filter Crisprs</a>
+    [% END %]
     <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" />
   </div>
 </div>
@@ -175,6 +191,10 @@ $('.crispr-info').popover();
     <a href="[% c.uri_for( '/user/crispr' , crispr_pair.left_crispr_id , 'view' ) %]" target="_blank">
       [% crispr_pair.left_crispr_id %]
     </a>
+    [% IF crispr_pair.left_crispr_wge_id %]
+    <br/>
+    (WGE: [% crispr_pair.left_crispr_wge_id %])
+    [% END %]
     <div class="btn crispr-info btn-mini btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr_pair.left_crispr_seq, locus = crispr_pair.left_crispr_locus %]" data-animation="false" title="Crispr Info">Info</div>
   </td>
   <td class="crispr">
@@ -193,6 +213,10 @@ $('.crispr-info').popover();
     <a href="[% c.uri_for( '/user/crispr' , crispr_pair.right_crispr_id , 'view' ) %]" target="_blank">
       [% crispr_pair.right_crispr_id %]
     </a>
+    [% IF crispr_pair.right_crispr_wge_id %]
+    <br/>
+    (WGE: [% crispr_pair.right_crispr_wge_id %])
+    [% END %]
     <div class="btn crispr-info btn-mini btn-info btn-block" data-toggle="popover" data-animation="false" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr_pair.right_crispr_seq, locus = crispr_pair.right_crispr_locus %]" title="Crispr Info">Info</div>
   </td>
   <td class="crispr">

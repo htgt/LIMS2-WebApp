@@ -1,0 +1,98 @@
+<td>[% row.well_name %]</td>
+[% IF row.es_qc_well_id %]
+    <td>[% row.es_qc_well_id %]</td>
+[% END %]
+[% IF row.gene %]
+    <td>[% row.gene %]</td>
+[% END %]
+
+<td>
+  [% IF row.is_crispr_pair %]
+    <a href="[% c.uri_for( '/user/crispr_pair' , row.crispr_id , 'view' ) %]" target="_blank">
+      [% row.crispr_id %]
+    </a>
+  [% ELSE %]
+    <a href="[% c.uri_for( '/user/crispr' , row.crispr_id , 'view' ) %]" target="_blank">
+      [% row.crispr_id %]
+    </a>
+  [% END %]
+</td>
+
+<td>
+    [% IF row.alignment.forward_full %]
+        <div class="forward_full" style="display:none">[% row.alignment.forward_full %]</div>
+    [% END %]
+    [% IF row.alignment.reverse_full %]
+        <div class="reverse_full" style="display:none">[% row.alignment.reverse_full %]</div>
+    [% END %]
+
+    [% INCLUDE 'crispr_qc_alignment.tt' qc = row %]
+
+    [% IF row.fwd_read or row.rev_read %]
+        <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+    [% END %]
+</td>
+
+<td>
+  [% IF row.has_vcf_file %]
+    <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
+  [% END %]
+  <br>
+  [% IF row.has_vep_file %]
+    <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vep_file' ) %]" target="_blank" >vep_file</a>
+  [% END %]
+  [% IF row.has_non_merged_vcf_file %]
+    <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'non_merged_vcf_file' ) %]" target="_blank" >non_merged_vcf_file</a>
+  [% END %]
+</td>
+
+<td>
+  [% IF row.has_ref_aa_file %]
+    <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'ref' ) %]" target="_blank" >reference</a>
+  [% END %]
+  <br>
+  [% IF row.has_mut_aa_file %]
+    <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'mut' ) %]" target="_blank" >mutated</a>
+  [% END %]
+
+</td>
+
+<td>
+  [% IF row.fwd_read %]
+    <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'fwd' ) %]" target="_blank" >fwd_read</a>
+  [% END %]
+  <br>
+  [% IF row.rev_read %]
+    <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'rev' ) %]" target="_blank" >rev_read</a>
+  [% END %]
+</td>
+
+<td>
+    [% FOR dir IN row.deletions.keys %]
+        [% NEXT UNLESS row.deletions.$dir.keys.size > 0 %]
+        [% dir %] deletion:<br/>
+            [% FOR loc IN row.deletions.$dir.keys.sort %]
+                [% loc %]: <span class="indel_sequence"> [% row.deletions.$dir.$loc.seq %]([% row.deletions.$dir.$loc.length %])</span> <br/>
+            [% END %]
+    [% END %]
+</td>
+
+<td>
+    [% FOR dir IN row.insertions.keys %]
+        [% NEXT UNLESS row.insertions.$dir.keys.size > 0 %]
+        [% dir %] insertion:<br/>
+            [% FOR loc IN row.insertions.$dir.keys.sort %]
+                [% loc %]: <span class="indel_sequence"> [% row.insertions.$dir.$loc.seq %]([% row.insertions.$dir.$loc.length %])</span> <br/>
+            [% END %]
+    [% END %]
+</td>
+
+[% IF accept %]
+    <td>
+        [% IF row.show_checkbox %]
+            <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
+        [% ELSE %]
+            Accepted in another run
+        [% END %]
+    </td>
+[% END %]

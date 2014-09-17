@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::ProcessTree;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.141';
+    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.243';
 }
 ## use critic
 
@@ -353,6 +353,7 @@ GROUP BY w.output_well_id, pd.design_id,"original_well", gd.gene_id;
 QUERY_END
 }
 
+# TODO will not work with short arm designs
 sub get_design_data_for_well_id_list {
     my $self = shift;
     my $wells = shift;
@@ -386,11 +387,124 @@ sub get_design_data_for_well_id_list {
     return $result_hash;
 }
 
+sub query_short_arm_ancestors_by_well_list {
+    my $self = shift;
+    my $well_array_ref = shift;
+
+    my $well_list = join q{,}, @{$well_array_ref};
+
+    return << "QUERY_END";
+-- Ancestors by well list
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+-- Non-recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     WHERE pr_out.well_id IN (
+        $well_list
+     )        
+     UNION ALL
+-- Recursive term
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+)
+SELECT w.output_well_id, pd.design_id, w.path[1] "original_well", gd.gene_id
+FROM well_hierarchy w, process_global_arm_shortening_design pd, gene_design gd
+WHERE w.process_id = pd.process_id
+AND pd.design_id = gd.design_id
+GROUP BY w.output_well_id, pd.design_id,"original_well", gd.gene_id;
+QUERY_END
+}
+
+# This will only bring back short arm designs
+sub get_short_arm_design_data_for_well_id_list {
+    my $self = shift;
+    my $wells = shift;
+
+
+    my $sql_query = $self->query_short_arm_ancestors_by_well_list( $wells );
+    my $sql_result = $self->schema->storage->dbh_do(
+    sub {
+         my ( $storage, $dbh ) = @_;
+         my $sth = $dbh->prepare_cached( $sql_query );
+         $sth->execute();
+         $sth->fetchall_arrayref();
+        }
+    );
+
+    my $result_hash;
+
+    foreach my $result ( @{$sql_result} ) {
+        $result_hash->{$result->[2]} = {
+            'design_well_id' => $result->[0],
+            'design_id'      => $result->[1],
+            'gene_id'        => $result->[3],
+        }
+    }
+    # The format of the resulting hash is:
+    # well_id => {
+    # design_well_id => integer_id,
+    # design_id => integer_id,
+    # gene_id => accession_id
+    # }
+    return $result_hash;
+}
+
 sub get_ancestors_for_well_id_list {
     my $self = shift;
     my $wells = shift;
 
     my $sql_query = $self->query_ancestors_by_well_id_list( $wells );
+    my $sql_result =  $self->schema->storage->dbh_do(
+    sub {
+         my ( $storage, $dbh ) = @_;
+         my $sth = $dbh->prepare_cached( $sql_query );
+         $sth->execute();
+         $sth->fetchall_arrayref();
+        }
+    );
+    return $sql_result;
+}
+sub query_descendants_by_well_id_list {
+    my $self = shift;
+    my $well_array_ref = shift;
+
+    my $well_list = join q{,}, @{$well_array_ref};
+
+    return << "QUERY_END";
+-- Descendants by well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+    -- Non-recursive term
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id in ( $well_list ) 
+    UNION ALL
+-- Recursive term    
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT distinct w.path
+FROM well_hierarchy w 
+--WHERE w.output_well_id NOT IN (SELECT well_id FROM process_input_well) ;
+LEFT OUTER JOIN process_input_well piw ON piw.well_id = w.output_well_id
+WHERE piw.well_id IS NULL
+QUERY_END
+}
+
+sub get_descendants_for_well_id_list {
+    my $self = shift;
+    my $wells = shift;
+
+    my $sql_query = $self->query_descendants_by_well_id_list( $wells );
     my $sql_result =  $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;

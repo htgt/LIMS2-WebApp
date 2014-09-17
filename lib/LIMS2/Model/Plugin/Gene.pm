@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.141';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.243';
 }
 ## use critic
 
@@ -14,6 +14,8 @@ use Data::Dump 'pp';
 use namespace::autoclean;
 use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util::GeneSearch qw( retrieve_solr_gene retrieve_ensembl_gene normalize_solr_result );
+use WebAppCommon::Util::FindGene qw( c_find_gene c_autocomplete_gene);
+use TryCatch;
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -52,8 +54,24 @@ sub search_genes {
             @{ $self->solr_query( $validated_params->{search_term} ) };
     }
     elsif ( $species eq 'Human' ) {
+     # Massive fudge to make this work while search_genes rewrite is in progress
+     try{
         my $genes = $self->retrieve_gene( $validated_params ) || [];
-        @genes = @{ $genes };
+        DEBUG "Genes retrieved: ". pp $genes;
+        if (ref($genes) eq "ARRAY"){
+            @genes = @{ $genes };
+        }
+        elsif(ref($genes) eq "HASH"){
+            push @genes, $genes;
+        }
+        else{
+            die "Don't know what to do with return value from retrieve_gene: $genes";
+        }
+      }
+      catch($err){
+        DEBUG "retrieve_gene failed: $err";
+        return \@genes;
+      }
     }
     else {
         LIMS2::Exception::Implementation->throw( "search_genes() for species '$species' not implemented" );
@@ -93,12 +111,14 @@ sub check_for_local_symbol {
     if ( $local_id =~ m/\A CGI /xgms ) {
         push @not_genes, {
             'gene_id' => $local_id,
-            'gene_symbol' => 'CPG_island' };
+            'gene_symbol' => 'CPG_island',
+            'ensembl_id' => '' };
     }
     elsif ( $local_id =~ m/\A LBL /xgms ) {
         push @not_genes, {
             'gene_id' => $local_id,
-            'gene_symbol' => 'enhancer' };
+            'gene_symbol' => 'enhancer',
+            'ensembl_id' => '' };
     }
 
     return \@not_genes;
@@ -107,7 +127,8 @@ sub check_for_local_symbol {
 sub pspec_retrieve_gene {
     return {
         species     => { validate => 'existing_species' },
-        search_term => { validate => 'non_empty_string' }
+        search_term => { validate => 'non_empty_string' },
+        show_all    => { optional => 1 }
     }
 }
 
@@ -141,6 +162,85 @@ sub retrieve_gene {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+# argument is an hash with species and search term
+# returns an hashref with gene_id, gene_symbol and ensembl_id
+# if gene not found, the gene_id returned is the search_term and the gene_symbol is 'unknown'
+# ensembl_id might be an empty string
+sub find_gene {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+
+    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+
+    # check species, if not mouse or human, die
+    my $species = $validated_params->{species};
+    LIMS2::Exception::Implementation->throw( "find_gene() for species '$species' not implemented" )
+    unless ($species eq 'Mouse' || $species eq 'Human');
+
+    # search for a gene in the solr index
+    my $gene;
+    try { $gene = c_find_gene( $validated_params ) };
+
+    $self->throw( Implementation => "find_gene() failed to reach solr" )
+    unless defined($gene);
+
+    # if solr did not find a gene, search for local symbol
+    my $not_gene;
+    if ($gene->{gene_symbol} eq 'unknown') {
+        $not_gene = $self->check_for_local_symbol( $validated_params->{search_term} );
+        $not_gene = $not_gene->[0];
+    }
+
+    # return local symbol if exists, else return solr gene result
+    $not_gene ? return $not_gene : return $gene;
+
+}
+## use critic
+
+# wrapper around find_gene to find arrays of genes at a time.
+# argument is a species and an arrayref of search terms.
+# returns an hashref, where the keys are the search_terms and the
+# values are hashrefs containing the gene_id, gene_symbol and ensembl_id
+sub find_genes {
+    my ( $self, $species, $serch_terms ) = @_;
+
+    my %result;
+
+    foreach my $search_term ( @{$serch_terms} ) {
+
+        $result{$search_term} = $self->find_gene({
+                        species => $species,
+                        search_term => $search_term
+                    });
+    }
+
+    return \%result;
+
+}
+
+# Need as input an hash with species and search_term.
+# As output gives back an array of hashes (with gene_id, gene_symbol and ensembl_id)
+# for the genes that contain the search_term.
+sub autocomplete_gene {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+
+    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+
+    # check species, if not mouse or human, die
+    my $species = $validated_params->{species};
+    LIMS2::Exception::Implementation->throw( "find_gene() for species '$species' not implemented" )
+    unless ($species eq 'Mouse' || $species eq 'Human');
+
+    # search for a gene in the solr index
+    my @genes = c_autocomplete_gene( $validated_params );
+
+    return @genes;
+
+}
 
 1;
 

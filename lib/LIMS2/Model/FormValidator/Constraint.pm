@@ -1,129 +1,62 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.141';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.243';
 }
 ## use critic
 
 
-use strict;
+=head1 NAME
+
+LIMS2::Model::FormValidator::Constraint
+
+=head1 DESCRIPTION
+
+Subclass of WebappCommon::FormValidator::Constraint, where the common constraints can be found.
+Add LIMS2 specific constraints to this file.
+Add constraints that may be used by both LIMS2 and WGE to WebappCommon::FormValidator::Constraint.
+
+=cut
+
 use warnings FATAL => 'all';
 
-use DateTime::Format::ISO8601;
-use Try::Tiny;
-use URI;
-use Text::CSV;
-use Const::Fast;
-use JSON qw( decode_json );
-use Scalar::Util qw( openhandle );
+use Moose;
+use namespace::autoclean;
 
-# See http://www.postgresql.org/docs/9.0/static/datatype-numeric.html
-const my $MIN_INT => -2147483648;
-const my $MAX_INT =>  2147483647;
+extends 'WebAppCommon::FormValidator::Constraint';
 
-sub in_set {
-    my @args = @_;
-
-    my $values;
-
-    if ( @args == 1 and ref $args[0] eq 'ARRAY' ) {
-        $values = $args[0];
-    }
-    else {
-        $values = \@args;
-    }
-
-    my %is_in_set = map { $_ => 1 } @{$values};
-
-    return sub {
-        $is_in_set{ shift() };
-    };
-}
-
-sub in_resultset {
-    my ( $model, $resultset_name, $column_name ) = @_;
-    return in_set( [ map { $_->$column_name } $model->schema->resultset($resultset_name)->all ] );
-}
-
-sub existing_row {
-    my ( $model, $resultset_name, $column_name ) = @_;
-
-    return sub {
-        my $value = shift;
-        $model->schema->resultset($resultset_name)->search_rs( { $column_name => $value } )->count > 0;
-    };
-}
+has '+model' => (
+    isa => 'LIMS2::Model',
+);
 
 sub eng_seq_of_type {
-    my ( $model, $type ) = @_;
-    my $eng_seqs = $model->eng_seq_builder->list_seqs( type => $type );
-    return in_set( [ map { $_->{name} } @{$eng_seqs} ] );
-}
-
-sub regexp_matches {
-    my $match = shift;
-    return sub {
-        shift =~ m/$match/;
-    };
-}
-
-sub date_time {
-    return sub {
-        my $str = shift;
-        try {
-            DateTime::Format::ISO8601->parse_datetime($str);
-        };
-    };
-}
-
-sub strand {
-    return in_set( 1, -1 );
-}
-
-sub phase {
-    return in_set( 0, 1, 2, -1 );
-}
-
-sub boolean_string {
-    return in_set( 'true', 'false' );
-}
-
-sub boolean {
-    return in_set( 0, 1 );
+    my ( $self, $type ) = @_;
+    my $eng_seqs = $self->model->eng_seq_builder->list_seqs( type => $type );
+    return $self->in_set( [ map { $_->{name} } @{$eng_seqs} ] );
 }
 
 sub passorfail {
-    return in_set( 'pass', 'passb', 'fail' );
+    return shift->in_set( 'pass', 'passb', 'fail' );
 }
 
 sub validated_by_annotation {
-    return in_set( 'yes', 'no', 'maybe', 'not done' );
+    return shift->in_set( 'yes', 'no', 'maybe', 'not done' );
 }
 
 sub genotyping_result_text {
-    return in_set( 'potential', 'present', 'absent', 'pass', 'passb', 'fail', 'fa', 'na', 'nd', 'lrpcr_pass' );
+    return shift->in_set( 'potential', 'present', 'absent', 'pass', 'passb', 'fail', 'fa', 'na', 'nd', 'lrpcr_pass' );
 }
 
 sub chromosome_fail_text {
-    return in_set( '0', '1', '2', '3', '4', 'Y' );
+    return shift->in_set( '0', '1', '2', '3', '4', 'Y' );
 }
 
 sub dna_seq {
-    return regexp_matches(qr/^[ATGCN]+$/);
-}
-
-sub user_name {
-    return regexp_matches(qr/^\w+[\w\@\.\-\:]+$/);
-}
-
-sub integer {
-    return sub {
-        my $val = shift;
-        return $val =~ qr/^\d+$/ && $val >= $MIN_INT && $val <= $MAX_INT;
-    }
+    return shift->regexp_matches(qr/^[ATGCN]+$/);
 }
 
 sub confidence_float {
+    my $self = shift;
     return sub {
         my $val = shift;
         return $val =~ qr/^[<>]?\s*\d+(\.\d+)?$/ ;
@@ -131,355 +64,197 @@ sub confidence_float {
 }
 
 sub copy_float {
+    my $self = shift;
     return sub {
         my $val = shift;
         return $val =~ qr/^\d+(\.\d+)?$/ ;
     }
 }
 
-sub alphanumeric_string {
-    return regexp_matches(qr/^\w+$/);
-}
-
-sub non_empty_string {
-    return regexp_matches(qr/\S+/);
-}
-
-sub string_min_length_3 {
-    return regexp_matches(qr/\S{3}/);
+sub signed_float {
+    return shift->regexp_matches(qr/^[-]?\d+(\.\d+)?$/);
 }
 
 sub bac_library {
-    return regexp_matches(qr/^\w+$/);
+    return shift->regexp_matches(qr/^\w+$/);
 }
 
 sub bac_name {
-    return regexp_matches(qr/^[\w()-]+$/);
-}
-
-sub mgi_accession_id {
-    return regexp_matches(qr/^MGI:\d+$/);
-}
-
-sub ensembl_gene_id {
-    return regexp_matches(qr/^ENS[A-Z]*G\d+$/);
-}
-
-sub ensembl_exon_id {
-    return regexp_matches(qr/^ENS[A-Z]*E\d+$/);
+    return shift->regexp_matches(qr/^[\w()-]+$/);
 }
 
 # More restrictive values  for Cre Bac recombineering
 sub cre_bac_recom_bac_library {
-    return in_set('black6');
+    return shift->in_set('black6');
 }
 
 sub cre_bac_recom_bac_name {
-    return regexp_matches(qr/^RP2[34]/);
+    return shift->regexp_matches(qr/^RP2[34]/);
 }
 
 sub cre_bac_recom_cassette {
-    return in_set('pGTK_En2_eGFPo_T2A_CreERT_Kan');
+    return shift->in_set('pGTK_En2_eGFPo_T2A_CreERT_Kan');
 }
 
 sub cre_bac_recom_backbone {
-    return in_set( 'pBACe3.6 (RP23) with HPRT3-9 without PUC Linker',
+    return shift->in_set( 'pBACe3.6 (RP23) with HPRT3-9 without PUC Linker',
         'pTARBAC1(RP24) with HPRT3-9 without PUC Linker' );
 }
 
 sub plate_name {
-    return regexp_matches(qr/^[A-Za-z0-9_]+$/);
+    return shift->regexp_matches(qr/^[A-Za-z0-9_]+$/);
 }
 
 sub well_name {
-    return regexp_matches(qr/^[A-O](0[1-9]|1[0-9]|2[0-4])$/);
+    return shift->regexp_matches(qr/^[A-O](0[1-9]|1[0-9]|2[0-4])$/);
+}
+
+sub plate_barcode {
+    return shift->regexp_matches(qr/^[A-Za-z0-9]+$/);
+}
+
+sub well_barcode {
+    return shift->regexp_matches(qr/^[A-Za-z0-9]+$/);
 }
 
 sub bac_plate {
-    return regexp_matches(qr/^[abcd]$/);
-}
-
-sub existing_species {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Species', 'id' );
-}
-
-sub existing_assembly {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Assembly', 'id' );
+    return shift->regexp_matches(qr/^[abcd]$/);
 }
 
 sub existing_bac_library {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'BacLibrary', 'id' );
+    return shift->in_resultset( 'BacLibrary', 'id' );
 }
 
 sub existing_cell_line {
-	my ( $class, $model ) = @_;
-	return in_resultset( $model, 'CellLine', 'name' );
-}
-
-sub existing_chromosome {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Chromosome', 'name' );
-}
-
-sub existing_design_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignType', 'id' );
-}
-
-sub existing_design_comment_category {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignCommentCategory', 'name' );
-}
-
-sub existing_design_id {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Design', 'id' );
-}
-
-sub existing_design_oligo_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'DesignOligoType', 'id' );
+	return shift->in_resultset( 'CellLine', 'name' );
 }
 
 sub existing_plate_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'PlateType', 'id' );
+    return shift->in_resultset( 'PlateType', 'id' );
 }
 
 sub existing_process_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'ProcessType', 'id' );
+    return shift->in_resultset( 'ProcessType', 'id' );
 }
 
 sub existing_recombinase {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Recombinase', 'id');
+    return shift->in_resultset( 'Recombinase', 'id');
 }
 
 sub existing_recombineering_result_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'RecombineeringResultType', 'id' );
+    return shift->in_resultset( 'RecombineeringResultType', 'id' );
 }
 
 sub existing_colony_type {
-    my ($class, $model) = @_;
-    return in_resultset ( $model, 'ColonyCountType', 'id')
+    return shift->in_resultset ( 'ColonyCountType', 'id')
 }
 
 sub existing_primer_band_type {
-    my ($class, $model) = @_;
-    return in_resultset ( $model, 'PrimerBandType', 'id')
+    return shift->in_resultset ( 'PrimerBandType', 'id')
 }
 
 sub recombineering_result {
-    return in_set( 'pass', 'fail', 'weak' );
+    return shift->in_set( 'pass', 'fail', 'weak' );
 }
 
 sub dna_quality {
-    return in_set( qw( L M ML S U ) );
-}
-
-sub existing_genotyping_primer_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'GenotypingPrimerType', 'id' );
+    return shift->in_set( qw( L M ML S U ) );
 }
 
 sub existing_genotyping_result_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'GenotypingResultType', 'id' );
-}
-
-sub existing_user {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'User', 'name' );
-}
-
-sub existing_role {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Role', 'name' );
+    return shift->in_resultset( 'GenotypingResultType', 'id' );
 }
 
 sub existing_plate_name {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'Plate', 'name' );
+    return shift->existing_row( 'Plate', 'name' );
 }
 
 sub existing_qc_run_id {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'QcRun', 'id' );
+    return shift->existing_row( 'QcRun', 'id' );
 }
 
 sub existing_qc_seq_project_id {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'QcSeqProject', 'id' );
+    return shift->existing_row( 'QcSeqProject', 'id' );
 }
 
 sub existing_qc_template_id {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'QcTemplate', 'id' );
+    return shift->existing_row( 'QcTemplate', 'id' );
 }
 
 sub existing_qc_template_name {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'QcTemplate', 'name' );
+    return shift->existing_row( 'QcTemplate', 'name' );
 }
 
 sub existing_qc_seq_read_id {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'QcSeqRead', 'id' );
+    return shift->existing_row( 'QcSeqRead', 'id' );
 }
 
 sub existing_qc_eng_seq_id {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'QcEngSeq', 'id' );
+    return shift->existing_row( 'QcEngSeq', 'id' );
 }
 
 sub existing_intermediate_cassette {
-    my ( $class, $model ) = @_;
-    return eng_seq_of_type( $model, 'intermediate-cassette' );
+    return shift->eng_seq_of_type( 'intermediate-cassette' );
 }
 
 sub existing_intermediate_backbone {
-    my ( $class, $model ) = @_;
-    return eng_seq_of_type( $model, 'intermediate-backbone' );
+    return shift->eng_seq_of_type( 'intermediate-backbone' );
 }
 
 sub existing_final_cassette {
-    my ( $class, $model ) = @_;
-    return eng_seq_of_type( $model, 'final-cassette' );
+    return shift->eng_seq_of_type( 'final-cassette' );
 }
 
 sub existing_final_backbone {
-    my ( $class, $model ) = @_;
-    return eng_seq_of_type( $model, 'final-backbone' );
+    return shift->eng_seq_of_type( 'final-backbone' );
 }
 
 # intermediate backbones can be in a final vector, so need a list of all backbone types
 # which eng-seq-builder can not provide using the eng_seq_of_type method
 sub existing_backbone {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'Backbone', 'name' );
+    return shift->existing_row( 'Backbone', 'name' );
 }
 
 # all cassettes, regardless of type, for validated cassette names sent to generate_eng_seq_params
 sub existing_cassette {
-    my ( $class, $model ) = @_;
-
-    return existing_row( $model, 'Cassette', 'name' );
+    return shift->existing_row( 'Cassette', 'name' );
 }
 
-sub existing_crispr_loci_type {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'CrisprLociType', 'id' );
+sub existing_nuclease {
+    return shift->existing_row( 'Nuclease', 'name');
 }
 
-sub existing_crispr_id {
-    my ( $class, $model ) = @_;
-    return in_resultset( $model, 'Crispr', 'id' );
-}
-
-sub existing_gene_type {
-	my ( $class, $model ) = @_;
-	return in_resultset( $model, 'GeneType', 'id' );
-}
-
-sub comma_separated_list {
-    my $csv = Text::CSV->new;
-    return sub {
-        my $str = shift;
-        $csv->parse($str);
-    }
-}
-
-sub ensembl_transcript_id {
-    return regexp_matches(qr/^ENSMUST\d+$/);
-}
-
-sub uuid {
-    return regexp_matches(qr/^[A-F0-9]{8}(-[A-F0-9]{4}){3}-[A-F0-9]{12}$/);
-}
-
-sub software_version {
-    return regexp_matches(qr/^\d+(\.\d+)*(?:_\d+)?$/);
+sub existing_crispr_primer_type {
+	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
 }
 
 sub qc_seq_read_id {
-    return regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9]+$/);
+    return shift->regexp_matches(qr/^[A-Za-z0-9_]+\.[-A-Za-z0-9_]+$/);
 }
 
 sub cigar_string {
-    return regexp_matches(qr/^cigar: .+/);
+    return shift->regexp_matches(qr/^cigar: .+/);
 }
 
 sub op_str {
-    return regexp_matches(qr/^[MDI]\s*\d+(?:\s+[MDI]\s*\d+)*$/);
+    return shift->regexp_matches(qr/^[MDI]\s*\d+(?:\s+[MDI]\s*\d+)*$/);
 }
 
 sub qc_match_str {
-    return regexp_matches(qr/^[|\s]*$/);
+    return shift->regexp_matches(qr/^[|\s]*$/);
 }
 
 sub qc_alignment_seq {
-    return regexp_matches(qr/^[ATGCN-]*$/);
-}
-
-sub json {
-    return sub {
-        my $str = shift;
-        try {
-            decode_json($str);
-            return 1;
-        };
-    };
-}
-
-sub absolute_url {
-    return sub {
-        my $str = shift;
-        return 0 unless defined $str and length $str;
-        my $uri = try { URI->new( $str ) } catch { undef };
-        return $uri && $uri->scheme && $uri->host && $uri->path;
-    }
-}
-
-sub hashref {
-    return sub {
-        ref $_[0] eq ref {};
-    }
-}
-
-sub file_handle {
-    return sub {
-        my $val = shift;
-        my $fh = openhandle( $val );
-        return $fh ? 1 : 0;
-    }
+    return shift->regexp_matches(qr/^[ATGCN-]*$/);
 }
 
 sub pass_or_fail {
-    return regexp_matches(qr/^(pass|fail)$/i);
+    return shift->regexp_matches(qr/^(pass|fail)$/i);
 }
 
-# at least 6 non whitespace characters long
-sub password_string {
-    return regexp_matches(qr/^\S{6,}$/);
-}
-
-sub repeat_mask_class {
-    return in_set( 'trf', 'dust' );
-}
+__PACKAGE__->meta->make_immutable;
 
 1;
 
 __END__
+

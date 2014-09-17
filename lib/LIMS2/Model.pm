@@ -1,7 +1,7 @@
 package LIMS2::Model;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::VERSION = '0.141';
+    $LIMS2::Model::VERSION = '0.243';
 }
 ## use critic
 
@@ -191,7 +191,9 @@ sub parse_date_time {
 sub plugins {
     my $class = shift;
 
-    return Module::Pluggable::Object->new( search_path => [ $class . '::Plugin' ] )->plugins;
+    return Module::Pluggable::Object->new(
+        search_path => [ $class . '::Plugin', 'WebAppCommon::Plugin' ],
+        except => 'LIMS2::Model::Plugin::Design')->plugins;
 }
 
 ## no critic(RequireFinalReturn)

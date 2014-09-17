@@ -103,7 +103,7 @@ sub all_tests  : Test(35)
     note('Test bacs_for_design');
 
     {
-	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
+	ok my $design = model->c_retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $bacs = bacs_for_design( model, $design ), 'can call bacs_for_design';
 	my @expected_bacs = qw(
 	    RP24-260C10
@@ -113,7 +113,7 @@ sub all_tests  : Test(35)
 	);
 	is_deeply $bacs, \@expected_bacs, 'we have expected bacs for design';
 
-	ok my $design2 = model->retrieve_design( { id => 170606  } ), 'can grab design 170606';
+	ok my $design2 = model->c_retrieve_design( { id => 170606  } ), 'can grab design 170606';
 	throws_ok{
 	    bacs_for_design( model, $design2 )
 	} qr/No valid bacs/
@@ -123,7 +123,7 @@ sub all_tests  : Test(35)
     note( 'Test get_bac_clones' );
 
     {
-	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
+	ok my $design = model->c_retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $bacs
 	    = LIMS2::Model::Util::BacsForDesign::get_bac_clones( model, $design, 'NCBIM37', 'black6' )
 	    , 'get_bac_clones returns data';
@@ -156,7 +156,7 @@ sub all_tests  : Test(35)
     note( 'Test target_start' );
 
     {
-	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
+	ok my $design = model->c_retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $target_start = LIMS2::Model::Util::BacsForDesign::target_start( $design )
 	    , 'target_start returns data';
 
@@ -166,7 +166,7 @@ sub all_tests  : Test(35)
     note( 'Test target_end' );
 
     {
-	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
+	ok my $design = model->c_retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $target_end = LIMS2::Model::Util::BacsForDesign::target_end( $design )
 	    , 'target_end returns data';
 
@@ -175,7 +175,7 @@ sub all_tests  : Test(35)
     note( 'Test sort_bacs_by_size' );
 
     {
-	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
+	ok my $design = model->c_retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $bacs
 	    = LIMS2::Model::Util::BacsForDesign::get_bac_clones( model, $design, 'NCBIM37', 'black6' )
 	    , 'get_bac_clones returns data';
@@ -224,7 +224,7 @@ sub all_tests  : Test(35)
 	is_deeply $ordered_bac_names, \@expected_ordered_bac_names
 	    , 'returns bac names in expected order, RP24 bacs first';
 
-	ok my $design = model->retrieve_design( { id => 170606  } ), 'can grab design 170606';
+	ok my $design = model->c_retrieve_design( { id => 170606  } ), 'can grab design 170606';
 	ok my $bacs
 	    = LIMS2::Model::Util::BacsForDesign::get_bac_clones( model, $design, 'NCBIM37', 'black6' )
 	    , 'get_bac_clones returns data';
@@ -237,7 +237,7 @@ sub all_tests  : Test(35)
     note( 'Test Invalid Design' );
 
     {
-	ok my $design = model->retrieve_design( { id => 94427  } ), 'can grab design 94427';
+	ok my $design = model->c_retrieve_design( { id => 94427  } ), 'can grab design 94427';
 	ok my $U3_oligo = model->schema->resultset( 'DesignOligo' )->find(
 	    {
 		design_id => 94427,

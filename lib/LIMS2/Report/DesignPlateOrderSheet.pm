@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignPlateOrderSheet;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.141';
+    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.243';
 }
 ## use critic
 
@@ -90,7 +90,7 @@ sub _build_is_gibson {
     my $self = shift;
 
     my $design_type = $self->plate->wells->first->design->design_type_id;
-    my $is_gibson = $design_type eq 'gibson' ? 1 : 0;
+    my $is_gibson = $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ? 1 : 0;
 
     return $is_gibson;
 }

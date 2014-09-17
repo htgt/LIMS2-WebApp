@@ -1,13 +1,16 @@
 package LIMS2::Report::CrisprPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprPlate::VERSION = '0.141';
+    $LIMS2::Report::CrisprPlate::VERSION = '0.243';
 }
 ## use critic
 
 
 use Moose;
 use namespace::autoclean;
+use List::MoreUtils qw(uniq);
+use Try::Tiny;
+use Log::Log4perl qw(:easy);
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -23,7 +26,9 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
-        "Well Name","Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
+        "Well Name",
+        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors",
+        "Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
         "Created By","Created At",
     ];
 };
@@ -54,6 +59,7 @@ override iterator => sub {
 
         return [
             $well->name,
+            $self->crispr_design_and_gene_cols( $process_crispr->crispr ),
             $crispr_data ? $crispr_data->{id}        : '-',
             $crispr_data ? $crispr_data->{seq}       : '-',
             $crispr_data ? $crispr_data->{type}      : '-',

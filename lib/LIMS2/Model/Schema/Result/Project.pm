@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.141';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.243';
 }
 ## use critic
 
@@ -83,6 +83,12 @@ __PACKAGE__->table("projects");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 effort_concluded
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -105,6 +111,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "htgt_project_id",
   { data_type => "integer", is_nullable => 1 },
+  "effort_concluded",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -118,6 +126,29 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<sponsor_gene_type_species_key>
+
+=over 4
+
+=item * L</sponsor_id>
+
+=item * L</gene_id>
+
+=item * L</targeting_type>
+
+=item * L</species_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "sponsor_gene_type_species_key",
+  ["sponsor_id", "gene_id", "targeting_type", "species_id"],
+);
 
 =head1 RELATIONS
 
@@ -152,8 +183,24 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Zk+OFTeFiVmPeoDwU1kYBA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-09-02 15:28:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E+p0emXyULopBYB1vFws9A
+
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+          "id"                => $self->id,
+          "sponsor_id"        => $self->sponsor_id,
+          "allele_request"    => $self->allele_request,
+          "gene_id"           => $self->gene_id,
+          "targeting_type"    => $self->targeting_type,
+          "species_id"        => $self->species_id,
+          "htgt_project_id"   => $self->htgt_project_id,
+          "effort_concluded"  => $self->effort_concluded,
+    }
+}
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

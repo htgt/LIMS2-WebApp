@@ -88,7 +88,6 @@ sub all_tests : Tests {
     my $rs            = 'ProcessType';
     my %record        = ();
 
-    local $TODO = 'Test of LIMS2::Model::Schema::Result::ProcessType not implemented yet';
     ok( 1, "Test of LIMS2::Model::Schema::Result::ProcessType" );
 
     #note("Accessing the schema");

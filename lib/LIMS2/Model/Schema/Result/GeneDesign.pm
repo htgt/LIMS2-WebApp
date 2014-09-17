@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GeneDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GeneDesign::VERSION = '0.141';
+    $LIMS2::Model::Schema::Result::GeneDesign::VERSION = '0.243';
 }
 ## use critic
 
@@ -161,5 +161,65 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub ensEMBL_gene {
+    my $self = shift;
+
+    my $species      = $self->design->species_id;
+    my $gene_id      = $self->gene_id;
+    my $gene_type_id = $self->gene_type->id;
+
+    require LIMS2::Util::EnsEMBL;
+    my $ensEMBL_util = LIMS2::Util::EnsEMBL->new( { 'species' => $species, } );
+    my $ga = $ensEMBL_util->gene_adaptor();
+
+    my $gene;
+    if ( $gene_type_id eq 'HGNC' ) {
+        if( $gene_id =~ /HGNC:(\d+)/ ) {
+            $gene = _fetch_by_external_name( $ga, $1, 'HGNC' );
+        }
+    }
+    elsif ( $gene_type_id eq 'MGI' ) {
+        $gene = _fetch_by_external_name( $ga, $gene_id, 'MGI' );
+    }
+    elsif ( $gene_type_id eq 'marker_symbol' ) {
+        $gene = _fetch_by_external_name( $ga, $gene_id );
+    }
+
+    return $gene;
+}
+
+=head2 _fetch_by_external_name
+
+Wrapper around fetching ensembl gene given external gene name.
+
+=cut
+sub _fetch_by_external_name {
+    my ( $ga, $gene_name, $type ) = @_;
+
+    my @genes = @{ $ga->fetch_all_by_external_name($gene_name, $type) };
+
+    #Remove stable ids that don't look like ENS... - human build has stable ids like LRG_...
+    my @reduced_genes = grep {($_->stable_id =~ /ENS/) && ($_->seq_region_name !~ /PATCH/)} @genes;
+
+    unless( @reduced_genes ) {
+        LIMS2::Exception->throw("Unable to find gene $gene_name in EnsEMBL" );
+    }
+
+    if ( scalar(@reduced_genes) > 1 ) {
+        my @stable_ids = map{ $_->stable_id } @reduced_genes;
+        $type ||= 'marker symbol';
+
+        LIMS2::Exception->throw( "Found multiple EnsEMBL genes with $type id $gene_name,"
+                . " try using one of the following EnsEMBL gene ids: "
+                . join( ', ', @stable_ids ) );
+    }
+    else {
+        return shift @reduced_genes;
+    }
+
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

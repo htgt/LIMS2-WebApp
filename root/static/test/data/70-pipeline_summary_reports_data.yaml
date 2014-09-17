@@ -1,6 +1,6 @@
 ---
 projects:
-  - id: 1
+  - id: 11
     sponsor_id: 'Syboss'
     allele_request: '{"gene_id":"MGI:1914632","second_allele_cassette_function":"reporter_only","first_allele_mutation_type":"ko_first","second_allele_mutation_type":"ko_first","first_allele_cassette_function":"ko_first","targeting_type":"double_targeted"}'
     gene_id: 'MGI:1914632'
@@ -13,11 +13,11 @@ projects:
     targeting_type: 'single_targeted'
     species_id: 'Mouse'
 project_alleles:
-  - project_id: 1
+  - project_id: 11
     allele_type: first
     cassette_function: ko_first
     mutation_type: ko_first
-  - project_id: 1
+  - project_id: 11
     allele_type: second
     cassette_function: reporter_only
     mutation_type: ko_first

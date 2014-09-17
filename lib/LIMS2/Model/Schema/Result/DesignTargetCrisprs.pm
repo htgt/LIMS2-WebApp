@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::DesignTargetCrisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignTargetCrisprs::VERSION = '0.141';
+    $LIMS2::Model::Schema::Result::DesignTargetCrisprs::VERSION = '0.243';
 }
 ## use critic
 
@@ -58,6 +58,12 @@ __PACKAGE__->belongs_to(
     "crispr",
     "LIMS2::Model::Schema::Result::Crispr",
     { id => "crispr_id" },
+);
+
+__PACKAGE__->belongs_to(
+    "design_target",
+    "LIMS2::Model::Schema::Result::DesignTarget",
+    { id => "design_target_id" },
 );
 
 __PACKAGE__->meta->make_immutable;
