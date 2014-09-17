@@ -256,7 +256,7 @@ const our %UCSC_BLAT_DB => (
 
 const our %DEFAULT_SPECIES_BUILD => (
     mouse => 73,
-    human => 73,
+    human => 76,
 );
 
 # Minimun required DNA concentrations for different species and vector types
