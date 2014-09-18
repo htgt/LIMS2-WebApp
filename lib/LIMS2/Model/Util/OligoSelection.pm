@@ -1273,18 +1273,19 @@ sub retrieve_crispr_primers {
     elsif ( $crispr_id_ref eq 'crispr_pair_id' ) {
        $crispr_type_string = 'crispr_pair';
     }
-
+$DB::single=1;
     if ($crispr_primers_rs) {
         my $count = 0;
         while ( my $crispr_primers_row = $crispr_primers_rs->next ) {
 #FIXME: Owing to the primer_name column also being the name of the belongs to relationship...
+            my $primer_loci = $crispr_primers_row->crispr_primer_loci->find({ assembly_id => $params->{'assembly_id'} });
             $crispr_primers_hash{$crispr_type_string}->{$crispr_id}->{$crispr_primers_row->primer_name->primer_name} = {
                 'primer_seq' => $crispr_primers_row->primer_seq,
-                'chr_start' => $crispr_primers_row->crispr_primer_loci->single->chr_start,
-                'chr_end'  => $crispr_primers_row->crispr_primer_loci->single->chr_end,
-                'chr_strand' => $crispr_primers_row->crispr_primer_loci->single->chr_strand,
-                'chr_id' => $crispr_primers_row->crispr_primer_loci->single->chr_id,
-                'assembly_id' => $crispr_primers_row->crispr_primer_loci->single->assembly_id,
+                'chr_start' => $primer_loci->chr_start,
+                'chr_end'  => $primer_loci->chr_end,
+                'chr_strand' => $primer_loci->chr_strand,
+                'chr_id' => $primer_loci->chr_id,
+                'assembly_id' => $primer_loci->assembly_id,
             };
         }
     }
@@ -1328,14 +1329,15 @@ sub get_db_genotyping_primers_as_hash {
     while ( my $g_primer = $genotyping_primer_rs->next ) {
         if ( $g_primer->genotyping_primer_type_id =~ m/G[FR][12]/ ) {
             last if $g_primer->genotyping_primer_loci->count == 0;
+            my $g_locus = $g_primer->genotyping_primer_loci->find({ 'assembly_id' => $params->{'assembly_id'} });
             $g_primer_hash{ $g_primer->genotyping_primer_type_id } = {
                 'primer_seq' => $g_primer->seq,
-                'chr_start' => $g_primer->genotyping_primer_loci->first->chr_start,
-                'chr_end' => $g_primer->genotyping_primer_loci->first->chr_end,
-                'chr_id' => $g_primer->genotyping_primer_loci->first->chr_id,
-                'chr_name' => $g_primer->genotyping_primer_loci->first->chr->name,
-                'chr_strand' => $g_primer->genotyping_primer_loci->first->chr_strand,
-                'assembly_id' => $g_primer->genotyping_primer_loci->single->assembly_id,
+                'chr_start' => $g_locus->chr_start,
+                'chr_end' => $g_locus->chr_end,
+                'chr_id' => $g_locus->chr_id,
+                'chr_name' => $g_locus->chr->name,
+                'chr_strand' => $g_locus->chr_strand,
+                'assembly_id' => $g_locus->assembly_id,
             }
         }
     }
