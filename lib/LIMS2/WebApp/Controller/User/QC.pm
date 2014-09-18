@@ -277,7 +277,6 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 sub submit_es_cell :Path('/user/submit_es_cell') :Args(0) {
     my ( $self, $c ) = @_;
 
-use Smart::Comments;
 
     $c->assert_user_roles( 'edit' );
 
@@ -300,9 +299,6 @@ use Smart::Comments;
     $c->stash->{template_plate} = 'T' . $c->stash->{epd_plate};
 
 
-    print "epd_plate: ". $c->stash->{epd_plate} . "\n";
-    print "profile: ". $c->stash->{profile} . "\n";
-    print "template: ". $c->stash->{template_plate} . "\n";
 
     my $run_id;
 
@@ -324,8 +320,6 @@ use Smart::Comments;
     elsif ( $c->req->param('launch_qc') ){
 
         if ( $run_id = $self->_launch_es_cell_qc( $c ) ){
-        print "run_id: ". $run_id . "\n";
-        ### $run_id
 
             $c->stash->{run_id} = $run_id;
             $c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "

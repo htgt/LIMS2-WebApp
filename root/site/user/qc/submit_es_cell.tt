@@ -10,7 +10,7 @@
     <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/submit_es_cell' ) %]" class="form well"  enctype="multipart/form-data" >
 
 
-              
+
         <label>EPD Plate Name</label>
         <input name="epd_plate" id="epd_plate" type="text"
           [% IF epd_plate %]value="[% epd_plate %]"[% END %]
@@ -27,9 +27,9 @@
               [%- END %]
           </select>
         [% END %]
-        
+
         <br>
-        
+
         [% IF epd_plate_request %]
         <label>Template Plate</label>
         <input name="template_plate" id="template_plate" type="text"
@@ -39,12 +39,12 @@
         [% IF template_type %]<span class="label label-info">[% template_type %]</span>[% END %]
         [% END %]
 
-        <br>  
+        <br>
 
         [% IF epd_plate_request %]
           <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn">
             <i class="icon-upload"></i> Submit QC - step 2
-          </button>      
+          </button>
         [% ELSE %]
           <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn">
             <i class="icon-upload"></i> Submit QC - step 1
@@ -52,6 +52,6 @@
         [% END %]
     </form>
   </div>
-  
+
 </div>
 

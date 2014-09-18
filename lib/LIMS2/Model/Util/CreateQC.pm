@@ -212,7 +212,7 @@ sub htgt_api_call {
         $req->content_type( 'application/json' );
         $req->content( encode_json( $params ) );
 
-        #make the actual request 
+        #make the actual request
         my $response = $ua->request( $req );
 
         die "Request to $uri was not successful. Response: ".$response->status_line."<br/>".$response->as_string
@@ -239,14 +239,22 @@ sub _create_qc_test_result_alignment_region {
 sub get_qc_run_seq_well_from_alignments {
     my ( $model, $qc_run_id, $alignments ) = @_;
 
+# original
+    # my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{$alignments};
+
+# change
     my @qc_seq_read_ids;
 
     for my $a (uniq map { $_->{qc_seq_read_id} } @{$alignments} ) {
 
-        my ($fixed_start, $fixed_end) = $a =~ /(EPD\d*1012_\d)_[A-Z]_(?:\d_)?\d(.*)/;
+        my ($fixed_start, $fixed_end) = $a =~ /(.*\d)?_[A-Z]_(?:\d_)?\d(.*)/;
 
         push (@qc_seq_read_ids, $fixed_start.$fixed_end );
     }
+
+
+
+
 
     my @wells = $model->schema->resultset('QcRunSeqWell')->search(
         {   'me.qc_run_id'                                => $qc_run_id,
@@ -257,6 +265,7 @@ sub get_qc_run_seq_well_from_alignments {
             distinct => 1
         }
     );
+
 
     LIMS2::Exception::Validation->throw(
         {
