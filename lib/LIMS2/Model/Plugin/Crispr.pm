@@ -468,6 +468,15 @@ sub import_wge_crisprs {
                 );
             }
 
+            my $crispr_assembly = $crispr_data->{locus}{assembly};
+            if ( $assembly ne $crispr_assembly ) {
+                LIMS2::Exception->throw(
+                          "LIMS2 is on the $assembly $species assembly "
+                        . "and this crispr is on $crispr_assembly assembly, unable to import" );
+                return;
+            }
+
+
             my $crispr = $self->create_crispr( $crispr_data );
             push @output, { wge_id => $crispr_id, lims2_id => $crispr->id, db_crispr => $crispr };
         }
@@ -502,6 +511,7 @@ sub import_wge_pairs {
                   . "Please switch to the correct species"
                 );
             }
+            # TODO assembly check
 
             #this creates the two crisprs in lims2
             my @crisprs = $self->import_wge_crisprs( \@ids, $species, $assembly );
