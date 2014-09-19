@@ -40,9 +40,23 @@ has qc_config => (
 );
 
 sub _list_all_profiles {
-    my ( $self, $c ) = @_;
+    my ( $self, $es_cell ) = @_;
 
-    return [ sort $self->qc_config->profiles ];
+    my @profiles;
+    if ( $es_cell ) {
+        my $config = $self->qc_config->_config->{profile} || {};
+
+        while ( my ( $profile, $data ) = each %{ $config } ) {
+            next unless $data->{vector_stage} eq 'allele';
+
+            push @profiles, $profile;
+        }
+    }
+    else {
+        @profiles = sort $self->qc_config->profiles;
+    }
+
+    return \@profiles;
 }
 
 sub index :Path( '/user/qc_runs' ) :Args(0) {
@@ -277,14 +291,18 @@ sub submit_new_qc :Path('/user/submit_new_qc') :Args(0) {
 sub submit_es_cell :Path('/user/submit_es_cell') :Args(0) {
     my ( $self, $c ) = @_;
 
-
     $c->assert_user_roles( 'edit' );
 
-    $c->stash->{profiles} = $self->_list_all_profiles;
+    #template plate is always EPD plate with a T added to the start
+    $c->req->params->{epd_plate} = $self->_clean_input( $c->req->param('epd_plate') );
+    my $template_plate = 'T' . $c->req->param('epd_plate');
+    $c->req->params->{template_plate} = $template_plate;
+
+    $c->stash->{profiles} = $self->_list_all_profiles( 'es_cell' );
     $c->stash->{run_type} = 'es_cell';
 
     my $requirements = {
-        #template_plate      => { validate => 'existing_qc_template_name'},
+        template_plate      => { validate => 'existing_qc_template_name'},
         profile             => { validate => 'non_empty_string'},
         epd_plate           => { validate => 'non_empty_string'},
         submit_initial_info => { optional => 0 },
@@ -292,24 +310,20 @@ sub submit_es_cell :Path('/user/submit_es_cell') :Args(0) {
 
     # Store form values
     $c->stash->{epd_plate} = $self->_clean_input( $c->req->param('epd_plate') );
-    # $c->stash->{sequencing_project} = [ $c->req->param('sequencing_project') ];
-    # $c->stash->{template_plate} = $c->req->param('template_plate');
     $c->stash->{profile} = $c->req->param('profile');
-
-    $c->stash->{template_plate} = 'T' . $c->stash->{epd_plate};
-
-
+    $c->stash->{template_plate} = $c->req->param('template_plate');
 
     my $run_id;
-
     if ( $c->req->param( 'submit_initial_info' ) ) {
         try{
             # validate input params before doing anything else
             $c->model( 'Golgi' )->check_params( $c->req->params, $requirements );
-            my $template_check = $c->model( 'Golgi' )->schema->resultset('QcTemplate')->find( { name => $c->stash->{template_plate} } );
-            if (!$template_check) {
-                die "Template plate ".$c->stash->{template_plate}." does not exist";
-            }
+            # my $template_check = $c->model( 'Golgi' )->schema->resultset('QcTemplate')->find(
+            #     { name => $c->stash->{template_plate} }
+            # );
+            # if (!$template_check) {
+            #     die "Template plate ".$c->stash->{template_plate}." does not exist";
+            # }
             $c->stash->{epd_plate_request} = 1;
         }
         catch{
@@ -322,21 +336,15 @@ sub submit_es_cell :Path('/user/submit_es_cell') :Args(0) {
         if ( $run_id = $self->_launch_es_cell_qc( $c ) ){
 
             $c->stash->{run_id} = $run_id;
-            $c->stash->{success_msg} = "Your QC job has been submitted with ID $run_id. "
-                                       ."Go to <a href=\"".$c->uri_for('/user/latest_runs')."\">Latest Runs</a>"
-                                       ." to see the progress of your job";
+            $c->stash->{success_msg}
+                = "Your QC job has been submitted with ID $run_id. "
+                . "Go to <a href=\"".$c->uri_for('/user/latest_runs')."\">Latest Runs</a> "
+                . "to see the progress of your job";
         }
     }
 
     return;
 }
-
-
-
-
-
-
-
 
 sub _launch_qc{
     my ($self, $c, $plate_map ) = @_;
@@ -369,8 +377,6 @@ sub _launch_es_cell_qc{
         species             => $c->session->{ selected_species },
         run_type            => $c->stash->{run_type},
     };
-
-    ### $params
 
     my $content = htgt_api_call( $c, $params, 'submit_uri' );
 

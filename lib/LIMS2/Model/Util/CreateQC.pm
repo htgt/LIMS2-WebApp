@@ -239,22 +239,7 @@ sub _create_qc_test_result_alignment_region {
 sub get_qc_run_seq_well_from_alignments {
     my ( $model, $qc_run_id, $alignments ) = @_;
 
-# original
-    # my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{$alignments};
-
-# change
-    my @qc_seq_read_ids;
-
-    for my $a (uniq map { $_->{qc_seq_read_id} } @{$alignments} ) {
-
-        my ($fixed_start, $fixed_end) = $a =~ /(.*\d)?_[A-Z]_(?:\d_)?\d(.*)/;
-
-        push (@qc_seq_read_ids, $fixed_start.$fixed_end );
-    }
-
-
-
-
+    my @qc_seq_read_ids = uniq map { $_->{qc_seq_read_id} } @{$alignments};
 
     my @wells = $model->schema->resultset('QcRunSeqWell')->search(
         {   'me.qc_run_id'                                => $qc_run_id,

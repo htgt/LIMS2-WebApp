@@ -13,8 +13,8 @@
 
         <label>EPD Plate Name</label>
         <input name="epd_plate" id="epd_plate" type="text"
-          [% IF epd_plate %]value="[% epd_plate %]"[% END %]
-          [% IF epd_plate_request %] class="form-readonly" readonly="readonly"[% END %]
+          [%- IF epd_plate %]value="[% epd_plate %]"[% END -%]
+          [%- IF epd_plate_request %] class="form-readonly" readonly="readonly"[% END -%]
         />
 
         <label>Profile</label>
