@@ -39,6 +39,7 @@ has qc_config => (
     lazy    => 1,
 );
 
+## no critic(ProtectPrivateSubs)
 sub _list_all_profiles {
     my ( $self, $es_cell ) = @_;
 
@@ -58,6 +59,7 @@ sub _list_all_profiles {
 
     return \@profiles;
 }
+## use critic
 
 sub index :Path( '/user/qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
