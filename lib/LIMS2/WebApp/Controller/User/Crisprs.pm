@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.238';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.245';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ use Data::Dumper;
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
-use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent );
+use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent get_design_extent );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -368,6 +368,35 @@ return;
 }
 
 ## use critic
+
+## no critic (RequireFinalReturn)
+sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $design_extent;
+   try {
+        $design_extent = get_design_extent(
+            $c->model('Golgi')->schema,
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch ( LIMS2::Exception $e ){
+       $c->stash( error_msg => $e->as_string );
+    }
+    if (! $design_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a design to display Genoverse view' );
+    }
+    else {
+#   my $exon_coords = $exon_coords_rs->single;
+        $c->stash(
+            'extent'  => $design_extent,
+            'context' => $c->request->params,
+        );
+    }
+
+    return;
+}
 
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;

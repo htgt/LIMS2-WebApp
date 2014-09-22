@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Pageset;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Pageset::VERSION = '0.238';
+    $LIMS2::WebApp::Pageset::VERSION = '0.245';
 }
 ## use critic
 

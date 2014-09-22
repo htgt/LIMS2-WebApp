@@ -106,7 +106,10 @@
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
+              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit Vector QC Job</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/submit_es_cell' ) %]">Submit ES Cell QC Job</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
@@ -127,6 +130,9 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/gene_crispr_es_qc' ) %]">Gene CRISPR ES QC</a>
             </li>
 
             [% END %]
@@ -181,7 +187,7 @@
             </li>
 -->
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/EPSummary' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
                 Electroporation Summary
               </a>
             </li>

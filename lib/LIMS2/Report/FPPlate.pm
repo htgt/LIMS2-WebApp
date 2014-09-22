@@ -1,7 +1,7 @@
 package LIMS2::Report::FPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FPPlate::VERSION = '0.238';
+    $LIMS2::Report::FPPlate::VERSION = '0.245';
 }
 ## use critic
 
@@ -27,6 +27,7 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
+        'Barcode',
     ];
 };
 
@@ -49,6 +50,7 @@ override iterator => sub {
 
         return [
             $self->base_data( $well ),
+            ( $well->well_barcode ? $well->well_barcode->barcode : '' ),
         ];
     };
 };

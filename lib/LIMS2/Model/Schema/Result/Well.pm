@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.238';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.245';
 }
 ## use critic
 
@@ -1254,7 +1254,8 @@ sub crispr_primer_for{
 #gene finder should be a method that accepts a species id and some gene ids,
 #returning a hashref
 #see code in WellData for an example
-
+# NOTE this will always return the epd wells qc data, even if there is qc
+#      data on the current well ( e.g. with a PIQ well )
 sub genotyping_info {
   my ( $self, $gene_finder, $only_qc_data ) = @_;
 

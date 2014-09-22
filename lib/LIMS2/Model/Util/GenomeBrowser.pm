@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.238';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.245';
 }
 ## use critic
 
@@ -24,8 +24,10 @@ use Sub::Exporter -setup => {
         crisprs_to_gff
         crispr_pairs_for_region
         crispr_pairs_to_gff
+        generic_designs_for_region
         gibson_designs_for_region
         design_oligos_to_gff
+        generic_design_oligos_to_gff
         primers_for_crispr_pair
         crispr_primers_to_gff
         unique_crispr_data
@@ -327,6 +329,33 @@ sub gibson_designs_for_region {
     return $oligo_rs;
 }
 
+sub generic_designs_for_region {
+    my $schema = shift;
+    my $params = shift;
+
+
+    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
+
+    my $oligo_rs = $schema->resultset('GenericDesignBrowser')->search( {},
+        {
+            bind => [
+                $params->{start_coord},
+                $params->{end_coord},
+                $params->{chromosome_id},
+                $params->{assembly_id},
+            ],
+        }
+    );
+
+
+    return $oligo_rs;
+}
+
+=head design_oligos_to_gff
+
+Only for Gibson designs
+
+=cut
 sub design_oligos_to_gff {
     my $oligo_rs = shift;
     my $params = shift;
@@ -388,8 +417,69 @@ sub design_oligos_to_gff {
             }
         }
 
+    return \@oligo_gff;
+}
 
+sub generic_design_oligos_to_gff {
+    my $oligo_rs = shift;
+    my $params = shift;
 
+    my @oligo_gff;
+
+    push @oligo_gff, "##gff-version 3";
+    push @oligo_gff, '##sequence-region lims2-region '
+        . $params->{'start_coord'}
+        . ' '
+        . $params->{'end_coord'} ;
+    push @oligo_gff, '# Generic designs for region '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chromosome_number'}
+        . ':'
+        . $params->{'start_coord'}
+        . '-'
+        . $params->{'end_coord'} ;
+
+        my $generic_designs; # collects the primers and coordinates for each design. It is a hashref of arrayrefs.
+        $generic_designs = parse_generic_designs( $oligo_rs );
+        my $design_meta_data;
+        $design_meta_data = generate_generic_design_meta_data ( $generic_designs );
+        # The gff parent is generated from the meta data for the design
+        # must do this for each design (as there may be several)
+        foreach my $design_data ( keys %$design_meta_data ) {
+            my %oligo_format_hash = (
+                'seqid' => $params->{'chromosome_number'},
+                'source' => 'LIMS2',
+                'type' =>  $design_meta_data->{$design_data}->{'design_type'},
+                'start' => $design_meta_data->{$design_data}->{'design_start'},
+                'end' => $design_meta_data->{$design_data}->{'design_end'},
+                'score' => '.',
+                'strand' => ( $design_meta_data->{$design_data}->{'strand'} eq '-1' ) ? '-' : '+',
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . 'D_' . $design_data . ';'
+                    . 'Name=' . 'D_' . $design_data
+                );
+            my $oligo_parent_datum = prep_gff_datum( \%oligo_format_hash );
+            push @oligo_gff, $oligo_parent_datum;
+
+            # process the components of the design
+            $oligo_format_hash{'type'} = 'CDS';
+            foreach my $oligo ( keys %{$generic_designs->{$design_data}} ) {
+                $oligo_format_hash{'start'} = $generic_designs->{$design_data}->{$oligo}->{'chr_start'};
+                $oligo_format_hash{'end'}   = $generic_designs->{$design_data}->{$oligo}->{'chr_end'};
+                $oligo_format_hash{'strand'} = ( $generic_designs->{$design_data}->{$oligo}->{'chr_strand'} eq '-1' ) ? '-' : '+';
+                $oligo_format_hash{'attributes'} =     'ID='
+                    . $oligo . ';'
+                    . 'Parent=D_' . $design_data . ';'
+                    . 'Name=' . $oligo . ';'
+                    . 'color=' . $generic_designs->{$design_data}->{$oligo}->{'colour'};
+                my $oligo_child_datum = prep_gff_datum( \%oligo_format_hash );
+                push @oligo_gff, $oligo_child_datum ;
+            }
+        }
 
     return \@oligo_gff;
 }
@@ -422,6 +512,34 @@ sub parse_gibson_designs {
                 'chr_strand' => $gibson->chr_strand,
                 'colour'     => gibson_colour( $gibson->oligo_type_id ),
                 'design_type' => $gibson->design_type_id,
+            };
+    }
+
+    return \%design_structure;
+}
+
+sub parse_generic_designs {
+    my $generic_designs_rs = shift;
+
+    my %design_structure;
+
+    # Note that the result set is ordered first by design_id and then by chr_start
+    # so we can rely on all the data for one design to be grouped together
+    # and within the group for the oligos to be properly ordered,
+    # whether they are on the Watson or Crick strands.
+
+    # When the gff format is generated, 3s, 5s, and Es will be coloured in pairs
+    # e.g., 5F with 5R, EF with ER, 3F with 3R
+
+    while ( my $generic_design = $generic_designs_rs->next ) {
+        $design_structure{ $generic_design->design_id } ->
+            {$generic_design->oligo_type_id} = {
+                'design_oligo_id' => $generic_design->oligo_id,
+                'chr_start' => $generic_design->chr_start,
+                'chr_end' => $generic_design->chr_end,
+                'chr_strand' => $generic_design->chr_strand,
+                'colour'     => generic_colour( $generic_design->oligo_type_id ),
+                'design_type' => $generic_design->design_type_id,
             };
     }
 
@@ -467,6 +585,44 @@ sub generate_design_meta_data {
     return \%design_meta_data;
 }
 
+
+=head generate_generic_design_meta_data
+This method goes through each design in $generic_designs hashref and fills in $design_meta_data hashref.
+
+$design_meta_data contains information on the start and end coordinates of each design, strand and design_id
+
+=cut
+sub generate_generic_design_meta_data {
+    my $generic_designs = shift;
+
+    my %design_meta_data;
+    my @design_keys;
+
+    @design_keys = sort keys %$generic_designs;
+
+    foreach my $design_key ( @design_keys ) {
+        my @oligo_keys = keys %{$generic_designs->{$design_key}};
+        my $arbitrary_oligo = $oligo_keys[0];
+        # Find the lowest and highest co-ordinates in DNA space
+        my $lowest = $generic_designs->{$design_key}->{$arbitrary_oligo}->{'chr_start'};
+        my $highest = $generic_designs->{$design_key}->{$arbitrary_oligo}->{'chr_end'};
+        while ( my ($primer, $vals) = each %{$generic_designs->{$design_key}} ) {
+            $lowest = $vals->{'chr_start'} if $lowest > $vals->{'chr_start'};
+            $highest = $vals->{'chr_end'} if $highest < $vals->{'chr_end'};
+        }
+
+        $design_meta_data{ $design_key } = {
+            'design_start' => $lowest,
+            'design_end'   => $highest,
+            'strand'       => $generic_designs->{$design_key}->{$arbitrary_oligo}->{'chr_strand'},
+            'design_type'  => $generic_designs->{$design_key}->{$arbitrary_oligo}->{'design_type'},
+        };
+
+    }
+
+    return \%design_meta_data;
+}
+
 sub gibson_colour {
     my $oligo_type_id = shift;
 
@@ -477,6 +633,27 @@ sub gibson_colour {
         'ER' => '#589BDD',
         '3F' => '#BF249B',
         '3R' => '#BF249B',
+    );
+    return $colours{ $oligo_type_id };
+}
+
+sub generic_colour {
+    my $oligo_type_id = shift;
+    # TODO: Why not get this from the database?
+    #
+    my %colours = (
+        '5F' => '#68D310',
+        '5R' => '#68D310',
+        'EF' => '#589BDD',
+        'ER' => '#589BDD',
+        '3F' => '#BF249B',
+        '3R' => '#BF249B',
+        'D3' => '#68D310',
+        'D5' => '#68D310',
+        'G3' => '#589BDD',
+        'G5' => '#589BDD',
+        'U3' => '#BF249B',
+        'U5' => '#BF249B',
     );
     return $colours{ $oligo_type_id };
 }
@@ -520,6 +697,15 @@ sub crispr_primers_to_gff {
     my $params = shift;
 
     my @crispr_primers_gff;
+    if ( scalar keys %$crispr_primers == 0 ) {
+        push @crispr_primers_gff, "##gff-version 3";
+        push @crispr_primers_gff, '##sequence-region lims2-region '
+            . $params->{'start'}
+            . ' '
+            . $params->{'end'};
+        return \@crispr_primers_gff;
+    }
+
 
     my @type_keys = keys %$crispr_primers;
     my $crispr_type = shift @type_keys;

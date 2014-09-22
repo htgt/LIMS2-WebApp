@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::SponsorReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::SponsorReport::VERSION = '0.238';
+    $LIMS2::WebApp::Controller::User::SponsorReport::VERSION = '0.245';
 }
 ## use critic
 
@@ -65,6 +65,7 @@ sub _generate_front_page_report {
     $c->stash(
         'report_id'      => $report_id,
         'title'          => $title,
+        'species'        => $species,
         'targeting_type' => $targeting_type,
         'columns'        => $columns,
         'rows'           => $rows,

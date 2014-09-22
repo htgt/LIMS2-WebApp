@@ -1,3 +1,35 @@
+0.245     2014-09-22 10:22:10 Europe/London
+
+    Added ES Cell QC
+
+0.244     2014-09-22 07:27:48 Europe/London
+
+    Add crispr group REST API
+
+0.243     2014-09-17 15:44:39 Europe/London
+
+    Added effort concluded flag to the sponsor report
+
+0.242     2014-09-17 07:17:37 Europe/London
+
+    Allow any type of backbone for INT mouse plates.
+
+0.241     2014-09-16 10:13:49 Europe/London
+	Added plate barcode update to FP and PIQ plate views
+	Added well barcodes upload to FP and PIQ plate views, and well results view
+
+0.240     2014-09-12 13:59:16 Europe/London
+
+    Updated Genoverse with an all designs track
+    Added Genoverse button to the head of the Gene Summary page
+    Made GeneEPSummary the standard report for Electroporation Summary option for Human and Mouse
+
+0.239     2014-09-11 08:08:55 Europe/London
+
+    Added Gene Crispr ES QC page view, shows crispr es qc results for a genes
+    EP_PICK and PIQ wells.
+    Add toggle to hide non accepted EP_PICK and PIQ wells in gene summary page.
+
 0.238     2014-09-10 09:25:52 Europe/London
 
     Added Project Efforts, under the Genes tab
