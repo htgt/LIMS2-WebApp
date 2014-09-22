@@ -37,7 +37,7 @@ use Data::Dumper;
 
 sub retrieve_qc_run_results {
     my $qc_run = shift;
-#print "running retrieve_qc_run_results\n";
+
     my $expected_loc = _design_loc_for_qc_template_plate($qc_run);
     my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
         { prefetch => ['qc_test_results'] } );
@@ -67,12 +67,12 @@ sub retrieve_qc_run_results_fast {
     #because failed wells don't get a qc_test_result or qc_alignment, but we still need to show them.
     #note that there can be multiple qc_test_results for a single seq well.
     my $sql = <<'EOT';
-select qc_alignments.qc_eng_seq_id as qc_alignment_eng_seq_id, qc_eng_seqs.id as qc_eng_seq_id, qc_eng_seqs.params as params, 
-qc_run_seq_wells.plate_name, qc_run_seq_wells.well_name, qc_test_results.pass as overall_pass, 
-qc_seq_reads.primer_name, qc_seq_reads.length as read_length, qc_alignments.score, qc_alignments.pass primer_valid, 
+select qc_alignments.qc_eng_seq_id as qc_alignment_eng_seq_id, qc_eng_seqs.id as qc_eng_seq_id, qc_eng_seqs.params as params,
+qc_run_seq_wells.plate_name, qc_run_seq_wells.well_name, qc_test_results.pass as overall_pass,
+qc_seq_reads.primer_name, qc_seq_reads.length as read_length, qc_alignments.score, qc_alignments.pass primer_valid,
 qc_alignments.qc_run_id alignment_qc_run_id, qc_alignments.features alignment_features,
-qc_alignments.target_start alignment_target_start, qc_alignments.target_end alignment_target_end 
-from qc_runs 
+qc_alignments.target_start alignment_target_start, qc_alignments.target_end alignment_target_end
+from qc_runs
 join qc_run_seq_wells on qc_run_seq_wells.qc_run_id = qc_runs.id
 left join qc_test_results on qc_test_results.qc_run_seq_well_id = qc_run_seq_wells.id
 join qc_run_seq_well_qc_seq_read on qc_run_seq_well_qc_seq_read.qc_run_seq_well_id = qc_run_seq_wells.id
@@ -256,7 +256,7 @@ sub retrieve_qc_run_seq_well_results {
     }
 
     #
-    # NOTE 
+    # NOTE
     # until all legacy data is updated we have to allow a null qc_run_id.
     # if its null we just allow it as we can't know which run it belongs to.
     # this method will return ALL alignments if it can't find any linked ones
@@ -441,7 +441,7 @@ sub _parse_qc_seq_wells {
     # NOTE
     # alignments for run will return all qc alignments for a seq read if it is old
     # qc data which doesnt have a run attached to an alignment
-    # 
+    #
 
     my @qc_alignments = map { $_->alignments_for_run( $qc_run->id ) } @qc_seq_reads;
 
@@ -572,11 +572,6 @@ sub infer_qc_process_type{
     }
     elsif ( $source_plate_type eq 'CRISPR' ) {
         $process_type = _crispr_source_plate( $new_plate_type, $reagent_count, $params );
-    }
-    elsif ( $source_plate_type eq 'CRISPR_V' ) {
-        # CRISPR_V QC can only be done to create a rearrayed CRISPR_V plate
-        # rearray creation will check that input and output well types are the same
-        $process_type = 'rearray';
     }
     elsif ( $source_plate_type eq 'FINAL_PICK' ) {
         $process_type = _final_pick_source_plate( $new_plate_type, $reagent_count, $params );
