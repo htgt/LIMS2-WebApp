@@ -21,6 +21,7 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
+        'Barcode',
     ];
 };
 
@@ -43,6 +44,7 @@ override iterator => sub {
 
         return [
             $self->base_data( $well ),
+            ( $well->well_barcode ? $well->well_barcode->barcode : '' ),
         ];
     };
 };

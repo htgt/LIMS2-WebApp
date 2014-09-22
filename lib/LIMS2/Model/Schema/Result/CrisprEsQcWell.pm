@@ -230,7 +230,7 @@ sub get_crispr_primers {
 #gene finder should be a coderef pointing to a method that finds genes.
 #usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
 sub format_well_data {
-    my ( $self, $gene_finder, $params, $run ) = @_;
+    my ( $self, $gene_finder, $params, $run, $gene_ids ) = @_;
 
     my $json = decode_json( $self->analysis_data );
 
@@ -244,13 +244,18 @@ sub format_well_data {
 
     #get HGNC/MGI ids
     my @gene_ids;
-    if ( $pair ) {
-        @gene_ids = uniq map { $_->gene_id }
-                            map { $_->genes }
-                                $pair->related_designs;
+    if ( $gene_ids ) {
+        @gene_ids = @{ $gene_ids };
     }
     else {
-        @gene_ids = uniq map { $_->gene_id } $self->well->design->genes;
+        if ( $pair ) {
+            @gene_ids = uniq map { $_->gene_id }
+                                map { $_->genes }
+                                    $pair->related_designs;
+        }
+        else {
+            @gene_ids = uniq map { $_->gene_id } $self->well->design->genes;
+        }
     }
 
     #get gene symbol from the solr

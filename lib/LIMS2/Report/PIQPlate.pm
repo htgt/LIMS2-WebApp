@@ -23,6 +23,7 @@ override _build_columns => sub {
         'Electroporation Pick Well',
         'Freezer Well',
         'Lab Number',
+        'Barcode',
     );
 
     return \@columns;
@@ -52,6 +53,7 @@ override iterator => sub {
             $well->first_ep_pick->as_string,
             $well->freezer_instance->as_string,
             ( $well_lab_number ? $well_lab_number->lab_number : '' ),
+            ( $well->well_barcode ? $well->well_barcode->barcode : '' ),
         ];
     };
 };

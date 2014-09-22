@@ -7,6 +7,7 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+
 <script type="text/javascript">
 $(document).ready(function() {
     $(".traces").click(function(e) {
@@ -91,135 +92,20 @@ $(document).ready(function() {
             <th>Deletions</th>
             <th>Inserts</th>
             <th>Accept</th>
-            <!-- <th>View trace</th> -->
         </tr>
     </thead>
     <tbody>
         [% FOR row IN wells %]
-        <tr>
-            <td>[% row.well_name %]</td>
-            <td>[% row.es_qc_well_id %]</td>
-            <td>[% row.gene %]</td>
+            <tr>
 
-            <td>
-              [% IF row.is_crispr_pair %]
-                <a href="[% c.uri_for( '/user/crispr_pair' , row.crispr_id , 'view' ) %]" target="_blank">
-                  [% row.crispr_id %]
-                </a>
-              [% ELSE %]
-                <a href="[% c.uri_for( '/user/crispr' , row.crispr_id , 'view' ) %]" target="_blank">
-                  [% row.crispr_id %]
-                </a>
-              [% END %]
-            </td>
+                [% INCLUDE 'crispr_qc_view.tt'
+                    row    = row
+                    accept = 1
+                %]
 
-            <td>
-                [% IF row.alignment.forward_full %]
-                    <div class="forward_full" style="display:none">[% row.alignment.forward_full %]</div>
-                [% END %]
-                [% IF row.alignment.reverse_full %]
-                    <div class="reverse_full" style="display:none">[% row.alignment.reverse_full %]</div>
-                [% END %]
-                <div class="alignment">
-                  <div class="alignment_reference">
-                    <span>
-                        [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
-                    </span><br/>
-                  </div>
-                  <div class="alignment_inner">
-                    <span style="display: block">
-                       <span class="seq seq_a">
-                          [% IF row.alignment.no_forward_read %]
-                            No Read
-                          [% ELSIF row.alignment.no_forward_alignment %]
-                            No alignment to target region
-                          [% ELSE %]
-                            [% row.alignment.forward %]
-                          [% END %]
-                       </span>(F)
-                    </span>
-                    <span style="display: block">
-                        <span class="seq seq_b">
-                          [% IF row.alignment.no_reverse_read %]
-                            No Read
-                          [% ELSIF row.alignment.no_reverse_alignment %]
-                            No alignment to target region
-                          [% ELSE %]
-                            [% row.alignment.reverse %]
-                          [% END %]
-                        </span>(R)
-                    </span>
-                  </div>
-                </div>
-                [% IF row.fwd_read or row.rev_read %]
-                    <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
-                [% END %]
-            </td>
-
-            <td>
-              [% IF row.has_vcf_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
-              [% END %]
-              <br>
-              [% IF row.has_vep_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vep_file' ) %]" target="_blank" >vep_file</a>
-              [% END %]
-              [% IF row.has_non_merged_vcf_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'non_merged_vcf_file' ) %]" target="_blank" >non_merged_vcf_file</a>
-              [% END %]
-            </td>
-
-            <td>
-              [% IF row.has_ref_aa_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'ref' ) %]" target="_blank" >reference</a>
-              [% END %]
-              <br>
-              [% IF row.has_mut_aa_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'mut' ) %]" target="_blank" >mutated</a>
-              [% END %]
-
-            </td>
-
-            <td>
-              [% IF row.fwd_read %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'fwd' ) %]" target="_blank" >fwd_read</a>
-              [% END %]
-              <br>
-              [% IF row.rev_read %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'rev' ) %]" target="_blank" >rev_read</a>
-              [% END %]
-            </td>
-
-            <td>
-                [% FOR dir IN row.deletions.keys %]
-                    [% NEXT UNLESS row.deletions.$dir.keys.size > 0 %]
-                    [% dir %] deletion:<br/>
-                        [% FOR loc IN row.deletions.$dir.keys.sort %]
-                            [% loc %]: <span class="indel_sequence"> [% row.deletions.$dir.$loc.seq %]([% row.deletions.$dir.$loc.length %])</span> <br/>
-                        [% END %]
-                [% END %]
-            </td>
-
-            <td>
-                [% FOR dir IN row.insertions.keys %]
-                    [% NEXT UNLESS row.insertions.$dir.keys.size > 0 %]
-                    [% dir %] insertion:<br/>
-                        [% FOR loc IN row.insertions.$dir.keys.sort %]
-                            [% loc %]: <span class="indel_sequence"> [% row.insertions.$dir.$loc.seq %]([% row.insertions.$dir.$loc.length %])</span> <br/>
-                        [% END %]
-                [% END %]
-            </td>
-
-            <td>
-                [% IF row.show_checkbox %]
-                <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
-                [% ELSE %]
-                Accepted in another run
-                [% END %]
-            </td>
-            <!-- <td>trace</td> -->
-        </tr>
+            </tr>
         [% END %]
+
         [% IF wells.size == 0 %]
         <tr>
             <td colspan="8" style="text-align: center">Well data is pending, please come back later</td>
