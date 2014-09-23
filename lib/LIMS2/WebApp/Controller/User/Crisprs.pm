@@ -370,7 +370,7 @@ sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
     my $design_extent;
    try {
         $design_extent = get_design_extent(
-            $c->model('Golgi')->schema,
+            $c->model('Golgi'),
             $c->request->params,
             $c->session->{'selected_species'},
         );
@@ -392,6 +392,36 @@ sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
     return;
 }
 
+
+sub genoverse_gene_view : Path( '/user/genoverse_design_view' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $gene_extent;
+   try {
+        $gene_extent = get_gene_extent(
+            $c->model('Golgi'),
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch ( LIMS2::Exception $e ){
+       $c->stash( error_msg => $e->as_string );
+    }
+    if (! $gene_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a gene id to display the Genoverse view' );
+    }
+    else {
+        $c->stash(
+            'extent'  => $gene_extent,
+            'context' => $c->request->params,
+        );
+    }
+
+    return;
+}
+
+## use critic
+#
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
 

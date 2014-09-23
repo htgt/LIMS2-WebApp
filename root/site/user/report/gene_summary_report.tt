@@ -104,19 +104,10 @@ function toggle_btn(btn, show_or_hide) {
   <b>Sponsor: </b>
     [%- sponsor %]
   [%- END %]
-  [%- IF sorted_wells.assembly.first %]
-    [% ex_well = sorted_wells.assembly.first %]
-    <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_design_view', {
-                      crispr_type_id => ex_well.crispr_type_id,
-                      design_id => ex_well.design_id,
-                      crispr_type => ex_well.crispr_type,
-                      gene_symbol => ex_well.gene_symbol,
-                      gene_ids => ex_well.gene_ids,
+    <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_gene_view', {
+                      gene_id => info.gene_id,
                       browser_target => ex_well.browser_target,
-                      plate_name => ex_well.plate_name,
-                      well_name => ex_well.well_name
                     } ) %]" target="_blank">Genoverse</a>
-    [%- END %]
 </div>
 [%- END %]
 
