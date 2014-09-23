@@ -1,0 +1,36 @@
+<div class="page-header">
+  <h1>[% title %]</h1>
+</div>
+
+<form method="GET" action="[% c.uri_for( '/user/projects' ) %]" class="well">
+  <fieldset>
+    <label for="sponsor_id">Sponsor:</label>
+    <select name="sponsor_id">
+      <option[% IF ! selected_sponsor.defined %] selected="selected" [% END %]>[% sel_sponsor %]</option>
+      [%- FOR sponsor IN sponsor_id %]
+      <option[% IF sponsor == selected_sponsor %] selected="selected"[% END %]>[% sponsor %]</option>
+      [%- END %]
+    </select>
+    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i>Filter</button>
+    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i>Show All</button>
+  </fieldset>
+    <span class="help-block">
+      You can browse for efforts and mark them as concluded by checking the box.
+    </span>
+</form>
+
+
+
+
+<div id="my_results"></div>
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/lims2_extjs.css') %]" />
+
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
+
+[%- IF get_grid %]
+
+<script src=[% c.uri_for('/static/appjs/DesignTargetsApp.js') %]></script>
+
+[%- END %]
