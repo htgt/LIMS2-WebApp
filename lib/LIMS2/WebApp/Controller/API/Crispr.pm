@@ -104,4 +104,22 @@ sub crispr_pair_POST{
 
     return $self->status_ok( $c, entity => $pair );
 }
+
+sub crispr_group : Path( '/api/crispr_group' ) : Args(0) : ActionClass('REST'){
+}
+
+sub crispr_group_GET {
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $pair = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_crispr_group( { id => $c->request->param( 'id' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $pair );
+}
+
 1;

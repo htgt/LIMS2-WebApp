@@ -191,6 +191,7 @@ sub htgt_api_call {
 
     #do everythign in a try because if it fails there's no template and you get a useless error
     try {
+
         die "No URI specified." unless $conf_uri_key;
 
         my $ua = LWP::UserAgent->new();
@@ -211,7 +212,7 @@ sub htgt_api_call {
         $req->content_type( 'application/json' );
         $req->content( encode_json( $params ) );
 
-        #make the actual request 
+        #make the actual request
         my $response = $ua->request( $req );
 
         die "Request to $uri was not successful. Response: ".$response->status_line."<br/>".$response->as_string
@@ -250,9 +251,10 @@ sub get_qc_run_seq_well_from_alignments {
         }
     );
 
+
     LIMS2::Exception::Validation->throw(
         {
-            message => 'Alignments must belong to exactly one well',
+            message => 'Alignments must belong to exactly one well, have '. scalar (@wells),
             params  => { alignments => $alignments }
         }
     ) unless @wells == 1;
