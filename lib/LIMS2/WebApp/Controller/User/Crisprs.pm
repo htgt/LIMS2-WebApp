@@ -12,7 +12,11 @@ use Data::Dumper;
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
-use LIMS2::Model::Util::OligoSelection qw( get_genotyping_primer_extent get_design_extent );
+use LIMS2::Model::Util::OligoSelection qw(
+        get_genotyping_primer_extent
+        get_design_extent
+        get_gene_extent
+        );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -393,7 +397,7 @@ sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
 }
 
 
-sub genoverse_gene_view : Path( '/user/genoverse_design_view' ) : Args(0) {
+sub genoverse_gene_view : Path( '/user/genoverse_gene_view' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     my $gene_extent;

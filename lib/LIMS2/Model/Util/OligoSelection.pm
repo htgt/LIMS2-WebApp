@@ -1413,7 +1413,7 @@ $DB::single=1;
 
     my %extent_hash;
 
-    my $slice_adaptor = $registry->get_adaptor($params->{'species'}, 'Core', 'Slice');
+    my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
     my $slice = $slice_adaptor->fetch_by_gene_stable_id( $ensembl_stable_id, 5e3 );
 
     my $coord_sys  = $slice->coord_system()->name();
@@ -1426,7 +1426,7 @@ $DB::single=1;
 
     $extent_hash{'chr_start'} = $start;
     $extent_hash{'chr_end'} = $end;
-    $extent_hash{'chr_name'} = $slice->chromosome();
+    $extent_hash{'chr_name'} = $seq_region;
     $extent_hash{'assembly'} = get_species_default_assembly( $model->schema, $species);
 
     return \%extent_hash;

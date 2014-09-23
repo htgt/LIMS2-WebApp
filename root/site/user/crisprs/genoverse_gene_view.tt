@@ -1,7 +1,7 @@
 [% META title="Genoverse Gene Browser"; META tab_name = '' %]
 <div class="page-header">
 <SCRIPT LANGUAGE = JavaScript >
-document.title = "[%- context.well_name _ ':' _ context.gene_symbol %]";
+document.title = "[%- context.gene_id _ ':' _ context.gene_symbol %]";
 </SCRIPT>
   <small><h1> [%- context.gene_id -%]
   symbol: [%- context.gene_symbol -%]
