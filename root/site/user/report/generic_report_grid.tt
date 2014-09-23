@@ -116,10 +116,13 @@
                             [%- END %]
                         ],
                         listeners: {
-                            checkchange: function (column, recordIndex, checked) {
-                                console.log('recovery class listener');
+                            change: function (field, selectedValue, recordIndex) {
+                                console.log('recovery class listener' );
                                 var record = grid.store.getAt(recordIndex);
+                                alert(field);
+                                alert(selectedValue);
                                 alert(record);
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.get('id'),recovery_class:selectedValue}, function(data){record.commit()})
 
                             }
                         },
@@ -134,7 +137,7 @@
                         allowBlank: true
                     },
                     listeners: {
-                        checkchange: function (column, recordIndex, checked) {
+                        change: function (column, recordIndex) {
                             console.log('recovery comment listener');
                             var record = grid.store.getAt(recordIndex);
                             alert(record);
