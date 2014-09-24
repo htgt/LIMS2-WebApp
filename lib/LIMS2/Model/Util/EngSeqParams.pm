@@ -37,10 +37,10 @@ sub pspec_generate_eng_seq_params {
 }
 
 sub generate_well_eng_seq_params{
-    my ( $model, $params ) = @_;
+    my ( $model, $params, $well ) = @_;
 	my $validated_params = $model->check_params( $params, pspec_generate_eng_seq_params );
 
-    my $well = $model->retrieve_well( { slice_def $validated_params, qw( plate_name well_name id ) } );
+    $well ||= $model->retrieve_well( { slice_def $validated_params, qw( plate_name well_name id ) } );
     DEBUG("Generate eng seq params for well: $well ");
 
     my $design = $well->design;
@@ -57,15 +57,8 @@ sub generate_well_eng_seq_params{
 
     my $design_data = $design->as_hash;
 
-    # Infer stage from plate type information
-    my $stage;
-    my $plate_type_descr = $well->plate->type->description;
-    if ( $validated_params->{stage} ) {
-        $stage = $validated_params->{stage};
-    }
-    else {
-        $stage = $plate_type_descr =~ /ES/ ? 'allele' : 'vector';
-    }
+    my $plate_type_stage = $well->plate->type->eng_seq_stage;
+    my $stage = $validated_params->{stage} || $plate_type_stage;
 
     my $design_params = fetch_design_eng_seq_params($design_data);
 
