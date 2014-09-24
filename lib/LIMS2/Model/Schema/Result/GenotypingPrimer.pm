@@ -165,10 +165,18 @@ __PACKAGE__->has_many(
 sub as_hash {
     my $self = shift;
 
+    my $locus;
+    if ( my $default_assembly = $self->design->species->default_assembly ) {
+        $locus = $self->search_related( 'genotyping_primer_loci',
+            { assembly_id => $default_assembly->assembly_id } )->first;
+    }
+
     return {
-        id   => $self->id,
-        type => $self->genotyping_primer_type_id,
-        seq  => $self->seq
+        id      => $self->id,
+        type    => $self->genotyping_primer_type_id,
+        seq     => $self->seq,
+        species => $self->design->species_id,
+        locus   => $locus ? $locus->as_hash : undef,
     };
 }
 
