@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.245     2014-09-22 10:22:10 Europe/London
+
+    Added ES Cell QC
+
 0.244     2014-09-22 07:27:48 Europe/London
 
     Add crispr group REST API
