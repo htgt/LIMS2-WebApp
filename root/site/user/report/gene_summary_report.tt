@@ -104,10 +104,10 @@ function toggle_btn(btn, show_or_hide) {
   <b>Sponsor: </b>
     [%- sponsor %]
   [%- END %]
-    <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_gene_view', {
-                      gene_id => info.gene_id,
-                      browser_target => info.gene_symbol,
-                    } ) %]" target="_blank">Genoverse</a>
+  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_gene_view', {
+               gene_id => info.gene_id,
+               browser_target => info.gene_symbol,
+  } ) %]" target="_blank">Genoverse</a>
 </div>
 [%- END %]
 
