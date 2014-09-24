@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.246     2014-09-24 10:03:14 Europe/London
+	Fix for FP tube barcodes upload
+
 0.245     2014-09-22 10:22:10 Europe/London
 
     Added ES Cell QC
