@@ -362,6 +362,7 @@ root/site/user/qc/create_template_plate.tt
 root/site/user/qc/index.tt
 root/site/user/qc/latest_runs.tt
 root/site/user/qc/qc_farm_error_rpt.tt
+root/site/user/qc/submit_es_cell.tt
 root/site/user/qc/submit_new_qc.tt
 root/site/user/qc/view_qc_alignment.tt
 root/site/user/qc/view_qc_result.tt
