@@ -51,6 +51,48 @@ sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
     return;
 }
 
+sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $model = $c->model('Golgi');
+    my $params = $c->request->params;
+
+	if ( $c->req->param('generate_sequence') ) {
+        unless ( $params->{design_id} ) {
+            # bad
+        }
+        my $design = $model->retrieve_design( { id => $params->{design_id} } );
+        my $design_params = fetch_design_eng_seq_params( $design->as_hash );
+
+
+    }
+    #my ( $method, undef , $eng_seq_params ) = generate_well_eng_seq_params( $model, $params, $well );
+
+    #my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
+    #my $formatted_seq;
+    #Bio::SeqIO->new(
+        #-fh     => IO::String->new($formatted_seq),
+        #-format => 'Genbank',
+    #)->write_seq($eng_seq);
+    #my $stage = $method =~ /vector/ ? 'vector' : 'allele';
+    #my $filename = $well->as_string . "_$stage" . '.gbk';
+
+    #$c->response->content_type( 'chemical/seq-na-genbank' );
+    #$c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
+    #$c->response->body( $formatted_seq );
+    my @backbones = $model->schema->resultset('Backbone')->all;
+    $c->stash->{backbones} = [ sort { lc($a) cmp lc($b) } map { $_->name } @backbones ];
+    unshift @{ $c->stash->{backbones} }, "";
+
+    my @cassettes = $model->schema->resultset('Cassette')->all;
+    $c->stash->{cassettes} = [ sort { lc($a) cmp lc($b) } map { $_->name } @cassettes ];
+    unshift @{ $c->stash->{cassettes} }, "";
+
+    $c->stash->{recombinases} = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
+
+    return;
+}
+
 =head1 AUTHOR
 
 Team 87

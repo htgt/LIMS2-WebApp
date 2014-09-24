@@ -1,0 +1,58 @@
+[% META title = "Generate Sequence File"; META tab_name = "Designs" %]
+
+<div class="page-header">
+  <h1>Generate Sequence File</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="generate_sequence" action="[% c.uri_for( '/user/generate_sequence_file' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>Design ID</label>
+        <input name="design_id" id="design_id" type="text"
+          [% IF design_id %]value="[% design_id %]"[% END %]
+        />
+
+        <label>Cassette</label>
+        <select name="cassette" id="cassette"/>
+          [% FOR cass IN cassettes %]
+            <option [% IF cass == cassette %] selected="selected"[% END %]>[% cass %]</option>
+          [%- END %]
+        </select>
+
+        <label>Backbone (optional)</label>
+        <select name="backbone" id="backbone"/>
+          [% FOR bb IN backbones %]
+            <option [% IF bb == backbone %] selected="selected"[% END %]>[% bb %]</option>
+          [%- END %]
+        </select>
+
+        <label>Recombinases (optional)</label>
+        <select name="recombinase" id="recombinase" multiple="multiple"/>
+          [% FOR recom IN recombinases %]
+            <option [% IF recombinase.grep(recom).size %] selected="selected"[% END %]>[% recom %]</option>
+          [%- END %]
+        </select>
+
+        <label>File Format</label>
+        <select name="file_format" id="file_format" />
+            <option>Genbank</option>
+            <option>Fasta</option>
+        </select>
+
+        <br>
+        <button name="generate_sequence" id="generate_sequence" type="submit" value="generate_sequence" class="btn">
+            <i class="icon-upload"></i> Generate Sequence File
+        </button>
+    </form>
+  </div>
+
+</div>
+
+<script type="text/javascript">
+$('form#generate_sequence').submit(function(){
+    $(this).children('button[type=submit]').attr('disabled', 'disabled');
+});
+
+</script>
