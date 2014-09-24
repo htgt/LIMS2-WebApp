@@ -85,6 +85,34 @@ sub crispr_pairs_GET {
     return $c->response->body( $body );
 }
 
+sub crispr_groups :Path('/api/crispr_groups') :Args(0) :ActionClass('REST') {
+}
+
+sub crispr_groups_GET {
+    my ( $self, $c ) = @_;
+
+    my $schema = $c->model('Golgi')->schema;
+
+    my $params = ();
+    $params->{species} = $c->session->{'selected_species'} // 'Human';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // get_species_default_assembly($schema, $params->{species} ) // 'GRCh37';
+    $params->{chromosome_number}= $c->request->params->{'chr'};
+    $params->{start_coord}= $c->request->params->{'start'};
+    $params->{end_coord}= $c->request->params->{'end'};
+
+
+    my $crisprs = crispr_groups_for_region(
+         $schema,
+         $params,
+    );
+
+    my $crispr_gff = crispr_groups_to_gff( $crisprs, $params );
+    $c->response->content_type( 'text/plain' );
+    my $body = join "\n", @{$crispr_gff};
+    return $c->response->body( $body );
+}
+
+
 sub get_species_default_assembly {
     my $schema = shift;
     my $species = shift;
