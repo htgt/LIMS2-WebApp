@@ -58,7 +58,7 @@ sub generate_well_eng_seq_params{
     my $design_data = $design->as_hash;
 
     my $plate_type_stage = $well->plate->type->eng_seq_stage;
-    my $stage = $validated_params->{stage} || $plate_type_stage;
+    my $stage = $validated_params->{stage} || $plate_type_stage || 'vector';
 
     my $design_params = fetch_design_eng_seq_params($design_data);
 

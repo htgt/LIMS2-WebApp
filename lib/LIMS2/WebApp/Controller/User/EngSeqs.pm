@@ -1,6 +1,6 @@
 package LIMS2::WebApp::Controller::User::EngSeqs;
 use Moose;
-use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params fetch_design_eng_seq_params );
+use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use Bio::SeqIO;
 use IO::String;
 use Try::Tiny;
