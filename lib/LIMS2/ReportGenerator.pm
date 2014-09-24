@@ -29,6 +29,11 @@ has model => (
     required   => 1,
 );
 
+has catalyst => (
+    is  => 'ro',
+    isa => 'Catalyst',
+);
+
 has cache_ttl => (
     is      => 'ro',
     isa     => 'Str',

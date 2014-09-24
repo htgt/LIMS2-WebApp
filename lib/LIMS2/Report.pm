@@ -123,10 +123,10 @@ sub cached_report {
 }
 
 sub generator_for {
-    my ( $report, $model, $params ) = @_;
+    my ( $report, $model, $params, $catalyst ) = @_;
 
     my $generator = load_generator_class( $report )->new(
-        +{ %{$params}, model => $model }
+        +{ %{$params}, model => $model, catalyst => $catalyst }
     );
 
     return $generator;
@@ -139,7 +139,7 @@ sub generate_report_id {
 sub generate_report {
     my %args = @_;
 
-    my $generator = generator_for( $args{report}, $args{model}, $args{params} );
+    my $generator = generator_for( $args{report}, $args{model}, $args{params}, $args{catalyst} );
 
     my $report_id = generate_report_id();
 
