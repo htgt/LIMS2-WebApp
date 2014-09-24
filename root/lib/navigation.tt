@@ -51,6 +51,9 @@
             <li>
               <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/generate_sequence_file' ) %]">Generate Sequence File</a>
+            </li>
           </ul>
         </li>
 
