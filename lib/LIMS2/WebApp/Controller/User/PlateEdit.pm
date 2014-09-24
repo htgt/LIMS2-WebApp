@@ -4,8 +4,6 @@ use namespace::autoclean;
 use Try::Tiny;
 use JSON;
 
-use Data::Dumper; # TODO remove
-
 BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -261,7 +259,6 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
         $c->flash->{ 'error_msg' } = 'Error encountered while parsing plate well barcodes file, no data found in file';
     }
 
-    my $count_errors_with_wells = 0;
     my @list_messages = ();
 
     $c->model('Golgi')->txn_do(
@@ -277,24 +274,6 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
                     $wells_list->{ $well->name } = $well;
                 }
 
-                # check here to see if we have scanned more barcodes than there are tubes in the rack
-                my @ordered_barcode_keys = sort keys %$csv_barcodes_data;
-
-                for my $ordered_barcode_key ( @ordered_barcode_keys ) {
-
-                    next if $csv_barcodes_data->{ $ordered_barcode_key } eq 'No Read';
-
-                    unless ( exists $wells_list->{ $ordered_barcode_key } ) {
-                        $count_errors_with_wells += 1;
-                        push ( @list_messages, {
-                            'well_name' => $ordered_barcode_key,
-                            'error' => 1,
-                            'message' => 'A barcode <' . $csv_barcodes_data->{ $ordered_barcode_key } . '> has been scanned for a location where no tube was expected to be present.'
-                        } );
-                        next;
-                    }
-                }
-
                 my @ordered_well_keys = sort keys %$wells_list;
 
                 # check each well on the plate in alphabetic order
@@ -303,7 +282,6 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
 
                     # all well names should have a barcode in the list
                     unless ( exists $csv_barcodes_data->{ $ordered_well->name } ) {
-                        $count_errors_with_wells += 1;
                         push ( @list_messages, {
                             'well_name' => $ordered_well->name,
                             'error' => 1,
@@ -314,7 +292,6 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
 
                     # check for unsuccessful scan text
                     if ( $csv_barcodes_data->{ $ordered_well->name } eq 'No Read' ) {
-                        $count_errors_with_wells += 1;
                         push ( @list_messages, {
                             'well_name' => $ordered_well->name,
                             'error' => 1,
@@ -336,7 +313,6 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
                         } else {
                             # barcode differs
                             # TODO: need to eventually allow for movements of wells/tubes
-                            $count_errors_with_wells += 1;
                             push ( @list_messages, {
                                 'well_name' => $ordered_well->name,
                                 'error' => 1,
@@ -353,7 +329,26 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
                             'message' => 'This tube barcode will be set to the uploaded value <' . $csv_barcodes_data->{ $ordered_well->name } . '>.'
                         } );
                     }
-               }
+                }
+
+                # check here to see if we have scanned more barcodes than there are tubes in the rack
+                # this is Ok, lab may leave whole 96 tubes rather than risk compromising sterility
+                # by moving some in or out
+                my @ordered_barcode_keys = sort keys %$csv_barcodes_data;
+
+                for my $ordered_barcode_key ( @ordered_barcode_keys ) {
+
+                    next if $csv_barcodes_data->{ $ordered_barcode_key } eq 'No Read';
+
+                    unless ( exists $wells_list->{ $ordered_barcode_key } ) {
+                        push ( @list_messages, {
+                            'well_name' => $ordered_barcode_key,
+                            'error' => 2,
+                            'message' => 'A barcode <' . $csv_barcodes_data->{ $ordered_barcode_key } . '> has been scanned for a location where no tube was present, ignoring.'
+                        } );
+                        next;
+                    }
+                }
             }
             catch {
                 $c->flash->{ 'error_msg' } = 'Error encountered while updating plate tube barcodes: ' . $_;
@@ -363,9 +358,17 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
         }
     );
 
-    # encode as json string to redirect information to well results view
+    # encode messages as json string to send to well results view
     my $json_text = encode_json( \@list_messages );
-    $c->res->redirect( $c->uri_for('/user/view_well_barcode_results', { 'id' => $params->{ 'id' }, 'well_results_list' => $json_text } ) );
+
+    my $plate = $c->model('Golgi')->retrieve_plate( { id => $params->{ 'id' } } );
+
+    $c->stash(
+        template            => 'user/browseplates/view_well_barcode_results.tt',
+        plate               => $plate,
+        well_results_list   => $json_text,
+        username            => $c->user->name,
+    );
 
     return;
 }
@@ -373,20 +376,15 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
 sub parse_plate_well_barcodes_csv_file {
     my ( $self, $c, $fh ) = @_;
 
-    print "IN parse_plate_well_barcodes_csv_file\n";
-
     my $csv_data = {};
 
     try {
         my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
 
         while ( my $line = $csv->getline( $fh )) {
-            print "row extracted = " . $line . "\n";
             my @fields = split "," , $line;
             my $curr_well = $line->[0];
             my $curr_barcode = $line->[1];
-            print "well: $curr_well\n";
-            print "barcode: $curr_barcode\n";
             $csv_data->{ $curr_well } = $curr_barcode;
         }
     }
@@ -402,20 +400,6 @@ sub parse_plate_well_barcodes_csv_file {
 
     return $csv_data;
 }
-
-# sub create_well_results_json {
-#     my $self = shift;
-#     my $params = shift;
-
-#     # my $custom_value = {
-#     #     'lims2_custom' => {
-#     #         %{$params}
-#     #     },
-#     # };
-#     my $json_text = encode_json( $custom_value );
-
-#     return $json_text;
-# }
 
 =head1 AUTHOR
 

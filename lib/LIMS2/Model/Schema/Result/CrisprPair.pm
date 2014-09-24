@@ -190,6 +190,7 @@ sub as_hash {
         right_crispr_id    => $self->right_crispr_id,
         spacer             => $self->spacer,
         off_target_summary => $self->off_target_summary,
+        crispr_primers     => [ map { $_->as_hash } $self->crispr_primers ],
     );
 
     return \%h;

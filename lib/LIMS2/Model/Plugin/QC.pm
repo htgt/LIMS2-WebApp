@@ -554,7 +554,7 @@ sub qc_run_results {
 
     my $results = retrieve_qc_run_results_fast($qc_run, $self->schema, $crispr_run);
 
-    # retrieve_qc_run_results_fast looks up MGI accessions in the solr index 
+    # retrieve_qc_run_results_fast looks up MGI accessions in the solr index
     # but for human qc runs we need to fetch gene symbols from ensembl
     # TODO: When the human solr index is implemented we should search this in the
     # retrieve_qc_run_results_fast method instead of doing ensembl query here
@@ -614,6 +614,7 @@ sub qc_run_seq_well_results {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_run_seq_well_results );
+
     my $qc_seq_well = $self->retrieve_qc_run_seq_well($validated_params);
 
     my ( $seq_reads, $results ) = retrieve_qc_run_seq_well_results($params->{qc_run_id}, $qc_seq_well);
@@ -922,7 +923,7 @@ sub create_plate_from_qc{
                 accepted     => $best->{pass},
             );
 
-            # Identify reagent overrides from QC wells            
+            # Identify reagent overrides from QC wells
             if ( my $cassette = $template_well->qc_template_well_cassette){
                 $well_params{cassette} = $cassette->cassette->name;
             }

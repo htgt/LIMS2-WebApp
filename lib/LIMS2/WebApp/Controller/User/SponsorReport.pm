@@ -59,6 +59,7 @@ sub _generate_front_page_report {
     $c->stash(
         'report_id'      => $report_id,
         'title'          => $title,
+        'species'        => $species,
         'targeting_type' => $targeting_type,
         'columns'        => $columns,
         'rows'           => $rows,
