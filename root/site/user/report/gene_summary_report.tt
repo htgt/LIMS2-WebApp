@@ -308,6 +308,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Recombinase</th>
             <th>Sequencing QC pass?</th>
             <th>Accepted?</th>
+            <th>Vector Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.int %]
@@ -321,6 +322,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.recombinases %]</td>
               <td>[% well.qc_seq_pass %]</td>
               <td>[% well.is_accepted %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -350,6 +352,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Recombinase</th>
             <th>Sequencing QC pass?</th>
             <th>Accepted?</th>
+            <th>Vector Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.final %]
@@ -363,6 +366,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.recombinases %]</td>
               <td>[% well.qc_seq_pass %]</td>
               <td>[% well.is_accepted %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -392,6 +396,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Recombinase</th>
             <th>Sequencing QC pass?</th>
             <th>Accepted?</th>
+            <th>Vector Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.final_pick %]
@@ -405,6 +410,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.recombinases %]</td>
               <td>[% well.qc_seq_pass %]</td>
               <td>[% well.is_accepted %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -432,6 +438,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Accepted?</th>
             <th>Crispr ID</th>
             <th>Design ID</th>
+            <th>Vector Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.crispr_vector %]
@@ -443,6 +450,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.is_accepted %]</td>
               <td>[% well.crispr_id %]</td>
               <td>[% well.design_id %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -472,6 +480,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>DNA Quality Comment</th>
             <th>DNA Status</th>
             <th>Accepted?</th>
+            <th>Vector Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.dna %]
@@ -485,6 +494,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.quality_comment %]</td>
               <td>[% well.status_pass %]</td>
               <td>[% well.is_accepted %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -513,6 +523,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Accepted?</th>
             <th>Crispr ID</th>
             <th>Design ID</th>
+            <th>Vector Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.crispr_dna %]
@@ -525,6 +536,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.is_accepted %]</td>
               <td>[% well.crispr_id %]</td>
               <td>[% well.design_id %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -551,6 +563,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>Accepted?</th>
             <th>Genoverse View</th>
+            <th>Vector Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.assembly %]
@@ -570,6 +583,7 @@ function toggle_btn(btn, show_or_hide) {
                       plate_name => well.plate_name,
                       well_name => well.well_name
                     } ) %]" target="_blank">Genoverse</a></td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -598,6 +612,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>DNA Well</th>
             <th>Recombinase / Nuclease</th>
             <th>Accepted?</th>
+            <th>Allele Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.ep %]
@@ -610,6 +625,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.dna_well %]</td>
               <td>[% well.recombinases %]</td>
               <td>[% well.is_accepted %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -637,6 +653,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>First Electroporation Well</th>
             <th>Accepted?</th>
+            <th>Allele Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.ep_pick %]
@@ -659,6 +676,7 @@ function toggle_btn(btn, show_or_hide) {
 
                 [% IF well.crispr_qc_data %]</a>[% END %]
               </td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -685,6 +703,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>EP Parents</th>
             <th>FEPD Parents</th>
+            <th>Allele Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.xep %]
@@ -703,6 +722,7 @@ function toggle_btn(btn, show_or_hide) {
                   [% parent %]<br style="line-height:50%;" />
                 [% END %]
               </td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -807,6 +827,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>First Electroporation Pick</th>
             <th>Accepted?</th>
             <th>PIQ?</th>
+            <th>Allele Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.fp %]
@@ -819,6 +840,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.ep_pick_well %]</td>
               <td>[% well.is_accepted %]</td>
               <td>[% well.piq_well %]</td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -846,6 +868,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>First Allele Freezer Instance</th>
             <th>Accepted?</th>
+            <th>Allele Genbank File</th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.piq %]
@@ -866,6 +889,7 @@ function toggle_btn(btn, show_or_hide) {
                 [% well.is_accepted %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
               </td>
+              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
