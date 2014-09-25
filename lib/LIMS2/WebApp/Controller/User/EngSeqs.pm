@@ -43,7 +43,13 @@ sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
         -format => 'Genbank',
     )->write_seq($eng_seq);
     my $stage = $method =~ /vector/ ? 'vector' : 'allele';
-    my $filename = $well->as_string . "_$stage" . '.gbk';
+
+    my $design  = $well->design;
+    my $gene_id = $design->genes->first->gene_id;
+    my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
+    my $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
+
+    my $filename = $well->as_string . "_$stage" . "_$gene" . '.gbk';
 
     $c->response->content_type( 'chemical/seq-na-genbank' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
