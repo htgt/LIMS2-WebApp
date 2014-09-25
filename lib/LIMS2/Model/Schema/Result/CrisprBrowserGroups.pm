@@ -33,11 +33,15 @@ select
     cl.chr_id,
     cl.chr_start,
     cl.chr_end,
-    cl.chr_strand
+    cl.chr_strand,
+    cr.pam_right
 from crispr_group_crisprs cgc
 join crispr_loci cl on cl.crispr_id = cgc.crispr_id
+join crisprs cr on cgc.crispr_id = cr.id
 where cl.chr_start >= ? and cl.chr_end <= ?
+and cl.chr_id = ?
 and cl.assembly_id = ?
+order by cgc.crispr_group_id, cl.chr_start
 EOT
 
 __PACKAGE__->add_columns(
@@ -49,10 +53,11 @@ __PACKAGE__->add_columns(
         chr_start
         chr_end
         chr_strand
+        pam_right
     /
 );
 
-__PACKAGE__->set_primary_key( "pair_id" );
+__PACKAGE__->set_primary_key( "crispr_group_id" );
 
 __PACKAGE__->meta->make_immutable;
 

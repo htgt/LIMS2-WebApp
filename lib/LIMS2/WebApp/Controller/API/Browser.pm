@@ -15,6 +15,8 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crispr_primers_to_gff
     unique_crispr_data 
     unique_crispr_data_to_gff
+    crispr_groups_for_region
+    crispr_groups_to_gff
 /;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }

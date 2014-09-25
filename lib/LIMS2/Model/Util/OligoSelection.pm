@@ -1400,8 +1400,6 @@ sub get_gene_extent {
     my $params = shift;
     my $species = shift;
 
-$DB::single=1;
-
     my $ensembl_stable_id;
 
     $ensembl_stable_id = $model->find_gene({

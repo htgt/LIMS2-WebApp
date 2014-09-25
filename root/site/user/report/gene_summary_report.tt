@@ -107,6 +107,7 @@ function toggle_btn(btn, show_or_hide) {
   <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_gene_view', {
                gene_id => info.gene_id,
                browser_target => info.gene_symbol,
+               gene_symbol => info.gene_symbol
   } ) %]" target="_blank">Genoverse</a>
 </div>
 [%- END %]
