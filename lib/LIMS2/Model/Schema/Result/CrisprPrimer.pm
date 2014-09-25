@@ -284,7 +284,7 @@ sub as_hash {
         $species = $self->crispr->species;
     }
     elsif ( $self->crispr_pair_id ) {
-        $species = $self->crispr_group->left_crispr->species;
+        $species = $self->crispr_pair->left_crispr->species;
     }
     elsif ( $self->crispr_group_id ) {
         $species = $self->crispr_group->left_most_crispr->species;

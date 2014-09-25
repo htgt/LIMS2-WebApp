@@ -86,3 +86,33 @@
 [% ELSE %]
   <p><em>No designs linked to this crispr</em></p>
 [% END %]
+
+<h2>Crispr Primers</h2>
+[% IF crispr_primers.size > 0 %]
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Sequence</th>
+        <th>Locus</th>
+        <th>Strand</th>
+        <th>Melting Temp (&deg;C)</th>
+        <th>GC Content (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR datum IN crispr_primers %]
+      <tr>
+        <td> [% datum.primer_name %] </td>
+        <td> [% datum.primer_seq %] </td>
+        <td>[% datum.locus.chr_name %]: [% datum.locus.chr_start %] - [% datum.locus.chr_end %] </td>
+        <td>[% datum.locus.chr_strand %]</td>
+        <td>[% datum.tm %]</td>
+        <td>[% datum.gc_content %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No primers linked to this crispr pair</em></p>
+[% END %]

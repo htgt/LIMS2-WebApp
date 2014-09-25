@@ -21,7 +21,7 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
-        'Crispr or Pair ID', 'Genoverse View',
+        'Crispr or Pair ID', 'Genoverse View', 'Genbank File',
         'Left Crispr Well', 'Left Crispr Designs', 'Right Crispr Well','Right Crispr Designs',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
         'Left Crispr', 'Right Crispr',
@@ -87,6 +87,7 @@ override iterator => sub {
                     'browser_target'   => $self->plate_name . $well->name,
                     'api_url'          => '/user/genoverse_design_view',
             }) : 'Invalid Crispr Pair',
+            $self->catalyst->uri_for( '/user/well_eng_seq', $well->id ),
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $left_designs,
             $right_crispr ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',

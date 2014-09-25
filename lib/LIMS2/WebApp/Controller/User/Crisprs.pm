@@ -175,10 +175,12 @@ sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
 
     my $crispr_pair = $c->stash->{cp};
     my $off_target_summary = Load( $crispr_pair->off_target_summary );
+    my $cp_data = $crispr_pair->as_hash;
 
     $c->stash(
-        ots     => $off_target_summary,
-        designs => [ $crispr_pair->crispr_designs->all ],
+        ots            => $off_target_summary,
+        designs        => [ $crispr_pair->crispr_designs->all ],
+        crispr_primers => $cp_data->{crispr_primers},
     );
 
     return;
@@ -242,9 +244,11 @@ sub view_crispr_group : PathPart('view') Chained('crispr_group') Args(0) {
     my ( $self, $c ) = @_;
 
     my $crispr_group = $c->stash->{cg};
+    my $cg_data = $crispr_group->as_hash;
 
     $c->stash(
-        designs => [ $crispr_group->crispr_designs->all ],
+        designs        => [ $crispr_group->crispr_designs->all ],
+        crispr_primers => $cg_data->{crispr_primers},
     );
 
     return;

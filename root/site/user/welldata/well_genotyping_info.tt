@@ -32,6 +32,13 @@
       <td>[% data.well_name %]</td>
     </tr>
     <tr>
+      <th>Genbank Files</th>
+      <td>
+          <a href="[% c.uri_for( '/user/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="icon-file"></i> Allele</a> <br>
+          <a href="[% c.uri_for( '/user/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="icon-file"></i> Vector</a>
+      </td>
+    </tr>
+    <tr>
       <th>EPD Plate Name</th>
       <td>[% data.epd_plate_name %]</td>
     </tr>

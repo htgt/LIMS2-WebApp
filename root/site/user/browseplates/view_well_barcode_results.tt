@@ -146,6 +146,8 @@
               </td>
               [% IF well_row.error == 1 %]
                 <td style="color: red;">
+              [% ELSIF well_row.error == 2 %]
+                <td style="color: orange;">
               [% ELSE %]
                 <td style="color: green;">
               [% END %]

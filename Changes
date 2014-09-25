@@ -1,5 +1,19 @@
 {{$NEXT}}
 
+0.247     2014-09-25 06:35:12 Europe/London
+
+    Added Genbank file download links in following locations:
+        Gene Summary Page
+        Well Genotyping Info Page
+        Plate View Pages
+
+0.246     2014-09-24 10:03:14 Europe/London
+	Fix for FP tube barcodes upload
+
+0.245     2014-09-22 10:22:10 Europe/London
+
+    Added ES Cell QC
+
 0.244     2014-09-22 07:27:48 Europe/London
 
     Add crispr group REST API

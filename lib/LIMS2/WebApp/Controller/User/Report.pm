@@ -67,7 +67,8 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        async      => 0
+        async      => 0,
+        catalyst   => $c,
     );
 
     if ( not defined $report_id ) {
@@ -95,7 +96,8 @@ sub grid_sync_report :Path( '/user/report/sync/grid' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        async      => 0
+        async      => 0,
+        catalyst   => $c,
     );
 
     if ( not defined $report_id ) {
@@ -125,7 +127,8 @@ sub async_report :Path( '/user/report/async' ) :Args(1) {
         model      => $c->model('Golgi'),
         report     => $report,
         params     => $params,
-        async      => 1
+        async      => 1,
+        catalyst   => $c,
     );
 
     $c->stash(
