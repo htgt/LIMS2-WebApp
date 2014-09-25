@@ -1,3 +1,10 @@
+0.247     2014-09-25 06:35:12 Europe/London
+
+    Added Genbank file download links in following locations:
+        Gene Summary Page
+        Well Genotyping Info Page
+        Plate View Pages
+
 0.246     2014-09-24 10:03:14 Europe/London
 	Fix for FP tube barcodes upload
 

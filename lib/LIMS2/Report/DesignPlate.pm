@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignPlate::VERSION = '0.246';
+    $LIMS2::Report::DesignPlate::VERSION = '0.247';
 }
 ## use critic
 
@@ -23,7 +23,7 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
-        shift->base_columns,
+        grep { !/Genbank File/ } shift->base_columns,
         "PCR U", "PCR D", "PCR G", "Rec U", "Rec D", "Rec G", "Rec NS", "Rec Result",
     ];
 };
@@ -48,7 +48,7 @@ override iterator => sub {
         my %recombineering_results = map { $_->result_type_id => $_->result } $well->well_recombineering_results;
 
         return [
-            $self->base_data( $well ),
+            $self->base_data( $well, undef, { no_eng_seq_link => 1 } ),
             @recombineering_results{ qw( pcr_u pcr_d pcr_g rec_u rec_d rec_g rec_ns rec_result ) },
         ];
     };

@@ -44,6 +44,8 @@
                                     [%- IF (first_time_outer == 1) && (val.match('lims2_custom')) %]
                                     // string matched 'custom' specifier
                                         [%- alt_render.${columns.$index} = 1 %]
+                                    [%- ELSIF (first_time_outer == 1) && ( val.match( '^https?:' )) %]
+                                        [%- alt_render_link.${columns.$index} = 1 %]
                                     [%- END %]
                                     ,"[%- columns.$index %]": "[%- val.dquote | none%]"
                                     [%#- This 'none' FILTER comes from Template::AutoFilter and is otherwise
@@ -91,6 +93,8 @@
                     [%# alt_render values are case sensitive %]
                     [%- IF alt_render.$col == 1%]
                     renderer: lims2_action_button_json,
+                    [% ELSIF alt_render_link.$col == 1 %]
+                    renderer: lims2_action_link,
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
@@ -128,6 +132,20 @@
                             text: button_label,
                             width: 75,
                             handler: function () { window.open( "[% c.uri_for('/') %]" + api_base + '?' + api_params_string ) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
+
+            function lims2_action_link(val) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        console.log(val);
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: 'Link',
+                            width: 65,
+                            handler: function () { window.open( val ) }
                         });
                     }, 50);
                     return Ext.String.format('<div id="{0}"></div>', id);

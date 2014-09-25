@@ -266,6 +266,7 @@ lib/LIMS2/WebApp/Controller/User/CrisprQC.pm
 lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargetsReport.pm
+lib/LIMS2/WebApp/Controller/User/EngSeqs.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
