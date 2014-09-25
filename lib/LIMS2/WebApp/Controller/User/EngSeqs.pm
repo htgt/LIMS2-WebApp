@@ -1,7 +1,6 @@
 package LIMS2::WebApp::Controller::User::EngSeqs;
 use Moose;
-use LIMS2::Model::Util::EngSeqParams
-    qw( generate_well_eng_seq_params fetch_design_eng_seq_params fetch_eng_seq_params);
+use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params generate_custom_eng_seq_params );
 use Bio::SeqIO;
 use IO::String;
 use Try::Tiny;
@@ -38,23 +37,17 @@ sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
 
     my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
 
-    my $formatted_seq;
-    Bio::SeqIO->new(
-        -fh     => IO::String->new($formatted_seq),
-        -format => 'Genbank',
-    )->write_seq($eng_seq);
-    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
-
     my $design  = $well->design;
     my $gene_id = $design->genes->first->gene_id;
     my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
     my $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
+    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
 
-    my $filename = $well->as_string . "_$stage" . "_$gene" . '.gbk';
+    my $file_name = $well->as_string . "_$stage" . "_$gene" . '.gbk';
+    my $file_format = exists $params->{file_format} ? $params->{file_format} : 'Genbank';
 
-    $c->response->content_type( 'chemical/seq-na-genbank' );
-    $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
-    $c->response->body( $formatted_seq );
+    $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );
+
     return;
 }
 
@@ -64,47 +57,18 @@ sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
     my $model = $c->model('Golgi');
     my $input_params = $c->request->params;
 
-    if ($c->request->params->{generate_sequence}){
-        unless ( $input_params->{design_id} ) {
-            # bad
-        }
-        my $design = $model->c_retrieve_design( { id => $input_params->{design_id} } );
-        my $design_params = fetch_design_eng_seq_params( $design );
-
-        my $params = {};
-        $params->{cassette} = $input_params->{cassette};
-        if ( $input_params->{backbone} ) {
-            $params->{backbone} = $input_params->{backbone};
-            $params->{stage} = 'vector';
-        }
-        else {
-            $params->{stage} = 'allele';
-        }
-        $params->{recombinase} = $input_params->{recombinases} || []; # array ref
-
+    if ($c->request->params->{generate_sequence}) {
+        my $file_format = delete $input_params->{file_format};
         $c->stash->{cassette} = $input_params->{cassette};
         $c->stash->{design_id} = $input_params->{design_id};
         $c->stash->{backbone} = $input_params->{backbone};
         $c->stash->{recombinase} = $input_params->{recombinases};
 
-        my ( $method, $eng_seq_params ) = fetch_eng_seq_params( { %{ $params }, %{ $design_params } } );
+        my ( $method, $eng_seq_params ) = try{ generate_custom_eng_seq_params( $model, $input_params ) };
+        my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
+        my $file_name = $eng_seq_params->{display_id} . '.gbk';
 
-        delete $design_params->{design_type};
-        delete $design_params->{design_cassette_first};
-
-        my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params }, %{ $design_params } );
-        my $formatted_seq;
-        Bio::SeqIO->new(
-            -fh     => IO::String->new($formatted_seq),
-            -format => $input_params->{file_format},
-        )->write_seq($eng_seq);
-        my $stage = $method =~ /vector/ ? 'vector' : 'allele';
-        my $filename = $eng_seq_params->{display_id} . '.gbk';
-
-        $c->response->content_type( 'chemical/seq-na-genbank' );
-        $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
-        $c->response->body( $formatted_seq );
-
+        $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );
     }
 
     my @backbones = $model->schema->resultset('Backbone')->all;
@@ -116,6 +80,23 @@ sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
     unshift @{ $c->stash->{cassettes} }, "";
 
     $c->stash->{recombinases} = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
+
+    return;
+}
+
+sub download_genbank_file {
+    my ( $self, $c, $eng_seq, $file_name, $file_format ) = @_;
+
+    $file_format ||= 'Genbank';
+    my $formatted_seq;
+    Bio::SeqIO->new(
+        -fh     => IO::String->new($formatted_seq),
+        -format => $file_format,
+    )->write_seq($eng_seq);
+
+    $c->response->content_type( 'chemical/seq-na-genbank' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$file_name" );
+    $c->response->body( $formatted_seq );
 
     return;
 }

@@ -10,8 +10,7 @@ use Sub::Exporter -setup => {
             generate_genbank_for_qc_well
             fetch_well_eng_seq_params
             generate_crispr_eng_seq_params
-            fetch_design_eng_seq_params
-            fetch_eng_seq_params
+            generate_custom_eng_seq_params
           )
     ]
 };
@@ -68,6 +67,43 @@ sub generate_well_eng_seq_params{
     my $eng_seq_params = { %$design_params, %$well_params };
 
     return $method, $well->id, $eng_seq_params;
+}
+
+sub pspec_generate_custom_eng_seq_params {
+	return {
+        design_id   => { validate => 'existing_design_id' },
+        cassette    => { validate => 'existing_cassette' },
+        backbone    => { validate => 'existing_backbone', optional => 1 },
+        recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
+	}
+}
+
+sub generate_custom_eng_seq_params{
+    my ( $model, $input_params, $design ) = @_;
+	my $validated_params = $model->check_params( $input_params, pspec_generate_custom_eng_seq_params );
+
+    $design ||= $model->c_retrieve_design( { id => $validated_params->{design_id} } );
+    DEBUG("Generate eng seq params for design $design ");
+
+    my $design_params = fetch_design_eng_seq_params( $design );
+
+    my $params = {};
+    $params->{cassette} = $validated_params->{cassette};
+    $params->{recombinase} = $validated_params->{recombinases};
+    if ( $validated_params->{backbone} ) {
+        $params->{backbone} = $validated_params->{backbone};
+        $params->{stage} = 'vector';
+    }
+    else {
+        $params->{stage} = 'allele';
+    }
+
+    my ( $method, $eng_seq_params ) = fetch_eng_seq_params( { %{ $params }, %{ $design_params } } );
+
+    delete $design_params->{design_type};
+    delete $design_params->{design_cassette_first};
+
+    return ( $method, { %$eng_seq_params, %$design_params } );
 }
 
 sub fetch_design_eng_seq_params {
