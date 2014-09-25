@@ -29,7 +29,7 @@
         </select>
 
         <label>Recombinases (optional)</label>
-        <select name="recombinase" id="recombinase" multiple="multiple"/>
+        <select name="recombinases" id="recombinases" multiple="multiple"/>
           [% FOR recom IN recombinases %]
             <option [% IF recombinase.grep(recom).size %] selected="selected"[% END %]>[% recom %]</option>
           [%- END %]
@@ -50,9 +50,3 @@
 
 </div>
 
-<script type="text/javascript">
-$('form#generate_sequence').submit(function(){
-    $(this).children('button[type=submit]').attr('disabled', 'disabled');
-});
-
-</script>
