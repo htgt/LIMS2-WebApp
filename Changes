@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.248     2014-09-26 11:44:58 Europe/London
+
+    Genoverse button on gene summary pages supports any gene, no design is necessary
+    All crisprs, crispr_pairs and crispr_groups are shown Genoverse
+    Guide RNAs added to the assembly plate report
+
 0.247     2014-09-25 06:35:12 Europe/London
 
     Added Genbank file download links in following locations:
