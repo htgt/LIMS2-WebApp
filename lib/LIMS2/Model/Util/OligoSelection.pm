@@ -1437,17 +1437,6 @@ sub get_design_extent {
 
     my $design_r = $model->schema->resultset('Design')->find($params->{'design_id'});
 
-    my $ensembl_stable_id;
-
-    if ($design_r->count == 0 ) {
-        # There is no design but there must be a gene
-        $ensembl_stable_id = $model->find_gene({
-                    species => $species,
-                    search_term => $params->{'gene_id'}
-                })->{'ensembl_id'};
-
-    }
-    DEBUG ( $params->{'gene_id'} . ' = ' . $ensembl_stable_id );
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
 
