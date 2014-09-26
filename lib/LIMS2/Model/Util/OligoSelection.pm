@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.247';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.248';
 }
 ## use critic
 
@@ -29,6 +29,7 @@ use Sub::Exporter -setup => {
         retrieve_crispr_primers
         get_genotyping_primer_extent
         get_design_extent
+        get_gene_extent
         retrieve_crispr_data_for_id
     ) ]
 };
@@ -453,6 +454,16 @@ sub parse_primer {
     return \%oligo_data;
 }
 
+sub list_primers {
+    my $primer_data = shift;
+    use Data::Dumper;
+    return if ! $ENV{'LIMS2_DUMP_PRIMERS'};
+
+    print Dumper( $primer_data );
+
+    return;
+}
+
 sub primer_driver {
     my %params;
 
@@ -829,6 +840,7 @@ sub crispr_primer_calculate {
     if ( $result->num_primer_pairs ) {
         INFO ( $params->{'crispr_pair_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
+        list_primers( $primer_data );
         $primer_data->{'error_flag'} = 'pass';
     }
     else {
@@ -1389,12 +1401,59 @@ sub get_genotyping_primer_extent {
     return \%extent_hash;
 }
 
-sub get_design_extent {
-    my $schema = shift;
+sub get_gene_extent {
+    my $model = shift;
     my $params = shift;
     my $species = shift;
 
-    my $design_r = $schema->resultset('Design')->find($params->{'design_id'});
+    my $ensembl_stable_id;
+
+    $ensembl_stable_id = $model->find_gene({
+            species => $species,
+            search_term => $params->{'gene_id'}
+        })->{'ensembl_id'};
+
+    DEBUG ( $params->{'gene_id'} . ' = ' . $ensembl_stable_id );
+
+    my %extent_hash;
+
+    my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
+    my $slice = $slice_adaptor->fetch_by_gene_stable_id( $ensembl_stable_id, 5e3 );
+
+    my $coord_sys  = $slice->coord_system()->name();
+    my $seq_region = $slice->seq_region_name();
+    my $start      = $slice->start();
+    my $end        = $slice->end();
+    my $strand     = $slice->strand();
+
+    DEBUG ("Slice: $coord_sys $seq_region $start-$end ($strand)");
+
+    $extent_hash{'chr_start'} = $start;
+    $extent_hash{'chr_end'} = $end;
+    $extent_hash{'chr_name'} = $seq_region;
+    $extent_hash{'assembly'} = get_species_default_assembly( $model->schema, $species);
+
+    return \%extent_hash;
+}
+
+sub get_design_extent {
+    my $model = shift;
+    my $params = shift;
+    my $species = shift;
+
+    my $design_r = $model->schema->resultset('Design')->find($params->{'design_id'});
+
+    my $ensembl_stable_id;
+
+    if ($design_r->count == 0 ) {
+        # There is no design but there must be a gene
+        $ensembl_stable_id = $model->find_gene({
+                    species => $species,
+                    search_term => $params->{'gene_id'}
+                })->{'ensembl_id'};
+
+    }
+    DEBUG ( $params->{'gene_id'} . ' = ' . $ensembl_stable_id );
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
 
@@ -1411,7 +1470,7 @@ sub get_design_extent {
         $extent_hash{'chr_end'} = $vals->{'end'} if $extent_hash{'chr_end'} < $vals->{'start'};
     }
     $extent_hash{'chr_name'} = $design_oligos->{$arbitrary_key}->{'chromosome'};
-    $extent_hash{'assembly'} = get_species_default_assembly( $schema, $species);
+    $extent_hash{'assembly'} = get_species_default_assembly( $model->schema, $species);
 
     return \%extent_hash;
 }

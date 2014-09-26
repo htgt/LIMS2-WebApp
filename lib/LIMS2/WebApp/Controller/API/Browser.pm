@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Browser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.247';
+    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.248';
 }
 ## use critic
 
@@ -21,6 +21,8 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crispr_primers_to_gff
     unique_crispr_data 
     unique_crispr_data_to_gff
+    crispr_groups_for_region
+    crispr_groups_to_gff
 /;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
@@ -90,6 +92,34 @@ sub crispr_pairs_GET {
     my $body = join "\n", @{$crispr_gff};
     return $c->response->body( $body );
 }
+
+sub crispr_groups :Path('/api/crispr_groups') :Args(0) :ActionClass('REST') {
+}
+
+sub crispr_groups_GET {
+    my ( $self, $c ) = @_;
+
+    my $schema = $c->model('Golgi')->schema;
+
+    my $params = ();
+    $params->{species} = $c->session->{'selected_species'} // 'Human';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // get_species_default_assembly($schema, $params->{species} ) // 'GRCh37';
+    $params->{chromosome_number}= $c->request->params->{'chr'};
+    $params->{start_coord}= $c->request->params->{'start'};
+    $params->{end_coord}= $c->request->params->{'end'};
+
+
+    my $crisprs = crispr_groups_for_region(
+         $schema,
+         $params,
+    );
+
+    my $crispr_gff = crispr_groups_to_gff( $crisprs, $params );
+    $c->response->content_type( 'text/plain' );
+    my $body = join "\n", @{$crispr_gff};
+    return $c->response->body( $body );
+}
+
 
 sub get_species_default_assembly {
     my $schema = shift;

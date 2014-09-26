@@ -61,6 +61,7 @@ lib/LIMS2/Model/Schema/Result/CellLine.pm
 lib/LIMS2/Model/Schema/Result/Chromosome.pm
 lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
 lib/LIMS2/Model/Schema/Result/Crispr.pm
+lib/LIMS2/Model/Schema/Result/CrisprBrowserGroups.pm
 lib/LIMS2/Model/Schema/Result/CrisprBrowserPairs.pm
 lib/LIMS2/Model/Schema/Result/CrisprDesign.pm
 lib/LIMS2/Model/Schema/Result/CrisprEsQcRuns.pm
@@ -335,6 +336,7 @@ root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/genoverse_browse_view.tt
 root/site/user/crisprs/genoverse_crispr_primers_view.tt
 root/site/user/crisprs/genoverse_design_view.tt
+root/site/user/crisprs/genoverse_gene_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_group.tt
