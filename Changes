@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.249     2014-09-26 15:12:51 Europe/London
+
+    Corrected issue with ensembl server
+
 0.248     2014-09-26 11:44:58 Europe/London
 
     Genoverse button on gene summary pages supports any gene, no design is necessary
