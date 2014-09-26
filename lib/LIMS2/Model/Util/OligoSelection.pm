@@ -49,7 +49,7 @@ use Bio::EnsEMBL::Registry;
 my $registry = 'Bio::EnsEMBL::Registry';
 
 $registry->load_registry_from_db(
-        -host => $ENV{LIMS2_ENSEMBL_HOST} || 'ensembldb.internal.sanger.ac.uk',
+        -host => $ENV{LIMS2_ENSEMBL_HOST} || 'ensembldb.ensembl.org',
         -user => $ENV{LIMS2_ENSEMBL_USER} || 'anonymous'
     );
 
