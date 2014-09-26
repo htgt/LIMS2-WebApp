@@ -349,30 +349,6 @@ sub crispr_groups_to_gff {
                 };
                 push @crisprs_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_group);
             }
-
-=head
-            my $crispr_display_info = {
-                left => {
-                    id    => $crispr_r->left_crispr_id,
-                    chr_start => $crispr_r->left_crispr_start,
-                    chr_end   => $crispr_r->left_crispr_end,
-                    pam_right => $crispr_r->left_crispr_pam_right,
-                    colour => crispr_colour('left'),
-                },
-                right => {
-                    id    => $crispr_r->right_crispr_id,
-                    chr_start => $crispr_r->right_crispr_start,
-                    chr_end   => $crispr_r->right_crispr_end,
-                    pam_right => $crispr_r->right_crispr_pam_right,
-                    colour => crispr_colour('right'),
-                }
-            };
-
-            foreach my $side ( qw(left right) ){
-                my $crispr = $crispr_display_info->{$side};
-                push @crisprs_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $pair_id);
-            }
-=cut
         }
 
 
