@@ -71,16 +71,17 @@ sub generate_well_eng_seq_params{
 
 sub pspec_generate_custom_eng_seq_params {
 	return {
-        design_id   => { validate => 'existing_design_id' },
-        cassette    => { validate => 'existing_cassette' },
-        backbone    => { validate => 'existing_backbone', optional => 1 },
-        recombinase => { validate => 'existing_recombinase', default => [], optional => 1 },
+        design_id    => { validate => 'existing_design_id' },
+        cassette     => { validate => 'existing_cassette' },
+        backbone     => { validate => 'existing_backbone', optional => 1 },
+        recombinases => { validate => 'existing_recombinase', default => [], optional => 1 },
 	}
 }
 
 sub generate_custom_eng_seq_params{
     my ( $model, $input_params, $design ) = @_;
-	my $validated_params = $model->check_params( $input_params, pspec_generate_custom_eng_seq_params );
+	my $validated_params = $model->check_params(
+        $input_params, pspec_generate_custom_eng_seq_params, ignore_unknown => 1 );
 
     $design ||= $model->c_retrieve_design( { id => $validated_params->{design_id} } );
     DEBUG("Generate eng seq params for design $design ");
