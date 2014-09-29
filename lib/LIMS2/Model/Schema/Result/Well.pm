@@ -153,6 +153,36 @@ __PACKAGE__->add_unique_constraint("wells_plate_id_name_key", ["plate_id", "name
 
 =head1 RELATIONS
 
+=head2 barcode_event_new_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_event_new_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.new_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 barcode_event_old_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_event_old_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.old_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 created_by
 
 Type: belongs_to
@@ -489,8 +519,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 07:55:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iz4NYMMseKHv6Mu5W0EJpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-09-29 10:06:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FNWVwGXdiOW251/82DTuVw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
