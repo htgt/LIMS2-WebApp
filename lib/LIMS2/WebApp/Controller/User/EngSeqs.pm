@@ -51,7 +51,7 @@ sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
     return;
 }
 
-=head2 well_eng_seq
+=head2 generate_sequence_file
 
 Generate a sequence file from a user specified design, cassette and backbone combination.
 If a backbone is specified vector sequence is produced, if not then allele sequence is
@@ -65,21 +65,7 @@ sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
     my $input_params = $c->request->params;
 
     if ($c->request->params->{generate_sequence}) {
-        $c->stash->{cassette}    = $input_params->{cassette};
-        $c->stash->{design_id}   = $input_params->{design_id};
-        $c->stash->{backbone}    = $input_params->{backbone};
-        $c->stash->{recombinase} = $input_params->{recombinases};
-
-        try {
-            my ( $method, $eng_seq_params )
-                = generate_custom_eng_seq_params( $model, $input_params );
-            my $eng_seq = $model->eng_seq_builder->$method( %{$eng_seq_params} );
-            my $file_name = $eng_seq_params->{display_id} . '.gbk';
-            $self->download_genbank_file( $c, $eng_seq, $file_name, $input_params->{file_format} );
-        }
-        catch {
-            $c->stash( error_msg => 'Error encountered generating sequence: ' . $_ );
-        };
+        $self->_generate_sequence( $c, $model, $input_params );
     }
 
     my @backbones = $model->schema->resultset('Backbone')->all;
@@ -91,6 +77,56 @@ sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
     unshift @{ $c->stash->{cassettes} }, "";
 
     $c->stash->{recombinases} = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
+
+    return;
+}
+
+=head2 _generate_sequence
+
+Generate the custom sequence file, validate input first.
+
+=cut
+
+sub _generate_sequence {
+    my ( $self, $c, $model, $input_params ) = @_;
+
+    $c->stash->{cassette}    = $input_params->{cassette};
+    $c->stash->{design_id}   = $input_params->{design_id};
+    $c->stash->{backbone}    = $input_params->{backbone};
+    $c->stash->{picked_recombinase} = $input_params->{recombinases};
+
+    unless ( $input_params->{design_id} ) {
+        $c->stash( error_msg => 'You must specify a design id' );
+        return;
+    }
+
+    unless ( $input_params->{cassette} ) {
+        $c->stash( error_msg => 'You must specify a cassette' );
+        return;
+    }
+
+    my $design = try {
+        $model->c_retrieve_design(
+            { id => $input_params->{design_id}, species => $c->session->{selected_species} } );
+    };
+    unless ( $design ) {
+        $c->stash(error_msg => 'Can not find design '
+                . $input_params->{design_id}
+                . ' for species '
+                . $c->session->{selected_species} );
+        return;
+    }
+
+    try {
+        my ( $method, $eng_seq_params )
+            = generate_custom_eng_seq_params( $model, $input_params, $design );
+        my $eng_seq = $model->eng_seq_builder->$method( %{$eng_seq_params} );
+        my $file_name = $eng_seq_params->{display_id} . '.gbk';
+        $self->download_genbank_file( $c, $eng_seq, $file_name, $input_params->{file_format} );
+    }
+    catch {
+        $c->stash( error_msg => 'Error encountered generating sequence: ' . $_ );
+    };
 
     return;
 }
