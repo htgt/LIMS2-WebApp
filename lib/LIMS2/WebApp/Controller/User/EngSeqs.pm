@@ -51,24 +51,35 @@ sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
     return;
 }
 
+=head2 well_eng_seq
+
+Generate a sequence file from a user specified design, cassette and backbone combination.
+If a backbone is specified vector sequence is produced, if not then allele sequence is
+returned. In addition one or more recombinases can be specified.
+
+=cut
+
 sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
     my ( $self, $c ) = @_;
-
     my $model = $c->model('Golgi');
     my $input_params = $c->request->params;
 
     if ($c->request->params->{generate_sequence}) {
-        my $file_format = delete $input_params->{file_format};
-        $c->stash->{cassette} = $input_params->{cassette};
-        $c->stash->{design_id} = $input_params->{design_id};
-        $c->stash->{backbone} = $input_params->{backbone};
+        $c->stash->{cassette}    = $input_params->{cassette};
+        $c->stash->{design_id}   = $input_params->{design_id};
+        $c->stash->{backbone}    = $input_params->{backbone};
         $c->stash->{recombinase} = $input_params->{recombinases};
 
-        my ( $method, $eng_seq_params ) = try{ generate_custom_eng_seq_params( $model, $input_params ) };
-        my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
-        my $file_name = $eng_seq_params->{display_id} . '.gbk';
-
-        $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );
+        try {
+            my ( $method, $eng_seq_params )
+                = generate_custom_eng_seq_params( $model, $input_params );
+            my $eng_seq = $model->eng_seq_builder->$method( %{$eng_seq_params} );
+            my $file_name = $eng_seq_params->{display_id} . '.gbk';
+            $self->download_genbank_file( $c, $eng_seq, $file_name, $input_params->{file_format} );
+        }
+        catch {
+            $c->stash( error_msg => 'Error encountered generating sequence: ' . $_ );
+        };
     }
 
     my @backbones = $model->schema->resultset('Backbone')->all;
