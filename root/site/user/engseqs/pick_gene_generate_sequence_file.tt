@@ -1,0 +1,18 @@
+[% META title = "Gene Pick Generate Sequence"; META tab_name = "Designs" %]
+
+<form method="POST" action="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]" class="well">
+  <fieldset>
+    <legend>Gene Pick</legend>
+
+    <input type="text" class="input-xxlarge" name="search_gene" placeholder="gene name">
+    <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.</span>
+
+    <br>
+    <input type="submit" name="gene_pick" class="btn btn-primary" value="Find Designs" />
+  </fieldset>
+</form>
+
+<div class="well">
+If you know the design id you want to use click <a href="[% c.uri_for('/user/generate_sequence_file') %]">here</a>.
+</div>
+

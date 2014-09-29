@@ -9,6 +9,36 @@
   <div class="span6 offset3">
     <form method="POST" id="generate_sequence" action="[% c.uri_for( '/user/generate_sequence_file' ) %]" class="form well"  enctype="multipart/form-data" >
 
+      [% IF design_id_list %]
+      <label>Designs for Gene: [% gene %] (<a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">pick another gene</a>)</label>
+      <table class="table table-condensed">
+        <thead>
+            <th>Design ID</th>
+            <th>Blat</th>
+            <th>Type</th>
+            <th>Pick</th>
+        </thead>
+        <tbody>
+          [% FOR design IN design_id_list %]
+          <tr>
+            <td>
+              <a href="[% c.uri_for( '/user/view_design', { design_id = design.id } ) %]" target="_blank">[% design.id %]</a>
+            </td>
+            <td>
+              <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+            </td>
+            <td>
+              [% design.type %]
+            </td>
+            <td>
+              <input type="radio" name="design_id" value="[% design.id %]">
+            </td>
+          </tr>
+          [% END %]
+        </tbody>
+      </table>
+
+      [% ELSE %]
       <div class="control-group">
         <label class="control-label">Design ID</label>
             <div class="controls">
@@ -18,6 +48,7 @@
             <span class="help-block">Design the sequence if based on</span>
         </div>
       </div>
+      [% END %]
 
       <div class="control-group">
         <label class="control-label">Cassette</label>

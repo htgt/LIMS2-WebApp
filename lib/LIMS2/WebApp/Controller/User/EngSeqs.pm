@@ -51,6 +51,32 @@ sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
     return;
 }
 
+=head2 pick_gene_generate_sequence_file
+
+Generate a sequence file from a user specified design, cassette and backbone combination.
+If a backbone is specified vector sequence is produced, if not then allele sequence is
+returned. In addition one or more recombinases can be specified.
+
+=cut
+
+sub pick_gene_generate_sequence_file :Path( '/user/pick_gene_generate_sequence_file' ) :Args(0) {
+    my ( $self, $c ) = @_;
+    my $model = $c->model('Golgi');
+
+    my $species_id = $c->session->{selected_species};
+    my $gene = $c->request->param( 'search_gene' )
+        or return;
+
+    my $gene_info = try{ $model->find_gene( { search_term => $gene, species => $species_id } ) };
+    my $gene_id = $gene_info ? $gene_info->{gene_id} : $gene;
+    my $designs = $model->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
+    my $design_data = [ map { $_->as_hash(1) } @{ $designs } ];
+
+    $c->go('generate_sequence_file', [ $design_data, $gene ] );
+
+    return;
+}
+
 =head2 generate_sequence_file
 
 Generate a sequence file from a user specified design, cassette and backbone combination.
@@ -60,9 +86,14 @@ returned. In addition one or more recombinases can be specified.
 =cut
 
 sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $designs, $gene ) = @_;
     my $model = $c->model('Golgi');
     my $input_params = $c->request->params;
+
+    if ( $designs ) {
+        $c->stash->{design_id_list} = $designs;
+        $c->stash->{gene} = $gene;
+    }
 
     if ($c->request->params->{generate_sequence}) {
         $self->_generate_sequence( $c, $model, $input_params );
