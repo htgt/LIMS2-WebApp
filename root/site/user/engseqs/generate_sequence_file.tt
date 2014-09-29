@@ -9,37 +9,63 @@
   <div class="span6 offset3">
     <form method="POST" id="generate_sequence" action="[% c.uri_for( '/user/generate_sequence_file' ) %]" class="form well"  enctype="multipart/form-data" >
 
-        <label>Design ID</label>
-        <input name="design_id" id="design_id" type="text"
-          [% IF design_id %]value="[% design_id %]"[% END %]
-        />
+      <div class="control-group">
+        <label class="control-label">Design ID</label>
+            <div class="controls">
+            <input name="design_id" id="design_id" type="text"
+              [% IF design_id %]value="[% design_id %]"[% END %]
+            />
+            <span class="help-block">Design the sequence if based on</span>
+        </div>
+      </div>
 
-        <label>Cassette</label>
-        <select name="cassette" id="cassette"/>
-          [% FOR cass IN cassettes %]
-            <option [% IF cass == cassette %] selected="selected"[% END %]>[% cass %]</option>
-          [%- END %]
-        </select>
+      <div class="control-group">
+        <label class="control-label">Cassette</label>
+            <div class="controls">
+            <select name="cassette" id="cassette"/>
+              [% FOR cass IN cassettes %]
+                <option [% IF cass == cassette %] selected="selected"[% END %]>[% cass %]</option>
+              [%- END %]
+            </select>
+            <span class="help-block">Pick cassette used for sequence</span>
+        </div>
+      </div>
 
-        <label>Backbone (optional)</label>
-        <select name="backbone" id="backbone"/>
-          [% FOR bb IN backbones %]
-            <option [% IF bb == backbone %] selected="selected"[% END %]>[% bb %]</option>
-          [%- END %]
-        </select>
+      <div class="control-group">
+        <label class="control-label">Backbone</label>
+            <div class="controls">
+            <select name="backbone" id="backbone"/>
+              [% FOR bb IN backbones %]
+                <option [% IF bb == backbone %] selected="selected"[% END %]>[% bb %]</option>
+              [%- END %]
+            </select>
+            <span class="help-block">Pick backbone used for sequence, leave blank if you are not generating vector sequence</span>
+        </div>
+      </div>
 
-        <label>Recombinases (optional)</label>
-        <select name="recombinases" id="recombinases" multiple="multiple"/>
+
+      <div class="control-group">
+        <label class="control-label">Recombinases (optional)</label>
+        <div class="controls">
           [% FOR recom IN recombinases %]
-            <option [% IF recombinase.grep(recom).size %] selected="selected"[% END %]>[% recom %]</option>
+              <label class="checkbox">
+                <input type="checkbox" name="recombinases" value="[% recom %]" [% IF picked_recombinase && picked_recombinase.grep(recom).size %]checked[% END %]> [% recom %] 
+              </label>
           [%- END %]
-        </select>
+          <span class="help-block">Apply optional recombinases to the generated sequence</span>
+        </div>
+      </div>
 
-        <label>File Format</label>
-        <select name="file_format" id="file_format" />
-            <option>Genbank</option>
-            <option>Fasta</option>
-        </select>
+      <div class="control-group">
+        <label class="control-label">File Format</label>
+            <div class="controls">
+            <select name="file_format" id="file_format" />
+                <option>Genbank</option>
+                <option>Fasta</option>
+            </select>
+            <span class="help-block">Pick format of sequence file that will be generated</span>
+        </div>
+      </div>
 
         <br>
         <button name="generate_sequence" id="generate_sequence" type="submit" value="generate_sequence" class="btn">
