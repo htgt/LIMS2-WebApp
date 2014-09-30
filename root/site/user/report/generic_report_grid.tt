@@ -4,6 +4,19 @@
 
         Ext.onReady( function() {
 
+            [% IF printable %]
+            Ext.Loader.setConfig({
+                enabled: true,
+                paths: {
+                    'Ext.ux': '../../../../static/extjs/src/ux'
+                }
+            });
+
+            Ext.require([
+                'Ext.ux.grid.Printer'
+            ]);
+            [% END %]
+
             Ext.define('Report', {
                 extend: 'Ext.data.Model',
                 fields: [
@@ -153,6 +166,17 @@
 
 
             grid = Ext.create('Ext.grid.Panel', {
+                [% IF printable %]
+                tbar: [{
+                    text: 'Printer Friendly View',
+                    iconCls: 'icon-ext-print',
+                    handler : function(){
+                        Ext.ux.grid.Printer.printAutomatically = false;
+                        Ext.ux.grid.Printer.print(grid);
+                    }
+                }],
+                forceFit : true,
+                [% END %]
                 height: 750,
                 width: 1200,
                 store: store,

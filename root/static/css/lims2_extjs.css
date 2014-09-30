@@ -10,3 +10,7 @@
 .x-grid-cell-inner {
     white-space: normal;
 }
+
+.icon-ext-print {
+	background-image: url("../extjs/src/ux/grid/gridPrinterCss/printer.png");
+}

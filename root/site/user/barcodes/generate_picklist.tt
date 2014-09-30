@@ -1,2 +1,24 @@
 [% META title = "Gene Pick List"; META tab_name = "Genes" -%]
 
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/lims2_extjs.css',{v=3}) %]" />
+
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
+
+<form method="POST" action="[% c.uri_for( '/user/generate_picklist' ) %]" class="well">
+  <fieldset>
+    <legend>Generate Pick List for Genes</legend>
+    <input type="text" name="genes" placeholder="Enter gene symbols" value="[% genes %]" />
+    <input type="submit" name="generate" class="btn btn-primary" value="Generate Pick List" />
+  </fieldset>
+</form>
+
+<div id="my_results"></div>
+
+[% printable = 1 %]
+
+[% PROCESS 'user/report/generic_report_grid.tt' %]
+
+
+
+
