@@ -43,7 +43,7 @@ sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
     my $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
     my $stage = $method =~ /vector/ ? 'vector' : 'allele';
 
-    my $file_name = $well->as_string . "_$stage" . "_$gene" . '.gbk';
+    my $file_name = $well->as_string . "_$stage" . "_$gene";
     my $file_format = exists $params->{file_format} ? $params->{file_format} : 'Genbank';
 
     $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );
@@ -61,21 +61,15 @@ returned. In addition one or more recombinases can be specified.
 
 sub pick_gene_generate_sequence_file :Path( '/user/pick_gene_generate_sequence_file' ) :Args(0) {
     my ( $self, $c ) = @_;
-    my $model = $c->model('Golgi');
 
-    my $species_id = $c->session->{selected_species};
     my $gene = $c->request->param( 'search_gene' )
         or return;
 
-    my $gene_info = try{ $model->find_gene( { search_term => $gene, species => $species_id } ) };
-    my $gene_id = $gene_info ? $gene_info->{gene_id} : $gene;
-    my $designs = $model->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
-    my $design_data = [ map { $_->as_hash(1) } @{ $designs } ];
-
-    $c->go('generate_sequence_file', [ $design_data, $gene ] );
+    $c->go('generate_sequence_file', [ $gene ] );
 
     return;
 }
+
 
 =head2 generate_sequence_file
 
@@ -86,12 +80,13 @@ returned. In addition one or more recombinases can be specified.
 =cut
 
 sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
-    my ( $self, $c, $designs, $gene ) = @_;
+    my ( $self, $c, $gene ) = @_;
     my $model = $c->model('Golgi');
     my $input_params = $c->request->params;
+    $gene ||= $input_params->{gene};
 
-    if ( $designs ) {
-        $c->stash->{design_id_list} = $designs;
+    if ( $gene ) {
+        $c->stash->{design_id_list} = $self->_designs_for_gene( $c, $model, $gene );
         $c->stash->{gene} = $gene;
     }
 
@@ -110,6 +105,18 @@ sub generate_sequence_file :Path( '/user/generate_sequence_file' ) :Args(0) {
     $c->stash->{recombinases} = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('Recombinase')->all ];
 
     return;
+}
+
+sub _designs_for_gene {
+    my ( $self, $c, $model, $gene ) = @_;
+
+    my $species_id = $c->session->{selected_species};
+    my $gene_info = try{ $model->find_gene( { search_term => $gene, species => $species_id } ) };
+    my $gene_id = $gene_info ? $gene_info->{gene_id} : $gene;
+    my $designs = $model->c_list_assigned_designs_for_gene( { gene_id => $gene_id, species => $species_id } );
+    my $design_data = [ map { $_->as_hash(1) } @{ $designs } ];
+
+    return $design_data;
 }
 
 =head2 _generate_sequence
@@ -152,8 +159,7 @@ sub _generate_sequence {
         my ( $method, $eng_seq_params )
             = generate_custom_eng_seq_params( $model, $input_params, $design );
         my $eng_seq = $model->eng_seq_builder->$method( %{$eng_seq_params} );
-        my $file_name = $eng_seq_params->{display_id} . '.gbk';
-        $self->download_genbank_file( $c, $eng_seq, $file_name, $input_params->{file_format} );
+        $self->download_genbank_file( $c, $eng_seq, $eng_seq_params->{display_id}, $input_params->{file_format} );
     }
     catch {
         $c->stash( error_msg => 'Error encountered generating sequence: ' . $_ );
@@ -166,11 +172,13 @@ sub download_genbank_file {
     my ( $self, $c, $eng_seq, $file_name, $file_format ) = @_;
 
     $file_format ||= 'Genbank';
+    my $suffix = $file_format eq 'Genbank' ? 'gbk' : 'fa';
     my $formatted_seq;
     Bio::SeqIO->new(
         -fh     => IO::String->new($formatted_seq),
         -format => $file_format,
     )->write_seq($eng_seq);
+    $file_name = $file_name . ".$suffix";
 
     $c->response->content_type( 'chemical/seq-na-genbank' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$file_name" );

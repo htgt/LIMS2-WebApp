@@ -1,37 +1,51 @@
 [% META title = "Generate Sequence File"; META tab_name = "Designs" %]
 
 <div class="page-header">
-  <h1>Generate Sequence File</h1>
+  <h1>
+    Generate Custom Sequence File
+    [% IF design_id_list %]
+      <small> Gene: [% gene %] </small>
+    [% END %]
+  </h1>
 </div>
 
 <div class="row">
 
-  <div class="span6 offset3">
+  <div class="span8 offset2">
     <form method="POST" id="generate_sequence" action="[% c.uri_for( '/user/generate_sequence_file' ) %]" class="form well"  enctype="multipart/form-data" >
 
       [% IF design_id_list %]
-      <label>Designs for Gene: [% gene %] (<a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">pick another gene</a>)</label>
+      <input type="hidden"name="gene" value="[% gene %]">
+      <label>Design</label>
       <table class="table table-condensed">
         <thead>
-            <th>Design ID</th>
-            <th>Blat</th>
-            <th>Type</th>
-            <th>Pick</th>
+            <td>ID</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>Type</td>
+            <td>Pick</td>
         </thead>
         <tbody>
           [% FOR design IN design_id_list %]
           <tr>
             <td>
-              <a href="[% c.uri_for( '/user/view_design', { design_id = design.id } ) %]" target="_blank">[% design.id %]</a>
+              [% design.id %]
             </td>
             <td>
-              <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+              <a href="[% c.uri_for( '/user/view_design', { design_id = design.id } ) %]" target="_blank">details</a>
+            </td>
+            <td>
+              <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.id } ) %]" target="_blank" class="btn btn-mini btn-info btn-block">Blat oligos</a>
+            </td>
+            <td>
+              <a href="[% c.uri_for( '/user/genoverse_design_view', { design_id => design.id } ) %]" target="_blank" class="btn btn-mini btn-info btn-block">Genoverse</a>
             </td>
             <td>
               [% design.type %]
             </td>
             <td>
-              <input type="radio" name="design_id" value="[% design.id %]">
+              <input type="radio" name="design_id" value="[% design.id %]" [% IF design_id == design.id %]checked[% END %]>
             </td>
           </tr>
           [% END %]
@@ -45,7 +59,7 @@
             <input name="design_id" id="design_id" type="text"
               [% IF design_id %]value="[% design_id %]"[% END %]
             />
-            <span class="help-block">Design the sequence if based on</span>
+            <span class="help-block">Design the sequence is based on</span>
         </div>
       </div>
       [% END %]
@@ -63,7 +77,7 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label">Backbone</label>
+        <label class="control-label">Backbone <small class="muted">optional</small></label>
             <div class="controls">
             <select name="backbone" id="backbone"/>
               [% FOR bb IN backbones %]
@@ -76,7 +90,7 @@
 
 
       <div class="control-group">
-        <label class="control-label">Recombinases (optional)</label>
+        <label class="control-label">Recombinases <small class="muted">optional</small></label>
         <div class="controls">
           [% FOR recom IN recombinases %]
               <label class="checkbox">
@@ -100,10 +114,9 @@
 
         <br>
         <button name="generate_sequence" id="generate_sequence" type="submit" value="generate_sequence" class="btn">
-            <i class="icon-upload"></i> Generate Sequence File
+            <i class="icon-download"></i> Generate Sequence File
         </button>
     </form>
   </div>
 
 </div>
-
