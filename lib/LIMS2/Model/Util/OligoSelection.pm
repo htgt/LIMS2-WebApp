@@ -44,15 +44,6 @@ use LIMS2::Model::Util::DesignInfo;
 
 use Bio::SeqIO;
 use Path::Class;
-use Bio::EnsEMBL::Registry;
-
-my $registry = 'Bio::EnsEMBL::Registry';
-
-$registry->load_registry_from_db(
-        -host => $ENV{LIMS2_ENSEMBL_HOST} || 'ensembldb.ensembl.org',
-        -user => $ENV{LIMS2_ENSEMBL_USER} || 'anonymous'
-    );
-
 
 
 =head pick_PCR_primers_for_crisprs
@@ -92,9 +83,10 @@ sub pick_crispr_PCR_primers {
 }
 
 sub crispr_PCR_calculate {
+    my $model = shift;
     my $params = shift;
 
-    my $schema = $params->{'schema'};
+    my $schema = $model->schema;
     my $well_id = $params->{'well_id'};
     my $crispr_primers = $params->{'crispr_primers'};
     my $species = $params->{'species'};
@@ -102,7 +94,7 @@ sub crispr_PCR_calculate {
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_seq_start )
         = get_crispr_PCR_EnsEmbl_region( {
-                schema => $schema,
+                model => $model,
                 crispr_primers => $crispr_primers,
                 species => $species,
                 repeat_mask => $repeat_mask,
@@ -184,9 +176,10 @@ sub pick_genotyping_primers {
 }
 
 sub genotyping_calculate {
+    my $model = shift;
     my $params = shift;
 
-    my $schema = $params->{'schema'};
+    my $schema = $model->schema;
     my $design_id = $params->{'design_id'};
     my $well_id = $params->{'well_id'};
     my $species = $params->{'species'};
@@ -195,7 +188,7 @@ sub genotyping_calculate {
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos, $chr_seq_start, $chr_name)
         = get_genotyping_EnsEmbl_region( {
-                schema => $schema,
+                model => $model,
                 design_id => $design_id,
                 repeat_mask => $repeat_mask,
                 start_oligo_field_width => $params->{'start_oligo_field_width'},
@@ -461,7 +454,7 @@ sub list_primers {
 sub primer_driver {
     my %params;
 
-    $params{'schema'} = shift;
+    $params{'schema'} = shift->schema;
     $params{'design_id'} = shift;
     $params{'assembly'} = shift;
 
@@ -489,9 +482,10 @@ The result should be 4 primers.
 =cut
 
 sub oligos_for_gibson {
+    my $model = shift;
     my $params = shift;
 
-    my $gibson_design_oligos_rs = gibson_design_oligos_rs( $params->{'schema'}, $params->{'design_id'} );
+    my $gibson_design_oligos_rs = gibson_design_oligos_rs( $model->schema, $params->{'design_id'} );
     my %genotyping_primers;
     update_primer_type( '5F', \%genotyping_primers, $gibson_design_oligos_rs, $params->{'assembly'});
     update_primer_type( '3R', \%genotyping_primers, $gibson_design_oligos_rs, $params->{'assembly'});
@@ -508,9 +502,10 @@ Returns - hashref of two sequences to find primers in.
 =cut
 
 sub get_EnsEmbl_sequence {
+    my $model = shift;
     my $params = shift;
 
-    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
+    my $design_r = $model->schema->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
 
@@ -567,9 +562,10 @@ Returns a sequence region
 =cut
 
 sub get_crispr_PCR_EnsEmbl_region{
+    my $model = shift;
     my $params = shift;
 
-    my $schema = $params->{'schema'};
+    my $schema = $model->schema;
     my $crispr_primers = $params->{'crispr_primers'};
     my $species = $params->{'species'};
     my $repeat_mask = $params->{'repeat_mask'};
@@ -586,7 +582,7 @@ sub get_crispr_PCR_EnsEmbl_region{
 
     my $chr_strand = $crispr_primers->{'strand'}; # That is the gene strand
 
-    my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
+    my $slice_adaptor = $model->ensembl_slice_adaptor($species);
     my $seq;
 
 
@@ -637,9 +633,10 @@ sequences).
 =cut
 
 sub get_genotyping_EnsEmbl_region {
+    my $model = shift;
     my $params = shift;
 
-    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
+    my $design_r = $model->schema->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
     my $repeat_mask = $params->{'repeat_mask'};
@@ -778,9 +775,10 @@ sub update_primer_type {
 }
 
 sub pick_crispr_primers {
+    my $model = shift;
     my $params = shift;
 
-    my $crispr_oligos = oligos_for_crispr_pair( $params->{'schema'}, $params->{'crispr_pair_id'} );
+    my $crispr_oligos = oligos_for_crispr_pair( $model->schema, $params->{'crispr_pair_id'} );
     $params->{crispr_oligos} = $crispr_oligos;
     $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 200;
     $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 100;
@@ -788,7 +786,7 @@ sub pick_crispr_primers {
     my ($primer_data, $chr_strand, $chr_seq_start);
     TRIALS: foreach my $step ( 1..4 ) {
         INFO ('Attempt No. ' . $step );
-        ($primer_data, $chr_strand, $chr_seq_start) = crispr_primer_calculate( $params, $crispr_oligos );
+        ($primer_data, $chr_strand, $chr_seq_start) = crispr_primer_calculate( $model, $params, $crispr_oligos );
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('Attempt No. ' . $step . ' succeeded');
             last TRIALS;
@@ -802,6 +800,7 @@ sub pick_crispr_primers {
 }
 
 sub crispr_primer_calculate {
+    my $model = shift;
     my $params = shift;
     my $crispr_oligos = shift;
 
@@ -809,7 +808,7 @@ sub crispr_primer_calculate {
 
     my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
         $chr_seq_start, $chr_seq_end)
-        = get_crispr_pair_EnsEmbl_region($params, $crispr_oligos, $repeat_mask);
+        = get_crispr_pair_EnsEmbl_region($model, $params, $crispr_oligos, $repeat_mask);
 
         # FIXME:do we need this? we now return as a $chr_seq_start separate list item
     $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
@@ -851,15 +850,16 @@ sub crispr_primer_calculate {
 
 
 sub pick_single_crispr_primers {
+    my $model = shift;
     my $params = shift;
 
     my $repeat_mask = $params->{'repeat_mask'};
-    my $crispr_oligos = oligo_for_single_crispr( $params->{'schema'}, $params->{'crispr_id'} );
+    my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'} );
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
         $chr_seq_start, $chr_seq_end)
-        = get_single_crispr_EnsEmbl_region($params, $crispr_oligos, $repeat_mask );
+        = get_single_crispr_EnsEmbl_region($model, $params, $crispr_oligos, $repeat_mask );
 
     $crispr_oligos->{'chr_region_start'} = $chr_seq_start;
 
@@ -994,33 +994,6 @@ sub crispr_oligo_rs {
     return $crispr_rs;
 }
 
-=head junk
-
-sub crisprs_for_region {
-    my $schema = shift;
-    my $params = shift;
-
-    # Chromosome number is looked up in the chromosomes table to get the chromosome_id
-    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
-
-    my $crisprs_rs = $schema->resultset('CrisprLocus')->search(
-        {
-            'assembly_id' => $params->{assembly_id},
-            'chr_id'      => $params->{chromosome_id},
-            # need all the crisprs starting with values >= start_coord
-            # and whose start values are <= end_coord
-            'chr_start'   => { -between => [
-                $params->{start_coord},
-                $params->{end_coord},
-                ],
-            },
-        },
-    );
-
-    return $crisprs_rs;
-}
-=cut
-
 =head get_crispr_pair_EnsEmbl_region
 
 We calculate crisprs left and right on the same strand as the gene.
@@ -1033,10 +1006,11 @@ SF and SR with respect to the sense of the gene (not the sense of EnsEmbl)
 =cut
 
 sub get_crispr_pair_EnsEmbl_region {
+    my $model = shift;
     my $params = shift;
     my $crispr_oligos = shift;
 
-    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
+    my $design_r = $model->schema->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
     my $repeat_mask = $params->{'repeat_mask'};
@@ -1061,7 +1035,7 @@ sub get_crispr_pair_EnsEmbl_region {
     my $end_coord = $crispr_oligos->{'right_crispr'}->{'chr_end'};
     my $region_end_coord = $end_coord + ($dead_field_width + $search_field_width );
 
-    my $slice_adaptor = $registry->get_adaptor($params->{'species'}, 'Core', 'Slice');
+    my $slice_adaptor = $model->ensembl_slice_adaptor($params->{'species'});
     if ( $chr_strand eq 'plus' ) {
         $slice_region = $slice_adaptor->fetch_by_region(
             'chromosome',
@@ -1104,10 +1078,11 @@ sub get_crispr_pair_EnsEmbl_region {
 }
 
 sub get_single_crispr_EnsEmbl_region {
+    my $model = shift;
     my $params = shift;
     my $crispr_oligos = shift;
 
-    my $design_r = $params->{'schema'}->resultset('Design')->find($params->{'design_id'});
+    my $design_r = $model->schema->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
     my $repeat_mask = $params->{'repeat_mask'};
@@ -1129,7 +1104,7 @@ sub get_single_crispr_EnsEmbl_region {
     my $end_coord = $crispr_oligos->{'left_crispr'}->{'chr_end'}; # this is a singleton crispr
     my $region_end_coord = $end_coord + ($dead_field_width + $search_field_width );
 
-    my $slice_adaptor = $registry->get_adaptor($params->{'species'}, 'Core', 'Slice');
+    my $slice_adaptor = $model->ensembl_slice_adaptor($params->{'species'});
     if ( $chr_strand eq 'plus' ) {
         $slice_region = $slice_adaptor->fetch_by_region(
             'chromosome',
@@ -1169,64 +1144,6 @@ sub get_single_crispr_EnsEmbl_region {
     my $chr_seq_end = $slice_region->end;
     return ($seq, $target_sequence_string, $target_sequence_length, $chr_strand,
             $chr_seq_start, $chr_seq_end)  ;
-}
-
-
-=head get_crispr_EnsEmbl_region
-Debugging and development only
-
-An approach for a single crispr sequencing but probably should use the paired crispr approach
-in get_crispr_pair_EnsEmbl_region
-=cut
-
-sub get_crispr_EnsEmbl_region {
-    my $crispr_oligos = shift;
-    my $side = shift;
-    my $species = shift;
-
-
-    my $chr_strand = $crispr_oligos->{$side}->{'chr_strand'} eq '1' ? 'plus' : 'minus';
-    my $slice_region;
-    my $seq;
-    my $crispr_length = length($crispr_oligos->{$side}->{'seq'});
-    # dead field width is the number of bases in which primers must not be found.
-    # This is because sequencing oligos nees some run-in to the region of interest.
-    # So, we need a region that covers from the 3' end of the crispr back to (len_crispr + dead_field + live_field)
-    # 5' (live_field + dead_field + len_crispr)
-    my $dead_field_width = 100;
-    my $live_field_width = 200;
-
-    my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
-    if ( $chr_strand eq 'plus' ) {
-        $slice_region = $slice_adaptor->fetch_by_region(
-            'chromosome',
-            $crispr_oligos->{$side}->{'chr_name'},
-            $crispr_oligos->{$side}->{'chr_start'} - $dead_field_width - $live_field_width,
-            $crispr_oligos->{$side}->{'chr_end'},
-            $crispr_oligos->{$side}->{'chr_strand'},
-
-        );
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
-    }
-    elsif ( $chr_strand eq 'minus' ) {
-        $slice_region = $slice_adaptor->fetch_by_region(
-            'chromosome',
-            $crispr_oligos->{$side}->{'chr_name'},
-            $crispr_oligos->{$side}->{'chr_start'} - $dead_field_width - $live_field_width,
-            $crispr_oligos->{$side}->{'chr_end'},
-            $crispr_oligos->{$side}->{'chr_strand'},
-        );
-        # $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 )->revcom;
-        $seq = Bio::Seq->new( -alphabet => 'dna', -seq => $slice_region->seq, -verbose => -1 );
-    }
-
-    my $target_sequence_length = $seq->length - ($dead_field_width + $crispr_length);
-    # target sequence is <start, length> and in this case indicates the region we want to sequence
-    my $target_sequence_string = '1' . ',' . $target_sequence_length;
-
-    my $chr_seq_start = $slice_region->start;
-    my $chr_seq_end = $slice_region->end;
-    return ($seq, $target_sequence_string, $target_sequence_length, $chr_seq_start, $chr_seq_end) ;
 }
 
 
@@ -1411,7 +1328,7 @@ sub get_gene_extent {
 
     my %extent_hash;
 
-    my $slice_adaptor = $registry->get_adaptor($species, 'Core', 'Slice');
+    my $slice_adaptor = $model->ensembl_slice_adaptor($species, 'Core', 'Slice');
     my $slice = $slice_adaptor->fetch_by_gene_stable_id( $ensembl_stable_id, 5e3 );
 
     my $coord_sys  = $slice->coord_system()->name();
