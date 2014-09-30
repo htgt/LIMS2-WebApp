@@ -14,6 +14,11 @@ LIMS2/t/WebApp/Controller/User/EngSeqs.pm - test class for LIMS2::WebApp::Contro
 
 =cut
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+}
+
 sub generate_sequence_file : Tests(17) {
     my $mech = mech();
 
