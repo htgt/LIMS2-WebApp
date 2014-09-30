@@ -15,8 +15,9 @@
     <form method="POST" id="generate_sequence" action="[% c.uri_for( '/user/generate_sequence_file' ) %]" class="form well"  enctype="multipart/form-data" >
 
       [% IF design_id_list %]
+      [% IF design_id_list.size > 0 %]
       <input type="hidden"name="gene" value="[% gene %]">
-      <label>Design</label>
+      <label><strong>Design</strong></label>
       <table class="table table-condensed">
         <thead>
             <td>ID</td>
@@ -51,21 +52,31 @@
           [% END %]
         </tbody>
       </table>
+        <span class="help-block">Pick the design the sequence is based on</span>
+      [% ELSE %]
+        <div class="alert alert-error">
+            No designs found for gene <strong>[% gene %]</strong>
+            <br>
+            <br>
+            Please <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file') %]">pick another gene</a>
+            or <a href="[% c.uri_for( '/user/generate_sequence_file' ) %]">enter design id manually</a>.
+        </div>
+      [% END %]
 
       [% ELSE %]
       <div class="control-group">
-        <label class="control-label">Design ID</label>
+        <label class="control-label"><strong>Design ID</strong></label>
             <div class="controls">
             <input name="design_id" id="design_id" type="text"
               [% IF design_id %]value="[% design_id %]"[% END %]
             />
-            <span class="help-block">Design the sequence is based on</span>
+            <span class="help-block">Pick the design the sequence is based on</span>
         </div>
       </div>
       [% END %]
 
       <div class="control-group">
-        <label class="control-label">Cassette</label>
+        <label class="control-label"><strong>Cassette</strong></label>
             <div class="controls">
             <select name="cassette" id="cassette"/>
               [% FOR cass IN cassettes %]
@@ -77,7 +88,7 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label">Backbone <small class="muted">optional</small></label>
+        <label class="control-label"><strong>Backbone</strong> <small class="muted">optional</small></label>
             <div class="controls">
             <select name="backbone" id="backbone"/>
               [% FOR bb IN backbones %]
@@ -90,7 +101,7 @@
 
 
       <div class="control-group">
-        <label class="control-label">Recombinases <small class="muted">optional</small></label>
+        <label class="control-label"><strong>Recombinases</strong> <small class="muted">optional</small></label>
         <div class="controls">
           [% FOR recom IN recombinases %]
               <label class="checkbox">
@@ -102,7 +113,7 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label">File Format</label>
+        <label class="control-label"><strong>File Format</strong></label>
             <div class="controls">
             <select name="file_format" id="file_format" />
                 <option>Genbank</option>
