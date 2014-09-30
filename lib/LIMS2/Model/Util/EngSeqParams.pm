@@ -100,7 +100,9 @@ sub generate_custom_eng_seq_params{
         $params->{stage} = 'allele';
     }
 
-    my ( $method, $eng_seq_params ) = fetch_eng_seq_params( { %{ $params }, %{ $design_params } } );
+    ## no critic ( ValuesAndExpressions::ProhibitCommaSeparatedStatements )
+    my ( $method, $eng_seq_params ) = fetch_eng_seq_params( { %$params, %$design_params } );
+    ## use critic
 
     delete $design_params->{design_type};
     delete $design_params->{design_cassette_first};
