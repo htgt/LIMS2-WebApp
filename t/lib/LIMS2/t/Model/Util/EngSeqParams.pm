@@ -5,6 +5,7 @@ use LIMS2::Model::Util::EngSeqParams qw(
     fetch_well_eng_seq_params
     generate_well_eng_seq_params
     generate_crispr_eng_seq_params
+    generate_custom_eng_seq_params
 );
 
 use LIMS2::Test;
@@ -25,73 +26,7 @@ Test module structured for running under Test::Class
 
 =cut
 
-=head2 BEGIN
-
-Loading other test classes at compile time
-
-=cut
-
-BEGIN {
-
-    # compile time requirements
-    #{REQUIRE_PARENT}
-}
-
-=head2 before
-
-Code to run before every test
-
-=cut
-
-sub before : Test(setup) {
-
-    #diag("running before test");
-}
-
-=head2 after
-
-Code to run after every test
-
-=cut
-
-sub after : Test(teardown) {
-
-    #diag("running after test");
-}
-
-=head2 startup
-
-Code to run before all tests for the whole test class
-
-=cut
-
-sub startup : Test(startup) {
-
-    #diag("running before all tests");
-}
-
-=head2 shutdown
-
-Code to run after all tests for the whole test class
-
-=cut
-
-sub shutdown : Test(shutdown) {
-
-    #diag("running after all tests");
-}
-
-=head2 all_tests
-
-Code to execute all tests
-
-=cut
-
-sub all_tests : Test(1) {
-    ok( 1, "Test of LIMS2::Model::Util::EngSeqParams" );
-}
-
-sub fetch_well_eng_seq_params_test : Test(36) {
+sub fetch_well_eng_seq_params_test : Tests(36) {
 
     ok my $design_well = model->retrieve_well( { well_name => 'F02', plate_name => '148' } ),
         'can grab design well';
@@ -99,7 +34,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
     throws_ok {
         fetch_well_eng_seq_params(
             $design_well,
-            {   is_allele             => 1,
+            {   stage                 => 'allele',
                 design_type           => 'conditional',
                 design_cassette_first => 1,
                 recombinase           => [],
@@ -111,22 +46,22 @@ sub fetch_well_eng_seq_params_test : Test(36) {
     throws_ok {
         fetch_well_eng_seq_params(
             $design_well,
-            {   is_allele             => 1,
-                design_type           => 'foo',
+            {   stage                 => 'vector',
+                design_type           => 'conditional',
                 design_cassette_first => 1,
                 recombinase           => [],
-                cassette              => 'moo'
+                cassette              => 'foo',
             }
         );
     }
-    qr/Don't know how to generate allele seq/, 'throws error when unknown design type used';
+    qr/No backbone found for well/, 'throws error when it can not work out backbone for well ';
 
     ok my $well = model->retrieve_well( { well_name => 'H03', plate_name => 'ETPCS0004_A' } ),
         'grab test well';
 
     ok my ( $method, $params ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 1,
+        {   stage                 => 'allele',
             design_type           => 'conditional',
             design_cassette_first => 1,
             recombinase           => [],
@@ -142,7 +77,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my ( $method2, $params2 ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 1,
+        {   stage                 => 'allele',
             design_type           => 'conditional',
             design_cassette_first => 0,
             recombinase           => ['Cre'],
@@ -158,7 +93,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my ( $method3, $params3 ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 0,
+        {   stage                 => 'vector',
             design_type           => 'conditional',
             design_cassette_first => 1,
             recombinase           => [],
@@ -175,7 +110,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my ( $method4, $params4 ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 0,
+        {   stage                 => 'vector',
             design_type           => 'conditional',
             design_cassette_first => 0,
             recombinase           => [],
@@ -193,7 +128,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my ( $method5, $params5 ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 1,
+        {   stage                 => 'allele',
             design_type           => 'deletion',
             design_cassette_first => 1,
             recombinase           => [],
@@ -207,7 +142,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my ( $method6, $params6 ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 1,
+        {   stage                 => 'allele',
             design_type           => 'insertion',
             design_cassette_first => 1,
             recombinase           => [],
@@ -221,7 +156,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my ( $method7, $params7 ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 0,
+        {   stage                 => 'vector',
             design_type           => 'deletion',
             design_cassette_first => 1,
             recombinase           => [],
@@ -235,7 +170,7 @@ sub fetch_well_eng_seq_params_test : Test(36) {
 
     ok my ( $method8, $params8 ) = fetch_well_eng_seq_params(
         $well,
-        {   is_allele             => 0,
+        {   stage                 => 'vector',
             design_type           => 'insertion',
             design_cassette_first => 1,
             recombinase           => [],
@@ -246,6 +181,86 @@ sub fetch_well_eng_seq_params_test : Test(36) {
     is $method8, 'insertion_vector_seq', '.. method is correct';
     is_deeply $params8->{insertion}, { name => 'pR6K_R1R2_ZP' },
         '.. have cassette in insertion slot';
+}
+
+sub fetch_eng_seq_params_test : Tests(14) {
+
+    my $fetch_eng_seq_params  = \&LIMS2::Model::Util::EngSeqParams::fetch_eng_seq_params;
+    throws_ok {
+        $fetch_eng_seq_params->(
+            {   stage                 => 'allele',
+                design_type           => 'foo',
+                design_cassette_first => 1,
+                recombinase           => [],
+                cassette              => 'moo'
+            }
+        );
+    }
+    qr/Don't know how to generate allele seq/, 'throws error when unknown design type used';
+
+    throws_ok {
+        $fetch_eng_seq_params->(
+            {   stage                 => 'vector',
+                design_type           => 'foo',
+                design_cassette_first => 1,
+                recombinase           => [],
+                cassette              => 'moo'
+            }
+        );
+    }
+    qr/Don't know how to generate vector seq/, 'throws error when unknown design type used';
+
+    ok my $well = model->retrieve_well( { well_name => 'H03', plate_name => 'ETPCS0004_A' } ),
+        'grab test well';
+
+    ok my ( $method6, $params6 ) = $fetch_eng_seq_params->(
+        {   stage                 => 'allele',
+            design_type           => 'insertion',
+            design_cassette_first => 1,
+            recombinase           => [],
+            cassette              => 'pR6K_R1R2_ZP',
+        }
+        ),
+        'call fetch_eng_seq_params for insertion allele';
+
+    is $method6, 'insertion_allele_seq', '.. method is correct';
+    is_deeply $params6->{insertion}, { name => 'pR6K_R1R2_ZP' },
+        '.. have cassette in insertion slot';
+
+    ok my ( $method7, $params7 ) = $fetch_eng_seq_params->(
+        {   stage                 => 'vector',
+            design_type           => 'deletion',
+            design_cassette_first => 1,
+            recombinase           => [],
+            cassette              => 'pR6K_R1R2_ZP',
+            backbone              => 'foo',
+        }
+        ),
+        'call fetch_eng_seq_params for deletion allele';
+
+    is $method7, 'deletion_vector_seq', '.. method is correct';
+    is_deeply $params7->{insertion}, { name => 'pR6K_R1R2_ZP' },
+        '.. have cassette in insertion slot';
+    is_deeply $params7->{backbone}, { name => 'foo' },
+        '.. have cassette in insertion slot';
+
+    ok my ( $method8, $params8 ) = $fetch_eng_seq_params->(
+        {   stage                 => 'vector',
+            design_type           => 'insertion',
+            design_cassette_first => 1,
+            recombinase           => [],
+            cassette              => 'pR6K_R1R2_ZP',
+            backbone              => 'foo',
+        }
+        ),
+        'call fetch_eng_seq_params for insertion allele';
+
+    is $method8, 'insertion_vector_seq', '.. method is correct';
+    is_deeply $params8->{insertion}, { name => 'pR6K_R1R2_ZP' },
+        '.. have cassette in insertion slot';
+    is_deeply $params7->{backbone}, { name => 'foo' },
+        '.. have cassette in insertion slot';
+
 }
 
 sub generate_well_eng_seq_params_test : Test(10) {
@@ -264,7 +279,8 @@ sub generate_well_eng_seq_params_test : Test(10) {
     my %user_params = (
         cassette    => 'L1L2_GT2_LacZ_BSD',
         backbone    => 'R3R4_pBR_amp',
-        recombinase => ['Cre']
+        recombinase => ['Cre'],
+        stage       => 'vector',
     );
     ok my ( $method2, $well_id2, $params2 )
         = generate_well_eng_seq_params( model, { well_id => 850, %user_params } ),
@@ -316,6 +332,46 @@ sub generate_crispr_eng_seq_params_test : Test(8) {
     }
     qr/No backbone found for well/,
         'throws error if you do not specify a backbone override and the well has no backbone';
+}
+
+sub generate_custom_eng_seq_params_test : Tests(8) {
+    # Using test data from wells which use the designs below to test against
+    # Manually add the correct cassette and backbone, so the parameters should
+    # match up exactly
+
+    ok my ( $method, $params ) = generate_custom_eng_seq_params( model,
+        {
+            design_id => 42815,
+            cassette => 'L1L2_gt0_Del_LacZ',
+        } ),
+        'generate_custom_eng_seq_params for design 42815 should succeed';
+    is $method, 'conditional_allele_seq', 'engseq method correct for design 42815';
+    is_deeply( $params, test_data('well_1522.yaml'), 'engseq params as expected for design 42815' );
+
+    ok my ( $method2, $params2 ) = generate_custom_eng_seq_params( model,
+        {
+            design_id => 84231,
+            cassette  => 'L1L2_GT2_LacZ_BSD',
+            backbone  => 'R3R4_pBR_amp',
+            recombinases => [ 'Cre' ],
+        } ),
+        'generate_custom_eng_seq_params for design 84231 with user specified details should succeed';
+    is_deeply(
+        $params2,
+        test_data("well_850_user_params.yaml"),
+        'engseq params as expected for design 84231 with user specified params'
+    );
+    is $method2, 'conditional_vector_seq', 'engseq method correct for design 84231';
+
+    ok my ( $method3, $params3 ) = generate_custom_eng_seq_params( model, {
+            design_id => 170606,
+            cassette  => 'L1L2_GT2_LacZ_BSD',
+            backbone  => 'R3R4_pBR_amp',
+            recombinases => [ 'Cre' ],
+        } ),
+        'generate_custom_eng_seq_params for design 170606 should succeed';
+    is_deeply( $params3, test_data('well_848.yaml'), 'engseq params as expected for design 170606' );
+
 }
 
 ## use critic
