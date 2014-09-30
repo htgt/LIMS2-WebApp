@@ -91,6 +91,7 @@ sub generate_custom_eng_seq_params{
     my $params = {};
     $params->{cassette} = $validated_params->{cassette};
     $params->{recombinase} = $validated_params->{recombinases};
+    $params->{recombinase} =  [ uniq map { lc $_ } @{ $params->{recombinase} } ];
     if ( $validated_params->{backbone} ) {
         $params->{backbone} = $validated_params->{backbone};
         $params->{stage} = 'vector';
@@ -232,7 +233,7 @@ sub build_eng_seq_params_from_loci{
 }
 
 ## no critic ( Subroutines::ProhibitExcessComplexity )
-sub fetch_well_eng_seq_params{
+sub fetch_well_eng_seq_params {
 	my ( $well, $params ) = @_;
 
 	# Fetch cassette etc from process graph if not user supplied
@@ -246,7 +247,7 @@ sub fetch_well_eng_seq_params{
 		$params->{recombinase} = $well->recombinases;
 	}
 
-	if ( !$params->{backbone} or $params->{stage} eq 'vector' ){
+	if ( !$params->{backbone} && $params->{stage} eq 'vector' ){
 		my $backbone = $well->backbone;
 		$params->{backbone} = $backbone ? $backbone->name
 		                                : undef ;
@@ -303,7 +304,6 @@ sub fetch_eng_seq_params {
             LIMS2::Exception->throw( "Don't know how to generate allele seq for design of type $design_type" );
 	    }
         ## use critic
-
 	}
 	else {
 		$well_params->{backbone}{name} = $params->{backbone};
