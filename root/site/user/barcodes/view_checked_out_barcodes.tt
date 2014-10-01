@@ -21,8 +21,22 @@
   <td>[% bc.parent_epd %]</td>
   <td>[% bc.well_as_string %]</td>
   <td>[% bc.barcode %]</td>
-  <td></td>
-  <td></td>
+  <td>
+    <a href="[% c.uri_for('/user/fp_freeze_back', barcode => bc.barcode) %]" class="btn btn-primary">
+    Freeze Back
+    </a>
+  </td>
+  <td>
+  	<form class="form-inline" method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]">
+  	  <input type="hidden" name="barcode" value="[% bc.barcode %]">
+  	  <input type="hidden" name="plate_type" value="[% plate_type %]">
+  	  <input type="text" name="reason" placeholder="reason for discarding">
+  	  <button type="submit" name="discard_barcode" class="btn btn-danger" value="discard_barcode">
+  	    Discard
+  	    <i class="icon-trash icon-white"></i>
+  	  </button>
+  	</form>
+  </td>
 </tr>
 [% END %]
 </table>

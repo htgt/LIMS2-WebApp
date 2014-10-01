@@ -157,6 +157,16 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     return;
 }
 
+sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
+
+}
+
+sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
+    # Page should ask user to confirm and then update the barcode state
+    # and create a new copy of the plate which does not include the discarded barcode
+    # barcode will remain linked to well_id on old plate which will be flagged as virtual
+}
+
 sub _well_display_details{
     my ($self, $c, $well) = @_;
 
