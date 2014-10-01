@@ -24,6 +24,7 @@ use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
+use Scalar::Util qw( reftype );
 
 sub pspec_generate_eng_seq_params {
 	return {
@@ -90,8 +91,11 @@ sub generate_custom_eng_seq_params{
 
     my $params = {};
     $params->{cassette} = $validated_params->{cassette};
-    $params->{recombinase} = $validated_params->{recombinases};
-    $params->{recombinase} =  [ uniq map { lc $_ } @{ $params->{recombinase} } ];
+    my @recombinases
+        = reftype $validated_params->{recombinases}
+        ? @{ $validated_params->{recombinases} }
+        : ( $validated_params->{recombinases} );
+    $params->{recombinase} =  [ uniq map { lc $_ } @recombinases ];
     if ( $validated_params->{backbone} ) {
         $params->{backbone} = $validated_params->{backbone};
         $params->{stage} = 'vector';
