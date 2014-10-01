@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.251     2014-10-01 08:15:09 Europe/London
+
+    Bugfix: fixed error when single recombinase specified in custom sequence generator
+
 0.250     2014-10-01 07:24:07 Europe/London
 
     Add custom sequence generation page.
