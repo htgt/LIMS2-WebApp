@@ -43,10 +43,16 @@
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
           </ul>
         </li>

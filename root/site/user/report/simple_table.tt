@@ -10,7 +10,7 @@
 
 [%- MACRO linkify(v) BLOCK %]
     [% IF v.match( '^https?:' ) %]
-<a href="[% v %]">Test result</a>
+<a href="[% v %]">Link</a>
     [% ELSIF v.match( 'lims2_custom' ) %]
         [%- USE JSON %]
         [%- v_json = JSON.json_decode( v ) %]

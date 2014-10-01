@@ -231,6 +231,7 @@ sub _add_crispr_well_values {
 
                 while (my $vector_well = $crispr_vector_rs->next){
                     my $vector_well_info = {
+                        well_id        => $vector_well->id,
                         well_id_string => $vector_well->as_string,
                         well_name      => $vector_well->name,
                         plate_id       => $vector_well->plate->id,
@@ -245,6 +246,7 @@ sub _add_crispr_well_values {
 
                 while (my $dna_well = $crispr_dna_rs->next){
                     my $dna_well_info = {
+                        well_id        => $dna_well->id,
                         well_id_string => $dna_well->as_string,
                         well_name      => $dna_well->name,
                         plate_id       => $dna_well->plate->id,
