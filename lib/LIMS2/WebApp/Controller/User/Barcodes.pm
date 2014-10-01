@@ -111,17 +111,7 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
             return;
         }
 
-        # FIXME: put in plugin or util module
-        my $well_details = $well->as_hash;
-        if(my $epd = $well->first_ep_pick){
-            $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
-        }
-        my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
-                design_id => $well->design->id,
-            });
-
-        $well_details->{design_gene_symbol} = $gene_symbols->[0];
-        $well_details->{barcode_state} = $well->well_barcode->barcode_state->id;
+        my $well_details = $self->_well_display_details($c, $well);
 
         $c->stash->{well_details} = $well_details;
         return;
@@ -139,5 +129,70 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
         $c->stash->{success_msg} = "Well $well_name (Barcode: $bc) has been checked out of the freezer";
     }
     return;
+}
+
+sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args(1){
+    my ($self, $c, $plate_type) = @_;
+
+    my @checked_out = $c->model('Golgi')->schema->resultset('WellBarcode')->search(
+        {
+            'me.barcode_state' => 'checked_out',
+            'plate.species_id' => $c->session->{selected_species},
+            'plate.type_id'    => $plate_type,
+        },
+        {
+            join => { well => 'plate' },
+        }
+    );
+
+    my @barcodes;
+    foreach my $bc (@checked_out){
+        my $well_details = $self->_well_display_details($c, $bc->well);
+        push @barcodes, $well_details;
+    }
+
+    my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @barcodes;
+    $c->stash->{plate_type} = $plate_type;
+    $c->stash->{barcodes} = \@sorted;
+    return;
+}
+
+sub _well_display_details{
+    my ($self, $c, $well) = @_;
+
+    my $well_details = $well->as_hash;
+    $well_details->{well_as_string} = $well->as_string;
+
+    if(my $epd = $well->first_ep_pick){
+        $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
+    }
+
+    my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+        design_id => $well->design->id,
+    });
+
+    $well_details->{design_gene_symbol} = $gene_symbols->[0];
+    $well_details->{barcode_state} = $well->well_barcode->barcode_state->id;
+    $well_details->{barcode} = $well->well_barcode->barcode;
+
+    if($well_details->{barcode_state} eq "checked_out"){
+        # Find most recent checkout date
+        my $checkout = $well->well_barcode->search_related('barcode_events',
+            {
+                new_state => 'checked_out',
+                old_state => {'!=' => 'checked_out'}
+            },
+            {
+                order_by => { -desc => [qw/created_at/] }
+            }
+        )->first;
+
+        if($checkout){
+            $well_details->{checkout_date} = $checkout->created_at;
+            $well_details->{checkout_user} = $checkout->created_by->name;
+        }
+    }
+
+    return $well_details;
 }
 1;

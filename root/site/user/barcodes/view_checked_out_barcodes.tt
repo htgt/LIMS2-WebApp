@@ -1,0 +1,28 @@
+[% META title = "Checked Out Barcodes" -%]
+
+<h1>[% plate_type %] barcodes currently checked out</h1>
+
+<table class="table table-striped">
+<tr>
+  <th>Checkout Date</th>
+  <th>Checkout User</th>
+  <th>Gene Symbol</th>
+  <th>EPD parent</th>
+  <th>FP plate well</th>
+  <th>Barcode</th>
+  <th>Freeze Back</th>
+  <th>Discard</th>
+</tr>
+[% FOREACH bc IN barcodes %]
+<tr>
+  <td>[% bc.checkout_date %]</td>
+  <td>[% bc.checkout_user %]</td>
+  <td>[% bc.design_gene_symbol %]</td>
+  <td>[% bc.parent_epd %]</td>
+  <td>[% bc.well_as_string %]</td>
+  <td>[% bc.barcode %]</td>
+  <td></td>
+  <td></td>
+</tr>
+[% END %]
+</table>
