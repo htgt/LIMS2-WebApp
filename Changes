@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.250     2014-10-01 07:24:07 Europe/London
+
+    Add custom sequence generation page.
+    Modify well genotyping info page to split into first and second allele sections.
+
 0.249     2014-09-26 15:12:51 Europe/London
 
     Corrected issue with ensembl server
