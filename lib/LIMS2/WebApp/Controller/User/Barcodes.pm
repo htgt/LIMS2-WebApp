@@ -82,4 +82,62 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
 	# Provide as printable list contining plate/well position, barcodes, parent EPDs
 	# blank columns for "to pick"/"picked"
 }
+
+sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    # User Scans a barcode
+    if($c->request->param('submit_barcode')){
+    # Fetches info about the well
+        my $bc = $c->request->param('barcode');
+        unless ($bc){
+            $c->stash->{error_msg} = "No barcode entered";
+            return;
+        }
+
+        $c->stash->{barcode} = $bc;
+
+        my $well;
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $bc,
+            });
+        };
+
+        unless($well){
+            $c->stash->{error_msg} = "Barcode $bc not found";
+            return;
+        }
+
+        # FIXME: put in plugin or util module
+        my $well_details = $well->as_hash;
+        if(my $epd = $well->first_ep_pick){
+            $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
+        }
+        my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+                design_id => $well->design->id,
+            });
+
+        $well_details->{design_gene_symbol} = $gene_symbols->[0];
+        $well_details->{barcode_state} = $well->well_barcode->barcode_state->id;
+
+        $c->stash->{well_details} = $well_details;
+        return;
+    }
+    elsif($c->request->param('confirm_checkout')){
+    # User Confirms checkout
+    # Well status updated
+        my $bc = $c->request->param('barcode');
+        my $well_barcode = $c->model('Golgi')->update_well_barcode({
+                barcode       => $bc,
+                new_state     => 'checked_out',
+                user          => $c->user->name,
+            });
+        my $well_name = $well_barcode->well->as_string;
+        $c->stash->{success_msg} = "Well $well_name (Barcode: $bc) has been checked out of the freezer";
+    }
+    return;
+}
 1;

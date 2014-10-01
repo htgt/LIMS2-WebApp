@@ -1,0 +1,40 @@
+[% META title = "Individual Barcode Checkout" -%]
+
+
+
+[% IF well_details %]
+<h2>Well details for barcode [% barcode %]</h2>
+<table>
+ <tr>
+  <th>Plate Name</th>
+  <th>Plate Type</th>
+  <th>Well Name</th>
+  <th>Gene Symbol</th>
+  <th>Parent EPD</th>
+  <th>Barcode State</th>
+ </tr>
+ <tr>
+  <td>[% well_details.plate_name %]</td>
+  <td>[% well_details.plate_type %]</td>
+  <td>[% well_details.well_name %]</td>
+  <td>[% well_details.design_gene_symbol %]</td>
+  <td>[% well_details.parent_epd %]</td>
+  <td>[% well_details.barcode_state %]</td>
+ </tr>
+</table>
+<form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]" />
+    <input type="submit" name="cancel_checkout" class="btn btn-primary" value="Cancel Checkout" />
+    <input type="submit" name="confirm_checkout" class="btn btn-primary" value="Confirm Checkout" />
+  </fieldset>
+</form>
+[% ELSE %]
+<form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
+  <fieldset>
+    <legend>Checkout Barcode</legend>
+    <input type="text" name="barcode" placeholder="scan barcode here" value="[% barcode %]" />
+    <input type="submit" name="submit_barcode" class="btn btn-primary" value="Checkout" />
+  </fieldset>
+</form>
+[% END %]
