@@ -1,5 +1,18 @@
 {{$NEXT}}
 
+0.251     2014-10-01 08:15:09 Europe/London
+
+    Bugfix: fixed error when single recombinase specified in custom sequence generator
+
+0.250     2014-10-01 07:24:07 Europe/London
+
+    Add custom sequence generation page.
+    Modify well genotyping info page to split into first and second allele sections.
+
+0.249     2014-09-26 15:12:51 Europe/London
+
+    Corrected issue with ensembl server
+
 0.248     2014-09-26 11:44:58 Europe/London
 
     Genoverse button on gene summary pages supports any gene, no design is necessary
