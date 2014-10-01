@@ -90,7 +90,7 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
 
     # User Scans a barcode
     if($c->request->param('submit_barcode')){
-    # Fetches info about the well
+        # Fetches info about the well
         my $bc = $c->request->param('barcode');
         unless ($bc){
             $c->stash->{error_msg} = "No barcode entered";
@@ -127,8 +127,8 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
         return;
     }
     elsif($c->request->param('confirm_checkout')){
-    # User Confirms checkout
-    # Well status updated
+        # User Confirms checkout
+        # Well status updated
         my $bc = $c->request->param('barcode');
         my $well_barcode = $c->model('Golgi')->update_well_barcode({
                 barcode       => $bc,
