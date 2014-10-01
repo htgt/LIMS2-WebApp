@@ -1285,7 +1285,7 @@ sub retrieve_crispr_primers {
     elsif ( $crispr_id_ref eq 'crispr_pair_id' ) {
        $crispr_type_string = 'crispr_pair';
     }
-$DB::single=1;
+
     if ($crispr_primers_rs) {
         my $count = 0;
         while ( my $crispr_primers_row = $crispr_primers_rs->next ) {
