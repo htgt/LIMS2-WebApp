@@ -12,6 +12,11 @@ use LIMS2::Test;
 
 use strict;
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+}
+
 ## no critic
 
 =head1 NAME
