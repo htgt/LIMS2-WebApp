@@ -351,6 +351,8 @@ root/site/user/designtargets/gene_report_crispr_pairs.tt
 root/site/user/designtargets/gene_report_single_crisprs.tt
 root/site/user/designtargets/index.tt
 root/site/user/designtargets/simple_gene_report.tt
+root/site/user/engseqs/generate_sequence_file.tt
+root/site/user/engseqs/pick_gene_generate_sequence_file.tt
 root/site/user/error.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
@@ -2658,6 +2660,7 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesign.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Crisprs.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_DesignTargets.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_EngSeqs.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Graph.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateCopy.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateEdit.t
@@ -2876,6 +2879,7 @@ t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesign.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Crisprs.pm
 t/lib/LIMS2/t/WebApp/Controller/User/DesignTargets.pm
+t/lib/LIMS2/t/WebApp/Controller/User/EngSeqs.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Graph.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateCopy.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateEdit.pm

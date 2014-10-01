@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPlate::VERSION = '0.249';
+    $LIMS2::Report::EPPlate::VERSION = '0.250';
 }
 ## use critic
 
