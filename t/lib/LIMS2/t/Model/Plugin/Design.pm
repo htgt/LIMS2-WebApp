@@ -312,7 +312,8 @@ sub all_tests : Tests {
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
         $design_data->{genotyping_primers}
-            = [ map { delete $_->{id}; $_ } @{ delete $design_data->{genotyping_primers} } ];
+            = [ map { delete $_->{id}; delete $_->{species}; delete $_->{locus}; $_ }
+                @{ delete $design_data->{genotyping_primers} } ];
 
         delete $design_data->{comments};
         $design_data->{comments} = [
