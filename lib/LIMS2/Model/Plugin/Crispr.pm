@@ -459,7 +459,7 @@ sub import_wge_crisprs {
         next unless $crispr_id; #skip blank lines
 
         try {
-            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly );
+            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly, $species );
 
             if ( $species ne $crispr_data->{species} ) {
                 LIMS2::Exception->throw(
