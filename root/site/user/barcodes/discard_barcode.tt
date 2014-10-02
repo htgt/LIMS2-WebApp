@@ -1,0 +1,46 @@
+[% META title = "Well Discard" -%]
+
+[% IF well_details %]
+<h2>Well details for barcode [% barcode %]</h2>
+<table class="table table-bordered">
+ <tr>
+  <th>Plate Name</th><td>[% well_details.plate_name %]</td>
+ </tr>
+ <tr>
+  <th>Plate Type</th><td>[% well_details.plate_type %]</td>
+ </tr>
+ <tr>
+  <th>Well Name</th><td>[% well_details.well_name %]</td>
+ </tr>
+ <tr>
+  <th>Gene Symbol</th><td>[% well_details.design_gene_symbol %]</td>
+ </tr>
+ <tr>
+  <th>Parent EPD</th><td>[% well_details.parent_epd %]</td>
+ </tr>
+ <tr>
+  <th>Created By</th><td>[% well_details.created_by %]</td>
+ </tr>
+ <tr>
+  <th>Created At</th><td>[% well_details.created_at %]</td>
+ </tr>
+ <tr>
+  <th>Barcode State</th><td>[% well_details.barcode_state %]</td>
+ </tr>
+</table>
+<form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
+You have chosen to discard this well for reason "[% reason %]". Click "Confirm Discard" to complete this action.
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <input type="hidden" name="reason" value="[% reason %]"/>
+    <input type="hidden" name="plate_type" value="[% well_details.plate_type %]"/>
+    <button type="submit" name="cancel_discard" class="btn" value="cancel_discard">
+      Cancel Discard
+    </button>
+    <button type="submit" name="confirm_discard" class="btn btn-danger" value="confirm_discard">
+      Confirm Discard
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+  </fieldset>
+</form>
+[% END %]

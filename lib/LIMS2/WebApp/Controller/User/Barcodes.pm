@@ -134,6 +134,8 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
 sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args(1){
     my ($self, $c, $plate_type) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     my @checked_out = $c->model('Golgi')->schema->resultset('WellBarcode')->search(
         {
             'me.barcode_state' => 'checked_out',
@@ -165,6 +167,44 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
     # Page should ask user to confirm and then update the barcode state
     # and create a new copy of the plate which does not include the discarded barcode
     # barcode will remain linked to well_id on old plate which will be flagged as virtual
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $barcode = $c->request->param('barcode');
+    my $plate_type = $c->request->param('plate_type');
+
+    $c->stash->{barcode} = $barcode;
+    $c->stash->{reason} = $c->request->param('reason');
+
+    if($c->request->param('cancel_discard')){
+        $c->flash->{info_msg} = "Cancelled discard of barcode $barcode";
+        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/$plate_type") );
+        return;
+    }
+    elsif($c->request->param('confirm_discard')){
+        # DO IT
+    }
+    elsif($barcode){
+        # return well details
+        my $well;
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $barcode,
+            });
+        };
+        if($well){
+            $c->stash->{well_details} = $self->_well_display_details($c, $well);
+        }
+        else{
+            $c->stash->{error_msg} = "Barcode $barcode not found";
+        }
+        return;
+    }
+    else{
+        $c->stash->{error_msg} = "No barcode provided";
+    }
+    return;
 }
 
 sub _well_display_details{
