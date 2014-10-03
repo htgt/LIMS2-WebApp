@@ -116,6 +116,18 @@ has species => (
     required => 1,
 );
 
+has assembly => (
+    is         => 'ro',
+    isa        => 'Str',
+    lazy_build => 1,
+);
+
+sub _build_assembly {
+    my $self = shift;
+
+    return $self->model->get_species_default_assembly( $self->species );
+}
+
 #if specified manually no dir will be built
 has base_dir => (
     is         => 'ro',
@@ -623,6 +635,7 @@ sub parse_analysis_data {
     $analysis_data->{crispr_id}  = $crispr->id if $crispr;
     $analysis_data->{design_id}  = $design->id;
     $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
+    $analysis_data->{assembly}   = $self->assembly;
 
     return unless $analyser;
 
