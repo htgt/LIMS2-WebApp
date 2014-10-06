@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<barcode_event>
+=head1 TABLE: C<barcode_events>
 
 =cut
 
-__PACKAGE__->table("barcode_event");
+__PACKAGE__->table("barcode_events");
 
 =head1 ACCESSORS
 
@@ -43,7 +43,7 @@ __PACKAGE__->table("barcode_event");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'barcode_event_id_seq'
+  sequence: 'barcode_events_id_seq'
 
 =head2 barcode
 
@@ -101,7 +101,7 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "barcode_event_id_seq",
+    sequence          => "barcode_events_id_seq",
   },
   "barcode",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
@@ -256,8 +256,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-09-29 10:06:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NNjDxPGaGQPTOEiqz5QMww
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-06 15:08:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9/F3r3tcKV9NZXgoimonFQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

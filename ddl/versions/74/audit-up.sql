@@ -23,7 +23,7 @@ $barcode_states_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER barcode_states_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.barcode_states
     FOR EACH ROW EXECUTE PROCEDURE public.process_barcode_states_audit();
-CREATE TABLE audit.barcode_event (
+CREATE TABLE audit.barcode_events(
 audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
 audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
@@ -38,19 +38,19 @@ comment text,
 created_by integer,
 created_at timestamp without time zone
 );
-CREATE OR REPLACE FUNCTION public.process_barcode_event_audit()
-RETURNS TRIGGER AS $barcode_event_audit$
+CREATE OR REPLACE FUNCTION public.process_barcode_events_audit()
+RETURNS TRIGGER AS $barcode_events_audit$
     BEGIN
         IF (TG_OP = 'DELETE') THEN
-           INSERT INTO audit.barcode_event SELECT 'D', user, now(), txid_current(), OLD.*;
+           INSERT INTO audit.barcode_events SELECT 'D', user, now(), txid_current(), OLD.*;
         ELSIF (TG_OP = 'UPDATE') THEN
-           INSERT INTO audit.barcode_event SELECT 'U', user, now(), txid_current(), NEW.*;
+           INSERT INTO audit.barcode_events SELECT 'U', user, now(), txid_current(), NEW.*;
         ELSIF (TG_OP = 'INSERT') THEN
-           INSERT INTO audit.barcode_event SELECT 'I', user, now(), txid_current(), NEW.*;
+           INSERT INTO audit.barcode_events SELECT 'I', user, now(), txid_current(), NEW.*;
         END IF;
         RETURN NULL;
     END;
-$barcode_event_audit$ LANGUAGE plpgsql;
-CREATE TRIGGER barcode_event_audit
-AFTER INSERT OR UPDATE OR DELETE ON public.barcode_event
-    FOR EACH ROW EXECUTE PROCEDURE public.process_barcode_event_audit();
+$barcode_events_audit$ LANGUAGE plpgsql;
+CREATE TRIGGER barcode_events_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.barcode_events
+    FOR EACH ROW EXECUTE PROCEDURE public.process_barcode_events_audit();

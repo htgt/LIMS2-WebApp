@@ -5,7 +5,7 @@ CREATE TABLE barcode_states (
 
 ALTER TABLE well_barcodes ADD COLUMN barcode_state TEXT REFERENCES barcode_states(id);
 
-CREATE TABLE barcode_event (
+CREATE TABLE barcode_events (
     id SERIAL PRIMARY KEY,
     barcode TEXT NOT NULL REFERENCES well_barcodes(barcode),
     old_state TEXT REFERENCES barcode_states(id),
