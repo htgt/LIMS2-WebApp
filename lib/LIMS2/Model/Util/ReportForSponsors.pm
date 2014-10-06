@@ -91,7 +91,7 @@ sub _build_sponsors {
         my $sponsor_id = $sponsor->{ id };
         DEBUG "Sponsor id found = ".$sponsor_id;
 
-        $sponsor_id eq 'Human-Core' ? unshift( @sponsor_ids, $sponsor_id ) : push( @sponsor_ids, $sponsor_id );
+        $sponsor_id eq 'All' ? unshift( @sponsor_ids, $sponsor_id ) : push( @sponsor_ids, $sponsor_id );
     }
 
     return \@sponsor_ids;
