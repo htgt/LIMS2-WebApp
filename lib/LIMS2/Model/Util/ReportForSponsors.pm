@@ -90,11 +90,8 @@ sub _build_sponsors {
     foreach my $sponsor ( @$sponsor_ids_rs ) {
         my $sponsor_id = $sponsor->{ id };
         DEBUG "Sponsor id found = ".$sponsor_id;
-        if ($sponsor_id eq 'Human-Core') {
-            unshift( @sponsor_ids, $sponsor_id );
-        } else {
-            push( @sponsor_ids, $sponsor_id );
-        }
+
+        $sponsor_id eq 'Human-Core' ? unshift( @sponsor_ids, $sponsor_id ) : push( @sponsor_ids, $sponsor_id );
     }
 
     return \@sponsor_ids;
