@@ -3,6 +3,7 @@ use Moose;
 use TryCatch;
 use Data::Dump 'pp';
 use List::MoreUtils qw (uniq);
+use LIMS2::Model::Util::BarcodeActions qw(discard_well_barcode);
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -183,7 +184,29 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
         return;
     }
     elsif($c->request->param('confirm_discard')){
-        # DO IT
+
+        my $failed;
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                discard_well_barcode(
+                    $c->model('Golgi'),
+                    {
+                        barcode => $barcode,
+                        user    => $c->user->name,
+                        reason  => $c->request->param('reason'),
+                    }
+                );
+            }
+            catch($e){
+                $c->flash->{error_msg} = "Discard of barcode $barcode failed with error $e";
+                $c->log->debug("rolling back barcode discard actions");
+                $c->model('Golgi')->txn_rollback;
+                $failed = 1;
+            };
+        });
+
+        $c->flash->{success_msg} = "Barcode $barcode has been discarded" unless $failed;
+        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/$plate_type") );
     }
     elsif($barcode){
         # return well details

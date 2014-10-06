@@ -14,7 +14,7 @@ requires qw( schema check_params throw retrieve log trace );
 sub pspec_retrieve_well_barcode {
     return {
         well_id           => { validate => 'integer', optional => 1 },
-        barcode           => { validate => 'alphanumeric_string', optional => 1 },
+        barcode           => { validate => 'well_barcode', optional => 1 },
         REQUIRE_SOME      => { id_or_barcode => [ 1, qw( well_id barcode ) ] }
     };
 }
@@ -40,10 +40,10 @@ sub create_well_barcode {
 
 sub pspec_update_well_barcode {
     return {
-        barcode      => { validate => 'alphanumeric_string'},
+        barcode      => { validate => 'well_barcode'},
         new_well_id  => { validate => 'integer', optional => 1 },
         new_state    => { validate => 'alphanumeric_string', optional => 1 },
-        comment      => { validate => 'alphanumeric_string', optional => 1 },
+        comment      => { validate => 'non_empty_string', optional => 1 },
         user         => { validate => 'existing_user' },
         REQUIRE_SOME => { new_well_id_or_state => [1, qw(new_well_id new_state)]},
     };
@@ -84,12 +84,12 @@ sub update_well_barcode {
 
 sub pspec_create_well_barcode_event {
     return {
-        barcode      => { validate => 'alphanumeric_string'},
+        barcode      => { validate => 'well_barcode'},
         old_state    => { validate => 'alphanumeric_string', optional => 1 },
         new_state    => { validate => 'alphanumeric_string', optional => 1 },
         old_well_id  => { validate => 'integer', optional => 1 },
         new_well_id  => { validate => 'integer', optional => 1 },
-        comment      => { validate => 'alphanumeric_string', optional => 1 },
+        comment      => { validate => 'non_empty_string', optional => 1 },
         user         => { validate => 'existing_user', rename => 'created_by', post_filter => 'user_id_for' },
     };
 }
