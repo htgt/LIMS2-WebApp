@@ -145,7 +145,7 @@ function build_uri_params( params_to_build ) {
             [% IF c.session.selected_species == 'Mouse' %]
             url    : 'http://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
             [% ELSE %]
-            url    : 'http://grch37.rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            url    : 'http://rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
             [% END %]
             height : 200,
             info   : 'Ensembl API genes & transcripts, see <a href="http://rest.ensembl.org/" target="_blank">rest.ensembl.org</a> for more details',

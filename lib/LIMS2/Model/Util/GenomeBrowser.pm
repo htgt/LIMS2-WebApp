@@ -91,6 +91,7 @@ sub crispr_pairs_for_region {
                 $params->{end_coord},
                 $params->{chromosome_id},
                 $params->{assembly_id},
+                $params->{assembly_id}, # That is correct, assembly_id is used twice in the query
             ],
         }
     );
