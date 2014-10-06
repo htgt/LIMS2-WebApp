@@ -26,7 +26,7 @@ sub view : Path( '/user/view_summary_report' ) : Args(3) {
     # expecting :
     # targeting type i.e. 'st' or 'dt' for single- or double-targeted
     # sponsor id is the project sponsor e.g. Syboss, Pathogens
-    # stage is the level e.g. Targeted genes, DNA
+    # stage is the level e.g. genes, DNA
 
     $c->assert_user_roles( 'read' );
 
@@ -51,7 +51,7 @@ sub view : Path( '/user/view_summary_report' ) : Args(3) {
     my $link = "/user/view_summary_report/$targeting_type/$sponsor_id/$stage";
     my $type;
 
-    if ($disp_stage eq 'Targeted genes') {
+    if ($disp_stage eq 'Genes') {
 
         if (! $c->request->params->{type}) {
             $c->request->params->{type} = 'simple';
