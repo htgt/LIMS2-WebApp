@@ -119,6 +119,69 @@ sub crispr_groups_for_region {
     return $crisprs_rs;
 }
 
+sub crispr_genotyping_primers_for_region {
+    my $schema = shift;
+    my $params = shift;
+
+    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
+
+    my $crisprs_rs = $schema->resultset('CrisprBrowserGroups')->search( {},
+        {
+            bind => [
+                $params->{start_coord},
+                $params->{end_coord},
+                $params->{chromosome_id},
+                $params->{assembly_id},
+            ],
+        }
+    );
+
+    return $crisprs_rs;
+}
+
+
+
+sub genotyping_primers_for_region {
+    my $schema = shift;
+    my $params = shift;
+
+    $params->{'chromosome_id'} = retrieve_chromosome_id( $schema, $params->{'species'}, $params->{'chromosome_number'} );
+
+    my $genotyping_primer_rs = $schema->resultset('GenotypingPrimer')->search({
+            'genotyping_primer_loci.start' => { '>=', $params->{'start_coord'} },
+            'genotyping_primer_loci.end' => { '<=', $params->{'end_coord'} },
+            'genotyping_primer_loci.chr_id' => $params->{'chromosome_id'},
+            'genotyping_primer_loci.assembly_id' => $params->{'assembly_id'},
+        },
+        {
+            'prefetch'   => ['genotyping_primer_loci'],
+        },
+    );
+
+    my %g_primer_hash;
+    # The genotyping primer table has no unique constraint and may have multiple redundant entries
+    # So the %g_primer_hash gets rid of the redundancy
+    # Old Mouse GF/GR primers have no locus information
+    #
+
+    while ( my $g_primer = $genotyping_primer_rs->next ) {
+        if ( $g_primer->genotyping_primer_type_id =~ m/G[FR][12]/ ) {
+            last if $g_primer->genotyping_primer_loci->count == 0;
+            $g_primer_hash{ $g_primer->genotyping_primer_type_id } = {
+                'primer_seq' => $g_primer->seq,
+                'chr_start' => $g_primer->genotyping_primer_loci->first->chr_start,
+                'chr_end' => $g_primer->genotyping_primer_loci->first->chr_end,
+                'chr_id' => $g_primer->genotyping_primer_loci->first->chr_id,
+                'chr_name' => $g_primer->genotyping_primer_loci->first->chr->name,
+                'chr_strand' => $g_primer->genotyping_primer_loci->first->chr_strand,
+                'assembly_id' => $g_primer->genotyping_primer_loci->single->assembly_id,
+            }
+        }
+    }
+
+    return \%g_primer_hash;
+}
+
 =head crisprs_for_region_as_arrayref
 
 Return and array of hashrefs properly inflated for the browser.

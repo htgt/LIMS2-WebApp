@@ -1,5 +1,13 @@
 package LIMS2::WebApp::Controller::User::Genoverse;
 
+=head Genoverse Controller
+
+The purpose of this controller is to launch the different Genoverse views.
+
+The API calls for the different tracks are in the REST API folder in Browser.pm
+
+=cut
+
 use Moose;
 use Try::Tiny;
 use namespace::autoclean;

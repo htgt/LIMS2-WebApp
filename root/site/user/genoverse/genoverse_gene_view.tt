@@ -37,6 +37,11 @@ var crispr_groups_for_region_params = [
     "species=[%c.session.selected_species%]"
 ];
 
+var crispr_primers_for_region_params = [
+    "assembly_id=[%extent.assembly%]",
+    "species=[%c.session.selected_species%]"
+];
+
 var generic_designs_params = [
     "assembly_id=[%extent.assembly%]",
 ];
@@ -113,6 +118,14 @@ function build_uri_params( params_to_build ) {
           Genoverse.Track.extend({
             name      : 'Crispr_groups',
             url       : "[% c.uri_for('/api/crispr_groups')%]" + build_uri_params( crispr_groups_for_region_params ) ,
+            model     : Genoverse.Track.Model.Transcript.GFF3,
+            view      : Genoverse.Track.View.Transcript,
+            resizable : 'auto',
+            height    : 150
+          }),
+          Genoverse.Track.extend({
+            name      : 'Primers',
+            url       : "[% c.uri_for('/api/crispr_genotyping_primers')%]" + build_uri_params( crispr_primers_for_region_params ) ,
             model     : Genoverse.Track.Model.Transcript.GFF3,
             view      : Genoverse.Track.View.Transcript,
             resizable : 'auto',

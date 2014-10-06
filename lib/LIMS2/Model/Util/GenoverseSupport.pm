@@ -82,7 +82,7 @@ sub get_gene_extent {
 
     my %extent_hash;
 
-    my $slice_adaptor = $model->ensembl_slice_adaptor($species, 'Core', 'Slice');
+    my $slice_adaptor = $model->ensembl_slice_adaptor( $species) ;
     my $slice = $slice_adaptor->fetch_by_gene_stable_id( $ensembl_stable_id, 5e3 );
 
     my $coord_sys  = $slice->coord_system()->name();
