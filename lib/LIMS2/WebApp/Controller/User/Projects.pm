@@ -41,7 +41,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my @sponsors =  map { $_->sponsor_id } @sponsors_rs;
 
-    my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?'];
+    my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment'];
 
     my $sel_sponsor;
 
@@ -78,18 +78,23 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $c->model('Golgi')->find_gene( { species => $species_id, search_term => $_->gene_id } )->{gene_symbol},
         $_->sponsor_id,
         $_->targeting_type,
-        $_->effort_concluded
+        $_->effort_concluded,
+        $_->recovery_class // '',
+        $_->recovery_comment // ''
     ] } @projects_rs;
 
 
+    my $recovery_classes = ['class1', 'class2', 'class3'];
+
     $c->stash(
-        sponsor_id => [ map { $_->sponsor_id } @sponsors_rs ],
+        sponsor_id       => [ map { $_->sponsor_id } @sponsors_rs ],
         effort_concluded => ['true', 'false'],
-        title           => 'Project Efforts',
-        columns         => $columns,
-        data            => \@project_genes,
-        get_grid        => 1,
+        title            => 'Project Efforts',
+        columns          => $columns,
+        data             => \@project_genes,
+        get_grid         => 1,
         sel_sponsor      => $sel_sponsor,
+        recovery_classes => $recovery_classes,
     );
 
     return;
