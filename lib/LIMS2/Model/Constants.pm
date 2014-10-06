@@ -251,7 +251,7 @@ const our %ADDITIONAL_PLATE_REPORTS => (
 
 const our %UCSC_BLAT_DB => (
     mouse => 'mm10',
-    human => 'hg19',
+    human => 'hg38',
 );
 
 const our %DEFAULT_SPECIES_BUILD => (

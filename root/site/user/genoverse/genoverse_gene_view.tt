@@ -75,7 +75,7 @@ function build_uri_params( params_to_build ) {
             [% IF c.session.selected_species == 'Mouse' %]
             url       : 'http://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
             [% ELSE  %]
-            url       : 'http://grch37.rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
+            url       : 'http://rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
             [% END %]
             model     : Genoverse.Track.Model.Sequence.Ensembl,
             view      : Genoverse.Track.View.Sequence,
