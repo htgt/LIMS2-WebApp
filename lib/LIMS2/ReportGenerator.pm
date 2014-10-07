@@ -31,7 +31,7 @@ has model => (
 
 has catalyst => (
     is  => 'ro',
-    isa => 'Catalyst',
+    isa => 'Maybe[Catalyst]',
 );
 
 has cache_ttl => (

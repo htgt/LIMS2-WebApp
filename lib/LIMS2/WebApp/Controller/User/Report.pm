@@ -39,6 +39,7 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
+        catalyst   => $c,
     );
 
     $c->stash(
