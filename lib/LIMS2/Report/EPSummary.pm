@@ -180,7 +180,7 @@ override iterator => sub {
         if ($self->species eq 'Mouse') {
                 @sponsors = ('Core', 'Syboss', 'Pathogens');
         } else {
-                @sponsors = ('Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
+                @sponsors = ('All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
         }
     }
 

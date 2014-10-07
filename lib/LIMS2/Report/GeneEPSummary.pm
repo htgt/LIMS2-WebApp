@@ -362,7 +362,7 @@ override iterator => sub {
                 @sponsors = ('Core', 'Syboss', 'Pathogens');
         }
         elsif ( $self->species eq 'Human') {
-                @sponsors = ('Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
+                @sponsors = ('All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
         }
     }
 

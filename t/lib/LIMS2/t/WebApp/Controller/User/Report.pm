@@ -36,7 +36,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/DesignPlate?plate_id=5668');
         $mech->text_contains('Design Plate HG1');
         $mech->text_contains('HGNC:253');
-        $mech->text_contains('Human-Core/Mutation');
+        $mech->text_contains('All/Mutation');
     }
 
     {
@@ -44,7 +44,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/CrisprPlate?plate_id=5670');
         $mech->text_contains('Crispr Plate HCL1');
         $mech->text_contains('HGNC:253');
-        $mech->text_contains('Human-Core/Mutation');
+        $mech->text_contains('All/Mutation');
     }
 
     {
@@ -52,7 +52,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/CrisprVectorPlate?plate_id=5834');
         $mech->text_contains('Crispr Vector Plate HCL0001_A_7');
         $mech->text_contains('HGNC:29499');
-        $mech->text_contains('Human-Core/Pathogen');
+        $mech->text_contains('All/Pathogen');
     }
 
     {
@@ -60,7 +60,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/DNAPlate?plate_id=5960');
         $mech->text_contains('DNA Plate HG1_DNA');
         $mech->text_contains('HGNC:29499');
-        $mech->text_contains('Human-Core/Pathogen');
+        $mech->text_contains('All/Pathogen');
     }
 
     {
@@ -68,7 +68,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/DNAPlate?plate_id=5961');
         $mech->text_contains('DNA Plate HCL_DNA');
         $mech->text_contains('HGNC:29499');
-        $mech->text_contains('Human-Core/Pathogen');
+        $mech->text_contains('All/Pathogen');
     }
 
     {
@@ -76,7 +76,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/AssemblyPlate?plate_id=5965');
         $mech->text_contains('Crispr Assembly Plate HG1_DNA_ASSEMBLY');
         $mech->text_contains('HGNC:29499');
-        $mech->text_contains('Human-Core/Pathogen');
+        $mech->text_contains('All/Pathogen');
         $mech->text_contains('HCL1[A04]');
     }
 
@@ -85,7 +85,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/CrisprEPPlate?plate_id=5967');
         $mech->text_contains('Crispr Electroporation Plate HG1_EP_TEST');
         $mech->text_contains('HGNC:29499');
-        $mech->text_contains('Human-Core/Pathogen');
+        $mech->text_contains('All/Pathogen');
         $mech->text_contains('Cas9 Church D10A (+neo)');
     }
 
@@ -94,7 +94,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/FinalVectorPlate?plate_id=5945');
         $mech->text_contains('Final Vector Plate HG1_FINAL_TEST');
         $mech->text_contains('HGNC:29499');
-        $mech->text_contains('Human-Core/Pathogen');
+        $mech->text_contains('All/Pathogen');
         $mech->text_contains('[left:HCLS0001_B_1_A04-right:HCRS0001_A_1_A04]');
     }
 
@@ -103,7 +103,7 @@ sub all_tests : Test(40) {
         $mech->get_ok('/user/report/sync/FinalPickVectorPlate?plate_id=5946');
         $mech->text_contains('Final Pick Vector Plate HG1_FINAL_PICK_TEST');
         $mech->text_contains('HGNC:29499');
-        $mech->text_contains('Human-Core/Pathogen');
+        $mech->text_contains('All/Pathogen');
         $mech->text_contains('[left:HCLS0001_B_1_A04-right:HCRS0001_A_1_A04]');
     }
 }
