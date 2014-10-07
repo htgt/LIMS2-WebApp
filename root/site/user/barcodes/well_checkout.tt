@@ -1,6 +1,6 @@
 [% META title = "Individual Barcode Checkout" -%]
 
-
+<h1>Barcode Checkout</h1>
 
 [% IF well_details %]
 

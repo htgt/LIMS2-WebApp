@@ -3,7 +3,7 @@ use Moose;
 use TryCatch;
 use Data::Dump 'pp';
 use List::MoreUtils qw (uniq);
-use LIMS2::Model::Util::BarcodeActions qw(discard_well_barcode);
+use LIMS2::Model::Util::BarcodeActions qw(discard_well_barcode freeze_back_barcode);
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -190,15 +190,31 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
     }
 
     if($c->request->param('create_piq_wells')){
-        # Requires: number of PIQ wells, lab number,
+        foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name) ){
+            $c->stash->{$item} = $c->req->param($item);
+        }
+
+        # Requires: FP barcode, number of PIQ wells, lab number,
         # PIQ sequencing plate name, PIQ seq well
-        # Create seq plate if it does not exist
-        # Add well to seq plate
-        # Create n daughter wells on temp plate
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                my $params = $c->request->parameters;
+                $params->{user} = $c->user->name;
+                freeze_back_barcode( $c->model('Golgi'), $params );
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Attempt to freeze back $barcode failed with error $e";
+                $c->log->debug("rolling back freeze back actions");
+                $c->model('Golgi')->txn_rollback;
+            };
+        });
     }
     elsif($c->request->param('submit_piq_barcodes')){
         # Requires: well->barcode mapping
+        # Add barcodes to daughter PIQ wells
+        # Redirect user to checked_out FP page
     }
+
     return;
 }
 

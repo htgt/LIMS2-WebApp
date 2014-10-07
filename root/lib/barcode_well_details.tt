@@ -1,5 +1,5 @@
 
-<h2>Well details for barcode [% well_details.barcode %]</h2>
+<h3>Well details for barcode [% well_details.barcode %]</h3>
 <table class="table table-bordered">
  <tr>
   <th>Plate Name</th><td>[% well_details.plate_name %]</td>

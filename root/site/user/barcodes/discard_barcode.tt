@@ -1,5 +1,6 @@
 [% META title = "Well Discard" -%]
 
+<h1>Well Discard</h1>
 [% IF well_details %]
 
 [% INCLUDE 'barcode_well_details.tt' %]

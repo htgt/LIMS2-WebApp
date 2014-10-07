@@ -7,6 +7,7 @@ use Sub::Exporter -setup => {
     exports => [
         qw(
               discard_well_barcode
+              freeze_back_barcode
           )
     ]
 };
@@ -15,7 +16,104 @@ use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
 
-sub pspec_discard_barcode{
+sub pspec_freeze_back_barcode{
+    return {
+        barcode           => { validate => 'well_barcode' },
+        number_of_wells   => { validate => 'integer' },
+        lab_number        => { validate => 'non_empty_string', optional => 1 },
+        qc_piq_plate_name => { validate => 'plate_name' },
+        qc_piq_well_name  => { validate => 'well_name' },
+        user              => { validate => 'existing_user' },
+    }
+}
+
+sub freeze_back_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_freeze_back_barcode, ignore_unknown => 1);
+
+    my $barcode = $validated_params->{barcode};
+
+    # Fetch FP well_barcode
+    my $bc = $model->retrieve_well_barcode({
+        barcode => $barcode,
+    });
+
+    die "Barcode $barcode not found" unless $bc;
+
+    my $state = $bc->barcode_state->id;
+    unless ($state eq 'checked_out'){
+        die "Cannot freeze back barcode $barcode as it is not checked_out (state: $state)"
+    }
+
+    # Fetch QC PIQ plate or create it if not found
+    my $qc_plate = $model->schema->resultset('Plate')->search({
+        name => $validated_params->{qc_piq_plate_name},
+    })->first;
+
+    unless ($qc_plate){
+        $qc_plate = $model->create_plate({
+            name       => $validated_params->{qc_piq_plate_name},
+            species    => $bc->well->plate->species_id,
+            type       => 'PIQ',
+            created_by => $validated_params->{user},
+        });
+    }
+
+    # Create the QC PIQ well
+    my $process_data = {
+        type        => 'dist_qc',
+        input_wells => [ { id => $bc->well->id } ],
+    };
+    if($validated_params->{lab_number}){
+        $process_data->{lab_number} = $validated_params->{lab_number};
+    }
+
+    # FIXME: will die if well already exists on plate but would be better to
+    # check and throw more meaningful error
+    my $qc_well = $model->create_well({
+        plate_name   => $qc_plate->name,
+        well_name    => $validated_params->{qc_piq_well_name},
+        created_by   => $validated_params->{user},
+        process_data => $process_data,
+    });
+
+    # Create temporary plate containing daughter PIQ wells
+    my @child_well_data;
+    foreach my $num (1..$validated_params->{number_of_wells}){
+        my $well_data = {
+            well_name => sprintf("A%02d",$num),
+            parent_plate => $qc_plate->name,
+            parent_well => $qc_well->name,
+            process_type => 'rearray',
+        };
+
+        if($validated_params->{lab_number}){
+            $well_data->{process_data} = {
+                lab_number => $validated_params->{lab_number},
+            };
+        }
+        push @child_well_data, $well_data;
+    }
+
+    $model->create_plate({
+        name       => 'PIQ_'.$bc->well->as_string,
+        species    => $bc->well->plate->species_id,
+        type       => 'PIQ',
+        created_by => $validated_params->{user},
+        wells      => \@child_well_data,
+        is_virtual => 1,
+    });
+
+    # Set FP well_status to 'frozen_back'
+    $model->update_well_barcode({
+        barcode   => $validated_params->{barcode},
+        new_state => 'frozen_back',
+        user      => $validated_params->{user},
+    });
+
+}
+sub pspec_discard_well_barcode{
     return {
         barcode  => { validate => 'well_barcode' },
         user     => { validate => 'existing_user' },
@@ -27,7 +125,7 @@ sub discard_well_barcode{
     my ($model, $params) = @_;
 	  # input: model, {barcode, user, reason}
 
-    my $validated_params = $model->check_params($params, pspec_discard_barcode);
+    my $validated_params = $model->check_params($params, pspec_discard_well_barcode);
 
 	  # set well barcode state to "discarded" (use update_well_barcode from model plugin)
     my $bc = $model->update_well_barcode({
