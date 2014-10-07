@@ -130,7 +130,12 @@ sub pspec_retrieve_gene {
 sub retrieve_gene {
 
     # Keep retrieve gene for compatibility but call the new solr find_gene method
-    return find_gene( @_ );
+    my $ret_val =find_gene( @_ );
+    # Delete the ensembl_id key/value pair because retrieve gene is not expected to include that
+    if ( defined $ret_val->{'ensembl_id'} ) {
+        delete $ret_val->{'ensembl_id'};
+    }
+    return $ret_val;
 }
 ## use critic
 
