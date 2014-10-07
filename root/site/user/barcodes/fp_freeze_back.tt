@@ -1,0 +1,14 @@
+[% META title = "FP Well Freeze Back" -%]
+
+[% INCLUDE 'barcode_well_details.tt' %]
+
+<form method="POST" action="[% c.uri_for( '/user/fp_freeze_back' ) %]" class="well">
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+
+    <button type="submit" name="create_piq_wells" class="btn btn-danger" value="create_piq_wells">
+      Create PIQ Wells
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+  </fieldset>
+</form>

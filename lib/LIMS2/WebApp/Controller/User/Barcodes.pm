@@ -161,7 +161,45 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
 }
 
 sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
+    my ($self, $c) = @_;
 
+    $c->assert_user_roles( 'edit' );
+
+    my $barcode = $c->request->param('barcode');
+    $c->stash->{barcode} = $barcode;
+
+    if($barcode){
+        # stash well details
+        my $well;
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $barcode,
+            });
+        };
+        if($well){
+            $c->stash->{well_details} = $self->_well_display_details($c, $well);
+        }
+        else{
+            $c->stash->{error_msg} = "Barcode $barcode not found";
+            return;
+        }
+    }
+    else{
+        $c->stash->{error_msg} = "No barcode provided";
+        return;
+    }
+
+    if($c->request->param('create_piq_wells')){
+        # Requires: number of PIQ wells, lab number,
+        # PIQ sequencing plate name, PIQ seq well
+        # Create seq plate if it does not exist
+        # Add well to seq plate
+        # Create n daughter wells on temp plate
+    }
+    elsif($c->request->param('submit_piq_barcodes')){
+        # Requires: well->barcode mapping
+    }
+    return;
 }
 
 sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){

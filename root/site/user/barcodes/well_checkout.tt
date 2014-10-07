@@ -3,34 +3,20 @@
 
 
 [% IF well_details %]
-<h2>Well details for barcode [% barcode %]</h2>
-<table class="table table-bordered">
- <tr>
-  <th>Plate Name</th><td>[% well_details.plate_name %]</td>
- </tr>
- <tr>
-  <th>Plate Type</th><td>[% well_details.plate_type %]</td>
- </tr>
- <tr>
-  <th>Well Name</th><td>[% well_details.well_name %]</td>
- </tr>
- <tr>
-  <th>Gene Symbol</th><td>[% well_details.design_gene_symbol %]</td>
- </tr>
- <tr>
-  <th>Parent EPD</th><td>[% well_details.parent_epd %]</td>
- </tr>
- <tr>
-  <th>Created By</th><td>[% well_details.created_by %]</td>
- </tr>
- <tr>
-  <th>Created At</th><td>[% well_details.created_at %]</td>
- </tr>
- [% IF well_details.barcode_state == 'in_freezer' %]
- <tr>
-  <th>Barcode State</th><td>[% well_details.barcode_state %]</td>
- </tr>
-</table>
+
+[% barcode_state_error  = (well_details.barcode_state != 'in_freezer') %]
+
+[% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
+
+ [% IF barcode_state_error %]
+<div class="well">
+Only barcodes which are currently in the freezer can be checked out<br>
+  <a href="[% c.uri_for('/user/well_checkout') %]" class="btn btn-primary">
+    <i class="icon-arrow-left icon-white"></i>
+    Back to barcode search
+  </a>
+</div>
+ [% ELSE %]
 <form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
@@ -43,19 +29,8 @@
     </button>
   </fieldset>
 </form>
- [% ELSE %]
- <tr class="error">
-  <th>Barcode State</th><td>[% well_details.barcode_state %]</td>
- </tr>
-</table>
-<div class="well">
-Only barcodes which are currently in the freezer can be checked out<br>
-  <a href="[% c.uri_for('/user/well_checkout') %]" class="btn btn-primary">
-    <i class="icon-arrow-left icon-white"></i>
-    Back to barcode search
-  </a>
-</div>
  [% END %]
+
 [% ELSE %]
 <form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
   <fieldset>

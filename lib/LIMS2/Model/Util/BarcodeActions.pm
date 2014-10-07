@@ -133,7 +133,7 @@ sub rename_plate_with_version{
 
     DEBUG "Renaming plate $plate_name to $rename_to";
 
-    $plate->update({ name => $rename_to });
+    $plate->update({ name => $rename_to, is_virtual => 1 });
     return $plate->name;
 }
 
@@ -263,6 +263,19 @@ sub create_barcoded_plate_copy{
     }
 
     return $new_plate;
+}
+
+# Input: csv file of barcode locations, plate name
+
+# If uploaded barcodes exactly match those on plate then do nothing
+# If upload adds new barcodes to existing wells on plate then update existing plate
+# In all other cases rename plate with version number and create new plate using create_barcoded_plate_copy
+
+# NB: some of this already implemented in LIMS2::WebApp::Controller::User::PlateEdit
+# update_plate_well_barcodes - extract logic to util method and extend to allow moving
+# of barcodes
+sub upload_plate_scan{
+
 }
 
 1;
