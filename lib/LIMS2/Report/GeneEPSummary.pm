@@ -1,7 +1,7 @@
 package LIMS2::Report::GeneEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GeneEPSummary::VERSION = '0.245';
+    $LIMS2::Report::GeneEPSummary::VERSION = '0.252';
 }
 ## use critic
 
@@ -368,7 +368,7 @@ override iterator => sub {
                 @sponsors = ('Core', 'Syboss', 'Pathogens');
         }
         elsif ( $self->species eq 'Human') {
-                @sponsors = ('Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
+                @sponsors = ('All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
         }
     }
 

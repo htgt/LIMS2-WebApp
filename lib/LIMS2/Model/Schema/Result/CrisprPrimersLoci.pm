@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPrimersLoci;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPrimersLoci::VERSION = '0.245';
+    $LIMS2::Model::Schema::Result::CrisprPrimersLoci::VERSION = '0.252';
 }
 ## use critic
 
@@ -168,6 +168,7 @@ sub as_hash {
         species  => $self->assembly->species_id,
         assembly => $self->assembly_id,
         chr_name => $self->chr->name,
+        chr_id   => $self->chr_id,
         map { $_ => $self->$_ } qw( chr_start chr_end chr_strand )
     };
 }

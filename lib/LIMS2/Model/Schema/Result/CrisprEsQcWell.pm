@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.245';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.252';
 }
 ## use critic
 
@@ -269,7 +269,7 @@ sub format_well_data {
                   values %{ $gene_finder->( $run->species_id, \@gene_ids ) };
 
     my ( $alignment_data, $insertions, $deletions )
-        = $self->format_alignment_strings( $params, $pair, $json );
+        = $self->format_alignment_strings( $params, $json );
 
     my $well_accepted = $self->well->accepted;
     my $show_checkbox = 1; #by default we show the accepted checkbox
@@ -370,7 +370,7 @@ sub crispr {
 
 ## no critic(ProhibitExcessComplexity)
 sub format_alignment_strings {
-    my ( $self, $params, $pair, $json ) = @_;
+    my ( $self, $params, $json ) = @_;
 
     return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
     return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
@@ -404,7 +404,7 @@ sub format_alignment_strings {
     }
 
     #get start, end and size data relative to our seq strings
-    my $localised = _get_localised_pair_coords( $pair, $json );
+    my $localised = $self->get_localised_pair_coords( $json );
 
     #extract read sequence and its match string
     my %alignment_data = (
@@ -472,15 +472,14 @@ sub format_alignment_strings {
 }
 ## use critic
 
-#pair is a pair resultset, json is the analysis_data from crispr_es_qc_wells
-#no $self as it should never be called externally
-sub _get_localised_pair_coords {
-    my ( $pair, $json ) = @_;
+#json is the analysis_data from crispr_es_qc_wells
+sub get_localised_pair_coords {
+    my ( $self, $json ) = @_;
 
     my $data = {
-        pair_start => $pair->start - $json->{target_sequence_start},
-        pair_end   => $json->{target_sequence_end} - $pair->end,
-        pair_size  => ($pair->end - $pair->start) + 1,
+        pair_start => $self->crispr_start - $json->{target_sequence_start},
+        pair_end   => $json->{target_sequence_end} - $self->crispr_end,
+        pair_size  => ($self->crispr_end - $self->crispr_start) + 1,
     };
 
     #$data->{pair_start} = 0 if $json->{target_sequence_start} > $pair->start;

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.245';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.252';
 }
 ## use critic
 
@@ -10,8 +10,6 @@ use LIMS2::WebApp::Pageset;
 use LIMS2::ReportGenerator::Plate;
 use LIMS2::Model::Constants qw( %ADDITIONAL_PLATE_REPORTS );
 use namespace::autoclean;
-
-use Data::Dumper;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -120,26 +118,6 @@ sub get_additional_plate_reports : Private {
     }
 
     return \@additional_reports;
-}
-
-sub view_well_barcode_results :Path( '/user/view_well_barcode_results' ) :Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles('read');
-
-    my $params = $c->request->params;
-
-    my $plate = $c->model('Golgi')->retrieve_plate( { id => $params->{ 'id' } } );
-
-    print Dumper( $params->{ 'well_results_list' } );
-
-    $c->stash(
-        plate               => $plate,
-        well_results_list   => $params->{ 'well_results_list' },
-        username            => $c->user->name,
-    );
-
-    return;
 }
 
 =head1 AUTHOR

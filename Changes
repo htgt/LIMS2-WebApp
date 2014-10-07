@@ -1,3 +1,36 @@
+0.252     2014-10-07 10:56:50 Europe/London
+
+    New human assembly GRCh38
+
+0.251     2014-10-01 08:15:09 Europe/London
+
+    Bugfix: fixed error when single recombinase specified in custom sequence generator
+
+0.250     2014-10-01 07:24:07 Europe/London
+
+    Add custom sequence generation page.
+    Modify well genotyping info page to split into first and second allele sections.
+
+0.249     2014-09-26 15:12:51 Europe/London
+
+    Corrected issue with ensembl server
+
+0.248     2014-09-26 11:44:58 Europe/London
+
+    Genoverse button on gene summary pages supports any gene, no design is necessary
+    All crisprs, crispr_pairs and crispr_groups are shown Genoverse
+    Guide RNAs added to the assembly plate report
+
+0.247     2014-09-25 06:35:12 Europe/London
+
+    Added Genbank file download links in following locations:
+        Gene Summary Page
+        Well Genotyping Info Page
+        Plate View Pages
+
+0.246     2014-09-24 10:03:14 Europe/London
+	Fix for FP tube barcodes upload
+
 0.245     2014-09-22 10:22:10 Europe/London
 
     Added ES Cell QC

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.245';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.252';
 }
 ## use critic
 
@@ -31,16 +31,16 @@ extends qw( LIMS2::ReportGenerator );
 # 'Crispr Vectors Paired',
 # 'Crispr Electroporations',
 Readonly my @ST_REPORT_CATEGORIES => (
+    'Genes',
+    'Vectors Constructed',
+    # 'Valid DNA',
+    'Genes Electroporated',
     'Targeted Genes',
-    'Vectors',
-    'Valid DNA',
-    'Electroporations',
-    'Accepted ES Clones',
 );
 
 Readonly my @DT_REPORT_CATEGORIES => (
-    'Targeted Genes',
-    'Vectors',
+    'Genes',
+    'Vectors Constructed',
     'Vectors Neo and Bsd',
     'Vectors Neo',
     'Vectors Bsd',
@@ -95,9 +95,10 @@ sub _build_sponsors {
     my @sponsor_ids;
 
     foreach my $sponsor ( @$sponsor_ids_rs ) {
-       my $sponsor_id = $sponsor->{ id };
-       DEBUG "Sponsor id found = ".$sponsor_id;
-       push( @sponsor_ids, $sponsor_id );
+        my $sponsor_id = $sponsor->{ id };
+        DEBUG "Sponsor id found = ".$sponsor_id;
+
+        $sponsor_id eq 'All' ? unshift( @sponsor_ids, $sponsor_id ) : push( @sponsor_ids, $sponsor_id );
     }
 
     return \@sponsor_ids;
@@ -153,9 +154,9 @@ sub _build_column_data {
 
     DEBUG 'Fetching column data: sponsor = '.$sponsor_id.', targeting_type = '.$self->targeting_type.', number genes = '.$number_genes;
 
-    # --------- Targeted Genes -----------
+    # --------- Genes -----------
     my $count_tgs = $number_genes;
-    $sponsor_data->{'Targeted Genes'}{$sponsor_id} = $count_tgs;
+    $sponsor_data->{'Genes'}{$sponsor_id} = $count_tgs;
 
 =head
     # FIXME: This is not fully implemented yet
@@ -185,7 +186,7 @@ sub _build_column_data {
     if ( $count_tgs > 0 ) {
       $count_vectors = $self->vectors( $sponsor_id, 'count' );
     }
-    $sponsor_data->{'Vectors'}{$sponsor_id} = $count_vectors;
+    $sponsor_data->{'Vectors Constructed'}{$sponsor_id} = $count_vectors;
 
     if ( $self->targeting_type eq 'double_targeted' ) {
 
@@ -248,14 +249,14 @@ sub _build_column_data {
         if ( $count_dna > 0 ) {
             $count_eps = $self->electroporations( $sponsor_id, 'count' );
         }
-        $sponsor_data->{'Electroporations'}{$sponsor_id} = $count_eps;
+        $sponsor_data->{'Genes Electroporated'}{$sponsor_id} = $count_eps;
 
         # only look if electroporations found
         my $count_clones = 0;
         if ( $count_eps > 0 ) {
             $count_clones = $self->accepted_clones_st( $sponsor_id, 'count' );
         }
-        $sponsor_data->{'Accepted ES Clones'}{$sponsor_id} = $count_clones;
+        $sponsor_data->{'Targeted Genes'}{$sponsor_id} = $count_clones;
 
         $sponsor_data->{'First Electroporations'}{$sponsor_id}      = -1;
         $sponsor_data->{'First Electroporations Neo'}{$sponsor_id}  = -1;
@@ -418,28 +419,28 @@ sub generate_sub_report {
 
     # for single-targeted projects
     my $st_rpt_flds = {
-        'Targeted Genes'                    => {
-            'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'vector_pcr_passes', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones', 'effort_concluded' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr design oligos', 'crispr vectors', 'DNA crispr vectors', 'DNA QC-passing crispr vectors', 'DNA QC-passing crispr pairs', 'vector designs', 'design oligos', "PCR-passing design oligos", 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones', 'effort concluded' ],
+        'Genes'                     => {
+            'display_stage'         => 'Genes',
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'crispr_wells', 'crispr_vector_wells', 'crispr_dna_wells', 'accepted_crispr_dna_wells', 'accepted_crispr_pairs', 'vector_designs', 'vector_wells', 'vector_pcr_passes', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'crispr design oligos', 'crispr vectors', 'DNA crispr vectors', 'DNA QC-passing crispr vectors', 'DNA QC-passing crispr pairs', 'vector designs', 'design oligos', "PCR-passing design oligos", 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
-        'Vectors'                           => {
-            'display_stage'         => 'Vectors',
+        'Vectors Constructed'       => {
+            'display_stage'         => 'Vectors Constructed',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
-        'Valid DNA'                         => {
+        'Valid DNA'                 => {
             'display_stage'         => 'Valid DNA',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'parent_plate_name', 'parent_well_name', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'parent plate', 'parent well', 'plate', 'well', 'final QC seq', 'final pick QC seq' ],
         },
-        'Electroporations'            => {
-            'display_stage'         => 'Electroporations',
+        'Genes Electroporated'      => {
+            'display_stage'         => 'Genes Electroporated',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
-        'Accepted ES Clones'                => {
-            'display_stage'         => 'Accepted ES Clones',
+        'Targeted Genes'            => {
+            'display_stage'         => 'Targeted Genes',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name', 'final_qc_seq_pass', 'final_pick_qc_seq_pass', 'dna_status_pass' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well', 'final QC seq', 'final pick QC seq', 'DNA status' ],
         },
@@ -447,13 +448,13 @@ sub generate_sub_report {
 
     # for double-targeted projects
     my $dt_rpt_flds = {
-        'Targeted Genes'            => {
-            'display_stage'         => 'Targeted genes',
-            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones', 'effort_concluded' ],
-            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones', 'effort concluded' ],
+        'Genes'                     => {
+            'display_stage'         => 'Genes',
+            'columns'               => [ 'gene_id', 'gene_symbol', 'crispr_pairs', 'vector_designs', 'vector_wells', 'targeting_vector_wells', 'accepted_vector_wells', 'passing_vector_wells', 'electroporations', 'colonies_picked', 'targeted_clones' ],
+            'display_columns'       => [ 'gene id', 'gene symbol', 'crispr pairs', 'vector designs', 'design oligos', 'final vector clones', 'QC-verified vectors', 'DNA QC-passing vectors', 'electroporations', 'colonies picked', 'targeted clones' ],
         },
-        'Vectors'                   => {
-            'display_stage'         => 'Vectors',
+        'Vectors Constructed'       => {
+            'display_stage'         => 'Vectors Constructed',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
@@ -575,11 +576,11 @@ sub _build_sub_report_data {
 
     # dispatch table
     my $rep_for_stg = {
-         'Targeted Genes'                    => {
+         'Genes'                            => {
              'func'      => \&genes,
              'params'    => [ $self, $sponsor_id, $query_type ],
          },
-        'Vectors'                           => {
+        'Vectors Constructed'               => {
             'func'      => \&vectors,
             'params'    => [ $self, $sponsor_id, $query_type ],
         },
@@ -611,7 +612,7 @@ sub _build_sub_report_data {
             'func'      => \&dna_with_resistance,
             'params'    => [ $self, $sponsor_id, 'bsd', $query_type ],
         },
-        'Electroporations'                  => {
+        'Genes Electroporated'              => {
             'func'      => \&electroporations,
             'params'    => [ $self, $sponsor_id, $query_type ],
         },
@@ -627,7 +628,7 @@ sub _build_sub_report_data {
             'func'      => \&first_electroporations_with_resistance,
             'params'    => [ $self, $sponsor_id, 'bsd', $query_type ],
         },
-        'Accepted ES Clones'                => {
+        'Targeted Genes'                    => {
             'func'      => \&accepted_clones_st,
             'params'    => [ $self, $sponsor_id, $query_type ],
         },
@@ -639,11 +640,11 @@ sub _build_sub_report_data {
             'func'      => \&second_electroporations,
             'params'    => [ $self, $sponsor_id, $query_type ],
         },
-        'Second Electroporations Neo'           => {
+        'Second Electroporations Neo'       => {
             'func'      => \&second_electroporations_with_resistance,
             'params'    => [ $self, $sponsor_id, 'neo', $query_type ],
         },
-        'Second Electroporations Bsd'           => {
+        'Second Electroporations Bsd'       => {
             'func'      => \&second_electroporations_with_resistance,
             'params'    => [ $self, $sponsor_id, 'bsd', $query_type ],
         },
