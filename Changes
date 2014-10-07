@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.252     2014-10-07 10:56:50 Europe/London
+
+    New human assembly GRCh38
+
 0.251     2014-10-01 08:15:09 Europe/London
 
     Bugfix: fixed error when single recombinase specified in custom sequence generator
