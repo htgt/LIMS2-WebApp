@@ -198,8 +198,8 @@ sub crisprs_to_gff {
                     . 'C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                     . 'seq=' . $crispr_r->crispr->seq . ';'
-                    . 'pam_right=' . ($crispr_r->crispr->pam_right || 'N/A') . ';'
-                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id || 'N/A')
+                    . 'pam_right=' . ($crispr_r->crispr->pam_right // 'N/A') . ';'
+                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id // 'N/A')
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             push @crisprs_gff, $crispr_parent_datum;

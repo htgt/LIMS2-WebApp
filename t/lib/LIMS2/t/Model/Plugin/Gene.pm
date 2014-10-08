@@ -109,7 +109,7 @@ sub all_tests  : Test(17)
     }
 
     {
-	const my %GENE_DATA => ( gene_id => 'ENSG00000108511', gene_symbol => 'HOXB6' );
+	const my %GENE_DATA => ( gene_id => 'HGNC:5117', gene_symbol => 'HOXB6' );
 	for my $search_term ( values %GENE_DATA ) {
 	    is_deeply model->retrieve_gene( { species => 'Human', search_term => $search_term } ), \%GENE_DATA,
 		"Retrieve gene $search_term returns the expected result";
@@ -118,7 +118,7 @@ sub all_tests  : Test(17)
 
     {
 	ok my $searched = model->search_genes( { species => 'Human', search_term => 'HOXB6' } ), 'search human gene';
-	is_deeply $searched, [ {  gene_id => 'ENSG00000108511', gene_symbol => 'HOXB6' } ],
+	is_deeply $searched, [ {  gene_id => 'HGNC:5117', gene_symbol => 'HOXB6' } ],
 	    '.. returns expected results';
     }
 
