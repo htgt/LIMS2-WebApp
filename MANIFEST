@@ -31,6 +31,7 @@ lib/LIMS2/Model/Constants.pm
 lib/LIMS2/Model/DBConnect.pm
 lib/LIMS2/Model/FormValidator.pm
 lib/LIMS2/Model/FormValidator/Constraint.pm
+lib/LIMS2/Model/Plugin/Assembly.pm
 lib/LIMS2/Model/Plugin/BAC.pm
 lib/LIMS2/Model/Plugin/Chromosome.pm
 lib/LIMS2/Model/Plugin/Crispr.pm
@@ -180,6 +181,7 @@ lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
+lib/LIMS2/Model/Util/GenoverseSupport.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
@@ -266,8 +268,8 @@ lib/LIMS2/WebApp/Controller/User/CreateDesign.pm
 lib/LIMS2/WebApp/Controller/User/CrisprQC.pm
 lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
-lib/LIMS2/WebApp/Controller/User/DesignTargetsReport.pm
 lib/LIMS2/WebApp/Controller/User/EngSeqs.pm
+lib/LIMS2/WebApp/Controller/User/Genoverse.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
@@ -333,10 +335,6 @@ root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_group_ucsc_blat.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
-root/site/user/crisprs/genoverse_browse_view.tt
-root/site/user/crisprs/genoverse_crispr_primers_view.tt
-root/site/user/crisprs/genoverse_design_view.tt
-root/site/user/crisprs/genoverse_gene_view.tt
 root/site/user/crisprs/get_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_group.tt
@@ -354,13 +352,16 @@ root/site/user/designtargets/simple_gene_report.tt
 root/site/user/engseqs/generate_sequence_file.tt
 root/site/user/engseqs/pick_gene_generate_sequence_file.tt
 root/site/user/error.tt
+root/site/user/genoverse/genoverse_browse_view.tt
+root/site/user/genoverse/genoverse_crispr_primers_view.tt
+root/site/user/genoverse/genoverse_design_view.tt
+root/site/user/genoverse/genoverse_gene_view.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
 root/site/user/platecopy/plate_copy_wait.tt
 root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
-root/site/user/pool/DesignTargetsLoader.tt
 root/site/user/projects/index.tt
 root/site/user/qc/create_plates.tt
 root/site/user/qc/create_template_plate.tt

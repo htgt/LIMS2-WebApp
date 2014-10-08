@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.251';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.253';
 }
 ## use critic
 
@@ -45,6 +45,7 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
+        catalyst   => $c,
     );
 
     $c->stash(
@@ -199,7 +200,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         $report_fh->getline;
     }
 
-    # Check for plate_id and set the is_virtual_plate flag if appropriate 
+    # Check for plate_id and set the is_virtual_plate flag if appropriate
 
     my $is_virtual_plate = 0;
 
@@ -244,7 +245,7 @@ sub grid_view_report :Path( '/user/report/grid_view' ) :Args(1) {
     my $csv     = Text::CSV->new;
     my $columns = $csv->getline( $report_fh );
 
-    # Check for plate_id and set the is_virtual_plate flag if appropriate 
+    # Check for plate_id and set the is_virtual_plate flag if appropriate
 
     my $is_virtual_plate = 0;
 
@@ -288,7 +289,7 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
 
     # Human project sponsors list
 
-    my @human_sponsors = ['Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
+    my @human_sponsors = ['All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
     $c->stash(
         template    => 'user/report/select_sponsor.tt',
         report_name => $report,

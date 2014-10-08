@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.251';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.253';
 }
 ## use critic
 
@@ -17,6 +17,7 @@ use Sub::Exporter -setup => {
             fetch_well_eng_seq_params
             generate_crispr_eng_seq_params
             generate_custom_eng_seq_params
+            fetch_design_eng_seq_params
           )
     ]
 };

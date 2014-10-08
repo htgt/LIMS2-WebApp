@@ -1,13 +1,19 @@
-[% META title="Genoverse Gene Browser"; META tab_name = '' %]
+[% META title="Genoverse Design Browser"; META tab_name = '' %]
 <div class="page-header">
 <SCRIPT LANGUAGE = JavaScript >
-document.title = "[%- context.gene_id _ ':' _ context.gene_symbol %]";
+document.title = "[%- context.well_name _ ':' _ context.crispr_type_id %]";
 </SCRIPT>
-  <small><h1> [%- context.gene_id -%]
+  <h1>Crispr [%- IF context.crispr_type == 'crispr_pair_id' %]
+    Pair
+    [%- ELSE %]
+    Singlet
+    [%- END %]
+  : [%- context.crispr_type_id %] </h1>
+  <small><h1>Well: [%- context.plate_name _ '_' _ context.well_name %]
   symbol: [%- context.gene_symbol -%]
   chr: [%- extent.chr_name -%]
   assembly: [%- extent.assembly -%]
-  </small>
+  design: [%- context.design_id %]</small>
   </h1>
 </div>
 
@@ -22,23 +28,20 @@ var crispr_primers_params = [
     "species=[%c.session.selected_species%]"
 ];
 
-var crispr_for_region_params = [
-    "assembly_id=[%extent.assembly%]",
-    "species=[%c.session.selected_species%]"
-];
-
-var crispr_pairs_for_region_params = [
-    "assembly_id=[%extent.assembly%]",
-    "species=[%c.session.selected_species%]"
-];
-
-var crispr_groups_for_region_params = [
+var unique_crispr_params = [
+    "crispr_id_ref=[%context.crispr_type%]",
+    "crispr_id=[%context.crispr_type_id%]",
     "assembly_id=[%extent.assembly%]",
     "species=[%c.session.selected_species%]"
 ];
 
 var generic_designs_params = [
+    "design_id=[%context.design_id%]",
+    "crispr_id_ref=[%context.crispr_type%]",
+    "crispr_id=[%context.crispr_type_id%]",
+    "well_name=[%context.well_name%]",
     "assembly_id=[%extent.assembly%]",
+    "species=[%c.session.selected_species%]"
 ];
 
 function build_uri_params( params_to_build ) {
@@ -75,7 +78,7 @@ function build_uri_params( params_to_build ) {
             [% IF c.session.selected_species == 'Mouse' %]
             url       : 'http://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
             [% ELSE  %]
-            url       : 'http://grch37.rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
+            url       : 'http://rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
             [% END %]
             model     : Genoverse.Track.Model.Sequence.Ensembl,
             view      : Genoverse.Track.View.Sequence,
@@ -103,24 +106,16 @@ function build_uri_params( params_to_build ) {
                 }
           }),
           Genoverse.Track.extend({
-            name      : 'Crispr_pairs',
-            url       : "[% c.uri_for('/api/crispr_pairs')%]" + build_uri_params( crispr_pairs_for_region_params ) ,
+            name      : 'Crispr_primers',
+            url       : "[% c.uri_for('/api/crispr_primers')%]" + build_uri_params( crispr_primers_params ) ,
             model     : Genoverse.Track.Model.Transcript.GFF3,
             view      : Genoverse.Track.View.Transcript,
             resizable : 'auto',
             height    : 150
           }),
           Genoverse.Track.extend({
-            name      : 'Crispr_groups',
-            url       : "[% c.uri_for('/api/crispr_groups')%]" + build_uri_params( crispr_groups_for_region_params ) ,
-            model     : Genoverse.Track.Model.Transcript.GFF3,
-            view      : Genoverse.Track.View.Transcript,
-            resizable : 'auto',
-            height    : 150
-          }),
-          Genoverse.Track.extend({
-            name      : 'Crisprs',
-            url       : "[% c.uri_for('/api/crispr')%]" + build_uri_params( crispr_for_region_params ),
+            name      : 'Crispr',
+            url       : "[% c.uri_for('/api/unique_crispr')%]" + build_uri_params( unique_crispr_params ),
             model     : Genoverse.Track.Model.Transcript.GFF3,
             view      : Genoverse.Track.View.Transcript,
             resizable : 'auto',
@@ -145,7 +140,7 @@ function build_uri_params( params_to_build ) {
             [% IF c.session.selected_species == 'Mouse' %]
             url    : 'http://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
             [% ELSE %]
-            url    : 'http://grch37.rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            url    : 'http://rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
             [% END %]
             height : 200,
             info   : 'Ensembl API genes & transcripts, see <a href="http://rest.ensembl.org/" target="_blank">rest.ensembl.org</a> for more details',

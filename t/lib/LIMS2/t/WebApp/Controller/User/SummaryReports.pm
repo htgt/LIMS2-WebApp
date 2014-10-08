@@ -101,7 +101,7 @@ sub all_tests  : Tests
     # load some table data here
 
     ok my $test_data= test_data( '70-pipeline_summary_reports_data.yaml' ), 'fetching test data yaml file should succeed';
-    {   
+    {
 	# fetch project data from yaml
 	ok my $project_rs = model('Golgi')->schema->resultset( 'Project' ),
 	    'fetching resultset for table projects should succeed';
@@ -149,10 +149,10 @@ sub all_tests  : Tests
 
     note( 'Testing Pipeline Summary reports - Mouse double-targeted front page' );
     # Mouse double-targeted - Front page
-    $mech->get_ok( '/user/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data'); 
+    $mech->get_ok( '/user/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data');
 
-    $mech->content_like(qr/Targeted Genes">2</, 'Checked content Targeted Genes');
-    $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
+    $mech->content_like(qr/Genes">2</, 'Checked content Genes');
+    $mech->content_like(qr/Vectors Constructed">1</, 'Checked content Vectors Constructed');
     $mech->content_like(qr/Vectors Neo and Bsd">1</, 'Checked content Vectors Neo and Bsd');
     $mech->content_like(qr/Vectors Neo">1</, 'Checked content Vectors Neo');
     $mech->content_like(qr/Vectors Bsd">1</, 'Checked content Vectors Bsd');
@@ -168,12 +168,12 @@ sub all_tests  : Tests
 
     note( 'Testing Pipeline Summary reports - Mouse double-targeted drilldowns' );
     # Mouse double-targeted - Targeted Genes
-    $mech->get_ok( '/user/view_summary_report/double_targeted/Syboss/Targeted Genes' , 'Pipeline drilldowns: Mouse double-targeted - Targeted Genes');
-    $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Targeted Genes');
+    $mech->get_ok( '/user/view_summary_report/double_targeted/Syboss/Genes' , 'Pipeline drilldowns: Mouse double-targeted - Genes');
+    $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Genes');
 
     # Mouse double-targeted - Vectors
-    $mech->get_ok( '/user/view_summary_report/double_targeted/Syboss/Vectors' , 'Pipeline drilldowns: Mouse double-targeted - Vectors');
-    $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Vectors');
+    $mech->get_ok( '/user/view_summary_report/double_targeted/Syboss/Vectors Constructed' , 'Pipeline drilldowns: Mouse double-targeted - Vectors Constructed');
+    $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Vectors Constructed');
 
     # Mouse double-targeted - Vectors Neo and Bsd
     $mech->get_ok( '/user/view_summary_report/double_targeted/Syboss/Vectors Neo and Bsd' , 'Pipeline drilldowns: Mouse double-targeted - Vectors Neo and Bsd');
@@ -231,32 +231,32 @@ sub all_tests  : Tests
     # Mouse single-targeted - Front page
     $mech->get_ok( '/user/sponsor_report/single_targeted' , 'Requested Mouse single-targeted front page after loading pipeline test data');
 
+    $mech->content_like(qr/Genes">1</, 'Checked content Genes');
+    $mech->content_like(qr/Vectors Constructed">1</, 'Checked content Vectors Constructed');
+    # $mech->content_like(qr/Valid DNA">1</, 'Checked content Valid DNA');
+    $mech->content_like(qr/Genes Electroporated">1</, 'Checked content Genes Electroporated');
     $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
-    $mech->content_like(qr/Vectors">1</, 'Checked content Vectors');
-    $mech->content_like(qr/Valid DNA">1</, 'Checked content Valid DNA');
-    $mech->content_like(qr/Electroporations">1</, 'Checked content Electroporations');
-    $mech->content_like(qr/Accepted ES Clones">1</, 'Checked content Accepted ES Clones');
 
     note( 'Testing Pipeline Summary reports - Mouse single-targeted drilldowns' );
-    # Mouse single-targeted - Targeted Genes
-    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Targeted Genes' , 'Pipeline drilldowns: Mouse single-targeted - Targeted Genes');
-    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Targeted Genes');
+    # Mouse single-targeted - Genes
+    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Genes' , 'Pipeline drilldowns: Mouse single-targeted - Genes');
+    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Genes');
 
     # Mouse single-targeted - Vectors
-    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Vectors' , 'Pipeline drilldowns: Mouse single-targeted - Vectors');
-    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Vectors');
+    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Vectors Constructed' , 'Pipeline drilldowns: Mouse single-targeted - Vectors Constructed');
+    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Vectors Constructed');
 
     # Mouse single-targeted - Valid DNA
-    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Valid DNA' , 'Pipeline drilldowns: Mouse single-targeted - Valid DNA');
-    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Valid DNA');
+    # $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Valid DNA' , 'Pipeline drilldowns: Mouse single-targeted - Valid DNA');
+    # $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Valid DNA');
 
-    # Mouse single-targeted - Electroporations
-    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Electroporations' , 'Pipeline drilldowns: Mouse single-targeted - Electroporations');
-    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Electroporations');
+    # Mouse single-targeted - Genes Electroporated
+    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Genes Electroporated' , 'Pipeline drilldowns: Mouse single-targeted - Genes Electroporated');
+    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Genes Electroporated');
 
-    # Mouse single-targeted - Accepted ES Clones
-    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Accepted ES Clones' , 'Pipeline drilldowns: Mouse single-targeted - Accepted First ES Clones');
-    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Accepted ES Clones');
+    # Mouse single-targeted - Targeted Genes
+    $mech->get_ok( '/user/view_summary_report/single_targeted/Cre Knockin/Targeted Genes' , 'Pipeline drilldowns: Mouse single-targeted - Accepted First ES Clones');
+    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Targeted Genes');
 
     note( 'Testing Pipeline Summary reports - COMPLETED' );
 

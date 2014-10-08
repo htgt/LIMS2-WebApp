@@ -1,8 +1,10 @@
 #!/usr/bin/env perl
 use strict;
 
-use Log::Log4perl qw( :easy );
-Log::Log4perl->easy_init( $FATAL );
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+}
 
 use FindBin qw($Bin);
 use lib "$Bin/../../../../lib";

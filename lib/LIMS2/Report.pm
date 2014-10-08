@@ -1,7 +1,7 @@
 package LIMS2::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VERSION = '0.251';
+    $LIMS2::Report::VERSION = '0.253';
 }
 ## use critic
 
@@ -98,7 +98,7 @@ sub _cached_report_ok {
 sub cached_report {
     my %args = @_;
 
-    my $generator = generator_for( $args{report}, $args{model}, $args{params} );
+    my $generator = generator_for( $args{report}, $args{model}, $args{params}, $args{catalyst} );
 
     # Take an exclusive lock to avoid race between interrogating table
     # and creating cache row. This ensures we don't set off concurrent

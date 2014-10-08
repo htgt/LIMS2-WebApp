@@ -21,7 +21,6 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
-  Bio::EnsEMBL::Registry: 0
   Bio::Perl: 0
   Bio::SCF: 0
   Bio::Seq: 0
@@ -160,4 +159,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.251
+version: 0.253

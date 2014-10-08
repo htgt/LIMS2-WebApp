@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.251';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.253';
 }
 ## use critic
 
@@ -18,12 +18,6 @@ use Data::Dumper;
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
-use LIMS2::Model::Util::OligoSelection qw(
-        get_genotyping_primer_extent
-        get_design_extent
-        get_gene_extent
-        );
-
 BEGIN { extends 'Catalyst::Controller' };
 
 with qw(
@@ -132,7 +126,7 @@ sub crispr_ucsc_blat : PathPart('blat') Chained('crispr') : Args(0) {
 
     $c->stash(
         sequence => $blat_seq,
-        uscs_db  => $ucsc_db,
+        ucsc_db  => $ucsc_db,
     );
 
     return;
@@ -206,7 +200,7 @@ sub crispr_pair_ucsc_blat : PathPart('blat') Chained('crispr_pair') : Args(0) {
 
     $c->stash(
         sequence => $blat_seq,
-        uscs_db  => $ucsc_db,
+        ucsc_db  => $ucsc_db,
     );
 
     return;
@@ -271,165 +265,8 @@ sub crispr_group_ucsc_blat : PathPart('blat') Chained('crispr_group') : Args(0) 
 
     $c->stash(
         sequence => $blat_seq,
-        uscs_db  => $ucsc_db,
+        ucsc_db  => $ucsc_db,
     );
-
-    return;
-}
-
-=head for genoverse browser
-=cut
-
-sub browse_crisprs : Path( '/user/browse_crisprs' ) : Args(0) {
-        my ( $self, $c ) = @_;
-
-        return;
-    }
-
-sub browse_crisprs_genoverse : Path( '/user/browse_crisprs_genoverse' ) : Args(0) {
-        my ( $self, $c ) = @_;
-
-        return;
-    }
-
-=head genoverse_browse_view
-Given
-    genome
-    chromosome ID
-    symbol
-    gene_id
-    exon_id
-Renders
-    genoverse_browse_view
-With
-    genome
-    chromosome ID
-    symbol
-    gene_id
-    exon_id
-    exon_start (chromosome coordinates)
-    exon_end (chromosome coordinates)
-=cut
-
-sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $exon_coords_rs = $c->model('Golgi')->schema->resultset('DesignTarget')->search(
-        {
-            'ensembl_exon_id' => $c->request->params->{'exon_id'},
-        }
-    );
-
-    my $exon_coords = $exon_coords_rs->single;
-    $c->stash(
-        'genome'        => $c->request->params->{'genome'},
-        'chromosome'    => $c->request->params->{'chromosome'},
-        'gene_symbol'   => $c->request->params->{'symbol'},
-        'gene_id'       => $c->request->params->{'gene_id'},
-        'exon_id'       => $c->request->params->{'exon_id'},
-        'exon_start'    => $exon_coords->chr_start,
-        'exon_end'      => $exon_coords->chr_end,
-        'view_single'   => $c->request->params->{'view_single'},
-        'view_paired'   => $c->request->params->{'view_paired'},
-    );
-
-    return;
-}
-
-=head genoverse_crispr_primers_view
-Given
-
-Renders
-
-With
-
-=cut
-# Percritic can't see the return at the end of this sub
-
-## no critic (RequireFinalReturn)
-sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $genotyping_primer_extent;
-   try {
-        $genotyping_primer_extent = get_genotyping_primer_extent(
-            $c->model('Golgi')->schema,
-            $c->request->params,
-            $c->session->{'selected_species'},
-        );
-    }
-    catch ( LIMS2::Exception $e ){
-       $c->stash( error_msg => $e->as_string );
-    }
-    if (! $genotyping_primer_extent ) {
-        $c->stash( error_msg => 'LIMS2 needs a Gibson design with genotyping primers to display Genoverse view' );
-    }
-    else {
-#   my $exon_coords = $exon_coords_rs->single;
-        $c->stash(
-            'extent'  => $genotyping_primer_extent,
-            'context' => $c->request->params,
-        );
-    }
-
-return;
-}
-
-## use critic
-
-## no critic (RequireFinalReturn)
-sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $design_extent;
-   try {
-        $design_extent = get_design_extent(
-            $c->model('Golgi'),
-            $c->request->params,
-            $c->session->{'selected_species'},
-        );
-    }
-    catch ( LIMS2::Exception $e ){
-       $c->stash( error_msg => $e->as_string );
-    }
-    if (! $design_extent ) {
-        $c->stash( error_msg => 'LIMS2 needs a design to display Genoverse view' );
-    }
-    else {
-#   my $exon_coords = $exon_coords_rs->single;
-        $c->stash(
-            'extent'  => $design_extent,
-            'context' => $c->request->params,
-        );
-    }
-
-    return;
-}
-
-
-sub genoverse_gene_view : Path( '/user/genoverse_gene_view' ) : Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $gene_extent;
-   try {
-        $gene_extent = get_gene_extent(
-            $c->model('Golgi'),
-            $c->request->params,
-            $c->session->{'selected_species'},
-        );
-    }
-    catch ( LIMS2::Exception $e ){
-       $c->stash( error_msg => $e->as_string );
-    }
-    if (! $gene_extent ) {
-        $c->stash( error_msg => 'LIMS2 needs a gene id to display the Genoverse view' );
-    }
-    else {
-        $c->stash(
-            'extent'  => $gene_extent,
-            'context' => $c->request->params,
-        );
-    }
 
     return;
 }
@@ -574,18 +411,30 @@ sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(
 
     # Check the gene input here
     # wge_importer will check wge_crispr_id fields
-    my $error;
+    my ($error, $type_id);
     my $gene_id = $c->req->param('gene_id');
-    my $type_id = $c->req->param('gene_type_id');
+    my $species = $c->session->{selected_species};
+
+    if ($species eq 'Mouse') {
+        $type_id = 'MGI'
+    }
+    elsif ($species eq 'Human') {
+        $type_id = 'HGNC'
+    }
+
     if( $gene_id and $type_id ){
         if(my $regex = $GENE_TYPE_REGEX{ $type_id }){
             unless($gene_id =~ $regex){
-                $error = "Gene ID $gene_id does not look like a $type_id ID";
+                $error = "Gene ID $gene_id does not look like a $species gene";
             }
+        }
+        my $gene = $c->model('Golgi')->find_gene( { search_term => $gene_id, species => $species } );
+        if ($gene->{gene_symbol} eq 'unknown') {
+            $error = "Gene ID $gene_id does not seem to be valid";
         }
     }
     else{
-        $error = "You must provide and gene ID and gene type ID for this crispr group";
+        $error = "You must provide and gene ID for this crispr group";
     }
 
     if($error){
@@ -629,8 +478,8 @@ sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(
     my $group;
     try{
         $group = $c->model('Golgi')->create_crispr_group({
-            gene_id      => $c->req->param('gene_id'),
-            gene_type_id => $c->req->param('gene_type_id'),
+            gene_id      => $gene_id,
+            gene_type_id => $type_id,
             crisprs      => \@crisprs,
         });
     }
