@@ -130,7 +130,6 @@ sub _generate_front_page_report {
     return;
 }
 
-
 sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
 
