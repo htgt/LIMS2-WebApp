@@ -5,6 +5,7 @@
       [% IF template.title != 'Login' %]
       <ul class="nav">
 
+      [% IF c.user %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
@@ -217,7 +218,7 @@
             <li class="divider"></li>
 
             <li>
-              <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]">
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">
                 Well Genotyping Info
               </a>
             </li>
@@ -225,7 +226,6 @@
           </ul>
         </li>
       </ul>
-      [% IF c.user %]
 
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
@@ -263,10 +263,25 @@
       </ul>
 
       [% ELSE %]
+        <li class="dropdown active">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Well Genotyping Info</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/public_reports/cre_knockin_project_status' ) %]">Cre Knockin Project Status</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
 
-      <p class="nav pull-right">
-        <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-      </p>
+      <ul class="nav pull-right">
+        <li class="divider-vertical"></li>
+          <p class="nav pull-right">
+            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
+          </p>
+      </ul>
 
       [% END %]
 
