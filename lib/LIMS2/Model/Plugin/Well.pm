@@ -90,7 +90,7 @@ sub create_well {
     $self->create_process($process_params);
 
     # add piq plate type lab number insert here
-    if ( $process_type eq 'dist_qc' ) {
+    if ( $process_type eq 'dist_qc' or $process_type eq 'rearray' ) {
         if ( defined $process_params->{ 'lab_number' } ) {
 
             my $created_well_id = $well->id;

@@ -36,7 +36,10 @@ sub add_barcodes_to_wells{
         die "Well ID $well_id not found\n" unless $well;
 
         my $barcode = $params->{"barcode_$well_id"};
-        die "No barcode provided for well ".$well->as_string."\n" unless $barcode;
+        my $well_name = $well->well_lab_number ? $well->well_lab_number->lab_number
+                                               : $well->as_string ;
+
+        die "No barcode provided for well $well_name\n" unless $barcode;
 
         my $well_barcode = $model->create_well_barcode({
             well_id => $well_id,
@@ -45,7 +48,7 @@ sub add_barcodes_to_wells{
         });
 
         push @messages, "Barcode ".$well_barcode->barcode
-                        ." added to well ".$well->as_string
+                        ." added to well $well_name"
                         ." with state ".$well_barcode->barcode_state->id;
     }
 
@@ -312,6 +315,9 @@ sub create_barcoded_plate_copy{
     foreach my $well (keys %$barcode_for_well){
         my $new_well_details = {};
         my $barcode = $barcode_for_well->{$well};
+        # NB: if we are using input from full FP plate scan unknown barcodes (empty tubes)
+        # need to be removed fore this point
+        # If unknown barcodes are seen on a PIQ plate this is an error
         my $bc = $model->retrieve_well_barcode({ barcode => $barcode })
             or die "Method create_barcoded_plate_copy cannot be used to add unknown barcode $barcode to plate ".$validated_params->{new_plate_name} ;
 
@@ -404,8 +410,9 @@ sub create_barcoded_plate_copy{
 # Input: csv file of barcode locations, plate name
 
 # If uploaded barcodes exactly match those on plate then do nothing
-# If upload adds new barcodes to existing wells on plate then update existing plate
+# If existing wells have no barcodes then add barcodes to them (if some wells already have barcodes and some don't this is an error...)
 # In all other cases rename plate with version number and create new plate using create_barcoded_plate_copy
+# Probably best to discard previously unseen barcodes, e.g. empty tubes, before creating copy (FP only - this should not happen in PIQ)
 
 # NB: some of this already implemented in LIMS2::WebApp::Controller::User::PlateEdit
 # update_plate_well_barcodes - extract logic to util method and extend to allow moving

@@ -11,8 +11,8 @@
 
 [% IF piq_plate_name %]
 <form method="POST" action="[% c.uri_for( '/user/fp_freeze_back' ) %]" class="well">
-  QC PIQ well has been added to plate [% qc_piq_plate_name %] at well [% qc_piq_well_name %] (no barcode required)<br>
-  The following child PIQ wells have been created on plate [% piq_plate_name %]. Please enter barcodes.
+  QC PIQ well has been added to plate [% qc_piq_plate_name %] at well [% qc_piq_well_name %] (no barcode required)<br><br>
+  PIQ wells with the following lab numbers have been created on temporary plate [% piq_plate_name %]. Please enter barcodes.
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <input type="hidden" name="number_of_wells" value="[% number_of_wells %]"/>
@@ -21,7 +21,7 @@
     <input type="hidden" name="qc_piq_well_name" value="[% qc_piq_well_name %]"/>
     <input type="hidden" name="piq_plate_name" value="[% piq_plate_name %]"/>
     [% FOREACH well IN piq_wells %]
-      Barcode for well [% well.as_string %]
+      Barcode for [% well.well_lab_number.lab_number %]
       <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here">
       <br>
     [% END %]

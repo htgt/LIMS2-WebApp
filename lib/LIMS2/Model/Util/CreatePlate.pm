@@ -17,6 +17,7 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util qw( well_id_for );
 use List::MoreUtils qw( uniq );
 use LIMS2::Exception;
+use Data::Dumper;
 
 sub pspec_create_plate_well {
     return {
