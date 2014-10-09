@@ -1,12 +1,13 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.254';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.255';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Report;
+use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -222,6 +223,16 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     }
 
+    return;
+}
+
+=head2 well_genotyping_info_search
+
+Page to choose the desired well, no arguments
+
+=cut
+sub well_genotyping_info_search :Path( '/public_reports/well_genotyping_info_search' ) :Args(0) {
+my ( $self, $c ) = @_;
     return;
 }
 
