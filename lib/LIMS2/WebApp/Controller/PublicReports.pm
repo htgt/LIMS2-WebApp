@@ -1,6 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 use Moose;
 use LIMS2::Report;
+use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -216,6 +217,16 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     }
 
+    return;
+}
+
+=head2 well_genotyping_info_search
+
+Page to choose the desired well, no arguments
+
+=cut
+sub well_genotyping_info_search :Path( '/public_reports/well_genotyping_info_search' ) :Args(0) {
+my ( $self, $c ) = @_;
     return;
 }
 
