@@ -14,6 +14,7 @@
   <h1>Well Genotyping Information</h1>
 </div>
 
+<h3>First Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Design ID</th>
@@ -39,9 +40,33 @@
       </td>
     </tr>
     <tr>
+      <th>Targeting Vector</th>
+      <td>[% data.targeting_vector %]</td>
+    </tr>
+    <tr>
+      <th>Vector Cassette</th>
+      <td>[% data.vector_cassette %]</td>
+    </tr>
+    <tr>
       <th>EPD Plate Name</th>
       <td>[% data.epd_plate_name %]</td>
     </tr>
+    <tr>
+      <th>EPD Accepted</th>
+      <td>[% data.accepted ? 'Yes' : 'No' %]</td>
+    </tr>
+    [% FOR key IN data.primers.design_primers.keys.sort %]
+      [% FOR primer IN data.primers.design_primers.$key %]
+    <tr>
+      <th>[% primer.name %]</th>
+      <td class="alignment">[% primer.seq %]</td>
+    </tr>
+      [% END %]
+    [% END %]
+</table>
+
+<h3>Second Allele</h3>
+<table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Forward Read</th>
       <td><pre>[% data.fwd_read %]</pre></td>
@@ -50,20 +75,8 @@
       <th>Reverse Read</th>
       <td><pre>[% data.rev_read %]</pre></td>
     </tr>
-    <tr>
-      <th>EPD Accepted</th>
-      <td>[% data.accepted ? 'Yes' : 'No' %]</td>
-    </tr>
-    <tr>
-      <th>Targeting Vector</th>
-      <td>[% data.targeting_vector %]</td>
-    </tr>
-    <tr>
-      <th>Vector Cassette</th>
-      <td>[% data.vector_cassette %]</td>
-    </tr>
-    [% FOR key IN data.primers.keys.sort %]
-      [% FOR primer IN data.primers.$key %]
+    [% FOR key IN data.primers.crispr_primers.keys.sort %]
+      [% FOR primer IN data.primers.crispr_primers.$key %]
     <tr>
       <th>[% primer.name %]</th>
       <td class="alignment">[% primer.seq %]</td>

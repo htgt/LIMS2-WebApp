@@ -1,16 +1,16 @@
 [%- META title = "Summary Report" %]
 
-<div class="page-header">
-  <h2>Sponsor Progress Sub-Report
-
+<span style="float:right">
   [% IF type == 'full' %]
-  <a id='type_simple' type='button' class='btn btn-info btn-small' href="[% c.uri_for( link ) %]"><i class="icon-zoom-out icon-white"></i>Simple Report</a>
+  <a id='type_simple' type='button' class='btn btn-primary btn-small' href="[% c.uri_for( link ) %]"><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
   [% ELSIF type == 'simple' %]
-  <a id='type_full' type='button' class='btn btn-info btn-small' href="[% c.uri_for( link, {type => 'full'} ) %]"><i class="icon-zoom-in icon-white"></i>Show Numbers</a>
+  <a id='type_full' type='button' class='btn btn-primary btn-small' href="[% c.uri_for( link, {type => 'full'} ) %]"><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
   [% END %]
 
-  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"><i class="icon-download-alt icon-white"></i>Download CSV</a>
-  </h2>
+  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"><i class="icon-download-alt icon-white"></i><b> Download CSV</b></a>
+</span>
+<div class="page-header">
+  <h2>Sponsor Progress Sub-Report</h2>
 </div>
 <p>
 <big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
@@ -26,7 +26,7 @@
             <th>[% disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
             data-content="Number of gibson designs created for this gene (may not yet be plated)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [% ELSIF disp_col == "design oligos" %]
+        [% ELSIF disp_col == "ordered targeting vectors" %]
             <th>[% disp_col %] <i class="icon-question-sign" id="vector_wells" href="#"
             data-content="Number of design oligos ordered (DESIGN wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
@@ -38,7 +38,7 @@
             <th>[% disp_col %] <i class="icon-question-sign" id="accepted_vector_wells" href="#"
             data-content="Number of sequence-verified final vector clones (FINAL wells accepted)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [% ELSIF disp_col == "DNA QC-passing vectors" %]
+        [% ELSIF disp_col == "vectors constructed" %]
             <th>[% disp_col %] <i class="icon-question-sign" id="passing_vector_wells" href="#"
             data-content="Number of final vectors and gRNA plasmids passing DNA QC (DNA wells accepted)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
@@ -102,7 +102,11 @@
 						<td style="color:orange">---</td>
 					[% END %]
         [% ELSIF col == "gene_id" %]
+            [% IF c.user %]
             <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+            [% ELSE %]
+            <td>[% colval %]</td>
+            [% END %]
         [% ELSIF col == "effort_concluded" && colval == "1" %]
             <td>✔</td>
         [% ELSIF col == "gene_symbol" %]

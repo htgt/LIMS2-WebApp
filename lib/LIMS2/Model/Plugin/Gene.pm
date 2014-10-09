@@ -52,7 +52,7 @@ sub search_genes {
      # Massive fudge to make this work while search_genes rewrite is in progress
      try{
         my $genes = $self->retrieve_gene( $validated_params ) || [];
-        DEBUG "Genes retrieved: ". pp $genes;
+        $self->log->debug( "Genes retrieved: ". pp $genes );
         if (ref($genes) eq "ARRAY"){
             @genes = @{ $genes };
         }
@@ -64,7 +64,7 @@ sub search_genes {
         }
       }
       catch($err){
-        DEBUG "retrieve_gene failed: $err";
+        $self->log->debug( "retrieve_gene failed: $err" );
         return \@genes;
       }
     }
@@ -129,31 +129,14 @@ sub pspec_retrieve_gene {
 
 ## no critic(RequireFinalReturn)
 sub retrieve_gene {
-    my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
-
-    $self->log->debug( "retrieve_gene: " . pp $validated_params );
-
-    my $species = $validated_params->{species};
-
-    if ( $species eq 'Mouse' ) {
-        return $self->_gene_cache_mouse->compute(
-            $validated_params->{search_term}, undef, sub {
-                retrieve_solr_gene( $self, $validated_params );
-            }
-        );
+    # Keep retrieve gene for compatibility but call the new solr find_gene method
+    my $ret_val =find_gene( @_ );
+    # Delete the ensembl_id key/value pair because retrieve gene is not expected to include that
+    if ( defined $ret_val->{'ensembl_id'} ) {
+        delete $ret_val->{'ensembl_id'};
     }
-
-    if ( $species eq 'Human' ) {
-        return $self->_gene_cache_human->compute(
-            $validated_params->{search_term}, undef, sub {
-                retrieve_ensembl_gene( $self, $validated_params );
-            }
-        );
-    }
-
-    $self->throw( Implementation => "retrieve_gene() for species '$species' not implemented" );
+    return $ret_val;
 }
 ## use critic
 

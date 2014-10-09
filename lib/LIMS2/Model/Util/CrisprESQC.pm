@@ -39,7 +39,7 @@ const my $DEFAULT_QC_DIR => $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
 const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD}
     // '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
 const my %BWA_REF_GENOMES => (
-    human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh37.toplevel.clean_chr_names.fa',
+    human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
     mouse => '/lustre/scratch109/blastdb/Users/team87/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
 );
 
@@ -115,6 +115,18 @@ has species => (
     isa      => 'Str',
     required => 1,
 );
+
+has assembly => (
+    is         => 'ro',
+    isa        => 'Str',
+    lazy_build => 1,
+);
+
+sub _build_assembly {
+    my $self = shift;
+
+    return $self->model->get_species_default_assembly( $self->species );
+}
 
 #if specified manually no dir will be built
 has base_dir => (
@@ -623,6 +635,7 @@ sub parse_analysis_data {
     $analysis_data->{crispr_id}  = $crispr->id if $crispr;
     $analysis_data->{design_id}  = $design->id;
     $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
+    $analysis_data->{assembly}   = $self->assembly;
 
     return unless $analyser;
 
