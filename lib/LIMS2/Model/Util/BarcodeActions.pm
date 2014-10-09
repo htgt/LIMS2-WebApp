@@ -127,7 +127,6 @@ sub freeze_back_barcode{
             process_type => 'rearray',
         };
 
-        # FIXME: lab number not being stored on daughter wells
         if($validated_params->{lab_number}){
             $well_data->{lab_number} = $validated_params->{lab_number}."_$num";
         }
