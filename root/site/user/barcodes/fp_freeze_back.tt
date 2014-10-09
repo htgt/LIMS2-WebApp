@@ -2,15 +2,28 @@
 
 <h1>FP Well Freeze Back</h1>
 [% barcode_state_error = (well_details.barcode_state != 'checked_out') %]
+
+[% IF piq_plate_name %]
+[% barcode_state_error = 0 %]
+[% END %]
+
 [% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
 
-[% IF piq_wells %]
+[% IF piq_plate_name %]
 <form method="POST" action="[% c.uri_for( '/user/fp_freeze_back' ) %]" class="well">
+  QC PIQ well has been added to plate [% qc_piq_plate_name %] at well [% qc_piq_well_name %] (no barcode required)<br>
+  The following child PIQ wells have been created on plate [% piq_plate_name %]. Please enter barcodes.
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <input type="hidden" name="number_of_wells" value="[% number_of_wells %]"/>
+    <input type="hidden" name="lab_number" value="[% lab_number %]"/>
+    <input type="hidden" name="qc_piq_plate_name" value="[% qc_piq_plate_name %]"/>
+    <input type="hidden" name="qc_piq_well_name" value="[% qc_piq_well_name %]"/>
+    <input type="hidden" name="piq_plate_name" value="[% piq_plate_name %]"/>
     [% FOREACH well IN piq_wells %]
       Barcode for well [% well.as_string %]
       <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here">
+      <br>
     [% END %]
     <button type="submit" name="submit_piq_barcodes" class="btn btn-danger" value="submit_piq_barcodes">
       Submit PIQ Barcodes

@@ -8,6 +8,7 @@ use Sub::Exporter -setup => {
         qw(
               discard_well_barcode
               freeze_back_barcode
+              add_barcodes_to_wells
           )
     ]
 };
@@ -15,6 +16,41 @@ use Sub::Exporter -setup => {
 use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
+use TryCatch;
+
+# Input: model, params from web form, state to create new barcodes with
+# Where form sends params named "barcode_<well_id>"
+# e.g. <input type="text" name="barcode_[% well.id %]">
+sub add_barcodes_to_wells{
+    my ($model, $params, $state) = @_;
+
+    my @messages;
+    my @well_ids = grep { $_ } map { $_ =~ /barcode_([0-9]+)$/ } keys %{$params};
+
+    foreach my $well_id (@well_ids){
+        DEBUG "Adding barcode to well $well_id";
+        my $well;
+        try{
+            $well = $model->retrieve_well({ id => $well_id });
+        }
+        die "Well ID $well_id not found\n" unless $well;
+
+        my $barcode = $params->{"barcode_$well_id"};
+        die "No barcode provided for well ".$well->as_string."\n" unless $barcode;
+
+        my $well_barcode = $model->create_well_barcode({
+            well_id => $well_id,
+            barcode => $barcode,
+            state   => $state,
+        });
+
+        push @messages, "Barcode ".$well_barcode->barcode
+                        ." added to well ".$well->as_string
+                        ." with state ".$well_barcode->barcode_state->id;
+    }
+
+    return \@messages;
+}
 
 sub pspec_freeze_back_barcode{
     return {
@@ -39,11 +75,11 @@ sub freeze_back_barcode{
         barcode => $barcode,
     });
 
-    die "Barcode $barcode not found" unless $bc;
+    die "Barcode $barcode not found\n" unless $bc;
 
     my $state = $bc->barcode_state->id;
     unless ($state eq 'checked_out'){
-        die "Cannot freeze back barcode $barcode as it is not checked_out (state: $state)"
+        die "Cannot freeze back barcode $barcode as it is not checked_out (state: $state)\n"
     }
 
     # Fetch QC PIQ plate or create it if not found
@@ -88,15 +124,15 @@ sub freeze_back_barcode{
             process_type => 'rearray',
         };
 
+        # FIXME: lab number not being stored on daughter wells
         if($validated_params->{lab_number}){
-            $well_data->{process_data} = {
-                lab_number => $validated_params->{lab_number},
-            };
+            $well_data->{lab_number} = $validated_params->{lab_number}."_$num";
         }
+
         push @child_well_data, $well_data;
     }
 
-    $model->create_plate({
+    my $tmp_piq_plate = $model->create_plate({
         name       => 'PIQ_'.$bc->well->as_string,
         species    => $bc->well->plate->species_id,
         type       => 'PIQ',
@@ -112,7 +148,9 @@ sub freeze_back_barcode{
         user      => $validated_params->{user},
     });
 
+    return $tmp_piq_plate;
 }
+
 sub pspec_discard_well_barcode{
     return {
         barcode  => { validate => 'well_barcode' },

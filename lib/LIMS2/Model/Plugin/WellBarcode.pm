@@ -34,8 +34,41 @@ sub delete_well_barcode {
 # only allowed if barcode has no events
 }
 
+sub pspec_create_well_barcode {
+    return {
+        well_id => { validate => 'integer' },
+        barcode => { validate => 'well_barcode' },
+        state   => { validate => 'alphanumeric_string' },
+        comment => { validate => 'non_empty_string', optional => 1 },
+        user    => { validate => 'existing_user', optional => 1 },
+        DEPENDENCY_GROUPS => { comment_group => [qw( comment user )] },
+    };
+}
+
 sub create_well_barcode {
-# input: well, well_barcode, state(optional), event details(optional)
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params($params, $self->pspec_create_well_barcode);
+
+    my $well = $self->retrieve_well({ id => $validated_params->{well_id }});
+
+    my $well_barcode = $well->create_related( well_barcode => {
+        barcode       => $validated_params->{barcode},
+        barcode_state => $validated_params->{state},
+    });
+
+    # Optionally create event with comment about new well barcode
+    if($validated_params->{user}){
+        $self->create_well_barcode_event({
+            barcode     => $well_barcode->barcode,
+            new_state   => $well_barcode->barcode_state->id,
+            new_well_id => $well_barcode->well_id,
+            user        => $validated_params->{user},
+            comment     => $validated_params->{comment},
+        });
+    }
+
+    return $well_barcode;
 }
 
 sub pspec_update_well_barcode {

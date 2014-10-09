@@ -3,7 +3,7 @@ use Moose;
 use TryCatch;
 use Data::Dump 'pp';
 use List::MoreUtils qw (uniq);
-use LIMS2::Model::Util::BarcodeActions qw(discard_well_barcode freeze_back_barcode);
+use LIMS2::Model::Util::BarcodeActions qw(discard_well_barcode freeze_back_barcode add_barcodes_to_wells);
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -168,9 +168,9 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
     my $barcode = $c->request->param('barcode');
     $c->stash->{barcode} = $barcode;
 
+    my $well;
     if($barcode){
         # stash well details
-        my $well;
         try{
             $well = $c->model('Golgi')->retrieve_well({
                 barcode => $barcode,
@@ -196,11 +196,12 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
 
         # Requires: FP barcode, number of PIQ wells, lab number,
         # PIQ sequencing plate name, PIQ seq well
+        my $tmp_piq_plate;
         $c->model('Golgi')->txn_do( sub {
             try{
                 my $params = $c->request->parameters;
                 $params->{user} = $c->user->name;
-                freeze_back_barcode( $c->model('Golgi'), $params );
+                $tmp_piq_plate = freeze_back_barcode( $c->model('Golgi'), $params );
             }
             catch($e){
                 $c->stash->{error_msg} = "Attempt to freeze back $barcode failed with error $e";
@@ -208,11 +209,48 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
                 $c->model('Golgi')->txn_rollback;
             };
         });
+
+        # Refresh our FP well details
+        $well = $c->model('Golgi')->retrieve_well({ barcode => $barcode });
+        $c->stash->{well_details} = $self->_well_display_details($c, $well);
+
+        if($tmp_piq_plate){
+            $c->stash->{piq_plate_name} = $tmp_piq_plate->name;
+            $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
+        }
     }
     elsif($c->request->param('submit_piq_barcodes')){
         # Requires: well->barcode mapping
-        # Add barcodes to daughter PIQ wells
+        my $messages = [];
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                my $params = $c->request->parameters;
+                $messages = add_barcodes_to_wells( $c->model('Golgi'), $params, 'checked_out' );
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Attempt to add barcodes to wells failed with error $e";
+                $c->log->debug("rolling back add barcode actions");
+                $c->model('Golgi')->txn_rollback;
+            };
+        });
+
+        if($c->stash->{error_msg}){
+            # Recreate stash for barcode upload form
+            # FIXME: scanned barcodes will be lost
+            foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name piq_plate_name) ){
+                $c->stash->{$item} = $c->req->param($item);
+            }
+
+            my $tmp_piq_plate = $c->model('Golgi')->retrieve_plate({
+                name => $c->req->param('piq_plate_name')
+            });
+            $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
+            return;
+        }
+
         # Redirect user to checked_out FP page
+        $c->flash->{success_msg} = join "<br>", @$messages;
+        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/FP") );
     }
 
     return;

@@ -44,7 +44,7 @@ sub create_plate_well {
     );
 
     # the remaining params are specific to the process
-    delete @{$params}{qw( well_name process_type accepted)};
+    delete @{$params}{qw( well_name process_type accepted )};
 
     $well_params{process_data} = $params;
     $well_params{process_data}{type} = $validated_params->{process_type};
