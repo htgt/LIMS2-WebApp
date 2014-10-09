@@ -240,9 +240,10 @@ sub _build_column_data {
     my $count_eps = 0;
 
     if ($self->targeting_type eq 'single_targeted' ) {
-        if ( $count_dna > 0 ) {
+        # DNA is not being passed always, so we need to count eps anyways.
+        # if ( $count_dna > 0 ) {
             $count_eps = $self->electroporations( $sponsor_id, 'count' );
-        }
+        # }
         $sponsor_data->{'Genes Electroporated'}{$sponsor_id} = $count_eps;
 
         # only look if electroporations found
@@ -2050,7 +2051,7 @@ AND p.species_id = '$species_id'
 SELECT count(distinct(s.design_gene_id))
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
-WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+WHERE (s.ep_well_id > 0 OR s.crispr_ep_well_id > 0)
 $condition
 SQL_END
 
@@ -2553,7 +2554,7 @@ SELECT s.design_gene_id, s.design_gene_symbol, concat(s.ep_plate_name, s.crispr_
 , s.final_pick_cassette_resistance AS cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
-WHERE s.ep_well_id > 0 OR s.crispr_ep_well_id > 0
+WHERE (s.ep_well_id > 0 OR s.crispr_ep_well_id > 0)
 $condition
 GROUP by s.design_gene_id, s.design_gene_symbol, s.ep_plate_name, s.crispr_ep_plate_name, s.ep_well_name, s.crispr_ep_well_name, s.final_pick_cassette_name
 , s.final_pick_cassette_promoter, s.final_pick_cassette_resistance, s.final_qc_seq_pass, s.final_pick_qc_seq_pass, s.dna_status_pass
