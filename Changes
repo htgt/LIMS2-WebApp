@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.254     2014-10-09 07:12:30 Europe/London
+
+    Make well genotyping info and sponsor progres report public reports.
+
 0.253     2014-10-08 09:08:52 Europe/London
 
     Replaced retrieve_gene with find_gene to correct missing gene symbols throughout LIMS2
