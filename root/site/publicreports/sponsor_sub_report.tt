@@ -26,7 +26,7 @@
             <th>[% disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
             data-content="Number of gibson designs created for this gene (may not yet be plated)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [% ELSIF disp_col == "design oligos" %]
+        [% ELSIF disp_col == "ordered targeting vectors" %]
             <th>[% disp_col %] <i class="icon-question-sign" id="vector_wells" href="#"
             data-content="Number of design oligos ordered (DESIGN wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
@@ -38,7 +38,7 @@
             <th>[% disp_col %] <i class="icon-question-sign" id="accepted_vector_wells" href="#"
             data-content="Number of sequence-verified final vector clones (FINAL wells accepted)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [% ELSIF disp_col == "DNA QC-passing vectors" %]
+        [% ELSIF disp_col == "vectors constructed" %]
             <th>[% disp_col %] <i class="icon-question-sign" id="passing_vector_wells" href="#"
             data-content="Number of final vectors and gRNA plasmids passing DNA QC (DNA wells accepted)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
