@@ -279,8 +279,6 @@ lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/RecombinaseUpload.pm
 lib/LIMS2/WebApp/Controller/User/Report.pm
 lib/LIMS2/WebApp/Controller/User/Report/Gene.pm
-lib/LIMS2/WebApp/Controller/User/SponsorReport.pm
-lib/LIMS2/WebApp/Controller/User/SummaryReports.pm
 lib/LIMS2/WebApp/Controller/User/UserPreferences.pm
 lib/LIMS2/WebApp/Controller/User/WellData.pm
 lib/LIMS2/WebApp/Model/AuthDB.pm
@@ -307,6 +305,10 @@ root/site/admin/update_user.tt
 root/site/auth/login.tt
 root/site/publicreports/await_report.tt
 root/site/publicreports/index.tt
+root/site/publicreports/sponsor_report.tt
+root/site/publicreports/sponsor_sub_report.tt
+root/site/publicreports/well_genotyping_info.tt
+root/site/publicreports/well_genotyping_info_search.tt
 root/site/user/browsedesigns/design_ucsc_blat.tt
 root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
@@ -381,8 +383,6 @@ root/site/user/report/generic_report_grid.tt
 root/site/user/report/select_sponsor.tt
 root/site/user/report/select_vector_params.tt
 root/site/user/report/simple_table.tt
-root/site/user/sponsorreport/index.tt
-root/site/user/summaryreports/view.tt
 root/site/user/userpreferences/change_password.tt
 root/site/user/welldata/dna_concentration_upload.tt
 root/site/user/welldata/dna_quality_update.tt
@@ -395,8 +395,6 @@ root/site/user/welldata/show_genotyping_qc_data.tt
 root/site/user/welldata/update_colony_picks_step_1.tt
 root/site/user/welldata/update_colony_picks_step_2.tt
 root/site/user/welldata/upload_genotyping_qc.tt
-root/site/user/welldata/well_genotyping_info.tt
-root/site/user/welldata/well_genotyping_info_search.tt
 root/static/appjs/DesignTargetsApp.js
 root/static/appjs/DesignTargetsApp_dev.js
 root/static/appjs/controller/LoadDesignTargetsView.js
