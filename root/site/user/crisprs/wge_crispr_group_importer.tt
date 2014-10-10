@@ -30,21 +30,13 @@
         <tr>
           <th>WGE Crispr ID</th>
           <th>LIMS2 Crispr ID</th>
-          <th>Which side of target?</th>
         </tr>
       </thead>
       <tbody>
       [% FOREACH crispr IN group.group_crisprs %]
         <tr>
-          <td>[% crispr.crispr.wge_crispr_id %]</td>
-          <td><a class="brand" href="[% c.uri_for('/user/crispr', crispr.crispr_id, 'view' ) %]">[% crispr.crispr_id %]</a></td>
-          <td>
-            [% IF crispr.left_of_target %]
-              Left
-            [% ELSE %]
-              Right
-            [% END %]
-          </td>
+          <td>[% crispr.wge_crispr_id %]</td>
+          <td><a class="brand" href="[% c.uri_for('/user/crispr', crispr.id, 'view' ) %]">[% crispr.id %]</a></td>
         </tr>
       [% END %]
       </tbody>

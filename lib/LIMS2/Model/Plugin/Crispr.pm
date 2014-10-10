@@ -459,15 +459,7 @@ sub import_wge_crisprs {
         next unless $crispr_id; #skip blank lines
 
         try {
-            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly );
-
-            if ( $species ne $crispr_data->{species} ) {
-                LIMS2::Exception->throw(
-                    "LIMS2 is set to '$species' and crispr is '" . $crispr_data->{species} . "'\n"
-                  . "Please switch to the correct species"
-                );
-            }
-
+            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly, $species );
             my $crispr = $self->create_crispr( $crispr_data );
             push @output, { wge_id => $crispr_id, lims2_id => $crispr->id, db_crispr => $crispr };
         }
@@ -495,7 +487,7 @@ sub import_wge_pairs {
         }
 
         try {
-            my $crispr_pair_data = $wge->get_crispr_pair( @ids, $species );
+            my $crispr_pair_data = $wge->get_crispr_pair( @ids, $species, $assembly );
             if ( $species ne $crispr_pair_data->{species} ) {
                 LIMS2::Exception->throw(
                     "LIMS2 is set to '$species' and pair is '" . $crispr_pair_data->{species} . "'\n"

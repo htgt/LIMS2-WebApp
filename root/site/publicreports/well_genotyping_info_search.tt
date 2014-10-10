@@ -16,14 +16,14 @@ $.fn.enterKey = function (fnc) {
 $(document).ready(function () {
   $("#id_button").click(function (event) {
     if ( $("#well_id").val() )
-      go_to_url( "[% c.uri_for( '/user/well_genotyping_info' ) %]", $("#well_id").val() );
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", $("#well_id").val() );
     else
       create_alert("Please provide a barcode");
   });
 
   $("#search_button").click(function (event) {
     if ( $("#plate_name").val() && $("#well_name").val() )
-      go_to_url( "[% c.uri_for( '/user/well_genotyping_info' ) %]", [$("#plate_name").val(), $("#well_name").val()] );
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [$("#plate_name").val(), $("#well_name").val()] );
     else
       create_alert("Please provide a plate and well");
   });

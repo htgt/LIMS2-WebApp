@@ -162,6 +162,7 @@ sub as_hash {
         species  => $self->assembly->species_id,
         assembly => $self->assembly_id,
         chr_name => $self->chr->name,
+        chr_id   => $self->chr_id,
         map { $_ => $self->$_ } qw( chr_start chr_end chr_strand )
     };
 }
