@@ -41,7 +41,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my @sponsors =  map { $_->sponsor_id } @sponsors_rs;
 
-    my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment'];
+    my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment', 'priority'];
 
     my $sel_sponsor;
 
@@ -80,11 +80,13 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $_->targeting_type,
         $_->effort_concluded,
         $_->recovery_class // '',
-        $_->recovery_comment // ''
+        $_->recovery_comment // '',
+        $_->priority // '',
     ] } @projects_rs;
 
 
     my $recovery_classes = ['class1', 'class2', 'class3'];
+    my $priority_classes = ['low', 'medium', 'high'];
 
     $c->stash(
         sponsor_id       => [ map { $_->sponsor_id } @sponsors_rs ],
@@ -95,6 +97,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
         get_grid         => 1,
         sel_sponsor      => $sel_sponsor,
         recovery_classes => $recovery_classes,
+        priority_classes => $priority_classes,
     );
 
     return;

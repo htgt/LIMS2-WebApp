@@ -93,6 +93,11 @@ __PACKAGE__->table("projects");
   data_type: 'text'
   is_nullable: 1
 
+=head2 priority
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -120,6 +125,8 @@ __PACKAGE__->add_columns(
   "recovery_class",
   { data_type => "text", is_nullable => 1 },
   "recovery_comment",
+  { data_type => "text", is_nullable => 1 },
+  "priority",
   { data_type => "text", is_nullable => 1 },
 );
 
@@ -191,8 +198,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-09-19 14:49:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1BS4Sc4w3IuiCPJfHBN+Bw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-10 11:22:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nYdEW4jdPjkhslru/beDgQ
 
 
 sub as_hash {
