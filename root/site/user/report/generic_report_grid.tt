@@ -114,6 +114,7 @@
                     editor: Ext.create('Ext.form.ComboBox', {
                         typeAhead: true,
                         triggerAction: 'all',
+                        editable: false,
                         store: [
                             [%- FOREACH recovery_class IN recovery_classes %]
                             ['[% recovery_class %]','[% recovery_class %]'],
