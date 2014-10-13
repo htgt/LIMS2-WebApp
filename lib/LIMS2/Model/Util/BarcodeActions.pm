@@ -77,6 +77,7 @@ sub freeze_back_barcode{
     my $bc = $model->retrieve_well_barcode({
         barcode => $barcode,
     });
+    my $fp_plate = $bc->well->plate;
 
     die "Barcode $barcode not found\n" unless $bc;
 
@@ -150,6 +151,14 @@ sub freeze_back_barcode{
         user      => $validated_params->{user},
     });
 
+    # remove frozen_back barcode from FP plate (by creating new version)
+    remove_well_barcodes_from_plate(
+        $model,
+        [ $barcode ],
+        $fp_plate,
+        $validated_params->{user}
+    );
+
     return $tmp_piq_plate;
 }
 
@@ -179,14 +188,14 @@ sub discard_well_barcode{
     my $plate = $bc->well->plate;
 
 	  # remove_well_barcodes_from_plate(wells,plate,comment,user)
-    remove_well_barcodes_from_plate(
+    my $new_plate = remove_well_barcodes_from_plate(
         $model,
         [ $validated_params->{barcode} ],
         $plate,
         $validated_params->{user}
     );
 
-    return;
+    return $new_plate;
 }
 
 sub remove_well_barcodes_from_plate{

@@ -82,6 +82,7 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
 
 	# Provide as printable list contining plate/well position, barcodes, parent EPDs
 	# blank columns for "to pick"/"picked"
+    return;
 }
 
 sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
