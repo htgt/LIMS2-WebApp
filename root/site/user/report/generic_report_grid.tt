@@ -148,9 +148,8 @@
                                 var record = grid.getSelectionModel().getSelection()[0];
 
                                 console.log("Updating " + record.data.id + " with value " + field.getValue());
-                                var newRecord = field.findRecordByValue(newValue);
 
-                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(data){newRecord.commit()})
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(data){record.commit()})
                             }
                         },
                     }),

@@ -69,7 +69,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $sel_sponsor = $params->{sponsor_id};
     }
 
-    my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( $search );
+    my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( $search , {order_by => { -asc => 'gene_id' } });
 
 
     my @project_genes = map { [
