@@ -110,25 +110,26 @@
                     },
                     [%- END %]
                     [%- IF col.match( 'recovery class' ) %]
-                    width: 180,
+                    width: 120,
                     editor: Ext.create('Ext.form.ComboBox', {
                         typeAhead: true,
                         triggerAction: 'all',
                         editable: false,
+
                         store: [
                             [%- FOREACH recovery_class IN recovery_classes %]
                             ['[% recovery_class %]','[% recovery_class %]'],
                             [%- END %]
                         ],
                         listeners: {
-                            change: function (field, selectedValue, recordIndex) {
+                            change: function (field, newValue, oldValue) {
                                 console.log('recovery class listener' );
-                                var record = grid.store.getAt(recordIndex);
-                                alert(field);
-                                alert(selectedValue);
-                                alert(record);
-                                $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.get('id'),recovery_class:selectedValue}, function(data){record.commit()})
+                                var record = grid.getSelectionModel().getSelection()[0];
 
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+                                var newRecord = field.findRecordByValue(newValue);
+
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(data){record.commit()})
                             }
                         },
 
@@ -138,22 +139,25 @@
 
                     [%- IF col.match( 'recovery comment' ) %]
                     width: 400,
-                    editor: {
-                        allowBlank: true
-                    },
-                    listeners: {
-                        change: function (column, recordIndex) {
-                            console.log('recovery comment listener');
-                            var record = grid.store.getAt(recordIndex);
-                            alert(record);
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('recovery comment listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
 
-                        }
-                    },
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+                                var newRecord = field.findRecordByValue(newValue);
 
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(data){newRecord.commit()})
+                            }
+                        },
+                    }),
                     [%- END %]
 
                     [%- IF col.match( 'priority' ) %]
-                    width: 123,
+                    width: 120,
                     editor: Ext.create('Ext.form.ComboBox', {
                         typeAhead: true,
                         triggerAction: 'all',
@@ -164,22 +168,19 @@
                             [%- END %]
                         ],
                         listeners: {
-                            change: function (field, selectedValue, recordIndex) {
+                            change: function (field, newValue, oldValue) {
                                 console.log('priority listener' );
-                                var record = grid.store.getAt(recordIndex);
-                                alert(field);
-                                alert(selectedValue);
-                                alert(record);
-                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.get('id'),priority:selectedValue}, function(data){record.commit()})
+                                var record = grid.getSelectionModel().getSelection()[0];
 
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(data){record.commit()})
                             }
                         },
 
                     }),
 
                     [%- END %]
-
-
 
                     dataIndex: '[%- col %]'
                 },
@@ -241,7 +242,8 @@
                     //     return "lims2-cell-inner";
                     // },
                     firstCls: 'lims2-first-cell-format',
-                    enableTextSelection: true
+                    enableTextSelection: true,
+                    markDirty: false,
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,

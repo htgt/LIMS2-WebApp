@@ -216,6 +216,7 @@ sub as_hash {
           "effort_concluded"  => $self->effort_concluded,
           "recovery_class"    => $self->recovery_class,
           "recovery_comment"  => $self->recovery_comment,
+          "priority"          => $self->priority,
     }
 }
 

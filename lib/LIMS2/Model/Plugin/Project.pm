@@ -41,8 +41,6 @@ sub pspec_retrieve_project_by_id {
 sub retrieve_project_by_id {
     my ( $self, $params ) = @_;
 
-### $params
-
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project_by_id );
 
     my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id sponsor_id gene_id targeting_type species_id ) } );
@@ -67,8 +65,6 @@ sub toggle_concluded_flag {
 sub set_recovery_class {
     my ( $self, $params ) = @_;
 
-### $params
-
     my $project = $self->retrieve_project_by_id($params);
 
     $project->update( { recovery_class => $params->{recovery_class} } );
@@ -78,8 +74,6 @@ sub set_recovery_class {
 
 sub set_recovery_comment {
     my ( $self, $params ) = @_;
-
-### $params
 
     my $project = $self->retrieve_project_by_id($params);
 
