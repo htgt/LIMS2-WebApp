@@ -154,12 +154,15 @@ sub freeze_back_barcode{
     });
 
     # remove frozen_back barcode from FP plate (by creating new version)
-    remove_well_barcodes_from_plate(
-        $model,
-        [ $barcode ],
-        $fp_plate,
-        $validated_params->{user}
-    );
+    # unless well was already on a virtual plate
+    unless($fp_plate->is_virtual){
+        remove_well_barcodes_from_plate(
+            $model,
+            [ $barcode ],
+            $fp_plate,
+            $validated_params->{user}
+        );
+    }
 
     return $tmp_piq_plate;
 }
@@ -189,13 +192,17 @@ sub discard_well_barcode{
 	  # find plate on which barcode well resides
     my $plate = $bc->well->plate;
 
-	  # remove_well_barcodes_from_plate(wells,plate,comment,user)
-    my $new_plate = remove_well_barcodes_from_plate(
-        $model,
-        [ $validated_params->{barcode} ],
-        $plate,
-        $validated_params->{user}
-    );
+	# remove_well_barcodes_from_plate(wells,plate,comment,user)
+    # unless it was already on virtual plate
+    my $new_plate = $plate;
+    unless($plate->is_virtual){
+        $new_plate = remove_well_barcodes_from_plate(
+            $model,
+            [ $validated_params->{barcode} ],
+            $plate,
+            $validated_params->{user}
+        );
+    }
 
     return $new_plate;
 }
@@ -520,7 +527,7 @@ sub upload_plate_scan{
             }
 
             # Otherwise create new plate version
-            # FIXME: barcodes on existing plate but not in scan should be set to 'checked_out'
+
             my $versioned_name = rename_plate_with_version($model, $existing_plate);
 
             my $plate_create_params = {
@@ -537,6 +544,24 @@ sub upload_plate_scan{
                 'error' => 0,
                 'message' => 'New plate layout created for '.$new_plate->name,
             };
+
+            # any barcodes remaining on existing plate should be set to 'checked_out'
+            foreach my $well ($existing_plate->wells){
+                my $well_bc = $well->well_barcode;
+                next unless $well_bc;
+                $model->update_well_barcode({
+                    barcode     => $well_bc->barcode,
+                    new_state   => 'checked_out',
+                    user        => $validated_params->{user},
+                    comment     => 'barcode not on latest scan of '.$new_plate->name,
+                });
+
+                push @list_messages, {
+                    'well_name' => $well->name,
+                    'error'     => 2,
+                    'message'   => 'Barcode '.$well_bc->barcode.' has been checked_out as it is not present in latest scan',
+                };
+            }
         }
         else{
 
@@ -549,7 +574,6 @@ sub upload_plate_scan{
 
     return ($new_plate, \@list_messages);
 }
-
 
 sub _csv_barcodes_match_existing{
     my ($plate, $barcode_for_well) = @_;
