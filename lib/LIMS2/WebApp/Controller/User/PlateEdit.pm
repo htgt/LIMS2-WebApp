@@ -281,7 +281,7 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
 
     # encode messages as json string to send to well results view
     my $json_text = encode_json( $list_messages );
-
+    # FIXME: find plate by name rather than ID so we get current version
     my $updated_plate = $c->model('Golgi')->retrieve_plate( { id => $params->{ 'id' } } );
 
     $c->stash(
