@@ -2,6 +2,7 @@ package LIMS2::WebApp::Controller::User::Projects;
 use Moose;
 use LIMS2::WebApp::Pageset;
 use namespace::autoclean;
+use Try::Tiny;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -85,7 +86,8 @@ sub index :Path( '/user/projects' ) :Args(0) {
     ] } @projects_rs;
 
 
-    my $recovery_classes = ['class1', 'class2', 'class3'];
+    my $recovery_classes =  [ map { $_->id } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'id' } }) ];
+
     my $priority_classes = ['low', 'medium', 'high'];
 
     $c->stash(
@@ -102,6 +104,47 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     return;
 }
+
+sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $params = $c->request->params;
+
+    if ($params->{add_recovery_class} && $params->{new_recovery_class}) {
+
+        my $new_class = $params->{new_recovery_class};
+        $new_class =~ s/^\s+|\s+$//g;
+
+        if ($new_class) {
+            $c->model('Golgi')->txn_do( sub {
+                try {
+                    $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->create({ id => $new_class, description  => $params->{new_recovery_class_description} });
+                    $c->flash( success_msg => "Added effort recovery class \"$new_class\"" );
+                }
+                catch {
+                    $c->model('Golgi')->schema->txn_rollback;
+                    $c->flash( error_msg => "Failed to add effort recovery class \"$new_class\": $_" );
+                }
+            });
+
+            $params->{add_recovery_class} = '';
+            return $c->response->redirect( $c->uri_for('/user/edit_recovery_classes') );
+        }
+    }
+
+    my $recovery_classes =  [ map { {id => $_->id, description => $_->description} } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'id' } }) ];
+
+    $c->stash(
+       template    => 'user/projects/recovery_classes.tt',
+       recovery_classes => $recovery_classes,
+    );
+
+    return;
+}
+
+
 
 
 =head1 AUTHOR
