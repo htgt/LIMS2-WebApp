@@ -9,6 +9,7 @@ use Sub::Exporter -setup => {
               discard_well_barcode
               freeze_back_barcode
               add_barcodes_to_wells
+              upload_plate_scan
           )
     ]
 };
@@ -416,17 +417,181 @@ sub create_barcoded_plate_copy{
 }
 
 # Input: csv file of barcode locations, plate name
+sub pspec_upload_plate_scan{
+    return{
+        new_plate_name      => { validate => 'plate_name', optional => 1 },
+        existing_plate_name => { validate => 'existing_plate_name', optional => 1 },
+        species             => { validate => 'existing_species' },
+        user                => { validate => 'existing_user' },
+        comment             => { validate => 'non_empty_string', optional => 1 },
+        csv_fh              => { validate => 'file_handle'},
+        REQUIRE_SOME        => { new_or_existing_plate => [ 1, qw(new_plate_name existing_plate_name)]}
+    }
+}
 
 # If uploaded barcodes exactly match those on plate then do nothing
 # If existing wells have no barcodes then add barcodes to them (if some wells already have barcodes and some don't this is an error...)
 # In all other cases rename plate with version number and create new plate using create_barcoded_plate_copy
 # Probably best to discard previously unseen barcodes, e.g. empty tubes, before creating copy (FP only - this should not happen in PIQ)
 
-# NB: some of this already implemented in LIMS2::WebApp::Controller::User::PlateEdit
-# update_plate_well_barcodes - extract logic to util method and extend to allow moving
-# of barcodes
 sub upload_plate_scan{
+    my ($model, $params) = @_;
 
+    my $validated_params = $model->check_params($params, pspec_upload_plate_scan);
+
+    my $csv_data = _parse_plate_well_barcodes_csv_file($validated_params->{csv_fh});
+
+    my $new_plate;
+    my $success = 0;
+    my @list_messages = ();
+
+    # Brand new plate - create it using well->barcode mapping
+    if($validated_params->{new_plate_name}){
+
+        DEBUG 'Creating new plate '.$validated_params->{new_plate_name};
+
+        my $plate_create_params = {
+            slice_def($validated_params, qw(new_plate_name user comment))
+        };
+        $plate_create_params->{barcode_for_well} = $csv_data;
+        $new_plate = create_barcoded_plate_copy($model,$plate_create_params);
+    }
+    else{
+        my $existing_plate = $model->retrieve_plate({
+            name => $validated_params->{existing_plate_name}
+        });
+
+        my @barcoded_wells = grep { $_->well_barcode } $existing_plate->wells;
+
+        if(@barcoded_wells){
+            # Error if some but not all wells have barcodes
+            my $barcoded_count = scalar @barcoded_wells;
+            my $well_count = scalar $existing_plate->wells;
+
+            unless ($barcoded_count == $well_count){
+                die "Plate ".$existing_plate->name
+                    ." has $well_count wells but only $barcoded_count are barcoded";
+            }
+
+            # All wells on plate already have barcodes so this is a rescan
+            # If well barcodes have not changed at all do nothing
+            # Otherwise create new plate version
+        }
+        else{
+
+            DEBUG "Adding barcodes to existing wells";
+            # These are new barcodes to add to wells that have been created manually in LIMS2
+            # Method returns list of messages
+            push @list_messages, _add_csv_barcodes_to_plate($model, $existing_plate, $csv_data);
+        }
+    }
+
+    return ($new_plate, \@list_messages);
+}
+
+# Method factored out of LIMS2::WebApp::Controller::User::PlateEdit
+# update_plate_well_barcodes
+sub _add_csv_barcodes_to_plate{
+    my ($model, $plate, $barcode_for_well) = @_;
+
+    my @list_messages;
+
+    my $accepted_barcode_for_well_id = {};
+
+    my %well_list = map { $_->name => $_ } $plate->wells;
+    my @ordered_well_keys = sort keys %well_list;
+
+    # check each well on the plate in alphabetic order
+    for my $well_name ( @ordered_well_keys ) {
+        my $well = $well_list{ $well_name };
+
+        # all well names should have a barcode in the list
+        unless ( exists $barcode_for_well->{ $well_name } ) {
+            push ( @list_messages, {
+                'well_name' => $well_name,
+                'error' => 1,
+                'message' => 'A barcode is missing from the uploaded file for this tube and needs to be included.'
+            } );
+            next;
+        }
+
+        # check for unsuccessful scan text
+        if ( $barcode_for_well->{ $well_name } eq 'No Read' ) {
+            push ( @list_messages, {
+                'well_name' => $well_name,
+                'error' => 1,
+                'message' => 'Expected a tube in this location but the barcode scanner failed to read one, please re-scan the tube rack.'
+            } );
+            next;
+        }
+
+        # Store well ID to barcode mapping to add after upload has been fully checked for errors
+        $accepted_barcode_for_well_id->{ $well->id } = $barcode_for_well->{ $well_name };
+
+        push ( @list_messages, {
+            'well_name' => $well_name,
+            'error' => 0,
+            'message' => 'This tube barcode will be set to the uploaded value <' . $barcode_for_well->{ $well_name } . '>.'
+        } );
+    }
+
+    # check here to see if we have scanned more barcodes than there are tubes in the rack
+    # this is Ok, lab may leave whole 96 tubes rather than risk compromising sterility
+    # by moving some in or out
+    my @uploaded_well_names = sort keys %$barcode_for_well;
+
+    for my $uploaded_well_name ( @uploaded_well_names ) {
+
+        next if $barcode_for_well->{ $uploaded_well_name } eq 'No Read';
+
+        unless ( exists $well_list{ $uploaded_well_name } ) {
+            push ( @list_messages, {
+                'well_name' => $uploaded_well_name,
+                'error' => 2,
+                'message' => 'A barcode <' . $barcode_for_well->{ $uploaded_well_name } . '> has been scanned for a location where no tube was present, ignoring.'
+            } );
+            next;
+        }
+    }
+
+    # Check for type 1 errors before adding barcodes
+    my $errors_found = grep { $_->{error} == 1 } @list_messages;
+    if ($errors_found){
+        DEBUG "$errors_found errors found when processing barcodes for plate ".$plate->name;
+        DEBUG "No barcodes will be added";
+    }
+    else{
+        foreach my $well_id (keys %$accepted_barcode_for_well_id){
+            $model->create_well_barcode({
+                well_id => $well_id,
+                barcode => $accepted_barcode_for_well_id->{ $well_id },
+                state   => 'in_freezer',
+            });
+        }
+    }
+
+    return @list_messages;
+}
+
+sub _parse_plate_well_barcodes_csv_file {
+    my ( $fh ) = @_;
+
+    my $csv_data = {};
+
+    my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
+
+    while ( my $line = $csv->getline( $fh )) {
+        my @fields = split "," , $line;
+        my $curr_well = $line->[0];
+        my $curr_barcode = $line->[1];
+        $csv_data->{ $curr_well } = $curr_barcode;
+    }
+
+    unless ( keys %$csv_data > 0 ) {
+        die 'Error encountered while parsing plate well barcodes file, no data found in file';
+    }
+
+    return $csv_data;
 }
 
 1;
