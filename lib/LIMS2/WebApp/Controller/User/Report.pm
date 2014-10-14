@@ -182,7 +182,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
             current_page     => $c->request->param('page') || 1,
             pages_per_set    => 5,
             mode             => 'slide',
-            base_uri         => $c->request->uri
+            base_uri         => $c->uri_for( '/user/report/view', $report_id ),
         }
     );
 
