@@ -32,7 +32,12 @@
   	  <input type="hidden" name="plate_type" value="[% plate_type %]">
       <div id="div_[% bc.barcode %]">
         <div class="controls">
-          <input type="text" class="reason_text" name="reason" placeholder="reason for discarding" id="reason_[% bc.barcode %]">
+          <select class="reason_text" name="reason" id="reason_[% bc.barcode %]">
+            <option value="" disabled selected>select discard reason</option>
+            [% FOREACH reason IN discard_reasons %]
+              <option>[% reason %]</option>
+            [% END %]
+          </select>
           <span class="help-block hidden">Please enter reason</span>
         </div>
       </div>
