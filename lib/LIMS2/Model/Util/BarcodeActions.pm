@@ -347,6 +347,7 @@ sub pspec_create_barcoded_plate_copy{
         user             => { validate => 'existing_user' },
         comment          => { validate => 'non_empty_string', optional => 1 },
         wells_without_barcode  => { optional => 1 },
+        new_state        => { validate => 'non_empty_string' },
     }
 }
 
@@ -399,6 +400,7 @@ sub create_barcoded_plate_copy{
     # Handle copy of wells which have no barcode, always e.g. A01->A01
     if ( $validated_params->{wells_without_barcode} ){
         foreach my $well ( @{ $validated_params->{wells_without_barcode} || [] } ){
+            # FIXME: copy lab numbers
             my $new_well_details = {};
             $new_well_details->{well_name}    = $well->name;
             $new_well_details->{parent_well}  = $well->name;
@@ -445,12 +447,17 @@ sub create_barcoded_plate_copy{
         my $barcode = $barcode_for_well->{$well};
         my $new_well = $new_plate->search_related('wells',{name => $well})->first
             or die "Cannot find well $well on new plate ".$new_plate->name;
-        $model->update_well_barcode({
+        my $update_params = {
             barcode     => $barcode,
             new_well_id => $new_well->id,
             user        => $validated_params->{user},
             comment     => "barcode moved to new plate ".$new_plate->name,
-        });
+        };
+
+        if($validated_params->{new_state}){
+            $update_params->{new_state} = $validated_params->{new_state};
+        }
+        $model->update_well_barcode($update_params);
     }
 
     # Update processes to use new wells as input
@@ -473,6 +480,7 @@ sub pspec_upload_plate_scan{
     return{
         new_plate_name      => { validate => 'plate_name', optional => 1 },
         existing_plate_name => { validate => 'existing_plate_name', optional => 1 },
+        new_state           => { validate => 'non_empty_string', optional => 1 },
         species             => { validate => 'existing_species' },
         user                => { validate => 'existing_user' },
         comment             => { validate => 'non_empty_string', optional => 1 },
@@ -485,7 +493,7 @@ sub pspec_upload_plate_scan{
 # If existing wells have no barcodes then add barcodes to them (if some wells already have barcodes and some don't this is an error...)
 # In all other cases rename plate with version number and create new plate using create_barcoded_plate_copy
 # Probably best to discard previously unseen barcodes, e.g. empty tubes, before creating copy (FP only - this should not happen in PIQ)
-
+# Any barcode seen in scan should have barcode state updated to 'in_freezer'
 sub upload_plate_scan{
     my ($model, $params) = @_;
 
@@ -506,6 +514,7 @@ sub upload_plate_scan{
             slice_def($validated_params, qw(new_plate_name user comment))
         };
         $plate_create_params->{barcode_for_well} = $csv_data;
+        $plate_create_params->{new_state} = 'in_freezer';
         $new_plate = create_barcoded_plate_copy($model,$plate_create_params);
     }
     else{
@@ -574,6 +583,7 @@ sub upload_plate_scan{
             };
             $plate_create_params->{barcode_for_well} = $csv_data;
             $plate_create_params->{new_plate_name} = $validated_params->{existing_plate_name};
+            $plate_create_params->{new_state} = 'in_freezer';
             $new_plate = create_barcoded_plate_copy($model, $plate_create_params);
 
             DEBUG "New plate layout created for ".$new_plate->name;

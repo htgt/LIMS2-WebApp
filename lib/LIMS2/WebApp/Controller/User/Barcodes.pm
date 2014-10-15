@@ -8,8 +8,10 @@ use LIMS2::Model::Util::BarcodeActions qw(
     discard_well_barcode
     freeze_back_barcode
     add_barcodes_to_wells
+    upload_plate_scan
 );
 use namespace::autoclean;
+use JSON;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -346,6 +348,63 @@ sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     # Upload a barcode scan file to create a new plate
     # which contains tubes that have already been registered in LIMS2
     # e.g. creating PIQ plate using daughter wells which are currently located on tmp plate
+    my ($self, $c) = @_;
+
+    if($c->request->param('create_plate')){
+        my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
+
+        unless ( $csv_barcodes_data_file ) {
+            $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
+            return;
+        }
+
+        my $plate_name = $c->request->param('plate_name');
+
+        unless($plate_name){
+            $c->flash->{ 'error_msg' } = "No plate name provided";
+            return;
+        }
+        $c->stash->{plate_name} = $plate_name;
+
+        my $plate_exists = $c->model('Golgi')->schema->resultset('Plate')->search({
+            name => $plate_name,
+        })->first;
+
+        if($plate_exists){
+            $c->flash->{ 'error_msg' } = "Plate $plate_name already exists. Please use a different name.";
+            return;
+        }
+
+        my $list_messages = [];
+        my $plate;
+
+        $c->model('Golgi')->txn_do(
+            sub {
+                try{
+                    my $upload_params = {
+                        new_plate_name      => $plate_name,
+                        new_state           => 'in_freezer',
+                        species             => $c->session->{selected_species},
+                        user                => $c->user->name,
+                        csv_fh              => $csv_barcodes_data_file->fh,
+                    };
+                    ($plate, $list_messages) = upload_plate_scan($c->model('Golgi'), $upload_params);
+                }
+                catch($e){
+                    $c->stash->{ 'error_msg' } = 'Error encountered while uploading plate tube barcodes: ' . $e;
+                    $c->log->debug('rolling back barcode upload actions');
+                    $c->model('Golgi')->txn_rollback;
+                };
+            }
+        );
+
+        if($plate){
+            $c->flash->{'success_msg'} = "Plate $plate_name was created";
+            $c->res->redirect( $c->uri_for("/user/view_plate", {id => $plate->id }) );
+        }
+    }
+
+    return;
 }
 
 sub _well_display_details{
