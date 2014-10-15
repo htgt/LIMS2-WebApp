@@ -433,6 +433,8 @@ sub generate_sub_report {
                                             'electroporations',
                                             'colonies_picked',
                                             'targeted_clones',
+                                            'recovery_class',
+                                            'priority',
                                             'effort_concluded',
                                         ],
             'display_columns'       => [    'gene id',
@@ -452,6 +454,8 @@ sub generate_sub_report {
                                             'electroporations',
                                             'colonies picked',
                                             'targeted clones',
+                                            'recovery_class',
+                                            'priority',
                                             'effort concluded',
                                         ],
         },
@@ -492,6 +496,8 @@ sub generate_sub_report {
                                             'electroporations',
                                             'colonies_picked',
                                             'targeted_clones',
+                                            'recovery_class',
+                                            'priority',
                                             'effort_concluded',
                                         ],
             'display_columns'       => [    'gene id',
@@ -505,6 +511,8 @@ sub generate_sub_report {
                                             'electroporations',
                                             'colonies picked',
                                             'targeted clones',
+                                            'recovery_class',
+                                            'priority',
                                             'effort concluded',
                                         ],
         },
@@ -905,6 +913,13 @@ SQL_END
         my ($ep_pick_count, $ep_pick_pass_count) = get_well_counts(\@ep_pick_info);
 
         # push the data for the report
+        my $effort = $self->model->retrieve_project({
+                                            sponsor_id => $sponsor_id,
+                                            gene_id => $gene_id,
+                                            targeting_type => $self->targeting_type,
+                                            species_id => $self->species,
+                                        });
+
         push @genes_for_display, {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
@@ -918,12 +933,9 @@ SQL_END
             'electroporations'       => scalar @ep,
             'colonies_picked'        => $ep_pick_count,
             'targeted_clones'        => $ep_pick_pass_count,
-            'effort_concluded'       => $self->model->retrieve_project({
-                                            sponsor_id => $sponsor_id,
-                                            gene_id => $gene_id,
-                                            targeting_type => $self->targeting_type,
-                                            species_id => $self->species,
-                                        })->effort_concluded,
+            'recovery_class'         => $effort->recovery_class // '0',
+            'priority'               => $effort->priority // '0',
+            'effort_concluded'       => $effort->effort_concluded,
         };
     }
 
