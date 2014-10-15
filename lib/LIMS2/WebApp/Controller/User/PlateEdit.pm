@@ -257,11 +257,13 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
 
     my $list_messages = [];
     my $plate;
+    my $plate_name;
 
     $c->model('Golgi')->txn_do(
         sub {
             try{
                 $plate = $c->model('Golgi')->retrieve_plate({ id => $params->{ 'id' } });
+                $plate_name = $plate->name;
                 my $upload_params = {
                     existing_plate_name => $plate->name,
                     species             => $c->session->{selected_species},
@@ -281,8 +283,9 @@ sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args
 
     # encode messages as json string to send to well results view
     my $json_text = encode_json( $list_messages );
-    # FIXME: find plate by name rather than ID so we get current version
-    my $updated_plate = $c->model('Golgi')->retrieve_plate( { id => $params->{ 'id' } } );
+
+    # find plate by name rather than ID so we get current version
+    my $updated_plate = $c->model('Golgi')->retrieve_plate( { name => $plate_name } );
 
     $c->stash(
         template            => 'user/browseplates/view_well_barcode_results.tt',

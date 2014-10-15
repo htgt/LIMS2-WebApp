@@ -3,7 +3,12 @@ use Moose;
 use TryCatch;
 use Data::Dump 'pp';
 use List::MoreUtils qw (uniq);
-use LIMS2::Model::Util::BarcodeActions qw(discard_well_barcode freeze_back_barcode add_barcodes_to_wells);
+use LIMS2::Model::Util::BarcodeActions qw(
+    checkout_well_barcode
+    discard_well_barcode
+    freeze_back_barcode
+    add_barcodes_to_wells
+);
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -120,15 +125,28 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
     }
     elsif($c->request->param('confirm_checkout')){
         # User Confirms checkout
-        # Well status updated
+        # Well status updated and new plate version created
         my $bc = $c->request->param('barcode');
-        my $well_barcode = $c->model('Golgi')->update_well_barcode({
-                barcode       => $bc,
-                new_state     => 'checked_out',
-                user          => $c->user->name,
-            });
-        my $well_name = $well_barcode->well->as_string;
-        $c->stash->{success_msg} = "Well $well_name (Barcode: $bc) has been checked out of the freezer";
+        my $well_barcode;
+
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                $well_barcode = checkout_well_barcode($c->model('Golgi'),{
+                    barcode => $bc,
+                    user    => $c->user->name,
+                });
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Barcode checkout failed with error $e";
+                $c->log->debug("rolling back checkout actions");
+                $c->model('Golgi')->txn_rollback;
+            };
+        });
+
+        if($well_barcode){
+            my $well_name = $well_barcode->well->as_string;
+            $c->stash->{success_msg} = "Well $well_name (Barcode: $bc) has been checked out of the freezer";
+        }
     }
     return;
 }
@@ -321,6 +339,12 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
         $c->stash->{error_msg} = "No barcode provided";
     }
     return;
+}
+
+sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
+    # Upload a barcode scan file to create a new plate
+    # which contains tubes that have already been registered in LIMS2
+    # e.g. creating PIQ plate using daughter wells which are currently located on tmp plate
 }
 
 sub _well_display_details{

@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Sub::Exporter -setup => {
     exports => [
         qw(
+              checkout_well_barcode
               discard_well_barcode
               freeze_back_barcode
               add_barcodes_to_wells
@@ -43,6 +44,14 @@ sub add_barcodes_to_wells{
 
         die "No barcode provided for well $well_name\n" unless $barcode;
 
+        my $existing_barcode = $model->schema->resultset('WellBarcode')->search({
+            barcode => $barcode,
+        })->first;
+
+        if($existing_barcode){
+            die "Barcode $barcode entered for $well_name already exists at ".$existing_barcode->well->as_string;
+        }
+
         my $well_barcode = $model->create_well_barcode({
             well_id => $well_id,
             barcode => $barcode,
@@ -55,6 +64,39 @@ sub add_barcodes_to_wells{
     }
 
     return \@messages;
+}
+
+sub pspec_checkout_well_barcode{
+    return {
+        barcode           => { validate => 'well_barcode' },
+        user              => { validate => 'existing_user' },
+    }
+}
+
+sub checkout_well_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_checkout_well_barcode);
+
+    # FIXME: check barcode is "in_freezer" before doing checkout? or is this too strict
+
+    my $well_bc = $model->update_well_barcode({
+        barcode   => $validated_params->{barcode},
+        new_state => 'checked_out',
+        user      => $validated_params->{user},
+    });
+
+    my $plate = $well_bc->well->plate;
+    unless($plate->is_virtual){
+        remove_well_barcodes_from_plate(
+            $model,
+            [ $validated_params->{barcode} ],
+            $plate,
+            $validated_params->{user}
+        );
+    }
+
+    return $well_bc;
 }
 
 sub pspec_freeze_back_barcode{
@@ -93,7 +135,14 @@ sub freeze_back_barcode{
         name => $validated_params->{qc_piq_plate_name},
     })->first;
 
-    unless ($qc_plate){
+    if($qc_plate){
+        # Make sure the well we want to create does not already exist
+        my $qc_piq_well = $qc_plate->search_related('wells',
+            { name => $validated_params->{qc_piq_well_name} }
+        )->first;
+        die "Well ".$qc_piq_well->name." already exists on plate ".$qc_plate->name if $qc_piq_well;
+    }
+    else{
         $qc_plate = $model->create_plate({
             name       => $validated_params->{qc_piq_plate_name},
             species    => $bc->well->plate->species_id,
@@ -111,8 +160,6 @@ sub freeze_back_barcode{
         $process_data->{lab_number} = $validated_params->{lab_number};
     }
 
-    # FIXME: will die if well already exists on plate but would be better to
-    # check and throw more meaningful error
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,
         well_name    => $validated_params->{qc_piq_well_name},
@@ -309,17 +356,9 @@ sub pspec_create_barcoded_plate_copy{
 # Process is always rearray
 # well_barcode table will be updated (can provide comment for the barcode event table at this point if needed)
 sub create_barcoded_plate_copy{
-    # input: new plate name, hash of well names to barcodes, user, comment(optional)
     my ($model, $params) = @_;
 
     my $validated_params = $model->check_params($params, pspec_create_barcoded_plate_copy);
-
-    # FIXME: Copy plate description??
-    # FIXME: Copy plate comments??
-    # probably not as new plate may combine wells for several parent plates
-
-    # NB: if barcodes do not already exist we need to handle them in a different method
-    # which can handle parent well and process info (probably just the standard plate create method)
 
     # Create the new plate with new wells parented by wells that each barcode is currently linked to
     my @wells;
@@ -333,7 +372,7 @@ sub create_barcoded_plate_copy{
         my $new_well_details = {};
         my $barcode = $barcode_for_well->{$well};
         # NB: if we are using input from full FP plate scan unknown barcodes (empty tubes)
-        # need to be removed fore this point
+        # need to be removed before this point
         # If unknown barcodes are seen on a PIQ plate this is an error
         my $bc = $model->retrieve_well_barcode({ barcode => $barcode })
             or die "Method create_barcoded_plate_copy cannot be used to add unknown barcode $barcode to plate ".$validated_params->{new_plate_name} ;
@@ -651,13 +690,29 @@ sub _add_csv_barcodes_to_plate{
     for my $uploaded_well_name ( @uploaded_well_names ) {
 
         next if $barcode_for_well->{ $uploaded_well_name } eq 'No Read';
-# FIXME: check the barcode is not already in LIMS2 as it should be an empty tube
+
         unless ( exists $well_list{ $uploaded_well_name } ) {
-            push ( @list_messages, {
-                'well_name' => $uploaded_well_name,
-                'error' => 2,
-                'message' => 'A barcode <' . $barcode_for_well->{ $uploaded_well_name } . '> has been scanned for a location where no tube was present, ignoring.'
-            } );
+
+            # check the barcode is not already in LIMS2 as it should be an empty tube
+            my $existing_barcode = $model->schema->resultset('WellBarcode')->search({
+                barcode => $barcode_for_well->{$uploaded_well_name}
+            })->first;
+
+            if($existing_barcode){
+                push ( @list_messages, {
+                    'well_name' => $uploaded_well_name,
+                    'error' => 1,
+                    'message' => 'A barcode <' . $barcode_for_well->{ $uploaded_well_name } . '> has been scanned for a location where no tube was present. '
+                                 .'This barcode already exists at '.$existing_barcode->well->as_string,
+                } );
+            }
+            else{
+                push ( @list_messages, {
+                    'well_name' => $uploaded_well_name,
+                    'error' => 2,
+                    'message' => 'A barcode <' . $barcode_for_well->{ $uploaded_well_name } . '> has been scanned for a location where no tube was present, ignoring.'
+                } );
+            }
             next;
         }
     }
