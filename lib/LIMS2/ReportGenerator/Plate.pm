@@ -522,6 +522,32 @@ sub create_button_json {
     return $json_text;
 }
 
+sub well_primer_bands_data {
+    my ( $self, $well ) = @_;
+
+    my @primer_bands_data;
+    for my $primer_band ( $well->well_primer_bands->all ) {
+        push @primer_bands_data, $primer_band->primer_band_type_id . '(' . $primer_band->pass . ')';
+    }
+
+    return join( ', ', @primer_bands_data );
+}
+
+sub well_qc_sequencing_result_data {
+    my ( $self, $well ) = @_;
+
+    my @qc_data = ( '', '', '' );
+    if ( my $well_qc_sequencing_result = $well->well_qc_sequencing_result ) {
+        @qc_data = (
+            $self->boolean_str( $well_qc_sequencing_result->pass ),
+            $well_qc_sequencing_result->valid_primers,
+            $well_qc_sequencing_result->test_result_url,
+        );
+    }
+
+    return @qc_data;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

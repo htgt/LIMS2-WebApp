@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.257     2014-10-15 07:21:49 Europe/London
+
+    Add button to es cell qc-runs to mark the parent ep pick plate wells as accepted if qc passes.
+
 0.256     2014-10-10 08:53:18 Europe/London
 
     If user is not logged in always forward to the sponsor progress report page ( public report )
