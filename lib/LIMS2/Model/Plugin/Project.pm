@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.256';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.257';
 }
 ## use critic
 
@@ -23,7 +23,7 @@ sub pspec_retrieve_project {
     return {
         sponsor_id           => { validate => 'non_empty_string' },
         gene_id              => { validate => 'non_empty_string' },
-        targeting_type       => { validate => 'non_empty_string' },
+        targeting_type       => { validate => 'non_empty_string', optional => 1 } ,
         species_id           => { validate => 'existing_species' },
     };
 }
@@ -64,6 +64,26 @@ sub toggle_concluded_flag {
     } else {
         $project->update( { effort_concluded => 1 } );
     };
+
+    return $project;
+}
+
+sub set_recovery_class {
+    my ( $self, $params ) = @_;
+
+    my $project = $self->retrieve_project_by_id($params);
+
+    $project->update( { recovery_class => $params->{recovery_class} } );
+
+    return $project;
+}
+
+sub set_recovery_comment {
+    my ( $self, $params ) = @_;
+
+    my $project = $self->retrieve_project_by_id($params);
+
+    $project->update( { recovery_comment => $params->{recovery_comment} } );
 
     return $project;
 }

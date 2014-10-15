@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::DesignType;
+package LIMS2::Model::Schema::Result::ProjectRecoveryClass;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignType::VERSION = '0.257';
+    $LIMS2::Model::Schema::Result::ProjectRecoveryClass::VERSION = '0.257';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::DesignType;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::DesignType
+LIMS2::Model::Schema::Result::ProjectRecoveryClass
 
 =cut
 
@@ -36,22 +36,33 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<design_types>
+=head1 TABLE: C<project_recovery_class>
 
 =cut
 
-__PACKAGE__->table("design_types");
+__PACKAGE__->table("project_recovery_class");
 
 =head1 ACCESSORS
 
 =head2 id
 
-  data_type: 'text'
+  data_type: 'varchar'
   is_nullable: 0
+  size: 64
+
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
 
 =cut
 
-__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "id",
+  { data_type => "varchar", is_nullable => 0, size => 64 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
+);
 
 =head1 PRIMARY KEY
 
@@ -67,24 +78,24 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 designs
+=head2 projects
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::Design>
+Related object: L<LIMS2::Model::Schema::Result::Project>
 
 =cut
 
 __PACKAGE__->has_many(
-  "designs",
-  "LIMS2::Model::Schema::Result::Design",
-  { "foreign.design_type_id" => "self.id" },
+  "projects",
+  "LIMS2::Model::Schema::Result::Project",
+  { "foreign.recovery_comment" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EgbZ7/Z8/zatl5MsaKpUeQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-14 14:05:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SANap7GZzTCDqebVX8hgAw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

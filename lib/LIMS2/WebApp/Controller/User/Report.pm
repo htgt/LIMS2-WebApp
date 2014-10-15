@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.256';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.257';
 }
 ## use critic
 
@@ -188,7 +188,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
             current_page     => $c->request->param('page') || 1,
             pages_per_set    => 5,
             mode             => 'slide',
-            base_uri         => $c->request->uri
+            base_uri         => $c->uri_for( '/user/report/view', $report_id ),
         }
     );
 
