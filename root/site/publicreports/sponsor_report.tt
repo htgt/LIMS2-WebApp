@@ -1,12 +1,23 @@
 [% META title = "Sponsor Report"; META tab_name = "Genes" -%]
 
 <div style="width:100%">
+
 <span style="float:right">
+
 [% IF targeting_type == "single_targeted" && species == 'Mouse' %]
-<a class="btn btn-primary" href="[% c.uri_for( "/user/sponsor_report/double_targeted" ) %]"><i class="icon-list-alt icon-white"></i> Show double-targeted report</a>
+  <a class="btn btn-small btn-primary" href="[% c.uri_for( "/public_reports/sponsor_report/double_targeted", {species => 'Mouse'} ) %]"><i class="icon-list-alt icon-white"></i><b> Show double-targeted report</b></a>
 [% ELSIF targeting_type == "double_targeted" %]
-<a class="btn btn-primary" href="[% c.uri_for( "/user/sponsor_report/single_targeted" ) %]"><i class="icon-list-alt icon-white"></i> Show single-targeted report</a>
+  <a class="btn btn-small btn-primary" href="[% c.uri_for( "/public_reports/sponsor_report/single_targeted", {species => 'Mouse'} ) %]"><i class="icon-list-alt icon-white"></i><b> Show single-targeted report</b></a>
 [% END %]
+
+[% IF !c.user  %]
+  [% IF species == 'Mouse' %]
+    <a id='type_simple' type='button' class='btn btn-info btn-small' href="[% c.uri_for( '/public_reports/sponsor_report', {species => 'Human'}  ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
+  [% ELSIF species == 'Human' %]
+    <a id='type_full' type='button' class='btn btn-info btn-small' href="[% c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse'} ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
+  [% END %]
+[% END %]
+
 </span>
 </div>
 
@@ -45,21 +56,25 @@
       <td><b>[% row %]</b></td>
       [% END %]
       [% FOR colname IN columns %]
-        [% UNLESS colname == "Stage" %]
-			[% countval = 0; countval = data.item(row).item(colname) %]
-			[% IF row == "Genes" || row == "Vectors Constructed" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
-			<td style="border-top: 1px solid">
-			[% ELSE %]
-			<td>
-			[% END %]
-			[% IF countval != "" && countval > 0 %]
-				<b><a href="[% c.uri_for( "/user/view_summary_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>
-			[% ELSIF countval != "" && countval < 0 %]
-				-</td>
-			[% ELSE %]
-				0</td>
-			[% END %]
-        [% END %]
+          [% UNLESS colname == "Stage" %]
+  			[% countval = 0; countval = data.item(row).item(colname) %]
+  			[% IF row == "Genes" || row == "Vectors Constructed" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
+  			<td style="border-top: 1px solid">
+  			[% ELSE %]
+  			<td>
+  			[% END %]
+        [% IF countval != "" && countval > 0 %]
+          [% IF c.user || row == "Genes" %]
+            <b><a href="[% c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>
+          [% ELSE %]
+            <b>[% countval %]</b></td>
+          [% END %]
+        [% ELSIF countval != "" && countval < 0 %]
+          -</td>
+  			[% ELSE %]
+  				0</td>
+  			[% END %]
+          [% END %]
       [% END %]
     </tr>
     [% END %]
