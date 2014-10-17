@@ -283,7 +283,7 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
 
     # Human project sponsors list
 
-    my @human_sponsors = ['All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
+    my @human_sponsors = ['All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs'];
     $c->stash(
         template    => 'user/report/select_sponsor.tt',
         report_name => $report,
