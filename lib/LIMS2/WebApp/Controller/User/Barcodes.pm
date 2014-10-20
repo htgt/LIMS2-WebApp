@@ -471,6 +471,77 @@ sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     return;
 }
 
+sub rescan_barcoded_plate : Path( '/user/rescan_barcoded_plate' ) : Args(0){
+    # Upload a barcode scan file to update an existing plate
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    if($c->request->param('update_plate')){
+        my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
+
+        unless ( $csv_barcodes_data_file ) {
+            $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
+            return;
+        }
+
+        my $plate_name = $c->request->param('plate_name');
+
+        unless($plate_name){
+            $c->flash->{ 'error_msg' } = "No plate name provided";
+            return;
+        }
+        $c->stash->{plate_name} = $plate_name;
+
+        my $plate_exists = $c->model('Golgi')->schema->resultset('Plate')->search({
+            name => $plate_name,
+        })->first;
+
+        unless($plate_exists){
+            $c->flash->{ 'error_msg' } = "Plate $plate_name not found\n";
+            return;
+        }
+
+        my $list_messages = [];
+        my $plate;
+
+        $c->model('Golgi')->txn_do(
+            sub {
+                try{
+                    my $upload_params = {
+                        existing_plate_name => $plate_name,
+                        species             => $c->session->{selected_species},
+                        user                => $c->user->name,
+                        csv_fh              => $csv_barcodes_data_file->fh,
+                    };
+                    ($plate, $list_messages) = upload_plate_scan($c->model('Golgi'), $upload_params);
+                }
+                catch($e){
+                    $c->stash->{ 'error_msg' } = 'Error encountered while uploading plate tube barcodes: ' . $e;
+                    $c->log->debug('rolling back barcode upload actions');
+                    $c->model('Golgi')->txn_rollback;
+                    return;
+                };
+            }
+        );
+
+        # encode messages as json string to send to well results view
+        my $json_text = encode_json( $list_messages );
+
+        # find plate by name rather than ID so we get current version
+        my $updated_plate = $c->model('Golgi')->retrieve_plate( { name => $plate_name } );
+
+        $c->stash(
+            template            => 'user/browseplates/view_well_barcode_results.tt',
+            plate               => $updated_plate,
+            well_results_list   => $json_text,
+            username            => $c->user->name,
+        );
+    }
+
+    return;
+}
+
 sub _well_display_details{
     my ($self, $c, $well) = @_;
 

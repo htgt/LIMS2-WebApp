@@ -244,6 +244,9 @@
             <li>
               <a href="[% c.uri_for( '/user/create_barcoded_plate' ) %]">Create Barcoded Plate</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]">Rescan Barcoded Plate</a>
+            </li>
           </ul>
         </li>
 

@@ -338,24 +338,6 @@ sub remove_well_barcodes_from_plate{
     return $new_plate;
 }
 
-sub add_well_barcodes_to_plate{
-  # rename existing plate
-  # create new well name->barcode hash
-  # create_barcoded_plate_copy
-}
-
-sub move_well_barcodes_within_plate{
-  # rename existing plate
-  # create new well name->barcode hash
-  # create_barcoded_plate_copy
-}
-
-sub move_well_barcodes_between_plates{
-  # rename all existing plates changed
-  # create new well name->barcode hash for each plate
-  # create_barcoded_plate_copy for each plate
-}
-
 sub rename_plate_with_version{
     my ($model, $plate) = @_;
 
@@ -411,6 +393,8 @@ sub create_barcoded_plate_copy{
     my $plate_type;
     my $plate_species;
     my $child_processes = {};
+    my @list_messages;
+    my $barcodes_to_remove_from_plate = {};
 
     # Handle parenting of barcoded wells
     foreach my $well (keys %$barcode_for_well){
@@ -421,6 +405,30 @@ sub create_barcoded_plate_copy{
         # If unknown barcodes are seen on a PIQ plate this is an error
         my $bc = $model->retrieve_well_barcode({ barcode => $barcode })
             or die "Method create_barcoded_plate_copy cannot be used to add unknown barcode $barcode to plate ".$validated_params->{new_plate_name} ;
+
+        # Provide a message if a well has changed position
+        # or come from a plate which is not an older version of this one
+        my $parent_plate = $bc->well->plate;
+        if( $parent_plate->name !~ /$validated_params->{new_plate_name}\(v.*\)/ ){
+            # Check if parent plate is virtual
+            # If it is real we need to reversion it without this well
+            unless($parent_plate->is_virtual){
+                $barcodes_to_remove_from_plate->{$parent_plate} ||= [];
+                push @{ $barcodes_to_remove_from_plate->{$parent_plate} }, $bc->barcode;
+                push @list_messages, {
+                    'well_name' => $well,
+                    'error'     => 0,
+                    'message'   => "Barcode $barcode moved from plate ".$parent_plate->name.' well '.$bc->well->name,
+                };
+            }
+        }
+        elsif($well ne $bc->well->name){
+            push @list_messages, {
+                'well_name' => $well,
+                'error'     => 0,
+                'message'   => "Barcode $barcode moved from position ".$bc->well->name,
+            };
+        }
 
         $new_well_details->{well_name}    = $well;
         $new_well_details->{parent_well}  = $bc->well->name;
@@ -486,6 +494,19 @@ sub create_barcoded_plate_copy{
 
     my $new_plate = $model->create_plate($create_params);
 
+    # If tubes have been transferred from other (non virtual) plates then
+    # these must be reversioned
+    # NB: must do this before updating barcodes to link to new wells
+    foreach my $source_plate (keys %$barcodes_to_remove_from_plate){
+        my $plate = $model->retrieve_plate({ name => $source_plate });
+        remove_well_barcodes_from_plate(
+            $model,
+            $barcodes_to_remove_from_plate->{$source_plate},
+            $plate,
+            $validated_params->{user}
+        );
+    }
+
     # Update well_barcodes to point barcodes to new wells
     foreach my $well (keys %$barcode_for_well){
         my $barcode = $barcode_for_well->{$well};
@@ -500,7 +521,16 @@ sub create_barcoded_plate_copy{
 
         if($validated_params->{new_state}){
             $update_params->{new_state} = $validated_params->{new_state};
+            my $bc = $model->retrieve_well_barcode({ barcode => $barcode });
+            if( $bc->barcode_state->id ne $validated_params->{new_state} ){
+                push @list_messages, {
+                    'well_name' => $well,
+                    'error'     => 0,
+                    'message'   => 'Barcode state changed from '.$bc->barcode_state->id.' to '.$validated_params->{new_state},
+                };
+            }
         }
+
         $model->update_well_barcode($update_params);
     }
 
@@ -516,7 +546,7 @@ sub create_barcoded_plate_copy{
         }
     }
 
-    return $new_plate;
+    return wantarray ? ($new_plate, \@list_messages) : $new_plate;
 }
 
 # Input: csv file of barcode locations, plate name
@@ -611,7 +641,7 @@ sub upload_plate_scan{
                 DEBUG "Uploaded barcodes match existing plate - no action needed";
 
                 push @list_messages, {
-                    'well_name' => 'All',
+                    'well_name' => '_',
                     'error' => 0,
                     'message' => 'Uploaded barcodes match existing plate. No changes made.'
                 };
@@ -619,6 +649,8 @@ sub upload_plate_scan{
             }
 
             # Otherwise create new plate version
+            # FIXME: create_barcoded_plate_copy does not generate any messages
+            # so no information about well movements, state changes etc
 
             my $versioned_name = rename_plate_with_version($model, $existing_plate);
 
@@ -628,15 +660,18 @@ sub upload_plate_scan{
             $plate_create_params->{barcode_for_well} = $csv_data;
             $plate_create_params->{new_plate_name} = $validated_params->{existing_plate_name};
             $plate_create_params->{new_state} = 'in_freezer';
-            $new_plate = create_barcoded_plate_copy($model, $plate_create_params);
+            my $messages;
+            ($new_plate, $messages) = create_barcoded_plate_copy($model, $plate_create_params);
 
             DEBUG "New plate layout created for ".$new_plate->name;
 
             push @list_messages, {
-                'well_name' => 'All',
+                'well_name' => '_',
                 'error' => 0,
                 'message' => 'New plate layout created for '.$new_plate->name,
             };
+
+            push @list_messages, @$messages;
 
             # any barcodes remaining on existing plate should be set to 'checked_out'
             foreach my $well ($existing_plate->wells){
@@ -682,7 +717,8 @@ sub _csv_barcodes_match_existing{
 
     # For each csv well-barcode see if it is the same as plate
     foreach my $well_name (keys %$barcode_for_well){
-        if( $barcode_for_well->{$well_name} ne $existing_barcode_for_well{$well_name} ){
+        my $existing_barcode = $existing_barcode_for_well{$well_name} || "";
+        if( $barcode_for_well->{$well_name} ne $existing_barcode ){
             return 0;
         }
     }

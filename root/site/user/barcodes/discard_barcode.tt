@@ -1,4 +1,4 @@
-[% META title = "Well Discard" -%]
+[% META title = "Well Discard", tab_name = 'Barcodes' -%]
 
 <h1>Well Discard</h1>
 [% IF well_details %]
