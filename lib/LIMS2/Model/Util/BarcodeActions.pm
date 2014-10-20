@@ -11,6 +11,7 @@ use Sub::Exporter -setup => {
               freeze_back_barcode
               add_barcodes_to_wells
               upload_plate_scan
+              send_out_well_barcode
           )
     ]
 };
@@ -254,6 +255,49 @@ sub discard_well_barcode{
     return $new_plate;
 }
 
+sub pspec_send_out_well_barcode{
+    return {
+        barcode  => { validate => 'well_barcode' },
+        user     => { validate => 'existing_user' },
+        comment  => { validate => 'non_empty_string', optional => 1 },
+    };
+}
+
+sub send_out_well_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_send_out_well_barcode);
+
+    # FIXME: check it is a PIQ plate
+    my $well_barcode = $model->retrieve_well_barcode({ barcode => $validated_params->{barcode} });
+    my $plate_type = $well_barcode->well->plate->type_id;
+
+    die "Cannot send out well from $plate_type plate (must be PIQ)\n" unless $plate_type eq "PIQ";
+
+    my $bc = $model->update_well_barcode({
+        barcode   => $validated_params->{barcode},
+        new_state => 'sent_out',
+        user      => $validated_params->{user},
+        comment   => $validated_params->{comment},
+    });
+
+    my $plate = $bc->well->plate;
+
+    # remove_well_barcodes_from_plate(wells,plate,comment,user)
+    # unless it was already on virtual plate
+    my $new_plate = $plate;
+    unless($plate->is_virtual){
+        $new_plate = remove_well_barcodes_from_plate(
+            $model,
+            [ $validated_params->{barcode} ],
+            $plate,
+            $validated_params->{user}
+        );
+    }
+
+    return $new_plate;
+}
+
 sub remove_well_barcodes_from_plate{
     my ($model, $barcodes, $plate, $user) = @_;
 
@@ -318,7 +362,7 @@ sub rename_plate_with_version{
     my $plate_name = $plate->name;
 
     my @previous_versions = $model->schema->resultset('Plate')->search({
-        name    => { like => $plate_name.'_v%' },
+        name    => { like => $plate_name.'(v%)' },
         type_id => $plate->type,
     });
 
@@ -326,13 +370,13 @@ sub rename_plate_with_version{
 
     foreach my $plate_version (@previous_versions){
         my $name = $plate_version->name;
-        my ($number) = ( $name =~ /_v([0-9]+)$/g );
+        my ($number) = ( $name =~ /\(v([0-9]+)\)$/g );
         if($number > $max_version_num){
             $max_version_num = $number;
         }
     }
 
-    my $rename_to = $plate_name.'_v'.($max_version_num + 1);
+    my $rename_to = $plate_name.'(v'.($max_version_num + 1).')';
 
     DEBUG "Renaming plate $plate_name to $rename_to";
 
@@ -347,7 +391,7 @@ sub pspec_create_barcoded_plate_copy{
         user             => { validate => 'existing_user' },
         comment          => { validate => 'non_empty_string', optional => 1 },
         wells_without_barcode  => { optional => 1 },
-        new_state        => { validate => 'non_empty_string' },
+        new_state        => { validate => 'non_empty_string', optional => 1 },
     }
 }
 
@@ -451,7 +495,7 @@ sub create_barcoded_plate_copy{
             barcode     => $barcode,
             new_well_id => $new_well->id,
             user        => $validated_params->{user},
-            comment     => "barcode moved to new plate ".$new_plate->name,
+            comment     => "barcode moved to plate ".$new_plate->name,
         };
 
         if($validated_params->{new_state}){

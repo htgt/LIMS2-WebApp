@@ -1,4 +1,4 @@
-[% META title = "Individual Barcode Checkout" -%]
+[% META title = "Individual Barcode Checkout", tab_name = 'Barcodes' -%]
 
 <h1>Barcode Checkout</h1>
 
@@ -40,4 +40,6 @@ Only barcodes which are currently in the freezer can be checked out<br>
   </fieldset>
 </form>
 <a href="[% c.uri_for('/user/view_checked_out_barcodes/FP') %]">Go to list of all checked out FP wells</a>
+<br>
+<a href="[% c.uri_for('/user/view_checked_out_barcodes/PIQ') %]">Go to list of all checked out PIQ wells</a>
 [% END %]

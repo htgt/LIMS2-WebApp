@@ -1,4 +1,4 @@
-[% META title = "FP Well Freeze Back" -%]
+[% META title = "FP Well Freeze Back", tab_name = 'Barcodes' -%]
 
 <h1>FP Well Freeze Back</h1>
 [% barcode_state_error = (well_details.barcode_state != 'checked_out') %]

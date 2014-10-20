@@ -96,7 +96,7 @@ sub cre_bac_recom_backbone {
 }
 
 sub plate_name {
-    return shift->regexp_matches(qr/^[A-Za-z0-9_]+$/);
+    return shift->regexp_matches(qr/^[A-Za-z0-9_\(\)]+$/);
 }
 
 sub well_name {

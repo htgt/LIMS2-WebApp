@@ -1,4 +1,4 @@
-[% META title = "Checked Out Barcodes" -%]
+[% META title = "Checked Out Barcodes", tab_name = 'Barcodes' -%]
 
 <h1>[% plate_type %] barcodes currently checked out</h1>
 
@@ -10,7 +10,8 @@
   <th>EPD parent</th>
   <th>FP plate well</th>
   <th>Barcode</th>
-  <th>Freeze Back</th>
+  <th>Lab Number</th>
+  <th>Action</th>
   <th>Discard</th>
 </tr>
 [% FOREACH bc IN barcodes %]
@@ -21,10 +22,17 @@
   <td>[% bc.parent_epd %]</td>
   <td>[% bc.well_as_string %]</td>
   <td>[% bc.barcode %]</td>
+  <td>[% bc.lab_number %]</td>
   <td>
+  [% IF plate_type == 'FP' %]
     <a href="[% c.uri_for('/user/fp_freeze_back', barcode => bc.barcode) %]" class="btn btn-primary">
     Freeze Back
     </a>
+  [% ELSIF plate_type == 'PIQ' %]
+    <a  href="[% c.uri_for('/user/piq_send_out', barcode => bc.barcode) %]" class="btn btn-primary">
+    Send Out
+    </a>
+  [% END %]
   </td>
   <td>
   	<form class="form-inline" method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]">

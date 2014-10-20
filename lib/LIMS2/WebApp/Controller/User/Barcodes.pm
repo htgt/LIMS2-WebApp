@@ -9,6 +9,7 @@ use LIMS2::Model::Util::BarcodeActions qw(
     freeze_back_barcode
     add_barcodes_to_wells
     upload_plate_scan
+    send_out_well_barcode
 );
 use namespace::autoclean;
 use JSON;
@@ -344,11 +345,74 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
     return;
 }
 
+sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $barcode = $c->request->param('barcode');
+
+    $c->stash->{barcode} = $barcode;
+
+    if($c->request->param('cancel_send_out')){
+        $c->flash->{info_msg} = "Cancelled send out of barcode $barcode";
+        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+        return;
+    }
+    elsif($c->request->param('confirm_send_out')){
+
+        my $failed;
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                send_out_well_barcode(
+                    $c->model('Golgi'),
+                    {
+                        barcode => $barcode,
+                        user    => $c->user->name,
+                        comment => $c->request->param('comment'),
+                    }
+                );
+            }
+            catch($e){
+                $c->flash->{error_msg} = "Send out of barcode $barcode failed with error $e";
+                $c->log->debug("rolling back barcode send out actions");
+                $c->model('Golgi')->txn_rollback;
+                $failed = 1;
+            };
+        });
+
+        $c->flash->{success_msg} = "Barcode $barcode has been sent out" unless $failed;
+        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+    }
+    elsif($barcode){
+        # return well details
+        my $well;
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $barcode,
+            });
+        };
+        if($well){
+            $c->stash->{well_details} = $self->_well_display_details($c, $well);
+        }
+        else{
+            $c->stash->{error_msg} = "Barcode $barcode not found";
+        }
+        return;
+    }
+    else{
+        $c->stash->{error_msg} = "No barcode provided";
+    }
+    return;
+}
+
 sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     # Upload a barcode scan file to create a new plate
     # which contains tubes that have already been registered in LIMS2
     # e.g. creating PIQ plate using daughter wells which are currently located on tmp plate
     my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
 
     if($c->request->param('create_plate')){
         my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
@@ -424,6 +488,10 @@ sub _well_display_details{
     $well_details->{design_gene_symbol} = $gene_symbols->[0];
     $well_details->{barcode_state} = $well->well_barcode->barcode_state->id;
     $well_details->{barcode} = $well->well_barcode->barcode;
+
+    if($well->well_lab_number){
+        $well_details->{lab_number} = $well->well_lab_number->lab_number;
+    }
 
     if($well_details->{barcode_state} eq "checked_out"){
         # Find most recent checkout date
