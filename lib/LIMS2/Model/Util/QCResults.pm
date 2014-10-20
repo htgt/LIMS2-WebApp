@@ -31,7 +31,6 @@ use LIMS2::Model::Util::WellName qw ( to384 );
 use HTGT::QC::Config;
 use HTGT::QC::Util::Alignment qw( alignment_match );
 use HTGT::QC::Util::CigarParser;
-use LIMS2::Util::Solr;
 use JSON qw( decode_json );
 use Data::Dumper;
 
@@ -58,7 +57,7 @@ sub retrieve_qc_run_results {
 #eventually this should replace retrive_qc_run_results
 ## no critic ( Subroutines::ProhibitExcessComplexity )
 sub retrieve_qc_run_results_fast {
-    my ( $qc_run, $schema, $crispr_run ) = @_;
+    my ( $qc_run, $model, $crispr_run ) = @_;
     my $name_id = $crispr_run ? 'crispr_id' : 'design_id';
 
     my $expected_loc = _loc_for_qc_template_plate( $qc_run, $crispr_run );
@@ -83,11 +82,9 @@ where qc_runs.id = ?
 order by plate_name, well_name, qc_eng_seq_id;
 EOT
 
-    #we need this to convert MGI accession ids -> marker symbols
-    my $solr = LIMS2::Util::Solr->new;
 
     my @qc_run_results;
-    $schema->storage->dbh_do(
+    $model->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
             my $sth = $dbh->prepare( $sql );
@@ -111,25 +108,6 @@ EOT
                     pass               => $r->{overall_pass},
                     primers            => []
                 );
-
-                #attempt to get a marker symbol if we have a design id.
-                #to do that we first get the mgi accession id, then use that as a lookup in the solr
-                if ( defined $eng_seq_params->{ design_id } ) {
-                    my $design = $schema->resultset('Design')->find( {
-                        id => $eng_seq_params->{ design_id }
-                    } );
-
-                    #we do this in a try just in case the design doesn't exist.
-                    try {
-                        #force the arrayref we get back from solr into an array so it can be appended,
-                        #and extract just the marker symbol from the hashref returned by solr.
-                        my @genes = map { $_->{marker_symbol} }
-                                        map { @{ $solr->query( [ mgi_accession_id => $_->gene_id ] ) } }
-                                            $design->genes;
-                        #there could be more than one, if so we just display them all
-                        $result{gene_symbol} = join ", ", @genes;
-                    }
-                }
 
                 #aggregate the primers into our hash, making sure that we only do this for results
                 #with the same eng seq id (IF we got one), so that we get separate entries for different
@@ -198,6 +176,44 @@ EOT
             || $b->{num_valid_primers}   <=> $a->{num_valid_primers}
             || $b->{valid_primers_score} <=> $a->{valid_primers_score};
     } @qc_run_results;
+
+    foreach my $result (@qc_run_results){
+        my @designs;
+        if($crispr_run){
+            my $crispr_id = $result->{crispr_id};
+            unless ($crispr_id) {$crispr_id = $result->{expected_crispr_id}};
+            # get designs for crispr
+            try{
+                my $crispr = $model->schema->resultset('Crispr')->find( {
+                    id => $crispr_id
+                } );
+                @designs = $crispr->related_designs;
+            }
+        }
+        else{
+            my $design_id = $result->{design_id};
+            unless ($design_id) {$design_id = $result->{expected_design_id}};
+            # get designs
+            try{
+                @designs = $model->schema->resultset('Design')->search( {
+                    id => $design_id
+                } );
+            }
+        }
+        my @genes = map { $_->genes } @designs;
+        my @gene_ids = uniq map { $_->gene_id } @genes;
+        my @symbols;
+        foreach my $gene (@gene_ids){
+            # get gene symbol
+            try{
+                my $species;
+                if ($gene =~ m/HGNG:/) {$species = 'Human'} else {$species = 'Mouse'};
+                my $gene_symbol = $model->find_gene( { species => $species, search_term => $gene } );
+                push @symbols, $gene_symbol->{gene_symbol};
+            }
+        }
+        $result->{gene_symbol} = join( q{/}, uniq @symbols );
+    }
 
     return \@qc_run_results;
 }
