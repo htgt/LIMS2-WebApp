@@ -106,10 +106,8 @@ sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
         { qc_run_id => $c->request->params->{qc_run_id} } );
 
-    my $crispr = 0;
-    if ($results->[0]->{crispr_id}) {
-        $crispr = 1;
-    }
+    #see if its a crispr run or not so we can display the right fields
+    my $crispr = HTGT::QC::Config->new->profile( $qc_run->profile )->vector_stage eq "crispr";
 
     # calculate if the accept ep_pick well button should be shown
     my %es_cell_profiles = map { $_ => 1 } @{ $self->_list_all_profiles( 'es_cell' ) };
