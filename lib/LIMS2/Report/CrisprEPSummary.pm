@@ -130,8 +130,8 @@ sub fmt_bool {
     return "" unless defined $data;
 
     #force string comparisons to avoid as $data == 0 is true with strings
-    return "yes" if $data eq 1;
-    return "no" if $data eq 0;
+    return "yes" if $data eq "1";
+    return "no" if $data eq "0";
 
     return $data;
 }
