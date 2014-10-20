@@ -198,6 +198,7 @@ lib/LIMS2/Report/CreKiESDistributionGenes.pm
 lib/LIMS2/Report/CreKiESDistributionSummary.pm
 lib/LIMS2/Report/CrisprEPDetail.pm
 lib/LIMS2/Report/CrisprEPPlate.pm
+lib/LIMS2/Report/CrisprEPSummary.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
 lib/LIMS2/Report/CrisprVectorPlate.pm

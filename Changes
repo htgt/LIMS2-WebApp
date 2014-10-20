@@ -1,3 +1,7 @@
+0.258     2014-10-20 11:59:23 Europe/London
+
+    Added EUCOMMTools CRISPR EP Summary report
+
 0.257     2014-10-15 07:21:49 Europe/London
 
     Add button to es cell qc-runs to mark the parent ep pick plate wells as accepted if qc passes.
