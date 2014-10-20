@@ -26,7 +26,12 @@ sub base_data {
     );
 
     unless ( $args || $args->{no_eng_seq_link} ) {
-        push @base_data, $self->catalyst->uri_for( '/user/well_eng_seq', $well->id );
+        if ( $self->catalyst ) {
+            push @base_data, $self->catalyst->uri_for( '/user/well_eng_seq', $well->id );
+        }
+        else {
+            push @base_data, '-';
+        }
     }
 
     return @base_data;
