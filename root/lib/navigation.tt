@@ -5,6 +5,7 @@
       [% IF template.title != 'Login' %]
       <ul class="nav">
 
+      [% IF c.user %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
@@ -18,7 +19,7 @@
               <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
+              <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Report</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
@@ -43,13 +44,13 @@
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
-            </li>
-            <li>
               <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
           </ul>
         </li>
@@ -106,7 +107,10 @@
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
+              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit Vector QC Job</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/submit_es_cell' ) %]">Submit ES Cell QC Job</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
@@ -193,6 +197,13 @@
                 Crispr Electroporation Detail
               </a>
             </li>
+            [% IF c.session.selected_species == "Mouse" %]
+            <li>
+                <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummary' ) %]">
+                  Crispr Electroporation Summary
+                </a>
+            </li>
+            [% END %]
 <!--
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
@@ -214,7 +225,7 @@
             <li class="divider"></li>
 
             <li>
-              <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]">
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">
                 Well Genotyping Info
               </a>
             </li>
@@ -222,7 +233,6 @@
           </ul>
         </li>
       </ul>
-      [% IF c.user %]
 
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
@@ -260,10 +270,25 @@
       </ul>
 
       [% ELSE %]
+        <li class="dropdown active">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Well Genotyping Info</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/public_reports/cre_knockin_project_status' ) %]">Cre Knockin Project Status</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
 
-      <p class="nav pull-right">
-        <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-      </p>
+      <ul class="nav pull-right">
+        <li class="divider-vertical"></li>
+          <p class="nav pull-right">
+            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
+          </p>
+      </ul>
 
       [% END %]
 

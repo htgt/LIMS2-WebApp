@@ -328,7 +328,7 @@
       <table class="table">
         <tr>
           <td>
-            <label>Upload tube barcodes file : </label>
+            <label>Upload the barcode scanner file for the tubes rack (just as created by the scanner, no changes needed) : </label>
           </td>
           <td>
               <input name="wellbarcodesfile" type="file">

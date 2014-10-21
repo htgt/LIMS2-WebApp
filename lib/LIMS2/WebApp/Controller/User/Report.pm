@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.243';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.259';
 }
 ## use critic
 
@@ -45,6 +45,7 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
+        catalyst   => $c,
     );
 
     $c->stash(
@@ -73,7 +74,8 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        async      => 0
+        async      => 0,
+        catalyst   => $c,
     );
 
     if ( not defined $report_id ) {
@@ -101,7 +103,8 @@ sub grid_sync_report :Path( '/user/report/sync/grid' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        async      => 0
+        async      => 0,
+        catalyst   => $c,
     );
 
     if ( not defined $report_id ) {
@@ -131,7 +134,8 @@ sub async_report :Path( '/user/report/async' ) :Args(1) {
         model      => $c->model('Golgi'),
         report     => $report,
         params     => $params,
-        async      => 1
+        async      => 1,
+        catalyst   => $c,
     );
 
     $c->stash(
@@ -184,7 +188,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
             current_page     => $c->request->param('page') || 1,
             pages_per_set    => 5,
             mode             => 'slide',
-            base_uri         => $c->request->uri
+            base_uri         => $c->uri_for( '/user/report/view', $report_id ),
         }
     );
 
@@ -196,7 +200,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         $report_fh->getline;
     }
 
-    # Check for plate_id and set the is_virtual_plate flag if appropriate 
+    # Check for plate_id and set the is_virtual_plate flag if appropriate
 
     my $is_virtual_plate = 0;
 
@@ -241,7 +245,7 @@ sub grid_view_report :Path( '/user/report/grid_view' ) :Args(1) {
     my $csv     = Text::CSV->new;
     my $columns = $csv->getline( $report_fh );
 
-    # Check for plate_id and set the is_virtual_plate flag if appropriate 
+    # Check for plate_id and set the is_virtual_plate flag if appropriate
 
     my $is_virtual_plate = 0;
 
@@ -285,7 +289,7 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
 
     # Human project sponsors list
 
-    my @human_sponsors = ['Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
+    my @human_sponsors = ['All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs'];
     $c->stash(
         template    => 'user/report/select_sponsor.tt',
         report_name => $report,

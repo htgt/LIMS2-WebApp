@@ -44,6 +44,8 @@
                                     [%- IF (first_time_outer == 1) && (val.match('lims2_custom')) %]
                                     // string matched 'custom' specifier
                                         [%- alt_render.${columns.$index} = 1 %]
+                                    [%- ELSIF (first_time_outer == 1) && ( val.match( '^https?:' )) %]
+                                        [%- alt_render_link.${columns.$index} = 1 %]
                                     [%- END %]
                                     ,"[%- columns.$index %]": "[%- val.dquote | none%]"
                                     [%#- This 'none' FILTER comes from Template::AutoFilter and is otherwise
@@ -91,18 +93,94 @@
                     [%# alt_render values are case sensitive %]
                     [%- IF alt_render.$col == 1%]
                     renderer: lims2_action_button_json,
+                    [% ELSIF alt_render_link.$col == 1 %]
+                    renderer: lims2_action_link,
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
                     [%- IF col.match( 'concluded\?' ) %]
                     xtype: 'checkcolumn',
+                    width: 65,
                     listeners: {
                         checkchange: function (column, recordIndex, checked) {
+                            console.log('checkbox class listener');
                             var record = grid.store.getAt(recordIndex);
                             $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(data){record.commit()})
                         }
                     },
                     [%- END %]
+                    [%- IF col.match( 'recovery class' ) %]
+                    width: 120,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        editable: false,
+
+                        store: [
+                            [%- FOREACH recovery_class IN recovery_classes %]
+                            ['[% recovery_class %]','[% recovery_class %]'],
+                            [%- END %]
+                        ],
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('recovery class listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+                                var newRecord = field.findRecordByValue(newValue);
+
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(data){record.commit()})
+                            }
+                        },
+
+                    }),
+
+                    [%- END %]
+
+                    [%- IF col.match( 'recovery comment' ) %]
+                    width: 400,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('recovery comment listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(data){record.commit()})
+                            }
+                        },
+                    }),
+                    [%- END %]
+
+                    [%- IF col.match( 'priority' ) %]
+                    width: 120,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        editable: false,
+                        store: [
+                            [%- FOREACH priority_class IN priority_classes %]
+                            ['[% priority_class %]','[% priority_class %]'],
+                            [%- END %]
+                        ],
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('priority listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(data){record.commit()})
+                            }
+                        },
+
+                    }),
+
+                    [%- END %]
+
                     dataIndex: '[%- col %]'
                 },
                 [%- END %]
@@ -133,10 +211,24 @@
                     return Ext.String.format('<div id="{0}"></div>', id);
                 };
 
+            function lims2_action_link(val) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        console.log(val);
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: 'Link',
+                            width: 65,
+                            handler: function () { window.open( val ) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
+
 
             grid = Ext.create('Ext.grid.Panel', {
                 height: 750,
-                width: 1200,
+                width: 1170,
                 store: store,
                 columnLines: true,
                 columns: columns,
@@ -145,11 +237,12 @@
                 renderTo: 'my_results',
                 viewConfig: {
                     stripeRows: true,
-                    getRowClass: function(){
-                        return "lims2-cell-inner";
-                    },
+                    // getRowClass: function(){
+                    //     return "lims2-cell-inner";
+                    // },
                     firstCls: 'lims2-first-cell-format',
-                    enableTextSelection: true
+                    enableTextSelection: true,
+                    markDirty: false,
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,

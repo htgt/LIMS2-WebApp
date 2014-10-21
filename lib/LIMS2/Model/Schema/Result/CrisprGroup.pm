@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprGroup;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.243';
+    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.259';
 }
 ## use critic
 
@@ -234,11 +234,14 @@ sub as_hash {
     my ( $self ) = @_;
 
     my %h = (
-        id           => $self->id,
-        gene_id      => $self->gene_id,
-        gene_type_id => $self->gene_type_id,
-        crispr_ids   => [ map{ $_->id  } $self->crisprs ],
-        group_crisprs => [ map{ $_->as_hash} $self->crispr_group_crisprs ],
+        id             => $self->id,
+        gene_id        => $self->gene_id,
+        gene_type_id   => $self->gene_type_id,
+        crispr_ids     => [ map{ $_->id } $self->crisprs ],
+        left_crisprs   => [ map { $_->id } @{ $self->left_ranked_crisprs } ],
+        right_crisprs  => [ map { $_->id } @{ $self->right_ranked_crisprs } ],
+        group_crisprs  => [ map{ $_->as_hash } $self->crisprs ],
+        crispr_primers => [ map { $_->as_hash } $self->crispr_primers ],
     );
 
     return \%h;

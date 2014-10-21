@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.243';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.259';
 }
 ## use critic
 
@@ -27,9 +27,10 @@ override _build_columns => sub {
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
-        'Crispr or Pair ID', 'Genoverse View',
+        'Crispr or Pair ID', 'Genoverse View', 'Genbank File',
         'Left Crispr Well', 'Left Crispr Designs', 'Right Crispr Well','Right Crispr Designs',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
+        'Left Crispr', 'Right Crispr',
         'SF1', 'SR1', 'PF1', 'PR1', 'PF2', 'PR2', 'GF1', 'GR1', 'GF2', 'GR2', # primers
         'Created By','Created At',
     ];
@@ -92,6 +93,7 @@ override iterator => sub {
                     'browser_target'   => $self->plate_name . $well->name,
                     'api_url'          => '/user/genoverse_design_view',
             }) : 'Invalid Crispr Pair',
+            $self->catalyst->uri_for( '/user/well_eng_seq', $well->id ),
             $left_crispr ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
             $left_designs,
             $right_crispr ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
@@ -101,6 +103,8 @@ override iterator => sub {
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
             $final_vector->backbone->name,
             # join( q{/}, @{ $final_vector->recombinases } ),
+            $left_crispr ? $left_crispr->crispr->seq : '-',
+            $right_crispr ? $right_crispr->crispr->seq : '-',
             $well->crispr_primer_for({ 'crispr_pair_id' => $crispr_pair_id, 'primer_label' => 'SF1' }),
             $well->crispr_primer_for({ 'crispr_pair_id' => $crispr_pair_id, 'primer_label' => 'SR1' }),
             $well->crispr_primer_for({ 'crispr_pair_id' => $crispr_pair_id, 'primer_label' => 'PF1' }),

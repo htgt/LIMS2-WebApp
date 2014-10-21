@@ -8,7 +8,7 @@
 The High Throughput Gene Targeting (HTGT) lab tracking system.
 <br>
 <br>
-<a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Progress Report</a>
+<a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Progress Report</a>
 </p>
 
 <div class="row">

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.243';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.259';
 }
 ## use critic
 
@@ -32,6 +32,8 @@ use Sub::Exporter -setup => {
         crispr_primers_to_gff
         unique_crispr_data
         unique_crispr_data_to_gff
+        crispr_groups_for_region
+        crispr_groups_to_gff
     ) ]
 };
 
@@ -95,6 +97,7 @@ sub crispr_pairs_for_region {
                 $params->{end_coord},
                 $params->{chromosome_id},
                 $params->{assembly_id},
+                $params->{assembly_id}, # That is correct, assembly_id is used twice in the query
             ],
         }
     );
@@ -103,6 +106,25 @@ sub crispr_pairs_for_region {
     return $crisprs_rs;
 }
 
+sub crispr_groups_for_region {
+    my $schema = shift;
+    my $params = shift;
+
+    $params->{chromosome_id} = retrieve_chromosome_id( $schema, $params->{species}, $params->{chromosome_number} );
+
+    my $crisprs_rs = $schema->resultset('CrisprBrowserGroups')->search( {},
+        {
+            bind => [
+                $params->{start_coord},
+                $params->{end_coord},
+                $params->{chromosome_id},
+                $params->{assembly_id},
+            ],
+        }
+    );
+
+    return $crisprs_rs;
+}
 
 =head crisprs_for_region_as_arrayref
 
@@ -182,8 +204,8 @@ sub crisprs_to_gff {
                     . 'C_' . $crispr_r->crispr_id . ';'
                     . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
                     . 'seq=' . $crispr_r->crispr->seq . ';'
-                    . 'pam_right=' . ($crispr_r->crispr->pam_right || 'N/A') . ';'
-                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id || 'N/A')
+                    . 'pam_right=' . ($crispr_r->crispr->pam_right // 'N/A') . ';'
+                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id // 'N/A')
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             push @crisprs_gff, $crispr_parent_datum;
@@ -274,6 +296,86 @@ sub crispr_pairs_to_gff {
 
 
     return \@crisprs_gff;
+}
+
+=head crispr_groups_to_gff
+Returns an array representing a set of strings ready for
+concatenation to produce a GFF3 format file.
+
+=cut
+
+sub crispr_groups_to_gff {
+    my $crisprs_rs = shift;
+    my $params = shift;
+
+    my @crisprs_gff;
+
+    push @crisprs_gff, "##gff-version 3";
+    push @crisprs_gff, '##sequence-region lims2-region '
+        . $params->{'start_coord'}
+        . ' '
+        . $params->{'end_coord'} ;
+    push @crisprs_gff, '# Crispr groups for region '
+        . $params->{'species'}
+        . '('
+        . $params->{'assembly_id'}
+        . ') '
+        . $params->{'chromosome_number'}
+        . ':'
+        . $params->{'start_coord'}
+        . '-'
+        . $params->{'end_coord'} ;
+
+        my $crispr_groups_hr = classify_groups( $crisprs_rs );
+        my @crispr_group_keys = keys %$crispr_groups_hr;
+        foreach  my $crispr_group ( @crispr_group_keys ) {
+            my %crispr_format_hash = (
+                'seqid' => $params->{'chromosome_number'},
+                'source' => 'LIMS2',
+                'type' => 'crispr_group',
+                'start' => $crispr_groups_hr->{$crispr_group}->[0]->{'chr_start'},
+                'end' => $crispr_groups_hr->{$crispr_group}->[-1]->{'chr_end'},
+                'score' => '.',
+                'strand' => '+' ,
+#                'strand' => '.',
+                'phase' => '.',
+                'attributes' => 'ID='
+                    . $crispr_group . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $crispr_group
+                );
+            my $crispr_group_parent_datum = prep_gff_datum( \%crispr_format_hash );
+            push @crisprs_gff, $crispr_group_parent_datum;
+
+            foreach my $group_member ( @{$crispr_groups_hr->{$crispr_group}} ) {
+                my $crispr = {
+                    id => $group_member->{'crispr_id'},
+                    chr_start => $group_member->{'chr_start'},
+                    chr_end => $group_member->{'chr_end'},
+                    pam_right => $group_member->{'pam_right'},
+                    colour => '#45A825', # greenish
+                };
+                push @crisprs_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_group);
+            }
+        }
+
+
+    return \@crisprs_gff;
+}
+
+sub classify_groups {
+    my $rs = shift;
+
+    my $crispr_groups = ();
+    while ( my $crispr_g = $rs->next ) {
+        push @{$crispr_groups->{$crispr_g->crispr_group_id}}, {
+            'crispr_id' => $crispr_g->crispr_id,
+            'chr_start' => $crispr_g->chr_start,
+            'chr_end' => $crispr_g->chr_end,
+            'pam_right' => $crispr_g->pam_right,
+        };
+    }
+
+    return $crispr_groups
 }
 
 =head prep_gff_datum

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.243';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.259';
 }
 ## use critic
 
@@ -485,11 +485,11 @@ sub pspec_create_well_qc_sequencing_result {
 }
 
 sub create_well_qc_sequencing_result {
-    my ( $self, $params ) = @_;
+    my ( $self, $params, $well ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_qc_sequencing_result );
 
-    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    $well //= $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $qc_seq_result = $well->create_related(
         well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by_id created_at ) }

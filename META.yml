@@ -7,6 +7,8 @@ build_requires:
   File::Find: 0
   HTTP::Request: 0
   HTTP::Request::Common: 0
+  IO::Scalar: 0
+  LIMS2::WebApp::Controller::User::SummaryReports: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -20,7 +22,6 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
-  Bio::EnsEMBL::Registry: 0
   Bio::Perl: 0
   Bio::SCF: 0
   Bio::Seq: 0
@@ -102,6 +103,7 @@ requires:
   LIMS2::Exception::Validation: 0
   LIMS2::REST::Client: 0
   LIMS2::Util: 0
+  LIMS2::Util::ESQCUpdateWellAccepted: 0
   LIMS2::Util::EnsEMBL: 0
   LIMS2::Util::Errbit: 0
   LIMS2::Util::Solr: 0
@@ -159,4 +161,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.243
+version: 0.259

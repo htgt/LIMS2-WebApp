@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.243';
+    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.259';
 }
 ## use critic
 
@@ -281,6 +281,42 @@ __PACKAGE__->has_many(
   { "foreign.crispr_oligo_id" => "self.crispr_oligo_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
+
+sub as_hash {
+    my $self = shift;
+
+    my $species;
+    if ( $self->crispr_id ) {
+        $species = $self->crispr->species;
+    }
+    elsif ( $self->crispr_pair_id ) {
+        $species = $self->crispr_pair->left_crispr->species;
+    }
+    elsif ( $self->crispr_group_id ) {
+        $species = $self->crispr_group->left_most_crispr->species;
+    }
+    else {
+        die ( 'Crispr primer not linked to crispr, crispr pair or crispr group' );
+    }
+
+    my $locus;
+    if ( my $default_assembly = $species->default_assembly ) {
+        $locus = $self->search_related( 'crispr_primer_loci',
+            { assembly_id => $default_assembly->assembly_id } )->first;
+    }
+
+    return {
+        crispr_oligo_id => $self->crispr_oligo_id,
+        primer_seq      => $self->primer_seq,
+        primer_name     => $self->primer_name->primer_name,
+        tm              => $self->tm,
+        gc_content      => $self->gc_content,
+        locus           => $locus ? $locus->as_hash : undef,
+        crispr_pair_id  => $self->crispr_pair_id,
+        crispr_id       => $self->crispr_id,
+        crispr_group_id => $self->crispr_group_id,
+    };
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

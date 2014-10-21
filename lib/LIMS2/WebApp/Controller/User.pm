@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.243';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.259';
 }
 ## use critic
 
@@ -30,9 +30,10 @@ sub auto : Private {
     my ( $self, $c ) = @_;
 
     if ( ! $c->user_exists ) {
-        $c->stash( error_msg => 'Please login to access this system' );
+        #$c->stash( error_msg => 'Please login to access this system' );
         $c->stash( goto_on_success => $c->request->uri );
-        $c->go( 'Controller::Auth', 'login' );
+        #$c->go( 'Controller::Auth', 'login' );
+        $c->go( 'Controller::PublicReports', 'sponsor_report' );
     }
 
     if ( ! $c->session->{selected_species} ) {

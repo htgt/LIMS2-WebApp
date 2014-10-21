@@ -1,12 +1,13 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.243';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.259';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Report;
+use Try::Tiny;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -69,6 +70,220 @@ sub download_report :Path( '/public_reports/download' ) :Args(1) {
     $c->response->content_type( 'text/csv' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$report_name.csv" );
     $c->response->body( $report_fh );
+    return;
+}
+
+=head2 index
+
+=cut
+sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
+    my ( $self, $c, $targeting_type ) = @_;
+
+    my $species;
+
+    if ($c->user_exists) {
+        $c->request->params->{species} = $c->session->{selected_species};
+    }
+
+    if (!$c->request->params->{species}) {
+        $c->request->params->{species} = 'Human';
+    }
+
+    $species = $c->request->params->{species};
+    $c->session->{selected_species} = $species;
+
+    if ( defined $targeting_type ) {
+        # show report for the requested targeting type
+        $self->_generate_front_page_report ( $c, $targeting_type, $species );
+    }
+    else {
+        # by default show the single_targeted report
+        $self->_generate_front_page_report ( $c, 'single_targeted', $species );
+    }
+
+    $c->stash(
+        template    => 'publicreports/sponsor_report.tt',
+    );
+
+    return;
+}
+
+sub _generate_front_page_report {
+    my ( $self, $c, $targeting_type, $species ) = @_;
+
+    # Call ReportForSponsors plugin to generate report
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
+
+    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
+
+    # Fetch details from returned report parameters
+    my $report_id   = $report_params->{ report_id };
+    my $title       = $report_params->{ title };
+    my $columns     = $report_params->{ columns };
+    my $rows        = $report_params->{ rows };
+    my $data        = $report_params->{ data };
+
+    # Store report values in stash for display onscreen
+    $c->stash(
+        'report_id'      => $report_id,
+        'title'          => $title,
+        'species'        => $species,
+        'targeting_type' => $targeting_type,
+        'columns'        => $columns,
+        'rows'           => $rows,
+        'data'           => $data,
+    );
+
+    return;
+}
+
+sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
+    my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
+
+    # expecting :
+    # targeting type i.e. 'st' or 'dt' for single- or double-targeted
+    # sponsor id is the project sponsor e.g. Syboss, Pathogens
+    # stage is the level e.g. genes, DNA
+
+    # depending on combination of targeting type and stage fetch details
+
+    my $species = $c->session->{selected_species};
+
+
+    # Call ReportForSponsors plugin to generate report
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
+
+    my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
+
+    # Fetch details from returned report parameters
+    my $report_id        = $report_params->{ 'report_id' };
+    my $disp_target_type = $report_params->{ 'disp_target_type' };
+    my $disp_stage       = $report_params->{ 'disp_stage' };
+    my $columns          = $report_params->{ 'columns' };
+    my $display_columns  = $report_params->{ 'display_columns' };
+    my $data             = $report_params->{ 'data' };
+
+    my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
+    my $type;
+
+    if ($disp_stage eq 'Genes') {
+
+        if (! $c->request->params->{type}) {
+            $c->request->params->{type} = 'simple';
+            return $c->response->redirect( $c->uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage", { type => 'simple' } ) );
+        }
+
+        $type = $c->request->params->{type};
+
+        if ($type eq 'simple') {
+
+            foreach my $column ( @{$data} ) {
+                while ( my ($key, $value) = each %{$column} ) {
+                    if (${$column}{$key} eq '0') {
+                        ${$column}{$key} = '';
+                    }
+                    else {
+                        ${$column}{$key} = '✔'
+                        unless ($key eq 'gene_id' || $key eq 'gene_symbol');
+                    }
+                }
+            }
+        }
+    };
+
+    # csv download
+    if ($c->request->params->{csv}) {
+        $c->response->status( 200 );
+        $c->response->content_type( 'text/csv' );
+        $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+
+        my $body = join(',', map { $_ } @{$display_columns}) . "\n";
+        foreach my $column ( @{$data} ) {
+            $body .= join(',', map { $column->{$_} } @{$columns}) . "\n";
+            $body =~ s/✔/1/g;
+        }
+
+        $c->response->body( $body );
+
+    } else {
+
+    # Store report values in stash for display onscreen
+        $c->stash(
+            'template'             => 'publicreports/sponsor_sub_report.tt',
+            'report_id'            => $report_id,
+            'disp_target_type'     => $disp_target_type,
+            'disp_stage'           => $disp_stage,
+            'sponsor_id'           => $sponsor_id,
+            'columns'              => $columns,
+            'display_columns'      => $display_columns,
+            'data'                 => $data,
+            'link'                 => $link,
+            'type'                 => $type,
+        );
+
+    }
+
+    return;
+}
+
+=head2 well_genotyping_info_search
+
+Page to choose the desired well, no arguments
+
+=cut
+sub well_genotyping_info_search :Path( '/public_reports/well_genotyping_info_search' ) :Args(0) {
+my ( $self, $c ) = @_;
+    return;
+}
+
+=head2 well_genotyping_info
+
+Page to display chosen well, takes a well id (later a barcode) or a plate/well combo
+
+=cut
+sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args() {
+    my ( $self, $c, @args ) = @_;
+
+    if ( @args == 1 ) {
+        my $barcode = shift @args;
+
+        $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+    }
+    elsif ( @args == 2 ) {
+        my ( $plate_name, $well_name ) = @args;
+
+        $self->_stash_well_genotyping_info(
+            $c, { plate_name => $plate_name, well_name => $well_name }
+        );
+    }
+    else {
+        $c->stash( error_msg => "Invalid number of arguments" );
+    }
+
+    return;
+}
+
+sub _stash_well_genotyping_info {
+    my ( $self, $c, $search ) = @_;
+
+    #well_id will become barcode
+    my $well = $c->model('Golgi')->retrieve_well( $search );
+
+    unless ( $well ) {
+        $c->stash( error_msg => "Well doesn't exist" );
+        return;
+    }
+
+    try {
+        #needs to be given a method for finding genes
+        my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        $c->stash( data => $data );
+    }
+    catch {
+        #get string representation if its a lims2::exception
+        $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
+    };
+
     return;
 }
 

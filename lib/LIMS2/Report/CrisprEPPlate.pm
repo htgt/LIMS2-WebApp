@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPPlate::VERSION = '0.243';
+    $LIMS2::Report::CrisprEPPlate::VERSION = '0.259';
 }
 ## use critic
 
@@ -28,7 +28,7 @@ override _build_columns => sub {
 
     # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
-        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
+        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
         $self->colony_count_column_names,
         'Left Crispr', 'Right Crispr',
@@ -59,6 +59,7 @@ override iterator => sub {
         return [
             $well->name,
             $self->design_and_gene_cols($well),
+            $self->catalyst->uri_for( '/user/well_eng_seq', $well->id ),
             $final_vector->cassette ? $final_vector->cassette->name       : '-',
             $final_vector->cassette ? $final_vector->cassette->resistance : '-',
             ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),

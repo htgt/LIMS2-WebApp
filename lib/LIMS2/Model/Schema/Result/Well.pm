@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.243';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.259';
 }
 ## use critic
 
@@ -1298,7 +1298,7 @@ sub genotyping_info {
     #val is hash with name + seq
     my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
 
-    push @{ $primers{$key} }, $val;
+    push @{ $primers{crispr_primers}{$key} }, $val;
   }
 
   my $vector_well = $self->final_vector;
@@ -1313,7 +1313,7 @@ sub genotyping_info {
   for my $primer ( @design_primers ) {
     my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
 
-    push @{ $primers{$key} }, $val;
+    push @{ $primers{design_primers}{$key} }, $val;
   }
 
   my @gene_ids = uniq map { $_->gene_id } $design->genes;
