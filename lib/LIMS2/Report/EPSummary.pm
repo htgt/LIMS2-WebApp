@@ -173,16 +173,15 @@ override iterator => sub {
     my $summary_data;
     my @sponsors;
 
-    if ( $self->sponsor ne 'Sponsors' ) {
-        @sponsors = ($self->sponsor);
+    if ( $self->sponsor eq 'All' && $self->species eq 'Mouse' ) {
+        @sponsors = ('Core', 'Syboss', 'Pathogens');
     }
     else {
-        if ($self->species eq 'Mouse') {
-                @sponsors = ('Core', 'Syboss', 'Pathogens');
-        } else {
-                @sponsors = ('All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs');
-        }
+        @sponsors = ($self->sponsor);
     }
+
+use Smart::Comments;
+### @sponsors
 
     foreach my $sponsor (@sponsors) {
     	my $sponsor_data = $self->build_summary_data($sponsor);
