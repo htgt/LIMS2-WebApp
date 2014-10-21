@@ -151,5 +151,30 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+# Find most recent event for the barcode.
+# If state is provided find the most recent event which *changed* the state to the one specified
+sub most_recent_event{
+    my ($self, $state) = @_;
+
+    my $search_criteria = {};
+
+    if($state){
+        $search_criteria = {
+            new_state => $state,
+            old_state => {'!=' => $state }
+        };
+    }
+
+    my $event = $self->search_related('barcode_events',
+        $search_criteria,
+        {
+            order_by => { -desc => [qw/created_at/] }
+        }
+    )->first;
+
+    return $event;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

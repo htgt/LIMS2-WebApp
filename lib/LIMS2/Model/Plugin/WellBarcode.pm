@@ -142,5 +142,41 @@ sub create_well_barcode_event {
     return $event;
 }
 
+sub historical_barcodes_for_plate{
+    my ($self, $params) = @_;
+
+    # find current plate
+    my $plate = $self->retrieve_plate($params);
+    my @current_barcodes = map { $_->well_barcode->barcode } grep {$_->well_barcode} $plate->wells;
+    $self->log->debug(scalar(@current_barcodes)." barcodes found");
+
+    # find old versions of plates
+    my @previous_versions = $self->schema->resultset('Plate')->search({
+        name    => { like => $plate->name.'(v%)' },
+        type_id => $plate->type,
+    });
+    $self->log->debug(scalar(@previous_versions)." previous plate versions found");
+
+    # find all wells on all versions
+    my @wells = map { $_->wells } @previous_versions;
+    $self->log->debug(scalar(@wells)." wells found");
+
+    # find all barcodes ever linked to these wells in barcode_events
+    my @events = map { $_->barcode_events_old_wells, $_->barcode_events_new_wells } @wells;
+    $self->log->debug(scalar(@events)." events found");
+
+    # return all barcodes which are not on current plate version
+    my @all_barcodes = uniq map { $_->barcode->barcode } @events;
+    my @historical_barcodes;
+
+    foreach my $barcode (@all_barcodes){
+        unless (grep { $barcode eq $_ } @current_barcodes){
+            push @historical_barcodes, $self->retrieve_well_barcode({ barcode => $barcode });
+        }
+    }
+
+    $self->log->debug(scalar(@historical_barcodes)." historical barcodes found");
+    return \@historical_barcodes;
+}
 
 1;

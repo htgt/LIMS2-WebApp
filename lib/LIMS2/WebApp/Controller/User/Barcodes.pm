@@ -542,6 +542,79 @@ sub rescan_barcoded_plate : Path( '/user/rescan_barcoded_plate' ) : Args(0){
     return;
 }
 
+sub well_barcode_history : Path( '/user/well_barcode_history' ) : Args(1){
+    my ($self, $c, $barcode) = @_;
+
+    unless($barcode){
+        $c->stash->{error_msg} = "No barcode provided";
+        return;
+    }
+
+    my $bc = $c->model('Golgi')->retrieve_well_barcode({ barcode => $barcode });
+
+    my @events = $bc->search_related('barcode_events',
+            {},
+            {
+                order_by => { -desc => [qw/created_at/] }
+            }
+    );
+
+    $c->stash->{events} = \@events;
+    return;
+}
+
+sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Args(1){
+    my ($self, $c, $plate_id) = @_;
+
+    # FIXME: plate_id sanity checks
+
+    my $plate = $c->model('Golgi')->retrieve_plate({ id => $plate_id });
+    my $historical_barcodes = $c->model('Golgi')->historical_barcodes_for_plate({ id => $plate_id });
+
+    my @barcode_data;
+    my @summary_data;
+    foreach my $barcode (@$historical_barcodes){
+        my @events = $barcode->search_related('barcode_events',
+            {},
+            {
+                order_by => { -desc => [qw/created_at/] }
+            }
+        );
+
+        my $most_recent_event = $events[0];
+        my @changes;
+
+        if($most_recent_event->old_well->id != $most_recent_event->new_well->id){
+            push @changes, 'Barcode moved from well '.$most_recent_event->old_well->as_string
+                       .' to well '.$most_recent_event->new_well->as_string;
+        }
+
+        if($most_recent_event->old_state->id ne $most_recent_event->new_state->id){
+            push @changes, 'Barcode state changed from '.$most_recent_event->old_state->id
+                          .' to '.$most_recent_event->new_state->id;
+        }
+
+        push @barcode_data, {
+            barcode => $barcode->barcode,
+            state   => $barcode->barcode_state->id,
+            events  => \@events,
+            current_plate => $barcode->well->plate->name,
+            current_well  => $barcode->well->name,
+            most_recent_event_date => $most_recent_event->created_at,
+            most_recent_event_user => $most_recent_event->created_by->name,
+            most_recent_change => (join ". ", @changes),
+            most_recent_comment => $most_recent_event->comment,
+        };
+    }
+
+    my @sorted_barcode_data = sort { $a->{barcode} cmp $b->{barcode} } @barcode_data;
+
+    $c->stash->{barcode_data} = \@sorted_barcode_data;
+    $c->stash->{plate} = $plate;
+
+    return;
+}
+
 sub _well_display_details{
     my ($self, $c, $well) = @_;
 
@@ -566,15 +639,7 @@ sub _well_display_details{
 
     if($well_details->{barcode_state} eq "checked_out"){
         # Find most recent checkout date
-        my $checkout = $well->well_barcode->search_related('barcode_events',
-            {
-                new_state => 'checked_out',
-                old_state => {'!=' => 'checked_out'}
-            },
-            {
-                order_by => { -desc => [qw/created_at/] }
-            }
-        )->first;
+        my $checkout = $well->well_barcode->most_recent_event('checked_out');
 
         if($checkout){
             $well_details->{checkout_date} = $checkout->created_at;
