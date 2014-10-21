@@ -180,9 +180,6 @@ override iterator => sub {
         @sponsors = ($self->sponsor);
     }
 
-use Smart::Comments;
-### @sponsors
-
     foreach my $sponsor (@sponsors) {
     	my $sponsor_data = $self->build_summary_data($sponsor);
     	push ( @{$summary_data},  @{$sponsor_data});
