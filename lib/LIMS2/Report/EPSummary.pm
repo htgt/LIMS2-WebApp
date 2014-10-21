@@ -173,7 +173,7 @@ override iterator => sub {
     my $summary_data;
     my @sponsors;
 
-    if ( $self->sponsor ne 'All' ) {
+    if ( $self->sponsor ne 'Sponsors' ) {
         @sponsors = ($self->sponsor);
     }
     else {
