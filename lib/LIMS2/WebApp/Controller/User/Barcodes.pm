@@ -93,6 +93,42 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
     return;
 }
 
+sub scan_barcode : Path( '/user/scan_barcode' ) : Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    # User Scans a barcode
+    if($c->request->param('submit_barcode')){
+        # Fetches info about the well
+        my $bc = $c->request->param('barcode');
+        unless ($bc){
+            $c->stash->{error_msg} = "No barcode entered";
+            return;
+        }
+
+        $c->stash->{barcode} = $bc;
+
+        my $well;
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $bc,
+            });
+        };
+
+        unless($well){
+            $c->stash->{error_msg} = "Barcode $bc not found";
+            return;
+        }
+
+        my $well_details = $self->_well_display_details($c, $well);
+
+        $c->stash->{well_details} = $well_details;
+        $c->stash->{can_edit} = $c->check_user_roles( 'edit' );
+    }
+    return;
+}
+
 sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
     my ($self, $c) = @_;
 
