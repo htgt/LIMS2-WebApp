@@ -20,6 +20,7 @@ sub pspec_retrieve_well {
     return {
         id                => { validate => 'integer', optional => 1 },
         plate_name        => { validate => 'plate_name', optional => 1 },
+        plate_version     => { validate => 'integer', optional => 1, default => undef },
         well_name         => { validate => 'well_name', optional => 1 },
         barcode           => { validate => 'alphanumeric_string', optional => 1 },
         DEPENDENCY_GROUPS => { name_group => [qw( plate_name well_name )] },
@@ -46,6 +47,8 @@ sub retrieve_well {
     }
     if ( $data->{plate_name} ) {
         $search{'plate.name'} = $data->{plate_name};
+        # Include plate version in search. undef indicates we want current version
+        $search{'plate.version'} = $data->{plate_version};
     }
     if ( $data->{barcode} ) {
         $search{'well_barcode.barcode'} = $data->{barcode};

@@ -152,8 +152,8 @@ sub historical_barcodes_for_plate{
 
     # find old versions of plates
     my @previous_versions = $self->schema->resultset('Plate')->search({
-        name    => { like => $plate->name.'(v%)' },
-        type_id => $plate->type,
+        name    => $plate->name,
+        version => { '!=', undef },
     });
     $self->log->debug(scalar(@previous_versions)." previous plate versions found");
 

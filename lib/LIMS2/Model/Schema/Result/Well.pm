@@ -303,6 +303,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_barcodes_root_piqs_well
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_barcodes_root_piqs_well",
+  "LIMS2::Model::Schema::Result::WellBarcode",
+  { "foreign.root_piq_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_chromosome_fail
 
 Type: might_have
@@ -519,8 +534,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-06 15:08:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nalQpZKmcs/RXgi++cKA7Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LL/gZ4/VHM/6Zps9IJKTPg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -554,7 +569,12 @@ use List::MoreUtils qw( uniq );
 sub as_string {
     my $self = shift;
 
-    return sprintf( '%s_%s', $self->plate->name, $self->name );
+    my $name = sprintf( '%s_%s', $self->plate->name, $self->name );
+
+    if($self->plate->version){
+        $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+    }
+    return $name;
 }
 
 sub as_hash {

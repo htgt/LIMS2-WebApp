@@ -97,6 +97,11 @@ __PACKAGE__->table("plates");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 version
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -130,6 +135,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "sponsor_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "version",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -146,17 +153,19 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<plates_name_key>
+=head2 C<plates_name_version_key>
 
 =over 4
 
 =item * L</name>
 
+=item * L</version>
+
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("plates_name_key", ["name"]);
+__PACKAGE__->add_unique_constraint("plates_name_version_key", ["name", "version"]);
 
 =head1 RELATIONS
 
@@ -256,8 +265,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OfsVGCbzXEf/u17IzAJlmw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:faFXuKQ7q7JWfU+wnEbYJQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -267,7 +276,13 @@ use overload '""' => \&as_string;
 sub as_string {
     my $self = shift;
 
-    return $self->name;
+    my $name = $self->name;
+
+    if($self->version){
+        $name = sprintf( '%s(v%s)', $self->name, $self->version);
+    }
+
+    return $name;
 }
 
 sub as_hash {

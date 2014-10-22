@@ -83,6 +83,22 @@ __PACKAGE__->table("projects");
   default_value: false
   is_nullable: 0
 
+=head2 recovery_class
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 recovery_comment
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 priority
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -107,6 +123,12 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "effort_concluded",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "recovery_class",
+  { data_type => "text", is_nullable => 1 },
+  "recovery_comment",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "priority",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -161,6 +183,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 recovery_comment
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectRecoveryClass>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "recovery_comment",
+  "LIMS2::Model::Schema::Result::ProjectRecoveryClass",
+  { id => "recovery_comment" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 sponsor
 
 Type: belongs_to
@@ -177,8 +219,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-09-02 15:28:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E+p0emXyULopBYB1vFws9A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9jIcLUs7FQQA2fvWcRCgWQ
 
 
 sub as_hash {

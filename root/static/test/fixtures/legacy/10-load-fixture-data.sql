@@ -11364,7 +11364,7 @@ INSERT INTO project_alleles VALUES (12, 'second', 'reporter_only', 'ko_first');
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1904, true);
+SELECT pg_catalog.setval('wells_id_seq', 3000, true);
 
 
 --

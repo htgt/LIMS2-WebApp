@@ -12,7 +12,7 @@ use LIMS2::Model::Util::BarcodeActions qw/
 
 use LIMS2::Test model => { classname => __PACKAGE__ };
 
-sub discard_tests : Tests(11){
+sub discard_tests : Tests(13){
 
     my $bc = '7';
     my $unchanged_well = 'A02';
@@ -30,6 +30,7 @@ sub discard_tests : Tests(11){
 	    reason  => 'testing',
 	}), "Barcode discarded";
 	is scalar($new_plate->wells), 48, "New plate version has 48 wells";
+    is $new_plate->version, undef, "New plate has no version number";
 	my $discarded_well = $new_plate->search_related('wells',{ name => $well_name })->first;
 	is $discarded_well, undef, "$well_name is not on new plate";
 
@@ -37,6 +38,7 @@ sub discard_tests : Tests(11){
 	ok $well_bc = model->retrieve_well_barcode({ barcode => $bc }), "Barcode $bc found";
 	is $well_bc->barcode_state->id, "discarded", "Well status updated";
     is scalar($well_bc->well->plate->wells), 49, "Original plate still has 49 wells";
+    is $well_bc->well->plate->version, 1, "Original plate has version number 1";
 
     # Check well from orig plate is parent of same well on the new plate
     ok my $new_a2 = $new_plate->search_related('wells',{ name => $unchanged_well })->first, "New $unchanged_well found";

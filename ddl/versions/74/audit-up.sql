@@ -1,4 +1,8 @@
 ALTER TABLE audit.well_barcodes ADD COLUMN barcode_state text;
+ALTER TABLE audit.well_barcodes ADD COLUMN root_piq_well_id INT;
+
+ALTER TABLE audit.plates ADD COLUMN version INT;
+
 CREATE TABLE audit.barcode_states (
 audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
 audit_user TEXT NOT NULL,

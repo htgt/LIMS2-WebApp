@@ -617,7 +617,6 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
     my $historical_barcodes = $c->model('Golgi')->historical_barcodes_for_plate({ id => $plate_id });
 
     my @barcode_data;
-    my @summary_data;
     foreach my $barcode (@$historical_barcodes){
         my @events = $barcode->search_related('barcode_events',
             {},
@@ -630,7 +629,7 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
             barcode => $barcode->barcode,
             state   => $barcode->barcode_state->id,
             events  => \@events,
-            current_plate => $barcode->well->plate->name,
+            current_plate => $barcode->well->plate->as_string,
             current_well  => $barcode->well->name,
         };
 

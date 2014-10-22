@@ -141,7 +141,7 @@ sub freeze_back_barcode{
         my $qc_piq_well = $qc_plate->search_related('wells',
             { name => $validated_params->{qc_piq_well_name} }
         )->first;
-        die "Well ".$qc_piq_well->name." already exists on plate ".$qc_plate->name if $qc_piq_well;
+        die "Well ".$qc_piq_well->name." already exists on plate ".$qc_plate->as_string if $qc_piq_well;
     }
     else{
         $qc_plate = $model->create_plate({
@@ -174,6 +174,7 @@ sub freeze_back_barcode{
         my $well_data = {
             well_name => sprintf("A%02d",$num),
             parent_plate => $qc_plate->name,
+            parent_plate_version => $qc_plate->version,
             parent_well => $qc_well->name,
             process_type => 'rearray',
         };
@@ -301,9 +302,8 @@ sub send_out_well_barcode{
 sub remove_well_barcodes_from_plate{
     my ($model, $barcodes, $plate, $user) = @_;
 
-    # rename existing plate
-    my $plate_name = $plate->name;
-    my $versioned_name = rename_plate_with_version($model, $plate);
+    # version existing plate
+    my $versioned_plate = version_plate($model, $plate);
 
     # create new well name->barcode hash
     my %barcode_for_well;
@@ -324,11 +324,11 @@ sub remove_well_barcodes_from_plate{
     }
 
     # create_barcoded_plate_copy
-    my $comment = "Barcodes ".(join ", ", @$barcodes)." removed (previous version: $versioned_name)";
+    my $comment = "Barcodes ".(join ", ", @$barcodes)." removed from version ".$versioned_plate->version;
     my $new_plate = create_barcoded_plate_copy(
         $model,
         {
-            new_plate_name   => $plate_name,
+            new_plate_name   => $plate->name,
             barcode_for_well => \%barcode_for_well,
             wells_without_barcode  => \@wells_without_barcode,
             user             => $user,
@@ -338,32 +338,31 @@ sub remove_well_barcodes_from_plate{
     return $new_plate;
 }
 
-sub rename_plate_with_version{
+sub version_plate{
     my ($model, $plate) = @_;
 
-    my $plate_name = $plate->name;
-
-    my @previous_versions = $model->schema->resultset('Plate')->search({
-        name    => { like => $plate_name.'(v%)' },
-        type_id => $plate->type,
-    });
-
-    my $max_version_num = 0;
-
-    foreach my $plate_version (@previous_versions){
-        my $name = $plate_version->name;
-        my ($number) = ( $name =~ /\(v([0-9]+)\)$/g );
-        if($number > $max_version_num){
-            $max_version_num = $number;
+    my $previous_version = $model->schema->resultset('Plate')->search(
+        {
+            name    => $plate->name,
+            version => { '!=', undef },
+        },
+        {
+            order_by => { -desc => [qw/version/] }
         }
+    )->first;
+
+    my $new_version_num;
+    if($previous_version){
+        $new_version_num = $previous_version->version + 1;
+    }
+    else{
+        $new_version_num = 1;
     }
 
-    my $rename_to = $plate_name.'(v'.($max_version_num + 1).')';
+    DEBUG "Versioning ".$plate->name." with version number $new_version_num";
 
-    DEBUG "Renaming plate $plate_name to $rename_to";
-
-    $plate->update({ name => $rename_to, is_virtual => 1 });
-    return $plate->name;
+    $plate->update({ version => $new_version_num, is_virtual => 1 });
+    return $plate;
 }
 
 sub pspec_create_barcoded_plate_copy{
@@ -409,7 +408,7 @@ sub create_barcoded_plate_copy{
         # Provide a message if a well has changed position
         # or come from a plate which is not an older version of this one
         my $parent_plate = $bc->well->plate;
-        if( $parent_plate->name !~ /$validated_params->{new_plate_name}\(v.*\)/ ){
+        if( $parent_plate->name ne $validated_params->{new_plate_name} ){
             # Check if parent plate is virtual
             # If it is real we need to reversion it without this well
             unless($parent_plate->is_virtual){
@@ -433,6 +432,7 @@ sub create_barcoded_plate_copy{
         $new_well_details->{well_name}    = $well;
         $new_well_details->{parent_well}  = $bc->well->name;
         $new_well_details->{parent_plate} = $bc->well->plate->name;
+        $new_well_details->{parent_plate_version} = $bc->well->plate->version;
         $new_well_details->{accepted}     = $bc->well->accepted;
         $new_well_details->{process_type} = 'rearray';
         push @wells, $new_well_details;
@@ -457,6 +457,7 @@ sub create_barcoded_plate_copy{
             $new_well_details->{well_name}    = $well->name;
             $new_well_details->{parent_well}  = $well->name;
             $new_well_details->{parent_plate} = $well->plate->name;
+            $new_well_details->{parent_plate_version} = $well->plate->version;
             $new_well_details->{accepted}     = $well->accepted;
             $new_well_details->{process_type} = 'rearray';
 
@@ -652,7 +653,7 @@ sub upload_plate_scan{
             # FIXME: create_barcoded_plate_copy does not generate any messages
             # so no information about well movements, state changes etc
 
-            my $versioned_name = rename_plate_with_version($model, $existing_plate);
+            my $versioned_plate = version_plate($model, $existing_plate);
 
             my $plate_create_params = {
                 slice_def($validated_params, qw(user comment))
