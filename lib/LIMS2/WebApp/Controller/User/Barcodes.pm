@@ -295,9 +295,15 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
 
         if($c->stash->{error_msg}){
             # Recreate stash for barcode upload form
-            # FIXME: scanned barcodes will be lost
             foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name piq_plate_name) ){
                 $c->stash->{$item} = $c->req->param($item);
+            }
+
+            # Stash scanned barcodes
+            my @barcode_fields = grep { $_ =~ /barcode_([0-9]+)$/ } keys %{$c->request->parameters};
+            foreach my $field_name (@barcode_fields){
+                $c->log->debug("Stashing $field_name");
+                $c->stash->{$field_name} = $c->req->param($field_name);
             }
 
             my $tmp_piq_plate = $c->model('Golgi')->retrieve_plate({
@@ -581,6 +587,8 @@ sub rescan_barcoded_plate : Path( '/user/rescan_barcoded_plate' ) : Args(0){
 sub well_barcode_history : Path( '/user/well_barcode_history' ) : Args(1){
     my ($self, $c, $barcode) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     unless($barcode){
         $c->stash->{error_msg} = "No barcode provided";
         return;
@@ -602,6 +610,7 @@ sub well_barcode_history : Path( '/user/well_barcode_history' ) : Args(1){
 sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Args(1){
     my ($self, $c, $plate_id) = @_;
 
+    $c->assert_user_roles( 'read' );
     # FIXME: plate_id sanity checks
 
     my $plate = $c->model('Golgi')->retrieve_plate({ id => $plate_id });
@@ -617,30 +626,35 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
             }
         );
 
-        my $most_recent_event = $events[0];
-        my @changes;
-
-        if($most_recent_event->old_well->id != $most_recent_event->new_well->id){
-            push @changes, 'Barcode moved from well '.$most_recent_event->old_well->as_string
-                       .' to well '.$most_recent_event->new_well->as_string;
-        }
-
-        if($most_recent_event->old_state->id ne $most_recent_event->new_state->id){
-            push @changes, 'Barcode state changed from '.$most_recent_event->old_state->id
-                          .' to '.$most_recent_event->new_state->id;
-        }
-
-        push @barcode_data, {
+        my $details = {
             barcode => $barcode->barcode,
             state   => $barcode->barcode_state->id,
             events  => \@events,
             current_plate => $barcode->well->plate->name,
             current_well  => $barcode->well->name,
-            most_recent_event_date => $most_recent_event->created_at,
-            most_recent_event_user => $most_recent_event->created_by->name,
-            most_recent_change => (join ". ", @changes),
-            most_recent_comment => $most_recent_event->comment,
         };
+
+        if(@events){
+            my $most_recent_event = $events[0];
+            my @changes;
+
+            if($most_recent_event->old_well->id != $most_recent_event->new_well->id){
+                push @changes, 'Barcode moved from well '.$most_recent_event->old_well->as_string
+                           .' to well '.$most_recent_event->new_well->as_string;
+            }
+
+            if($most_recent_event->old_state->id ne $most_recent_event->new_state->id){
+                push @changes, 'Barcode state changed from '.$most_recent_event->old_state->id
+                              .' to '.$most_recent_event->new_state->id;
+            }
+
+            $details->{most_recent_event_date} = $most_recent_event->created_at;
+            $details->{most_recent_event_user} = $most_recent_event->created_by->name;
+            $details->{most_recent_change} = (join ". ", @changes);
+            $details->{most_recent_comment} = $most_recent_event->comment;
+        }
+
+        push @barcode_data, $details;
     }
 
     my @sorted_barcode_data = sort { $a->{barcode} cmp $b->{barcode} } @barcode_data;

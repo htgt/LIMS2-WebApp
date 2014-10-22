@@ -233,7 +233,10 @@
               <a href="[% c.uri_for( '/user/generate_picklist' ) %]">Generate Pick List</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/well_checkout' ) %]">Barcode Checkout</a>
+              <a href="[% c.uri_for( '/user/scan_barcode' ) %]">Scan Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/well_checkout' ) %]">Checkout Barcode</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/view_checked_out_barcodes/FP' ) %]">Checked Out FP Barcodes</a>

@@ -22,7 +22,8 @@
     <input type="hidden" name="piq_plate_name" value="[% piq_plate_name %]"/>
     [% FOREACH well IN piq_wells %]
       Barcode for [% well.well_lab_number.lab_number %]
-      <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here">
+      [% barcode = 'barcode_' _ well.id %]
+      <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here" value="[% $barcode %]">
       <br>
     [% END %]
     <button type="submit" name="submit_piq_barcodes" class="btn btn-danger" value="submit_piq_barcodes">
