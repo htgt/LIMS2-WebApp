@@ -99,12 +99,21 @@ sub _build_crispr_wells {
     foreach my $well ($self->plate->wells){
         $crispr_wells->{ $well->id } = {};
         my $well_ref = $crispr_wells->{ $well->id };
-        if (my $design = $well->design){
+
+        my $design;
+        if ( $self->well_designs->{ $well->id } ) {
+            $design = $self->well_designs->{ $well->id };
+        }
+        else {
+            $design = $well->design;
+        }
+
+        if ( $design ){
             foreach my $crispr_design ($design->crispr_designs){
                 $well_ref->{ $crispr_design->id } = {};
                 my $crispr_design_ref = $well_ref->{ $crispr_design->id };
                 if(my $crispr = $crispr_design->crispr){
-                    $crispr_design_ref->{sinlge} = [ $crispr->crispr_wells ];
+                    $crispr_design_ref->{single} = [ $crispr->crispr_wells ];
                 }
                 elsif(my $crispr_pair = $crispr_design->crispr_pair){
                     $crispr_design_ref->{left} = [ $crispr_pair->left_crispr->crispr_wells ];
@@ -169,6 +178,37 @@ sub _build_crispr_well_descendants {
     }
 
     return $child_well_ids;
+}
+
+# key = well_id, value = design_id, can only set when using PlateReport custom resultset
+has well_designs => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    default => sub{ {} },
+);
+
+=head2 set_well_designs
+
+If the PlateReport custom resultset has been used to gather data for the plate report
+then we already have the design id for each well
+
+=cut
+sub set_well_designs {
+    my ( $self, $wells_data ) = @_;
+    my ( %well_designs, %designs );
+
+    for my $well_data ( @{ $wells_data } ) {
+        my $well_id = $well_data->{well_id};
+        my $design_id = $well_data->{design_id};
+        next unless $design_id; # crispr well
+        unless ( exists $designs{ $design_id } ) {
+            $designs{ $design_id } = $self->model->c_retrieve_design( { id => $design_id } );
+        }
+        $well_designs{ $well_id } = $designs{ $design_id };
+    }
+    $self->well_designs( \%well_designs );
+
+    return;
 }
 
 # Needed way of having multiple plate type reports but having only one of these
@@ -425,6 +465,33 @@ sub ancestor_cols {
                 $self->qc_result_cols( $ancestor )
             );
         }
+    }
+
+    return ('')x5;
+}
+
+=head2 ancestor_cols_quick
+
+If we are using the PlateReport custom resultset to gather the plate report
+data we can use this method to quickly grab ancestor wells.
+
+=cut
+sub ancestor_cols_quick {
+    my ( $self, $result, $plate_type ) = @_;
+
+    my $well_name = $result->{well_ancestors}{$plate_type}{well_name};
+    my $well_id = $result->{well_ancestors}{$plate_type}{well_id};
+
+    if ( $well_id ) {
+        my $well = $self->model->schema->resultset('Well')->find(
+            { id => $well_id },
+            { prefetch => 'well_qc_sequencing_result' }
+        );
+
+        return (
+            $well_name,
+            $self->qc_result_cols( $well ),
+        );
     }
 
     return ('')x5;
