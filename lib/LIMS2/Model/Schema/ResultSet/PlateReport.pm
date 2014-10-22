@@ -9,40 +9,46 @@ use WebAppCommon::Util::FindGene qw( c_find_gene );
 
 use base 'DBIx::Class::ResultSet';
 
-use Smart::Comments;
-
 # NOTE - does not work for double targeted plates / well
 
-#TODO crispr data / crispr plates?
+# TODO tidy this up
 sub consolidate {
-    my ( $self ) = @_;
+    my ( $self, $plate_id, $prefetch_well_data ) = @_;
 
-    my $plate;
+    unless ( $plate_id ) {
+        die( 'Must specify plate_id' );
+    }
+
+    my @prefetch = ( 'well_accepted_override' );
+    if ( $prefetch_well_data ) {
+        push @prefetch, @{ $prefetch_well_data };
+    }
+    my $plate = $self->result_source->schema->resultset( 'Plate' )->find(
+        {
+            id => $plate_id,
+        },
+        {
+            prefetch => { wells => \@prefetch },
+        }
+    );
+    my %wells = map{ $_->id => $_ } $plate->wells->all;
+
     my %data;
     while ( my $r = $self->next ) {
-        unless ( $plate ) {
-            $plate = $r->well->plate;
-        }
         push @{ $data{ $r->root_well_id } }, $r;
     }
 
     my $plate_user = $plate->created_by;
-    my @wells;
+    my @wells_data;
     for my $well_id ( keys %data ) {
-        push @wells, $self->consolidate_well_data( $data{ $well_id }, $plate_user );
+        push @wells_data, $self->consolidate_well_data( $data{ $well_id }, $wells{ $well_id }, $plate_user );
     }
 
-    return \@wells;
+    return \@wells_data;
 }
 
-#TODO way to prefetch:
-#     well_accepted_override
-#     well_qc_sequencing_result
-#     etc etc
-
 sub consolidate_well_data {
-    my ( $self, $data, $plate_user ) = @_;
-    my $well = $data->[0]->well; 
+    my ( $self, $data, $well, $plate_user ) = @_;
 
     my $created_by_name
         = $plate_user->id == $well->created_by_id ? $plate_user->name : $well->created_by->name;
@@ -67,7 +73,16 @@ sub consolidate_well_data {
         $well_data{design_id} = $short_arm_design_id;
     }
 
-    $well_data{backbone} = get_data( \@rows, 'backbone', [ 'crispr_vector' ] );
+    $well_data{crispr_ids} = get_multiple_data( \@rows, 'crispr_id' );
+    $well_data{crispr_wells} = crispr_wells_data( \@rows ) if $well_data{crispr_ids};
+
+    # if we have both a crispr and design we want the backbone from the design
+    if ( $well_data{crispr_ids} && $well_data{design_id} ) {
+        $well_data{backbone} = get_data( \@rows, 'backbone', [ 'crispr_vector' ] );
+    }
+    else {
+        $well_data{backbone} = get_data( \@rows, 'backbone' );
+    }
 
     $well_data{cassette} = get_data( \@rows, 'cassette' );
     $well_data{cassette_resistance} = get_data( \@rows, 'cassette_resistance' );
@@ -75,11 +90,14 @@ sub consolidate_well_data {
     $well_data{cassette_promoter} = $cassette_promoter ? 'promoter' : 'promoterless';
 
     $well_data{cell_line} = get_data( \@rows, 'cell_line' );
-    $well_data{recombinases} = get_multiple_data( \@rows, 'recombinase' );
+    $well_data{nuclease} = get_data( \@rows, 'nuclease' );
+    my $recombinases = get_multiple_data( \@rows, 'recombinase' );
+    $well_data{recombinases} = join( ', ', @{ $recombinases } ) if $recombinases;
 
     my @parent_rows = grep { $_->{depth} == 1 } @rows;
     $well_data{parent_wells}
-        = join( ', ', map { $_->{output_plate_name} . '_' . $_->{output_well_name} } @parent_rows );
+        = [ map { { plate_name => $_->{output_plate_name}, well_name => $_->{output_well_name} } }
+            @parent_rows ];
 
     $well_data{well_ancestors} = well_ancestors_by_plate_type( \@rows );
     return \%well_data;
@@ -109,14 +127,14 @@ sub get_data {
         my @filtered_rows;
         for my $row ( @{ $rows } ) {
             push @filtered_rows, $row if none { $_ eq $row->{process_type} } @{ $ignore_process_types };
-        } 
+        }
         $row = first{ $_->{$data_type} } @filtered_rows;
     }
     else {
         $row = first{ $_->{$data_type} } @{ $rows };
     }
 
-    return $row->{$data_type};
+    return $row ? $row->{$data_type} : undef;
 }
 
 sub get_multiple_data {
@@ -127,17 +145,15 @@ sub get_multiple_data {
         my @filtered_rows;
         for my $row ( @{ $rows } ) {
             push @filtered_rows, $row if none { $_ eq $row->{process_type} } @{ $ignore_process_types };
-        } 
+        }
         @matched_rows = grep { $_->{$data_type} } @filtered_rows;
     }
     else {
         @matched_rows = grep { $_->{$data_type} } @{ $rows };
     }
 
-    return join( ', ', map{ $_->{$data_type} } @matched_rows);
+    return @matched_rows ? [ map{ $_->{$data_type} } @matched_rows ] : undef;
 }
-
-
 
 sub design_gene_data {
     my ( $self, $well_data, $rows ) = @_;
@@ -145,6 +161,8 @@ sub design_gene_data {
 
     # the create_di process row contains the data we need
     my $create_di_process_row = first { $_->{process_type} eq 'create_di' } @{ $rows };
+    return unless $create_di_process_row; # crispr well
+
     $well_data->{design_id} = $create_di_process_row->{design_id};
     my $gene_id = $create_di_process_row->{gene_id};
     my $gene_symbol = $create_di_process_row->{gene_symbol};
@@ -169,7 +187,7 @@ sub design_gene_data {
             );
         };
         $well_data->{gene_ids} = join( '/', @gene_ids );
-        $well_data->{gene_symbol} = $gene ? $gene->{gene_symbol} : 'unknown'; 
+        $well_data->{gene_symbol} = $gene ? $gene->{gene_symbol} : 'unknown';
     }
 
     my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
@@ -178,6 +196,23 @@ sub design_gene_data {
     $well_data->{sponsors} = join( '/', @sponsors );
 
     return;
+}
+
+sub crispr_wells_data {
+    my ( $rows ) = @_;
+
+    my @crispr_wells;
+    my @create_crispr_rows = grep { $_->{process_type} eq 'create_crispr' } @{ $rows };
+
+    for my $row ( @create_crispr_rows ) {
+        push @crispr_wells, {
+            plate_name => $row->{output_plate_name},
+            well_name  => $row->{output_well_name},
+            crispr_id  => $row->{crispr_id},
+        }
+    }
+
+    return \@crispr_wells;
 }
 
 1;
