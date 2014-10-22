@@ -8,6 +8,12 @@ use Try::Tiny;
 
 use base 'DBIx::Class::ResultSet';
 
+=head2 child_well_hash
+
+Merge result rows into a hash keyed on well id, values are array refs
+of full child well names
+
+=cut
 sub child_well_hash {
     my ( $self ) = @_;
 
@@ -20,6 +26,12 @@ sub child_well_hash {
     return \%child_well_hash;
 }
 
+=head2 child_well_by_type
+
+Merge result rows into a hash keyed on well id, and then on child well plate type.
+Values counts of wells of that type, and counts of accepted wells on that type.
+
+=cut
 sub child_well_by_type {
     my ( $self ) = @_;
 

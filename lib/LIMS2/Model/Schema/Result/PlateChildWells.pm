@@ -6,6 +6,9 @@ LIMS2::Model::Schema::Result::PlateChildWells
 
 =head1 DESCRIPTION
 
+Custom resultset that grabs all the child wells from a given plate.
+Also grabs the child well accepted data.
+
 =cut
 
 use strict;

@@ -6,6 +6,10 @@ LIMS2::Model::Schema::Result::PlateReport
 
 =head1 DESCRIPTION
 
+Custom resultset used to speed up plate reports.
+Query gathers data on all the wells on a plate by recursing down the well ancestors
+and picking up all the process data along the way.
+
 =cut
 
 use strict;
@@ -32,7 +36,7 @@ WITH RECURSIVE well_hierarchy(root_well_id, process_id, process_type, input_well
     JOIN plates output_plate ON output_plate.id = output_well.plate_id
     WHERE pr_out.well_id IN (
         SELECT starting_well FROM well_list
-    ) 
+    )
 UNION ALL
     SELECT wh.root_well_id, pr.id, pr.type, pr_in.well_id, pr_out.well_id, output_well.name, output_plate.name, output_plate.type_id, wh.depth + 1, pr.design_id, pr.short_arm_design_id, pr.cassette, pr.cassette_resistance, pr.cassette_promoter, pr.backbone, pr.recombinase, pr.cell_line, pr.gene_id, pr.gene_symbol, pr.crispr_id, pr.nuclease
     FROM process_data pr
@@ -67,13 +71,13 @@ process_data ( id, type, cassette, cassette_resistance, cassette_promoter, backb
     LEFT OUTER JOIN (
         select distinct on (design_id) design_id, design_gene_id, design_gene_symbol
         FROM summaries
-    ) as gene 
+    ) as gene
     ON pd.design_id = gene.design_id
 ),
 well_list(starting_well) AS (
     SELECT wells.id
     FROM wells inner join plates on plates.id = wells.plate_id
-    WHERE plates.id = ? 
+    WHERE plates.id = ?
 )
 SELECT w.*
 FROM well_hierarchy w
@@ -122,5 +126,3 @@ sub as_hash {
 __PACKAGE__->meta->make_immutable;
 
 1;
-
-
