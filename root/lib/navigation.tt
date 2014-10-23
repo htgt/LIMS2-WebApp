@@ -197,6 +197,13 @@
                 Crispr Electroporation Detail
               </a>
             </li>
+            [% IF c.session.selected_species == "Mouse" %]
+            <li>
+                <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummary' ) %]">
+                  Crispr Electroporation Summary
+                </a>
+            </li>
+            [% END %]
 <!--
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
