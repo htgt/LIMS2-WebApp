@@ -15,9 +15,7 @@ use base 'DBIx::Class::ResultSet';
 sub consolidate {
     my ( $self, $plate_id, $prefetch_well_data ) = @_;
 
-    unless ( $plate_id ) {
-        die( 'Must specify plate_id' );
-    }
+    die( 'Must specify plate_id' ) unless $plate_id;
 
     my @prefetch = ( 'well_accepted_override' );
     if ( $prefetch_well_data ) {
@@ -37,6 +35,7 @@ sub consolidate {
     while ( my $r = $self->next ) {
         push @{ $data{ $r->root_well_id } }, $r;
     }
+    $self->setup_gene_sponsors( \%data );
 
     my $plate_user = $plate->created_by;
     my @wells_data;
@@ -45,6 +44,27 @@ sub consolidate {
     }
 
     return \@wells_data;
+}
+
+{
+    my %projects_by_gene_id;
+
+    sub setup_gene_sponsors {
+        my ( $self, $data ) = @_;
+        my @gene_ids = uniq map { $_->gene_id } grep{ $_->gene_id } map{ @{ $_ } } values %{ $data };
+        my $schema = $self->result_source->schema;
+        my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
+        for my $gp ( @gene_projects ) {
+            push @{ $projects_by_gene_id{ $gp->gene_id } }, $gp->sponsor_id;
+        }
+
+        return;
+    }
+
+    sub get_gene_sponsors {
+        my ( $gene_id ) = @_;
+        return exists $projects_by_gene_id{ $gene_id } ? @{ $projects_by_gene_id{ $gene_id } } : ();
+    }
 }
 
 sub consolidate_well_data {
@@ -74,7 +94,12 @@ sub consolidate_well_data {
     }
 
     $well_data{crispr_ids} = get_multiple_data( \@rows, 'crispr_id' );
-    $well_data{crispr_wells} = crispr_wells_data( \@rows ) if $well_data{crispr_ids};
+    if ( $well_data{crispr_ids} ) {
+        $well_data{crispr_wells} = crispr_wells_data( \@rows );
+        if ( my $assembly_process = first{ $_->{process_type} =~ /crispr_assembly$/  } @rows ) {
+            $well_data{crispr_assembly_process} = $assembly_process->{process_type};
+        }
+    }
 
     # if we have both a crispr and design we want the backbone from the design
     if ( $well_data{crispr_ids} && $well_data{design_id} ) {
@@ -157,7 +182,6 @@ sub get_multiple_data {
 
 sub design_gene_data {
     my ( $self, $well_data, $rows ) = @_;
-    my $schema = $self->result_source->schema;
 
     # the create_di process row contains the data we need
     my $create_di_process_row = first { $_->{process_type} eq 'create_di' } @{ $rows };
@@ -171,10 +195,13 @@ sub design_gene_data {
     if ( $gene_id && $gene_symbol ) {
         $well_data->{gene_ids} = $gene_id;
         $well_data->{gene_symbols} = $gene_symbol;
-        push @gene_ids, $gene_id;
+        my @sponsors = uniq get_gene_sponsors( $gene_id );
+        $well_data->{sponsors} = join( '/', @sponsors );
     }
+    # no gene_id for gene_symbols stored in well data, need to to work it out ourselves
+    # this data may be missing because the designs are not in the summaries table yet
     else {
-
+        my $schema = $self->result_source->schema;
         my $design = $schema->resultset('Design')->find( { id => $well_data->{design_id} } );
         @gene_ids = uniq map { $_->gene_id } $design->genes;
 
@@ -188,12 +215,11 @@ sub design_gene_data {
         };
         $well_data->{gene_ids} = join( '/', @gene_ids );
         $well_data->{gene_symbol} = $gene ? $gene->{gene_symbol} : 'unknown';
+
+        my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
+        my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+        $well_data->{sponsors} = join( '/', @sponsors );
     }
-
-    my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
-    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
-
-    $well_data->{sponsors} = join( '/', @sponsors );
 
     return;
 }
