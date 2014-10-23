@@ -52,10 +52,26 @@ sub create_well_barcode {
 
     my $well = $self->retrieve_well({ id => $validated_params->{well_id }});
 
-    my $well_barcode = $well->create_related( well_barcode => {
-        barcode       => $validated_params->{barcode},
+    my $create_params = {
+        barcode => $validated_params->{barcode},
         barcode_state => $validated_params->{state},
-    });
+    };
+
+    # Store PIQ well id on barcode so we do not have to traverse lengthy well heirarchy
+    # to get back to root PIQ well when generating plate reports, etc
+    if ($well->plate->type->id eq 'PIQ'){
+        # parent well is probably the QC piq made by freeze_back so use this as root
+        # but if the parent is not a piq then set current well as the root piq
+        my ($parent) = $well->parent_wells;
+        if($parent->plate->type->id eq 'PIQ'){
+            $create_params->{root_piq_well_id} = $parent->id;
+        }
+        else{
+            $create_params->{root_piq_well_id} = $well->id;
+        }
+    }
+
+    my $well_barcode = $well->create_related( well_barcode => $create_params);
 
     # Optionally create event with comment about new well barcode
     if($validated_params->{user}){
