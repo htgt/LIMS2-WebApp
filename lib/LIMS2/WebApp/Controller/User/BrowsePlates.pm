@@ -45,7 +45,7 @@ sub index :Path( '/user/browse_plates' ) :Args(0) {
             plate_type => $params->{plate_type},
             species    => $params->{species} || $c->session->{selected_species},
             page       => $params->{page},
-            pagesize   => $params->{pagesize}
+            pagesize   => $params->{pagesize},
         }
     );
 

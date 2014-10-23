@@ -32,7 +32,8 @@ sub pspec_list_plates {
         plate_name => { validate => 'non_empty_string', optional => 1 },
         plate_type => { validate => 'existing_plate_type', optional => 1 },
         page       => { validate => 'integer', optional => 1, default => 1 },
-        pagesize   => { validate => 'integer', optional => 1, default => 15 }
+        pagesize   => { validate => 'integer', optional => 1, default => 15 },
+        hide_virtual_fp_piq => { validate => 'boolean', optional => 1, default => 1},
     };
 }
 
@@ -63,6 +64,20 @@ sub list_plates {
             rows     => $validated_params->{pagesize}
         }
     );
+
+    # Subselect all real plates
+    # and virtual plates which are not FP and PIQ
+    if($validated_params->{hide_virtual_fp_piq}){
+        $resultset = $resultset->search({
+            -or => {
+                'me.is_virtual' => undef ,
+                -and  => {
+                    -bool => 'me.is_virtual',
+                    'me.type_id' => { -not_in => [qw(FP PIQ)]}
+                }
+            }
+        });
+    }
 
     return ( [ $resultset->all ], $resultset->pager );
 }
