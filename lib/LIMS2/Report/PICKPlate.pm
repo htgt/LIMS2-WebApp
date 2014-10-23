@@ -29,6 +29,7 @@ override _build_columns => sub {
     return [
         $self->base_columns,
         "Cassette", "Cassette Resistance", "Recombinases", "Cell Line", "Clone ID",
+        "QC Pass", "Valid Primers", "QC Result URL", "Primer Bands"
     ];
 };
 
@@ -40,7 +41,7 @@ override iterator => sub {
         wells => {},
         {
             prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
+                'well_accepted_override', 'well_qc_sequencing_result', 'well_primer_bands'
             ],
             order_by => { -asc => 'me.name' }
         }
@@ -54,7 +55,6 @@ override iterator => sub {
         my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
         my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
 
-        # acs - 20_05_13 - redmine 10545 - add cassette resistance
         return [
             $self->base_data( $well ),
             $well->cassette->name,
@@ -62,6 +62,8 @@ override iterator => sub {
             join( q{/}, @{ $well->recombinases } ),
             $cell_line,
             $plate.'_'.$well_id,
+            $self->well_qc_sequencing_result_data( $well ),
+            $self->well_primer_bands_data( $well ),
         ];
     };
 };

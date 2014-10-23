@@ -19,7 +19,7 @@
               <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
+              <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Report</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
@@ -197,6 +197,13 @@
                 Crispr Electroporation Detail
               </a>
             </li>
+            [% IF c.session.selected_species == "Mouse" %]
+            <li>
+                <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummary' ) %]">
+                  Crispr Electroporation Summary
+                </a>
+            </li>
+            [% END %]
 <!--
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
