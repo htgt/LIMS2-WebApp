@@ -30,6 +30,8 @@ sub child_well_hash {
 
 Merge result rows into a hash keyed on well id, and then on child well plate type.
 Values counts of wells of that type, and counts of accepted wells on that type.
+For accepted first look to see if well accepted override value exists, if it does use that,
+otherwise use the well accepted value.
 
 =cut
 sub child_well_by_type {
@@ -38,8 +40,15 @@ sub child_well_by_type {
     my %child_wells;
     while ( my $r = $self->next ) {
         $child_wells{ $r->parent_well_id }{ $r->child_plate_type }{count}++;
-        if ( $r->child_well_accepted || $r->child_well_accepted_override ) {
-            $child_wells{ $r->parent_well_id }{ $r->child_plate_type }{accepted}++;
+        if ( defined $r->child_well_accepted_override ) {
+            if ( $r->child_well_accepted_override ) {
+                $child_wells{ $r->parent_well_id }{ $r->child_plate_type }{accepted}++;
+            }
+        }
+        else {
+            if ( $r->child_well_accepted ) {
+                $child_wells{ $r->parent_well_id }{ $r->child_plate_type }{accepted}++;
+            }
         }
     }
 
