@@ -35,7 +35,7 @@ override iterator => sub {
     #prefetch plate child wells
     my $child_wells_rs = $self->model->schema->resultset( 'PlateChildWells' )->search(
         {}, { bind => [ $self->plate->id ] } );
-    my $child_wells = $child_wells_rs->child_well_hash;
+    my $plate_child_wells = $child_wells_rs->child_well_hash;
 
     # use custom resultset to gather data for plate report speedily
     # avoid using process graph when adding new data or all speed improvements
@@ -77,7 +77,7 @@ override iterator => sub {
             @base_data = $self->base_data_crispr_quick( $well_data, $crispr );
         }
         else {
-            @base_data = $self->base_data_quick( $well_data ),
+            @base_data = $self->base_data_quick( $well_data );
         }
         # gene_id is a list of gene_ids joined by a slash, though in reality
         # 99.9% of the designs only have one gene_id associated with them
@@ -100,7 +100,7 @@ override iterator => sub {
             # Find accepted crispr DNA wells, method in LIMS2::ReportGenerator::Plate
             @accepted_crispr_data = $self->accepted_crispr_data( $well, 'DNA' );
         }
-        my $child_wells = $child_wells->{ $well_data->{well_id} } || [];
+        my $child_wells = $plate_child_wells->{ $well_data->{well_id} } || [];
 
         my @data = (
             @base_data,
