@@ -52,6 +52,7 @@ use Path::Class;
 
 
 sub pick_crispr_PCR_primers {
+    my $model = shift;
     my $params = shift;
 
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 500;
@@ -61,7 +62,7 @@ sub pick_crispr_PCR_primers {
     my ($primer_data, $primer_passes, $chr_seq_start);
     PCR_TRIALS: foreach my $step ( 1..4 ) {
         INFO ('PCR attempt No. ' . $step );
-        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate( $params );
+        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate($model, $params );
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('PCR Primer3 attempt No. ' . $step . ' succeeded');
             if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
@@ -91,8 +92,7 @@ sub crispr_PCR_calculate {
     my $repeat_mask = $params->{'repeat_mask'};
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_seq_start )
-        = get_crispr_PCR_EnsEmbl_region( {
-                model => $model,
+        = get_crispr_PCR_EnsEmbl_region($model, {
                 crispr_primers => $crispr_primers,
                 species => $species,
                 repeat_mask => $repeat_mask,
@@ -140,6 +140,7 @@ sub crispr_PCR_calculate {
 =cut
 
 sub pick_genotyping_primers {
+    my $model = shift;
     my $params = shift;
 
     $params->{'start_oligo_field_width'} = $ENV{'LIMS2_GENOTYPING_START_FIELD'} // 1000;
@@ -153,7 +154,7 @@ sub pick_genotyping_primers {
     GENO_TRIALS: foreach my $step ( 1..($ENV{'LIMS2_GENOTYPING_ITERATION_MAX'}//4) ) {
         INFO ('Genotyping attempt No. ' . $step );
         ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start, $chr_name)
-            = genotyping_calculate( $params );
+            = genotyping_calculate( $model, $params );
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('Genotyping Primer3 attempt No. ' . $step . ' succeeded');
             if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
@@ -185,8 +186,7 @@ sub genotyping_calculate {
 
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos, $chr_seq_start, $chr_name)
-        = get_genotyping_EnsEmbl_region( {
-                model => $model,
+        = get_genotyping_EnsEmbl_region( $model, {
                 design_id => $design_id,
                 repeat_mask => $repeat_mask,
                 start_oligo_field_width => $params->{'start_oligo_field_width'},
@@ -582,7 +582,6 @@ sub get_crispr_PCR_EnsEmbl_region{
 
     my $slice_adaptor = $model->ensembl_slice_adaptor($species);
     my $seq;
-
 
     my $start_target = $crispr_primers->{'crispr_primers'}->{'left'}->{'left_0'}->{'location'}->start
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
