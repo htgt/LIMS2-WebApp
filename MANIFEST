@@ -360,6 +360,7 @@ root/site/user/genoverse/genoverse_browse_view.tt
 root/site/user/genoverse/genoverse_crispr_primers_view.tt
 root/site/user/genoverse/genoverse_design_view.tt
 root/site/user/genoverse/genoverse_gene_view.tt
+root/site/user/genoverse/genoverse_primer_view.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
 root/site/user/platecopy/plate_copy_wait.tt

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.259';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.260';
 }
 ## use critic
 
@@ -78,7 +78,6 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( $search , {order_by => { -asc => 'gene_id' } });
 
-
     my @project_genes = map { [
         $_->id,
         $_->gene_id,
@@ -90,7 +89,6 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $_->recovery_comment // '',
         $_->priority // '',
     ] } @projects_rs;
-
 
     my $recovery_classes =  [ map { $_->id } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'id' } }) ];
 
@@ -111,13 +109,14 @@ sub index :Path( '/user/projects' ) :Args(0) {
     return;
 }
 
-sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) :Args(0) {
-    my ( $self, $c ) = @_;
+sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') CaptureArgs(1) {
+    my ( $self, $c, $edit_class) = @_;
 
     $c->assert_user_roles('read');
 
     my $params = $c->request->params;
 
+    # adding new recovery class
     if ($params->{add_recovery_class} && $params->{new_recovery_class}) {
 
         my $new_class = $params->{new_recovery_class};
@@ -140,6 +139,58 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) :Args(0) {
         }
     }
 
+    # is a recovery class being edited?
+    if ($edit_class) {
+
+            my $retrieved_class = $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->find( {id => $edit_class} );
+            $edit_class = { id => $retrieved_class->id, description => $retrieved_class->description };
+            $c->stash( edit_class => $edit_class );
+
+    }
+
+    # the edit is to delete
+    if ($edit_class && $params->{delete_recovery_class}) {
+
+        $c->model('Golgi')->txn_do( sub {
+            try {
+                $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->find({ id => $edit_class->{id} })->delete;
+                $c->model('Golgi')->schema->resultset('Project')->search({ recovery_class => $edit_class->{id} })->update_all({ recovery_class => undef });
+
+                $c->flash( success_msg => "Deleted effort recovery class \"". $edit_class->{id} ."\"" );
+            }
+            catch {
+                $c->model('Golgi')->schema->txn_rollback;
+                $c->flash( error_msg => "Failed to delete effort recovery class \"". $edit_class->{id} ."\": $_" );
+            }
+        });
+
+        $params->{delete_recovery_class} = '';
+        return $c->response->redirect( $c->uri_for('/user/edit_recovery_classes' ) );
+
+    }
+
+    # the edit is to update
+    if ($edit_class && $params->{update_recovery_class}) {
+
+        $c->model('Golgi')->txn_do( sub {
+            try {
+                $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->find({ id => $edit_class->{id} })->update({ id => $params->{update_recovery_class_id}, description => $params->{update_recovery_class_description} });
+                $c->model('Golgi')->schema->resultset('Project')->search({ recovery_class => $edit_class->{id} })->update_all({ recovery_class => $params->{update_recovery_class_id} });
+
+                $c->flash( success_msg => "Updated effort recovery class \"". $edit_class->{id} ."\"" );
+            }
+            catch {
+                $c->model('Golgi')->schema->txn_rollback;
+                $c->flash( error_msg => "Failed to update effort recovery class \"". $edit_class->{id} ."\": $_" );
+            }
+        });
+
+        $params->{update_recovery_class} = '';
+        return $c->response->redirect( $c->uri_for('/user/edit_recovery_classes' ) );
+
+    }
+
+    # get the current recovery classes for the table
     my $recovery_classes =  [ map { {id => $_->id, description => $_->description} } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'id' } }) ];
 
     $c->stash(
@@ -149,7 +200,6 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) :Args(0) {
 
     return;
 }
-
 
 
 
