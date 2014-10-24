@@ -26,8 +26,6 @@ use WebAppCommon::Util::FindGene qw( c_find_gene );
 
 use base 'DBIx::Class::ResultSet';
 
-# NOTE - does not work for double targeted plates / well
-
 =head2 consolidate
 
 The main resultset method that parses the data into the wells array.
