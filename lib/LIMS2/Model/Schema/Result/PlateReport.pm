@@ -6,9 +6,13 @@ LIMS2::Model::Schema::Result::PlateReport
 
 =head1 DESCRIPTION
 
-Custom resultset used to speed up plate reports.
+Custom resultset used to speed up single targetted plate reports.
 Query gathers data on all the wells on a plate by recursing down the well ancestors
 and picking up all the process data along the way.
+
+See LIMS2::Model::Schema::ResultSet::PlateReport to see how data is processed.
+
+IMPORTANT: This can only be used for single targeted reports.
 
 =cut
 
