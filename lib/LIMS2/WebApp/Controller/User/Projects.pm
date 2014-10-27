@@ -33,7 +33,8 @@ sub index :Path( '/user/projects' ) :Args(0) {
     my $species_id = $c->session->{selected_species};
 
     my @sponsors_rs =  $c->model('Golgi')->schema->resultset('Project')->search( {
-            species_id  => $species_id
+            species_id  => $species_id,
+            sponsor_id => { '!=', 'All' }
         },{
             columns     => [ qw/sponsor_id/ ],
             distinct    => 1
