@@ -218,10 +218,8 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9jIcLUs7FQQA2fvWcRCgWQ
-
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-14 11:17:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:djydxXiT/U9oK3BE/QW9iw
 
 sub as_hash {
     my $self = shift;
@@ -235,6 +233,9 @@ sub as_hash {
           "species_id"        => $self->species_id,
           "htgt_project_id"   => $self->htgt_project_id,
           "effort_concluded"  => $self->effort_concluded,
+          "recovery_class"    => $self->recovery_class,
+          "recovery_comment"  => $self->recovery_comment,
+          "priority"          => $self->priority,
     }
 }
 

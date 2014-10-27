@@ -39,5 +39,60 @@ sub project_toggle_GET{
     return $self->status_ok( $c, entity => $project->as_hash );
 }
 
+sub project_recovery_class : Path( '/api/project_recovery_class' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub project_recovery_class_GET{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $project = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_project_by_id( { id => $c->request->param( 'id' ) } );
+        }
+    );
+    $project->update( { recovery_class => $c->request->param( 'recovery_class' ) } );
+
+    return $self->status_ok( $c, entity => $project->as_hash );
+}
+
+sub project_recovery_comment : Path( '/api/project_recovery_comment' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub project_recovery_comment_GET{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $project = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_project_by_id( { id => $c->request->param( 'id' ) } );
+        }
+    );
+    $project->update( { recovery_comment => $c->request->param( 'recovery_comment' ) } );
+
+    return $self->status_ok( $c, entity => $project->as_hash );
+}
+
+
+sub project_priority : Path( '/api/project_priority' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub project_priority_GET{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $project = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_project_by_id( { id => $c->request->param( 'id' ) } );
+        }
+    );
+    $project->update( { priority => $c->request->param( 'priority' ) } );
+
+    return $self->status_ok( $c, entity => $project->as_hash );
+}
+
 
 1;
