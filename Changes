@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.260     2014-10-24 14:31:50 Europe/London
+
+    Added crud interface for recovery classes
+
 0.259     2014-10-21 11:45:25 Europe/London
 
     Gene symbols added to QC results
