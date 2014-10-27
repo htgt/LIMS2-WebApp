@@ -138,6 +138,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 fp_picking_list_well_barcodes
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::FpPickingListWellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "fp_picking_list_well_barcodes",
+  "LIMS2::Model::Schema::Result::FpPickingListWellBarcode",
+  { "foreign.well_barcode" => "self.barcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 root_piq_well
 
 Type: belongs_to
@@ -174,8 +189,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1OSikdLHoix6F5SSW1JYGw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 10:58:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yturBr4xEPgf+sCdt1wRZw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

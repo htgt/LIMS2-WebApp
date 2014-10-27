@@ -182,6 +182,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 fp_picking_lists
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::FpPickingList>
+
+=cut
+
+__PACKAGE__->has_many(
+  "fp_picking_lists",
+  "LIMS2::Model::Schema::Result::FpPickingList",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 gene_designs
 
 Type: has_many
@@ -493,8 +508,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-09-29 10:06:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w/TcYBqqLY/vmk5NTQwXPA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 10:58:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e1T/UQEVDzGErLcVxFl3fQ
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

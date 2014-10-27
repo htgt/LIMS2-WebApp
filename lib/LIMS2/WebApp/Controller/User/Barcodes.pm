@@ -22,75 +22,73 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
     $c->assert_user_roles( 'read' );
 
     my $generate = $c->request->param('generate');
+    my $retrieve = $c->request->param('retrieve');
     my $genes  = $c->request->param('genes');
-
-    return unless $generate;
-
-    unless($genes){
-    	$c->stash->{error_msg} = "No gene symbols entered";
-    	return;
-    }
-
     $c->stash->{genes} = $genes;
-	# Enter list of gene symbols
-	my $sep = qr/[\s\n,;]+/;
-	my @symbols = split $sep, $genes;
-	$c->log->debug("generating picklist for symbols: ".join ", ",@symbols);
+    $c->stash->{id} = $c->request->param('id');
 
-	# find all FP wells for it which are currently "in_freezer"
-	# FIXME: this logic should go in plugin
-	my $summary_rs = $c->model('Golgi')->schema->resultset("Summary")->search({
-		design_gene_symbol => { -in => \@symbols },
-		fp_well_id         => {'!=', undef },
-		design_species_id  => $c->session->{selected_species},
-	});
+    return unless ($generate or $retrieve);
 
-    my @well_ids = map { $_->fp_well_id } $summary_rs->all;
+    my $pick_list;
 
-    my $barcode_rs = $c->model('Golgi')->schema->resultset("WellBarcode")->search(
-        {
-    	    well_id       => { -in => \@well_ids },
-    	    barcode_state => 'in_freezer',
-        },
-        {
-        	prefetch      => [ qw(well) ],
+    if ($generate){
+        unless($genes){
+        	$c->stash->{error_msg} = "No gene symbols entered";
+        	return;
         }
-    );
 
-    my @data;
-    foreach my $bc ($barcode_rs->all){
-    	my @summaries = $summary_rs->search({
-            fp_well_id => $bc->well_id,
-    	})->all;
+    	# Enter list of gene symbols
+    	my $sep = qr/[\s\n,;]+/;
+    	my @symbols = split $sep, $genes;
+    	$c->log->debug("generating picklist for symbols: ".join ", ",@symbols);
 
-    	my @epd_names = map { $_->ep_pick_plate_name."_".$_->ep_pick_well_name } @summaries;
+    	my $pick_list;
 
-        my @datum = (
-        	$summaries[0]->design_gene_symbol,
-            $bc->well->plate->name,
-            $bc->well->name,
-            $bc->barcode,
-            (join ", ", uniq @epd_names),
-            "",
-            "",
-        );
-        push @data, \@datum;
+        try{
+            $pick_list = $c->model('Golgi')->generate_fp_picking_list({
+                symbols => \@symbols,
+                species => $c->session->{selected_species},
+                user    => $c->user->name,
+            });
+        }
+        catch($e){
+            $c->stash->{error_msg} = "Failed to generate pick list: $e";
+            return;
+        };
+    }
+    elsif($retrieve){
+        unless($c->request->param('id')){
+            $c->stash->{error_msg} = "No pick list ID entered";
+            return;
+        }
+
+        try{
+            $pick_list = $c->model('Golgi')->retrieve_fp_picking_list({
+                id => $c->request->param('id'),
+            });
+        }
+        catch($e){
+            $c->stash->{error_msg} = "Failed to retrieve pick list: $e";
+            return;
+        }
     }
 
-    unless(@data){
-    	$c->stash->{error_msg} = "No FP wells found in freezer for genes: ".join ", ",@symbols;
+    my $display_data = $self->_pick_list_display_data($c->model('Golgi')->schema, $pick_list);
+    unless(@$display_data){
+    	$c->stash->{error_msg} = "No FP wells found";
     	return;
     }
 
-    # NB: underscores in column headings are needed as spaces in col headings caused
-    # problems for ExtJS grid printing plugin
-    $c->stash->{columns} = [ ("Gene","Plate","Well","Barcode","Parent_EPD","To_Pick","Picked") ];
-    $c->stash->{data} = \@data;
-    $c->stash->{title} = "Final Pick Plates in Freezer";
+    $c->stash->{pick_list} = $pick_list;
+    $c->stash->{columns} = $self->_pick_list_display_cols;
+    $c->stash->{data} = $display_data;
+    $c->stash->{title} = "FP Pick List ID: ".$pick_list->id;
 
-	# Provide as printable list contining plate/well position, barcodes, parent EPDs
-	# blank columns for "to pick"/"picked"
     return;
+}
+
+sub checkout_from_pick_list{
+
 }
 
 sub scan_barcode : Path( '/user/scan_barcode' ) : Args(0){
@@ -698,4 +696,38 @@ sub _well_display_details{
 
     return $well_details;
 }
+
+sub _pick_list_display_cols{
+    # NB: underscores in column headings are needed as spaces in col headings caused
+    # problems for ExtJS grid printing plugin
+
+    return [ ("Gene","Plate","Well","Barcode","Parent_EPD","To_Pick","Picked") ];
+}
+
+sub _pick_list_display_data{
+    my ($self, $schema, $pick_list) = @_;
+
+    my @data;
+    foreach my $bc ($pick_list->well_barcodes){
+        my @summaries = $schema->resultset('Summary')->search({
+            fp_well_id => $bc->well_id,
+        })->all;
+
+        my @epd_names = map { $_->ep_pick_plate_name."_".$_->ep_pick_well_name } @summaries;
+
+        my @datum = (
+            $summaries[0]->design_gene_symbol,
+            $bc->well->plate->name,
+            $bc->well->name,
+            $bc->barcode,
+            (join ", ", uniq @epd_names),
+            "",
+            "",
+        );
+        push @data, \@datum;
+    }
+
+    return \@data;
+}
+
 1;
