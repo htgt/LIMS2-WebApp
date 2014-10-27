@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.258';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.260';
 }
 ## use critic
 
@@ -289,7 +289,7 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
 
     # Human project sponsors list
 
-    my @human_sponsors = ['All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
+    my @human_sponsors = ['All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs'];
     $c->stash(
         template    => 'user/report/select_sponsor.tt',
         report_name => $report,

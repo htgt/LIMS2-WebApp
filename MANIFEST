@@ -100,7 +100,9 @@ lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
 lib/LIMS2/Model/Schema/Result/Nuclease.pm
 lib/LIMS2/Model/Schema/Result/Plate.pm
+lib/LIMS2/Model/Schema/Result/PlateChildWells.pm
 lib/LIMS2/Model/Schema/Result/PlateComment.pm
+lib/LIMS2/Model/Schema/Result/PlateReport.pm
 lib/LIMS2/Model/Schema/Result/PlateType.pm
 lib/LIMS2/Model/Schema/Result/PrimerBandType.pm
 lib/LIMS2/Model/Schema/Result/Process.pm
@@ -162,6 +164,8 @@ lib/LIMS2/Model/Schema/Result/WellRecombineeringResult.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingNeoPass.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingPass.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingPuroPass.pm
+lib/LIMS2/Model/Schema/ResultSet/PlateChildWells.pm
+lib/LIMS2/Model/Schema/ResultSet/PlateReport.pm
 lib/LIMS2/Model/Types.pm
 lib/LIMS2/Model/Util.pm
 lib/LIMS2/Model/Util/AlleleDetermination.pm
@@ -360,6 +364,7 @@ root/site/user/genoverse/genoverse_browse_view.tt
 root/site/user/genoverse/genoverse_crispr_primers_view.tt
 root/site/user/genoverse/genoverse_design_view.tt
 root/site/user/genoverse/genoverse_gene_view.tt
+root/site/user/genoverse/genoverse_primer_view.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
 root/site/user/platecopy/plate_copy_wait.tt

@@ -49,6 +49,7 @@ requires:
   Crypt::CBC: 0
   Crypt::SaltedHash: 0
   DBIx::Class::Core: 0
+  DBIx::Class::ResultSet: 0
   DBIx::Class::Schema: 0
   DBIx::Class::Schema::Loader: 0
   DBIx::Connector: 0
@@ -161,4 +162,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.258
+version: 0.260

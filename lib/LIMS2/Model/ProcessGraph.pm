@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.258';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.260';
 }
 ## use critic
 
@@ -85,7 +85,8 @@ has prefetch_process_data => (
         [ 'process_design',
           { 'process_cassette' => 'cassette' },
           { 'process_backbone' => 'backbone' },
-          'process_recombinases'
+          'process_recombinases',
+          'process_global_arm_shortening_design',
       ]
     }
 );

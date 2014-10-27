@@ -40,7 +40,7 @@
               <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.id } ) %]" target="_blank" class="btn btn-mini btn-info btn-block">Blat oligos</a>
             </td>
             <td>
-              <a href="[% c.uri_for( '/user/genoverse_design_view', { design_id => design.id } ) %]" target="_blank" class="btn btn-mini btn-info btn-block">Genoverse</a>
+              <a href="[% c.uri_for( '/user/genoverse_design_view', { design_id => design.id, gene_symbol => gene } ) %]" target="_blank" class="btn btn-mini btn-info btn-block">Genoverse</a>
             </td>
             <td>
               [% design.type %]

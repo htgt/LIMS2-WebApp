@@ -77,7 +77,7 @@ sub all_tests : Test(40) {
         $mech->text_contains('Crispr Assembly Plate HG1_DNA_ASSEMBLY');
         $mech->text_contains('HGNC:29499');
         $mech->text_contains('All/Pathogen');
-        $mech->text_contains('HCL1[A04]');
+        $mech->text_contains('HCL1_A04');
     }
 
     {

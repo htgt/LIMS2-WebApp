@@ -1,7 +1,7 @@
 package LIMS2::Report::GenesToElectroporate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GenesToElectroporate::VERSION = '0.258';
+    $LIMS2::Report::GenesToElectroporate::VERSION = '0.260';
 }
 ## use critic
 
@@ -55,7 +55,7 @@ sub _build_gene_electroporate_list {
             } );
         } else {
             $project_rs = $self->model->schema->resultset('Project')->search(
-                { sponsor_id => { -in => ['All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'] }
+                { sponsor_id => { -in => ['All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs'] }
             } );
         }
     }

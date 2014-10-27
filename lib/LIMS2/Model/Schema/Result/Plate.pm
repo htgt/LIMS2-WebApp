@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.258';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.260';
 }
 ## use critic
 
@@ -293,7 +293,7 @@ sub has_child_wells {
     my $self = shift;
 
     for my $well ( $self->wells ) {
-        return 1 if $well->input_processes > 0;
+        return 1 if $well->process_input_wells > 0;
     }
 
     return;
