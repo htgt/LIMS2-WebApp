@@ -96,3 +96,16 @@
         [% END %]
     </td>
 [% END %]
+
+<td>
+    <div class="control-group">
+      <div class="controls">
+       <select name="crispr_damage_[% row.well_id %]" class="crispr_damage_type input-medium" data-well_id="[% row.well_id %]" data-qc_run_id="[% qc_run_id %]">
+          <option value="" [% UNLESS row.damage_type %]selected[% END %]>-</option>
+          [%- FOR type IN damage_types %]
+            <option value="[% type %]" [% row.damage_type == type ? 'selected="selected"' : '' %]>[% type %]</option>
+          [% END %]
+       </select>
+     </div>
+   </div>
+</td>
