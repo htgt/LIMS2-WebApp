@@ -27,7 +27,7 @@
   Status: [% IF pick_list.active %] Active [% ELSE %] Inactive [% END %], Created By: [% pick_list.created_by.name %], Created At: [% pick_list.created_at %]
 </div>
 <div class="span6">
-<a class="btn btn-primary pull-right" href="[% c.uri_for('/user/checkout_from_picklist/',{id=id}) %]">
+<a class="btn btn-primary pull-right" href="[% c.uri_for('/user/checkout_from_picklist',{id=id}) %]">
 Checkout from Pick List
 </a>
 </div>

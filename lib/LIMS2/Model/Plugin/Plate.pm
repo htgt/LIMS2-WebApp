@@ -244,9 +244,11 @@ sub retrieve_plate {
 
     my $search_params = { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id me.barcode ) };
 
-    # Set the version search param after slice_def because we use undef (NULL in db)
-    # to indicate that we want the current plate
-    $search_params->{'me.version'} = $validated_params->{'me.version'};
+    if($search_params->{'me.name'}){
+        # Set the version search param. we use undef (NULL in db)
+        # to indicate that we want the current plate
+        $search_params->{'me.version'} = $validated_params->{'me.version'};
+    }
 
     return $self->retrieve(
         Plate => $search_params,

@@ -87,7 +87,38 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
     return;
 }
 
-sub checkout_from_pick_list{
+sub checkout_from_picklist : Path( '/user/checkout_from_picklist' ) : Args(0){
+
+    my ($self, $c) = @_;
+
+    my $pick_list;
+    unless($c->request->param('id')){
+        $c->stash->{error_msg} = "No pick list ID entered";
+        return;
+    }
+
+    try{
+        $pick_list = $c->model('Golgi')->retrieve_fp_picking_list({
+            id => $c->request->param('id'),
+        });
+    }
+    catch($e){
+        $c->stash->{error_msg} = "Failed to retrieve pick list: $e";
+        return;
+    }
+
+    my $display_data = $self->_pick_list_display_data($c->model('Golgi')->schema, $pick_list);
+    unless(@$display_data){
+        $c->stash->{error_msg} = "No FP wells found";
+        return;
+    }
+
+    $c->stash->{pick_list} = $pick_list;
+    $c->stash->{columns} = $self->_pick_list_display_cols;
+    $c->stash->{data} = $display_data;
+    $c->stash->{title} = "FP Pick List ID: ".$pick_list->id;
+
+    return;
 
 }
 

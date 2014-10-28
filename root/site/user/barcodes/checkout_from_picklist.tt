@@ -1,0 +1,107 @@
+[% META title = "Checkout Pick List Barcodes"; META tab_name = "Barcodes" -%]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/lims2_extjs.css',{v=5}) %]" />
+
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
+
+[% IF pick_list %]
+<div class="row">
+ <div class="span6">
+  <h3>Pick List ID: [% pick_list.id %]</h3>
+  Status: [% IF pick_list.active %] Active [% ELSE %] Inactive [% END %], Created By: [% pick_list.created_by.name %], Created At: [% pick_list.created_at %]
+ </div>
+ <div class="span6">
+ <form method="POST" action="[% c.uri_for( '/user/checkout_from_picklist' ) %]" id="barcode_input_form" class="well">
+   <input type="text" id="barcode" name="barcode" value="[% barcode %]">
+   <button class="btn btn-primary" id="add_barcode">Add Barcode</button>
+   <button class="btn" id="remove_barcode">Remove Barcode</button><br>
+   Scanned barcodes:
+   <p id="barcode_list">[% scanned_barcodes.join(",") %]</p>
+   <button type="submit" class="btn btn-primary pull-right">Submit All For Checkout</button>
+   [% FOREACH barcode IN scanned_barcodes %]
+     <input type="hidden" class="scanned_barcodes" name="scanned_barcodes" value="[% barcode %]">
+   [% END %]
+ </form>
+ </div>
+</div>
+
+<div id="my_results"></div>
+
+<div class="modal hide fade" id="dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Barcode Not in Pick List!</h3>
+  </div>
+  <div class="modal-body" id="dialog_content">
+  </div>
+</div>
+
+[% printable = 1 %]
+
+[% PROCESS 'user/barcodes/picklist_grid.tt' %]
+
+<script type="text/javascript" charset="utf-8">
+
+$( document ).ready(function() {
+  $('#add_barcode').click(function(event){
+    event.preventDefault();
+    var barcode = $('#barcode').val();
+    if($(".scanned_barcodes[value='" + barcode + "']").length){
+        console.log(barcode + ' already scanned');
+        return;
+    }
+// FIXME: check barcode is on list. if not report error and actual details of barcode
+    var listed_barcodes = $.map(grid.getStore().data.items, function(item){
+      return item.data.Barcode;
+    });
+
+    if($.inArray(barcode, listed_barcodes) == -1){
+       console.log(barcode + ' is not in this picklist');
+       $("#dialog").modal();
+       return;
+    }
+
+    $('<input>').attr({
+      type: 'hidden',
+      class: 'scanned_barcodes',
+      name: 'scanned_barcodes',
+      value: barcode,
+    }).appendTo('#barcode_input_form');
+
+    console.log(barcode + ' has been scanned');
+
+    update_barcode_list();
+
+    grid.view.refreshView();
+
+  });
+
+  $('#remove_barcode').click(function(event){
+    event.preventDefault();
+    var barcode = $('#barcode').val();
+    var barcode_input = $(".scanned_barcodes[value='" + barcode + "']");
+    if(barcode_input.length){
+      barcode_input.remove();
+
+      update_barcode_list();
+
+      grid.view.refreshView();
+    }
+    else{
+      console.log(barcode + ' had not been added');
+    }
+  });
+});
+
+function update_barcode_list(){
+  var scanned_barcodes = $.map($(".scanned_barcodes"), function(bc){
+    return bc.value;
+  });
+
+  $("#barcode_list").text(scanned_barcodes.join());
+}
+
+</script>
+
+[% END %]
