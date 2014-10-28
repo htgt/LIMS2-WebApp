@@ -120,6 +120,7 @@ sub ep_pick_crispr_es_qc_data {
 
     delete $data->{ep_pick_qc}{es_qc_well_id};
     delete $data->{ep_pick_qc}{gene};
+    $data->{ep_pick_qc}{qc_run_id} = $qc_run->id;
     $data->{ep_pick_qc}{well_name} = $ep_pick_well->as_string;
     $data->{accepted} = $qc_well->accepted;
 
@@ -160,6 +161,7 @@ sub piq_crispr_es_qc_data {
         my $qc_data = try { $qc_well->format_well_data( $gene_finder, { truncate => 1 }, $qc_run, [] ) };
         next unless $qc_data;
 
+        $qc_data->{qc_run_id} = $qc_run->id;
         delete $qc_data->{es_qc_well_id};
         delete $qc_data->{gene};
 
