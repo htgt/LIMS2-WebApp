@@ -13,15 +13,11 @@
  </div>
  <div class="span6">
  <form method="POST" action="[% c.uri_for( '/user/checkout_from_picklist' ) %]" id="barcode_input_form" class="well">
-   <input type="text" id="barcode" name="barcode" value="[% barcode %]">
-   <button class="btn btn-primary" id="add_barcode">Add Barcode</button>
-   <button class="btn" id="remove_barcode">Remove Barcode</button><br>
-   Scanned barcodes:
-   <p id="barcode_list">[% scanned_barcodes.join(",") %]</p>
-   <button type="submit" class="btn btn-primary pull-right">Submit All For Checkout</button>
-   [% FOREACH barcode IN scanned_barcodes %]
-     <input type="hidden" class="scanned_barcodes" name="scanned_barcodes" value="[% barcode %]">
-   [% END %]
+   <input type="hidden" value="[% pick_list.id %]">
+   <input type="text" id="barcode" name="barcode" value="[% barcode %]" placeholder="scan barcode">
+   <button class="btn btn-primary" id="add_barcode">Pick Tube</button>
+   <br>
+   <button type="submit" class="btn btn-primary pull-right" name="checkout">Submit Picked Tubes For Checkout</button>
  </form>
  </div>
 </div>
@@ -51,56 +47,35 @@ $( document ).ready(function() {
         console.log(barcode + ' already scanned');
         return;
     }
-// FIXME: check barcode is on list. if not report error and actual details of barcode
+
     var listed_barcodes = $.map(grid.getStore().data.items, function(item){
       return item.data.Barcode;
     });
 
     if($.inArray(barcode, listed_barcodes) == -1){
+//FIXME: display details of incorrect barcode so user can return it to freezer
        console.log(barcode + ' is not in this picklist');
        $("#dialog").modal();
        return;
     }
 
-    $('<input>').attr({
-      type: 'hidden',
-      class: 'scanned_barcodes',
-      name: 'scanned_barcodes',
-      value: barcode,
-    }).appendTo('#barcode_input_form');
-
-    console.log(barcode + ' has been scanned');
-
-    update_barcode_list();
-
-    grid.view.refreshView();
+    var url = "[% c.uri_for('/user/pick_barcode') %]?barcode=" + barcode + "&list_id=[% pick_list.id %]";
+    $.ajax(url).done(function(data){
+        console.log(data);
+        if(data.success){
+            grid.getStore().each(function(record){
+                if(record.get('Barcode') == barcode){
+                    record.set('Picked', 'TRUE');
+                }
+            });
+            grid.view.refreshView();
+        }
+    });
 
   });
 
-  $('#remove_barcode').click(function(event){
-    event.preventDefault();
-    var barcode = $('#barcode').val();
-    var barcode_input = $(".scanned_barcodes[value='" + barcode + "']");
-    if(barcode_input.length){
-      barcode_input.remove();
-
-      update_barcode_list();
-
-      grid.view.refreshView();
-    }
-    else{
-      console.log(barcode + ' had not been added');
-    }
-  });
 });
 
-function update_barcode_list(){
-  var scanned_barcodes = $.map($(".scanned_barcodes"), function(bc){
-    return bc.value;
-  });
-
-  $("#barcode_list").text(scanned_barcodes.join());
-}
 
 </script>
 

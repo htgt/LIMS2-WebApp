@@ -51,6 +51,7 @@ __PACKAGE__->config(
             $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
         ],
     },
+    'View::JSON' => { expose_stash => 'json_data' },
     'Plugin::Session' => {
         expires => 28800,                                # 8 hours
         storage => $ENV{LIMS2_SESSION_STORE}

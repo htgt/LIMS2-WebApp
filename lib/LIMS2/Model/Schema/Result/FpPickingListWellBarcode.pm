@@ -42,13 +42,13 @@ __PACKAGE__->table("fp_picking_list_well_barcode");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 well_barcode
 
   data_type: 'text'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 picked
 
@@ -59,12 +59,26 @@ __PACKAGE__->table("fp_picking_list_well_barcode");
 
 __PACKAGE__->add_columns(
   "fp_picking_list_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "well_barcode",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "picked",
   { data_type => "boolean", is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</fp_picking_list_id>
+
+=item * L</well_barcode>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("fp_picking_list_id", "well_barcode");
 
 =head1 RELATIONS
 
@@ -80,12 +94,7 @@ __PACKAGE__->belongs_to(
   "fp_picking_list",
   "LIMS2::Model::Schema::Result::FpPickingList",
   { id => "fp_picking_list_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 =head2 well_barcode
@@ -100,17 +109,12 @@ __PACKAGE__->belongs_to(
   "well_barcode",
   "LIMS2::Model::Schema::Result::WellBarcode",
   { barcode => "well_barcode" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 10:58:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Q4aAQIfj/BXPK3Pwf/9cuQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-28 16:05:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MiiIp59Sgvh1QJwnNOtSTQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -265,13 +265,6 @@
                         if(record.get('Picked')){
                             return "lims2-picked";
                         }
-
-                        var scanned_barcodes = $.map($(".scanned_barcodes"), function(bc){
-                            return bc.value;
-                        });
-                        if($.inArray(record.get('Barcode'), scanned_barcodes) > -1){
-                            return "lims2-barcode-scanned";
-                        }
                         return "";
                     },
                     firstCls: 'lims2-first-cell-format',

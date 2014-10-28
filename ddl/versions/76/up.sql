@@ -8,5 +8,6 @@ CREATE TABLE fp_picking_list (
 CREATE TABLE fp_picking_list_well_barcode (
     fp_picking_list_id INT REFERENCES fp_picking_list(id),
     well_barcode TEXT REFERENCES well_barcodes(barcode),
-    picked BOOLEAN
+    picked BOOLEAN,
+    PRIMARY KEY (fp_picking_list_id, well_barcode)
 );

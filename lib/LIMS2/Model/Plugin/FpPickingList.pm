@@ -103,5 +103,35 @@ sub create_fp_picking_list {
 
     return $pick_list;
 }
+
+sub pspec_pick_barcode_from_list{
+    return {
+        fp_picking_list_id => { validate => 'integer' },
+        well_barcode       => { validate => 'existing_well_barcode' },
+    }
+}
+
+sub pick_barcode_from_list{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, $self->pspec_pick_barcode_from_list);
+
+    my $list_barcode = $self->schema->resultset('FpPickingListWellBarcode')->search(
+        {
+            'me.fp_picking_list_id' => $validated_params->{fp_picking_list_id},
+            'well_barcode.barcode' => $validated_params->{well_barcode},
+        },
+        {
+            join => 'well_barcode',
+        }
+    )->first();
+
+    die "Could not find barcode in list" unless $list_barcode;
+
+    $list_barcode->update({ picked => 1 });
+
+    return $list_barcode;
+}
+
 1;
 

@@ -12,6 +12,7 @@ use Sub::Exporter -setup => {
               add_barcodes_to_wells
               upload_plate_scan
               send_out_well_barcode
+              do_picklist_checkout
           )
     ]
 };
@@ -81,6 +82,9 @@ sub checkout_well_barcode{
 
     # FIXME: check barcode is "in_freezer" before doing checkout? or is this too strict
 
+    # FIXME: make this deal with multiple barcodes.
+    # checkout one by one then remove from source plates in batch
+
     my $well_bc = $model->update_well_barcode({
         barcode   => $validated_params->{barcode},
         new_state => 'checked_out',
@@ -98,6 +102,30 @@ sub checkout_well_barcode{
     }
 
     return $well_bc;
+}
+
+sub pspec_do_picklist_checkout{
+    return {
+        id    => { validate => 'integer' },
+        user  => { validate => 'existing_user' },
+    };
+}
+
+sub do_picklist_checkout{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_do_picklist_checkout);
+    my $list = $model->retrieve_fp_picking_list($params);
+
+    my @barcodes = map { $_->barcode } $list->well_barcodes;
+
+    checkout_well_barcode({
+        barcode => \@barcodes,
+        user    => $validated_params->{user},
+    });
+
+    # FIXME: deactivate picking list
+    # report what was done
 }
 
 sub pspec_freeze_back_barcode{

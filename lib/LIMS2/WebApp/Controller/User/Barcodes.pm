@@ -97,29 +97,69 @@ sub checkout_from_picklist : Path( '/user/checkout_from_picklist' ) : Args(0){
         return;
     }
 
-    try{
-        $pick_list = $c->model('Golgi')->retrieve_fp_picking_list({
-            id => $c->request->param('id'),
-        });
+    if($c->request->param('checkout')){
+#System records changes (re-array each FP plate and set tubes scanned to 'checked out' and in FP limbo area.)
+#System de-activates picking list.
+#Returns and displays list of all changes made.
+#"Tube 'A' checked out from FP plate 'B' "
     }
-    catch($e){
-        $c->stash->{error_msg} = "Failed to retrieve pick list: $e";
-        return;
-    }
+    else{
 
-    my $display_data = $self->_pick_list_display_data($c->model('Golgi')->schema, $pick_list);
-    unless(@$display_data){
-        $c->stash->{error_msg} = "No FP wells found";
-        return;
-    }
+        try{
+            $pick_list = $c->model('Golgi')->retrieve_fp_picking_list({
+                id => $c->request->param('id'),
+            });
+        }
+        catch($e){
+            $c->stash->{error_msg} = "Failed to retrieve pick list: $e";
+            return;
+        }
 
-    $c->stash->{pick_list} = $pick_list;
-    $c->stash->{columns} = $self->_pick_list_display_cols;
-    $c->stash->{data} = $display_data;
-    $c->stash->{title} = "FP Pick List ID: ".$pick_list->id;
+        my $display_data = $self->_pick_list_display_data($c->model('Golgi')->schema, $pick_list);
+        unless(@$display_data){
+            $c->stash->{error_msg} = "No FP wells found";
+            return;
+        }
+
+        $c->stash->{pick_list} = $pick_list;
+        $c->stash->{columns} = $self->_pick_list_display_cols;
+        $c->stash->{data} = $display_data;
+        $c->stash->{title} = "FP Pick List ID: ".$pick_list->id;
+    }
 
     return;
+}
 
+sub pick_barcode : Path( '/user/pick_barcode' ) : Args(0) {
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $bc = $c->request->param('barcode');
+    my $list_id = $c->request->param('list_id');
+
+    if($bc and $list_id){
+        my $pick_list_bc;
+        try{
+            $pick_list_bc = $c->model('Golgi')->pick_barcode_from_list({
+                fp_picking_list_id => $list_id,
+                well_barcode => $bc,
+            });
+        }
+        catch($e){
+            $c->stash->{json_data} = { error => "Failed to pick barcode $bc - $e" };
+            $c->forward('View::JSON');
+            return;
+        };
+        $c->stash->{json_data} = { success => "Barcode $bc has been picked" };
+    }
+    else{
+        $c->stash->{json_data} = {error => "Barcode or pick list ID missing"};
+    }
+
+    $c->forward('View::JSON');
+
+    return;
 }
 
 sub scan_barcode : Path( '/user/scan_barcode' ) : Args(0){
@@ -739,7 +779,9 @@ sub _pick_list_display_data{
     my ($self, $schema, $pick_list) = @_;
 
     my @data;
-    foreach my $bc ($pick_list->well_barcodes){
+    foreach my $list_bc ($pick_list->fp_picking_list_well_barcodes){
+        my $bc = $list_bc->well_barcode;
+        my $picked = ($list_bc->picked ? 'TRUE' : '');
         my @summaries = $schema->resultset('Summary')->search({
             fp_well_id => $bc->well_id,
         })->all;
@@ -753,7 +795,7 @@ sub _pick_list_display_data{
             $bc->barcode,
             (join ", ", uniq @epd_names),
             "",
-            "",
+            $picked,
         );
         push @data, \@datum;
     }
