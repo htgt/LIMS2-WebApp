@@ -132,6 +132,40 @@ sub retrieve_crispr_es_qc_run {
     return $self->retrieve( CrisprEsQcRuns => $validated_params );
 }
 
+sub pspec_update_crispr_well_damage {
+    return {
+        well_id     => { validate => 'integer' },
+        qc_run_id   => { validate => 'existing_crispr_es_qc_run_id' },
+        damage_type => { validate => 'existing_crispr_damage_type', optional => 1 },
+    };
+}
+
+=head2 update_crispr_well_damage
+
+Update the crispr_damage type value of a crispr es qc well row
+
+=cut
+sub update_crispr_well_damage {
+    my ( $self, $params ) = @_;
+
+    # to deal with user unsetting a damage type
+    delete $params->{damage_type} unless $params->{damage_type};
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_well_damage );
+
+    my $qc_well = $self->schema->resultset('CrisprEsQcWell')->find(
+        {
+            well_id             => $validated_params->{well_id},
+            crispr_es_qc_run_id => $validated_params->{qc_run_id},
+        },
+    );
+    my $damage_type = $validated_params->{damage_type} ? $validated_params->{damage_type} : undef;
+
+    $qc_well->update( { crispr_damage_type_id => $damage_type } );
+    $self->log->info( "Updated crispr damage type on crispr es qc well: " . $qc_well->id . ' to: ' . ( $damage_type ? $damage_type : 'unset' ) );
+
+    return $qc_well;
+}
 
 1;
 
