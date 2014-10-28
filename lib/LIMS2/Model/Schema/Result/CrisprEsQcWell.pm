@@ -356,6 +356,7 @@ sub format_well_data {
         has_mut_aa_file         => $has_mut_aa_file,
         fwd_read                => $self->fwd_read,
         rev_read                => $self->rev_read,
+        damage_type             => $self->crispr_damage_type_id,
     };
 }
 
