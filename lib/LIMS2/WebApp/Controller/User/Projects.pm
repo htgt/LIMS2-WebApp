@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.260';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.262';
 }
 ## use critic
 
@@ -39,7 +39,8 @@ sub index :Path( '/user/projects' ) :Args(0) {
     my $species_id = $c->session->{selected_species};
 
     my @sponsors_rs =  $c->model('Golgi')->schema->resultset('Project')->search( {
-            species_id  => $species_id
+            species_id  => $species_id,
+            sponsor_id => { '!=', 'All' }
         },{
             columns     => [ qw/sponsor_id/ ],
             distinct    => 1
@@ -60,16 +61,21 @@ sub index :Path( '/user/projects' ) :Args(0) {
         sel_sponsor      => $sel_sponsor,
     );
 
-
     return unless ( $params->{filter} || $params->{show_all} );
 
-    if ($params->{show_all}) {
-        $params->{sponsor_id} = '';
-    }
+    my $search;
 
-    my $search = {
-        species_id => $species_id,
-    };
+    if ($params->{show_all} && $species_id eq 'Human') {
+        $params->{sponsor_id} = '';
+        $search = {
+            species_id => $species_id,
+            sponsor_id => { -not_in => [ 'All', 'Transfacs'] },
+        };
+    } else {
+        $search = {
+            species_id => $species_id,
+        };
+    }
 
     if ($params->{sponsor_id}) {
         $search->{sponsor_id} = $params->{sponsor_id};
@@ -89,6 +95,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $_->recovery_comment // '',
         $_->priority // '',
     ] } @projects_rs;
+
 
     my $recovery_classes =  [ map { $_->id } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'id' } }) ];
 

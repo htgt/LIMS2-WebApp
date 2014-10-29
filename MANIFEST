@@ -64,6 +64,7 @@ lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
 lib/LIMS2/Model/Schema/Result/Crispr.pm
 lib/LIMS2/Model/Schema/Result/CrisprBrowserGroups.pm
 lib/LIMS2/Model/Schema/Result/CrisprBrowserPairs.pm
+lib/LIMS2/Model/Schema/Result/CrisprDamageType.pm
 lib/LIMS2/Model/Schema/Result/CrisprDesign.pm
 lib/LIMS2/Model/Schema/Result/CrisprEsQcRuns.pm
 lib/LIMS2/Model/Schema/Result/CrisprEsQcWell.pm
@@ -253,6 +254,7 @@ lib/LIMS2/WebApp/Controller/API.pm
 lib/LIMS2/WebApp/Controller/API/AutoComplete.pm
 lib/LIMS2/WebApp/Controller/API/Browser.pm
 lib/LIMS2/WebApp/Controller/API/Crispr.pm
+lib/LIMS2/WebApp/Controller/API/CrisprQc.pm
 lib/LIMS2/WebApp/Controller/API/Design.pm
 lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
@@ -2328,6 +2330,11 @@ root/static/test/data/xep_pool_process.yaml
 root/static/test/fixtures/00-clean-db.sql
 root/static/test/fixtures/LIMS2/t/Model/FormValidator/Constraint/Plate.csv
 root/static/test/fixtures/LIMS2/t/Model/FormValidator/Constraint/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/CrisprEsQc/CrisprEsQcRuns.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/CrisprEsQc/CrisprEsQcWell.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/CrisprEsQc/Plate.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/CrisprEsQc/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/CrisprEsQc/Well.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/BacClone.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/Crispr.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/CrisprLocus.csv
@@ -2436,6 +2443,7 @@ root/static/test/fixtures/reference_data/CassetteFunction.csv
 root/static/test/fixtures/reference_data/CellLine.csv
 root/static/test/fixtures/reference_data/Chromosome.csv
 root/static/test/fixtures/reference_data/ColonyCountType.csv
+root/static/test/fixtures/reference_data/CrisprDamageType.csv
 root/static/test/fixtures/reference_data/CrisprLociType.csv
 root/static/test/fixtures/reference_data/CrisprPrimerType.csv
 root/static/test/fixtures/reference_data/DesignCommentCategory.csv
@@ -2494,6 +2502,7 @@ t/LIMS2/Model/10_LIMS2_Model_Util.t
 t/LIMS2/Model/FormValidator/10_LIMS2_Model_FormValidator_Constraint.t
 t/LIMS2/Model/Plugin/10_LIMS2_Model_Plugin_BAC.t
 t/LIMS2/Model/Plugin/10_LIMS2_Model_Plugin_Crispr.t
+t/LIMS2/Model/Plugin/10_LIMS2_Model_Plugin_CrisprEsQc.t
 t/LIMS2/Model/Plugin/10_LIMS2_Model_Plugin_Design.t
 t/LIMS2/Model/Plugin/10_LIMS2_Model_Plugin_Gene.t
 t/LIMS2/Model/Plugin/10_LIMS2_Model_Plugin_GenotypingQC.t
@@ -2703,6 +2712,7 @@ t/lib/LIMS2/t/Model/FormValidator.pm
 t/lib/LIMS2/t/Model/FormValidator/Constraint.pm
 t/lib/LIMS2/t/Model/Plugin/BAC.pm
 t/lib/LIMS2/t/Model/Plugin/Crispr.pm
+t/lib/LIMS2/t/Model/Plugin/CrisprEsQc.pm
 t/lib/LIMS2/t/Model/Plugin/Design.pm
 t/lib/LIMS2/t/Model/Plugin/Gene.pm
 t/lib/LIMS2/t/Model/Plugin/GenotypingQC.pm

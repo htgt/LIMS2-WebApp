@@ -9,12 +9,46 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
+
     $(".traces").click(function(e) {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
         var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
     });
+
+    $(".crispr_damage_type").change(function() {
+
+        //fade element out until its saved, waiting at least 500ms
+        var element = $(this).parent().parent();
+        element.removeClass('error').removeClass('success').addClass('warning');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for("/api/update_well_crispr_damage") %]',
+            data: {
+                "id": $(this).attr('data-crispr_well_id'),
+                "damage_type": this.value
+            },
+            success: function(data) { 
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).removeClass('warning').removeClass('error').addClass('success').dequeue();
+                });
+            },
+            error: function(data) {
+                console.log(data);
+                element.addClass('error');
+                element.delay(500).queue(function(){
+                    $(this).removeClass('warning').removeClass('success').addClass('error').dequeue();
+                });
+                alert( 'Error updating crispr damage type, change not saved' );
+            },
+            dataType: 'json'
+        });
+
+    });
+
 });
 </script>
 
@@ -44,6 +78,7 @@ $(document).ready(function() {
             <th>Reads</th>
             <th>Deletions</th>
             <th>Inserts</th>
+            <th>Damage Type</th>
             <th>Accepted</th>
         </tr>
     </thead>
@@ -53,6 +88,7 @@ $(document).ready(function() {
             [% INCLUDE 'crispr_qc_view.tt'
                 row = qc.ep_pick_qc
                 accept = 0
+                hide_crispr_well_id = 1
             %]
             <td>
             [% IF qc.accepted %]
@@ -66,6 +102,7 @@ $(document).ready(function() {
                     [% INCLUDE 'crispr_qc_view.tt'
                         row = piq_qc.qc
                         accept = 0
+                        hide_crispr_well_id = 1
                     %]
                     <td>
                     [% IF piq_qc.accepted %]
@@ -76,7 +113,7 @@ $(document).ready(function() {
             [% END %]
         [% ELSE %]
             <tr class="info">
-                <td colspan="9">No PIQ QC</td>
+                <td colspan="10">No PIQ QC</td>
             </tr>
         [% END %]
     [% END %]

@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.260';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.262';
 }
 ## use critic
 
@@ -207,6 +207,14 @@ sub existing_final_cassette {
 
 sub existing_final_backbone {
     return shift->eng_seq_of_type( 'final-backbone' );
+}
+
+sub existing_crispr_damage_type {
+    return shift->existing_row( 'CrisprDamageType', 'id' );
+}
+
+sub existing_crispr_es_qc_run_id {
+    return shift->existing_row( 'CrisprEsQcRuns', 'id' );
 }
 
 # intermediate backbones can be in a final vector, so need a list of all backbone types

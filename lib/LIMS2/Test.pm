@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.260';
+    $LIMS2::Test::VERSION = '0.262';
 }
 ## use critic
 
@@ -269,6 +269,7 @@ sub load_static_files {
             ColonyCountType
             CrisprPrimerType
             CrisprLociType
+            CrisprDamageType
             DesignCommentCategory
             DesignOligoType
             DesignType
@@ -340,6 +341,8 @@ sub load_dynamic_files {
             ProcessRecombinase
             Project
             Summary
+            CrisprEsQcRuns
+            CrisprEsQcWell
         )
     );
 

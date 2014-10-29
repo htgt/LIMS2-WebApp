@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.260';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.262';
 }
 ## use critic
 
@@ -562,40 +562,6 @@ sub genotyping_qc_save_distribute_changes_GET {
     }
 
     return $self->status_ok( $c, entity => \@plate_data );
-}
-
-sub update_well_accepted :Path('/api/update_well_accepted') :Args(0) :ActionClass('REST') {
-}
-
-sub update_well_accepted_POST {
-    my ( $self, $c ) = @_;
-
-    my $params = $c->request->params;
-
-    my $qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
-        {
-            well_id             => $params->{well_id},
-            crispr_es_qc_run_id => $params->{qc_run_id},
-        },
-        { prefetch => 'well' }
-    );
-
-    #TODO: validate params
-
-    #set both the qc well and the actual well to accepted
-    try {
-        $c->model('Golgi')->txn_do(
-            sub {
-                $qc_well->update( { accepted => $params->{accepted} } );
-                $qc_well->well->update( { accepted => $params->{accepted} } );
-            }
-        );
-    }
-    catch {
-        $self->status_bad_request( $c, message => "Error: $_" );
-    };
-
-    return $self->status_ok( $c, entity => { success => 1 } );
 }
 
 sub well_genotyping_crispr_qc :Path('/api/fetch_genotyping_info_for_well') :Args(1) :ActionClass('REST') {

@@ -1,13 +1,14 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.260';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.262';
 }
 ## use critic
 
 use Moose;
 use LIMS2::Report;
 use Try::Tiny;
+use Data::Printer;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -267,11 +268,11 @@ sub _stash_well_genotyping_info {
     my ( $self, $c, $search ) = @_;
 
     #well_id will become barcode
-    my $well = $c->model('Golgi')->retrieve_well( $search );
+    my $well = try{  $c->model('Golgi')->retrieve_well( $search ) };
 
     unless ( $well ) {
-        $c->stash( error_msg => "Well doesn't exist" );
-        return;
+        $c->flash( error_msg => "Well does not exist: " . p( %$search ) );
+        return $c->response->redirect( $c->uri_for( "/public_reports/well_genotyping_info_search" ) );
     }
 
     try {
