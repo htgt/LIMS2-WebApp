@@ -134,8 +134,7 @@ sub retrieve_crispr_es_qc_run {
 
 sub pspec_update_crispr_well_damage {
     return {
-        well_id     => { validate => 'integer' },
-        qc_run_id   => { validate => 'existing_crispr_es_qc_run_id' },
+        id          => { validate => 'integer' },
         damage_type => { validate => 'existing_crispr_damage_type', optional => 1 },
     };
 }
@@ -155,10 +154,14 @@ sub update_crispr_well_damage {
 
     my $qc_well = $self->schema->resultset('CrisprEsQcWell')->find(
         {
-            well_id             => $validated_params->{well_id},
-            crispr_es_qc_run_id => $validated_params->{qc_run_id},
+            id => $validated_params->{id},
         },
     );
+    unless ( $qc_well ) {
+        $self->throw(
+            NotFound => { entity_class  => 'CrisprEsQcWell', search_params => $validated_params }
+        );
+    }
     my $damage_type = $validated_params->{damage_type} ? $validated_params->{damage_type} : undef;
 
     $qc_well->update( { crispr_damage_type_id => $damage_type } );

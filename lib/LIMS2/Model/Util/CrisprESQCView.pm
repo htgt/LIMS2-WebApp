@@ -118,7 +118,6 @@ sub ep_pick_crispr_es_qc_data {
     };
     return unless exists $data->{ep_pick_qc};
 
-    delete $data->{ep_pick_qc}{es_qc_well_id};
     delete $data->{ep_pick_qc}{gene};
     $data->{ep_pick_qc}{qc_run_id} = $qc_run->id;
     $data->{ep_pick_qc}{well_name} = $ep_pick_well->as_string;
@@ -162,7 +161,6 @@ sub piq_crispr_es_qc_data {
         next unless $qc_data;
 
         $qc_data->{qc_run_id} = $qc_run->id;
-        delete $qc_data->{es_qc_well_id};
         delete $qc_data->{gene};
 
         my $piq_well = $qc_well->well;

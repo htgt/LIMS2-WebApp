@@ -1,5 +1,5 @@
 <td>[% row.well_name %]</td>
-[% IF row.es_qc_well_id %]
+[% UNLESS hide_crispr_well_id %]
     <td>[% row.es_qc_well_id %]</td>
 [% END %]
 [% IF row.gene %]
@@ -90,7 +90,7 @@
 [% IF accept %]
     <td>
         [% IF row.show_checkbox %]
-            <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
+            <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.es_qc_well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
         [% ELSE %]
             Accepted in another run
         [% END %]
@@ -100,7 +100,7 @@
 <td>
     <div class="control-group">
       <div class="controls">
-       <select name="crispr_damage_[% row.well_id %]" class="crispr_damage_type input-medium" data-well_id="[% row.well_id %]" data-qc_run_id="[% qc_run_id %]">
+       <select name="crispr_damage_[% row.well_id %]" class="crispr_damage_type input-medium" data-crispr_well_id="[% row.es_qc_well_id %]">
           <option value="" [% UNLESS row.damage_type %]selected[% END %]>-</option>
           [%- FOR type IN damage_types %]
             <option value="[% type %]" [% row.damage_type == type ? 'selected="selected"' : '' %]>[% type %]</option>

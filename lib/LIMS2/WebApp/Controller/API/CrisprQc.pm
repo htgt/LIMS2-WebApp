@@ -25,8 +25,7 @@ sub update_well_accepted_POST {
 
     my $qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
         {
-            well_id             => $params->{well_id},
-            crispr_es_qc_run_id => $params->{qc_run_id},
+            id => $params->{id},
         },
         { prefetch => 'well' }
     );

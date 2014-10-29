@@ -27,7 +27,7 @@ $(document).ready(function() {
 
         $.post(
             '[% c.uri_for("/api/update_well_accepted") %]',
-            { "well_id": this.value, "qc_run_id": $("#qc_run_id").text(), "accepted": this.checked },
+            { "id": this.value, "accepted": this.checked },
 
             function (data) {
                 console.log(data);
@@ -48,8 +48,7 @@ $(document).ready(function() {
             type: "POST",
             url: '[% c.uri_for("/api/update_well_crispr_damage") %]',
             data: {
-                "well_id": $(this).attr('data-well_id'),
-                "qc_run_id": $(this).attr('data-qc_run_id'),
+                "id": $(this).attr('data-crispr_well_id'),
                 "damage_type": this.value
             },
             success: function(data) { 
@@ -135,7 +134,6 @@ $(document).ready(function() {
                 [% INCLUDE 'crispr_qc_view.tt'
                     row       = row
                     accept    = 1
-                    qc_run_id = qc_run_id
                 %]
 
             </tr>

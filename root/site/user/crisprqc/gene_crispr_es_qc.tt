@@ -27,8 +27,7 @@ $(document).ready(function() {
             type: "POST",
             url: '[% c.uri_for("/api/update_well_crispr_damage") %]',
             data: {
-                "well_id": $(this).attr('data-well_id'),
-                "qc_run_id": $(this).attr('data-qc_run_id'),
+                "id": $(this).attr('data-crispr_well_id'),
                 "damage_type": this.value
             },
             success: function(data) { 
@@ -89,7 +88,7 @@ $(document).ready(function() {
             [% INCLUDE 'crispr_qc_view.tt'
                 row = qc.ep_pick_qc
                 accept = 0
-                qc_run_id = qc.ep_pick_qc.qc_run_id
+                hide_crispr_well_id = 1
             %]
             <td>
             [% IF qc.accepted %]
@@ -103,7 +102,7 @@ $(document).ready(function() {
                     [% INCLUDE 'crispr_qc_view.tt'
                         row = piq_qc.qc
                         accept = 0
-                        qc_run_id = piq_qc.qc.qc_run_id
+                        hide_crispr_well_id = 1
                     %]
                     <td>
                     [% IF piq_qc.accepted %]
