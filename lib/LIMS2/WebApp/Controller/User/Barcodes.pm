@@ -10,6 +10,7 @@ use LIMS2::Model::Util::BarcodeActions qw(
     add_barcodes_to_wells
     upload_plate_scan
     send_out_well_barcode
+    do_picklist_checkout
 );
 use namespace::autoclean;
 use JSON;
@@ -22,14 +23,8 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
     $c->assert_user_roles( 'read' );
 
     my $generate = $c->request->param('generate');
-    my $retrieve = $c->request->param('retrieve');
     my $genes  = $c->request->param('genes');
-    $c->stash->{genes} = $genes;
-    $c->stash->{id} = $c->request->param('id');
-
-    return unless ($generate or $retrieve);
-
-    my $pick_list;
+    $c->stash->{genes} = $genes;;
 
     if ($generate){
         unless($genes){
@@ -42,8 +37,7 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
     	my @symbols = split $sep, $genes;
     	$c->log->debug("generating picklist for symbols: ".join ", ",@symbols);
 
-    	my $pick_list;
-
+        my $pick_list;
         try{
             $pick_list = $c->model('Golgi')->generate_fp_picking_list({
                 symbols => \@symbols,
@@ -55,34 +49,19 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
             $c->stash->{error_msg} = "Failed to generate pick list: $e";
             return;
         };
-    }
-    elsif($retrieve){
-        unless($c->request->param('id')){
-            $c->stash->{error_msg} = "No pick list ID entered";
+
+        my $display_data = $self->_pick_list_display_data($c->model('Golgi')->schema, $pick_list);
+        unless(@$display_data){
+            $c->stash->{error_msg} = "No FP wells found";
             return;
         }
 
-        try{
-            $pick_list = $c->model('Golgi')->retrieve_fp_picking_list({
-                id => $c->request->param('id'),
-            });
-        }
-        catch($e){
-            $c->stash->{error_msg} = "Failed to retrieve pick list: $e";
-            return;
-        }
-    }
+        $c->stash->{pick_list} = $pick_list;
+        $c->stash->{columns} = $self->_pick_list_display_cols;
+        $c->stash->{data} = $display_data;
+        $c->stash->{title} = "FP Pick List ID: ".$pick_list->id;
 
-    my $display_data = $self->_pick_list_display_data($c->model('Golgi')->schema, $pick_list);
-    unless(@$display_data){
-    	$c->stash->{error_msg} = "No FP wells found";
-    	return;
     }
-
-    $c->stash->{pick_list} = $pick_list;
-    $c->stash->{columns} = $self->_pick_list_display_cols;
-    $c->stash->{data} = $display_data;
-    $c->stash->{title} = "FP Pick List ID: ".$pick_list->id;
 
     return;
 }
@@ -91,23 +70,47 @@ sub checkout_from_picklist : Path( '/user/checkout_from_picklist' ) : Args(0){
 
     my ($self, $c) = @_;
 
+    $c->stash->{id} = $c->request->param('id');
+
     my $pick_list;
-    unless($c->request->param('id')){
-        $c->stash->{error_msg} = "No pick list ID entered";
-        return;
-    }
 
     if($c->request->param('checkout')){
-#System records changes (re-array each FP plate and set tubes scanned to 'checked out' and in FP limbo area.)
-#System de-activates picking list.
-#Returns and displays list of all changes made.
-#"Tube 'A' checked out from FP plate 'B' "
+
+        unless($c->request->param('id')){
+            $c->stash->{error_msg} = "No pick list ID entered";
+            return;
+        }
+
+        my $messages = [];
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                $messages = do_picklist_checkout($c->model('Golgi'),{
+                   id   => $c->request->param('id'),
+                   user => $c->user->name,
+                });
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Picklist checkout failed with error $e";
+                $c->log->debug("rolling back picklist checkout actions");
+                $c->model('Golgi')->txn_rollback;
+                return;
+            }
+
+            $c->flash->{success_msg} = join "<br>", @$messages;
+            $c->res->redirect( $c->uri_for('/user/view_checked_out_barcodes/FP'));
+        });
     }
-    else{
+    elsif($c->request->param('retrieve')){
+
+        unless($c->request->param('id')){
+            $c->stash->{error_msg} = "No pick list ID entered";
+            return;
+        }
 
         try{
             $pick_list = $c->model('Golgi')->retrieve_fp_picking_list({
-                id => $c->request->param('id'),
+                id     => $c->request->param('id'),
+                active => 1,
             });
         }
         catch($e){
@@ -782,22 +785,46 @@ sub _pick_list_display_data{
     foreach my $list_bc ($pick_list->fp_picking_list_well_barcodes){
         my $bc = $list_bc->well_barcode;
         my $picked = ($list_bc->picked ? 'TRUE' : '');
+
         my @summaries = $schema->resultset('Summary')->search({
             fp_well_id => $bc->well_id,
         })->all;
 
-        my @epd_names = map { $_->ep_pick_plate_name."_".$_->ep_pick_well_name } @summaries;
+        my $parent_epd;
+        my $gene_symbols;
+
+        if(@summaries){
+            my @epd_names = map { $_->ep_pick_plate_name."_".$_->ep_pick_well_name } @summaries;
+            $gene_symbols = $summaries[0]->design_gene_symbol;
+            $parent_epd = (join ", ", uniq @epd_names);
+
+        }
+        else{
+            # If this well ID is not yet in the summaries table
+            # get gene symbols using design ID
+            my $design_id = $bc->well->design->id;
+            my $design_summaries = $schema->resultset('Summary')->search({
+                design_id => $design_id
+            })->first;
+
+            # and get parent EP pick through process graph
+            $gene_symbols = $design_summaries->design_gene_symbol;
+            my $ep_pick = $bc->well->first_ep_pick;
+            $parent_epd = ($ep_pick ? $ep_pick->as_string : "");
+        }
 
         my @datum = (
-            $summaries[0]->design_gene_symbol,
+            $gene_symbols,
             $bc->well->plate->name,
             $bc->well->name,
             $bc->barcode,
-            (join ", ", uniq @epd_names),
+            $parent_epd,
             "",
             $picked,
         );
+
         push @data, \@datum;
+
     }
 
     return \@data;

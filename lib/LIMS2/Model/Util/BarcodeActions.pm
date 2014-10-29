@@ -104,6 +104,65 @@ sub checkout_well_barcode{
     return $well_bc;
 }
 
+sub pspec_checkout_well_barcode_list{
+    return {
+        barcode_list      => { validate => 'well_barcode' },
+        user              => { validate => 'existing_user' },
+    }
+}
+
+sub checkout_well_barcode_list{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_checkout_well_barcode_list);
+
+    # FIXME: check barcode is "in_freezer" before doing checkout? or is this too strict
+
+    # FIXME: make this deal with multiple barcodes.
+    # checkout one by one then remove from source plates in batch
+    my $barcode_list = [];
+    if (ref $validated_params->{barcode_list} eq ref []){
+        $barcode_list = $validated_params->{barcode_list};
+    }
+    else{
+        $barcode_list = [ $validated_params->{barcode_list} ];
+    }
+
+    my @messages;
+    my $barcodes_to_remove_from_plate = {};
+
+    foreach my $barcode (@$barcode_list){
+        DEBUG("checking out barcode $barcode");
+        my $well_bc = $model->update_well_barcode({
+            barcode   => $barcode,
+            new_state => 'checked_out',
+            user      => $validated_params->{user},
+        });
+
+        push @messages, "Barcode $barcode checked out from well ".$well_bc->well->as_string;
+
+        # Store list of barcodes to remove from each non-virtual plate
+        my $plate = $well_bc->well->plate;
+        unless($plate->is_virtual){
+            $barcodes_to_remove_from_plate->{$plate->id} ||= [];
+            push @{ $barcodes_to_remove_from_plate->{$plate->id} }, $barcode;
+        }
+    }
+
+    foreach my $plate_id (keys %$barcodes_to_remove_from_plate){
+        my $plate = $model->retrieve_plate({ id => $plate_id });
+        DEBUG("removing checked out barcodes from plate ".$plate->as_string);
+        remove_well_barcodes_from_plate(
+            $model,
+            $barcodes_to_remove_from_plate->{$plate_id},
+            $plate,
+            $validated_params->{user}
+        );
+        push @messages, "Plate ".$plate->name." layout updated";
+    }
+
+    return \@messages;
+}
 sub pspec_do_picklist_checkout{
     return {
         id    => { validate => 'integer' },
@@ -115,17 +174,24 @@ sub do_picklist_checkout{
     my ($model, $params) = @_;
 
     my $validated_params = $model->check_params($params, pspec_do_picklist_checkout);
-    my $list = $model->retrieve_fp_picking_list($params);
+    my $list = $model->retrieve_fp_picking_list({ id => $validated_params->{id} });
 
-    my @barcodes = map { $_->barcode } $list->well_barcodes;
+    DEBUG("Retrieved pick list ".$list->id);
 
-    checkout_well_barcode({
-        barcode => \@barcodes,
-        user    => $validated_params->{user},
+    my @barcodes = map { $_->barcode } $list->picked_well_barcodes;
+
+    my $messages = checkout_well_barcode_list($model, {
+        barcode_list => \@barcodes,
+        user         => $validated_params->{user},
     });
 
     # FIXME: deactivate picking list
-    # report what was done
+    $list->update({ active => 0 });
+
+    DEBUG("pick list deactivated");
+    push @$messages, "FP picking list ".$list->id." is now inactive";
+
+    return $messages;
 }
 
 sub pspec_freeze_back_barcode{

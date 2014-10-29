@@ -12,22 +12,15 @@
     <input type="submit" name="generate" class="btn btn-primary" value="Generate Pick List" />
   </fieldset>
 </form>
-<form method="POST" action="[% c.uri_for( '/user/generate_picklist' ) %]" class="well">
-  <fieldset>
-    <legend>Retrieve Pick List by ID</legend>
-    <input type="text" name="id" placeholder="Enter pick list ID" value="[% id %]" />
-    <input type="submit" name="retrieve" class="btn btn-primary" value="Retrieve Pick List" />
-  </fieldset>
-</form>
 
 [% IF pick_list %]
 <div class="row">
 <div class="span6">
   <h3>Pick List ID: [% pick_list.id %]</h3>
-  Status: [% IF pick_list.active %] Active [% ELSE %] Inactive [% END %], Created By: [% pick_list.created_by.name %], Created At: [% pick_list.created_at %]
+  Status: [% IF pick_list.active %] Active[% ELSE %] Inactive[% END %], Created By: [% pick_list.created_by.name %], Created At: [% pick_list.created_at %]
 </div>
 <div class="span6">
-<a class="btn btn-primary pull-right" href="[% c.uri_for('/user/checkout_from_picklist',{id=id}) %]">
+<a class="btn btn-primary pull-right" href="[% c.uri_for('/user/checkout_from_picklist',{id=>pick_list.id, retrieve=>1}) %]">
 Checkout from Pick List
 </a>
 </div>
@@ -36,7 +29,7 @@ Checkout from Pick List
 
 [% printable = 1 %]
 
-[% PROCESS 'user/report/generic_report_grid.tt' %]
+[% PROCESS 'user/barcodes/picklist_grid.tt' %]
 
 [% END %]
 

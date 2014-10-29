@@ -148,5 +148,13 @@ sub well_barcodes{
     return @well_barcodes;
 }
 
+sub picked_well_barcodes{
+    my ($self) = @_;
+    my $picked_rs = $self->search_related('fp_picking_list_well_barcodes',{
+        picked => 1,
+    });
+    return map { $_->well_barcode } $picked_rs->all;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

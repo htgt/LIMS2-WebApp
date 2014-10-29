@@ -1139,6 +1139,20 @@ sub descendant_piq {
 }
 ## use critic
 
+sub barcoded_descendant_of_type{
+    my ($self, $type) = @_;
+
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ){
+      while( my $descendant = $descendants->next ){
+        if( ($descendant->plate->type_id eq $type) and $descendant->well_barcode ){
+          return $descendant;
+        }
+      }
+    }
+    return;
+}
+
 sub descendant_crispr_vectors {
     my $self = shift;
 

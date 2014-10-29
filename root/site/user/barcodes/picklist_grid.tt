@@ -93,6 +93,10 @@
                 "id" = 1
                 } %]
 
+            [% IF hide_to_pick %]
+            [% hidden.to_pick = 1 %]
+            [% END %]
+
             var columns = [
                 [%- FOREACH col IN columns %]
                 {
@@ -273,9 +277,6 @@
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,
-                plugins: [
-                    Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
-                ]
             });
     });
 </script>

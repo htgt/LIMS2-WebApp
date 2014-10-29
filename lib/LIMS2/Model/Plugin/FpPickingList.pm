@@ -14,6 +14,7 @@ requires qw( schema check_params throw retrieve log trace );
 sub pspec_retrieve_fp_picking_list {
     return {
         id           => { validate => 'integer' },
+        active       => { validate => 'boolean', optional => 1},
     };
 }
 
@@ -23,8 +24,7 @@ sub retrieve_fp_picking_list {
 	my $validated_params = $self->check_params($params, $self->pspec_retrieve_fp_picking_list);
 
 	return $self->retrieve(
-		'FpPickingList' => $validated_params,
-
+		'FpPickingList' => { slice_def ( $validated_params, qw( id active ) )},
 	);
 }
 
@@ -53,20 +53,31 @@ sub generate_fp_picking_list{
 
     my @well_ids = map { $_->fp_well_id } $summary_rs->all;
 
-    my $barcode_rs = $self->schema->resultset("WellBarcode")->search(
-        {
-    	    well_id       => { -in => \@well_ids },
-    	    barcode_state => 'in_freezer',
-        }
-    );
+    # FIXME: For each stored FP well ID find FP descendants which have a barcode
+    my @wells = $self->schema->resultset("Well")->search({
+        id => { -in => \@well_ids },
+    });
 
-    my $barcode_count = $barcode_rs->count;
+    my @barcodes;
+    foreach my $well (@wells){
+        if($well->well_barcode){
+            push @barcodes, $well->well_barcode->barcode;
+        }
+        else{
+            my $barcoded_well = $well->barcoded_descendant_of_type('FP');
+            if($barcoded_well){
+                push @barcodes, $barcoded_well->well_barcode->barcode;
+            }
+        }
+    }
+
+    my $barcode_count = scalar (@barcodes);
     $self->log->debug("$barcode_count barcodes found for symbols $symbol_string");
 
     die "No barcodes found for symbols $symbol_string" unless $barcode_count;
 
     my $pick_list = $self->create_fp_picking_list({
-        barcodes => [ map { $_->barcode } $barcode_rs->all ],
+        barcodes => \@barcodes,
         user     => $validated_params->{user},
     });
 
@@ -91,6 +102,8 @@ sub create_fp_picking_list {
     my $pick_list = $self->schema->resultset('FpPickingList')->create({
         created_by => $validated_params->{created_by},
     });
+    # Fetch default values created by database
+    $pick_list->discard_changes;
 
     $self->log->debug('Created FpPickingList '.$pick_list->id);
 
