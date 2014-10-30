@@ -73,12 +73,12 @@ $(document).ready(function() {
             <th>Well</th>
             <th>Crispr ID</th>
             <th>Alignment</th>
+            <th>Damage Type</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>
             <th>Deletions</th>
             <th>Inserts</th>
-            <th>Damage Type</th>
             <th>Accepted</th>
         </tr>
     </thead>
