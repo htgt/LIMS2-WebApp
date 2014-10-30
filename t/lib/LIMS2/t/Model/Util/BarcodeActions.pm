@@ -8,6 +8,7 @@ use LIMS2::Model::Util::BarcodeActions qw/
             discard_well_barcode
             freeze_back_barcode
             add_barcodes_to_wells
+            checkout_well_barcode
     /;
 
 use LIMS2::Test model => { classname => __PACKAGE__ };
@@ -20,7 +21,7 @@ sub discard_tests : Tests(13){
     # Fetch the barcode and one other well from the same plate
     ok my $well_bc = model->retrieve_well_barcode({ barcode => $bc }), "Barcode $bc found";
     my $well_name = $well_bc->well->name;
-    is scalar($well_bc->well->plate->wells), 49, "Original plate has 49 of wells";
+    is scalar($well_bc->well->plate->wells), 49, "Original plate has 49 wells";
     ok my $orig_a2 = $well_bc->well->plate->search_related('wells',{ name => $unchanged_well })->first, "$unchanged_well found";
 
     # Check well gets discarded from new version of plate
@@ -100,5 +101,38 @@ sub freeze_back_tests : Tests(18){
     ok my $new_unchanged = $new_plate->search_related('wells',{ name => $unchanged_well })->first, "New $unchanged_well found";
     my ($parent) = $new_unchanged->parent_wells;
     is $parent->id, $orig_unchanged->id, "Orig $unchanged_well is parent of new $unchanged_well";
+}
+
+sub individual_checkout_tests : Tests(){
+    my $bc = 11;
+    my $unchanged_well = 'B01';
+
+    # Fetch the barcode and one other well from the same plate
+    ok my $well_bc = model->retrieve_well_barcode({ barcode => $bc }), "Barcode $bc found";
+    my $well_name = $well_bc->well->name;
+    my $orig_plate = $well_bc->well->plate;
+
+    is scalar($well_bc->well->plate->wells), 47, "Original plate has 47 wells";
+    is $well_bc->well->plate->version, undef, "Original plate has no version number";
+    ok my $orig_unchanged = $well_bc->well->plate->search_related('wells',{ name => $unchanged_well })->first, "$unchanged_well found";
+
+    # Do the checkout
+    ok my $checkout_bc = checkout_well_barcode(model, { barcode => $bc, user => 'test_user@example.org' });
+    is $checkout_bc->barcode_state->id, 'checked_out', "Barcode is now checked out";
+
+    # update the orig plate info from DB
+    $orig_plate->discard_changes();
+
+    is scalar($orig_plate->wells), 47, "Original plate still has 47 wells";
+    is $orig_plate->id, $checkout_bc->well->plate->id, "Checked out barcode remains on original plate";
+    ok defined($orig_plate->version), "Original plate now has a version number";
+
+    # get the new plate with same name
+    ok my $new_plate = model->retrieve_plate({ name => $orig_plate->name, version => undef });
+    is scalar($new_plate->wells), 46, "New plate version has 46 wells";
+    is $new_plate->version, undef, "New plate has no version number";
+    my $discarded_well = $new_plate->search_related('wells',{ name => $well_name })->first;
+    is $discarded_well, undef, "$well_name is not on new plate";
+    ok my $new_unchanged = $well_bc->well->plate->search_related('wells',{ name => $unchanged_well })->first, "$unchanged_well found";
 }
 1;

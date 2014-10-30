@@ -534,13 +534,8 @@ sub create_barcoded_plate_copy{
         $child_processes->{$well} = [ $bc->well->child_processes ];
 
         # Some sanity checking
-        my $species = $bc->well->plate->species_id;
-        $plate_species ||= $species;
-        die "All wells on plate must have same species" unless $species eq $plate_species;
-
-        my $type = $bc->well->plate->type_id;
-        $plate_type ||= $type;
-        die "All wells on plate must be of the same type" unless $type eq $plate_type;
+        _check_consistent_type(\$plate_type,$bc->well);
+        _check_consistent_species(\$plate_species,$bc->well);
     }
 
     # Handle copy of wells which have no barcode, always e.g. A01->A01
@@ -560,13 +555,8 @@ sub create_barcoded_plate_copy{
             $child_processes->{$well->name} = [ $well->child_processes ];
 
             # Some sanity checking
-            my $species = $well->plate->species_id;
-            $plate_species ||= $species;
-            die "All wells on plate must have same species" unless $species eq $plate_species;
-
-            my $type = $well->plate->type_id;
-            $plate_type ||= $type;
-            die "All wells on plate must be of the same type" unless $type eq $plate_type;
+            _check_consistent_type(\$plate_type,$well);
+            _check_consistent_species(\$plate_species,$well);
         }
     }
 
@@ -644,6 +634,22 @@ sub create_barcoded_plate_copy{
     return wantarray ? ($new_plate, \@list_messages) : $new_plate;
 }
 
+sub _check_consistent_type{
+    my ($plate_type, $well) = @_;
+    my $type = $well->plate->type_id;
+    $$plate_type ||= $type;
+    die "All wells on plate must be of the same type" unless $type eq $$plate_type;
+    return;
+}
+
+sub _check_consistent_species{
+    my ($plate_species, $well) = @_;
+    my $species = $well->plate->species_id;
+    $$plate_species ||= $species;
+    die "All wells on plate must have same species" unless $species eq $$plate_species;
+    return;
+}
+
 # Input: csv file of barcode locations, plate name
 sub pspec_upload_plate_scan{
     return{
@@ -707,27 +713,7 @@ sub upload_plate_scan{
 
             # Remove extra barcodes if appropriate
             if ($existing_plate->type_id eq "FP"){
-                DEBUG "Removing any extra barcodes from upload";
-                my $removed_count = 0;
-                my %existing_barcode_for_well = map { $_->name => $_->well_barcode->barcode } $existing_plate->wells;
-                foreach my $well_name (keys %$csv_data){
-                    unless (exists $existing_barcode_for_well{$well_name}){
-                        my $barcode = $csv_data->{$well_name};
-                        my $well_barcode = $model->schema->resultset('WellBarcode')->search({
-                            barcode => $barcode
-                        })->first;
-                        unless($well_barcode){
-                            delete $csv_data->{$well_name};
-                            $removed_count++;
-                            push @list_messages, {
-                                'well_name' => $well_name,
-                                'error' => 2,
-                                'message' => 'A barcode <' . $barcode . '> has been scanned for a location where no tube was present, ignoring.'
-                            };
-                        }
-                    }
-                }
-                DEBUG "$removed_count extra barcodes removed";
+                _remove_empty_tube_barcodes($model,$existing_plate,$csv_data,\@list_messages);
             }
 
             # If well barcodes have not changed at all do nothing
@@ -796,6 +782,32 @@ sub upload_plate_scan{
     }
 
     return ($new_plate, \@list_messages);
+}
+
+sub _remove_empty_tube_barcodes{
+    my($model,$existing_plate,$csv_data,$list_messages) = @_;
+    DEBUG "Removing any extra barcodes from upload";
+    my $removed_count = 0;
+    my %existing_barcode_for_well = map { $_->name => $_->well_barcode->barcode } $existing_plate->wells;
+    foreach my $well_name (keys %$csv_data){
+        unless (exists $existing_barcode_for_well{$well_name}){
+            my $barcode = $csv_data->{$well_name};
+            my $well_barcode = $model->schema->resultset('WellBarcode')->search({
+                barcode => $barcode
+            })->first;
+            unless($well_barcode){
+                delete $csv_data->{$well_name};
+                $removed_count++;
+                push @$list_messages, {
+                    'well_name' => $well_name,
+                    'error' => 2,
+                    'message' => 'A barcode <' . $barcode . '> has been scanned for a location where no tube was present, ignoring.'
+                };
+            }
+        }
+    }
+    DEBUG "$removed_count extra barcodes removed";
+    return;
 }
 
 sub _csv_barcodes_match_existing{

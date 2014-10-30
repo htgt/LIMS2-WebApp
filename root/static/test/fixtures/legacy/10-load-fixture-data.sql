@@ -4460,7 +4460,7 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 1043, true);
+SELECT pg_catalog.setval('plates_id_seq', 3000, true);
 
 
 --
