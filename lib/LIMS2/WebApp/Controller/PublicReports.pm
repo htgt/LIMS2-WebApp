@@ -71,10 +71,10 @@ sub download_report :Path( '/public_reports/download' ) :Args(1) {
 
 =cut
 sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
-    my ( $self, $c, $targeting_type ) = @_;
+    my ( $self, $c, $targeting_type, $cache_param ) = @_;
 
     my $species;
-
+$DB::single=1;
     if ($c->user_exists) {
         $c->request->params->{species} = $c->session->{selected_species};
     }
@@ -86,13 +86,22 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     $species = $c->request->params->{species};
     $c->session->{selected_species} = $species;
 
+    if ( defined $targeting_type && ($targeting_type eq 'no_cache') ) {
+        $targeting_type = undef;
+        $cache_param = 'no_cache';
+    }
+
+    if ( !defined $cache_param ) {
+        $cache_param = 'with_cache';
+    }
+
     if ( defined $targeting_type ) {
         # show report for the requested targeting type
-        $self->_generate_front_page_report ( $c, $targeting_type, $species );
+        $self->_generate_front_page_report ( $c, $targeting_type, $species, $cache_param );
     }
     else {
         # by default show the single_targeted report
-        $self->_generate_front_page_report ( $c, 'single_targeted', $species );
+        $self->_generate_front_page_report ( $c, 'single_targeted', $species, $cache_param );
     }
 
     $c->stash(
@@ -103,7 +112,7 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
 }
 
 sub _generate_front_page_report {
-    my ( $self, $c, $targeting_type, $species ) = @_;
+    my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
@@ -123,6 +132,7 @@ sub _generate_front_page_report {
         'title'          => $title,
         'species'        => $species,
         'targeting_type' => $targeting_type,
+        'cache_param'    => $cache_param,
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
@@ -218,6 +228,25 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     }
 
     return;
+}
+
+
+sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
+    my ( $self, $c, $report_name ) = @_;
+
+        $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
+        my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $report_name . '.html';
+
+        my @lines_out;
+        open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )
+            or die "unable to open cached file ($cached_file_name): $!";
+
+        while (<$html_handle>) {
+            push @lines_out, $_;
+        }
+        close $html_handle
+            or die "unable to close cached file: $!";
+        $c->response->body( join( '', @lines_out ));
 }
 
 =head2 well_genotyping_info_search

@@ -1,12 +1,9 @@
 [%- META title = "Summary Report" %]
+<SCRIPT LANGUAGE = JavaScript >
+document.title = "[%- sponsor_id %]";
+</SCRIPT>
 
 <span style="float:right">
-  [% IF type == 'full' %]
-  <a id='type_simple' type='button' class='btn btn-primary btn-small' href="[% c.uri_for( link ) %]"><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
-  [% ELSIF type == 'simple' %]
-  <a id='type_full' type='button' class='btn btn-primary btn-small' href="[% c.uri_for( link, {type => 'full'} ) %]"><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
-  [% END %]
-
   <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"><i class="icon-download-alt icon-white"></i><b> Download CSV</b></a>
 </span>
 <div class="page-header">

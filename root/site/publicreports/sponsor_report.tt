@@ -12,10 +12,12 @@
 
 [% IF !c.user  %]
   [% IF species == 'Mouse' %]
-    <a id='type_simple' type='button' class='btn btn-info btn-small' href="[% c.uri_for( '/public_reports/sponsor_report', {species => 'Human'}  ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
+    <a id='type_simple' type='button' name='switch_human' class='btn btn-info btn-small' href="[% c.uri_for( '/public_reports/sponsor_report', {species => 'Human'}  ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
   [% ELSIF species == 'Human' %]
-    <a id='type_full' type='button' class='btn btn-info btn-small' href="[% c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse'} ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
+    <a id='type_full' type='button' name='switch_mouse' class='btn btn-info btn-small' href="[% c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse'} ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
   [% END %]
+[%- ELSE %]
+    [% cache_param = "no_cache" %]
 [% END %]
 
 </span>
@@ -65,7 +67,11 @@
   			[% END %]
         [% IF countval != "" && countval > 0 %]
           [% IF c.user || row == "Genes" %]
-            <b><a href="[% c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>
+            [%- IF cache_param == "with_cache" %]
+                <b><a href="[% c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank">[% countval %]</a></b></td>
+            [%- ELSE %]
+                <b><a href="[% c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>
+            [%- END %]
           [% ELSE %]
             <b>[% countval %]</b></td>
           [% END %]
