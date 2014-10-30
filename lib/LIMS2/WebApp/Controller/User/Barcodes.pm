@@ -133,6 +133,7 @@ sub checkout_from_picklist : Path( '/user/checkout_from_picklist' ) : Args(0){
     return;
 }
 
+# Returns JSON so this can be used in ajax request
 sub pick_barcode : Path( '/user/pick_barcode' ) : Args(0) {
     my ($self, $c) = @_;
 
@@ -158,6 +159,40 @@ sub pick_barcode : Path( '/user/pick_barcode' ) : Args(0) {
     }
     else{
         $c->stash->{json_data} = {error => "Barcode or pick list ID missing"};
+    }
+
+    $c->forward('View::JSON');
+
+    return;
+}
+
+# Returns JSON so this can be used in ajax request
+sub get_barcode_information : Path('/user/get_barcode_information/') : Args(1){
+    my ($self, $c, $barcode) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $well_barcode = $c->model('Golgi')->schema->resultset('WellBarcode')->search({
+                           barcode => $barcode
+                        })->first;
+
+    unless($well_barcode){
+        $c->stash->{json_data} = { message => "Barcode $barcode not found in LIMS2" };
+        $c->forward('View::JSON');
+        return;
+    }
+
+    if($well_barcode->barcode_state->id eq 'in_freezer'){
+        $c->stash->{json_data} = { message => "Barcode $barcode found in freezer on plate "
+                                              .$well_barcode->well->plate->as_string
+                                              ." well ".$well_barcode->well->name };
+    }
+    else{
+        $c->stash->{json_data} = { message => "Barcode $barcode not in freezer.<br>State: "
+                                              .$well_barcode->barcode_state->id
+                                              ."<br>Last known freezer location: plate "
+                                              .$well_barcode->well->plate->as_string
+                                              ." well ".$well_barcode->well->name };
     }
 
     $c->forward('View::JSON');

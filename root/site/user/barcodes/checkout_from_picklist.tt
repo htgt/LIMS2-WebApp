@@ -22,10 +22,14 @@
  <div class="span6">
  <form method="POST" action="[% c.uri_for( '/user/checkout_from_picklist' ) %]" id="barcode_input_form" class="well">
    <input type="hidden" name="id" value="[% pick_list.id %]">
-   <input type="text" id="barcode" name="barcode" value="[% barcode %]" placeholder="scan barcode">
-   <button class="btn btn-primary" id="add_barcode">Pick Tube</button>
-   <br>
-   <button type="submit" class="btn btn-primary pull-right" name="checkout" value="checkout">Submit Picked Tubes For Checkout</button>
+   <div class="control-group">
+    <div class="input-append">
+     <input type="text" id="barcode" name="barcode" value="[% barcode %]" placeholder="scan barcode">
+     <button class="btn btn-primary" id="add_barcode">Pick Tube</button>
+    </div>
+    <span class="help-block hidden"></span>
+   </div>
+   <button type="submit" class="btn btn-primary" name="checkout" value="checkout">Submit Picked Tubes For Checkout</button>
  </form>
  </div>
 </div>
@@ -61,20 +65,24 @@ $( document ).ready(function() {
     });
 
     if($.inArray(barcode, listed_barcodes) == -1){
-//FIXME: display details of incorrect barcode so user can return it to freezer
-       console.log(barcode + ' is not in this picklist');
-       $("#dialog").modal();
-       return;
+      console.log(barcode + ' is not in this picklist');
+      var url = "[% c.uri_for('/user/get_barcode_information') %]/" + barcode;
+      $.ajax(url).done(function(data){
+        $("#dialog_content").html(data.message)
+        $("#dialog").modal();
+      });
+      return;
     }
 
     var url = "[% c.uri_for('/user/pick_barcode') %]?barcode=" + barcode + "&list_id=[% pick_list.id %]";
     $.ajax(url).done(function(data){
         console.log(data);
         if(data.success){
-            $('<p class="text-success">Barcode ' + barcode + ' picked</p>')
-            .insertAfter('#add_barcode')
-            .delay(2000)
-            .fadeOut(function(){ $(this).remove(); });
+            $(".control-group").attr('class', 'control-group success');
+            $(".help-block").html('Barcode ' + barcode + ' picked');
+            $(".help-block").attr({ class: 'help-block text-success',style:''})
+            .delay(1000)
+            .fadeOut(function(){ $(".control-group").attr('class', 'control-group'); });
 
             grid.getStore().each(function(record){
                 if(record.get('Barcode') == barcode){
