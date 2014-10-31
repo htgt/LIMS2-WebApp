@@ -43,7 +43,7 @@ sub base_data_quick {
 
     unless ( $args || $args->{no_eng_seq_link} ) {
         if ( $self->catalyst ) {
-            push @base_data, $self->catalyst->uri_for( '/user/well_eng_seq', $data->{well_id} );
+            push @base_data, $self->catalyst->uri_for( '/public_reports/well_eng_seq', $data->{well_id} );
         }
         else {
             push @base_data, '-';
