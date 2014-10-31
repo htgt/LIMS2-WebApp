@@ -287,7 +287,7 @@ sub has_child_wells {
     my $self = shift;
 
     for my $well ( $self->wells ) {
-        return 1 if $well->input_processes > 0;
+        return 1 if $well->process_input_wells > 0;
     }
 
     return;

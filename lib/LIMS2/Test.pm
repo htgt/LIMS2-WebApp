@@ -263,6 +263,7 @@ sub load_static_files {
             ColonyCountType
             CrisprPrimerType
             CrisprLociType
+            CrisprDamageType
             DesignCommentCategory
             DesignOligoType
             DesignType
@@ -334,6 +335,8 @@ sub load_dynamic_files {
             ProcessRecombinase
             Project
             Summary
+            CrisprEsQcRuns
+            CrisprEsQcWell
         )
     );
 
