@@ -2,7 +2,6 @@ package LIMS2::WebApp::Controller::PublicReports;
 use Moose;
 use LIMS2::Report;
 use Try::Tiny;
-use Data::Printer;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -154,6 +153,10 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $species = $c->session->{selected_species};
 
+    my $all = 0;
+    if ($sponsor_id eq 'All') {
+        $all = 1;
+    }
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
@@ -171,31 +174,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
 
-    if ($disp_stage eq 'Genes') {
-
-        if (! $c->request->params->{type}) {
-            $c->request->params->{type} = 'simple';
-            return $c->response->redirect( $c->uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage", { type => 'simple' } ) );
-        }
-
-        $type = $c->request->params->{type};
-
-        if ($type eq 'simple') {
-
-            foreach my $column ( @{$data} ) {
-                while ( my ($key, $value) = each %{$column} ) {
-                    if (${$column}{$key} eq '0') {
-                        ${$column}{$key} = '';
-                    }
-                    else {
-                        ${$column}{$key} = '✔'
-                        unless ($key eq 'gene_id' || $key eq 'gene_symbol');
-                    }
-                }
-            }
-        }
-    };
-
     # csv download
     if ($c->request->params->{csv}) {
         $c->response->status( 200 );
@@ -212,7 +190,32 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     } else {
 
-    # Store report values in stash for display onscreen
+        if ($disp_stage eq 'Genes') {
+
+            if (! $c->request->params->{type}) {
+                $c->request->params->{type} = 'simple';
+                # return $c->response->redirect( $c->uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage", { type => 'simple' } ) );
+            }
+
+            $type = $c->request->params->{type};
+
+            if ($type eq 'simple') {
+
+                foreach my $column ( @{$data} ) {
+                    while ( my ($key, $value) = each %{$column} ) {
+                        if (${$column}{$key} eq '0') {
+                            ${$column}{$key} = '';
+                        }
+                        else {
+                            ${$column}{$key} = '✔'
+                            unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
+                        }
+                    }
+                }
+            }
+        }
+
+        # Store report values in stash for display onscreen
         $c->stash(
             'template'             => 'publicreports/sponsor_sub_report.tt',
             'report_id'            => $report_id,
@@ -224,6 +227,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'data'                 => $data,
             'link'                 => $link,
             'type'                 => $type,
+            'all'                  => $all,
         );
 
     }
@@ -291,11 +295,11 @@ sub _stash_well_genotyping_info {
     my ( $self, $c, $search ) = @_;
 
     #well_id will become barcode
-    my $well = try{  $c->model('Golgi')->retrieve_well( $search ) };
+    my $well = $c->model('Golgi')->retrieve_well( $search );
 
     unless ( $well ) {
-        $c->flash( error_msg => "Well does not exist: " . p( %$search ) );
-        return $c->response->redirect( $c->uri_for( "/public_reports/well_genotyping_info_search" ) );
+        $c->stash( error_msg => "Well doesn't exist" );
+        return;
     }
 
     try {
