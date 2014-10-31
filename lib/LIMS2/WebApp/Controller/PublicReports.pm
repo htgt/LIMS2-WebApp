@@ -164,27 +164,14 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
 
-
-
     # csv download
     if ($c->request->params->{csv}) {
         $c->response->status( 200 );
         $c->response->content_type( 'text/csv' );
         $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
 
-        # if (!$all) {
-        #     delete @{$display_columns}[2];
-        #     print "!!!!!!!!!!!!!!!!!!!!!!\n";
-        # }
-        ### $display_columns
-
         my $body = join(',', map { $_ } @{$display_columns}) . "\n";
         foreach my $column ( @{$data} ) {
-            # if (!$all) {
-            #     delete $column->{sponsors};
-            #     print "!!!!!!!!!!!!!!!!!!!!!!\n";
-            # }
-            ### $column
             $body .= join(',', map { $column->{$_} } @{$columns}) . "\n";
             $body =~ s/✔/1/g;
         }
@@ -201,7 +188,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             }
 
             $type = $c->request->params->{type};
-
 
             if ($type eq 'simple') {
 
@@ -235,8 +221,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         );
 
     }
-
-
 
     return;
 }
