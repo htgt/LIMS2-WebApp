@@ -78,7 +78,9 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
 
     my $params = $c->request->params;
 
-    my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
+    # prefetch wells->process_input_wells so we can do the has_child_wells check on plates ( for plate delete button condition )
+    my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params,
+        { prefetch => { 'wells' => 'process_input_wells' } } );
 
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
     $report_class =~ s/^.*\:\://;

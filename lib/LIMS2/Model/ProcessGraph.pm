@@ -79,7 +79,8 @@ has prefetch_process_data => (
         [ 'process_design',
           { 'process_cassette' => 'cassette' },
           { 'process_backbone' => 'backbone' },
-          'process_recombinases'
+          'process_recombinases',
+          'process_global_arm_shortening_design',
       ]
     }
 );

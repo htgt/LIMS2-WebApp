@@ -1,5 +1,17 @@
 {{$NEXT}}
 
+0.262     2014-10-29 11:39:38 Europe/London
+
+    Add interface to specify damage type for crispr es qc.
+
+0.260     2014-10-27 07:17:45 Europe/London
+
+    Speed up plate reports.
+
+0.260     2014-10-24 14:31:50 Europe/London
+
+    Added crud interface for recovery classes
+
 0.259     2014-10-21 11:45:25 Europe/London
 
     Gene symbols added to QC results
