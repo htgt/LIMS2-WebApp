@@ -22,7 +22,11 @@
   <thead>
     <tr>
       [% FOR disp_col IN display_columns %]
-        [% IF disp_col == "vector designs" %]
+        [% IF disp_col == "sponsors" %]
+            [% IF all %]
+              <th>[% disp_col %]</th>
+            [% END %]
+        [% ELSIF disp_col == "vector designs" %]
             <th>[% disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
             data-content="Number of gibson designs created for this gene (may not yet be plated)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
@@ -107,10 +111,13 @@
             [% ELSE %]
             <td>[% colval %]</td>
             [% END %]
-        [% ELSIF col == "effort_concluded" && colval == "1" %]
-            <td>✔</td>
+
         [% ELSIF col == "gene_symbol" %]
             <td>[% colval %]</td>
+        [% ELSIF col == "sponsors" %]
+            [% IF all %]
+              <td>[% colval %]</td>
+            [% END %]
         [% ELSIF !colval %]
             <td></td>
         [% ELSE %]

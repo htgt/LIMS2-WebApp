@@ -2,7 +2,6 @@ package LIMS2::WebApp::Controller::PublicReports;
 use Moose;
 use LIMS2::Report;
 use Try::Tiny;
-use Data::Printer;
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -144,6 +143,10 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $species = $c->session->{selected_species};
 
+    my $all = 0;
+    if ($sponsor_id eq 'All') {
+        $all = 1;
+    }
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
@@ -161,6 +164,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
 
+
     if ($disp_stage eq 'Genes') {
 
         if (! $c->request->params->{type}) {
@@ -169,6 +173,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         }
 
         $type = $c->request->params->{type};
+
 
         if ($type eq 'simple') {
 
@@ -179,7 +184,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
                     }
                     else {
                         ${$column}{$key} = '✔'
-                        unless ($key eq 'gene_id' || $key eq 'gene_symbol');
+                        unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
                     }
                 }
             }
@@ -192,8 +197,19 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         $c->response->content_type( 'text/csv' );
         $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
 
+        # if (!$all) {
+        #     delete @{$display_columns}[2];
+        #     print "!!!!!!!!!!!!!!!!!!!!!!\n";
+        # }
+        ### $display_columns
+
         my $body = join(',', map { $_ } @{$display_columns}) . "\n";
         foreach my $column ( @{$data} ) {
+            # if (!$all) {
+            #     delete $column->{sponsors};
+            #     print "!!!!!!!!!!!!!!!!!!!!!!\n";
+            # }
+            ### $column
             $body .= join(',', map { $column->{$_} } @{$columns}) . "\n";
             $body =~ s/✔/1/g;
         }
@@ -202,7 +218,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     } else {
 
-    # Store report values in stash for display onscreen
+        # Store report values in stash for display onscreen
         $c->stash(
             'template'             => 'publicreports/sponsor_sub_report.tt',
             'report_id'            => $report_id,
@@ -214,6 +230,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'data'                 => $data,
             'link'                 => $link,
             'type'                 => $type,
+            'all'                  => $all,
         );
 
     }
@@ -262,11 +279,11 @@ sub _stash_well_genotyping_info {
     my ( $self, $c, $search ) = @_;
 
     #well_id will become barcode
-    my $well = try{  $c->model('Golgi')->retrieve_well( $search ) };
+    my $well = $c->model('Golgi')->retrieve_well( $search );
 
     unless ( $well ) {
-        $c->flash( error_msg => "Well does not exist: " . p( %$search ) );
-        return $c->response->redirect( $c->uri_for( "/public_reports/well_genotyping_info_search" ) );
+        $c->stash( error_msg => "Well doesn't exist" );
+        return;
     }
 
     try {
