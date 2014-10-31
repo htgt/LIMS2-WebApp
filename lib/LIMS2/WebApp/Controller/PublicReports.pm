@@ -71,9 +71,11 @@ sub download_report :Path( '/public_reports/download' ) :Args(1) {
 
 =cut
 sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
-    my ( $self, $c, $targeting_type, $cache_param ) = @_;
+    my ( $self, $c, $targeting_type ) = @_;
 
     my $species;
+    my $cache_param;
+
 $DB::single=1;
     if ($c->user_exists) {
         $c->request->params->{species} = $c->session->{selected_species};
@@ -83,17 +85,18 @@ $DB::single=1;
         $c->request->params->{species} = 'Human';
     }
 
-    $species = $c->request->params->{species};
-    $c->session->{selected_species} = $species;
-
-    if ( defined $targeting_type && ($targeting_type eq 'no_cache') ) {
-        $targeting_type = undef;
-        $cache_param = 'no_cache';
-    }
-
-    if ( !defined $cache_param ) {
+    if ( !$c->request->params->{use_cache} ) {
         $cache_param = 'with_cache';
     }
+    elsif ( uc($c->request->params->{use_cache}) eq 'NO' ) {
+        $cache_param = 'no_cache';
+    }
+    else {
+        $cache_param = 'with_cache';
+    }
+
+    $species = $c->request->params->{species};
+    $c->session->{selected_species} = $species;
 
     if ( defined $targeting_type ) {
         # show report for the requested targeting type
@@ -143,7 +146,7 @@ sub _generate_front_page_report {
 
 sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
-
+$DB::single=1;
     # expecting :
     # targeting type i.e. 'st' or 'dt' for single- or double-targeted
     # sponsor id is the project sponsor e.g. Syboss, Pathogens
@@ -157,19 +160,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     if ($sponsor_id eq 'All') {
         $all = 1;
     }
+    my $cache_param = $c->request->params->{'cache_param'};
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
 
     my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
-
-    # Fetch details from returned report parameters
-    my $report_id        = $report_params->{ 'report_id' };
-    my $disp_target_type = $report_params->{ 'disp_target_type' };
-    my $disp_stage       = $report_params->{ 'disp_stage' };
-    my $columns          = $report_params->{ 'columns' };
-    my $display_columns  = $report_params->{ 'display_columns' };
-    my $data             = $report_params->{ 'data' };
 
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
@@ -194,7 +190,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
             if (! $c->request->params->{type}) {
                 $c->request->params->{type} = 'simple';
-                # return $c->response->redirect( $c->uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage", { type => 'simple' } ) );
             }
 
             $type = $c->request->params->{type};
@@ -228,8 +223,9 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'link'                 => $link,
             'type'                 => $type,
             'all'                  => $all,
+            'species'              => $species,
+            'cache_param'          => $cache_param,
         );
-
     }
 
     return;

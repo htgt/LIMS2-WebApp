@@ -4,7 +4,25 @@ document.title = "[%- sponsor_id %]";
 </SCRIPT>
 
 <span style="float:right">
-  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"><i class="icon-download-alt icon-white"></i><b> Download CSV</b></a>
+[%- IF cache_param == "with_cache" %]
+  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"
+  href=[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}",
+    {
+        species => species,
+        use_cache => cache_param,
+        csv => 1
+    }
+  ) %]><i class="icon-download-alt icon-white"></i><b> Download cached CSV</b></a>
+[%- ELSE %]
+  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"
+  href=[%- c.uri_for( c.action, [disp_target_type, sponsor_id], 
+    {
+        use_cache => cache_param,
+        species => species,
+        csv => 1
+    } 
+  ) %]><i class="icon-download-alt icon-white"></i><b> Download CSV</b></a>
+[%- END %]
 </span>
 <div class="page-header">
   <h2>Sponsor Progress Sub-Report</h2>
@@ -165,15 +183,6 @@ document.title = "[%- sponsor_id %]";
   $('#crispr_dna_wells').popover();
   $('#accepted_crispr_dna_wells').popover();
   $('#accepted_crispr_pairs').popover();
-
-  // download csv
-  $(document).ready(function() {
-    if ( window.location.href.indexOf('?') == -1 ) {
-      $("#csv_download").attr('href', document.location + "?csv=1");
-    } else {
-      $("#csv_download").attr('href', document.location + "&csv=1");
-    }
-  });
 
 </script>
 

@@ -17,7 +17,15 @@
     <a id='type_full' type='button' name='switch_mouse' class='btn btn-info btn-small' href="[% c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse'} ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
   [% END %]
 [%- ELSE %]
-    [% cache_param = "no_cache" %]
+    [%- IF cache_param == 'with_cache' %]
+        <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-small'
+        href="[% c.uri_for( '/public_reports/sponsor_report', {species => species, use_cache => 'NO'} ) %]">
+        <i class="icon-exclamation-sign icon-white"></i><b> Use live reports</b></a>
+    [%- ELSE %]
+        <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-small'
+        href="[% c.uri_for( '/public_reports/sponsor_report', {species => species, use_cache => 'YES'} ) %]">
+        <i class="icon-exclamation-sign icon-white"></i><b> Use cached reports</b></a>
+    [%- END %]
 [% END %]
 
 </span>
@@ -68,9 +76,13 @@
         [% IF countval != "" && countval > 0 %]
           [% IF c.user || row == "Genes" %]
             [%- IF cache_param == "with_cache" %]
-                <b><a href="[% c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank">[% countval %]</a></b></td>
+                <b><a href="[% c.uri_for( "/public_reports/cached_sponsor_report/${colname}",
+                { species => species, cache_param => cache_param }
+                ) %]" target="_blank">[% countval %]</a></b></td>
             [%- ELSE %]
-                <b><a href="[% c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}" ) %]">[% countval %]</a></b></td>
+                <b><a href="[% c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
+                    { species => species, cache_param => cache_param }
+                ) %]" target="_blank">[% countval %]</a></b></td>
             [%- END %]
           [% ELSE %]
             <b>[% countval %]</b></td>
