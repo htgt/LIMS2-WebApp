@@ -207,7 +207,7 @@ sub design_targets_for_exons {
         { ensembl_gene_id => $ensembl_gene_id } );
 
     for my $exon ( @{ $exons } ) {
-        if ( my $dt = $dt_rs->find( { ensembl_exon_id => $exon->{id} } ) ) {
+        if ( my $dt = $dt_rs->find( { ensembl_exon_id => $exon->{id}, assembly_id => $self->assembly_id } ) ) {
             $exon->{dt} = 1;
         }
         else {

@@ -82,7 +82,7 @@ sub get_gene_extent {
 
     my %extent_hash;
 
-    my $slice_adaptor = $model->ensembl_slice_adaptor( $species) ;
+    my $slice_adaptor = $model->ensembl_slice_adaptor($species);
     my $slice = $slice_adaptor->fetch_by_gene_stable_id( $ensembl_stable_id, 5e3 );
 
     my $coord_sys  = $slice->coord_system()->name();
@@ -93,8 +93,14 @@ sub get_gene_extent {
 
     DEBUG ("Slice: $coord_sys $seq_region $start-$end ($strand)");
 
-    $extent_hash{'chr_start'} = $start;
-    $extent_hash{'chr_end'} = $end;
+    if ( $start <= $end ){
+        $extent_hash{'chr_start'} = $start;
+        $extent_hash{'chr_end'} = $end;
+    }
+    else {
+        $extent_hash{'chr_start'} = $end;
+        $extent_hash{'chr_end'} = $start;
+    }
     $extent_hash{'chr_name'} = $seq_region;
     $extent_hash{'assembly'} = $model->get_species_default_assembly( $species );
 

@@ -565,7 +565,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_design_view', {
+              <td><a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_primer_view', {
                       crispr_type_id => well.crispr_type_id,
                       design_id => well.design_id,
                       crispr_type => well.crispr_type,

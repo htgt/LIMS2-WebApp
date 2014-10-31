@@ -354,7 +354,7 @@ override iterator => sub {
     my @sponsors;
     ERROR ('Starting report generation for Gene Electroporation Summary (Human)');
 
-    if ( $self->sponsor ne 'All' ) {
+    if ( $self->sponsor ne 'Sponsors' ) {
         @sponsors = ($self->sponsor);
     }
     else {
@@ -362,7 +362,7 @@ override iterator => sub {
                 @sponsors = ('Core', 'Syboss', 'Pathogens');
         }
         elsif ( $self->species eq 'Human') {
-                @sponsors = ('Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
+                @sponsors = ('All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs');
         }
     }
 

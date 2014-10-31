@@ -49,7 +49,7 @@ sub _build_gene_electroporate_list {
             } );
         } else {
             $project_rs = $self->model->schema->resultset('Project')->search(
-                { sponsor_id => { -in => ['Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'] }
+                { sponsor_id => { -in => ['All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs'] }
             } );
         }
     }
@@ -223,7 +223,7 @@ sub valid_dna_wells {
 
     	next unless $well->dna_status_pass;
 
-        # acs - 20_05_13 redmine 10335 - also check for vector final pick QC pass 
+        # acs - 20_05_13 redmine 10335 - also check for vector final pick QC pass
         next unless $well->final_pick_qc_seq_pass;
 
     	if ( $params->{promoter} ){

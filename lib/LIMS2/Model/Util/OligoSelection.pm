@@ -52,6 +52,7 @@ use Path::Class;
 
 
 sub pick_crispr_PCR_primers {
+    my $model = shift;
     my $params = shift;
 
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 500;
@@ -61,7 +62,7 @@ sub pick_crispr_PCR_primers {
     my ($primer_data, $primer_passes, $chr_seq_start);
     PCR_TRIALS: foreach my $step ( 1..4 ) {
         INFO ('PCR attempt No. ' . $step );
-        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate( $params );
+        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate($model, $params );
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('PCR Primer3 attempt No. ' . $step . ' succeeded');
             if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
@@ -91,8 +92,7 @@ sub crispr_PCR_calculate {
     my $repeat_mask = $params->{'repeat_mask'};
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_seq_start )
-        = get_crispr_PCR_EnsEmbl_region( {
-                model => $model,
+        = get_crispr_PCR_EnsEmbl_region($model, {
                 crispr_primers => $crispr_primers,
                 species => $species,
                 repeat_mask => $repeat_mask,
@@ -140,6 +140,7 @@ sub crispr_PCR_calculate {
 =cut
 
 sub pick_genotyping_primers {
+    my $model = shift;
     my $params = shift;
 
     $params->{'start_oligo_field_width'} = $ENV{'LIMS2_GENOTYPING_START_FIELD'} // 1000;
@@ -153,7 +154,7 @@ sub pick_genotyping_primers {
     GENO_TRIALS: foreach my $step ( 1..($ENV{'LIMS2_GENOTYPING_ITERATION_MAX'}//4) ) {
         INFO ('Genotyping attempt No. ' . $step );
         ($primer_data, $primer_passes, $chr_strand, $design_oligos, $chr_seq_start, $chr_name)
-            = genotyping_calculate( $params );
+            = genotyping_calculate( $model, $params );
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('Genotyping Primer3 attempt No. ' . $step . ' succeeded');
             if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
@@ -185,8 +186,7 @@ sub genotyping_calculate {
 
     # Return the design oligos as well so that we can report them to provide context later on
     my ($region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand, $design_oligos, $chr_seq_start, $chr_name)
-        = get_genotyping_EnsEmbl_region( {
-                model => $model,
+        = get_genotyping_EnsEmbl_region( $model, {
                 design_id => $design_id,
                 repeat_mask => $repeat_mask,
                 start_oligo_field_width => $params->{'start_oligo_field_width'},
@@ -582,7 +582,6 @@ sub get_crispr_PCR_EnsEmbl_region{
 
     my $slice_adaptor = $model->ensembl_slice_adaptor($species);
     my $seq;
-
 
     my $start_target = $crispr_primers->{'crispr_primers'}->{'left'}->{'left_0'}->{'location'}->start
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
@@ -1205,13 +1204,14 @@ sub retrieve_crispr_primers {
         my $count = 0;
         while ( my $crispr_primers_row = $crispr_primers_rs->next ) {
 #FIXME: Owing to the primer_name column also being the name of the belongs to relationship...
+            my $primer_loci = $crispr_primers_row->crispr_primer_loci->find({ assembly_id => $params->{'assembly_id'} });
             $crispr_primers_hash{$crispr_type_string}->{$crispr_id}->{$crispr_primers_row->primer_name->primer_name} = {
                 'primer_seq' => $crispr_primers_row->primer_seq,
-                'chr_start' => $crispr_primers_row->crispr_primer_loci->single->chr_start,
-                'chr_end'  => $crispr_primers_row->crispr_primer_loci->single->chr_end,
-                'chr_strand' => $crispr_primers_row->crispr_primer_loci->single->chr_strand,
-                'chr_id' => $crispr_primers_row->crispr_primer_loci->single->chr_id,
-                'assembly_id' => $crispr_primers_row->crispr_primer_loci->single->assembly_id,
+                'chr_start' => $primer_loci->chr_start,
+                'chr_end'  => $primer_loci->chr_end,
+                'chr_strand' => $primer_loci->chr_strand,
+                'chr_id' => $primer_loci->chr_id,
+                'assembly_id' => $primer_loci->assembly_id,
             };
         }
     }
@@ -1255,14 +1255,15 @@ sub get_db_genotyping_primers_as_hash {
     while ( my $g_primer = $genotyping_primer_rs->next ) {
         if ( $g_primer->genotyping_primer_type_id =~ m/G[FR][12]/ ) {
             last if $g_primer->genotyping_primer_loci->count == 0;
+            my $g_locus = $g_primer->genotyping_primer_loci->find({ 'assembly_id' => $params->{'assembly_id'} });
             $g_primer_hash{ $g_primer->genotyping_primer_type_id } = {
                 'primer_seq' => $g_primer->seq,
-                'chr_start' => $g_primer->genotyping_primer_loci->first->chr_start,
-                'chr_end' => $g_primer->genotyping_primer_loci->first->chr_end,
-                'chr_id' => $g_primer->genotyping_primer_loci->first->chr_id,
-                'chr_name' => $g_primer->genotyping_primer_loci->first->chr->name,
-                'chr_strand' => $g_primer->genotyping_primer_loci->first->chr_strand,
-                'assembly_id' => $g_primer->genotyping_primer_loci->single->assembly_id,
+                'chr_start' => $g_locus->chr_start,
+                'chr_end' => $g_locus->chr_end,
+                'chr_id' => $g_locus->chr_id,
+                'chr_name' => $g_locus->chr->name,
+                'chr_strand' => $g_locus->chr_strand,
+                'assembly_id' => $g_locus->assembly_id,
             }
         }
     }

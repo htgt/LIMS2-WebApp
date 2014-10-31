@@ -90,7 +90,7 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
         design         => $design_data,
         display_design => \@DISPLAY_DESIGN,
         species        => $species_id,
-        uscs_db        => $ucsc_db,
+        ucsc_db        => $ucsc_db,
         crisprs        => [ map{ $_->as_hash } @{ $crisprs } ],
         crispr_pairs   => [ map{ $_->as_hash } @{ $crispr_pairs } ],
         crispr_groups  => [ map{ $_->as_hash } @{ $crispr_groups } ],
@@ -130,7 +130,7 @@ sub design_ucsc_blat : Path( '/user/design_ucsc_blat' ) : Args(0) {
     $c->stash(
         design  => $design,
         species => $species_id,
-        uscs_db => $ucsc_db,
+        ucsc_db => $ucsc_db,
     );
 
     return;

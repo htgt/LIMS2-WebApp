@@ -126,6 +126,45 @@ sub genoverse_crispr_primers_view : Path( '/user/genoverse_crispr_primers' ) : A
 return;
 }
 
+=head genoverse_primer_view
+
+Use this to show extent by design plus genotyping primers, etc.
+
+
+=cut
+
+sub genoverse_primer_view : Path( '/user/genoverse_primer_view' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $design_extent;
+   try {
+        $design_extent = get_design_extent(
+            $c->model('Golgi'),
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch {
+       $c->stash( error_msg => $_->as_string );
+    };
+    if (! $design_extent ) {
+        $c->stash( error_msg => 'LIMS2 needs a design to display Genoverse design with primers view' );
+    }
+    else {
+        $c->stash(
+            'extent'  => $design_extent,
+            'context' => $c->request->params,
+        );
+    }
+
+    return;
+}
+
+=head genoverse_design_view
+
+Use this to show a generic design extent based genoverse view - no primers
+
+=cut
 
 sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
     my ( $self, $c ) = @_;
@@ -154,6 +193,11 @@ sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
     return;
 }
 
+=head genoverse_gene_view
+
+Use this to show a generic gene extent based genoverse view - no primers
+
+=cut
 
 sub genoverse_gene_view : Path( '/user/genoverse_gene_view' ) : Args(0) {
     my ( $self, $c ) = @_;

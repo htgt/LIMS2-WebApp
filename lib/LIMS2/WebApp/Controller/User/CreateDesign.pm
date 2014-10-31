@@ -459,7 +459,6 @@ sub redo_design_attempt : PathPart('redo') Chained('design_attempt') : Args(0) {
 }
 ## use critic
 
-
 sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -474,15 +473,25 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
 
-        if ( $c->session->{selected_species} ne $design_data->{species} ) {
+        my $species = $design_data->{species};
+        if ( $c->session->{selected_species} ne $species ) {
             $c->stash( error_msg => "LIMS2 is set to ".$c->session->{selected_species}." and design is "
                 .$design_data->{species}.".\n" . "Plese switch to the correct species in LIMS2." );
             return;
         }
 
+        my $species_default_assembly_id = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
+                { species_id => $species } )->assembly_id;
+        my $design_assembly_id = $design_data->{oligos}[0]{locus}{assembly};
+        if ( $species_default_assembly_id ne $design_assembly_id ) {
+            $c->stash( error_msg => "LIMS2 is on the $species_default_assembly_id $species assembly "
+                    . "and this design is on $design_assembly_id assembly, unable to import" );
+            return;
+        }
+
         $design_data->{created_by} = $c->user->name;
         $design_data->{oligos} = [ map { {loci => [ $_->{locus} ], seq => $_->{seq}, type => $_->{type} } } @{ $design_data->{oligos} } ];
-        $design_data->{gene_ids} = [ map { $c->model('Golgi')->find_gene({ species => 'Mouse', search_term => $_ }) } @{ $design_data->{assigned_genes} } ];
+        $design_data->{gene_ids} = [ map { $c->model('Golgi')->find_gene({ species => $design_data->{species}, search_term => $_ }) } @{ $design_data->{assigned_genes} } ];
 
         my $gene_type_id;
         if ($design_data->{species} eq 'Mouse') { $gene_type_id = 'MGI' };
@@ -507,12 +516,9 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
         $c->model('Golgi')->txn_do( sub {
             try{
                 my $design = $c->model('Golgi')->c_create_design( $design_data );
-                foreach my $gene ( @{ $design_data->{gene_ids} }) {
+                my $build = $DEFAULT_SPECIES_BUILD{ lc($species) };
 
-                    my $species = $design_data->{species};
-                    my $build = $DEFAULT_SPECIES_BUILD{ lc($species) };
-                    my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find(
-                            { species_id => $species } )->assembly_id;
+                foreach my $gene ( @{ $design_data->{gene_ids} }) {
                     $create_design_util->calculate_design_targets( {
                         ensembl_gene_id => $gene->{ensembl_id},
                         gene_id         => $gene->{gene_id},
@@ -522,7 +528,7 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
                         user            => $design_data->{created_by},
                         species         => $species,
                         build_id        => $build,
-                        assembly_id     => $assembly,
+                        assembly_id     => $species_default_assembly_id,
                     } );
                 }
                 $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
@@ -538,7 +544,6 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
     return;
 }
-
 
 __PACKAGE__->meta->make_immutable;
 
