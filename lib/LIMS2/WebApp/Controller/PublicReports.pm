@@ -165,31 +165,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $type;
 
 
-    if ($disp_stage eq 'Genes') {
-
-        if (! $c->request->params->{type}) {
-            $c->request->params->{type} = 'simple';
-            return $c->response->redirect( $c->uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage", { type => 'simple' } ) );
-        }
-
-        $type = $c->request->params->{type};
-
-
-        if ($type eq 'simple') {
-
-            foreach my $column ( @{$data} ) {
-                while ( my ($key, $value) = each %{$column} ) {
-                    if (${$column}{$key} eq '0') {
-                        ${$column}{$key} = '';
-                    }
-                    else {
-                        ${$column}{$key} = '✔'
-                        unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
-                    }
-                }
-            }
-        }
-    };
 
     # csv download
     if ($c->request->params->{csv}) {
@@ -218,6 +193,32 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     } else {
 
+        if ($disp_stage eq 'Genes') {
+
+            if (! $c->request->params->{type}) {
+                $c->request->params->{type} = 'simple';
+                # return $c->response->redirect( $c->uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage", { type => 'simple' } ) );
+            }
+
+            $type = $c->request->params->{type};
+
+
+            if ($type eq 'simple') {
+
+                foreach my $column ( @{$data} ) {
+                    while ( my ($key, $value) = each %{$column} ) {
+                        if (${$column}{$key} eq '0') {
+                            ${$column}{$key} = '';
+                        }
+                        else {
+                            ${$column}{$key} = '✔'
+                            unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
+                        }
+                    }
+                }
+            }
+        }
+
         # Store report values in stash for display onscreen
         $c->stash(
             'template'             => 'publicreports/sponsor_sub_report.tt',
@@ -234,6 +235,8 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         );
 
     }
+
+
 
     return;
 }

@@ -935,7 +935,7 @@ SQL_END
                         order_by => 'sponsor_id'
                         } ) );
 
-            $sponsors_str = join  ( ', ', @sponsors );
+            $sponsors_str = join  ( '; ', @sponsors );
 
             if (scalar @sponsors == 1) {
                 $effort = $self->model->retrieve_project({
@@ -963,9 +963,9 @@ SQL_END
                     push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
                     push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
                 }
-                $recovery_class = join  ( ', ', @recovery_class );
-                $priority = join  ( ', ', @priority );
-                $effort_concluded = join  ( ', ', @effort_concluded );
+                $recovery_class = join  ( '; ', @recovery_class );
+                $priority = join  ( '; ', @priority );
+                $effort_concluded = join  ( '; ', @effort_concluded );
             }
         }
 
