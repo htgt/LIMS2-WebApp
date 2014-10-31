@@ -356,7 +356,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my @targeted_clones = sort { $a->{name} cmp $b->{name} } values %targeted_clones;
     my %summaries;
     for my $tc ( @targeted_clones ) {
-        $summaries{accepted}++ if $tc->{accepted};
+        $summaries{accepted}++ if $tc->{accepted} eq 'yes';
         $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage};
     }
 
