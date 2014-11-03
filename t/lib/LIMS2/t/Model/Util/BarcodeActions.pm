@@ -9,8 +9,9 @@ use LIMS2::Model::Util::BarcodeActions qw/
             freeze_back_barcode
             add_barcodes_to_wells
             checkout_well_barcode
+            upload_plate_scan
     /;
-
+use File::Temp qw/ tempfile /;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 
 sub discard_tests : Tests(13){
@@ -48,7 +49,7 @@ sub discard_tests : Tests(13){
 
 }
 
-sub freeze_back_tests : Tests(18){
+sub freeze_back_tests : Tests(36){
 	my $bc = 10;
 	my $unchanged_well = 'B01';
 
@@ -101,6 +102,42 @@ sub freeze_back_tests : Tests(18){
     ok my $new_unchanged = $new_plate->search_related('wells',{ name => $unchanged_well })->first, "New $unchanged_well found";
     my ($parent) = $new_unchanged->parent_wells;
     is $parent->id, $orig_unchanged->id, "Orig $unchanged_well is parent of new $unchanged_well";
+
+    # Add barcodes to new wells on temp piq plate
+    # Input params come from form like: <input type="text" name="barcode_[% well.id %]">
+    my %add_bc_params = map { 'barcode_'.$_->id => 'BC'.$_->id } $tmp_piq_plate->wells;
+    ok my $messages = add_barcodes_to_wells(model, \%add_bc_params, 'checked_out'), "Barcodes added to PIQ wells";
+    my @piq_wells = $tmp_piq_plate->wells;
+    foreach my $well(@piq_wells){
+        is $well->well_barcode->barcode,'BC'.$well->id, "New well barcode is correct";
+        is $well->well_barcode->barcode_state->id, 'checked_out', "New well barcode has correct state";
+        is $well->well_barcode->root_piq_well_id, $qc_well->id, "New well linked to root piq well ID";
+    }
+
+    # create new PIQ plate by csv upload
+    my $a01_bc = $piq_wells[0]->well_barcode->barcode;
+    my $a02_bc = $piq_wells[1]->well_barcode->barcode;
+    my %location_of_barcode;
+    my $fh = tempfile();
+    print $fh "A01,$a01_bc\nA02,$a02_bc\n";
+    $fh->seek(0,0);
+    ok my ($new_piq_plate, $piq_messages) = upload_plate_scan(model,{
+        new_plate_name => 'NEW_PIQ_TEST',
+        species => 'Human',
+        user => 'test_user@example.org',
+        csv_fh => $fh,
+        new_state => 'in_freezer',
+    }), "New PIQ plate created from csv upload";
+
+    is $new_piq_plate->type_id, "PIQ", "New plate type correct";
+    is scalar($new_piq_plate->wells), 2, "New plate has 2 wells";
+    ok my $a01 = $new_piq_plate->search_related('wells',{ name => 'A01' })->first, "A01 found on new plate";
+    is $a01->well_barcode->barcode, $a01_bc, "A01 barcode is correct";
+    is $a01->well_barcode->barcode_state->id, "in_freezer", "A01 barcode state correct";
+    is $a01->well_barcode->root_piq_well_id, $qc_well->id, "A01 barcode linked to root piq well ID";
+    my ($a01_parent) = $a01->parent_wells;
+    is $a01_parent->id, $piq_wells[0]->id, "A01 has correct parent well";
+
 }
 
 sub individual_checkout_tests : Tests(){

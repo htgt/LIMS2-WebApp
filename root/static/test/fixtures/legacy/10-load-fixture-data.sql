@@ -9570,7 +9570,7 @@ INSERT INTO process_recombinase VALUES (1281, 'Dre', 1);
 -- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('processes_id_seq', 1324, true);
+SELECT pg_catalog.setval('processes_id_seq', 3000, true);
 
 
 --
