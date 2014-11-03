@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPPlate::VERSION = '0.262';
+    $LIMS2::Report::CrisprEPPlate::VERSION = '0.263';
 }
 ## use critic
 
@@ -66,7 +66,7 @@ override iterator => sub {
             $well_data->{gene_ids},
             $well_data->{gene_symbols},
             $well_data->{sponsors},
-            $self->catalyst ? $self->catalyst->uri_for( '/user/well_eng_seq', $well_data->{well_id} ) : '',
+            $self->catalyst ? $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} ) : '',
             $well_data->{cassette},
             $well_data->{cassette_resistance},
             $well_data->{cassette_promoter},

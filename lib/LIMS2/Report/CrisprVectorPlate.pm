@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.262';
+    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.263';
 }
 ## use critic
 
@@ -68,7 +68,7 @@ override iterator => sub {
         my @data = (
             $well_data->{well_name},
             $self->crispr_design_and_gene_cols($crispr),
-            $self->catalyst ? $self->catalyst->uri_for( '/user/well_eng_seq', $well_data->{well_id} ) : '',
+            $self->catalyst ? $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} ) : '',
             $well_data->{parent_wells}[0]{plate_name},
             $well_data->{parent_wells}[0]{well_name},
             $well_data->{backbone},

@@ -103,9 +103,11 @@
 					[% END %]
         [% ELSIF col == "gene_id" %]
             [% IF c.user %]
-            <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+                <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+            [% ELSIF row.item('targeted_clones') == '✔' || row.item('targeted_clones') > 0 %]
+                <td><a class="brand" href="[% c.uri_for('/public_reports/gene_report', colval ) %]">[% colval %]</a></td>
             [% ELSE %]
-            <td>[% colval %]</td>
+                <td>[% colval %]</td>
             [% END %]
         [% ELSIF col == "effort_concluded" && colval == "1" %]
             <td>✔</td>

@@ -33,6 +33,29 @@
     [% END %]
 </td>
 
+[% IF accept %]
+    <td>
+        [% IF row.show_checkbox %]
+            <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.es_qc_well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
+        [% ELSE %]
+            Accepted in another run
+        [% END %]
+    </td>
+[% END %]
+
+<td>
+    <div class="control-group">
+      <div class="controls">
+       <select name="crispr_damage_[% row.well_id %]" class="crispr_damage_type input-medium" data-crispr_well_id="[% row.es_qc_well_id %]">
+          <option value="" [% UNLESS row.damage_type %]selected[% END %]>-</option>
+          [%- FOR type IN damage_types %]
+            <option value="[% type %]" [% row.damage_type == type ? 'selected="selected"' : '' %]>[% type %]</option>
+          [% END %]
+       </select>
+     </div>
+   </div>
+</td>
+
 <td>
   [% IF row.has_vcf_file %]
     <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
@@ -87,25 +110,3 @@
     [% END %]
 </td>
 
-[% IF accept %]
-    <td>
-        [% IF row.show_checkbox %]
-            <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.es_qc_well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
-        [% ELSE %]
-            Accepted in another run
-        [% END %]
-    </td>
-[% END %]
-
-<td>
-    <div class="control-group">
-      <div class="controls">
-       <select name="crispr_damage_[% row.well_id %]" class="crispr_damage_type input-medium" data-crispr_well_id="[% row.es_qc_well_id %]">
-          <option value="" [% UNLESS row.damage_type %]selected[% END %]>-</option>
-          [%- FOR type IN damage_types %]
-            <option value="[% type %]" [% row.damage_type == type ? 'selected="selected"' : '' %]>[% type %]</option>
-          [% END %]
-       </select>
-     </div>
-   </div>
-</td>

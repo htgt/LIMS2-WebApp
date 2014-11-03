@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.262';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.263';
 }
 ## use critic
 
@@ -9,6 +9,8 @@ use Moose;
 use LIMS2::Report;
 use Try::Tiny;
 use Data::Printer;
+use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
+use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -284,6 +286,139 @@ sub _stash_well_genotyping_info {
         #get string representation if its a lims2::exception
         $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
     };
+
+    return;
+}
+
+=head2 public_gene_report
+
+Public gene report, only show targeted clone details:
+- Summary of targeted clones:
+    - number of visible clones (accepted)
+    - number of each clone with type of crispr damage
+- List of targeted clones
+    - Crispr qc alignment view
+    - First allele genbank file
+    - Crispr damage type
+
+=cut
+sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
+    my ( $self, $c, $gene_id ) = @_;
+    $c->log->info( "Generate public gene report page for gene: $gene_id" );
+    my $model = $c->model('Golgi');
+    my $species = $c->session->{selected_species};
+
+    my $designs = $model->c_list_assigned_designs_for_gene(
+        { gene_id => $gene_id, species => $species } );
+    my @design_ids = map { $_->id } @{ $designs };
+
+    # grab all summary rows for the designs which have ep_pick wells
+    my $design_summaries_rs = $model->schema->resultset('Summary')->search(
+       {
+           'me.design_id'       => { 'IN' => \@design_ids },
+           'me.ep_pick_well_id' => { '!=' => undef },
+       },
+    );
+
+    my $gene_symbol;
+    my %targeted_clones;
+    while ( my $sr = $design_summaries_rs->next ) {
+        $gene_symbol = $sr->design_gene_symbol unless $gene_symbol;
+        next if exists $targeted_clones{ $sr->ep_pick_well_id };
+
+        my %data;
+        $data{id}         = $sr->ep_pick_well_id;
+        $data{name}       = $sr->ep_pick_plate_name . '_' . $sr->ep_pick_well_name;
+        $data{plate_name} = $sr->ep_pick_plate_name;
+        $data{well_name}  = $sr->ep_pick_well_name;
+        $data{accepted}   = $sr->ep_pick_well_accepted ? 'yes' : 'no';
+        $data{created_at} = $sr->ep_pick_well_created_ts->ymd;
+
+        # get crispr es qc data if available
+        if ( $sr->ep_pick_well_accepted && $sr->crispr_ep_well_name ) {
+            my $well = $model->schema->resultset('Well')->find( { id => $sr->ep_pick_well_id } );
+            my $gene_finder = sub { $model->find_genes( @_ ) };
+            # grab data for alignment popup
+            try { $data{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 ) };
+
+            # grab data for crispr damage type
+            my @crispr_damage_types = $model->schema->resultset('CrisprEsQcWell')->search(
+                { well_id => $sr->ep_pick_well_id } )->get_column('crispr_damage_type_id')->all;
+            @crispr_damage_types = uniq grep { $_ } @crispr_damage_types;
+
+            if ( scalar( @crispr_damage_types ) == 1 ) {
+                $data{crispr_damage} = $crispr_damage_types[0];
+            }
+            elsif ( scalar( @crispr_damage_types ) > 1 ) {
+                $c->log->warn( $data{name}
+                        . ' ep_pick well has multiple crispr damage types associated with it: '
+                        . join( ', ', @crispr_damage_types ) );
+                $data{crispr_damage} = join( '/', @crispr_damage_types );
+            }
+        }
+        $targeted_clones{ $sr->ep_pick_well_id } = \%data;
+    }
+
+    my @targeted_clones = sort { $a->{name} cmp $b->{name} } values %targeted_clones;
+    my %summaries;
+    for my $tc ( @targeted_clones ) {
+        $summaries{accepted}++ if $tc->{accepted} eq 'yes';
+        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage};
+    }
+
+    $c->stash(
+        'gene_id'         => $gene_id,
+        'gene_symbol'     => $gene_symbol,
+        'summary'         => \%summaries,
+        'targeted_clones' => \@targeted_clones,
+    );
+    return;
+}
+
+=head2 well_eng_seq
+
+Generate Genbank file for a well
+
+=cut
+sub well_eng_seq :Path( '/public_reports/well_eng_seq' ) :Args(1) {
+    my ( $self, $c, $well_id ) = @_;
+
+    my $model = $c->model('Golgi');
+    my $well =  $model->retrieve_well( { id => $well_id } );
+
+    my $params = $c->request->params;
+    my ( $method, undef , $eng_seq_params ) = generate_well_eng_seq_params( $model, $params, $well );
+    my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
+
+    my $design  = $well->design;
+    my $gene_id = $design->genes->first->gene_id;
+    my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
+    my $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
+    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
+
+    my $file_name = $well->as_string . "_$stage" . "_$gene";
+    my $file_format = exists $params->{file_format} ? $params->{file_format} : 'Genbank';
+
+    $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );
+
+    return;
+}
+
+sub download_genbank_file {
+    my ( $self, $c, $eng_seq, $file_name, $file_format ) = @_;
+
+    $file_format ||= 'Genbank';
+    my $suffix = $file_format eq 'Genbank' ? 'gbk' : 'fa';
+    my $formatted_seq;
+    Bio::SeqIO->new(
+        -fh     => IO::String->new($formatted_seq),
+        -format => $file_format,
+    )->write_seq($eng_seq);
+    $file_name = $file_name . ".$suffix";
+
+    $c->response->content_type( 'chemical/seq-na-genbank' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$file_name" );
+    $c->response->body( $formatted_seq );
 
     return;
 }

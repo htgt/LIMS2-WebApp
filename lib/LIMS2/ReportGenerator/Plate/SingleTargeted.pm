@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::SingleTargeted;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.262';
+    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.263';
 }
 ## use critic
 
@@ -33,7 +33,7 @@ sub base_data {
 
     unless ( $args || $args->{no_eng_seq_link} ) {
         if ( $self->catalyst ) {
-            push @base_data, $self->catalyst->uri_for( '/user/well_eng_seq', $well->id );
+            push @base_data, $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well->id );
         }
         else {
             push @base_data, '-';
@@ -66,7 +66,7 @@ sub base_data_quick {
 
     unless ( $args || $args->{no_eng_seq_link} ) {
         if ( $self->catalyst ) {
-            push @base_data, $self->catalyst->uri_for( '/user/well_eng_seq', $data->{well_id} );
+            push @base_data, $self->catalyst->uri_for( '/public_reports/well_eng_seq', $data->{well_id} );
         }
         else {
             push @base_data, '-';
@@ -96,7 +96,7 @@ sub base_data_crispr_quick {
 
     unless ( $args || $args->{no_eng_seq_link} ) {
         if ( $self->catalyst ) {
-            push @base_data, $self->catalyst->uri_for( '/user/well_eng_seq', $data->{well_id} );
+            push @base_data, $self->catalyst->uri_for( '/public_reports/well_eng_seq', $data->{well_id} );
         }
         else {
             push @base_data, '-';

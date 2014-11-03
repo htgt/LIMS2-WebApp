@@ -118,13 +118,13 @@ $(document).ready(function() {
             <th>Gene</th>
             <th>Pair ID</th>
             <th>Alignment</th>
+            <th>Accept</th>
+            <th>Damage Type</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>
             <th>Deletions</th>
             <th>Inserts</th>
-            <th>Accept</th>
-            <th>Damage Type</th>
         </tr>
     </thead>
     <tbody>
