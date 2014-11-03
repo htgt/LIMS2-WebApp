@@ -10,6 +10,7 @@ use LIMS2::Model::Util::BarcodeActions qw/
             add_barcodes_to_wells
             checkout_well_barcode
             upload_plate_scan
+            send_out_well_barcode
     /;
 use File::Temp qw/ tempfile /;
 use LIMS2::Test model => { classname => __PACKAGE__ };
@@ -49,7 +50,7 @@ sub discard_tests : Tests(13){
 
 }
 
-sub freeze_back_tests : Tests(36){
+sub freeze_back_tests : Tests(37){
 	my $bc = 10;
 	my $unchanged_well = 'B01';
 
@@ -134,6 +135,7 @@ sub freeze_back_tests : Tests(36){
     ok my $a01 = $new_piq_plate->search_related('wells',{ name => 'A01' })->first, "A01 found on new plate";
     is $a01->well_barcode->barcode, $a01_bc, "A01 barcode is correct";
     is $a01->well_barcode->barcode_state->id, "in_freezer", "A01 barcode state correct";
+    like $a01->well_lab_number->lab_number, qr/$params->{lab_number}/, "A01 well lab number correct";
     is $a01->well_barcode->root_piq_well_id, $qc_well->id, "A01 barcode linked to root piq well ID";
     my ($a01_parent) = $a01->parent_wells;
     is $a01_parent->id, $piq_wells[0]->id, "A01 has correct parent well";

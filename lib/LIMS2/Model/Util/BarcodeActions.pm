@@ -82,9 +82,6 @@ sub checkout_well_barcode{
 
     # FIXME: check barcode is "in_freezer" before doing checkout? or is this too strict
 
-    # FIXME: make this deal with multiple barcodes.
-    # checkout one by one then remove from source plates in batch
-
     my $well_bc = $model->update_well_barcode({
         barcode   => $validated_params->{barcode},
         new_state => 'checked_out',
@@ -118,7 +115,6 @@ sub checkout_well_barcode_list{
 
     # FIXME: check barcode is "in_freezer" before doing checkout? or is this too strict
 
-    # FIXME: make this deal with multiple barcodes.
     # checkout one by one then remove from source plates in batch
     my $barcode_list = [];
     if (ref $validated_params->{barcode_list} eq ref []){
@@ -185,7 +181,7 @@ sub do_picklist_checkout{
         user         => $validated_params->{user},
     });
 
-    # FIXME: deactivate picking list
+    # deactivate picking list
     $list->update({ active => 0 });
 
     DEBUG("pick list deactivated");
@@ -363,7 +359,6 @@ sub send_out_well_barcode{
 
     my $validated_params = $model->check_params($params, pspec_send_out_well_barcode);
 
-    # FIXME: check it is a PIQ plate
     my $well_barcode = $model->retrieve_well_barcode({ barcode => $validated_params->{barcode} });
     my $plate_type = $well_barcode->well->plate->type_id;
 
@@ -491,7 +486,7 @@ sub create_barcoded_plate_copy{
 
     # Handle parenting of barcoded wells
     foreach my $well (keys %$barcode_for_well){
-        my $new_well_details = {};
+
         my $barcode = $barcode_for_well->{$well};
         # NB: if we are using input from full FP plate scan unknown barcodes (empty tubes)
         # need to be removed before this point
@@ -523,12 +518,8 @@ sub create_barcoded_plate_copy{
             };
         }
 
-        $new_well_details->{well_name}    = $well;
-        $new_well_details->{parent_well}  = $bc->well->name;
-        $new_well_details->{parent_plate} = $bc->well->plate->name;
-        $new_well_details->{parent_plate_version} = $bc->well->plate->version;
-        $new_well_details->{accepted}     = $bc->well->accepted;
-        $new_well_details->{process_type} = 'rearray';
+        my $new_well_details = _get_new_well_details($well,$bc->well);
+
         push @wells, $new_well_details;
 
         $child_processes->{$well} = [ $bc->well->child_processes ];
@@ -541,14 +532,8 @@ sub create_barcoded_plate_copy{
     # Handle copy of wells which have no barcode, always e.g. A01->A01
     if ( $validated_params->{wells_without_barcode} ){
         foreach my $well ( @{ $validated_params->{wells_without_barcode} || [] } ){
-            # FIXME: copy lab numbers
-            my $new_well_details = {};
-            $new_well_details->{well_name}    = $well->name;
-            $new_well_details->{parent_well}  = $well->name;
-            $new_well_details->{parent_plate} = $well->plate->name;
-            $new_well_details->{parent_plate_version} = $well->plate->version;
-            $new_well_details->{accepted}     = $well->accepted;
-            $new_well_details->{process_type} = 'rearray';
+
+            my $new_well_details = _get_new_well_details($well->name, $well);
 
             push @wells, $new_well_details;
 
@@ -730,8 +715,6 @@ sub upload_plate_scan{
             }
 
             # Otherwise create new plate version
-            # FIXME: create_barcoded_plate_copy does not generate any messages
-            # so no information about well movements, state changes etc
 
             my $versioned_plate = version_plate($model, $existing_plate);
 
@@ -782,6 +765,26 @@ sub upload_plate_scan{
     }
 
     return ($new_plate, \@list_messages);
+}
+
+sub _get_new_well_details{
+    my ($new_well_name, $parent_well) = @_;
+
+    my $new_well_details = {};
+
+    $new_well_details->{well_name}    = $new_well_name;
+    $new_well_details->{parent_well}  = $parent_well->name;
+    $new_well_details->{parent_plate} = $parent_well->plate->name;
+    $new_well_details->{parent_plate_version} = $parent_well->plate->version;
+    $new_well_details->{accepted}     = $parent_well->accepted;
+    $new_well_details->{process_type} = 'rearray';
+
+    if($parent_well->well_lab_number){
+        $new_well_details->{lab_number} = $parent_well->well_lab_number->lab_number;
+        $parent_well->delete_related('well_lab_number');
+    }
+
+    return $new_well_details;
 }
 
 sub _remove_empty_tube_barcodes{

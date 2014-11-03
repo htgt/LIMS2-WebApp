@@ -4392,6 +4392,16 @@ INSERT INTO plates VALUES (1009, 'CRISPR_1', '', 'CRISPR', 722, '2013-05-28 13:3
 INSERT INTO plates VALUES (1010, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (1011, 'PIQ0002', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 
+INSERT INTO plates VALUES (1051, '1001', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:51.573499', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1052, '1002', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:52.595073', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1053, '1003', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:53.616845', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1054, '1004', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:54.638359', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1055, '1005', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:55.660047', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1056, '1006', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:56.681031', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1057, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:57.702485', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1058, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1059, 'PIQ0002', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL, NULL, NULL, 1);
+
 
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
