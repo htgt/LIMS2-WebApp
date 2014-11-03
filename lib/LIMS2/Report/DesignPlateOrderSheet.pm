@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignPlateOrderSheet;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.263';
+    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.264';
 }
 ## use critic
 

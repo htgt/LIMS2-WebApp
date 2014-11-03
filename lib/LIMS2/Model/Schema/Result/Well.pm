@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.263';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.264';
 }
 ## use critic
 
@@ -159,6 +159,36 @@ __PACKAGE__->add_unique_constraint("wells_plate_id_name_key", ["plate_id", "name
 
 =head1 RELATIONS
 
+=head2 barcode_events_new_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_new_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.new_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 barcode_events_old_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_old_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.old_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 created_by
 
 Type: belongs_to
@@ -276,6 +306,21 @@ __PACKAGE__->might_have(
   "well_barcode",
   "LIMS2::Model::Schema::Result::WellBarcode",
   { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_barcodes_root_piqs_well
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_barcodes_root_piqs_well",
+  "LIMS2::Model::Schema::Result::WellBarcode",
+  { "foreign.root_piq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -495,8 +540,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 07:55:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iz4NYMMseKHv6Mu5W0EJpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LL/gZ4/VHM/6Zps9IJKTPg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -530,7 +575,12 @@ use List::MoreUtils qw( uniq );
 sub as_string {
     my $self = shift;
 
-    return sprintf( '%s_%s', $self->plate->name, $self->name );
+    my $name = sprintf( '%s_%s', $self->plate->name, $self->name );
+
+    if($self->plate->version){
+        $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+    }
+    return $name;
 }
 
 sub as_hash {
@@ -1094,6 +1144,20 @@ sub descendant_piq {
     return;
 }
 ## use critic
+
+sub barcoded_descendant_of_type{
+    my ($self, $type) = @_;
+
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ){
+      while( my $descendant = $descendants->next ){
+        if( ($descendant->plate->type_id eq $type) and $descendant->well_barcode ){
+          return $descendant;
+        }
+      }
+    }
+    return;
+}
 
 sub descendant_crispr_vectors {
     my $self = shift;

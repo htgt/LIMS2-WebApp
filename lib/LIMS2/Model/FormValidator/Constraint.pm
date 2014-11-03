@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.263';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.264';
 }
 ## use critic
 
@@ -102,7 +102,7 @@ sub cre_bac_recom_backbone {
 }
 
 sub plate_name {
-    return shift->regexp_matches(qr/^[A-Za-z0-9_]+$/);
+    return shift->regexp_matches(qr/^[A-Za-z0-9_\(\)]+$/);
 }
 
 sub well_name {
@@ -121,6 +121,9 @@ sub bac_plate {
     return shift->regexp_matches(qr/^[abcd]$/);
 }
 
+sub existing_well_barcode {
+    return shift->in_resultset( 'WellBarcode', 'barcode' );
+}
 sub existing_bac_library {
     return shift->in_resultset( 'BacLibrary', 'id' );
 }

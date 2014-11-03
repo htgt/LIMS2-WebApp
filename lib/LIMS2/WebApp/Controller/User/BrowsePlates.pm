@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.263';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.264';
 }
 ## use critic
 
@@ -51,7 +51,7 @@ sub index :Path( '/user/browse_plates' ) :Args(0) {
             plate_type => $params->{plate_type},
             species    => $params->{species} || $c->session->{selected_species},
             page       => $params->{page},
-            pagesize   => $params->{pagesize}
+            pagesize   => $params->{pagesize},
         }
     );
 

@@ -37,6 +37,7 @@ lib/LIMS2/Model/Plugin/Chromosome.pm
 lib/LIMS2/Model/Plugin/Crispr.pm
 lib/LIMS2/Model/Plugin/CrisprEsQc.pm
 lib/LIMS2/Model/Plugin/CrisprSummaries.pm
+lib/LIMS2/Model/Plugin/FpPickingList.pm
 lib/LIMS2/Model/Plugin/Gene.pm
 lib/LIMS2/Model/Plugin/GenotypingQC.pm
 lib/LIMS2/Model/Plugin/Plate.pm
@@ -48,6 +49,7 @@ lib/LIMS2/Model/Plugin/QC.pm
 lib/LIMS2/Model/Plugin/Species.pm
 lib/LIMS2/Model/Plugin/User.pm
 lib/LIMS2/Model/Plugin/Well.pm
+lib/LIMS2/Model/Plugin/WellBarcode.pm
 lib/LIMS2/Model/ProcessGraph.pm
 lib/LIMS2/Model/Schema.pm
 lib/LIMS2/Model/Schema/Result/Assembly.pm
@@ -55,6 +57,8 @@ lib/LIMS2/Model/Schema/Result/BacClone.pm
 lib/LIMS2/Model/Schema/Result/BacCloneLocus.pm
 lib/LIMS2/Model/Schema/Result/BacLibrary.pm
 lib/LIMS2/Model/Schema/Result/Backbone.pm
+lib/LIMS2/Model/Schema/Result/BarcodeEvent.pm
+lib/LIMS2/Model/Schema/Result/BarcodeState.pm
 lib/LIMS2/Model/Schema/Result/CachedReport.pm
 lib/LIMS2/Model/Schema/Result/Cassette.pm
 lib/LIMS2/Model/Schema/Result/CassetteFunction.pm
@@ -90,6 +94,8 @@ lib/LIMS2/Model/Schema/Result/DesignTarget.pm
 lib/LIMS2/Model/Schema/Result/DesignTargetCrisprs.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/ExonCrisprs.pm
+lib/LIMS2/Model/Schema/Result/FpPickingList.pm
+lib/LIMS2/Model/Schema/Result/FpPickingListWellBarcode.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
 lib/LIMS2/Model/Schema/Result/GeneType.pm
 lib/LIMS2/Model/Schema/Result/GenericDesignBrowser.pm
@@ -171,6 +177,7 @@ lib/LIMS2/Model/Types.pm
 lib/LIMS2/Model/Util.pm
 lib/LIMS2/Model/Util/AlleleDetermination.pm
 lib/LIMS2/Model/Util/BacsForDesign.pm
+lib/LIMS2/Model/Util/BarcodeActions.pm
 lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
 lib/LIMS2/Model/Util/CreKiESDistribution.pm
 lib/LIMS2/Model/Util/CreateDesign.pm
@@ -269,6 +276,7 @@ lib/LIMS2/WebApp/Controller/PublicReports.pm
 lib/LIMS2/WebApp/Controller/PublicReports/API.pm
 lib/LIMS2/WebApp/Controller/Root.pm
 lib/LIMS2/WebApp/Controller/User.pm
+lib/LIMS2/WebApp/Controller/User/Barcodes.pm
 lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
@@ -294,7 +302,9 @@ lib/LIMS2/WebApp/Model/Golgi.pm
 lib/LIMS2/WebApp/Pageset.pm
 lib/LIMS2/WebApp/Script/FastCGI.pm
 lib/LIMS2/WebApp/View/HTML.pm
+lib/LIMS2/WebApp/View/JSON.pm
 root/favicon.ico
+root/lib/barcode_well_details.tt
 root/lib/colony_count_upload_help.tt
 root/lib/crispr_qc_alignment.tt
 root/lib/crispr_qc_view.tt
@@ -318,6 +328,19 @@ root/site/publicreports/sponsor_report.tt
 root/site/publicreports/sponsor_sub_report.tt
 root/site/publicreports/well_genotyping_info.tt
 root/site/publicreports/well_genotyping_info_search.tt
+root/site/user/barcodes/checkout_from_picklist.tt
+root/site/user/barcodes/create_barcoded_plate.tt
+root/site/user/barcodes/discard_barcode.tt
+root/site/user/barcodes/fp_freeze_back.tt
+root/site/user/barcodes/generate_picklist.tt
+root/site/user/barcodes/picklist_grid.tt
+root/site/user/barcodes/piq_send_out.tt
+root/site/user/barcodes/plate_well_barcode_history.tt
+root/site/user/barcodes/rescan_barcoded_plate.tt
+root/site/user/barcodes/scan_barcode.tt
+root/site/user/barcodes/view_checked_out_barcodes.tt
+root/site/user/barcodes/well_barcode_history.tt
+root/site/user/barcodes/well_checkout.tt
 root/site/user/browsedesigns/design_ucsc_blat.tt
 root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
@@ -2179,6 +2202,7 @@ root/static/extjs/src/ux/form/ItemSelector.js
 root/static/extjs/src/ux/form/MultiSelect.js
 root/static/extjs/src/ux/form/SearchField.js
 root/static/extjs/src/ux/grid/FiltersFeature.js
+root/static/extjs/src/ux/grid/Printer.js
 root/static/extjs/src/ux/grid/TransformGrid.js
 root/static/extjs/src/ux/grid/css/GridFilters.css
 root/static/extjs/src/ux/grid/css/RangeMenu.css
@@ -2189,6 +2213,9 @@ root/static/extjs/src/ux/grid/filter/Filter.js
 root/static/extjs/src/ux/grid/filter/ListFilter.js
 root/static/extjs/src/ux/grid/filter/NumericFilter.js
 root/static/extjs/src/ux/grid/filter/StringFilter.js
+root/static/extjs/src/ux/grid/gridPrinterCss/cross.png
+root/static/extjs/src/ux/grid/gridPrinterCss/print.css
+root/static/extjs/src/ux/grid/gridPrinterCss/printer.png
 root/static/extjs/src/ux/grid/images/equals.png
 root/static/extjs/src/ux/grid/images/find.png
 root/static/extjs/src/ux/grid/images/greater_than.png
@@ -2368,6 +2395,25 @@ root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessOutputWell.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/ProcessRecombinase.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/User.csv
 root/static/test/fixtures/LIMS2/t/Model/Schema/Result/Well/Well.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/BacClone.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/Crispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/CrisprLocus.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/CrisprOffTargetSummaries.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/Design.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/GeneDesign.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/Plate.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/Process.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/ProcessBackbone.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/ProcessCassette.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/ProcessCrispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/ProcessDesign.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/ProcessInputWell.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/ProcessOutputWell.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/ProcessRecombinase.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/Well.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/WellBarcode.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/BarcodeActions/tmp.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/Crisprs/Crispr.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/Crisprs/CrisprLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/Crisprs/CrisprOffTargetSummary.csv
@@ -2439,6 +2485,7 @@ root/static/test/fixtures/legacy/10-load-fixture-data.sql
 root/static/test/fixtures/reference_data/Assembly.csv
 root/static/test/fixtures/reference_data/BacLibrary.csv
 root/static/test/fixtures/reference_data/Backbone.csv
+root/static/test/fixtures/reference_data/BarcodeState.csv
 root/static/test/fixtures/reference_data/Cassette.csv
 root/static/test/fixtures/reference_data/CassetteFunction.csv
 root/static/test/fixtures/reference_data/CellLine.csv
@@ -2603,6 +2650,7 @@ t/LIMS2/Model/Schema/Result/10_LIMS2_Model_Schema_Result_WellTargetingPass.t
 t/LIMS2/Model/Schema/Result/10_LIMS2_Model_Schema_Result_WellTargetingPuroPass.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_AlleleDetermination.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_BacsForDesign.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_BarcodeActions.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_ComputeAcceptedStatus.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreKiESDistribution.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_CreatePlate.t
@@ -2818,6 +2866,7 @@ t/lib/LIMS2/t/Model/Types.pm
 t/lib/LIMS2/t/Model/Util.pm
 t/lib/LIMS2/t/Model/Util/AlleleDetermination.pm
 t/lib/LIMS2/t/Model/Util/BacsForDesign.pm
+t/lib/LIMS2/t/Model/Util/BarcodeActions.pm
 t/lib/LIMS2/t/Model/Util/ComputeAcceptedStatus.pm
 t/lib/LIMS2/t/Model/Util/CreKiESDistribution.pm
 t/lib/LIMS2/t/Model/Util/CreatePlate.pm

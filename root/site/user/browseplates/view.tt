@@ -304,6 +304,8 @@
   </div>
 [% END %]
 
+<div class="row">
+<div class="span6">
 <h2>Wells</h2>
 <a class="btn btn-primary" href="[% well_report_uri %]"><i class="icon-list icon-white"></i> Well Details</a>
 <a class="btn btn-primary" href="[% grid_report_uri %]"><i class="icon-list icon-white"></i> Well Grid</a>
@@ -314,14 +316,15 @@
 <a class="btn btn-small" href="[% report.report_url %]"><i class="icon-list"></i> [% report.name %]</a><br /><br />
   [% END %]
 [% END %]
+</div>
 
-
-[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
-</br></br>
-<div class="row">
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' AND !plate.is_virtual %]
   <div class="span6">
+  <div class="well">
     <h4>Tube Barcodes</h4>
     <b>[% plate.number_of_wells_with_barcodes %]</b> tubes out of <b>[% plate.number_of_wells %]</b> in this plate currently have barcodes.
+    <br>
+    <a href="[% c.uri_for('/user/plate_well_barcode_history/') _ plate.id %]">Show fate of barcodes no longer on plate</a>
     <form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/update_plate_well_barcodes' ) %]" enctype="multipart/form-data" >
       <input type="hidden" name="id" value="[% plate.id %]" />
       <input type="hidden" name="name" value="[% plate.name %]" />
@@ -340,6 +343,7 @@
         </tr>
       </table>
     </form>
+  </div>
   </div>
 </div>
 

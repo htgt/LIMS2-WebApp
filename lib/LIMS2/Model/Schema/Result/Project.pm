@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.263';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.264';
 }
 ## use critic
 
@@ -224,10 +224,8 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-14 11:17:00
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:djydxXiT/U9oK3BE/QW9iw
-
 
 sub as_hash {
     my $self = shift;

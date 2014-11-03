@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.263';
+    $LIMS2::Test::VERSION = '0.264';
 }
 ## use critic
 
@@ -290,6 +290,7 @@ sub load_static_files {
             BacLibrary
             SpeciesDefaultAssembly
             Sponsor
+            BarcodeState
             )
     );
 
@@ -341,6 +342,7 @@ sub load_dynamic_files {
             ProcessRecombinase
             Project
             Summary
+            WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
         )

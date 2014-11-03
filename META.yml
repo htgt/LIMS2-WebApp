@@ -41,6 +41,7 @@ requires:
   Catalyst::Plugin::Static::Simple: 0
   Catalyst::Runtime: 5.80
   Catalyst::Script::FastCGI: 0
+  Catalyst::View::JSON: 0
   Catalyst::View::TT: 0
   Class::Data::Inheritable: 0
   Config::Any: 0
@@ -162,4 +163,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.263
+version: 0.264
