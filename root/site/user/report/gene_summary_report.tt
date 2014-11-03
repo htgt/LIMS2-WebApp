@@ -314,7 +314,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.recombinases %]</td>
               <td>[% well.qc_seq_pass %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -358,7 +358,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.recombinases %]</td>
               <td>[% well.qc_seq_pass %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -402,7 +402,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.recombinases %]</td>
               <td>[% well.qc_seq_pass %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -442,7 +442,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.is_accepted %]</td>
               <td>[% well.crispr_id %]</td>
               <td>[% well.design_id %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -486,7 +486,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.quality_comment %]</td>
               <td>[% well.status_pass %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -528,7 +528,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.is_accepted %]</td>
               <td>[% well.crispr_id %]</td>
               <td>[% well.design_id %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -575,7 +575,7 @@ function toggle_btn(btn, show_or_hide) {
                       plate_name => well.plate_name,
                       well_name => well.well_name
                     } ) %]" target="_blank">Genoverse</a></td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -617,7 +617,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.dna_well %]</td>
               <td>[% well.recombinases %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -668,7 +668,7 @@ function toggle_btn(btn, show_or_hide) {
 
                 [% IF well.crispr_qc_data %]</a>[% END %]
               </td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -714,7 +714,7 @@ function toggle_btn(btn, show_or_hide) {
                   [% parent %]<br style="line-height:50%;" />
                 [% END %]
               </td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -832,7 +832,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.ep_pick_well %]</td>
               <td>[% well.is_accepted %]</td>
               <td>[% well.piq_well %]</td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -881,7 +881,7 @@ function toggle_btn(btn, show_or_hide) {
                 [% well.is_accepted %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
               </td>
-              <td><a href="[% c.uri_for( '/user/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
           </tbody>

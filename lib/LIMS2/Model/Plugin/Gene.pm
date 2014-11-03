@@ -52,7 +52,7 @@ sub search_genes {
      # Massive fudge to make this work while search_genes rewrite is in progress
      try{
         my $genes = $self->retrieve_gene( $validated_params ) || [];
-        $self->log->debug( "Genes retrieved: ". pp $genes );
+        $self->log->trace( "Genes retrieved: ". pp $genes );
         if (ref($genes) eq "ARRAY"){
             @genes = @{ $genes };
         }
@@ -150,7 +150,7 @@ sub find_gene {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
 
-    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+    $self->log->trace( "retrieve_gene: " . pp $validated_params );
 
     # check species, if not mouse or human, die
     my $species = $validated_params->{species};
@@ -206,7 +206,7 @@ sub autocomplete_gene {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
 
-    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+    $self->log->trace( "retrieve_gene: " . pp $validated_params );
 
     # check species, if not mouse or human, die
     my $species = $validated_params->{species};

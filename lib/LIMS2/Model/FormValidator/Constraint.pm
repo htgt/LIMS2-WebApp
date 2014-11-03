@@ -206,6 +206,14 @@ sub existing_final_backbone {
     return shift->eng_seq_of_type( 'final-backbone' );
 }
 
+sub existing_crispr_damage_type {
+    return shift->existing_row( 'CrisprDamageType', 'id' );
+}
+
+sub existing_crispr_es_qc_run_id {
+    return shift->existing_row( 'CrisprEsQcRuns', 'id' );
+}
+
 # intermediate backbones can be in a final vector, so need a list of all backbone types
 # which eng-seq-builder can not provide using the eng_seq_of_type method
 sub existing_backbone {

@@ -32,6 +32,8 @@ DELETE FROM crispr_pairs;
 DELETE FROM crispr_group_crisprs;
 DELETE FROM crispr_groups;
 DELETE FROM crisprs;
+DELETE FROM crispr_es_qc_wells;
+DELETE FROM crispr_es_qc_runs;
 DELETE FROM qc_alignment_regions;
 DELETE FROM qc_alignments;
 DELETE FROM qc_test_results;

@@ -27,7 +27,7 @@ $(document).ready(function() {
 
         $.post(
             '[% c.uri_for("/api/update_well_accepted") %]',
-            { "well_id": this.value, "qc_run_id": $("#qc_run_id").text(), "accepted": this.checked },
+            { "id": this.value, "accepted": this.checked },
 
             function (data) {
                 console.log(data);
@@ -36,6 +36,38 @@ $(document).ready(function() {
             },
             'json'
         );
+    });
+
+    $(".crispr_damage_type").change(function() {
+
+        //fade element out until its saved, waiting at least 500ms
+        var element = $(this).parent().parent();
+        element.removeClass('error').removeClass('success').addClass('warning');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for("/api/update_well_crispr_damage") %]',
+            data: {
+                "id": $(this).attr('data-crispr_well_id'),
+                "damage_type": this.value
+            },
+            success: function(data) { 
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).removeClass('warning').removeClass('error').addClass('success').dequeue();
+                });
+            },
+            error: function(data) {
+                console.log(data);
+                element.addClass('error');
+                element.delay(500).queue(function(){
+                    $(this).removeClass('warning').removeClass('success').addClass('error').dequeue();
+                });
+                alert( 'Error updating crispr damage type, change not saved' );
+            },
+            dataType: 'json'
+        });
+
     });
 });
 </script>
@@ -86,12 +118,13 @@ $(document).ready(function() {
             <th>Gene</th>
             <th>Pair ID</th>
             <th>Alignment</th>
+            <th>Accept</th>
+            <th>Damage Type</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>
             <th>Deletions</th>
             <th>Inserts</th>
-            <th>Accept</th>
         </tr>
     </thead>
     <tbody>
@@ -99,8 +132,8 @@ $(document).ready(function() {
             <tr>
 
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row    = row
-                    accept = 1
+                    row       = row
+                    accept    = 1
                 %]
 
             </tr>

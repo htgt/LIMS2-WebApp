@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.263     2014-11-03 07:29:37 Europe/London
+
+    Add a public gene report page ( showing targeted clones ), link to this from sponsor reports.
+
+0.262     2014-10-29 11:39:38 Europe/London
+
+    Add interface to specify damage type for crispr es qc.
+
 0.260     2014-10-27 07:17:45 Europe/London
 
     Speed up plate reports.

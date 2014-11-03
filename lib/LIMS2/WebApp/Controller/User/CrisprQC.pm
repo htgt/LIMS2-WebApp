@@ -49,12 +49,15 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         push @qc_wells, $well_data;
     }
 
+    my @crispr_damage_types = $c->model('Golgi')->schema->resultset( 'CrisprDamageType' )->all;
+
     $c->stash(
-        qc_run_id   => $run->id,
-        seq_project => $run->sequencing_project,
-        sub_project => $run->sub_project,
-        species     => $run->species_id,
-        wells       => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ]
+        qc_run_id    => $run->id,
+        seq_project  => $run->sequencing_project,
+        sub_project  => $run->sub_project,
+        species      => $run->species_id,
+        wells        => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
+        damage_types => [ map{ $_->id } @crispr_damage_types ],
     );
 
     return;
@@ -309,10 +312,12 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
 
     my ( $gene_info, $sorted_crispr_qc ) = find_gene_crispr_es_qc( $c->model('Golgi'), $gene, $species_id );
+    my @crispr_damage_types = $c->model('Golgi')->schema->resultset( 'CrisprDamageType' )->all;
 
     $c->stash(
-        gene      => $gene_info,
-        crispr_qc => $sorted_crispr_qc,
+        gene         => $gene_info,
+        crispr_qc    => $sorted_crispr_qc,
+        damage_types => [ map{ $_->id } @crispr_damage_types ],
     );
     return;
 }

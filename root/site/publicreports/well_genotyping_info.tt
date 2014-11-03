@@ -35,8 +35,8 @@
     <tr>
       <th>Genbank Files</th>
       <td>
-          <a href="[% c.uri_for( '/user/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="icon-file"></i> Allele</a> <br>
-          <a href="[% c.uri_for( '/user/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="icon-file"></i> Vector</a>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="icon-file"></i> Allele</a> <br>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="icon-file"></i> Vector</a>
       </td>
     </tr>
     <tr>
@@ -67,6 +67,10 @@
 
 <h3>Second Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>Allele Type</th>
+      <td>[% data.damage_type %]</td>
+    </tr>
     <tr>
       <th>Forward Read</th>
       <td><pre>[% data.fwd_read %]</pre></td>
