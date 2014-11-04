@@ -1,0 +1,34 @@
+
+<h3>Well details for barcode [% well_details.barcode %]</h3>
+<table class="table table-bordered">
+ <tr>
+  <th>Plate Name</th><td>[% well_details.plate_name %]</td>
+ </tr>
+ <tr>
+  <th>Plate Type</th><td>[% well_details.plate_type %]</td>
+ </tr>
+ <tr>
+  <th>Well Name</th><td>[% well_details.well_name %]</td>
+ </tr>
+ <tr>
+  <th>Gene Symbol</th><td>[% well_details.design_gene_symbol %]</td>
+ </tr>
+ <tr>
+  <th>Parent EPD</th><td>[% well_details.parent_epd %]</td>
+ </tr>
+ <tr>
+  <th>Created By</th><td>[% well_details.created_by %]</td>
+ </tr>
+ <tr>
+  <th>Created At</th><td>[% well_details.created_at %]</td>
+ </tr>
+ [% IF barcode_state_error %]
+ <tr class="error">
+  <th>Barcode State</th><td>[% well_details.barcode_state %]</td>
+ </tr>
+ [% ELSE %]
+ <tr>
+  <th>Barcode State</th><td>[% well_details.barcode_state %]</td>
+ </tr>
+ [% END %]
+</table>

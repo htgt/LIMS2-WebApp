@@ -1,0 +1,23 @@
+[% META title = "Well Discard", tab_name = 'Barcodes' -%]
+
+<h1>Well Discard</h1>
+[% IF well_details %]
+
+[% INCLUDE 'barcode_well_details.tt' %]
+
+<form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
+You have chosen to discard this well for reason "[% reason %]". Click "Confirm Discard" to complete this action.
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <input type="hidden" name="reason" value="[% reason %]"/>
+    <input type="hidden" name="plate_type" value="[% well_details.plate_type %]"/>
+    <button type="submit" name="cancel_discard" class="btn" value="cancel_discard">
+      Cancel Discard
+    </button>
+    <button type="submit" name="confirm_discard" class="btn btn-danger" value="confirm_discard">
+      Confirm Discard
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+  </fieldset>
+</form>
+[% END %]
