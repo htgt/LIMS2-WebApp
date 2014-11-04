@@ -341,6 +341,14 @@ has 'info' => (
     }
 );
 
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
+
 sub _build_design_info {
     my $self = shift;
 

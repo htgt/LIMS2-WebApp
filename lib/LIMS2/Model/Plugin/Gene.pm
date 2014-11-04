@@ -10,6 +10,7 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util::GeneSearch qw( retrieve_solr_gene retrieve_ensembl_gene normalize_solr_result );
 use WebAppCommon::Util::FindGene qw( c_find_gene c_autocomplete_gene);
 use TryCatch;
+use List::MoreUtils qw (uniq);
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -217,6 +218,32 @@ sub autocomplete_gene {
 
     return @genes;
 
+}
+
+sub pspec_design_genes {
+    return {
+        design_id   => { validate => 'integer'},
+    };
+}
+
+sub design_gene_ids_and_symbols {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_design_genes );
+
+    my $design = $self->c_retrieve_design({ id => $validated_params->{design_id} });
+
+    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
+
+    my @gene_symbols;
+    try{
+        @gene_symbols  = uniq map {
+            $self->retrieve_gene( { species => $design->species_id, search_term => $_ } )->{gene_symbol}
+        } @gene_ids;
+    };
+
+    DEBUG("Gene symbols: ".join ",",@gene_symbols);
+    return (\@gene_ids, \@gene_symbols);
 }
 
 1;

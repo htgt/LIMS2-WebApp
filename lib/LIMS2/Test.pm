@@ -284,6 +284,7 @@ sub load_static_files {
             BacLibrary
             SpeciesDefaultAssembly
             Sponsor
+            BarcodeState
             )
     );
 
@@ -335,6 +336,7 @@ sub load_dynamic_files {
             ProcessRecombinase
             Project
             Summary
+            WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
         )
