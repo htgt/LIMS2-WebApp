@@ -17,6 +17,7 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util qw( well_id_for );
 use List::MoreUtils qw( uniq );
 use LIMS2::Exception;
+use Data::Dumper;
 
 sub pspec_create_plate_well {
     return {
@@ -44,7 +45,7 @@ sub create_plate_well {
     );
 
     # the remaining params are specific to the process
-    delete @{$params}{qw( well_name process_type accepted)};
+    delete @{$params}{qw( well_name process_type accepted )};
 
     $well_params{process_data} = $params;
     $well_params{process_data}{type} = $validated_params->{process_type};
@@ -58,6 +59,7 @@ sub create_plate_well {
 sub pspec_find_parent_well_ids {
     return {
         parent_plate         => { validate => 'plate_name', optional => 1 },
+        parent_plate_version => { validate => 'integer',    optional => 1 },
         parent_well          => { validate => 'well_name',  optional => 1 },
         xep_plate            => { validate => 'plate_name', optional => 1 },
         xep_well             => { validate => 'well_name',  optional => 1 },
@@ -159,7 +161,8 @@ sub find_parent_well_ids {
             push @parent_well_ids, well_id_for(
                 $model, {
                     plate_name => $validated_params->{parent_plate},
-                    well_name  => substr( $validated_params->{parent_well}, -3 )
+                    plate_version => $validated_params->{parent_plate_version},
+                    well_name  => substr( $validated_params->{parent_well}, -3 ),
                 }
             );
 

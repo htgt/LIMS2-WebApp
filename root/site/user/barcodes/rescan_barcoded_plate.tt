@@ -1,0 +1,37 @@
+[% META title = "Rescan Barcoded Plate", tab_name = 'Barcodes' -%]
+
+
+<div class="page-header">
+  <h1>Rescan Barcoded Plate</h1>
+</div>
+
+<div class="row">
+  <div class="span6 offset3">
+
+    <form method="POST" id="plate_update" action="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]" class="form well"  enctype="multipart/form-data" >
+        Use this form to update a plate containing barcoded tubes which has been rescanned
+        <br>
+        <br>
+        <label>Plate Name</label>
+        <input name="plate_name" id="plate_name" type="text"
+          [% IF plate_name %]value="[% plate_name %]"[% END %]
+         />
+
+        <label>Barcode Scanner File</label>
+        <input name="wellbarcodesfile" type="file">
+
+        <button name="update_plate" id="update_plate" type="submit" value="update_plate" class="btn">
+            <i class="icon-upload"></i> Update Plate
+        </button>
+    </form>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+
+</script>

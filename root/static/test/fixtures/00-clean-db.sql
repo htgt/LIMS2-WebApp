@@ -60,6 +60,9 @@ DELETE FROM well_recombineering_results;
 DELETE FROM well_colony_counts;
 DELETE FROM well_primer_bands;
 DELETE FROM well_lab_number;
+DELETE FROM barcode_events;
+DELETE FROM fp_picking_list_well_barcode;
+DELETE FROM fp_picking_list;
 DELETE FROM well_barcodes;
 DELETE FROM wells;
 DELETE FROM plate_comments;
@@ -71,3 +74,7 @@ DELETE FROM user_role;
 DELETE FROM users;
 DELETE FROM summaries;
 DELETE FROM nucleases;
+DELETE FROM crispr_es_qc_runs;
+DELETE FROM crispr_es_qc_wells;
+DELETE FROM barcode_states;
+
