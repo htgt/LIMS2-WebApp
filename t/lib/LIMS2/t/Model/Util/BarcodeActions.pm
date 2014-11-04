@@ -15,62 +15,6 @@ use LIMS2::Model::Util::BarcodeActions qw/
 use File::Temp qw/ tempfile /;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 
-
-sub csv_add_barcodes : Tests(){
-    my $well_name = 'A11';
-    my $plate_name = 'FP4637';
-    my $well = model->retrieve_well({ well_name => $well_name, plate_name => $plate_name});
-    is $well->well_barcode,undef, "Well has no barcode";
-
-    my $fh = tempfile();
-    my $bc = "test1";
-    print $fh "$well_name,$bc";
-    $fh->seek(0,0);
-
-    ok my ($plate, $messages) = upload_plate_scan(model,{
-        existing_plate_name => $plate_name,
-        species => 'Mouse',
-        user => 'test_user@example.org',
-        csv_fh => $fh,
-    }), "Barcodes added to existing plate from csv upload";
-
-    $well->discard_changes();
-    is $well->well_barcode->barcode, $bc, 'Correct barcode has been added to well';
-
-    $well->delete_related('well_barcode');
-    $well->discard_changes();
-
-    is $well->well_barcode,undef, "Well has no barcode";
-
-    $fh = tempfile();
-    print $fh "$well_name,$bc\nA02,extra_barcode\n";
-    $fh->seek(0,0);
-
-    ok my ($plate2, $messages2) = upload_plate_scan(model,{
-        existing_plate_name => $plate_name,
-        species => 'Mouse',
-        user => 'test_user@example.org',
-        csv_fh => $fh,
-    }), "Barcodes added to existing plate from csv upload with extra empty well barcode";
-    $well->discard_changes();
-    is $well->well_barcode->barcode, $bc, 'Correct barcode has been added to well';
-    is $messages2->[1]->{message}, 'A barcode <extra_barcode> has been scanned for a location where no tube was present, ignoring.',
-        'Message indicates extra barcode was ignored';
-
-    $fh->seek(0,0);
-    ok my ($plate3, $messages3) = upload_plate_scan(model,{
-        existing_plate_name => $plate_name,
-        species => 'Mouse',
-        user => 'test_user@example.org',
-        csv_fh => $fh,
-    }), "Plate scan csv matching existing plate uploaded without error";
-    $well->discard_changes();
-    is $well->well_barcode->barcode, $bc, 'Correct barcode has still linked to well';
-    is $messages3->[1]->{message}, 'Uploaded barcodes match existing plate. No changes made.',
-        'Message indicates upload is identical to plate';
-
-}
-
 sub discard_tests : Tests(13){
 
     my $bc = '7';
@@ -231,4 +175,137 @@ sub individual_checkout_tests : Tests(){
     ok my $new_unchanged = $well_bc->well->plate->search_related('wells',{ name => $unchanged_well })->first, "$unchanged_well found";
 }
 
+sub upload_plate_scan_tests : Tests(){
+    my $well_name = 'A11';
+    my $plate_name = 'FP4637';
+    my $well = model->retrieve_well({ well_name => $well_name, plate_name => $plate_name});
+    is $well->well_barcode,undef, "Well has no barcode";
+
+    # Add barcodes to existing plate that has none
+    my $fh = tempfile();
+    my $bc = "test1";
+    print $fh "$well_name,$bc";
+    $fh->seek(0,0);
+
+    ok my ($plate, $messages) = upload_plate_scan(model,{
+        existing_plate_name => $plate_name,
+        species => 'Mouse',
+        user => 'test_user@example.org',
+        csv_fh => $fh,
+    }), "Barcodes added to existing plate from csv upload";
+
+    $well->discard_changes();
+    is $well->well_barcode->barcode, $bc, 'Correct barcode has been added to well';
+
+    $well->delete_related('well_barcode');
+    $well->discard_changes();
+
+    is $well->well_barcode,undef, "Well has no barcode";
+
+    # Add barcodes to existing FP plate that has none. Extra barcodes in file are ignored
+    $fh = tempfile();
+    print $fh "$well_name,$bc\nA02,extra_barcode\n";
+    $fh->seek(0,0);
+
+    ok my ($plate2, $messages2) = upload_plate_scan(model,{
+        existing_plate_name => $plate_name,
+        species => 'Mouse',
+        user => 'test_user@example.org',
+        csv_fh => $fh,
+    }), "Barcodes added to existing plate from csv upload with extra empty well barcode";
+    $well->discard_changes();
+    is $well->well_barcode->barcode, $bc, 'Correct barcode has been added to well';
+    is $messages2->[1]->{message}, 'A barcode <extra_barcode> has been scanned for a location where no tube was present, ignoring.',
+        'Message indicates extra barcode was ignored';
+
+    # Upload same file again for this plate. No action needed.
+    $fh->seek(0,0);
+    ok my ($plate3, $messages3) = upload_plate_scan(model,{
+        existing_plate_name => $plate_name,
+        species => 'Mouse',
+        user => 'test_user@example.org',
+        csv_fh => $fh,
+    }), "Plate scan csv matching existing plate uploaded without error";
+    $well->discard_changes();
+    is $well->well_barcode->barcode, $bc, 'Correct barcode is still linked to well';
+    is $messages3->[1]->{message}, 'Uploaded barcodes match existing plate. No changes made.',
+        'Message indicates upload is identical to plate';
+
+    # Rescan with additional well on plate
+    $fh = tempfile();
+    my $extra_barcode = '20';
+    my $orig_well = model->retrieve_well_barcode({ barcode => $extra_barcode})->well;
+    my $orig_well_count = scalar($orig_well->plate->wells);
+    my $orig_plate_name = $orig_well->plate->name;
+    print $fh "$well_name,$bc\nA02,$extra_barcode";
+    $fh->seek(0,0);
+    ok my ($plate4, $messages4) = upload_plate_scan(model,{
+        existing_plate_name => $plate_name,
+        species => 'Mouse',
+        user => 'test_user@example.org',
+        csv_fh => $fh,
+    }), "Plate scan with extra well uploaded";
+
+    my $new_well = model->retrieve_well_barcode({ barcode => $extra_barcode})->well;
+    is $new_well->name, 'A02', 'Extra barcode moved to correct well';
+    is $new_well->plate->name, $plate_name, 'Extra barcode moved to correct plate';
+
+    my $new_other_plate = model->retrieve_plate({ name => $orig_plate_name });
+    is scalar($new_other_plate->wells), $orig_well_count - 1, "Well has been removed from orig plate";
+
+    $orig_well->discard_changes();
+    is $orig_well->well_barcode, undef, "Orig well location has no barcode";
+    ok defined($orig_well->plate->version), "Orig well has been given version number";
+
+    my $other_new_well = model->retrieve_well({ well_name => $well_name, plate_name => $plate_name });
+    is $other_new_well->well_barcode->barcode, $bc, "Unchanged barcode moved to new plate too";
+
+    # Rescan with wells swapped
+    $fh = tempfile();
+    print $fh "A01,$extra_barcode\nA02,$bc";
+    $fh->seek(0,0);
+
+    ok my ($plate5, $messages5) = upload_plate_scan(model,{
+        existing_plate_name => $plate_name,
+        species => 'Mouse',
+        user => 'test_user@example.org',
+        csv_fh => $fh,
+    }), "Plate scan with wells moved uploaded";
+    ok my $a01 = model->retrieve_well({ well_name => 'A01', plate_name => $plate_name}), "A01 found on current plate";
+    ok my $a02 = model->retrieve_well({ well_name => 'A02', plate_name => $plate_name}), "A02 found on current plate";
+
+    is $a01->well_barcode->barcode, $extra_barcode, "A01 barcode correct";
+    my ($a01_parent) = $a01->parent_wells;
+    is $a01_parent->name, "A02", "A01 parent well is A02";
+
+    is $a02->well_barcode->barcode, $bc, "A02 barcode correct";
+    my ($a02_parent) = $a02->parent_wells;
+    is $a02_parent->name, $well_name, "A02 parent well is $well_name";
+
+    # Rescan with well removed (missing barcode set to checked out)
+    $fh = tempfile();
+    print $fh "A01,$extra_barcode";
+    $fh->seek(0,0);
+    ok my ($plate6, $messages6) = upload_plate_scan(model,{
+        existing_plate_name => $plate_name,
+        species => 'Mouse',
+        user => 'test_user@example.org',
+        csv_fh => $fh,
+    }), "Plate scan with well removed uploaded";
+
+    is scalar($plate6->wells), 1, "Plate now has only one well";
+    throws_ok { model->retrieve_well({ well_name => 'A02', plate_name => $plate_name}) } qr/No Well entity found/,
+        "A02 is not on current plate";
+
+    my $removed_bc = model->retrieve_well_barcode({ barcode => $bc });
+    is $removed_bc->barcode_state->id, "checked_out", "Missing barcode has been checked out";
+    ok defined($removed_bc->well->plate->version), "Missing barcode is on versioned plate";
+    ok my $checkout = $removed_bc->most_recent_event('checked_out'), "Missing barcode has a checkout event";
+    is $checkout->created_by->name,'test_user@example.org', "Checkout user is correct";
+
+    # Check removed well shows up in plate barcode history
+    ok my $historical_barcodes = model->historical_barcodes_for_plate({ id => $plate6->id }),
+        "Can get historical barcodes for plate";
+    ok (grep { $_->barcode eq $bc } @$historical_barcodes), "Removed barcode $bc found in plate history";
+}
 1;
