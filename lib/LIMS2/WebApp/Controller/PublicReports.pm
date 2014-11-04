@@ -78,45 +78,53 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
 
     my $species;
     my $cache_param;
+    my $sub_cache_param;
+    my $top_cache_param;
+
 $DB::single=1;
 
+# If logged in always use live top level report and cached sub_reports
+# The cache_param refers to the sub_reports
     if ($c->user_exists) {
-        $c->request->params->{species} = $c->session->{selected_species};
-    }
-
-    if (!$c->request->params->{species}) {
-        $c->request->params->{species} = 'Human';
-    }
-
-    if ( !$c->request->params->{cache_param} ) {
-        $cache_param = 'with_cache';
-    }
-    elsif ( lc($c->request->params->{cache_param}) eq 'without_cache' ) {
-        $cache_param = 'without_cache';
+        $c->request->params->{'species'} = $c->session->{'selected_species'};
+        if ( !$c->request->params->{'cache_param'} ) {
+            $sub_cache_param = 'with_cache';
+            $top_cache_param = 'without_cache';
+        }
+        else {
+            $sub_cache_param = $c->request->params->{'cache_param'};
+            $top_cache_param = 'without_cache';
+        }
     }
     else {
-        $cache_param = 'with_cache';
+        # not logged in - always use cached reports for top leve and sub-reports
+        $sub_cache_param = 'with_cache';
+        $top_cache_param = 'with_cache';
     }
 
-    $species = $c->request->params->{species};
-    $c->session->{selected_species} = $species;
+    if (!$c->request->params->{'species'}) {
+        $c->request->params->{'species'} = 'Human';
+    }
+
+    $species = $c->request->params->{'species'};
+    $c->session->{'selected_species'} = $species;
 
     if ( defined $targeting_type ) {
         # show report for the requested targeting type
-        $self->_generate_front_page_report ( $c, $targeting_type, $species, $cache_param );
+        $self->_generate_front_page_report ( $c, $targeting_type, $species, $sub_cache_param );
     }
     else {
         # by default show the single_targeted report
-        if ( $cache_param eq  'with_cache' ) {
+        if ( $top_cache_param eq  'with_cache' ) {
             $self->_view_cached_lines( $c, lc( $species ) ); 
         }
         else {
-            $self->_generate_front_page_report ( $c, 'single_targeted', $species, $cache_param );
+            $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
         }
 
     }
 
-    if ( $cache_param ne 'with_cache' ) {
+    if ( $top_cache_param eq 'without_cache' ) {
         $c->stash(
             template    => 'publicreports/sponsor_report.tt',
         );

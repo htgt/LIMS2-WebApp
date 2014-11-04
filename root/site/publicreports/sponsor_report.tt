@@ -12,9 +12,13 @@
 
 [%- IF !c.user  %]
   [%- IF species == 'Mouse' %]
-    <a id='type_simple' type='button' name='switch_human' class='btn btn-info btn-small' href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Human'}  ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
+    <a id='type_simple' type='button' name='switch_human' class='btn btn-info btn-small'
+        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Human' } ) %]">
+        <i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
   [%- ELSIF species == 'Human' %]
-    <a id='type_full' type='button' name='switch_mouse' class='btn btn-info btn-small' href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse'} ) %]"><i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
+    <a id='type_full' type='button' name='switch_mouse' class='btn btn-info btn-small'
+        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse'} ) %]">
+        <i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
   [%- END %]
 [%- ELSE %]
     [%- IF cache_param == 'with_cache' %]
