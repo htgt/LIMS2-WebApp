@@ -322,7 +322,7 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @barcodes;
     $c->stash->{plate_type} = $plate_type;
     $c->stash->{barcodes} = \@sorted;
-    $c->stash->{discard_reasons} = [ qw(contamination )];
+    $c->stash->{discard_reasons} = [ "contamination", "failed QC" ];
     return;
 }
 
