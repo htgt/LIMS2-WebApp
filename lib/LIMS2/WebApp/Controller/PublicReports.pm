@@ -85,7 +85,13 @@ $DB::single=1;
 
 # If logged in always use live top level report and cached sub_reports
 # The cache_param refers to the sub_reports
-    if ($c->user_exists) {
+
+
+    if ( $c->request->params->{'generate_cache'} ){
+        $sub_cache_param = 'without_cache';
+        $top_cache_param = 'without_cache';
+    }
+    elsif ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
         if ( !$c->request->params->{'cache_param'} ) {
             $sub_cache_param = 'with_cache';
@@ -97,7 +103,7 @@ $DB::single=1;
         }
     }
     else {
-        # not logged in - always use cached reports for top leve and sub-reports
+        # not logged in - always use cached reports for top level and sub-reports
         $sub_cache_param = 'with_cache';
         $top_cache_param = 'with_cache';
     }
@@ -116,7 +122,7 @@ $DB::single=1;
     else {
         # by default show the single_targeted report
         if ( $top_cache_param eq  'with_cache' ) {
-            $self->_view_cached_lines( $c, lc( $species ) ); 
+            $self->_view_cached_lines( $c, lc( $species ) );
         }
         else {
             $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
@@ -271,6 +277,7 @@ $DB::single =1;
 sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     my ( $self, $c, $report_name ) = @_;
 
+    $c->log->info( "Generate public detail report for : $report_name" );
 
     return $self->_view_cached_lines($c, $report_name );
 }
@@ -294,7 +301,7 @@ sub _view_cached_lines {
     close $html_handle
         or die "unable to close cached file: $!";
 
-    $c->response->body( join( '', @lines_out ));
+    return $c->response->body( join( '', @lines_out ));
 }
 
 =head2 well_genotyping_info_search
