@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.264';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.265';
 }
 ## use critic
 
@@ -21,7 +21,6 @@ use namespace::autoclean;
 use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
-
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -424,6 +423,7 @@ sub generate_sub_report {
             'display_stage'         => 'Genes',
             'columns'               => [    'gene_id',
                                             'gene_symbol',
+                                            'sponsors',
                                             # 'crispr_pairs',
                                             'crispr_wells',
                                             # 'crispr_vector_wells',
@@ -445,6 +445,7 @@ sub generate_sub_report {
                                         ],
             'display_columns'       => [    'gene id',
                                             'gene symbol',
+                                            'sponsors',
                                             # 'crispr pairs',
                                             'ordered crisprs',
                                             # 'crispr vectors',
@@ -919,16 +920,66 @@ SQL_END
         my ($ep_pick_count, $ep_pick_pass_count) = get_well_counts(\@ep_pick_info);
 
         # push the data for the report
-        my $effort = $self->model->retrieve_project({
-                                            sponsor_id => $sponsor_id,
-                                            gene_id => $gene_id,
-                                            targeting_type => $self->targeting_type,
-                                            species_id => $self->species,
-                                        });
+        my ($sponsors_str, $effort);
+        my ($recovery_class, $priority, $effort_concluded);
+        if ($sponsor_id ne 'All') {
+            $effort = $self->model->retrieve_project({
+                        sponsor_id => $sponsor_id,
+                        gene_id => $gene_id,
+                        targeting_type => $self->targeting_type,
+                        species_id => $self->species,
+                    });
+            $sponsors_str = $effort->sponsor_id;
+            $recovery_class = $effort->recovery_class;
+            $priority = $effort->priority;
+            $effort_concluded = $effort->effort_concluded ? 'yes' : '';
+        } else {
+            my @sponsors = ( map { $_->sponsor_id } $self->model->schema->resultset('Project')->search({
+                        gene_id => $gene_id,
+                        sponsor_id => { -not_in => [ 'All', 'Transfacs'] }
+                        }, {
+                        order_by => 'sponsor_id'
+                        } ) );
 
+            $sponsors_str = join  ( '; ', @sponsors );
+
+            if (scalar @sponsors == 1) {
+                $effort = $self->model->retrieve_project({
+                            sponsor_id => $sponsors_str,
+                            gene_id => $gene_id,
+                            targeting_type => $self->targeting_type,
+                            species_id => $self->species,
+                        });
+                $recovery_class = $effort->recovery_class;
+                $priority = $effort->priority;
+                $effort_concluded = $effort->effort_concluded ? 'yes' : '';
+            } else {
+
+                my (@recovery_class, @priority, @effort_concluded);
+
+                foreach my $sponsor (@sponsors) {
+                    my $sponsor_effort = $self->model->retrieve_project({
+                            sponsor_id => $sponsor,
+                            gene_id => $gene_id,
+                            targeting_type => $self->targeting_type,
+                            species_id => $self->species,
+                    });
+
+                    push (@recovery_class, $sponsor_effort->recovery_class) unless (!$sponsor_effort->recovery_class);
+                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
+                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
+                }
+                $recovery_class = join  ( '; ', @recovery_class );
+                $priority = join  ( '; ', @priority );
+                $effort_concluded = join  ( '; ', @effort_concluded );
+            }
+        }
+
+        # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
+            'sponsors'               => $sponsors_str ? $sponsors_str : '0',
             # 'crispr_pairs'           => $crispr_pairs_count,
             # 'vector_designs'         => $design_count,
             'vector_wells'           => scalar @design,
@@ -939,9 +990,9 @@ SQL_END
             'electroporations'       => scalar @ep,
             'colonies_picked'        => $ep_pick_count,
             'targeted_clones'        => $ep_pick_pass_count,
-            'recovery_class'         => $effort->recovery_class // '0',
-            'priority'               => $effort->priority // '0',
-            'effort_concluded'       => $effort->effort_concluded,
+            'recovery_class'         => $recovery_class ? $recovery_class : '0',
+            'priority'               => $priority ? $priority : '0',
+            'effort_concluded'       => $effort_concluded ? $effort_concluded : '0',
         };
     }
 
@@ -963,9 +1014,9 @@ SQL_END
             $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
             $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
             $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
+            # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
             $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
-            $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
+            # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
             $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
