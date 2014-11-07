@@ -5,8 +5,8 @@ document.title = "[%- sponsor_id %]";
 
 <span style="float:right">
 [%- IF cache_param == "with_cache" %]
-  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"
-  href=[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}",
+  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_self"
+  href=[%- c.uri_for( "/public_reports/cached_sponsor_csv/", [sponsor_id],
     {
         species => species,
         cache_param => cache_param,

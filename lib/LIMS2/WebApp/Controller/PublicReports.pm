@@ -81,8 +81,6 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my $sub_cache_param;
     my $top_cache_param;
 
-$DB::single=1;
-
 # If logged in always use live top level report and cached sub_reports
 # The cache_param refers to the sub_reports
 
@@ -173,9 +171,39 @@ sub _generate_front_page_report {
     return;
 }
 
+
+sub view_cached_csv : Path( '/public_reports/cached_sponsor_csv' ) : Args(1) {
+    my ( $self, $c, $sponsor_id ) = @_;
+
+    $sponsor_id =~ s/\ /_/g;
+    return $self->_view_cached_csv($c, $sponsor_id);
+}
+
+sub _view_cached_csv {
+    my $self = shift;
+    my $c = shift;
+    my $csv_name = shift;
+
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $csv_name . '.csv';
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$csv_name.csv" );
+    my @lines_out;
+    open( my $csv_handle, "<:encoding(UTF-8)", $cached_file_name )
+        or die "unable to open cached file ($cached_file_name): $!";
+    while (<$csv_handle>) {
+        push @lines_out, $_;
+    }
+    close $csv_handle
+        or die "unable to close cached file: $!";
+
+    return $c->response->body( join( '', @lines_out ));
+}
+
 sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
-$DB::single=1;
+
     # expecting :
     # targeting type i.e. 'st' or 'dt' for single- or double-targeted
     # sponsor id is the project sponsor e.g. Syboss, Pathogens
@@ -212,7 +240,6 @@ $DB::single=1;
 
     # csv download
     if ($c->request->params->{csv}) {
-$DB::single =1;
         $c->response->status( 200 );
         $c->response->content_type( 'text/csv' );
         $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
@@ -224,7 +251,6 @@ $DB::single =1;
         }
 
         $c->response->body( $body );
-
     }
     else {
 
@@ -237,18 +263,7 @@ $DB::single =1;
             $type = $c->request->params->{type};
 
             if ($type eq 'simple') {
-
-                foreach my $column ( @{$data} ) {
-                    while ( my ($key, $value) = each %{$column} ) {
-                        if (${$column}{$key} eq '0') {
-                            ${$column}{$key} = '';
-                        }
-                        else {
-                            ${$column}{$key} = '✔'
-                            unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
-                        }
-                    }
-                }
+                $data = $self->_simple_transform( $data );
             }
         }
 
@@ -273,6 +288,23 @@ $DB::single =1;
     return;
 }
 
+sub _simple_transform {
+    my $self = shift;
+    my $data = shift;
+
+    foreach my $column ( @{$data} ) {
+        while ( my ($key, $value) = each %{$column} ) {
+            if (${$column}{$key} eq '0') {
+                ${$column}{$key} = '';
+            }
+            else {
+                ${$column}{$key} = '✔'
+                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
+            }
+        }
+    }
+    return $data;
+}
 
 sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     my ( $self, $c, $report_name ) = @_;
