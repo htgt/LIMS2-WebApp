@@ -786,7 +786,8 @@ sub _well_display_details{
     });
 
     $well_details->{design_gene_symbol} = $gene_symbols->[0];
-    $well_details->{barcode_state} = $well->well_barcode->barcode_state->id;
+    $well_details->{barcode_state} = ( $well->well_barcode->barcode_state ? $well->well_barcode->barcode_state->id
+                                                                          : "" );
     $well_details->{barcode} = $well->well_barcode->barcode;
 
     if($well->well_lab_number){
