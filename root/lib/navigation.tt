@@ -163,7 +163,7 @@
               <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
+              <a href="[% c.uri_for( '/user/update_colony_picks_step_1' ) %]">Update Colony Counts</a>
             </li>
             [% END %]
             <li>
