@@ -174,7 +174,7 @@ sub upload_plate_dna_quality {
     my $data = parse_csv_file( $params->{csv_fh} );
 
     my $plate = $model->retrieve_plate( { name => $params->{plate_name} } );
-    check_plate_type( $plate, [ qw(DNA) ]  );
+    check_plate_type( $plate, [ qw(DNA ASSEMBLY) ]  );
 
     for my $datum ( @{$data} ) {
         my $validated_params = $model->check_params( $datum, pspec__check_dna_quality() );

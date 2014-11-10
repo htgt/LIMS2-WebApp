@@ -77,39 +77,75 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my ( $self, $c, $targeting_type ) = @_;
 
     my $species;
+    my $cache_param;
+    my $sub_cache_param;
+    my $top_cache_param;
 
-    if ($c->user_exists) {
-        $c->request->params->{species} = $c->session->{selected_species};
+# If logged in always use live top level report and cached sub_reports
+# The cache_param refers to the sub_reports
+
+
+    if ( $c->request->params->{'generate_cache'} ){
+        $sub_cache_param = 'without_cache';
+        $top_cache_param = 'without_cache';
+    }
+    elsif ($c->user_exists) {
+        $c->request->params->{'species'} = $c->session->{'selected_species'};
+        if ( !$c->request->params->{'cache_param'} ) {
+            $sub_cache_param = 'with_cache';
+            $top_cache_param = 'without_cache';
+        }
+        else {
+            $sub_cache_param = $c->request->params->{'cache_param'};
+            $top_cache_param = 'without_cache';
+        }
+    }
+    else {
+        # not logged in - always use cached reports for top level and sub-reports
+        $sub_cache_param = 'with_cache';
+        $top_cache_param = 'with_cache';
     }
 
-    if (!$c->request->params->{species}) {
-        $c->request->params->{species} = 'Human';
+    if (!$c->request->params->{'species'}) {
+        $c->request->params->{'species'} = 'Human';
     }
 
-    $species = $c->request->params->{species};
-    $c->session->{selected_species} = $species;
+    $species = $c->request->params->{'species'};
+    $c->session->{'selected_species'} = $species;
 
     if ( defined $targeting_type ) {
         # show report for the requested targeting type
-        $self->_generate_front_page_report ( $c, $targeting_type, $species );
+        $self->_generate_front_page_report ( $c, $targeting_type, $species, $sub_cache_param );
     }
     else {
         # by default show the single_targeted report
-        $self->_generate_front_page_report ( $c, 'single_targeted', $species );
+        if ( $top_cache_param eq  'with_cache' ) {
+            $self->_view_cached_lines( $c, lc( $species ) );
+        }
+        else {
+            $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
+        }
+
     }
 
-    $c->stash(
-        template    => 'publicreports/sponsor_report.tt',
-    );
+    if ( $top_cache_param eq 'without_cache' ) {
+        $c->stash(
+            template    => 'publicreports/sponsor_report.tt',
+        );
+    }
 
     return;
 }
 
 sub _generate_front_page_report {
-    my ( $self, $c, $targeting_type, $species ) = @_;
+    my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
 
     # Call ReportForSponsors plugin to generate report
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new({
+            'species' => $species,
+            'model' => $c->model( 'Golgi' ),
+            'targeting_type' => $targeting_type,
+        });
 
     my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
 
@@ -126,12 +162,43 @@ sub _generate_front_page_report {
         'title'          => $title,
         'species'        => $species,
         'targeting_type' => $targeting_type,
+        'cache_param'    => $cache_param,
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
     );
 
     return;
+}
+
+
+sub view_cached_csv : Path( '/public_reports/cached_sponsor_csv' ) : Args(1) {
+    my ( $self, $c, $sponsor_id ) = @_;
+
+    $sponsor_id =~ s/\ /_/g;
+    return $self->_view_cached_csv($c, $sponsor_id);
+}
+
+sub _view_cached_csv {
+    my $self = shift;
+    my $c = shift;
+    my $csv_name = shift;
+
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $csv_name . '.csv';
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$csv_name.csv" );
+    my @lines_out;
+    open( my $csv_handle, "<:encoding(UTF-8)", $cached_file_name )
+        or die "unable to open cached file ($cached_file_name): $!";
+    while (<$csv_handle>) {
+        push @lines_out, $_;
+    }
+    close $csv_handle
+        or die "unable to close cached file: $!";
+
+    return $c->response->body( join( '', @lines_out ));
 }
 
 sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
@@ -146,47 +213,30 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $species = $c->session->{selected_species};
 
+    my $all = 0;
+    if ($sponsor_id eq 'All') {
+        $all = 1;
+    }
+    my $cache_param = $c->request->params->{'cache_param'};
 
     # Call ReportForSponsors plugin to generate report
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( { 'species' => $species, 'model' => $c->model( 'Golgi' ), 'targeting_type' => $targeting_type, } );
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
+            'species' => $species,
+            'model' => $c->model( 'Golgi' ),
+            'targeting_type' => $targeting_type,
+        });
 
     my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
-
-    # Fetch details from returned report parameters
-    my $report_id        = $report_params->{ 'report_id' };
+     # Fetch details from returned report parameters
+    my $report_id = $report_params->{ 'report_id' };
     my $disp_target_type = $report_params->{ 'disp_target_type' };
-    my $disp_stage       = $report_params->{ 'disp_stage' };
-    my $columns          = $report_params->{ 'columns' };
-    my $display_columns  = $report_params->{ 'display_columns' };
-    my $data             = $report_params->{ 'data' };
+    my $disp_stage = $report_params->{ 'disp_stage' };
+    my $columns = $report_params->{ 'columns' };
+    my $display_columns = $report_params->{ 'display_columns' };
+    my $data = $report_params->{ 'data' };
 
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
-
-    if ($disp_stage eq 'Genes') {
-
-        if (! $c->request->params->{type}) {
-            $c->request->params->{type} = 'simple';
-            return $c->response->redirect( $c->uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage", { type => 'simple' } ) );
-        }
-
-        $type = $c->request->params->{type};
-
-        if ($type eq 'simple') {
-
-            foreach my $column ( @{$data} ) {
-                while ( my ($key, $value) = each %{$column} ) {
-                    if (${$column}{$key} eq '0') {
-                        ${$column}{$key} = '';
-                    }
-                    else {
-                        ${$column}{$key} = '✔'
-                        unless ($key eq 'gene_id' || $key eq 'gene_symbol');
-                    }
-                }
-            }
-        }
-    };
 
     # csv download
     if ($c->request->params->{csv}) {
@@ -201,10 +251,23 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         }
 
         $c->response->body( $body );
+    }
+    else {
 
-    } else {
+        if ($disp_stage eq 'Genes') {
 
-    # Store report values in stash for display onscreen
+            if (! $c->request->params->{type}) {
+                $c->request->params->{type} = 'simple';
+            }
+
+            $type = $c->request->params->{type};
+
+            if ($type eq 'simple') {
+                $data = $self->_simple_transform( $data );
+            }
+        }
+
+        # Store report values in stash for display onscreen
         $c->stash(
             'template'             => 'publicreports/sponsor_sub_report.tt',
             'report_id'            => $report_id,
@@ -216,11 +279,61 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'data'                 => $data,
             'link'                 => $link,
             'type'                 => $type,
+            'all'                  => $all,
+            'species'              => $species,
+            'cache_param'          => $cache_param,
         );
-
     }
 
     return;
+}
+
+sub _simple_transform {
+    my $self = shift;
+    my $data = shift;
+
+    foreach my $column ( @{$data} ) {
+        while ( my ($key, $value) = each %{$column} ) {
+            if (${$column}{$key} eq '0') {
+                ${$column}{$key} = '';
+            }
+            else {
+                ${$column}{$key} = '✔'
+                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
+            }
+        }
+    }
+    return $data;
+}
+
+sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
+    my ( $self, $c, $report_name ) = @_;
+
+    $c->log->info( "Generate public detail report for : $report_name" );
+
+    return $self->_view_cached_lines($c, $report_name );
+}
+
+
+sub _view_cached_lines {
+    my $self = shift;
+    my $c = shift;
+    my $report_name = shift;
+
+    $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $report_name . '.html';
+
+    my @lines_out;
+    open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )
+        or die "unable to open cached file ($cached_file_name): $!";
+
+    while (<$html_handle>) {
+        push @lines_out, $_;
+    }
+    close $html_handle
+        or die "unable to close cached file: $!";
+
+    return $c->response->body( join( '', @lines_out ));
 }
 
 =head2 well_genotyping_info_search
@@ -264,11 +377,11 @@ sub _stash_well_genotyping_info {
     my ( $self, $c, $search ) = @_;
 
     #well_id will become barcode
-    my $well = try{  $c->model('Golgi')->retrieve_well( $search ) };
+    my $well = $c->model('Golgi')->retrieve_well( $search );
 
     unless ( $well ) {
-        $c->flash( error_msg => "Well does not exist: " . p( %$search ) );
-        return $c->response->redirect( $c->uri_for( "/public_reports/well_genotyping_info_search" ) );
+        $c->stash( error_msg => "Well doesn't exist" );
+        return;
     }
 
     try {
