@@ -21,6 +21,7 @@ override _build_columns => sub {
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Crispr ID', 'Crispr Design', 'Genoverse View', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
+        'DNA Quality EGel Pass?','Sequencing QC Pass',
         'Crispr Details',
         'SF1', 'SR1', 'PF1', 'PR1', 'PF2', 'PR2', 'GF1', 'GR1', 'GF2', 'GR2', # primers
         'Created By','Created At',
@@ -81,6 +82,9 @@ override iterator => sub {
                 $cd->{crispr_well} . '(' . $cd->{crispr}->id . ') : ' . $cd->{crispr}->seq;
         }
 
+        my $dna_quality = $well->well_dna_quality;
+        my $qc_seq_result = $well->well_qc_sequencing_result;
+
         my @data = (
             $well_data->{well_name},
             $well_data->{design_id},
@@ -95,6 +99,8 @@ override iterator => sub {
             $well_data->{cassette_resistance},
             $well_data->{cassette_promoter},
             $well_data->{backbone},
+            ( $dna_quality ? $self->boolean_str($dna_quality->egel_pass) : '' ),
+            ( $qc_seq_result ? $self->boolean_str($qc_seq_result->pass) : '' ),
             join( ", ", @crispr_report_details ),
             @{ $crispr_primers }{ qw( SF1 SR1 PF1 PR1 PF2 PR2 GF1 GR1 GF2 GR2 ) },
             $well_data->{created_by},
