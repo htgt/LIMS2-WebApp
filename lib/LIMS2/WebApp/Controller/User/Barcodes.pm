@@ -313,16 +313,13 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
         }
     );
 
-    my @barcodes;
-    foreach my $bc (@checked_out){
-        my $well_details = $self->_well_display_details($c, $bc->well);
-        push @barcodes, $well_details;
-    }
+    my @wells = map { $_->well } @checked_out;
+    my $display_details = $self->_multiple_well_display_details($c,\@wells);
 
-    my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @barcodes;
+    my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @$display_details;
     $c->stash->{plate_type} = $plate_type;
     $c->stash->{barcodes} = \@sorted;
-    $c->stash->{discard_reasons} = [ qw(contamination )];
+    $c->stash->{discard_reasons} = [ "contamination", "failed QC" ];
     return;
 }
 
@@ -774,8 +771,7 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
 sub _well_display_details{
     my ($self, $c, $well) = @_;
 
-    my $well_details = $well->as_hash;
-    $well_details->{well_as_string} = $well->as_string;
+    my $well_details = $self->_basic_well_display_details($well);
 
     if(my $epd = $well->first_ep_pick){
         $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
@@ -786,8 +782,84 @@ sub _well_display_details{
     });
 
     $well_details->{design_gene_symbol} = $gene_symbols->[0];
+
+
+    return $well_details;
+}
+
+sub _multiple_well_display_details{
+    my ($self, $c, $wells) = @_;
+
+    my @display_data;
+    my @well_ids = map { $_->id } @{ $wells || [] };
+
+    return [] unless @well_ids;
+
+    # Use ProcessTree to get ancestors and design data for all well IDs
+    my $well_designs = $c->model('Golgi')->get_design_data_for_well_id_list(\@well_ids);
+
+    # Use design IDs to get gene symbols from summary table
+    # $well_designs->{<well_id>}->{design_id}
+    my @design_ids = map { $well_designs->{$_}->{design_id} } keys %$well_designs;
+    my @summaries = $c->model('Golgi')->schema->resultset('Summary')->search({
+        design_id => { '-in' => \@design_ids }
+    });
+
+    # Generate hash of design IDs to gene symbols
+    my $design_gene_symbols = {};
+    foreach my $summary (@summaries){
+        $design_gene_symbols->{$summary->design_id} = $summary->design_gene_symbol;
+    }
+
+    # Find ancestor EP_PICK wells
+    my $well_ancestors = $c->model('Golgi')->get_ancestors_for_well_id_list(\@well_ids);
+    my @all_ancestors = map { @{ $_->[0] } } @$well_ancestors;
+
+    # Generate hash of all EPD ancestor well IDs to well names
+    my %epd_ancestor_names = map { $_->id => $_->as_string } $c->model('Golgi')->schema->resultset('Well')->search({
+        'me.id' => { '-in' => \@all_ancestors },
+        'plate.type_id' => 'EP_PICK',
+    }, { join => 'plate' });
+
+    # Generate hash of starting well IDs to their ancestors
+    my $ancestors_for_well;
+    foreach my $ancestor_list (@$well_ancestors){
+        my @list = @{ $ancestor_list->[0] };
+        $ancestors_for_well->{$list[0]} = [ @list[1..$#list] ];
+    }
+
+
+    foreach my $well (@$wells){
+        my $well_details = $self->_basic_well_display_details($well);
+
+        # Find first ancestor of this well which is an EPD (we have stored the names of all EPD ancestors)
+        my $ancestors = $ancestors_for_well->{$well->id};
+        my ($epd_name) = grep {$_} map { $epd_ancestor_names{$_} } @$ancestors;
+        if($epd_name){
+            $well_details->{parent_epd} = $epd_name;
+        }
+
+        # Find gene symbol for this well using design IDs and symbols retrieved by batch query
+        my $design_id = $well_designs->{$well->id}->{design_id};
+        $well_details->{design_gene_symbol} = $design_gene_symbols->{$design_id};
+
+
+        push @display_data, $well_details;
+    }
+
+    # return array of display hashes
+    return \@display_data;
+}
+
+sub _basic_well_display_details{
+    my ($self, $well) = @_;
+
+    my $well_details = $well->as_hash;
+
+    $well_details->{well_as_string} = $well->as_string;
+
     $well_details->{barcode_state} = ( $well->well_barcode->barcode_state ? $well->well_barcode->barcode_state->id
-                                                                          : "" );
+                                                                      : "" );
     $well_details->{barcode} = $well->well_barcode->barcode;
 
     if($well->well_lab_number){
