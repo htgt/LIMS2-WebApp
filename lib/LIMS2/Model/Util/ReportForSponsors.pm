@@ -738,7 +738,6 @@ sub genes {
 
     if ($sponsor_id eq 'MGP Recovery') {
         return mgp_recovery_genes( $self, $sponsor_id, $query_type );
-        die;
     }
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
