@@ -163,7 +163,7 @@
               <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
+              <a href="[% c.uri_for( '/user/update_colony_picks_step_1' ) %]">Update Colony Counts</a>
             </li>
             [% END %]
             <li>
@@ -232,6 +232,37 @@
 
           </ul>
         </li>
+
+        <li class="dropdown[% IF template.tab_name == "Barcodes" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Barcodes <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/generate_picklist' ) %]">Generate Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/checkout_from_picklist' ) %]">Checkout From Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/scan_barcode' ) %]">Scan Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/well_checkout' ) %]">Checkout Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/FP' ) %]">Checked Out FP Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/PIQ' ) %]">Checked Out PIQ Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_barcoded_plate' ) %]">Create Barcoded Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]">Rescan Barcoded Plate</a>
+            </li>
+          </ul>
+        </li>
+
       </ul>
 
       <ul class="nav pull-right">

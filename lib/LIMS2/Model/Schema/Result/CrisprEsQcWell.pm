@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.260';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.267';
 }
 ## use critic
 
@@ -111,6 +111,12 @@ __PACKAGE__->table("crispr_es_qc_wells");
   data_type: 'text'
   is_nullable: 1
 
+=head2 crispr_damage_type_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -143,6 +149,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "vcf_file",
   { data_type => "text", is_nullable => 1 },
+  "crispr_damage_type_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -171,6 +179,26 @@ __PACKAGE__->belongs_to(
   "crispr_chr",
   "LIMS2::Model::Schema::Result::Chromosome",
   { id => "crispr_chr_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 crispr_damage_type
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprDamageType>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "crispr_damage_type",
+  "LIMS2::Model::Schema::Result::CrisprDamageType",
+  { id => "crispr_damage_type_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -210,8 +238,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-28 07:58:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XO/o3tRU/YDgyM588TWtzg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 09:07:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZqMaBc51jDRz1dseBj+8Ig
 
 use JSON;
 use List::Util qw ( min max );
@@ -334,6 +362,7 @@ sub format_well_data {
         has_mut_aa_file         => $has_mut_aa_file,
         fwd_read                => $self->fwd_read,
         rev_read                => $self->rev_read,
+        damage_type             => $self->crispr_damage_type_id,
     };
 }
 

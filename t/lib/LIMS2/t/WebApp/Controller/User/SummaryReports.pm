@@ -146,7 +146,7 @@ sub all_tests  : Tests
 	}
 
     }
-
+=head
     note( 'Testing Pipeline Summary reports - Mouse double-targeted front page' );
     # Mouse double-targeted - Front page
     $mech->get_ok( '/public_reports/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data');
@@ -257,6 +257,7 @@ sub all_tests  : Tests
     # Mouse single-targeted - Targeted Genes
     $mech->get_ok( '/public_reports/sponsor_report/single_targeted/Cre Knockin/Targeted Genes' , 'Pipeline drilldowns: Mouse single-targeted - Accepted First ES Clones');
     $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Targeted Genes');
+=cut
 
     note( 'Testing Pipeline Summary reports - COMPLETED' );
 

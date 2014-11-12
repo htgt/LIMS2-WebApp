@@ -1,12 +1,12 @@
 package LIMS2::WebApp::Controller::User::EngSeqs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::EngSeqs::VERSION = '0.260';
+    $LIMS2::WebApp::Controller::User::EngSeqs::VERSION = '0.267';
 }
 ## use critic
 
 use Moose;
-use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params generate_custom_eng_seq_params );
+use LIMS2::Model::Util::EngSeqParams qw( generate_custom_eng_seq_params );
 use Bio::SeqIO;
 use IO::String;
 use Try::Tiny;
@@ -26,37 +26,6 @@ Generate sequence files for wells
 
 =cut
 
-=head2 well_eng_seq
-
-Generate Genbank file for a well
-
-=cut
-
-sub well_eng_seq :Path( '/user/well_eng_seq' ) :Args(1) {
-    my ( $self, $c, $well_id ) = @_;
-
-    my $model = $c->model('Golgi');
-    my $well =  $model->retrieve_well( { id => $well_id } );
-
-    my $params = $c->request->params;
-    my ( $method, undef , $eng_seq_params ) = generate_well_eng_seq_params( $model, $params, $well );
-
-    my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
-
-    my $design  = $well->design;
-    my $gene_id = $design->genes->first->gene_id;
-    my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
-    my $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
-    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
-
-    my $file_name = $well->as_string . "_$stage" . "_$gene";
-    my $file_format = exists $params->{file_format} ? $params->{file_format} : 'Genbank';
-
-    $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );
-
-    return;
-}
-
 =head2 pick_gene_generate_sequence_file
 
 Generate a sequence file from a user specified design, cassette and backbone combination.
@@ -75,7 +44,6 @@ sub pick_gene_generate_sequence_file :Path( '/user/pick_gene_generate_sequence_f
 
     return;
 }
-
 
 =head2 generate_sequence_file
 

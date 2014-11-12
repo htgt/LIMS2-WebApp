@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.260';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.267';
 }
 ## use critic
 
@@ -38,7 +38,8 @@ sub pspec_list_plates {
         plate_name => { validate => 'non_empty_string', optional => 1 },
         plate_type => { validate => 'existing_plate_type', optional => 1 },
         page       => { validate => 'integer', optional => 1, default => 1 },
-        pagesize   => { validate => 'integer', optional => 1, default => 15 }
+        pagesize   => { validate => 'integer', optional => 1, default => 15 },
+        hide_virtual_fp_piq => { validate => 'boolean', optional => 1, default => 1},
     };
 }
 
@@ -48,6 +49,9 @@ sub list_plates {
     my $validated_params = $self->check_params( $params, $self->pspec_list_plates );
 
     my %search = ( 'me.species_id' => $validated_params->{species} );
+
+    # List only current plates, not old versions
+    $search{'me.version'} = undef;
 
     if ( $validated_params->{plate_name} ) {
         $search{'me.name'}
@@ -67,6 +71,20 @@ sub list_plates {
         }
     );
 
+    # Subselect all real plates
+    # and virtual plates which are not FP and PIQ
+    if($validated_params->{hide_virtual_fp_piq}){
+        $resultset = $resultset->search({
+            -or => {
+                'me.is_virtual' => undef ,
+                -and  => {
+                    -bool => 'me.is_virtual',
+                    'me.type_id' => { -not_in => [qw(FP PIQ)]}
+                }
+            }
+        });
+    }
+
     return ( [ $resultset->all ], $resultset->pager );
 }
 
@@ -85,6 +103,7 @@ sub pspec_create_plate {
         comments   => { optional => 1 },
         wells      => { optional => 1 },
         is_virtual => { validate => 'boolean', optional => 1 },
+        version    => { validate => 'integer', optional => 1, default => undef },
     };
 }
 
@@ -106,6 +125,7 @@ The optional wells parameter takes an ArrayRef of hashes which contain the follo
 
 well_name
 parent_plate (name)
+parent_plate_version (default = undef, e.g. current plate version)
 parent_well (name)
 accepted (boolean - optional)
 process_type
@@ -121,8 +141,11 @@ sub create_plate {
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
     $self->log->info( 'Creating plate: ' . $validated_params->{name} );
 
-    my $current_plate
-        = $self->schema->resultset('Plate')->find( { name => $validated_params->{name} } );
+    my $current_plate = $self->schema->resultset('Plate')->find( {
+        name    => $validated_params->{name},
+        version => $validated_params->{version},
+    } );
+
     if ($current_plate) {
         $self->throw( Validation => 'Plate ' . $validated_params->{name} . ' already exists' );
     }
@@ -130,7 +153,7 @@ sub create_plate {
     my $plate = $self->schema->resultset('Plate')->create(
         {   slice_def(
                 $validated_params,
-                qw( name species_id type_id description created_by_id created_at is_virtual )
+                qw( name species_id type_id description created_by_id created_at is_virtual version )
             )
         }
     );
@@ -212,6 +235,7 @@ sub pspec_retrieve_plate {
         name         => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
         id           => { validate => 'integer',             optional => 1, rename => 'me.id' },
         barcode      => { validate => 'alphanumeric_string', optional => 1, rename => 'me.barcode' },
+        version      => { validate => 'integer'            , optional => 1, rename => 'me.version', default => undef },
         type         => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
         species      => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
         REQUIRE_SOME => { name_or_id_or_barcode => [ 1, qw( name id barcode ) ] }
@@ -224,8 +248,16 @@ sub retrieve_plate {
     my $validated_params
         = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
+    my $search_params = { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id me.barcode ) };
+
+    if($search_params->{'me.name'}){
+        # Set the version search param. we use undef (NULL in db)
+        # to indicate that we want the current plate
+        $search_params->{'me.version'} = $validated_params->{'me.version'};
+    }
+
     return $self->retrieve(
-        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id me.barcode ) },
+        Plate => $search_params,
         $search_opts
     );
 }

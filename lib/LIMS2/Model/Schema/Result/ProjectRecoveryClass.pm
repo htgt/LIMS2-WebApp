@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ProjectRecoveryClass;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProjectRecoveryClass::VERSION = '0.260';
+    $LIMS2::Model::Schema::Result::ProjectRecoveryClass::VERSION = '0.267';
 }
 ## use critic
 
@@ -93,10 +93,8 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-14 14:05:24
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SANap7GZzTCDqebVX8hgAw
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

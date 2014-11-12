@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::SingleTargeted;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.260';
+    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.267';
 }
 ## use critic
 
@@ -32,7 +32,75 @@ sub base_data {
     );
 
     unless ( $args || $args->{no_eng_seq_link} ) {
-        push @base_data, $self->catalyst->uri_for( '/user/well_eng_seq', $well->id );
+        if ( $self->catalyst ) {
+            push @base_data, $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well->id );
+        }
+        else {
+            push @base_data, '-';
+        }
+    }
+
+    return @base_data;
+}
+
+=head2 base_data_quick
+
+Quicker method to grab data when using PlateReport custom resultset.
+
+=cut
+sub base_data_quick {
+    my ( $self, $data, $args ) = @_;
+
+    my @base_data = (
+        $data->{well_name},
+        $data->{design_id},
+        $data->{gene_ids},
+        $data->{gene_symbols},
+        $data->{sponsors},
+        $data->{created_by},
+        $data->{created_at},
+        $data->{assay_pending},
+        $data->{assay_complete},
+        $self->boolean_str( $data->{accepted} ),
+    );
+
+    unless ( $args || $args->{no_eng_seq_link} ) {
+        if ( $self->catalyst ) {
+            push @base_data, $self->catalyst->uri_for( '/public_reports/well_eng_seq', $data->{well_id} );
+        }
+        else {
+            push @base_data, '-';
+        }
+    }
+
+    return @base_data;
+}
+
+=head2 base_data_crispr_quick
+
+Quicker method to grab crispr data when using PlateReport custom resultset.
+
+=cut
+sub base_data_crispr_quick {
+    my ( $self, $data, $crispr, $args ) = @_;
+
+    my @base_data = (
+        $data->{well_name},
+        $self->crispr_design_and_gene_cols( $crispr ),
+        $data->{created_by},
+        $data->{created_at},
+        $data->{assay_pending},
+        $data->{assay_complete},
+        $self->boolean_str( $data->{accepted} ),
+    );
+
+    unless ( $args || $args->{no_eng_seq_link} ) {
+        if ( $self->catalyst ) {
+            push @base_data, $self->catalyst->uri_for( '/public_reports/well_eng_seq', $data->{well_id} );
+        }
+        else {
+            push @base_data, '-';
+        }
     }
 
     return @base_data;

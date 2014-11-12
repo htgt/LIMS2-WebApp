@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.260';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.267';
 }
 ## use critic
 
@@ -173,53 +173,49 @@ sub build_eng_seq_params_from_loci{
 
     my $params;
 
-    if($type =~ /gibson/){
+    if ( $type =~ /gibson/ ) {
         $params->{chromosome} = $loci->{'5F'}->{chr_name};
-        $params->{strand} = $loci->{'5F'}->{chr_strand};
-        $params->{assembly} = $loci->{'5F'}->{assembly};
-    }else{
+        $params->{strand}     = $loci->{'5F'}->{chr_strand};
+        $params->{assembly}   = $loci->{'5F'}->{assembly};
+    }
+    else {
         $params->{chromosome} = $loci->{G5}->{chr_name};
-        $params->{strand} = $loci->{G5}->{chr_strand};
-        $params->{assembly} = $loci->{G5}->{assembly};
+        $params->{strand}     = $loci->{G5}->{chr_strand};
+        $params->{assembly}   = $loci->{G5}->{assembly};
     }
 
     if ( $params->{strand} == 1 ) {
-
-	    if($type =~ /gibson/){
-
-               $params->{five_arm_start} = $loci->{'5F'}->{chr_start};
-               $params->{five_arm_end} = $loci->{'5R'}->{chr_end};
-               $params->{three_arm_start} = $loci->{'3F'}->{chr_start};
-               $params->{three_arm_end} = $loci->{'3R'}->{chr_end};
-
-	    }else{
-
-               $params->{five_arm_start} = $loci->{G5}->{chr_start};
-               $params->{five_arm_end} = $loci->{U5}->{chr_end};
-               $params->{three_arm_start} = $loci->{D3}->{chr_start};
-               $params->{three_arm_end} = $loci->{G3}->{chr_end};
-
-            }
+        if ( $type =~ /gibson/ ) {
+            $params->{five_arm_start}  = $loci->{'5F'}->{chr_start};
+            $params->{five_arm_end}    = $loci->{'5R'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'3F'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'3R'}->{chr_end};
+        }
+        else {
+            $params->{five_arm_start}  = $loci->{G5}->{chr_start};
+            $params->{five_arm_end}    = $loci->{U5}->{chr_end};
+            $params->{three_arm_start} = $loci->{D3}->{chr_start};
+            $params->{three_arm_end}   = $loci->{G3}->{chr_end};
+        }
     }
     else {
-	    if($type =~ /gibson/){
-
-                 $params->{five_arm_start} = $loci->{'5R'}->{chr_start};
-                 $params->{five_arm_end} = $loci->{'5F'}->{chr_end};
-                 $params->{three_arm_start} = $loci->{'3R'}->{chr_start};
-                 $params->{three_arm_end} = $loci->{'3F'}->{chr_end};
-
-	    }else{
-
-                 $params->{five_arm_start} = $loci->{U5}->{chr_start};
-                 $params->{five_arm_end} = $loci->{G5}->{chr_end};
-                 $params->{three_arm_start} = $loci->{G3}->{chr_start};
-                 $params->{three_arm_end} = $loci->{D3}->{chr_end};
-
-	    }
+        if ( $type =~ /gibson/ ) {
+            $params->{five_arm_start}  = $loci->{'5R'}->{chr_start};
+            $params->{five_arm_end}    = $loci->{'5F'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'3R'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'3F'}->{chr_end};
+        }
+        else {
+            $params->{five_arm_start}  = $loci->{U5}->{chr_start};
+            $params->{five_arm_end}    = $loci->{G5}->{chr_end};
+            $params->{three_arm_start} = $loci->{G3}->{chr_start};
+            $params->{three_arm_end}   = $loci->{D3}->{chr_end};
+        }
     }
 
     return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
+    # for now all gibson designs are treated as deletions
+    return $params if $type eq 'gibson';
 
     if ( $params->{strand} == 1 ) {
 	    if ( $type eq 'gibson' ) {

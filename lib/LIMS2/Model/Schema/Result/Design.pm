@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.260';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.267';
 }
 ## use critic
 
@@ -346,6 +346,14 @@ has 'info' => (
         target_region_end   => 'target_region_end',
     }
 );
+
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 sub _build_design_info {
     my $self = shift;
