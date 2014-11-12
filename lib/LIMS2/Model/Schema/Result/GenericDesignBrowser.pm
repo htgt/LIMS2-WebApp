@@ -40,12 +40,15 @@ with des as (select
 	, b.design_id               design_id
     , c.design_type_id	        design_type_id
     , a.assembly_id             assembly_id
+    , d.gene_id                 gene_id
 from design_oligo_loci a
 	
 join design_oligos b
 	on (a.design_oligo_id = b.id)
 join designs c
 	on (b.design_id = c.id)
+join gene_design d
+    on (b.design_id = d.design_id)
 
 where a.chr_start >= ? and a.chr_end <= ?
     and a.chr_id = ?
@@ -59,6 +62,7 @@ select distinct d_o.design_id		    design_id
 	, d_l.chr_id			            chr_id
 	, d_l.chr_strand			        chr_strand
     , des.design_type_id                design_type_id
+    , des.gene_id                       gene_id
 	
 from des
 join design_oligos d_o
@@ -79,6 +83,7 @@ __PACKAGE__->add_columns(
         design_id     
         oligo_type_id 
         design_type_id
+        gene_id
     /
 );
 
