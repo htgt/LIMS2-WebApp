@@ -366,6 +366,7 @@ sub format_well_data {
         fwd_read                => $self->fwd_read,
         rev_read                => $self->rev_read,
         damage_type             => $self->crispr_damage_type_id,
+        vep_output              => $json->{vep_output},
     };
 }
 
