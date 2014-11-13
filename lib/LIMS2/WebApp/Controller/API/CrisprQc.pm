@@ -72,6 +72,100 @@ sub update_well_crispr_damage_POST {
     return
 }
 
+sub crispr_es_qc_run : Path( '/api/crispr_es_qc_run' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+=head2 GET /api/crispr_es_qc_run
+
+Retrieve a crispr es qc run by id
+
+=cut
+
+sub crispr_es_qc_run_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $crispr_es_qc_run = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_crispr_es_qc_run( { id => $c->request->param( 'id' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $crispr_es_qc_run );
+}
+
+=head2 POST
+
+Create a crispr es qc run record
+
+=cut
+
+sub crispr_es_qc_run_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $crispr_es_qc_run = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->create_crispr_es_qc_run( $c->request->data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/crispr_es_qc_run', { id => $crispr_es_qc_run->id } ),
+        entity   => $crispr_es_qc_run
+    );
+}
+
+sub crispr_es_qc_well : Path( '/api/crispr_es_qc_well' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+=head2 GET /api/crispr_es_qc_well
+
+Retrieve a crispr es qc run by id
+
+=cut
+
+sub crispr_es_qc_well_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $crispr_es_qc_well = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_crispr_es_qc_well( { id => $c->request->param( 'id' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $crispr_es_qc_well );
+}
+
+=head2 POST
+
+Create a crispr es qc well record
+
+=cut
+
+sub crispr_es_qc_well_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $crispr_es_qc_well = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->create_crispr_es_qc_well( $c->request->data );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/crispr_es_qc_well', { id => $crispr_es_qc_well->id } ),
+        entity   => $crispr_es_qc_well
+    );
+}
+
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify
