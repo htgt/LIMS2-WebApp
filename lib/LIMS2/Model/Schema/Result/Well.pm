@@ -1396,6 +1396,8 @@ sub genotyping_info {
       primers          => \%primers,
       vcf_file         => $accepted_qc_well->vcf_file,
       qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
+      species          => $design->species_id,
+      cell_line        => $self->first_cell_line->name,
   };
 }
 
