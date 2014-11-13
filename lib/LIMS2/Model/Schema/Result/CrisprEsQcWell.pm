@@ -239,6 +239,15 @@ use JSON;
 use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
 
+sub as_hash {
+  my ( $self, $options ) = @_;
+
+  my $data = { map { $_ => $self->$_ } $self->columns };
+  delete $data->{analysis_data};
+
+  return $data;
+}
+
 sub get_crispr_primers {
   my $self = shift;
 
