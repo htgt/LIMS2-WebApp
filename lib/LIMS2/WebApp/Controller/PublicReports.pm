@@ -462,6 +462,9 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
                         . join( ', ', @crispr_damage_types ) );
                 $data{crispr_damage} = join( '/', @crispr_damage_types );
             }
+            else {
+                $data{crispr_damage} = 'unclassified';
+            }
         }
         $targeted_clones{ $sr->ep_pick_well_id } = \%data;
     }
@@ -470,7 +473,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my %summaries;
     for my $tc ( @targeted_clones ) {
         $summaries{accepted}++ if $tc->{accepted} eq 'yes';
-        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage};
+        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified';
     }
 
     $c->stash(
