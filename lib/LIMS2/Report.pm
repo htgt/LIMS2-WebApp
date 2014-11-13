@@ -73,8 +73,9 @@ sub read_report_from_disk {
 
     my $report_fh   = $dir->file( 'report.csv' )->openr;
     my $report_name = $dir->file( 'name' )->slurp;
+    my $template_name = ( $dir->contains('template_name') ? $dir->file('template_name')->slurp : undef );
 
-    return ( $report_name, $report_fh );
+    return ( $report_name, $report_fh, $template_name );
 }
 
 sub _cached_report_ok {
@@ -168,7 +169,7 @@ sub run_in_background {
 
     if ( $pid == 0 ) { # child
         Log::Log4perl->easy_init( { level => $WARN, file => $work_dir->file( 'log' ) } );
-        $generator->model->clear_schema; # Force re-connect in child process        
+        $generator->model->clear_schema; # Force re-connect in child process
         local $0 = 'Generate report ' . $generator->name;
         do_generate_report( $generator, $work_dir, $cache_entry );
         exit 0;
@@ -206,6 +207,9 @@ sub do_generate_report {
             or LIMS2::Exception::System->throw( "Error closing $output_file: $!" );
 
         write_report_name( $work_dir->file( 'name' ), $generator->name );
+        if($generator->custom_template){
+            write_report_name( $work_dir->file('template_name'), $generator->custom_template );
+        }
 
         $work_dir->file( 'done' )->touch;
         $cache_entry && $cache_entry->update( { complete => 1 } );

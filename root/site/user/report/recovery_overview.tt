@@ -1,0 +1,13 @@
+
+<table>
+  <tr>
+    <th>Stage</th>
+    <th>Number of Genes</th>
+  </tr>
+[% FOREACH row IN data %]
+  <tr>
+    <td>[% row.0 %]</td>
+    <td>[% row.1 %]</td>
+  </tr>
+[% END %]
+</table>

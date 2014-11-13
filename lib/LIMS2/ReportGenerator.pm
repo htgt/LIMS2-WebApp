@@ -9,6 +9,12 @@ use JSON;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
+has custom_template => (
+    is         => 'ro',
+    isa        => 'Str',
+    required   => 0
+);
+
 has name => (
     is         => 'ro',
     isa        => 'Str',

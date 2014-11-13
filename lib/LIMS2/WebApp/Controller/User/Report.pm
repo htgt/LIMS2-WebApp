@@ -173,7 +173,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
-    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    my ( $report_name, $report_fh, $template ) = LIMS2::Report::read_report_from_disk( $report_id );
 
     my $pageset = LIMS2::WebApp::Pageset->new(
         {
@@ -210,8 +210,10 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         push @data, $row;
     }
 
+    $template ||= 'user/report/simple_table.tt';
+
     $c->stash(
-        template        => 'user/report/simple_table.tt',
+        template        => $template,
         report_id       => $report_id,
         title           => $report_name,
         pageset         => $pageset,
