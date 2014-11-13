@@ -102,8 +102,14 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     }
     else {
         # not logged in - always use cached reports for top level and sub-reports
-        $sub_cache_param = 'with_cache';
-        $top_cache_param = 'with_cache';
+        if ( !$c->request->params->{'cache_param'} ) {
+            $sub_cache_param = 'with_cache';
+            $top_cache_param = 'with_cache';
+        }
+        else {
+            $sub_cache_param = 'without_cache';
+            $top_cache_param = 'without_cache';
+        }
     }
 
     if (!$c->request->params->{'species'}) {
