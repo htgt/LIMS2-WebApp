@@ -307,9 +307,6 @@
             <li>
               <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Well Genotyping Info</a>
             </li>
-            <li>
-              <a href="[% c.uri_for( '/public_reports/cre_knockin_project_status' ) %]">Cre Knockin Project Status</a>
-            </li>
           </ul>
         </li>
       </ul>
