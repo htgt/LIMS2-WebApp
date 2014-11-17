@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcRuns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.266';
+    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.268';
 }
 ## use critic
 
@@ -171,6 +171,7 @@ sub as_hash {
     created_by => $self->created_by->name,
     map { $_ => $self->$_ } $self->columns
   };
+  $data->{created_at} = $self->created_at->iso8601;
 
   #if you enable this you should do a prefetch with:
   #{'crispr_es_qc_wells' => { well => 'plate' }

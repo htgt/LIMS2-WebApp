@@ -23,7 +23,7 @@
     [% FOREACH well IN piq_wells %]
       Barcode for [% well.well_lab_number.lab_number %]
       [% barcode = 'barcode_' _ well.id %]
-      <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here" value="[% $barcode %]">
+      <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here" value="[% $barcode %]" class="barcode_input">
       <br>
     [% END %]
     <button type="submit" name="submit_piq_barcodes" class="btn btn-danger" value="submit_piq_barcodes">
@@ -70,3 +70,14 @@
   </fieldset>
 </form>
 [% END %]
+
+<script type="text/javascript">
+  $(".barcode_input").keyup(function(){
+    if(this.value.length > 9){
+      var next_input = $(this).nextAll(".barcode_input")[0];
+      if(next_input){
+        next_input.focus();
+      }
+    }
+  });
+</script>

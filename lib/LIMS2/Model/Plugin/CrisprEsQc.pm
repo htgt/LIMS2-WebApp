@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.266';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.268';
 }
 ## use critic
 
@@ -43,7 +43,9 @@ sub create_crispr_es_qc_run {
     #later this will be moved to its own method as we won't create
     #wells when we create the qc
     for my $well ( @{ $wells } ) {
-        $self->create_crispr_es_qc_well( $qc_run, $well, $validated_params->{species_id} );
+        $well->{crispr_es_qc_run_id} = $qc_run->id;
+        $well->{species} = $qc_run->species_id;
+        $self->create_crispr_es_qc_well( $well );
     }
 
     return $qc_run;
@@ -51,14 +53,16 @@ sub create_crispr_es_qc_run {
 
 sub pspec_create_crispr_es_qc_well {
     return {
-        well_id         => { validate => 'integer' },
-        fwd_read        => { validate => 'non_empty_string', optional => 1 },
-        rev_read        => { validate => 'non_empty_string', optional => 1 },
-        crispr_chr_name => { validate => 'existing_chromosome', optional => 1 },
-        crispr_start    => { validate => 'integer', optional => 1},
-        crispr_end      => { validate => 'integer', optional => 1},
-        analysis_data   => { validate => 'json' },
-        vcf_file        => { validate => 'non_empty_string', optional => 1 },
+        well_id             => { validate => 'integer' },
+        fwd_read            => { validate => 'non_empty_string', optional => 1 },
+        rev_read            => { validate => 'non_empty_string', optional => 1 },
+        crispr_chr_name     => { validate => 'existing_chromosome', optional => 1 },
+        crispr_start        => { validate => 'integer', optional => 1},
+        crispr_end          => { validate => 'integer', optional => 1},
+        analysis_data       => { validate => 'json' },
+        vcf_file            => { validate => 'non_empty_string', optional => 1 },
+        crispr_es_qc_run_id => { validate => 'non_empty_string' },
+        species             => { validate => 'existing_species' },
     };
 }
 
@@ -68,24 +72,42 @@ Given a QC run add a well with the given parameters
 
 =cut
 sub create_crispr_es_qc_well {
-    my ( $self, $qc_run, $params ) = @_;
+    my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_well );
 
+    my $species = delete $validated_params->{species};
     if ( $validated_params->{crispr_chr_name} ) {
         my $chr_name = delete $validated_params->{crispr_chr_name};
         my $chr = $self->schema->resultset('Chromosome')->find(
             {
                 name       => $chr_name,
-                species_id => $qc_run->species_id,
+                species_id => $species,
             }
         );
         $validated_params->{crispr_chr_id} = $chr->id;
     }
 
-    return $qc_run->create_related(
-        crispr_es_qc_wells => $validated_params
-    );
+    return $self->schema->resultset('CrisprEsQcWell')->create( $validated_params );
+}
+
+sub pspec_retrieve_crispr_es_qc_well {
+    return {
+        id => { validate => 'integer' },
+    };
+}
+
+=head2 retrieve_crispr_es_qc_well
+
+Return a crispr_es_qc_run result for a given id
+
+=cut
+sub retrieve_crispr_es_qc_well {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_es_qc_well );
+
+    return $self->retrieve( CrisprEsQcWell => $validated_params );
 }
 
 sub pspec_delete_crispr_es_qc_run {

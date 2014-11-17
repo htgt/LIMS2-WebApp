@@ -108,6 +108,7 @@ function toggle_btn(btn, show_or_hide) {
     <th>Accepted?</th>
     <th>First Allele Genbank File</th>
     <th>Second Allele Description</th>
+    <th>Detailed Description</th>
   </thead>
   <tbody>
     [% FOREACH well IN targeted_clones %]
@@ -116,7 +117,9 @@ function toggle_btn(btn, show_or_hide) {
       <td>[% well.plate_name %]</td>
       <td>[% well.well_name %]</td>
       <td>[% well.created_at %]</td>
-      <td class="accepted">
+      <td class="accepted"> [% well.accepted %] </td>
+      <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.id ) %]"><i class="icon-file"></i></a></td>
+      <td>
         [% IF well.crispr_qc_data && well.accepted %]
         <a href="#" class="crispr_qc_accepted">
         <!-- insert alignments but hidden -->
@@ -125,12 +128,11 @@ function toggle_btn(btn, show_or_hide) {
         </div>
         [% END %]
 
-        [% well.accepted %]
+        [% well.crispr_damage %]
 
         [% IF well.crispr_qc_data %]</a>[% END %]
       </td>
-      <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.id ) %]"><i class="icon-file"></i></a></td>
-      <td>[% well.crispr_damage %]</td>
+      <td><a href="[% c.uri_for( '/public_reports/well_genotyping_info', well.plate_name, well.well_name ) %]" target="_blank" ><i class="icon-info-sign"></i></a></td>
     </tr>
     [%- END %]
   </tbody>

@@ -1,10 +1,18 @@
 package LIMS2::WebApp::Controller::User::Genoverse;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Genoverse::VERSION = '0.266';
+    $LIMS2::WebApp::Controller::User::Genoverse::VERSION = '0.268';
 }
 ## use critic
 
+
+=head Genoverse Controller
+
+The purpose of this controller is to launch the different Genoverse views.
+
+The API calls for the different tracks are in the REST API folder in Browser.pm
+
+=cut
 
 use Moose;
 use Try::Tiny;

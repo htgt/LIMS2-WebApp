@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.266';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.268';
 }
 ## use critic
 
@@ -1402,6 +1402,8 @@ sub genotyping_info {
       primers          => \%primers,
       vcf_file         => $accepted_qc_well->vcf_file,
       qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
+      species          => $design->species_id,
+      cell_line        => $self->first_cell_line->name,
   };
 }
 

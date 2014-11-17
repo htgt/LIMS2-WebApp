@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.266';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.268';
 }
 ## use critic
 
@@ -108,8 +108,14 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     }
     else {
         # not logged in - always use cached reports for top level and sub-reports
-        $sub_cache_param = 'with_cache';
-        $top_cache_param = 'with_cache';
+        if ( !$c->request->params->{'cache_param'} ) {
+            $sub_cache_param = 'with_cache';
+            $top_cache_param = 'with_cache';
+        }
+        else {
+            $sub_cache_param = 'without_cache';
+            $top_cache_param = 'without_cache';
+        }
     }
 
     if (!$c->request->params->{'species'}) {
@@ -468,6 +474,9 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
                         . join( ', ', @crispr_damage_types ) );
                 $data{crispr_damage} = join( '/', @crispr_damage_types );
             }
+            else {
+                $data{crispr_damage} = 'unclassified';
+            }
         }
         $targeted_clones{ $sr->ep_pick_well_id } = \%data;
     }
@@ -476,7 +485,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my %summaries;
     for my $tc ( @targeted_clones ) {
         $summaries{accepted}++ if $tc->{accepted} eq 'yes';
-        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage};
+        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified';
     }
 
     $c->stash(

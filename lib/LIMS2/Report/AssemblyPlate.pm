@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.266';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.268';
 }
 ## use critic
 
@@ -27,6 +27,7 @@ override _build_columns => sub {
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Crispr ID', 'Crispr Design', 'Genoverse View', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
+        'DNA Quality EGel Pass?','Sequencing QC Pass',
         'Crispr Details',
         'SF1', 'SR1', 'PF1', 'PR1', 'PF2', 'PR2', 'GF1', 'GR1', 'GF2', 'GR2', # primers
         'Created By','Created At',
@@ -74,7 +75,7 @@ override iterator => sub {
                     'gene_ids'       => $well_data->{gene_ids},
                     'button_label'   => 'Genoverse',
                     'browser_target' => $self->plate_name . $well_data->{well_name},
-                    'api_url'        => '/user/genoverse_design_view',
+                    'api_url'        => '/user/genoverse_primer_view',
                 }
             );
             $crispr_designs = join( "/", map{ $_->design_id } $crispr->crispr_designs->all );
@@ -86,6 +87,9 @@ override iterator => sub {
             push @crispr_report_details,
                 $cd->{crispr_well} . '(' . $cd->{crispr}->id . ') : ' . $cd->{crispr}->seq;
         }
+
+        my $dna_quality = $well->well_dna_quality;
+        my $qc_seq_result = $well->well_qc_sequencing_result;
 
         my @data = (
             $well_data->{well_name},
@@ -101,6 +105,8 @@ override iterator => sub {
             $well_data->{cassette_resistance},
             $well_data->{cassette_promoter},
             $well_data->{backbone},
+            ( $dna_quality ? $self->boolean_str($dna_quality->egel_pass) : '' ),
+            ( $qc_seq_result ? $self->boolean_str($qc_seq_result->pass) : '' ),
             join( ", ", @crispr_report_details ),
             @{ $crispr_primers }{ qw( SF1 SR1 PF1 PR1 PF2 PR2 GF1 GR1 GF2 GR2 ) },
             $well_data->{created_by},

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.266';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.268';
 }
 ## use critic
 
@@ -325,7 +325,7 @@ sub persist_wells {
         sub {
             try {
                 for my $qc_well ( @{ $qc_wells } ) {
-                    $self->model->create_crispr_es_qc_well( $self->qc_run, $qc_well );
+                    $self->model->create_crispr_es_qc_well( $qc_well );
                 }
 
                 $self->log->info('Persisted crispr es qc well data');
@@ -385,6 +385,8 @@ sub analyse_well {
 
     $self->parse_analysis_data( $analyser, $crispr, $design, \%analysis_data );
     my $qc_data = $self->build_qc_data( $well, $analyser, \%analysis_data, $well_reads, $crispr );
+    $qc_data->{crispr_es_qc_run_id} = $self->qc_run->id;
+    $qc_data->{species}             = $self->species;
 
     my $qc_data_file = $work_dir->file( 'qc_data.yaml' );
     $qc_data_file->touch;
