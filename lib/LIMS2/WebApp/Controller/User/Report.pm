@@ -211,6 +211,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
     }
 
     $template ||= 'user/report/simple_table.tt';
+    $c->log->debug("using report template $template");
 
     $c->stash(
         template        => $template,

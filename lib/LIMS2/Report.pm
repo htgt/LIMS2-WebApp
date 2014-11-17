@@ -73,7 +73,11 @@ sub read_report_from_disk {
 
     my $report_fh   = $dir->file( 'report.csv' )->openr;
     my $report_name = $dir->file( 'name' )->slurp;
-    my $template_name = ( $dir->contains('template_name') ? $dir->file('template_name')->slurp : undef );
+    my $template_name;
+    try{
+        $template_name = $dir->file('template_name')->slurp;
+    };
+
 
     return ( $report_name, $report_fh, $template_name );
 }

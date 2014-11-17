@@ -38,47 +38,198 @@ has crispr_stage_data => (
     lazy_build => 1,
 );
 
-sub _build_stage_data {
-   my ($self) = @_;
+Readonly my $STAGES => {
+    design_well_created => {
+        name       => 'Design Well Created',
+        field_name => 'design_well_id',
+        order      => 1,
+    },
+    int_vector_created => {
+        name       => 'Intermediate Vector Created',
+        field_name => 'int_well_id',
+        order      => 2,
+    },
+    final_vector_created => {
+        name       => 'Final Vector Created',
+        field_name => 'final_well_id',
+        order      => 3,
+    },
+    final_pick_created => {
+        name       => 'Final Pick Created',
+        field_name => 'final_pick_well_id',
+        order      => 4,
+    },
+    assembly_created => {
+        name       => 'Assembly Created',
+        field_name => 'assembly_well_id',
+        order      => 5,
+    },
+    crispr_ep_created => {
+        name       => 'Crispr EP Created',
+        field_name => 'crispr_ep_well_id',
+        order      => 6,
+    },
+    ep_pick_created => {
+        name       => 'EP Pick Created',
+        field_name => 'ep_pick_well_id',
+        order      => 7,
+    },
+    fp_created => {
+        name       => 'Freeze Plate Created',
+        field_name => 'fp_well_id',
+        order      => 8,
+    },
+    piq_created => {
+        name       => 'PIQ Created',
+        field_name => 'piq_well_id',
+        order      => 9,
+    },
+    piq_accepted => {
+        name       => 'PIQ Accepted',
+        field_name => 'piq_well_accepted',
+        order      => 10,
+    },
+};
 
-   DEBUG "Building stage data";
-   return {};
+Readonly my $CRISPR_STAGES => {
+    crispr_well_created => {
+        name       => 'Crispr Well Created',
+        order      => 1,
+    },
+    crispr_vector_created => {
+        name       => 'Crispr Vector Created',
+        order      => 2,
+    },
+    crispr_dna_created => {
+        name       => 'Crispr DNA Created',
+        order      => 3,
+    }
+};
+
+sub _build_stage_data {
+    my ($self) = @_;
+
+    # stage_data->{stage}->{gene}->\@summary_rows
+
+    DEBUG "Building stage data";
+    my $stage_data = {};
+
+    my $project_rs = $self->model->schema->resultset('Project')->search(
+        {
+            sponsor_id => $self->sponsor
+        },
+    );
+
+    # ensure we only report each gene at its maximum stage by processing
+    # stages from latest to earliest and not reporting a gene that already
+    # has a stage higher than the max found for current project
+    my $gene_max_stage;
+    my %all_gene_ids;
+
+    PROJECT: while ( my $project = $project_rs->next){
+        my $gene = $project->gene_id;
+        $all_gene_ids{$gene} = $gene;
+        my $summary_rs = $self->model->schema->resultset('Summary')->search({
+            design_gene_id => $gene,
+        });
+        next if $summary_rs == 0;
+        # Store gene symbol if we found it in summary table
+        $all_gene_ids{$gene} = $summary_rs->first->design_gene_symbol;
+
+        foreach my $stage (sort { $STAGES->{$b}->{order} <=> $STAGES->{$a}->{order} }
+                      (keys %$STAGES) ){
+            my $stage_info = $STAGES->{$stage};
+            my @matching_rows = $summary_rs->search( { $stage_info->{field_name} => { '!=', undef } })->all;
+
+            if(@matching_rows){
+                my $previously_seen_stage = $gene_max_stage->{$gene};
+                if($previously_seen_stage){
+                    if($stage_info->{order} > $STAGES->{$previously_seen_stage}->{order}){
+                        # This project has a later stage for this gene
+                        # so delete gene from previously seen stage
+                        # and store this one instead
+                        delete $stage_data->{$previously_seen_stage}->{$gene};
+                        $stage_data->{$stage}->{$gene} = \@matching_rows;
+                        $gene_max_stage->{$gene} = $stage;
+                    }
+                }
+                else{
+                    # We have not seen this gene before so store stage
+                    $stage_data->{$stage}->{$gene} = \@matching_rows;
+                    $gene_max_stage->{$gene} = $stage;
+                }
+
+                # We are only interested in the latest stage so go to next project
+                next PROJECT;
+            }
+        }
+    }
+
+    # Store all gene ids for sponsor to use when fetching crispr data
+    $stage_data->{all_gene_ids} =  \%all_gene_ids ;
+
+    return $stage_data;
 }
 
 sub _build_crispr_stage_data {
+    my ($self) = @_;
 
+    my $crispr_stage_data = {};
+    my @gene_ids = keys %{ $self->stage_data->{all_gene_ids} || {} };
+
+    my $crispr_summaries = $self->model->get_crispr_summaries_for_genes({
+        id_list => \@gene_ids,
+        species => $self->species
+    });
+use Data::Dumper;
+    GENE: foreach my $gene (keys %$crispr_summaries){
+        my $gene_symbol = $self->stage_data->{all_gene_ids}->{$gene};
+        DEBUG("finding crispr stages for gene $gene $gene_symbol");
+        my $crispr_well_count;
+
+        my $gene_crisprs = $crispr_summaries->{$gene} || {};
+        foreach my $design (keys %$gene_crisprs){
+            DEBUG("finding crispr stages for design $design");
+            my $design_crisprs = $gene_crisprs->{$design}->{plated_crisprs};
+            foreach my $crispr (keys %$design_crisprs){
+                DEBUG("checking crispr $crispr");
+                foreach my $crispr_well (keys %{ $design_crisprs->{$crispr} } ){
+                    DEBUG("checking crispr well $crispr_well");
+                    $crispr_well_count++;
+                    my $dna_rs = $design_crisprs->{$crispr}->{$crispr_well}->{DNA};
+                    my $vector_rs = $design_crisprs->{$crispr}->{$crispr_well}->{CRISPR_V};
+                    my $assembly_rs = $design_crisprs->{$crispr}->{$crispr_well}->{ASSEMBLY};
+
+                    if($assembly_rs != 0){
+                        # Assembly created so gene is already past crispr stages
+                        next GENE;
+                    }
+                    elsif($dna_rs != 0){
+                        $crispr_stage_data->{crispr_dna_created}->{$gene_symbol} = 1;
+                        next GENE;
+                    }
+                    elsif($vector_rs != 0){
+                        $crispr_stage_data->{crispr_vector_created}->{$gene_symbol} = 1;
+                        next GENE;
+                    }
+                }
+            }
+        }
+
+        if($crispr_well_count){
+            # We found crispr wells but no DNA or vector result sets
+            $crispr_stage_data->{crispr_well_created}->{$gene_symbol} = 1;
+        }
+    }
+
+    return $crispr_stage_data;
 }
 
 has '+param_names' => (
     default => sub { [ 'species', 'sponsor' ] }
 );
 
-Readonly my %STAGES => (
-    crispr_ep_created => {
-    	name       => 'Crispr EP Created',
-    	field_name => 'crispr_ep_well_id',
-    },
-    ep_pick_created => {
-    	name       => 'EP Pick Created',
-    	field_name => 'ep_pick_well_id',
-    },
-    fp_created => {
-    	name       => 'Freeze Plate Created',
-    	field_name => 'fp_well_id',
-    },
-    piq_created => {
-    	name       => 'PIQ Created',
-    	field_name => 'piq_well_id',
-    },
-    piq_accepted => {
-    	name       => 'PIQ Accepted',
-    	field_name => 'piq_well_accepted',
-    },
-);
 
-Readonly my %CRISPR_STAGES => (
-
-);
 
 override _build_name => sub {
     my $self = shift;
@@ -101,12 +252,33 @@ override iterator => sub {
 
     DEBUG "getting iterator";
 
-    my $result = $self->stage_data;
+    my $stage_data = $self->stage_data;
 
-    return Iterator::Simple::iter([
-        [qw(test1 test2)],
-        [qw(test3 test4)]
-    ]);
+    my @counts;
+
+    foreach my $stage (sort { $CRISPR_STAGES->{$a}->{order} <=> $CRISPR_STAGES->{$b}->{order} }
+                      (keys %$CRISPR_STAGES) ){
+        my @genes = keys %{ $self->crispr_stage_data->{$stage} || {} };
+        my $count = scalar @genes;
+        my $genes = "";
+        if($count){
+            $genes = join ", ",  @genes ;
+        }
+        push @counts, [ $stage, $count, $genes ];
+    }
+
+    foreach my $stage (sort { $STAGES->{$a}->{order} <=> $STAGES->{$b}->{order} }
+                      (keys %$STAGES) ){
+        my @genes = keys %{ $stage_data->{$stage} || {} };
+        my $count = scalar @genes;
+        my $genes = "";
+        if($count){
+            $genes = join ", ", ( map { $stage_data->{$stage}->{$_}->[0]->design_gene_symbol } @genes );
+        }
+        push @counts, [ $stage, $count, $genes ];
+    }
+
+    return Iterator::Simple::iter(\@counts);
 };
 
 return 1;
