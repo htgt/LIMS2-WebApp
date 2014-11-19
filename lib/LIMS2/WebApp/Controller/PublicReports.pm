@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.268';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.269';
 }
 ## use critic
 
@@ -512,13 +512,16 @@ sub well_eng_seq :Path( '/public_reports/well_eng_seq' ) :Args(1) {
     my ( $method, undef , $eng_seq_params ) = generate_well_eng_seq_params( $model, $params, $well );
     my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
 
-    my $design  = $well->design;
-    my $gene_id = $design->genes->first->gene_id;
-    my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
-    my $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
-    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
+    my $gene;
+    if ( my $design  = $well->design ) {
+        my $gene_id = $design->genes->first->gene_id;
+        my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
+        $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
+    }
 
-    my $file_name = $well->as_string . "_$stage" . "_$gene";
+    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
+    my $file_name = $well->as_string . "_$stage";
+    $file_name .= "_$gene" if $gene;
     my $file_format = exists $params->{file_format} ? $params->{file_format} : 'Genbank';
 
     $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );

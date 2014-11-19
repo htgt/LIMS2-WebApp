@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.268';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.269';
 }
 ## use critic
 
@@ -477,6 +477,8 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
         );
         my $design_id = $c->request->param('design_id');
 
+        $c->log->info('Importing WGE design: $design_id');
+
         my $design_data = $client->GET( 'design', { id => $design_id, supress_relations => 0 } );
 
         my $species = $design_data->{species};
@@ -537,9 +539,11 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
                         assembly_id     => $species_default_assembly_id,
                     } );
                 }
+                $c->log->debug( "Successfull design creation with id $design_id" );
                 $c->stash( success_msg => "Successfully imported from WGE design with id $design_id" );
             }
             catch ($err) {
+                $c->log->warn("Unable to create design: $err");
                 $c->stash( error_msg => "Error importing WGE design: $err" );
                 $c->model('Golgi')->txn_rollback;
                 return;

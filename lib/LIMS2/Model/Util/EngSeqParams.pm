@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.268';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.269';
 }
 ## use critic
 
@@ -257,7 +257,7 @@ sub fetch_well_eng_seq_params {
 	}
 
 	if ( !$params->{backbone} && $params->{stage} eq 'vector' ){
-		my $backbone = $well->backbone;
+		my $backbone = $well->backbone( { ignore_processes => [ 'crispr_vector' ] } );
 		$params->{backbone} = $backbone ? $backbone->name
 		                                : undef ;
 	}

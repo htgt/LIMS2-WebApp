@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.268';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.269';
 }
 ## use critic
 
@@ -700,11 +700,11 @@ sub cassette {
 }
 
 sub backbone {
-    my $self = shift;
+    my ( $self, $args ) = @_;
 
     $self->assert_not_double_targeted;
 
-    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
+    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone', $args );
 
     return $process_backbone ? $process_backbone->backbone : undef;
 }
