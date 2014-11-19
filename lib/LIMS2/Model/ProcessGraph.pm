@@ -2,7 +2,7 @@ package LIMS2::Model::ProcessGraph;
 
 use Moose;
 use Const::Fast;
-use List::MoreUtils qw( uniq );
+use List::MoreUtils qw( uniq any );
 use LIMS2::Exception::Implementation;
 use LIMS2::Model::Types qw( ProcessGraphType );
 use Log::Log4perl qw( :easy );
@@ -307,9 +307,15 @@ sub depth_first_traversal {
 # $relation.  Returns the related record. $relation should be
 # something like 'process_design', 'process_cassette', etc.
 sub find_process {
-    my ( $self, $start_well, $relation ) = @_;
+    my ( $self, $start_well, $relation, $args ) = @_;
 
     TRACE( "find_process searching for relation $relation" );
+
+    # setup processes to ignore if any
+    my @ignore_processes;
+    if ( $args && exists $args->{ignore_processes} ) {
+        @ignore_processes = @{ $args->{ignore_processes} };
+    }
 
     my $it = $self->breadth_first_traversal( $start_well, 'in' );
 
@@ -317,6 +323,7 @@ sub find_process {
         TRACE( "find_process examining $well" );
         for my $process ( $self->input_processes( $well ) ) {
             if ( my $related = $process->$relation() ) {
+                next if @ignore_processes && any { $_ eq $process->type_id } @ignore_processes;
 
             	# Don't return $related if it is an empty resultset
             	next if ($related->isa("DBIx::Class::ResultSet") and $related->count == 0 );
