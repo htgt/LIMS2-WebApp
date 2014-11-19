@@ -694,11 +694,11 @@ sub cassette {
 }
 
 sub backbone {
-    my $self = shift;
+    my ( $self, $args ) = @_;
 
     $self->assert_not_double_targeted;
 
-    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
+    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone', $args );
 
     return $process_backbone ? $process_backbone->backbone : undef;
 }
