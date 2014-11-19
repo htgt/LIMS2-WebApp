@@ -234,9 +234,23 @@ sub retrieve_qc_run_summary_results {
             unless $template_well->design_id
                 and not $seen_design{ $template_well->design_id }++;
 
+
+        my $design_id = $template_well->design_id;
+        my $gene_symbol = '-';
+
+        my $model = LIMS2::Model->new( user => 'lims2' );
+
+        try{
+            my $design = $model->schema->resultset('Summary')->search( {
+                design_id => $design_id
+            } )->first;
+
+            $gene_symbol = $design->design_gene_symbol;
+        };
+
         my %s = (
-            design_id   => $template_well->design_id,
-            gene_symbol => '-',
+            design_id   => $design_id,
+            gene_symbol => $gene_symbol,
         );
 
         my @results = reverse sort {
