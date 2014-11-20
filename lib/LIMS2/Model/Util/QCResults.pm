@@ -179,6 +179,7 @@ EOT
 
     foreach my $result (@qc_run_results){
         my @designs;
+        my @design_ids;
         if($crispr_run){
             my $crispr_id = $result->{crispr_id};
             unless ($crispr_id) {$crispr_id = $result->{expected_crispr_id}};
@@ -188,31 +189,27 @@ EOT
                     id => $crispr_id
                 } );
                 @designs = $crispr->related_designs;
+                @design_ids = map { $_->id } @designs;
             }
         }
         else{
             my $design_id = $result->{design_id};
             unless ($design_id) {$design_id = $result->{expected_design_id}};
-            # get designs
-            try{
-                @designs = $model->schema->resultset('Design')->search( {
-                    id => $design_id
-                } );
-            }
+
+            push @design_ids, $design_id;
         }
-        my @genes = map { $_->genes } @designs;
-        my @gene_ids = uniq map { $_->gene_id } @genes;
-        my @symbols;
-        foreach my $gene (@gene_ids){
-            # get gene symbol
-            try{
-                my $species;
-                if ($gene =~ m/HGNG:/) {$species = 'Human'} else {$species = 'Mouse'};
-                my $gene_symbol = $model->find_gene( { species => $species, search_term => $gene } );
-                push @symbols, $gene_symbol->{gene_symbol};
-            }
+
+        # get the gene names from summaries
+        try{
+            my @summary = $model->schema->resultset('Summary')->search( {
+                design_id => \@design_ids
+            },{
+                select   => ['design_gene_symbol'],
+                distinct => 1,
+            } );
+            $result->{gene_symbol} =  join (', ', ( map { $_->design_gene_symbol } @summary ) );
         }
-        $result->{gene_symbol} = join( q{/}, uniq @symbols );
+
     }
 
     return \@qc_run_results;
