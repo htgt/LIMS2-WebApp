@@ -217,37 +217,25 @@ EOT
 ## use critic
 
 sub retrieve_qc_run_summary_results {
-    my ( $qc_run ) = @_;
+    my ( $qc_run, $model, $crispr_run ) = @_;
 
-    my $results = retrieve_qc_run_results($qc_run);
-
-    my $template_well_rs = $qc_run->qc_template->qc_template_wells;
+    my $results = retrieve_qc_run_results_fast($qc_run, $model, $crispr_run);
 
     my @summary;
-    my %seen_design;
 
-    while ( my $template_well = $template_well_rs->next ) {
-        next
-            unless $template_well->design_id
-                and not $seen_design{ $template_well->design_id }++;
+    my %seen_gene;
 
+    foreach my $row ( @{$results} ) {
 
-        my $design_id = $template_well->design_id;
-        my $gene_symbol = '-';
+        my $gene_symbol = $row->{gene_symbol};
 
-        my $model = LIMS2::Model->new( user => 'lims2' );
+        next unless (!$seen_gene{$gene_symbol} && $gene_symbol);
 
-        try{
-            my $design = $model->schema->resultset('Summary')->search( {
-                design_id => $design_id
-            } )->first;
-
-            $gene_symbol = $design->design_gene_symbol;
-        };
+        $seen_gene{$gene_symbol} = 1;
 
         my %s = (
-            design_id   => $design_id,
-            gene_symbol => $gene_symbol,
+            crispr_id => $row->{crispr_id},
+            design_id => $row->{design_id},
         );
 
         my @results = reverse sort {
@@ -257,7 +245,7 @@ sub retrieve_qc_run_summary_results {
                 || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
                 || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 )
             }
-            grep { $_->{design_id} and $_->{design_id} == $template_well->design_id } @{$results};
+            grep { $_->{gene_symbol} and $_->{gene_symbol} eq $gene_symbol } @{$results};
 
         if ( my $best = shift @results ) {
             $s{plate_name}    = $best->{plate_name};
@@ -265,6 +253,7 @@ sub retrieve_qc_run_summary_results {
             $s{well_name_384} = uc $best->{well_name_384};
             $s{valid_primers} = join( q{,}, @{ $best->{valid_primers} } );
             $s{pass}          = $best->{pass};
+            $s{gene_symbol}   = $best->{gene_symbol};
         }
         push @summary, \%s;
     }
