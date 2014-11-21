@@ -44,7 +44,7 @@ override _build_name => sub {
     my $self = shift;
 
     my $id = substr( $self->qc_run_id, 0, 8 );
-    return $id . ' QC Run Report ';
+    return $id . ' QC Run Summary Report ';
 };
 
 override _build_columns => sub {
