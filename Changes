@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.270     2014-11-21 15:05:18 Europe/London
+
+    QcRunSummary report gene symbols and support for crispr qc
+
 0.269     2014-11-19 08:06:58 Europe/London
 
     Bugfix: Fix genbank file creation for crispr vectors
