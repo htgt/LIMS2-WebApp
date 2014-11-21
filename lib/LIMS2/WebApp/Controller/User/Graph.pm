@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Graph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.252';
+    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.270';
 }
 ## use critic
 
@@ -114,10 +114,20 @@ sub index :Path :Args(0) {
 
     my $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
 
+    # If the well has no design, it means its a crispr already, so no need to include crisprs
+    my $has_design;
+    try{
+        $well->design->id;
+        $has_design = 1;
+    }
+    catch{
+        $has_design = 0;
+    };
+
     my $uuid;
 
     # include crispr plates?
-    if ( $crisprs ) {
+    if ( $crisprs && $has_design) {
         $uuid = $self->_write_crispr_graph( $c, $well, $graph_type );
     } else {
         $uuid = $self->_write_graph( $c, $well, $graph_type );

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.252';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.270';
 }
 ## use critic
 
@@ -26,6 +26,7 @@ sub pspec_retrieve_well {
     return {
         id                => { validate => 'integer', optional => 1 },
         plate_name        => { validate => 'plate_name', optional => 1 },
+        plate_version     => { validate => 'integer', optional => 1, default => undef },
         well_name         => { validate => 'well_name', optional => 1 },
         barcode           => { validate => 'alphanumeric_string', optional => 1 },
         DEPENDENCY_GROUPS => { name_group => [qw( plate_name well_name )] },
@@ -52,6 +53,8 @@ sub retrieve_well {
     }
     if ( $data->{plate_name} ) {
         $search{'plate.name'} = $data->{plate_name};
+        # Include plate version in search. undef indicates we want current version
+        $search{'plate.version'} = $data->{plate_version};
     }
     if ( $data->{barcode} ) {
         $search{'well_barcode.barcode'} = $data->{barcode};
@@ -96,7 +99,7 @@ sub create_well {
     $self->create_process($process_params);
 
     # add piq plate type lab number insert here
-    if ( $process_type eq 'dist_qc' ) {
+    if ( $process_type eq 'dist_qc' or $process_type eq 'rearray' ) {
         if ( defined $process_params->{ 'lab_number' } ) {
 
             my $created_well_id = $well->id;
@@ -485,11 +488,11 @@ sub pspec_create_well_qc_sequencing_result {
 }
 
 sub create_well_qc_sequencing_result {
-    my ( $self, $params ) = @_;
+    my ( $self, $params, $well ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_qc_sequencing_result );
 
-    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    $well //= $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $qc_seq_result = $well->create_related(
         well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by_id created_at ) }

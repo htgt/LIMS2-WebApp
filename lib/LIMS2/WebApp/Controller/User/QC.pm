@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.252';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.270';
 }
 ## use critic
 
@@ -15,13 +15,13 @@ use JSON qw( encode_json decode_json );
 use Try::Tiny;
 use Config::Tiny;
 use Data::Dumper;
-use List::MoreUtils qw( uniq );
+use List::MoreUtils qw( uniq any firstval );
 use HTGT::QC::Config;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
-use List::MoreUtils qw( uniq firstval any );
+use LIMS2::Util::ESQCUpdateWellAccepted;
 
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -112,15 +112,24 @@ sub view_qc_run :Path( '/user/view_qc_run' ) :Args(0) {
     my ( $qc_run, $results ) = $c->model( 'Golgi' )->qc_run_results(
         { qc_run_id => $c->request->params->{qc_run_id} } );
 
-    my $crispr = 0;
-    if ($results->[0]->{crispr_id}) {
-        $crispr = 1;
+    #see if its a crispr run or not so we can display the right fields
+    my $crispr = HTGT::QC::Config->new->profile( $qc_run->profile )->vector_stage eq "crispr";
+
+    # calculate if the accept ep_pick well button should be shown
+    my %es_cell_profiles = map { $_ => 1 } @{ $self->_list_all_profiles( 'es_cell' ) };
+    my $show_accept_ep_pick_well_button = 0;
+    if (   exists $es_cell_profiles{ $qc_run->profile }
+        && $qc_run->qc_template->parent_plate_type eq 'EP_PICK'
+        && $qc_run->qc_template->species_id eq 'Mouse' )
+    {
+        $show_accept_ep_pick_well_button = 1;
     }
 
     $c->stash(
         qc_run  => $qc_run->as_hash,
         results => $results,
-        crispr  => $crispr
+        crispr  => $crispr,
+        show_accept_ep_pick_well_button => $show_accept_ep_pick_well_button,
     );
     return;
 }
@@ -706,9 +715,52 @@ sub _create_plate_rename_map{
     return \%plate_map;
 }
 
-=head1 AUTHOR
+=head2 mark_ep_pick_wells_accepted
 
-Sajith Perera
+Run against standard-es-cell qc, analyses results plus well primer band data
+and marks ep_pick wells as accepted if there are enought passing primers.
+
+=cut
+sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args(0) {
+	my ($self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+	my $run_id = $c->req->param('qc_run_id');
+
+	unless ($run_id){
+		$c->flash->{error_msg} = "No QC run ID provided";
+		$c->res->redirect( $c->uri_for('/user/qc_runs') );
+		return;
+	}
+
+    my ( $updated_wells, $error );
+    try {
+        my $qc_run = $c->model('Golgi')->retrieve_qc_run( { id => $run_id } );
+
+        my $qc_util = LIMS2::Util::ESQCUpdateWellAccepted->new(
+            model       => $c->model('Golgi'),
+            qc_run      => $qc_run,
+            user        => $c->user->name,
+            base_qc_url => $c->uri_for( '/user/view_qc_result' )->as_string,
+            commit      => 1,
+        );
+        ( $updated_wells, $error ) = $qc_util->update_well_accepted();
+    }
+    catch {
+        $c->stash->{error_msg} = "Error updating epd well accepted values: $_";
+    };
+
+    if ( $error ) {
+		$c->flash->{error_msg} = "Error: $error";
+    }
+    else {
+        $c->flash->{success_msg} = "The following wells were marked as accepted:<br>" .
+                                   join("<br>", @{ $updated_wells } );
+    }
+    $c->res->redirect( $c->uri_for('/user/view_qc_run', { qc_run_id => $run_id } ) );
+
+	return;
+}
 
 =head1 LICENSE
 

@@ -10,6 +10,7 @@ use Try::Tiny;                              # Exception handling
 use Const::Fast;                            # Constant variables
 use Getopt::Long;                           # Command line options
 use Log::Log4perl ':easy';                  # DEBUG to INFO to WARN to ERROR to LOGDIE
+use Perl6::Slurp;
 
 #------------------------------------------------------------------
 #  Variables
@@ -21,6 +22,7 @@ my $processes_failed = 0;                   # Failed design well sub-processes
 my @design_well_ids;                        # Array of design wells
 my $design_well_id = 0;                     # Current design well ID
 my $loglevel = $INFO;                       # Logging level
+my $design_well_list_file;
 
 #------------------------------------------------------------------
 #  Check for input of single well ID or if we are processing all wells
@@ -31,6 +33,7 @@ GetOptions(
 #    'man'              => sub { pod2usage( -verbose => 2 ) },
     'debug'            => sub { $loglevel = $DEBUG },
     'well_id=i'        => \$design_well_id,
+    'well_id_list=s'   => \$design_well_list_file,
     'num_processes=i'  => \$num_concurrent_processes,
 );
 
@@ -57,6 +60,9 @@ if($design_well_id) {
     # push design well id into array for processing
     push @design_well_ids, $design_well_id;
 
+}
+elsif ( $design_well_list_file ) {
+    push @design_well_ids, slurp $design_well_list_file, { chomp => 1 };
 } else {
     #------------------------------------------------------------------
     #  Select ALL the DESIGN wells

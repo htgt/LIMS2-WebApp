@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.252';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.270';
 }
 ## use critic
 
@@ -51,7 +51,7 @@ sub index :Path( '/user/browse_plates' ) :Args(0) {
             plate_type => $params->{plate_type},
             species    => $params->{species} || $c->session->{selected_species},
             page       => $params->{page},
-            pagesize   => $params->{pagesize}
+            pagesize   => $params->{pagesize},
         }
     );
 
@@ -84,7 +84,9 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
 
     my $params = $c->request->params;
 
-    my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
+    # prefetch wells->process_input_wells so we can do the has_child_wells check on plates ( for plate delete button condition )
+    my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params,
+        { prefetch => { 'wells' => 'process_input_wells' } } );
 
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
     $report_class =~ s/^.*\:\://;

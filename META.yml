@@ -8,6 +8,7 @@ build_requires:
   HTTP::Request: 0
   HTTP::Request::Common: 0
   IO::Scalar: 0
+  LIMS2::WebApp::Controller::User::SummaryReports: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -40,6 +41,7 @@ requires:
   Catalyst::Plugin::Static::Simple: 0
   Catalyst::Runtime: 5.80
   Catalyst::Script::FastCGI: 0
+  Catalyst::View::JSON: 0
   Catalyst::View::TT: 0
   Class::Data::Inheritable: 0
   Config::Any: 0
@@ -48,6 +50,7 @@ requires:
   Crypt::CBC: 0
   Crypt::SaltedHash: 0
   DBIx::Class::Core: 0
+  DBIx::Class::ResultSet: 0
   DBIx::Class::Schema: 0
   DBIx::Class::Schema::Loader: 0
   DBIx::Connector: 0
@@ -102,6 +105,7 @@ requires:
   LIMS2::Exception::Validation: 0
   LIMS2::REST::Client: 0
   LIMS2::Util: 0
+  LIMS2::Util::ESQCUpdateWellAccepted: 0
   LIMS2::Util::EnsEMBL: 0
   LIMS2::Util::Errbit: 0
   LIMS2::Util::Solr: 0
@@ -159,4 +163,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.252
+version: 0.270

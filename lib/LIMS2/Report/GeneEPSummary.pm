@@ -1,7 +1,7 @@
 package LIMS2::Report::GeneEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GeneEPSummary::VERSION = '0.252';
+    $LIMS2::Report::GeneEPSummary::VERSION = '0.270';
 }
 ## use critic
 
@@ -360,7 +360,7 @@ override iterator => sub {
     my @sponsors;
     ERROR ('Starting report generation for Gene Electroporation Summary (Human)');
 
-    if ( $self->sponsor ne 'All' ) {
+    if ( $self->sponsor ne 'Sponsors' ) {
         @sponsors = ($self->sponsor);
     }
     else {
@@ -368,7 +368,7 @@ override iterator => sub {
                 @sponsors = ('Core', 'Syboss', 'Pathogens');
         }
         elsif ( $self->species eq 'Human') {
-                @sponsors = ('All', 'Adams', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
+                @sponsors = ('All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs');
         }
     }
 

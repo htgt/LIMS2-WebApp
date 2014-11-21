@@ -5,6 +5,7 @@
       [% IF template.title != 'Login' %]
       <ul class="nav">
 
+      [% IF c.user %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
@@ -18,7 +19,7 @@
               <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
+              <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Report</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
@@ -162,7 +163,7 @@
               <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
+              <a href="[% c.uri_for( '/user/update_colony_picks_step_1' ) %]">Update Colony Counts</a>
             </li>
             [% END %]
             <li>
@@ -196,6 +197,13 @@
                 Crispr Electroporation Detail
               </a>
             </li>
+            [% IF c.session.selected_species == "Mouse" %]
+            <li>
+                <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummary' ) %]">
+                  Crispr Electroporation Summary
+                </a>
+            </li>
+            [% END %]
 <!--
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
@@ -217,15 +225,45 @@
             <li class="divider"></li>
 
             <li>
-              <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]">
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">
                 Well Genotyping Info
               </a>
             </li>
 
           </ul>
         </li>
+
+        <li class="dropdown[% IF template.tab_name == "Barcodes" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Barcodes <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/generate_picklist' ) %]">Generate Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/checkout_from_picklist' ) %]">Checkout From Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/scan_barcode' ) %]">Scan Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/well_checkout' ) %]">Checkout Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/FP' ) %]">Checked Out FP Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/PIQ' ) %]">Checked Out PIQ Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_barcoded_plate' ) %]">Create Barcoded Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]">Rescan Barcoded Plate</a>
+            </li>
+          </ul>
+        </li>
+
       </ul>
-      [% IF c.user %]
 
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
@@ -263,10 +301,22 @@
       </ul>
 
       [% ELSE %]
+        <li class="dropdown active">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Well Genotyping Info</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
 
-      <p class="nav pull-right">
-        <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-      </p>
+      <ul class="nav pull-right">
+        <li class="divider-vertical"></li>
+          <p class="nav pull-right">
+            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
+          </p>
+      </ul>
 
       [% END %]
 

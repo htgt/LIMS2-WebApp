@@ -112,6 +112,8 @@
   <p><em>No oligos for this design</em></p>
 [% END %]
 
+ <a href="[% c.uri_for( '/user/genoverse_design_view', { design_id => design.id, gene_symbol => 'N/A' } ) %]" target="_blank" class="btn btn-primary">Genoverse</a>
+
 
 <h2>Genotyping Primers</h2>
 [% IF design.genotyping_primers.size > 0 %]
