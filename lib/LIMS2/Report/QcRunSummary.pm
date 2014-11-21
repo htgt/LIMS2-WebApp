@@ -49,7 +49,6 @@ override _build_name => sub {
 
 override _build_columns => sub {
     my $self = shift;
-    my @columns;
 
     my @columns = qw(
         gene_symbol
@@ -59,7 +58,6 @@ override _build_columns => sub {
         pass
         valid_primers
     );
-
 
     if ( $self->is_crispr_run ) {
         unshift @columns, qw( crispr_id );
