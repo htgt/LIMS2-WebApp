@@ -21,6 +21,7 @@ use Path::Class;
 use Const::Fast;
 use DateTime;
 use DateTime::Duration;
+use JSON;
 
 const my $WORK_DIR       => dir( $ENV{LIMS2_REPORT_DIR} || '/var/tmp/lims2-reports' );
 const my $CACHE_FILE_TTL => DateTime::Duration->new( days => 3 );
@@ -78,8 +79,13 @@ sub read_report_from_disk {
         $template_name = $dir->file('template_name')->slurp;
     };
 
+    my $report_data;
+    try{
+        my $json_string = $dir->file('data.json')->slurp;
+        $report_data = decode_json($json_string);
+    }
 
-    return ( $report_name, $report_fh, $template_name );
+    return ( $report_name, $report_fh, $template_name, $report_data );
 }
 
 sub _cached_report_ok {
@@ -213,6 +219,15 @@ sub do_generate_report {
         write_report_name( $work_dir->file( 'name' ), $generator->name );
         if($generator->custom_template){
             write_report_name( $work_dir->file('template_name'), $generator->custom_template );
+        }
+
+        my $structured_data = $generator->structured_data();
+        if($structured_data){
+            my $json_file = $work_dir->file('data.json');
+            my $fh = $json_file->openw;
+            print $fh encode_json($structured_data);
+            $fh->close()
+                or LIMS2::Exception::System->throw("Error writing to $json_file: $!");
         }
 
         $work_dir->file( 'done' )->touch;

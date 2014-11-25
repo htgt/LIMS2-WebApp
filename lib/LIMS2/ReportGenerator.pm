@@ -65,6 +65,11 @@ sub iterator {
     confess( "iterator() must be implemented by a subclass" );
 }
 
+sub structured_data {
+    # optionally override to create a data structure to pass to the report view
+    return undef;
+}
+
 sub boolean_str {
     my ( $self, $bool ) = @_;
 

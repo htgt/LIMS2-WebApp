@@ -43,31 +43,37 @@ Readonly my $STAGES => {
         name       => 'Design Well Created',
         field_name => 'design_well_id',
         order      => 1,
+        detail_columns => [ qw(design_name design_plate_name design_well_name design_well_created_ts) ],
     },
     int_vector_created => {
         name       => 'Intermediate Vector Created',
         field_name => 'int_well_id',
         order      => 2,
+        detail_columns => [ qw(int_plate_name int_well_name int_well_created_ts int_qc_seq_pass)],
     },
     final_vector_created => {
         name       => 'Final Vector Created',
         field_name => 'final_well_id',
         order      => 3,
+        detail_columns => [ qw(final_plate_name final_well_name final_well_created_ts final_qc_seq_pass) ],
     },
     final_pick_created => {
         name       => 'Final Pick Created',
         field_name => 'final_pick_well_id',
         order      => 4,
+        detail_columns => [ qw(final_pick_plate_name final_pick_well_name final_pick_well_created final_pick_qc_seq_pass ) ],
     },
     assembly_created => {
         name       => 'Assembly Created',
         field_name => 'assembly_well_id',
         order      => 5,
+        detail_columns => [ qw(assembly_plate_name assembly_well_name assembly_well_created_ts ) ],
     },
     crispr_ep_created => {
         name       => 'Crispr EP Created',
         field_name => 'crispr_ep_well_id',
         order      => 6,
+        detail_columns => [ qw(crispr_ep_plate_name crispr_ep_well_name crispr_ep_well_created_ts crispr_ep_well_accepted)]
     },
     ep_pick_created => {
         name       => 'EP Pick Created',
@@ -105,6 +111,18 @@ Readonly my $CRISPR_STAGES => {
         order      => 3,
     }
 };
+
+has stages => (
+    is             => 'ro',
+    isa            => 'HashRef',
+    default        => sub{ return $STAGES },
+);
+
+has crispr_stages  => (
+    is             => 'ro',
+    isa            => 'HashRef',
+    default        => sub{ return $CRISPR_STAGES },
+);
 
 sub _build_stage_data {
     my ($self) = @_;

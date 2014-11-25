@@ -173,7 +173,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
-    my ( $report_name, $report_fh, $template ) = LIMS2::Report::read_report_from_disk( $report_id );
+    my ( $report_name, $report_fh, $template, $extra_data ) = LIMS2::Report::read_report_from_disk( $report_id );
 
     my $pageset = LIMS2::WebApp::Pageset->new(
         {
@@ -222,6 +222,12 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         data            => \@data,
         plate_is_virtual   => $is_virtual_plate,
     );
+
+    # Data structure providing additional information to custom report template
+    if($extra_data){
+        $c->stash->{extra_data} = $extra_data;
+    }
+
     return;
 }
 
