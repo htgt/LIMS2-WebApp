@@ -83,7 +83,7 @@ sub read_report_from_disk {
     try{
         my $json_string = $dir->file('data.json')->slurp;
         $report_data = decode_json($json_string);
-    }
+    };
 
     return ( $report_name, $report_fh, $template_name, $report_data );
 }

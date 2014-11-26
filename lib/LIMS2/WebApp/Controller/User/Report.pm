@@ -225,6 +225,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
 
     # Data structure providing additional information to custom report template
     if($extra_data){
+        $c->log->debug("Extra report data found");
         $c->stash->{extra_data} = $extra_data;
     }
 

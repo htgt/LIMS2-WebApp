@@ -42,57 +42,67 @@ Readonly my $STAGES => {
     design_well_created => {
         name       => 'Design Well Created',
         field_name => 'design_well_id',
+        time_field => 'design_well_created_ts',
         order      => 1,
         detail_columns => [ qw(design_name design_plate_name design_well_name design_well_created_ts) ],
     },
     int_vector_created => {
         name       => 'Intermediate Vector Created',
         field_name => 'int_well_id',
+        time_field => 'int_well_created_ts',
         order      => 2,
         detail_columns => [ qw(int_plate_name int_well_name int_well_created_ts int_qc_seq_pass)],
     },
     final_vector_created => {
         name       => 'Final Vector Created',
         field_name => 'final_well_id',
+        time_field => 'final_well_created_ts',
         order      => 3,
         detail_columns => [ qw(final_plate_name final_well_name final_well_created_ts final_qc_seq_pass) ],
     },
     final_pick_created => {
         name       => 'Final Pick Created',
         field_name => 'final_pick_well_id',
+        time_field => 'final_pick_well_created_ts',
         order      => 4,
-        detail_columns => [ qw(final_pick_plate_name final_pick_well_name final_pick_well_created final_pick_qc_seq_pass ) ],
+        detail_columns => [ qw(final_pick_plate_name final_pick_well_name final_pick_well_created_ts final_pick_qc_seq_pass ) ],
     },
     assembly_created => {
         name       => 'Assembly Created',
         field_name => 'assembly_well_id',
+        time_field => 'assembly_well_created_ts',
         order      => 5,
         detail_columns => [ qw(assembly_plate_name assembly_well_name assembly_well_created_ts ) ],
     },
     crispr_ep_created => {
         name       => 'Crispr EP Created',
         field_name => 'crispr_ep_well_id',
+        time_field => 'crispr_ep_well_created_ts',
         order      => 6,
         detail_columns => [ qw(crispr_ep_plate_name crispr_ep_well_name crispr_ep_well_created_ts crispr_ep_well_accepted)]
     },
     ep_pick_created => {
         name       => 'EP Pick Created',
         field_name => 'ep_pick_well_id',
+        time_field => 'ep_pick_well_created_ts',
         order      => 7,
     },
     fp_created => {
         name       => 'Freeze Plate Created',
         field_name => 'fp_well_id',
+        time_field => 'fp_well_created_ts',
         order      => 8,
     },
     piq_created => {
         name       => 'PIQ Created',
         field_name => 'piq_well_id',
+        time_field => 'piq_well_created_ts',
         order      => 9,
     },
     piq_accepted => {
         name       => 'PIQ Accepted',
         field_name => 'piq_well_accepted',
+        time_field => 'piq_well_created_ts',
         order      => 10,
     },
 };
@@ -199,11 +209,12 @@ sub _build_crispr_stage_data {
         id_list => \@gene_ids,
         species => $self->species
     });
-use Data::Dumper;
+
     GENE: foreach my $gene (keys %$crispr_summaries){
         my $gene_symbol = $self->stage_data->{all_gene_ids}->{$gene};
         DEBUG("finding crispr stages for gene $gene $gene_symbol");
         my $crispr_well_count;
+        my $first_crispr_well_date;
 
         my $gene_crisprs = $crispr_summaries->{$gene} || {};
         foreach my $design (keys %$gene_crisprs){
@@ -214,6 +225,13 @@ use Data::Dumper;
                 foreach my $crispr_well (keys %{ $design_crisprs->{$crispr} } ){
                     DEBUG("checking crispr well $crispr_well");
                     $crispr_well_count++;
+
+                    my $date = $design_crisprs->{$crispr}->{$crispr_well}->{crispr_well_created};
+                    $first_crispr_well_date ||= $date;
+                    if($date < $first_crispr_well_date){
+                        $first_crispr_well_date = $date;
+                    }
+
                     my $dna_rs = $design_crisprs->{$crispr}->{$crispr_well}->{DNA};
                     my $vector_rs = $design_crisprs->{$crispr}->{$crispr_well}->{CRISPR_V};
                     my $assembly_rs = $design_crisprs->{$crispr}->{$crispr_well}->{ASSEMBLY};
@@ -223,11 +241,13 @@ use Data::Dumper;
                         next GENE;
                     }
                     elsif($dna_rs != 0){
-                        $crispr_stage_data->{crispr_dna_created}->{$gene_symbol} = 1;
+                        my $first = $dna_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
+                        $crispr_stage_data->{crispr_dna_created}->{$gene_symbol} = $first->created_at->dmy('/');
                         next GENE;
                     }
                     elsif($vector_rs != 0){
-                        $crispr_stage_data->{crispr_vector_created}->{$gene_symbol} = 1;
+                        my $first = $vector_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
+                        $crispr_stage_data->{crispr_vector_created}->{$gene_symbol} = $first->created_at->dmy('/');
                         next GENE;
                     }
                 }
@@ -236,7 +256,7 @@ use Data::Dumper;
 
         if($crispr_well_count){
             # We found crispr wells but no DNA or vector result sets
-            $crispr_stage_data->{crispr_well_created}->{$gene_symbol} = 1;
+            $crispr_stage_data->{crispr_well_created}->{$gene_symbol} = $first_crispr_well_date;
         }
     }
 
@@ -297,6 +317,44 @@ override iterator => sub {
     }
 
     return Iterator::Simple::iter(\@counts);
+};
+
+override structured_data => sub {
+    my ($self) = @_;
+    my $data = {};
+
+    DEBUG "Getting structured data";
+
+    my $stage_data = $self->stage_data;
+
+    foreach my $stage (keys %$STAGES) {
+        my @genes = keys %{ $stage_data->{$stage} || {} };
+        foreach my $gene (@genes){
+            my $summaries = $stage_data->{$stage}->{$gene};
+            my $time_field = $STAGES->{$stage}->{time_field};
+            my $min;
+            my $gene_symbol = $summaries->[0]->design_gene_symbol;
+            foreach my $summary (@$summaries){
+                $min ||= $summary->$time_field;
+                if($summary->$time_field < $min){
+                    $min = $summary->$time_field;
+                }
+            }
+            $data->{$stage}->{$gene_symbol}->{stage_entry_date} = $min->dmy('/');
+        }
+    }
+
+    my $crispr_data = $self->crispr_stage_data;
+
+    foreach my $crispr_stage (keys %$CRISPR_STAGES){
+        my @genes = keys %{ $crispr_data->{$crispr_stage} || {} };
+        foreach my $gene (@genes){
+            my $date = $crispr_data->{$crispr_stage}->{$gene};
+            $data->{$crispr_stage}->{$gene}->{stage_entry_date} = $date;
+        }
+    }
+
+    return $data;
 };
 
 return 1;

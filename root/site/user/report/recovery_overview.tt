@@ -11,10 +11,15 @@
         <th>Genes</th>
       </tr>
       [% FOREACH row IN data.slice(0,2) %]
+      [% stage = row.0 %]
       <tr>
         <td>[% row.0 %]</td>
         <td>[% row.1 %]</td>
-        <td>[% row.2 %]</td>
+        <td>
+          [% FOREACH gene IN extra_data.$stage.keys %]
+            <a href="#" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
+          [% END %]
+        </td>
       </tr>
       [% END %]
     </table>
@@ -27,10 +32,15 @@
         <th>Genes</th>
       </tr>
       [% FOREACH row IN data.slice(3,6) %]
+      [% stage = row.0 %]
       <tr>
         <td>[% row.0 %]</td>
         <td>[% row.1 %]</td>
-        <td>[% row.2 %]</td>
+        <td>
+          [% FOREACH gene IN extra_data.$stage.keys %]
+            <a href="#" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
+          [% END %]
+        </td>
       </tr>
       [% END %]
     </table>
@@ -48,10 +58,15 @@
         <th>Genes</th>
       </tr>
       [% FOREACH row IN data.slice(7,-1) %]
+      [% stage = row.0 %]
       <tr>
         <td>[% row.0 %]</td>
         <td>[% row.1 %]</td>
-        <td>[% row.2 %]</td>
+        <td>
+          [% FOREACH gene IN extra_data.$stage.keys %]
+            <a href="#" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
+          [% END %]
+        </td>
       </tr>
       [% END %]
     </table>
@@ -59,3 +74,20 @@
   <div class="span3">
   </div>
 </div>
+
+<script type="text/javascript">
+    $(function () {
+        $("[rel='tooltip']").tooltip();
+    });
+
+    $("[rel='tooltip']").hover(
+      function(){
+        var gene = $( this ).attr('gene');
+        $("[gene='" + gene + "']").tooltip('show');
+      },
+      function(){
+        var gene = $( this ).attr('gene');
+        $("[gene='" + gene + "']").tooltip('hide');
+      }
+    );
+</script>
