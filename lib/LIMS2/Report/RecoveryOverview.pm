@@ -324,6 +324,7 @@ override structured_data => sub {
     my $data = {};
 
     DEBUG "Getting structured data";
+    $data->{sponsor} = $self->sponsor;
 
     my $stage_data = $self->stage_data;
 
@@ -341,6 +342,7 @@ override structured_data => sub {
                 }
             }
             $data->{$stage}->{$gene_symbol}->{stage_entry_date} = $min->dmy('/');
+            $data->{$stage}->{$gene_symbol}->{gene_id} = $gene;
         }
     }
 

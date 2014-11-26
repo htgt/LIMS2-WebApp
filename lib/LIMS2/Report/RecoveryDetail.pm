@@ -35,7 +35,7 @@ has gene_data => (
 );
 
 has '+param_names' => (
-    default => sub { [ 'species', 'sponsor', 'stage', 'gene' ] }
+    default => sub { [ 'species', 'sponsor', 'stage', 'gene_id' ] }
 );
 
 sub _build_gene_data {
@@ -44,11 +44,11 @@ sub _build_gene_data {
     DEBUG "Building gene data";
     my $gene_data = {};
 
-    my $project_rs = $self->model->schema->resultset('Project')->search(
-        {
-            sponsor_id => $self->sponsor
-        },
-    );
+    my $search = { sponsor_id => $self->sponsor };
+    if($self->has_gene_id){
+        $search->{gene_id} = $self->gene_id;
+    }
+    my $project_rs = $self->model->schema->resultset('Project')->search($search);
 
     my $summary_stage = $self->stages->{$self->stage};
     my $next_stage_order = $summary_stage->{order} + 1;

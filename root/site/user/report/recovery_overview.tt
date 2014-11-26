@@ -10,17 +10,8 @@
         <th>Number of Genes</th>
         <th>Genes</th>
       </tr>
-      [% FOREACH row IN data.slice(0,2) %]
-      [% stage = row.0 %]
-      <tr>
-        <td>[% row.0 %]</td>
-        <td>[% row.1 %]</td>
-        <td>
-          [% FOREACH gene IN extra_data.$stage.keys %]
-            <a href="#" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
-          [% END %]
-        </td>
-      </tr>
+      [% FOREACH row_a IN data.slice(0,2) %]
+        [% INCLUDE table_row tr = row_a %]
       [% END %]
     </table>
   </div>
@@ -31,17 +22,8 @@
         <th>Number of Genes</th>
         <th>Genes</th>
       </tr>
-      [% FOREACH row IN data.slice(3,6) %]
-      [% stage = row.0 %]
-      <tr>
-        <td>[% row.0 %]</td>
-        <td>[% row.1 %]</td>
-        <td>
-          [% FOREACH gene IN extra_data.$stage.keys %]
-            <a href="#" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
-          [% END %]
-        </td>
-      </tr>
+      [% FOREACH row_b IN data.slice(3,6) %]
+        [% INCLUDE table_row tr = row_b %]
       [% END %]
     </table>
   </div>
@@ -57,23 +39,28 @@
         <th>Number of Genes</th>
         <th>Genes</th>
       </tr>
-      [% FOREACH row IN data.slice(7,-1) %]
-      [% stage = row.0 %]
-      <tr>
-        <td>[% row.0 %]</td>
-        <td>[% row.1 %]</td>
-        <td>
-          [% FOREACH gene IN extra_data.$stage.keys %]
-            <a href="#" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
-          [% END %]
-        </td>
-      </tr>
+      [% FOREACH row_c IN data.slice(7,-1) %]
+        [% INCLUDE table_row tr = row_c %]
       [% END %]
     </table>
   </div>
   <div class="span3">
   </div>
 </div>
+
+[% BLOCK table_row %]
+      [% stage = tr.0 %]
+      [% count = tr.1 %]
+      <tr>
+        <td><a href="[% c.uri_for('/user/report/sync/RecoveryDetail', { sponsor => extra_data.sponsor, stage => stage }) %]">[% stage %]</a></td>
+        <td>[% count %]</td>
+        <td>
+          [% FOREACH gene IN extra_data.$stage.keys %]
+            <a href="[% c.uri_for('/user/report/sync/RecoveryDetail', { sponsor => extra_data.sponsor, stage => stage, gene_id => extra_data.$stage.$gene.gene_id }) %]" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
+          [% END %]
+        </td>
+      </tr>
+[% END %]
 
 <script type="text/javascript">
     $(function () {
