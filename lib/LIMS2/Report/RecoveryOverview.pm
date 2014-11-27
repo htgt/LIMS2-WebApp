@@ -79,31 +79,35 @@ Readonly my $STAGES => {
         field_name => 'crispr_ep_well_id',
         time_field => 'crispr_ep_well_created_ts',
         order      => 6,
-        detail_columns => [ qw(crispr_ep_plate_name crispr_ep_well_name crispr_ep_well_created_ts crispr_ep_well_accepted)]
+        detail_columns => [ qw(crispr_ep_plate_name crispr_ep_well_name crispr_ep_well_created_ts crispr_ep_well_accepted)],
     },
     ep_pick_created => {
         name       => 'EP Pick Created',
         field_name => 'ep_pick_well_id',
         time_field => 'ep_pick_well_created_ts',
         order      => 7,
+        detail_columns => [ qw(ep_pick_plate_name ep_pick_well_name ep_pick_well_created_ts ep_pick_qc_seq_pass ep_pick_well_accepted)],
     },
     fp_created => {
         name       => 'Freeze Plate Created',
         field_name => 'fp_well_id',
         time_field => 'fp_well_created_ts',
         order      => 8,
+        detail_columns => [ qw(fp_plate_name fp_well_name fp_well_created_ts fp_well_accepted)],
     },
     piq_created => {
         name       => 'PIQ Created',
         field_name => 'piq_well_id',
         time_field => 'piq_well_created_ts',
         order      => 9,
+        detail_columns => [ qw(piq_plate_name piq_well_name piq_well_created_ts piq_well_accepted)],
     },
     piq_accepted => {
         name       => 'PIQ Accepted',
         field_name => 'piq_well_accepted',
         time_field => 'piq_well_created_ts',
         order      => 10,
+        detail_columns => [ qw(piq_plate_name piq_well_name piq_well_created_ts piq_well_accepted)],
     },
 };
 
@@ -329,6 +333,7 @@ override structured_data => sub {
     my $stage_data = $self->stage_data;
 
     foreach my $stage (keys %$STAGES) {
+        $data->{$stage}->{display_name} = $STAGES->{$stage}->{name};
         my @genes = keys %{ $stage_data->{$stage} || {} };
         foreach my $gene (@genes){
             my $summaries = $stage_data->{$stage}->{$gene};
@@ -341,18 +346,19 @@ override structured_data => sub {
                     $min = $summary->$time_field;
                 }
             }
-            $data->{$stage}->{$gene_symbol}->{stage_entry_date} = $min->dmy('/');
-            $data->{$stage}->{$gene_symbol}->{gene_id} = $gene;
+            $data->{$stage}->{genes}->{$gene_symbol}->{stage_entry_date} = $min->dmy('/');
+            $data->{$stage}->{genes}->{$gene_symbol}->{gene_id} = $gene;
         }
     }
 
     my $crispr_data = $self->crispr_stage_data;
 
     foreach my $crispr_stage (keys %$CRISPR_STAGES){
+        $data->{$crispr_stage}->{display_name} = $CRISPR_STAGES->{$crispr_stage}->{name};
         my @genes = keys %{ $crispr_data->{$crispr_stage} || {} };
         foreach my $gene (@genes){
             my $date = $crispr_data->{$crispr_stage}->{$gene};
-            $data->{$crispr_stage}->{$gene}->{stage_entry_date} = $date;
+            $data->{$crispr_stage}->{genes}->{$gene}->{stage_entry_date} = $date;
         }
     }
 

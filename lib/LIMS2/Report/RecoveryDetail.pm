@@ -4,6 +4,7 @@ use Moose;
 use MooseX::ClassAttribute;
 use DateTime;
 use JSON qw( decode_json );
+use List::MoreUtils qw/ uniq /;
 use Readonly;
 use namespace::autoclean;
 use Log::Log4perl qw(:easy);
@@ -34,9 +35,20 @@ has gene_data => (
     lazy_build => 1,
 );
 
+has crispr_summary => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
 has '+param_names' => (
     default => sub { [ 'species', 'sponsor', 'stage', 'gene_id' ] }
 );
+
+sub _build_crispr_summary {
+
+};
+
 
 sub _build_gene_data {
 	my $self = shift;
@@ -57,15 +69,24 @@ sub _build_gene_data {
     DEBUG "Next stage: $next_stage_name";
     my $next_stage = $self->stages->{$next_stage_name};
 
-    PROJECT: while ( my $project = $project_rs->next){
-    	my $gene = $project->gene_id;
+    # Find all project genes which have reached requested stage
+    my @all_gene_ids = map { $_->gene_id } $project_rs->all;
+    my @all_project_summaries = $self->model->schema->resultset('Summary')->search({
+       design_gene_id => { '-in' => \@all_gene_ids },
+       $summary_stage->{field_name} => { '!=', undef }
+    },
+    {
+        columns => [ 'design_gene_id' ]
+    })->all;
+    my @stage_gene_ids = uniq map { $_->design_gene_id } @all_project_summaries;
+
+    # For each gene fetch full summary and check if it has progressed to next stage or not
+    GENE: foreach my $gene (@stage_gene_ids){
         if($summary_stage){
     	    my $summary_rs = $self->model->schema->resultset('Summary')->search({
                 design_gene_id => $gene,
                 $summary_stage->{field_name} => { '!=', undef }
             });
-            # Skip if gene has not reached this stage
-            next if $summary_rs == 0;
 
             if($next_stage){
                 my $next_stage_rs = $self->model->schema->resultset('Summary')->search({
