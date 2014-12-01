@@ -7,6 +7,10 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+    api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
+</script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
@@ -17,57 +21,6 @@ $(document).ready(function() {
         var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
 
         //show_traces( $(this) );
-    });
-
-    $(".accepted").click(function() {
-
-        //fade element out until its saved, waiting at least 500ms
-        var element = $(this).parent().parent();
-        element.fadeTo( "slow", 0.5 ).delay(500);
-
-        $.post(
-            '[% c.uri_for("/api/update_well_accepted") %]',
-            { "id": this.value, "accepted": this.checked },
-
-            function (data) {
-                console.log(data);
-                //fade back in
-                element.fadeTo( "slow", 1 );
-            },
-            'json'
-        );
-    });
-
-    $(".crispr_damage_type").change(function() {
-
-        //fade element out until its saved, waiting at least 500ms
-        var element = $(this).parent().parent();
-        element.removeClass('error').removeClass('success').addClass('warning');
-
-        $.ajax({
-            type: "POST",
-            url: '[% c.uri_for("/api/update_well_crispr_damage") %]',
-            data: {
-                "id": $(this).attr('data-crispr_well_id'),
-                "damage_type": this.value
-            },
-            success: function(data) { 
-                console.log(data);
-                element.delay(500).queue(function(){
-                    $(this).removeClass('warning').removeClass('error').addClass('success').dequeue();
-                });
-            },
-            error: function(data) {
-                console.log(data);
-                element.addClass('error');
-                element.delay(500).queue(function(){
-                    $(this).removeClass('warning').removeClass('success').addClass('error').dequeue();
-                });
-                alert( 'Error updating crispr damage type, change not saved' );
-            },
-            dataType: 'json'
-        });
-
     });
 });
 </script>
@@ -120,6 +73,8 @@ $(document).ready(function() {
             <th>Alignment</th>
             <th>Accept</th>
             <th>Damage Type</th>
+            <th>Variant Size</th>
+            <th>Validated</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>
