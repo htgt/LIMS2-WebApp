@@ -34,19 +34,23 @@
 </td>
 
 [% IF accept %]
-    <td>
+  <td>
+    <div class="control-group">
+      <div class="controls">
         [% IF row.show_checkbox %]
-            <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.es_qc_well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
+            <input type="checkbox" name="accepted_[% row.well_id %]" class="update_crispr_es_qc_well" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="accepted" [% row.well_accepted ? "checked='checked'" : "" %] />
         [% ELSE %]
             Accepted in another run
         [% END %]
-    </td>
+      </div>
+    </div>
+  </td>
 [% END %]
 
 <td>
     <div class="control-group">
       <div class="controls">
-       <select name="crispr_damage_[% row.well_id %]" class="crispr_damage_type input-medium" data-crispr_well_id="[% row.es_qc_well_id %]">
+       <select name="crispr_damage_[% row.well_id %]" class="update_crispr_es_qc_well input-medium" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="damage_type">
           <option value="" [% UNLESS row.damage_type %]selected[% END %]>-</option>
           [%- FOR type IN damage_types %]
             <option value="[% type %]" [% row.damage_type == type ? 'selected="selected"' : '' %]>[% type %]</option>
@@ -54,6 +58,23 @@
        </select>
      </div>
    </div>
+</td>
+
+<td>
+    <div class="control-group">
+      <div class="controls">
+       <input type="text" name="variant_size_[% row.well_id %]" class="update_crispr_es_qc_well input-mini" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="variant_size" value="[% row.variant_size %]" />
+     </div>
+   </div>
+</td>
+
+
+<td>
+  <div class="control-group">
+    <div class="controls">
+     <input type="checkbox" name="validated_[% row.well_id %]" class="update_crispr_es_qc_well" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="validated" [% row.validated ? "checked='checked'" : "" %] />
+    </div>
+  </div>
 </td>
 
 <td>
