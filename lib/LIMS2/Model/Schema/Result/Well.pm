@@ -593,6 +593,11 @@ sub as_hash {
     };
 }
 
+sub plate_name {
+    my $self = shift;
+    return $self->plate->name;
+}
+
 has ancestors => (
     is         => 'ro',
     isa        => 'LIMS2::Model::ProcessGraph',

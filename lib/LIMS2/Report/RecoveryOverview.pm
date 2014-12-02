@@ -4,6 +4,7 @@ use Moose;
 use MooseX::ClassAttribute;
 use DateTime;
 use JSON qw( decode_json );
+use List::MoreUtils qw( uniq );
 use Readonly;
 use namespace::autoclean;
 use Log::Log4perl qw(:easy);
@@ -115,14 +116,23 @@ Readonly my $CRISPR_STAGES => {
     crispr_well_created => {
         name       => 'Crispr Well Created',
         order      => 1,
+        detail_columns => [],
+        wells_key      => 'crispr_wells',
+        detail_columns => [ qw(plate_name name created_at accepted) ],
     },
     crispr_vector_created => {
         name       => 'Crispr Vector Created',
         order      => 2,
+        detail_columns => [],
+        wells_key      => 'crispr_vector_wells',
+        detail_columns => [ qw(plate_name name created_at accepted) ],
     },
     crispr_dna_created => {
         name       => 'Crispr DNA Created',
         order      => 3,
+        detail_columns => [],
+        wells_key      => 'crispr_dna_wells',
+        detail_columns => [ qw(plate_name name created_at accepted) ],
     }
 };
 
@@ -138,6 +148,59 @@ has crispr_stages  => (
     default        => sub{ return $CRISPR_STAGES },
 );
 
+has projects => (
+    is             => 'ro',
+    isa            => 'ArrayRef',
+    lazy_build     => 1,
+    traits         => ['Array'],
+    handles        => { 'find_projects' => 'grep' },
+);
+
+has all_gene_ids => (
+    is             => 'ro',
+    isa            => 'ArrayRef',
+    lazy_build     => 1
+);
+
+has genes_with_summaries => (
+    is             => 'ro',
+    isa            => 'ArrayRef',
+    lazy_build     => 1
+);
+
+sub _build_projects {
+    my $self = shift;
+
+    my $project_rs = $self->model->schema->resultset('Project')->search(
+        {
+            sponsor_id => $self->sponsor
+        },
+    );
+
+    return [ $project_rs->all ];
+}
+
+sub _build_all_gene_ids {
+    my $self = shift;
+
+    my @all_gene_ids = uniq map { $_->gene_id } @{ $self->projects };
+    return \@all_gene_ids;
+}
+
+sub _build_genes_with_summaries {
+    my $self = shift;
+
+    # Find all project genes which have reached requested stage
+    my @all_project_summaries = $self->model->schema->resultset('Summary')->search({
+       design_gene_id => { '-in' => $self->all_gene_ids },
+    },
+    {
+        columns => [ 'design_gene_id' ]
+    })->all;
+    my @stage_gene_ids = uniq map { $_->design_gene_id } @all_project_summaries;
+    return \@stage_gene_ids;
+}
+
 sub _build_stage_data {
     my ($self) = @_;
 
@@ -146,27 +209,17 @@ sub _build_stage_data {
     DEBUG "Building stage data";
     my $stage_data = {};
 
-    my $project_rs = $self->model->schema->resultset('Project')->search(
-        {
-            sponsor_id => $self->sponsor
-        },
-    );
+    my %gene_symbols;
 
-    # ensure we only report each gene at its maximum stage by processing
-    # stages from latest to earliest and not reporting a gene that already
-    # has a stage higher than the max found for current project
-    my $gene_max_stage;
-    my %all_gene_ids;
-
-    PROJECT: while ( my $project = $project_rs->next){
-        my $gene = $project->gene_id;
-        $all_gene_ids{$gene} = $gene;
+    # FIXME: probably faster to loop through stages first then check gene
+    # has not been seen in more advanced stage before adding to stage list
+    GENE: foreach my $gene (@{ $self->genes_with_summaries }){
         my $summary_rs = $self->model->schema->resultset('Summary')->search({
             design_gene_id => $gene,
         });
-        next if $summary_rs == 0;
-        # Store gene symbol if we found it in summary table
-        $all_gene_ids{$gene} = $summary_rs->first->design_gene_symbol;
+
+        # Store gene symbol found in summary table
+        $gene_symbols{$gene} = $summary_rs->first->design_gene_symbol;
 
         foreach my $stage (sort { $STAGES->{$b}->{order} <=> $STAGES->{$a}->{order} }
                       (keys %$STAGES) ){
@@ -174,31 +227,16 @@ sub _build_stage_data {
             my @matching_rows = $summary_rs->search( { $stage_info->{field_name} => { '!=', undef } })->all;
 
             if(@matching_rows){
-                my $previously_seen_stage = $gene_max_stage->{$gene};
-                if($previously_seen_stage){
-                    if($stage_info->{order} > $STAGES->{$previously_seen_stage}->{order}){
-                        # This project has a later stage for this gene
-                        # so delete gene from previously seen stage
-                        # and store this one instead
-                        delete $stage_data->{$previously_seen_stage}->{$gene};
-                        $stage_data->{$stage}->{$gene} = \@matching_rows;
-                        $gene_max_stage->{$gene} = $stage;
-                    }
-                }
-                else{
-                    # We have not seen this gene before so store stage
-                    $stage_data->{$stage}->{$gene} = \@matching_rows;
-                    $gene_max_stage->{$gene} = $stage;
-                }
+                $stage_data->{$stage}->{$gene} = \@matching_rows;
 
-                # We are only interested in the latest stage so go to next project
-                next PROJECT;
+                # We are only interested in the latest stage so go to next gene
+                next GENE;
             }
         }
     }
 
     # Store all gene ids for sponsor to use when fetching crispr data
-    $stage_data->{all_gene_ids} =  \%all_gene_ids ;
+    $stage_data->{gene_symbols} =  \%gene_symbols ;
 
     return $stage_data;
 }
@@ -207,17 +245,16 @@ sub _build_crispr_stage_data {
     my ($self) = @_;
 
     my $crispr_stage_data = {};
-    my @gene_ids = keys %{ $self->stage_data->{all_gene_ids} || {} };
 
     my $crispr_summaries = $self->model->get_crispr_summaries_for_genes({
-        id_list => \@gene_ids,
+        id_list => $self->all_gene_ids,
         species => $self->species
     });
 
     GENE: foreach my $gene (keys %$crispr_summaries){
-        my $gene_symbol = $self->stage_data->{all_gene_ids}->{$gene};
-        DEBUG("finding crispr stages for gene $gene $gene_symbol");
-        my $crispr_well_count;
+
+        DEBUG("finding crispr stages for gene $gene");
+        my @crispr_well_ids;
         my $first_crispr_well_date;
 
         my $gene_crisprs = $crispr_summaries->{$gene} || {};
@@ -228,7 +265,7 @@ sub _build_crispr_stage_data {
                 DEBUG("checking crispr $crispr");
                 foreach my $crispr_well (keys %{ $design_crisprs->{$crispr} } ){
                     DEBUG("checking crispr well $crispr_well");
-                    $crispr_well_count++;
+                    push @crispr_well_ids, $crispr_well;
 
                     my $date = $design_crisprs->{$crispr}->{$crispr_well}->{crispr_well_created};
                     $first_crispr_well_date ||= $date;
@@ -246,21 +283,27 @@ sub _build_crispr_stage_data {
                     }
                     elsif($dna_rs != 0){
                         my $first = $dna_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
-                        $crispr_stage_data->{crispr_dna_created}->{$gene_symbol} = $first->created_at->dmy('/');
+                        $crispr_stage_data->{crispr_dna_created}->{$gene} = $first->created_at->dmy('/');
+                        $crispr_stage_data->{crispr_dna_wells} = [ $dna_rs->all ];
                         next GENE;
                     }
                     elsif($vector_rs != 0){
                         my $first = $vector_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
-                        $crispr_stage_data->{crispr_vector_created}->{$gene_symbol} = $first->created_at->dmy('/');
+                        $crispr_stage_data->{crispr_vector_created}->{$gene} = $first->created_at->dmy('/');
+                        $crispr_stage_data->{crispr_vector_wells} = [ $vector_rs->all ];
                         next GENE;
                     }
                 }
             }
         }
 
-        if($crispr_well_count){
+        if(@crispr_well_ids){
             # We found crispr wells but no DNA or vector result sets
-            $crispr_stage_data->{crispr_well_created}->{$gene_symbol} = $first_crispr_well_date;
+            $crispr_stage_data->{crispr_well_created}->{$gene} = $first_crispr_well_date;
+            my @crispr_wells = $self->model->schema->resultset('Well')->search({
+                id => { '-in', \@crispr_well_ids }
+            });
+            $crispr_stage_data->{crispr_wells} = \@crispr_wells;
         }
     }
 
@@ -357,8 +400,10 @@ override structured_data => sub {
         $data->{$crispr_stage}->{display_name} = $CRISPR_STAGES->{$crispr_stage}->{name};
         my @genes = keys %{ $crispr_data->{$crispr_stage} || {} };
         foreach my $gene (@genes){
+            my $gene_symbol = $self->stage_data->{gene_symbols}->{$gene} || $gene;
             my $date = $crispr_data->{$crispr_stage}->{$gene};
-            $data->{$crispr_stage}->{genes}->{$gene}->{stage_entry_date} = $date;
+            $data->{$crispr_stage}->{genes}->{$gene_symbol}->{stage_entry_date} = $date;
+            $data->{$crispr_stage}->{genes}->{$gene_symbol}->{gene_id} = $gene;
         }
     }
 
