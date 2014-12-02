@@ -188,7 +188,6 @@
                   Crispr Electroporation Summary
                 </a>
             </li>
-            [% END %]
             <li>
               <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionSummary' ) %]">
                 Cre Knockin ES Distribution Summary
@@ -199,6 +198,7 @@
                 Cre Knockin ES Distribution Genes
               </a>
             </li>
+            [% END %]
 
             <li class="divider"></li>
 
