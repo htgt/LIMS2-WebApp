@@ -1,9 +1,14 @@
+// update crispr_es_qc_well values, one as a time
+// the form textbox or checkbox object that triggers this must have following attributes
+// data-crispr_data_type
+// data-crispr_well_id
 $(document).ready(function() {
     $(".update_crispr_es_qc_well").change(function() {
 
         // give warning class to element
         var element = $(this).parent().parent();
         element.removeClass('error').removeClass('success').addClass('warning');
+        // grab data type and well_id
         var data_type = $(this).attr('data-crispr_data_type');
         var crispr_well_id = $(this).attr('data-crispr_well_id');
         var data = {};
@@ -16,6 +21,7 @@ $(document).ready(function() {
             data[data_type] = this.value;
         }
 
+        // ajax request to update the crispr es qc well value
         $.ajax({
             type: "POST",
             url: api_url,
