@@ -19,8 +19,47 @@ $(document).ready(function() {
 
         //the code for this is inside jquery.flot.traceviewer.js
         var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+    });
 
-        //show_traces( $(this) );
+    $("#validate_run").click(function(e) {
+        e.preventDefault();
+
+        if ( $(this).hasClass('disabled') ) {
+            return;
+        }
+
+        var element = $(this);
+        element.removeClass('btn-primary').addClass('btn-warning');
+        element.text('... validating');
+        var success = 0;
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for("/api/validate_crispr_es_qc_run") %]',
+            data: {
+                "id": '[% qc_run_id %]'
+            },
+            success: function(data) {
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).removeClass('btn-warning').addClass('btn-success').addClass('disabled').dequeue();
+                    element.text('Validated');
+                    $(".validate_well").each( function() {
+                        this.checked = true;
+                    });
+                });
+            },
+            error: function(data) {
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).removeClass('btn-warning').addClass('disabled').addClass('btn-danger').dequeue();
+                    element.text('error validating qc run');
+                });
+                alert( 'Error validating crispr es qc run' );
+            },
+            dataType: 'json'
+        });
+
     });
 });
 </script>
@@ -43,6 +82,11 @@ $(document).ready(function() {
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
         <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
+    [% IF wells.size > 0 %]
+    <a id="validate_run" class="btn pull-right [% IF run_validated %]btn-success disabled[% ELSE %]btn-primary[% END %]" role="button">
+        <i class="icon-ok icon-white"></i> [% IF run_validated %]Validated[% ELSE %]Validate QC Run[% END %]
+    </a>
+    [% END %]
 </div>
 
 <div class="modal hide fade" id="DeleteRunModal">
