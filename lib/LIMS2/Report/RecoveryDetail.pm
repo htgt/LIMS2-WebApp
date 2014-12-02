@@ -113,7 +113,7 @@ sub _build_gene_data {
     }
     else{
         # Must be a crispr stage so we handle it differently
-        foreach my $gene($self->all_gene_ids){
+        foreach my $gene(@{ $self->all_gene_ids }){
             my $summaries = $self->_get_crispr_summary_data_for_gene($gene);
             if(@$summaries){
                 $gene_data->{$gene}->{summary_data} = $summaries;
@@ -135,10 +135,8 @@ sub _get_crispr_summary_data_for_gene{
     my $wells_key = $self->crispr_stages->{ $self->stage }->{wells_key};
     DEBUG "wells key: $wells_key";
 
-    my $wells = $self->crispr_stage_data->{$wells_key};
-    DEBUG "crispr stage wells: ";
-    use Data::Dumper;
-    DEBUG Dumper($wells);
+    my $wells = $self->crispr_stage_data->{$wells_key}->{$gene_id};
+
     return $wells || [];
 }
 

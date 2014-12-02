@@ -284,13 +284,13 @@ sub _build_crispr_stage_data {
                     elsif($dna_rs != 0){
                         my $first = $dna_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
                         $crispr_stage_data->{crispr_dna_created}->{$gene} = $first->created_at->dmy('/');
-                        $crispr_stage_data->{crispr_dna_wells} = [ $dna_rs->all ];
+                        $crispr_stage_data->{crispr_dna_wells}->{$gene} = [ $dna_rs->all ];
                         next GENE;
                     }
                     elsif($vector_rs != 0){
                         my $first = $vector_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
                         $crispr_stage_data->{crispr_vector_created}->{$gene} = $first->created_at->dmy('/');
-                        $crispr_stage_data->{crispr_vector_wells} = [ $vector_rs->all ];
+                        $crispr_stage_data->{crispr_vector_wells}->{$gene} = [ $vector_rs->all ];
                         next GENE;
                     }
                 }
@@ -303,7 +303,7 @@ sub _build_crispr_stage_data {
             my @crispr_wells = $self->model->schema->resultset('Well')->search({
                 id => { '-in', \@crispr_well_ids }
             });
-            $crispr_stage_data->{crispr_wells} = \@crispr_wells;
+            $crispr_stage_data->{crispr_wells}->{$gene} = \@crispr_wells;
         }
     }
 
