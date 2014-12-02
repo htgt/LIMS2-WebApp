@@ -694,8 +694,17 @@ sub build_qc_data {
         $qc_data{crispr_chr_name} = $crispr->chr_name;
     }
 
-    if ( $analyser && $analyser->vcf_file_target_region ) {
-        $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp;
+    if ( $analyser ) {
+        $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp if $analyser->vcf_file_target_region;
+        $qc_data{variant_size} = $analyser->variant_size if $analyser->variant_size;
+        if ( $analyser->variant_type ) {
+            $qc_data{crispr_damage_type} = $analyser->variant_type;
+            # TODO check if no-call is a actual call of just leave undef
+            #      we are supposed to automatically accept calls here...
+            #      also maybe not here because need to mark well as accepted?
+            #      move this logic to the create_crispr_es_qc_Well method in LIMS2
+            #$qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
+        }
     }
 
     if ( exists $well_reads->{forward} ) {
