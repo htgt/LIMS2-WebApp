@@ -158,6 +158,26 @@ sub retrieve_crispr_es_qc_run {
     return $self->retrieve( CrisprEsQcRuns => $validated_params );
 }
 
+=head2 validate_crispr_es_qc_run
+
+Update a crispr es qc run plus all of its wells to validated.
+
+=cut
+sub validate_crispr_es_qc_run {
+    my ( $self, $params ) = @_;
+
+    my $crispr_es_qc_run = $self->retrieve_crispr_es_qc_run( $params );
+    $crispr_es_qc_run->update( { validated => 1 } );
+
+    for my $well ( $crispr_es_qc_run->crispr_es_qc_wells->all ) {
+        $well->update( { validated => 1 } );
+    }
+    $self->log->info(
+        'Updated crispr es qc run and all its wells to validated ' . $crispr_es_qc_run->id );
+
+    return;
+}
+
 sub pspec_update_crispr_es_qc_well {
     return {
         id          => { validate => 'integer' },
