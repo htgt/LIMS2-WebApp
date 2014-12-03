@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.271     2014-12-03 07:42:17 Europe/London
+
+    Update Legacy Cre KnockIn report
+
 0.270     2014-11-21 15:05:18 Europe/London
 
     QcRunSummary report gene symbols and support for crispr qc
