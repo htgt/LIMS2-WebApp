@@ -46,7 +46,6 @@ $(document).ready(function() {
             <th>Alignment</th>
             <th>Damage Type</th>
             <th>Variant Size</th>
-            <th>Validated</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>

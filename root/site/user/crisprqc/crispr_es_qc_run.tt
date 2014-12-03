@@ -31,7 +31,6 @@ $(document).ready(function() {
         var element = $(this);
         element.removeClass('btn-primary').addClass('btn-warning');
         element.text('... validating');
-        var success = 0;
 
         $.ajax({
             type: "POST",
@@ -44,9 +43,6 @@ $(document).ready(function() {
                 element.delay(500).queue(function(){
                     $(this).removeClass('btn-warning').addClass('btn-success').addClass('disabled').dequeue();
                     element.text('Validated');
-                    $(".validate_well").each( function() {
-                        this.checked = true;
-                    });
                 });
             },
             error: function(data) {
@@ -118,7 +114,6 @@ $(document).ready(function() {
             <th>Accept</th>
             <th>Damage Type</th>
             <th>Variant Size</th>
-            <th>Validated</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>

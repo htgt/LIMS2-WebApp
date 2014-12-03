@@ -111,12 +111,6 @@ __PACKAGE__->table("crispr_es_qc_wells");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 validated
-
-  data_type: 'boolean'
-  default_value: false
-  is_nullable: 1
-
 =head2 variant_size
 
   data_type: 'integer'
@@ -156,8 +150,6 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "crispr_damage_type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
-  "validated",
-  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "variant_size",
   { data_type => "integer", is_nullable => 1 },
 );
@@ -247,8 +239,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-11-27 08:52:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rL/y7FDvyVvB/xU1ZFBn7g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 11:52:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HLxWkhqfpzrHco4xOT7tdQ
 
 use JSON;
 use List::Util qw ( min max );
@@ -383,7 +375,6 @@ sub format_well_data {
         damage_type             => $self->crispr_damage_type_id,
         vep_output              => $json->{vep_output},
         variant_size            => $self->variant_size,
-        validated               => $self->validated,
     };
 }
 

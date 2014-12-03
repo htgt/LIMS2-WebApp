@@ -182,11 +182,7 @@ sub validate_crispr_es_qc_run {
     my $crispr_es_qc_run = $self->retrieve_crispr_es_qc_run( $params );
     $crispr_es_qc_run->update( { validated => 1 } );
 
-    for my $well ( $crispr_es_qc_run->crispr_es_qc_wells->all ) {
-        $well->update( { validated => 1 } );
-    }
-    $self->log->info(
-        'Updated crispr es qc run and all its wells to validated ' . $crispr_es_qc_run->id );
+    $self->log->info( 'Validated crispr es qc run ' . $crispr_es_qc_run->id );
 
     return;
 }
@@ -200,7 +196,6 @@ sub pspec_update_crispr_es_qc_well {
             rename   => 'crispr_damage_type_id'
             },
         variant_size => { validate => 'integer', optional => 1 },
-        validated    => { validate => 'boolean_string', optional => 1 },
         accepted     => { validate => 'boolean_string', optional => 1 },
         MISSING_OPTIONAL_VALID => 1,
     };

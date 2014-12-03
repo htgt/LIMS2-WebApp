@@ -3,3 +3,4 @@
 "frameshift","Damage that causes a frameshift mutation"
 "in-frame","Damage that does not cause a frameshift mutation"
 "mosaic","Multiple types of damage"
+"no-call","No automatic damage type call"

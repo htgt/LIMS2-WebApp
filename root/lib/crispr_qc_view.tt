@@ -68,15 +68,6 @@
    </div>
 </td>
 
-
-<td>
-  <div class="control-group">
-    <div class="controls">
-     <input type="checkbox" name="validated_[% row.well_id %]" class="update_crispr_es_qc_well validate_well" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="validated" [% row.validated ? "checked='checked'" : "" %] />
-    </div>
-  </div>
-</td>
-
 <td>
   [% IF row.has_vcf_file %]
     <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
