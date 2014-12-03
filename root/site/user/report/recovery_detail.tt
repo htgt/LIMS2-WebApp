@@ -49,7 +49,16 @@
 
     <div class="modal-body">
       <div id="modal-text"></div>
+
+      [% IF extra_data.gene_id %]
+        <input type="hidden" name="gene_id" value="[% extra_data.gene_id %]"/>
+      [% END %]
+
+      <input type="hidden" name="stage" value="[% extra_data.stage %]"/>
+      <input type="hidden" name="sponsor" value="[% extra_data.sponsor %]"/>
+
       <input type="hidden" name="id" value="" id="project_id_input" />
+
       Recovery class:<br>
       <select id="class_select" name="recovery_class">
         <option value=""></option>
@@ -62,7 +71,7 @@
       <br>Comment:<br>
       <textarea id="comment" name="comment"></textarea>
       <br>Concluded?<br>
-      <input type="checkbox" id="concluded" name="concluded">
+      <input type="checkbox" id="concluded" name="concluded" value="true">
     </div>
 
     <div class="modal-footer">

@@ -255,7 +255,8 @@ sub _build_crispr_stage_data {
 
         DEBUG("finding crispr stages for gene $gene");
         my @crispr_well_ids;
-        my $first_crispr_well_date;
+        my ($first_crispr_well_date, $first_dna_date, $first_vector_date);
+        my (@crispr_v_wells, @dna_wells);
 
         my $gene_crisprs = $crispr_summaries->{$gene} || {};
         foreach my $design (keys %$gene_crisprs){
@@ -268,10 +269,7 @@ sub _build_crispr_stage_data {
                     push @crispr_well_ids, $crispr_well;
 
                     my $date = $design_crisprs->{$crispr}->{$crispr_well}->{crispr_well_created};
-                    $first_crispr_well_date ||= $date;
-                    if($date < $first_crispr_well_date){
-                        $first_crispr_well_date = $date;
-                    }
+                    my $first_crispr_well_date = _update_earliest_date($first_crispr_well_date,$date);
 
                     my $dna_rs = $design_crisprs->{$crispr}->{$crispr_well}->{DNA};
                     my $vector_rs = $design_crisprs->{$crispr}->{$crispr_well}->{CRISPR_V};
@@ -283,21 +281,29 @@ sub _build_crispr_stage_data {
                     }
                     elsif($dna_rs != 0){
                         my $first = $dna_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
-                        $crispr_stage_data->{crispr_dna_created}->{$gene} = $first->created_at->dmy('/');
-                        $crispr_stage_data->{crispr_dna_wells}->{$gene} = [ $dna_rs->all ];
-                        next GENE;
+                        my $date = $first->created_at;
+                        $first_dna_date = _update_earliest_date($first_dna_date, $date);
+                        push @dna_wells, $dna_rs->all;
                     }
                     elsif($vector_rs != 0){
                         my $first = $vector_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
-                        $crispr_stage_data->{crispr_vector_created}->{$gene} = $first->created_at->dmy('/');
-                        $crispr_stage_data->{crispr_vector_wells}->{$gene} = [ $vector_rs->all ];
-                        next GENE;
+                        my $date = $first->created_at;
+                        $first_vector_date = _update_earliest_date($first_vector_date,$date);
+                        push @crispr_v_wells, $vector_rs->all;
                     }
                 }
             }
         }
 
-        if(@crispr_well_ids){
+        if(@dna_wells){
+            $crispr_stage_data->{crispr_dna_created}->{$gene} = $first_dna_date->dmy('/');
+            $crispr_stage_data->{crispr_dna_wells}->{$gene} = \@dna_wells;
+        }
+        elsif(@crispr_v_wells){
+            $crispr_stage_data->{crispr_vector_created}->{$gene} = $first_vector_date->dmy('/');
+            $crispr_stage_data->{crispr_vector_wells}->{$gene} = \@crispr_v_wells;
+        }
+        elsif(@crispr_well_ids){
             # We found crispr wells but no DNA or vector result sets
             $crispr_stage_data->{crispr_well_created}->{$gene} = $first_crispr_well_date;
             my @crispr_wells = $self->model->schema->resultset('Well')->search({
@@ -308,6 +314,17 @@ sub _build_crispr_stage_data {
     }
 
     return $crispr_stage_data;
+}
+
+sub _update_earliest_date{
+    my ($earliest_date, $this_date) = @_;
+
+    $earliest_date ||= $this_date;
+    if($this_date < $earliest_date){
+        $earliest_date = $this_date;
+    }
+
+    return $earliest_date;
 }
 
 has '+param_names' => (

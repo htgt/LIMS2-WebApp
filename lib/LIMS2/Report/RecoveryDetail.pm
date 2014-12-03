@@ -209,6 +209,11 @@ override structured_data => sub {
 
     $extra_data->{detail_columns} = $stage_info->{detail_columns};
 
+    # Need to pass report params to custom report so they can be used in redirect
+    $extra_data->{stage} = $self->stage;
+    $extra_data->{sponsor} = $self->sponsor;
+    $extra_data->{gene_id} = $self->gene_id;
+
     my @genes;
     foreach my $gene_id (keys %{$data || {}}){
         my @summaries;
