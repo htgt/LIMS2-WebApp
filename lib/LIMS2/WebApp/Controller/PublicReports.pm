@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.269';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.271';
 }
 ## use critic
 
@@ -425,7 +425,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
     $c->log->info( "Generate public gene report page for gene: $gene_id" );
     my $model = $c->model('Golgi');
-    my $species = $c->session->{selected_species};
+    my $species = $c->session->{selected_species} || 'Human';
 
     my $designs = $model->c_list_assigned_designs_for_gene(
         { gene_id => $gene_id, species => $species } );

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::PlateComment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::PlateComment::VERSION = '0.269';
+    $LIMS2::Model::Schema::Result::PlateComment::VERSION = '0.271';
 }
 ## use critic
 

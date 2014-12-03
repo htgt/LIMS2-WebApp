@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::RefdataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::RefdataUpload::VERSION = '0.269';
+    $LIMS2::Model::Util::RefdataUpload::VERSION = '0.271';
 }
 ## use critic
 
