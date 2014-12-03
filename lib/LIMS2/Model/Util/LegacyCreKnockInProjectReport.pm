@@ -352,8 +352,9 @@ sub allele_products {
 
     my %allele_mice;
     for my $e ( @mice ) {
-        $e->{allele_symbol} =~ /<sup>(.*)<\/sup>/;
-        $allele_mice{$1} = $e->{status_name};
+        if ( $e->{allele_symbol} =~ /<sup>(.*)<\/sup>/ ) {
+            $allele_mice{$1} = $e->{status_name};
+        };
     }
 
     return \%allele_mice;
