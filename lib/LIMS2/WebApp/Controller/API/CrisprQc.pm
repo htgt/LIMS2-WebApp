@@ -131,7 +131,8 @@ sub crispr_es_qc_well_POST {
     );
 }
 
-sub validate_crispr_es_qc_run : Path( '/api/validate_crispr_es_qc_run' ) : Args(0) :ActionClass( 'REST' ) { }
+sub validate_crispr_es_qc_run : Path( '/api/validate_crispr_es_qc_run' ) : Args(0) :ActionClass( 'REST' ) {
+}
 
 =head2 POST
 
@@ -159,7 +160,6 @@ sub validate_crispr_es_qc_run_POST {
 
     return
 }
-
 
 =head1 LICENSE
 
