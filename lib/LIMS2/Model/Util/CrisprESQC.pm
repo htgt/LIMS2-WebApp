@@ -699,11 +699,8 @@ sub build_qc_data {
         $qc_data{variant_size} = $analyser->variant_size if $analyser->variant_size;
         if ( $analyser->variant_type ) {
             $qc_data{crispr_damage_type} = $analyser->variant_type;
-            # TODO check if no-call is a actual call of just leave undef
-            #      we are supposed to automatically accept calls here...
-            #      also maybe not here because need to mark well as accepted?
-            #      move this logic to the create_crispr_es_qc_Well method in LIMS2
-            #$qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
+            # if a variant type other can no-call has been made then mark well accepted
+            $qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
         }
     }
 

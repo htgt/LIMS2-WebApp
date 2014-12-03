@@ -74,6 +74,19 @@ sub create_crispr_es_qc_well {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_well );
 
+    # if the qc well has been marked accepted run this logic
+    if ( $validated_params->{accepted} ) {
+        my $well = $self->retrieve_well( { id => $validated_params->{well_id} } );
+        # only mark qc accepted if the linked well is not already accepted in another run
+        if ( $well->accepted ) {
+            delete $validated_params->{accepted};
+        }
+        # mark the linked well accepted
+        else {
+            $well->update( { accepted => 1 } );
+        }
+    }
+
     my $species = delete $validated_params->{species};
     if ( $validated_params->{crispr_chr_name} ) {
         my $chr_name = delete $validated_params->{crispr_chr_name};
