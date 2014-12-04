@@ -52,6 +52,7 @@ lib/LIMS2/Model/Plugin/Well.pm
 lib/LIMS2/Model/Plugin/WellBarcode.pm
 lib/LIMS2/Model/ProcessGraph.pm
 lib/LIMS2/Model/Schema.pm
+lib/LIMS2/Model/Schema/Result/AlleleDump.pm
 lib/LIMS2/Model/Schema/Result/Assembly.pm
 lib/LIMS2/Model/Schema/Result/BacClone.pm
 lib/LIMS2/Model/Schema/Result/BacCloneLocus.pm
@@ -205,6 +206,7 @@ lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
+lib/LIMS2/Report/AlleleDump.pm
 lib/LIMS2/Report/AssemblyPlate.pm
 lib/LIMS2/Report/CreKiESDistributionGenes.pm
 lib/LIMS2/Report/CreKiESDistributionSummary.pm

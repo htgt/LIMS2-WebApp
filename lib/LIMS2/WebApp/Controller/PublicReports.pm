@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.272';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.273';
 }
 ## use critic
 
@@ -75,6 +75,53 @@ sub download_report :Path( '/public_reports/download' ) :Args(1) {
     $c->response->body( $report_fh );
     return;
 }
+
+
+=head2 download_compressed
+
+Generates a gzipped file for download, and downloads it
+
+=cut
+
+sub download_compressed :Path( '/public_reports/download_compressed' ) :Args(1) {
+    my ( $self, $c, $report_id ) = @_;
+
+    my ( $report_name, $compressed_fh ) = LIMS2::Report::compress_report_on_disk( $report_id );
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/gzip' );
+#    $c->response->content_encoding( 'gzip' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$report_name.csv.gz" );
+    $c->response->body( $compressed_fh );
+    return;
+}
+
+
+=head2 cre_knockin_project_status
+
+Report listing the status of cre knockin projects.
+
+=cut
+sub allele_dump : Path( '/public_reports/allele_dump' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $report_id = LIMS2::Report::cached_report(
+        model  => $c->model( 'Golgi' ),
+        report => 'AlleleDump',
+        params => {},
+    );
+
+    $c->stash(
+        template    => 'publicreports/await_report.tt',
+        report_name => 'Allele_Dump',
+        report_id   => $report_id
+    );
+
+    return;
+}
+
+
+
 
 =head2 index
 

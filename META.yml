@@ -91,6 +91,7 @@ requires:
   HTTP::Status: 0
   Hash::Merge: 0
   Hash::MoreUtils: 0
+  IO::Compress::Gzip: 0
   IO::File: 0
   IO::Pipe: 0
   IO::String: 0
@@ -164,4 +165,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.272
+version: 0.273

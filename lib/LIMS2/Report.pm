@@ -1,7 +1,7 @@
 package LIMS2::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VERSION = '0.272';
+    $LIMS2::Report::VERSION = '0.273';
 }
 ## use critic
 
@@ -27,6 +27,7 @@ use Path::Class;
 use Const::Fast;
 use DateTime;
 use DateTime::Duration;
+use IO::Compress::Gzip qw(gzip $GzipError);
 
 const my $WORK_DIR       => dir( $ENV{LIMS2_REPORT_DIR} || '/var/tmp/lims2-reports' );
 const my $CACHE_FILE_TTL => DateTime::Duration->new( days => 3 );
@@ -81,6 +82,24 @@ sub read_report_from_disk {
     my $report_name = $dir->file( 'name' )->slurp;
 
     return ( $report_name, $report_fh );
+}
+
+sub compress_report_on_disk {
+    my $report_id = shift;
+
+    my $dir = $WORK_DIR->subdir( $report_id );
+
+    my $report_fh = $dir->file( 'report.csv' )->openr;
+    my $report_name = $dir->file( 'name' )->slurp;
+
+    my $gz_fh = $dir->file( 'report.csv.gz' )->openw;
+
+    gzip $report_fh => $gz_fh, 'AutoClose' => 1
+        or die "gzip failed: $GzipError\n";
+
+    my $compressed_fh = $dir->file( 'report.csv.gz' )->openr;
+
+    return ( $report_name, $compressed_fh );
 }
 
 sub _cached_report_ok {
@@ -174,7 +193,7 @@ sub run_in_background {
 
     if ( $pid == 0 ) { # child
         Log::Log4perl->easy_init( { level => $WARN, file => $work_dir->file( 'log' ) } );
-        $generator->model->clear_schema; # Force re-connect in child process        
+        $generator->model->clear_schema; # Force re-connect in child process
         local $0 = 'Generate report ' . $generator->name;
         do_generate_report( $generator, $work_dir, $cache_entry );
         exit 0;
