@@ -251,7 +251,7 @@ sub fetch_well_eng_seq_params {
 	}
 
 	if ( !$params->{backbone} && $params->{stage} eq 'vector' ){
-		my $backbone = $well->backbone;
+		my $backbone = $well->backbone( { ignore_processes => [ 'crispr_vector' ] } );
 		$params->{backbone} = $backbone ? $backbone->name
 		                                : undef ;
 	}

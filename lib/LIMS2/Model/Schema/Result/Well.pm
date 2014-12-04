@@ -699,11 +699,11 @@ sub cassette {
 }
 
 sub backbone {
-    my $self = shift;
+    my ( $self, $args ) = @_;
 
     $self->assert_not_double_targeted;
 
-    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
+    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone', $args );
 
     return $process_backbone ? $process_backbone->backbone : undef;
 }
@@ -1401,6 +1401,8 @@ sub genotyping_info {
       primers          => \%primers,
       vcf_file         => $accepted_qc_well->vcf_file,
       qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
+      species          => $design->species_id,
+      cell_line        => $self->first_cell_line->name,
   };
 }
 

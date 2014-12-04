@@ -102,8 +102,14 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     }
     else {
         # not logged in - always use cached reports for top level and sub-reports
-        $sub_cache_param = 'with_cache';
-        $top_cache_param = 'with_cache';
+        if ( !$c->request->params->{'cache_param'} ) {
+            $sub_cache_param = 'with_cache';
+            $top_cache_param = 'with_cache';
+        }
+        else {
+            $sub_cache_param = 'without_cache';
+            $top_cache_param = 'without_cache';
+        }
     }
 
     if (!$c->request->params->{'species'}) {
@@ -413,7 +419,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
     $c->log->info( "Generate public gene report page for gene: $gene_id" );
     my $model = $c->model('Golgi');
-    my $species = $c->session->{selected_species};
+    my $species = $c->session->{selected_species} || 'Human';
 
     my $designs = $model->c_list_assigned_designs_for_gene(
         { gene_id => $gene_id, species => $species } );
@@ -462,6 +468,9 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
                         . join( ', ', @crispr_damage_types ) );
                 $data{crispr_damage} = join( '/', @crispr_damage_types );
             }
+            else {
+                $data{crispr_damage} = 'unclassified';
+            }
         }
         $targeted_clones{ $sr->ep_pick_well_id } = \%data;
     }
@@ -470,7 +479,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my %summaries;
     for my $tc ( @targeted_clones ) {
         $summaries{accepted}++ if $tc->{accepted} eq 'yes';
-        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage};
+        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified';
     }
 
     $c->stash(
@@ -497,13 +506,16 @@ sub well_eng_seq :Path( '/public_reports/well_eng_seq' ) :Args(1) {
     my ( $method, undef , $eng_seq_params ) = generate_well_eng_seq_params( $model, $params, $well );
     my $eng_seq = $model->eng_seq_builder->$method( %{ $eng_seq_params } );
 
-    my $design  = $well->design;
-    my $gene_id = $design->genes->first->gene_id;
-    my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
-    my $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
-    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
+    my $gene;
+    if ( my $design  = $well->design ) {
+        my $gene_id = $design->genes->first->gene_id;
+        my $gene_data = try { $model->retrieve_gene( { species => $design->species_id, search_term => $gene_id } ) };
+        $gene = $gene_data ? $gene_data->{gene_symbol} : $gene_id;
+    }
 
-    my $file_name = $well->as_string . "_$stage" . "_$gene";
+    my $stage = $method =~ /vector/ ? 'vector' : 'allele';
+    my $file_name = $well->as_string . "_$stage";
+    $file_name .= "_$gene" if $gene;
     my $file_format = exists $params->{file_format} ? $params->{file_format} : 'Genbank';
 
     $self->download_genbank_file( $c, $eng_seq, $file_name, $file_format );

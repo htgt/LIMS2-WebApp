@@ -69,7 +69,7 @@ override iterator => sub {
                     'gene_ids'       => $well_data->{gene_ids},
                     'button_label'   => 'Genoverse',
                     'browser_target' => $self->plate_name . $well_data->{well_name},
-                    'api_url'        => '/user/genoverse_design_view',
+                    'api_url'        => '/user/genoverse_primer_view',
                 }
             );
             $crispr_designs = join( "/", map{ $_->design_id } $crispr->crispr_designs->all );

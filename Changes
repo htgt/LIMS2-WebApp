@@ -1,5 +1,42 @@
 {{$NEXT}}
 
+0.272     2014-12-04 07:18:46 Europe/London
+
+0.272     2014-12-03 16:04:43 Europe/London
+
+    Bugfix: recovery class foreign key added to correct column
+    Update interface for crispr es qc, allow validation of qc run.
+
+0.271     2014-12-03 07:42:17 Europe/London
+
+    Update Legacy Cre KnockIn report
+
+0.270     2014-11-21 15:05:18 Europe/London
+
+    QcRunSummary report gene symbols and support for crispr qc
+
+0.269     2014-11-19 08:06:58 Europe/London
+
+    Bugfix: Fix genbank file creation for crispr vectors
+    Bugfix: Get correct backbone for cells targeted with crisprs
+
+0.268     2014-11-17 09:10:41 Europe/London
+
+    Fixed primers not displaying in assembly plate genoverse view
+    Modified front page public reports menu
+
+0.267     2014-11-12 14:08:09 Europe/London
+
+    Added crispr counts on MGP Recovery sponsor report
+
+0.266     2014-11-10 11:37:31 Europe/London
+
+    Added colony count template CSV file
+
+0.265     2014-11-07 15:57:17 Europe/London
+
+    Added front page, sub-page report caching
+
 0.264     2014-11-03 13:43:05 Europe/London
 
     First release of FP/PIQ barcode interface
