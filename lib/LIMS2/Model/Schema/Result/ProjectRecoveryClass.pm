@@ -83,12 +83,13 @@ Related object: L<LIMS2::Model::Schema::Result::Project>
 __PACKAGE__->has_many(
   "projects",
   "LIMS2::Model::Schema::Result::Project",
-  { "foreign.recovery_comment" => "self.id" },
+  { "foreign.recovery_class" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-14 14:05:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SANap7GZzTCDqebVX8hgAw
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 15:40:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WWpruQh1u9fbedff6V50mg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
