@@ -9,13 +9,13 @@ use Readonly;
 use namespace::autoclean;
 use Log::Log4perl qw(:easy);
 use Try::Tiny;
+use Data::Dumper;
 
 extends qw( LIMS2::Report::RecoveryOverview );
 
 has '+custom_template' => (
     default => 'user/report/recovery_detail.tt',
 );
-
 
 has stage => (
     is        => 'ro',
@@ -154,13 +154,20 @@ override _build_columns => sub {
     my $self = shift;
 
     my $cols;
+    my $extra_cols;
+
     if($self->stages->{$self->stage}){
         $cols = $self->stages->{$self->stage}->{detail_columns};
+        $extra_cols = $self->stages->{$self->stage}->{extra_details};
     }
     else{
         $cols = $self->crispr_stages->{$self->stage}->{detail_columns};
+        $extra_cols = $self->crispr_stages->{$self->stage}->{extra_details};
     }
-    return ['Gene', @$cols];
+
+    $extra_cols ||= [];
+DEBUG("extra columns: ",Dumper($extra_cols));
+    return ['Gene', @$cols, @$extra_cols];
 };
 
 override iterator => sub {
@@ -206,8 +213,13 @@ override structured_data => sub {
     my $data = $self->gene_data;
     my $stage_info = $self->stages->{$self->stage} ? $self->stages->{$self->stage}
                                                    : $self->crispr_stages->{$self->stage};
+    my $field_name = $stage_info->{field_name};
 
-    $extra_data->{detail_columns} = $stage_info->{detail_columns};
+    my @columns = @{ $stage_info->{detail_columns} || [] };
+    push @columns, @{ $stage_info->{extra_details} || [] };
+
+    $extra_data->{detail_columns} = \@columns;
+    $extra_data->{recovery_classes} = [ map { $_->id } $self->model->schema->resultset('ProjectRecoveryClass')->all ];
 
     # Need to pass report params to custom report so they can be used in redirect
     $extra_data->{stage} = $self->stage;
@@ -241,6 +253,12 @@ override structured_data => sub {
                     $value = $value->dmy('/');
                 }
                 push @details, $value;
+            }
+            if( $stage_info->{extra_details} ){
+                my $well_id = $summary->$field_name;
+                my $well = $self->model->retrieve_well({ id => $well_id });
+                my $values = $stage_info->{extra_detail_function}->($self,$well);
+                push @details, @$values;
             }
             push @summaries, \@details;
     	}

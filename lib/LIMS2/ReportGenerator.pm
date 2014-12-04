@@ -214,6 +214,24 @@ sub design_types_for {
 
     return;
 }
+
+sub qc_result_cols {
+    my ( $self, $well ) = @_;
+
+    my $result = $well->well_qc_sequencing_result;
+
+    if ( $result ) {
+        return (
+            $result->test_result_url,
+            $result->valid_primers,
+            $self->boolean_str( $result->mixed_reads ),
+            $self->boolean_str( $result->pass )
+        );
+    }
+
+    return ('')x4;
+}
+
 __PACKAGE__->meta->make_immutable();
 
 1;

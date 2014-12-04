@@ -10,6 +10,7 @@ use namespace::autoclean;
 use Log::Log4perl qw(:easy);
 
 extends qw( LIMS2::ReportGenerator );
+with qw( LIMS2::ReportGenerator::ColonyCounts );
 
 has '+custom_template' => (
     default => 'user/report/recovery_overview.tt',
@@ -39,13 +40,38 @@ has crispr_stage_data => (
     lazy_build => 1,
 );
 
-Readonly my $STAGES => {
+has stages => (
+    is             => 'ro',
+    isa            => 'HashRef',
+    lazy_build     => 1,
+);
+
+has crispr_stages  => (
+    is             => 'ro',
+    isa            => 'HashRef',
+    lazy_build     => 1,
+);
+# each hash key is the name of the stage
+#   name: display name of stage
+#   field_name: name of column in summaries table that indicates design has reached this stage
+#   time_field: name of column in summaries table containing time that the stage was reached
+#   order: order that the stages occur in
+#   detail_columns: names of columns in summaries table to show in RecoveryDetail report
+#   extra_details: names of extra items to show in RecoveryDetail which are not in summaries table
+#   extra_detail_function: subroutine to generate an arrayref of values for the extra_details (arguments
+#                          passed to sub are self and a Well object with the id from <field_name>)
+sub _build_stages {
+    my $self = shift;
+
+    return {
     design_well_created => {
         name       => 'Design Well Created',
         field_name => 'design_well_id',
         time_field => 'design_well_created_ts',
         order      => 1,
         detail_columns => [ qw(design_name design_plate_name design_well_name design_well_created_ts) ],
+        extra_details => [ qw(recombineering_results) ],
+        extra_detail_function => sub { my ($self, $well) = @_; return [ $well->recombineering_results_string ] },
     },
     int_vector_created => {
         name       => 'Intermediate Vector Created',
@@ -53,6 +79,8 @@ Readonly my $STAGES => {
         time_field => 'int_well_created_ts',
         order      => 2,
         detail_columns => [ qw(int_plate_name int_well_name int_well_created_ts int_qc_seq_pass)],
+        extra_details => [ "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?" ],
+        extra_detail_function => sub { my ($self, $well) = @_; return [ $self->qc_result_cols( $well ) ] },
     },
     final_vector_created => {
         name       => 'Final Vector Created',
@@ -60,6 +88,8 @@ Readonly my $STAGES => {
         time_field => 'final_well_created_ts',
         order      => 3,
         detail_columns => [ qw(final_plate_name final_well_name final_well_created_ts final_qc_seq_pass) ],
+        extra_details => [ "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?" ],
+        extra_detail_function => sub { my ($self, $well) = @_; return [ $self->qc_result_cols( $well ) ] },
     },
     final_pick_created => {
         name       => 'Final Pick Created',
@@ -67,6 +97,8 @@ Readonly my $STAGES => {
         time_field => 'final_pick_well_created_ts',
         order      => 4,
         detail_columns => [ qw(final_pick_plate_name final_pick_well_name final_pick_well_created_ts final_pick_qc_seq_pass ) ],
+        extra_details => [ "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?" ],
+        extra_detail_function => sub { my ($self, $well) = @_; return [ $self->qc_result_cols( $well ) ] },
     },
     assembly_created => {
         name       => 'Assembly Created',
@@ -74,6 +106,8 @@ Readonly my $STAGES => {
         time_field => 'assembly_well_created_ts',
         order      => 5,
         detail_columns => [ qw(assembly_plate_name assembly_well_name assembly_well_created_ts ) ],
+        extra_details => [ "Egel Pass","QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?" ],
+        extra_detail_function => sub { my ($self, $well) = @_; return [ $well->egel_pass_string, $self->qc_result_cols( $well ) ] },
     },
     crispr_ep_created => {
         name       => 'Crispr EP Created',
@@ -81,6 +115,8 @@ Readonly my $STAGES => {
         time_field => 'crispr_ep_well_created_ts',
         order      => 6,
         detail_columns => [ qw(crispr_ep_plate_name crispr_ep_well_name crispr_ep_well_created_ts crispr_ep_well_accepted)],
+        extra_details => [ $self->colony_count_column_names ],
+        extra_detail_function => sub { my ($self, $well) = @_; return [ $self->colony_counts($well) ] },
     },
     ep_pick_created => {
         name       => 'EP Pick Created',
@@ -110,9 +146,14 @@ Readonly my $STAGES => {
         order      => 10,
         detail_columns => [ qw(piq_plate_name piq_well_name piq_well_created_ts piq_well_accepted)],
     },
+    };
 };
 
-Readonly my $CRISPR_STAGES => {
+sub _build_crispr_stages {
+
+    my $self = shift;
+
+    return {
     crispr_well_created => {
         name       => 'Crispr Well Created',
         order      => 1,
@@ -134,19 +175,8 @@ Readonly my $CRISPR_STAGES => {
         wells_key      => 'crispr_dna_wells',
         detail_columns => [ qw(plate_name name created_at accepted) ],
     }
+    };
 };
-
-has stages => (
-    is             => 'ro',
-    isa            => 'HashRef',
-    default        => sub{ return $STAGES },
-);
-
-has crispr_stages  => (
-    is             => 'ro',
-    isa            => 'HashRef',
-    default        => sub{ return $CRISPR_STAGES },
-);
 
 has projects => (
     is             => 'ro',
@@ -221,9 +251,9 @@ sub _build_stage_data {
         # Store gene symbol found in summary table
         $gene_symbols{$gene} = $summary_rs->first->design_gene_symbol;
 
-        foreach my $stage (sort { $STAGES->{$b}->{order} <=> $STAGES->{$a}->{order} }
-                      (keys %$STAGES) ){
-            my $stage_info = $STAGES->{$stage};
+        foreach my $stage (sort { $self->stages->{$b}->{order} <=> $self->stages->{$a}->{order} }
+                      (keys %{ $self->stages }) ){
+            my $stage_info = $self->stages->{$stage};
             my @matching_rows = $summary_rs->search( { $stage_info->{field_name} => { '!=', undef } })->all;
 
             if(@matching_rows){
@@ -358,8 +388,8 @@ override iterator => sub {
 
     my @counts;
 
-    foreach my $stage (sort { $CRISPR_STAGES->{$a}->{order} <=> $CRISPR_STAGES->{$b}->{order} }
-                      (keys %$CRISPR_STAGES) ){
+    foreach my $stage (sort { $self->crispr_stages->{$a}->{order} <=> $self->crispr_stages->{$b}->{order} }
+                      (keys %{ $self->crispr_stages }) ){
         my @genes = keys %{ $self->crispr_stage_data->{$stage} || {} };
         my $count = scalar @genes;
         my $genes = "";
@@ -369,8 +399,8 @@ override iterator => sub {
         push @counts, [ $stage, $count, $genes ];
     }
 
-    foreach my $stage (sort { $STAGES->{$a}->{order} <=> $STAGES->{$b}->{order} }
-                      (keys %$STAGES) ){
+    foreach my $stage (sort { $self->stages->{$a}->{order} <=> $self->stages->{$b}->{order} }
+                      (keys %{ $self->stages }) ){
         my @genes = keys %{ $stage_data->{$stage} || {} };
         my $count = scalar @genes;
         my $genes = "";
@@ -392,12 +422,12 @@ override structured_data => sub {
 
     my $stage_data = $self->stage_data;
 
-    foreach my $stage (keys %$STAGES) {
-        $data->{$stage}->{display_name} = $STAGES->{$stage}->{name};
+    foreach my $stage (keys %{ $self->stages }) {
+        $data->{$stage}->{display_name} = $self->stages->{$stage}->{name};
         my @genes = keys %{ $stage_data->{$stage} || {} };
         foreach my $gene (@genes){
             my $summaries = $stage_data->{$stage}->{$gene};
-            my $time_field = $STAGES->{$stage}->{time_field};
+            my $time_field = $self->stages->{$stage}->{time_field};
             my $min;
             my $gene_symbol = $summaries->[0]->design_gene_symbol;
             foreach my $summary (@$summaries){
@@ -413,8 +443,8 @@ override structured_data => sub {
 
     my $crispr_data = $self->crispr_stage_data;
 
-    foreach my $crispr_stage (keys %$CRISPR_STAGES){
-        $data->{$crispr_stage}->{display_name} = $CRISPR_STAGES->{$crispr_stage}->{name};
+    foreach my $crispr_stage (keys %{ $self->crispr_stages }){
+        $data->{$crispr_stage}->{display_name} = $self->crispr_stages->{$crispr_stage}->{name};
         my @genes = keys %{ $crispr_data->{$crispr_stage} || {} };
         foreach my $gene (@genes){
             my $gene_symbol = $self->stage_data->{gene_symbols}->{$gene} || $gene;

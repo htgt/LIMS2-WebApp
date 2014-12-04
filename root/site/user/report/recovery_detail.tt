@@ -2,6 +2,14 @@
   <h1>[% title %]</h1>
 </div>
 
+[%- MACRO linkify(v) BLOCK %]
+    [% IF v.match( '^https?:' ) %]
+<a href="[% v %]">Link</a>
+    [% ELSE %]
+        [% v %]
+    [% END %]
+[% END %]
+
 <table class="table table-bordered">
   <thead>
     <tr>
@@ -26,13 +34,13 @@
         [% END %]
       </td>
       [%- FOR val IN gene.summaries.0 %]
-      <td>[% val %]</td>
+      <td>[% linkify( val ) | none %]</td>
       [%- END %]
     </tr>
       [% FOR summary IN gene.summaries.slice(1,-1) %]
       <tr>
         [% FOR val IN summary %]
-        <td>[% val %]</td>
+        <td>[% linkify( val ) | none %]</td>
         [% END %]
       </tr>
       [% END %]
