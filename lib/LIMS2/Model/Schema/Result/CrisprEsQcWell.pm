@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.271';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.272';
 }
 ## use critic
 
@@ -117,6 +117,11 @@ __PACKAGE__->table("crispr_es_qc_wells");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 variant_size
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -151,6 +156,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "crispr_damage_type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "variant_size",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -238,8 +245,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 09:07:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZqMaBc51jDRz1dseBj+8Ig
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 11:52:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HLxWkhqfpzrHco4xOT7tdQ
 
 use JSON;
 use List::Util qw ( min max );
@@ -373,6 +380,7 @@ sub format_well_data {
         rev_read                => $self->rev_read,
         damage_type             => $self->crispr_damage_type_id,
         vep_output              => $json->{vep_output},
+        variant_size            => $self->variant_size,
     };
 }
 

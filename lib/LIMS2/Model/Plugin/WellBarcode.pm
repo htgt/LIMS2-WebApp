@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::WellBarcode;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.271';
+    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.272';
 }
 ## use critic
 

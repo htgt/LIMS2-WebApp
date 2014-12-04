@@ -55,6 +55,7 @@ requires:
   DBIx::Class::Schema::Loader: 0
   DBIx::Connector: 0
   DBIx::RunSQL: 0
+  DDP: 0
   Data::Compare: 0
   Data::Dump: 0
   Data::Dumper: 0
@@ -163,4 +164,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.271
+version: 0.272
