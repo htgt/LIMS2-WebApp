@@ -2,11 +2,13 @@
   <h1>[% title %]</h1>
 </div>
 
+<p class="lead">This report shows the progress of genes with sponsor [% extra_data.sponsor %]. Each gene is shown at the most advanced stage it has reached. Hover over a gene to see the date that it reached the stage. Click on the gene or stage for more details and to assign recovery classes.</p>
+
 <div class="row">
   <div class="span6">
     <table class="table table-bordered">
       <tr>
-        <th>Stage</th>
+        <th>Crispr Stage</th>
         <th>Number of Genes</th>
         <th>Genes</th>
       </tr>
@@ -18,7 +20,7 @@
   <div class="span6">
     <table class="table table-bordered">
       <tr>
-        <th>Stage</th>
+        <th>Design Stage</th>
         <th>Number of Genes</th>
         <th>Genes</th>
       </tr>
@@ -35,7 +37,7 @@
    <div class="span6">
     <table class="table table-bordered">
       <tr>
-        <th>Stage</th>
+        <th>Post-Assembly Stage</th>
         <th>Number of Genes</th>
         <th>Genes</th>
       </tr>
