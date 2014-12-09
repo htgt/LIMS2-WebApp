@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.273';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.274';
 }
 ## use critic
 
@@ -440,23 +440,6 @@ sub design_and_gene_cols {
     my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
 
     return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
-}
-
-sub qc_result_cols {
-    my ( $self, $well ) = @_;
-
-    my $result = $well->well_qc_sequencing_result;
-
-    if ( $result ) {
-        return (
-            $result->test_result_url,
-            $result->valid_primers,
-            $self->boolean_str( $result->mixed_reads ),
-            $self->boolean_str( $result->pass )
-        );
-    }
-
-    return ('')x4;
 }
 
 sub ancestor_cols {

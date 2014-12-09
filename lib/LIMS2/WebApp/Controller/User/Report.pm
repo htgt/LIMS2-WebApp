@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.273';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.274';
 }
 ## use critic
 
@@ -179,7 +179,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
-    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    my ( $report_name, $report_fh, $template, $extra_data ) = LIMS2::Report::read_report_from_disk( $report_id );
 
     my $pageset = LIMS2::WebApp::Pageset->new(
         {
@@ -216,8 +216,11 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         push @data, $row;
     }
 
+    $template ||= 'user/report/simple_table.tt';
+    $c->log->debug("using report template $template");
+
     $c->stash(
-        template        => 'user/report/simple_table.tt',
+        template        => $template,
         report_id       => $report_id,
         title           => $report_name,
         pageset         => $pageset,
@@ -225,6 +228,13 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         data            => \@data,
         plate_is_virtual   => $is_virtual_plate,
     );
+
+    # Data structure providing additional information to custom report template
+    if($extra_data){
+        $c->log->debug("Extra report data found");
+        $c->stash->{extra_data} = $extra_data;
+    }
+
     return;
 }
 

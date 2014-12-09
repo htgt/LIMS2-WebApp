@@ -24,6 +24,9 @@
             <li>
               <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/sponsor/RecoveryOverview' ) %]">Recovery Overview</a>
+            </li>
           </ul>
         </li>
 

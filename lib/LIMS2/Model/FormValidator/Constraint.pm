@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.273';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.274';
 }
 ## use critic
 
@@ -261,6 +261,10 @@ sub qc_alignment_seq {
 
 sub pass_or_fail {
     return shift->regexp_matches(qr/^(pass|fail)$/i);
+}
+
+sub existing_recovery_class {
+    return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

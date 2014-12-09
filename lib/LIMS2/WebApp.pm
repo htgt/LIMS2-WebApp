@@ -1,7 +1,7 @@
 package LIMS2::WebApp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::VERSION = '0.273';
+    $LIMS2::WebApp::VERSION = '0.274';
 }
 ## use critic
 
@@ -73,7 +73,7 @@ __PACKAGE__->config(
 );
 
 # Configure Log4perl
-__PACKAGE__->log( Log::Log4perl::Catalyst->new( $ENV{LIMS2_LOG4PERL_CONFIG} ) );
+__PACKAGE__->log( Log::Log4perl::Catalyst->new( $ENV{LIMS2_LOG4PERL_CONFIG}, autoflush => 1 ) );
 
 # Start the application
 __PACKAGE__->setup();

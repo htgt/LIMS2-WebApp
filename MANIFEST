@@ -238,6 +238,8 @@ lib/LIMS2/Report/PlateList.pm
 lib/LIMS2/Report/PostIntermediateVectorPlate.pm
 lib/LIMS2/Report/QcRun.pm
 lib/LIMS2/Report/QcRunSummary.pm
+lib/LIMS2/Report/RecoveryDetail.pm
+lib/LIMS2/Report/RecoveryOverview.pm
 lib/LIMS2/Report/SEPPICKPlate.pm
 lib/LIMS2/Report/SEPPOOLPlate.pm
 lib/LIMS2/Report/SEPPlate.pm
@@ -416,6 +418,8 @@ root/site/user/report/await_report.tt
 root/site/user/report/extjs_report_table.tt
 root/site/user/report/gene_summary_report.tt
 root/site/user/report/generic_report_grid.tt
+root/site/user/report/recovery_detail.tt
+root/site/user/report/recovery_overview.tt
 root/site/user/report/select_sponsor.tt
 root/site/user/report/select_vector_params.tt
 root/site/user/report/simple_table.tt
