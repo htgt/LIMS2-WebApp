@@ -426,7 +426,7 @@ sub generate_sub_report {
                                             'accepted_crispr_vector',
                                             # 'vector_designs',
                                             'vector_wells',
-                                            # 'vector_pcr_passes',
+                                            'vector_pcr_passes',
                                             # 'targeting_vector_wells',
                                             # 'accepted_vector_wells',
                                             'passing_vector_wells',
@@ -448,7 +448,7 @@ sub generate_sub_report {
                                             'crisprs constructed',
                                             # 'vector designs',
                                             'ordered targeting vectors',
-                                            # "PCR-passing design oligos",
+                                            "PCR-passing design oligos",
                                             # 'final vector clones',
                                             # 'QC-verified vectors',
                                             'vectors constructed',
@@ -781,7 +781,8 @@ sub genes {
 
         # get the plates
         my $sql =  <<"SQL_END";
-SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN,
+SELECT design_id,
+concat(design_plate_name, '_', design_well_name) AS DESIGN,
 concat(int_plate_name, '_', int_well_name) AS INT,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
@@ -832,6 +833,41 @@ SQL_END
 
         # DESIGN
         @design = uniq @design;
+
+        my $pcr_passes;
+        foreach my $well (@design) {
+
+            my ($plate_name, $well_name ) = ('', '');
+            if ( $well =~ m/^(.*?)_([a-z]\d\d)$/i ) {
+                ($plate_name, $well_name ) = ($1, $2);
+            }
+
+            my ($l_pcr, $r_pcr) = ('', '');
+            try{
+                my $well_id = $self->model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } )->id;
+
+                $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_u',
+                },{
+                    select => [ 'result' ],
+                })->result;
+
+                $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_d',
+                },{
+                    select => [ 'result' ],
+                })->result;
+            }catch{
+                DEBUG "No pcr status found for well " . $well_name;
+            };
+
+            if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
+                $pcr_passes++;
+            }
+        }
+
 
         # Store design IDs to use in crispr summary query
         foreach my $design_id (uniq @design_ids){
@@ -949,7 +985,7 @@ SQL_END
             # 'crispr_pairs'           => $crispr_pairs_count,
             # 'vector_designs'         => $design_count,
             'vector_wells'           => scalar @design,
-            # 'vector_pcr_passes'      => $pcr_passes,
+            'vector_pcr_passes'      => $pcr_passes,
             # 'targeting_vector_wells' => $final_count,
             # 'accepted_vector_wells'  => $final_pass_count,
             'passing_vector_wells'   => $dna_pass_count,
