@@ -40,6 +40,8 @@ e.g
     plated_crisprs
       <crispr id>
         <crispr well id>
+          crispr_well_created
+            DateTime
           CRISPR_V
             [ well resultset ]
           DNA
@@ -148,6 +150,7 @@ sub get_summaries_for_crisprs{
 
     my $result = {};
     my $crispr_id_for_well = {};
+    my $date_for_well = {};
 
     my @crispr_well_id_list;
 
@@ -164,6 +167,7 @@ sub get_summaries_for_crisprs{
             # Store list of well IDs to fetch descendants from
             my $well_id = $output_well->well_id;
             $crispr_id_for_well->{ $well_id } = $crispr_id;
+            $date_for_well->{ $well_id } = $output_well->well->created_at;
             push @crispr_well_id_list, $well_id;
         }
     }
@@ -175,6 +179,7 @@ sub get_summaries_for_crisprs{
     foreach my $crispr_well_id (keys %$summaries){
         my $crispr_id = $crispr_id_for_well->{$crispr_well_id};
         $result->{$crispr_id}->{$crispr_well_id} = $summaries->{$crispr_well_id};
+        $result->{$crispr_id}->{$crispr_well_id}->{crispr_well_created} = $date_for_well->{$crispr_well_id};
     }
 
     return $result;

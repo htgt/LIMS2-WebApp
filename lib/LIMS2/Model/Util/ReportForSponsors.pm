@@ -1039,7 +1039,7 @@ sub add_crispr_well_counts_for_gene{
     my $crispr_vector_accepted_count = 0;
     foreach my $design_id (@{ $designs_for_gene->{$gene_id} || []}){
         my $plated_crispr_summary = $design_crispr_summary->{$design_id}->{plated_crisprs};
-        my %has_accepted_dna;
+        #my %has_accepted_dna;
         foreach my $crispr_id (keys %$plated_crispr_summary){
             my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
             $crispr_count += scalar( @crispr_well_ids );
