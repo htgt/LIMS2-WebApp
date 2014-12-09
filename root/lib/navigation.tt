@@ -24,6 +24,9 @@
             <li>
               <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/sponsor/RecoveryOverview' ) %]">Recovery Overview</a>
+            </li>
           </ul>
         </li>
 
@@ -169,24 +172,9 @@
             <li>
               <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
             </li>
+
             <li class="divider"></li>
-<!--
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/GenesToElectroporate' ) %]">
-                Genes To Electroporate
-              </a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
-                First Allele Electroporation Detail
-              </a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/SecondElectroporationProductionDetail' ) %]">
-                Second Allele Electroporation Detail
-              </a>
-            </li>
--->
+
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
                 Electroporation Summary
@@ -203,14 +191,6 @@
                   Crispr Electroporation Summary
                 </a>
             </li>
-            [% END %]
-<!--
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
-                Electroporation Production Summary
-              </a>
-            </li>
--->
             <li>
               <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionSummary' ) %]">
                 Cre Knockin ES Distribution Summary
@@ -221,6 +201,7 @@
                 Cre Knockin ES Distribution Genes
               </a>
             </li>
+            [% END %]
 
             <li class="divider"></li>
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.270';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.275';
 }
 ## use critic
 
@@ -58,12 +58,13 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     my @crispr_damage_types = $c->model('Golgi')->schema->resultset( 'CrisprDamageType' )->all;
 
     $c->stash(
-        qc_run_id    => $run->id,
-        seq_project  => $run->sequencing_project,
-        sub_project  => $run->sub_project,
-        species      => $run->species_id,
-        wells        => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
-        damage_types => [ map{ $_->id } @crispr_damage_types ],
+        qc_run_id     => $run->id,
+        seq_project   => $run->sequencing_project,
+        sub_project   => $run->sub_project,
+        species       => $run->species_id,
+        wells         => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
+        damage_types  => [ map{ $_->id } @crispr_damage_types ],
+        run_validated => $run->validated,
     );
 
     return;

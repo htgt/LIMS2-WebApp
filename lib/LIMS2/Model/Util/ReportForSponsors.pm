@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.270';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.275';
 }
 ## use critic
 
@@ -429,10 +429,10 @@ sub generate_sub_report {
                                             # 'crispr_vector_wells',
                                             # 'crispr_dna_wells',
                                             # 'accepted_crispr_dna_wells',
-                                            'accepted_crispr_pairs',
+                                            'accepted_crispr_vector',
                                             # 'vector_designs',
                                             'vector_wells',
-                                            # 'vector_pcr_passes',
+                                            'vector_pcr_passes',
                                             # 'targeting_vector_wells',
                                             # 'accepted_vector_wells',
                                             'passing_vector_wells',
@@ -454,7 +454,7 @@ sub generate_sub_report {
                                             'crisprs constructed',
                                             # 'vector designs',
                                             'ordered targeting vectors',
-                                            # "PCR-passing design oligos",
+                                            "PCR-passing design oligos",
                                             # 'final vector clones',
                                             # 'QC-verified vectors',
                                             'vectors constructed',
@@ -787,7 +787,8 @@ sub genes {
 
         # get the plates
         my $sql =  <<"SQL_END";
-SELECT design_id, concat(design_plate_name, '_', design_well_name) AS DESIGN,
+SELECT design_id,
+concat(design_plate_name, '_', design_well_name) AS DESIGN,
 concat(int_plate_name, '_', int_well_name) AS INT,
 concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
 concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
@@ -838,6 +839,41 @@ SQL_END
 
         # DESIGN
         @design = uniq @design;
+
+        my $pcr_passes;
+        foreach my $well (@design) {
+
+            my ($plate_name, $well_name ) = ('', '');
+            if ( $well =~ m/^(.*?)_([a-z]\d\d)$/i ) {
+                ($plate_name, $well_name ) = ($1, $2);
+            }
+
+            my ($l_pcr, $r_pcr) = ('', '');
+            try{
+                my $well_id = $self->model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } )->id;
+
+                $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_u',
+                },{
+                    select => [ 'result' ],
+                })->result;
+
+                $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_d',
+                },{
+                    select => [ 'result' ],
+                })->result;
+            }catch{
+                DEBUG "No pcr status found for well " . $well_name;
+            };
+
+            if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
+                $pcr_passes++;
+            }
+        }
+
 
         # Store design IDs to use in crispr summary query
         foreach my $design_id (uniq @design_ids){
@@ -955,7 +991,7 @@ SQL_END
             # 'crispr_pairs'           => $crispr_pairs_count,
             # 'vector_designs'         => $design_count,
             'vector_wells'           => scalar @design,
-            # 'vector_pcr_passes'      => $pcr_passes,
+            'vector_pcr_passes'      => $pcr_passes,
             # 'targeting_vector_wells' => $final_count,
             # 'accepted_vector_wells'  => $final_pass_count,
             'passing_vector_wells'   => $dna_pass_count,
@@ -989,6 +1025,7 @@ SQL_END
             # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
             $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
             $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
@@ -1004,10 +1041,11 @@ sub add_crispr_well_counts_for_gene{
     # my $crispr_vector_count = 0;
     # my $crispr_dna_count = 0;
     # my $crispr_dna_accepted_count = 0;
-    my $crispr_pair_accepted_count = 0;
+    # my $crispr_pair_accepted_count = 0;
+    my $crispr_vector_accepted_count = 0;
     foreach my $design_id (@{ $designs_for_gene->{$gene_id} || []}){
         my $plated_crispr_summary = $design_crispr_summary->{$design_id}->{plated_crisprs};
-        my %has_accepted_dna;
+        #my %has_accepted_dna;
         foreach my $crispr_id (keys %$plated_crispr_summary){
             my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
             $crispr_count += scalar( @crispr_well_ids );
@@ -1016,34 +1054,37 @@ sub add_crispr_well_counts_for_gene{
                 # CRISPR_V well count
                 my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
                 # $crispr_vector_count += $vector_rs->count;
+                my @accepted = grep { $_->is_accepted } $vector_rs->all;
+                $crispr_vector_accepted_count += scalar(@accepted);
 
                 # DNA well counts
-                my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
+                # my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
                 # $crispr_dna_count += $dna_rs->count;
-                my @accepted = grep { $_->is_accepted } $dna_rs->all;
+                # my @accepted = grep { $_->is_accepted } $dna_rs->all;
                 # $crispr_dna_accepted_count += scalar(@accepted);
 
-                if(@accepted){
-                    $has_accepted_dna{$crispr_id} = 1;
-                }
+                # if(@accepted){
+                #     $has_accepted_dna{$crispr_id} = 1;
+                # }
             }
         }
         # Count pairs for this design which have accepted DNA for both left and right crisprs
-        my $crispr_pairs = $design_crispr_summary->{$design_id}->{plated_pairs} || {};
-        foreach my $pair_id (keys %$crispr_pairs){
-            my $left_id = $crispr_pairs->{$pair_id}->{left_id};
-            my $right_id = $crispr_pairs->{$pair_id}->{right_id};
-            if ($has_accepted_dna{$left_id} and $has_accepted_dna{$right_id}){
-                DEBUG "Crispr pair $pair_id accepted";
-                $crispr_pair_accepted_count++;
-            }
-        }
+        # my $crispr_pairs = $design_crispr_summary->{$design_id}->{plated_pairs} || {};
+        # foreach my $pair_id (keys %$crispr_pairs){
+        #     my $left_id = $crispr_pairs->{$pair_id}->{left_id};
+        #     my $right_id = $crispr_pairs->{$pair_id}->{right_id};
+        #     if ($has_accepted_dna{$left_id} and $has_accepted_dna{$right_id}){
+        #         DEBUG "Crispr pair $pair_id accepted";
+        #         $crispr_pair_accepted_count++;
+        #     }
+        # }
     }
     $gene_data->{crispr_wells} = $crispr_count;
     # $gene_data->{crispr_vector_wells} = $crispr_vector_count;
     # $gene_data->{crispr_dna_wells} = $crispr_dna_count;
     # $gene_data->{accepted_crispr_dna_wells} = $crispr_dna_accepted_count;
-    $gene_data->{accepted_crispr_pairs} = $crispr_pair_accepted_count;
+    # $gene_data->{accepted_crispr_pairs} = $crispr_pair_accepted_count;
+    $gene_data->{accepted_crispr_vector} = $crispr_vector_accepted_count;
 
     return;
 }
@@ -1140,7 +1181,7 @@ sub mgp_recovery_genes {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
             'crispr_wells'           => $crispr_count,
-            'accepted_crispr_pairs'  => $crispr_vector_count,
+            'accepted_crispr_vector'  => $crispr_vector_count,
             'sponsors'               => '0',
             # 'crispr_pairs'           => $crispr_pairs_count,
             # 'vector_designs'         => $design_count,
@@ -1166,7 +1207,7 @@ sub mgp_recovery_genes {
             # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
             $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_pairs' } <=> $a->{ 'accepted_crispr_pairs' } ||
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
             $b->{ 'crispr_wells' }          <=> $a->{ 'crispr_wells' }          ||
             $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;

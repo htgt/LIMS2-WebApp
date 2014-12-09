@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.270';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.275';
 }
 ## use critic
 
@@ -700,8 +700,14 @@ sub build_qc_data {
         $qc_data{crispr_chr_name} = $crispr->chr_name;
     }
 
-    if ( $analyser && $analyser->vcf_file_target_region ) {
-        $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp;
+    if ( $analyser ) {
+        $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp if $analyser->vcf_file_target_region;
+        $qc_data{variant_size} = $analyser->variant_size if $analyser->variant_size;
+        if ( $analyser->variant_type ) {
+            $qc_data{crispr_damage_type} = $analyser->variant_type;
+            # if a variant type other can no-call has been made then mark well accepted
+            $qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
+        }
     }
 
     if ( exists $well_reads->{forward} ) {

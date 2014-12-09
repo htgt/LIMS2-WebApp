@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcTemplateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.270';
+    $LIMS2::Model::Schema::Result::QcTemplateWell::VERSION = '0.275';
 }
 ## use critic
 
@@ -254,6 +254,12 @@ sub design_id {
     my $self = shift;
 
     return $self->qc_eng_seq->design_id;
+}
+
+sub crispr_id {
+    my $self = shift;
+
+    return $self->qc_eng_seq->crispr_id;
 }
 
 __PACKAGE__->meta->make_immutable;

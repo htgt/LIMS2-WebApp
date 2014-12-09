@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.270';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.275';
 }
 ## use critic
 
@@ -10,7 +10,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Moose::Role;
-use Hash::MoreUtils qw( slice slice_def );
+use Hash::MoreUtils qw( slice slice_def slice_exists);
 use TryCatch;
 use LIMS2::Exception;
 use namespace::autoclean;
@@ -47,7 +47,7 @@ sub pspec_retrieve_project_by_id {
 sub retrieve_project_by_id {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project_by_id );
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project_by_id , ignore_unknown => 1);
 
     my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id sponsor_id gene_id targeting_type species_id ) } );
 
@@ -87,6 +87,31 @@ sub set_recovery_comment {
 
     return $project;
 }
+
+sub _pspec_update_project{
+    return {
+        id             => { validate => 'integer' },
+        concluded      => { validate => 'boolean', optional => 1, rename => 'effort_concluded' },
+        recovery_class => { validate => 'existing_recovery_class', optional => 1 },
+        comment        => { optional => 1, rename => 'recovery_comment' },
+        priority       => { optional => 1 },
+        MISSING_OPTIONAL_VALID => 1,
+    };
+}
+sub update_project {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->_pspec_update_project);
+
+    my $project = $self->retrieve_project_by_id($validated_params);
+
+    my $update_params = {slice_exists $validated_params, qw(effort_concluded recovery_class recovery_comment priority)};
+
+    $project->update( $update_params );
+
+    return $project;
+}
+
 
 1;
 

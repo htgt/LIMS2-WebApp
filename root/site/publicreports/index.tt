@@ -14,6 +14,9 @@
       <li>
         <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Progress Report</a>
       </li>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/allele_dump' ) %]">Allele Dump</a>
+      </li>
     </ul>
   </div>
 </div>

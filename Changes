@@ -1,3 +1,24 @@
+0.275     2014-12-09 16:54:27 Europe/London
+
+    Added pcp passed to sponsor sub report when user is logged in
+
+0.274     2014-12-09 15:49:31 Europe/London
+
+   Added recovery reports
+
+0.273     2014-12-04 15:51:45 Europe/London
+
+    Added public report AlleleDump to generate a (compressed) csv for partner download
+
+0.272     2014-12-03 16:04:43 Europe/London
+
+    Bugfix: recovery class foreign key added to correct column
+    Update interface for crispr es qc, allow validation of qc run.
+
+0.271     2014-12-03 07:42:17 Europe/London
+
+    Update Legacy Cre KnockIn report
+
 0.270     2014-11-21 15:05:18 Europe/London
 
     QcRunSummary report gene symbols and support for crispr qc

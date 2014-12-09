@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.270';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.275';
 }
 ## use critic
 
@@ -10,6 +10,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Moose::Role;
+use DDP;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -63,6 +64,9 @@ sub pspec_create_crispr_es_qc_well {
         vcf_file            => { validate => 'non_empty_string', optional => 1 },
         crispr_es_qc_run_id => { validate => 'non_empty_string' },
         species             => { validate => 'existing_species' },
+        crispr_damage_type  => { validate => 'existing_crispr_damage_type', optional => 1, rename => 'crispr_damage_type_id' },
+        variant_size        => { validate => 'integer', optional => 1 },
+        accepted            => { validate => 'boolean', optional => 1 },
     };
 }
 
@@ -75,6 +79,19 @@ sub create_crispr_es_qc_well {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_well );
+
+    # if the qc well has been marked accepted run this logic
+    if ( $validated_params->{accepted} ) {
+        my $well = $self->retrieve_well( { id => $validated_params->{well_id} } );
+        # only mark qc accepted if the linked well is not already accepted in another run
+        if ( $well->accepted ) {
+            delete $validated_params->{accepted};
+        }
+        # mark the linked well accepted
+        else {
+            $well->update( { accepted => 1 } );
+        }
+    }
 
     my $species = delete $validated_params->{species};
     if ( $validated_params->{crispr_chr_name} ) {
@@ -160,10 +177,33 @@ sub retrieve_crispr_es_qc_run {
     return $self->retrieve( CrisprEsQcRuns => $validated_params );
 }
 
-sub pspec_update_crispr_well_damage {
+=head2 validate_crispr_es_qc_run
+
+Update a crispr es qc run plus all of its wells to validated.
+
+=cut
+sub validate_crispr_es_qc_run {
+    my ( $self, $params ) = @_;
+
+    my $crispr_es_qc_run = $self->retrieve_crispr_es_qc_run( $params );
+    $crispr_es_qc_run->update( { validated => 1 } );
+
+    $self->log->info( 'Validated crispr es qc run ' . $crispr_es_qc_run->id );
+
+    return;
+}
+
+sub pspec_update_crispr_es_qc_well {
     return {
         id          => { validate => 'integer' },
-        damage_type => { validate => 'existing_crispr_damage_type', optional => 1 },
+        damage_type => {
+            validate => 'existing_crispr_damage_type',
+            optional => 1,
+            rename   => 'crispr_damage_type_id'
+            },
+        variant_size => { validate => 'integer', optional => 1 },
+        accepted     => { validate => 'boolean_string', optional => 1 },
+        MISSING_OPTIONAL_VALID => 1,
     };
 }
 
@@ -172,28 +212,28 @@ sub pspec_update_crispr_well_damage {
 Update the crispr_damage type value of a crispr es qc well row
 
 =cut
-sub update_crispr_well_damage {
+sub update_crispr_es_qc_well{
     my ( $self, $params ) = @_;
 
-    # to deal with user unsetting a damage type
-    delete $params->{damage_type} unless $params->{damage_type};
+    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_es_qc_well );
 
-    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_well_damage );
-
-    my $qc_well = $self->schema->resultset('CrisprEsQcWell')->find(
-        {
-            id => $validated_params->{id},
-        },
-    );
+    my $id = delete $validated_params->{id};
+    my $qc_well = $self->schema->resultset('CrisprEsQcWell')->find( { id => $id } );
     unless ( $qc_well ) {
         $self->throw(
-            NotFound => { entity_class  => 'CrisprEsQcWell', search_params => $validated_params }
-        );
+            NotFound => { entity_class => 'CrisprEsQcWell', search_params => { id => $id } } );
     }
-    my $damage_type = $validated_params->{damage_type} ? $validated_params->{damage_type} : undef;
 
-    $qc_well->update( { crispr_damage_type_id => $damage_type } );
-    $self->log->info( "Updated crispr damage type on crispr es qc well: " . $qc_well->id . ' to: ' . ( $damage_type ? $damage_type : 'unset' ) );
+    $qc_well->update( $validated_params );
+
+    $self->log->info( "Updated crispr es qc well "
+            . $qc_well->id . ' to: ' . p( $validated_params ) );
+
+    if ( exists $validated_params->{accepted} ) {
+        my $well = $qc_well->well;
+        $well->update( { accepted => $validated_params->{accepted} } );
+        $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
+    }
 
     return $qc_well;
 }

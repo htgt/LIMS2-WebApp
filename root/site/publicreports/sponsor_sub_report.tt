@@ -99,6 +99,10 @@ document.title = "[%- sponsor_id %]";
             <th>[% disp_col %] <i class="icon-question-sign" id="accepted_crispr_pairs" href="#"
             data-content="Number of crispr pairs with accepted DNA wells for both left and right crispr"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "PCR-passing design oligos" %]
+          [% IF c.user %]
+            <th>[% disp_col %]</th>
+          [%- END %]
         [%- ELSE %]
             <th>[% disp_col %]</th>
         [%- END %]
@@ -145,12 +149,11 @@ document.title = "[%- sponsor_id %]";
         [%- ELSIF !colval %]
             <td></td>
         [%- ELSE %]
-          [%- IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_pairs' %]
+          [%- IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_vector' %]
             <td style="background:#8AD95A" >[%- colval %]</td>
           [%- ELSIF col == 'crispr_pairs'
                 || col == 'vector_designs'
                 || col == 'vector_wells'
-                || col == 'vector_pcr_passes'
                 || col == 'targeting_vector_wells'
                 || col == 'accepted_vector_wells'
                 || col == 'electroporations'
@@ -163,6 +166,10 @@ document.title = "[%- sponsor_id %]";
                 || col == 'priority'
                 || col == 'effort_concluded' %]
             <td style="background:#E5E4E2" >[%- colval %]</td>
+          [%- ELSIF col == 'vector_pcr_passes' %]
+            [% IF c.user %]
+              <td style="background:#E5E4E2" >[%- colval %]</td>
+            [%- END %]
           [%- ELSE %]
             <td>[%- colval %]</td>
           [%- END %]
