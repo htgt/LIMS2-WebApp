@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.274     2014-12-09 15:49:31 Europe/London
+
+   Added recovery reports
+
 0.273     2014-12-04 15:51:45 Europe/London
 
     Added public report AlleleDump to generate a (compressed) csv for partner download
