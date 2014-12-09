@@ -9,6 +9,12 @@ use JSON;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 
+has custom_template => (
+    is         => 'ro',
+    isa        => 'Str',
+    required   => 0
+);
+
 has name => (
     is         => 'ro',
     isa        => 'Str',
@@ -57,6 +63,12 @@ sub _build_columns {
 
 sub iterator {
     confess( "iterator() must be implemented by a subclass" );
+}
+
+sub structured_data {
+    # optionally override to create a data structure to pass to the report view
+    # data structure will be cached on disk using json so must not contain objects
+    return;
 }
 
 sub boolean_str {
@@ -202,6 +214,24 @@ sub design_types_for {
 
     return;
 }
+
+sub qc_result_cols {
+    my ( $self, $well ) = @_;
+
+    my $result = $well->well_qc_sequencing_result;
+
+    if ( $result ) {
+        return (
+            $result->test_result_url,
+            $result->valid_primers,
+            $self->boolean_str( $result->mixed_reads ),
+            $self->boolean_str( $result->pass )
+        );
+    }
+
+    return ('')x4;
+}
+
 __PACKAGE__->meta->make_immutable();
 
 1;

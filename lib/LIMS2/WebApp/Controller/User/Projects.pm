@@ -1,6 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 use Moose;
 use LIMS2::WebApp::Pageset;
+use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 
@@ -202,7 +203,53 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') Ca
     return;
 }
 
+sub update_project :Path( '/user/update_project' ) :Args(0) {
+    my ($self, $c) = @_;
 
+    $c->assert_user_roles('read');
+
+    my $params = $c->request->params;
+
+    my @report_params = qw(gene_id stage sponsor);
+
+    my $project_id = $params->{id};
+
+    unless($project_id){
+        $c->flash( error_msg => "Could not update project - no project ID provided");
+        return $c->response->redirect( $c->uri_for('/user/report/sync/RecoveryDetail',
+                                      { slice_def $params, @report_params } ) );
+    }
+
+    my $failed = 0;
+    $c->model('Golgi')->txn_do( sub {
+        try{
+            my $project_params = { slice_exists $params, qw(id recovery_class comment priority) };
+
+            # Need to set the concluded flag here because
+            # form will not submit concluded=>false when checkbox is unchecked
+            if($params->{concluded}){
+                $project_params->{concluded} = 1;
+            }
+            else{
+                $project_params->{concluded} = 0;
+            }
+
+            $c->model('Golgi')->update_project($project_params);
+        }
+        catch{
+            $failed = 1;
+            $c->model('Golgi')->schema->txn_rollback;
+            $c->flash( error_msg => "Could not update project - $_");
+        }
+    });
+
+    unless($failed){
+        $c->flash( success_msg => "Project $project_id was successfully updated");
+    }
+
+    return $c->response->redirect( $c->uri_for('/user/report/sync/RecoveryDetail',
+                                      { slice_def $params, @report_params } ) );
+}
 
 =head1 AUTHOR
 

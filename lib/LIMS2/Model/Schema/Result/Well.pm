@@ -593,6 +593,11 @@ sub as_hash {
     };
 }
 
+sub plate_name {
+    my $self = shift;
+    return $self->plate->name;
+}
+
 has ancestors => (
     is         => 'ro',
     isa        => 'LIMS2::Model::ProcessGraph',
@@ -681,6 +686,20 @@ sub recombineering_result {
         or return;
 
     return $rec_result;
+}
+
+sub recombineering_results_string{
+    my ( $self ) = @_;
+
+    my @results = $self->well_recombineering_results_rs->search(
+        undef,
+        { order_by => { '-asc', 'result_type_id '} }
+    )->all;
+
+    my @strings = map { $_->result_type_id.":".$_->result } @results;
+    my $string = join ", ",@strings;
+    DEBUG("recombineering results string: $string");
+    return $string;
 }
 
 sub cassette {
@@ -1412,6 +1431,16 @@ sub _group_primers {
   return $key, { name => $name, seq => $seq };
 }
 
+sub egel_pass_string {
+    my ($self) = @_;
+
+    my $string = "-";
+
+    if(my $quality = $self->well_dna_quality){
+        $string = $quality->egel_pass ? "pass" : "fail";
+    }
+    return $string;
+}
 # Compute accepted flag for DNA created from FINAL_PICK
 # accepted = true if:
 # FINAL_PICK qc_sequencing_result pass == true AND
