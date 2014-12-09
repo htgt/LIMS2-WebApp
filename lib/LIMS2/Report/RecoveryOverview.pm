@@ -299,7 +299,7 @@ sub _build_crispr_stage_data {
                     push @crispr_well_ids, $crispr_well;
 
                     my $date = $design_crisprs->{$crispr}->{$crispr_well}->{crispr_well_created};
-                    my $first_crispr_well_date = _update_earliest_date($first_crispr_well_date,$date);
+                    $first_crispr_well_date = _update_earliest_date($first_crispr_well_date,$date);
 
                     my $dna_rs = $design_crisprs->{$crispr}->{$crispr_well}->{DNA};
                     my $vector_rs = $design_crisprs->{$crispr}->{$crispr_well}->{CRISPR_V};
@@ -311,14 +311,14 @@ sub _build_crispr_stage_data {
                     }
                     elsif($dna_rs != 0){
                         my $first = $dna_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
-                        my $date = $first->created_at;
-                        $first_dna_date = _update_earliest_date($first_dna_date, $date);
+                        my $dna_date = $first->created_at;
+                        $first_dna_date = _update_earliest_date($first_dna_date, $dna_date);
                         push @dna_wells, $dna_rs->all;
                     }
                     elsif($vector_rs != 0){
                         my $first = $vector_rs->search({},{ order_by => {'-asc' => 'me.created_at '} })->first;
-                        my $date = $first->created_at;
-                        $first_vector_date = _update_earliest_date($first_vector_date,$date);
+                        my $vector_date = $first->created_at;
+                        $first_vector_date = _update_earliest_date($first_vector_date,$vector_date);
                         push @crispr_v_wells, $vector_rs->all;
                     }
                 }
@@ -457,5 +457,5 @@ override structured_data => sub {
     return $data;
 };
 
-return 1;
+1;
 

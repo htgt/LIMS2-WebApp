@@ -145,7 +145,7 @@ document.title = "[%- sponsor_id %]";
         [%- ELSIF !colval %]
             <td></td>
         [%- ELSE %]
-          [%- IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_pairs' %]
+          [%- IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_vector' %]
             <td style="background:#8AD95A" >[%- colval %]</td>
           [%- ELSIF col == 'crispr_pairs'
                 || col == 'vector_designs'

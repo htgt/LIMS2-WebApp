@@ -22,6 +22,7 @@ use Const::Fast;
 use DateTime;
 use DateTime::Duration;
 use JSON;
+use IO::Compress::Gzip qw(gzip $GzipError);
 
 const my $WORK_DIR       => dir( $ENV{LIMS2_REPORT_DIR} || '/var/tmp/lims2-reports' );
 const my $CACHE_FILE_TTL => DateTime::Duration->new( days => 3 );
@@ -86,6 +87,24 @@ sub read_report_from_disk {
     };
 
     return ( $report_name, $report_fh, $template_name, $report_data );
+}
+
+sub compress_report_on_disk {
+    my $report_id = shift;
+
+    my $dir = $WORK_DIR->subdir( $report_id );
+
+    my $report_fh = $dir->file( 'report.csv' )->openr;
+    my $report_name = $dir->file( 'name' )->slurp;
+
+    my $gz_fh = $dir->file( 'report.csv.gz' )->openw;
+
+    gzip $report_fh => $gz_fh, 'AutoClose' => 1
+        or die "gzip failed: $GzipError\n";
+
+    my $compressed_fh = $dir->file( 'report.csv.gz' )->openr;
+
+    return ( $report_name, $compressed_fh );
 }
 
 sub _cached_report_ok {

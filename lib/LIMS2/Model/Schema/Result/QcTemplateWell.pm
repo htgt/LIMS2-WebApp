@@ -250,5 +250,11 @@ sub design_id {
     return $self->qc_eng_seq->design_id;
 }
 
+sub crispr_id {
+    my $self = shift;
+
+    return $self->qc_eng_seq->crispr_id;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

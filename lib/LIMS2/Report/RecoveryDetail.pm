@@ -1,3 +1,4 @@
+## no critic (ProhibitExcessMainComplexity)
 package LIMS2::Report::RecoveryDetail;
 
 use Moose;
@@ -144,7 +145,7 @@ override _build_name => sub {
     my $self = shift;
 
     my $dt = DateTime->now();
-    my $append .= $self->has_gene_id ? ' - Gene ' . $self->gene_id . ' ' : '';
+    my $append = $self->has_gene_id ? ' - Gene ' . $self->gene_id . ' ' : '';
     $append .= $dt->ymd;
 
     return 'Recovery Detail ' . $self->sponsor . ' ' . $self->stage . ' ' . $append;
@@ -190,9 +191,6 @@ override iterator => sub {
         else{
             $gene_symbol = $gene_id;
         }
-        DEBUG "gene id: ";
-        use Data::Dumper;
-        DEBUG Dumper($gene_id);
 
     	foreach my $summary (@$summary_data){
     		my @details = ($gene_symbol);
@@ -238,9 +236,6 @@ override structured_data => sub {
         else{
             $gene_symbol = $gene_id;
         }
-        DEBUG "gene id: ";
-        use Data::Dumper;
-        DEBUG Dumper($gene_id);
 
         my $gene_info = {};
         my $summary_count = 0;
@@ -284,7 +279,8 @@ override structured_data => sub {
     }
 
     $extra_data->{genes} = \@genes;
-    use Data::Dumper;
-    DEBUG(Dumper($extra_data));
     return $extra_data;
 };
+
+1;
+

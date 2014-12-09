@@ -68,7 +68,7 @@ sub iterator {
 sub structured_data {
     # optionally override to create a data structure to pass to the report view
     # data structure will be cached on disk using json so must not contain objects
-    return undef;
+    return;
 }
 
 sub boolean_str {
