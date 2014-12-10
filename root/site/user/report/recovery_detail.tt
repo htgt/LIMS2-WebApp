@@ -29,7 +29,7 @@
         [% FOR project IN gene.projects %]
           <br>Project [% project.id %] recovery class: [% project.recovery_class %]
           [% IF project.concluded %](concluded)[% END %]
-          <button class="btn btn-primary btn-mini show-modal" data-id="[% project.id %]" data-class="[% project.recovery_class %]" data-concluded="[% project.concluded %]" data-priority="[% project.priority %]" data-comment="[% project.comment %]">Edit</button>
+          <button class="btn btn-primary btn-mini show-modal" data-id="[% project.id %]" data-recovery-class="[% project.recovery_class_id %]" data-concluded="[% project.concluded %]" data-priority="[% project.priority %]" data-comment="[% project.comment %]">Edit</button>
           <br>
         [% END %]
       </td>
@@ -68,10 +68,10 @@
       <input type="hidden" name="id" value="" id="project_id_input" />
 
       Recovery class:<br>
-      <select id="class_select" name="recovery_class">
+      <select id="class_select" name="recovery_class_id">
         <option value=""></option>
         [% FOR class IN extra_data.recovery_classes %]
-          <option value="[% class %]">[% class %]</option>
+          <option value="[% class.id %]">[% class.name %]</option>
         [% END %]
       </select>
       <br>Priority:<br>
@@ -100,7 +100,7 @@ $('.show-modal').on('click', function (event) {
   var modal = $('#EditModal');
   modal.find('#modal-text').text('Edit project ' + project_id);
   modal.find('#project_id_input').val(project_id);
-  modal.find('#class_select').val(button.data('class'));
+  modal.find('#class_select').val(button.data('recovery-class'));
   modal.find('#priority').val(button.data('priority'));
   modal.find('#concluded').prop('checked', button.data('concluded'));
   modal.find('#comment').val( button.data('comment') );
