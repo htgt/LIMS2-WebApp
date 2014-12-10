@@ -240,6 +240,11 @@ sub as_hash {
     }
 }
 
+sub recovery_class_id {
+    my $self = shift;
+
+    return $self->recovery_class ? $self->recovery_class->id : undef;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

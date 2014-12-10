@@ -257,6 +257,10 @@ sub pass_or_fail {
     return shift->regexp_matches(qr/^(pass|fail)$/i);
 }
 
+sub existing_recovery_class {
+    return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -233,79 +233,42 @@ sub retrieve_qc_run_summary_results {
 
     my @summary;
 
+    my $run_type = 'design_id';
     if ($crispr_run) {
+        $run_type = 'crispr_id';
+    }
 
-        my %seen_gene;
+    my $template_well_rs = $qc_run->qc_template->qc_template_wells;
+    my %seen;
 
-        foreach my $row ( @{$results} ) {
+    while ( my $template_well = $template_well_rs->next ) {
+        next
+            unless $template_well->$run_type
+                and not $seen{ $template_well->$run_type }++;
 
-            my $gene_symbol = $row->{gene_symbol};
+        my %s = (
+            $run_type => $template_well->$run_type,
+        );
 
-            next unless (!$seen_gene{$gene_symbol} && $gene_symbol);
-
-            $seen_gene{$gene_symbol} = 1;
-
-            my %s = (
-                crispr_id => $row->{crispr_id},
-            );
-
-            my @results = reverse sort {
-                       ( $a->{pass} || 0 ) <=> ( $b->{pass} || 0 )
-                    || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
-                    || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
-                    || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
-                    || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 )
-                }
-                grep { $_->{gene_symbol} and $_->{gene_symbol} eq $gene_symbol } @{$results};
-
-            if ( my $best = shift @results ) {
-                $s{plate_name}    = $best->{plate_name};
-                $s{well_name}     = uc $best->{well_name};
-                $s{well_name_384} = uc $best->{well_name_384};
-                $s{valid_primers} = join( q{,}, @{ $best->{valid_primers} } );
-                $s{pass}          = $best->{pass};
-                $s{gene_symbol}   = $best->{gene_symbol};
+        my @results = reverse sort {
+                   ( $a->{pass}                || 0 ) <=> ( $b->{pass}                || 0 )
+                || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
+                || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
+                || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
+                || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 )
             }
-            push @summary, \%s;
+            grep { $_->{$run_type} and ($_->{$run_type} == $template_well->$run_type) } @{$results};
+
+        if ( my $best = shift @results ) {
+            $s{plate_name}    = $best->{plate_name};
+            $s{well_name}     = uc $best->{well_name};
+            $s{well_name_384} = uc $best->{well_name_384};
+            $s{valid_primers} = join( q{,}, @{ $best->{valid_primers} } );
+            $s{pass}          = $best->{pass};
+            $s{gene_symbol}   = $best->{gene_symbol};
         }
 
-    } else {
-
-        my $template_well_rs = $qc_run->qc_template->qc_template_wells;
-        my %seen_design;
-
-        while ( my $template_well = $template_well_rs->next ) {
-            next
-                unless $template_well->design_id
-                    and not $seen_design{ $template_well->design_id }++;
-
-
-            my $design_id = $template_well->design_id;
-
-            my %s = (
-                design_id => $template_well->design_id,
-            );
-
-            my @results = reverse sort {
-                       ( $a->{pass} || 0 ) <=> ( $b->{pass} || 0 )
-                    || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
-                    || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
-                    || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
-                    || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 )
-                }
-                grep { $_->{design_id} and ($_->{design_id} == $template_well->design_id) } @{$results};
-
-            if ( my $best = shift @results ) {
-                $s{plate_name}    = $best->{plate_name};
-                $s{well_name}     = uc $best->{well_name};
-                $s{well_name_384} = uc $best->{well_name_384};
-                $s{valid_primers} = join( q{,}, @{ $best->{valid_primers} } );
-                $s{pass}          = $best->{pass};
-                $s{gene_symbol}   = $best->{gene_symbol};
-            }
-            push @summary, \%s;
-        }
-
+        push @summary, \%s;
     }
 
     return \@summary;
