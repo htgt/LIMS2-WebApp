@@ -218,16 +218,27 @@ sub update_crispr_es_qc_well{
             NotFound => { entity_class => 'CrisprEsQcWell', search_params => { id => $id } } );
     }
 
+    # if the qc well has been marked accepted run this logic
+    if ( exists $validated_params->{accepted} ) {
+        my $well = $qc_well->well;
+        # only mark qc accepted if the linked well is not already accepted in another run
+        if ( $well->accepted && $validated_params->{accepted} eq 'true' ) {
+            delete $validated_params->{accepted};
+            $self->log->warn(
+                'Well already accepted in another run, not marking crispr es qc well as accepted');
+        }
+        # mark the linked well accepted
+        else {
+            $well->update( { accepted => $validated_params->{accepted} } );
+            $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
+        }
+    }
+
     $qc_well->update( $validated_params );
 
     $self->log->info( "Updated crispr es qc well "
             . $qc_well->id . ' to: ' . p( $validated_params ) );
 
-    if ( exists $validated_params->{accepted} ) {
-        my $well = $qc_well->well;
-        $well->update( { accepted => $validated_params->{accepted} } );
-        $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
-    }
 
     return $qc_well;
 }
