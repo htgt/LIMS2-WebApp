@@ -5,11 +5,12 @@
   <fieldset>
     <legend>Effort Recovery Classes</legend>
 
-    <p>Editing recovery class "[% edit_class.id %]".</p>
+    <p>Editing recovery class "[% edit_class.name %]".</p>
     <table>
     <tr>
+      <input type="hidden" name="update_recovery_class_id" value="[% edit_class.id %]">
       <td>Name:</td>
-      <td><input type="text" class="input-xxlarge" name="update_recovery_class_id" value="[% edit_class.id %]"></td></tr>
+      <td><input type="text" class="input-xxlarge" name="update_recovery_class_name" value="[% edit_class.name %]"></td></tr>
       <br />
     <tr>
       <td>Description:</td>
@@ -63,7 +64,7 @@
     [%- FOR recovery_class IN recovery_classes %]
     <tr>
       <td>
-        [%- recovery_class.id %]
+        [%- recovery_class.name %]
       </td>
       <td>
         [%- recovery_class.description %]
