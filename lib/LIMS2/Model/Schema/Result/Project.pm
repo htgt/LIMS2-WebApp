@@ -83,12 +83,6 @@ __PACKAGE__->table("projects");
   default_value: false
   is_nullable: 0
 
-=head2 recovery_class
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =head2 recovery_comment
 
   data_type: 'text'
@@ -97,6 +91,12 @@ __PACKAGE__->table("projects");
 =head2 priority
 
   data_type: 'text'
+  is_nullable: 1
+
+=head2 recovery_class_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 1
 
 =cut
@@ -123,12 +123,12 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "effort_concluded",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
-  "recovery_class",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
   "recovery_comment",
   { data_type => "text", is_nullable => 1 },
   "priority",
   { data_type => "text", is_nullable => 1 },
+  "recovery_class_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -194,7 +194,7 @@ Related object: L<LIMS2::Model::Schema::Result::ProjectRecoveryClass>
 __PACKAGE__->belongs_to(
   "recovery_class",
   "LIMS2::Model::Schema::Result::ProjectRecoveryClass",
-  { id => "recovery_class" },
+  { id => "recovery_class_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -219,8 +219,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 15:40:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gp9bd7euuZta5rwWDBvWUQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-10 15:44:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pcaAhv7dSjYJoY0nJNHnWQ
 
 sub as_hash {
     my $self = shift;
@@ -240,10 +240,10 @@ sub as_hash {
     }
 }
 
-sub recovery_class_id {
+sub recovery_class_name {
     my $self = shift;
 
-    return $self->recovery_class ? $self->recovery_class->id : undef;
+    return $self->recovery_class ? $self->recovery_class->name : undef;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
