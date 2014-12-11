@@ -6,7 +6,7 @@
     <td>[% row.es_qc_well_id %]</td>
 [% END %]
 
-[% IF row.gene %]
+[% UNLESS hide_gene %]
     <td>[% row.gene %]</td>
 [% END %]
 
@@ -76,10 +76,6 @@
        </div>
     </td>
 [% ELSE %]
-
-    <td>
-        [% IF row.well_accepted %]<span class="label label-success">Accepted</span>[% END %]
-    </td>
 
     <td>
         [% row.damage_type %]

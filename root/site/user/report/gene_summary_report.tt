@@ -167,19 +167,17 @@ function toggle_btn(btn, show_or_hide) {
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Crispr QC <small>EP_PICK & PIQ</small></a>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Crispr QC <small>Accepted EP_PICK & PIQ</small></a>
       </h3>
     </div>
-    <div id="collapseCrisprQC" class="accordion-body collapse">
+    <div id="collapseCrisprQC" class="accordion-body collapse" style="overflow-x:auto">
       <div class="accordion-inner">
         <table class="table table-striped">
           <thead>
               <tr>
                   <th>Well</th>
-                  <th>Gene</th>
                   <th>Crispr ID</th>
                   <th>Alignment</th>
-                  <th>Accepted</th>
                   <th>Damage</th>
                   <th>Size</th>
               </tr>
@@ -195,6 +193,7 @@ function toggle_btn(btn, show_or_hide) {
                     hide_crispr_well_id = 1
                     complete_info       = 0
                     hide_well_name      = 1
+                    hide_gene           = 1
                 %]
             </tr>
 
@@ -212,6 +211,7 @@ function toggle_btn(btn, show_or_hide) {
                     hide_crispr_well_id = 1
                     complete_info       = 0
                     hide_well_name      = 1
+                    hide_gene           = 1
                 %]
                 [% ELSE %]
                   <td colspan="7">
