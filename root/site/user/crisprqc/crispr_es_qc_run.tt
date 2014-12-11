@@ -24,17 +24,13 @@ $(document).ready(function() {
     $("#validate_run").click(function(e) {
         e.preventDefault();
 
-        if ( $(this).hasClass('disabled') ) {
-            return;
-        }
-
         var element = $(this);
         element.removeClass('btn-primary').addClass('btn-warning');
         element.text('... validating');
 
         $.ajax({
             type: "POST",
-            url: '[% c.uri_for("/api/validate_crispr_es_qc_run") %]',
+            url: '[% c.uri_for("/api/update_crispr_es_qc_run") %]',
             data: {
                 "id": '[% qc_run_id %]'
             },
@@ -74,14 +70,20 @@ $(document).ready(function() {
             <th>Sub Project</th>
             <td>[% sub_project %]</td>
         </tr>
+        <tr>
+            <th>Validated</th>
+            <td>
+                <span class="label label-success" [% UNLESS run_validated %]hidden[% END %]>Validated</span>
+            </td>
+        </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
         <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
     [% IF wells.size > 0 %]
-    <a id="validate_run" class="btn pull-right [% IF run_validated %]btn-success disabled[% ELSE %]btn-primary[% END %]" role="button">
-        <i class="icon-ok icon-white"></i> [% IF run_validated %]Validated[% ELSE %]Validate QC Run[% END %]
-    </a>
+        <a id="in_validate_run" class="btn pull-right [% IF run_validated %]btn-warning[% ELSE %]btn-primary[% END %]" role="button">
+            [% IF run_validated %]Invalidate Qc Run[% ELSE %]Validate QC Run[% END %]
+        </a>
     [% END %]
 </div>
 

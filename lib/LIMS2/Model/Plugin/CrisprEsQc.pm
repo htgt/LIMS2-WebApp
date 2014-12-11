@@ -65,7 +65,7 @@ sub update_crispr_es_qc_run {
     my $qc_run_id = delete $validated_params->{id};
     my $qc_run = $self->retrieve( CrisprEsQcRuns => { id => $qc_run_id } );
 
-    $qc_run->update( $validated_params )
+    $qc_run->update( $validated_params );
     $self->log->info( "Updated crispr es qc run $qc_run_id  to: " . p( $validated_params ) );
 
     return $qc_run;
