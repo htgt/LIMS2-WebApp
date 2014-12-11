@@ -167,12 +167,11 @@ function toggle_btn(btn, show_or_hide) {
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Crispr QC</a>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Crispr QC <small>EP_PICK & PIQ</small></a>
       </h3>
     </div>
     <div id="collapseCrisprQC" class="accordion-body collapse">
       <div class="accordion-inner">
-            <strong>EP Pick and PIQ crispr qc ( accepted )</strong>
         <table class="table table-striped">
           <thead>
               <tr>
