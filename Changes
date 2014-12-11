@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.276     2014-12-11 12:54:33 Europe/London
+
+   Added ID primary key to recovery classes so names can be modified
+
 0.275     2014-12-09 16:54:27 Europe/London
 
     Added pcp passed to sponsor sub report when user is logged in
