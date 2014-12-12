@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.277     2014-12-12 13:06:15 Europe/London
+
+    Sponsor All selection fix on project efforts/recovery overview
+
 0.276     2014-12-11 12:54:33 Europe/London
 
    Added ID primary key to recovery classes so names can be modified
