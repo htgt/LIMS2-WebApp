@@ -126,8 +126,11 @@ $(document).ready(function() {
             <tr>
 
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row       = row
-                    accept    = 1
+                    row                 = row
+                    accept              = 1
+                    edit                = 1
+                    complete_info       = 1
+                    hide_crispr_well_id = 0
                 %]
 
             </tr>

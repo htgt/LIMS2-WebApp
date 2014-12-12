@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.275';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.277';
 }
 ## use critic
 
@@ -938,7 +938,7 @@ SQL_END
                         species_id => $self->species,
                     });
             $sponsors_str = $effort->sponsor_id;
-            $recovery_class = $effort->recovery_class;
+            $recovery_class = $effort->recovery_class_name;
             $priority = $effort->priority;
             $effort_concluded = $effort->effort_concluded ? 'yes' : '';
         } else {
@@ -958,7 +958,7 @@ SQL_END
                             targeting_type => $self->targeting_type,
                             species_id => $self->species,
                         });
-                $recovery_class = $effort->recovery_class;
+                $recovery_class = $effort->recovery_class_name;
                 $priority = $effort->priority;
                 $effort_concluded = $effort->effort_concluded ? 'yes' : '';
             } else {
@@ -973,7 +973,7 @@ SQL_END
                             species_id => $self->species,
                     });
 
-                    push (@recovery_class, $sponsor_effort->recovery_class) unless (!$sponsor_effort->recovery_class);
+                    push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
                     push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
                     push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
                 }

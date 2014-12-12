@@ -2,7 +2,7 @@
 package LIMS2::Report::RecoveryDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::RecoveryDetail::VERSION = '0.275';
+    $LIMS2::Report::RecoveryDetail::VERSION = '0.277';
 }
 ## use critic
 
@@ -223,7 +223,8 @@ override structured_data => sub {
     push @columns, @{ $stage_info->{extra_details} || [] };
 
     $extra_data->{detail_columns} = \@columns;
-    $extra_data->{recovery_classes} = [ map { $_->id } $self->model->schema->resultset('ProjectRecoveryClass')->all ];
+    my @recovery_classes = map { {id => $_->id, name => $_->name} } $self->model->schema->resultset('ProjectRecoveryClass')->all;
+    $extra_data->{recovery_classes} = \@recovery_classes;
 
     # Need to pass report params to custom report so they can be used in redirect
     $extra_data->{stage} = $self->stage;
@@ -273,7 +274,8 @@ override structured_data => sub {
         foreach my $project ( @{ $data->{$gene_id}->{projects} } ){
             push @projects, {
                 id             => $project->id,
-                recovery_class => $project->recovery_class_id,
+                recovery_class => $project->recovery_class_name,
+                recovery_class_id => $project->recovery_class_id,
                 concluded      => $project->effort_concluded,
                 comment        => $project->recovery_comment,
                 priority       => $project->priority,

@@ -57,7 +57,7 @@
         <td><a href="[% c.uri_for('/user/report/sync/RecoveryDetail', { sponsor => extra_data.sponsor, stage => stage }) %]">[% extra_data.$stage.display_name %]</a></td>
         <td>[% count %]</td>
         <td>
-          [% FOREACH gene IN extra_data.$stage.genes.keys %]
+          [% FOREACH gene IN extra_data.$stage.genes.keys.sort %]
             <a href="[% c.uri_for('/user/report/sync/RecoveryDetail', { sponsor => extra_data.sponsor, stage => stage, gene_id => extra_data.$stage.genes.$gene.gene_id }) %]" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.genes.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
           [% END %]
         </td>

@@ -58,9 +58,11 @@ $(document).ready(function() {
     [% FOR qc IN crispr_qc %]
         <tr>
             [% INCLUDE 'crispr_qc_view.tt'
-                row = qc.ep_pick_qc
-                accept = 0
+                row                 = qc.ep_pick_qc
+                accept              = 0
+                edit                = 1
                 hide_crispr_well_id = 1
+                complete_info       = 1
             %]
             <td>
             [% IF qc.accepted %]
@@ -72,9 +74,11 @@ $(document).ready(function() {
             [% FOR piq_qc IN qc.piq_qc %]
                 <tr class="info">
                     [% INCLUDE 'crispr_qc_view.tt'
-                        row = piq_qc.qc
-                        accept = 0
+                        row                 = piq_qc.qc
+                        accept              = 0
+                        edit                = 1
                         hide_crispr_well_id = 1
+                        complete_info       = 1
                     %]
                     <td>
                     [% IF piq_qc.accepted %]

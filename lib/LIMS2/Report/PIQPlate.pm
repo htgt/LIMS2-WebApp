@@ -1,7 +1,7 @@
 package LIMS2::Report::PIQPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PIQPlate::VERSION = '0.275';
+    $LIMS2::Report::PIQPlate::VERSION = '0.277';
 }
 ## use critic
 

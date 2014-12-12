@@ -12,7 +12,7 @@ LIMS2/t/Model/Plugin/CrisprEsQc.pm - test class for LIMS2::Model::Plugin::Crispr
 
 =cut
 
-sub update_crispr_es_qc_well : Tests(16) {
+sub update_crispr_es_qc_well : Tests(19) {
     note("Testing update_crispr_es_qc_well method");
 
     ok my $crispr_es_qc_well = model->schema->resultset('CrisprEsQcWell')->find( { id => 1 } ),
@@ -70,6 +70,19 @@ sub update_crispr_es_qc_well : Tests(16) {
         'current variant_size has been updated to null';
     is $crispr_es_qc_well->accepted, 1,
         'current accepted has been updated to true';
+
+    $crispr_es_qc_well->update( { accepted => 0 } );
+    $crispr_es_qc_well->well->update( { accepted => 1 } );
+
+    ok model->update_crispr_es_qc_well(
+        {   id           => $crispr_es_qc_well->id,
+            accepted     => 'true',
+        }
+    ), 'attempt to update accepted to true';
+
+    ok $crispr_es_qc_well->discard_changes, 'refresh row object from db';
+    is $crispr_es_qc_well->accepted, 0,
+        'current accepted has NOT been updated to true because well is already accepted';
 }
 
 sub validated_crispr_es_qc_run : Tests() {

@@ -1,7 +1,7 @@
 package LIMS2::Report::EPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPSummary::VERSION = '0.275';
+    $LIMS2::Report::EPSummary::VERSION = '0.277';
 }
 ## use critic
 
@@ -181,6 +181,9 @@ override iterator => sub {
 
     if ( $self->sponsor eq 'All' && $self->species eq 'Mouse' ) {
         @sponsors = ('Core', 'Syboss', 'Pathogens');
+    }
+    if ( $self->sponsor eq 'All' && $self->species eq 'Human' ) {
+        @sponsors = ('Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering');
     }
     else {
         @sponsors = ($self->sponsor);

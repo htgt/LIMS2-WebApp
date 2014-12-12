@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ProjectRecoveryClass;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProjectRecoveryClass::VERSION = '0.275';
+    $LIMS2::Model::Schema::Result::ProjectRecoveryClass::VERSION = '0.277';
 }
 ## use critic
 
@@ -44,7 +44,7 @@ __PACKAGE__->table("project_recovery_class");
 
 =head1 ACCESSORS
 
-=head2 id
+=head2 name
 
   data_type: 'varchar'
   is_nullable: 0
@@ -55,13 +55,27 @@ __PACKAGE__->table("project_recovery_class");
   data_type: 'text'
   is_nullable: 1
 
+=head2 id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'project_recovery_class_id_seq'
+
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
+  "name",
   { data_type => "varchar", is_nullable => 0, size => 64 },
   "description",
   { data_type => "text", is_nullable => 1 },
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "project_recovery_class_id_seq",
+  },
 );
 
 =head1 PRIMARY KEY
@@ -89,13 +103,13 @@ Related object: L<LIMS2::Model::Schema::Result::Project>
 __PACKAGE__->has_many(
   "projects",
   "LIMS2::Model::Schema::Result::Project",
-  { "foreign.recovery_class" => "self.id" },
+  { "foreign.recovery_class_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 15:40:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WWpruQh1u9fbedff6V50mg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-10 15:44:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nmwnzh6sNpnVgHzsUWEwCg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
