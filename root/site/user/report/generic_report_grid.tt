@@ -261,9 +261,9 @@
                 renderTo: 'my_results',
                 viewConfig: {
                     stripeRows: true,
-                    // getRowClass: function(){
-                    //     return "lims2-cell-inner";
-                    // },
+                     getRowClass: function(){
+                         return "lims2-cell-inner";
+                     },
                     firstCls: 'lims2-first-cell-format',
                     enableTextSelection: true,
                     markDirty: false,

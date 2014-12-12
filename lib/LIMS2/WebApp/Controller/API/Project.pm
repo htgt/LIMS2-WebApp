@@ -52,7 +52,14 @@ sub project_recovery_class_GET{
             shift->retrieve_project_by_id( { id => $c->request->param( 'id' ) } );
         }
     );
-    $project->update( { recovery_class => $c->request->param( 'recovery_class' ) } );
+
+    my $recovery_class = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_recovery_class({ name => $c->request->param( 'recovery_class' ) } );
+        }
+    );
+
+    $project->update( { recovery_class_id => $recovery_class->id } );
 
     return $self->status_ok( $c, entity => $project->as_hash );
 }
