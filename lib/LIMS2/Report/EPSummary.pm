@@ -176,6 +176,9 @@ override iterator => sub {
     if ( $self->sponsor eq 'All' && $self->species eq 'Mouse' ) {
         @sponsors = ('Core', 'Syboss', 'Pathogens');
     }
+    if ( $self->sponsor eq 'All' && $self->species eq 'Human' ) {
+        @sponsors = ('Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering');
+    }
     else {
         @sponsors = ($self->sponsor);
     }
