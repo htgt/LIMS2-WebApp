@@ -13,7 +13,7 @@ use TryCatch;
 use namespace::autoclean;
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
-                                    '/lustre/scratch109/sanger/team87/lims2_designs';
+                                    '/lustre/scratch110/sanger/team87/lims2_designs';
 
 has model => (
     is       => 'ro',
