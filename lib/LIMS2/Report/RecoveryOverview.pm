@@ -201,9 +201,20 @@ has genes_with_summaries => (
 sub _build_projects {
     my $self = shift;
 
+    my @sponsors;
+    if ( $self->sponsor eq 'All' && $self->species eq 'Mouse' ) {
+        @sponsors = ('Core', 'Syboss', 'Pathogens');
+    }
+    if ( $self->sponsor eq 'All' && $self->species eq 'Human' ) {
+        @sponsors = ('Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering');
+    }
+    else {
+        @sponsors = ($self->sponsor);
+    }
+
     my $project_rs = $self->model->schema->resultset('Project')->search(
         {
-            sponsor_id => $self->sponsor
+            sponsor_id => { -in => \@sponsors }
         },
     );
 
