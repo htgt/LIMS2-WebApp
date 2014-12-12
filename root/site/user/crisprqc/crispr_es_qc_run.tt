@@ -14,6 +14,15 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
+
+    if ( [% run_validated %] ) {
+        $("#validate_run").hide();
+    }
+    else {
+        $("#invalidate_run").hide();
+        $("#validate_label").hide();
+    }
+
     $(".traces").click(function(e) {
         e.preventDefault();
 
@@ -21,38 +30,44 @@ $(document).ready(function() {
         var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
     });
 
-    $("#validate_run").click(function(e) {
+    // validate or invalidate run
+    $("#validate_run, #invalidate_run").click(function(e) {
         e.preventDefault();
 
         var element = $(this);
-        element.removeClass('btn-primary').addClass('btn-warning');
-        element.text('... validating');
+        //set button state to loading, shows data-loading-text value
+        element.button('loading');
 
         $.ajax({
             type: "POST",
             url: '[% c.uri_for("/api/update_crispr_es_qc_run") %]',
             data: {
-                "id": '[% qc_run_id %]'
+                "id": '[% qc_run_id %]',
+                "validated": element.attr('data-validate')
             },
             success: function(data) {
                 console.log(data);
                 element.delay(500).queue(function(){
-                    $(this).removeClass('btn-warning').addClass('btn-success').addClass('disabled').dequeue();
-                    element.text('Validated');
+                    $(this).button('reset').dequeue();// resets button to original text
+                    // toggle both buttons plus validate label
+                    $('#invalidate_run').toggle();
+                    $('#validate_run').toggle();
+                    $("#validate_label").toggle();
                 });
             },
             error: function(data) {
                 console.log(data);
                 element.delay(500).queue(function(){
-                    $(this).removeClass('btn-warning').addClass('disabled').addClass('btn-danger').dequeue();
-                    element.text('error validating qc run');
+                    $(this).removeClass('btn-primary').removeClass('btn-warning').addClass('disabled').addClass('btn-danger').dequeue();
+                    element.text('error updating qc run');
                 });
-                alert( 'Error validating crispr es qc run' );
+                alert( 'Error updating crispr es qc run' );
             },
             dataType: 'json'
         });
 
     });
+
 });
 </script>
 
@@ -73,7 +88,7 @@ $(document).ready(function() {
         <tr>
             <th>Validated</th>
             <td>
-                <span class="label label-success" [% UNLESS run_validated %]hidden[% END %]>Validated</span>
+                <span id="validate_label" class="label label-success">Validated</span>
             </td>
         </tr>
     </table>
@@ -81,8 +96,12 @@ $(document).ready(function() {
         <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
     [% IF wells.size > 0 %]
-        <a id="in_validate_run" class="btn pull-right [% IF run_validated %]btn-warning[% ELSE %]btn-primary[% END %]" role="button">
-            [% IF run_validated %]Invalidate Qc Run[% ELSE %]Validate QC Run[% END %]
+        <a id="validate_run" class="btn pull-right btn-primary" role="button" data-loading-text="... working" data-validate="true">
+            <i class="icon-gift icon-white"></i> Validate QC Run
+        </a>
+
+        <a id="invalidate_run" class="btn pull-right btn-warning" role="button" data-loading-text="... working" data-validate="false">
+            <i class="icon-ban-circle icon-white"></i> Invalidate Qc Run
         </a>
     [% END %]
 </div>
