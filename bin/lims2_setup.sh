@@ -187,6 +187,7 @@ function lims2_devel {
     export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
+    export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
 
 }
 
@@ -228,6 +229,7 @@ LIMS2 useful environment variables:
 \$ENG_SEQ_BUILDER_CONF         : $ENG_SEQ_BUILDER_CONF
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT
+\$WGE_REST_CLIENT_CONFIG       : $WGE_REST_CLIENT_CONFIG
 \$LIMS2_ENSEMBL_USER           : $LIMS2_ENSEMBl_USER
 \$LIMS2_ENSEMBL_HOST           : $LIMS2_ENSEMBL_HOST
 \$LIMS2_DB                     : $LIMS2_DB
