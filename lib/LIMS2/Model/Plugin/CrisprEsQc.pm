@@ -233,13 +233,20 @@ sub update_crispr_es_qc_well{
         # only mark qc accepted if the linked well is not already accepted in another run
         if ( $well->accepted && $validated_params->{accepted} eq 'true' ) {
             delete $validated_params->{accepted};
-            $self->log->warn(
+            $self->throw(
                 'Well already accepted in another run, not marking crispr es qc well as accepted');
         }
         # mark the linked well accepted
         else {
             $well->update( { accepted => $validated_params->{accepted} } );
             $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
+        }
+    }
+    # if damage type set to no-call or mosaic then the well must not be accepted
+    elsif ( my $damage = $validated_params->{crispr_damage_type_id} ) {
+        if ( $damage eq 'no-call' || $damage eq 'mosaic' ) {
+            $validated_params->{accepted} = 'false';
+            $qc_well->well->update( { accepted => 'false' } );
         }
     }
 
