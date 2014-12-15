@@ -244,7 +244,7 @@ sub update_crispr_es_qc_well{
     }
     # if damage type set to no-call or mosaic then the well must not be accepted
     elsif ( my $damage = $validated_params->{crispr_damage_type_id} ) {
-        if ( $damage eq 'no-call' || $damage eq 'mosaic' ) {
+        if ( ( $damage eq 'no-call' || $damage eq 'mosaic' ) && $qc_well->accepted ) {
             $validated_params->{accepted} = 'false';
             $qc_well->well->update( { accepted => 'false' } );
         }
