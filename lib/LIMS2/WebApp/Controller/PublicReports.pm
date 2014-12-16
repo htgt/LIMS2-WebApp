@@ -7,6 +7,8 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
+use Smart::Comments;
+
 BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -320,9 +322,21 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             }
         }
 
+### $columns
+### $display_columns
+### $data
+
+
+### $stage
+        my $template = 'publicreports/sponsor_sub_report.tt';
+
+        if ($stage eq 'Genes') {
+            $template = 'publicreports/sponsor_sub_report_genes.tt';
+        }
+
         # Store report values in stash for display onscreen
         $c->stash(
-            'template'             => 'publicreports/sponsor_sub_report.tt',
+            'template'             => $template,
             'report_id'            => $report_id,
             'disp_target_type'     => $disp_target_type,
             'disp_stage'           => $disp_stage,
