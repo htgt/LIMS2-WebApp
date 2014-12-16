@@ -36,6 +36,9 @@ case $1 in
     devel)
         lims2_devel
         ;;
+    wge)
+        lims2_wge_rest_client $2
+        ;;
     'pg9.3')
         lims2_pg9.3
         ;;
@@ -173,6 +176,18 @@ function lims2_load_staging {
     source $LIMS2_DEV_ROOT/bin/lims2_staging_clone 
 }
 
+function lims2_wge_rest_client {
+    if [[  "$1"   ]] ; then
+        if [[ $1 != "live" ]]; then
+           export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+        else
+           export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-live-rest-client.conf
+        fi
+    else
+        printf "$L2W_STRING: need LIVE or DEVEL parameter\n"
+    fi
+}
+
 function lims2_devel {
     unset PERL5LIB
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-WebApp/lib
@@ -188,7 +203,6 @@ function lims2_devel {
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
     export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
-
 }
 
 function lims2_pg9.3 {
