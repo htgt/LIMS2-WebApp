@@ -31,7 +31,7 @@ document.title = "[%- sponsor_id %]";
 [%- END %]
 </span>
 <div class="page-header">
-  <h2>Sponsor Progress Sub-Report (DEVEL)</h2>
+  <h2>Sponsor Progress Sub-Report (DEVEL) </h2>
 </div>
 <p>
 <big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
@@ -44,9 +44,7 @@ document.title = "[%- sponsor_id %]";
     <tr>
       [%- FOR disp_col IN display_columns %]
         [%- IF disp_col == "sponsors" %]
-            [%- IF all %]
               <th>[% disp_col %]</th>
-            [%- END %]
         [%- ELSIF disp_col == "vector designs" %]
             <th>[% disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
             data-content="Number of gibson designs created for this gene (may not yet be plated)"
@@ -116,53 +114,73 @@ document.title = "[%- sponsor_id %]";
         [%- colval = row.item(col) %]
 
 
-
-        [%- rowspan = row.item('electroporations') %]
-        [%- IF rowspan == 0 %]
-          [%- rowspan = 1 %]
-
-        [%- END %]
-
-
-
-
-
-
+     [%- rowspan = 1 %]
 
 
         [% IF col == "gene_id" %]
             [% IF c.user %]
-                <td rowspan="[% rowspan %]"><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+              [% IF c.session.selected_species == 'Human' %]
+                <td rowspan="[% rowspan %]"><a class="brand" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% colval %]">[% colval %]</a></td>
+              [% ELSIF c.session.selected_species == 'Mouse' %]
+                <td rowspan="[% rowspan %]"><a class="brand" href="http://www.informatics.jax.org/marker/[% colval %]">[% colval %]</a></td>
+              [% END %]
             [% ELSIF row.item('targeted_clones') == '✔' || row.item('targeted_clones') > 0 %]
                 <td rowspan="[% rowspan %]"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', colval ) %]">[% colval %]</a></td>
             [% ELSE %]
                 <td rowspan="[% rowspan %]">[% colval %]</td>
             [% END %]
         [% ELSIF col == "gene_symbol" %]
-            <td rowspan="[% rowspan %]">[% colval %]</td>
+            [% IF c.user %]
+                <td rowspan="[% rowspan %]"><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[% colval %]</a></td>
+            [% ELSE %]
+                <td rowspan="[% rowspan %]">[% colval %]</td>
+            [% END %]
         [%- ELSIF col == "sponsors" %]
-            [%- IF all %]
-              <td rowspan="[% rowspan %]">[% colval %]</td>
-            [%- END %]
+            <td rowspan="[% rowspan %]">[% colval %]</td>
         [%- ELSIF !colval %]
             <td rowspan="[% rowspan %]"></td>
-        [%- ELSIF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_vector' %]
+        [%- ELSIF col == 'passing_vector_wells'
+
+               || col == 'accepted_crispr_vector'
+               || col == 'fs_count'
+                  %]
           <td rowspan="[% rowspan %]" style="background:#8AD95A">[%- colval %]</td>
+        [%- ELSIF col == 'targeted_clones' %]
+          [%- IF row.item('targeted_clones') && row.item('fs_count') %]
+            <td rowspan="[% rowspan %]" style="background:#8AD95A">[%- colval %]</td>
+          [% ELSE %]
+            <td rowspan="[% rowspan %]" style="background:#FF4646">[%- colval %]</td>
+          [% END %]
         [%- ELSIF col == 'crispr_pairs'
-              || col == 'vector_designs'
-              || col == 'vector_wells'
-              || col == 'targeting_vector_wells'
-              || col == 'accepted_vector_wells'
-              || col == 'electroporations'
-              || col == 'colonies_picked'
-              || col == 'crispr_wells'
-              || col == 'crispr_vector_wells'
-              || col == 'crispr_dna_wells'
-              || col == 'accepted_crispr_dna_wells'
-              || col == 'recovery_class'
-              || col == 'priority'
-              || col == 'effort_concluded' %]
+               || col == 'vector_designs'
+               || col == 'vector_wells'
+               || col == 'targeting_vector_wells'
+               || col == 'accepted_vector_wells'
+
+               || col == 'colonies_picked'
+               || col == 'crispr_wells'
+               || col == 'crispr_vector_wells'
+               || col == 'crispr_dna_wells'
+               || col == 'accepted_crispr_dna_wells'
+               || col == 'recovery_class'
+               || col == 'priority'
+
+               || col == 'wt_count'
+               || col == 'if_count'
+               || col == 'total_colonies'
+               || col == 'ms_count'
+
+               || col == 'effort_concluded'
+                  %]
           <td rowspan="[% rowspan %]" style="background:#E5E4E2">[%- colval %]</td>
+        [%- ELSIF col == 'electroporations' %]
+          <td rowspan="[% rowspan %]" style="background:#E5E4E2">
+              [%- IF row.item('electroporations') %]
+                <a onclick="displayRow('[%- row.item('gene_id') %]')">[%- colval %]</a>
+              [%- ELSE %]
+                [%- colval %]
+              [%- END %]
+              </td>
         [%- ELSIF col == 'vector_pcr_passes' %]
             [% IF c.user %]
               <td rowspan="[% rowspan %]" style="background:#E5E4E2" >[%- colval %]</td>
@@ -170,30 +188,29 @@ document.title = "[%- sponsor_id %]";
 
         [% ELSIF col == "ep_data" %]
 
-            [%- IF row.item('ep_data').0 %]
 
+
+[%- IF row.item('ep_data').0 %]
+</tbody>
+<tbody id="[%- row.item('gene_id') %]" style="display:none">
               [%- FOREACH ep_data IN row.item('ep_data') %]
 
-                 <td>[%- ep_data.item('ep_pick_count') %]</td>
-                 <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
-                 <td>[%- ep_data.item('total_colonies') %]</td>
-                 <!-- <td>[%- ep_data.item('picked_colonies') %]</td> -->
-                 <td>[%- ep_data.item('fs_count') %]</td>
-                 <td>[%- ep_data.item('if_count') %]</td>
-                 <td>[%- ep_data.item('ms_count') %]</td>
-                 <td>[%- ep_data.item('wt_count') %]</td>
+              <tr>
+                <td colspan=9></td>
+                <td>[%- ep_data.item('ep_pick_count') %]</td>
+                <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
+                <td>[%- ep_data.item('total_colonies') %]</td>
+                <!-- <td>[%- ep_data.item('picked_colonies') %]</td> -->
+                <td>[%- ep_data.item('wt_count') %]</td>
+                <td>[%- ep_data.item('ms_count') %]</td>
+                <td>[%- ep_data.item('if_count') %]</td>
+                <td>[%- ep_data.item('fs_count') %]</td>
               </tr>
+
               [%- END %]
-            [%- ELSE %]
-                <td></td>
-                <td></td>
-                <td></td>
-                <!-- <td></td> -->
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            [%- END %]
+</tbody>
+<tbody>
+[%- END %]
 
 
 
@@ -209,6 +226,24 @@ document.title = "[%- sponsor_id %]";
 [%- ELSE %]
 <h3>Error: No rows found for this report!</h3>
 [%- END %]
+
+
+
+
+<script type="text/javascript">
+
+  function displayRow( my_id ){
+    var row = document.getElementById(my_id);
+    if (row.style.display == '')
+      row.style.display = 'none';
+    else
+      row.style.display = '';
+
+}
+
+</script>
+
+
 
 <script type="text/javascript">
   // description fields on the table

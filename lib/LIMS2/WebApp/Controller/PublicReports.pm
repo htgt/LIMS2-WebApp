@@ -322,12 +322,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             }
         }
 
-### $columns
-### $display_columns
-### $data
+## $columns
+## $display_columns
+## $data
 
 
-### $stage
+## $stage
         my $template = 'publicreports/sponsor_sub_report.tt';
 
         if ($stage eq 'Genes') {
@@ -366,7 +366,7 @@ sub _simple_transform {
             }
             else {
                 ${$column}{$key} = '✔'
-                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
+                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors' || $key eq 'ep_data');
             }
         }
     }

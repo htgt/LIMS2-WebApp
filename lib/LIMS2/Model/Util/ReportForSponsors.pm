@@ -439,11 +439,22 @@ sub generate_sub_report {
                                             # 'recovery_class',
                                             # 'priority',
                                             # 'effort_concluded',
+
+                                            'colonies_picked',
+                                            'targeted_clones',
+                                            'total_colonies',
+                                            'wt_count',
+                                            'ms_count',
+                                            'if_count',
+                                            'fs_count',
+
+                                            'recovery_class',
+
                                             'ep_data',
                                         ],
             'display_columns'       => [    'gene id',
                                             'gene symbol',
-                                            'sponsors',
+                                            'sponsor(s)',
                                             # 'crispr pairs',
                                             'ordered crispr primers',
                                             # 'crispr vectors',
@@ -466,12 +477,12 @@ sub generate_sub_report {
                                             'total genotyped clones',
                                             '# colonies',
                                             # '# colonies screened',
-                                            '# frame-shift clones',
-                                            '# in-frame clones',
-                                            '# mosaic clones',
                                             '# wt clones',
+                                            '# mosaic clones',
+                                            '# in-frame clones',
+                                            '# frame-shift clones',
 
-
+                                            'info',
                                         ],
         },
         'Vectors Constructed'       => {
@@ -834,7 +845,7 @@ sub genes {
                     });
             $sponsors_str = $effort->sponsor_id;
 # $recovery_class = $effort->recovery_class_name;
-            $recovery_class = $effort->recovery_class;
+            $recovery_class = $effort->recovery_class_name;
             $priority = $effort->priority;
             $effort_concluded = $effort->effort_concluded ? 'yes' : '';
         } else {
@@ -855,7 +866,7 @@ sub genes {
                             species_id => $self->species,
                         });
 # $recovery_class = $effort->recovery_class_name;
-                $recovery_class = $effort->recovery_class;
+                $recovery_class = $effort->recovery_class_name;
                 $priority = $effort->priority;
                 $effort_concluded = $effort->effort_concluded ? 'yes' : '';
             } else {
@@ -881,9 +892,9 @@ sub genes {
         }
 
 
-        ## $recovery_class
-        ## $priority
-        ## $effort_concluded
+        ### $recovery_class
+        ### $priority
+        ### $effort_concluded
 
 
 
@@ -1048,7 +1059,7 @@ sub genes {
 				try {
 					my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
 						well_id => $ep_pick->ep_pick_well_id,
-                        accepted => 1,
+                        # accepted => 1,
                         'crispr_es_qc_run.validated' => 1,
 					},{
                         join    => 'crispr_es_qc_run',
@@ -1070,18 +1081,20 @@ sub genes {
 
 		}
 
+        @ep_data =  sort {
+                $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||
+                $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
+        } @ep_data;
+
 ## @ep_data
-
-    @ep_data =  sort {
-            $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||
-            $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
-    } @ep_data;
-
-
-
-
-
-
+        my $total_total_colonies = sum( map { $_->{total_colonies} } @ep_data ) // 0;
+        my $total_ep_pick_count = sum( map { $_->{ep_pick_count} } @ep_data ) // 0;
+        my $total_ep_pick_pass_count = sum( map { $_->{ep_pick_pass_count} } @ep_data ) // 0;
+        my $total_wt_count = sum( map { $_->{wt_count} } @ep_data ) // 0;
+        my $total_if_count = sum( map { $_->{if_count} } @ep_data ) // 0;
+        my $total_fs_count = sum( map { $_->{fs_count} } @ep_data ) // 0;
+        my $total_ms_count = sum( map { $_->{ms_count} } @ep_data ) // 0;
+## $total_ep_pick_count
 
         # my @ep_pick = $summary_rs->search(
         #     { ep_pick_plate_name => { '!=', undef } },
@@ -1113,8 +1126,18 @@ sub genes {
             'vector_pcr_passes'      => $pcr_passes,
             'passing_vector_wells'   => $dna_pass_count,
             'electroporations'       => $ep_count,
-            'colonies_picked'        => $ep_data[0]->{ep_pick_count} // 0,
-            'targeted_clones'        => $ep_data[0]->{ep_pick_pass_count} // 0,
+
+
+            'colonies_picked'        => $total_ep_pick_count,
+            'targeted_clones'        => $total_ep_pick_pass_count,
+            'total_colonies'         => $total_total_colonies,
+            'wt_count'               => $total_wt_count,
+            'if_count'               => $total_if_count,
+            'fs_count'               => $total_fs_count,
+            'ms_count'               => $total_ms_count,
+
+            'recovery_class'         => $recovery_class,
+
             'ep_data'				 => \@ep_data,
         };
     }
