@@ -21,6 +21,17 @@ $(document).ready(function() {
             data[data_type] = this.value;
         }
 
+        if ( data_type == 'damage_type' ) {
+            var accepted_checkbox = $( '#accepted_' + crispr_well_id );
+            if ( this.value == 'mosaic' || this.value == 'no-call' ) {
+                accepted_checkbox.prop('checked', false);
+                accepted_checkbox.prop('disabled', true);
+            }
+            else {
+                accepted_checkbox.prop('disabled', false)
+            }
+        }
+
         // ajax request to update the crispr es qc well value
         $.ajax({
             type: "POST",

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.276';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.277';
 }
 ## use critic
 
@@ -439,7 +439,7 @@ sub generate_sub_report {
                                             'electroporations',
                                             'colonies_picked',
                                             'targeted_clones',
-                                            'recovery_class_name',
+                                            'recovery_class',
                                             'priority',
                                             'effort_concluded',
                                         ],
@@ -503,7 +503,7 @@ sub generate_sub_report {
                                             'electroporations',
                                             'colonies_picked',
                                             'targeted_clones',
-                                            'recovery_class_name',
+                                            'recovery_class',
                                             'priority',
                                             'effort_concluded',
                                         ],

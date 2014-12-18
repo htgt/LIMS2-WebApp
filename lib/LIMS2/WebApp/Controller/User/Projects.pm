@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.276';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.277';
 }
 ## use critic
 
@@ -41,7 +41,6 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my @sponsors_rs =  $c->model('Golgi')->schema->resultset('Project')->search( {
             species_id  => $species_id,
-            sponsor_id => { '!=', 'All' }
         },{
             columns     => [ qw/sponsor_id/ ],
             distinct    => 1
@@ -52,22 +51,19 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment', 'priority'];
 
-    my $sel_sponsor;
-
     $c->stash(
-        sponsor_id => [ map { $_->sponsor_id } @sponsors_rs ],
+        sponsor_id       => [ map { $_->sponsor_id } @sponsors_rs ],
         effort_concluded => ['true', 'false'],
-        title           => 'Project Efforts',
-        columns         => $columns,
-        sel_sponsor      => $sel_sponsor,
+        title            => 'Project Efforts',
+        columns          => $columns,
     );
 
-    return unless ( $params->{filter} || $params->{show_all} );
+    return unless ( $params->{filter} && $params->{sponsor_id} );
+
+    my $sel_sponsor = $params->{sponsor_id};
 
     my $search;
-
-    if ($params->{show_all} && $species_id eq 'Human') {
-        $params->{sponsor_id} = '';
+    if ($params->{sponsor_id} eq 'All') {
         $search = {
             species_id => $species_id,
             sponsor_id => { -not_in => [ 'All', 'Transfacs'] },
@@ -75,12 +71,8 @@ sub index :Path( '/user/projects' ) :Args(0) {
     } else {
         $search = {
             species_id => $species_id,
+            sponsor_id => $params->{sponsor_id},
         };
-    }
-
-    if ($params->{sponsor_id}) {
-        $search->{sponsor_id} = $params->{sponsor_id};
-        $sel_sponsor = $params->{sponsor_id};
     }
 
     my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( $search , {order_by => { -asc => 'gene_id' } });
