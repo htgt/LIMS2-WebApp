@@ -61,13 +61,16 @@ override _build_genes_with_summaries => sub {
     return [] unless $summary_stage;
 
     # Find all project genes which have reached requested stage
+    my $field = $summary_stage->{field_name};
+    DEBUG("Field: $field");
     my @all_project_summaries = $self->model->schema->resultset('Summary')->search({
        design_gene_id => { '-in' => $self->all_gene_ids },
-       $summary_stage->{field_name} => { '!=', undef }
-    },
-    {
-        columns => [ 'design_gene_id' ]
+       $field => { '!=', undef }
     })->all;
+
+    # Check field is not false
+    @all_project_summaries = grep { $_->$field } @all_project_summaries;
+
     my @stage_gene_ids = uniq map { $_->design_gene_id } @all_project_summaries;
     return \@stage_gene_ids;
 };
@@ -95,16 +98,20 @@ sub _build_gene_data {
             });
 
             if($next_stage){
-                my $next_stage_rs = $self->model->schema->resultset('Summary')->search({
+                my @next_stage_summaries = $self->model->schema->resultset('Summary')->search({
                     design_gene_id => $gene,
                     $next_stage->{field_name} => { '!=', undef }
-                });
+                })->all;
                 # Skip if gene has already reached the next stage
-                next if $next_stage_rs != 0;
+                my $next_field = $next_stage->{field_name};
+                @next_stage_summaries = grep { $_->$next_field } @next_stage_summaries;
+                next if @next_stage_summaries;
             }
 
             DEBUG "Found summary data for $gene at stage ".$self->stage;
-            $gene_data->{$gene}->{summary_data} = [ $summary_rs->all ];
+            my $field = $summary_stage->{field_name};
+            my @summaries = grep { $_->$field } $summary_rs->all;
+            $gene_data->{$gene}->{summary_data} = \@summaries;
             $gene_data->{$gene}->{projects} =  [ $self->find_projects( sub{ $_->gene_id eq $gene } ) ];
 
             if($summary_stage->{order} < $self->stages->{assembly_created}->{order}){

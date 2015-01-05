@@ -125,25 +125,32 @@ sub _build_stages {
         order      => 7,
         detail_columns => [ qw(ep_pick_plate_name ep_pick_well_name ep_pick_well_created_ts ep_pick_qc_seq_pass ep_pick_well_accepted)],
     },
+    ep_pick_accepted => {
+        name       => 'EP Pick Accepted',
+        field_name => 'ep_pick_well_accepted',
+        time_field => 'ep_pick_well_created_ts',
+        order      => 8,
+        detail_columns => [ qw(ep_pick_plate_name ep_pick_well_name ep_pick_well_created_ts ep_pick_qc_seq_pass ep_pick_well_accepted)],
+    },
     fp_created => {
         name       => 'Freeze Plate Created',
         field_name => 'fp_well_id',
         time_field => 'fp_well_created_ts',
-        order      => 8,
+        order      => 9,
         detail_columns => [ qw(fp_plate_name fp_well_name fp_well_created_ts fp_well_accepted)],
     },
     piq_created => {
         name       => 'PIQ Created',
         field_name => 'piq_well_id',
         time_field => 'piq_well_created_ts',
-        order      => 9,
+        order      => 10,
         detail_columns => [ qw(piq_plate_name piq_well_name piq_well_created_ts piq_well_accepted)],
     },
     piq_accepted => {
         name       => 'PIQ Accepted',
         field_name => 'piq_well_accepted',
         time_field => 'piq_well_created_ts',
-        order      => 10,
+        order      => 11,
         detail_columns => [ qw(piq_plate_name piq_well_name piq_well_created_ts piq_well_accepted)],
     },
     };
@@ -264,8 +271,10 @@ sub _build_stage_data {
 
         foreach my $stage (sort { $self->stages->{$b}->{order} <=> $self->stages->{$a}->{order} }
                       (keys %{ $self->stages }) ){
-            my $stage_info = $self->stages->{$stage};
-            my @matching_rows = $summary_rs->search( { $stage_info->{field_name} => { '!=', undef } })->all;
+            my $field = $self->stages->{$stage}->{field_name};
+            my @matching_rows = $summary_rs->search( { $field => { '!=', undef } })->all;
+            # Additional check that the value is not false
+            @matching_rows = grep { $_->$field } @matching_rows;
 
             if(@matching_rows){
                 $stage_data->{$stage}->{$gene} = \@matching_rows;
