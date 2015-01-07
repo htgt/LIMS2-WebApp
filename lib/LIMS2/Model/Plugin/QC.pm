@@ -12,7 +12,9 @@ use LIMS2::Model::Util::CreateQC qw(
     create_qc_run_seq_proj
     create_qc_test_result_alignment
     get_qc_run_seq_well_from_alignments
+    link_primers_to_qc_run_template
 );
+
 use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_run_results
     retrieve_qc_run_results_fast
@@ -394,6 +396,8 @@ sub create_qc_run {
             },
         );
     }
+
+    link_primers_to_qc_run_template($qc_run);
 
     return $qc_run;
 }

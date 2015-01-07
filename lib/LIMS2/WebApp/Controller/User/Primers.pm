@@ -66,6 +66,12 @@ sub toggle_crispr_primer_validation_state : Path( '/user/toggle_crispr_primer_va
     elsif($type eq "crispr_pair"){
     	$search->{crispr_pair_id} = $id;
     }
+    elsif($type eq "crispr_group"){
+        $search->{crispr_group_id} = $id;
+    }
+    else{
+        $c->stash->{json_data} = { error => "Crispr type \"$type\" not recognised" };
+    }
 
     my $primer = $c->model('Golgi')->schema->resultset('CrisprPrimer')->find($search);
 

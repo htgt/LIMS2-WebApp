@@ -167,11 +167,55 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
 
     my $qc_run = $c->model('Golgi')->retrieve_qc_run( { id => $c->req->params->{qc_run_id} } );
 
+    # Find template well which is best match to sequencing result
+    my $template_well;
+    my $best = $results->[0];
+    my $name = '';
+    if (defined $best->{design_id}) {
+        $name = 'design_id';
+    } elsif (defined $best->{crispr_id}) {
+        $name = 'crispr_id';
+    }
+
+    if( $name ){
+        my $id = $best->{$name};
+        $c->log->debug("Found $name $id");
+        my $template = $qc_run->qc_template;
+        if ( (defined $best->{'expected_'.$name}) and ($id eq $best->{'expected_'.$name}) ){
+            # Fetch source well from template well with same location
+            $c->log->debug("Found $name $id at expected location on template");
+            ($template_well) = $template->qc_template_wells->search({ name => $qc_seq_well->name });
+        }
+        else{
+            # See if design_id was expected in some other well on the template,
+            # and get source for that
+            $c->log->debug("Looking for $name $id at different template location");
+            ($template_well) = grep { $_->as_hash->{eng_seq_params}->{$name} eq $id }
+                                  $template->qc_template_wells->all;
+            die "Could not find template well for $name $id" unless $template_well;
+        }
+    }
+
+    my @genotyping_primers;
+    my @crispr_primers;
+
+    if($template_well){
+        $c->log->debug("Template well: ".$template_well->name);
+        @genotyping_primers = map { $_->genotyping_primer }
+                              $template_well->qc_template_well_genotyping_primers->search({ qc_run_id => $qc_run->id });
+        @crispr_primers = map { $_->crispr_primer }
+                              $template_well->qc_template_well_crispr_primers->search({ qc_run_id => $qc_run->id });
+        $c->log->debug("crispr primers: ".Dumper(@crispr_primers));
+    }
+
     $c->stash(
         qc_run      => $qc_run->as_hash,
         qc_seq_well => $qc_seq_well,
         results     => $results,
-        seq_reads   => [ sort { $a->primer_name cmp $b->primer_name } @{ $seq_reads } ]
+        seq_reads   => [ sort { $a->primer_name cmp $b->primer_name } @{ $seq_reads } ],
+        genotyping_primers => \@genotyping_primers,
+        crispr_primers => \@crispr_primers,
+        qc_template_well => $template_well,
     );
     return;
 }
