@@ -65,40 +65,47 @@
       var not_valid_label = '<span class="label label-default validation-status pull-right">Not Validated</span>';
       var button_html = '<button class="btn btn-mini">Change validation state</button>';
 
-      [% FOREACH design_id IN extra_data.genotyping_primers.keys %]
-        console.log('[% design_id %]');
-        [% FOREACH primer IN extra_data.genotyping_primers.$design_id %]
-          var cell = getCell('[% primer.type %]','Design ID','[% design_id %]');
+      [% genotyping = { hash_element => 'genotyping_primers', key_column => 'Design ID', key_param => 'design_id', url => '/user/toggle_genotyping_primer_validation_state' } %]
 
-          // add the validation state toggle button, ajax reqest and callback
-          $(button_html).appendTo(cell).click(function(e){
-            console.log('button has been clicked');
-            var this_cell = $(this).parent();
-            var uri = "[% c.uri_for('/user/toggle_genotyping_primer_validation_state',{ design_id => design_id, primer_type => primer.type })%]";
-            $.ajax(uri).done(function(data){
-              console.log(data);
-              if(data.success){
-                this_cell.children('.validation-status').remove();
-                if(data.is_validated == 1){
-                  console.log("new state: validated");
-                  this_cell.append(valid_label);
+      [% crispr = { hash_element => 'crispr_primers', key_column => 'Crispr ID', key_param => 'crispr_key', url => '/user/toggle_crispr_primer_validation_state' } %]
+
+      [% FOREACH profile IN [genotyping,crispr] %]
+
+        [% hash_element = profile.hash_element %]
+        [% url = profile.url %]
+        [% key_param = profile.key_param %]
+
+        [% FOREACH key IN extra_data.$hash_element.keys %]
+          [% FOREACH primer IN extra_data.$hash_element.$key %]
+            var cell = getCell('[% primer.type %]','[% profile.key_column %]','[% key %]');
+
+            // add the validation state toggle button, ajax reqest and callback
+            $(button_html).appendTo(cell).click(function(e){
+              var this_cell = $(this).parent();
+              var uri = "[% c.uri_for( url, { $key_param => key, primer_type => primer.type })%]";
+              $.ajax(uri).done(function(data){
+                console.log(data);
+                if(data.success){
+                  this_cell.children('.validation-status').remove();
+                  if(data.is_validated == 1){
+                    this_cell.append(valid_label);
+                  }
+                  else{
+                    this_cell.append(not_valid_label);
+                  }
                 }
-                else{
-                  console.log("new state: not validated");
-                  this_cell.append(not_valid_label);
-                }
-              }
-              // if not successful we change nothing..
+                // if not successful we change nothing..
+              });
             });
-          });
 
-          // add initial validation status label
-          [% IF primer.is_validated %]
-            cell.append(valid_label);
-          [% ELSE %]
-            cell.append(not_valid_label);
+            // add initial validation status label
+            [% IF primer.is_validated %]
+              cell.append(valid_label);
+            [% ELSE %]
+              cell.append(not_valid_label);
+            [% END %]
+
           [% END %]
-
         [% END %]
       [% END %]
     [% END %]

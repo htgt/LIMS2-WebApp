@@ -44,8 +44,6 @@ sub toggle_crispr_primer_validation_state : Path( '/user/toggle_crispr_primer_va
 
     $c->assert_user_roles('edit');
 
-    my $crispr_id = $c->request->param('crispr_id');
-    my $crispr_pair_id = $c->request->param('crispr_pair_id');
     my $primer_type = $c->request->param('primer_type');
 
     my $search = {
@@ -53,12 +51,20 @@ sub toggle_crispr_primer_validation_state : Path( '/user/toggle_crispr_primer_va
         is_rejected => [ 0, undef ],
     };
 
-    if($crispr_id){
-    	$search->{crispr_id} = $crispr_id;
+    my $crispr_key = $c->request->param('crispr_key');
+    my ($id,$type) = ($crispr_key =~ / (\d*) \s* \( (\w*) \) /ixms);
+
+    unless ($id and $type){
+    	$c->stash->{json_data} = { error => "Could not identify crispr ID and type in string $crispr_key" };
+        $c->forward('View::JSON');
+        return;
     }
 
-    if($crispr_pair_id){
-    	$search->{crispr_pair_id} = $crispr_pair_id;
+    if($type eq "crispr"){
+    	$search->{crispr_id} = $id;
+    }
+    elsif($type eq "crispr_pair"){
+    	$search->{crispr_pair_id} = $id;
     }
 
     my $primer = $c->model('Golgi')->schema->resultset('CrisprPrimer')->find($search);

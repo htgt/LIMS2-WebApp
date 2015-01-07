@@ -89,11 +89,11 @@ sub _build_crispr_primers {
     foreach my $crispr_data (values %{ $self->well_crisprs_data }){
         my $crispr = $crispr_data->{obj};
         my $crispr_type = $crispr_data->{type};
-        my $key = $crispr->id . "(" . $crispr_type . ")";
+        my $key = $crispr->id . " (" . $crispr_type . ")";
         foreach my $primer ($crispr->crispr_primers->all){
             next if $primer->is_rejected;
             push @{ $crispr_primers->{$key} },
-            { type => $primer->primer_name, is_validated => $primer->is_validated };
+            { type => $primer->primer_name->primer_name, is_validated => $primer->is_validated };
         }
     }
     return $crispr_primers;
@@ -210,6 +210,7 @@ override structured_data => sub {
     my $data;
     $data->{plate_type} = "ASSEMBLY";
     $data->{genotyping_primers} = $self->genotyping_primers;
+    $data->{crispr_primers} = $self->crispr_primers;
     return $data;
 };
 
