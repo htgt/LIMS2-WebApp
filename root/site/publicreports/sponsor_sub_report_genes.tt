@@ -150,7 +150,7 @@ document.title = "[%- sponsor_id %]";
                || col == 'wt_count'
                || col == 'ms_count' %]
 
-            [% IF row.item('targeted_clones') > 0 %]
+            [% IF row.item('targeted_clones') %]
               <td style="background:#E5E4E2" ><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[% colval %]</a></td>
             [% ELSE %]
               <td style="background:#E5E4E2">[%- colval %]</td>

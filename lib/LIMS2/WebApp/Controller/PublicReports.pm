@@ -359,7 +359,7 @@ sub _simple_transform {
             }
             else {
                 ${$column}{$key} = '✔'
-                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors' || $key eq 'ep_data');
+                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors' || $key eq 'ep_data' || $key eq 'recovery_class' || $key eq 'effort_concluded' );
             }
         }
     }
