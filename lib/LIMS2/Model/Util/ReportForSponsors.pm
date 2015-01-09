@@ -17,7 +17,6 @@ use Readonly;
 use Try::Tiny;                              # Exception handling
 use feature "switch";
 
-use Smart::Comments;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -366,6 +365,7 @@ sub generate_top_level_report_for_sponsors {
         $report_id = 'SponsRep';
     }
 
+
     my %return_params = (
         'report_id'      => $report_id,
         'title'          => $title,
@@ -440,13 +440,15 @@ sub generate_sub_report {
                                             # 'priority',
                                             # 'effort_concluded',
 
+                                            'total_colonies',
+
                                             'colonies_picked',
                                             'targeted_clones',
-                                            'total_colonies',
+
+                                            'fs_count',
+                                            'if_count',
                                             'wt_count',
                                             'ms_count',
-                                            'if_count',
-                                            'fs_count',
 
                                             'recovery_class',
 
@@ -473,14 +475,17 @@ sub generate_sub_report {
                                             # 'recovery_class',
                                             # 'priority',
                                             # 'effort concluded',
+
+                                            '# colonies',
                                             'iPSC colonies picked',
                                             'total genotyped clones',
-                                            '# colonies',
+
                                             # '# colonies screened',
+
+                                            '# frame-shift clones',
+                                            '# in-frame clones',
                                             '# wt clones',
                                             '# mosaic clones',
-                                            '# in-frame clones',
-                                            '# frame-shift clones',
 
                                             'info',
                                         ],
@@ -798,7 +803,7 @@ sub genes {
 
         # Now we grab this from the solr index
         my $gene_symbol = $gene_info->{'gene_symbol'};
-## $gene_symbol
+
         my %search = ( design_gene_id => $gene_id );
 
         if ($self->species eq 'Human' ) {
@@ -836,79 +841,52 @@ sub genes {
 
         my ($sponsors_str, $effort);
         my ($recovery_class, $priority, $effort_concluded);
-        if ($sponsor_id ne 'All') {
+
+        my @sponsors = ( map { $_->sponsor_id } $self->model->schema->resultset('Project')->search({
+                    gene_id => $gene_id,
+                    sponsor_id => { -not_in => [ 'All', 'Transfacs'] }
+                    }, {
+                    order_by => 'sponsor_id'
+                    } ) );
+
+        $sponsors_str = join  ( '; ', @sponsors );
+
+        if (scalar @sponsors == 1 || $sponsor_id ne 'All') {
             $effort = $self->model->retrieve_project({
                         sponsor_id => $sponsor_id,
                         gene_id => $gene_id,
                         targeting_type => $self->targeting_type,
                         species_id => $self->species,
-                    });
-            $sponsors_str = $effort->sponsor_id;
-# $recovery_class = $effort->recovery_class_name;
+            });
+
             $recovery_class = $effort->recovery_class_name;
             $priority = $effort->priority;
             $effort_concluded = $effort->effort_concluded ? 'yes' : '';
         } else {
-            my @sponsors = ( map { $_->sponsor_id } $self->model->schema->resultset('Project')->search({
+
+            my (@recovery_class, @priority, @effort_concluded);
+
+            foreach my $sponsor (@sponsors) {
+                my $sponsor_effort = $self->model->retrieve_project({
+                        sponsor_id => $sponsor,
                         gene_id => $gene_id,
-                        sponsor_id => { -not_in => [ 'All', 'Transfacs'] }
-                        }, {
-                        order_by => 'sponsor_id'
-                        } ) );
+                        targeting_type => $self->targeting_type,
+                        species_id => $self->species,
+                });
 
-            $sponsors_str = join  ( '; ', @sponsors );
-
-            if (scalar @sponsors == 1) {
-                $effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsors_str,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                        });
-# $recovery_class = $effort->recovery_class_name;
-                $recovery_class = $effort->recovery_class_name;
-                $priority = $effort->priority;
-                $effort_concluded = $effort->effort_concluded ? 'yes' : '';
-            } else {
-
-                my (@recovery_class, @priority, @effort_concluded);
-
-                foreach my $sponsor (@sponsors) {
-                    my $sponsor_effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsor,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                    });
-
-                    push (@recovery_class, $sponsor_effort->recovery_class) unless (!$sponsor_effort->recovery_class);
-                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
-                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
-                }
-                $recovery_class = join  ( '; ', @recovery_class );
-                $priority = join  ( '; ', @priority );
-                $effort_concluded = join  ( '; ', @effort_concluded );
+                push (@recovery_class, $sponsor_effort->recovery_class) unless (!$sponsor_effort->recovery_class);
+                push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
+                push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
             }
+            $recovery_class = join  ( '; ', @recovery_class );
+            $priority = join  ( '; ', @priority );
+            $effort_concluded = join  ( '; ', @effort_concluded );
         }
 
 
-        ### $recovery_class
-        ### $priority
-        ### $effort_concluded
-
-
-
-
-
-
-
-
-
         # design IDs list
-
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
-
 
 
         foreach my $design_id (uniq @design_ids){
@@ -960,8 +938,6 @@ sub genes {
                 $pcr_passes++;
             }
         }
-        ## $pcr_passes
-
 
 
 
@@ -974,8 +950,6 @@ sub genes {
             }
         );
         my $dna_pass_count = scalar @dna;
-
-
 
 
 
@@ -993,7 +967,6 @@ sub genes {
 			}
 		);
 		my $ep_count = scalar @ep;
-
 
 
 
@@ -1022,8 +995,7 @@ sub genes {
 					colony_count_type_id => 'picked_colonies',
 				} )->single->colony_count;
 			};
-			## $total_colonies
-			## $picked_colonies
+
 			$curr_ep_data{'total_colonies'} = $total_colonies;
 			# $curr_ep_data{'picked_colonies'} = $picked_colonies;
 
@@ -1067,8 +1039,8 @@ sub genes {
 					foreach my $damage (@damage) {
 						for ($damage->crispr_damage_type_id) {
 							when ('wild_type')  { $curr_ep_data{'wt_count'}++ }
-							when ('frameshift') { $curr_ep_data{'if_count'}++ }
-							when ('in-frame')   { $curr_ep_data{'fs_count'}++ }
+							when ('frameshift') { $curr_ep_data{'fs_count'}++ }
+							when ('in-frame')   { $curr_ep_data{'if_count'}++ }
 							when ('mosaic')     { $curr_ep_data{'ms_count'}++ }
 							# default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
 						}
@@ -1086,7 +1058,7 @@ sub genes {
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
 
-## @ep_data
+
         my $total_total_colonies = sum( map { $_->{total_colonies} } @ep_data ) // 0;
         my $total_ep_pick_count = sum( map { $_->{ep_pick_count} } @ep_data ) // 0;
         my $total_ep_pick_pass_count = sum( map { $_->{ep_pick_pass_count} } @ep_data ) // 0;
@@ -1094,22 +1066,6 @@ sub genes {
         my $total_if_count = sum( map { $_->{if_count} } @ep_data ) // 0;
         my $total_fs_count = sum( map { $_->{fs_count} } @ep_data ) // 0;
         my $total_ms_count = sum( map { $_->{ms_count} } @ep_data ) // 0;
-## $total_ep_pick_count
-
-        # my @ep_pick = $summary_rs->search(
-        #     { ep_pick_plate_name => { '!=', undef } },
-        #     {
-        #         columns => [ qw/ep_pick_plate_name ep_pick_well_name ep_pick_well_accepted ep_pick_well_id/ ],
-        #         distinct => 1
-        #     }
-        # );
-        # my $ep_pick_count = scalar @ep_pick;
-        # my $ep_pick_pass_count = 0;
-        # foreach my $ep_pick (@ep_pick) {
-        #     if ( $ep_pick->ep_pick_well_accepted ) {
-        #         $ep_pick_pass_count++;
-        #     }
-        # }
 
 
 
@@ -1136,8 +1092,8 @@ sub genes {
             'fs_count'               => $total_fs_count,
             'ms_count'               => $total_ms_count,
 
-            'recovery_class'         => $recovery_class,
-
+            'recovery_class'         => $recovery_class // '-',
+            'effort_concluded'       => $effort_concluded // '0',
             'ep_data'				 => \@ep_data,
         };
     }

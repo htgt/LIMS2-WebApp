@@ -7,8 +7,6 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
-use Smart::Comments;
-
 BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -322,12 +320,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             }
         }
 
-## $columns
-## $display_columns
-## $data
 
-
-## $stage
         my $template = 'publicreports/sponsor_sub_report.tt';
 
         if ($stage eq 'Genes') {
