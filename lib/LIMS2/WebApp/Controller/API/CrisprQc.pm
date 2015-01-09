@@ -131,16 +131,16 @@ sub crispr_es_qc_well_POST {
     );
 }
 
-sub validate_crispr_es_qc_run : Path( '/api/validate_crispr_es_qc_run' ) : Args(0) :ActionClass( 'REST' ) {
+sub update_crispr_es_qc_run : Path( '/api/update_crispr_es_qc_run' ) : Args(0) :ActionClass( 'REST' ) {
 }
 
 =head2 POST
 
-Validate a crispr es qc run
+Update a crispr es qc run
 
 =cut
 
-sub validate_crispr_es_qc_run_POST {
+sub update_crispr_es_qc_run_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
@@ -148,7 +148,7 @@ sub validate_crispr_es_qc_run_POST {
     try{
         my $crispr_es_qc_run = $c->model('Golgi')->txn_do(
             sub {
-                shift->validate_crispr_es_qc_run( $c->request->params );
+                shift->update_crispr_es_qc_run( $c->request->params );
             }
         );
         $self->status_ok( $c, entity => { success => 1 } );
