@@ -85,9 +85,10 @@ has crispr_primers => (
 
 sub _build_crispr_primers {
     my $self = shift;
-    my $crispr_primers;
+    my $crispr_primers = {};
     foreach my $crispr_data (values %{ $self->well_crisprs_data }){
         my $crispr = $crispr_data->{obj};
+        next unless $crispr;
         my $crispr_type = $crispr_data->{type};
         my $key = $crispr->id . " (" . $crispr_type . ")";
         foreach my $primer ($crispr->crispr_primers->all){

@@ -36,6 +36,7 @@ sub toggle_genotyping_primer_validation_state : Path( '/user/toggle_genotyping_p
 
 
     $c->forward('View::JSON');
+    return;
 }
 
 # Returns JSON so this can be used in ajax request
@@ -89,6 +90,7 @@ sub toggle_crispr_primer_validation_state : Path( '/user/toggle_crispr_primer_va
 
 
     $c->forward('View::JSON');
+    return;
 }
 
 1;
