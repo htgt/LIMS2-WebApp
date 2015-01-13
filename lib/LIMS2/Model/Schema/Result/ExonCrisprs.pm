@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::ExonCrisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ExonCrisprs::VERSION = '0.278';
+    $LIMS2::Model::Schema::Result::ExonCrisprs::VERSION = '0.279';
 }
 ## use critic
 

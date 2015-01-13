@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::QcTemplateWellCassette;
+package LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcTemplateWellCassette::VERSION = '0.279';
+    $LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer::VERSION = '0.279';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::QcTemplateWellCassette;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::QcTemplateWellCassette
+LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer
 
 =cut
 
@@ -36,13 +36,19 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<qc_template_well_cassette>
+=head1 TABLE: C<qc_template_well_crispr_primers>
 
 =cut
 
-__PACKAGE__->table("qc_template_well_cassette");
+__PACKAGE__->table("qc_template_well_crispr_primers");
 
 =head1 ACCESSORS
+
+=head2 qc_run_id
+
+  data_type: 'char'
+  is_foreign_key: 1
+  is_nullable: 0
 
 =head2 qc_template_well_id
 
@@ -50,7 +56,7 @@ __PACKAGE__->table("qc_template_well_cassette");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 cassette_id
+=head2 crispr_primer_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -59,9 +65,11 @@ __PACKAGE__->table("qc_template_well_cassette");
 =cut
 
 __PACKAGE__->add_columns(
+  "qc_run_id",
+  { data_type => "char", is_foreign_key => 1, is_nullable => 0 },
   "qc_template_well_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "cassette_id",
+  "crispr_primer_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
@@ -69,28 +77,47 @@ __PACKAGE__->add_columns(
 
 =over 4
 
+=item * L</qc_run_id>
+
 =item * L</qc_template_well_id>
+
+=item * L</crispr_primer_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("qc_template_well_id");
+__PACKAGE__->set_primary_key("qc_run_id", "qc_template_well_id", "crispr_primer_id");
 
 =head1 RELATIONS
 
-=head2 cassette
+=head2 crispr_primer
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Cassette>
+Related object: L<LIMS2::Model::Schema::Result::CrisprPrimer>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "cassette",
-  "LIMS2::Model::Schema::Result::Cassette",
-  { id => "cassette_id" },
+  "crispr_primer",
+  "LIMS2::Model::Schema::Result::CrisprPrimer",
+  { crispr_oligo_id => "crispr_primer_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 qc_run
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::QcRun>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "qc_run",
+  "LIMS2::Model::Schema::Result::QcRun",
+  { id => "qc_run_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -110,8 +137,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JYuXYr0WdUuxUAST56ityQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-01-05 12:52:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mhNt0HtD9xb8yGQAkkFoaw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

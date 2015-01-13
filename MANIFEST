@@ -143,6 +143,8 @@ lib/LIMS2/Model/Schema/Result/QcTemplate.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWell.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWellBackbone.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWellCassette.pm
+lib/LIMS2/Model/Schema/Result/QcTemplateWellCrisprPrimer.pm
+lib/LIMS2/Model/Schema/Result/QcTemplateWellGenotypingPrimer.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWellRecombinase.pm
 lib/LIMS2/Model/Schema/Result/QcTestResult.pm
 lib/LIMS2/Model/Schema/Result/Recombinase.pm
@@ -294,6 +296,7 @@ lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
+lib/LIMS2/WebApp/Controller/User/Primers.pm
 lib/LIMS2/WebApp/Controller/User/Projects.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/RecombinaseUpload.pm

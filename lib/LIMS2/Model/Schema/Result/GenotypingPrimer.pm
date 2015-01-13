@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GenotypingPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.278';
+    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.279';
 }
 ## use critic
 
@@ -80,6 +80,16 @@ __PACKAGE__->table("genotyping_primers");
   is_nullable: 1
   size: [5,3]
 
+=head2 is_validated
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 is_rejected
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -100,6 +110,10 @@ __PACKAGE__->add_columns(
   { data_type => "numeric", is_nullable => 1, size => [5, 3] },
   "gc_content",
   { data_type => "numeric", is_nullable => 1, size => [5, 3] },
+  "is_validated",
+  { data_type => "boolean", is_nullable => 1 },
+  "is_rejected",
+  { data_type => "boolean", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -146,9 +160,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_template_well_genotyping_primers
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 08:54:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KVnZozx2sha5QXBwRFLXtA
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellGenotypingPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_genotyping_primers",
+  "LIMS2::Model::Schema::Result::QcTemplateWellGenotypingPrimer",
+  { "foreign.genotyping_primer_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-01-05 12:52:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:naTLhG8UVk0Sv59M9O8dVg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

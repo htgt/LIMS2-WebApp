@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Chromosome;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Chromosome::VERSION = '0.278';
+    $LIMS2::Model::Plugin::Chromosome::VERSION = '0.279';
 }
 ## use critic
 
