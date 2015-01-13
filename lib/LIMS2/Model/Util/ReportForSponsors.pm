@@ -759,6 +759,7 @@ sub _build_sub_report_data {
 # Methods for Stages
 #----------------------------------------------------------
 
+## no critic(ProhibitExcessComplexity)
 sub genes {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
@@ -874,15 +875,14 @@ sub genes {
                         species_id => $self->species,
                 });
 
-                push (@recovery_class, $sponsor_effort->recovery_class) unless (!$sponsor_effort->recovery_class);
+                push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
                 push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
                 push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
             }
-            $recovery_class = join  ( '; ', @recovery_class );
-            $priority = join  ( '; ', @priority );
-            $effort_concluded = join  ( '; ', @effort_concluded );
+            $recovery_class = join ( '; ', @recovery_class );
+            $priority = join ( '; ', @priority );
+            $effort_concluded = join ( '; ', @effort_concluded );
         }
-
 
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
@@ -930,9 +930,10 @@ sub genes {
                 },{
                     select => [ 'result' ],
                 })->result;
-            }catch{
-                DEBUG "No pcr status found for well " . $well_id;
             };
+            # catch{
+            #     DEBUG "No pcr status found for well " . $well_id;
+            # };
 
             if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
                 $pcr_passes++;
@@ -1094,7 +1095,7 @@ sub genes {
 
             'recovery_class'         => $recovery_class // '-',
             'effort_concluded'       => $effort_concluded // '0',
-            'ep_data'				 => \@ep_data,
+            'ep_data'                => \@ep_data,
         };
     }
 
@@ -1124,6 +1125,7 @@ sub genes {
 
     return \@sorted_genes_for_display;
 }
+## use critic
 
 sub add_crispr_well_counts_for_gene{
     my ($gene_data, $designs_for_gene, $design_crispr_summary) = @_;
@@ -1137,7 +1139,7 @@ sub add_crispr_well_counts_for_gene{
     my $crispr_vector_accepted_count = 0;
     foreach my $design_id (@{ $designs_for_gene->{$gene_id} || []}){
         my $plated_crispr_summary = $design_crispr_summary->{$design_id}->{plated_crisprs};
-        my %has_accepted_dna;
+        # my %has_accepted_dna;
         foreach my $crispr_id (keys %$plated_crispr_summary){
             my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
             $crispr_count += scalar( @crispr_well_ids );

@@ -380,8 +380,18 @@ sub _view_cached_lines {
     my $c = shift;
     my $report_name = shift;
 
+    my $server_path = $c->uri_for('/');
+    my $cache_server;
+
+    for ($server_path) {
+        if    (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\//) { $cache_server = 'production/'; }
+        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/staging\//) { $cache_server = 'staging/'; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        else  { die 'Error finding path for cached sponsor report'; }
+    }
+
     $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $report_name . '.html';
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . '.html';
 
     my @lines_out;
     open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )

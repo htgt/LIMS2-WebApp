@@ -31,7 +31,7 @@ document.title = "[%- sponsor_id %]";
 [%- END %]
 </span>
 <div class="page-header">
-  <h2>Sponsor Progress Sub-Report (DEVEL) </p> </h2>
+  <h2>Sponsor Progress Sub-Report</h2>
 </div>
 <p>
 <big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
