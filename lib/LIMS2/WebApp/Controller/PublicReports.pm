@@ -320,12 +320,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             }
         }
 
-
         my $template = 'publicreports/sponsor_sub_report.tt';
-
-        if ($stage eq 'Genes') {
-            $template = 'publicreports/sponsor_sub_report_genes.tt';
-        }
 
         # Store report values in stash for display onscreen
         $c->stash(
