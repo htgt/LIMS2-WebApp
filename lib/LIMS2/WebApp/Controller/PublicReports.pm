@@ -266,10 +266,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $species = $c->session->{selected_species};
 
-    my $all = 0;
-    if ($sponsor_id eq 'All') {
-        $all = 1;
-    }
     my $cache_param = $c->request->params->{'cache_param'};
 
     # Call ReportForSponsors plugin to generate report
@@ -334,7 +330,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'data'                 => $data,
             'link'                 => $link,
             'type'                 => $type,
-            'all'                  => $all,
             'species'              => $species,
             'cache_param'          => $cache_param,
         );
@@ -379,8 +374,8 @@ sub _view_cached_lines {
     my $cache_server;
 
     for ($server_path) {
-        if    (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\//) { $cache_server = 'production/'; }
-        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/staging\//) { $cache_server = 'staging/'; }
+        if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
