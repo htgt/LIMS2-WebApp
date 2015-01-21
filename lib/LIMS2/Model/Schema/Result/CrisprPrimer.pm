@@ -86,6 +86,16 @@ __PACKAGE__->table("crispr_primers");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 is_validated
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 is_rejected
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -110,6 +120,10 @@ __PACKAGE__->add_columns(
   { data_type => "numeric", is_nullable => 1, size => [5, 3] },
   "crispr_group_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "is_validated",
+  { data_type => "boolean", is_nullable => 1 },
+  "is_rejected",
+  { data_type => "boolean", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -254,9 +268,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_template_well_crispr_primers
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-06 07:29:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N+7sfYly1Hn9jVvWx8MQ8Q
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_crispr_primers",
+  "LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer",
+  { "foreign.crispr_primer_id" => "self.crispr_oligo_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-01-05 12:52:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y8HdQM+ZiP6ldUv/KbyTRA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -275,6 +304,10 @@ __PACKAGE__->has_many(
   { "foreign.crispr_oligo_id" => "self.crispr_oligo_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
+
+sub id {
+  return shift->crispr_oligo_id;
+}
 
 sub as_hash {
     my $self = shift;
