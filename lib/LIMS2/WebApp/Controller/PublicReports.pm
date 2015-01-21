@@ -294,9 +294,16 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
 
         my $body = join(',', map { $_ } @{$display_columns}) . "\n";
+
+        my @csv_colums;
+        if (@{$columns}[-1] eq 'ep_data') {
+            @csv_colums = splice (@{$columns}, 0, -1);
+        } else {
+            @csv_colums = @{$columns};
+        }
+
         foreach my $column ( @{$data} ) {
-            $body .= join(',', map { $column->{$_} } @{$columns}) . "\n";
-            $body =~ s/✔/1/g;
+            $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
         }
 
         $c->response->body( $body );
@@ -344,7 +351,7 @@ sub _simple_transform {
 
     foreach my $column ( @{$data} ) {
         while ( my ($key, $value) = each %{$column} ) {
-            if (${$column}{$key} eq '0') {
+            if (! ${$column}{$key}) {
                 ${$column}{$key} = '';
             }
             else {
@@ -364,11 +371,21 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     return $self->_view_cached_lines($c, $report_name );
 }
 
+sub view_cached_full : Path( '/public_reports/cached_sponsor_report_full' ) : Args(1) {
+    my ( $self, $c, $report_name ) = @_;
+
+    $c->log->info( "Generate public detail report for : $report_name" );
+
+    return $self->_view_cached_lines($c, $report_name, 1 );
+}
+
+
 
 sub _view_cached_lines {
     my $self = shift;
     my $c = shift;
     my $report_name = shift;
+    my $full = shift;
 
     my $server_path = $c->uri_for('/');
     my $cache_server;
@@ -380,8 +397,10 @@ sub _view_cached_lines {
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
+    my $suffix = '.html';
+    if ($full) {$suffix = '_full.html'}
     $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . '.html';
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . $suffix;
 
     my @lines_out;
     open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )

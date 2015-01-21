@@ -5,30 +5,30 @@ document.title = "[%- sponsor_id %]";
 
 <span style="float:right">
 
-[%- IF cache_param == "with_cache" %]
-  <a id='csv_download' type='button' class='btn btn-info btn-small' target="_self"
-  href=[%- c.uri_for( "/public_reports/cached_sponsor_csv/", [sponsor_id],
-    {
-        species => species,
-        cache_param => cache_param,
-        csv => 1
-    }
-  ) %]><i class="icon-download-alt icon-white"></i><b> Download cached CSV</b></a>
-[%- ELSE %]
   [% IF type == 'full' %]
-  <a id='type_simple' type='button' class='btn btn-primary btn-small' href="[% c.uri_for( link ) %]"><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
+  <a id='type_simple' type='button' class='btn btn-primary btn-small'
+  href=[%- c.uri_for( c.action, [disp_target_type.replace('-', '_' ), sponsor_id, disp_stage],
+    {
+        cache_param => cache_param,
+        type => 'simple'
+    }
+  ) %]><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
   [% ELSIF type == 'simple' %]
-  <a id='type_full' type='button' class='btn btn-primary btn-small' href="[% c.uri_for( link, {type => 'full'} ) %]"><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
+  <a id='type_full' type='button' class='btn btn-primary btn-small'
+  href=[%- c.uri_for( c.action, [disp_target_type.replace('-', '_' ), sponsor_id, disp_stage],
+    {
+        cache_param => cache_param,
+        type => 'full'
+    }
+  ) %]><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
   [% END %]
   <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"
   href=[%- c.uri_for( c.action, [disp_target_type.replace('-', '_' ), sponsor_id, disp_stage],
     {
-        cache_param => cache_param,
-        species => species,
         csv => 1
     }
   ) %]><i class="icon-download-alt icon-white"></i><b> Download CSV</b></a>
-[%- END %]
+
 </span>
 <div class="page-header">
   <h2>Sponsor Progress Sub-Report</h2>
@@ -149,6 +149,14 @@ document.title = "[%- sponsor_id %]";
             [% END %]
         [%- ELSIF col == "sponsors" %]
             <td>[% colval %]</td>
+        [%- ELSIF col == 'vector_pcr_passes' %]
+            [% IF c.user %]
+              [% IF colval %]
+              <td style="background:#E5E4E2" >[%- colval %]</td>
+              [% ELSE %]
+              <td></td>
+              [%- END %]
+            [%- END %]
         [%- ELSIF !colval %]
             <td></td>
         [%- ELSIF col == 'passing_vector_wells'
@@ -213,10 +221,6 @@ document.title = "[%- sponsor_id %]";
                 [%- colval %]
               [%- END %]
               </td>
-        [%- ELSIF col == 'vector_pcr_passes' %]
-            [% IF c.user %]
-              <td style="background:#E5E4E2" >[%- colval %]</td>
-            [%- END %]
 
         [% ELSIF col == "ep_data" %]
 
@@ -226,7 +230,11 @@ document.title = "[%- sponsor_id %]";
                 [%- FOREACH ep_data IN row.item('ep_data') %]
 
                 <tr>
+                [% IF c.user %]
                   <td colspan=9></td>
+                [%- ELSE %]
+                  <td colspan=8></td>
+                [%- END %]
                   <td>[%- ep_data.item('total_colonies') %]</td>
                   <td>[%- ep_data.item('ep_pick_count') %]</td>
                   <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
