@@ -502,18 +502,37 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
             try { $data{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 ) };
 
             # grab data for crispr damage type
-            my @crispr_damage_types = $model->schema->resultset('CrisprEsQcWell')->search(
-                { well_id => $sr->ep_pick_well_id } )->get_column('crispr_damage_type_id')->all;
-            @crispr_damage_types = uniq grep { $_ } @crispr_damage_types;
+            # only on validated runs...
+            my @crispr_es_qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+                {
+                    well_id  => $sr->ep_pick_well_id,
+                    'crispr_es_qc_run.validated' => 1,
+                },
+                {
+                    join => 'crispr_es_qc_run'
+
+                }
+            );
+
+            my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
 
             if ( scalar( @crispr_damage_types ) == 1 ) {
                 $data{crispr_damage} = $crispr_damage_types[0];
             }
             elsif ( scalar( @crispr_damage_types ) > 1 ) {
-                $c->log->warn( $data{name}
-                        . ' ep_pick well has multiple crispr damage types associated with it: '
-                        . join( ', ', @crispr_damage_types ) );
-                $data{crispr_damage} = join( '/', @crispr_damage_types );
+                # remove any non accepted results
+                @crispr_damage_types = uniq grep {$_}
+                    map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
+
+                if ( scalar( @crispr_damage_types ) > 1 ) {
+                    $c->log->warn( $data{name}
+                            . ' ep_pick well has multiple crispr damage types associated with it: '
+                            . join( ', ', @crispr_damage_types ) );
+                    $data{crispr_damage} = '-';
+                }
+                else {
+                    $data{crispr_damage} = $crispr_damage_types[0];
+                }
             }
             else {
                 $data{crispr_damage} = 'unclassified';
@@ -522,7 +541,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
         $targeted_clones{ $sr->ep_pick_well_id } = \%data;
     }
 
-    my @targeted_clones = sort { $a->{name} cmp $b->{name} } values %targeted_clones;
+    my @targeted_clones = sort _sort_by_damage_type values %targeted_clones;
     my %summaries;
     for my $tc ( @targeted_clones ) {
         $summaries{accepted}++ if $tc->{accepted} eq 'yes';
@@ -536,6 +555,26 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
         'targeted_clones' => \@targeted_clones,
     );
     return;
+}
+
+sub _sort_by_damage_type{
+    my %crispr_damage_order = (
+        'frameshift'   => 1,
+        'in-frame'     => 2,
+        'wild_type'    => 3,
+        'mosaic'       => 4,
+        'no-call'      => 5,
+        'unclassified' => 6,
+        '-'            => 6,
+    );
+    if ( !$a->{crispr_damage} ) {
+        return 1;
+    }
+    elsif ( !$b->{crispr_damage} ) {
+        return -1;
+    }
+
+    return $crispr_damage_order{$a->{crispr_damage}} <=> $crispr_damage_order{$b->{crispr_damage}};
 }
 
 =head2 well_eng_seq
