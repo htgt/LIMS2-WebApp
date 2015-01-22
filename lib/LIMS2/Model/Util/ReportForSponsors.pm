@@ -1126,8 +1126,8 @@ sub genes {
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
 
             $total_wt_count += $curr_ep_data{'wt_count'};
-            $total_if_count += $curr_ep_data{'fs_count'};
-            $total_fs_count += $curr_ep_data{'if_count'};
+            $total_if_count += $curr_ep_data{'if_count'};
+            $total_fs_count += $curr_ep_data{'fs_count'};
             $total_ms_count += $curr_ep_data{'ms_count'};
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
