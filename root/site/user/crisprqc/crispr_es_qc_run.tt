@@ -7,68 +7,67 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+    api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
+</script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
+
+    if ( [% run_validated %] ) {
+        $("#validate_run").hide();
+    }
+    else {
+        $("#invalidate_run").hide();
+        $("#validate_label").hide();
+    }
+
     $(".traces").click(function(e) {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
         var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
-
-        //show_traces( $(this) );
     });
 
-    $(".accepted").click(function() {
+    // validate or invalidate run
+    $("#validate_run, #invalidate_run").click(function(e) {
+        e.preventDefault();
 
-        //fade element out until its saved, waiting at least 500ms
-        var element = $(this).parent().parent();
-        element.fadeTo( "slow", 0.5 ).delay(500);
-
-        $.post(
-            '[% c.uri_for("/api/update_well_accepted") %]',
-            { "id": this.value, "accepted": this.checked },
-
-            function (data) {
-                console.log(data);
-                //fade back in
-                element.fadeTo( "slow", 1 );
-            },
-            'json'
-        );
-    });
-
-    $(".crispr_damage_type").change(function() {
-
-        //fade element out until its saved, waiting at least 500ms
-        var element = $(this).parent().parent();
-        element.removeClass('error').removeClass('success').addClass('warning');
+        var element = $(this);
+        //set button state to loading, shows data-loading-text value
+        element.button('loading');
 
         $.ajax({
             type: "POST",
-            url: '[% c.uri_for("/api/update_well_crispr_damage") %]',
+            url: '[% c.uri_for("/api/update_crispr_es_qc_run") %]',
             data: {
-                "id": $(this).attr('data-crispr_well_id'),
-                "damage_type": this.value
+                "id": '[% qc_run_id %]',
+                "validated": element.attr('data-validate')
             },
-            success: function(data) { 
+            success: function(data) {
                 console.log(data);
                 element.delay(500).queue(function(){
-                    $(this).removeClass('warning').removeClass('error').addClass('success').dequeue();
+                    $(this).button('reset').dequeue();// resets button to original text
+                    // toggle both buttons plus validate label
+                    $('#invalidate_run').toggle();
+                    $('#validate_run').toggle();
+                    $("#validate_label").toggle();
                 });
             },
             error: function(data) {
                 console.log(data);
-                element.addClass('error');
                 element.delay(500).queue(function(){
-                    $(this).removeClass('warning').removeClass('success').addClass('error').dequeue();
+                    $(this).removeClass('btn-primary').removeClass('btn-warning').addClass('disabled').addClass('btn-danger').dequeue();
+                    element.text('error updating qc run');
                 });
-                alert( 'Error updating crispr damage type, change not saved' );
+                alert( 'Error updating crispr es qc run' );
             },
             dataType: 'json'
         });
 
     });
+
 });
 </script>
 
@@ -86,10 +85,25 @@ $(document).ready(function() {
             <th>Sub Project</th>
             <td>[% sub_project %]</td>
         </tr>
+        <tr>
+            <th>Validated</th>
+            <td>
+                <span id="validate_label" class="label label-success">Validated</span>
+            </td>
+        </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
         <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
+    [% IF wells.size > 0 %]
+        <a id="validate_run" class="btn pull-right btn-primary" role="button" data-loading-text="... working" data-validate="true">
+            <i class="icon-gift icon-white"></i> Validate QC Run
+        </a>
+
+        <a id="invalidate_run" class="btn pull-right btn-warning" role="button" data-loading-text="... working" data-validate="false">
+            <i class="icon-ban-circle icon-white"></i> Invalidate Qc Run
+        </a>
+    [% END %]
 </div>
 
 <div class="modal hide fade" id="DeleteRunModal">
@@ -120,6 +134,7 @@ $(document).ready(function() {
             <th>Alignment</th>
             <th>Accept</th>
             <th>Damage Type</th>
+            <th>Variant Size</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>
@@ -132,8 +147,11 @@ $(document).ready(function() {
             <tr>
 
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row       = row
-                    accept    = 1
+                    row                 = row
+                    accept              = 1
+                    edit                = 1
+                    complete_info       = 1
+                    hide_crispr_well_id = 0
                 %]
 
             </tr>

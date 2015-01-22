@@ -10,20 +10,10 @@
   <a class="btn btn-small btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/single_targeted", {species => 'Mouse'} ) %]"><i class="icon-list-alt icon-white"></i><b> Show single-targeted report</b></a>
 [%- END %]
 
-[%- IF !c.user  %]
-  [%- IF species == 'Mouse' %]
-    <a id='type_simple' type='button' name='switch_human' class='btn btn-info btn-small'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Human' } ) %]">
-        <i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
-  [%- ELSIF species == 'Human' %]
-    <a id='type_full' type='button' name='switch_mouse' class='btn btn-info btn-small'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse'} ) %]">
-        <i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
-  [%- END %]
-[%- ELSE %]
+[%- IF c.user %]
     [%- IF cache_param == 'with_cache' %]
         <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-small'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param => 'without_cache'} ) %]">
+        href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param => 'without_cache'} ) %]">
         <i class="icon-exclamation-sign icon-white"></i><b> Use live reports</b></a>
     [%- ELSE %]
         <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-small'
@@ -81,11 +71,11 @@
           [%- IF c.user || row == "Genes" %]
             [%- IF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}",
-                { species => species, cache_param => 'with_cache' }
+                { species => species, cache_param => 'with_cache', type => 'simple' }
                 ) %]" target="_blank">[%- countval %]</a></b></td>
             [%- ELSE %]
                 <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
-                    { species => species, cache_param => 'without_cache' }
+                    { species => species, cache_param => 'without_cache', type => 'simple' }
                 ) %]" target="_blank">[%- countval %]</a></b></td>
             [%- END %]
           [%- ELSE %]

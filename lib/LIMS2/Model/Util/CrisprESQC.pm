@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.267';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.282';
 }
 ## use critic
 
@@ -47,6 +47,8 @@ const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD}
 const my %BWA_REF_GENOMES => (
     human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
     mouse => '/lustre/scratch109/blastdb/Users/team87/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
+    #human => '/lustre/scratch110/sanger/sp12/temp_ref_files/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
+    #mouse => '/lustre/scratch110/sanger/sp12/temp_ref_files/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
 );
 
 has model => (
@@ -325,7 +327,7 @@ sub persist_wells {
         sub {
             try {
                 for my $qc_well ( @{ $qc_wells } ) {
-                    $self->model->create_crispr_es_qc_well( $self->qc_run, $qc_well );
+                    $self->model->create_crispr_es_qc_well( $qc_well );
                 }
 
                 $self->log->info('Persisted crispr es qc well data');
@@ -385,6 +387,8 @@ sub analyse_well {
 
     $self->parse_analysis_data( $analyser, $crispr, $design, \%analysis_data );
     my $qc_data = $self->build_qc_data( $well, $analyser, \%analysis_data, $well_reads, $crispr );
+    $qc_data->{crispr_es_qc_run_id} = $self->qc_run->id;
+    $qc_data->{species}             = $self->species;
 
     my $qc_data_file = $work_dir->file( 'qc_data.yaml' );
     $qc_data_file->touch;
@@ -698,8 +702,14 @@ sub build_qc_data {
         $qc_data{crispr_chr_name} = $crispr->chr_name;
     }
 
-    if ( $analyser && $analyser->vcf_file_target_region ) {
-        $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp;
+    if ( $analyser ) {
+        $qc_data{vcf_file} = $analyser->vcf_file_target_region->slurp if $analyser->vcf_file_target_region;
+        $qc_data{variant_size} = $analyser->variant_size if $analyser->variant_size;
+        if ( $analyser->variant_type ) {
+            $qc_data{crispr_damage_type} = $analyser->variant_type;
+            # if a variant type other can no-call has been made then mark well accepted
+            $qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
+        }
     }
 
     if ( exists $well_reads->{forward} ) {

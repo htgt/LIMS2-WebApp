@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.267';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.282';
 }
 ## use critic
 
@@ -185,6 +185,7 @@ EOT
 
     foreach my $result (@qc_run_results){
         my @designs;
+
         if($crispr_run){
             my $crispr_id = $result->{crispr_id};
             unless ($crispr_id) {$crispr_id = $result->{expected_crispr_id}};
@@ -194,65 +195,75 @@ EOT
                     id => $crispr_id
                 } );
                 @designs = $crispr->related_designs;
+                }
             }
-        }
-        else{
-            my $design_id = $result->{design_id};
-            unless ($design_id) {$design_id = $result->{expected_design_id}};
-            # get designs
-            try{
-                @designs = $model->schema->resultset('Design')->search( {
-                    id => $design_id
-                } );
+            else{
+                my $design_id = $result->{design_id};
+                unless ($design_id) {$design_id = $result->{expected_design_id}};
+                # get designs
+                try{
+                    @designs = $model->schema->resultset('Design')->search( {
+                        id => $design_id
+                    } );
+                }
             }
-        }
-        my @genes = map { $_->genes } @designs;
-        my @gene_ids = uniq map { $_->gene_id } @genes;
-        my @symbols;
-        foreach my $gene (@gene_ids){
-            # get gene symbol
-            try{
-                my $species;
-                if ($gene =~ m/HGNG:/) {$species = 'Human'} else {$species = 'Mouse'};
-                my $gene_symbol = $model->find_gene( { species => $species, search_term => $gene } );
-                push @symbols, $gene_symbol->{gene_symbol};
+            my @genes = map { $_->genes } @designs;
+            my @gene_ids = uniq map { $_->gene_id } @genes;
+            my @symbols;
+            foreach my $gene (@gene_ids){
+                # get gene symbol
+                try{
+                    my $species;
+                    if ($gene =~ m/HGNG:/) {$species = 'Human'} else {$species = 'Mouse'};
+                    my $gene_symbol = $model->find_gene( { species => $species, search_term => $gene } );
+                    push @symbols, $gene_symbol->{gene_symbol};
             }
         }
         $result->{gene_symbol} = join( q{/}, uniq @symbols );
+
     }
 
     return \@qc_run_results;
 }
 ## use critic
 
+## no critic ( Subroutines::ProhibitExcessComplexity )
 sub retrieve_qc_run_summary_results {
-    my ( $qc_run ) = @_;
+    my ( $qc_run, $model, $crispr_run ) = @_;
 
-    my $results = retrieve_qc_run_results($qc_run);
+    if (!$model) {
+        $model = LIMS2::Model->new( user => 'lims2' );
+    }
 
-    my $template_well_rs = $qc_run->qc_template->qc_template_wells;
+    my $results = retrieve_qc_run_results_fast($qc_run, $model, $crispr_run);
 
     my @summary;
-    my %seen_design;
+
+    my $run_type = 'design_id';
+    if ($crispr_run) {
+        $run_type = 'crispr_id';
+    }
+
+    my $template_well_rs = $qc_run->qc_template->qc_template_wells;
+    my %seen;
 
     while ( my $template_well = $template_well_rs->next ) {
         next
-            unless $template_well->design_id
-                and not $seen_design{ $template_well->design_id }++;
+            unless $template_well->$run_type
+                and not $seen{ $template_well->$run_type }++;
 
         my %s = (
-            design_id   => $template_well->design_id,
-            gene_symbol => '-',
+            $run_type => $template_well->$run_type,
         );
 
         my @results = reverse sort {
-                   ( $a->{pass} || 0 ) <=> ( $b->{pass} || 0 )
+                   ( $a->{pass}                || 0 ) <=> ( $b->{pass}                || 0 )
                 || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
                 || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
                 || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
                 || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 )
             }
-            grep { $_->{design_id} and $_->{design_id} == $template_well->design_id } @{$results};
+            grep { $_->{$run_type} and ($_->{$run_type} == $template_well->$run_type) } @{$results};
 
         if ( my $best = shift @results ) {
             $s{plate_name}    = $best->{plate_name};
@@ -260,12 +271,15 @@ sub retrieve_qc_run_summary_results {
             $s{well_name_384} = uc $best->{well_name_384};
             $s{valid_primers} = join( q{,}, @{ $best->{valid_primers} } );
             $s{pass}          = $best->{pass};
+            $s{gene_symbol}   = $best->{gene_symbol};
         }
+
         push @summary, \%s;
     }
 
     return \@summary;
 }
+## use critic
 
 sub retrieve_qc_run_seq_well_results {
     my ( $qc_run_id, $seq_well ) = @_;
@@ -571,13 +585,13 @@ sub build_qc_runs_search_params {
 }
 
 sub infer_qc_process_type{
-	my ( $params, $new_plate_type, $source_plate_type ) = @_;
+    my ( $params, $new_plate_type, $source_plate_type ) = @_;
 
-	my $process_type;
-	my $reagent_count = 0;
+    my $process_type;
+    my $reagent_count = 0;
 
-	$reagent_count++ if $params->{cassette};
-	$reagent_count++ if $params->{backbone};
+    $reagent_count++ if $params->{cassette};
+    $reagent_count++ if $params->{backbone};
 
     ## no critic (ProhibitCascadingIfElse)
     if ( $source_plate_type eq 'DESIGN' ) {

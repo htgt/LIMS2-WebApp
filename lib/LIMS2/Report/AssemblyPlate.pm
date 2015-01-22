@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.267';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.282';
 }
 ## use critic
 
@@ -12,31 +12,14 @@ use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
-override plate_types => sub {
-    return [ 'ASSEMBLY' ];
-};
+has wells_data => (
+    is         => 'ro',
+    isa        => 'ArrayRef',
+    lazy_build => 1,
+);
 
-override _build_name => sub {
-    my $self = shift;
-
-    return 'Crispr Assembly Plate ' . $self->plate_name;
-};
-
-override _build_columns => sub {
-    return [
-        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
-        'Crispr ID', 'Crispr Design', 'Genoverse View', 'Genbank File',
-        'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
-        'DNA Quality EGel Pass?','Sequencing QC Pass',
-        'Crispr Details',
-        'SF1', 'SR1', 'PF1', 'PR1', 'PF2', 'PR2', 'GF1', 'GR1', 'GF2', 'GR2', # primers
-        'Created By','Created At',
-    ];
-};
-
-override iterator => sub {
-    my $self = shift;
-
+sub _build_wells_data {
+    my ($self) = @_;
     # use custom resultset to gather data for plate report speedily
     # avoid using process graph when adding new data or all speed improvements
     # will be nullified, e.g calling $well->design
@@ -49,10 +32,121 @@ override iterator => sub {
 
     my @wells_data = @{ $rs->consolidate( $self->plate_id ) };
     @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
+    return \@wells_data;
+}
+
+has well_crisprs_data => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_well_crisprs_data {
+    my $self = shift;
+    return $self->get_crispr_data( $self->wells_data );
+}
+
+has genotyping_primers => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
+=head2 _build_genotyping_primers
+
+Grab all the genotyping primers for the designs on the plate upfront to
+speed up the report.
+
+=cut
+sub _build_genotyping_primers {
+    my ( $self ) = @_;
+    my %genotyping_primers;
+
+    my @design_ids = uniq map { $_->{design_id} } @{ $self->wells_data };
+
+    my @genotyping_primers = $self->model->schema->resultset('GenotypingPrimer')->search(
+        {
+            'design_id' => { 'IN' => \@design_ids },
+        },
+        {
+            'columns' => [ qw/design_id genotyping_primer_type_id seq is_validated/ ],
+            'distinct' => 1,
+        }
+    );
+
+    for my $gp ( @genotyping_primers ) {
+        next if $gp->is_rejected;
+        push @{ $genotyping_primers{ $gp->design_id } },
+            { type => $gp->genotyping_primer_type_id, seq => $gp->seq, is_validated => $gp->is_validated };
+    }
+
+    return \%genotyping_primers;
+}
+
+has crispr_primers => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_crispr_primers {
+    my $self = shift;
+    my $crispr_primers = {};
+    foreach my $crispr_data (values %{ $self->well_crisprs_data }){
+        my $crispr = $crispr_data->{obj};
+        next unless $crispr;
+        my $crispr_type = $crispr_data->{type};
+        my $key = $crispr->id . " (" . $crispr_type . ")";
+        foreach my $primer ($crispr->crispr_primers->all){
+            next if $primer->is_rejected;
+            push @{ $crispr_primers->{$key} },
+            { type => $primer->primer_name->primer_name, is_validated => $primer->is_validated };
+        }
+    }
+    return $crispr_primers;
+}
+
+override plate_types => sub {
+    return [ 'ASSEMBLY' ];
+};
+
+override _build_name => sub {
+    my $self = shift;
+
+    return 'Crispr Assembly Plate ' . $self->plate_name;
+};
+
+has primer_names => (
+    is         => 'ro',
+    isa        => 'ArrayRef',
+    lazy_build => 1,
+);
+
+sub _build_primer_names {
+    return [ qw( SF1 SR1 PF1 PR1 PF2 PR2 GF1 GR1 GF2 GR2 ) ];
+}
+
+override _build_columns => sub {
+    my $self = shift;
+    return [
+        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
+        'Crispr ID', 'Crispr Design', 'Genoverse View', 'Genbank File',
+        'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
+        'DNA Quality EGel Pass?','Sequencing QC Pass',
+        'Crispr Details',
+        @{ $self->primer_names }, # primers
+        'Created By','Created At',
+    ];
+};
+
+override iterator => sub {
+    my $self = shift;
+
+    my @wells_data = @{ $self->wells_data };
 
     # prefetch and process crispr and genotyping primer data
-    my $well_crisprs_data = $self->get_crispr_data( \@wells_data );
-    my $genotyping_primers = $self->fetch_all_genotyping_primers( \@wells_data );
+    my $well_crisprs_data = $self->well_crisprs_data();
+    my $genotyping_primers = $self->genotyping_primers();
 
     my $well_data = shift @wells_data;
 
@@ -75,7 +169,7 @@ override iterator => sub {
                     'gene_ids'       => $well_data->{gene_ids},
                     'button_label'   => 'Genoverse',
                     'browser_target' => $self->plate_name . $well_data->{well_name},
-                    'api_url'        => '/user/genoverse_design_view',
+                    'api_url'        => '/user/genoverse_primer_view',
                 }
             );
             $crispr_designs = join( "/", map{ $_->design_id } $crispr->crispr_designs->all );
@@ -108,7 +202,7 @@ override iterator => sub {
             ( $dna_quality ? $self->boolean_str($dna_quality->egel_pass) : '' ),
             ( $qc_seq_result ? $self->boolean_str($qc_seq_result->pass) : '' ),
             join( ", ", @crispr_report_details ),
-            @{ $crispr_primers }{ qw( SF1 SR1 PF1 PR1 PF2 PR2 GF1 GR1 GF2 GR2 ) },
+            @{ $crispr_primers }{ @{ $self->primer_names } },
             $well_data->{created_by},
             $well_data->{created_at},
         );
@@ -116,6 +210,15 @@ override iterator => sub {
         $well_data = shift @wells_data;
         return \@data;
     };
+};
+
+override structured_data => sub {
+    my $self = shift;
+    my $data;
+    $data->{plate_type} = "ASSEMBLY";
+    $data->{genotyping_primers} = $self->genotyping_primers;
+    $data->{crispr_primers} = $self->crispr_primers;
+    return $data;
 };
 
 =head2 get_primers
@@ -140,35 +243,7 @@ sub get_primers {
     return \%primers;
 }
 
-=head2 fetch_all_genotyping_primers
 
-Grab all the genotyping primers for the designs on the plate upfront to
-speed up the report.
-
-=cut
-sub fetch_all_genotyping_primers {
-    my ( $self, $wells_data ) = @_;
-    my %genotyping_primers;
-
-    my @design_ids = uniq map { $_->{design_id} } @{ $wells_data };
-
-    my @genotyping_primers = $self->model->schema->resultset('GenotypingPrimer')->search(
-        {
-            'design_id' => { 'IN' => \@design_ids },
-        },
-        {
-            'columns' => [ qw/design_id genotyping_primer_type_id seq/ ],
-            'distinct' => 1,
-        }
-    );
-
-    for my $gp ( @genotyping_primers ) {
-        push @{ $genotyping_primers{ $gp->design_id } },
-            { type => $gp->genotyping_primer_type_id, seq => $gp->seq };
-    }
-
-    return \%genotyping_primers;
-}
 
 __PACKAGE__->meta->make_immutable;
 

@@ -1,3 +1,64 @@
+0.282     2015-01-22 16:20:36 Europe/London
+
+    Added new front page sponsor report
+
+0.281     2015-01-22 08:41:56 Europe/London
+
+Update public gene report page.
+
+0.280     2015-01-19 08:39:21 Europe/London
+
+Switch from scratch110 to scratch109
+
+0.279     2015-01-13 12:10:04 Europe/London
+
+0.278     2014-12-18 07:43:42 Europe/London
+
+    Changes to crispr es qc interface
+
+0.277     2014-12-12 13:06:15 Europe/London
+
+    Sponsor All selection fix on project efforts/recovery overview
+
+0.276     2014-12-11 12:54:33 Europe/London
+
+   Added ID primary key to recovery classes so names can be modified
+
+0.275     2014-12-09 16:54:27 Europe/London
+
+    Added pcp passed to sponsor sub report when user is logged in
+
+0.274     2014-12-09 15:49:31 Europe/London
+
+   Added recovery reports
+
+0.273     2014-12-04 15:51:45 Europe/London
+
+    Added public report AlleleDump to generate a (compressed) csv for partner download
+
+0.272     2014-12-03 16:04:43 Europe/London
+
+    Bugfix: recovery class foreign key added to correct column
+    Update interface for crispr es qc, allow validation of qc run.
+
+0.271     2014-12-03 07:42:17 Europe/London
+
+    Update Legacy Cre KnockIn report
+
+0.270     2014-11-21 15:05:18 Europe/London
+
+    QcRunSummary report gene symbols and support for crispr qc
+
+0.269     2014-11-19 08:06:58 Europe/London
+
+    Bugfix: Fix genbank file creation for crispr vectors
+    Bugfix: Get correct backbone for cells targeted with crisprs
+
+0.268     2014-11-17 09:10:41 Europe/London
+
+    Fixed primers not displaying in assembly plate genoverse view
+    Modified front page public reports menu
+
 0.267     2014-11-12 14:08:09 Europe/London
 
     Added crispr counts on MGP Recovery sponsor report

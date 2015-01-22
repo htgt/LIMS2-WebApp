@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.267';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.282';
 }
 ## use critic
 
@@ -173,13 +173,88 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
 
     my $qc_run = $c->model('Golgi')->retrieve_qc_run( { id => $c->req->params->{qc_run_id} } );
 
+    # Find template well which is best match to sequencing result
+    my $best = $results->[0];
+
+    my $template_well = _find_best_match_template_well($c, $qc_seq_well, $qc_run->qc_template, $best);
+
+    my @genotyping_primers;
+    my @crispr_primers;
+
+    if($template_well){
+        $c->log->debug("Template well: ".$template_well->name);
+        @genotyping_primers = map { $_->genotyping_primer }
+                              $template_well->qc_template_well_genotyping_primers->search({ qc_run_id => $qc_run->id });
+        @crispr_primers = map { $_->crispr_primer }
+                              $template_well->qc_template_well_crispr_primers->search({ qc_run_id => $qc_run->id });
+        $c->log->debug("crispr primers: ".Dumper(@crispr_primers));
+    }
+
     $c->stash(
         qc_run      => $qc_run->as_hash,
         qc_seq_well => $qc_seq_well,
         results     => $results,
-        seq_reads   => [ sort { $a->primer_name cmp $b->primer_name } @{ $seq_reads } ]
+        seq_reads   => [ sort { $a->primer_name cmp $b->primer_name } @{ $seq_reads } ],
+        genotyping_primers => \@genotyping_primers,
+        crispr_primers => \@crispr_primers,
+        qc_template_well => $template_well,
     );
     return;
+}
+
+sub _find_best_match_template_well{
+    my ($c, $qc_seq_well, $template, $best) = @_;
+
+    my $matching_well;
+
+    if (     (defined $best->{design_id})
+         and (defined $best->{expected_design_id})
+         and ($best->{design_id} eq $best->{expected_design_id}) ){
+        # Best design ID matches expected design ID so
+        # matches template well with same location as seq well
+        $c->log->debug("Found design_id at expected location on template");
+        ($matching_well) = $template->qc_template_wells->search({ name => $qc_seq_well->name });
+    }
+    elsif( my $design_id = $best->{design_id} ){
+        # See if design_id was expected in some other well on the template,
+        # and get source for that
+        $c->log->debug("Looking for design_id $design_id at different template location");
+        my @design_template_wells = grep { $_->as_hash->{eng_seq_params}->{design_id} eq $design_id }
+                                  $template->qc_template_wells->all;
+        if(@design_template_wells > 1){
+            # Narrow down by crispr ID if we can
+            if (my $crispr_id = $best->{crispr_id}){
+                $c->log->debug("Multiple matches for design_id $design_id, narrowing by crispr_id $crispr_id");
+                ($matching_well) = grep { $_->as_hash->{eng_seq_params}->{crispr_id} eq $crispr_id }
+                                   @design_template_wells;
+            }
+            else{
+                # Or just return first well found matching design
+                $matching_well = $design_template_wells[0];
+            }
+        }
+        else{
+            $matching_well = $design_template_wells[0];
+        }
+    }
+    elsif(my $crispr_id = $best->{crispr_id}){
+        $c->log->debug("Best result has no design id, looking for crispr_id $crispr_id in template");
+        if(     (defined $best->{expected_crispr_id})
+            and ($crispr_id = $best->{expected_crispr_id})){
+            $c->log->debug("Found crispr_id $crispr_id at expected location on template");
+            ($matching_well) = $template->qc_template_wells->search({ name => $qc_seq_well->name });
+        }
+        else{
+            ($matching_well) = grep { $_->as_hash->{eng_seq_params}->{crispr_id} eq $crispr_id }
+                               $template->qc_template_wells->all;
+        }
+    }
+
+    if($best->{crispr_id} or $best->{design_id}){
+        die "Could not find template well for result with design "
+        .$best->{design_id}." and crispr ".$best->{crispr_id} unless $matching_well;
+    }
+    return $matching_well;
 }
 
 sub qc_seq_reads :Path( '/user/qc_seq_reads' ) :Args(0) {

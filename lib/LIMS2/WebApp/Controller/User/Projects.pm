@@ -1,12 +1,13 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.267';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.282';
 }
 ## use critic
 
 use Moose;
 use LIMS2::WebApp::Pageset;
+use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 
@@ -40,7 +41,6 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my @sponsors_rs =  $c->model('Golgi')->schema->resultset('Project')->search( {
             species_id  => $species_id,
-            sponsor_id => { '!=', 'All' }
         },{
             columns     => [ qw/sponsor_id/ ],
             distinct    => 1
@@ -51,22 +51,19 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment', 'priority'];
 
-    my $sel_sponsor;
-
     $c->stash(
-        sponsor_id => [ map { $_->sponsor_id } @sponsors_rs ],
+        sponsor_id       => [ map { $_->sponsor_id } @sponsors_rs ],
         effort_concluded => ['true', 'false'],
-        title           => 'Project Efforts',
-        columns         => $columns,
-        sel_sponsor      => $sel_sponsor,
+        title            => 'Project Efforts',
+        columns          => $columns,
     );
 
-    return unless ( $params->{filter} || $params->{show_all} );
+    return unless ( $params->{filter} && $params->{sponsor_id} );
+
+    my $sel_sponsor = $params->{sponsor_id};
 
     my $search;
-
-    if ($params->{show_all} && $species_id eq 'Human') {
-        $params->{sponsor_id} = '';
+    if ($params->{sponsor_id} eq 'All') {
         $search = {
             species_id => $species_id,
             sponsor_id => { -not_in => [ 'All', 'Transfacs'] },
@@ -74,12 +71,8 @@ sub index :Path( '/user/projects' ) :Args(0) {
     } else {
         $search = {
             species_id => $species_id,
+            sponsor_id => $params->{sponsor_id},
         };
-    }
-
-    if ($params->{sponsor_id}) {
-        $search->{sponsor_id} = $params->{sponsor_id};
-        $sel_sponsor = $params->{sponsor_id};
     }
 
     my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( $search , {order_by => { -asc => 'gene_id' } });
@@ -91,13 +84,13 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $_->sponsor_id,
         $_->targeting_type,
         $_->effort_concluded,
-        $_->recovery_class // '',
+        $_->recovery_class_name // '',
         $_->recovery_comment // '',
         $_->priority // '',
     ] } @projects_rs;
 
 
-    my $recovery_classes =  [ map { $_->id } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'id' } }) ];
+    my $recovery_classes =  [ map { $_->name } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'name' } }) ];
 
     my $priority_classes = ['low', 'medium', 'high'];
 
@@ -132,7 +125,11 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') Ca
         if ($new_class) {
             $c->model('Golgi')->txn_do( sub {
                 try {
-                    $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->create({ id => $new_class, description  => $params->{new_recovery_class_description} });
+                    $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->create({
+                        name         => $new_class,
+                        description  => $params->{new_recovery_class_description}
+                    });
+
                     $c->flash( success_msg => "Added effort recovery class \"$new_class\"" );
                 }
                 catch {
@@ -150,7 +147,7 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') Ca
     if ($edit_class) {
 
             my $retrieved_class = $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->find( {id => $edit_class} );
-            $edit_class = { id => $retrieved_class->id, description => $retrieved_class->description };
+            $edit_class = { id => $retrieved_class->id, description => $retrieved_class->description, name => $retrieved_class->name };
             $c->stash( edit_class => $edit_class );
 
     }
@@ -161,13 +158,13 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') Ca
         $c->model('Golgi')->txn_do( sub {
             try {
                 $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->find({ id => $edit_class->{id} })->delete;
-                $c->model('Golgi')->schema->resultset('Project')->search({ recovery_class => $edit_class->{id} })->update_all({ recovery_class => undef });
+                $c->model('Golgi')->schema->resultset('Project')->search({ recovery_class_id => $edit_class->{id} })->update_all({ recovery_class => undef });
 
-                $c->flash( success_msg => "Deleted effort recovery class \"". $edit_class->{id} ."\"" );
+                $c->flash( success_msg => "Deleted effort recovery class \"". $edit_class->{name} ."\"" );
             }
             catch {
                 $c->model('Golgi')->schema->txn_rollback;
-                $c->flash( error_msg => "Failed to delete effort recovery class \"". $edit_class->{id} ."\": $_" );
+                $c->flash( error_msg => "Failed to delete effort recovery class \"". $edit_class->{name} ."\": $_" );
             }
         });
 
@@ -181,14 +178,16 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') Ca
 
         $c->model('Golgi')->txn_do( sub {
             try {
-                $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->find({ id => $edit_class->{id} })->update({ id => $params->{update_recovery_class_id}, description => $params->{update_recovery_class_description} });
-                $c->model('Golgi')->schema->resultset('Project')->search({ recovery_class => $edit_class->{id} })->update_all({ recovery_class => $params->{update_recovery_class_id} });
+                $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->find({ id => $edit_class->{id} })->update({
+                    description => $params->{update_recovery_class_description},
+                    name        => $params->{update_recovery_class_name}
+                });
 
-                $c->flash( success_msg => "Updated effort recovery class \"". $edit_class->{id} ."\"" );
+                $c->flash( success_msg => "Updated effort recovery class \"". $edit_class->{name} ."\"" );
             }
             catch {
                 $c->model('Golgi')->schema->txn_rollback;
-                $c->flash( error_msg => "Failed to update effort recovery class \"". $edit_class->{id} ."\": $_" );
+                $c->flash( error_msg => "Failed to update effort recovery class \"". $edit_class->{name} ."\": $_" );
             }
         });
 
@@ -198,7 +197,7 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') Ca
     }
 
     # get the current recovery classes for the table
-    my $recovery_classes =  [ map { {id => $_->id, description => $_->description} } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'id' } }) ];
+    my $recovery_classes =  [ map { {id => $_->id, description => $_->description, name => $_->name } } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'name' } }) ];
 
     $c->stash(
        template    => 'user/projects/recovery_classes.tt',
@@ -208,7 +207,53 @@ sub edit_recovery_classes :Path( '/user/edit_recovery_classes' ) Chained('/') Ca
     return;
 }
 
+sub update_project :Path( '/user/update_project' ) :Args(0) {
+    my ($self, $c) = @_;
 
+    $c->assert_user_roles('read');
+
+    my $params = $c->request->params;
+
+    my @report_params = qw(gene_id stage sponsor);
+
+    my $project_id = $params->{id};
+
+    unless($project_id){
+        $c->flash( error_msg => "Could not update project - no project ID provided");
+        return $c->response->redirect( $c->uri_for('/user/report/sync/RecoveryDetail',
+                                      { slice_def $params, @report_params } ) );
+    }
+
+    my $failed = 0;
+    $c->model('Golgi')->txn_do( sub {
+        try{
+            my $project_params = { slice_exists $params, qw(id recovery_class_id comment priority) };
+
+            # Need to set the concluded flag here because
+            # form will not submit concluded=>false when checkbox is unchecked
+            if($params->{concluded}){
+                $project_params->{concluded} = 1;
+            }
+            else{
+                $project_params->{concluded} = 0;
+            }
+
+            $c->model('Golgi')->update_project($project_params);
+        }
+        catch{
+            $failed = 1;
+            $c->model('Golgi')->schema->txn_rollback;
+            $c->flash( error_msg => "Could not update project - $_");
+        }
+    });
+
+    unless($failed){
+        $c->flash( success_msg => "Project $project_id was successfully updated");
+    }
+
+    return $c->response->redirect( $c->uri_for('/user/report/sync/RecoveryDetail',
+                                      { slice_def $params, @report_params } ) );
+}
 
 =head1 AUTHOR
 

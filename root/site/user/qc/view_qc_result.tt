@@ -26,11 +26,46 @@
     <div class="well">
       <dl>
         <dt>Qc Template</dt>
-        <dd>[% qc_run.qc_template %]</dd>
+        <dd>[% qc_run.qc_template %] (best match well: [% qc_template_well.name %])</dd>
         <dt>Sequencing Project(s)</dt>
         <dd>[%  qc_run.sequencing_projects.join(' - ') %]</dd>
       </dl>
     </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <table class="table well">
+      <tr>
+        <th>Primer Type</th>
+        <th>Name</th>
+        <th>Sequence</th>
+        <th>Current Status</th>
+      </tr>
+      [% FOREACH primer IN genotyping_primers %]
+      <tr>
+        <td>Genotyping</td>
+        <td>[% primer.genotyping_primer_type_id %]</td>
+        <td>[% primer.seq %]</td>
+        <td>[% IF primer.is_validated %]<span class="label label-success">Validated</span>
+            [% ELSE %]<span class="label label-default">Not Validated</span>
+            [% END %]
+            [% IF primer.is_rejected %]<span class="label label-danger">Rejected</span>[% END %]
+      </tr>
+      [% END %]
+      [% FOREACH primer IN crispr_primers %]
+      <tr>
+        <td>Crispr</td>
+        <td>[% primer.primer_name.primer_name %]</td>
+        <td>[% primer.primer_seq %]</td>
+        <td>[% IF primer.is_validated %]<span class="label label-success">Validated</span>
+            [% ELSE %]<span class="label label-default">Not Validated</span>
+            [% END %]
+            [% IF primer.is_rejected %]<span class="label label-danger">Rejected</span>[% END %]
+      </tr>
+      [% END %]
+    </table>
   </div>
 </div>
 

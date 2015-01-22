@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.267';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.282';
 }
 ## use critic
 
@@ -851,13 +851,38 @@ sub crispr_primer_calculate {
     return $primer_data, $chr_strand, $chr_seq_start;
 }
 
-
 sub pick_single_crispr_primers {
     my $model = shift;
     my $params = shift;
 
-    my $repeat_mask = $params->{'repeat_mask'};
     my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'} );
+    $params->{'crispr_oligos'} = $crispr_oligos;
+    $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 200;
+    $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 100;
+    # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
+    my ($primer_data, $chr_strand, $chr_seq_start);
+    TRIALS: foreach my $step ( 1..4 ) {
+        INFO ('Attempt No. ' . $step );
+        ($primer_data, $chr_strand, $chr_seq_start) = single_crispr_primer_calculate( $model, $params, $crispr_oligos );
+        if ($primer_data->{'error_flag'} eq 'pass') {
+            INFO ('Attempt No. ' . $step . ' succeeded');
+            last TRIALS;
+        }
+        # increment the fields for searching next time round.
+        $params->{'dead_field_width'} += $params->{'search_field_width'};
+        $params->{'search_field_width'} += 500;
+    }
+
+    return ($crispr_oligos, $primer_data, $chr_strand, $chr_seq_start);
+
+}
+
+sub single_crispr_primer_calculate {
+    my $model = shift;
+    my $params = shift;
+    my $crispr_oligos = shift;
+
+    my $repeat_mask = $params->{'repeat_mask'};
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ( $region_bio_seq, $target_sequence_mask, $target_sequence_length, $chr_strand,
@@ -868,7 +893,8 @@ sub pick_single_crispr_primers {
 
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' },
-        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length + 500),
+        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
+            + $params->{'search_field_width' } + 300 ),
     );
 
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
@@ -881,15 +907,19 @@ sub pick_single_crispr_primers {
     if ( $result->num_primer_pairs ) {
         INFO ( $params->{'crispr_id'} . ' sequencing primers : ' . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
+        list_primers( $primer_data );
+        $primer_data->{'error_flag'} = 'pass';
     }
     else {
         WARN ( 'Failed to generate sequencing primers for ' . $params->{'crispr_id'} );
         WARN ( 'Primer3 reported: ');
         WARN ( $primer3_explain->{'PRIMER_LEFT_EXPLAIN'} );
         WARN ( $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'} );
-    }
+        $primer_data->{'primer3_explain_left'} = $primer3_explain->{'PRIMER_LEFT_EXPLAIN'};
+        $primer_data->{'primer3_explain_right'} = $primer3_explain->{'PRIMER_RIGHT_EXPLAIN'};
+        $primer_data->{'error_flag'} = 'fail';    }
 
-    return ($crispr_oligos, $primer_data, $chr_strand, $chr_seq_start);
+    return ($primer_data, $chr_strand, $chr_seq_start);
 }
 
 =head2 oligos_for_crispr_pair
@@ -961,7 +991,7 @@ sub oligo_for_single_crispr {
     my $schema = shift;
     my $crispr_id = shift;
 
-    # TODO: should be checking assembly, chromosome and species here
+    # TODO: should we be checking assembly, chromosome and species here?
 
     my $crispr_rs = crispr_oligo_rs( $schema, $crispr_id );
     my $crispr = $crispr_rs->first;

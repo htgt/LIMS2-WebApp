@@ -1,0 +1,82 @@
+<div class="page-header">
+  <h1>[% title %]</h1>
+</div>
+
+<p class="lead">This report shows the progress of genes with sponsor [% extra_data.sponsor %]. Each gene is shown at the most advanced stage it has reached. Hover over a gene to see the date that it reached the stage. Click on the gene or stage for more details and to assign recovery classes.</p>
+
+<div class="row">
+  <div class="span6">
+    <table class="table table-bordered">
+      <tr>
+        <th>Crispr Stage</th>
+        <th>Number of Genes</th>
+        <th>Genes</th>
+      </tr>
+      [% FOREACH row_a IN data.slice(0,2) %]
+        [% INCLUDE table_row tr = row_a %]
+      [% END %]
+    </table>
+  </div>
+  <div class="span6">
+    <table class="table table-bordered">
+      <tr>
+        <th>Design Stage</th>
+        <th>Number of Genes</th>
+        <th>Genes</th>
+      </tr>
+      [% FOREACH row_b IN data.slice(3,6) %]
+        [% INCLUDE table_row tr = row_b %]
+      [% END %]
+    </table>
+  </div>
+</div>
+
+<div class="row">
+  <div class="span3">
+  </div>
+   <div class="span6">
+    <table class="table table-bordered">
+      <tr>
+        <th>Post-Assembly Stage</th>
+        <th>Number of Genes</th>
+        <th>Genes</th>
+      </tr>
+      [% FOREACH row_c IN data.slice(7,-1) %]
+        [% INCLUDE table_row tr = row_c %]
+      [% END %]
+    </table>
+  </div>
+  <div class="span3">
+  </div>
+</div>
+
+[% BLOCK table_row %]
+      [% stage = tr.0 %]
+      [% count = tr.1 %]
+      <tr>
+        <td><a href="[% c.uri_for('/user/report/sync/RecoveryDetail', { sponsor => extra_data.sponsor, stage => stage }) %]">[% extra_data.$stage.display_name %]</a></td>
+        <td>[% count %]</td>
+        <td>
+          [% FOREACH gene IN extra_data.$stage.genes.keys.sort %]
+            <a href="[% c.uri_for('/user/report/sync/RecoveryDetail', { sponsor => extra_data.sponsor, stage => stage, gene_id => extra_data.$stage.genes.$gene.gene_id }) %]" data-placement="top" data-delay="0" rel="tooltip" title="[% extra_data.$stage.genes.$gene.stage_entry_date %]" gene="[% gene %]">[% gene %]</a>,
+          [% END %]
+        </td>
+      </tr>
+[% END %]
+
+<script type="text/javascript">
+    $(function () {
+        $("[rel='tooltip']").tooltip();
+    });
+
+    $("[rel='tooltip']").hover(
+      function(){
+        var gene = $( this ).attr('gene');
+        $("[gene='" + gene + "']").tooltip('show');
+      },
+      function(){
+        var gene = $( this ).attr('gene');
+        $("[gene='" + gene + "']").tooltip('hide');
+      }
+    );
+</script>

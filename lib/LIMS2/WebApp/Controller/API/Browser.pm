@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Browser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.267';
+    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.282';
 }
 ## use critic
 
@@ -196,6 +196,39 @@ sub crispr_primers_GET {
     my $crispr_primer_gff = crispr_primers_to_gff( $crispr_primers, $c->request->params );
     $c->response->content_type( 'text/plain' );
     my $body = join "\n", @{$crispr_primer_gff};
+    return $c->response->body( $body );
+}
+
+sub crispr_genotyping_primers :Path('/api/crispr_genotyping_primers') :Args(0) :ActionClass('REST') {
+}
+
+=head crispr_genotyping_primers
+
+Return all genotyping primers for this region
+
+=cut
+
+sub crispr_genotyping_primers_GET {
+    my ( $self, $c ) = @_;
+
+    my $model = $c->model('Golgi');
+    my $schema = $model->schema;
+
+    my $params = ();
+    $params->{species} = $c->session->{'selected_species'} // 'Human';
+    $params->{assembly_id} = $c->request->params->{'assembly'} // $model->get_species_default_assembly( $params->{species} ) // 'GRCh37';
+    $params->{chromosome_number}= $c->request->params->{'chr'};
+    $params->{start_coord}= $c->request->params->{'start'};
+    $params->{end_coord}= $c->request->params->{'end'};
+
+    my $crispr_genotyping_primers = crispr_genotyping_primers (
+         $schema,
+         $params,
+    );
+
+    my $crispr_genotyping_primers_gff = crispr_genotyping_primers( $crispr_genotyping_primers, $c->request->params );
+    $c->response->content_type( 'text/plain' );
+    my $body = join "\n", @{$crispr_genotyping_primers_gff};
     return $c->response->body( $body );
 }
 
