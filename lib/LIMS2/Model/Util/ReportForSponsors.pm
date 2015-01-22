@@ -511,6 +511,54 @@ sub generate_sub_report {
         },
     };
 
+    if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery') {
+        $st_rpt_flds->{'Genes'}->{'columns'} = ['gene_id',
+                                            'gene_symbol',
+                                            'sponsors',
+                                            # 'crispr_pairs',
+                                            'crispr_wells',
+                                            # 'crispr_vector_wells',
+                                            # 'crispr_dna_wells',
+                                            # 'accepted_crispr_dna_wells',
+                                            'accepted_crispr_vector',
+                                            # 'vector_designs',
+                                            'vector_wells',
+                                            'vector_pcr_passes',
+                                            # 'targeting_vector_wells',
+                                            # 'accepted_vector_wells',
+                                            'passing_vector_wells',
+                                            'electroporations',
+                                            'colonies_picked',
+                                            'targeted_clones',
+                                            'recovery_class',
+                                            'priority',
+                                            'effort_concluded',
+                                        ];
+
+        $st_rpt_flds->{'Genes'}->{'display_columns'} = [ 'gene id',
+                                            'gene symbol',
+                                            'sponsors',
+                                            # 'crispr pairs',
+                                            'ordered crisprs',
+                                            # 'crispr vectors',
+                                            # 'DNA crispr vectors',
+                                            # 'DNA QC-passing crispr vectors',
+                                            'crisprs constructed',
+                                            # 'vector designs',
+                                            'ordered targeting vectors',
+                                            "PCR-passing design oligos",
+                                            # 'final vector clones',
+                                            # 'QC-verified vectors',
+                                            'vectors constructed',
+                                            'electroporations',
+                                            'colonies picked',
+                                            'targeted clones',
+                                            'recovery_class',
+                                            'priority',
+                                            'effort concluded',
+                                        ];
+    }
+
     # for double-targeted projects
     my $dt_rpt_flds = {
         'Genes'                     => {
@@ -764,11 +812,16 @@ sub genes {
 
     DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
 
+    # Cre Knockin and EUCOMMTools Recovery time out with the new damage counting method. old is being used until fix.
+    if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core') {
+        return genes_old( $self, $sponsor_id, $query_type );
+    }
+
     # MGP Recovery needs a specific genes method. disabled now.
-    # Cre Knockin might also need its own method. Both should required a different sub-report tt file as well.
-    # if ($sponsor_id eq 'MGP Recovery') {
-    #     return mgp_recovery_genes( $self, $sponsor_id, $query_type );
-    # }
+    if ($sponsor_id eq 'MGP Recovery') {
+        return mgp_recovery_genes( $self, $sponsor_id, $query_type );
+    }
+
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 
@@ -853,10 +906,13 @@ sub genes {
 
         $sponsors_str = join  ( '; ', @sponsors );
 
+        $sponsors_str =~ s/Pathogen Group 1/PG1/;
+        $sponsors_str =~ s/Pathogen Group 2/PG2/;
         $sponsors_str =~ s/Mutation/MSP/;
         $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
         $sponsors_str =~ s/Transfacs/TF/;
         $sponsors_str =~ s/Pathogen/PG/;
+        $sponsors_str =~ s/PGs/Pathogens/;
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
 
 
@@ -1207,113 +1263,433 @@ sub add_crispr_well_counts_for_gene{
     return;
 }
 
-# sub mgp_recovery_genes {
-#     my ( $self, $sponsor_id, $query_type ) = @_;
+## no critic(ProhibitExcessComplexity)
+sub genes_old {
+    my ( $self, $sponsor_id, $query_type ) = @_;
 
-#     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
+    DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
 
-#     my $sql_results = $self->run_select_query( $sql_query );
 
-#     # fetch gene symbols and return modified results set for display
-#     my @genes_for_display;
+    if ($sponsor_id eq 'MGP Recovery') {
+        return mgp_recovery_genes( $self, $sponsor_id, $query_type );
+    }
 
-#     my @gene_list;
-#     foreach my $gene_row ( @$sql_results ) {
-#          unshift( @gene_list,  $gene_row->{ 'gene_id' });
-#     }
+    my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 
-#     # Store list of designs to get crispr summary info for later
-#     my $designs_for_gene = {};
-#     my @all_design_ids;
+    my $sql_results = $self->run_select_query( $sql_query );
 
-#     foreach my $gene_row ( @$sql_results ) {
-#         my $gene_id = $gene_row->{ 'gene_id' };
+    # fetch gene symbols and return modified results set for display
+    my @genes_for_display;
 
-#         my $gene_info;
-#         # get the gene name, the good way. TODO for human genes
-#         try {
-#             $gene_info = $self->model->find_gene( {
-#                 search_term => $gene_id,
-#                 species     => $self->species,
-#                 # show_all    => 1
-#             } );
-#         }
-#         catch {
-#             INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
-#         };
+    my @gene_list;
+    foreach my $gene_row ( @$sql_results ) {
+         unshift( @gene_list,  $gene_row->{ 'gene_id' });
+    }
 
-#         # Now we grab this from the solr index
-#         my $gene_symbol = $gene_info->{'gene_symbol'};
+    # Store list of designs to get crispr summary info for later
+    my $designs_for_gene = {};
+    my @all_design_ids;
 
-#         # get crispr groups for this gene
-#         my @crispr_grp =  map { $_->id } $self->model->schema->resultset( 'CrisprGroup' )->search(
-#                     { 'gene_id' => $gene_id } );
 
-#         my @crispr_ids = ();
+    foreach my $gene_row ( @$sql_results ) {
+        my $gene_id = $gene_row->{ 'gene_id' };
 
-#         # get the crisprs in the groups
-#         foreach my $crispr_group (@crispr_grp) {
-#             push @crispr_ids, map { $_->crispr_id }
-#                 $self->model->schema->resultset( 'CrisprGroupCrispr' )->search( { 'crispr_group_id' => $crispr_group } );
-#         }
+        my $gene_info;
+        # get the gene name, the good way. TODO for human genes
+        try {
+            $gene_info = $self->model->find_gene( {
+                search_term => $gene_id,
+                species     => $self->species,
+                # show_all    => 1
+            } );
+        }
+        catch {
+            INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
+        };
 
-#         # get crispr summaries for those crisprs
-#         my $summaries = $self->model->get_summaries_for_crisprs({ id_list => \@crispr_ids });
+        # Now we grab this from the solr index
+        my $gene_symbol = $gene_info->{'gene_symbol'};
+        # my $design_count = $gene_info->{'design_count'} // '0';
+        # my $crispr_pairs_count = $gene_info->{'crispr_pairs_count'} // '0';
 
-#         # get the counts
-#         my $crispr_count = 0;
-#         my $crispr_vector_count = 0;
 
-#         foreach my $crispr_id (keys %$summaries){
-#             my @crispr_well_ids = keys %{ $summaries->{$crispr_id} };
-#             $crispr_count += scalar( @crispr_well_ids );
-#             foreach my $crispr_well_id (@crispr_well_ids){
+        # get the plates
+        my $sql =  <<"SQL_END";
+SELECT design_id,
+concat(design_plate_name, '_', design_well_name) AS DESIGN,
+concat(int_plate_name, '_', int_well_name) AS INT,
+concat(final_plate_name, '_', final_well_name, final_well_accepted) AS FINAL,
+concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
+concat(ep_plate_name, '_', ep_well_name) AS EP,
+concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP,
+concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK
+FROM summaries where design_gene_id = '$gene_id'
+SQL_END
 
-#                 # CRISPR_V well count
-#                 my $vector_rs = $summaries->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
-#                 $crispr_vector_count += $vector_rs->count;
-#             }
-#         }
+        # project specific filtering
+        ## no critic (ProhibitCascadingIfElse)
+        if ($self->species eq 'Human') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        if ($sponsor_id eq 'Pathogen Group 2') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        elsif ($sponsor_id eq 'Pathogen Group 1') {
+            $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
+        }
+        elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
+            $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+        }
+        elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
+            $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
+        }
+        elsif ($sponsor_id eq 'MGP Recovery') {
+            $sql .= " AND ( sponsor_id = 'MGP Recovery' );";
+        }
 
-#         # push the data for the report
-#         push @genes_for_display, {
-#             'gene_id'                => $gene_id,
-#             'gene_symbol'            => $gene_symbol,
-#             'crispr_wells'           => $crispr_count,
-#             'accepted_crispr_vector'  => $crispr_vector_count,
-#             'sponsors'               => '0',
-#             # 'crispr_pairs'           => $crispr_pairs_count,
-#             # 'vector_designs'         => $design_count,
-#             'vector_wells'           => '0',
-#             # 'vector_pcr_passes'      => $pcr_passes,
-#             # 'targeting_vector_wells' => $final_count,
-#             # 'accepted_vector_wells'  => $final_pass_count,
-#             'passing_vector_wells'   => '0',
-#             'electroporations'       => '0',
-#             'colonies_picked'        => '0',
-#             'targeted_clones'        => '0',
-#             'recovery_class'         => '0',
-#             # 'priority'               => '0',
-#             # 'effort_concluded'       => '0',
-#         };
-#     }
+        ## use critic
 
-#     my @sorted_genes_for_display =  sort {
-#             $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-#             $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-#             $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
-#             $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-#             # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
-#             $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
-#             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-#             $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
-#             $b->{ 'crispr_wells' }          <=> $a->{ 'crispr_wells' }          ||
-#             $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
-#         } @genes_for_display;
+        # run the query
+        my $results = $self->run_select_query( $sql );
 
-#     return \@sorted_genes_for_display;
+        # get the plates into arrays
+        my (@design, @int, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
+        foreach my $row (@$results) {
+            push @design_ids, $row->{design_id};
+            push (@int, $row->{int}) unless ($row->{int} eq '_');
+            push (@design, $row->{design}) unless ($row->{design} eq '_');
+            push (@final_info, $row->{final}) unless ($row->{final} eq '_');
+            push (@dna_info, $row->{dna}) unless ($row->{dna} eq '_');
+            push (@ep, $row->{ep}) unless ($row->{ep} eq '_');
+            push (@ep, $row->{crispr_ep}) unless ($row->{crispr_ep} eq '_');
+            push (@ep_pick_info, $row->{ep_pick}) unless ($row->{ep_pick} eq '_');
+        }
 
-# }
+        # DESIGN
+        @design = uniq @design;
+
+        my $pcr_passes;
+        foreach my $well (@design) {
+
+            my ($plate_name, $well_name ) = ('', '');
+            if ( $well =~ m/^(.*?)_([a-z]\d\d)$/i ) {
+                ($plate_name, $well_name ) = ($1, $2);
+            }
+
+            my ($l_pcr, $r_pcr) = ('', '');
+            try{
+                my $well_id = $self->model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } )->id;
+
+                $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_u',
+                },{
+                    select => [ 'result' ],
+                })->result;
+
+                $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                    well_id     => $well_id,
+                    result_type_id => 'pcr_d',
+                },{
+                    select => [ 'result' ],
+                })->result;
+            };
+            # catch{
+            #     DEBUG "No pcr status found for well " . $well_name;
+            # };
+
+            if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
+                $pcr_passes++;
+            }
+        }
+
+
+        # Store design IDs to use in crispr summary query
+        foreach my $design_id (uniq @design_ids){
+            $designs_for_gene->{$gene_id} ||= [];
+
+            my $arrayref = $designs_for_gene->{$gene_id};
+            push @$arrayref, $design_id;
+            push @all_design_ids, $design_id;
+        }
+
+        # FINAL / INT
+        my ($final_count, $final_pass_count) = get_well_counts(\@final_info);
+
+        my $sum = 0;
+        @int = uniq @int;
+
+        foreach my $well (@int) {
+            $well =~ s/^(.*?)(_[a-z]\d\d)$/$1/i;
+
+            my $plate_id = $self->model->retrieve_plate({
+                name => $well,
+            })->id;
+
+            my $comment = '';
+
+            try{
+                $comment = $self->model->schema->resultset('PlateComment')->find({
+                    plate_id     => $plate_id,
+                    comment_text => { like => '% post-gateway wells planned for wells on plate ' . $well }
+                },{
+                    select => [ 'comment_text' ],
+                })->comment_text;
+            };
+            # catch{
+            #     DEBUG "No comment found for well " . $well;
+            # };
+
+            if ( $comment =~ m/(\d*) post-gateway wells planned for wells on plate / ) {
+                $sum += $1;
+            }
+        }
+        if ($sum) {
+            $final_count = $sum;
+        }
+
+        # DNA
+        my ($dna_count, $dna_pass_count) = get_well_counts(\@dna_info);
+
+        # EP/CRISPR_EP
+        @ep = uniq @ep;
+
+        # EP_PICK
+        my ($ep_pick_count, $ep_pick_pass_count) = get_well_counts(\@ep_pick_info);
+
+        # push the data for the report
+        my ($sponsors_str, $effort);
+        my ($recovery_class, $priority, $effort_concluded);
+        if ($sponsor_id ne 'All') {
+            $effort = $self->model->retrieve_project({
+                        sponsor_id => $sponsor_id,
+                        gene_id => $gene_id,
+                        targeting_type => $self->targeting_type,
+                        species_id => $self->species,
+                    });
+            $sponsors_str = $effort->sponsor_id;
+            $recovery_class = $effort->recovery_class_name;
+            $priority = $effort->priority;
+            $effort_concluded = $effort->effort_concluded ? 'yes' : '';
+        } else {
+            my @sponsors = ( map { $_->sponsor_id } $self->model->schema->resultset('Project')->search({
+                        gene_id => $gene_id,
+                        sponsor_id => { -not_in => [ 'All', 'Transfacs'] }
+                        }, {
+                        order_by => 'sponsor_id'
+                        } ) );
+
+            $sponsors_str = join  ( '; ', @sponsors );
+
+            if (scalar @sponsors == 1) {
+                $effort = $self->model->retrieve_project({
+                            sponsor_id => $sponsors_str,
+                            gene_id => $gene_id,
+                            targeting_type => $self->targeting_type,
+                            species_id => $self->species,
+                        });
+                $recovery_class = $effort->recovery_class_name;
+                $priority = $effort->priority;
+                $effort_concluded = $effort->effort_concluded ? 'yes' : '';
+            } else {
+
+                my (@recovery_class, @priority, @effort_concluded);
+
+                foreach my $sponsor (@sponsors) {
+                    my $sponsor_effort = $self->model->retrieve_project({
+                            sponsor_id => $sponsor,
+                            gene_id => $gene_id,
+                            targeting_type => $self->targeting_type,
+                            species_id => $self->species,
+                    });
+
+                    push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
+                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
+                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
+                }
+                $recovery_class = join  ( '; ', @recovery_class );
+                $priority = join  ( '; ', @priority );
+                $effort_concluded = join  ( '; ', @effort_concluded );
+            }
+        }
+
+        # push the data for the report
+        push @genes_for_display, {
+            'gene_id'                => $gene_id,
+            'gene_symbol'            => $gene_symbol,
+            'sponsors'               => $sponsors_str ? $sponsors_str : '0',
+            # 'crispr_pairs'           => $crispr_pairs_count,
+            # 'vector_designs'         => $design_count,
+            'vector_wells'           => scalar @design,
+            'vector_pcr_passes'      => $pcr_passes,
+            # 'targeting_vector_wells' => $final_count,
+            # 'accepted_vector_wells'  => $final_pass_count,
+            'passing_vector_wells'   => $dna_pass_count,
+            'electroporations'       => scalar @ep,
+            'colonies_picked'        => $ep_pick_count,
+            'targeted_clones'        => $ep_pick_pass_count,
+            'recovery_class'         => $recovery_class ? $recovery_class : '0',
+            'priority'               => $priority ? $priority : '0',
+            'effort_concluded'       => $effort_concluded ? $effort_concluded : '0',
+        };
+    }
+
+    # Only used in the single targeted report... for now
+    if($self->targeting_type eq 'single_targeted'){
+        # Get the crispr summary information for all designs found in previous gene loop
+        # We do this after the main loop so we do not have to search for the designs for each gene again
+        DEBUG "Fetching crispr summary info for report";
+        my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
+        DEBUG "Adding crispr counts to gene data";
+        foreach my $gene_data (@genes_for_display){
+            add_crispr_well_counts_for_gene($gene_data, $designs_for_gene, $design_crispr_summary);
+        }
+        DEBUG "crispr counts done";
+    }
+
+    my @sorted_genes_for_display =  sort {
+            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+            # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
+            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
+            $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+        } @genes_for_display;
+
+    return \@sorted_genes_for_display;
+}
+## use critic
+
+sub get_well_counts {
+    my ($list) = @_;
+
+    my (@well, @well_pass);
+    foreach my $row ( @{$list} ) {
+        if ( $row =~ m/(.*?)([^\d]*)$/ ) {
+            my ($well_well, $well_well_pass) = ($1, $2);
+            push (@well, $well_well);
+            if ($well_well_pass eq 't') {
+                push (@well_pass, $well_well);
+            }
+        }
+    }
+    @well = uniq @well;
+    @well_pass = uniq @well_pass;
+
+    return (scalar @well, scalar @well_pass);
+}
+
+sub mgp_recovery_genes {
+    my ( $self, $sponsor_id, $query_type ) = @_;
+
+    my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
+
+    my $sql_results = $self->run_select_query( $sql_query );
+
+    # fetch gene symbols and return modified results set for display
+    my @genes_for_display;
+
+    my @gene_list;
+    foreach my $gene_row ( @$sql_results ) {
+         unshift( @gene_list,  $gene_row->{ 'gene_id' });
+    }
+
+    # Store list of designs to get crispr summary info for later
+    my $designs_for_gene = {};
+    my @all_design_ids;
+
+    foreach my $gene_row ( @$sql_results ) {
+        my $gene_id = $gene_row->{ 'gene_id' };
+
+        my $gene_info;
+        # get the gene name, the good way. TODO for human genes
+        try {
+            $gene_info = $self->model->find_gene( {
+                search_term => $gene_id,
+                species     => $self->species,
+                # show_all    => 1
+            } );
+        }
+        catch {
+            INFO 'Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species;
+        };
+
+        # Now we grab this from the solr index
+        my $gene_symbol = $gene_info->{'gene_symbol'};
+
+        # get crispr groups for this gene
+        my @crispr_grp =  map { $_->id } $self->model->schema->resultset( 'CrisprGroup' )->search(
+                    { 'gene_id' => $gene_id } );
+
+        my @crispr_ids = ();
+
+        # get the crisprs in the groups
+        foreach my $crispr_group (@crispr_grp) {
+            push @crispr_ids, map { $_->crispr_id }
+                $self->model->schema->resultset( 'CrisprGroupCrispr' )->search( { 'crispr_group_id' => $crispr_group } );
+        }
+
+        # get crispr summaries for those crisprs
+        my $summaries = $self->model->get_summaries_for_crisprs({ id_list => \@crispr_ids });
+
+        # get the counts
+        my $crispr_count = 0;
+        my $crispr_vector_count = 0;
+
+        foreach my $crispr_id (keys %$summaries){
+            my @crispr_well_ids = keys %{ $summaries->{$crispr_id} };
+            $crispr_count += scalar( @crispr_well_ids );
+            foreach my $crispr_well_id (@crispr_well_ids){
+
+                # CRISPR_V well count
+                my $vector_rs = $summaries->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
+                $crispr_vector_count += $vector_rs->count;
+            }
+        }
+
+        # push the data for the report
+        push @genes_for_display, {
+            'gene_id'                => $gene_id,
+            'gene_symbol'            => $gene_symbol,
+            'crispr_wells'           => $crispr_count,
+            'accepted_crispr_vector'  => $crispr_vector_count,
+            'sponsors'               => '0',
+            # 'crispr_pairs'           => $crispr_pairs_count,
+            # 'vector_designs'         => $design_count,
+            'vector_wells'           => '0',
+            # 'vector_pcr_passes'      => $pcr_passes,
+            # 'targeting_vector_wells' => $final_count,
+            # 'accepted_vector_wells'  => $final_pass_count,
+            'passing_vector_wells'   => '0',
+            'electroporations'       => '0',
+            'colonies_picked'        => '0',
+            'targeted_clones'        => '0',
+            'recovery_class'         => '0',
+            # 'priority'               => '0',
+            # 'effort_concluded'       => '0',
+        };
+    }
+
+    my @sorted_genes_for_display =  sort {
+            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+            # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
+            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
+            $b->{ 'crispr_wells' }          <=> $a->{ 'crispr_wells' }          ||
+            $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+        } @genes_for_display;
+
+    return \@sorted_genes_for_display;
+
+}
+
 
 sub vectors {
     my ( $self, $sponsor_id, $query_type ) = @_;

@@ -325,6 +325,10 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
         my $template = 'publicreports/sponsor_sub_report.tt';
 
+        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
+            $template = 'publicreports/sponsor_sub_report_old.tt';
+        }
+
         # Store report values in stash for display onscreen
         $c->stash(
             'template'             => $template,
