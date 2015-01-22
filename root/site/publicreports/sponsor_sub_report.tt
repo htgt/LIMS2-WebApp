@@ -183,17 +183,14 @@ document.title = "[%- sponsor_id %]";
         [%- ELSIF col == 'recovery_class' %]
 
           [%- IF row.item('fs_count') && row.item('effort_concluded') %]
-            <td style="background:#8AD95A">[%- colval %]</td>
+            <td style="background:#8AD95A;white-space:nowrap">[%- colval %]</td>
           [%- ELSIF row.item('effort_concluded') %]
-            <td style="background:#FF4646">[%- colval %]</td>
+            <td style="background:#FF4646;white-space:nowrap">[%- colval %]</td>
           [% ELSIF colval != '-' %]
-            <td style="background:#E5E4E2">[%- colval %]</td>
+            <td style="background:#E5E4E2;white-space:nowrap">[%- colval %]</td>
           [% ELSE %]
             <td>[%- colval %]</td>
           [% END %]
-
-
-
 
         [%- ELSIF col == 'crispr_pairs'
                || col == 'vector_designs'

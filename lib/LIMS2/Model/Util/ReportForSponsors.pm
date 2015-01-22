@@ -979,6 +979,14 @@ sub genes {
 
 		my @ep_data;
 
+        my $total_total_colonies = 0;
+        my $total_ep_pick_count = 0;
+        my $total_ep_pick_pass_count = 0;
+        my $total_wt_count = 0;
+        my $total_if_count = 0;
+        my $total_fs_count = 0;
+        my $total_ms_count = 0;
+
 		foreach my $curr_ep (@ep) {
 			my %curr_ep_data;
 			my $ep_id;
@@ -1004,6 +1012,7 @@ sub genes {
 			};
 
 			$curr_ep_data{'total_colonies'} = $total_colonies;
+            $total_total_colonies += $curr_ep_data{'total_colonies'};
 			# $curr_ep_data{'picked_colonies'} = $picked_colonies;
 
             # EP_PICK wells
@@ -1021,6 +1030,7 @@ sub genes {
 	        );
 
 	        $curr_ep_data{'ep_pick_count'} = scalar @ep_pick;
+            $total_ep_pick_count += $curr_ep_data{'ep_pick_count'};
 	        # $curr_ep_data{'ep_pick_pass_count'} = 0;
 
             $curr_ep_data{'wt_count'} = 0;
@@ -1054,13 +1064,25 @@ sub genes {
 					}
 				};
 
-                $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wt_count'} + $curr_ep_data{'if_count'} + $curr_ep_data{'fs_count'} + $curr_ep_data{'ms_count'};
+	        }
+
+            $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wt_count'} + $curr_ep_data{'if_count'} + $curr_ep_data{'fs_count'} + $curr_ep_data{'ms_count'};
+            $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
+
+            $total_wt_count += $curr_ep_data{'wt_count'};
+            $total_if_count += $curr_ep_data{'fs_count'};
+            $total_fs_count += $curr_ep_data{'if_count'};
+            $total_ms_count += $curr_ep_data{'ms_count'};
+
+            if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
                 if ( $curr_ep_data{'wt_count'} == 0 ) { $curr_ep_data{'wt_count'} = '' };
                 if ( $curr_ep_data{'fs_count'} == 0 ) { $curr_ep_data{'fs_count'} = '' };
                 if ( $curr_ep_data{'if_count'} == 0 ) { $curr_ep_data{'if_count'} = '' };
                 if ( $curr_ep_data{'ms_count'} == 0 ) { $curr_ep_data{'ms_count'} = '' };
-                if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
-	        }
+            }
+
+            if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
+            # if ( $curr_ep_data{'ep_pick_count'} == 0 ) { $curr_ep_data{'ep_pick_count'} = '' };
 
             push @ep_data, \%curr_ep_data;
 
@@ -1070,15 +1092,6 @@ sub genes {
                 $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
-
-
-        my $total_total_colonies = sum( map { $_->{total_colonies} } @ep_data ) // 0;
-        my $total_ep_pick_count = sum( map { $_->{ep_pick_count} } @ep_data ) // 0;
-        my $total_ep_pick_pass_count = sum( map { $_->{ep_pick_pass_count} } @ep_data ) // 0;
-        my $total_wt_count = sum( map { $_->{wt_count} } @ep_data ) // 0;
-        my $total_if_count = sum( map { $_->{if_count} } @ep_data ) // 0;
-        my $total_fs_count = sum( map { $_->{fs_count} } @ep_data ) // 0;
-        my $total_ms_count = sum( map { $_->{ms_count} } @ep_data ) // 0;
 
         # push the data for the report
         push @genes_for_display, {
