@@ -81,15 +81,27 @@ function toggle_btn(btn, show_or_hide) {
 <div class="well">
     <h4 align="center">Targeted Clones Summary</h4>
     <dl class="dl-horizontal">
-        <dt>Accepted</dt>
+        <dt>Genotype Confirmed</dt>
         <dd>[% summary.accepted %]</dd>
 
-    [%- FOR type IN summary.keys %]
-        [% IF type != 'accepted' %]
-            <dt>[% type %]</dt>
-            <dd>[% summary.$type %]</dd>
-        [% END %]
-    [% END %]
+        <dt>Frameshift</dt>
+        <dd>[% summary.exists( 'frameshift' ) ? summary.item( 'frameshift' ) : 0 %]</dd>
+
+        <dt>In-frame</dt>
+        <dd>[% summary.exists( 'in-frame' ) ? summary.item( 'in-frame' ) : 0 %]</dd>
+
+        <dt>Wild Type</dt>
+        <dd>[% summary.exists( 'wild_type' ) ? summary.item( 'wild_type' ) : 0 %]</dd>
+
+        <dt>Mosaic</dt>
+        <dd>[% summary.exists( 'mosaic' ) ? summary.item( 'mosaic' ) : 0 %]</dd>
+
+        <dt>No Call</dt>
+        <dd>[% summary.exists( 'no-call' ) ? summary.item( 'no-call' ) : 0 %]</dd>
+
+        <dt>Unclassified</dt>
+        <dd>[% summary.exists( 'unclassified' ) ? summary.item( 'unclassified' ) : 0 %]</dd>
+
     </dl>
 </div>
 </div>
