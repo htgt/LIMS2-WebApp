@@ -947,7 +947,7 @@ sub genes {
             $priority = join ( '; ', @priority );
             $effort_concluded = join ( '; ', @effort_concluded );
         }
-
+        if (! $recovery_class) {$recovery_class = '-'}
 
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
@@ -1038,9 +1038,9 @@ sub genes {
         my $total_total_colonies = 0;
         my $total_ep_pick_count = 0;
         my $total_ep_pick_pass_count = 0;
-        my $total_wt_count = 0;
-        my $total_if_count = 0;
         my $total_fs_count = 0;
+        my $total_if_count = 0;
+        my $total_wt_count = 0;
         my $total_ms_count = 0;
 
 		foreach my $curr_ep (@ep) {
@@ -1089,9 +1089,10 @@ sub genes {
             $total_ep_pick_count += $curr_ep_data{'ep_pick_count'};
 	        # $curr_ep_data{'ep_pick_pass_count'} = 0;
 
-            $curr_ep_data{'wt_count'} = 0;
-            $curr_ep_data{'if_count'} = 0;
+
             $curr_ep_data{'fs_count'} = 0;
+            $curr_ep_data{'if_count'} = 0;
+            $curr_ep_data{'wt_count'} = 0;
             $curr_ep_data{'ms_count'} = 0;
 
 
@@ -1111,9 +1112,9 @@ sub genes {
                     } );
 					foreach my $damage (@damage) {
 						for ($damage->crispr_damage_type_id) {
+                            when ('frameshift') { $curr_ep_data{'fs_count'}++ }
+                            when ('in-frame')   { $curr_ep_data{'if_count'}++ }
 							when ('wild_type')  { $curr_ep_data{'wt_count'}++ }
-							when ('frameshift') { $curr_ep_data{'fs_count'}++ }
-							when ('in-frame')   { $curr_ep_data{'if_count'}++ }
 							when ('mosaic')     { $curr_ep_data{'ms_count'}++ }
 							# default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
 						}
@@ -1125,15 +1126,15 @@ sub genes {
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wt_count'} + $curr_ep_data{'if_count'} + $curr_ep_data{'fs_count'} + $curr_ep_data{'ms_count'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
 
-            $total_wt_count += $curr_ep_data{'wt_count'};
-            $total_if_count += $curr_ep_data{'if_count'};
             $total_fs_count += $curr_ep_data{'fs_count'};
+            $total_if_count += $curr_ep_data{'if_count'};
+            $total_wt_count += $curr_ep_data{'wt_count'};
             $total_ms_count += $curr_ep_data{'ms_count'};
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
-                if ( $curr_ep_data{'wt_count'} == 0 ) { $curr_ep_data{'wt_count'} = '' };
                 if ( $curr_ep_data{'fs_count'} == 0 ) { $curr_ep_data{'fs_count'} = '' };
                 if ( $curr_ep_data{'if_count'} == 0 ) { $curr_ep_data{'if_count'} = '' };
+                if ( $curr_ep_data{'wt_count'} == 0 ) { $curr_ep_data{'wt_count'} = '' };
                 if ( $curr_ep_data{'ms_count'} == 0 ) { $curr_ep_data{'ms_count'} = '' };
             }
 
@@ -1167,12 +1168,12 @@ sub genes {
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
             'total_colonies'         => $total_total_colonies,
-            'wt_count'               => $total_wt_count,
-            'if_count'               => $total_if_count,
             'fs_count'               => $total_fs_count,
+            'if_count'               => $total_if_count,
+            'wt_count'               => $total_wt_count,
             'ms_count'               => $total_ms_count,
 
-            'recovery_class'         => $recovery_class // '-',
+            'recovery_class'         => $recovery_class,
             'effort_concluded'       => $effort_concluded // '0',
             'ep_data'                => \@ep_data,
         };
