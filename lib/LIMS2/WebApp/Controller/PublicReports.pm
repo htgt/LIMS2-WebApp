@@ -439,15 +439,26 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
 
     if ( @args == 1 ) {
         my $barcode = shift @args;
-
-        $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+        try {
+            $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+        } catch {
+            $c->stash( error_msg => "$_" );
+            $c->go( 'well_genotyping_info_search' );
+            return;
+        };
     }
     elsif ( @args == 2 ) {
         my ( $plate_name, $well_name ) = @args;
 
-        $self->_stash_well_genotyping_info(
-            $c, { plate_name => $plate_name, well_name => $well_name }
-        );
+        try {
+            $self->_stash_well_genotyping_info(
+                $c, { plate_name => $plate_name, well_name => $well_name }
+            );
+        } catch {
+            $c->stash( error_msg => "$_" );
+            $c->go( 'well_genotyping_info_search' );
+            return;
+        };
     }
     else {
         $c->stash( error_msg => "Invalid number of arguments" );
