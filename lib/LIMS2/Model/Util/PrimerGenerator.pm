@@ -137,7 +137,8 @@ sub _build_crispr_settings {
             id_field => 'crispr_id',
             id_method => 'get_single_crispr_id',
             update_design_data_cache => 1,
-            pick_primers_method => 'pick_single_crispr_primers',
+            pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_single_crispr_primers,
+            file_suffix => '_single_crispr_primers.csv',
         };
     }
     elsif($self->crispr_type eq 'pair'){
@@ -145,7 +146,8 @@ sub _build_crispr_settings {
             id_field => 'crispr_pair_id',
             id_method => 'get_crispr_pair_id',
             update_design_data_cache => 0,
-            pick_primers_method => 'pick_crispr_primers',
+            pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_crispr_primers,
+            file_suffix => '_paired_crispr_primers.csv',
         };
     }
     ## FIXME: groups ##
@@ -428,16 +430,8 @@ sub update_gene_symbols{
 sub generate_crispr_primers{
     my $self = shift;
 
-    switch($self->crispr_type){
-        case "single" { $self->generate_single_crispr_primers }
-        case "pair" { $self->generate_crispr_pair_primers }
-        case "group" { $self->generate_crispr_group_primers }
-        else { $self->log->error("Crispr type ".$self->crispr_type." not supported") }
-    }
-}
+    my $settings = $self->crispr_settings;
 
-sub generate_single_crispr_primers{
-    my $self = shift;
     my %primer_clip;
 
     my $design_row;
@@ -445,145 +439,62 @@ sub generate_single_crispr_primers{
         my $well_id = $well->id;
         my $well_name = $well->name;
 
-        my ($crispr_left, $crispr_right) = $well->left_and_right_crispr_wells;
-        my $crispr_id = $crispr_left->crispr->id;
+        my $id_method_name = $settings->{id_method};
+        my $crispr_id = $self->$id_method_name($well);
 
-        $self->verify_and_update_design_data_cache( $well_id, $crispr_id );
+        if($settings->{update_design_data_cache}){
+            $self->verify_and_update_design_data_cache( $well_id, $crispr_id );
+        }
 
         my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
         my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
         my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
-        $self->log->info( "$design_id\t$gene_name\tcrispr_id:\t$crispr_id" );
 
-        if ( my @primers = $self->get_existing_crispr_primers({ crispr_id => $crispr_id }) ){
-            $self->log->warn( '++++++++ primers already exist for crispr_id: ' . $crispr_id );
+        $self->log->info( "$design_id\t$gene_name\t".$settings->{id_field}.":\t$crispr_id" );
+
+        if ( my @primers = $self->get_existing_crispr_primers({ $settings->{id_field} => $crispr_id }) ){
+            $self->log->warn( '++++++++ primers already exist for '.$settings->{id_field}.":  $crispr_id" );
             # TODO: Add code to alter persistence behaviour
         }
         else {
             $self->log->info( '-------- primers not available in the database' );
         }
 
+        my $params = {
+            design_id => $design_id,
+            $settings->{id_field} => $crispr_id,
+            species => $self->species_name,
+            repeat_mask => $self->repeat_mask,
+        };
+        my $pick_primers_method = $settings->{pick_primers_method};
+        $self->log->info( ref $pick_primers_method );
+        my ($crispr_results, $crispr_primers, $chr_strand, $chr_seq_start) = &{ $pick_primers_method }( $self->model, $params );
 
-        my ($crispr_results, $crispr_primers, $chr_strand, $chr_seq_start) = LIMS2::Model::Util::OligoSelection::pick_single_crispr_primers(
-                $self->model, {
-                design_id => $design_id,
-                crispr_id => $crispr_id,
-                species => $self->species_name,
-                repeat_mask => $self->repeat_mask,
-            });
-        $primer_clip{$well_name}{'crispr_id'} = $crispr_id;
-        $primer_clip{$well_name}{'gene_name'} = $gene_name;
-        $primer_clip{$well_name}{'design_id'} = $design_id;
-        $primer_clip{$well_name}{'strand'} = $chr_strand;
-
-        $primer_clip{$well_name}{'crispr_seq'} = $crispr_results;
-        $primer_clip{$well_name}{'crispr_primers'} = $crispr_primers;
-        $primer_clip{$well_name}{'chr_seq_start'} = $chr_seq_start;
+        $primer_clip{$well_name} = {
+            $settings->{id_field} => $crispr_id,
+            'gene_name' => $gene_name,
+            'design_id' => $design_id,
+            'strand'    => $chr_strand,
+            'crispr_seq' => $crispr_results,
+            'crispr_primers' => $crispr_primers,
+            'chr_seq_start'  => $chr_seq_start,
+        };
     }
 
     my @out_rows;
     my $rank = 0; # always show the rank 0 primer
     my $primer_type = 'crispr_primers';
     foreach my $well_name ( keys %primer_clip ) {
+        my $csv_row;
         my @out_vals = (
             $well_name,
             $primer_clip{$well_name}{'gene_name'},
             $primer_clip{$well_name}{'design_id'},
             $primer_clip{$well_name}{'strand'},
-            $primer_clip{$well_name}{'crispr_id'},
+            $primer_clip{$well_name}{ $settings->{id_field} },
         );
-        push (@out_vals, (
-            $self->data_to_push(\%primer_clip, $primer_type, $well_name, 'left', $rank // '99')
-        ));
-        $self->persist_seq_primers('SF1', \%primer_clip, $primer_type, $well_name, 'left', $rank // '99');
-        push (@out_vals, (
-            $self->data_to_push(\%primer_clip, $primer_type, $well_name, 'right', $rank // '99')
-        ));
-        $self->persist_seq_primers('SR1', \%primer_clip, $primer_type, $well_name, 'right', $rank // '99');
-        push (@out_vals,
-            $primer_clip{$well_name}->{'crispr_seq'}->{'left_crispr'}->{'id'},
-            $primer_clip{$well_name}->{'crispr_seq'}->{'left_crispr'}->{'seq'},
-        );
-        my $csv_row = join( ',' , @out_vals);
-        push @out_rows, $csv_row;
-    }
 
-    $self->log->debug( 'Generating single crispr primer output file' );
-    my $message = "Sequencing primers\n";
-    $message .= "WARNING: These primers are for sequencing a PCR product - no genomic check has been applied to these primers\n";
-    my $lines = $self->generate_primer_output( $self->crispr_type, $message, \@out_rows );
-    $self->create_output_file( $self->plate_name . $self->formatted_well_names . '_single_crispr_primers.csv', $lines );
-    return;
-}
-
-sub generate_crispr_pair_primers{
-    my $self = shift;
-    my %primer_clip;
-
-    my $design_row;
-    foreach my $well ( @{$self->wells} ) {
-        my $well_id = $well->id;
-        my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
-        my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
-        my $well_name = $well->name;
-        my $gene_name;
-
-        $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
-
-        my $crispr_pair_id;
-        if ($self->has_crispr_pair_id) {
-            $crispr_pair_id = $self->crispr_pair_id;
-        }
-        elsif ($self->crispr_pair_id_cache
-                and $self->crispr_pair_id_cache->{$well_name}){
-            $crispr_pair_id = $self->crispr_pair_id_cache->{$well_name};
-        }
-        elsif ($well->crispr_pair){
-            $crispr_pair_id = $well->crispr_pair->id;
-        }
-        else{
-            die "No crispr pair identified for well $well_name";
-        }
-
-
-        $self->log->info( "$design_id\t$gene_name\tcrispr_pair_id:\t$crispr_pair_id" );
-        # Check whether there are already primers available for this crispr_pair_id
-        if ( my @primers = $self->get_existing_crispr_primers({ crispr_pair_id => $crispr_pair_id }) ){
-            $self->log->warn( '++++++++ primers already exist for crispr_pair_id: ' . $crispr_pair_id );
-            # TODO: Add code to alter persistence behaviour
-        }
-
-        my ($crispr_results, $crispr_primers, $chr_strand, $chr_seq_start) = LIMS2::Model::Util::OligoSelection::pick_crispr_primers(
-                $self->model,
-                {
-                    'design_id' => $design_id,
-                    'crispr_pair_id' => $crispr_pair_id,
-                    'species' => $self->species_name,
-                    'repeat_mask' => $self->repeat_mask,
-            });
-
-        $primer_clip{$well_name}{'pair_id'} = $crispr_pair_id;
-        $primer_clip{$well_name}{'gene_name'} = $gene_name;
-        $primer_clip{$well_name}{'design_id'} = $design_id;
-        $primer_clip{$well_name}{'strand'} = $chr_strand;
-
-        $primer_clip{$well_name}{'crispr_seq'} = $crispr_results;
-        $primer_clip{$well_name}{'crispr_primers'} = $crispr_primers;
-        $primer_clip{$well_name}{'chr_seq_start'} = $chr_seq_start;
-    }
-
-    my @out_rows;
-    my $csv_row;
-    my $rank = 0; # always show the rank 0 primer
-    my $primer_type = 'crispr_primers';
-    foreach my $well_name ( keys %primer_clip ) {
-        my @out_vals = (
-            $well_name,
-            $primer_clip{$well_name}{'gene_name'},
-            $primer_clip{$well_name}{'design_id'},
-            $primer_clip{$well_name}{'strand'},
-            $primer_clip{$well_name}{'pair_id'},
-        );
+        ## FIXME: this came from pairs method - check it does not muck things up for single
         if ( $primer_clip{$well_name}->{'crispr_primers'}->{'error_flag'} ne 'pass' ){
             push @out_vals
                 , 'primer3_explain_left'
@@ -605,29 +516,52 @@ sub generate_crispr_pair_primers{
             $self->data_to_push(\%primer_clip, $primer_type, $well_name, 'right', $rank // '99')
         ));
         $self->persist_seq_primers('SR1', \%primer_clip, $primer_type, $well_name, 'right', $rank // '99');
+
         push (@out_vals,
             $primer_clip{$well_name}->{'crispr_seq'}->{'left_crispr'}->{'id'},
             $primer_clip{$well_name}->{'crispr_seq'}->{'left_crispr'}->{'seq'},
         );
-        push (@out_vals,
-            $primer_clip{$well_name}->{'crispr_seq'}->{'right_crispr'}->{'id'},
-            $primer_clip{$well_name}->{'crispr_seq'}->{'right_crispr'}->{'seq'},
-        );
+        if($self->crispr_type eq 'pair'){
+            push (@out_vals,
+                $primer_clip{$well_name}->{'crispr_seq'}->{'right_crispr'}->{'id'},
+                $primer_clip{$well_name}->{'crispr_seq'}->{'right_crispr'}->{'seq'},
+            );
+        }
         $csv_row = join( ',' , @out_vals);
         push @out_rows, $csv_row;
     }
 
-    $self->log->debug( 'Generating crispr pair primer output file' );
+    $self->log->debug( 'Generating  '.$self->crispr_type.'crispr primer output file' );
     my $message = "Sequencing primers\n";
     $message .= "WARNING: These primers are for sequencing a PCR product - no genomic check has been applied to these primers\n";
     my $lines = $self->generate_primer_output( $self->crispr_type, $message, \@out_rows );
-    $self->create_output_file( $self->plate_name . $self->formatted_well_names . '_paired_crispr_primers.csv', $lines );
+    $self->create_output_file( $self->plate_name . $self->formatted_well_names . $settings->{file_suffix}, $lines );
     return;
 }
 
-sub generate_crispr_group_primers{
-    my $self = shift;
-    $self->log->error("Crispr group primer generation not yet implemented");
+sub get_single_crispr_id{
+    my ($self, $well) = @_;
+    my ($crispr_left, $crispr_right) = $well->left_and_right_crispr_wells;
+    return $crispr_left->crispr->id;
+}
+
+sub get_crispr_pair_id{
+    my ($self, $well) = @_;
+    my $crispr_pair_id;
+    if ($self->has_crispr_pair_id) {
+        $crispr_pair_id = $self->crispr_pair_id;
+    }
+    elsif ($self->crispr_pair_id_cache
+            and $self->crispr_pair_id_cache->{$well->name}){
+        $crispr_pair_id = $self->crispr_pair_id_cache->{$well->name};
+    }
+    elsif ($well->crispr_pair){
+        $crispr_pair_id = $well->crispr_pair->id;
+    }
+    else{
+        die "No crispr pair identified for well $well";
+    }
+    return $crispr_pair_id;
 }
 
 sub get_existing_crispr_primers{
