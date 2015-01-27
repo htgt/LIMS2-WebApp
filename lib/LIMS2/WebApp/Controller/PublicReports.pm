@@ -576,16 +576,19 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
                 }
             }
             else {
-                $data{crispr_damage} = 'unclassified';
+                $c->log->warn( $data{name}
+                    . ' ep_pick well has no crispr damage type associated with it: ' );
+                $data{crispr_damage} = '-';
             }
         }
         $targeted_clones{ $sr->ep_pick_well_id } = \%data;
     }
 
     my @targeted_clones = sort _sort_by_damage_type values %targeted_clones;
+
     my %summaries;
     for my $tc ( @targeted_clones ) {
-        $summaries{accepted}++ if $tc->{accepted} eq 'yes';
+        $summaries{genotyped}++ if ($tc->{crispr_damage} eq 'frameshift' || $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic' );
         $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified';
     }
 
@@ -605,7 +608,6 @@ sub _sort_by_damage_type{
         'wild_type'    => 3,
         'mosaic'       => 4,
         'no-call'      => 5,
-        'unclassified' => 6,
         '-'            => 6,
     );
     if ( !$a->{crispr_damage} ) {

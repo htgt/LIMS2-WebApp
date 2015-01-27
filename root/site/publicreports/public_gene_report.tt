@@ -81,8 +81,8 @@ function toggle_btn(btn, show_or_hide) {
 <div class="well">
     <h4 align="center">Targeted Clones Summary</h4>
     <dl class="dl-horizontal">
-        <dt>Genotype Confirmed</dt>
-        <dd>[% summary.accepted %]</dd>
+        <dt>Genotyped</dt>
+        <dd>[% summary.genotyped %]</dd>
 
         <dt>Frameshift</dt>
         <dd>[% summary.exists( 'frameshift' ) ? summary.item( 'frameshift' ) : 0 %]</dd>
@@ -98,10 +98,6 @@ function toggle_btn(btn, show_or_hide) {
 
         <dt>No Call</dt>
         <dd>[% summary.exists( 'no-call' ) ? summary.item( 'no-call' ) : 0 %]</dd>
-
-        <dt>Unclassified</dt>
-        <dd>[% summary.exists( 'unclassified' ) ? summary.item( 'unclassified' ) : 0 %]</dd>
-
     </dl>
 </div>
 </div>
