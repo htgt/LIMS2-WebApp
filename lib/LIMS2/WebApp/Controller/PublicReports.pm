@@ -577,7 +577,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
             }
             else {
                 $c->log->warn( $data{name}
-                    . ' ep_pick well has no crispr damage type associated with it: ' );
+                    . ' ep_pick well has no crispr damage type associated with it' );
                 $data{crispr_damage} = '-';
             }
         }

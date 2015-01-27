@@ -116,6 +116,7 @@ function toggle_btn(btn, show_or_hide) {
     <th>Accepted?</th>
     <th>First Allele Genbank File</th>
     <th>Second Allele Description</th>
+    <th>Variant Size</th>
     <th>Detailed Description</th>
   </thead>
   <tbody>
@@ -140,6 +141,7 @@ function toggle_btn(btn, show_or_hide) {
 
         [% IF well.crispr_qc_data %]</a>[% END %]
       </td>
+      <td>[% well.crispr_qc_data.variant_size %]</td>
       <td><a href="[% c.uri_for( '/public_reports/well_genotyping_info', well.plate_name, well.well_name ) %]" target="_blank" ><i class="icon-info-sign"></i></a></td>
     </tr>
     [%- END %]
