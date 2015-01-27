@@ -80,34 +80,8 @@
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Allele Type</th>
-      <td>[% data.damage_type %]</td>
+      <td>[% data.qc_data.damage_type %]</td>
     </tr>
-    <tr>
-      <th>Forward Read</th>
-      <td><pre>[% data.fwd_read %]</pre></td>
-    </tr>
-    <tr>
-      <th>Reverse Read</th>
-      <td><pre>[% data.rev_read %]</pre></td>
-    </tr>
-    [% FOR key IN data.primers.crispr_primers.keys.sort %]
-      [% FOR primer IN data.primers.crispr_primers.$key %]
-    <tr>
-      <th>[% primer.name %]</th>
-      <td class="alignment">[% primer.seq %]</td>
-    </tr>
-      [% END %]
-    [% END %]
-
-    [% IF c.user %]
-    <tr>
-      <th>QC Run</th>
-      <td>
-        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
-      </td>
-    </tr>
-    [% END %]
-
     <tr>
       <th>QC damage data</th>
       <td>
@@ -151,12 +125,43 @@
       </td>
     </tr>
     <tr>
+      <th>Variant Size</th>
+      <td>[% data.qc_data.variant_size %]</td>
+    </tr>
+    [% FOR key IN data.primers.crispr_primers.keys.sort %]
+      [% FOR primer IN data.primers.crispr_primers.$key %]
+    <tr>
+      <th>[% primer.name %]</th>
+      <td class="alignment">[% primer.seq %]</td>
+    </tr>
+      [% END %]
+    [% END %]
+
+    [% IF c.user %]
+    <tr>
+      <th>QC Run</th>
+      <td>
+        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
+      </td>
+    </tr>
+    [% END %]
+
+    <tr>
+      <th>Forward Read</th>
+      <td><pre>[% data.fwd_read %]</pre></td>
+    </tr>
+    <tr>
+      <th>Reverse Read</th>
+      <td><pre>[% data.rev_read %]</pre></td>
+    </tr>
+
+    <tr>
       <th>VEP Output</th>
       <td>
         [% IF data.qc_data.has_vep_file %]
             <pre>[% data.qc_data.vep_output %]</pre>
         [% ELSE %]
-            <pre>Not available</pre> 
+            <pre>Not available</pre>
         [% END %]
       </td>
     </tr>
