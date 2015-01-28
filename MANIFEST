@@ -333,6 +333,7 @@ root/site/publicreports/index.tt
 root/site/publicreports/public_gene_report.tt
 root/site/publicreports/sponsor_report.tt
 root/site/publicreports/sponsor_sub_report.tt
+root/site/publicreports/sponsor_sub_report_old.tt
 root/site/publicreports/well_genotyping_info.tt
 root/site/publicreports/well_genotyping_info_search.tt
 root/site/user/barcodes/checkout_from_picklist.tt

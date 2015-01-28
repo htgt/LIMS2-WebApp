@@ -1,3 +1,11 @@
+0.283     2015-01-28 10:49:03 Europe/London
+
+    Corrected behaviour of trace viewer to deal with ambiguous base calls for CRISPR ES QC
+
+0.282     2015-01-22 16:20:36 Europe/London
+
+    Added new front page sponsor report
+
 0.281     2015-01-22 08:41:56 Europe/London
 
 Update public gene report page.

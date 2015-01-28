@@ -127,6 +127,7 @@ function toggle_btn(btn, show_or_hide) {
 [%- END %]
 
 <div class="accordion" id="gene_report_accordion">
+[% IF timeline %]
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
@@ -135,7 +136,7 @@ function toggle_btn(btn, show_or_hide) {
     </div>
     <div id="collapseTimeline" class="accordion-body collapse">
       <div class="accordion-inner">
-        [% IF timeline %]
+
         <table class="table table-striped">
           <thead>
             <tr>
@@ -155,12 +156,10 @@ function toggle_btn(btn, show_or_hide) {
             [%- END %]
           </tbody>
         </table>
-        [%- ELSE %]
-        <p><em>No data</em></p>
-        [%- END %]
       </div>
     </div>
   </div>
+[%- END %]
 
 <!--CRISPR QC-->
 [%- IF crispr_qc %]
