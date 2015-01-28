@@ -352,6 +352,15 @@ sub current_locus {
     return $loci;
 }
 
+sub gene_id {
+    my $self = shift;
+    my $crispr_designs = $self->crispr_designs
+        or return undef;
+    my $genes = $crispr_designs->first->design->genes
+        or return undef;
+    return $genes->first->gene_id;
+}
+
 sub start {
     return shift->current_locus->chr_start;
 }

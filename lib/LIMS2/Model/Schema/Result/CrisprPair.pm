@@ -239,7 +239,7 @@ sub gene_id {
     return $genes->first->gene_id;
 }
 
-sub species {
+sub species_id {
     return shift->right_crispr->species_id;
 }
 

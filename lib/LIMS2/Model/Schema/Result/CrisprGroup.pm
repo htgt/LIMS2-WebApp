@@ -269,6 +269,13 @@ sub species {
     return shift->right_most_crispr->species_id;
 }
 
+# Added species_id method to CrisprPair and CrisprGroup to fetch
+# the species_id (name string) so it is equivalent to Crispr->species_id
+# (Crispr->species returns the Species object)
+sub species_id {
+    return shift->right_most_crispr->species_id;
+}
+
 sub target_slice {
     my ( $self, $ensembl_util ) = @_;
 

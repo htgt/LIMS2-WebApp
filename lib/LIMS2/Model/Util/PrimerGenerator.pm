@@ -140,7 +140,7 @@ sub _build_crispr_settings {
             update_design_data_cache => 1,
             pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_single_crispr_primers,
             file_suffix => '_single_crispr_primers.csv',
-            primer_util_method => 'crispr_pair_genotyping_primers',
+            primer_util_method => 'crispr_single_or_pair_genotyping_primers',
         };
     }
     elsif($self->crispr_type eq 'pair'){
@@ -150,7 +150,7 @@ sub _build_crispr_settings {
             update_design_data_cache => 0,
             pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_crispr_primers,
             file_suffix => '_paired_crispr_primers.csv',
-            primer_util_method => 'crispr_pair_genotyping_primers',
+            primer_util_method => 'crispr_single_or_pair_genotyping_primers',
         };
     }
     ## FIXME: groups ##
@@ -437,7 +437,7 @@ sub generate_crispr_primers{
 
     my $primer_util = LIMS2::Util::QcPrimers->new({
         model => $self->model,
-        primer_project_name => 'crispr_pair',
+        primer_project_name => 'crispr_single_or_pair',
         base_dir => '~/LIMS2-tmp/primers_test',
     });
 
@@ -504,7 +504,7 @@ sub generate_crispr_primers{
         $self->log->info("output values: ",Dumper($output_values));
 
         my $strand = 'FIXME'; # where to get chromosome strand from?
-        my @out_vals = ($well_name, $design_id, $gene_name, $strand, $crispr_id);
+        my @out_vals = ($well_name, $gene_name, $design_id, $strand, $crispr_id);
 
 =head
         ## FIXME: where to get primer_explain stuff if it fails
