@@ -9,6 +9,7 @@ use Switch;
 use Carp;
 use Path::Class;
 use Data::Dumper;
+use LIMS2::Util::QcPrimers;
 
 use LIMS2::Model::Util::OligoSelection qw(
         pick_crispr_primers
@@ -139,6 +140,7 @@ sub _build_crispr_settings {
             update_design_data_cache => 1,
             pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_single_crispr_primers,
             file_suffix => '_single_crispr_primers.csv',
+            primer_util_method => 'crispr_pair_genotyping_primers',
         };
     }
     elsif($self->crispr_type eq 'pair'){
@@ -148,6 +150,7 @@ sub _build_crispr_settings {
             update_design_data_cache => 0,
             pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_crispr_primers,
             file_suffix => '_paired_crispr_primers.csv',
+            primer_util_method => 'crispr_pair_genotyping_primers',
         };
     }
     ## FIXME: groups ##
@@ -432,15 +435,39 @@ sub generate_crispr_primers{
 
     my $settings = $self->crispr_settings;
 
-    my %primer_clip;
+    my $primer_util = LIMS2::Util::QcPrimers->new({
+        model => $self->model,
+        primer_project_name => 'crispr_pair',
+        base_dir => '~/LIMS2-tmp/primers_test',
+    });
 
-    my $design_row;
+
+    # Set up list of columns to use in output csv
+    my @headings = qw(well_name gene_symbol design_id strand);
+    push @headings, $settings->{id_field};
+
+    # Add primer project specific headings such as "SR1_gc_content"
+    my @primer_headings = @{ $primer_util->get_output_headings};
+    push @headings, @primer_headings;
+
+    # Add extra crispr related headings
+    if($self->crispr_type eq 'single'){
+        push @headings, qw(crispr_id crispr_seq);
+    }
+    elsif($self->crispr_type eq 'pair'){
+        push @headings, qw(crispr_left_id crispr_left_seq crispr_right_id crispr_right_seq);
+    }
+
+    my @out_rows;
+    my $heading_csv = join ",",@headings;
+    push @out_rows, $heading_csv;
+
     foreach my $well ( @{$self->wells} ) {
         my $well_id = $well->id;
         my $well_name = $well->name;
 
         my $id_method_name = $settings->{id_method};
-        my $crispr_id = $self->$id_method_name($well);
+        my ($crispr_id, $crispr) = $self->$id_method_name($well);
 
         if($settings->{update_design_data_cache}){
             $self->verify_and_update_design_data_cache( $well_id, $crispr_id );
@@ -466,35 +493,21 @@ sub generate_crispr_primers{
             species => $self->species_name,
             repeat_mask => $self->repeat_mask,
         };
-        my $pick_primers_method = $settings->{pick_primers_method};
-        $self->log->info( ref $pick_primers_method );
-        my ($crispr_results, $crispr_primers, $chr_strand, $chr_seq_start) = &{ $pick_primers_method }( $self->model, $params );
 
-        $primer_clip{$well_name} = {
-            $settings->{id_field} => $crispr_id,
-            'gene_name' => $gene_name,
-            'design_id' => $design_id,
-            'strand'    => $chr_strand,
-            'crispr_seq' => $crispr_results,
-            'crispr_primers' => $crispr_primers,
-            'chr_seq_start'  => $chr_seq_start,
-        };
-    }
+        # Run primer generation using QcPrimers module
+        my $util_method_name = $settings->{primer_util_method};
+        my ($picked_primers, $seq) = $primer_util->$util_method_name($crispr);
 
-    my @out_rows;
-    my $rank = 0; # always show the rank 0 primer
-    my $primer_type = 'crispr_primers';
-    foreach my $well_name ( keys %primer_clip ) {
-        my $csv_row;
-        my @out_vals = (
-            $well_name,
-            $primer_clip{$well_name}{'gene_name'},
-            $primer_clip{$well_name}{'design_id'},
-            $primer_clip{$well_name}{'strand'},
-            $primer_clip{$well_name}{ $settings->{id_field} },
-        );
+        # generates field names and values using primer names (e.g. SF1, SR1) set in project
+        # specific primer generation config files
+        my $output_values = $primer_util->get_output_values($picked_primers->[0]);
+        $self->log->info("output values: ",Dumper($output_values));
 
-        ## FIXME: this came from pairs method - check it does not muck things up for single
+        my $strand = 'FIXME'; # where to get chromosome strand from?
+        my @out_vals = ($well_name, $design_id, $gene_name, $strand, $crispr_id);
+
+=head
+        ## FIXME: where to get primer_explain stuff if it fails
         if ( $primer_clip{$well_name}->{'crispr_primers'}->{'error_flag'} ne 'pass' ){
             push @out_vals
                 , 'primer3_explain_left'
@@ -507,47 +520,40 @@ sub generate_crispr_primers{
 
             next;
         }
+=cut
+        push @out_vals, map { $output_values->{$_} } @primer_headings;
 
-        push (@out_vals, (
-            $self->data_to_push(\%primer_clip, $primer_type, $well_name, 'left', $rank // '99')
-        ));
-        $self->persist_seq_primers('SF1', \%primer_clip, $primer_type, $well_name, 'left', $rank // '99');
-        push (@out_vals, (
-            $self->data_to_push(\%primer_clip, $primer_type, $well_name, 'right', $rank // '99')
-        ));
-        $self->persist_seq_primers('SR1', \%primer_clip, $primer_type, $well_name, 'right', $rank // '99');
-
-        push (@out_vals,
-            $primer_clip{$well_name}->{'crispr_seq'}->{'left_crispr'}->{'id'},
-            $primer_clip{$well_name}->{'crispr_seq'}->{'left_crispr'}->{'seq'},
-        );
-        if($self->crispr_type eq 'pair'){
-            push (@out_vals,
-                $primer_clip{$well_name}->{'crispr_seq'}->{'right_crispr'}->{'id'},
-                $primer_clip{$well_name}->{'crispr_seq'}->{'right_crispr'}->{'seq'},
-            );
+        if($self->crispr_type eq 'single'){
+            push @out_vals, $crispr->id, $crispr->seq;
         }
-        $csv_row = join( ',' , @out_vals);
+        elsif($self->crispr_type eq 'pair'){
+            push @out_vals, $crispr->left_crispr_id, $crispr->left_crispr->seq,
+                            $crispr->right_crispr_id, $crispr->right_crispr->seq;
+        }
+
+        my $csv_row = join( ',' , @out_vals);
         push @out_rows, $csv_row;
+
     }
 
     $self->log->debug( 'Generating  '.$self->crispr_type.'crispr primer output file' );
     my $message = "Sequencing primers\n";
     $message .= "WARNING: These primers are for sequencing a PCR product - no genomic check has been applied to these primers\n";
-    my $lines = $self->generate_primer_output( $self->crispr_type, $message, \@out_rows );
-    $self->create_output_file( $self->plate_name . $self->formatted_well_names . $settings->{file_suffix}, $lines );
+
+    $self->create_output_file( $self->plate_name . $self->formatted_well_names . $settings->{file_suffix}, \@out_rows );
     return;
 }
 
 sub get_single_crispr_id{
     my ($self, $well) = @_;
     my ($crispr_left, $crispr_right) = $well->left_and_right_crispr_wells;
-    return $crispr_left->crispr->id;
+    return ($crispr_left->crispr->id, $crispr_left->crispr);
 }
 
 sub get_crispr_pair_id{
     my ($self, $well) = @_;
     my $crispr_pair_id;
+    my $crispr_pair;
     if ($self->has_crispr_pair_id) {
         $crispr_pair_id = $self->crispr_pair_id;
     }
@@ -557,11 +563,17 @@ sub get_crispr_pair_id{
     }
     elsif ($well->crispr_pair){
         $crispr_pair_id = $well->crispr_pair->id;
+        $crispr_pair = $well->crispr_pair;
     }
     else{
         die "No crispr pair identified for well $well";
     }
-    return $crispr_pair_id;
+
+
+    unless ($crispr_pair){
+        $crispr_pair = $self->model->retrieve_crispr_pair({ id => $crispr_pair_id });
+    }
+    return ($crispr_pair_id, $crispr_pair);
 }
 
 sub get_existing_crispr_primers{
@@ -769,28 +781,6 @@ sub persist_primers {
     return $crispr_primer_result;
 }
 
-sub generate_primer_output{
-    my ($self, $primer_type, $message, $out_rows) = @_;
-
-    my $header_method = {
-        single => 'single_crispr_headers',
-        pair   => 'crispr_pair_headers',
-        group  => 'crispr_group_headers',
-        pcr    => 'pcr_headers',
-        genotyping => 'genotyping_headers',
-    };
-
-    my $method_name = $header_method->{$primer_type};
-    my $headers = $self->$method_name;
-    my $out = $message."\n";
-    $out .= $$headers . "\n";
-
-    foreach my $row ( sort @{$out_rows} ) {
-         $out .= $row . "\n";
-    }
-    $out .= "End of File\n";
-    return $out;
-}
 
 sub formatted_well_names{
     my $self = shift;
@@ -810,67 +800,11 @@ sub create_output_file {
     $self->log->info("Creating file $file");
 
     my $tab_fh = $file->openw() or die "Can't open file $file for writing: $! \n";
-    print $tab_fh $lines;
+    print $tab_fh join "\n", @$lines;
     close $tab_fh
         or croak "Unable to close $file after writing: $!";
 
     return;
-}
-
-sub single_crispr_headers {
-
-    my @crispr_headings = (qw/
-        well_name
-        gene_symbol
-        design_id
-        strand
-        crispr_id
-        SF1
-        SF1_strand
-        SF1_length
-        SF1_gc_content
-        SF1_tm
-        SR1
-        SR1_strand
-        SF1_length
-        SR1_gc_content
-        SR1_tm
-        crispr_id
-        crispr_seq
-    /);
-
-    my $headers = join ',', @crispr_headings;
-
-    return \$headers;
-}
-
-sub crispr_pair_headers {
-
-    my @crispr_headings = (qw/
-        well_name
-        gene_symbol
-        design_id
-        strand
-        crispr_pair_id
-        SF1
-        SF1_strand
-        SF1_length
-        SF1_gc_content
-        SF1_tm
-        SR1
-        SR1_strand
-        SF1_length
-        SR1_gc_content
-        SR1_tm
-        crispr_left_id
-        crispr_left_seq
-        crispr_right_id
-        crispr_right_seq
-    /);
-
-    my $headers = join ',', @crispr_headings;
-
-    return \$headers;
 }
 
 sub pcr_headers {
