@@ -274,7 +274,7 @@ function toggle_btn(btn, show_or_hide) {
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Pre-Injection QCs</a>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Secondary QC</a>
       </h3>
     </div>
     <div id="collapsePIQ" class="accordion-body collapse">

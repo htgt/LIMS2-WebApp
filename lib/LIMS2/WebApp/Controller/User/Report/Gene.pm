@@ -160,7 +160,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'sep'        => 'Second Electroporations',
         'sep_pick'   => 'Second Electroporation Picks',
         'fp'         => 'First Electroporation Freezer Instances',
-        'piq'        => 'Pre-Injection QCs',
+        'piq'        => 'Secondary QC',
         'sfp'        => 'Second Electroporation Freezes',
     };
 
