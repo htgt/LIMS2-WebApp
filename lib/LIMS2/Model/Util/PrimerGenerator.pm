@@ -430,6 +430,60 @@ sub update_gene_symbols{
     return;
 }
 
+sub generate_design_genotyping_primers{
+    my $self = shift;
+
+    my $primer_util = LIMS2::Util::QcPrimers->new({
+        model => $self->model,
+        primer_project_name => 'design_genotyping',
+        base_dir => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+    });
+
+    # Set up list of columns to use in output csv
+    my @headings = qw(well_name gene_symbol design_id strand);
+    my @primer_headings =  @{ $primer_util->get_output_headings};
+    push @headings, @primer_headings;
+
+    my @out_rows;
+    my $heading_csv = join ",",@headings;
+    push @out_rows, $heading_csv;
+
+    foreach my $well ( @{$self->wells} ) {
+        my $well_id = $well->id;
+        my $well_name = $well->name;
+
+        my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
+        my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
+        my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+
+        $self->log->info( "$design_id\t$gene_name" );
+
+        my $design = $self->model->c_retrieve_design({ id => $design_id })
+            or die "Could not find design $design_id in database";
+
+        my ($primer_data, $seq) = $primer_util->design_genotyping_primers($design);
+
+        # generates field names and values using primer names (e.g. SF1, SR1) set in project
+        # specific primer generation config files
+        my $output_values = $primer_util->get_output_values($primer_data);
+        $self->log->info("output values: ",Dumper($output_values));
+
+        my $strand = 'FIXME'; # where to get chromosome strand from?
+        my @out_vals = ($well_name, $gene_name, $design_id, $strand );
+
+        push @out_vals, map { $output_values->{$_} } @primer_headings;
+
+        my $csv_row = join( ',' , @out_vals);
+        push @out_rows, $csv_row;
+    }
+
+    $self->log->debug( 'Generating  '.$self->crispr_type.'crispr primer output file' );
+    my $message = "Genotyping primers\n";
+    $message .= "Genomic specificity check has been applied to these primers\n";
+    $self->create_output_file( $self->plate_name . $self->formatted_well_names . "_genotyping_primers.csv", \@out_rows );
+    return;
+}
+
 sub generate_crispr_primers{
     my $self = shift;
 
@@ -438,7 +492,7 @@ sub generate_crispr_primers{
     my $primer_util = LIMS2::Util::QcPrimers->new({
         model => $self->model,
         primer_project_name => 'crispr_single_or_pair',
-        base_dir => '~/LIMS2-tmp/primers_test',
+        base_dir => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
     });
 
 
@@ -487,20 +541,13 @@ sub generate_crispr_primers{
             $self->log->info( '-------- primers not available in the database' );
         }
 
-        my $params = {
-            design_id => $design_id,
-            $settings->{id_field} => $crispr_id,
-            species => $self->species_name,
-            repeat_mask => $self->repeat_mask,
-        };
-
         # Run primer generation using QcPrimers module
         my $util_method_name = $settings->{primer_util_method};
         my ($picked_primers, $seq) = $primer_util->$util_method_name($crispr);
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
         # specific primer generation config files
-        my $output_values = $primer_util->get_output_values($picked_primers->[0]);
+        my $output_values = $primer_util->get_output_values($picked_primers);
         $self->log->info("output values: ",Dumper($output_values));
 
         my $strand = 'FIXME'; # where to get chromosome strand from?
