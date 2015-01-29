@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Traces;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Traces::VERSION = '0.282';
+    $LIMS2::WebApp::Controller::API::Traces::VERSION = '0.284';
 }
 ## use critic
 
@@ -92,11 +92,21 @@ sub _extract_region {
     for my $i ( $start .. $end ) {
         my $sample_loc = $scf->{index}[$i];
         my $nuc = $scf->{bases}[$i];
-        die "One sample has two base calls??" if exists $sample_to_base{ $sample_loc };
-
-        #we have to lie and reverse complement if we're reversing
-        #$sample_to_base{ $sample_loc } = $nuc;
-        $sample_to_base{ $sample_loc } = $reverse ? revcom( $nuc )->seq : $nuc;
+#        die "One sample has two base calls??" if exists $sample_to_base{ $sample_loc };
+#        Instead of die-ing which causes a valid tracefile to not be displayed,
+#        we accept that the call may be ambiguous and just take the first one as valid
+#        This approach may need to be reviewed - perhaps we should put in an ambiguity code
+#        once we know how often this occurs at a specific location - DP-S 28/01/2015
+        if ( exists $sample_to_base{ $sample_loc } ) {
+            $self->log->debug( "This sample has two base calls:");
+            $self->log->debug( $sample_loc . ' => ' . $sample_to_base{ $sample_loc } . " (already in the hash)");
+            $self->log->debug( $sample_loc . ' => ' . ($reverse ? revcom( $nuc )->seq : $nuc) . " (ready to place in hash)");
+        }
+        else {
+            #we have to lie and reverse complement if we're reversing
+            #$sample_to_base{ $sample_loc } = $nuc;
+            $sample_to_base{ $sample_loc } = $reverse ? revcom( $nuc )->seq : $nuc;
+        }
     }
 
     my ( @series, @labels );
