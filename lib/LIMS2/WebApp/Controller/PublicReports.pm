@@ -588,8 +588,9 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
 
     my %summaries;
     for my $tc ( @targeted_clones ) {
-        $summaries{genotyped}++ if ($tc->{crispr_damage} eq 'frameshift' || $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic' );
-        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified';
+        $summaries{genotyped}++ if ($tc->{crispr_damage} && ($tc->{crispr_damage} eq 'frameshift' ||
+            $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic') );
+        $summaries{ $tc->{crispr_damage} }++ if ($tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified');
     }
 
     $c->stash(
