@@ -587,7 +587,8 @@ sub get_crispr_PCR_EnsEmbl_region{
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
     my $end_target = $crispr_primers->{'crispr_primers'}->{'right'}->{'right_0'}->{'location'}->end
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'};
-
+INFO("PCR start target: $start_target");
+INFO("PCR end target: $end_target");
     my $start_coord =  $start_target - ($dead_field_width + $search_field_width);
     my $end_coord =  $end_target + ($dead_field_width + $search_field_width);
     $slice_region = $slice_adaptor->fetch_by_region(

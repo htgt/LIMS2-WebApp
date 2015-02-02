@@ -25,4 +25,6 @@ my $generator = LIMS2::Model::Util::PrimerGenerator->new({
 =cut
 
 $generator->log->info("testing logger");
-$generator->generate_crispr_primers();
+#$generator->generate_design_genotyping_primers();
+$generator->generate_crispr_primers;
+$generator->generate_crispr_PCR_primers;

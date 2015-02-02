@@ -222,6 +222,12 @@ has crispr_pair_id_cache => (
     lazy_build => 1,
 );
 
+has crispr_primers => (
+    is => 'rw',
+    isa => 'HashRef',
+    required => 0,
+);
+
 sub _build_crispr_pair_id_cache{
     my $self = shift;
 
@@ -516,6 +522,10 @@ sub generate_crispr_primers{
     my $heading_csv = join ",",@headings;
     push @out_rows, $heading_csv;
 
+    # Store crispr primers as we may need them later
+    # in order to generate crispr PCR primers
+    my $crispr_primers_by_well_id = {};
+
     foreach my $well ( @{$self->wells} ) {
         my $well_id = $well->id;
         my $well_name = $well->name;
@@ -544,6 +554,9 @@ sub generate_crispr_primers{
         # Run primer generation using QcPrimers module
         my $util_method_name = $settings->{primer_util_method};
         my ($picked_primers, $seq) = $primer_util->$util_method_name($crispr);
+
+        # Store crispr primers for each well id
+        $crispr_primers_by_well_id->{$well_id} = $picked_primers;
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
         # specific primer generation config files
@@ -583,11 +596,100 @@ sub generate_crispr_primers{
 
     }
 
+    # Store crispr primers for later PCR primer generation
+    $self->crispr_primers($crispr_primers_by_well_id);
+
     $self->log->debug( 'Generating  '.$self->crispr_type.'crispr primer output file' );
     my $message = "Sequencing primers\n";
     $message .= "WARNING: These primers are for sequencing a PCR product - no genomic check has been applied to these primers\n";
 
     $self->create_output_file( $self->plate_name . $self->formatted_well_names . $settings->{file_suffix}, \@out_rows );
+    return;
+}
+
+sub generate_crispr_PCR_primers{
+    my $self = shift;
+
+    # If crispr primers have not yet been generated we need to run that first
+    my $crispr_primers;
+    unless ($crispr_primers = $self->crispr_primers){
+        $self->generate_crispr_primers();
+        $crispr_primers = $self->crispr_primers;
+    }
+
+    my $primer_util = LIMS2::Util::QcPrimers->new({
+        model => $self->model,
+        primer_project_name => 'crispr_pcr',
+        base_dir => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+    });
+
+    # Set up list of columns to use in output csv
+    my @headings = qw(well_name gene_symbol design_id strand);
+
+    # Add primer project specific headings such as "SR1_gc_content"
+    my @primer_headings = @{ $primer_util->get_output_headings};
+    push @headings, @primer_headings;
+
+    my @out_rows;
+    my $heading_csv = join ",",@headings;
+    push @out_rows, $heading_csv;
+
+    foreach my $well ( @{$self->wells} ) {
+        my $well_id = $well->id;
+        my $well_name = $well->name;
+
+        my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
+        my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
+        my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+
+        $self->log->info( "$design_id\t$gene_name" );
+
+        my $design = $self->model->c_retrieve_design({ id => $design_id })
+            or die "Could not find design $design_id in database";
+
+        my $well_crispr_primers = $crispr_primers->{$well_id};
+        unless($well_crispr_primers){
+            $self->log->info("No crispr primers for well ID $well_id. Cannot generate PCR primers");
+            next;
+        }
+
+        # Run primer generation using QcPrimers module
+        my ($picked_primers, $seq) = $primer_util->crispr_PCR_primers($well_crispr_primers, $design, $well_id);
+
+        # generates field names and values using primer names (e.g. SF1, SR1) set in project
+        # specific primer generation config files
+        my $output_values = $primer_util->get_output_values($picked_primers);
+        $self->log->info("output values: ",Dumper($output_values));
+
+        my $strand = 'FIXME'; # where to get chromosome strand from?
+        my @out_vals = ($well_name, $gene_name, $design_id, $strand);
+
+=head
+        ## FIXME: where to get primer_explain stuff if it fails
+        if ( $primer_clip{$well_name}->{'crispr_primers'}->{'error_flag'} ne 'pass' ){
+            push @out_vals
+                , 'primer3_explain_left'
+                , $primer_clip{$well_name}->{'crispr_primers'}->{'primer3_explain_left'}
+                , 'primer3_explain_right'
+                , $primer_clip{$well_name}->{'crispr_primers'}->{'primer3_explain_right'};
+
+            $csv_row = join( ',' , @out_vals);
+            push @out_rows, $csv_row;
+
+            next;
+        }
+=cut
+        push @out_vals, map { $output_values->{$_} } @primer_headings;
+
+        my $csv_row = join( ',' , @out_vals);
+        push @out_rows, $csv_row;
+
+    }
+
+    $self->log->debug( 'Generating crispr PCR primer output file' );
+    my $message = "PCR crispr region primers\n";
+    $message .= "Genomic specificity check has been applied to these primers\n";
+    $self->create_output_file( $self->plate_name . $self->formatted_well_names . '_pcr_primers.csv', \@out_rows );
     return;
 }
 
@@ -627,24 +729,6 @@ sub get_existing_crispr_primers{
     my ($self, $search_atts) = @_;
 
     return $self->model->schema->resultset('CrisprPrimer')->search($search_atts)->all;
-}
-
-sub data_to_push {
-    my $self = shift;
-    my $pc = shift;
-    my $primer_type = shift;
-    my $well_name = shift;
-    my $lr = shift;
-    my $rank = shift;
-
-    my $primer_name = $lr . '_' . $rank;
-    return (
-        $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'seq'} // "'-",
-        $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'location'}->{'_strand'} // "'-",
-        $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'length'} // "'-",
-        $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'gc_content'} // "'-",
-        $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'melting_temp'} // "'-",
-    );
 }
 
 =head persist_primers
@@ -852,78 +936,6 @@ sub create_output_file {
         or croak "Unable to close $file after writing: $!";
 
     return;
-}
-
-sub pcr_headers {
-
-    my @pcr_headings = (qw/
-        well_name
-        gene_symbol
-        design_id
-        strand
-        PF1
-        PF1_strand
-        PF1_length
-        PF1_gc_content
-        PF1_tm
-        PR1
-        PR1_strand
-        PF1_length
-        PR1_gc_content
-        PR1_tm
-        PF2
-        PF2_strand
-        PF2_length
-        PF2_gc_content
-        PF2_tm
-        PR2
-        PR2_strand
-        PF2_length
-        PR2_gc_content
-        PR2_tm
-    /);
-
-    my $headers = join ',', @pcr_headings;
-
-    return \$headers;
-}
-
-sub genotyping_headers {
-
-    my @genotyping_headings = (qw/
-        well_name
-        gene_symbol
-        design_id
-        strand
-        GF1
-        GF1_strand
-        GF1_length
-        GF1_gc_content
-        GF1_tm
-        GR1
-        GR1_strand
-        GF1_length
-        GR1_gc_content
-        GR1_tm
-        GF2
-        GF2_strand
-        GF2_length
-        GF2_gc_content
-        GF2_tm
-        GR2
-        GR2_strand
-        GF2_length
-        GR2_gc_content
-        GR2_tm
-        Design_A
-        Oligo_A
-        Design_B
-        Oligo_B
-    /);
-
-    my $headers = join ',', @genotyping_headings;
-
-    return \$headers;
 }
 
 1;
