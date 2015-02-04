@@ -940,18 +940,33 @@ sub group_primers_by_pair {
 
     my %primer_groups;
 
-    foreach my $tag ( qw/ G P S / ) {
+    foreach my $tag ( qw/ G P S D/ ) {
         for my $num ( 1..2 ){
+
+            my $forward = $tag . 'F' . $num;
+            my $reverse = $tag . 'R' . $num;
+            next unless ($crispr_primers->{$forward} and $crispr_primers->{$reverse});
+
             $primer_groups{$tag . '_' . $num} = {
-                $tag . 'F' . $num => $crispr_primers->{ $tag . 'F' . $num},
-                $tag . 'R' . $num => $crispr_primers->{ $tag . 'R' . $num},
+                $forward => $crispr_primers->{ $forward },
+                $reverse => $crispr_primers->{ $reverse },
                 # Add the start and end coords
-                'chr_start' => $crispr_primers->{ $tag . 'F' . $num}->{'chr_start'},
-                'chr_end'   => $crispr_primers->{ $tag . 'R' . $num}->{'chr_end'},
+                'chr_start' => $crispr_primers->{ $forward }->{'chr_start'},
+                'chr_end'   => $crispr_primers->{ $reverse }->{'chr_end'},
             }
         }
     }
-    delete $primer_groups{'S_2'}; # only one set of sequencing primers
+
+    # special case for crispr group primer ER1 which pairs with DF1
+    # (DR1 also pairs with DF1 but this is handled in loop above)
+    if($crispr_primers->{'DF1'} and $crispr_primers->{'ER1'}){
+        $primer_groups{'DE_1'} = {
+            'DF1' => $crispr_primers->{'DF1'},
+            'ER1' => $crispr_primers->{'ER1'},
+            'chr_start' => $crispr_primers->{'DF1'}->{'chr_start'},
+            'chr_end'   => $crispr_primers->{'ER1'}->{'chr_end'},
+        }
+    }
 
     return \%primer_groups;
 }

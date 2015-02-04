@@ -1244,6 +1244,9 @@ sub retrieve_crispr_primers {
     elsif ( $crispr_id_ref eq 'crispr_pair_id' ) {
        $crispr_type_string = 'crispr_pair';
     }
+    elsif ( $crispr_id_ref eq 'crispr_group_id'){
+        $crispr_type_string = 'crispr_group';
+    }
 
     if ($crispr_primers_rs) {
         my $count = 0;
