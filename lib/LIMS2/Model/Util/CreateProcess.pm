@@ -619,6 +619,7 @@ sub _check_wells_paired_crispr_assembly {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+## no critic(Subroutines::RequireFinalReturn)
 sub _check_wells_group_crispr_assembly {
     my ( $model, $process ) = @_;
 

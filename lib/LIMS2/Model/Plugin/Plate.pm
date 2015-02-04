@@ -378,6 +378,7 @@ sub create_plate_by_copy {
     return $plate;
 }
 
+## no critic(ControlStructures::ProhibitCascadingIfElse)
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
     #validation done of create_plate, not needed here
@@ -424,6 +425,7 @@ sub create_plate_csv_upload {
     $plate_data{wells} = $well_data;
     return $self->create_plate( \%plate_data );
 }
+## use critic
 
 sub plate_help_info {
     my ($self) = @_;

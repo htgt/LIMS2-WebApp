@@ -608,7 +608,6 @@ sub get_crispr_group_by_crispr_ids{
         }
     )->all;
 
-    my @diff;
     my %input_ids = map { $_ => 1 } @crispr_ids;
     $self->log->debug('input IDs: '.(join ",",@crispr_ids));
     my $error_msg = "No crispr group found for crispr IDs ".(join ",",@crispr_ids).". ";
