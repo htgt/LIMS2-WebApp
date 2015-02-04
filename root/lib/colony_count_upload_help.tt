@@ -47,8 +47,15 @@
               <dd>Enter the number of counts</dd>
               <dt>picked_colonies</dt>
               <dd>Enter the number of counts</dd>
-              <dt>remaining_unstained<br>_colonies</dt>
-              <dd><br>Enter the number of counts</dd>
+            </dl>
+          <p>
+            The additional fields can be filled if appropriate counts exist.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>remaining_stained_colonies</dt>
+              <dd>Enter the number of counts</dd>
+              <dt>remaining_unstained_colonies</dt>
+              <dd>Enter the number of counts</dd>
             </dl>
           <p>
             Note! The column names must match the above ones.

@@ -1,6 +1,16 @@
 [% META title="Well Genotyping Information"; META tab_name = "Cells" %]
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script language="javascript" type="text/javascript">
+  function toggle_id(id) {
+    if ($(id).attr('style') == "display:none") {
+      $(id).attr("style", "display:block");
+    }
+    else {
+      $(id).attr("style", "display:none");
+    }
+  }
+</script>
 <style type="text/css">
 .alignment {
     font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
@@ -80,34 +90,8 @@
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Allele Type</th>
-      <td>[% data.damage_type %]</td>
+      <td>[% data.qc_data.damage_type %]</td>
     </tr>
-    <tr>
-      <th>Forward Read</th>
-      <td><pre>[% data.fwd_read %]</pre></td>
-    </tr>
-    <tr>
-      <th>Reverse Read</th>
-      <td><pre>[% data.rev_read %]</pre></td>
-    </tr>
-    [% FOR key IN data.primers.crispr_primers.keys.sort %]
-      [% FOR primer IN data.primers.crispr_primers.$key %]
-    <tr>
-      <th>[% primer.name %]</th>
-      <td class="alignment">[% primer.seq %]</td>
-    </tr>
-      [% END %]
-    [% END %]
-
-    [% IF c.user %]
-    <tr>
-      <th>QC Run</th>
-      <td>
-        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
-      </td>
-    </tr>
-    [% END %]
-
     <tr>
       <th>QC damage data</th>
       <td>
@@ -151,19 +135,52 @@
       </td>
     </tr>
     <tr>
+      <th>Variant Size</th>
+      <td>[% data.qc_data.variant_size %]</td>
+    </tr>
+    [% FOR key IN data.primers.crispr_primers.keys.sort %]
+      [% FOR primer IN data.primers.crispr_primers.$key %]
+    <tr>
+      <th>[% primer.name %]</th>
+      <td class="alignment">[% primer.seq %]</td>
+    </tr>
+      [% END %]
+    [% END %]
+
+    [% IF c.user %]
+    <tr>
+      <th>QC Run</th>
+      <td>
+        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
+      </td>
+    </tr>
+    [% END %]
+
+    <tr>
+      <th>Forward Read</th>
+      <td><pre>[% data.fwd_read %]</pre></td>
+    </tr>
+    <tr>
+      <th>Reverse Read</th>
+      <td><pre>[% data.rev_read %]</pre></td>
+    </tr>
+
+    <tr>
       <th>VEP Output</th>
       <td>
+        <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-info">Show / Hide</a>
         [% IF data.qc_data.has_vep_file %]
-            <pre>[% data.qc_data.vep_output %]</pre>
+            <pre id="vep_output" style='display:none'>[% data.qc_data.vep_output %]</pre>
         [% ELSE %]
-            <pre>Not available</pre> 
+            Not available
         [% END %]
       </td>
     </tr>
     <tr>
       <th>VCF</th>
       <td>
-        <pre>[% data.vcf_file %]</pre>
+        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-info">Show / Hide</a>
+        <pre id="vcf_output" style='display:none'>[% data.vcf_file %]</pre>
       </td>
     </tr>
 </table>

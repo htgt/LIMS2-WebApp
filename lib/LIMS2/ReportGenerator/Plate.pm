@@ -731,15 +731,7 @@ retrieve crispr group given list of crispr ids
 sub crispr_group_data {
     my ( $self, $crispr_ids ) = @_;
 
-    my $crispr_group = $self->model->schema->resultset('CrisprGroup')->search(
-        {
-            'crispr_group_crisprs.crispr_id' => { 'IN' => $crispr_ids },
-        },
-        {
-            join     => 'crispr_group_crisprs',
-            distinct => 1,
-        }
-    )->first;
+    my $crispr_group = $self->model->get_crispr_group_by_crispr_ids({ crispr_ids => $crispr_ids });
 
     return ( 'crispr_group', $crispr_group );
 }

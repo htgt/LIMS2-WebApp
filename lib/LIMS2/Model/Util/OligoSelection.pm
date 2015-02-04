@@ -917,6 +917,21 @@ sub single_crispr_primer_calculate {
     return ($primer_data, $chr_strand, $chr_seq_start);
 }
 
+# Use oligo_for_single_crispr to generate hash for each of the crisprs in the group
+# return these hashes in an arrayref
+sub oligos_for_crispr_group{
+    my ($schema, $group_id)  = @_;
+    my @oligos;
+
+    my $group = $schema->resultset('CrisprGroup')->find({ id => $group_id });
+
+    foreach my $crispr_group_crispr ($group->crispr_group_crisprs){
+        my $crispr_oligo_hash = oligo_for_single_crispr($schema, $crispr_group_crispr->crispr_id);
+        push @oligos, $crispr_oligo_hash->{'left_crispr'};
+    }
+    return \@oligos;
+}
+
 =head2 oligos_for_crispr_pair
 
 Generate sequencing primer oligos for a crispr pair
@@ -1230,6 +1245,9 @@ sub retrieve_crispr_primers {
     elsif ( $crispr_id_ref eq 'crispr_pair_id' ) {
        $crispr_type_string = 'crispr_pair';
     }
+    elsif ( $crispr_id_ref eq 'crispr_group_id'){
+        $crispr_type_string = 'crispr_group';
+    }
 
     if ($crispr_primers_rs) {
         my $count = 0;
@@ -1316,6 +1334,10 @@ sub retrieve_crispr_data_for_id {
     }
     elsif ($crispr_id_ref eq 'crispr_id' ) {
         $crispr_data_hash{'crispr_single'}->{$crispr_id} = oligo_for_single_crispr( $schema, $crispr_id );
+    }
+    elsif ($crispr_id_ref eq 'crispr_group_id'){
+        # For each crispr group we get an array ref of single crispr oligo details
+        $crispr_data_hash{'crispr_group'}->{$crispr_id} = oligos_for_crispr_group( $schema, $crispr_id );
     }
     else {
         ERROR ('crispr identifier: ' . $crispr_id . ' was not found in the database');

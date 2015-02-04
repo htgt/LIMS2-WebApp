@@ -23,6 +23,7 @@ use LIMS2::Model::Util qw( well_id_for );
 use LIMS2::Exception::Implementation;
 use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
+use TryCatch;
 
 my %process_field_data = (
     final_cassette => {
@@ -156,6 +157,7 @@ my %process_check_well = (
     'crispr_vector'          => \&_check_wells_crispr_vector,
     'single_crispr_assembly' => \&_check_wells_single_crispr_assembly,
     'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
+    'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
 );
 
@@ -617,6 +619,60 @@ sub _check_wells_paired_crispr_assembly {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+## no critic(Subroutines::RequireFinalReturn)
+sub _check_wells_group_crispr_assembly {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    my ($new_well) = $process->process_output_wells;
+    my $new_well_name = $new_well->well->name;
+
+    # multiple DNA input wells, some must be from CRISPR_V, 1 from FINAL_PICK
+    my @input_wells = $process->input_wells;
+    my @input_parent_wells = map { $_->ancestors->input_wells($_) } @input_wells;
+
+    my $crispr_v = 0;
+    my $final_pick = 0;
+    my @crispr_ids;
+
+    foreach (@input_parent_wells) {
+        if ($_->plate->type_id eq 'CRISPR_V') {
+            $crispr_v++;
+            unless (defined $_->crispr ) {
+            LIMS2::Exception::Validation->throw(
+                "Well $_ is not a crispr." );
+            }
+            push @crispr_ids, $_->crispr;
+        }
+        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+    }
+
+    @crispr_ids = uniq @crispr_ids;
+
+    unless ($crispr_v > 0 && $final_pick == 1 ) {
+        LIMS2::Exception::Validation->throw(
+            'group_crispr_assembly requires as input at least 1 DNA prepared from a CRISPR_V '
+            . 'and 1 DNA prepared from a FINAL_PICK'
+        );
+    }
+
+    try{
+        my $group = $model->get_crispr_group_by_crispr_ids({
+            crispr_ids => \@crispr_ids,
+        });
+    }
+    catch ($err) {
+        my $ids_list = join ", ",@crispr_ids;
+        LIMS2::Exception::Validation->throw("Could not create well $new_well_name: $err");
+    }
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_crispr_ep {
     my ( $model, $process ) = @_;
 
@@ -649,6 +705,7 @@ my %process_aux_data = (
     'crispr_vector'          => \&_create_process_aux_data_crispr_vector,
     'single_crispr_assembly' => \&_create_process_aux_data_single_crispr_assembly,
     'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
+    'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
 );
 
@@ -1100,6 +1157,12 @@ sub _create_process_aux_data_single_crispr_assembly {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_paired_crispr_assembly {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_group_crispr_assembly {
     return;
 }
 ## use critic

@@ -1,1 +1,1 @@
-plate_name,well_name,remaining_unstained_colonies,picked_colonies,total_colonies
+plate_name,well_name,total_colonies,picked_colonies,remaining_stained_colonies,remaining_unstained_colonies
