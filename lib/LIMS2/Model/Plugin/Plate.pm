@@ -409,6 +409,9 @@ sub create_plate_csv_upload {
     } elsif ($params->{process_type} eq 'paired_crispr_assembly') {
         $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
                                 'crispr_vector2_plate', 'crispr_vector2_well' ];
+    } elsif($params->{process_type} eq 'group_crispr_assembly') {
+        # Require final pick plate/well and at least one crispr_vector plate/well
+        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well' ];
     } else {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
