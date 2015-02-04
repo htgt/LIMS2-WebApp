@@ -117,7 +117,7 @@ has primer_names => (
 );
 
 sub _build_primer_names {
-    return [ qw( SF1 SR1 PF1 PR1 PF2 PR2 GF1 GR1 GF2 GR2 ) ];
+    return [ qw( SF1 SR1 PF1 PR1 PF2 PR2 GF1 GR1 GF2 GR2 DF1 DR1 ER1 ) ];
 }
 
 override _build_columns => sub {
