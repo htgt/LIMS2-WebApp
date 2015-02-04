@@ -503,6 +503,7 @@ Public gene report, only show targeted clone details:
     - Crispr damage type
 
 =cut
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
     $c->log->info( "Generate public gene report page for gene: $gene_id" );
@@ -601,6 +602,7 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     );
     return;
 }
+## use critic
 
 sub _sort_by_damage_type{
     my %crispr_damage_order = (
