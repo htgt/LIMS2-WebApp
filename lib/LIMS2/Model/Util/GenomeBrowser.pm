@@ -996,6 +996,10 @@ sub unique_crispr_data_to_gff {
         . '-'
         . $params->{'end'} ;
 
+        # Use this array to store a single crispr
+        # or list of crisprs from crispr group
+        my @single_crisprs;
+
         if ( $crispr_type eq 'crispr_pair') {
             my $pair = $crispr_data->{$crispr_type}->{$crispr_id};
             my %crispr_format_hash = (
@@ -1029,7 +1033,15 @@ sub unique_crispr_data_to_gff {
 
         }
         elsif ($crispr_type eq 'crispr_single') {
-            my $crispr = $crispr_data->{$crispr_type}->{$crispr_id}->{'left_crispr'};
+            push @single_crisprs, $crispr_data->{$crispr_type}->{$crispr_id}->{'left_crispr'};
+        }
+        elsif ($crispr_type eq 'crispr_group'){
+            @single_crisprs = @{ $crispr_data->{$crispr_type}->{$crispr_id} || [] };
+        }
+
+        # Now generate the single crispr GFF for single or group
+        foreach my $crispr (@single_crisprs){
+            my $this_crispr_id = $crispr->{'id'};
             my %crispr_format_hash = (
                 'seqid' => $params->{'chr'},
                 'source' => 'LIMS2',
@@ -1040,14 +1052,14 @@ sub unique_crispr_data_to_gff {
                 'strand' => '+' ,
                 'phase' => '.',
                 'attributes' => 'ID='
-                    . 'C_' . $crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_id
+                    . 'C_' . $this_crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $this_crispr_id
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             push @crispr_data_gff, $crispr_parent_datum;
 
             $crispr->{colour} = crispr_colour('single');
-            push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$crispr_id);
+            push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$this_crispr_id);
         }
 
     return \@crispr_data_gff;
