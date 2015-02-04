@@ -259,6 +259,16 @@ sub chr_name {
     return shift->right_crispr_locus->chr->name;
 }
 
+sub default_assembly {
+    return shift->left_crispr->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr_pair
+sub id_column_name{
+    return 'crispr_pair_id';
+}
+
 sub is_pair { return 1; }
 
 sub is_group { return; }

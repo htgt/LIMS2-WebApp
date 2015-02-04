@@ -276,6 +276,16 @@ sub species_id {
     return shift->right_most_crispr->species_id;
 }
 
+sub default_assembly{
+    return shift->right_most_crispr->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr_group
+sub id_column_name{
+    return 'crispr_group_id';
+}
+
 sub target_slice {
     my ( $self, $ensembl_util ) = @_;
 
