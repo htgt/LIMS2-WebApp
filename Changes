@@ -1,3 +1,11 @@
+0.285     2015-02-05 15:43:10 Europe/London
+
+   Added group_crispr_assembly process
+
+0.284     2015-01-29 10:39:04 Europe/London
+
+    Changes to the clones page and well genotyping info page
+
 0.283     2015-01-28 10:49:03 Europe/London
 
     Corrected behaviour of trace viewer to deal with ambiguous base calls for CRISPR ES QC

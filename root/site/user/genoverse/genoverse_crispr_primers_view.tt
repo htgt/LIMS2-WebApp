@@ -5,6 +5,8 @@ document.title = "[%- context.well_name _ ':' _ context.crispr_type_id %]";
 </SCRIPT>
   <h1>Crispr [%- IF context.crispr_type == 'crispr_pair_id' %]
     Pair
+    [%- ELSIF context.crispr_type == 'crispr_group_id' %]
+    Group
     [%- ELSE %]
     Singlet
     [%- END %]

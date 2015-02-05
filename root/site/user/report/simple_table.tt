@@ -49,8 +49,20 @@
 
 <script type="text/javascript">
   function getCell(column_name, id_column_name, row_name) {
+    // column_name is the name of the column contaning the cell we want
+    // id_column_name is the name of the id column we look in to find the row_name
+    if(!$("table th:contains(" + column_name + ")").length){
+      console.log("table does not contain column named " + column_name);
+      return;
+    }
     var column_index = $("table th:contains(" + column_name + ")").index();
+
+    if(!$("table th:contains(" + id_column_name + ")").length){
+      console.log("table does not contain column named " + id_column_name );
+      return;
+    }
     var id_column_index = $("table th:contains(" + id_column_name + ")").index() + 1;
+
     var id_column = $('table tr td:nth-child(' + id_column_index + ')');
     var row = id_column.filter(function(){
       return ($(this).text().trim() == row_name)

@@ -2264,6 +2264,8 @@ root/static/files/plate_upload/gateway_template_es.csv
 root/static/files/plate_upload/gateway_template_vector.csv
 root/static/files/plate_upload/global_arm_shortening_template_es.csv
 root/static/files/plate_upload/global_arm_shortening_template_vector.csv
+root/static/files/plate_upload/group_crispr_assembly_template_es.csv
+root/static/files/plate_upload/group_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_es.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/piq_template_es.csv

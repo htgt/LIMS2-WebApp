@@ -81,8 +81,8 @@ function toggle_btn(btn, show_or_hide) {
 <div class="well">
     <h4 align="center">Targeted Clones Summary</h4>
     <dl class="dl-horizontal">
-        <dt>Genotype Confirmed</dt>
-        <dd>[% summary.accepted %]</dd>
+        <dt>Genotyped</dt>
+        <dd>[% summary.genotyped %]</dd>
 
         <dt>Frameshift</dt>
         <dd>[% summary.exists( 'frameshift' ) ? summary.item( 'frameshift' ) : 0 %]</dd>
@@ -98,10 +98,6 @@ function toggle_btn(btn, show_or_hide) {
 
         <dt>No Call</dt>
         <dd>[% summary.exists( 'no-call' ) ? summary.item( 'no-call' ) : 0 %]</dd>
-
-        <dt>Unclassified</dt>
-        <dd>[% summary.exists( 'unclassified' ) ? summary.item( 'unclassified' ) : 0 %]</dd>
-
     </dl>
 </div>
 </div>
@@ -120,6 +116,7 @@ function toggle_btn(btn, show_or_hide) {
     <th>Accepted?</th>
     <th>First Allele Genbank File</th>
     <th>Second Allele Description</th>
+    <th>Variant Size</th>
     <th>Detailed Description</th>
   </thead>
   <tbody>
@@ -144,6 +141,7 @@ function toggle_btn(btn, show_or_hide) {
 
         [% IF well.crispr_qc_data %]</a>[% END %]
       </td>
+      <td>[% well.crispr_qc_data.variant_size %]</td>
       <td><a href="[% c.uri_for( '/public_reports/well_genotyping_info', well.plate_name, well.well_name ) %]" target="_blank" ><i class="icon-info-sign"></i></a></td>
     </tr>
     [%- END %]
