@@ -4,7 +4,7 @@ use Log::Log4perl qw(:easy);
 
 BEGIN { Log::Log4perl->easy_init($INFO) };
 
-=head
+
 my $generator = LIMS2::Model::Util::PrimerGenerator->new({
     plate_name => 'HG4',
     persist_file => 1,
@@ -12,8 +12,9 @@ my $generator = LIMS2::Model::Util::PrimerGenerator->new({
     right_crispr_plate_name => 'HCR4',
     plate_well_names => ['A04'],
     species_name => 'Human',
+    persist_db => 1,
 });
-=cut
+
 
 =head
 my $generator = LIMS2::Model::Util::PrimerGenerator->new({
@@ -25,6 +26,7 @@ my $generator = LIMS2::Model::Util::PrimerGenerator->new({
 });
 =cut
 
+=head
 my $generator = LIMS2::Model::Util::PrimerGenerator->new({
     plate_name => 'GROUP_TEST_ASSEMBLY',
     persist_file => 1,
@@ -32,8 +34,9 @@ my $generator = LIMS2::Model::Util::PrimerGenerator->new({
     species_name => 'Mouse',
     persist_db => 1,
 });
+=cut
 
 $generator->log->info("testing logger");
 #$generator->generate_design_genotyping_primers();
 $generator->generate_crispr_primers;
-#$generator->generate_crispr_PCR_primers;
+$generator->generate_crispr_PCR_primers;

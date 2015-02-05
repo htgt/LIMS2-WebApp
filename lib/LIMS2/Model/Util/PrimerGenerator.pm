@@ -561,7 +561,8 @@ sub generate_crispr_primers{
         my ($picked_primers, $seq) = $primer_util->$util_method_name($crispr);
 
         # Store crispr primers for each well id
-        $crispr_primers_by_well_id->{$well_id} = $picked_primers;
+        $crispr_primers_by_well_id->{$well_id}->{primers} = $picked_primers;
+        $crispr_primers_by_well_id->{$well_id}->{crispr} = $crispr;
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
         # specific primer generation config files
@@ -653,14 +654,15 @@ sub generate_crispr_PCR_primers{
         my $design = $self->model->c_retrieve_design({ id => $design_id })
             or die "Could not find design $design_id in database";
 
-        my $well_crispr_primers = $crispr_primers->{$well_id};
+        my $well_crispr_primers = $crispr_primers->{$well_id}->{primers};
         unless($well_crispr_primers){
             $self->log->info("No crispr primers for well ID $well_id. Cannot generate PCR primers");
             next;
         }
 
         # Run primer generation using QcPrimers module
-        my ($picked_primers, $seq) = $primer_util->crispr_PCR_primers($well_crispr_primers, $design, $well_id);
+        my $crispr = $crispr_primers->{$well_id}->{crispr};
+        my ($picked_primers, $seq) = $primer_util->crispr_PCR_primers($well_crispr_primers, $design, $crispr);
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
         # specific primer generation config files
