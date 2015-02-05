@@ -742,13 +742,6 @@ sub get_crispr_group_id{
     return ($group->id, $group);
 }
 
-sub get_existing_crispr_primers{
-    my ($self, $search_atts) = @_;
-
-    return $self->model->schema->resultset('CrisprPrimer')->search($search_atts)->all;
-}
-
-
 sub formatted_well_names{
     my $self = shift;
     my $formatted = '';

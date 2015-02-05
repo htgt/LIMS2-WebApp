@@ -1233,8 +1233,10 @@ sub retrieve_crispr_primers {
 
     my %crispr_primers_hash;
 
+    # I am assuming we do not want to return rejected primers af11 2015-02-05
     my $crispr_primers_rs = $schema->resultset('CrisprPrimer')->search({
         $crispr_id_ref => $crispr_id,
+        is_rejected => [0,undef],
     });
 
     my $crispr_type_string;

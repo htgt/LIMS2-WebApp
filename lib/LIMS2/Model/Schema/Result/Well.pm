@@ -1306,6 +1306,7 @@ sub crispr_primer_for{
         my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
             $crispr_col_label => $crispr_id_value,
             'primer_name' => $params->{'primer_label'},
+            is_rejected => [0, undef],
         });
         if ($result) {
             $crispr_primer_seq = $result->primer_seq;
