@@ -138,9 +138,9 @@ sub _build_crispr_settings {
             id_field => 'crispr_id',
             id_method => 'get_single_crispr_id',
             update_design_data_cache => 1,
-            pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_single_crispr_primers,
             file_suffix => '_single_crispr_primers.csv',
             primer_util_method => 'crispr_single_or_pair_genotyping_primers',
+            primer_project_name => 'crispr_single_or_pair',
         };
     }
     elsif($self->crispr_type eq 'pair'){
@@ -148,12 +148,23 @@ sub _build_crispr_settings {
             id_field => 'crispr_pair_id',
             id_method => 'get_crispr_pair_id',
             update_design_data_cache => 0,
-            pick_primers_method => \&LIMS2::Model::Util::OligoSelection::pick_crispr_primers,
             file_suffix => '_paired_crispr_primers.csv',
             primer_util_method => 'crispr_single_or_pair_genotyping_primers',
+            primer_project_name => 'crispr_single_or_pair',
         };
     }
-    ## FIXME: groups ##
+    elsif($self->crispr_type eq 'group'){
+        # FIXME: create generic crispr group project config instead of mgp_recovery??
+        $settings = {
+            id_field => 'crispr_group_id',
+            id_method => 'get_crispr_group_id',
+            update_design_data_cache => 0,
+            file_suffix => '_group_crispr_primers.csv',
+            primer_util_method => 'crispr_group_genotyping_primers',
+            primer_project_name => 'mgp_recovery',
+        };
+    }
+
     return $settings;
 }
 
@@ -440,9 +451,10 @@ sub generate_design_genotyping_primers{
     my $self = shift;
 
     my $primer_util = LIMS2::Util::QcPrimers->new({
-        model => $self->model,
+        model               => $self->model,
         primer_project_name => 'design_genotyping',
-        base_dir => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        base_dir            => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        persist_primers     => $self->persist_db,
     });
 
     # Set up list of columns to use in output csv
@@ -496,9 +508,10 @@ sub generate_crispr_primers{
     my $settings = $self->crispr_settings;
 
     my $primer_util = LIMS2::Util::QcPrimers->new({
-        model => $self->model,
-        primer_project_name => 'crispr_single_or_pair',
-        base_dir => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        model               => $self->model,
+        primer_project_name => $settings->{primer_project_name},
+        base_dir            => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        persist_primers     => $self->persist_db,
     });
 
 
@@ -542,14 +555,6 @@ sub generate_crispr_primers{
         my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
 
         $self->log->info( "$design_id\t$gene_name\t".$settings->{id_field}.":\t$crispr_id" );
-
-        if ( my @primers = $self->get_existing_crispr_primers({ $settings->{id_field} => $crispr_id }) ){
-            $self->log->warn( '++++++++ primers already exist for '.$settings->{id_field}.":  $crispr_id" );
-            # TODO: Add code to alter persistence behaviour
-        }
-        else {
-            $self->log->info( '-------- primers not available in the database' );
-        }
 
         # Run primer generation using QcPrimers module
         my $util_method_name = $settings->{primer_util_method};
@@ -618,9 +623,10 @@ sub generate_crispr_PCR_primers{
     }
 
     my $primer_util = LIMS2::Util::QcPrimers->new({
-        model => $self->model,
+        model               => $self->model,
         primer_project_name => 'crispr_pcr',
-        base_dir => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        base_dir            => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        persist_primers     => $self->persist_db,
     });
 
     # Set up list of columns to use in output csv
@@ -725,191 +731,21 @@ sub get_crispr_pair_id{
     return ($crispr_pair_id, $crispr_pair);
 }
 
+sub get_crispr_group_id{
+    my ($self, $well) = @_;
+
+    my @crispr_ids = map { $_->id } $well->crisprs;
+    my $group = $self->model->get_crispr_group_by_crispr_ids({
+            crispr_ids => \@crispr_ids,
+    });
+
+    return ($group->id, $group);
+}
+
 sub get_existing_crispr_primers{
     my ($self, $search_atts) = @_;
 
     return $self->model->schema->resultset('CrisprPrimer')->search($search_atts)->all;
-}
-
-=head persist_primers
-
-Write the calculated data to the store
-
-=cut
-
-sub persist_gen_primers {
-    return persist_primers( @_, 'genotyping' );
-}
-
-sub persist_seq_primers {
-    return persist_primers( @_, 'sequencing');
-}
-
-sub persist_pcr_primers {
-    return persist_primers( @_, 'pcr');
-}
-
-sub persist_primers {
-    my $self = shift;
-
-    return unless $self->persist_db;
-
-    my $model = $self->model;
-    my $primer_label = shift;
-
-    my $pc = shift;
-    my $primer_type = shift;
-    my $well_name = shift;
-    my $lr = shift;
-    my $rank = shift;
-    my $assembly_id = $self->assembly_name;
-    my $primer_class = shift;
-
-    return if ( $rank eq '99'); # no suitable primers generated
-    $self->log->info("Persisting $primer_class primers for well $well_name ...");
-    my $primer_name = $lr . '_' . $rank;
-    my $seq = $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'seq'};
-    my $gc = $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'gc_content'};
-    my $tm = $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'melting_temp'};
-    my $chr_strand = $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'location'}->{'_strand'};
-    my $chr_start = $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'location'}->{'_start'}
-        + $pc->{$well_name}->{'chr_seq_start'} - 1;
-    my $chr_end = $pc->{$well_name}->{$primer_type}->{$lr}->{$primer_name}->{'location'}->{'_end'}
-        + $pc->{$well_name}->{'chr_seq_start'} - 1;
-    my $chr_id = $pc->{$well_name}->{'crispr_seq'}->{'left_crispr'}->{'chr_id'}; # not the translated name
-    if ( ! $chr_id ) {
-    # Probably because we are only dealing with genotyping primers.
-        $chr_id = $pc->{$well_name}->{'chr_id'};
-    }
-
-    my $crispr_primer_result;
-    if ($primer_class eq 'genotyping' ) {
-        if ( $seq ) {
-            # There is no unique constraint on the GenotypingPrimer resultset.
-            # Therefore, check whether this combination already exists before updating
-            # the table
-            # This must be done in a transaction to prevent a race condition
-            my $coderef = sub {
-                my $crispr_primer_result_set =
-                    $model->schema->resultset( 'GenotypingPrimer' )->search({
-                            'design_id' => $pc->{$well_name}->{design_id},
-                            'genotyping_primer_type_id' => $primer_label,
-                        });
-                if ($crispr_primer_result_set->count == 0 ) {
-                    $crispr_primer_result = $model->schema->resultset('GenotypingPrimer')->create({
-                    'design_id'      => $pc->{$well_name}->{'design_id'},
-                    'genotyping_primer_type_id'
-                                     => $primer_label,
-                    'seq'            => $seq,
-                    'tm'             => $tm ,
-                    'gc_content'     => $gc,
-                        'genotyping_primer_loci' => [{
-                             "assembly_id" => $assembly_id,
-                             "chr_id" => $chr_id,
-                             "chr_start" => $chr_start,
-                             "chr_end" => $chr_end,
-                             "chr_strand" => $chr_strand,
-                         }],
-                    });
-                }
-                else {
-                    $self->log->warn('Genotyping design/primer already exists: '
-                        . $pc->{$well_name}->{design_id}
-                        . '/'
-                        . $primer_label
-                    );
-                }
-                return $crispr_primer_result;
-            };
-            #
-            my $rs;
-            try {
-                $rs = $model->schema->txn_do( $coderef );
-            } catch {
-                my $error = shift;
-                # Transaction failed
-                die 'Something went wrong with that transaction: ' . $error;
-            };
-        }
-
-    }
-    else { # it must be sequencing or pcr
-        if ( $seq ) {
-            my $create_params = {
-                'primer_name'    => $primer_label,
-                'primer_seq'     => $seq,
-                'tm'             => $tm ,
-                'gc_content'     => $gc,
-                    'crispr_primer_loci' => [{
-                         "assembly_id" => $assembly_id,
-                         "chr_id" => $chr_id,
-                         "chr_start" => $chr_start,
-                         "chr_end" => $chr_end,
-                         "chr_strand" => $chr_strand,
-                     }],
-            };
-            my $search_params = ();
-            if ( $pc->{$well_name}->{'pair_id'} ) {
-                $create_params->{'crispr_pair_id'} = $pc->{$well_name}->{'pair_id'};
-                $search_params->{'crispr_pair_id'} = $pc->{$well_name}->{'pair_id'};
-            }
-            else {
-                $create_params->{'crispr_id'} = $pc->{$well_name}->{'crispr_id'};
-                $search_params->{'crispr_id'} = $pc->{$well_name}->{'crispr_id'};
-            }
-            # Can't use update_or_create, even though this is a 1-1 relationship, dbix thinks it is multi.
-            # Therefore need to check whether exists and update it myself if it does, otherwise create a new
-            # database tuple.
-            $search_params->{'primer_name'} = $primer_label;
-            my $coderef = sub {
-                my $crispr_check_r = $model->schema->resultset('CrisprPrimer')->find( $search_params );
-                $self->log->info( 'update_existing = ' . $self->update_existing );
-                if ( $crispr_check_r && $self->update_existing ) {
-                    $self->log->info( 'Deleting entry for '
-                        . ($search_params->{'crispr_pair_id'} // $search_params->{'crispr_id'} )
-                        . ' label: '
-                        . $search_params->{'primer_name'}
-                        . ' from the database');
-                    if ( ! $crispr_check_r->delete ) {
-                        $self->log->info( 'Unable to delete record(s) from the database' );
-                        die;
-                    }
-                }
-                $crispr_check_r = $model->schema->resultset('CrisprPrimer')->find( $search_params );
-                if ( ! $crispr_check_r ) {
-                    $crispr_primer_result = $model->schema->resultset('CrisprPrimer')->create( $create_params );
-                    if ( ! $crispr_primer_result ) {
-                        $self->log->info('Unable to create crispr primer records for '
-                            . ($search_params->{'crispr_pair_id'} // $search_params->{'crispr_id'})
-                            . ' label: '
-                            . $search_params->{'primer_name'}
-                        );
-                    }
-                    else {
-                        $self->log->info('Created '
-                            . ($search_params->{'crispr_pair_id'} // $search_params->{'crispr_id'})
-                            . ' label: '
-                            . $search_params->{'primer_name'}
-                        );
-                    }
-                }
-                else {
-                        $self->log->info('Existing data prevented update - use the --update_data=YES parameter to override');
-                }
-                return $crispr_primer_result;
-            };
-            my $rs;
-            try {
-                $rs = $model->schema->txn_do( $coderef );
-            } catch {
-                my $error = shift;
-                # Transaction failed
-                die 'Something went wrong with that transaction: ' . $error;
-            };
-        }
-    } # End if genotyping
-#  print $crispr_primer->in_storage();  ## 1 (TRUE)
-    return $crispr_primer_result;
 }
 
 

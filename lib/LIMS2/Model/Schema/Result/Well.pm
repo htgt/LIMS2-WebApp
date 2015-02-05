@@ -1231,6 +1231,13 @@ sub parent_crispr_v {
 }
 ## use critic
 
+sub crisprs{
+    my $self = shift;
+
+    my @crispr_vectors = $self->parent_crispr_v;
+    return map { $_->parent_crispr->crispr } @crispr_vectors;
+}
+
 ## no critic(RequireFinalReturn)
 sub left_and_right_crispr_wells {
     my $self = shift;
