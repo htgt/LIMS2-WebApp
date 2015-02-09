@@ -25,7 +25,7 @@
                     [%#- for now, deisgn ids need to be treated as integers for sorting, not strings %]
                         [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
                             { name: '[%- col %]', type: 'int' },
-                        [%- ELSIF col.match( 'concluded\?' ) %]
+                        [%- ELSIF col.match( 'concluded\?' ) OR  col.match( 'Report\?' ) %]
                             { name: '[%- col %]', type: 'boolean' },
                         [%- ELSE %]
                             { name: '[%- col %]', type: 'string' },
@@ -91,6 +91,7 @@
                 "gene id" = 1
                 "row id" = 1
                 "id" = 1
+                "well id" = 1
                 } %]
 
             var columns = [
@@ -193,6 +194,22 @@
                     }),
 
                     [%- END %]
+
+
+                    [%- IF col.match( 'Report\?' ) %]
+                    xtype: 'checkcolumn',
+                    width: 65,
+                    listeners: {
+                        checkchange: function (column, recordIndex, checked) {
+                            console.log('checkbox class listener');
+                            var record = grid.store.getAt(recordIndex);
+                            console.log(record.get('Well ID'));
+                            console.log(checked);
+                            $.getJSON( "[% c.uri_for('/api/well/toggle_to_report') %]", {id:record.get('Well ID'), to_report:checked}, function(data){record.commit()})
+                        }
+                    },
+                    [%- END %]
+
 
                     dataIndex: '[%- col %]'
                 },

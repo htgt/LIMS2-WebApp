@@ -1,3 +1,3 @@
-alter table crispr_primers drop constraint "crispr_id and primer name must be unique"
-alter table crispr_primers drop constraint "crispr_pair_id and primer name must be unique"
-alter table crispr_primers drop constraint "crispr_group_id and and primer_name must be unique"
+ALTER TABLE wells ADD COLUMN to_report BOOLEAN DEFAULT TRUE NOT NULL;
+ALTER TABLE summaries ADD COLUMN to_report BOOLEAN;
+

@@ -455,6 +455,37 @@ sub update_or_create_well_dna_quality {
     return $dna_quality;
 }
 
+sub toggle_to_report {
+    my ( $self, $params ) = @_;
+
+    my $well = $self->retrieve_well({ id => $params->{'id'} });
+
+    my $to_report = $params->{'to_report'};
+
+    propagate_to_report($self, $well, $to_report);
+
+    return $well;
+}
+
+sub propagate_to_report {
+    my ( $self, $well, $to_report, $seen) = @_;
+
+    $self->log->info( "Setting to_report to $to_report on well " . $well->as_string  );
+
+    $seen ||= {};
+
+    return if $seen->{$well->as_string};
+
+    $seen->{$well->as_string}++;
+
+    foreach my $process ($well->child_processes){
+        foreach my $child ($process->output_wells){
+            propagate_to_report( $self, $child, $to_report, $seen);
+        }
+    }
+    return;
+}
+
 sub retrieve_well_dna_quality {
     my ( $self, $params ) = @_;
 

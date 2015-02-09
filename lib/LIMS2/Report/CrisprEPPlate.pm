@@ -21,11 +21,11 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
+        'Well ID', 'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
         $self->colony_count_column_names,
         'Crispr Wells',
-        'Created By','Created At',
+        'Created By','Created At', 'Report?'
     ];
 };
 
@@ -55,6 +55,7 @@ override iterator => sub {
         my @crispr_wells = map{ $_->{plate_name} . '[' . $_->{well_name} . ']' } @{ $well_data->{crispr_wells} };
 
         my @data = (
+            $well_data->{well_id},
             $well_data->{well_name},
             $well_data->{design_id},
             $well_data->{gene_ids},
@@ -71,8 +72,10 @@ override iterator => sub {
             join( ', ', @crispr_wells ),
             $well_data->{created_by},
             $well_data->{created_at},
+            $well_data->{to_report} ? 'true' : 'false',
         );
         $well_data = shift @wells_data;
+
         return \@data;
     };
 };
