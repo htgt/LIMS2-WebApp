@@ -80,7 +80,7 @@ sub _build_well_ids {
 
 has design_data_cache => (
     is => 'ro',
-    isa => 'HashRef',
+    isa => 'Maybe[HashRef]',
     lazy_build => 1,
 );
 
@@ -164,7 +164,16 @@ sub _build_crispr_settings {
             primer_project_name => 'mgp_recovery',
         };
     }
-
+    elsif($self->crispr_type eq 'nonsense'){
+        $settings = {
+            id_field => 'crispr_id',
+            id_method => 'get_single_crispr_id',
+            update_design_data_cache => 0,
+            file_suffix => '_nonsense_crispr_primers.csv',
+            primer_util_method => 'crispr_single_or_pair_genotyping_primers',
+            primer_project_name => 'nonsense_crispr_trial',
+        };
+    }
     return $settings;
 }
 
@@ -233,6 +242,7 @@ has crispr_pair_id_cache => (
     lazy_build => 1,
 );
 
+# Use this to store the crispr primers for later PCR primer generation
 has crispr_primers => (
     is => 'rw',
     isa => 'HashRef',
@@ -305,6 +315,9 @@ has update_existing => (
 
 sub verify_and_update_design_data_cache{
     my ($self, $well_id, $crispr_id) = @_;
+
+    # Skip this if design_data_cache is undef
+    return unless $self->design_data_cache;
 
     # In a special edge case, the design data cache will not be populated
     # because designs were not added to the plate. We need to use the crispr locus data for each well
@@ -550,9 +563,12 @@ sub generate_crispr_primers{
             $self->verify_and_update_design_data_cache( $well_id, $crispr_id );
         }
 
-        my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
-        my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
-        my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+        my ($design_id, $gene_id, $gene_name) = ('','','');
+        if($self->design_data_cache){
+            $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
+            $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
+            $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+        }
 
         $self->log->info( "$design_id\t$gene_name\t".$settings->{id_field}.":\t$crispr_id" );
 
@@ -645,14 +661,14 @@ sub generate_crispr_PCR_primers{
         my $well_id = $well->id;
         my $well_name = $well->name;
 
-        my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
-        my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
-        my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+        my ($design_id, $gene_id, $gene_name) = ('','','');
+        if($self->design_data_cache){
+            $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
+            $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
+            $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+        }
 
         $self->log->info( "$design_id\t$gene_name" );
-
-        my $design = $self->model->c_retrieve_design({ id => $design_id })
-            or die "Could not find design $design_id in database";
 
         my $well_crispr_primers = $crispr_primers->{$well_id}->{primers};
         unless($well_crispr_primers){
@@ -662,7 +678,7 @@ sub generate_crispr_PCR_primers{
 
         # Run primer generation using QcPrimers module
         my $crispr = $crispr_primers->{$well_id}->{crispr};
-        my ($picked_primers, $seq) = $primer_util->crispr_PCR_primers($well_crispr_primers, $design, $crispr);
+        my ($picked_primers, $seq) = $primer_util->crispr_PCR_primers($well_crispr_primers, $crispr);
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
         # specific primer generation config files
@@ -703,7 +719,16 @@ sub generate_crispr_PCR_primers{
 
 sub get_single_crispr_id{
     my ($self, $well) = @_;
-    my ($crispr_left, $crispr_right) = $well->left_and_right_crispr_wells;
+    my $plate_type = $well->plate->type_id;
+    my ($crispr_left, $crispr_right);
+    if($plate_type eq 'CRISPR' or $plate_type eq 'CRISPR_V'){
+        # For single crispr we may be working on pre-assembly stage plate
+        $crispr_left = $well;
+    }
+    else{
+        # If post assembly use left_and_right_crispr_wells method
+        ($crispr_left, $crispr_right) = $well->left_and_right_crispr_wells;
+    }
     return ($crispr_left->crispr->id, $crispr_left->crispr);
 }
 

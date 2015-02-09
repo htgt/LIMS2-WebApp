@@ -72,6 +72,19 @@ sub pspec_create_crispr_primer {
     };
 }
 
+=head2 create_genotyping_primer
+
+Like create_crispr_primer.. but for genotyping primers which are linked to a design
+
+=cut
+sub create_genotyping_primer{
+    my ($self) = @_;
+
+    die "Not yet implemented";
+
+    return;
+}
+
 =head2 create_crispr_primer
 
 Create a crispr primer record, along with its locus.

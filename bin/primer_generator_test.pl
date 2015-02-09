@@ -4,7 +4,7 @@ use Log::Log4perl qw(:easy);
 
 BEGIN { Log::Log4perl->easy_init($INFO) };
 
-
+=head
 my $generator = LIMS2::Model::Util::PrimerGenerator->new({
     plate_name => 'HG4',
     persist_file => 1,
@@ -14,7 +14,15 @@ my $generator = LIMS2::Model::Util::PrimerGenerator->new({
     species_name => 'Human',
     persist_db => 1,
 });
+=cut
 
+my $generator = LIMS2::Model::Util::PrimerGenerator->new({
+    plate_name => 'MNCR01',
+    species_name => 'Mouse',
+    persist_file => 1,
+    persist_db => 1,
+    crispr_type  => 'nonsense',
+});
 
 =head
 my $generator = LIMS2::Model::Util::PrimerGenerator->new({
