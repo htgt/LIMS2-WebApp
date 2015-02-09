@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.286     2015-02-09 11:51:58 Europe/London
+
+    Added reporting filter to the EP/CRISPR_EP wells
+    Added Genoverse button to Intermediate plates
+
 0.285     2015-02-05 15:43:10 Europe/London
 
    Added group_crispr_assembly process
