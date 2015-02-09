@@ -236,7 +236,7 @@ sub genoverse_button {
     my ( $self, $well_data ) = @_;
     # Enable provision of a generic Genoverse button from whichever plate view we are on
     # Currently only supports the genoverse_design_view template
-    # 
+    #
     my $genoverse_button = $self->create_button_json(
         {   'design_id'      => $well_data->{design_id},
             'plate_name'     => $self->plate_name,
@@ -247,7 +247,7 @@ sub genoverse_button {
             'browser_target' => $self->plate_name . $well_data->{well_name},
             'api_url'        => '/user/genoverse_design_view',
         }
-        );   
+    );
     return $genoverse_button;
 }
 
