@@ -1286,6 +1286,9 @@ sub get_db_genotyping_primers_as_hash {
     my $schema = shift;
     my $params = shift;
 
+    # Skip this id we have no design ID
+    return {} unless $params->{'design_id'};
+
     my $genotyping_primer_rs = $schema->resultset('GenotypingPrimer')->search({
             'design_id' => $params->{'design_id'},
         },
