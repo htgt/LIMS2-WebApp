@@ -867,27 +867,27 @@ sub genes {
                 ];
         }
 
-		for ($sponsor_id) {
-			when ('Pathogen Group 2') {
-				$search{'-or'} = [
+        for ($sponsor_id) {
+            when ('Pathogen Group 2') {
+                $search{'-or'} = [
                     { design_type => 'gibson' },
                     { design_type => 'gibson-deletion' },
                 ];
             }
-			when ('Pathogen Group 1') {
-				$search{'sponsor_id'} = 'Pathogen Group 1';
-			}
-			when ('EUCOMMTools Recovery') {
-				$search{'sponsor_id'} = 'EUCOMMTools Recovery';
-			}
-			when ('Barry Short Arm Recovery') {
-				$search{'sponsor_id'} = 'Barry Short Arm Recovery';
-			}
-			when ('Barry Short Arm Recovery') {
-				$search{'sponsor_id'} = 'Barry Short Arm Recovery';
-			}
-			# default { DEBUG "No special option for sponsor: " . $sponsor_id }
-		}
+            when ('Pathogen Group 1') {
+                $search{'sponsor_id'} = 'Pathogen Group 1';
+            }
+            when ('EUCOMMTools Recovery') {
+                $search{'sponsor_id'} = 'EUCOMMTools Recovery';
+            }
+            when ('Barry Short Arm Recovery') {
+                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
+            }
+            when ('Barry Short Arm Recovery') {
+                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
+            }
+            # default { DEBUG "No special option for sponsor: " . $sponsor_id }
+        }
 
         my $summary_rs = $self->model->schema->resultset("Summary")->search(
             { %search },
@@ -965,7 +965,7 @@ sub genes {
 
         # DESIGN wells
         my @design = $summary_rs->search(
-            {},
+            {   to_report => 't' },
             {
                 columns => [ qw/design_plate_name design_well_name design_well_id/ ],
                 distinct => 1
@@ -1008,7 +1008,8 @@ sub genes {
 
         # DNA wells
         my @dna = $summary_rs->search(
-            { dna_well_accepted => 't' },
+            { dna_well_accepted => 't',
+              to_report => 't' },
             {
                 columns => [ qw/dna_plate_name dna_well_name/ ],
                 distinct => 1
@@ -1018,22 +1019,23 @@ sub genes {
 
 
         # EP wells
-		my @ep = $summary_rs->search(
-			{
-				-or => [
-					{ ep_plate_name => { '!=', undef } },
-					{ crispr_ep_plate_name => { '!=', undef } },
-				],
-			},
-			{
-				columns => [ qw/ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
-				distinct => 1
-			}
-		);
-		my $ep_count = scalar @ep;
+        my @ep = $summary_rs->search(
+            {
+                -or => [
+                    { ep_plate_name => { '!=', undef } },
+                    { crispr_ep_plate_name => { '!=', undef } },
+                ],
+                to_report => 't',
+            },
+            {
+                columns => [ qw/ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
+                distinct => 1
+            }
+        );
+        my $ep_count = scalar @ep;
 
 
-		my @ep_data;
+        my @ep_data;
 
         my $total_total_colonies = 0;
         my $total_ep_pick_count = 0;
@@ -1043,51 +1045,52 @@ sub genes {
         my $total_wt_count = 0;
         my $total_ms_count = 0;
 
-		foreach my $curr_ep (@ep) {
-			my %curr_ep_data;
-			my $ep_id;
-			if ($curr_ep->ep_well_id) {
-				$ep_id = $curr_ep->ep_well_id;
-			}
-			else {
-				$ep_id = $curr_ep->crispr_ep_well_id;
-			}
+        foreach my $curr_ep (@ep) {
+            my %curr_ep_data;
+            my $ep_id;
+            if ($curr_ep->ep_well_id) {
+                $ep_id = $curr_ep->ep_well_id;
+            }
+            else {
+                $ep_id = $curr_ep->crispr_ep_well_id;
+            }
 
-			my $total_colonies = 0;
-			my $picked_colonies = 0;
-			try {
-				$total_colonies = $self->model->schema->resultset('WellColonyCount')->search({
-					well_id => $curr_ep->ep_well_id,
-					colony_count_type_id => 'total_colonies',
-				} )->single->colony_count;
+            my $total_colonies = 0;
+            my $picked_colonies = 0;
+            try {
+                $total_colonies = $self->model->schema->resultset('WellColonyCount')->search({
+                    well_id => $curr_ep->ep_well_id,
+                    colony_count_type_id => 'total_colonies',
+                } )->single->colony_count;
 
-				$picked_colonies = $self->model->schema->resultset('WellColonyCount')->search({
-					well_id => $curr_ep->ep_well_id,
-					colony_count_type_id => 'picked_colonies',
-				} )->single->colony_count;
-			};
+                $picked_colonies = $self->model->schema->resultset('WellColonyCount')->search({
+                    well_id => $curr_ep->ep_well_id,
+                    colony_count_type_id => 'picked_colonies',
+                } )->single->colony_count;
+            };
 
-			$curr_ep_data{'total_colonies'} = $total_colonies;
+            $curr_ep_data{'total_colonies'} = $total_colonies;
             $total_total_colonies += $curr_ep_data{'total_colonies'};
-			# $curr_ep_data{'picked_colonies'} = $picked_colonies;
+            # $curr_ep_data{'picked_colonies'} = $picked_colonies;
 
             # EP_PICK wells
-			my @ep_pick = $summary_rs->search(
-	            {
-	            	ep_pick_plate_name => { '!=', undef },
-	               -or => [
-						{ ep_well_id => $ep_id },
-						{ crispr_ep_well_id => $ep_id },
-					],
-	            },{
-	                columns => [ qw/ep_pick_plate_name ep_pick_well_name ep_pick_well_accepted ep_pick_well_id/ ],
-	                distinct => 1
-	            }
-	        );
+            my @ep_pick = $summary_rs->search(
+                {
+                    ep_pick_plate_name => { '!=', undef },
+                   -or => [
+                        { ep_well_id => $ep_id },
+                        { crispr_ep_well_id => $ep_id },
+                    ],
+                    to_report => 't',
+                },{
+                    columns => [ qw/ep_pick_plate_name ep_pick_well_name ep_pick_well_accepted ep_pick_well_id/ ],
+                    distinct => 1
+                }
+            );
 
-	        $curr_ep_data{'ep_pick_count'} = scalar @ep_pick;
+            $curr_ep_data{'ep_pick_count'} = scalar @ep_pick;
             $total_ep_pick_count += $curr_ep_data{'ep_pick_count'};
-	        # $curr_ep_data{'ep_pick_pass_count'} = 0;
+            # $curr_ep_data{'ep_pick_pass_count'} = 0;
 
 
             $curr_ep_data{'fs_count'} = 0;
@@ -1096,32 +1099,32 @@ sub genes {
             $curr_ep_data{'ms_count'} = 0;
 
 
-	        foreach my $ep_pick (@ep_pick) {
+            foreach my $ep_pick (@ep_pick) {
 
-	            # if ( $ep_pick->ep_pick_well_accepted ) {
-	            #     $curr_ep_data{'ep_pick_pass_count'}++;
-	            # }
+                # if ( $ep_pick->ep_pick_well_accepted ) {
+                #     $curr_ep_data{'ep_pick_pass_count'}++;
+                # }
 
-				try {
-					my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
-						well_id => $ep_pick->ep_pick_well_id,
+                try {
+                    my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
+                        well_id => $ep_pick->ep_pick_well_id,
                         # accepted => 1,
                         'crispr_es_qc_run.validated' => 1,
-					},{
+                    },{
                         join    => 'crispr_es_qc_run',
                     } );
-					foreach my $damage (@damage) {
-						for ($damage->crispr_damage_type_id) {
+                    foreach my $damage (@damage) {
+                        for ($damage->crispr_damage_type_id) {
                             when ('frameshift') { $curr_ep_data{'fs_count'}++ }
                             when ('in-frame')   { $curr_ep_data{'if_count'}++ }
-							when ('wild_type')  { $curr_ep_data{'wt_count'}++ }
-							when ('mosaic')     { $curr_ep_data{'ms_count'}++ }
-							# default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
-						}
-					}
-				};
+                            when ('wild_type')  { $curr_ep_data{'wt_count'}++ }
+                            when ('mosaic')     { $curr_ep_data{'ms_count'}++ }
+                            # default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
+                        }
+                    }
+                };
 
-	        }
+            }
 
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wt_count'} + $curr_ep_data{'if_count'} + $curr_ep_data{'fs_count'} + $curr_ep_data{'ms_count'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
@@ -1143,7 +1146,7 @@ sub genes {
 
             push @ep_data, \%curr_ep_data;
 
-		}
+        }
 
         @ep_data =  sort {
                 $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||
@@ -1903,15 +1906,15 @@ sub write_row_to_vector_pairs_data {
     # Build up cassettes available string depending on flags
     my $cass_avail;
 
-	if ( $row_building->{ 'have_bsd_promoter' } )     { $cass_avail .= 'bsd P, '; }
-	if ( $row_building->{ 'have_bsd_promoterless' } ) { $cass_avail .= 'bsd PL, '; }
-	if ( $row_building->{ 'have_neo_promoter' } )     { $cass_avail .= 'neo P, '; }
-	if ( $row_building->{ 'have_neo_promoterless' } ) { $cass_avail .= 'neo PL'; }
+    if ( $row_building->{ 'have_bsd_promoter' } )     { $cass_avail .= 'bsd P, '; }
+    if ( $row_building->{ 'have_bsd_promoterless' } ) { $cass_avail .= 'bsd PL, '; }
+    if ( $row_building->{ 'have_neo_promoter' } )     { $cass_avail .= 'neo P, '; }
+    if ( $row_building->{ 'have_neo_promoterless' } ) { $cass_avail .= 'neo PL'; }
 
-	if ((substr $cass_avail,-2,2) eq ', ') { chop $cass_avail;chop $cass_avail; }
+    if ((substr $cass_avail,-2,2) eq ', ') { chop $cass_avail;chop $cass_avail; }
 
     # Push new hash row to output array
-	push @$return_results, { 'project_id' => $row_building->{ 'project_id' }, 'design_id' => $row_building->{ 'design_id' }, 'design_gene_id' => $row_building->{ 'gene_id' }, 'design_gene_symbol' => $row_building->{ 'gene_symbol' }, 'cassettes_available' => $cass_avail };
+    push @$return_results, { 'project_id' => $row_building->{ 'project_id' }, 'design_id' => $row_building->{ 'design_id' }, 'design_gene_id' => $row_building->{ 'gene_id' }, 'design_gene_symbol' => $row_building->{ 'gene_symbol' }, 'cassettes_available' => $cass_avail };
 
     # delete contents of the row building hash
     for (keys %$row_building)
@@ -1919,7 +1922,7 @@ sub write_row_to_vector_pairs_data {
         delete $row_building->{$_};
     }
 
-	return $return_results;
+    return $return_results;
 }
 
 sub vectors_with_resistance {
@@ -2094,15 +2097,15 @@ sub write_row_to_dna_pairs_data {
     # Build up cassettes available string depending on flags
     my $cass_avail;
 
-	if ( $row_building->{ 'have_bsd_promoter' } )     { $cass_avail .= 'bsd P, '; }
-	if ( $row_building->{ 'have_bsd_promoterless' } ) { $cass_avail .= 'bsd PL, '; }
-	if ( $row_building->{ 'have_neo_promoter' } )     { $cass_avail .= 'neo P, '; }
-	if ( $row_building->{ 'have_neo_promoterless' } ) { $cass_avail .= 'neo PL'; }
+    if ( $row_building->{ 'have_bsd_promoter' } )     { $cass_avail .= 'bsd P, '; }
+    if ( $row_building->{ 'have_bsd_promoterless' } ) { $cass_avail .= 'bsd PL, '; }
+    if ( $row_building->{ 'have_neo_promoter' } )     { $cass_avail .= 'neo P, '; }
+    if ( $row_building->{ 'have_neo_promoterless' } ) { $cass_avail .= 'neo PL'; }
 
-	if ((substr $cass_avail,-2,2) eq ', ') { chop $cass_avail;chop $cass_avail; }
+    if ((substr $cass_avail,-2,2) eq ', ') { chop $cass_avail;chop $cass_avail; }
 
     # Push new hash row to output array
-	push @$return_results, { 'project_id' => $row_building->{ 'project_id' }, 'design_id' => $row_building->{ 'design_id' }, 'design_gene_id' => $row_building->{ 'gene_id' }, 'design_gene_symbol' => $row_building->{ 'gene_symbol' }, 'cassettes_available' => $cass_avail };
+    push @$return_results, { 'project_id' => $row_building->{ 'project_id' }, 'design_id' => $row_building->{ 'design_id' }, 'design_gene_id' => $row_building->{ 'gene_id' }, 'design_gene_symbol' => $row_building->{ 'gene_symbol' }, 'cassettes_available' => $cass_avail };
 
     # delete contents of the row building hash
     for (keys %$row_building)
@@ -2110,7 +2113,7 @@ sub write_row_to_dna_pairs_data {
         delete $row_building->{$_};
     }
 
-	return $return_results;
+    return $return_results;
 }
 
 sub dna_with_resistance {

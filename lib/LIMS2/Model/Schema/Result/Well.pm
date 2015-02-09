@@ -90,6 +90,12 @@ __PACKAGE__->table("wells");
   data_type: 'text'
   is_nullable: 1
 
+=head2 to_report
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -121,6 +127,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "accepted_rules_version",
   { data_type => "text", is_nullable => 1 },
+  "to_report",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -534,8 +542,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LL/gZ4/VHM/6Zps9IJKTPg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 16:41:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YiWRvSPiOvAhXla608AoMw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
