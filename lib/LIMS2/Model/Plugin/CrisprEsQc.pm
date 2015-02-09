@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.277';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.286';
 }
 ## use critic
 
@@ -15,7 +15,7 @@ use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
 
-sub pspec_create_crispr_es_qc {
+sub pspec_create_crispr_es_qc_run {
     return {
         id         => { validate => 'uuid' },
         created_by => { validate => 'existing_user', post_filter => 'user_id_for', rename => 'created_by_id' },
@@ -34,7 +34,7 @@ Create a new crispr_es_qc with attached wells.
 sub create_crispr_es_qc_run {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc );
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_es_qc_run );
 
     #these will be created separately
     my $wells = delete $validated_params->{wells};
@@ -48,6 +48,31 @@ sub create_crispr_es_qc_run {
         $well->{species} = $qc_run->species_id;
         $self->create_crispr_es_qc_well( $well );
     }
+
+    return $qc_run;
+}
+
+sub pspec_update_crispr_es_qc_run {
+    return {
+        id         => { validate => 'uuid' },
+        validated  => { validate => 'boolean_string', optional => 1 },
+    };
+}
+
+=head update_crispr_es_qc
+
+Create a new crispr_es_qc with attached wells.
+
+=cut
+sub update_crispr_es_qc_run {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_es_qc_run );
+    my $qc_run_id = delete $validated_params->{id};
+    my $qc_run = $self->retrieve( CrisprEsQcRuns => { id => $qc_run_id } );
+
+    $qc_run->update( $validated_params );
+    $self->log->info( "Updated crispr es qc run $qc_run_id  to: " . p( $validated_params ) );
 
     return $qc_run;
 }
@@ -160,7 +185,7 @@ sub delete_crispr_es_qc_run {
 
 sub pspec_retrieve_crispr_es_qc_run {
     return {
-        id => { validate => 'non_empty_string' },
+        id => { validate => 'uuid' },
     };
 }
 
@@ -175,22 +200,6 @@ sub retrieve_crispr_es_qc_run {
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_es_qc_run );
 
     return $self->retrieve( CrisprEsQcRuns => $validated_params );
-}
-
-=head2 validate_crispr_es_qc_run
-
-Update a crispr es qc run plus all of its wells to validated.
-
-=cut
-sub validate_crispr_es_qc_run {
-    my ( $self, $params ) = @_;
-
-    my $crispr_es_qc_run = $self->retrieve_crispr_es_qc_run( $params );
-    $crispr_es_qc_run->update( { validated => 1 } );
-
-    $self->log->info( 'Validated crispr es qc run ' . $crispr_es_qc_run->id );
-
-    return;
 }
 
 sub pspec_update_crispr_es_qc_well {
@@ -230,13 +239,20 @@ sub update_crispr_es_qc_well{
         # only mark qc accepted if the linked well is not already accepted in another run
         if ( $well->accepted && $validated_params->{accepted} eq 'true' ) {
             delete $validated_params->{accepted};
-            $self->log->warn(
+            $self->throw(
                 'Well already accepted in another run, not marking crispr es qc well as accepted');
         }
         # mark the linked well accepted
         else {
             $well->update( { accepted => $validated_params->{accepted} } );
             $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
+        }
+    }
+    # if damage type set to no-call or mosaic then the well must not be accepted
+    elsif ( my $damage = $validated_params->{crispr_damage_type_id} ) {
+        if ( ( $damage eq 'no-call' || $damage eq 'mosaic' ) && $qc_well->accepted ) {
+            $validated_params->{accepted} = 'false';
+            $qc_well->well->update( { accepted => 'false' } );
         }
     }
 

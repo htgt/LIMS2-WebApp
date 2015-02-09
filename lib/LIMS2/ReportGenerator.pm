@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::VERSION = '0.277';
+    $LIMS2::ReportGenerator::VERSION = '0.286';
 }
 ## use critic
 
@@ -236,6 +236,25 @@ sub qc_result_cols {
     }
 
     return ('')x4;
+}
+
+sub genoverse_button {
+    my ( $self, $well_data ) = @_;
+    # Enable provision of a generic Genoverse button from whichever plate view we are on
+    # Currently only supports the genoverse_design_view template
+    #
+    my $genoverse_button = $self->create_button_json(
+        {   'design_id'      => $well_data->{design_id},
+            'plate_name'     => $self->plate_name,
+            'well_name'      => $well_data->{well_name},
+            'gene_symbol'    => $well_data->{gene_symbols},
+            'gene_ids'       => $well_data->{gene_ids},
+            'button_label'   => 'Genoverse',
+            'browser_target' => $self->plate_name . $well_data->{well_name},
+            'api_url'        => '/user/genoverse_design_view',
+        }
+    );
+    return $genoverse_button;
 }
 
 __PACKAGE__->meta->make_immutable();

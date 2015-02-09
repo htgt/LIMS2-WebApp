@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PgUserRole;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PgUserRole::VERSION = '0.277';
+    $LIMS2::Model::Util::PgUserRole::VERSION = '0.286';
 }
 ## use critic
 

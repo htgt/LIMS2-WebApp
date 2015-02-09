@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.277';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.286';
 }
 ## use critic
 
@@ -272,10 +272,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $species = $c->session->{selected_species};
 
-    my $all = 0;
-    if ($sponsor_id eq 'All') {
-        $all = 1;
-    }
     my $cache_param = $c->request->params->{'cache_param'};
 
     # Call ReportForSponsors plugin to generate report
@@ -304,9 +300,16 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
 
         my $body = join(',', map { $_ } @{$display_columns}) . "\n";
+
+        my @csv_colums;
+        if (@{$columns}[-1] eq 'ep_data') {
+            @csv_colums = splice (@{$columns}, 0, -1);
+        } else {
+            @csv_colums = @{$columns};
+        }
+
         foreach my $column ( @{$data} ) {
-            $body .= join(',', map { $column->{$_} } @{$columns}) . "\n";
-            $body =~ s/✔/1/g;
+            $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
         }
 
         $c->response->body( $body );
@@ -326,9 +329,15 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             }
         }
 
+        my $template = 'publicreports/sponsor_sub_report.tt';
+
+        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
+            $template = 'publicreports/sponsor_sub_report_old.tt';
+        }
+
         # Store report values in stash for display onscreen
         $c->stash(
-            'template'             => 'publicreports/sponsor_sub_report.tt',
+            'template'             => $template,
             'report_id'            => $report_id,
             'disp_target_type'     => $disp_target_type,
             'disp_stage'           => $disp_stage,
@@ -338,7 +347,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'data'                 => $data,
             'link'                 => $link,
             'type'                 => $type,
-            'all'                  => $all,
             'species'              => $species,
             'cache_param'          => $cache_param,
         );
@@ -353,12 +361,12 @@ sub _simple_transform {
 
     foreach my $column ( @{$data} ) {
         while ( my ($key, $value) = each %{$column} ) {
-            if (${$column}{$key} eq '0') {
+            if (! ${$column}{$key}) {
                 ${$column}{$key} = '';
             }
             else {
                 ${$column}{$key} = '✔'
-                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors');
+                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors' || $key eq 'ep_data' || $key eq 'recovery_class' || $key eq 'effort_concluded' );
             }
         }
     }
@@ -373,14 +381,36 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     return $self->_view_cached_lines($c, $report_name );
 }
 
+sub view_cached_full : Path( '/public_reports/cached_sponsor_report_full' ) : Args(1) {
+    my ( $self, $c, $report_name ) = @_;
+
+    $c->log->info( "Generate public detail report for : $report_name" );
+
+    return $self->_view_cached_lines($c, $report_name, 1 );
+}
+
+
 
 sub _view_cached_lines {
     my $self = shift;
     my $c = shift;
     my $report_name = shift;
+    my $full = shift;
 
+    my $server_path = $c->uri_for('/');
+    my $cache_server;
+
+    for ($server_path) {
+        if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        else  { die 'Error finding path for cached sponsor report'; }
+    }
+
+    my $suffix = '.html';
+    if ($full) {$suffix = '_full.html'}
     $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $report_name . '.html';
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . $suffix;
 
     my @lines_out;
     open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )
@@ -415,15 +445,26 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
 
     if ( @args == 1 ) {
         my $barcode = shift @args;
-
-        $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+        try {
+            $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+        } catch {
+            $c->stash( error_msg => "$_" );
+            $c->go( 'well_genotyping_info_search' );
+            return;
+        };
     }
     elsif ( @args == 2 ) {
         my ( $plate_name, $well_name ) = @args;
 
-        $self->_stash_well_genotyping_info(
-            $c, { plate_name => $plate_name, well_name => $well_name }
-        );
+        try {
+            $self->_stash_well_genotyping_info(
+                $c, { plate_name => $plate_name, well_name => $well_name }
+            );
+        } catch {
+            $c->stash( error_msg => "$_" );
+            $c->go( 'well_genotyping_info_search' );
+            return;
+        };
     }
     else {
         $c->stash( error_msg => "Invalid number of arguments" );
@@ -468,6 +509,7 @@ Public gene report, only show targeted clone details:
     - Crispr damage type
 
 =cut
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
     $c->log->info( "Generate public gene report page for gene: $gene_id" );
@@ -508,31 +550,54 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
             try { $data{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 ) };
 
             # grab data for crispr damage type
-            my @crispr_damage_types = $model->schema->resultset('CrisprEsQcWell')->search(
-                { well_id => $sr->ep_pick_well_id } )->get_column('crispr_damage_type_id')->all;
-            @crispr_damage_types = uniq grep { $_ } @crispr_damage_types;
+            # only on validated runs...
+            my @crispr_es_qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+                {
+                    well_id  => $sr->ep_pick_well_id,
+                    'crispr_es_qc_run.validated' => 1,
+                },
+                {
+                    join => 'crispr_es_qc_run'
+
+                }
+            );
+
+            my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
 
             if ( scalar( @crispr_damage_types ) == 1 ) {
                 $data{crispr_damage} = $crispr_damage_types[0];
             }
             elsif ( scalar( @crispr_damage_types ) > 1 ) {
-                $c->log->warn( $data{name}
-                        . ' ep_pick well has multiple crispr damage types associated with it: '
-                        . join( ', ', @crispr_damage_types ) );
-                $data{crispr_damage} = join( '/', @crispr_damage_types );
+                # remove any non accepted results
+                @crispr_damage_types = uniq grep {$_}
+                    map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
+
+                if ( scalar( @crispr_damage_types ) > 1 ) {
+                    $c->log->warn( $data{name}
+                            . ' ep_pick well has multiple crispr damage types associated with it: '
+                            . join( ', ', @crispr_damage_types ) );
+                    $data{crispr_damage} = '-';
+                }
+                else {
+                    $data{crispr_damage} = $crispr_damage_types[0];
+                }
             }
             else {
-                $data{crispr_damage} = 'unclassified';
+                $c->log->warn( $data{name}
+                    . ' ep_pick well has no crispr damage type associated with it' );
+                $data{crispr_damage} = '-';
             }
         }
         $targeted_clones{ $sr->ep_pick_well_id } = \%data;
     }
 
-    my @targeted_clones = sort { $a->{name} cmp $b->{name} } values %targeted_clones;
+    my @targeted_clones = sort _sort_by_damage_type values %targeted_clones;
+
     my %summaries;
     for my $tc ( @targeted_clones ) {
-        $summaries{accepted}++ if $tc->{accepted} eq 'yes';
-        $summaries{ $tc->{crispr_damage} }++ if $tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified';
+        $summaries{genotyped}++ if ($tc->{crispr_damage} && ($tc->{crispr_damage} eq 'frameshift' ||
+            $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic') );
+        $summaries{ $tc->{crispr_damage} }++ if ($tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified');
     }
 
     $c->stash(
@@ -542,6 +607,26 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
         'targeted_clones' => \@targeted_clones,
     );
     return;
+}
+## use critic
+
+sub _sort_by_damage_type{
+    my %crispr_damage_order = (
+        'frameshift'   => 1,
+        'in-frame'     => 2,
+        'wild_type'    => 3,
+        'mosaic'       => 4,
+        'no-call'      => 5,
+        '-'            => 6,
+    );
+    if ( !$a->{crispr_damage} ) {
+        return 1;
+    }
+    elsif ( !$b->{crispr_damage} ) {
+        return -1;
+    }
+
+    return $crispr_damage_order{$a->{crispr_damage}} <=> $crispr_damage_order{$b->{crispr_damage}};
 }
 
 =head2 well_eng_seq

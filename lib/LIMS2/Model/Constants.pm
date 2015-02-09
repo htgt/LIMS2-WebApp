@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.277';
+    $LIMS2::Model::Constants::VERSION = '0.286';
 }
 ## use critic
 
@@ -29,6 +29,7 @@ BEGIN {
         %VECTOR_DNA_CONCENTRATION
         %GLOBAL_SHORTENED_OLIGO_APPEND
         %GENE_TYPE_REGEX
+        $MAX_CRISPR_GROUP_SIZE
     );
     our %EXPORT_TAGS = ();
 }
@@ -56,6 +57,7 @@ const our %PROCESS_PLATE_TYPES => (
     'crispr_vector'          => [qw( CRISPR_V )],
     'single_crispr_assembly' => [qw( ASSEMBLY )],
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
+    'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
 );
 
@@ -94,6 +96,7 @@ const our %PROCESS_TEMPLATE => (
     'dist_qc'                => 'piq_template',
     'single_crispr_assembly' => 'single_crispr_assembly_template',
     'paired_crispr_assembly' => 'paired_crispr_assembly_template',
+    'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
 );
 
@@ -179,6 +182,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'paired_crispr_assembly' => {
         type   => [qw( DNA )],
         number => 3,
+    },
+    'group_crispr_assembly' => {
+        type   => [qw( DNA )],
+        number => 'MULTIPLE',
     },
     'crispr_ep' => {
         type   => [qw( ASSEMBLY )],
@@ -283,6 +290,9 @@ const our %GENE_TYPE_REGEX => (
     'MGI'        => qr/MGI:\d+/,
     'CPG-island' => qr/CGI_\d+/,
 );
+
+# Maximum number of crisprs we can have in a group
+const our $MAX_CRISPR_GROUP_SIZE => 4;
 
 1;
 

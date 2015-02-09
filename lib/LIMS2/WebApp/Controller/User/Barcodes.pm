@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.277';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.286';
 }
 ## use critic
 
@@ -325,7 +325,7 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @$display_details;
     $c->stash->{plate_type} = $plate_type;
     $c->stash->{barcodes} = \@sorted;
-    $c->stash->{discard_reasons} = [ "contamination", "failed QC" ];
+    $c->stash->{discard_reasons} = [ "contamination", "failed QC", "failed to recover",  "used for testing" ];
     return;
 }
 

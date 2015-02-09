@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.277';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.286';
 }
 ## use critic
 
@@ -459,6 +459,37 @@ sub update_or_create_well_dna_quality {
     $well->compute_final_pick_dna_well_accepted();
 
     return $dna_quality;
+}
+
+sub toggle_to_report {
+    my ( $self, $params ) = @_;
+
+    my $well = $self->retrieve_well({ id => $params->{'id'} });
+
+    my $to_report = $params->{'to_report'};
+
+    propagate_to_report($self, $well, $to_report);
+
+    return $well;
+}
+
+sub propagate_to_report {
+    my ( $self, $well, $to_report, $seen) = @_;
+
+    $self->log->info( "Setting to_report to $to_report on well " . $well->as_string  );
+
+    $seen ||= {};
+
+    return if $seen->{$well->as_string};
+
+    $seen->{$well->as_string}++;
+
+    foreach my $process ($well->child_processes){
+        foreach my $child ($process->output_wells){
+            propagate_to_report( $self, $child, $to_report, $seen);
+        }
+    }
+    return;
 }
 
 sub retrieve_well_dna_quality {

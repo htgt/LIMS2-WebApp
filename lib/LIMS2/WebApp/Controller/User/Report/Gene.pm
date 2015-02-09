@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.277';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.286';
 }
 ## use critic
 
@@ -166,7 +166,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'sep'        => 'Second Electroporations',
         'sep_pick'   => 'Second Electroporation Picks',
         'fp'         => 'First Electroporation Freezer Instances',
-        'piq'        => 'Pre-Injection QCs',
+        'piq'        => 'Secondary QC',
         'sfp'        => 'Second Electroporation Freezes',
     };
 

@@ -143,6 +143,8 @@ lib/LIMS2/Model/Schema/Result/QcTemplate.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWell.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWellBackbone.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWellCassette.pm
+lib/LIMS2/Model/Schema/Result/QcTemplateWellCrisprPrimer.pm
+lib/LIMS2/Model/Schema/Result/QcTemplateWellGenotypingPrimer.pm
 lib/LIMS2/Model/Schema/Result/QcTemplateWellRecombinase.pm
 lib/LIMS2/Model/Schema/Result/QcTestResult.pm
 lib/LIMS2/Model/Schema/Result/Recombinase.pm
@@ -294,6 +296,7 @@ lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
+lib/LIMS2/WebApp/Controller/User/Primers.pm
 lib/LIMS2/WebApp/Controller/User/Projects.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
 lib/LIMS2/WebApp/Controller/User/RecombinaseUpload.pm
@@ -330,6 +333,7 @@ root/site/publicreports/index.tt
 root/site/publicreports/public_gene_report.tt
 root/site/publicreports/sponsor_report.tt
 root/site/publicreports/sponsor_sub_report.tt
+root/site/publicreports/sponsor_sub_report_old.tt
 root/site/publicreports/well_genotyping_info.tt
 root/site/publicreports/well_genotyping_info_search.tt
 root/site/user/barcodes/checkout_from_picklist.tt
@@ -2260,6 +2264,8 @@ root/static/files/plate_upload/gateway_template_es.csv
 root/static/files/plate_upload/gateway_template_vector.csv
 root/static/files/plate_upload/global_arm_shortening_template_es.csv
 root/static/files/plate_upload/global_arm_shortening_template_vector.csv
+root/static/files/plate_upload/group_crispr_assembly_template_es.csv
+root/static/files/plate_upload/group_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_es.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/piq_template_es.csv

@@ -1,3 +1,38 @@
+0.286     2015-02-09 11:51:58 Europe/London
+
+    Added reporting filter to the EP/CRISPR_EP wells
+    Added Genoverse button to Intermediate plates
+
+0.285     2015-02-05 15:43:10 Europe/London
+
+   Added group_crispr_assembly process
+
+0.284     2015-01-29 10:39:04 Europe/London
+
+    Changes to the clones page and well genotyping info page
+
+0.283     2015-01-28 10:49:03 Europe/London
+
+    Corrected behaviour of trace viewer to deal with ambiguous base calls for CRISPR ES QC
+
+0.282     2015-01-22 16:20:36 Europe/London
+
+    Added new front page sponsor report
+
+0.281     2015-01-22 08:41:56 Europe/London
+
+Update public gene report page.
+
+0.280     2015-01-19 08:39:21 Europe/London
+
+Switch from scratch110 to scratch109
+
+0.279     2015-01-13 12:10:04 Europe/London
+
+0.278     2014-12-18 07:43:42 Europe/London
+
+    Changes to crispr es qc interface
+
 0.277     2014-12-12 13:06:15 Europe/London
 
     Sponsor All selection fix on project efforts/recovery overview

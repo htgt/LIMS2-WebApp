@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.277';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.286';
 }
 ## use critic
 
@@ -384,6 +384,7 @@ sub create_plate_by_copy {
     return $plate;
 }
 
+## no critic(ControlStructures::ProhibitCascadingIfElse)
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
     #validation done of create_plate, not needed here
@@ -415,6 +416,9 @@ sub create_plate_csv_upload {
     } elsif ($params->{process_type} eq 'paired_crispr_assembly') {
         $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
                                 'crispr_vector2_plate', 'crispr_vector2_well' ];
+    } elsif($params->{process_type} eq 'group_crispr_assembly') {
+        # Require final pick plate/well and at least one crispr_vector plate/well
+        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well' ];
     } else {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
@@ -427,6 +431,7 @@ sub create_plate_csv_upload {
     $plate_data{wells} = $well_data;
     return $self->create_plate( \%plate_data );
 }
+## use critic
 
 sub plate_help_info {
     my ($self) = @_;
