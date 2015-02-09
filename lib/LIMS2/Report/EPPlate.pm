@@ -22,11 +22,11 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        $self->base_columns,
+        'Well ID', $self->base_columns,
         "DNA Well",
         "Cassette", "Cassette Resistance", "Recombinases", "Cell Line",
         $self->colony_count_column_names,
-        "Number Picked", "Number Accepted", "Number XEPs"
+        "Number Picked", "Number Accepted", "Number XEPs", 'Report?'
     ]
 };
 
@@ -70,6 +70,7 @@ override iterator => sub {
         my $xep_child_count = exists $xep_child_wells->{ $well_id } ? $xep_child_wells->{ $well_id } : 0;
 
         my @data = (
+            $well_data->{well_id},
             $self->base_data_quick( $well_data ),
             $dna_well_name,
             $well_data->{cassette},
@@ -80,6 +81,7 @@ override iterator => sub {
             $ep_pick_child_count,
             $ep_pick_accepted_child_count,
             $xep_child_count,
+            $well_data->{to_report},
         );
 
         $well_data = shift @wells_data;

@@ -170,6 +170,25 @@ sub well_accepted_override_PUT {
     );
 }
 
+
+sub well_toggle_to_report : Path( '/api/well/toggle_to_report' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub well_toggle_to_report_GET{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $project = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->toggle_to_report( { id => $c->request->param( 'id' ),
+                to_report => $c->request->param( 'to_report' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $project->as_hash );
+}
+
 sub well_recombineering_result :Path('/api/well/recombineering_result') :Args(0) :ActionClass('REST') {
 }
 

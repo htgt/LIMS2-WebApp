@@ -123,6 +123,7 @@ sub _consolidate_well_data {
         created_at     => $well->created_at->ymd,
         assay_pending  => $well->assay_pending ? $well->assay_pending->ymd : '',
         assay_complete => $well->assay_complete ? $well->assay_complete->ymd : '',
+        to_report      => $well->to_report,
     );
 
     # call as_hash method on row objects to grab data
