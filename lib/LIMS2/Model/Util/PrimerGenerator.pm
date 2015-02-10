@@ -502,7 +502,7 @@ sub generate_design_genotyping_primers{
         my $strand = 'FIXME'; # where to get chromosome strand from?
         my @out_vals = ($well_name, $gene_name, $design_id, $strand );
 
-        push @out_vals, map { $output_values->{$_} } @primer_headings;
+        push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
 
         my $csv_row = join( ',' , @out_vals);
         push @out_rows, $csv_row;
@@ -603,7 +603,7 @@ sub generate_crispr_primers{
             next;
         }
 =cut
-        push @out_vals, map { $output_values->{$_} } @primer_headings;
+        push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
 
         if($self->crispr_type eq 'single'){
             push @out_vals, $crispr->id, $crispr->seq;
@@ -703,7 +703,7 @@ sub generate_crispr_PCR_primers{
             next;
         }
 =cut
-        push @out_vals, map { $output_values->{$_} } @primer_headings;
+        push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
 
         my $csv_row = join( ',' , @out_vals);
         push @out_rows, $csv_row;

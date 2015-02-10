@@ -209,5 +209,14 @@ sub as_hash {
     };
 }
 
+# Method aliases so we can use it like a CrisprPrimer
+sub primer_name{
+    return shift->genotyping_primer_type_id;
+}
+
+sub primer_seq{
+    return shift->seq;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

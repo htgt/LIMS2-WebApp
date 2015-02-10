@@ -55,20 +55,24 @@ sub retrieve_current_crispr_primer{
 
 }
 
-sub pspec_create_crispr_primer {
+sub pspec_create_primer_common {
     return {
-        crispr_id       => { validate => 'integer', optional => 1 },
-        crispr_pair_id  => { validate => 'integer', optional => 1 },
-        crispr_group_id => { validate => 'integer', optional => 1 },
-        primer_name     => { validate => 'existing_crispr_primer_type' },
         primer_seq      => { validate => 'dna_seq' },
         tm              => { validate => 'numeric', optional => 1 },
         gc_content      => { validate => 'numeric', optional => 1 },
         locus           => { validate => 'hashref' },
         overwrite       => { validate => 'boolean', optional => 1, default => 0 },
         check_for_rejection => { validate => 'boolean', optional => 1, default => 0 },
-        REQUIRE_SOME    => { single_pair_or_group_crispr_id =>
-                [ 1, qw( crispr_id crispr_pair_id crispr_group_id ) ] },
+    };
+}
+
+# pspec_create_genotyping_primer already exists in WebApp Common hence slightly odd name here
+sub pspec_create_genotyping_primer_lims2{
+    my $common = pspec_create_primer_common;
+    return {
+        %$common,
+        design_id       => { validate => 'integer' },
+        primer_name     => { validate => 'existing_genotyping_primer_type' }
     };
 }
 
@@ -78,11 +82,45 @@ Like create_crispr_primer.. but for genotyping primers which are linked to a des
 
 =cut
 sub create_genotyping_primer{
-    my ($self) = @_;
+    my ($self, $params) = @_;
 
-    die "Not yet implemented";
+    my $validated_params = $self->check_params( $params, $self->pspec_create_genotyping_primer_lims2 );
 
-    return;
+    my $ready_to_create = $self->_handle_existing_primers('GenotypingPrimer', $validated_params);
+
+    my $primer;
+    if($ready_to_create){
+        $primer = $self->schema->resultset('GenotypingPrimer')->create({
+            genotyping_primer_type_id => $validated_params->{primer_name},
+            seq                       => $validated_params->{primer_seq},
+            slice_def(
+                $validated_params,
+                qw( design_id tm gc_content )
+            )
+        });
+
+        $self->log->debug( 'Create primer ' . $primer->id );
+
+        my $locus_params = $validated_params->{locus};
+        $locus_params->{genotyping_primer_id} = $primer->id;
+        $self->create_genotyping_primer_locus( $locus_params, $primer );
+    }
+
+    return $primer;
+}
+
+sub pspec_create_crispr_primer {
+    my $common = pspec_create_primer_common;
+    return {
+        %$common,
+        crispr_id       => { validate => 'integer', optional => 1 },
+        crispr_pair_id  => { validate => 'integer', optional => 1 },
+        crispr_group_id => { validate => 'integer', optional => 1 },
+        primer_name     => { validate => 'existing_crispr_primer_type' },
+
+        REQUIRE_SOME    => { single_pair_or_group_crispr_id =>
+                [ 1, qw( crispr_id crispr_pair_id crispr_group_id ) ] },
+    };
 }
 
 =head2 create_crispr_primer
@@ -102,10 +140,46 @@ sub create_crispr_primer {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_primer );
 
+    my $ready_to_create = $self->_handle_existing_primers('CrisprPrimer', $validated_params);
+
+    my $crispr_primer;
+    if($ready_to_create){
+        $crispr_primer = $self->schema->resultset('CrisprPrimer')->create({
+            slice_def(
+                $validated_params,
+                qw( crispr_id crispr_pair_id crispr_group_id
+                    primer_seq primer_name tm gc_content
+                    )
+            )
+        });
+
+        $self->log->debug( 'Create crispr primer ' . $crispr_primer->id );
+
+        my $locus_params = $validated_params->{locus};
+        $locus_params->{crispr_oligo_id} = $crispr_primer->id;
+        $self->create_crispr_primer_locus( $locus_params, $crispr_primer );
+    }
+
+    return $crispr_primer;
+}
+
+# Decide how to handle existing CrisprPrimers or GenotypingPrimers using common logic
+# and overwrite/check_for_rejection flag parameters
+sub _handle_existing_primers{
+    my ($self, $resultset, $validated_params) = @_;
+    my $ready_to_create = 0;
+
     my %search_params = slice_def( $validated_params,
-        qw( crispr_id crispr_pair_id crispr_group_id primer_name )
+        qw( crispr_id crispr_pair_id crispr_group_id design_id primer_name)
     );
-    my @existing_primers = $self->schema->resultset('CrisprPrimer')->search(\%search_params)->all;
+
+    # Bit of a hack because primer_name in CrisprPrimer == genotyping_primer_type_id in GenotypingPrimer
+    if($resultset eq 'GenotypingPrimer'){
+        $search_params{genotyping_primer_type_id} = $search_params{primer_name};
+        delete $search_params{primer_name};
+    }
+
+    my @existing_primers = $self->schema->resultset($resultset)->search(\%search_params)->all;
     my %rejected_seqs;
     my @current_primers;
     foreach my $existing (@existing_primers){
@@ -118,9 +192,8 @@ sub create_crispr_primer {
         }
     }
 
-    my $ready_to_create = 0;
     if(@current_primers){
-        $self->log->debug('Existing crispr primers found');
+        $self->log->debug("Existing $resultset found");
         unless($validated_params->{overwrite}){
             $self->throw( Validation => 'Primer '.$validated_params->{primer_name}.' already exists' );
         }
@@ -144,26 +217,7 @@ sub create_crispr_primer {
         # If method has not died we can go ahead and create the primer
         $ready_to_create = 1;
     }
-
-    my $crispr_primer;
-    if($ready_to_create){
-        $crispr_primer = $self->schema->resultset('CrisprPrimer')->create({
-            slice_def(
-                $validated_params,
-                qw( crispr_id crispr_pair_id crispr_group_id
-                    primer_seq primer_name tm gc_content
-                    )
-            )
-        });
-
-        $self->log->debug( 'Create crispr primer ' . $crispr_primer->id );
-
-        my $locus_params = $validated_params->{locus};
-        $locus_params->{crispr_oligo_id} = $crispr_primer->id;
-        $self->create_crispr_primer_locus( $locus_params, $crispr_primer );
-    }
-
-    return $crispr_primer;
+    return $ready_to_create;
 }
 
 sub _check_for_rejection{
@@ -217,6 +271,46 @@ sub create_crispr_primer_locus {
     return $crispr_primer_locus;
 }
 
+sub pspec_create_genotyping_primer_locus {
+    return {
+        assembly        => { validate => 'existing_assembly' },
+        chr_name        => { validate => 'existing_chromosome' },
+        chr_start       => { validate => 'integer' },
+        chr_end         => { validate => 'integer' },
+        chr_strand      => { validate => 'strand' },
+        genotyping_primer_id => { validate => 'integer' },
+    };
+}
+
+=head2 create_genotyping_primer_locus
+
+Create locus record for a genotyping primer, for a given assembly
+
+=cut
+sub create_genotyping_primer_locus {
+    my ( $self, $params, $primer ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_genotyping_primer_locus );
+    $self->trace( "Create genotyping primer locus", $validated_params );
+
+    $primer ||= $self->schema->resultset( 'GenotypingPrimer' )->find(
+        {
+            id => $validated_params->{genotyping_primer_id},
+        }
+    );
+
+    my $primer_locus = $primer->create_related(
+        genotyping_primer_loci => {
+            assembly_id => $validated_params->{assembly},
+            chr_id      => $self->_chr_id_for( @{$validated_params}{ 'assembly', 'chr_name' } ),
+            chr_start   => $validated_params->{chr_start},
+            chr_end     => $validated_params->{chr_end},
+            chr_strand  => $validated_params->{chr_strand}
+        }
+    );
+
+    return $primer_locus;
+}
 1;
 
 __END__
