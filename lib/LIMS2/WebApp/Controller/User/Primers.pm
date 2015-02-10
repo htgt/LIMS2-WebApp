@@ -93,4 +93,92 @@ sub toggle_crispr_primer_validation_state : Path( '/user/toggle_crispr_primer_va
     return;
 }
 
+sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
+    my($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    $c->stash->{wells} = $c->req->param('wells');
+    $c->stash->{plate_name} = $c->req->param('plate_name');
+
+    if($c->req->param('submit') eq 'get_options'){
+        my $plate_name = $c->req->param('plate_name');
+        my @well_names = split /[,\s]+/, $c->req->param('wells');
+
+        $c->log->debug('Plate wells: ',@well_names);
+
+        unless($plate_name){
+            $c->stash->{error_msg} = "You must provide a plate name";
+            return;
+        }
+
+        my $plate;
+        try{
+            $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
+        }
+        catch ($e){
+            $c->stash->{error_msg} = "Plate not found: $e";
+            return;
+        }
+
+        my @wells;
+        if(@well_names){
+            # check wells are on plate
+            foreach my $name (@well_names){
+                my ($well) = $plate->search_related('wells', { name => $name })->all;
+                unless($well){
+                    $c->stash->{error_msg} = "Well $name not found on plate";
+                    return;
+                }
+                push @wells, $well;
+            }
+        }
+        else{
+            @wells = $plate->wells;
+        }
+
+        my @crispr_plate_types = qw(CRISPR CRISPR_V);
+        my @design_plate_types = qw(DESIGN INT POSTINT FINAL FINAL_PICK);
+        $c->stash->{plate_type} =  $plate->type_id;
+
+        my $type = $plate->type_id;
+        if($type eq 'DNA'){
+            # DNA could be from design or crispr so check parent well type instead
+            my ($parent) = $wells[0]->parent_wells;
+            $type = $parent->plate->type_id;
+        }
+
+        if(grep { $_ eq $type } @crispr_plate_types){
+            $c->stash->{crispr_type} = 'single';
+        }
+        elsif(grep { $_ eq $type } @design_plate_types){
+            $c->stash->{genotyping} = 1;
+        }
+        else{
+            # is assembly or later
+            $c->stash->{genotyping} = 1;
+            my $assembly_type = $wells[0]->parent_assembly_process_type;
+            $c->log->debug("Assembly process type: $assembly_type");
+            my $crispr_types = {
+                'single_crispr_assembly' => 'single',
+                'paired_crispr_assembly' => 'pair',
+                'group_crispr_assembly' => 'group',
+            };
+            $c->stash->{crispr_type} = $crispr_types->{$assembly_type};
+        }
+
+        $c->stash->{step2} = 1;
+    }
+    elsif($c->req->param('submit') eq 'generate_primers'){
+        # actually run the primer generation code
+        # redirect to some sort of result or progress view
+    }
+    else{
+        $c->stash->{step1} = 1;
+        return;
+    }
+
+    return;
+}
+
 1;

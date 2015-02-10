@@ -1239,6 +1239,32 @@ sub parent_crispr_v {
 }
 ## use critic
 
+sub parent_assembly_well{
+    my $self = shift;
+    if($self->plate->type_id eq 'ASSEMBLY'){
+        return $self;
+    }
+    else{
+        my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
+        while( my $ancestor = $ancestors->next ) {
+            if ( $ancestor->plate->type_id eq 'ASSEMBLY' ) {
+                return $ancestor;
+            }
+        }
+    }
+    return;
+}
+
+sub parent_assembly_process_type{
+    my $self = shift;
+
+    if (my $assembly_well = $self->parent_assembly_well){
+        my ($process) = $assembly_well->parent_processes;
+        return $process->type_id;
+    }
+    return;
+}
+
 sub crisprs{
     my $self = shift;
 
