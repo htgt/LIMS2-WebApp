@@ -1,5 +1,38 @@
 [%- META title = 'Generate Primers'; META tab_name = 'Designs' %]
 
+[% IF results %]
+<div class="page-header">
+  <h1>Generate Primers Results</h1>
+</div>
+
+[% FOREACH type IN ['crispr_seq','crispr_pcr','genotyping'] %]
+  <p>Primer type: [% type %]</p>
+  <p>File path: [% results.$type.file_path %]<p>
+  <table>
+    <tr>
+      <th>Well ID</th>
+      <th>Primer Name</th>
+      <th>Chr</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Seq</th>
+    </tr>
+    [% FOREACH well IN results.$type.db_primers.keys %]
+      [% FOREACH primer IN results.$type.db_primers.$well %]
+    <tr>
+      <td>[% well %]</td>
+      <td>[% primer.primer_name %]</td>
+      <td>[% primer.locus.chr_name %]</td>
+      <td>[% primer.locus.chr_start %]</td>
+      <td>[% primer.locus.chr_end %]</td>
+      <td>[% primer.primer_seq %]</td>
+    </tr>
+      [% END %]
+    [% END %]
+  </table>
+[% END %]
+
+[% ELSE %]
 <div class="page-header">
   <h1>Generate Primers</h1>
 </div>
@@ -35,6 +68,8 @@
     <form method="POST" id="generate_primers" action="[% c.uri_for( '/user/generate_primers' ) %]" class="form well"  enctype="multipart/form-data" >
 
     <input type="hidden" name="crispr_type" value="[% crispr_type %]">
+    <input type="hidden" name="plate_name" value="[% plate_name %]">
+    <input type="hidden" name="wells" value="[% wells %]">
 
     Select types of primers to generate:
     [% IF crispr_type %]
@@ -58,11 +93,11 @@
 
     Write primers to:
     <label class="checkbox">
-      <input type="checkbox" id="persist_file" name="persist_file" value="">
+      <input type="checkbox" id="persist_file" name="persist_file" value="1">
       File for download
     </label>
     <label class="checkbox">
-      <input type="checkbox" id="persist_db" name="persist_db" value="">
+      <input type="checkbox" id="persist_db" name="persist_db" value="1">
       LIMS2 database
     </label>
 
@@ -99,3 +134,4 @@
  [% END %]
 
 </script>
+[% END %]

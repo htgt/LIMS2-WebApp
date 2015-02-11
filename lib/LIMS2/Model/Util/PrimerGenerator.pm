@@ -10,6 +10,8 @@ use Carp;
 use Path::Class;
 use Data::Dumper;
 use LIMS2::Util::QcPrimers;
+use Data::UUID;
+use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 
 use LIMS2::Model::Util::OligoSelection qw(
         pick_crispr_primers
@@ -306,12 +308,27 @@ has persist_file => (
     default => 1,
 );
 
-# By default do not update existing database entries
-has update_existing => (
+# By default do not overwrite existing database entries
+has overwrite => (
     is => 'ro',
     isa => 'Bool',
     default => 0,
 );
+
+# Build base dir if user has not specified one
+has base_dir => (
+    is     => 'ro',
+    isa    => 'Str',
+    lazy_build => 1,
+);
+
+sub _build_base_dir {
+    my $report_dir = dir( $ENV{LIMS2_REPORT_DIR} );
+    my $id = Data::UUID->new->create_str();
+    my $base_dir = $report_dir->subdir( $id );
+    $base_dir->mkpath;
+    return "$base_dir";
+}
 
 sub verify_and_update_design_data_cache{
     my ($self, $well_id, $crispr_id) = @_;
@@ -466,9 +483,13 @@ sub generate_design_genotyping_primers{
     my $primer_util = LIMS2::Util::QcPrimers->new({
         model               => $self->model,
         primer_project_name => 'design_genotyping',
-        base_dir            => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        base_dir            => $self->base_dir,
         persist_primers     => $self->persist_db,
+        overwrite           => $self->overwrite,
     });
+
+    # Hash to store primer db entries we generate
+    my $well_db_primers = {};
 
     # Set up list of columns to use in output csv
     my @headings = qw(well_name gene_symbol design_id strand);
@@ -492,7 +513,8 @@ sub generate_design_genotyping_primers{
         my $design = $self->model->c_retrieve_design({ id => $design_id })
             or die "Could not find design $design_id in database";
 
-        my ($primer_data, $seq) = $primer_util->design_genotyping_primers($design);
+        my ($primer_data, $seq, $db_primers) = $primer_util->design_genotyping_primers($design);
+        $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
         # specific primer generation config files
@@ -511,8 +533,9 @@ sub generate_design_genotyping_primers{
     $self->log->debug( 'Generating  '.$self->crispr_type.'crispr primer output file' );
     my $message = "Genotyping primers\n";
     $message .= "Genomic specificity check has been applied to these primers\n";
-    $self->create_output_file( $self->plate_name . $self->formatted_well_names . "_genotyping_primers.csv", \@out_rows );
-    return;
+    my $file_path = $self->create_output_file( $self->plate_name . $self->formatted_well_names . "_genotyping_primers.csv", \@out_rows );
+
+    return $file_path, $well_db_primers;
 }
 
 sub generate_crispr_primers{
@@ -523,10 +546,13 @@ sub generate_crispr_primers{
     my $primer_util = LIMS2::Util::QcPrimers->new({
         model               => $self->model,
         primer_project_name => $settings->{primer_project_name},
-        base_dir            => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        base_dir            => $self->base_dir,
         persist_primers     => $self->persist_db,
+        overwrite           => $self->overwrite,
     });
 
+    # Hash to store primer db entries we generate
+    my $well_db_primers = {};
 
     # Set up list of columns to use in output csv
     my @headings = qw(well_name gene_symbol design_id strand);
@@ -574,7 +600,8 @@ sub generate_crispr_primers{
 
         # Run primer generation using QcPrimers module
         my $util_method_name = $settings->{primer_util_method};
-        my ($picked_primers, $seq) = $primer_util->$util_method_name($crispr);
+        my ($picked_primers, $seq, $db_primers) = $primer_util->$util_method_name($crispr);
+        $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];
 
         # Store crispr primers for each well id
         $crispr_primers_by_well_id->{$well_id}->{primers} = $picked_primers;
@@ -588,21 +615,6 @@ sub generate_crispr_primers{
         my $strand = 'FIXME'; # where to get chromosome strand from?
         my @out_vals = ($well_name, $gene_name, $design_id, $strand, $crispr_id);
 
-=head
-        ## FIXME: where to get primer_explain stuff if it fails
-        if ( $primer_clip{$well_name}->{'crispr_primers'}->{'error_flag'} ne 'pass' ){
-            push @out_vals
-                , 'primer3_explain_left'
-                , $primer_clip{$well_name}->{'crispr_primers'}->{'primer3_explain_left'}
-                , 'primer3_explain_right'
-                , $primer_clip{$well_name}->{'crispr_primers'}->{'primer3_explain_right'};
-
-            $csv_row = join( ',' , @out_vals);
-            push @out_rows, $csv_row;
-
-            next;
-        }
-=cut
         push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
 
         if($self->crispr_type eq 'single'){
@@ -625,8 +637,8 @@ sub generate_crispr_primers{
     my $message = "Sequencing primers\n";
     $message .= "WARNING: These primers are for sequencing a PCR product - no genomic check has been applied to these primers\n";
 
-    $self->create_output_file( $self->plate_name . $self->formatted_well_names . $settings->{file_suffix}, \@out_rows );
-    return;
+    my $file_path = $self->create_output_file( $self->plate_name . $self->formatted_well_names . $settings->{file_suffix}, \@out_rows );
+    return $file_path, $well_db_primers;
 }
 
 sub generate_crispr_PCR_primers{
@@ -642,9 +654,13 @@ sub generate_crispr_PCR_primers{
     my $primer_util = LIMS2::Util::QcPrimers->new({
         model               => $self->model,
         primer_project_name => 'crispr_pcr',
-        base_dir            => '/nfs/users/nfs_a/af11/LIMS2-tmp/primers_test',
+        base_dir            => $self->base_dir,
         persist_primers     => $self->persist_db,
+        overwrite           => $self->overwrite,
     });
+
+    # Hash to store primer db entries we generate
+    my $well_db_primers = {};
 
     # Set up list of columns to use in output csv
     my @headings = qw(well_name gene_symbol design_id strand);
@@ -678,7 +694,8 @@ sub generate_crispr_PCR_primers{
 
         # Run primer generation using QcPrimers module
         my $crispr = $crispr_primers->{$well_id}->{crispr};
-        my ($picked_primers, $seq) = $primer_util->crispr_PCR_primers($well_crispr_primers, $crispr);
+        my ($picked_primers, $seq, $db_primers) = $primer_util->crispr_PCR_primers($well_crispr_primers, $crispr);
+        $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
         # specific primer generation config files
@@ -688,21 +705,6 @@ sub generate_crispr_PCR_primers{
         my $strand = 'FIXME'; # where to get chromosome strand from?
         my @out_vals = ($well_name, $gene_name, $design_id, $strand);
 
-=head
-        ## FIXME: where to get primer_explain stuff if it fails
-        if ( $primer_clip{$well_name}->{'crispr_primers'}->{'error_flag'} ne 'pass' ){
-            push @out_vals
-                , 'primer3_explain_left'
-                , $primer_clip{$well_name}->{'crispr_primers'}->{'primer3_explain_left'}
-                , 'primer3_explain_right'
-                , $primer_clip{$well_name}->{'crispr_primers'}->{'primer3_explain_right'};
-
-            $csv_row = join( ',' , @out_vals);
-            push @out_rows, $csv_row;
-
-            next;
-        }
-=cut
         push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
 
         my $csv_row = join( ',' , @out_vals);
@@ -713,8 +715,8 @@ sub generate_crispr_PCR_primers{
     $self->log->debug( 'Generating crispr PCR primer output file' );
     my $message = "PCR crispr region primers\n";
     $message .= "Genomic specificity check has been applied to these primers\n";
-    $self->create_output_file( $self->plate_name . $self->formatted_well_names . '_pcr_primers.csv', \@out_rows );
-    return;
+    my $file_path = $self->create_output_file( $self->plate_name . $self->formatted_well_names . '_pcr_primers.csv', \@out_rows );
+    return $file_path, $well_db_primers;
 }
 
 sub get_single_crispr_id{
@@ -781,7 +783,9 @@ sub formatted_well_names{
 sub create_output_file {
     my ($self, $file_name, $lines) = @_;
 
-    my $dir = Path::Class::Dir->new($ENV{'LIMS2_TEMP'} // '/var/tmp');
+    return unless $self->persist_file;
+
+    my $dir = dir($self->base_dir);
     my $file = $dir->file($file_name);
 
     $self->log->info("Creating file $file");
@@ -791,7 +795,7 @@ sub create_output_file {
     close $tab_fh
         or croak "Unable to close $file after writing: $!";
 
-    return;
+    return $file;
 }
 
 1;

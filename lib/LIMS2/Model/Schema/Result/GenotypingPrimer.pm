@@ -204,6 +204,8 @@ sub as_hash {
         id      => $self->id,
         type    => $self->genotyping_primer_type_id,
         seq     => $self->seq,
+        primer_seq => $self->seq,
+        primer_name => $self->genotyping_primer_type_id,
         species => $self->design->species_id,
         locus   => $locus ? $locus->as_hash : undef,
     };

@@ -4,6 +4,8 @@ use Moose;
 use namespace::autoclean;
 use TryCatch;
 use JSON;
+use LIMS2::Model::Util::PrimerGenerator;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -100,10 +102,10 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
 
     $c->stash->{wells} = $c->req->param('wells');
     $c->stash->{plate_name} = $c->req->param('plate_name');
+    my $plate_name = $c->req->param('plate_name');
+    my @well_names = split /[,\s]+/, $c->req->param('wells');
 
     if($c->req->param('submit') eq 'get_options'){
-        my $plate_name = $c->req->param('plate_name');
-        my @well_names = split /[,\s]+/, $c->req->param('wells');
 
         $c->log->debug('Plate wells: ',@well_names);
 
@@ -172,6 +174,39 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
     elsif($c->req->param('submit') eq 'generate_primers'){
         # actually run the primer generation code
         # redirect to some sort of result or progress view
+        my $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
+        my $generator = LIMS2::Model::Util::PrimerGenerator->new({
+            plate_name       => $plate_name,
+            plate_well_names => \@well_names,
+            persist_file     => $c->req->param('persist_file'),
+            persist_db       => $c->req->param('persist_db'),
+            crispr_type      => $c->req->param('crispr_type'),
+            overwrite        => 1, # FIXME: need checkbox for this
+            species_name     => $plate->species_id,
+        });
+        my $dir = $generator->base_dir;
+        $c->log->debug("Starting primer generation in dir $dir");
+        my $primer_results;
+        if($c->req->param('crispr_primer_checkbox')){
+            my ($file_path, $db_primers) = $generator->generate_crispr_primers;
+            $primer_results->{crispr_seq}->{file_path} = $file_path;
+            $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
+        }
+
+        if($c->req->param('crispr_pcr_checkbox')){
+            my ($file_path, $db_primers) = $generator->generate_crispr_PCR_primers;
+            $primer_results->{crispr_pcr}->{file_path} = $file_path;
+            $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
+        }
+
+        if($c->req->param('genotyping_primer_checkbox')){
+            my ($file_path, $db_primers) = $generator->generate_design_genotyping_primers;
+            $primer_results->{genotyping}->{file_path} = $file_path;
+            $primer_results->{genotyping}->{db_primers} = $db_primers ;
+        }
+        $c->log->debug(Dumper($primer_results));
+        $c->stash->{results} = $primer_results;
+        return;
     }
     else{
         $c->stash->{step1} = 1;
