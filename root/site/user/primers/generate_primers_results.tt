@@ -1,0 +1,51 @@
+[%- META title = 'Generate Primers'; META tab_name = 'Designs' %]
+
+<div class="page-header">
+  <h1>Generate Primers Results</h1>
+</div>
+
+<p>Plate name: [% params.plate_name %]</p>
+<p>Wells: [% IF params.plate_well_names %][% params.plate_well_names.join(', ') %]
+          [% ELSE %]All wells[% END %]</p>
+[% IF results %]
+
+[% FOREACH type IN ['crispr_seq','crispr_pcr','genotyping'] %]
+<div class="well">
+  <h3>Primer type: [% type %]</h3>
+  <p>File path: [% results.$type.file_path %]</p>
+  <table class="table">
+    <tr>
+      <th>Well ID</th>
+      <th>Primer Name</th>
+      <th>Chr</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Seq</th>
+    </tr>
+    [% FOREACH well IN results.$type.db_primers.keys %]
+      [% FOREACH primer IN results.$type.db_primers.$well %]
+    <tr>
+      <td>[% well %]</td>
+      <td>[% primer.primer_name %]</td>
+      <td>[% primer.locus.chr_name %]</td>
+      <td>[% primer.locus.chr_start %]</td>
+      <td>[% primer.locus.chr_end %]</td>
+      <td>[% primer.primer_seq %]</td>
+    </tr>
+      [% END %]
+    [% END %]
+  </table>
+</div>
+[% END %]
+
+[% ELSE %]
+
+Primer generation in progress. This page will refresh automatically. Please wait...
+
+<script type="text/javascript">
+setTimeout(function(){
+   window.location.reload(1);
+}, 5000);
+</script>
+
+[% END %]

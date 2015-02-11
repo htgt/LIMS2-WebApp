@@ -4,8 +4,10 @@ use Moose;
 use namespace::autoclean;
 use TryCatch;
 use JSON;
+use Path::Class;
 use LIMS2::Model::Util::PrimerGenerator;
 use Data::Dumper;
+use LIMS2::Exception;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -175,7 +177,7 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
         # actually run the primer generation code
         # redirect to some sort of result or progress view
         my $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
-        my $generator = LIMS2::Model::Util::PrimerGenerator->new({
+        my $generator_params = {
             plate_name       => $plate_name,
             plate_well_names => \@well_names,
             persist_file     => $c->req->param('persist_file'),
@@ -183,29 +185,14 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
             crispr_type      => $c->req->param('crispr_type'),
             overwrite        => 1, # FIXME: need checkbox for this
             species_name     => $plate->species_id,
-        });
-        my $dir = $generator->base_dir;
+        };
+        my $generator = LIMS2::Model::Util::PrimerGenerator->new($generator_params);
+        my $dir = dir($generator->base_dir);
         $c->log->debug("Starting primer generation in dir $dir");
-        my $primer_results;
-        if($c->req->param('crispr_primer_checkbox')){
-            my ($file_path, $db_primers) = $generator->generate_crispr_primers;
-            $primer_results->{crispr_seq}->{file_path} = $file_path;
-            $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
-        }
+        $dir->file('params.json')->spew( encode_json $generator_params );
+        generate_primers_in_background($generator, $c->req->params);
 
-        if($c->req->param('crispr_pcr_checkbox')){
-            my ($file_path, $db_primers) = $generator->generate_crispr_PCR_primers;
-            $primer_results->{crispr_pcr}->{file_path} = $file_path;
-            $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
-        }
-
-        if($c->req->param('genotyping_primer_checkbox')){
-            my ($file_path, $db_primers) = $generator->generate_design_genotyping_primers;
-            $primer_results->{genotyping}->{file_path} = $file_path;
-            $primer_results->{genotyping}->{db_primers} = $db_primers ;
-        }
-        $c->log->debug(Dumper($primer_results));
-        $c->stash->{results} = $primer_results;
+        $c->res->redirect( $c->uri_for( '/user/generate_primers_results', { dir => $dir }));
         return;
     }
     else{
@@ -213,6 +200,63 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
         return;
     }
 
+    return;
+}
+
+sub generate_primers_in_background{
+    my ($generator, $params) = @_;
+
+    # tried setting this to IGNORE to avoid zombie processes
+    # but this caused problems with later system call to primer3
+    local $SIG{CHLD} = 'DEFAULT';
+
+    defined( my $pid = fork() )
+        or LIMS2::Exception::System->throw( "Fork failed: $!" );
+
+    if ( $pid == 0 ) { # child
+        my $primer_results = {};
+        my $dir = dir($generator->base_dir);
+
+        if($params->{crispr_primer_checkbox}){
+            my ($file_path, $db_primers) = $generator->generate_crispr_primers;
+            $primer_results->{crispr_seq}->{file_path} = "$file_path";
+            $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
+        }
+
+        if($params->{crispr_pcr_checkbox}){
+            my ($file_path, $db_primers) = $generator->generate_crispr_PCR_primers;
+            $primer_results->{crispr_pcr}->{file_path} = "$file_path";
+            $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
+        }
+
+        if($params->{genotyping_primer_checkbox}){
+            my ($file_path, $db_primers) = $generator->generate_design_genotyping_primers;
+            $primer_results->{genotyping}->{file_path} = "$file_path";
+            $primer_results->{genotyping}->{db_primers} = $db_primers ;
+        }
+
+        my $json = encode_json($primer_results);
+        my $file = $dir->file('results.json');
+        $file->spew($json);
+        exit 0;
+    }
+
+    return;
+}
+sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(0){
+    my ($self, $c) = @_;
+    my $dir = dir( $c->req->param('dir') );
+    $c->log->debug("primer generation directory: $dir");
+
+    my $params_file = $dir->file('params.json');
+    my $params = decode_json($params_file->slurp);
+    $c->stash->{params} = $params;
+
+    my $file = $dir->file('results.json');
+    if($dir->contains($file)){
+        my $results = decode_json($file->slurp);
+        $c->stash->{results} = $results;
+    }
     return;
 }
 
