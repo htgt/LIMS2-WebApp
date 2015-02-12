@@ -14,6 +14,7 @@
   <tr><th>Strand</th> <td>[% crispr_data.locus.chr_strand %]</td></tr>
   <tr><th>Location Type</th> <td>[% crispr_data.type %]</td></tr>
   <tr><th>PAM Right</th> <td>[% crispr_data.pam_right %]</td></tr>
+  <tr><th>WGE ID</th> <td>[% crispr_data.wge_crispr_id %]</td></tr>
   <tr><th>Comment</th> <td>[% crispr_data.comment %]</td></tr>
 </table>
 
@@ -37,7 +38,7 @@
             <table class="table table-condensed table-bordered">
             [% FOR key IN datum.summary.keys.sort %]
               <tr>
-              
+
                 <td>[% IF key.match('^\d$') %]Off Targets with <span class="badge">[% key %]</span> mismatches[% ELSE %][% key %][% END %]</td>
                 <td>[% datum.summary.$key %]</td>
               </tr>
@@ -107,4 +108,34 @@
   </table>
 [% ELSE %]
   <p><em>No designs linked to this crispr</em></p>
+[% END %]
+
+<h2>Crispr Primers</h2>
+[% IF crispr_data.crispr_primers.size > 0 %]
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Sequence</th>
+        <th>Locus</th>
+        <th>Strand</th>
+        <th>Melting Temp (&deg;C)</th>
+        <th>GC Content (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR datum IN crispr_data.crispr_primers %]
+      <tr>
+        <td>[% datum.primer_name %]</td>
+        <td>[% datum.primer_seq %]</td>
+        <td>[% datum.locus.chr_name %]: [% datum.locus.chr_start %] - [% datum.locus.chr_end %] </td>
+        <td>[% datum.locus.chr_strand %]</td>
+        <td>[% datum.tm %]</td>
+        <td>[% datum.gc_content %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No primers linked to this crispr</em></p>
 [% END %]

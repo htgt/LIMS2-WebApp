@@ -191,6 +191,10 @@ $('.crispr-info').popover();
     <a href="[% c.uri_for( '/user/crispr' , crispr_pair.left_crispr_id , 'view' ) %]" target="_blank">
       [% crispr_pair.left_crispr_id %]
     </a>
+    [% IF crispr_pair.left_crispr_wge_id %]
+    <br/>
+    (WGE: [% crispr_pair.left_crispr_wge_id %])
+    [% END %]
     <div class="btn crispr-info btn-mini btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr_pair.left_crispr_seq, locus = crispr_pair.left_crispr_locus %]" data-animation="false" title="Crispr Info">Info</div>
   </td>
   <td class="crispr">
@@ -209,6 +213,10 @@ $('.crispr-info').popover();
     <a href="[% c.uri_for( '/user/crispr' , crispr_pair.right_crispr_id , 'view' ) %]" target="_blank">
       [% crispr_pair.right_crispr_id %]
     </a>
+    [% IF crispr_pair.right_crispr_wge_id %]
+    <br/>
+    (WGE: [% crispr_pair.right_crispr_wge_id %])
+    [% END %]
     <div class="btn crispr-info btn-mini btn-info btn-block" data-toggle="popover" data-animation="false" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr_pair.right_crispr_seq, locus = crispr_pair.right_crispr_locus %]" title="Crispr Info">Info</div>
   </td>
   <td class="crispr">

@@ -1,0 +1,45 @@
+[% META title = "WGE Crispr Importer"; META tab_name = "Crisprs" %]
+
+<form method="POST" action="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]" class="well form-inline" >
+    <legend>WGE Crispr Group Importer</legend>
+    <input name='gene_id' type="text" placeholder="Gene ID" [% IF gene_id %] value="[% gene_id %]"[% END %]></input>
+
+    <table>
+     <tr>
+      <td>
+       <textarea class="input-xxlarge" name="wge_crispr_id_left" placeholder="WGE crispr ids left of target">[% IF wge_crispr_id_left %][% wge_crispr_id_left %][% END %]</textarea>
+      </td>
+      <td>
+       <textarea class="input-xxlarge" name="wge_crispr_id_right" placeholder="WGE crispr ids right of target">[% IF wge_crispr_id_right %][% wge_crispr_id_right %][% END %]</textarea>
+      </td>
+     </tr>
+    </table>
+    <span class="help-block">
+      Separate WGE crispr IDs by whitespace or commas. WGE crisprs already in LIMS2 will be added to the group but will not be re-imported.
+    </span>
+    <br />
+    <input type="submit" name="import_crispr_group" class="btn btn-primary" value="Import Crispr Group" />
+</form>
+
+[% IF group %]
+<div class="well">
+  <legend>Crispr Group [% group.id %] Imported</legend>
+  Gene: [% group.gene_id %]
+    <table class="table table-bordered table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>WGE Crispr ID</th>
+          <th>LIMS2 Crispr ID</th>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH crispr IN group.group_crisprs %]
+        <tr>
+          <td>[% crispr.wge_crispr_id %]</td>
+          <td><a class="brand" href="[% c.uri_for('/user/crispr', crispr.id, 'view' ) %]">[% crispr.id %]</a></td>
+        </tr>
+      [% END %]
+      </tbody>
+    </table>
+</div>
+[% END %]

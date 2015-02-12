@@ -5,6 +5,9 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
+use TryCatch;
+use LIMS2::Exception;
+use LIMS2::Util::WGE;
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -52,6 +55,13 @@ sub create_crispr {
     # If crispr with same seq and locus exists we need to just deal with the crispr off target data
     if ( $crispr ) {
         $self->log->debug( 'Found identical crispr site, just updating off target data: ' . $crispr->id );
+        #also update the wge_crispr_id if its set
+        if ( $params->{wge_crispr_id} ) {
+            if ( (! $crispr->{wge_crispr_id}) || $crispr->{wge_crispr_id} ne $params->{wge_crispr_id} ) {
+                $crispr->update( { wge_crispr_id => $params->{wge_crispr_id} } );
+            }
+        }
+
         return $self->update_or_create_crispr_off_targets( $crispr, $validated_params );
     }
 
@@ -267,8 +277,10 @@ sub delete_crispr {
 
 sub pspec_retrieve_crispr {
     return {
-        id      => { validate => 'integer' },
-        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
+        id      => { validate => 'integer', optional => 1},
+        wge_crispr_id  => { validate => 'integer', optional => 1 },
+        REQUIRE_SOME => { id_or_wge_crispr_id => [ 1, qw( id wge_crispr_id ) ] },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 },
     };
 }
 
@@ -277,7 +289,7 @@ sub retrieve_crispr {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr );
 
-    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id species_id ) } );
+    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id wge_crispr_id species_id ) } );
 
     return $crispr;
 }
@@ -437,7 +449,200 @@ sub update_or_create_crispr_pair{
     return $pair;
 }
 
+sub import_wge_crisprs {
+    my ( $self, $ids, $species, $assembly ) = @_;
 
+    my $wge = LIMS2::Util::WGE->new;
+
+    my @output;
+    for my $crispr_id ( @{ $ids } ) {
+        next unless $crispr_id; #skip blank lines
+
+        try {
+            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly, $species );
+            my $crispr = $self->create_crispr( $crispr_data );
+            push @output, { wge_id => $crispr_id, lims2_id => $crispr->id, db_crispr => $crispr };
+        }
+        catch ($err) {
+            LIMS2::Exception->throw( "Error importing WGE crispr with id $crispr_id\n$err" );
+        }
+    }
+
+    return @output;
+}
+
+sub import_wge_pairs {
+    my ( $self, $pair_ids, $species, $assembly ) = @_;
+
+    my $wge = LIMS2::Util::WGE->new;
+
+    my @output;
+    for my $pair_id ( @{ $pair_ids } ) {
+        next unless $pair_id;
+
+        my @ids = $pair_id =~ /^(\d+)_(\d+)$/;
+
+        unless ( @ids == 2 ) {
+            LIMS2::Exception->throw( "Invalid WGE crispr pair id: $pair_id" );
+        }
+
+        try {
+            my $crispr_pair_data = $wge->get_crispr_pair( @ids, $species, $assembly );
+            if ( $species ne $crispr_pair_data->{species} ) {
+                LIMS2::Exception->throw(
+                    "LIMS2 is set to '$species' and pair is '" . $crispr_pair_data->{species} . "'\n"
+                  . "Please switch to the correct species"
+                );
+            }
+
+            #this creates the two crisprs in lims2
+            my @crisprs = $self->import_wge_crisprs( \@ids, $species, $assembly );
+
+            #pull out the dbix rows so its clear what we're actually doing
+            my $lims2_left_crispr  = $crisprs[0]->{db_crispr};
+            my $lims2_right_crispr = $crisprs[1]->{db_crispr};
+
+            #now create the lims2 crispr pair
+            my $lims2_crispr_pair = $self->update_or_create_crispr_pair( {
+                l_id   => $lims2_left_crispr->id,
+                r_id   => $lims2_right_crispr->id,
+                spacer => $crispr_pair_data->{spacer},
+            } );
+
+            push @output, {
+                wge_id      => $pair_id,
+                lims2_id    => $lims2_crispr_pair->id,
+                left_id     => $lims2_left_crispr->id,
+                right_id    => $lims2_right_crispr->id,
+                spacer      => $crispr_pair_data->{spacer},
+            };
+        }
+        catch ( $err ) {
+            LIMS2::Exception->throw( "Error importing WGE pair with id $pair_id\n$err" );
+        }
+    }
+
+    return @output;
+}
+
+sub pspec_retrieve_crispr_group {
+    return {
+        id => { validate => 'integer' },
+    };
+}
+
+sub retrieve_crispr_group {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_group );
+
+    my $crispr_group = $self->retrieve(
+        CrisprGroup => {  'me.id' => $validated_params->{id} },
+    );
+
+    return $crispr_group;
+}
+
+sub pspec_create_crispr_group {
+    return {
+        crisprs      => { validate => 'hashref' },
+        gene_id      => { validate => 'non_empty_string' },
+        gene_type_id => { validate => 'non_empty_string' },
+    };
+}
+
+# needs as params the gene_id and gene_type_id, and an array of hashes containing the crispr_id and the left_of_target boolean
+sub create_crispr_group {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_group );
+
+    my $crispr_group;
+    $self->schema->txn_do( sub {
+        try {
+            # create the group for the given gene
+            $crispr_group = $self->schema->resultset('CrisprGroup')->create({
+                gene_id      => $validated_params->{'gene_id'},
+                gene_type_id => $validated_params->{'gene_type_id'},
+            });
+            $self->log->debug( 'Create crispr group ' . $crispr_group->id );
+
+            # add the given crisprs to that group
+            foreach my $crispr ( @{ $validated_params->{'crisprs'} } ) {
+                $crispr_group->crispr_group_crisprs->create( {
+                    crispr_id  => $crispr->{'crispr_id'},
+                    left_of_target => $crispr->{'left_of_target'},
+                } );
+            }
+
+        }
+        catch ($err) {
+            $self->schema->txn_rollback;
+            LIMS2::Exception->throw( "Error creating crispr group: $err" );
+        }
+
+    });
+
+    return $crispr_group;
+}
+
+# Given a list of crispr IDs find a crispr group that contains all of them
+# Check all crisprs in this group are in the list provided
+# This method is needed in case we end up with crisprs belonging to multiple
+# crispr groups, or different sized groups containing subsets of other groups,
+# and other possible situations for which the simple search query is not enough
+# to identify the correct group
+sub get_crispr_group_by_crispr_ids{
+    my ($self, $params) = @_;
+
+    my @crispr_ids = @{ $params->{crispr_ids} }
+        or die "No crispr_ids array provided to get_crispr_group_by_crispr_ids";
+
+    my @crispr_groups = $self->schema->resultset('CrisprGroup')->search(
+        {
+            'crispr_group_crisprs.crispr_id' => { 'IN' => \@crispr_ids },
+        },
+        {
+            join     => 'crispr_group_crisprs',
+            distinct => 1,
+        }
+    )->all;
+
+    my %input_ids = map { $_ => 1 } @crispr_ids;
+    $self->log->debug('input IDs: '.(join ",",@crispr_ids));
+    my $error_msg = "No crispr group found for crispr IDs ".(join ",",@crispr_ids).". ";
+    foreach my $group (@crispr_groups){
+        my $group_id = $group->id;
+        $self->log->debug('Comparing crispr group '.$group->id.' to crispr ID list');
+        my @group_crispr_ids = map { $_->crispr_id } $group->crispr_group_crisprs;
+        my %group_ids = map { $_ => 1 } @group_crispr_ids;
+
+        # See if any input crispr IDs are not in the group
+        my @inputs_not_in_group = grep { !$group_ids{$_} } @crispr_ids;
+
+        # See if any group crispr IDs are not in the input list
+        my @group_ids_not_in_input = grep { !$input_ids{$_} } @group_crispr_ids;
+
+        if(@inputs_not_in_group == 0 and @group_ids_not_in_input == 0){
+            # This is the right group so return it
+            return $group;
+        }
+        else{
+            # Generate some error messages
+            if( @inputs_not_in_group ){
+               $error_msg .= "Group $group_id does not contain these crispr IDs which were in the input list: "
+                             .(join ",", @inputs_not_in_group).". ";
+            }
+
+            if (@group_ids_not_in_input){
+                $error_msg .= "Group $group_id contains these crispr IDs which were not in the input list: "
+                              .(join ",", @group_ids_not_in_input).". ";
+            }
+        }
+    }
+    LIMS2::Exception->throw($error_msg);
+    return;
+}
 1;
 
 __END__

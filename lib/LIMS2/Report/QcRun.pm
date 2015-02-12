@@ -88,7 +88,7 @@ override _build_columns => sub {
 override iterator => sub {
     my ( $self ) = @_;
 
-    my $qc_results = retrieve_qc_run_results_fast( $self->qc_run, $self->model->schema, $self->is_crispr_run );
+    my $qc_results = retrieve_qc_run_results_fast( $self->qc_run, $self->model, $self->is_crispr_run );
 
     my $qc_result = shift @{ $qc_results };
 
@@ -100,6 +100,8 @@ override iterator => sub {
             for my $column ( @{ $self->columns } ) {
                 next if $column eq 'valid_primers';
                 my $datum = defined $qc_result->{$column} ? $qc_result->{$column} : '';
+                #make well names uppercase so the lab staff don't have to change it to upload
+                $datum = uc $datum if $column =~ /well_name/;
                 push @data, $datum;
             }
 

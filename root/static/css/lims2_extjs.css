@@ -1,0 +1,24 @@
+.lims2-cell-inner {
+    height: 40px;
+    vertical-align: middle;
+}
+
+.lims2-first-cell-format {
+    font-weight: bold;
+}
+
+.x-grid-cell-inner {
+    white-space: normal;
+}
+
+.icon-ext-print {
+	background-image: url("../extjs/src/ux/grid/gridPrinterCss/printer.png");
+}
+
+.lims2-picked .x-grid-cell{
+	background-color: #dff0d8;
+}
+
+.lims2-barcode-scanned .x-grid-cell{
+    background-color: #d9edf7;
+}

@@ -190,6 +190,7 @@ sub as_hash {
         right_crispr_id    => $self->right_crispr_id,
         spacer             => $self->spacer,
         off_target_summary => $self->off_target_summary,
+        crispr_primers     => [ map { $_->as_hash } $self->crispr_primers ],
     );
 
     return \%h;
@@ -246,6 +247,8 @@ sub chr_name {
 }
 
 sub is_pair { return 1; }
+
+sub is_group { return; }
 
 sub related_designs {
   my $self = shift;

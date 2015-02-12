@@ -9,13 +9,21 @@
 [% INCLUDE 'pagination.tt' pageset = pageset %]
 
 [%- MACRO linkify(v) BLOCK %]
-[% IF v.match( '^https?:' ) %]
-<a href="[% v %]">Test result</a>
-[% ELSE %]
-[% v %]
+    [% IF v.match( '^https?:' ) %]
+<a href="[% v %]">Link</a>
+    [% ELSIF v.match( 'lims2_custom' ) %]
+        [%- USE JSON %]
+        [%- v_json = JSON.json_decode( v ) %]
+        [%- button_label = v_json.lims2_custom.button_label %]
+        [%- tab_target = v_json.lims2_custom.browser_target %]
+        [%- api_url = v_json.lims2_custom.api_url %]
+<a class="btn btn-info btn-small"
+        <a href="[% c.uri_for( api_url, v_json.lims2_custom )
+                 %]" target="[% tab_target %]">[% button_label %]</a>
+    [% ELSE %]
+        [% v %]
+    [% END %]
 [% END %]
-[% END %]
-
 <br/>
 
 <table class="table table-striped table-bordered">
@@ -38,3 +46,80 @@
 </table>
 
 [% INCLUDE 'pagination.tt' pageset = pageset %]
+
+<script type="text/javascript">
+  function getCell(column_name, id_column_name, row_name) {
+    // column_name is the name of the column contaning the cell we want
+    // id_column_name is the name of the id column we look in to find the row_name
+    if(!$("table th:contains(" + column_name + ")").length){
+      console.log("table does not contain column named " + column_name);
+      return;
+    }
+    var column_index = $("table th:contains(" + column_name + ")").index();
+
+    if(!$("table th:contains(" + id_column_name + ")").length){
+      console.log("table does not contain column named " + id_column_name );
+      return;
+    }
+    var id_column_index = $("table th:contains(" + id_column_name + ")").index() + 1;
+
+    var id_column = $('table tr td:nth-child(' + id_column_index + ')');
+    var row = id_column.filter(function(){
+      return ($(this).text().trim() == row_name)
+    }).closest('tr');
+    return row.find('td').eq(column_index);
+  }
+
+  $(document).ready(function() {
+    [%IF extra_data.plate_type == 'ASSEMBLY' %]
+      console.log('adding assembly plate functionality');
+      var valid_label = '<span class="label label-success validation-status pull-right">Validated</span>';
+      var not_valid_label = '<span class="label label-default validation-status pull-right">Not Validated</span>';
+      var button_html = '<button class="btn btn-mini">Change validation state</button>';
+
+      [% genotyping = { hash_element => 'genotyping_primers', key_column => 'Design ID', key_param => 'design_id', url => '/user/toggle_genotyping_primer_validation_state' } %]
+
+      [% crispr = { hash_element => 'crispr_primers', key_column => 'Crispr ID', key_param => 'crispr_key', url => '/user/toggle_crispr_primer_validation_state' } %]
+
+      [% FOREACH profile IN [genotyping,crispr] %]
+
+        [% hash_element = profile.hash_element %]
+        [% url = profile.url %]
+        [% key_param = profile.key_param %]
+
+        [% FOREACH key IN extra_data.$hash_element.keys %]
+          [% FOREACH primer IN extra_data.$hash_element.$key %]
+            var cell = getCell('[% primer.type %]','[% profile.key_column %]','[% key %]');
+
+            // add the validation state toggle button, ajax reqest and callback
+            $(button_html).appendTo(cell).click(function(e){
+              var this_cell = $(this).parent();
+              var uri = "[% c.uri_for( url, { $key_param => key, primer_type => primer.type })%]";
+              $.ajax(uri).done(function(data){
+                console.log(data);
+                if(data.success){
+                  this_cell.children('.validation-status').remove();
+                  if(data.is_validated == 1){
+                    this_cell.append(valid_label);
+                  }
+                  else{
+                    this_cell.append(not_valid_label);
+                  }
+                }
+                // if not successful we change nothing..
+              });
+            });
+
+            // add initial validation status label
+            [% IF primer.is_validated %]
+              cell.append(valid_label);
+            [% ELSE %]
+              cell.append(not_valid_label);
+            [% END %]
+
+          [% END %]
+        [% END %]
+      [% END %]
+    [% END %]
+  });
+</script>

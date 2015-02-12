@@ -257,9 +257,44 @@ sub all_tests  : Test(58)
     }
 
 }
+
+sub crispr_importer : Test(6) {
+    my $species  = 'Human';
+    my $assembly = model->schema->resultset('SpeciesDefaultAssembly')->find(
+        { species_id => $species }
+    )->assembly_id;
+
+    ok my @crisprs = model->import_wge_crisprs(
+        [ 245377753 ],
+        $species,
+        $assembly
+    ), 'can import crispr';
+
+    throws_ok {
+        model->import_wge_crisprs( [ 245377753 ], 'Mouse', 'GRCm38' );
+    } 'LIMS2::Exception', 'species mismatch throws error';
+
+    throws_ok {
+        model->import_wge_crisprs( [ 'zz' ], $species, $assembly );
+    } 'LIMS2::Exception', 'invalid crispr creates error';
+
+    ok my @pairs = model->import_wge_pairs(
+        [ '245377753_245377762' ],
+        $species,
+        $assembly
+    ), 'can import crispr pair';
+
+    #make sure crisprs with the same id dont get imported twice
+    is $crisprs[0]->{lims2_id}, $pairs[0]->{left_id}, 'Same imported crispr has correct id';
+
+    throws_ok {
+        ok model->import_wge_pairs( [ '245377753_245377762' ], 'Mouse', 'GRCm38' );
+    } 'LIMS2::Exception', 'species mismatch throws error';
+}
+
 =head1 AUTHOR
 
-Lars G. Erlandsen
+Team 87
 
 =cut
 

@@ -1,0 +1,78 @@
+[% META title = "Effort Recovery Classes" %]
+
+[%- IF edit_class %]
+<form method="GET" action="[% c.uri_for( '/user/edit_recovery_classes', edit_class.id ) %]" class="well">
+  <fieldset>
+    <legend>Effort Recovery Classes</legend>
+
+    <p>Editing recovery class "[% edit_class.name %]".</p>
+    <table>
+    <tr>
+      <input type="hidden" name="update_recovery_class_id" value="[% edit_class.id %]">
+      <td>Name:</td>
+      <td><input type="text" class="input-xxlarge" name="update_recovery_class_name" value="[% edit_class.name %]"></td></tr>
+      <br />
+    <tr>
+      <td>Description:</td>
+      <td><input type="text" class="input-xxlarge" name="update_recovery_class_description" value="[% edit_class.description %]"></td></tr>
+    </table>
+    <br />
+    <span class="help-block">To edit the effort recovery class, fill the text box with the new data and press the Update button. You can also delete the recovery class with the Delete button.</span>
+
+    <br>
+    <input type="submit" name="update_recovery_class" class="btn btn-primary" value="Update Recovery Class" />
+    <input type="submit" name="delete_recovery_class" class="btn btn-danger" value="Delete Recovery Class" />
+    <span style="float:right">
+    <a href="[% c.uri_for( '/user/edit_recovery_classes' ) %]" class="btn btn-primary">New Recovery Class</a>
+    </span>
+  </fieldset>
+</form>
+[%- ELSE %]
+<form method="GET" action="[% c.uri_for( '/user/edit_recovery_classes' ) %]" class="well">
+  <fieldset>
+    <legend>Effort Recovery Classes</legend>
+
+    <p>Adding new recovery class.</p>
+    <table>
+    <tr>
+      <td>Name:</td>
+        <td><input type="text" class="input-xxlarge" name="new_recovery_class"></td></tr>
+      <br />
+    <tr>
+      <td>Description:</td>
+      <td><input type="text" class="input-xxlarge" name="new_recovery_class_description"></td></tr>
+    </table>
+    <br />
+    <span class="help-block">To insert a new effort recovery class, fill the text box and press the Add Recovery Class button.</span>
+
+    <br>
+    <input type="submit" name="add_recovery_class" class="btn btn-primary" value="Add Recovery Class" />
+  </fieldset>
+</form>
+[%- END %]
+
+<legend>Existing Effort Recovery Classes</legend>
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    [%- FOR recovery_class IN recovery_classes %]
+    <tr>
+      <td>
+        [%- recovery_class.name %]
+      </td>
+      <td>
+        [%- recovery_class.description %]
+      </td>
+      <td>
+      <p><a href="[% c.uri_for( '/user/edit_recovery_classes', recovery_class.id ) %]" class="btn btn-primary">Edit Class</a></p>
+      </td>
+    </tr>
+    [%- END %]
+  </tbody>
+</table>

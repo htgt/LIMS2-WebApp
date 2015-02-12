@@ -39,6 +39,7 @@ sub cached_async_report :Path( '/user/report/cache' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
+        catalyst   => $c,
     );
 
     $c->stash(
@@ -67,7 +68,8 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
         model      => $c->model( 'Golgi' ),
         report     => $report,
         params     => $params,
-        async      => 0
+        async      => 0,
+        catalyst   => $c,
     );
 
     if ( not defined $report_id ) {
@@ -76,6 +78,35 @@ sub sync_report :Path( '/user/report/sync' ) :Args(1) {
     }
 
     return $c->forward( 'view_report', [ $report_id ] );
+}
+
+=head1 GET /user/report/sync/grid/$REPORT
+
+Synchronously generate the grid report I<$REPORT>. Forward to an HTML ExtJS Grid view.
+
+=cut
+
+sub grid_sync_report :Path( '/user/report/sync/grid' ) :Args(1) {
+    my ( $self, $c, $report ) = @_;
+    $c->assert_user_roles( 'read' );
+
+    my $params = $c->request->params;
+    $params->{species} ||= $c->session->{selected_species};
+
+    my $report_id = LIMS2::Report::generate_report(
+        model      => $c->model( 'Golgi' ),
+        report     => $report,
+        params     => $params,
+        async      => 0,
+        catalyst   => $c,
+    );
+
+    if ( not defined $report_id ) {
+        $c->flash( error_msg => 'Failed to generate report' );
+        return $c->response->redirect( $c->uri_for( '/' ) );
+    }
+
+    return $c->forward( 'grid_view_report', [ $report_id ] );
 }
 
 =head1 GET /user/report/async/$REPORT
@@ -97,7 +128,8 @@ sub async_report :Path( '/user/report/async' ) :Args(1) {
         model      => $c->model('Golgi'),
         report     => $report,
         params     => $params,
-        async      => 1
+        async      => 1,
+        catalyst   => $c,
     );
 
     $c->stash(
@@ -141,7 +173,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
 
     $c->assert_user_roles( 'read' );
 
-    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    my ( $report_name, $report_fh, $template, $extra_data ) = LIMS2::Report::read_report_from_disk( $report_id );
 
     my $pageset = LIMS2::WebApp::Pageset->new(
         {
@@ -150,7 +182,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
             current_page     => $c->request->param('page') || 1,
             pages_per_set    => 5,
             mode             => 'slide',
-            base_uri         => $c->request->uri
+            base_uri         => $c->uri_for( '/user/report/view', $report_id ),
         }
     );
 
@@ -162,7 +194,7 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         $report_fh->getline;
     }
 
-    # Check for plate_id and set the is_virtual_plate flag if appropriate 
+    # Check for plate_id and set the is_virtual_plate flag if appropriate
 
     my $is_virtual_plate = 0;
 
@@ -178,8 +210,11 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         push @data, $row;
     }
 
+    $template ||= 'user/report/simple_table.tt';
+    $c->log->debug("using report template $template");
+
     $c->stash(
-        template        => 'user/report/simple_table.tt',
+        template        => $template,
         report_id       => $report_id,
         title           => $report_name,
         pageset         => $pageset,
@@ -187,8 +222,58 @@ sub view_report :Path( '/user/report/view' ) :Args(1) {
         data            => \@data,
         plate_is_virtual   => $is_virtual_plate,
     );
+
+    # Data structure providing additional information to custom report template
+    if($extra_data){
+        $c->log->debug("Extra report data found");
+        $c->stash->{extra_data} = $extra_data;
+    }
+
     return;
 }
+
+=head1 GET /user/report/grid_view/$REPORT_ID
+
+Read report I<$REPORT_ID> from disk and deliver as ExtJS grid table.
+Paging is not required because the table is scrollable.
+
+=cut
+
+sub grid_view_report :Path( '/user/report/grid_view' ) :Args(1) {
+    my ( $self, $c, $report_id ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+
+    my $csv     = Text::CSV->new;
+    my $columns = $csv->getline( $report_fh );
+
+    # Check for plate_id and set the is_virtual_plate flag if appropriate
+
+    my $is_virtual_plate = 0;
+
+    if ( my $plate_id = $c->request->param('plate_id') ) {
+        my $plate = $c->model( 'Golgi')->retrieve_plate({ id =>  $plate_id });
+        $is_virtual_plate = $plate->is_virtual;
+    }
+
+    my @data;
+    while ( my $row = $csv->getline( $report_fh )) {
+        push @data, $row;
+    }
+
+    $c->stash(
+        template        => 'user/report/extjs_report_table.tt',
+        report_id       => $report_id,
+        title           => $report_name,
+        columns         => $columns,
+        data            => \@data,
+        plate_is_virtual   => $is_virtual_plate,
+    );
+    return;
+}
+
 
 sub _count_rows {
     my ( $self, $fh ) = @_;
@@ -207,7 +292,8 @@ sub select_sponsor :Path( '/user/report/sponsor' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
 
     # Human project sponsors list
-    my @human_sponsors = ['Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs'];
+
+    my @human_sponsors = ['All', 'Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering', 'Transfacs'];
     $c->stash(
         template    => 'user/report/select_sponsor.tt',
         report_name => $report,

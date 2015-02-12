@@ -1,0 +1,6 @@
+<div class="alert alert-block">
+Please use the design creation interface in <a href="http://www.sanger.ac.uk/htgt/wge/gibson_designer">WGE</a>.
+<br>
+<br>
+You can then <a href="[% c.uri_for('/user/wge_design_importer') %]">import</a> the design into LIMS2.
+</div>

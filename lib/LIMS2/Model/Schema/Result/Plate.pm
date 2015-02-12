@@ -97,6 +97,11 @@ __PACKAGE__->table("plates");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 version
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -130,6 +135,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "sponsor_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "version",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -146,17 +153,19 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<plates_name_key>
+=head2 C<plates_name_version_key>
 
 =over 4
 
 =item * L</name>
 
+=item * L</version>
+
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("plates_name_key", ["name"]);
+__PACKAGE__->add_unique_constraint("plates_name_version_key", ["name", "version"]);
 
 =head1 RELATIONS
 
@@ -256,8 +265,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OfsVGCbzXEf/u17IzAJlmw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-06 15:02:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pjNp3WS+/I8FD3YqT1fJbw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -267,7 +276,13 @@ use overload '""' => \&as_string;
 sub as_string {
     my $self = shift;
 
-    return $self->name;
+    my $name = $self->name;
+
+    if($self->version){
+        $name = sprintf( '%s(v%s)', $self->name, $self->version);
+    }
+
+    return $name;
 }
 
 sub as_hash {
@@ -287,7 +302,7 @@ sub has_child_wells {
     my $self = shift;
 
     for my $well ( $self->wells ) {
-        return 1 if $well->input_processes > 0;
+        return 1 if $well->process_input_wells > 0;
     }
 
     return;
@@ -329,6 +344,30 @@ sub child_plates_by_process_type{
 	}
 
 	return $children;
+}
+
+sub number_of_wells {
+    my $self = shift;
+
+    my $count = 0;
+    for my $well ( $self->wells ){
+      $count += 1;
+    }
+
+    return $count;
+}
+
+sub number_of_wells_with_barcodes {
+    my $self = shift;
+
+    my $count = 0;
+    for my $well ( $self->wells ){
+      if( $well->well_barcode ) {
+        $count += 1;
+      }
+    }
+
+    return $count;
 }
 
 __PACKAGE__->meta->make_immutable;

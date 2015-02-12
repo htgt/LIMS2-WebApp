@@ -5,6 +5,7 @@
       [% IF template.title != 'Login' %]
       <ul class="nav">
 
+      [% IF c.user %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
@@ -18,7 +19,13 @@
               <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
+              <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Report</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/sponsor/RecoveryOverview' ) %]">Recovery Overview</a>
             </li>
           </ul>
         </li>
@@ -40,10 +47,13 @@
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
+              <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
           </ul>
         </li>
@@ -56,6 +66,9 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_pair_importer' ) %]">Import Crispr Pair From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
             </li>
           </ul>
         </li>
@@ -91,13 +104,16 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/browse_templates' ) %]">Browse QC Templates</a>
-            </li>            
+            </li>
             [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
+              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit Vector QC Job</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/submit_es_cell' ) %]">Submit ES Cell QC Job</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
@@ -109,8 +125,8 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
-            </li>    
-            
+            </li>
+
             <li class="divider"></li>
 
             <li>
@@ -118,7 +134,7 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
-            </li>  
+            </li>
 
             [% END %]
           </ul>
@@ -139,47 +155,39 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/dna_quality_update' ) %]">Update DNA EGel Status</a>
-            </li>            
+            </li>
             <li>
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
+              <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/update_colony_picks_step_1' ) %]">Update Colony Counts</a>
             </li>
             [% END %]
             <li>
               <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
             </li>
+
             <li class="divider"></li>
 
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/GenesToElectroporate' ) %]">
-                Genes To Electroporate
-              </a>
-            </li>
-
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
-                First Allele Electroporation Detail
-              </a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/SecondElectroporationProductionDetail' ) %]">
-                Second Allele Electroporation Detail
-              </a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/EPSummary' ) %]">
+              <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
                 Electroporation Summary
               </a>
             </li>
-<!--
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
-                Electroporation Production Summary
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPDetail' ) %]">
+                Crispr Electroporation Detail
               </a>
             </li>
--->       
+            [% IF c.session.selected_species == "Mouse" %]
+            <li>
+                <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummary' ) %]">
+                  Crispr Electroporation Summary
+                </a>
+            </li>
             <li>
               <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionSummary' ) %]">
                 Cre Knockin ES Distribution Summary
@@ -190,19 +198,50 @@
                 Cre Knockin ES Distribution Genes
               </a>
             </li>
+            [% END %]
 
             <li class="divider"></li>
 
             <li>
-              <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]">
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">
                 Well Genotyping Info
               </a>
             </li>
 
           </ul>
         </li>
+
+        <li class="dropdown[% IF template.tab_name == "Barcodes" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Barcodes <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/generate_picklist' ) %]">Generate Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/checkout_from_picklist' ) %]">Checkout From Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/scan_barcode' ) %]">Scan Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/well_checkout' ) %]">Checkout Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/FP' ) %]">Checked Out FP Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/PIQ' ) %]">Checked Out PIQ Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_barcoded_plate' ) %]">Create Barcoded Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]">Rescan Barcoded Plate</a>
+            </li>
+          </ul>
+        </li>
+
       </ul>
-      [% IF c.user %]
 
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
@@ -240,10 +279,22 @@
       </ul>
 
       [% ELSE %]
+        <li class="dropdown active">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Well Genotyping Info</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
 
-      <p class="nav pull-right">
-        <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-      </p>
+      <ul class="nav pull-right">
+        <li class="divider-vertical"></li>
+          <p class="nav pull-right">
+            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
+          </p>
+      </ul>
 
       [% END %]
 

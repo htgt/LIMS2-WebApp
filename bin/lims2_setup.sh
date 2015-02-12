@@ -33,6 +33,15 @@ case $1 in
     replicate)
         lims2_replicate $2
         ;;
+    devel)
+        lims2_devel
+        ;;
+    wge)
+        lims2_wge_rest_client $2
+        ;;
+    'pg9.3')
+        lims2_pg9.3
+        ;;
     *) 
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -167,6 +176,18 @@ function lims2_load_staging {
     source $LIMS2_DEV_ROOT/bin/lims2_staging_clone 
 }
 
+function lims2_wge_rest_client {
+    if [[  "$1"   ]] ; then
+        if [[ $1 != "live" ]]; then
+           export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+        else
+           export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-live-rest-client.conf
+        fi
+    else
+        printf "$L2W_STRING: need LIVE or DEVEL parameter\n"
+    fi
+}
+
 function lims2_devel {
     unset PERL5LIB
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-WebApp/lib
@@ -177,6 +198,18 @@ function lims2_devel {
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-76/modules
+    export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
+    export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
+    export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
+    export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+}
+
+function lims2_pg9.3 {
+    check_and_set PSQL_EXE /opt/t87/global/software/postgres/9.3.4/bin/psql
+    check_and_set PG_DUMP_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_dump
+    check_and_set PG_RESTORE_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_restore
+    use pg9.3
 }
 
 function lims2_show {
@@ -195,16 +228,22 @@ LIMS2 useful environment variables:
 \$PATH :
 `perl -e 'print( join("\n", split(":", $ENV{PATH}))."\n")'`
 
+\$PG_DUMP_EXE                  : $PG_DUMP_EXE
+\$PG_RESTORE_EXE               : $PG_RESTORE_EXE
+\$PSQL_EXE                     : $PSQL_EXE
+
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG
 \$LIMS2_LOG4PERL_CONFIG        : $LIMS2_LOG4PERL_CONFIG
 \$LIMS2_QC_CONFIG              : $LIMS2_QC_CONFIG
 \$LIMS2_REPORT_CACHE_CONFIG    : $LIMS2_REPORT_CACHE_CONFIG
+\$LIMS2_REPORT_DIR             : $LIMS2_REPORT_DIR
 \$LIMS2_WEBAPP_CONFIG          : $LIMS2_WEBAPP_CONFIG
 \$LIMS2_DBCONNECT_CONFIG       : $LIMS2_DBCONNECT_CONFIG
 \$ENG_SEQ_BUILDER_CONF         : $ENG_SEQ_BUILDER_CONF
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT
+\$WGE_REST_CLIENT_CONFIG       : $WGE_REST_CLIENT_CONFIG
 \$LIMS2_ENSEMBL_USER           : $LIMS2_ENSEMBl_USER
 \$LIMS2_ENSEMBL_HOST           : $LIMS2_ENSEMBL_HOST
 \$LIMS2_DB                     : $LIMS2_DB
@@ -220,7 +259,7 @@ Summary of commands in the lims2 environment:
 
 lims2 <command> <optional parameter>
 (most variables can be set to your default favourites in ~/.lims2_local)
-commands avaiable:
+Commands avaiable:
 
     webapp       - starts the webapp server on the default port, or the port specified in
                  \$LIMS2_WEBAPP_SERVER_PORT (*) with the options specified in
@@ -233,10 +272,16 @@ commands avaiable:
     replicate < test | local | staging >
                  - replicates test into your own test_db (*), or live into your local db (*)
                  - replicates staging by copying from live - stop staging db first
+    replicate < target_profile >
+                 - replicates live into target_profile (a check is made to exclude LIMS2_LIVE as target)
     show         - show the value of useful LIMS2 variables
 
     local        - sets LIMS2 up to use your local database (*)
     test         - sets LIMS2 up to use your own test database (*)
+
+    devel        - sets the environment to use entirely local checkouts (no production code)
+
+    setdb        - lists the available database profiles, highlighting the profile currently in use
     setdb <db_name> - sets the LIMS2_DB (*) environment variable 
 
     help         - displays this help message

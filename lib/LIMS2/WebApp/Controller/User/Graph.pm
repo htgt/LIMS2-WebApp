@@ -5,6 +5,7 @@ use Data::UUID;
 use LIMS2::Model::Util::DrawPlateGraph qw(draw_plate_graph);
 use Try::Tiny;
 use namespace::autoclean;
+use LIMS2::Model;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -55,6 +56,7 @@ sub index :Path :Args(0) {
     my $plate_name  = $c->req->param('plate_name');
     my $well_name   = $c->req->param('well_name');
     my $graph_type  = $c->req->param('graph_type') || 'descendants';
+    my $crisprs     = $c->req->param('crisprs');
 
     my $pr_plate_name = $c->req->param('pr_plate_name');
     my $pr_graph_type = $c->req->param('pr_graph_type') || 'both';
@@ -65,6 +67,7 @@ sub index :Path :Args(0) {
         graph_type  => $graph_type,
         pr_plate_name => $pr_plate_name,
         pr_graph_type => $pr_graph_type,
+        crisprs     => $crisprs,
     );
 
     return unless $c->req->param('go');
@@ -80,6 +83,16 @@ sub index :Path :Args(0) {
     		$c->stash( error_msg => "Please select 'ancestors', 'descendants' or 'both'");
     		return;
     	}
+
+        my $plate;
+        try{
+            $plate = $c->model('Golgi')->retrieve_plate({ name => $pr_plate_name });
+        };
+
+        unless($plate){
+            $c->stash( error_msg => "Plate $pr_plate_name not found" );
+            return;
+        }
 
     	try{
     	    my $uuid = $self->_write_plate_graph($pr_plate_name, $pr_graph_type);
@@ -103,8 +116,44 @@ sub index :Path :Args(0) {
         return;
     }
 
-    my $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
-    my $uuid = $self->_write_graph( $c, $well, $graph_type );
+    my $plate;
+    try{
+        $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
+    };
+
+    unless($plate){
+        $c->stash( error_msg => "Plate $plate_name not found" );
+        return;
+    }
+
+    my $well;
+    try{
+        $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+    };
+
+    unless($well){
+        $c->stash( error_msg => "Well $well_name not found on plate $plate_name");
+        return;
+    }
+
+    # If the well has no design, it means its a crispr already, so no need to include crisprs
+    my $has_design;
+    try{
+        $well->design->id;
+        $has_design = 1;
+    }
+    catch{
+        $has_design = 0;
+    };
+
+    my $uuid;
+
+    # include crispr plates?
+    if ( $crisprs && $has_design) {
+        $uuid = $self->_write_crispr_graph( $c, $well, $graph_type );
+    } else {
+        $uuid = $self->_write_graph( $c, $well, $graph_type );
+    }
 
     $c->stash( graph_uri => $c->uri_for( "/user/graph/render/$uuid" ) );
 
@@ -115,6 +164,7 @@ sub _write_graph {
     my ( $self, $c, $well, $graph_type ) = @_;
 
     my $uuid = Data::UUID->new->create_str;
+
     my $output_dir = $self->graph_dir->subdir( $uuid );
     $output_dir->mkpath;
 
@@ -151,6 +201,77 @@ sub _write_plate_graph{
 
     return $uuid;
 }
+
+sub _write_crispr_graph {
+    my ( $self, $c, $original_well, $graph_type ) = @_;
+
+    my $design_id = $original_well->design->id;
+
+    my @wells = $c->model('Golgi')->get_crispr_wells_for_design( $design_id );
+    unshift @wells, $original_well;
+
+    my $uuid = Data::UUID->new->create_str;
+
+    my $output_dir = $self->graph_dir->subdir( $uuid );
+    $output_dir->mkpath;
+
+    my @pgraphs;
+    foreach my $well (@wells) {
+        push @pgraphs, $well->$graph_type();
+    }
+
+    render_crispr( { output_file => $output_dir->file( $self->graph_filename )->stringify, format => $self->graph_format} , \@pgraphs);
+
+    return $uuid;
+}
+
+sub render_crispr {
+    my ( $opts, $pgraphs_ref ) = @_;
+
+    require GraphViz2;
+
+    my %opts = %{$opts};
+    my @pgraphs = @{$pgraphs_ref};
+
+    my $graph = GraphViz2->new(
+        edge    => { color => 'grey' },
+        global  => { directed => 1   },
+        node    => { shape => 'oval' },
+        verbose => 0,
+    );
+
+    my %seen_process;
+
+    # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
+    foreach my $pgraph (@pgraphs) {
+        for my $well ( $pgraph->wells ) {
+            $pgraph->log->debug( "Adding $well to GraphViz" );
+            $graph->add_node(
+                name   => $well->as_string,
+                label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ],
+                URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
+                target => '_blank',
+            );
+        }
+
+        for my $edge ( @{ $pgraph->edges } ) {
+            my ( $process_id, $input_well_id, $output_well_id ) = @{ $edge };
+            next if $seen_process{$process_id}{$input_well_id}{$output_well_id}++;
+            $pgraph->log->debug( "Adding edge $process_id to GraphViz" );
+            $graph->add_edge(
+                from  => defined $input_well_id ? $pgraph->well( $input_well_id )->as_string : 'ROOT',
+                to    => $pgraph->well( $output_well_id )->as_string,
+                label => $pgraph->process( $process_id )->as_string
+            );
+        }
+    }
+
+    $graph->run( %opts );
+
+    return $opts{output_file} ? () : $graph->dot_output;
+
+}
+
 
 =head1 AUTHOR
 

@@ -173,15 +173,14 @@ override iterator => sub {
     my $summary_data;
     my @sponsors;
 
-    if ( $self->sponsor ne 'All' ) {
-        @sponsors = ($self->sponsor);
+    if ( $self->sponsor eq 'All' && $self->species eq 'Mouse' ) {
+        @sponsors = ('Core', 'Syboss', 'Pathogens');
+    }
+    if ( $self->sponsor eq 'All' && $self->species eq 'Human' ) {
+        @sponsors = ('Experimental Cancer Genetics', 'Mutation', 'Pathogen', 'Stem Cell Engineering');
     }
     else {
-        if ($self->species eq 'Mouse') {
-                @sponsors = ('Core', 'Syboss', 'Pathogens');
-        } else {
-                @sponsors = ('Adams', 'Human-Core', 'Mutation', 'Pathogen', 'Skarnes', 'Transfacs');
-        }
+        @sponsors = ($self->sponsor);
     }
 
     foreach my $sponsor (@sponsors) {

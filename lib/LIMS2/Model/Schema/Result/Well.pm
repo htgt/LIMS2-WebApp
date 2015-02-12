@@ -90,6 +90,12 @@ __PACKAGE__->table("wells");
   data_type: 'text'
   is_nullable: 1
 
+=head2 to_report
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -121,6 +127,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "accepted_rules_version",
   { data_type => "text", is_nullable => 1 },
+  "to_report",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -152,6 +160,36 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint("wells_plate_id_name_key", ["plate_id", "name"]);
 
 =head1 RELATIONS
+
+=head2 barcode_events_new_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_new_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.new_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 barcode_events_old_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_old_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.old_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 created_by
 
@@ -270,6 +308,21 @@ __PACKAGE__->might_have(
   "well_barcode",
   "LIMS2::Model::Schema::Result::WellBarcode",
   { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_barcodes_root_piqs_well
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_barcodes_root_piqs_well",
+  "LIMS2::Model::Schema::Result::WellBarcode",
+  { "foreign.root_piq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -489,8 +542,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 07:55:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iz4NYMMseKHv6Mu5W0EJpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 16:41:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YiWRvSPiOvAhXla608AoMw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -524,7 +577,12 @@ use List::MoreUtils qw( uniq );
 sub as_string {
     my $self = shift;
 
-    return sprintf( '%s_%s', $self->plate->name, $self->name );
+    my $name = sprintf( '%s_%s', $self->plate->name, $self->name );
+
+    if($self->plate->version){
+        $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+    }
+    return $name;
 }
 
 sub as_hash {
@@ -541,6 +599,11 @@ sub as_hash {
         assay_complete => $self->assay_complete ? $self->assay_complete->iso8601 : undef,
         accepted       => $self->is_accepted
     };
+}
+
+sub plate_name {
+    my $self = shift;
+    return $self->plate->name;
 }
 
 has ancestors => (
@@ -633,6 +696,20 @@ sub recombineering_result {
     return $rec_result;
 }
 
+sub recombineering_results_string{
+    my ( $self ) = @_;
+
+    my @results = $self->well_recombineering_results_rs->search(
+        undef,
+        { order_by => { '-asc', 'result_type_id '} }
+    )->all;
+
+    my @strings = map { $_->result_type_id.":".$_->result } @results;
+    my $string = join ", ",@strings;
+    DEBUG("recombineering results string: $string");
+    return $string;
+}
+
 sub cassette {
     my $self = shift;
 
@@ -644,11 +721,11 @@ sub cassette {
 }
 
 sub backbone {
-    my $self = shift;
+    my ( $self, $args ) = @_;
 
     $self->assert_not_double_targeted;
 
-    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
+    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone', $args );
 
     return $process_backbone ? $process_backbone->backbone : undef;
 }
@@ -808,6 +885,14 @@ sub parent_processes{
 	my @parent_processes = map { $_->process } $self->process_output_wells->all;
 
 	return @parent_processes;
+}
+
+sub parent_wells {
+    my $self = shift;
+
+    my @parent_processes = $self->parent_processes;
+
+    return map{ $_->input_wells } @parent_processes;
 }
 
 sub child_processes{
@@ -981,7 +1066,7 @@ sub is_epd_or_later {
     return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
   }
 
-  #we didn't find any ep picks further up so its not 
+  #we didn't find any ep picks further up so its not
   return;
 }
 
@@ -1081,6 +1166,20 @@ sub descendant_piq {
 }
 ## use critic
 
+sub barcoded_descendant_of_type{
+    my ($self, $type) = @_;
+
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ){
+      while( my $descendant = $descendants->next ){
+        if( ($descendant->plate->type_id eq $type) and $descendant->well_barcode ){
+          return $descendant;
+        }
+      }
+    }
+    return;
+}
+
 sub descendant_crispr_vectors {
     my $self = shift;
 
@@ -1170,24 +1269,80 @@ sub crispr_pair {
     my $self = shift;
 
     my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-
+    my $crispr_pair;
     # Now lookup left and right crispr in the crispr_pair table and return the object to the caller
-    my $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
-           'left_crispr_id' => $left_crispr->crispr->id,
-           'right_crispr_id' => $right_crispr->crispr->id,
-        });
-
-    if (! $crispr_pair) {
-        require LIMS2::Exception::Implementation;
-        LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
+    if ( $left_crispr && $right_crispr ) {
+        $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
+               'left_crispr_id' => $left_crispr->crispr->id,
+               'right_crispr_id' => $right_crispr->crispr->id,
+            });
     }
-    return $crispr_pair;
+    return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
+}
+
+sub crispr_primer_for{
+    my $self = shift;
+    my $params = shift;
+    #does params need validation?
+    my $crispr_primer_seq = '-'; # default sequence is hyphen - no sequence available
+    return $crispr_primer_seq if $params->{'crispr_pair_id'} eq 'Invalid';
+
+    # Decide if well relates to a pair or a single crispr
+    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
+
+    my $primer_type = $params->{'primer_label'} =~ m/\A [SP] /xms ? 'crispr_primer' : 'genotyping_primer';
+
+    my $crispr_col_label;
+    my $crispr_id_value;
+    if (! $right_crispr ) {
+       $crispr_col_label = 'crispr_id';
+       $crispr_id_value = $left_crispr->crispr->id;
+    }
+    else {
+        $crispr_col_label = 'crispr_pair_id';
+        $crispr_id_value = $self->crispr_pair->id;
+    }
+
+    if ( $primer_type eq 'crispr_primer' ){
+        my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
+            $crispr_col_label => $crispr_id_value,
+            'primer_name' => $params->{'primer_label'},
+        });
+        if ($result) {
+            $crispr_primer_seq = $result->primer_seq;
+        }
+    }
+    else {
+        # it's a genotyping primer
+        my $genotyping_primer_rs = $self->result_source->schema->resultset('GenotypingPrimer')->search({
+                'design_id' => $self->design->id,
+                'genotyping_primer_type_id' => $params->{'primer_label'},
+            },
+            {
+                'columns' => [ qw/design_id genotyping_primer_type_id seq/ ],
+                'distinct' => 1,
+            }
+        );
+        if ($genotyping_primer_rs){
+            if ($genotyping_primer_rs->count == 1) {
+                $crispr_primer_seq = $genotyping_primer_rs->first->seq;
+            }
+            elsif ( $genotyping_primer_rs->count > 1) {
+                $crispr_primer_seq = 'multiple results!';
+            }
+        }
+    }
+
+    return $crispr_primer_seq;
 }
 
 #gene finder should be a method that accepts a species id and some gene ids,
-#returning a hashref 
+#returning a hashref
+#see code in WellData for an example
+# NOTE this will always return the epd wells qc data, even if there is qc
+#      data on the current well ( e.g. with a PIQ well )
 sub genotyping_info {
-  my ( $self, $gene_finder ) = @_;
+  my ( $self, $gene_finder, $only_qc_data ) = @_;
 
   require LIMS2::Exception;
 
@@ -1218,13 +1373,17 @@ sub genotyping_info {
   LIMS2::Exception->throw( "No QC wells are accepted" )
      unless $accepted_qc_well;
 
+  if ( $only_qc_data ) {
+    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+  }
+
   # store primers in a hash of primer name -> seq
   my %primers;
   for my $primer ( $accepted_qc_well->get_crispr_primers ) {
     #val is hash with name + seq
     my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
 
-    push @{ $primers{$key} }, $val;
+    push @{ $primers{crispr_primers}{$key} }, $val;
   }
 
   my $vector_well = $self->final_vector;
@@ -1239,7 +1398,7 @@ sub genotyping_info {
   for my $primer ( @design_primers ) {
     my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
 
-    push @{ $primers{$key} }, $val;
+    push @{ $primers{design_primers}{$key} }, $val;
   }
 
   my @gene_ids = uniq map { $_->gene_id } $design->genes;
@@ -1249,19 +1408,23 @@ sub genotyping_info {
                   values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
 
   return {
-      gene      => @genes == 1 ? $genes[0] : [ @genes ],
-      design_id => $design->id,
-      well_id   => $self->id,
-      well_name => $self->name,
-      plate_name => $self->plate->name,
-      fwd_read  => $accepted_qc_well->fwd_read,
-      rev_read  => $accepted_qc_well->rev_read,
-      epd_plate_name  => $epd->plate->name,
-      accepted  => $epd->accepted,
+      gene             => @genes == 1 ? $genes[0] : [ @genes ],
+      design_id        => $design->id,
+      well_id          => $self->id,
+      well_name        => $self->name,
+      plate_name       => $self->plate->name,
+      fwd_read         => $accepted_qc_well->fwd_read,
+      rev_read         => $accepted_qc_well->rev_read,
+      epd_plate_name   => $epd->plate->name,
+      accepted         => $epd->accepted,
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
       qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
+      vcf_file         => $accepted_qc_well->vcf_file,
+      qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
+      species          => $design->species_id,
+      cell_line        => $self->first_cell_line->name,
   };
 }
 
@@ -1276,6 +1439,16 @@ sub _group_primers {
   return $key, { name => $name, seq => $seq };
 }
 
+sub egel_pass_string {
+    my ($self) = @_;
+
+    my $string = "-";
+
+    if(my $quality = $self->well_dna_quality){
+        $string = $quality->egel_pass ? "pass" : "fail";
+    }
+    return $string;
+}
 # Compute accepted flag for DNA created from FINAL_PICK
 # accepted = true if:
 # FINAL_PICK qc_sequencing_result pass == true AND

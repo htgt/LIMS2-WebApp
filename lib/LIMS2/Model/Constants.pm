@@ -22,6 +22,8 @@ BEGIN {
         %DEFAULT_SPECIES_BUILD
         %VECTOR_DNA_CONCENTRATION
         %GLOBAL_SHORTENED_OLIGO_APPEND
+        %GENE_TYPE_REGEX
+        $MAX_CRISPR_GROUP_SIZE
     );
     our %EXPORT_TAGS = ();
 }
@@ -49,6 +51,7 @@ const our %PROCESS_PLATE_TYPES => (
     'crispr_vector'          => [qw( CRISPR_V )],
     'single_crispr_assembly' => [qw( ASSEMBLY )],
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
+    'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
 );
 
@@ -87,6 +90,7 @@ const our %PROCESS_TEMPLATE => (
     'dist_qc'                => 'piq_template',
     'single_crispr_assembly' => 'single_crispr_assembly_template',
     'paired_crispr_assembly' => 'paired_crispr_assembly_template',
+    'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
 );
 
@@ -173,6 +177,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( DNA )],
         number => 3,
     },
+    'group_crispr_assembly' => {
+        type   => [qw( DNA )],
+        number => 'MULTIPLE',
+    },
     'crispr_ep' => {
         type   => [qw( ASSEMBLY )],
         number => 1,
@@ -226,6 +234,11 @@ const our %ADDITIONAL_PLATE_REPORTS => (
             method => 'async',
             name   => 'Design Plate Order Sheet',
         },
+        {
+            class  => 'SummaryOligoPlate',
+            method => 'sync',
+            name   => 'Summary by Oligo Plate',
+        },
     ],
     CRISPR => [
         {
@@ -245,12 +258,12 @@ const our %ADDITIONAL_PLATE_REPORTS => (
 
 const our %UCSC_BLAT_DB => (
     mouse => 'mm10',
-    human => 'hg19',
+    human => 'hg38',
 );
 
 const our %DEFAULT_SPECIES_BUILD => (
     mouse => 73,
-    human => 73,
+    human => 76,
 );
 
 # Minimun required DNA concentrations for different species and vector types
@@ -264,6 +277,17 @@ const our %VECTOR_DNA_CONCENTRATION => (
         'CRISPR_V'   => 40,
     },
 );
+
+# Regex for checking format of gene IDs by gene_type
+const our %GENE_TYPE_REGEX => (
+    'HGNC'       => qr/HGNC:\d+/,
+    'MGI'        => qr/MGI:\d+/,
+    'CPG-island' => qr/CGI_\d+/,
+);
+
+# Maximum number of crisprs we can have in a group
+const our $MAX_CRISPR_GROUP_SIZE => 4;
+
 1;
 
 __END__

@@ -10,10 +10,11 @@
     <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]" class="form well"  enctype="multipart/form-data" >
 
     <div class="control-group">
-      <label class="control-label" for="ep_pick_plate">EP Pick Plate</label>
+      <label class="control-label" for="plate_name">Plate Name</label>
       <div class="controls">
-        <input name="ep_pick_plate" id="ep_pick_plate" type="text"
-          [% IF ep_pick_plate %]value="[% ep_pick_plate %]"[% END %] /> 
+        <input name="plate_name" id="plate_name" type="text"
+          [% IF plate_name %]value="[% plate_name %]"[% END %] />
+          <span class="help-block">EP_PICK or PIQ plates only</span>
       </div>
     </div>
 

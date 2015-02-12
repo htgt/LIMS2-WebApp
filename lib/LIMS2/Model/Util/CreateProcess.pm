@@ -23,6 +23,7 @@ use LIMS2::Model::Util qw( well_id_for );
 use LIMS2::Exception::Implementation;
 use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
+use TryCatch;
 
 my %process_field_data = (
     final_cassette => {
@@ -156,6 +157,7 @@ my %process_check_well = (
     'crispr_vector'          => \&_check_wells_crispr_vector,
     'single_crispr_assembly' => \&_check_wells_single_crispr_assembly,
     'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
+    'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
 );
 
@@ -495,21 +497,21 @@ sub _check_wells_dist_qc {
         my $dist_count      = scalar @dist_processes;
 
         # check for more than one as new wells already exist at this point (albeit inside transaction)
-        if ($dist_count > 1) {
-            my $well_string = $input_well->as_string;
+        # if ($dist_count > 1) {
+        #     my $well_string = $input_well->as_string;
 
-            my @piq_wells;
-            foreach my $dist_process ( @dist_processes ) {
-                push @piq_wells, $dist_process->output_wells->first->as_string;
-            }
+        #     my @piq_wells;
+        #     foreach my $dist_process ( @dist_processes ) {
+        #         push @piq_wells, $dist_process->output_wells->first->as_string;
+        #     }
 
-            my $piq_wells_string = join( ' and ', @piq_wells );
+        #     my $piq_wells_string = join( ' and ', @piq_wells );
 
-            LIMS2::Exception::Validation->throw(
-              'FP well ' . $well_string . ' would be linked to PIQ wells ' . $piq_wells_string .
-              '; one FP well cannot be used to make more than one PIQ well' . "\n"
-            );
-        }
+        #     LIMS2::Exception::Validation->throw(
+        #       'FP well ' . $well_string . ' would be linked to PIQ wells ' . $piq_wells_string .
+        #       '; one FP well cannot be used to make more than one PIQ well' . "\n"
+        #     );
+        # }
     }
 
     check_output_wells( $model, $process);
@@ -617,6 +619,60 @@ sub _check_wells_paired_crispr_assembly {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+## no critic(Subroutines::RequireFinalReturn)
+sub _check_wells_group_crispr_assembly {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    my ($new_well) = $process->process_output_wells;
+    my $new_well_name = $new_well->well->name;
+
+    # multiple DNA input wells, some must be from CRISPR_V, 1 from FINAL_PICK
+    my @input_wells = $process->input_wells;
+    my @input_parent_wells = map { $_->ancestors->input_wells($_) } @input_wells;
+
+    my $crispr_v = 0;
+    my $final_pick = 0;
+    my @crispr_ids;
+
+    foreach (@input_parent_wells) {
+        if ($_->plate->type_id eq 'CRISPR_V') {
+            $crispr_v++;
+            unless (defined $_->crispr ) {
+            LIMS2::Exception::Validation->throw(
+                "Well $_ is not a crispr." );
+            }
+            push @crispr_ids, $_->crispr;
+        }
+        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+    }
+
+    @crispr_ids = uniq @crispr_ids;
+
+    unless ($crispr_v > 0 && $final_pick == 1 ) {
+        LIMS2::Exception::Validation->throw(
+            'group_crispr_assembly requires as input at least 1 DNA prepared from a CRISPR_V '
+            . 'and 1 DNA prepared from a FINAL_PICK'
+        );
+    }
+
+    try{
+        my $group = $model->get_crispr_group_by_crispr_ids({
+            crispr_ids => \@crispr_ids,
+        });
+    }
+    catch ($err) {
+        my $ids_list = join ", ",@crispr_ids;
+        LIMS2::Exception::Validation->throw("Could not create well $new_well_name: $err");
+    }
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_crispr_ep {
     my ( $model, $process ) = @_;
 
@@ -649,6 +705,7 @@ my %process_aux_data = (
     'crispr_vector'          => \&_create_process_aux_data_crispr_vector,
     'single_crispr_assembly' => \&_create_process_aux_data_single_crispr_assembly,
     'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
+    'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
 );
 
@@ -742,18 +799,14 @@ sub _create_process_aux_data_int_recom {
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
     my $species_id = $input_well->well->plate->species_id;
-    if($species_id eq "Human"){
-        # Allow any type of backbone
-        DEBUG("Allowing any backbone on human int_recom");
-        $pspec->{backbone} = { validate => 'existing_backbone' };
-    }
-    else{
-        # Must be an intermediate backbone
-        $pspec->{backbone} = { validate => 'existing_intermediate_backbone'};
-    }
 
-    my $validated_params
-        = $model->check_params( $params, $pspec );
+    # allow any type of backbone for int_recom process now...
+    # backbone puc19_RV_GIBSON is used in both int and final wells
+    # and our final / intermediate backbone system does not handle this
+    # case yet so for now allow anything
+    $pspec->{backbone} = { validate => 'existing_backbone' };
+
+    my $validated_params = $model->check_params( $params, $pspec );
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
@@ -1104,6 +1157,12 @@ sub _create_process_aux_data_single_crispr_assembly {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_paired_crispr_assembly {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_group_crispr_assembly {
     return;
 }
 ## use critic

@@ -1,0 +1,2 @@
+id,crispr_es_qc_run_id,well_id,fwd_read,rev_read,crispr_chr_id,crispr_start,crispr_end,comment,analysis_data,accepted,vcf_file,crispr_damage_type_id
+1,FBCCED08-81D9-11E4-86EF-3E2F7F98391B,1875,,,,,,,{},f,,mosaic

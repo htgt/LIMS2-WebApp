@@ -1,0 +1,26 @@
+[% META title = "Gene Pick Generate Sequence"; META tab_name = "Designs" %]
+
+<form method="POST" action="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]" class="well">
+  <fieldset>
+    <legend>Gene Pick</legend>
+
+    <input type="text" class="input-xxlarge" id="search_gene" name="search_gene" placeholder="gene name" autocomplete="off">
+    <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.</span>
+
+    <br>
+    <input type="submit" name="gene_pick" class="btn btn-primary" value="Find Designs" />
+  </fieldset>
+</form>
+
+<div class="well">
+If you know the design id you want to use click <a href="[% c.uri_for('/user/generate_sequence_file') %]">here</a>.
+</div>
+
+<script type="text/javascript">
+$("#search_gene").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+  minLength: 2,
+});
+
+$('#transition_time').popover();
+</script>

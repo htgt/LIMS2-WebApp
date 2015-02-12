@@ -77,6 +77,28 @@ __PACKAGE__->table("projects");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 effort_concluded
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 recovery_comment
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 priority
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 recovery_class_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -99,6 +121,14 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "htgt_project_id",
   { data_type => "integer", is_nullable => 1 },
+  "effort_concluded",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "recovery_comment",
+  { data_type => "text", is_nullable => 1 },
+  "priority",
+  { data_type => "text", is_nullable => 1 },
+  "recovery_class_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -153,6 +183,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 recovery_class
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectRecoveryClass>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "recovery_class",
+  "LIMS2::Model::Schema::Result::ProjectRecoveryClass",
+  { id => "recovery_class_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 sponsor
 
 Type: belongs_to
@@ -169,9 +219,32 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-02-07 16:49:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NWx1GMZQcu6KlFq2s3dSaA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-10 15:44:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pcaAhv7dSjYJoY0nJNHnWQ
 
+sub as_hash {
+    my $self = shift;
+
+    return {
+          "id"                => $self->id,
+          "sponsor_id"        => $self->sponsor_id,
+          "allele_request"    => $self->allele_request,
+          "gene_id"           => $self->gene_id,
+          "targeting_type"    => $self->targeting_type,
+          "species_id"        => $self->species_id,
+          "htgt_project_id"   => $self->htgt_project_id,
+          "effort_concluded"  => $self->effort_concluded,
+          "recovery_class"    => $self->recovery_class,
+          "recovery_comment"  => $self->recovery_comment,
+          "priority"          => $self->priority,
+    }
+}
+
+sub recovery_class_name {
+    my $self = shift;
+
+    return $self->recovery_class ? $self->recovery_class->name : undef;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

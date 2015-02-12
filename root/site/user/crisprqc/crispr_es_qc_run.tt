@@ -1,121 +1,74 @@
-[% META title="Crispr ES Cell QC"; META tab_name = 'Crisprs' %]
+[% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
-<style type="text/css">
-.alignment {
-    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
-    font-size: 11px;
-    display: block;
-    font-weight: bold
-}
-</style>
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+    api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
+</script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
-    $(".alignment_inner").each(function() {
-        var parent = $( this );
 
-        //should instead hide everything so we can toggle the match string
-        var seq_a = parent.find(".seq_a").text();
-        var c_a = seq_a.colour_with_cigar( parent.find(".match_a").text() );
-        c_a.append( $("<span>", {text: "(F)"}) );
+    if ( [% run_validated %] ) {
+        $("#validate_run").hide();
+    }
+    else {
+        $("#invalidate_run").hide();
+        $("#validate_label").hide();
+    }
 
-        var seq_b = parent.find(".seq_b").text();
-        var c_b = seq_b.colour_with_cigar( parent.find(".match_b").text() );
-        c_b.append( $("<span>", {text: "(R)"}) );
+    $(".traces").click(function(e) {
+        e.preventDefault();
 
-        //use this to not hide sequences
-        //parent.find(".seq_a").replaceWith(c_a);
-        //parent.find(".seq_b").replaceWith(c_b);
-
-        //parent.find(".match").hide();
-
-        parent.empty().append(c_a).append(c_b);
+        //the code for this is inside jquery.flot.traceviewer.js
+        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
     });
 
-    $(".accepted").click(function() {
-        console.log( this.value );
-        console.log( $("#qc_run_id").text() );
+    // validate or invalidate run
+    $("#validate_run, #invalidate_run").click(function(e) {
+        e.preventDefault();
 
-        //fade element out until its saved, waiting at least 500ms
-        var element = $(this).parent().parent();
-        element.fadeTo( "slow", 0.5 ).delay(500);
+        var element = $(this);
+        //set button state to loading, shows data-loading-text value
+        element.button('loading');
 
-        $.post(
-            '[% c.uri_for("/api/update_well_accepted") %]', 
-            { "well_id": this.value, "qc_run_id": $("#qc_run_id").text(), "accepted": this.checked },
-            
-            function (data) {
-                console.log(data);
-                //fade back in
-                element.fadeTo( "slow", 1 );
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for("/api/update_crispr_es_qc_run") %]',
+            data: {
+                "id": '[% qc_run_id %]',
+                "validated": element.attr('data-validate')
             },
-            'json'
-        );
+            success: function(data) {
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).button('reset').dequeue();// resets button to original text
+                    // toggle both buttons plus validate label
+                    $('#invalidate_run').toggle();
+                    $('#validate_run').toggle();
+                    $("#validate_label").toggle();
+                });
+            },
+            error: function(data) {
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).removeClass('btn-primary').removeClass('btn-warning').addClass('disabled').addClass('btn-danger').dequeue();
+                    element.text('error updating qc run');
+                });
+                alert( 'Error updating crispr es qc run' );
+            },
+            dataType: 'json'
+        });
+
     });
 
-    //s.replaceWith(String(s.text()).colour_with_cigar(m.text()));
 });
-
-function colour_string(seq, match) {
-    seq.replaceWith( seq.colour_with_cigar(match) );
-}
-
-
-//not an actual cigar string but close enough
-String.prototype.colour_with_cigar = function colour_string(cigar) {
-    //a span to hold all the other spans
-    var base = $("<span>", {style: "white-space: nowrap; display: block;"});
-
-    if ( ! this.length || ! cigar.length ) return base.text(this);
-
-    if ( cigar.length != this.length ) {
-        console.log("Warning: string lengths don't match!");
-        console.log(this);
-        console.log(cigar);
-    }
-
-    //generates a coloured span
-    function make_span(buf, colour) {
-        //write our buffer out into a span
-        attrs = { text: buf };
-        if (colour) attrs.style =  "background-color:" + colour + "; color:#FFFFFF";
-
-        return $("<span>", attrs);
-    }
-
-    var colours = {
-        'M': '#468847',
-        'Q': '#0000FF',
-        'D': '#b94A48',
-    };
-
-    var current_colour = "", buf = "";
-
-    for ( var i = 0; i < this.length; i++ ) {
-        var colour = colours[cigar.charAt(i)] || "";
-        var nuc = this.charAt(i);
-
-        //if the colours don't match or we're at the end of the string
-        //we need to flush the buffer
-        if ( colour != current_colour ) {            
-            //add to our base span (assuming it has something in)
-            if ( buf )
-                base.append( make_span(buf, current_colour) );
-
-            //reset colour and restart buffer with the new char
-            current_colour = colour;
-            buf = nuc;
-        }
-        else {
-            buf += nuc;
-        }
-    }
-
-    //add anything remaining on the buffer (there will always be at least 1 base)
-    base.append( make_span(buf, current_colour) );
-
-    return base;
-}
 </script>
 
 <div class="well">
@@ -132,10 +85,25 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
             <th>Sub Project</th>
             <td>[% sub_project %]</td>
         </tr>
+        <tr>
+            <th>Validated</th>
+            <td>
+                <span id="validate_label" class="label label-success">Validated</span>
+            </td>
+        </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
         <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
+    [% IF wells.size > 0 %]
+        <a id="validate_run" class="btn pull-right btn-primary" role="button" data-loading-text="... working" data-validate="true">
+            <i class="icon-gift icon-white"></i> Validate QC Run
+        </a>
+
+        <a id="invalidate_run" class="btn pull-right btn-warning" role="button" data-loading-text="... working" data-validate="false">
+            <i class="icon-ban-circle icon-white"></i> Invalidate Qc Run
+        </a>
+    [% END %]
 </div>
 
 <div class="modal hide fade" id="DeleteRunModal">
@@ -164,53 +132,34 @@ String.prototype.colour_with_cigar = function colour_string(cigar) {
             <th>Gene</th>
             <th>Pair ID</th>
             <th>Alignment</th>
-            <th>Longest Indel</th>
             <th>Accept</th>
-            <!-- <th>View trace</th> -->
+            <th>Damage Type</th>
+            <th>Variant Size</th>
+            <th>Variant Files</th>
+            <th>Protein Sequences</th>
+            <th>Reads</th>
+            <th>Deletions</th>
+            <th>Inserts</th>
         </tr>
     </thead>
     <tbody>
         [% FOR row IN wells %]
-        <tr>
-            <td>[% row.well_name %]</td>
-            <td>[% row.es_qc_well_id %]</td>
-            <td>[% row.gene %]</td>
-            <td>[% row.crispr_id %]</td>
-            <td>
-                <div class="alignment">
-                <span>
-                    [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
-                </span><br/>
-                    <div class="alignment_inner">
-                        <span class="match match_a">[% row.alignment.a_match %]</span><br/>
-                        <span style="display: block">
-                            <span class="seq seq_a">[% row.alignment.a_seq %]</span>(F)
-                        </span><br/>
-                        <br/>
-                        <span style="display: block">
-                            <span class="seq seq_b">[% row.alignment.b_seq %]</span>(R)
-                        </span><br/>
-                        <span class="match match_b">[% row.alignment.b_match %]</span><br/>
-                        <span>
-                            [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
-                        </span></br>
-                    </div>
-                </div>
-            </td>
-            <td>[% row.longest_indel %]</td>
-            <td>
-                [% IF row.show_checkbox %]
-                <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
-                [% ELSE %]
-                Accepted in another run
-                [% END %]
-            </td>
-            <!-- <td>trace</td> -->
-        </tr>
+            <tr>
+
+                [% INCLUDE 'crispr_qc_view.tt'
+                    row                 = row
+                    accept              = 1
+                    edit                = 1
+                    complete_info       = 1
+                    hide_crispr_well_id = 0
+                %]
+
+            </tr>
         [% END %]
+
         [% IF wells.size == 0 %]
         <tr>
-            <td colspan="7" style="text-align: center">Well data is pending, please come back later</td>
+            <td colspan="8" style="text-align: center">Well data is pending, please come back later</td>
         </tr>
         [% END %]
     </tbody>

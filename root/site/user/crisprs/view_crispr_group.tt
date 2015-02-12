@@ -1,0 +1,103 @@
+[% META title="View Crispr Group"; META tab_name = 'Designs' %]
+
+<div class="page-header">
+  <h1>Crispr Group <small> [% cg.id %]</small></h1>
+</div>
+
+<div class="row">
+  <table class="table table-bordered">
+    <tr><th>ID</th> <td>[% cg.id %]</td></tr>
+    <tr><th>Gene ID</th> <td>[% cg.gene_id %]</td></tr>
+    <tr><th>Species</th> <td>[% species %]</td></tr>
+  </table>
+</div>
+
+<a href="[% c.uri_for( '/user/crispr_group' , cg.id ,'blat' ) %]" target="_blank" class="btn btn-primary">UCSC BLAT</a>
+
+<div class="well">
+    <table class="table table-bordered table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>WGE Crispr ID</th>
+          <th>LIMS2 Crispr ID</th>
+          <th>Which side of target?</th>
+          <th>Sequence</th>
+          <th>Locus</th>
+          <th>Strand</th>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH crispr IN group_crisprs %]
+        <tr>
+          <td>[% crispr.crispr.wge_crispr_id %]</td>
+          <td><a class="brand" href="[% c.uri_for('/user/crispr', crispr.crispr_id, 'view' ) %]">[% crispr.crispr_id %]</a></td>
+          <td>
+            [% IF crispr.left_of_target %]
+              Left
+            [% ELSE %]
+              Right
+            [% END %]
+          </td>
+          [% locus = crispr.crispr.locus %]
+          <td>[% crispr.crispr.seq %]</td>
+          <td>[% "$locus.chr_name: $locus.chr_start - $locus.chr_end" %]</td>
+          <td>[% locus.chr_strand %]</td>
+        </tr>
+      [% END %]
+      </tbody>
+    </table>
+</div>
+
+<h2>Linked Designs</h2>
+[% IF designs.size > 0 %]
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Design</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR datum IN designs %]
+      <tr>
+        <td>
+          <a href="[% c.uri_for( '/user/view_design', { design_id => datum.design_id } ) %]">
+            [% datum.design_id %]
+          </a>
+        </td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No designs linked to this crispr group</em></p>
+[% END %]
+
+<h2>Crispr Primers</h2>
+[% IF crispr_primers.size > 0 %]
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Sequence</th>
+        <th>Locus</th>
+        <th>Strand</th>
+        <th>Melting Temp (&deg;C)</th>
+        <th>GC Content (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR datum IN crispr_primers %]
+      <tr>
+        <td> [% datum.primer_name %] </td>
+        <td> [% datum.primer_seq %] </td>
+        <td>[% datum.locus.chr_name %]: [% datum.locus.chr_start %] - [% datum.locus.chr_end %] </td>
+        <td>[% datum.locus.chr_strand %]</td>
+        <td>[% datum.tm %]</td>
+        <td>[% datum.gc_content %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No primers linked to this crispr group</em></p>
+[% END %]

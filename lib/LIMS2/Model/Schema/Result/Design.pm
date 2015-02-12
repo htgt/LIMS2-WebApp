@@ -92,7 +92,7 @@ __PACKAGE__->table("designs");
 
 =head2 design_parameters
 
-  data_type: 'text'
+  data_type: 'json'
   is_nullable: 1
 
 =head2 cassette_first
@@ -138,7 +138,7 @@ __PACKAGE__->add_columns(
   "species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "design_parameters",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "json", is_nullable => 1 },
   "cassette_first",
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
   "global_arm_shortened",
@@ -310,8 +310,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-28 15:28:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uebnMrFmN09PJOaBA/U4vA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 10:08:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y003qJa2tDYf+S/ExLwtUA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -340,6 +340,14 @@ has 'info' => (
         target_region_end   => 'target_region_end',
     }
 );
+
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 
 sub _build_design_info {
     my $self = shift;
@@ -474,6 +482,40 @@ sub fetch_canonical_transcript_id {
     }
 
     return 0;
+}
+
+=head2 design_attempt
+
+Find the design attempt record linked to this design and return it.
+Returns undef if no design attempt record found.
+
+=cut
+sub design_attempt {
+    my $self = shift;
+
+    my $schema = $self->result_source->schema;
+    my $design_attempts = $schema->resultset('DesignAttempt')->search_literal(
+        '? = ANY ( design_ids )', $self->id
+    );
+
+    return $design_attempts->first;
+}
+
+=head2 design_wells
+
+Gather all the design wells for the design.
+
+=cut
+sub design_wells {
+    my ( $self ) = @_;
+
+    my @design_wells;
+    for my $pd ( $self->process_designs ) {
+        my $well = $pd->process->output_wells->first;
+        push @design_wells, $well if $well;
+    }
+
+    return \@design_wells;
 }
 
 __PACKAGE__->meta->make_immutable;
