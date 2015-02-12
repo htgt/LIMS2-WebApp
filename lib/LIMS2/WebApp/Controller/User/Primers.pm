@@ -179,13 +179,15 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
         my $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
         my $generator_params = {
             plate_name       => $plate_name,
-            plate_well_names => \@well_names,
             persist_file     => $c->req->param('persist_file'),
             persist_db       => $c->req->param('persist_db'),
             crispr_type      => $c->req->param('crispr_type'),
             overwrite        => 1, # FIXME: need checkbox for this
             species_name     => $plate->species_id,
         };
+        if(@well_names){
+            $generator_params->{plate_well_names} = \@well_names;
+        }
         my $generator = LIMS2::Model::Util::PrimerGenerator->new($generator_params);
         my $dir = dir($generator->base_dir);
         $c->log->debug("Starting primer generation in dir $dir");
@@ -257,6 +259,39 @@ sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(0){
         my $results = decode_json($file->slurp);
         $c->stash->{results} = $results;
     }
+    return;
+}
+
+sub download_primer_file :Path( '/user/download_primer_file' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $file = file( $c->req->param('file') );
+    my $report_dir = dir( $ENV{LIMS2_REPORT_DIR});
+
+    # Don't let user download any old file - it must be in the report directory
+    # FIXME: would be better to pass directory ID and file name as param
+    # instead of full path
+    unless($report_dir->subsumes($file)){
+        $c->flash->{error_msg} = "File $file is not available for download";
+        return $c->res->redirect( $c->uri_for('/user/generate_primers'));
+    }
+
+    my $filename = $file->basename;
+    my $fh;
+    try{
+        $fh = $file->openr;
+    }
+    catch($e){
+        $c->flash->{error_msg} = "Could not open file $file for download";
+        return $c->res->redirect( $c->uri_for('/user/generate_primers') );
+    }
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
+    $c->response->body( $fh );
     return;
 }
 

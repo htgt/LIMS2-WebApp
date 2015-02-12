@@ -10,9 +10,12 @@
 [% IF results %]
 
 [% FOREACH type IN ['crispr_seq','crispr_pcr','genotyping'] %]
+[% NEXT UNLESS results.$type %]
 <div class="well">
   <h3>Primer type: [% type %]</h3>
-  <p>File path: [% results.$type.file_path %]</p>
+  [% IF results.$type.file_path %]
+  <a href="[% c.uri_for('/user/download_primer_file', { file => results.$type.file_path } ) %]" class="btn btn-info"><i class="icon-download-alt icon-white"></i> Download CSV file</a>
+  [% END %]
   <table class="table">
     <tr>
       <th>Well ID</th>
