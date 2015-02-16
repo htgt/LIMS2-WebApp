@@ -3,7 +3,7 @@ package LIMS2::Model::Util::PrimerGenerator;
 use warnings FATAL => 'all';
 
 use Moose;
-use Try::Tiny;
+use TryCatch;
 use LIMS2::Model;
 use Switch;
 use Carp;
@@ -315,7 +315,18 @@ has overwrite => (
     default => 0,
 );
 
+
 # Build base dir if user has not specified one
+has job_id => (
+    is    => 'ro',
+    isa   => 'Str',
+    lazy_build => 1,
+);
+
+sub _build_job_id {
+    return Data::UUID->new->create_str();
+};
+
 has base_dir => (
     is     => 'ro',
     isa    => 'Str',
@@ -323,9 +334,9 @@ has base_dir => (
 );
 
 sub _build_base_dir {
+    my $self = shift;
     my $report_dir = dir( $ENV{LIMS2_REPORT_DIR} );
-    my $id = Data::UUID->new->create_str();
-    my $base_dir = $report_dir->subdir( $id );
+    my $base_dir = $report_dir->subdir( $self->job_id );
     $base_dir->mkpath;
     return "$base_dir";
 }
@@ -510,8 +521,14 @@ sub generate_design_genotyping_primers{
 
         $self->log->info( "$design_id\t$gene_name" );
 
-        my $design = $self->model->c_retrieve_design({ id => $design_id })
-            or die "Could not find design $design_id in database";
+        my $design;
+        try{
+            $design = $self->model->c_retrieve_design({ id => $design_id });
+        }
+        catch($e){
+            $self->log->debug("Could not find design $design_id in database - $e");
+            next;
+        }
 
         my ($primer_data, $seq, $db_primers) = $primer_util->design_genotyping_primers($design);
         $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];
@@ -583,7 +600,15 @@ sub generate_crispr_primers{
         my $well_name = $well->name;
 
         my $id_method_name = $settings->{id_method};
-        my ($crispr_id, $crispr) = $self->$id_method_name($well);
+        my ($crispr_id, $crispr);
+        try{
+           ($crispr_id, $crispr) = $self->$id_method_name($well);
+        }
+        catch($e){
+            $self->log->debug("Skipping crispr primer generation for well $well_name. Could not find crispr "
+                .$self->crispr_type.". Error: $e");
+            next;
+        }
 
         if($settings->{update_design_data_cache}){
             $self->verify_and_update_design_data_cache( $well_id, $crispr_id );

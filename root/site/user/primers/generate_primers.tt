@@ -1,38 +1,5 @@
 [%- META title = 'Generate Primers'; META tab_name = 'Designs' %]
 
-[% IF results %]
-<div class="page-header">
-  <h1>Generate Primers Results</h1>
-</div>
-
-[% FOREACH type IN ['crispr_seq','crispr_pcr','genotyping'] %]
-  <p>Primer type: [% type %]</p>
-  <p>File path: [% results.$type.file_path %]<p>
-  <table>
-    <tr>
-      <th>Well ID</th>
-      <th>Primer Name</th>
-      <th>Chr</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>Seq</th>
-    </tr>
-    [% FOREACH well IN results.$type.db_primers.keys %]
-      [% FOREACH primer IN results.$type.db_primers.$well %]
-    <tr>
-      <td>[% well %]</td>
-      <td>[% primer.primer_name %]</td>
-      <td>[% primer.locus.chr_name %]</td>
-      <td>[% primer.locus.chr_start %]</td>
-      <td>[% primer.locus.chr_end %]</td>
-      <td>[% primer.primer_seq %]</td>
-    </tr>
-      [% END %]
-    [% END %]
-  </table>
-[% END %]
-
-[% ELSE %]
 <div class="page-header">
   <h1>Generate Primers</h1>
 </div>
@@ -100,6 +67,10 @@
       <input type="checkbox" id="persist_db" name="persist_db" value="1">
       LIMS2 database
     </label>
+    <label class="checkbox hidden" id="overwrite_checkbox_label">
+      <input type="checkbox" id="overwrite_checkbox" name="overwrite_checkbox" value="1">
+      Overwrite existing primers in database
+    </label>
 
     <button name="submit" id="generate_primers" type="submit" value="generate_primers" class="btn">
             Run Primer Generation <i class="icon-play"></i>
@@ -130,8 +101,18 @@
         $('#crispr_pcr_checkbox_label').hide();
       }
    });
+   $('#persist_db').change(function(){
+      //remove initial hidden status
+      $('#overwrite_checkbox_label').removeClass('hidden');
+      //show/hide as appropriate
+      if(this.checked){
+        $('#overwrite_checkbox_label').show();
+      }
+      else{
+        $('#overwrite_checkbox_label').hide();
+      }
+   });
  });
  [% END %]
 
 </script>
-[% END %]

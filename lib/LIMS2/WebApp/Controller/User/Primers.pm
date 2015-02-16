@@ -8,6 +8,9 @@ use Path::Class;
 use LIMS2::Model::Util::PrimerGenerator;
 use Data::Dumper;
 use LIMS2::Exception;
+use DateTime;
+use Date::Parse;
+use Log::Log4perl qw( :easy );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -179,10 +182,10 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
         my $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
         my $generator_params = {
             plate_name       => $plate_name,
-            persist_file     => $c->req->param('persist_file'),
-            persist_db       => $c->req->param('persist_db'),
+            persist_file     => $c->req->param('persist_file') // 0,
+            persist_db       => $c->req->param('persist_db') // 0,
             crispr_type      => $c->req->param('crispr_type'),
-            overwrite        => 1, # FIXME: need checkbox for this
+            overwrite        => $c->req->param('overwrite_checkbox') // 0,
             species_name     => $plate->species_id,
         };
         if(@well_names){
@@ -191,10 +194,11 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
         my $generator = LIMS2::Model::Util::PrimerGenerator->new($generator_params);
         my $dir = dir($generator->base_dir);
         $c->log->debug("Starting primer generation in dir $dir");
+        $generator_params->{start_time} = DateTime->now()->datetime;
         $dir->file('params.json')->spew( encode_json $generator_params );
         generate_primers_in_background($generator, $c->req->params);
 
-        $c->res->redirect( $c->uri_for( '/user/generate_primers_results', { dir => $dir }));
+        $c->res->redirect( $c->uri_for( '/user/generate_primers_results', $generator->job_id ));
         return;
     }
     else{
@@ -218,46 +222,92 @@ sub generate_primers_in_background{
     if ( $pid == 0 ) { # child
         my $primer_results = {};
         my $dir = dir($generator->base_dir);
+        Log::Log4perl->easy_init( { level => $WARN, file => $dir->file( 'log.txt' ) } );
 
-        if($params->{crispr_primer_checkbox}){
-            my ($file_path, $db_primers) = $generator->generate_crispr_primers;
-            $primer_results->{crispr_seq}->{file_path} = "$file_path";
-            $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
+        try{
+            if($params->{crispr_primer_checkbox}){
+                my ($file_path, $db_primers) = $generator->generate_crispr_primers;
+                $primer_results->{crispr_seq}->{file_path} = "$file_path";
+                $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
+            }
+
+            if($params->{crispr_pcr_checkbox}){
+                my ($file_path, $db_primers) = $generator->generate_crispr_PCR_primers;
+                $primer_results->{crispr_pcr}->{file_path} = "$file_path";
+                $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
+            }
+
+            if($params->{genotyping_primer_checkbox}){
+                my ($file_path, $db_primers) = $generator->generate_design_genotyping_primers;
+                $primer_results->{genotyping}->{file_path} = "$file_path";
+                $primer_results->{genotyping}->{db_primers} = $db_primers ;
+            }
+
+            my $json = encode_json($primer_results);
+            my $file = $dir->file('results.json');
+            $file->spew($json);
         }
-
-        if($params->{crispr_pcr_checkbox}){
-            my ($file_path, $db_primers) = $generator->generate_crispr_PCR_primers;
-            $primer_results->{crispr_pcr}->{file_path} = "$file_path";
-            $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
+        catch($e){
+            my $error_file = $dir->file('error.txt');
+            $error_file->spew($e);
         }
-
-        if($params->{genotyping_primer_checkbox}){
-            my ($file_path, $db_primers) = $generator->generate_design_genotyping_primers;
-            $primer_results->{genotyping}->{file_path} = "$file_path";
-            $primer_results->{genotyping}->{db_primers} = $db_primers ;
-        }
-
-        my $json = encode_json($primer_results);
-        my $file = $dir->file('results.json');
-        $file->spew($json);
         exit 0;
     }
 
     return;
 }
-sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(0){
-    my ($self, $c) = @_;
-    my $dir = dir( $c->req->param('dir') );
-    $c->log->debug("primer generation directory: $dir");
+sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(1){
+    my ($self, $c, $job_id) = @_;
 
-    my $params_file = $dir->file('params.json');
-    my $params = decode_json($params_file->slurp);
+    my $report_dir = dir( $ENV{LIMS2_REPORT_DIR} );
+    $c->stash->{job_id} = $job_id;
+
+    my ($dir, $params);
+    try{
+        $dir = $report_dir->subdir($job_id);
+        $c->log->debug("primer generation directory: $dir");
+        my $params_file = $dir->file('params.json');
+        $params = decode_json($params_file->slurp);
+    }
+    catch($e){
+        $c->stash->{error_msg} = "Could not find details for primer generation job $job_id: $e";
+        return;
+    }
+
     $c->stash->{params} = $params;
+
+    my $error_file = $dir->file('error.txt');
+    if($dir->contains($error_file)){
+        $c->stash->{error_msg} = $error_file->slurp;
+        return;
+    }
+
+    # Default is to refresh page every 5 seconds
+    my $timeout = 5000;
+    my $start_time = DateTime->from_epoch( epoch => str2time( $params->{start_time} ) );
+    my $time_taken = DateTime->now->subtract_datetime($start_time);
+    if($time_taken->minutes > 1){
+        # Reduce the refresh rate the longer we wait
+        $timeout = 5000 * $time_taken->minutes;
+    }
+    $c->log->debug("next page refresh in $timeout milliseconds");
+    $c->stash->{timeout} = $timeout;
+
+    # Report possible failure and stop refreshing if job has take 15 mins+
+    if($time_taken->minutes > 14){
+        $c->stash->{possible_fail} = 1;
+    }
 
     my $file = $dir->file('results.json');
     if($dir->contains($file)){
         my $results = decode_json($file->slurp);
+        my $plate = $c->model('Golgi')->retrieve_plate({ name => $params->{plate_name} });
+        my %well_names = map { $_->id => $_->name } $plate->wells;
+
+        # Store results and well names to display
         $c->stash->{results} = $results;
+        $c->stash->{plate_id} = $plate->id;
+        $c->stash->{well_names} = \%well_names;
     }
     return;
 }

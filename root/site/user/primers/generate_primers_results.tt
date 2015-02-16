@@ -4,9 +4,19 @@
   <h1>Generate Primers Results</h1>
 </div>
 
-<p>Plate name: [% params.plate_name %]</p>
-<p>Wells: [% IF params.plate_well_names %][% params.plate_well_names.join(', ') %]
-          [% ELSE %]All wells[% END %]</p>
+<p>Plate name: [% IF plate_id %]
+                 <a href="[% c.uri_for('/user/view_plate', { id => plate_id }) %]">[% params.plate_name %]</a>
+               [% ELSE %]
+                 [% params.plate_name %]
+               [% END %]</p>
+<p>Wells: [% IF params.plate_well_names %]
+            [% params.plate_well_names.join(', ') %]
+          [% ELSE %]
+            All wells
+          [% END %]</p>
+
+<p>Job started at: [% params.start_time %]</p>
+<p>Job ID: [% job_id %]</p>
 [% IF results %]
 
 [% FOREACH type IN ['crispr_seq','crispr_pcr','genotyping'] %]
@@ -18,17 +28,17 @@
   [% END %]
   <table class="table">
     <tr>
-      <th>Well ID</th>
+      <th>Well Name</th>
       <th>Primer Name</th>
       <th>Chr</th>
       <th>Start</th>
       <th>End</th>
       <th>Seq</th>
     </tr>
-    [% FOREACH well IN results.$type.db_primers.keys %]
+    [% FOREACH well IN results.$type.db_primers.keys.sort %]
       [% FOREACH primer IN results.$type.db_primers.$well %]
     <tr>
-      <td>[% well %]</td>
+      <td>[% well_names.$well %]</td>
       <td>[% primer.primer_name %]</td>
       <td>[% primer.locus.chr_name %]</td>
       <td>[% primer.locus.chr_start %]</td>
@@ -41,14 +51,18 @@
 </div>
 [% END %]
 
-[% ELSE %]
+[% ELSIF possible_fail %]
+
+Primer generation job [% job_id %] has not produced any results after 15 minutes. Please come back later or contact htgt@sanger.ac.uk to check the job status.
+
+[% ELSIF timeout %]
 
 Primer generation in progress. This page will refresh automatically. Please wait...
 
 <script type="text/javascript">
 setTimeout(function(){
    window.location.reload(1);
-}, 5000);
+}, [% timeout %]);
 </script>
 
 [% END %]
