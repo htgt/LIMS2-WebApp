@@ -77,6 +77,12 @@ __PACKAGE__->table("crisprs");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 nonsense_crispr_original_crispr_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -99,6 +105,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "wge_crispr_id",
   { data_type => "integer", is_nullable => 1 },
+  "nonsense_crispr_original_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -234,6 +242,56 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 nonsense_crispr_original_crispr
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "nonsense_crispr_original_crispr",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { id => "nonsense_crispr_original_crispr_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 nonsense_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->has_many(
+  "nonsense_crisprs",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { "foreign.nonsense_crispr_original_crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 nonsense_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Design>
+
+=cut
+
+__PACKAGE__->has_many(
+  "nonsense_designs",
+  "LIMS2::Model::Schema::Result::Design",
+  { "foreign.nonsense_design_crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 off_target_summaries
 
 Type: has_many
@@ -295,8 +353,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-12 11:27:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y6PtCetsdH2ctfQWcfNotQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-16 14:06:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L+7iayAit59h54+arAUOMg
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
 
@@ -326,6 +384,7 @@ sub as_hash {
         pam_right      => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
         wge_crispr_id  => $self->wge_crispr_id,
         crispr_primers => [ map { $_->as_hash } $self->crispr_primers ],
+        nonsense_crispr_original_crispr_id => $self->nonsense_crispr_original_crispr_id,
     );
 
     $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
@@ -542,6 +601,11 @@ sub accepted_vector_wells{
 sub is_pair { return; }
 
 sub is_group { return; }
+
+sub is_nonsense_crispr {
+    my $self = shift;
+    return $self->nonsense_crispr_original_crispr_id ? 1 : 0;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

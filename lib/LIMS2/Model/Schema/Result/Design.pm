@@ -106,6 +106,12 @@ __PACKAGE__->table("designs");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 nonsense_design_crispr_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -143,6 +149,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
   "global_arm_shortened",
   { data_type => "integer", is_nullable => 1 },
+  "nonsense_design_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -234,6 +242,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 nonsense_design_crispr
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "nonsense_design_crispr",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { id => "nonsense_design_crispr_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 oligos
 
 Type: has_many
@@ -310,8 +338,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 10:08:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y003qJa2tDYf+S/ExLwtUA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-16 13:37:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:o2o5Z9QfEnGbLi3Wchpl3g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -365,18 +393,19 @@ sub as_hash {
     $self->discard_changes;
 
     my %h = (
-        id                      => $self->id,
-        name                    => $self->name,
-        type                    => $self->design_type_id,
-        created_at              => $self->created_at->iso8601,
-        created_by              => $self->created_by->name,
-        phase                   => $self->phase,
-        validated_by_annotation => $self->validated_by_annotation,
-        target_transcript       => $self->target_transcript,
-        species                 => $self->species_id,
-        assigned_genes          => [ map { $_->gene_id } $self->genes ],
-        cassette_first          => $self->cassette_first,
-        global_arm_shortened    => $self->global_arm_shortened,
+        id                        => $self->id,
+        name                      => $self->name,
+        type                      => $self->design_type_id,
+        created_at                => $self->created_at->iso8601,
+        created_by                => $self->created_by->name,
+        phase                     => $self->phase,
+        validated_by_annotation   => $self->validated_by_annotation,
+        target_transcript         => $self->target_transcript,
+        species                   => $self->species_id,
+        assigned_genes            => [ map { $_->gene_id } $self->genes ],
+        cassette_first            => $self->cassette_first,
+        global_arm_shortened      => $self->global_arm_shortened,
+        nonsense_design_crispr_id => $self->nonsense_design_crispr_id,
     );
 
     if ( ! $suppress_relations ) {
