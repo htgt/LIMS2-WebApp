@@ -118,6 +118,17 @@ has floxed_exons => (
         num_floxed_exons  => 'count',
     },
 );
+
+sub BUILD {
+    my $self = shift;
+
+    if ( $self->type eq 'nonsense' ) {
+        die( 'DesignInfo module does not work with nonsense type designs ' );
+    }
+
+    return;
+}
+
 #TODO We are assuming that gibson designs are being treated as conditionals
 #     If the design is being used as a deletion the coordinates will be different
 #     Normal gibson designs can be conditional or deletion
