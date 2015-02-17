@@ -268,17 +268,16 @@ sub fetch_eng_seq_params_test : Tests(14) {
 
 }
 
-sub generate_well_eng_seq_params_test : Test(10) {
+sub generate_well_eng_seq_params_test : Test(11) {
     throws_ok {
         generate_well_eng_seq_params( model, { well_id => 850 } );
     }
     qr/No cassette found for well/;
 
-    # TODO for well with nonsense design
-    #throws_ok {
-        #generate_well_eng_seq_params( model, { well_id => 850 } );
-    #}
-    #qr/well that has a nonsense type design/;
+    throws_ok {
+        generate_well_eng_seq_params( model, { well_id => 3032 } );
+    }
+    qr/well that has a nonsense type design/;
 
     ok my ( $method, $well_id, $params )
         = generate_well_eng_seq_params( model, { well_id => 1522 } ),

@@ -58,6 +58,7 @@ sub generate_well_eng_seq_params{
         return generate_crispr_eng_seq_params( $well, $crispr, $validated_params );
     }
 
+
     my $design_params = fetch_design_eng_seq_params( $design );
     my $input_params = {slice_def $validated_params, qw( cassette backbone recombinase targeted_trap)};
     my $plate_type_stage = $well->plate->type->eng_seq_stage;
@@ -117,6 +118,12 @@ sub generate_custom_eng_seq_params{
 
 sub fetch_design_eng_seq_params {
 	my $design = shift;
+
+    if ( $design->design_type_id eq 'nonsense' ) {
+        LIMS2::Exception->throw( 'Can not produce eng seq params for well that has'
+                . ' a nonsense type design' );
+    }
+
 	my %locus_for;
     my @not_found;
     my $design_data = $design->as_hash;
