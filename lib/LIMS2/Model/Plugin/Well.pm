@@ -471,6 +471,7 @@ sub propagate_to_report {
     my ( $self, $well, $to_report, $seen) = @_;
 
     $self->log->info( "Setting to_report to $to_report on well " . $well->as_string  );
+    $well->update( { to_report => $to_report });
 
     $seen ||= {};
 
