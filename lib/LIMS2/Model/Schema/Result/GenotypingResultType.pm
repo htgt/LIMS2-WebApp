@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GenotypingResultType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingResultType::VERSION = '0.286';
+    $LIMS2::Model::Schema::Result::GenotypingResultType::VERSION = '0.287';
 }
 ## use critic
 

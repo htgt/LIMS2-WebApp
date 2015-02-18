@@ -3,6 +3,8 @@
 document.title = "[%- sponsor_id %]";
 </SCRIPT>
 
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+
 <span style="float:right">
 
   [% IF type == 'full' %]

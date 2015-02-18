@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CellLine;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CellLine::VERSION = '0.286';
+    $LIMS2::Model::Schema::Result::CellLine::VERSION = '0.287';
 }
 ## use critic
 

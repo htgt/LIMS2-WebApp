@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.286';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.287';
 }
 ## use critic
 
@@ -1062,17 +1062,17 @@ sub genes {
             }
 
             my $total_colonies = 0;
-            my $picked_colonies = 0;
+            # my $picked_colonies = 0;
             try {
                 $total_colonies = $self->model->schema->resultset('WellColonyCount')->search({
                     well_id => $curr_ep->ep_well_id,
                     colony_count_type_id => 'total_colonies',
                 } )->single->colony_count;
 
-                $picked_colonies = $self->model->schema->resultset('WellColonyCount')->search({
-                    well_id => $curr_ep->ep_well_id,
-                    colony_count_type_id => 'picked_colonies',
-                } )->single->colony_count;
+                # $picked_colonies = $self->model->schema->resultset('WellColonyCount')->search({
+                #     well_id => $curr_ep->ep_well_id,
+                #     colony_count_type_id => 'picked_colonies',
+                # } )->single->colony_count;
             };
 
             $curr_ep_data{'total_colonies'} = $total_colonies;
