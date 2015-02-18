@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.287     2015-02-18 12:15:04 Europe/London
+
+    front page cached report defaulted to full report, fixed bug in csv download
+    atempted to fix browser cache to provide html instead of text file sometimes
+
 0.286     2015-02-09 11:51:58 Europe/London
 
     Added reporting filter to the EP/CRISPR_EP wells
