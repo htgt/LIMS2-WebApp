@@ -419,6 +419,7 @@ sub generate_sub_report {
             'display_stage'         => 'Genes',
             'columns'               => [    'gene_id',
                                             'gene_symbol',
+                                            'chromosome',
                                             'sponsors',
                                             # 'crispr_pairs',
                                             'crispr_wells',
@@ -455,6 +456,7 @@ sub generate_sub_report {
                                         ],
             'display_columns'       => [    'gene id',
                                             'gene symbol',
+                                            'chromosome'
                                             'sponsor(s)',
                                             # 'crispr pairs',
                                             'ordered crispr primers',
@@ -848,7 +850,6 @@ sub genes {
             $gene_info = $self->model->find_gene( {
                 search_term => $gene_id,
                 species     => $self->species,
-                # show_all    => 1
             } );
         }
         catch {
@@ -857,6 +858,7 @@ sub genes {
 
         # Now we grab this from the solr index
         my $gene_symbol = $gene_info->{'gene_symbol'};
+        my $chromosome = $gene_info->{'chromosome'};
 
         my %search = ( design_gene_id => $gene_id );
 
@@ -1157,6 +1159,7 @@ sub genes {
         push @genes_for_display, {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
+            'chromosome'             => $chromosome,
             'sponsors'               => $sponsors_str ? $sponsors_str : '0',
             'priority'               => $priority ? $priority : '0',
 

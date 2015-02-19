@@ -149,6 +149,8 @@ document.title = "[%- sponsor_id %]";
             [% END %]
         [%- ELSIF col == "sponsors" %]
             <td>[% colval %]</td>
+        [%- ELSIF col == "chromosome" %]
+            <td>[% colval %]</td>
         [%- ELSIF col == 'vector_pcr_passes' %]
             [% IF c.user %]
               [% IF colval %]

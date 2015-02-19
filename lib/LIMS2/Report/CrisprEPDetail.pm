@@ -9,7 +9,7 @@ use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use feature "switch";
-use Smart::Comments;
+
 extends qw( LIMS2::ReportGenerator );
 
 has species => (
