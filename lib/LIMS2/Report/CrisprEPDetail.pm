@@ -8,7 +8,8 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
-
+use feature "switch";
+use Smart::Comments;
 extends qw( LIMS2::ReportGenerator );
 
 has species => (
@@ -47,6 +48,7 @@ override _build_columns => sub {
         'EPD List',
         'Accepted EPD Count',
         'Accepted EPD List',
+        'Frameshift Clones'
     ];
 };
 
@@ -120,10 +122,35 @@ sub build_ep_detail {
             # get EPD wells
             my ($ep_pick_list, $ep_pick_pass_list);
             my ($ep_pick_count, $ep_pick_pass_count) = (0, 0);
+            my $fs_count = 0;
+            my $if_count = 0;
+            my $wt_count = 0;
+            my $ms_count = 0;
+
             foreach my $process ($crispr_ep_well->child_processes){
                 foreach my $output ($process->output_wells){
                     $ep_pick_count++;
                     my $plate_name = $output->plate->name;
+
+                    try {
+                        my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
+                            well_id => $output->id,
+                            # accepted => 1,
+                            'crispr_es_qc_run.validated' => 1,
+                        },{
+                            join    => 'crispr_es_qc_run',
+                        } );
+                        foreach my $damage (@damage) {
+                            for ($damage->crispr_damage_type_id) {
+                                when ('frameshift') { $fs_count++ }
+                                when ('in-frame')   { $if_count++ }
+                                when ('wild_type')  { $wt_count++ }
+                                when ('mosaic')     { $ms_count++ }
+                                # default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
+                            }
+                        }
+                    };
+
 
                     my $well_name = $output->name;
                     my $specification = $plate_name . '[' . $well_name . ']';
@@ -153,6 +180,7 @@ sub build_ep_detail {
                 $ep_pick_list,
                 $ep_pick_pass_count,
                 $ep_pick_pass_list,
+                $fs_count,
             ];
         }
     }
