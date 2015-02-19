@@ -15,7 +15,7 @@
             All wells
           [% END %]</p>
 
-<p>Job started at: [% params.start_time %]</p>
+<p>Job started at: [% params.start_time %] (Time taken: [% time_taken_string %])</p>
 <p>Job ID: [% job_id %]</p>
 [% IF results %]
 

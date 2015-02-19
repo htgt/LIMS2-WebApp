@@ -40,6 +40,7 @@
 
     Select types of primers to generate:
     [% IF crispr_type %]
+    <div class="well">
     <label class="checkbox">
       <input type="checkbox" id="crispr_primer_checkbox" name="crispr_primer_checkbox" value="1">
       Crispr sequencing primers ([% crispr_type %])
@@ -48,17 +49,27 @@
       <input type="checkbox" id="crispr_pcr_checkbox" name="crispr_pcr_checkbox" value="1">
       Crispr PCR primers
     </label>
+    </div>
     [% END %]
     [% IF genotyping %]
+    <div class="well">
     <label class="checkbox">
       <input type="checkbox" id="genotyping_primer_checkbox" name="genotyping_primer_checkbox" value="1">
       Genotyping primers
     </label>
+      [% IF has_short_arm_designs %]
+    <label class="checkbox hidden" id="short_arm_checkbox_label">
+    Use global arm shortened designs?
+      <input type="checkbox" id="short_arm_designs_checkbox" name="short_arm_designs_checkbox" value="1">
+    </label>
+      [% END %]
+    </div>
     [% END %]
 
     <br>
 
     Write primers to:
+    <div class="well">
     <label class="checkbox">
       <input type="checkbox" id="persist_file" name="persist_file" value="1">
       File for download
@@ -68,9 +79,10 @@
       LIMS2 database
     </label>
     <label class="checkbox hidden" id="overwrite_checkbox_label">
+      Overwrite existing primers in database?
       <input type="checkbox" id="overwrite_checkbox" name="overwrite_checkbox" value="1">
-      Overwrite existing primers in database
     </label>
+    </div>
 
     <button name="submit" id="generate_primers" type="submit" value="generate_primers" class="btn">
             Run Primer Generation <i class="icon-play"></i>
@@ -99,6 +111,17 @@
       }
       else{
         $('#crispr_pcr_checkbox_label').hide();
+      }
+   });
+   $('#genotyping_primer_checkbox').change(function(){
+      //remove initial hidden status
+      $('#short_arm_checkbox_label').removeClass('hidden');
+      //show/hide as appropriate
+      if(this.checked){
+        $('#short_arm_checkbox_label').show();
+      }
+      else{
+        $('#short_arm_checkbox_label').hide();
       }
    });
    $('#persist_db').change(function(){

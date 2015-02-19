@@ -1,5 +1,37 @@
 package LIMS2::Model::Util::PrimerGenerator;
 
+=head1 NAME
+
+LIMS2::Model::Util::PrimerGenerator
+
+=head1 DESCRIPTION
+
+PrimerGenerator is a module to manage the generation of sets of primers
+for a plate, or subset of wells on a plate.
+
+PrimerGenerator supports the following primer generation methods:
+
+generate_design_genotyping_primers
+generate_crispr_primers
+generate_crispr_PCR_primers
+
+PrimerGenerator creates a LIMS2::Util::QcPrimers object for each type
+of primer requested. QcPrimers generates primers for the design or
+crispr collection (single, pair or group) linked to each requested well.
+
+QcPrimers code is here:
+https://github.com/htgt/LIMS2-Utils/blob/master/lib/LIMS2/Util/QcPrimers.pm
+
+QcPrimers uses GeneratePrimerAttempts to generate the primers by running
+Primer3 against the appropritate sequence target region.
+
+GeneratePrimerAttempts code is here:
+https://github.com/htgt/HTGT-QC-Common/blob/master/lib/HTGT/QC/Util/GeneratePrimersAttempts.pm
+
+PrimerGenerator stores the picked primers and can output them to csv files.
+
+=cut
+
 use warnings FATAL => 'all';
 
 use Moose;
@@ -89,13 +121,25 @@ has design_data_cache => (
 sub _build_design_data_cache {
 	my $self = shift;
 
-    # FIXME: include results of get_short_arm_design_data_for_well_id_list (always or flag?)
+    my $short_design_cache = $self->model->get_short_arm_design_data_for_well_id_list( $self->well_ids );
+
 	my $design_data_cache = $self->model->get_design_data_for_well_id_list( $self->well_ids );
+    foreach my $well_id (keys %{ $short_design_cache || {} }){
+        my $short_design_id = $short_design_cache->{$well_id}->{design_id};
+        $design_data_cache->{$well_id}->{short_arm_design_id} = $short_design_id;
+    }
 
     $self->update_gene_symbols($design_data_cache,$self->well_ids);
 
     return $design_data_cache;
 }
+
+has use_short_arm_designs => (
+    is => 'ro',
+    isa => 'Bool',
+    required => 0,
+    default => 0,
+);
 
 has species_name => (
     is => 'ro',
@@ -315,6 +359,12 @@ has overwrite => (
     default => 0,
 );
 
+# Set to true to run bwa genomic specificity check on farm
+has farm_bwa => (
+    is => 'ro',
+    isa => 'Bool',
+    default => 0,
+);
 
 # Build base dir if user has not specified one
 has job_id => (
@@ -335,8 +385,8 @@ has base_dir => (
 
 sub _build_base_dir {
     my $self = shift;
-    my $report_dir = dir( $ENV{LIMS2_REPORT_DIR} );
-    my $base_dir = $report_dir->subdir( $self->job_id );
+    my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR} );
+    my $base_dir = $primer_dir->subdir( $self->job_id );
     $base_dir->mkpath;
     return "$base_dir";
 }
@@ -491,12 +541,8 @@ sub update_gene_symbols{
 sub generate_design_genotyping_primers{
     my $self = shift;
 
-    my $primer_util = LIMS2::Util::QcPrimers->new({
-        model               => $self->model,
+    my $primer_util = $self->create_primer_util({
         primer_project_name => 'design_genotyping',
-        base_dir            => $self->base_dir,
-        persist_primers     => $self->persist_db,
-        overwrite           => $self->overwrite,
     });
 
     # Hash to store primer db entries we generate
@@ -518,6 +564,15 @@ sub generate_design_genotyping_primers{
         my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
         my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
         my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+
+        if($self->use_short_arm_designs){
+            $design_id = $self->design_data_cache->{$well_id}->{'short_arm_design_id'};
+            unless($design_id){
+                $self->log->warn("No short arm design ID found for well $well_name.
+                    Skipping genotyping primer generation for this well.");
+                next;
+            }
+        }
 
         $self->log->info( "$design_id\t$gene_name" );
 
@@ -560,12 +615,8 @@ sub generate_crispr_primers{
 
     my $settings = $self->crispr_settings;
 
-    my $primer_util = LIMS2::Util::QcPrimers->new({
-        model               => $self->model,
+    my $primer_util = $self->create_primer_util({
         primer_project_name => $settings->{primer_project_name},
-        base_dir            => $self->base_dir,
-        persist_primers     => $self->persist_db,
-        overwrite           => $self->overwrite,
     });
 
     # Hash to store primer db entries we generate
@@ -676,12 +727,8 @@ sub generate_crispr_PCR_primers{
         $crispr_primers = $self->crispr_primers;
     }
 
-    my $primer_util = LIMS2::Util::QcPrimers->new({
-        model               => $self->model,
+    my $primer_util = $self->create_primer_util({
         primer_project_name => 'crispr_pcr',
-        base_dir            => $self->base_dir,
-        persist_primers     => $self->persist_db,
-        overwrite           => $self->overwrite,
     });
 
     # Hash to store primer db entries we generate
@@ -821,6 +868,24 @@ sub create_output_file {
         or croak "Unable to close $file after writing: $!";
 
     return $file;
+}
+
+# Create a QcPrimer util object using common PrimerGenerator settings
+# Provide any overrides or extra params to this method
+# primer_project_name is required
+sub create_primer_util {
+    my ($self, $params) = @_;
+
+    my $primer_util = LIMS2::Util::QcPrimers->new({
+        primer_project_name => $params->{primer_project_name},
+        model               => $self->model,
+        base_dir            => ($params->{base_dir} // $self->base_dir),
+        persist_primers     => ($params->{persist_primers} // $self->persist_db),
+        overwrite           => ($params->{overwrite} // $self->overwrite),
+        farm_bwa            => ($params->{farm_bwa} // $self->farm_bwa),
+    });
+
+   return $primer_util;
 }
 
 1;

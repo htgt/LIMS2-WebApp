@@ -11,6 +11,7 @@ use LIMS2::Exception;
 use DateTime;
 use Date::Parse;
 use Log::Log4perl qw( :easy );
+use List::MoreUtils qw( any );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -174,6 +175,14 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
             $c->stash->{crispr_type} = $crispr_types->{$assembly_type};
         }
 
+        if($c->stash->{genotyping}){
+            $c->log->debug("Checking for short arm designs");
+            my $well_ids = [ map { $_->id} @wells ];
+            my $short_designs = $c->model('Golgi')->get_short_arm_design_data_for_well_id_list($well_ids);
+            $c->stash->{has_short_arm_designs} = 1 if $short_designs;
+            $c->log->debug("has_short_arm_designs: ".$c->stash->{has_short_arm_designs});
+        }
+
         $c->stash->{step2} = 1;
     }
     elsif($c->req->param('submit') eq 'generate_primers'){
@@ -186,7 +195,9 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
             persist_db       => $c->req->param('persist_db') // 0,
             crispr_type      => $c->req->param('crispr_type'),
             overwrite        => $c->req->param('overwrite_checkbox') // 0,
+            use_short_arm_designs => $c->req->param('short_arm_designs_checkbox') // 0,
             species_name     => $plate->species_id,
+            farm_bwa         => 1,
         };
         if(@well_names){
             $generator_params->{plate_well_names} = \@well_names;
@@ -259,12 +270,12 @@ sub generate_primers_in_background{
 sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(1){
     my ($self, $c, $job_id) = @_;
 
-    my $report_dir = dir( $ENV{LIMS2_REPORT_DIR} );
+    my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR} );
     $c->stash->{job_id} = $job_id;
 
     my ($dir, $params);
     try{
-        $dir = $report_dir->subdir($job_id);
+        $dir = $primer_dir->subdir($job_id);
         $c->log->debug("primer generation directory: $dir");
         my $params_file = $dir->file('params.json');
         $params = decode_json($params_file->slurp);
@@ -290,8 +301,6 @@ sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(1){
         # Reduce the refresh rate the longer we wait
         $timeout = 5000 * $time_taken->minutes;
     }
-    $c->log->debug("next page refresh in $timeout milliseconds");
-    $c->stash->{timeout} = $timeout;
 
     # Report possible failure and stop refreshing if job has take 15 mins+
     if($time_taken->minutes > 14){
@@ -303,11 +312,20 @@ sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(1){
         my $results = decode_json($file->slurp);
         my $plate = $c->model('Golgi')->retrieve_plate({ name => $params->{plate_name} });
         my %well_names = map { $_->id => $_->name } $plate->wells;
+        my $file_time = DateTime->from_epoch( epoch => $file->stat->mtime );
+        my $duration = $file_time->subtract_datetime($start_time);
 
         # Store results and well names to display
         $c->stash->{results} = $results;
         $c->stash->{plate_id} = $plate->id;
         $c->stash->{well_names} = \%well_names;
+        $c->stash->{time_taken_string} = $duration->minutes." minutes and "
+                                        .$duration->seconds." seconds";
+    }
+    else{
+        $c->stash->{time_taken_string} = $time_taken->seconds ." seconds so far...";
+        $c->log->debug("next page refresh in $timeout milliseconds");
+        $c->stash->{timeout} = $timeout;
     }
     return;
 }
@@ -318,12 +336,12 @@ sub download_primer_file :Path( '/user/download_primer_file' ) :Args(0) {
     $c->assert_user_roles( 'read' );
 
     my $file = file( $c->req->param('file') );
-    my $report_dir = dir( $ENV{LIMS2_REPORT_DIR});
+    my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR});
 
-    # Don't let user download any old file - it must be in the report directory
+    # Don't let user download any old file - it must be in the primer directory
     # FIXME: would be better to pass directory ID and file name as param
     # instead of full path
-    unless($report_dir->subsumes($file)){
+    unless($primer_dir->subsumes($file)){
         $c->flash->{error_msg} = "File $file is not available for download";
         return $c->res->redirect( $c->uri_for('/user/generate_primers'));
     }
