@@ -59,6 +59,7 @@ override iterator => sub {
 
 };
 
+## no critic(ProhibitExcessComplexity)
 sub build_ep_detail {
     my ( $self ) = @_;
 
@@ -188,6 +189,7 @@ sub build_ep_detail {
     return \@data;
 
 }
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 
