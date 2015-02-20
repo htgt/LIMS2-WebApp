@@ -8,7 +8,7 @@ use Path::Class;
 
 use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
-use WebAppCommon:Util::FarmJobRunner;
+use WebAppCommon::Util::FarmJobRunner;
 
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
