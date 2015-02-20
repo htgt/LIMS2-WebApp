@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.288';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.289';
 }
 ## use critic
 
@@ -376,7 +376,13 @@ sub _simple_transform {
             }
             else {
                 ${$column}{$key} = '✔'
-                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors' || $key eq 'ep_data' || $key eq 'recovery_class' || $key eq 'effort_concluded' );
+                unless ($key eq 'gene_id'
+                    || $key eq 'gene_symbol'
+                    || $key eq 'sponsors'
+                    || $key eq 'ep_data'
+                    || $key eq 'recovery_class'
+                    || $key eq 'effort_concluded'
+                    || $key eq 'chromosome' );
             }
         }
     }
@@ -398,8 +404,6 @@ sub view_cached_simple : Path( '/public_reports/cached_sponsor_report_simple' ) 
 
     return $self->_view_cached_lines($c, $report_name, 1 );
 }
-
-
 
 sub _view_cached_lines {
     my $self = shift;
