@@ -149,7 +149,7 @@ document.title = "[%- sponsor_id %]";
             [% END %]
         [%- ELSIF col == "sponsors" %]
             <td>[% colval %]</td>
-        [%- ELSIF col == "chromosome" %]
+        [%- ELSIF col == "chr" %]
             <td>[% colval %]</td>
         [%- ELSIF col == 'vector_pcr_passes' %]
             [% IF c.user %]
@@ -230,9 +230,9 @@ document.title = "[%- sponsor_id %]";
 
                 <tr>
                 [% IF c.user %]
-                  <td colspan=9></td>
+                  <td colspan=10></td>
                 [%- ELSE %]
-                  <td colspan=8></td>
+                  <td colspan=9></td>
                 [%- END %]
                   <td>[%- ep_data.item('total_colonies') %]</td>
                   <td>[%- ep_data.item('ep_pick_count') %]</td>

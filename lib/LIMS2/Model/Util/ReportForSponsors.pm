@@ -456,7 +456,7 @@ sub generate_sub_report {
                                         ],
             'display_columns'       => [    'gene id',
                                             'gene symbol',
-                                            'chromosome',
+                                            'chr',
                                             'sponsor(s)',
                                             # 'crispr pairs',
                                             'ordered crispr primers',
