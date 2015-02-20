@@ -25,7 +25,7 @@ sub pspec_create_crispr {
         pam_right            => { validate => 'boolean' },
         off_targets          => { optional => 1 },
         wge_crispr_id        => { validate => 'integer', optional => 1 },
-        nonsense_crispr_original_crispr_id => { validate => 'existing_crispr_id', optional => 1 },
+        nonsense_crispr_original_crispr_id => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -454,7 +454,7 @@ sub update_or_create_crispr_pair{
 sub import_wge_crisprs {
     my ( $self, $ids, $species, $assembly, $wge ) = @_;
 
-    my $wge ||= LIMS2::Util::WGE->new;
+    $wge ||= LIMS2::Util::WGE->new;
 
     my @output;
     for my $crispr_id ( @{ $ids } ) {
