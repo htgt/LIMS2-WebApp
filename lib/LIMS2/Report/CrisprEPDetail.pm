@@ -59,7 +59,7 @@ override iterator => sub {
 
 };
 
-## no critic(ProhibitExcessComplexity)
+## no critic(ProhibitDeepNests)
 sub build_ep_detail {
     my ( $self ) = @_;
 
