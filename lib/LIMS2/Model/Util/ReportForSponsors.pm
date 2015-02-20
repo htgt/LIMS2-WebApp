@@ -876,6 +876,12 @@ sub genes {
                     { design_type => 'gibson-deletion' },
                 ];
             }
+            when ('Pathogen Group 3') {
+                $search{'-or'} = [
+                    { design_type => 'gibson' },
+                    { design_type => 'gibson-deletion' },
+                ];
+            }
             when ('Pathogen Group 1') {
                 $search{'sponsor_id'} = 'Pathogen Group 1';
             }
@@ -910,6 +916,7 @@ sub genes {
 
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
+        $sponsors_str =~ s/Pathogen Group 3/PG3/;
         $sponsors_str =~ s/Mutation/MSP/;
         $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
         $sponsors_str =~ s/Transfacs/TF/;
@@ -1339,6 +1346,9 @@ SQL_END
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
         if ($sponsor_id eq 'Pathogen Group 2') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        if ($sponsor_id eq 'Pathogen Group 3') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
         elsif ($sponsor_id eq 'Pathogen Group 1') {
