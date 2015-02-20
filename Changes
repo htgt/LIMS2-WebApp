@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.288     2015-02-20 10:18:54 Europe/London
+
+    Added chromosome to front page sponsor sub report
+    Added frameshift clones count to CrisprEPDetail report
+
 0.287     2015-02-18 12:15:04 Europe/London
 
     front page cached report defaulted to full report, fixed bug in csv download
