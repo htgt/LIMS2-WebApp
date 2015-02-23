@@ -34,6 +34,14 @@
     </td>
   </tr>
   [% END %]
+  [% IF design.nonsense_design_crispr_id %]
+  <tr>
+    <th>Nonsense Design Crispr</th>
+    <td>
+    <a href="[% c.uri_for( '/user/crispr', design.nonsense_design_crispr_id, 'view' ) %]">[% design.nonsense_design_crispr_id %]</a>
+    </td>
+  </tr>
+  [% END %]
 </table>
 
 <h2>Comments</h2>
@@ -136,7 +144,7 @@
 [% END %]
 
 <h2>Crisprs</h2>
-[% IF crisprs %]
+[% IF crisprs.size %]
   <table class="table table-striped">
     <thead>
       <th>ID</th>
@@ -166,7 +174,7 @@
 [% END %]
 
 <h2>Crispr Pairs</h2>
-[% IF crispr_pairs %]
+[% IF crispr_pairs.size %]
   <table class="table table-striped">
     <thead>
       <th>ID</th>
@@ -190,7 +198,7 @@
 [% END %]
 
 <h2>Crispr Groups</h2>
-[% IF crispr_groups %]
+[% IF crispr_groups.size %]
   <table class="table table-striped">
     <thead>
       <th>ID</th>
