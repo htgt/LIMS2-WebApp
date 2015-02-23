@@ -18,16 +18,6 @@ LIMS2/t/Model/Util/DesignInfo.pm - test class for LIMS2::Model::Util::DesignInfo
 
 sub all_tests : Tests {
 
-    note( 'Test modules dies when it encounters a nonsense design' );
-
-    {
-        ok my $design = model->c_retrieve_design( { id => 10000 } ), 'can grab design 10000';
-        throws_ok{
-            LIMS2::Model::Util::DesignInfo->new( { design => $design } );
-        }
-        qr/DesignInfo module does not work with nonsense type designs/;
-    }
-
     note('Test Valid Conditional -ve Stranded Design');
 
     {
@@ -324,6 +314,27 @@ sub all_tests : Tests {
         my @got_exons = map { $_->stable_id } @{ $di->floxed_exons };
 
         ok is_deeply( \@expected_exons, \@got_exons ), 'floxed exons are correct';
+    }
+
+    note( 'Test modules when it encounters a nonsense design' );
+
+    {
+        ok my $design = model->c_retrieve_design( { id => 10000 } ), 'can grab design 10000';
+        ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ),
+            'can grab new design info object';
+
+        is $di->target_region_start,136993159, 'correct target region start';
+        is $di->target_region_end,136993258, 'correct target region start';
+        is $di->chr_strand, -1, 'correct strand';
+        is $di->chr_name, 9, 'correct chromosome';
+        ok my $target_region_slice = $di->target_region_slice, 'can grab target region slice';
+        isa_ok $target_region_slice, 'Bio::EnsEMBL::Slice';
+
+        ok !$di->loxp_start, 'no loxp_start value';
+        ok !$di->cassette_start, 'no cassette_start value';
+        ok !$di->homology_arm_start, 'no homology_arm_start value';
+        is $di->target_transcript->stable_id, 'ENST00000371620', 'correct target transcript';
+        ok my $floxed_exons = $di->floxed_exons, 'can call floxed exons';
     }
 
 }
