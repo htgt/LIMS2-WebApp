@@ -16,6 +16,20 @@
   <tr><th>PAM Right</th> <td>[% crispr_data.pam_right %]</td></tr>
   <tr><th>WGE ID</th> <td>[% crispr_data.wge_crispr_id %]</td></tr>
   <tr><th>Comment</th> <td>[% crispr_data.comment %]</td></tr>
+  [% IF crispr_data.nonsense_crispr_original_crispr_id %]
+      <tr><th>Nonsense Crispr ( Linked with crispr )</th>
+      <td> <a href="[% c.uri_for( '/user/crispr', crispr_data.nonsense_crispr_original_crispr_id , 'view' ) %]">[% crispr_data.nonsense_crispr_original_crispr_id %]</a></td>
+    </tr>
+  [% END %]
+  [% IF linked_nonsense_crisprs.size > 0 %]
+      <tr><th>Linked Nonsense Crisprs</th>
+      <td>
+      [% FOR crispr IN linked_nonsense_crisprs %]
+        <a href="[% c.uri_for( '/user/crispr', crispr.id, 'view' ) %]">[% crispr.id %]</a>
+      [% END %]
+      </td>
+      </tr>
+  [% END %]
 </table>
 
 <a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-primary">UCSC BLAT</a>
