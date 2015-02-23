@@ -56,16 +56,8 @@ has chr_name => (
 );
 
 has [
-    qw( cassette_start cassette_end homology_arm_start homology_arm_end )
-] => (
-    is         => 'ro',
-    isa        => 'Int',
-    init_arg   => undef,
-    lazy_build => 1,
-);
-
-has [
-    qw( loxp_start loxp_end target_region_start target_region_end )
+    qw( loxp_start loxp_end target_region_start target_region_end
+        cassette_start cassette_end homology_arm_start homology_arm_end )
 ] => (
     is         => 'ro',
     isa        => 'Maybe[Int]',
