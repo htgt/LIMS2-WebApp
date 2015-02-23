@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.289';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.290';
 }
 ## use critic
 
@@ -882,6 +882,12 @@ sub genes {
                     { design_type => 'gibson-deletion' },
                 ];
             }
+            when ('Pathogen Group 3') {
+                $search{'-or'} = [
+                    { design_type => 'gibson' },
+                    { design_type => 'gibson-deletion' },
+                ];
+            }
             when ('Pathogen Group 1') {
                 $search{'sponsor_id'} = 'Pathogen Group 1';
             }
@@ -916,6 +922,7 @@ sub genes {
 
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
+        $sponsors_str =~ s/Pathogen Group 3/PG3/;
         $sponsors_str =~ s/Mutation/MSP/;
         $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
         $sponsors_str =~ s/Transfacs/TF/;
@@ -1065,9 +1072,10 @@ sub genes {
 
             my $total_colonies = 0;
             # my $picked_colonies = 0;
+
             try {
                 $total_colonies = $self->model->schema->resultset('WellColonyCount')->search({
-                    well_id => $curr_ep->ep_well_id,
+                    well_id => $ep_id,
                     colony_count_type_id => 'total_colonies',
                 } )->single->colony_count;
 
@@ -1345,6 +1353,9 @@ SQL_END
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
         if ($sponsor_id eq 'Pathogen Group 2') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        if ($sponsor_id eq 'Pathogen Group 3') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
         elsif ($sponsor_id eq 'Pathogen Group 1') {
