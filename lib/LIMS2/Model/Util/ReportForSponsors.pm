@@ -1066,9 +1066,10 @@ sub genes {
 
             my $total_colonies = 0;
             # my $picked_colonies = 0;
+
             try {
                 $total_colonies = $self->model->schema->resultset('WellColonyCount')->search({
-                    well_id => $curr_ep->ep_well_id,
+                    well_id => $ep_id,
                     colony_count_type_id => 'total_colonies',
                 } )->single->colony_count;
 
