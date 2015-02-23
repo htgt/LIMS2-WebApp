@@ -607,6 +607,19 @@ sub is_nonsense_crispr {
     return $self->nonsense_crispr_original_crispr_id ? 1 : 0;
 }
 
+sub linked_nonsense_crisprs {
+    my $self = shift;
+    my $schema = $self->result_source->schema;
+
+    my @nonsense_crisprs = $schema->resultset('Crispr')->search(
+        {
+            nonsense_crispr_original_crispr_id => $self->id,
+        }
+    );
+
+    return \@nonsense_crisprs;
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
