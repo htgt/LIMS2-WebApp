@@ -419,6 +419,7 @@ sub generate_sub_report {
             'display_stage'         => 'Genes',
             'columns'               => [    'gene_id',
                                             'gene_symbol',
+                                            'chromosome',
                                             'sponsors',
                                             # 'crispr_pairs',
                                             'crispr_wells',
@@ -455,6 +456,7 @@ sub generate_sub_report {
                                         ],
             'display_columns'       => [    'gene id',
                                             'gene symbol',
+                                            'chr',
                                             'sponsor(s)',
                                             # 'crispr pairs',
                                             'ordered crispr primers',
@@ -848,7 +850,6 @@ sub genes {
             $gene_info = $self->model->find_gene( {
                 search_term => $gene_id,
                 species     => $self->species,
-                # show_all    => 1
             } );
         }
         catch {
@@ -857,6 +858,7 @@ sub genes {
 
         # Now we grab this from the solr index
         my $gene_symbol = $gene_info->{'gene_symbol'};
+        my $chromosome = $gene_info->{'chromosome'};
 
         my %search = ( design_gene_id => $gene_id );
 
@@ -869,6 +871,12 @@ sub genes {
 
         for ($sponsor_id) {
             when ('Pathogen Group 2') {
+                $search{'-or'} = [
+                    { design_type => 'gibson' },
+                    { design_type => 'gibson-deletion' },
+                ];
+            }
+            when ('Pathogen Group 3') {
                 $search{'-or'} = [
                     { design_type => 'gibson' },
                     { design_type => 'gibson-deletion' },
@@ -908,6 +916,7 @@ sub genes {
 
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
+        $sponsors_str =~ s/Pathogen Group 3/PG3/;
         $sponsors_str =~ s/Mutation/MSP/;
         $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
         $sponsors_str =~ s/Transfacs/TF/;
@@ -1057,9 +1066,10 @@ sub genes {
 
             my $total_colonies = 0;
             # my $picked_colonies = 0;
+
             try {
                 $total_colonies = $self->model->schema->resultset('WellColonyCount')->search({
-                    well_id => $curr_ep->ep_well_id,
+                    well_id => $ep_id,
                     colony_count_type_id => 'total_colonies',
                 } )->single->colony_count;
 
@@ -1157,6 +1167,7 @@ sub genes {
         push @genes_for_display, {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
+            'chromosome'             => $chromosome,
             'sponsors'               => $sponsors_str ? $sponsors_str : '0',
             'priority'               => $priority ? $priority : '0',
 
@@ -1336,6 +1347,9 @@ SQL_END
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
         if ($sponsor_id eq 'Pathogen Group 2') {
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+        }
+        if ($sponsor_id eq 'Pathogen Group 3') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
         elsif ($sponsor_id eq 'Pathogen Group 1') {
