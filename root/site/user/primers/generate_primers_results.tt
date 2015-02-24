@@ -48,6 +48,21 @@
       [% END %]
     [% END %]
   </table>
+  [% IF results.$type.errors.keys.size %]
+  <h3>Errors:</h3>
+  <table class="table">
+    <tr>
+      <th>Well Name</th>
+      <th>Error Message</th>
+    </tr>
+    [% FOREACH error_well IN results.$type.errors.keys.sort %]
+    <tr>
+      <td>[% well_names.$error_well %]</td>
+      <td>[% results.$type.errors.$error_well %]</td>
+    </tr>
+    [% END %]
+  </table>
+  [% END %]
 </div>
 [% END %]
 

@@ -197,7 +197,7 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
             overwrite        => $c->req->param('overwrite_checkbox') // 0,
             use_short_arm_designs => $c->req->param('short_arm_designs_checkbox') // 0,
             species_name     => $plate->species_id,
-            farm_bwa         => 1,
+            run_on_farm      => 1,
         };
         if(@well_names){
             $generator_params->{plate_well_names} = \@well_names;
@@ -237,21 +237,24 @@ sub generate_primers_in_background{
 
         try{
             if($params->{crispr_primer_checkbox}){
-                my ($file_path, $db_primers) = $generator->generate_crispr_primers;
+                my ($file_path, $db_primers, $errors) = $generator->generate_crispr_primers;
                 $primer_results->{crispr_seq}->{file_path} = "$file_path";
                 $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
+                $primer_results->{crispr_seq}->{errors} = $errors;
             }
 
             if($params->{crispr_pcr_checkbox}){
-                my ($file_path, $db_primers) = $generator->generate_crispr_PCR_primers;
+                my ($file_path, $db_primers, $errors) = $generator->generate_crispr_PCR_primers;
                 $primer_results->{crispr_pcr}->{file_path} = "$file_path";
                 $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
+                $primer_results->{crispr_pcr}->{errors} = $errors;
             }
 
             if($params->{genotyping_primer_checkbox}){
-                my ($file_path, $db_primers) = $generator->generate_design_genotyping_primers;
+                my ($file_path, $db_primers, $errors) = $generator->generate_design_genotyping_primers;
                 $primer_results->{genotyping}->{file_path} = "$file_path";
                 $primer_results->{genotyping}->{db_primers} = $db_primers ;
+                $primer_results->{genotyping}->{errors} = $errors;
             }
 
             my $json = encode_json($primer_results);
@@ -323,7 +326,11 @@ sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(1){
                                         .$duration->seconds." seconds";
     }
     else{
-        $c->stash->{time_taken_string} = $time_taken->seconds ." seconds so far...";
+        my $time_taken_string = $time_taken->seconds ." seconds so far...";
+        if($time_taken->minutes){
+            $time_taken_string = $time_taken->minutes ." minutes and ".$time_taken_string;
+        }
+        $c->stash->{time_taken_string} = $time_taken_string;
         $c->log->debug("next page refresh in $timeout milliseconds");
         $c->stash->{timeout} = $timeout;
     }

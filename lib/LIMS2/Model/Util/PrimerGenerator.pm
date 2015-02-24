@@ -359,8 +359,8 @@ has overwrite => (
     default => 0,
 );
 
-# Set to true to run bwa genomic specificity check on farm
-has farm_bwa => (
+# Set to true to run primer generation on farm
+has run_on_farm => (
     is => 'ro',
     isa => 'Bool',
     default => 0,
@@ -557,6 +557,8 @@ sub generate_design_genotyping_primers{
     my $heading_csv = join ",",@headings;
     push @out_rows, $heading_csv;
 
+    my $errors_by_well_id = {};
+
     foreach my $well ( @{$self->wells} ) {
         my $well_id = $well->id;
         my $well_name = $well->name;
@@ -581,11 +583,22 @@ sub generate_design_genotyping_primers{
             $design = $self->model->c_retrieve_design({ id => $design_id });
         }
         catch($e){
-            $self->log->debug("Could not find design $design_id in database - $e");
+            my $error = "Could not find design $design_id in database - $e";
+            $errors_by_well_id->{$well_id} = $error;
+            $self->log->debug($error);
             next;
         }
 
-        my ($primer_data, $seq, $db_primers) = $primer_util->design_genotyping_primers($design);
+
+        my ($primer_data, $seq, $db_primers);
+        try{
+            ($primer_data, $seq, $db_primers) = $primer_util->design_genotyping_primers($design);
+        }
+        catch($e){
+            $errors_by_well_id->{$well_id} = $e;
+            next;
+        }
+
         $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
@@ -607,7 +620,7 @@ sub generate_design_genotyping_primers{
     $message .= "Genomic specificity check has been applied to these primers\n";
     my $file_path = $self->create_output_file( $self->plate_name . $self->formatted_well_names . "_genotyping_primers.csv", \@out_rows );
 
-    return $file_path, $well_db_primers;
+    return $file_path, $well_db_primers, $errors_by_well_id;
 }
 
 sub generate_crispr_primers{
@@ -645,6 +658,7 @@ sub generate_crispr_primers{
     # Store crispr primers as we may need them later
     # in order to generate crispr PCR primers
     my $crispr_primers_by_well_id = {};
+    my $errors_by_well_id = {};
 
     foreach my $well ( @{$self->wells} ) {
         my $well_id = $well->id;
@@ -656,8 +670,10 @@ sub generate_crispr_primers{
            ($crispr_id, $crispr) = $self->$id_method_name($well);
         }
         catch($e){
-            $self->log->debug("Skipping crispr primer generation for well $well_name. Could not find crispr "
-                .$self->crispr_type.". Error: $e");
+            my $error = "Skipping crispr primer generation for well $well_name. Could not find crispr "
+                .$self->crispr_type.". Error: $e";
+            $errors_by_well_id->{$well_id} = $error;
+            $self->log->debug($error);
             next;
         }
 
@@ -676,7 +692,15 @@ sub generate_crispr_primers{
 
         # Run primer generation using QcPrimers module
         my $util_method_name = $settings->{primer_util_method};
-        my ($picked_primers, $seq, $db_primers) = $primer_util->$util_method_name($crispr);
+        my ($picked_primers, $seq, $db_primers);
+        try{
+            ($picked_primers, $seq, $db_primers) = $primer_util->$util_method_name($crispr);
+        }
+        catch($e){
+            $errors_by_well_id->{$well_id} = $e;
+            next;
+        }
+
         $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];
 
         # Store crispr primers for each well id
@@ -714,7 +738,7 @@ sub generate_crispr_primers{
     $message .= "WARNING: These primers are for sequencing a PCR product - no genomic check has been applied to these primers\n";
 
     my $file_path = $self->create_output_file( $self->plate_name . $self->formatted_well_names . $settings->{file_suffix}, \@out_rows );
-    return $file_path, $well_db_primers;
+    return $file_path, $well_db_primers, $errors_by_well_id;
 }
 
 sub generate_crispr_PCR_primers{
@@ -745,6 +769,8 @@ sub generate_crispr_PCR_primers{
     my $heading_csv = join ",",@headings;
     push @out_rows, $heading_csv;
 
+    my $errors_by_well_id = {};
+
     foreach my $well ( @{$self->wells} ) {
         my $well_id = $well->id;
         my $well_name = $well->name;
@@ -766,7 +792,14 @@ sub generate_crispr_PCR_primers{
 
         # Run primer generation using QcPrimers module
         my $crispr = $crispr_primers->{$well_id}->{crispr};
-        my ($picked_primers, $seq, $db_primers) = $primer_util->crispr_PCR_primers($well_crispr_primers, $crispr);
+        my ($picked_primers, $seq, $db_primers);
+        try{
+            ($picked_primers, $seq, $db_primers) = $primer_util->crispr_PCR_primers($well_crispr_primers, $crispr);
+        }
+        catch($e){
+            $errors_by_well_id->{$well_id} = $e;
+            next;
+        }
         $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];
 
         # generates field names and values using primer names (e.g. SF1, SR1) set in project
@@ -788,7 +821,7 @@ sub generate_crispr_PCR_primers{
     my $message = "PCR crispr region primers\n";
     $message .= "Genomic specificity check has been applied to these primers\n";
     my $file_path = $self->create_output_file( $self->plate_name . $self->formatted_well_names . '_pcr_primers.csv', \@out_rows );
-    return $file_path, $well_db_primers;
+    return $file_path, $well_db_primers, $errors_by_well_id;
 }
 
 sub get_single_crispr_id{
@@ -882,7 +915,7 @@ sub create_primer_util {
         base_dir            => ($params->{base_dir} // $self->base_dir),
         persist_primers     => ($params->{persist_primers} // $self->persist_db),
         overwrite           => ($params->{overwrite} // $self->overwrite),
-        farm_bwa            => ($params->{farm_bwa} // $self->farm_bwa),
+        run_on_farm         => ($params->{run_on_farm} // $self->run_on_farm),
     });
 
    return $primer_util;
