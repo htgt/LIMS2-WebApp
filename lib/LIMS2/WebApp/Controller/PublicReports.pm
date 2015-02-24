@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.285';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.291';
 }
 ## use critic
 
@@ -243,7 +243,17 @@ sub _view_cached_csv {
     my $c = shift;
     my $csv_name = shift;
 
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $csv_name . '.csv';
+    my $server_path = $c->uri_for('/');
+    my $cache_server;
+
+    for ($server_path) {
+        if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        else  { die 'Error finding path for cached sponsor report'; }
+    }
+
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
@@ -366,7 +376,13 @@ sub _simple_transform {
             }
             else {
                 ${$column}{$key} = '✔'
-                unless ($key eq 'gene_id' || $key eq 'gene_symbol' || $key eq 'sponsors' || $key eq 'ep_data' || $key eq 'recovery_class' || $key eq 'effort_concluded' );
+                unless ($key eq 'gene_id'
+                    || $key eq 'gene_symbol'
+                    || $key eq 'sponsors'
+                    || $key eq 'ep_data'
+                    || $key eq 'recovery_class'
+                    || $key eq 'effort_concluded'
+                    || $key eq 'chromosome' );
             }
         }
     }
@@ -381,7 +397,7 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     return $self->_view_cached_lines($c, $report_name );
 }
 
-sub view_cached_full : Path( '/public_reports/cached_sponsor_report_full' ) : Args(1) {
+sub view_cached_simple : Path( '/public_reports/cached_sponsor_report_simple' ) : Args(1) {
     my ( $self, $c, $report_name ) = @_;
 
     $c->log->info( "Generate public detail report for : $report_name" );
@@ -389,13 +405,11 @@ sub view_cached_full : Path( '/public_reports/cached_sponsor_report_full' ) : Ar
     return $self->_view_cached_lines($c, $report_name, 1 );
 }
 
-
-
 sub _view_cached_lines {
     my $self = shift;
     my $c = shift;
     my $report_name = shift;
-    my $full = shift;
+    my $simple = shift;
 
     my $server_path = $c->uri_for('/');
     my $cache_server;
@@ -408,7 +422,7 @@ sub _view_cached_lines {
     }
 
     my $suffix = '.html';
-    if ($full) {$suffix = '_full.html'}
+    if ($simple) {$suffix = '_simple.html'}
     $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
     my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . $suffix;
 

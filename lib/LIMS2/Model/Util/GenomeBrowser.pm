@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.285';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.291';
 }
 ## use critic
 
@@ -819,6 +819,7 @@ sub generic_colour {
         'G5' => '#589BDD',
         'U3' => '#BF249B',
         'U5' => '#BF249B',
+        'N' => '#18D6CD',
     );
     return $colours{ $oligo_type_id };
 }

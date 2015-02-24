@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::ResultSet::PlateReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.285';
+    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.291';
 }
 ## use critic
 
@@ -129,6 +129,7 @@ sub _consolidate_well_data {
         created_at     => $well->created_at->ymd,
         assay_pending  => $well->assay_pending ? $well->assay_pending->ymd : '',
         assay_complete => $well->assay_complete ? $well->assay_complete->ymd : '',
+        to_report      => $well->to_report,
     );
 
     # call as_hash method on row objects to grab data

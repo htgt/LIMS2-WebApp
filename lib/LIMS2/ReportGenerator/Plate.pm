@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.285';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.291';
 }
 ## use critic
 
@@ -514,13 +514,36 @@ sub crispr_marker_symbols{
 sub crispr_design_and_gene_cols{
     my ($self, $crispr) = @_;
 
-    my %symbols;
-    my (@design_ids, @gene_ids);
+    my (@design_ids, @gene_ids, @symbols);
 
-    foreach my $design ($crispr->related_designs){
-        $self->_symbols_from_design($design, \%symbols);
-        push @design_ids, $design->id;
-        push @gene_ids,  map { $_->gene_id } $design->genes;
+    # usually there is a design linked to the crispr
+    if ($crispr->related_designs) {
+        my %symbols;
+
+        foreach my $design ($crispr->related_designs){
+            $self->_symbols_from_design($design, \%symbols);
+            push @design_ids, $design->id;
+            push @gene_ids,  map { $_->gene_id } $design->genes;
+        }
+
+        @symbols = keys %symbols;
+
+    # if there is no design, get gene info through the crispr location
+    } else {
+        my $slice = $crispr->target_slice;
+
+        my @genes;
+        @genes = @{ $slice->get_all_Genes } unless !$slice;
+
+        foreach my $gene (@genes) {
+          my $gene_finder = $self->model->find_gene({
+                        species => $crispr->species_id,
+                        search_term => $gene->id
+                    });
+
+          push (@symbols, $gene_finder->{gene_symbol});
+          push (@gene_ids, $gene_finder->{gene_id});
+        }
     }
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
@@ -529,9 +552,10 @@ sub crispr_design_and_gene_cols{
     return (
         join( q{/}, uniq @design_ids ),
         join( q{/}, uniq @gene_ids ),
-        join( q{/}, keys %symbols ),
+        join( q{/}, uniq @symbols ),
         join( q{/}, @sponsors )
     );
+
 }
 
 sub _symbols_from_design{

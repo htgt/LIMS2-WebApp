@@ -155,6 +155,7 @@ requires:
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
   WebAppCommon::Util::EnsEMBL: 0
+  WebAppCommon::Util::FarmJobRunner: 0
   WebAppCommon::Util::FindGene: 0
   YAML::Any: 0
   YAML::XS: 0
@@ -165,4 +166,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.285
+version: 0.291
