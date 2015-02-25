@@ -1211,6 +1211,22 @@ sub parent_crispr {
 }
 ## use critic
 
+sub parent_crisprs {
+    my $self = shift;
+
+    my @crisprs;
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    if ( defined $ancestors ) {
+      while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'CRISPR' ) {
+          push @crisprs, $ancestor;
+        }
+      }
+    }
+    return @crisprs;
+}
+## use critic
+
 ## no critic(RequireFinalReturn)
 ## This returns the final set (single or paired) of CRISPR_V parents
 ## It will stop traversing if it hits a CRISPR_V grandparent,

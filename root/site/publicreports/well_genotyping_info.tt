@@ -47,6 +47,35 @@
     </tr>
 </table>
 
+
+<h3>Crispr Information ([% IF crispr_data.size == 1 %] 1 crispr [% ELSE %][% crispr_data.size %] crisprs[% END %])</h3>
+[% FOR crispr IN crispr_data %]
+  <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>Crispr ID</th>
+      <td>[% crispr.id %]</td>
+    </tr>
+    <tr>
+      <th>CRISPR Well</th>
+      <td>[% crispr.crispr_well %]</td>
+    </tr>
+    <tr>
+      <th>Sequence</th>
+      <td class="alignment">[% crispr.seq %]</td>
+    </tr>
+    <tr>
+      <th>Locus</th>
+      <td>[% crispr.locus.chr_name %]:[% crispr.locus.chr_start %]-[% crispr.locus.chr_end %]</td>
+    </tr>
+    <tr>
+      <th>PAM Right</th>
+      <td>[% crispr.pam_right %]</td>
+    </tr>
+  </table>
+[% END %]
+
+
+
 <h3>First Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>

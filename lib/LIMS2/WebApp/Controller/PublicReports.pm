@@ -6,6 +6,7 @@ use Data::Printer;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
+use Smart::Comments;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -495,7 +496,19 @@ sub _stash_well_genotyping_info {
     try {
         #needs to be given a method for finding genes
         my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
-        $c->stash( data => $data );
+        my @crispr_data;
+
+        my @crisprs = $well->parent_crisprs;
+        foreach my $crispr_well ( @crisprs ) {
+            my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
+            if ( $process_crispr ) {
+                my $crispr_data_hash = $process_crispr->crispr->as_hash;
+                $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
+                push @crispr_data, $crispr_data_hash;
+            }
+        }
+
+        $c->stash( data => $data, crispr_data => \@crispr_data );
     }
     catch {
         #get string representation if its a lims2::exception
