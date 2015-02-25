@@ -185,8 +185,8 @@ sub _build_crispr_settings {
             id_method => 'get_single_crispr_id',
             update_design_data_cache => 1,
             file_suffix => '_single_crispr_primers.csv',
-            primer_util_method => 'crispr_single_or_pair_genotyping_primers',
-            primer_project_name => 'crispr_single_or_pair',
+            primer_util_method => 'crispr_sequencing_primers',
+            primer_project_name => 'crispr_sequencing',
         };
     }
     elsif($self->crispr_type eq 'pair'){
@@ -195,8 +195,8 @@ sub _build_crispr_settings {
             id_method => 'get_crispr_pair_id',
             update_design_data_cache => 0,
             file_suffix => '_paired_crispr_primers.csv',
-            primer_util_method => 'crispr_single_or_pair_genotyping_primers',
-            primer_project_name => 'crispr_single_or_pair',
+            primer_util_method => 'crispr_sequencing_primers',
+            primer_project_name => 'crispr_sequencing',
         };
     }
     elsif($self->crispr_type eq 'group'){
@@ -216,7 +216,7 @@ sub _build_crispr_settings {
             id_method => 'get_single_crispr_id',
             update_design_data_cache => 0,
             file_suffix => '_nonsense_crispr_primers.csv',
-            primer_util_method => 'crispr_single_or_pair_genotyping_primers',
+            primer_util_method => 'crispr_sequencing_primers',
             primer_project_name => 'nonsense_crispr_trial',
         };
     }
