@@ -1,5 +1,33 @@
 {{$NEXT}}
 
+0.290     2015-02-23 10:28:20 Europe/London
+
+    Sponsor sub report colonu_counts fix
+    Mouse project Pathogen Group 3 added
+
+0.289     2015-02-20 11:33:41 Europe/London
+
+    chromossome shown always at the simple sponsor sub report
+
+0.288     2015-02-20 10:18:54 Europe/London
+
+    Added chromosome to front page sponsor sub report
+    Added frameshift clones count to CrisprEPDetail report
+
+0.287     2015-02-18 12:15:04 Europe/London
+
+    front page cached report defaulted to full report, fixed bug in csv download
+    atempted to fix browser cache to provide html instead of text file sometimes
+
+0.286     2015-02-09 11:51:58 Europe/London
+
+    Added reporting filter to the EP/CRISPR_EP wells
+    Added Genoverse button to Intermediate plates
+
+0.285     2015-02-05 15:43:10 Europe/London
+
+   Added group_crispr_assembly process
+
 0.284     2015-01-29 10:39:04 Europe/London
 
     Changes to the clones page and well genotyping info page

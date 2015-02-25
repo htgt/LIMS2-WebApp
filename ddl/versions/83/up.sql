@@ -1,3 +1,6 @@
-alter table crispr_primers drop constraint "crispr_id and primer name must be unique"
-alter table crispr_primers drop constraint "crispr_pair_id and primer name must be unique"
-alter table crispr_primers drop constraint "crispr_group_id and and primer_name must be unique"
+ALTER TABLE designs ADD COLUMN nonsense_design_crispr_id INT;
+ALTER TABLE designs ADD foreign key (nonsense_design_crispr_id) references crisprs(id);
+
+ALTER TABLE crisprs ADD COLUMN nonsense_crispr_original_crispr_id INT;
+ALTER TABLE crisprs ADD foreign key (nonsense_crispr_original_crispr_id) references crisprs(id);
+

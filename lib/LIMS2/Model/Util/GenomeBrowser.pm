@@ -813,6 +813,7 @@ sub generic_colour {
         'G5' => '#589BDD',
         'U3' => '#BF249B',
         'U5' => '#BF249B',
+        'N' => '#18D6CD',
     );
     return $colours{ $oligo_type_id };
 }
