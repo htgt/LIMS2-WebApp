@@ -405,6 +405,7 @@ has base_dir => (
 
 sub _build_base_dir {
     my $self = shift;
+    $ENV{LIMS2_PRIMER_DIR} or die "LIMS2_PRIMER_DIR environment variable not set";
     my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR} );
     my $base_dir = $primer_dir->subdir( $self->job_id );
     $base_dir->mkpath;
@@ -606,7 +607,7 @@ sub generate_design_genotyping_primers{
             ($primer_data, $seq, $db_primers) = $primer_util->design_genotyping_primers($design);
         }
         catch($e){
-            $errors_by_well_id->{$well_id} = $e;
+            $errors_by_well_id->{$well_id} = "$e";
             next;
         }
 
@@ -708,7 +709,7 @@ sub generate_crispr_primers{
             ($picked_primers, $seq, $db_primers) = $primer_util->$util_method_name($crispr);
         }
         catch($e){
-            $errors_by_well_id->{$well_id} = $e;
+            $errors_by_well_id->{$well_id} = "$e";
             next;
         }
 
@@ -808,7 +809,7 @@ sub generate_crispr_PCR_primers{
             ($picked_primers, $seq, $db_primers) = $primer_util->crispr_PCR_primers($well_crispr_primers, $crispr);
         }
         catch($e){
-            $errors_by_well_id->{$well_id} = $e;
+            $errors_by_well_id->{$well_id} = "$e";
             next;
         }
         $well_db_primers->{$well_id} = [ map { $_->as_hash } @$db_primers ];

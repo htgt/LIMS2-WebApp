@@ -238,21 +238,24 @@ sub generate_primers_in_background{
         try{
             if($params->{crispr_primer_checkbox}){
                 my ($file_path, $db_primers, $errors) = $generator->generate_crispr_primers;
-                $primer_results->{crispr_seq}->{file_path} = "$file_path";
+                my $file_rel = $file_path->relative( $dir );
+                $primer_results->{crispr_seq}->{file_path} = "$file_rel";
                 $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
                 $primer_results->{crispr_seq}->{errors} = $errors;
             }
 
             if($params->{crispr_pcr_checkbox}){
                 my ($file_path, $db_primers, $errors) = $generator->generate_crispr_PCR_primers;
-                $primer_results->{crispr_pcr}->{file_path} = "$file_path";
+                my $file_rel = $file_path->relative( $dir );
+                $primer_results->{crispr_pcr}->{file_path} = "$file_rel";
                 $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
                 $primer_results->{crispr_pcr}->{errors} = $errors;
             }
 
             if($params->{genotyping_primer_checkbox}){
                 my ($file_path, $db_primers, $errors) = $generator->generate_design_genotyping_primers;
-                $primer_results->{genotyping}->{file_path} = "$file_path";
+                my $file_rel = $file_path->relative( $dir );
+                $primer_results->{genotyping}->{file_path} = "$file_rel";
                 $primer_results->{genotyping}->{db_primers} = $db_primers ;
                 $primer_results->{genotyping}->{errors} = $errors;
             }
@@ -272,6 +275,8 @@ sub generate_primers_in_background{
 }
 sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(1){
     my ($self, $c, $job_id) = @_;
+
+    $c->assert_user_roles('read');
 
     my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR} );
     $c->stash->{job_id} = $job_id;
@@ -342,16 +347,8 @@ sub download_primer_file :Path( '/user/download_primer_file' ) :Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my $file = file( $c->req->param('file') );
     my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR});
-
-    # Don't let user download any old file - it must be in the primer directory
-    # FIXME: would be better to pass directory ID and file name as param
-    # instead of full path
-    unless($primer_dir->subsumes($file)){
-        $c->flash->{error_msg} = "File $file is not available for download";
-        return $c->res->redirect( $c->uri_for('/user/generate_primers'));
-    }
+    my $file = $primer_dir->file( $c->req->param('job_id'), $c->req->param('file') );
 
     my $filename = $file->basename;
     my $fh;
