@@ -124,9 +124,31 @@ sub _build_design_data_cache {
     my $short_design_cache = $self->model->get_short_arm_design_data_for_well_id_list( $self->well_ids );
 
 	my $design_data_cache = $self->model->get_design_data_for_well_id_list( $self->well_ids );
+=head
     foreach my $well_id (keys %{ $short_design_cache || {} }){
         my $short_design_id = $short_design_cache->{$well_id}->{design_id};
         $design_data_cache->{$well_id}->{short_arm_design_id} = $short_design_id;
+    }
+=cut
+
+    foreach my $well_id (keys %{ $design_data_cache || {} }){
+        my $design_id = $design_data_cache->{$well_id}->{design_id};
+        my $design;
+        try{
+            $design = $self->model->c_retrieve_design({ id => $design_id });
+        }
+        catch($e){
+            my $error = "Could not find design $design_id in database - $e";
+            $self->log->debug($error);
+            die;
+        }
+
+        $design_data_cache->{$well_id}->{design} = $design;
+        $design_data_cache->{$well_id}->{strand} = $design->chr_strand;
+
+        if(my $short_design_id = $short_design_cache->{$well_id}->{design_id}){
+            $design_data_cache->{$well_id}->{short_arm_design_id} = $short_design_id;
+        }
     }
 
     $self->update_gene_symbols($design_data_cache,$self->well_ids);
@@ -200,7 +222,6 @@ sub _build_crispr_settings {
         };
     }
     elsif($self->crispr_type eq 'group'){
-        # FIXME: create generic crispr group project config instead of mgp_recovery??
         $settings = {
             id_field => 'crispr_group_id',
             id_method => 'get_crispr_group_id',
@@ -257,7 +278,6 @@ sub _build_disambiguate_designs_cache {
         push @well_ids, map { $_->id } $plate->wells;
     }
 
-    # FIXME: include results of get_short_arm_design_data_for_well_id_list (always or flag?)
     return $self->model->get_design_data_for_well_id_list( \@well_ids);
 }
 
@@ -566,6 +586,7 @@ sub generate_design_genotyping_primers{
         my $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
         my $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
         my $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+        my $strand = $self->design_data_cache->{$well_id}->{'strand'};
 
         if($self->use_short_arm_designs){
             $design_id = $self->design_data_cache->{$well_id}->{'short_arm_design_id'};
@@ -578,17 +599,7 @@ sub generate_design_genotyping_primers{
 
         $self->log->info( "$design_id\t$gene_name" );
 
-        my $design;
-        try{
-            $design = $self->model->c_retrieve_design({ id => $design_id });
-        }
-        catch($e){
-            my $error = "Could not find design $design_id in database - $e";
-            $errors_by_well_id->{$well_id} = $error;
-            $self->log->debug($error);
-            next;
-        }
-
+        my $design = $self->design_data_cache->{$well_id}->{design};
 
         my ($primer_data, $seq, $db_primers);
         try{
@@ -606,7 +617,6 @@ sub generate_design_genotyping_primers{
         my $output_values = $primer_util->get_output_values($primer_data);
         $self->log->info("output values: ",Dumper($output_values));
 
-        my $strand = 'FIXME'; # where to get chromosome strand from?
         my @out_vals = ($well_name, $gene_name, $design_id, $strand );
 
         push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
@@ -681,11 +691,12 @@ sub generate_crispr_primers{
             $self->verify_and_update_design_data_cache( $well_id, $crispr_id );
         }
 
-        my ($design_id, $gene_id, $gene_name) = ('','','');
+        my ($design_id, $gene_id, $gene_name, $strand) = ('','','','');
         if($self->design_data_cache){
             $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
             $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
             $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+            $strand = $self->design_data_cache->{$well_id}->{'strand'};
         }
 
         $self->log->info( "$design_id\t$gene_name\t".$settings->{id_field}.":\t$crispr_id" );
@@ -712,7 +723,6 @@ sub generate_crispr_primers{
         my $output_values = $primer_util->get_output_values($picked_primers);
         $self->log->info("output values: ",Dumper($output_values));
 
-        my $strand = 'FIXME'; # where to get chromosome strand from?
         my @out_vals = ($well_name, $gene_name, $design_id, $strand, $crispr_id);
 
         push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
@@ -775,11 +785,12 @@ sub generate_crispr_PCR_primers{
         my $well_id = $well->id;
         my $well_name = $well->name;
 
-        my ($design_id, $gene_id, $gene_name) = ('','','');
+        my ($design_id, $gene_id, $gene_name, $strand) = ('','','','');
         if($self->design_data_cache){
             $design_id = $self->design_data_cache->{$well_id}->{'design_id'};
             $gene_id = $self->design_data_cache->{$well_id}->{'gene_id'};
             $gene_name = $self->design_data_cache->{$well_id}->{'gene_symbol'};
+            $strand = $self->design_data_cache->{$well_id}->{'strand'};
         }
 
         $self->log->info( "$design_id\t$gene_name" );
@@ -807,7 +818,6 @@ sub generate_crispr_PCR_primers{
         my $output_values = $primer_util->get_output_values($picked_primers);
         $self->log->info("output values: ",Dumper($output_values));
 
-        my $strand = 'FIXME'; # where to get chromosome strand from?
         my @out_vals = ($well_name, $gene_name, $design_id, $strand);
 
         push @out_vals, map { $output_values->{$_} // '' } @primer_headings;
