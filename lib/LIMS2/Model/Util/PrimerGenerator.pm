@@ -37,7 +37,6 @@ use warnings FATAL => 'all';
 use Moose;
 use TryCatch;
 use LIMS2::Model;
-use Switch;
 use Carp;
 use Path::Class;
 use Data::Dumper;
@@ -200,47 +199,44 @@ has crispr_settings => (
 
 sub _build_crispr_settings {
     my $self = shift;
-    my $settings;
-    if($self->crispr_type eq 'single'){
-        $settings = {
+    my $all_settings = {
+        'single' => {
             id_field => 'crispr_id',
             id_method => 'get_single_crispr_id',
             update_design_data_cache => 1,
             file_suffix => '_single_crispr_primers.csv',
             primer_util_method => 'crispr_sequencing_primers',
             primer_project_name => 'crispr_sequencing',
-        };
-    }
-    elsif($self->crispr_type eq 'pair'){
-        $settings = {
+        },
+        'pair' => {
             id_field => 'crispr_pair_id',
             id_method => 'get_crispr_pair_id',
             update_design_data_cache => 0,
             file_suffix => '_paired_crispr_primers.csv',
             primer_util_method => 'crispr_sequencing_primers',
             primer_project_name => 'crispr_sequencing',
-        };
-    }
-    elsif($self->crispr_type eq 'group'){
-        $settings = {
+        },
+        'group' => {
             id_field => 'crispr_group_id',
             id_method => 'get_crispr_group_id',
             update_design_data_cache => 0,
             file_suffix => '_group_crispr_primers.csv',
             primer_util_method => 'crispr_group_genotyping_primers',
             primer_project_name => 'mgp_recovery',
-        };
-    }
-    elsif($self->crispr_type eq 'nonsense'){
-        $settings = {
+        },
+        'nonsense' => {
             id_field => 'crispr_id',
             id_method => 'get_single_crispr_id',
             update_design_data_cache => 0,
             file_suffix => '_nonsense_crispr_primers.csv',
             primer_util_method => 'crispr_sequencing_primers',
             primer_project_name => 'nonsense_crispr_trial',
-        };
-    }
+        },
+    };
+
+    my $settings = $all_settings->{ $self->crispr_type }
+        or die "No primer generation settings found for ".$self->crispr_type." crisprs";
+
     return $settings;
 }
 
@@ -267,7 +263,7 @@ has disambiguate_designs_cache => (
 sub _build_disambiguate_designs_cache {
     my $self = shift;
 
-    return undef unless $self->has_design_plate_names;
+    return unless $self->has_design_plate_names;
 
     $self->log->debug("Design plates list defined. Generating disambiguate designs cache");
 
@@ -318,7 +314,7 @@ has crispr_primers => (
 sub _build_crispr_pair_id_cache{
     my $self = shift;
 
-    return undef unless ($self->has_left_crispr_plate_name and $self->has_right_crispr_plate_name);
+    return unless ($self->has_left_crispr_plate_name and $self->has_right_crispr_plate_name);
 
     my $cache;
 
@@ -592,8 +588,8 @@ sub generate_design_genotyping_primers{
         if($self->use_short_arm_designs){
             $design_id = $self->design_data_cache->{$well_id}->{'short_arm_design_id'};
             unless($design_id){
-                $self->log->warn("No short arm design ID found for well $well_name.
-                    Skipping genotyping primer generation for this well.");
+                $self->log->warn("No short arm design ID found for well $well_name."
+                    ."Skipping genotyping primer generation for this well.");
                 next;
             }
         }

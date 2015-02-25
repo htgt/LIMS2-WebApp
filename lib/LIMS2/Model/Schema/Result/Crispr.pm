@@ -414,9 +414,9 @@ sub current_locus {
 sub gene_id {
     my $self = shift;
     my $crispr_design = $self->crispr_designs->first
-        or return undef;
+        or return;
     my $genes = $crispr_design->design->genes
-        or return undef;
+        or return;
     return $genes->first->gene_id;
 }
 
