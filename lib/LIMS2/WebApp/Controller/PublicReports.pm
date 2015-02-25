@@ -6,7 +6,6 @@ use Data::Printer;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
-use Smart::Comments;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
