@@ -55,6 +55,13 @@
             <li>
               <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
+
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/generate_primers' ) %]">Generate Primers</a>
+            </li>
+
           </ul>
         </li>
 

@@ -204,9 +204,20 @@ sub as_hash {
         id      => $self->id,
         type    => $self->genotyping_primer_type_id,
         seq     => $self->seq,
+        primer_seq => $self->seq,
+        primer_name => $self->genotyping_primer_type_id,
         species => $self->design->species_id,
         locus   => $locus ? $locus->as_hash : undef,
     };
+}
+
+# Method aliases so we can use it like a CrisprPrimer
+sub primer_name{
+    return shift->genotyping_primer_type_id;
+}
+
+sub primer_seq{
+    return shift->seq;
 }
 
 __PACKAGE__->meta->make_immutable;
