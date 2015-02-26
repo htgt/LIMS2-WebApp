@@ -47,7 +47,7 @@
     </tr>
 </table>
 
-<h3>Crispr Information ([% IF crispr_data.size == 1 %] 1 crispr [% ELSE %][% crispr_data.size %] crisprs[% END %])</h3>
+<h3>Crispr Information ([% IF crispr_data.size == 1 %]1 crispr[% ELSE %][% crispr_data.size %] crisprs[% END %])</h3>
 [% FOR crispr IN crispr_data %]
   <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
