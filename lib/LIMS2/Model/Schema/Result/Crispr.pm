@@ -411,6 +411,15 @@ sub current_locus {
     return $loci;
 }
 
+sub gene_id {
+    my $self = shift;
+    my $crispr_design = $self->crispr_designs->first
+        or return;
+    my $genes = $crispr_design->design->genes
+        or return;
+    return $genes->first->gene_id;
+}
+
 sub start {
     return shift->current_locus->chr_start;
 }
@@ -425,6 +434,16 @@ sub chr_id {
 
 sub chr_name {
     return shift->current_locus->chr->name;
+}
+
+sub default_assembly{
+    return shift->species->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr
+sub id_column_name{
+    return 'crispr_id';
 }
 
 sub target_slice {

@@ -1255,6 +1255,39 @@ sub parent_crispr_v {
 }
 ## use critic
 
+sub parent_assembly_well{
+    my $self = shift;
+    if($self->plate->type_id eq 'ASSEMBLY'){
+        return $self;
+    }
+    else{
+        my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
+        while( my $ancestor = $ancestors->next ) {
+            if ( $ancestor->plate->type_id eq 'ASSEMBLY' ) {
+                return $ancestor;
+            }
+        }
+    }
+    return;
+}
+
+sub parent_assembly_process_type{
+    my $self = shift;
+
+    if (my $assembly_well = $self->parent_assembly_well){
+        my ($process) = $assembly_well->parent_processes;
+        return $process->type_id;
+    }
+    return;
+}
+
+sub crisprs{
+    my $self = shift;
+
+    my @crispr_vectors = $self->parent_crispr_v;
+    return map { $_->parent_crispr->crispr } @crispr_vectors;
+}
+
 ## no critic(RequireFinalReturn)
 sub left_and_right_crispr_wells {
     my $self = shift;
@@ -1323,6 +1356,7 @@ sub crispr_primer_for{
         my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
             $crispr_col_label => $crispr_id_value,
             'primer_name' => $params->{'primer_label'},
+            is_rejected => [0, undef],
         });
         if ($result) {
             $crispr_primer_seq = $result->primer_seq;

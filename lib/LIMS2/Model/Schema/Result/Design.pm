@@ -425,6 +425,10 @@ sub as_string {
     return shift->id;
 }
 
+sub oligos_sorted{
+    return shift->_sort_oligos;
+}
+
 sub _sort_oligos {
     my $self = shift;
 
