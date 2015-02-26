@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.291';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.292';
 }
 ## use critic
 
@@ -429,6 +429,10 @@ use overload '""' => \&as_string;
 
 sub as_string {
     return shift->id;
+}
+
+sub oligos_sorted{
+    return shift->_sort_oligos;
 }
 
 sub _sort_oligos {

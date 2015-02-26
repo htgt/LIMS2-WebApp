@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.291';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.292';
 }
 ## use critic
 
@@ -278,6 +278,7 @@ __PACKAGE__->has_many(
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 use overload '""' => \&as_string;
+use List::MoreUtils qw(any);
 
 sub as_string {
     my $self = shift;
@@ -376,5 +377,9 @@ sub number_of_wells_with_barcodes {
     return $count;
 }
 
+sub has_global_arm_shortened_designs{
+    my $self = shift;
+    return any { $_->global_arm_shortened_design } $self->wells;
+}
 __PACKAGE__->meta->make_immutable;
 1;

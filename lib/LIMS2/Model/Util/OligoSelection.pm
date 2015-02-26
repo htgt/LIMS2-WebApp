@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.291';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.292';
 }
 ## use critic
 
@@ -593,7 +593,8 @@ sub get_crispr_PCR_EnsEmbl_region{
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
     my $end_target = $crispr_primers->{'crispr_primers'}->{'right'}->{'right_0'}->{'location'}->end
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'};
-
+INFO("PCR start target: $start_target");
+INFO("PCR end target: $end_target");
     my $start_coord =  $start_target - ($dead_field_width + $search_field_width);
     my $end_coord =  $end_target + ($dead_field_width + $search_field_width);
     $slice_region = $slice_adaptor->fetch_by_region(
@@ -1238,8 +1239,10 @@ sub retrieve_crispr_primers {
 
     my %crispr_primers_hash;
 
+    # I am assuming we do not want to return rejected primers af11 2015-02-05
     my $crispr_primers_rs = $schema->resultset('CrisprPrimer')->search({
         $crispr_id_ref => $crispr_id,
+        is_rejected => [0,undef],
     });
 
     my $crispr_type_string;
@@ -1288,6 +1291,9 @@ sub retrieve_crispr_primers {
 sub get_db_genotyping_primers_as_hash {
     my $schema = shift;
     my $params = shift;
+
+    # Skip this id we have no design ID
+    return {} unless $params->{'design_id'};
 
     my $genotyping_primer_rs = $schema->resultset('GenotypingPrimer')->search({
             'design_id' => $params->{'design_id'},

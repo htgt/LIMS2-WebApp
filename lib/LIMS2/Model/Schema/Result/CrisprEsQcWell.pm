@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.291';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.292';
 }
 ## use critic
 
@@ -272,7 +272,7 @@ sub get_crispr_primers {
 
   #return a resultset of all the relevant crispr primers
   return $self->result_source->schema->resultset('CrisprPrimer')->search(
-    { $field => $analysis_data->{crispr_id} },
+    { $field => $analysis_data->{crispr_id}, is_rejected => [0, undef] },
     { order_by => { -asc => 'me.primer_name' } }
   );
 }

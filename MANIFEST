@@ -201,6 +201,7 @@ lib/LIMS2/Model/Util/GenoverseSupport.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
+lib/LIMS2/Model/Util/PrimerGenerator.pm
 lib/LIMS2/Model/Util/QCResults.pm
 lib/LIMS2/Model/Util/QCTemplates.pm
 lib/LIMS2/Model/Util/RankQCResults.pm
@@ -405,6 +406,8 @@ root/site/user/platecopy/plate_copy_wait.tt
 root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
+root/site/user/primers/generate_primers.tt
+root/site/user/primers/generate_primers_results.tt
 root/site/user/projects/index.tt
 root/site/user/projects/recovery_classes.tt
 root/site/user/qc/create_plates.tt

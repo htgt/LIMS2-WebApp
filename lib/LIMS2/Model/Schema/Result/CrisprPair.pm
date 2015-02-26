@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.291';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.292';
 }
 ## use critic
 
@@ -236,6 +236,19 @@ sub target_slice {
     return $slice;
 }
 
+sub gene_id {
+    my $self = shift;
+    my $crispr_designs = $self->crispr_designs
+        or return;
+    my $genes = $crispr_designs->first->design->genes
+        or return;
+    return $genes->first->gene_id;
+}
+
+sub species_id {
+    return shift->right_crispr->species_id;
+}
+
 sub start {
     return shift->left_crispr_locus->chr_start;
 }
@@ -250,6 +263,16 @@ sub chr_id {
 
 sub chr_name {
     return shift->right_crispr_locus->chr->name;
+}
+
+sub default_assembly {
+    return shift->left_crispr->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr_pair
+sub id_column_name{
+    return 'crispr_pair_id';
 }
 
 sub is_pair { return 1; }

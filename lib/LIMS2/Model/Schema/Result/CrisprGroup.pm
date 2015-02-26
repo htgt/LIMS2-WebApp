@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprGroup;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.291';
+    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.292';
 }
 ## use critic
 
@@ -273,6 +273,23 @@ sub chr_name {
 
 sub species {
     return shift->right_most_crispr->species_id;
+}
+
+# Added species_id method to CrisprPair and CrisprGroup to fetch
+# the species_id (name string) so it is equivalent to Crispr->species_id
+# (Crispr->species returns the Species object)
+sub species_id {
+    return shift->right_most_crispr->species_id;
+}
+
+sub default_assembly{
+    return shift->right_most_crispr->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr_group
+sub id_column_name{
+    return 'crispr_group_id';
 }
 
 sub target_slice {
