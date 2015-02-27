@@ -551,7 +551,10 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my $gene_symbol;
     my %targeted_clones;
     while ( my $sr = $design_summaries_rs->next ) {
-        $gene_symbol = $sr->design_gene_symbol unless $gene_symbol;
+        $gene_symbol = $model->find_gene({
+                    species => $species,
+                    search_term => $gene_id
+                })->{'gene_symbol'};
         next if exists $targeted_clones{ $sr->ep_pick_well_id };
 
         my %data;
