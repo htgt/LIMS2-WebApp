@@ -23,7 +23,7 @@ override _build_columns => sub {
         $self->accepted_crispr_columns,
         "Cassette", "Cassette Resistance", "Cassette Type", "Backbone", "Recombinases",
         "Intermedate Well", "Intermediate QC Test Result", "Intermediate Valid Primers", "Intermediate Mixed Reads?", "Intermediate Sequencing QC Pass?",
-        "Post-intermedate Well", "Post-intermediate QC Test Result", "Post-intermediate Valid Primers", "Post-intermediate Mixed Reads?", "Post-intermediate Sequencing QC Pass?",
+        "Final Well", "Final QC Test Result", "Final Valid Primers", "Final Mixed Reads?", "Final Sequencing QC Pass?",
         "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
     ];
 };
@@ -64,7 +64,7 @@ override iterator => sub {
             $well_data->{backbone},
             $well_data->{recombinases},
             $self->ancestor_cols_quick( $well_data, 'INT' ),
-            $self->ancestor_cols_quick( $well_data, 'POSTINT' ),
+            $self->ancestor_cols_quick( $well_data, 'FINAL' ),
             $self->qc_result_cols( $well ),
         );
 
