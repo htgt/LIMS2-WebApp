@@ -65,7 +65,7 @@ function create_alert(text, alert_class) {
     <legend>Barcode Search</legend>
       <div class="control-group">
         <div class="form-inline">
-          <input type="text" name="well_id" id="well_id" placeholder="Well ID" />
+          <input type="text" name="well_id" id="well_id" placeholder="Barcode" />
           <input type="button" id="id_button" name="action" class="btn btn-primary" value="Get data" />
         </div>
       </div>
