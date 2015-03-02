@@ -26,6 +26,7 @@
   [% IF results.$type.file_path %]
   <a href="[% c.uri_for('/user/download_primer_file', { job_id => job_id, file => results.$type.file_path } ) %]" class="btn btn-info"><i class="icon-download-alt icon-white"></i> Download CSV file</a>
   [% END %]
+  <h4>Primers written to database:</h4>
   <table class="table">
     <tr>
       <th>Well Name</th>
