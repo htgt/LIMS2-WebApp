@@ -1000,19 +1000,30 @@ Everything else is done wrt crispr pairs, so it is easier to use the same data s
 sub oligo_for_single_crispr {
     my $schema = shift;
     my $crispr_id = shift;
-
-    # TODO: should we be checking assembly, chromosome and species here?
+    my $assembly_id = shift;
 
     my $crispr_rs = crispr_oligo_rs( $schema, $crispr_id );
     my $crispr = $crispr_rs->first;
 
+    # If no assembly has been specified use species default
+    unless($assembly_id){
+        $assembly_id = $crispr->species->default_assembly->assembly_id;
+    }
+
     my %crispr_pairs;
     $crispr_pairs{'left_crispr'}->{'id'} = $crispr->id;
-    my $locus_count = $crispr->loci->count;
-    if ($locus_count != 1 ) {
+    my @loci = $crispr->loci->search({ assembly_id => $assembly_id });
+
+    my $locus_count = scalar @loci;
+    if ($locus_count > 1 ) {
         INFO ('Found multiple loci for ' . $crispr_id);
     }
-    my $locus = $crispr->loci->first;
+    elsif($locus_count == 0){
+        INFO ("No locus on assembly $assembly_id for crispr ".$crispr_id);
+        return {};
+    }
+    my $locus = $loci[0];
+
     $crispr_pairs{'left_crispr'}->{'chr_start'} = $locus->chr_start;
     $crispr_pairs{'left_crispr'}->{'chr_end'} = $locus->chr_end;
     $crispr_pairs{'left_crispr'}->{'chr_strand'} = $locus->chr_strand;
