@@ -925,7 +925,7 @@ sub genes {
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
 
 
-        if (scalar @sponsors == 1 || $sponsor_id ne 'All') {
+        if (scalar @sponsors == 1 && $sponsor_id ne 'All') {
             $effort = $self->model->retrieve_project({
                         sponsor_id => $sponsor_id,
                         gene_id => $gene_id,

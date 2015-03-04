@@ -52,7 +52,7 @@ override iterator => sub {
         return unless $well_data;
 
         my $well = $well_data->{well};
-        my @crispr_wells = map{ $_->{plate_name} . '[' . $_->{well_name} . ']' } @{ $well_data->{crispr_wells} };
+        my @crispr_wells = map{ $_->{plate_name} . '[' . $_->{well_name} . ']' } @{ $well_data->{crispr_wells}{crisprs} };
 
         my @data = (
             $well_data->{well_id},

@@ -126,6 +126,7 @@ override _build_columns => sub {
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Crispr ID', 'Crispr Design', 'Genoverse View', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
+        'Crispr Vector Well(s)', 'Final Pick Well',
         'DNA Quality EGel Pass?','Sequencing QC Pass',
         'Crispr Details',
         @{ $self->primer_names }, # primers
@@ -151,6 +152,7 @@ override iterator => sub {
         my $crisprs_data = $well_crisprs_data->{ $well_data->{well_id} };
         my $crispr = $crisprs_data->{obj};
         my $crispr_primers = $self->get_primers( $crispr, $genotyping_primers->{ $well_data->{design_id} } );
+        my @crispr_vectors = map{ $_->{plate_name} . '_' . $_->{well_name} } @{ $well_data->{crispr_wells}{crispr_vectors} };
         my ( $genoverse_button, $crispr_designs );
         if ( $crispr ) {
             $genoverse_button = $self->create_button_json(
@@ -193,6 +195,8 @@ override iterator => sub {
             $well_data->{cassette_resistance},
             $well_data->{cassette_promoter},
             $well_data->{backbone},
+            join( ", ", @crispr_vectors ),
+            $well_data->{well_ancestors}{FINAL_PICK}{well_name},
             ( $dna_quality ? $self->boolean_str($dna_quality->egel_pass) : '' ),
             ( $qc_seq_result ? $self->boolean_str($qc_seq_result->pass) : '' ),
             join( ", ", @crispr_report_details ),

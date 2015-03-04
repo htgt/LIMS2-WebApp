@@ -86,10 +86,14 @@ sub build_base_report_data{
         my ( $parent_process ) = $well->parent_processes;
         my $crispr = $parent_process->process_crispr->crispr;
 
+# Profile for the crispr order sheet can be changed here...
+# u6 profile uses $crispr->forward_order_seq and $crispr->reverse_order_seq
+# t7 (v1, barry) uses $crispr->t7_forward_order_seq and $crispr->t7_reverse_order_seq
+# t7 (v2, bill, wendy) might have to be added
         push @{ $self->crispr_data }, {
             well_name => $well->name,
-            forward   => $crispr->forward_order_seq,
-            reverse   => $crispr->reverse_order_seq,
+            forward   => $crispr->t7_forward_order_seq,
+            reverse   => $crispr->t7_reverse_order_seq,
             crispr_id => $crispr->id,
         };
     }
