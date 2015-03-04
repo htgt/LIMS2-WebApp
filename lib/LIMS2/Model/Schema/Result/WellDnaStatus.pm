@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellDnaStatus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellDnaStatus::VERSION = '0.292';
+    $LIMS2::Model::Schema::Result::WellDnaStatus::VERSION = '0.293';
 }
 ## use critic
 

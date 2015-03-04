@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.292';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.293';
 }
 ## use critic
 
@@ -421,7 +421,7 @@ sub format_alignment_strings {
 
     return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
     return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
-    if ( $json->{forward_no_alignment} && $json->{forward_no_alignment} ) {
+    if ( $json->{forward_no_alignment} && $json->{reverse_no_alignment} ) {
         if ( !$self->fwd_read ) {
             return { forward => 'No Read', no_reverse_alignment => 1 };
         }

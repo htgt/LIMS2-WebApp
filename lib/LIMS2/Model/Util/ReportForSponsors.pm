@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.292';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.293';
 }
 ## use critic
 
@@ -931,7 +931,7 @@ sub genes {
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
 
 
-        if (scalar @sponsors == 1 || $sponsor_id ne 'All') {
+        if (scalar @sponsors == 1 && $sponsor_id ne 'All') {
             $effort = $self->model->retrieve_project({
                         sponsor_id => $sponsor_id,
                         gene_id => $gene_id,

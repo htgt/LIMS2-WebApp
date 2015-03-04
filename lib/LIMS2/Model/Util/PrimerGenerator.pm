@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.292';
+    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.293';
 }
 ## use critic
 
@@ -351,12 +351,16 @@ sub _build_crispr_pair_id_cache{
         my $left_crispr_id = $left_crispr_data->{'id'};
         my $right_crispr_id = $right_crispr_data->{'id'};
 
+        $self->log->debug("Searcing for crispr pair $left_crispr_id, $right_crispr_id. (well: ".$left_well->name.")");
         my $crispr_pair = $self->model->schema->resultset( 'CrisprPair' )->find({
            'left_crispr_id' => $left_crispr_id,
            'right_crispr_id' => $right_crispr_id,
         });
 
-        $cache->{$left_well->name} = $crispr_pair->id;
+        if($crispr_pair){
+            $self->log->info("Caching crispr_pair_id ".$crispr_pair->id." for well ".$left_well->name);
+            $cache->{$left_well->name} = $crispr_pair->id;
+        }
     }
     return $cache;
 
@@ -878,16 +882,38 @@ sub get_crispr_pair_id{
     return ($crispr_pair_id, $crispr_pair);
 }
 
+## no critic(RequireFinalReturn)
 sub get_crispr_group_id{
     my ($self, $well) = @_;
 
-    my @crispr_ids = map { $_->id } $well->crisprs;
-    my $group = $self->model->get_crispr_group_by_crispr_ids({
+    my @crispr_ids;
+    my $group;
+    try{
+        @crispr_ids = map { $_->id } $well->crisprs;
+    }
+    catch($e){
+    }
+
+    if(@crispr_ids){
+        $self->log->debug("finding crispr group for all crisprs used in well ".$well->name);
+        $group = $self->model->get_crispr_group_by_crispr_ids({
             crispr_ids => \@crispr_ids,
-    });
+        });
+    }
+    else{
+        $self->log->debug("finding crispr group linked to design for well ".$well->name);
+        my $design = $self->design_data_cache->{$well->id}->{design};
+        my @crispr_designs = $design->crispr_designs;
+        my @groups = grep { $_ } map { $_->crispr_group } @crispr_designs;
+        if(@groups > 1){
+            $self->log->warn("More than one crispr group found for well ".$well->name);
+        }
+        $group = $groups[0];
+    }
 
     return ($group->id, $group);
 }
+## use critic
 
 sub formatted_well_names{
     my $self = shift;

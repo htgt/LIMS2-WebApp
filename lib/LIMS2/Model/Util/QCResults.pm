@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.292';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.293';
 }
 ## use critic
 

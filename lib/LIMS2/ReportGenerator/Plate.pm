@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.292';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.293';
 }
 ## use critic
 
@@ -686,7 +686,7 @@ sub prefetch_crisprs {
 
     for my $wd ( @{ $wells_data } ) {
         next unless $wd->{crispr_wells};
-        for my $cw ( @{ $wd->{crispr_wells} } ) {
+        for my $cw ( @{ $wd->{crispr_wells}{crisprs} } ) {
             next if exists $crisprs{ $cw->{crispr_id} };
 
             my $crispr = $self->model->schema->resultset('Crispr')->find( { id => $cw->{crispr_id} } );
