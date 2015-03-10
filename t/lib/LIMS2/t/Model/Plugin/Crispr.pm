@@ -166,6 +166,8 @@ sub all_tests  : Test(58)
     {
 	ok my $crispr = model->retrieve_crispr( { id => $crispr->id } ), 'retrieve newly created crispr';
 	isa_ok $crispr, 'LIMS2::Model::Schema::Result::Crispr';
+	ok my $crispr_2 = model->retrieve_crispr_collection({ crispr_id => $crispr->id}), 'can retrieve_crispr_collection (single crispr)';
+	isa_ok $crispr_2, 'LIMS2::Model::Schema::Result::Crispr';
 	ok my $h = $crispr->as_hash(), 'can call as_hash';
 	isa_ok $h, ref {};
 	ok $h->{off_targets}, '...has off targets';
@@ -286,10 +288,14 @@ sub crispr_importer : Test(6) {
 
     #make sure crisprs with the same id dont get imported twice
     is $crisprs[0]->{lims2_id}, $pairs[0]->{left_id}, 'Same imported crispr has correct id';
+    ok my $pair = model->retrieve_crispr_collection({ crispr_pair_id => $pair[0]->id }), 'can retrieve_crispr_collection (pair)';
+    isa_ok $pair, 'LIMS2::Model::Schema::Result::CrisprPair';
 
     throws_ok {
         ok model->import_wge_pairs( [ '245377753_245377762' ], 'Mouse', 'GRCm38' );
     } 'LIMS2::Exception', 'species mismatch throws error';
+
+
 }
 
 =head1 AUTHOR

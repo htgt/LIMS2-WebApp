@@ -645,6 +645,33 @@ sub get_crispr_group_by_crispr_ids{
     LIMS2::Exception->throw($error_msg);
     return;
 }
+
+sub pspec_retrieve_crispr_collection{
+    return{
+        crispr_id       => { validate => 'integer', optional => 1, rename => 'id' },
+        crispr_pair_id  => { validate => 'integer', optional => 1, rename => 'id' },
+        crispr_group_id => { validate => 'integer', optional => 1, rename => 'id' },
+        REQUIRE_SOME    => { crispr_pair_or_group_id => [ 1, qw( crispr_id crispr_pair_id crispr_group_id ) ] }
+    };
+}
+
+# Retrieves a crispr, crispr_pair or crispr_group depending on params it is given
+sub retrieve_crispr_collection{
+    my ($self, $params) = @_;
+
+    my $method_for_type = {
+        crispr_id       => 'retrieve_crispr',
+        crispr_pair_id  => 'retrieve_crispr_pair',
+        crispr_group_id => 'retrieve_crispr_group',
+    };
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_collection );
+    my ($id_type) = keys %$params;
+    my $method_name = $method_for_type->{$id_type} or die "No method to retrieve $id_type";
+
+    return $self->$method_name($validated_params);
+}
+
 1;
 
 __END__
