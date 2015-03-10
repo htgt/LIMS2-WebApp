@@ -291,6 +291,9 @@
       <div class="modal-body" align="center">
         <input type="hidden" name="id" value="[% plate.id %]" />
         <input type="hidden" name="name" value="[% plate.name %]" />
+        [% IF plate.number_of_wells_with_barcodes > 0 %]
+        This plate contains barcoded tubes. Deleting the plate will also delete the tube barcodes and their history.<br>
+        [% END %]
         Are you sure you want to delete plate <strong>[% plate.name %]</strong>?
       </div>
 
