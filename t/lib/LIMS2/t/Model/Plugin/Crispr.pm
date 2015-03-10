@@ -88,7 +88,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(58)
+sub all_tests  : Test(60)
 {
 
     note('Testing the Creation crisprs');
@@ -260,7 +260,7 @@ sub all_tests  : Test(58)
 
 }
 
-sub crispr_importer : Test(6) {
+sub crispr_importer : Test(8) {
     my $species  = 'Human';
     my $assembly = model->schema->resultset('SpeciesDefaultAssembly')->find(
         { species_id => $species }
@@ -287,8 +287,9 @@ sub crispr_importer : Test(6) {
     ), 'can import crispr pair';
 
     #make sure crisprs with the same id dont get imported twice
+    use Data::Dumper;
     is $crisprs[0]->{lims2_id}, $pairs[0]->{left_id}, 'Same imported crispr has correct id';
-    ok my $pair = model->retrieve_crispr_collection({ crispr_pair_id => $pair[0]->id }), 'can retrieve_crispr_collection (pair)';
+    ok my $pair = model->retrieve_crispr_collection({ crispr_pair_id => $pairs[0]->{lims2_id} }), 'can retrieve_crispr_collection (pair)';
     isa_ok $pair, 'LIMS2::Model::Schema::Result::CrisprPair';
 
     throws_ok {
