@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.293';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.294';
 }
 ## use critic
 
@@ -1157,12 +1157,21 @@ sub genes {
                 if ( $curr_ep_data{'ms_count'} == 0 ) { $curr_ep_data{'ms_count'} = '' };
             }
 
-            if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
+            # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
             # if ( $curr_ep_data{'ep_pick_count'} == 0 ) { $curr_ep_data{'ep_pick_count'} = '' };
 
             push @ep_data, \%curr_ep_data;
 
         }
+
+        if ( $total_ep_pick_pass_count == 0) {
+            $total_ep_pick_pass_count = '';
+            $total_fs_count = '';
+            $total_if_count = '';
+            $total_wt_count = '';
+            $total_ms_count = '';
+        }
+
 
         @ep_data =  sort {
                 $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||

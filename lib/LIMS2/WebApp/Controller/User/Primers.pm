@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Primers;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Primers::VERSION = '0.293';
+    $LIMS2::WebApp::Controller::User::Primers::VERSION = '0.294';
 }
 ## use critic
 
@@ -86,6 +86,8 @@ sub toggle_crispr_primer_validation_state : Path( '/user/toggle_crispr_primer_va
     }
     else{
         $c->stash->{json_data} = { error => "Crispr type \"$type\" not recognised" };
+        $c->forward('View::JSON');
+        return;
     }
 
     my $primer = $c->model('Golgi')->schema->resultset('CrisprPrimer')->find($search);

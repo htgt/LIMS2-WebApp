@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.293';
+    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.294';
 }
 ## use critic
 
@@ -227,8 +227,8 @@ sub _build_crispr_settings {
             id_method => 'get_crispr_group_id',
             update_design_data_cache => 0,
             file_suffix => '_group_crispr_primers.csv',
-            primer_util_method => 'crispr_group_genotyping_primers',
-            primer_project_name => 'mgp_recovery',
+            primer_util_method => 'crispr_sequencing_primers',
+            primer_project_name => 'crispr_sequencing',
         },
         'nonsense' => {
             id_field => 'crispr_id',
