@@ -21,7 +21,7 @@ override _build_columns => sub {
     return [
         'Well Name',
         "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors", 'Genbank File',
-        'Crispr Plate', 'Crispr Well',
+        'Crispr Plate', 'Crispr Well', 'Crispr ID',
         'Backbone',
         'Created By','Created At',
         'Accepted?',
@@ -65,6 +65,7 @@ override iterator => sub {
             $self->catalyst ? $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} ) : '',
             $well_data->{parent_wells}[0]{plate_name},
             $well_data->{parent_wells}[0]{well_name},
+            $crispr->id,
             $well_data->{backbone},
             $well_data->{created_by},
             $well_data->{created_at},

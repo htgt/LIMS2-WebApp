@@ -208,6 +208,8 @@ sub as_hash {
         primer_name => $self->genotyping_primer_type_id,
         species => $self->design->species_id,
         locus   => $locus ? $locus->as_hash : undef,
+        is_validated => $self->is_validated,
+        is_rejected => $self->is_rejected,
     };
 }
 

@@ -289,6 +289,8 @@ sub as_hash {
         crispr_pair_id  => $self->crispr_pair_id,
         crispr_id       => $self->crispr_id,
         crispr_group_id => $self->crispr_group_id,
+        is_validated    => $self->is_validated,
+        is_rejected     => $self->is_rejected,
     };
 }
 
