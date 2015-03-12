@@ -1166,6 +1166,23 @@ sub descendant_piq {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub ancestor_piq {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    if ( defined $ancestors ) {
+      $ancestors->next;
+      while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'PIQ' ) {
+          return $ancestor;
+        }
+      }
+    }
+    return;
+}
+## use critic
+
 sub barcoded_descendant_of_type{
     my ($self, $type) = @_;
 
