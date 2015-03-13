@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.295     2015-03-13 10:07:10 Europe/London
+
+    Added parent PIQ on Secondary QC and Crispr QC under the gene summary page
+    Fix in well to_report flag summaries caching
+
 0.294     2015-03-11 10:13:29 Europe/London
 
    Primer validation state added to view crispr and design
