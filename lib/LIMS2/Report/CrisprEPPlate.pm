@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPPlate::VERSION = '0.290';
+    $LIMS2::Report::CrisprEPPlate::VERSION = '0.295';
 }
 ## use critic
 
@@ -58,7 +58,7 @@ override iterator => sub {
         return unless $well_data;
 
         my $well = $well_data->{well};
-        my @crispr_wells = map{ $_->{plate_name} . '[' . $_->{well_name} . ']' } @{ $well_data->{crispr_wells} };
+        my @crispr_wells = map{ $_->{plate_name} . '[' . $_->{well_name} . ']' } @{ $well_data->{crispr_wells}{crisprs} };
 
         my @data = (
             $well_data->{well_id},

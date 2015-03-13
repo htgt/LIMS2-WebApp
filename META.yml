@@ -63,6 +63,7 @@ requires:
   Data::Printer: 0
   Data::UUID: 0
   Date::Calc: 0
+  Date::Parse: 0
   DateTime: 0
   DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
@@ -110,6 +111,7 @@ requires:
   LIMS2::Util::ESQCUpdateWellAccepted: 0
   LIMS2::Util::EnsEMBL: 0
   LIMS2::Util::Errbit: 0
+  LIMS2::Util::QcPrimers: 0
   LIMS2::Util::Solr: 0
   LIMS2::Util::Tarmits: 0
   LIMS2::Util::TraceServer: 0
@@ -155,6 +157,7 @@ requires:
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
   WebAppCommon::Util::EnsEMBL: 0
+  WebAppCommon::Util::FarmJobRunner: 0
   WebAppCommon::Util::FindGene: 0
   YAML::Any: 0
   YAML::XS: 0
@@ -165,4 +168,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.290
+version: 0.295

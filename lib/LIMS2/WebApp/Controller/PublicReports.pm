@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.290';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.295';
 }
 ## use critic
 
@@ -501,7 +501,19 @@ sub _stash_well_genotyping_info {
     try {
         #needs to be given a method for finding genes
         my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
-        $c->stash( data => $data );
+        my @crispr_data;
+
+        my @crisprs = $well->parent_crisprs;
+        foreach my $crispr_well ( @crisprs ) {
+            my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
+            if ( $process_crispr ) {
+                my $crispr_data_hash = $process_crispr->crispr->as_hash;
+                $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
+                push @crispr_data, $crispr_data_hash;
+            }
+        }
+
+        $c->stash( data => $data, crispr_data => \@crispr_data );
     }
     catch {
         #get string representation if its a lims2::exception
@@ -545,7 +557,10 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my $gene_symbol;
     my %targeted_clones;
     while ( my $sr = $design_summaries_rs->next ) {
-        $gene_symbol = $sr->design_gene_symbol unless $gene_symbol;
+        $gene_symbol = $model->find_gene({
+                    species => $species,
+                    search_term => $gene_id
+                })->{'gene_symbol'};
         next if exists $targeted_clones{ $sr->ep_pick_well_id };
 
         my %data;

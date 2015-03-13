@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.290';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.295';
 }
 ## use critic
 
@@ -1172,6 +1172,23 @@ sub descendant_piq {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub ancestor_piq {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    if ( defined $ancestors ) {
+      $ancestors->next;
+      while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'PIQ' ) {
+          return $ancestor;
+        }
+      }
+    }
+    return;
+}
+## use critic
+
 sub barcoded_descendant_of_type{
     my ($self, $type) = @_;
 
@@ -1217,6 +1234,22 @@ sub parent_crispr {
 }
 ## use critic
 
+sub parent_crisprs {
+    my $self = shift;
+
+    my @crisprs;
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    if ( defined $ancestors ) {
+      while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'CRISPR' ) {
+          push @crisprs, $ancestor;
+        }
+      }
+    }
+    return @crisprs;
+}
+## use critic
+
 ## no critic(RequireFinalReturn)
 ## This returns the final set (single or paired) of CRISPR_V parents
 ## It will stop traversing if it hits a CRISPR_V grandparent,
@@ -1244,6 +1277,39 @@ sub parent_crispr_v {
     LIMS2::Exception::Implementation->throw( "Failed to determine crispr vector plate/well for $self" );
 }
 ## use critic
+
+sub parent_assembly_well{
+    my $self = shift;
+    if($self->plate->type_id eq 'ASSEMBLY'){
+        return $self;
+    }
+    else{
+        my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
+        while( my $ancestor = $ancestors->next ) {
+            if ( $ancestor->plate->type_id eq 'ASSEMBLY' ) {
+                return $ancestor;
+            }
+        }
+    }
+    return;
+}
+
+sub parent_assembly_process_type{
+    my $self = shift;
+
+    if (my $assembly_well = $self->parent_assembly_well){
+        my ($process) = $assembly_well->parent_processes;
+        return $process->type_id;
+    }
+    return;
+}
+
+sub crisprs{
+    my $self = shift;
+
+    my @crispr_vectors = $self->parent_crispr_v;
+    return map { $_->parent_crispr->crispr } @crispr_vectors;
+}
 
 ## no critic(RequireFinalReturn)
 sub left_and_right_crispr_wells {
@@ -1313,6 +1379,7 @@ sub crispr_primer_for{
         my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
             $crispr_col_label => $crispr_id_value,
             'primer_name' => $params->{'primer_label'},
+            is_rejected => [0, undef],
         });
         if ($result) {
             $crispr_primer_seq = $result->primer_seq;

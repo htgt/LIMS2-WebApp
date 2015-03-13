@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.290';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.295';
 }
 ## use critic
 
@@ -31,6 +31,7 @@ sub pspec_create_crispr {
         pam_right            => { validate => 'boolean' },
         off_targets          => { optional => 1 },
         wge_crispr_id        => { validate => 'integer', optional => 1 },
+        nonsense_crispr_original_crispr_id => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -87,6 +88,7 @@ sub _create_crispr {
                 $validated_params,
                 qw( id species_id crispr_loci_type_id
                     seq comment pam_right wge_crispr_id
+                    nonsense_crispr_original_crispr_id
                     )
             )
         }
@@ -456,9 +458,9 @@ sub update_or_create_crispr_pair{
 }
 
 sub import_wge_crisprs {
-    my ( $self, $ids, $species, $assembly ) = @_;
+    my ( $self, $ids, $species, $assembly, $wge ) = @_;
 
-    my $wge = LIMS2::Util::WGE->new;
+    $wge ||= LIMS2::Util::WGE->new;
 
     my @output;
     for my $crispr_id ( @{ $ids } ) {
@@ -649,6 +651,33 @@ sub get_crispr_group_by_crispr_ids{
     LIMS2::Exception->throw($error_msg);
     return;
 }
+
+sub pspec_retrieve_crispr_collection{
+    return{
+        crispr_id       => { validate => 'integer', optional => 1, rename => 'id' },
+        crispr_pair_id  => { validate => 'integer', optional => 1, rename => 'id' },
+        crispr_group_id => { validate => 'integer', optional => 1, rename => 'id' },
+        REQUIRE_SOME    => { crispr_pair_or_group_id => [ 1, qw( crispr_id crispr_pair_id crispr_group_id ) ] }
+    };
+}
+
+# Retrieves a crispr, crispr_pair or crispr_group depending on params it is given
+sub retrieve_crispr_collection{
+    my ($self, $params) = @_;
+
+    my $method_for_type = {
+        crispr_id       => 'retrieve_crispr',
+        crispr_pair_id  => 'retrieve_crispr_pair',
+        crispr_group_id => 'retrieve_crispr_group',
+    };
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_collection );
+    my ($id_type) = keys %$params;
+    my $method_name = $method_for_type->{$id_type} or die "No method to retrieve $id_type";
+
+    return $self->$method_name($validated_params);
+}
+
 1;
 
 __END__

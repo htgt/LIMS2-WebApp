@@ -1,0 +1,84 @@
+[%- META title = 'Generate Primers'; META tab_name = 'Designs' %]
+
+<div class="page-header">
+  <h1>Generate Primers Results</h1>
+</div>
+
+<p>Plate name: [% IF plate_id %]
+                 <a href="[% c.uri_for('/user/view_plate', { id => plate_id }) %]">[% params.plate_name %]</a>
+               [% ELSE %]
+                 [% params.plate_name %]
+               [% END %]</p>
+<p>Wells: [% IF params.plate_well_names %]
+            [% params.plate_well_names.join(', ') %]
+          [% ELSE %]
+            All wells
+          [% END %]</p>
+
+<p>Job started at: [% params.start_time %] (Time taken: [% time_taken_string %])</p>
+<p>Job ID: [% job_id %]</p>
+[% IF results %]
+
+[% FOREACH type IN ['crispr_seq','crispr_pcr','genotyping'] %]
+[% NEXT UNLESS results.$type %]
+<div class="well">
+  <h3>Primer type: [% type %]</h3>
+  [% IF results.$type.file_path %]
+  <a href="[% c.uri_for('/user/download_primer_file', { job_id => job_id, file => results.$type.file_path } ) %]" class="btn btn-info"><i class="icon-download-alt icon-white"></i> Download CSV file</a>
+  [% END %]
+  <h4>Primers written to database:</h4>
+  <table class="table">
+    <tr>
+      <th>Well Name</th>
+      <th>Primer Name</th>
+      <th>Chr</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Seq</th>
+    </tr>
+    [% FOREACH well IN results.$type.db_primers.keys.sort %]
+      [% FOREACH primer IN results.$type.db_primers.$well %]
+    <tr>
+      <td>[% well_names.$well %]</td>
+      <td>[% primer.primer_name %]</td>
+      <td>[% primer.locus.chr_name %]</td>
+      <td>[% primer.locus.chr_start %]</td>
+      <td>[% primer.locus.chr_end %]</td>
+      <td>[% primer.primer_seq %]</td>
+    </tr>
+      [% END %]
+    [% END %]
+  </table>
+  [% IF results.$type.errors.keys.size %]
+  <h3>Errors:</h3>
+  <table class="table">
+    <tr>
+      <th>Well Name</th>
+      <th>Error Message</th>
+    </tr>
+    [% FOREACH error_well IN results.$type.errors.keys.sort %]
+    <tr>
+      <td>[% well_names.$error_well %]</td>
+      <td>[% results.$type.errors.$error_well %]</td>
+    </tr>
+    [% END %]
+  </table>
+  [% END %]
+</div>
+[% END %]
+
+[% ELSIF possible_fail %]
+
+Primer generation job [% job_id %] has not produced any results after 15 minutes. Please come back later or contact htgt@sanger.ac.uk to check the job status.
+
+[% ELSIF timeout %]
+
+Primer generation in progress. This page will refresh automatically. Please wait...
+
+<script type="text/javascript">
+setTimeout(function(){
+   window.location.reload(1);
+}, [% timeout %]);
+</script>
+
+[% END %]

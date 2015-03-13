@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::ResultSet::PlateReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.290';
+    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.295';
 }
 ## use critic
 
@@ -313,18 +313,26 @@ Grab crispr ids and crispr wells.
 sub _crispr_wells_data {
     my ( $rows ) = @_;
 
-    my @crispr_wells;
+    my %crispr_wells;
     my @create_crispr_rows = grep { $_->{process_type} eq 'create_crispr' } @{ $rows };
 
     for my $row ( @create_crispr_rows ) {
-        push @crispr_wells, {
+        push @{ $crispr_wells{crisprs} }, {
             plate_name => $row->{output_plate_name},
             well_name  => $row->{output_well_name},
             crispr_id  => $row->{crispr_id},
         }
     }
 
-    return \@crispr_wells;
+    my @crispr_vector_rows = grep { $_->{process_type} eq 'crispr_vector' } @{ $rows };
+    for my $row ( @crispr_vector_rows ) {
+        push @{ $crispr_wells{crispr_vectors} }, {
+            plate_name => $row->{output_plate_name},
+            well_name  => $row->{output_well_name},
+        }
+    }
+
+    return \%crispr_wells;
 }
 
 1;

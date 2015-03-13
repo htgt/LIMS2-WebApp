@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.290';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.295';
 }
 ## use critic
 
@@ -133,6 +133,11 @@ sub delete_well {
         if ( $p->output_wells == 1 ) {
             $self->delete_process( { id => $p->id } );
         }
+    }
+
+    # Delete any related barcode events
+    if (my $barcode = $well->well_barcode){
+        $barcode->search_related_rs('barcode_events')->delete;
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.290';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.295';
 }
 ## use critic
 
@@ -104,9 +104,10 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
     }
 
     $c->stash(
-        crispr_data  => $crispr->as_hash,
-        ots          => \@off_target_summaries,
-        designs      => [ $crispr->crispr_designs->all ],
+        crispr_data             => $crispr->as_hash,
+        ots                     => \@off_target_summaries,
+        designs                 => [ $crispr->crispr_designs->all ],
+        linked_nonsense_crisprs => $crispr->linked_nonsense_crisprs,
     );
 
     return;

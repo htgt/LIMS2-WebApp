@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCTemplates::VERSION = '0.290';
+    $LIMS2::Model::Util::QCTemplates::VERSION = '0.295';
 }
 ## use critic
 
@@ -165,6 +165,7 @@ sub design_data {
     my ( $model, $info, $design, $species ) = @_;
 
     $info->{design_id} = $design->id;
+    $info->{design_phase} = $design->phase;
     my @gene_ids = uniq map { $_->gene_id } $design->genes;
 
     my @gene_symbols;

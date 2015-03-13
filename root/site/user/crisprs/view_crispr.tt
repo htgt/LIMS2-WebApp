@@ -16,6 +16,20 @@
   <tr><th>PAM Right</th> <td>[% crispr_data.pam_right %]</td></tr>
   <tr><th>WGE ID</th> <td>[% crispr_data.wge_crispr_id %]</td></tr>
   <tr><th>Comment</th> <td>[% crispr_data.comment %]</td></tr>
+  [% IF crispr_data.nonsense_crispr_original_crispr_id %]
+      <tr><th>Nonsense Crispr ( Linked with crispr )</th>
+      <td> <a href="[% c.uri_for( '/user/crispr', crispr_data.nonsense_crispr_original_crispr_id , 'view' ) %]">[% crispr_data.nonsense_crispr_original_crispr_id %]</a></td>
+    </tr>
+  [% END %]
+  [% IF linked_nonsense_crisprs.size > 0 %]
+      <tr><th>Linked Nonsense Crisprs</th>
+      <td>
+      [% FOR crispr IN linked_nonsense_crisprs %]
+        <a href="[% c.uri_for( '/user/crispr', crispr.id, 'view' ) %]">[% crispr.id %]</a>
+      [% END %]
+      </td>
+      </tr>
+  [% END %]
 </table>
 
 <a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-primary">UCSC BLAT</a>
@@ -121,6 +135,7 @@
         <th>Strand</th>
         <th>Melting Temp (&deg;C)</th>
         <th>GC Content (%)</th>
+        <th>Validation State</th>
       </tr>
     </thead>
     <tbody>
@@ -132,6 +147,10 @@
         <td>[% datum.locus.chr_strand %]</td>
         <td>[% datum.tm %]</td>
         <td>[% datum.gc_content %]</td>
+        <td class="validation-state-cell"
+            data-validated="[% datum.is_validated %]"
+            data-primer-name="[% datum.primer_name %]">
+        </td>
       </tr>
       [%- END %]
     </tbody>
@@ -139,3 +158,22 @@
 [% ELSE %]
   <p><em>No primers linked to this crispr</em></p>
 [% END %]
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+<script type="text/javascript">
+
+  $(document).ready(function() {
+    $(".validation-state-cell").each(function(){
+      //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
+      addPrimerValidationState(
+        $(this),
+        "[% c.uri_for('/user/toggle_crispr_primer_validation_state') %]",
+        'crispr_key',
+        '[% crispr_data.id %]' + '(crispr)',
+        $(this).data('primer-name'),
+        $(this).data('validated')
+      );
+    });
+  })
+
+</script>
