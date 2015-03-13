@@ -39,7 +39,7 @@ document.title = "[%- sponsor_id %]";
 
 [% IF report_id %]
 
-<table class="table table-striped table-bordered table-condensed">
+<table class="table table-bordered table-condensed">
   <thead>
     <tr>
       [%- FOR disp_col IN display_columns %]
