@@ -19,7 +19,7 @@
            </a>
            </td>
         </tr>
-[% ELSIF plate.type_id == 'INT' %]
+[% ELSIF plate.type_id == 'INT' || plate.type_id == 'POSTINT' %]
         <tr>
             <td>
             <a class="btn btn-primary" role="button" href="#FlagPlateVirtual" data-toggle="modal">
