@@ -958,9 +958,9 @@ sub fetch_values_for_type_piq {
         # Ancestor PIQ is required for reporting
         my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
         my $ancestor_piq = $well->ancestor_piq;
-        my $ancestor_id_string = $ancestor_piq->plate->name . '_' . $ancestor_piq->name;
+        my $ancestor_id_string = $ancestor_piq->plate->name . '_' . $ancestor_piq->name unless !$ancestor_piq;
 
-        unless ( exists $wells_hash->{ 'piq' }->{ $ancestor_id_string } ) {
+        unless ( !$ancestor_id_string || exists $wells_hash->{ 'piq' }->{ $ancestor_id_string } && $ancestor_id_string) {
             my $well_hash = {
                 'well_id'           => $ancestor_piq->id,
                 'well_id_string'    => $ancestor_id_string,
