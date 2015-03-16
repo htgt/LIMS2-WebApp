@@ -551,5 +551,20 @@ sub design_wells {
     return \@design_wells;
 }
 
+sub current_primer{
+    my ( $self, $primer_type ) = @_;
+
+    unless($primer_type){
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "You must provide a primer_type to the current_primer method" );
+    }
+
+    my @primers = $self->search_related('genotyping_primers', { genotyping_primer_type_id => $primer_type });
+
+    # FIXME: what if more than 1?
+    my ($current_primer) = grep { ! $_->is_rejected } @primers;
+    return $current_primer;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
