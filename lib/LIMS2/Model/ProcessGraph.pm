@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.295';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.296';
 }
 ## use critic
 

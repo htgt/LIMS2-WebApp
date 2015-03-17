@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::FixtureData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::FixtureData::VERSION = '0.295';
+    $LIMS2::WebApp::Controller::FixtureData::VERSION = '0.296';
 }
 ## use critic
 
