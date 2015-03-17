@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.296     2015-03-17 09:47:14 Europe/London
+
+    bugfix on gene summary page concerning missed parent piq existence check
+
 0.295     2015-03-13 10:07:10 Europe/London
 
     Added parent PIQ on Secondary QC and Crispr QC under the gene summary page
