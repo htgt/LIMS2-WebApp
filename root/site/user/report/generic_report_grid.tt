@@ -94,9 +94,47 @@
                 "well id" = 1
                 } %]
 
+            var recovery_class_store = Ext.create('Ext.data.Store',{
+                fields: ['recovery_class'],
+                data: [
+                    {"recovery_class":"-"}
+                    [%- FOREACH recovery_class IN recovery_classes %]
+                        ,{"recovery_class":"[% recovery_class %]"}
+                    [%- END %]
+
+                ]
+            });
+
+            var recovery_class_combo = Ext.create('Ext.form.ComboBox', {
+                typeAhead: true,
+                triggerAction: 'all',
+                editable: false,
+                store: recovery_class_store,
+                displayField: 'recovery_class',
+                listeners: {
+                    change: function (field, newValue, oldValue) {
+                        console.log('recovery class listener' );
+                        var record = grid.getSelectionModel().getSelection()[0];
+
+                        console.log("Updating " + record.data.id + " with value " + field.getValue());
+                        var newRecord = field.findRecordByValue(newValue);
+
+                        $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(){record.commit();});
+                    }
+                }
+            });
+
             var columns = [
+                [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
+
+                [% IF first_column == 1 %]
                 {
+                [% first_column = 0 %]
+                [% ELSE %]
+                ,{
+                [% END %]
+
                     header: "[%- col %]",
                     [%- IF locked.${col.lower} == 1 %]
                     locked: true,
@@ -119,36 +157,13 @@
                         checkchange: function (column, recordIndex, checked) {
                             console.log('checkbox class listener');
                             var record = grid.store.getAt(recordIndex);
-                            $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(data){record.commit()})
+                            $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(){record.commit();});
                         }
                     },
                     [%- END %]
                     [%- IF col.match( 'recovery class' ) %]
                     width: 120,
-                    editor: Ext.create('Ext.form.ComboBox', {
-                        typeAhead: true,
-                        triggerAction: 'all',
-                        editable: false,
-
-                        store: [
-                            [%- FOREACH recovery_class IN recovery_classes %]
-                            ['[% recovery_class %]','[% recovery_class %]'],
-                            [%- END %]
-                        ],
-                        listeners: {
-                            change: function (field, newValue, oldValue) {
-                                console.log('recovery class listener' );
-                                var record = grid.getSelectionModel().getSelection()[0];
-
-                                console.log("Updating " + record.data.id + " with value " + field.getValue());
-                                var newRecord = field.findRecordByValue(newValue);
-
-                                $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(data){record.commit()})
-                            }
-                        },
-
-                    }),
-
+                    editor: recovery_class_combo,
                     [%- END %]
 
                     [%- IF col.match( 'recovery comment' ) %]
@@ -163,9 +178,9 @@
 
                                 console.log("Updating " + record.data.id + " with value " + field.getValue());
 
-                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(data){record.commit()})
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(){record.commit();});
                             }
-                        },
+                        }
                     }),
                     [%- END %]
 
@@ -176,8 +191,9 @@
                         triggerAction: 'all',
                         editable: false,
                         store: [
+                             ['-','-']
                             [%- FOREACH priority_class IN priority_classes %]
-                            ['[% priority_class %]','[% priority_class %]'],
+                            ,['[% priority_class %]','[% priority_class %]']
                             [%- END %]
                         ],
                         listeners: {
@@ -187,9 +203,9 @@
 
                                 console.log("Updating " + record.data.id + " with value " + field.getValue());
 
-                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(data){record.commit()})
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(){record.commit();});
                             }
-                        },
+                        }
 
                     }),
 
@@ -212,7 +228,7 @@
 
 
                     dataIndex: '[%- col %]'
-                },
+                }
                 [%- END %]
             ];
 
