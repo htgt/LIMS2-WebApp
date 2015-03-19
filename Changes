@@ -1,5 +1,28 @@
 {{$NEXT}}
 
+0.295     2015-03-13 10:07:10 Europe/London
+
+    Added parent PIQ on Secondary QC and Crispr QC under the gene summary page
+    Fix in well to_report flag summaries caching
+
+0.294     2015-03-11 10:13:29 Europe/London
+
+   Primer validation state added to view crispr and design
+   bugfix: can now delete plate with barcoded wells
+   Report changes
+
+0.293     2015-03-04 11:19:57 Europe/London
+
+   Report changes and some bug fixes
+
+0.292     2015-02-26 11:08:00 Europe/London
+
+   Add primer generation interface
+
+0.291     2015-02-24 07:19:12 Europe/London
+
+    Add nonsense designs and crisprs to LIMS2
+
 0.290     2015-02-23 10:28:20 Europe/London
 
     Sponsor sub report colonu_counts fix
