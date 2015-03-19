@@ -1,3 +1,17 @@
+0.297     2015-03-19 10:37:12 Europe/London
+
+   bugfix to project efforts grid
+   traces added to well_genotyping_info
+
+0.296     2015-03-17 09:47:14 Europe/London
+
+    bugfix on gene summary page concerning missed parent piq existence check
+
+0.295     2015-03-13 10:07:10 Europe/London
+
+    Added parent PIQ on Secondary QC and Crispr QC under the gene summary page
+    Fix in well to_report flag summaries caching
+
 0.294     2015-03-11 10:13:29 Europe/London
 
    Primer validation state added to view crispr and design

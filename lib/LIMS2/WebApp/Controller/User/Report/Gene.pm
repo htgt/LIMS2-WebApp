@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.294';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.297';
 }
 ## use critic
 
@@ -960,6 +960,45 @@ sub fetch_values_for_type_piq {
 
             $wells_hash->{ 'piq' }->{ $well_id_string } = $well_hash;
         }
+
+        # Ancestor PIQ is required for reporting
+        my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+        my $ancestor_piq = $well->ancestor_piq;
+        my $ancestor_id_string;
+        $ancestor_id_string = $ancestor_piq->plate->name . '_' . $ancestor_piq->name unless !$ancestor_piq;
+
+        unless ( !$ancestor_id_string || exists $wells_hash->{ 'piq' }->{ $ancestor_id_string } && $ancestor_id_string) {
+            my $well_hash = {
+                'well_id'           => $ancestor_piq->id,
+                'well_id_string'    => $ancestor_id_string,
+                'plate_id'          => $ancestor_piq->plate->id,
+                'plate_name'        => $ancestor_piq->plate->name,
+                'well_name'         => $ancestor_piq->name,
+                'created_at'        => $ancestor_piq->created_at->ymd,
+                'fp_well'           => $fp_well,
+                'is_accepted'       => $ancestor_piq->is_accepted ? 'yes' : 'no',
+                'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
+            };
+
+            if ( $summary_row->crispr_ep_well_name ) {
+                my @qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+                    {
+                        well_id  => $ancestor_piq->id,
+                        accepted => 1,
+                    },
+                );
+
+                if ( my $accepted_qc_well = shift @qc_wells ) {
+                    my $gene_finder = sub { $model->find_genes(@_) };
+                    try {
+                        $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+                    };
+                }
+            }
+
+            $wells_hash->{ 'piq' }->{ $ancestor_id_string } = $well_hash;
+        }
+
     }
     return;
 }

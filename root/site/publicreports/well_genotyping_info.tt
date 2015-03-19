@@ -1,7 +1,23 @@
 [% META title="Well Genotyping Information"; META tab_name = "Cells" %]
 
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+
 <script language="javascript" type="text/javascript">
+  $(document).ready(function() {
+
+      $(".traces").click(function(e) {
+          e.preventDefault();
+
+          //the code for this is inside jquery.flot.traceviewer.js
+          var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+      });
+  });
+
   function toggle_id(id) {
     if ($(id).attr('style') == "display:none") {
       $(id).attr("style", "display:block");
@@ -11,6 +27,7 @@
     }
   }
 </script>
+
 <style type="text/css">
 .alignment {
     font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
@@ -158,6 +175,9 @@
             </span>
           </div>
         </div>
+        [% IF data.qc_data.fwd_read or data.qc_data.rev_read %]
+            <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+        [% END %]
       </td>
     </tr>
     <tr>

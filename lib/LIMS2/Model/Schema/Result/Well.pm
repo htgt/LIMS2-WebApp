@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.294';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.297';
 }
 ## use critic
 
@@ -1167,6 +1167,23 @@ sub descendant_piq {
   				return $descendant;
   			}
   		}
+    }
+    return;
+}
+## use critic
+
+## no critic(RequireFinalReturn)
+sub ancestor_piq {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    if ( defined $ancestors ) {
+      $ancestors->next;
+      while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'PIQ' ) {
+          return $ancestor;
+        }
+      }
     }
     return;
 }

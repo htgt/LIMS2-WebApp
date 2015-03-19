@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.294';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.297';
 }
 ## use critic
 
@@ -907,7 +907,6 @@ sub genes {
             { %search },
         );
 
-
         my ($sponsors_str, $effort);
         my ($recovery_class, $priority, $effort_concluded);
 
@@ -930,7 +929,6 @@ sub genes {
         $sponsors_str =~ s/PGs/Pathogens/;
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
 
-
         if (scalar @sponsors == 1 && $sponsor_id ne 'All') {
             $effort = $self->model->retrieve_project({
                         sponsor_id => $sponsor_id,
@@ -947,16 +945,18 @@ sub genes {
             my (@recovery_class, @priority, @effort_concluded);
 
             foreach my $sponsor (@sponsors) {
-                my $sponsor_effort = $self->model->retrieve_project({
-                        sponsor_id => $sponsor,
-                        gene_id => $gene_id,
-                        targeting_type => $self->targeting_type,
-                        species_id => $self->species,
-                });
+                try {
+                    my $sponsor_effort = $self->model->retrieve_project({
+                            sponsor_id => $sponsor,
+                            gene_id => $gene_id,
+                            targeting_type => $self->targeting_type,
+                            species_id => $self->species,
+                    });
 
-                push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
-                push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
-                push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
+                    push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
+                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
+                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
+                }
             }
             $recovery_class = join ( '; ', @recovery_class );
             $priority = join ( '; ', @priority );
@@ -1298,7 +1298,6 @@ sub genes_old {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
     DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
-
 
     if ($sponsor_id eq 'MGP Recovery') {
         return mgp_recovery_genes( $self, $sponsor_id, $query_type );

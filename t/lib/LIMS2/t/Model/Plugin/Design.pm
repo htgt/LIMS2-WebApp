@@ -37,6 +37,8 @@ sub all_tests : Tests {
         ok $h1->{genotyping_primers}, '...has genotyping primers';
         ok my $h2 = $design->as_hash(1), 'as_hash, suppress relations';
         ok !$h2->{genotyping_primers}, '...no genotyping primers';
+        ok my $lf1 = $design->current_primer('LF1'), 'has LF1 primer';
+        is $lf1->genotyping_primer_type_id, 'LF1', 'LF1 primer has correct type';
     }
 
     {
