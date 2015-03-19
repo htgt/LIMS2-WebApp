@@ -44,11 +44,6 @@ use LIMS2::Util::QcPrimers;
 use Data::UUID;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 
-use LIMS2::Model::Util::OligoSelection qw(
-        pick_crispr_primers
-        pick_single_crispr_primers
-);
-
 with qw( MooseX::Log::Log4perl );
 
 has model => (
