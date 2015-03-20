@@ -90,7 +90,7 @@
   </table>
 [% END %]
 
-<h3>First Allele</h3>
+<h3>Targeted Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Design ID</th>
@@ -129,7 +129,7 @@
     [% END %]
 </table>
 
-<h3>Second Allele</h3>
+<h3>NHEJ Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Allele Type</th>
