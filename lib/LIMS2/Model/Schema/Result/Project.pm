@@ -231,7 +231,7 @@ sub recovery_class_name {
 sub sponsor_ids{
     my $self = shift;
 
-    my @sponsors = map { $_->id } $self->sponsors;
+    my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
     return sort @sponsors;
 }
 

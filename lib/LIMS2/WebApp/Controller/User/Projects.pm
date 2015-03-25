@@ -36,6 +36,9 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( {
             species_id  => $species_id,
+        },
+        {
+            prefetch => [ 'project_sponsors' ]
         }
     );
 
@@ -54,8 +57,13 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my $sel_sponsor = $params->{sponsor_id};
 
-    my $sponsor = $c->model('Golgi')->retrieve_sponsor({ id => $sel_sponsor });
-    my @projects = $sponsor->projects;
+    my @projects = $c->model('Golgi')->schema->resultset('Project')->search( {
+            'project_sponsors.sponsor_id'  => $sel_sponsor,
+        },
+        {
+            prefetch => [ 'project_sponsors' ]
+        }
+    );
 
     my @project_genes = map { [
         $_->id,

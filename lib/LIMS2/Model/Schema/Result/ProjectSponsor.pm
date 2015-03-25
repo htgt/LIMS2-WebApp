@@ -111,6 +111,7 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:07:06
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mOv9J9/n9jSNDT/orHSBZg
 
+__PACKAGE__->set_primary_key( qw/sponsor_id project_id/);
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
