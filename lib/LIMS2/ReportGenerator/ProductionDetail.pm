@@ -3,7 +3,6 @@ package LIMS2::ReportGenerator::ProductionDetail;
 use Moose;
 use Iterator::Simple qw( iflatten imap iter igrep );
 use LIMS2::Exception::Implementation;
-use LIMS2::AlleleRequestFactory;
 use LIMS2::ReportGenerator::Plate;
 use JSON qw( decode_json );
 use namespace::autoclean;
@@ -52,22 +51,7 @@ sub _build_plate_type {
 sub _build_sponsor_wells {
     my $self = shift;
 
-    my %sponsor_wells;
-
-    my $method = $self->allele_request_wells_method
-        or LIMS2::Exception::Implementation->throw( "allele_request_wells_method must be specified by a subclass" );
-
-    my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
-    my $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
-    while ( my $project = $project_rs->next ) {
-        my $ar = $arf->allele_request( decode_json( $project->allele_request ) );
-        next unless $ar->can( $method );
-        for my $well ( @{$ar->$method} ) {
-            $sponsor_wells{ $well->plate->name }{ $well->name }++;
-        }
-    }
-
-    return \%sponsor_wells;
+    LIMS2::Exception::Implementation->throw( "ProductionDetail report broken" );
 }
 
 sub is_wanted_plate {

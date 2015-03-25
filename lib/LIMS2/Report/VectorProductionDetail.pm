@@ -2,7 +2,6 @@ package LIMS2::Report::VectorProductionDetail;
 
 use Moose;
 use DateTime;
-use LIMS2::AlleleRequestFactory;
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::ProductionDetail );

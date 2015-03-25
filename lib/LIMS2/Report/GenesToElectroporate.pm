@@ -2,7 +2,6 @@ package LIMS2::Report::GenesToElectroporate;
 
 use Moose;
 use DateTime;
-use LIMS2::AlleleRequestFactory;
 use JSON qw( decode_json );
 use List::Util qw( max );
 use Log::Log4perl qw(:easy);
@@ -35,8 +34,6 @@ has gene_electroporate_list => (
 
 sub _build_gene_electroporate_list {
     my $self = shift;
-
-    my $arf = LIMS2::AlleleRequestFactory->new( model => $self->model, species => $self->species );
 
     my $project_rs;
     if ( $self->has_sponsor && $self->sponsor ne 'All' ) {

@@ -2,7 +2,6 @@ package LIMS2::Report::SponsorProgress;
 
 use Moose;
 use DateTime;
-use LIMS2::AlleleRequestFactory;
 use JSON qw( decode_json );
 use Readonly;
 use namespace::autoclean;
@@ -260,7 +259,7 @@ sub clones{
 
     DEBUG "finding $allele allele clones";
 
-	# Find EP_PICK/SEP_PICK wells created from EP/SEP wells	
+	# Find EP_PICK/SEP_PICK wells created from EP/SEP wells
 	# which have is_accepted flag
 	foreach my $summary (@{ $wells->{$ep_category} || [] }){
 		return 1 if $summary->$clone_accepted;

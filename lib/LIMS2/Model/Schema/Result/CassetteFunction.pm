@@ -99,6 +99,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 old_project_alleles
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::OldProjectAllele>
+
+=cut
+
+__PACKAGE__->has_many(
+  "old_project_alleles",
+  "LIMS2::Model::Schema::Result::OldProjectAllele",
+  { "foreign.cassette_function" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 project_alleles
 
 Type: has_many
@@ -115,8 +130,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:te8aUWICOWKdUnwxgl7FEg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:07:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rYTizyHIQyhQyIapk1rwmg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

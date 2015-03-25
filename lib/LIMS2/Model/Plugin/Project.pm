@@ -109,6 +109,7 @@ sub _pspec_update_project{
         MISSING_OPTIONAL_VALID => 1,
     };
 }
+
 sub update_project {
     my ( $self, $params ) = @_;
 
@@ -123,7 +124,28 @@ sub update_project {
     return $project;
 }
 
+sub _pspec_create_project{
+    return {
+        gene_id           => { validate => 'non_empty_string' },
+        targeting_type    => { validate => 'non_empty_string' },
+        species_id        => { validate => 'existing_species' },
+        htgt_project_id   => { validate => 'integer', optional => 1},
+        effort_concluded  => { validate => 'boolean', optional => 1},
+        recovery_comment  => { validate => 'non_empty_string', optional => 1 },
+        priority          => { validate => 'non_empty_string', optional => 1 },
+        recovery_class_id => { validate => 'existing_recovery_class', optional => 1 },
+    };
+}
 
+sub create_project {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->_pspec_create_project);
+
+    my $project = $self->schema->resultset('Project')->create($validated_params);
+
+    return $project;
+}
 1;
 
 __END__
