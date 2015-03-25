@@ -68,8 +68,8 @@
   			<td>
   			[%- END %]
         [%- IF countval != "" && countval > 0 %]
-          [%- IF c.user || row == "Genes" %]
-            [%- IF cache_param == "with_cache" && row == "Genes" %]
+          [%- IF row == "Genes" %]
+            [%- IF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank">[%- countval %]</a></b></td>
             [%- ELSE %]
                 <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
