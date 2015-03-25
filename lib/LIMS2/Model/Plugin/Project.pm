@@ -11,11 +11,22 @@ use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
 
+sub pspec_retrieve_sponsor {
+    return { id => { validate => 'non_empty_string'} };
+}
 
+sub retrieve_sponsor {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_sponsor);
+
+    my $sponsor = $self->retrieve( Sponsor => $validated_params );
+
+    return $sponsor;
+}
 
 sub pspec_retrieve_project {
     return {
-        sponsor_id           => { validate => 'non_empty_string' },
         gene_id              => { validate => 'non_empty_string' },
         targeting_type       => { validate => 'non_empty_string', optional => 1 } ,
         species_id           => { validate => 'existing_species' },
@@ -27,7 +38,7 @@ sub retrieve_project {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project );
 
-    my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id sponsor_id gene_id targeting_type species_id ) } );
+    my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id gene_id targeting_type species_id ) } );
 
     return $project;
 }
@@ -43,7 +54,7 @@ sub retrieve_project_by_id {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project_by_id , ignore_unknown => 1);
 
-    my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id sponsor_id gene_id targeting_type species_id ) } );
+    my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id gene_id targeting_type species_id ) } );
 
     return $project;
 }

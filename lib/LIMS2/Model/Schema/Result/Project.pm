@@ -206,7 +206,7 @@ __PACKAGE__->many_to_many(
 sub as_hash {
     my $self = shift;
 
-    my @sponsors = map { $_->id } $self->sponsors;
+    my @sponsors = $self->sponsor_ids;
 
     return {
           "id"                => $self->id,
@@ -226,6 +226,13 @@ sub recovery_class_name {
     my $self = shift;
 
     return $self->recovery_class ? $self->recovery_class->name : undef;
+}
+
+sub sponsor_ids{
+    my $self = shift;
+
+    my @sponsors = map { $_->id } $self->sponsors;
+    return sort @sponsors;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

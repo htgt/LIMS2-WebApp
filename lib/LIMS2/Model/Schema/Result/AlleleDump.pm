@@ -26,10 +26,11 @@ __PACKAGE__->result_source_instance->is_virtual(1);
 
 __PACKAGE__->result_source_instance->view_definition( <<'EOT' );
 with gene_ids as (
-	select gene_id, sponsor_id
-	from projects
-	where sponsor_id = 'Cre Knockin'
-	order by gene_id
+	select p.gene_id, ps.sponsor_id
+	from projects p, project_sponsors ps
+	where ps.sponsor_id = 'Cre Knockin'
+    and ps.project_id = p.id
+	order by p.gene_id
 )
 select
      gene_ids.sponsor_id        "eucomm"
