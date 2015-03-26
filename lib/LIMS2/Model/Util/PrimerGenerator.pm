@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.296';
+    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.298';
 }
 ## use critic
 
@@ -49,11 +49,6 @@ use Data::Dumper;
 use LIMS2::Util::QcPrimers;
 use Data::UUID;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
-
-use LIMS2::Model::Util::OligoSelection qw(
-        pick_crispr_primers
-        pick_single_crispr_primers
-);
 
 with qw( MooseX::Log::Log4perl );
 
