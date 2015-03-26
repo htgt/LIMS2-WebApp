@@ -44,11 +44,16 @@ has '+param_names' => (
 override _build_all_gene_ids => sub {
     my $self = shift;
 
-    my $search = { sponsor_id => $self->sponsor };
+    my $search = { 'project_sponsors.sponsor_id' => $self->sponsor };
     if($self->has_gene_id){
         $search->{gene_id} = $self->gene_id;
     }
-    my $project_rs = $self->model->schema->resultset('Project')->search($search);
+    my $project_rs = $self->model->schema->resultset('Project')->search(
+        $search,
+        {
+            join => 'project_sponsors',
+        }
+    );
 
     my @all_gene_ids = uniq map { $_->gene_id } $project_rs->all;
     return \@all_gene_ids;
