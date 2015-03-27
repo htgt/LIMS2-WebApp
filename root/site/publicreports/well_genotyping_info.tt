@@ -175,7 +175,7 @@
             </span>
           </div>
         </div>
-        [% IF data.qc_data.fwd_read or data.qc_data.rev_read %]
+        [% IF c.user %]
             <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
         [% END %]
       </td>
