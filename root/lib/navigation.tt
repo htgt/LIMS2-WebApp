@@ -211,7 +211,7 @@
 
             <li>
               <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">
-                Well Genotyping Info
+                Clone Genotyping Search
               </a>
             </li>
 
