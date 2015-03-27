@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.298';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.299';
 }
 ## use critic
 
@@ -24,10 +24,6 @@ with qw(
 MooseX::Log::Log4perl
 WebAppCommon::Crispr::SubmitInterface
 );
-
-
-
-
 
 =head1 NAME
 
@@ -272,8 +268,6 @@ sub crispr_group_ucsc_blat : PathPart('blat') Chained('crispr_group') : Args(0) 
     return;
 }
 
-## use critic
-#
 sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -548,8 +542,6 @@ sub wge_importer {
 
     return @output;
 }
-
-
 
 __PACKAGE__->meta->make_immutable;
 

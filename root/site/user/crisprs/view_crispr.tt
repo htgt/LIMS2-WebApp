@@ -135,6 +135,7 @@
         <th>Strand</th>
         <th>Melting Temp (&deg;C)</th>
         <th>GC Content (%)</th>
+        <th>Rejected</th>
         <th>Validation State</th>
       </tr>
     </thead>
@@ -147,10 +148,16 @@
         <td>[% datum.locus.chr_strand %]</td>
         <td>[% datum.tm %]</td>
         <td>[% datum.gc_content %]</td>
-        <td class="validation-state-cell"
-            data-validated="[% datum.is_validated %]"
-            data-primer-name="[% datum.primer_name %]">
-        </td>
+        [% IF datum.is_rejected %]
+            <td> <span class="label label-important pull-right">Rejected</span> </td>
+            <td></td>
+        [% ELSE %]
+            <td></td>
+            <td class="validation-state-cell"
+                data-validated="[% datum.is_validated %]"
+                data-primer-name="[% datum.primer_name %]">
+            </td>
+        [% END %]
       </tr>
       [%- END %]
     </tbody>

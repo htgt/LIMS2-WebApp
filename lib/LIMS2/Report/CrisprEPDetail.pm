@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPDetail::VERSION = '0.298';
+    $LIMS2::Report::CrisprEPDetail::VERSION = '0.299';
 }
 ## use critic
 
@@ -54,7 +54,8 @@ override _build_columns => sub {
         'EPD List',
         'Accepted EPD Count',
         'Accepted EPD List',
-        'Frameshift Clones'
+        'Frameshift Clones Count',
+        'Frameshift Clones List'
     ];
 };
 
@@ -127,7 +128,7 @@ sub build_ep_detail {
             }
 
             # get EPD wells
-            my ($ep_pick_list, $ep_pick_pass_list);
+            my ($ep_pick_list, $ep_pick_pass_list, $fs_list);
             my ($ep_pick_count, $ep_pick_pass_count) = (0, 0);
             my $fs_count = 0;
             my $if_count = 0;
@@ -138,27 +139,6 @@ sub build_ep_detail {
                 foreach my $output ($process->output_wells){
                     $ep_pick_count++;
                     my $plate_name = $output->plate->name;
-
-                    try {
-                        my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
-                            well_id => $output->id,
-                            # accepted => 1,
-                            'crispr_es_qc_run.validated' => 1,
-                        },{
-                            join    => 'crispr_es_qc_run',
-                        } );
-                        foreach my $damage (@damage) {
-                            for ($damage->crispr_damage_type_id) {
-                                when ('frameshift') { $fs_count++ }
-                                when ('in-frame')   { $if_count++ }
-                                when ('wild_type')  { $wt_count++ }
-                                when ('mosaic')     { $ms_count++ }
-                                # default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
-                            }
-                        }
-                    };
-
-
                     my $well_name = $output->name;
                     my $specification = $plate_name . '[' . $well_name . ']';
                     $ep_pick_list = !$ep_pick_list ? $specification : join q{ }, ( $ep_pick_list, $specification );
@@ -166,6 +146,29 @@ sub build_ep_detail {
                     if ( $output->is_accepted ) {
                         $ep_pick_pass_count++;
                         $ep_pick_pass_list = !$ep_pick_pass_list ? $specification : join q{ }, ( $ep_pick_pass_list, $specification );
+
+                        try {
+                            my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
+                                well_id => $output->id,
+                                # accepted => 1,
+                                'crispr_es_qc_run.validated' => 1,
+                            },{
+                                join    => 'crispr_es_qc_run',
+                            } );
+                            foreach my $damage (@damage) {
+                                for ($damage->crispr_damage_type_id) {
+                                    when ('frameshift') {
+                                        $fs_count++;
+                                        $fs_list = !$fs_list ? $specification : join q{ }, ( $fs_list, $specification );
+                                    }
+                                    when ('in-frame')   { $if_count++ }
+                                    when ('wild_type')  { $wt_count++ }
+                                    when ('mosaic')     { $ms_count++ }
+                                    # default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
+                                }
+                            }
+                        };
+
                     }
                 }
             }
@@ -188,6 +191,7 @@ sub build_ep_detail {
                 $ep_pick_pass_count,
                 $ep_pick_pass_list,
                 $fs_count,
+                $fs_list,
             ];
         }
     }
