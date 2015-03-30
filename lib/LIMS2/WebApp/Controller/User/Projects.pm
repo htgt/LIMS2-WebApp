@@ -20,7 +20,67 @@ Catalyst Controller.
 
 =cut
 
+sub manage_projects :Path('/user/manage_projects'){
+    my ( $self, $c ) = @_;
 
+    $c->assert_user_roles('edit');
+
+    my $species_id = $c->session->{selected_species};
+    my $gene_id;
+    if(my $gene = $c->req->param('gene')){
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $gene, species => $species_id } ) };
+        if($gene_info){
+            $gene_id = $gene_info->{gene_id};
+        }
+        else{
+            $gene_id = $gene;
+        }
+    }
+
+    if($c->req->param('create_project')){
+        # create project and redirect to view_project
+    }
+    elsif($c->req->param('search_projects')){
+        # stash list of matching project IDs
+        # display these as links on manage_projects page
+        my $search = {};
+        if($gene_id){
+            $c->log->debug("Searching for projects with gene_id $gene_id");
+            $search->{gene_id} = $gene_id;
+        }
+        if(my $targ_type = $c->req->param('targeting_type')){
+            $c->log->debug("Searching for projects with targeting_type $targ_type");
+            $search->{targeting_type} = $targ_type;
+        }
+        my @projects = map { $_->as_hash }
+                       $c->model('Golgi')->schema->resultset('Project')->search($search, { order_by => 'id' })->all;
+        $c->stash->{projects} = \@projects;
+    }
+
+    my @sponsors = map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+
+    $c->stash->{sponsors} = \@sponsors;
+    return;
+}
+
+sub view_project :Path('/user/view_project'){
+    my ( $self, $c) = @_;
+
+    my $project = $c->model('Golgi')->retrieve_project({
+            id => $c->req->param('project_id'),
+        });
+
+    if($c->req->param('update_sponsors')){
+
+    }
+
+    if($c->req->param('add_experiment')){
+
+    }
+
+    $c->stash->{project} = $project;
+    return;
+}
 =head2 index
 
 =cut

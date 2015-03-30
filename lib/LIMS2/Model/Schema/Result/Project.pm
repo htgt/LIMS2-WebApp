@@ -41,7 +41,9 @@ __PACKAGE__->table("projects");
 =head2 id
 
   data_type: 'integer'
+  is_auto_increment: 1
   is_nullable: 0
+  sequence: 'projects_id_seq'
 
 =head2 gene_id
 
@@ -90,7 +92,12 @@ __PACKAGE__->table("projects");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_nullable => 0 },
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "projects_id_seq",
+  },
   "gene_id",
   { data_type => "text", is_nullable => 1 },
   "targeting_type",
@@ -144,6 +151,21 @@ __PACKAGE__->add_unique_constraint(
 
 =head1 RELATIONS
 
+=head2 experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 project_alleles
 
 Type: has_many
@@ -195,8 +217,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:26:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4qPKruwVDWpL56ZNQkAQpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zdWgSs0kmUTVx9R64z5H/w
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',

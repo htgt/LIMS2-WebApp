@@ -145,6 +145,7 @@ sub _pspec_create_project{
         recovery_comment  => { validate => 'non_empty_string', optional => 1 },
         priority          => { validate => 'non_empty_string', optional => 1 },
         recovery_class_id => { validate => 'existing_recovery_class', optional => 1 },
+        sponsors          => { validate => 'existing_sponsor', optional => 1 },
     };
 }
 
@@ -153,7 +154,16 @@ sub create_project {
 
     my $validated_params = $self->check_params( $params, $self->_pspec_create_project);
 
+    my $sponsors = delete $validated_params->{sponsors};
+
     my $project = $self->schema->resultset('Project')->create($validated_params);
+
+    foreach my $sponsor(@$sponsors){
+        $self->add_project_sponsor({
+            project_id => $project->id,
+            sponsor_id => $sponsor,
+        });
+    }
 
     return $project;
 }
@@ -181,12 +191,42 @@ sub add_project_sponsor{
 
     my $validated_params = $self->check_params( $params, $self->_pspec_add_project_sponsor);
 
-    my $project = $self->retrieve_project_by_id({ id => $validated_params->{project_id} });
-    my $sponsor = $self->retrieve_sponsor({ id => $validated_params->{sponsor_id} });
-
-    $project->add_to_sponsors($sponsor);
-    $project->discard_changes();
+    my $project = $self->schema->resultset('ProjectSponsor')->create($validated_params);
     return $project;
+}
+
+sub _pspec_retrieve_experiment{
+    return {
+        id => { validate => 'integer' },
+    }
+}
+
+sub retrieve_experiment{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->_pspec_retrieve_experiment);
+    my $experiment = $self->retrieve('Experiment', $validated_params);
+    return $experiment;
+}
+
+sub _pspec_create_experiment{
+    return {
+        project_id      => { validate => 'integer' },
+        design_id       => { validate => 'existing_design_id', optional => 1 },
+        crispr_id       => { validate => 'existing_crispr_id', optional => 1 },
+        crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1},
+        crispr_group_id => { validate => 'existing_crispr_group_id', optional => 1},
+        REQUIRE_SOME    => { design_or_crisprs => [ 1, qw( design_id crispr_id crispr_pair_id crispr_group_id ) ] },
+    }
+}
+
+sub create_experiment{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->_pspec_create_experiment);
+
+    my $experiment  = $self->schema->resultset('Experiment')->create($validated_params);
+    return $experiment;
 }
 
 1;

@@ -43,7 +43,7 @@ __PACKAGE__->table("old_projects");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'projects_id_seq'
+  sequence: 'old_projects_id_seq'
 
 =head2 sponsor_id
 
@@ -107,7 +107,7 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "projects_id_seq",
+    sequence          => "old_projects_id_seq",
   },
   "sponsor_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
@@ -219,8 +219,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:07:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ES3TeBAXjerK/yRjxRn+tA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FqviHS5WCXQHvOAXSkvyow
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
