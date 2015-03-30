@@ -162,6 +162,10 @@ sub existing_genotyping_result_type {
     return shift->in_resultset( 'GenotypingResultType', 'id' );
 }
 
+sub existing_sponsor {
+    return shift->existing_row( 'Sponsor', 'id' );
+}
+
 sub existing_plate_name {
     return shift->existing_row( 'Plate', 'name' );
 }

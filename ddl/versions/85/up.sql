@@ -1,3 +1,5 @@
+-- IMPORTANT: run script bin/combine_projects_with_different_sponsors.pl after this migration ---
+
 alter table projects rename to old_projects;
 alter table project_alleles rename to old_project_alleles;
 alter table old_projects rename CONSTRAINT projects_pkey to old_projects_pkey;

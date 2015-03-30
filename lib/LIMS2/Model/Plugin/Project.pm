@@ -157,6 +157,38 @@ sub create_project {
 
     return $project;
 }
+
+sub delete_project{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project_by_id);
+
+    my $project = $self->retrieve_project_by_id({ id => $validated_params->{id} });
+    $project->delete_related('project_alleles');
+    $project->delete_related('project_sponsors');
+    return $project->delete;
+}
+
+sub _pspec_add_project_sponsor{
+    return {
+        project_id => { validate => 'integer' },
+        sponsor_id => { validate => 'existing_sponsor' },
+    };
+}
+
+sub add_project_sponsor{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->_pspec_add_project_sponsor);
+
+    my $project = $self->retrieve_project_by_id({ id => $validated_params->{project_id} });
+    my $sponsor = $self->retrieve_sponsor({ id => $validated_params->{sponsor_id} });
+
+    $project->add_to_sponsors($sponsor);
+    $project->discard_changes();
+    return $project;
+}
+
 1;
 
 __END__

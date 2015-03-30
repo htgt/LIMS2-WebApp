@@ -335,6 +335,7 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessRecombinase
             Project
+            ProjectSponsor
             Summary
             WellBarcode
             CrisprEsQcRuns

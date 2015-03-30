@@ -1,7 +1,24 @@
 #!/usr/bin/env perl
 
+=head
+
+This script was written to migrate existing project and sponsor data to
+schema version 85.
+
+Run the database migration ddl/versions/85/up.sql first, then run this script
+to combine projects which differ only by sponsor_id and create the necessary
+project to sponsor relationships in the new project_sponsors table.
+
+STDOUT from the script lists any projects which need to be checked after the
+script is run because they have conflicting information in fields which have been
+added to the projects table relating to recovery status. In these cases the project
+will have been created but the recovery information needs to be checked and manually
+updated
+
+=cut
+
 use strict;
-#use warnings FATAL => 'all';
+use warnings;
 
 use LIMS2::Model;
 use Log::Log4perl qw( :easy );
