@@ -229,6 +229,10 @@ sub existing_nuclease {
     return shift->existing_row( 'Nuclease', 'name');
 }
 
+sub existing_crispr_tracker_rna {
+    return shift->existing_row( 'CrisprTrackerRna', 'name');
+}
+
 sub existing_crispr_primer_type {
 	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
 }
