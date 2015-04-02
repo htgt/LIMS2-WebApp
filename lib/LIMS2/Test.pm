@@ -285,6 +285,7 @@ sub load_static_files {
             SpeciesDefaultAssembly
             Sponsor
             BarcodeState
+            CrisprTrackerRna
             )
     );
 
@@ -328,6 +329,7 @@ sub load_dynamic_files {
             ProcessCrispr
             ProcessNuclease
             ProcessGlobalArmShorteningDesign
+            ProcessCrisprTrackerRna
             Plate
             Well
             ProcessInputWell
