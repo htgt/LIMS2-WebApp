@@ -433,7 +433,7 @@ sub design_and_gene_cols {
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
     my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
 
-    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
+    return ( $design->id, $design->design_type_id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
 }
 
 sub ancestor_cols {
@@ -645,6 +645,9 @@ sub get_crispr_data {
     # this process type does not exist yet but should in the future
     elsif ( any { $_->{crispr_assembly_process} eq 'group_crispr_assembly' } @{ $wells_data } ) {
         $crispr_data_method = 'crispr_group_data';
+    }
+    elsif ( any { $_->{crispr_assembly_process} eq 'oligo_assembly' } @{ $wells_data } ) {
+        $crispr_data_method = 'single_crispr_data';
     }
     else {
         die( 'Can not find a crispr_assembly process, unable to work out crispr type' );

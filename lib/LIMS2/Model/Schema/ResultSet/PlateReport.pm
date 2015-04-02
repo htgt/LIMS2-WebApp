@@ -140,7 +140,11 @@ sub _consolidate_well_data {
     $well_data{crispr_ids} = _get_all_process_data( \@rows, 'crispr_id' );
     if ( $well_data{crispr_ids} ) {
         $well_data{crispr_wells} = _crispr_wells_data( \@rows );
-        if ( my $assembly_process = first{ $_->{process_type} =~ /crispr_assembly$/  } @rows ) {
+        my $assembly_process;
+        if ( $assembly_process = first{ $_->{process_type} =~ /crispr_assembly$/  } @rows ) {
+            $well_data{crispr_assembly_process} = $assembly_process->{process_type};
+        }
+        elsif ( $assembly_process = first{ $_->{process_type} =~ /oligo_assembly$/  } @rows ) {
             $well_data{crispr_assembly_process} = $assembly_process->{process_type};
         }
     }
@@ -158,7 +162,8 @@ sub _consolidate_well_data {
     $well_data{cassette} = _get_first_process_data( \@rows, 'cassette' );
     $well_data{cassette_resistance} = _get_first_process_data( \@rows, 'cassette_resistance' );
     my $cassette_promoter = _get_first_process_data( \@rows, 'cassette_promoter' );
-    $well_data{cassette_promoter} = $cassette_promoter ? 'promoter' : 'promoterless';
+    $well_data{cassette_promoter}
+        = $cassette_promoter ? 'promoter' : defined $cassette_promoter ? 'promoterless' : '';
     $well_data{cell_line} = _get_first_process_data( \@rows, 'cell_line' );
     $well_data{nuclease} = _get_first_process_data( \@rows, 'nuclease' );
 
@@ -263,6 +268,7 @@ sub _design_gene_data {
     return unless $create_di_process_row; # crispr well
 
     $well_data->{design_id} = $create_di_process_row->{design_id};
+    $well_data->{design_type} = $create_di_process_row->{design_type};
     my $gene_id = $create_di_process_row->{gene_id};
     my $gene_symbol = $create_di_process_row->{gene_symbol};
 
