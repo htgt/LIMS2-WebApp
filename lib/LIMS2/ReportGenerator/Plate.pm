@@ -636,6 +636,7 @@ sub get_crispr_data {
 
     my $crispr_data_method;
     # We have to assume all the assemblies on the plate are of same type
+    ## no critic (ProhibitCascadingIfElse)
     if ( any { $_->{crispr_assembly_process} eq 'single_crispr_assembly' } @{ $wells_data } ) {
         $crispr_data_method = 'single_crispr_data';
     }
@@ -652,6 +653,7 @@ sub get_crispr_data {
     else {
         die( 'Can not find a crispr_assembly process, unable to work out crispr type' );
     }
+    ## use critic
 
     my %well_crisprs;
     for my $well_data ( @{ $wells_data } ) {
