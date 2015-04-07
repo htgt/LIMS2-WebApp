@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.301     2015-04-07 14:15:05 Europe/London
+
+   Restructure of project-sponsor relationship - now many-to-many
+
 0.300     2015-04-07 07:24:03 Europe/London
 
     Add oligo assembly plates to LIMS2.
