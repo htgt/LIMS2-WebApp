@@ -307,15 +307,15 @@ sub load_dynamic_files {
         qw(
             User
             UserRole
-            Design
-            DesignOligo
-            DesignOligoLocus
-            GeneDesign
             Crispr
             CrisprOffTargets
             CrisprOffTargetSummary
             CrisprLocus
             CrisprPair
+            Design
+            DesignOligo
+            DesignOligoLocus
+            GeneDesign
             CrisprDesign
             BacClone
             BacCloneLocus
