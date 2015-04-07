@@ -53,6 +53,7 @@ const our %PROCESS_PLATE_TYPES => (
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
     'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
+    'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -68,7 +69,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'second_electroporation' => [qw( recombinase )],
     'crispr_ep'              => [qw( cell_line nuclease )],
     'crispr_vector'          => [qw( backbone )],
-#    'xep_pool'              => [qw( recombinase )],
+    'oligo_assembly'         => [qw( crispr_tracker_rna )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
@@ -92,6 +93,7 @@ const our %PROCESS_TEMPLATE => (
     'paired_crispr_assembly' => 'paired_crispr_assembly_template',
     'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
+    'oligo_assembly'         => 'oligo_assembly',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -182,8 +184,12 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 'MULTIPLE',
     },
     'crispr_ep' => {
-        type   => [qw( ASSEMBLY )],
+        type   => [qw( ASSEMBLY OLIGO_ASSEMBLY )],
         number => 1,
+    },
+    'oligo_assembly' => {
+        type   => [qw( DESIGN CRISPR )],
+        number => 2,
     },
 );
 

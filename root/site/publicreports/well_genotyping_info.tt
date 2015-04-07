@@ -1,4 +1,4 @@
-[% META title="Well Genotyping Information"; META tab_name = "Cells" %]
+[% META title="Clone Genotyping"; META tab_name = "Cells" %]
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
 
@@ -38,7 +38,7 @@
 </style>
 
 <div class="page-header">
-  <h1>Well Genotyping Information</h1>
+  <h1>Clone Genotyping</h1>
 </div>
 
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
@@ -90,7 +90,7 @@
   </table>
 [% END %]
 
-<h3>First Allele</h3>
+<h3>Targeted Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Design ID</th>
@@ -129,7 +129,7 @@
     [% END %]
 </table>
 
-<h3>Second Allele</h3>
+<h3>NHEJ Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Allele Type</th>
@@ -175,7 +175,7 @@
             </span>
           </div>
         </div>
-        [% IF data.qc_data.fwd_read or data.qc_data.rev_read %]
+        [% IF c.user %]
             <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
         [% END %]
       </td>

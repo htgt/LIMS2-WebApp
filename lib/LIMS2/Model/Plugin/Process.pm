@@ -118,6 +118,7 @@ sub delete_process {
                                   process_input_wells process_output_wells process_recombinases
                                   process_cell_line process_crispr process_nuclease
                                   process_global_arm_shortening_design
+                                  process_crispr_tracker_rna
                                 );
 
     for my $rs ( @related_resultsets ) {
