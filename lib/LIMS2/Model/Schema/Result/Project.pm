@@ -254,7 +254,8 @@ sub sponsor_ids{
     my $self = shift;
 
     my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
-    return sort @sponsors;
+    my @sorted = sort @sponsors;
+    return @sorted;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
