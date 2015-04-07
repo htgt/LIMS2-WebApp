@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprPlateOrderSheet;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprPlateOrderSheet::VERSION = '0.297';
+    $LIMS2::Report::CrisprPlateOrderSheet::VERSION = '0.300';
 }
 ## use critic
 
@@ -98,8 +98,8 @@ sub build_base_report_data{
 # t7 (v2, bill, wendy) might have to be added
         push @{ $self->crispr_data }, {
             well_name => $well->name,
-            forward   => $crispr->t7_forward_order_seq,
-            reverse   => $crispr->t7_reverse_order_seq,
+            forward   => $crispr->forward_order_seq,
+            reverse   => $crispr->reverse_order_seq,
             crispr_id => $crispr->id,
         };
     }

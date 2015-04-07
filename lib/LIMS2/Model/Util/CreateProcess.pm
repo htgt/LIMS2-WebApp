@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.297';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.300';
 }
 ## use critic
 
@@ -71,6 +71,11 @@ my %process_field_data = (
         values => sub{ return [ map{ $_->name } shift->schema->resultset('Backbone')->all ] },
         label  => 'Backbone',
         name   => 'backbone',
+    },
+    crispr_tracker_rna => {
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('CrisprTrackerRna')->all ] },
+        label  => 'Tracker RNA',
+        name   => 'crispr_tracker_rna',
     },
 );
 
@@ -165,6 +170,7 @@ my %process_check_well = (
     'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
     'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
+    'oligo_assembly'         => \&_check_wells_oligo_assembly,
 );
 
 sub check_process_wells {
@@ -688,6 +694,30 @@ sub _check_wells_crispr_ep {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_oligo_assembly {
+    my ( $model, $process ) = @_;
+
+    # One DESIGN input well, one CRISPR input well
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    my $design;
+    foreach ( $process->input_wells ) {
+        if ($_->plate->type_id eq 'DESIGN') {
+            $design = $_->design;
+        }
+    }
+
+    unless ( $design->design_type_id eq 'nonsense' ) {
+        LIMS2::Exception::Validation->throw(
+            'oligo_assembly can only use nonsense type designs, not: ' . $design->design_type_id );
+    }
+
+    return;
+}
+## use critic
+
 my %process_aux_data = (
     'create_di'              => \&_create_process_aux_data_create_di,
     'create_crispr'          => \&_create_process_aux_data_create_crispr,
@@ -713,6 +743,7 @@ my %process_aux_data = (
     'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
     'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
+    'oligo_assembly'         => \&_create_process_aux_data_oligo_assembly,
 );
 
 sub create_process_aux_data {
@@ -1192,6 +1223,24 @@ sub _create_process_aux_data_crispr_ep {
     return;
 }
 ## use critic
+#
+sub pspec__create_process_aux_data_oligo_assembly {
+    return {
+        crispr_tracker_rna => { validate => 'existing_crispr_tracker_rna' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_oligo_assembly {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_oligo_assembly, ignore_unknown => 1 );
+
+    $process->create_related( process_crispr_tracker_rna => { crispr_tracker_rna_id => _crispr_tracker_rna_id_for( $model, $validated_params->{crispr_tracker_rna} ) } );
+
+    return;
+}
+## use critic
 
 sub _cassette_id_for {
     my ( $model, $cassette_name ) = @_;
@@ -1220,6 +1269,14 @@ sub _nuclease_id_for{
     my $nuclease = $model->retrieve( Nuclease => { name => $nuclease_name });
     return $nuclease->id;
 }
+
+sub _crispr_tracker_rna_id_for {
+    my ($model, $tracker_rna_name ) = @_;
+
+    my $crispr_tracker_rna = $model->retrieve( CrisprTrackerRna => { name => $tracker_rna_name });
+    return $crispr_tracker_rna->id;
+}
+
 1;
 
 __END__

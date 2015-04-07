@@ -175,3 +175,4 @@ id,name,description,type_id,created_by_id,created_at,species_id,is_virtual
 1056,DNA_T1,"",DNA,1079,2013-05-29 11:00:00,Mouse,
 1057,DNA_FP1008,"",DNA,1079,2013-05-29 11:00:00,Mouse,
 2001,INT_ARM_SHORTEN_TEST,,INT,1,2014-04-20 00:00:00,Mouse,
+2002,OLIGO_ASSEMBLY_TEST,,OLIGO_ASSEMBLY,1,2014-04-20 00:00:00,Mouse,

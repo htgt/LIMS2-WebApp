@@ -83,6 +83,7 @@ lib/LIMS2/Model/Schema/Result/CrisprPair.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimer.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimerType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimersLoci.pm
+lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
 lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
@@ -119,6 +120,7 @@ lib/LIMS2/Model/Schema/Result/ProcessBackbone.pm
 lib/LIMS2/Model/Schema/Result/ProcessCassette.pm
 lib/LIMS2/Model/Schema/Result/ProcessCellLine.pm
 lib/LIMS2/Model/Schema/Result/ProcessCrispr.pm
+lib/LIMS2/Model/Schema/Result/ProcessCrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/ProcessDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessElectroporation.pm
 lib/LIMS2/Model/Schema/Result/ProcessGlobalArmShorteningDesign.pm
@@ -235,6 +237,7 @@ lib/LIMS2/Report/GeneEPSummary.pm
 lib/LIMS2/Report/GenesToElectroporate.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
 lib/LIMS2/Report/LegacyCreKnockInProjects.pm
+lib/LIMS2/Report/OligoAssembly.pm
 lib/LIMS2/Report/PICKPlate.pm
 lib/LIMS2/Report/PIQPlate.pm
 lib/LIMS2/Report/PlateList.pm
@@ -2269,6 +2272,8 @@ root/static/files/plate_upload/global_arm_shortening_template_es.csv
 root/static/files/plate_upload/global_arm_shortening_template_vector.csv
 root/static/files/plate_upload/group_crispr_assembly_template_es.csv
 root/static/files/plate_upload/group_crispr_assembly_template_vector.csv
+root/static/files/plate_upload/oligo_assembly_template_es.csv
+root/static/files/plate_upload/oligo_assembly_template_vector.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_es.csv
 root/static/files/plate_upload/paired_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/piq_template_es.csv
@@ -2361,6 +2366,7 @@ root/static/test/data/global_arm_shortening_process.yaml
 root/static/test/data/int_recom_process.yaml
 root/static/test/data/invalid_csv_upload.csv
 root/static/test/data/legacy_gateway_process.yaml
+root/static/test/data/oligo_assembly_process.yaml
 root/static/test/data/plate.yaml
 root/static/test/data/qc_run.yaml
 root/static/test/data/qc_seq_reads.yaml
@@ -2392,6 +2398,7 @@ root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/Process.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessBackbone.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessCassette.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessCrispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessCrisprTrackerRna.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessDesign.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessInputWell.csv
 root/static/test/fixtures/LIMS2/t/Model/Plugin/Process/ProcessOutputWell.csv
@@ -2538,6 +2545,7 @@ root/static/test/fixtures/reference_data/ColonyCountType.csv
 root/static/test/fixtures/reference_data/CrisprDamageType.csv
 root/static/test/fixtures/reference_data/CrisprLociType.csv
 root/static/test/fixtures/reference_data/CrisprPrimerType.csv
+root/static/test/fixtures/reference_data/CrisprTrackerRna.csv
 root/static/test/fixtures/reference_data/DesignCommentCategory.csv
 root/static/test/fixtures/reference_data/DesignOligoType.csv
 root/static/test/fixtures/reference_data/DesignType.csv

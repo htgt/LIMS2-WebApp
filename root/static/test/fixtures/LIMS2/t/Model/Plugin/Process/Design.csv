@@ -104,3 +104,4 @@ id,name,created_by,created_at,design_type_id,phase,validated_by_annotation,targe
 372441,MEH,800,2008-08-30 00:00:00,conditional,-1,not done,"",Mouse,,t,
 111111,,1,2014-04-20 00:00:00,conditional,1,not done,ENSMUST00000006749,Mouse,,t,103
 222222,,1,2014-04-20 00:00:00,conditional,-1,not done,ENSMUST00000015749,Mouse,,t,81548
+333333,,1,2014-04-20 00:00:00,nonsense,,not done,,Mouse,,t,

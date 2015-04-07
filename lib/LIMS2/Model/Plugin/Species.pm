@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Species;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Species::VERSION = '0.297';
+    $LIMS2::Model::Plugin::Species::VERSION = '0.300';
 }
 ## use critic
 

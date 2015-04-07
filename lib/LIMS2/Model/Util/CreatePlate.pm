@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreatePlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreatePlate::VERSION = '0.297';
+    $LIMS2::Model::Util::CreatePlate::VERSION = '0.300';
 }
 ## use critic
 
@@ -81,6 +81,10 @@ sub pspec_find_parent_well_ids {
         crispr_vector1_well  => { validate => 'well_name',  optional => 1 },
         crispr_vector2_plate => { validate => 'plate_name', optional => 1 },
         crispr_vector2_well  => { validate => 'well_name',  optional => 1 },
+        design_plate         => { validate => 'plate_name', optional => 1 },
+        design_well          => { validate => 'well_name',  optional => 1 },
+        crispr_plate         => { validate => 'plate_name', optional => 1 },
+        crispr_well          => { validate => 'well_name',  optional => 1 },
         DEPENDENCY_GROUPS    => { parent   => [qw( parent_plate parent_well )] },
         DEPENDENCY_GROUPS    => { vector   => [qw( vector_plate vector_well )] },
         DEPENDENCY_GROUPS    => { allele   => [qw( allele_plate allele_well )] },
@@ -123,7 +127,6 @@ sub find_parent_well_ids {
                     well_name  => substr( $validated_params->{dna_well}, -3 )
                 }
             );
-            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
         when ( 'single_crispr_assembly' ) {
             push @parent_well_ids, well_id_for(
@@ -138,7 +141,6 @@ sub find_parent_well_ids {
                     well_name  => substr( $validated_params->{crispr_vector_well}, -3 )
                 }
             );
-            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
         when ( 'paired_crispr_assembly' ) {
             push @parent_well_ids, well_id_for(
@@ -159,7 +161,6 @@ sub find_parent_well_ids {
                     well_name  => substr( $validated_params->{crispr_vector2_well}, -3 )
                 }
             );
-            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
         }
         when ( 'group_crispr_assembly' ){
             push @parent_well_ids, well_id_for(
@@ -184,6 +185,20 @@ sub find_parent_well_ids {
                     }
                 );
             }
+        }
+        when ( 'oligo_assembly' ){
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{design_plate},
+                    well_name  => substr( $validated_params->{design_well}, -3 )
+                }
+            );
+            push @parent_well_ids, well_id_for(
+                $model, {
+                    plate_name => $validated_params->{crispr_plate},
+                    well_name  => substr( $validated_params->{crispr_well}, -3 )
+                }
+            );
         }
         when ( 'create_di' ) {
             return [];

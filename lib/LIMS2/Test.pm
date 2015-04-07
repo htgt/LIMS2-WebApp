@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.297';
+    $LIMS2::Test::VERSION = '0.300';
 }
 ## use critic
 
@@ -291,6 +291,7 @@ sub load_static_files {
             SpeciesDefaultAssembly
             Sponsor
             BarcodeState
+            CrisprTrackerRna
             )
     );
 
@@ -334,6 +335,7 @@ sub load_dynamic_files {
             ProcessCrispr
             ProcessNuclease
             ProcessGlobalArmShorteningDesign
+            ProcessCrisprTrackerRna
             Plate
             Well
             ProcessInputWell
