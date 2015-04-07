@@ -1,0 +1,60 @@
+<div class="page-header">
+  <h1>Manage Projects</h1>
+</div>
+
+<div class="accordion" id="search_project_div">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#search_project_div" href="#search">
+        Search for a project
+      </a>
+    </div>
+    <div id="search" class="accordion-body collapse in">
+      <div class="accordion-inner">
+        <form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="well">
+          Gene Identifier <input class="text" name="gene" value="[% gene %]">
+          Targeting Type <select name="targeting_type">
+              <option value=""></option>
+              <option value="single_targeted">Single Targeted</option>
+              <option value="double_targeted">Double Targeted</option>
+          </select>
+          <button type="submit" class="btn" name="search_projects" value="1">Search</button>
+        </form>
+        [% IF projects %]
+        <table>
+          <th>
+           <td>Project ID</td>
+           <td>View/Edit Project</td>
+           <td>Gene ID</td>
+           <td>Targeting Type</td>
+           <td>Sponsor</td>
+          </th>
+          [% FOREACH project IN projects %]
+           <tr>
+             <td>[% project.id %]</td>
+             <td>[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]</td>
+             <td>[% project.gene_id %]</td>
+             <td>[% project.targeting_type %]</td>
+             <td>[% project.sponsors %]</td>
+           </tr>
+          [% END %]
+        </table>
+        [% END %]
+      </div>
+    </div>
+  </div>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#create_project_div" href="#create">
+        Create a new project
+      </a>
+    </div>
+    <div id="create" class="accordion-body collapse in">
+      <div class="accordion-inner">
+        <form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="well">
+          Gene Identifier <input class="text" name="gene" value="[% new_gene_id %]">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

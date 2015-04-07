@@ -49,3 +49,14 @@ not_nonsense_design:
         - plate_name: CRISPR_1
           well_name: A01
     crispr_tracker_rna: standard
+wrong_nonsense_design_crispr:
+    type: oligo_assembly
+    output_wells:
+        - plate_name: OLIGO_ASSEMBLY_TEST
+          well_name: A01
+    input_wells:
+        - plate_name: 35
+          well_name: A01
+        - plate_name: CRISPR_1
+          well_name: A04
+    crispr_tracker_rna: standard

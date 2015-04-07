@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.300';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.301';
 }
 ## use critic
 
@@ -702,14 +702,25 @@ sub _check_wells_oligo_assembly {
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
 
-    my $design;
+    my ( $design, $crispr );
     foreach ( $process->input_wells ) {
         if ($_->plate->type_id eq 'DESIGN') {
             $design = $_->design;
         }
+        elsif ($_->plate->type_id eq 'CRISPR') {
+            $crispr = $_->crispr;
+        }
     }
 
-    unless ( $design->design_type_id eq 'nonsense' ) {
+    if ( $design->design_type_id eq 'nonsense' ) {
+        # check nonsense design and crispr match up
+        unless ( $design->nonsense_design_crispr_id == $crispr->id ) {
+            LIMS2::Exception::Validation->throw( 'nonsense design is linked to crispr '
+                    . $design->nonsense_design_crispr_id
+                    . ', not crispr ' . $crispr->id );
+        }
+    }
+    else {
         LIMS2::Exception::Validation->throw(
             'oligo_assembly can only use nonsense type designs, not: ' . $design->design_type_id );
     }

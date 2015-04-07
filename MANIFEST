@@ -4,6 +4,7 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+bin/combine_projects_with_different_sponsors.pl
 bin/draw_plate_relations.pl
 bin/export_human_fixture_csv.sql
 bin/final_vector_report.pl
@@ -96,6 +97,7 @@ lib/LIMS2/Model/Schema/Result/DesignTarget.pm
 lib/LIMS2/Model/Schema/Result/DesignTargetCrisprs.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
 lib/LIMS2/Model/Schema/Result/ExonCrisprs.pm
+lib/LIMS2/Model/Schema/Result/Experiment.pm
 lib/LIMS2/Model/Schema/Result/FpPickingList.pm
 lib/LIMS2/Model/Schema/Result/FpPickingListWellBarcode.pm
 lib/LIMS2/Model/Schema/Result/GeneDesign.pm
@@ -108,6 +110,8 @@ lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
 lib/LIMS2/Model/Schema/Result/Nuclease.pm
+lib/LIMS2/Model/Schema/Result/OldProject.pm
+lib/LIMS2/Model/Schema/Result/OldProjectAllele.pm
 lib/LIMS2/Model/Schema/Result/Plate.pm
 lib/LIMS2/Model/Schema/Result/PlateChildWells.pm
 lib/LIMS2/Model/Schema/Result/PlateComment.pm
@@ -132,6 +136,7 @@ lib/LIMS2/Model/Schema/Result/ProcessType.pm
 lib/LIMS2/Model/Schema/Result/Project.pm
 lib/LIMS2/Model/Schema/Result/ProjectAllele.pm
 lib/LIMS2/Model/Schema/Result/ProjectRecoveryClass.pm
+lib/LIMS2/Model/Schema/Result/ProjectSponsor.pm
 lib/LIMS2/Model/Schema/Result/QcAlignment.pm
 lib/LIMS2/Model/Schema/Result/QcAlignmentRegion.pm
 lib/LIMS2/Model/Schema/Result/QcEngSeq.pm
@@ -200,7 +205,6 @@ lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
-lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/PrimerGenerator.pm
@@ -227,14 +231,10 @@ lib/LIMS2/Report/DesignPlateOrderSheet.pm
 lib/LIMS2/Report/DesignVectors.pm
 lib/LIMS2/Report/EPPlate.pm
 lib/LIMS2/Report/EPPrint.pm
-lib/LIMS2/Report/EPSummary.pm
-lib/LIMS2/Report/ElectroporationProductionSummary.pm
 lib/LIMS2/Report/FPPlate.pm
 lib/LIMS2/Report/FinalPickVectorPlate.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
-lib/LIMS2/Report/FirstElectroporationProductionDetail.pm
 lib/LIMS2/Report/GeneEPSummary.pm
-lib/LIMS2/Report/GenesToElectroporate.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
 lib/LIMS2/Report/LegacyCreKnockInProjects.pm
 lib/LIMS2/Report/OligoAssembly.pm
@@ -250,11 +250,7 @@ lib/LIMS2/Report/SEPPICKPlate.pm
 lib/LIMS2/Report/SEPPOOLPlate.pm
 lib/LIMS2/Report/SEPPlate.pm
 lib/LIMS2/Report/SFPPlate.pm
-lib/LIMS2/Report/SecondElectroporationProductionDetail.pm
-lib/LIMS2/Report/SponsorProgress.pm
 lib/LIMS2/Report/SummaryOligoPlate.pm
-lib/LIMS2/Report/VectorProductionDetail.pm
-lib/LIMS2/Report/VectorProductionSummary.pm
 lib/LIMS2/Report/XEPPOOLPlate.pm
 lib/LIMS2/Report/XEPPlate.pm
 lib/LIMS2/ReportGenerator.pm
@@ -263,7 +259,6 @@ lib/LIMS2/ReportGenerator/Plate.pm
 lib/LIMS2/ReportGenerator/Plate/DoubleTargeted.pm
 lib/LIMS2/ReportGenerator/Plate/SimpleColumns.pm
 lib/LIMS2/ReportGenerator/Plate/SingleTargeted.pm
-lib/LIMS2/ReportGenerator/ProductionDetail.pm
 lib/LIMS2/SummaryGeneration/SummariesWellDescend.pm
 lib/LIMS2/Test.pm
 lib/LIMS2/WebApp.pm
@@ -412,6 +407,7 @@ root/site/user/plateupload/plate_upload_step2.tt
 root/site/user/primers/generate_primers.tt
 root/site/user/primers/generate_primers_results.tt
 root/site/user/projects/index.tt
+root/site/user/projects/manage_projects.tt
 root/site/user/projects/recovery_classes.tt
 root/site/user/qc/create_plates.tt
 root/site/user/qc/create_template_plate.tt
@@ -2522,6 +2518,8 @@ root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/ProcessNuclease.
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/ProcessOutputWell.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/ProcessRecombinase.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/Project.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/ProjectSponsor.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/ProjectSponsor.csv~
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/User.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/Well.csv

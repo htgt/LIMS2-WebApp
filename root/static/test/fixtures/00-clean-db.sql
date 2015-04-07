@@ -69,6 +69,7 @@ DELETE FROM wells;
 DELETE FROM plate_comments;
 DELETE FROM plates;
 DELETE FROM project_alleles;
+DELETE FROM project_sponsors;
 DELETE FROM projects;
 DELETE FROM user_preferences;
 DELETE FROM user_role;

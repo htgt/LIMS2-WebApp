@@ -114,9 +114,16 @@ sub all_tests  : Tests
 	for my $project ( @$projects ) {
         if ($project->{gene_id} eq 'MGI:1914632') {
             ok my $project_allele_deleted = model('Golgi')->schema->resultset( 'ProjectAllele' )->search({ project_id => $project->{id} })->delete, 'project_allele should be deleted from DB';
-            ok my $project_deleted = $project_rs->find({ gene_id => $project->{gene_id} })->delete, 'project should be deleted from DB';
+            my $project = $project_rs->find({ gene_id => $project->{gene_id} });
+            ok my $project_deleted = model('Golgi')->delete_project({ id => $project->id }), 'project should be deleted from DB';
         }
 	    ok my $project_inserted = $project_rs->create( $project ), 'project should be inserted into DB';
+        ok model('Golgi')->add_project_sponsor({
+                project_id => $project_inserted->id,
+                sponsor_id => 'Syboss',
+            }), 'sponsor added to project';
+        ok my ($sponsor) = $project_inserted->sponsor_ids, 'project sponsor found';
+        is $sponsor, 'Syboss', 'project sponsor correct';
 	}
 
 	# fetch project_alleles data from yaml

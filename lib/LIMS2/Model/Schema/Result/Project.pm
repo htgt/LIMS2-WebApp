@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.300';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.301';
 }
 ## use critic
 
@@ -50,17 +50,6 @@ __PACKAGE__->table("projects");
   is_auto_increment: 1
   is_nullable: 0
   sequence: 'projects_id_seq'
-
-=head2 sponsor_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 allele_request
-
-  data_type: 'text'
-  is_nullable: 0
 
 =head2 gene_id
 
@@ -115,10 +104,6 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "projects_id_seq",
   },
-  "sponsor_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "allele_request",
-  { data_type => "text", is_nullable => 0 },
   "gene_id",
   { data_type => "text", is_nullable => 1 },
   "targeting_type",
@@ -151,11 +136,9 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<sponsor_gene_type_species_key>
+=head2 C<gene_type_species_key>
 
 =over 4
-
-=item * L</sponsor_id>
 
 =item * L</gene_id>
 
@@ -168,11 +151,26 @@ __PACKAGE__->set_primary_key("id");
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "sponsor_gene_type_species_key",
-  ["sponsor_id", "gene_id", "targeting_type", "species_id"],
+  "gene_type_species_key",
+  ["gene_id", "targeting_type", "species_id"],
 );
 
 =head1 RELATIONS
+
+=head2 experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 project_alleles
 
@@ -185,6 +183,21 @@ Related object: L<LIMS2::Model::Schema::Result::ProjectAllele>
 __PACKAGE__->has_many(
   "project_alleles",
   "LIMS2::Model::Schema::Result::ProjectAllele",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 project_sponsors
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "project_sponsors",
+  "LIMS2::Model::Schema::Result::ProjectSponsor",
   { "foreign.project_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -209,32 +222,22 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 sponsor
 
-Type: belongs_to
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zdWgSs0kmUTVx9R64z5H/w
 
-Related object: L<LIMS2::Model::Schema::Result::Sponsor>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "sponsor",
-  "LIMS2::Model::Schema::Result::Sponsor",
-  { id => "sponsor_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+__PACKAGE__->many_to_many(
+    sponsors => 'project_sponsors',
+    'sponsor',
 );
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-10 15:44:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pcaAhv7dSjYJoY0nJNHnWQ
 
 sub as_hash {
     my $self = shift;
 
+    my @sponsors = $self->sponsor_ids;
+
     return {
           "id"                => $self->id,
-          "sponsor_id"        => $self->sponsor_id,
-          "allele_request"    => $self->allele_request,
           "gene_id"           => $self->gene_id,
           "targeting_type"    => $self->targeting_type,
           "species_id"        => $self->species_id,
@@ -243,6 +246,7 @@ sub as_hash {
           "recovery_class"    => $self->recovery_class,
           "recovery_comment"  => $self->recovery_comment,
           "priority"          => $self->priority,
+          "sponsors"          => join "/", @sponsors,
     }
 }
 
@@ -250,6 +254,14 @@ sub recovery_class_name {
     my $self = shift;
 
     return $self->recovery_class ? $self->recovery_class->name : undef;
+}
+
+sub sponsor_ids{
+    my $self = shift;
+
+    my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
+    my @sorted = sort @sponsors;
+    return @sorted;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

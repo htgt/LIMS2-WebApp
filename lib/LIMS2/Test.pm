@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.300';
+    $LIMS2::Test::VERSION = '0.301';
 }
 ## use critic
 
@@ -313,15 +313,15 @@ sub load_dynamic_files {
         qw(
             User
             UserRole
-            Design
-            DesignOligo
-            DesignOligoLocus
-            GeneDesign
             Crispr
             CrisprOffTargets
             CrisprOffTargetSummary
             CrisprLocus
             CrisprPair
+            Design
+            DesignOligo
+            DesignOligoLocus
+            GeneDesign
             CrisprDesign
             BacClone
             BacCloneLocus
@@ -343,6 +343,7 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessRecombinase
             Project
+            ProjectSponsor
             Summary
             WellBarcode
             CrisprEsQcRuns
