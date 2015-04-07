@@ -1216,6 +1216,11 @@ sub oligo_assembly_process : Tests() {
         my $process = model->create_process( $oligo_assembly_process_data->{not_nonsense_design} );
     }
     qr/oligo_assembly can only use nonsense type designs/;
+
+    throws_ok {
+        my $process = model->create_process( $oligo_assembly_process_data->{wrong_nonsense_design_crispr} );
+    }
+    qr/nonsense design is linked to crispr 113, not crispr 69543/;
 }
 
 1;
