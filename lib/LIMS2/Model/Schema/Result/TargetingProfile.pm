@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Recombinase;
+package LIMS2::Model::Schema::Result::TargetingProfile;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Recombinase::VERSION = '0.302';
+    $LIMS2::Model::Schema::Result::TargetingProfile::VERSION = '0.302';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::Recombinase;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Recombinase
+LIMS2::Model::Schema::Result::TargetingProfile
 
 =cut
 
@@ -36,11 +36,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<recombinases>
+=head1 TABLE: C<targeting_profiles>
 
 =cut
 
-__PACKAGE__->table("recombinases");
+__PACKAGE__->table("targeting_profiles");
 
 =head1 ACCESSORS
 
@@ -67,53 +67,39 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 process_recombinases
+=head2 projects
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::ProcessRecombinase>
+Related object: L<LIMS2::Model::Schema::Result::Project>
 
 =cut
 
 __PACKAGE__->has_many(
-  "process_recombinases",
-  "LIMS2::Model::Schema::Result::ProcessRecombinase",
-  { "foreign.recombinase_id" => "self.id" },
+  "projects",
+  "LIMS2::Model::Schema::Result::Project",
+  { "foreign.targeting_profile_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_template_well_recombinases
+=head2 targeting_profile_alleles
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellRecombinase>
+Related object: L<LIMS2::Model::Schema::Result::TargetingProfileAllele>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_template_well_recombinases",
-  "LIMS2::Model::Schema::Result::QcTemplateWellRecombinase",
-  { "foreign.recombinase_id" => "self.id" },
+  "targeting_profile_alleles",
+  "LIMS2::Model::Schema::Result::TargetingProfileAllele",
+  { "foreign.targeting_profile_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_templates_well
 
-Type: many_to_many
-
-Composing rels: L</qc_template_well_recombinases> -> qc_template_well
-
-=cut
-
-__PACKAGE__->many_to_many(
-  "qc_templates_well",
-  "qc_template_well_recombinases",
-  "qc_template_well",
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IT3+2l5fWyIYSqRplAiong
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-08 13:21:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LSB6cqOCgOkh4V3Rf9Moyw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,3 +1,8 @@
+0.302     2015-04-08 15:54:18 Europe/London
+
+   Added targeting_profile_id to project table
+   Added targeting_profile_alleles to replace project_alleles
+
 0.301     2015-04-07 14:15:05 Europe/London
 
    Restructure of project-sponsor relationship - now many-to-many
