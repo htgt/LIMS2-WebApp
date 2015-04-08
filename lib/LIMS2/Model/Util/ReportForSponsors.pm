@@ -1355,6 +1355,7 @@ SQL_END
 
         # project specific filtering
         ## no critic (ProhibitCascadingIfElse)
+        my $targeting_profile;
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
@@ -1369,12 +1370,17 @@ SQL_END
         }
         elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
             $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+            $targeting_profile = 'ko_first';
         }
         elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
             $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
+            $targeting_profile = 'ko_first';
         }
         elsif ($sponsor_id eq 'MGP Recovery') {
             $sql .= " AND ( sponsor_id = 'MGP Recovery' );";
+        }
+        elsif ($sponsor_id eq 'Cre Knockin'){
+            $targeting_profile = 'cre_knockin';
         }
 
         ## use critic
@@ -1490,58 +1496,20 @@ SQL_END
         # push the data for the report
         my ($sponsors_str, $effort);
         my ($recovery_class, $priority, $effort_concluded);
-        if ($sponsor_id ne 'All') {
-            $effort = $self->model->retrieve_project({
-                        sponsor_id => $sponsor_id,
-                        gene_id => $gene_id,
-                        targeting_type => $self->targeting_type,
-                        species_id => $self->species,
-                    });
-            $sponsors_str = $effort->sponsor_id;
-            $recovery_class = $effort->recovery_class_name;
-            $priority = $effort->priority;
-            $effort_concluded = $effort->effort_concluded ? 'yes' : '';
-        } else {
-            my @sponsors = ( map { $_->sponsor_id } $self->model->schema->resultset('Project')->search({
-                        gene_id => $gene_id,
-                        sponsor_id => { -not_in => [ 'All', 'Transfacs'] }
-                        }, {
-                        order_by => 'sponsor_id'
-                        } ) );
-
-            $sponsors_str = join  ( '; ', @sponsors );
-
-            if (scalar @sponsors == 1) {
-                $effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsors_str,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                        });
-                $recovery_class = $effort->recovery_class_name;
-                $priority = $effort->priority;
-                $effort_concluded = $effort->effort_concluded ? 'yes' : '';
-            } else {
-
-                my (@recovery_class, @priority, @effort_concluded);
-
-                foreach my $sponsor (@sponsors) {
-                    my $sponsor_effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsor,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                    });
-
-                    push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
-                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
-                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
-                }
-                $recovery_class = join  ( '; ', @recovery_class );
-                $priority = join  ( '; ', @priority );
-                $effort_concluded = join  ( '; ', @effort_concluded );
-            }
+        my $project_search = {
+            gene_id => $gene_id,
+            targeting_type => $self->targeting_type,
+            species_id => $self->species,
+        };
+        if($targeting_profile){
+            $project_search->{targeting_profile_id} = $targeting_profile;
         }
+        $effort = $self->model->retrieve_project($project_search);
+
+        $sponsors_str = join "; ", $effort->sponsor_ids;
+        $recovery_class = $effort->recovery_class_name;
+        $priority = $effort->priority;
+        $effort_concluded = $effort->effort_concluded ? 'yes' : '';
 
         # push the data for the report
         push @genes_for_display, {
