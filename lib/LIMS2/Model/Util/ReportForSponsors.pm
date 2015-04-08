@@ -2497,7 +2497,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -2617,7 +2617,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -2736,7 +2736,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -2855,7 +2855,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -2977,7 +2977,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3107,7 +3107,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3240,7 +3240,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3369,7 +3369,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3480,7 +3480,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3554,7 +3554,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3680,7 +3680,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3755,7 +3755,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3829,7 +3829,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -3954,7 +3954,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4029,7 +4029,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4103,7 +4103,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4178,7 +4178,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4252,7 +4252,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4326,7 +4326,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4401,7 +4401,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4478,7 +4478,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4557,7 +4557,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4693,7 +4693,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4773,7 +4773,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4854,7 +4854,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -4992,7 +4992,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -5074,7 +5074,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -5153,7 +5153,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -5233,7 +5233,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -5313,7 +5313,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -5393,7 +5393,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'
@@ -5473,7 +5473,7 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps ON ps.project_id = p.id
 WHERE ps.sponsor_id = '$sponsor_id'

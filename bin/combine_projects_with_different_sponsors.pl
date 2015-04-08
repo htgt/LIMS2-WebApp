@@ -3,9 +3,9 @@
 =head
 
 This script was written to migrate existing project and sponsor data to
-schema version 85.
+schema version 86.
 
-Run the database migration ddl/versions/85/up.sql first, then run this script
+Run the database migration ddl/versions/86/up.sql first, then run this script
 to combine projects which differ only by sponsor_id and create the necessary
 project to sponsor relationships in the new project_sponsors table.
 
@@ -26,9 +26,25 @@ use Data::Dumper;
 use Data::Compare;
 use feature qw(say);
 
+# For mouse projects I added column targeting_profile_id to projects
+# table to allow for differect targeting stratagies for the same gene
+# Migrate to schema version 88, delete mouse projects then rerun the script
+# with this flag set to 1 to repeat the migration of mouse projects from old_projects table
+my $mouse_only = 1;
+
 my $unique_projects;
 
 my $model = LIMS2::Model->new( user => 'lims2' );
+
+my $SPONSOR_PROFILE = {
+    'Syboss'               => 'homozygous',
+    'Pathogens'            => 'homozygous',
+    'Core'                 => 'homozygous',
+    'Cre Knockin'          => 'cre_knockin',
+    'EUCOMMTools Recovery' => 'ko_first',
+#   'Cre Bac'       => 'cre_bac',
+    'Barry Short Arm Recovery' => 'ko_first',
+};
 
 my @fields = qw(
 	gene_id
@@ -49,6 +65,17 @@ foreach my $old_project($model->schema->resultset('OldProject')->all){
 
     my $sponsor_id = $old_project->sponsor_id;
     my $data = { map { $_ => $old_project->$_ } @fields };
+
+    if($old_project->species_id eq 'Mouse'){
+        my $profile = $SPONSOR_PROFILE->{$sponsor_id};
+        if($profile){
+            $key.="_$profile";
+            $data->{targeting_profile_id} = $profile;
+        }
+    }
+    else{
+        next if $mouse_only;
+    }
 
 	$unique_projects->{$key} ||= { sponsors => [] };
 

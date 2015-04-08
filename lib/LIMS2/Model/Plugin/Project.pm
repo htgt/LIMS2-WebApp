@@ -30,6 +30,7 @@ sub pspec_retrieve_project {
         gene_id              => { validate => 'non_empty_string' },
         targeting_type       => { validate => 'non_empty_string', optional => 1 } ,
         species_id           => { validate => 'existing_species' },
+        targeting_profile_id => { validate => 'non_empty_string', optional => 1 },
     };
 }
 
@@ -38,7 +39,9 @@ sub retrieve_project {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project );
 
-    my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id gene_id targeting_type species_id ) } );
+    my $project = $self->retrieve( Project => {
+        slice_def $validated_params, qw( id gene_id targeting_type species_id targeting_profile_id)
+    } );
 
     return $project;
 }
@@ -140,6 +143,7 @@ sub _pspec_create_project{
         gene_id           => { validate => 'non_empty_string' },
         targeting_type    => { validate => 'non_empty_string' },
         species_id        => { validate => 'existing_species' },
+        targeting_profile_id => { validate => 'non_empty_string', optional => 1},
         htgt_project_id   => { validate => 'integer', optional => 1},
         effort_concluded  => { validate => 'boolean', optional => 1},
         recovery_comment  => { validate => 'non_empty_string', optional => 1 },

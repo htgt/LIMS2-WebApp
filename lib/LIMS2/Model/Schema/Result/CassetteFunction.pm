@@ -114,24 +114,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 project_alleles
+=head2 targeting_profile_alleles
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::ProjectAllele>
+Related object: L<LIMS2::Model::Schema::Result::TargetingProfileAllele>
 
 =cut
 
 __PACKAGE__->has_many(
-  "project_alleles",
-  "LIMS2::Model::Schema::Result::ProjectAllele",
+  "targeting_profile_alleles",
+  "LIMS2::Model::Schema::Result::TargetingProfileAllele",
   { "foreign.cassette_function" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:07:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rYTizyHIQyhQyIapk1rwmg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-08 13:21:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6EP3AcwlJlnq/rNsik7ZxQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
