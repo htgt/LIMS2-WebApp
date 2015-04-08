@@ -30,6 +30,8 @@ sub pspec_retrieve_project {
         gene_id              => { validate => 'non_empty_string' },
         targeting_type       => { validate => 'non_empty_string', optional => 1 } ,
         species_id           => { validate => 'existing_species' },
+        targeting_profile_id => { validate => 'non_empty_string', optional => 1 },
+        sponsor_id           => { validate => 'non_empty_string', optional => 1 },
     };
 }
 
@@ -38,7 +40,18 @@ sub retrieve_project {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project );
 
-    my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id gene_id targeting_type species_id ) } );
+    my $search_params = {
+        slice_def $validated_params, qw( id gene_id targeting_type species_id targeting_profile_id)
+    };
+
+    my $project;
+    if(my $sponsor_id = $validated_params->{sponsor_id}){
+        my $sponsor = $self->retrieve_sponsor({ id => $sponsor_id });
+        $project = $sponsor->projects->find( $search_params );
+    }
+    else{
+        $project = $self->retrieve( Project => $search_params );
+    }
 
     return $project;
 }
@@ -54,7 +67,7 @@ sub retrieve_project_by_id {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project_by_id , ignore_unknown => 1);
 
-    my $project = $self->retrieve( Project => { slice_def $validated_params, qw( id gene_id targeting_type species_id ) } );
+    my $project = $self->retrieve( Project => { id => $validated_params->{id} } );
 
     return $project;
 }
@@ -140,6 +153,7 @@ sub _pspec_create_project{
         gene_id           => { validate => 'non_empty_string' },
         targeting_type    => { validate => 'non_empty_string' },
         species_id        => { validate => 'existing_species' },
+        targeting_profile_id => { validate => 'non_empty_string', optional => 1},
         htgt_project_id   => { validate => 'integer', optional => 1},
         effort_concluded  => { validate => 'boolean', optional => 1},
         recovery_comment  => { validate => 'non_empty_string', optional => 1 },
@@ -174,7 +188,6 @@ sub delete_project{
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project_by_id);
 
     my $project = $self->retrieve_project_by_id({ id => $validated_params->{id} });
-    $project->delete_related('project_alleles');
     $project->delete_related('project_sponsors');
     return $project->delete;
 }

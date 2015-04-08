@@ -88,6 +88,12 @@ __PACKAGE__->table("projects");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 targeting_profile_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -114,6 +120,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "recovery_class_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "targeting_profile_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -130,7 +138,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<gene_type_species_key>
+=head2 C<gene_type_species_profile_key>
 
 =over 4
 
@@ -140,13 +148,20 @@ __PACKAGE__->set_primary_key("id");
 
 =item * L</species_id>
 
+=item * L</targeting_profile_id>
+
 =back
 
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "gene_type_species_key",
-  ["gene_id", "targeting_type", "species_id"],
+  "gene_type_species_profile_key",
+  [
+    "gene_id",
+    "targeting_type",
+    "species_id",
+    "targeting_profile_id",
+  ],
 );
 
 =head1 RELATIONS
@@ -162,21 +177,6 @@ Related object: L<LIMS2::Model::Schema::Result::Experiment>
 __PACKAGE__->has_many(
   "experiments",
   "LIMS2::Model::Schema::Result::Experiment",
-  { "foreign.project_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 project_alleles
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ProjectAllele>
-
-=cut
-
-__PACKAGE__->has_many(
-  "project_alleles",
-  "LIMS2::Model::Schema::Result::ProjectAllele",
   { "foreign.project_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -216,9 +216,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 targeting_profile
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zdWgSs0kmUTVx9R64z5H/w
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::TargetingProfile>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "targeting_profile",
+  "LIMS2::Model::Schema::Result::TargetingProfile",
+  { id => "targeting_profile_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-08 13:21:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MW9rEeT4zSlkVgyiiibv2w
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',
