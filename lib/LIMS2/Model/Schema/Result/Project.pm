@@ -254,6 +254,7 @@ sub as_hash {
           "id"                => $self->id,
           "gene_id"           => $self->gene_id,
           "targeting_type"    => $self->targeting_type,
+          "targeting_profile_id" => $self->targeting_profile_id,
           "species_id"        => $self->species_id,
           "htgt_project_id"   => $self->htgt_project_id,
           "effort_concluded"  => $self->effort_concluded,

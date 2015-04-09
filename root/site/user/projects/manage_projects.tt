@@ -18,23 +18,41 @@
               <option value="single_targeted">Single Targeted</option>
               <option value="double_targeted">Double Targeted</option>
           </select>
+          [% IF  c.session.selected_species == "Mouse" %]
+          Targeting Profile<select name="targeting_profile_id">
+              <option value=""></option>
+              <option value="homozygous">homozygous</option>
+              <option value="cre_knockin">cre_knockin</option>
+              <option value="ko_first">ko_first</option>
+          </select>
+          [% END %]
           <button type="submit" class="btn" name="search_projects" value="1">Search</button>
         </form>
         [% IF projects %]
-        <table>
-          <th>
-           <td>Project ID</td>
-           <td>View/Edit Project</td>
-           <td>Gene ID</td>
-           <td>Targeting Type</td>
-           <td>Sponsor</td>
-          </th>
+        <table class='table well'>
+          <tr>
+           <th>Project ID</th>
+           <th>View/Edit Project</th>
+           <th>Gene ID</th>
+           <th>Targeting Type</th>
+           [% IF  c.session.selected_species == "Mouse" %]
+           <th>Targeting Profile</th>
+           [% END %]
+           <th>Sponsor</th>
+          </tr>
           [% FOREACH project IN projects %]
            <tr>
              <td>[% project.id %]</td>
-             <td>[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]</td>
+             <td>
+               <a href="[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]">
+               View/Edit
+               </a>
+             </td>
              <td>[% project.gene_id %]</td>
              <td>[% project.targeting_type %]</td>
+             [% IF  c.session.selected_species == "Mouse" %]
+             <td>[% project.targeting_profile_id %]</td>
+             [% END %]
              <td>[% project.sponsors %]</td>
            </tr>
           [% END %]
@@ -58,3 +76,11 @@
     </div>
   </div>
 </div>
+
+<script type="text/javascript">
+$("input[name='gene']").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+  minLength: 2,
+});
+
+</script>

@@ -1,0 +1,141 @@
+<div class="page-header">
+  <h1>View Project [% project.id %]</h1>
+</div>
+
+<h2>Project Details</h2>
+
+<table class="table well">
+  <tr>
+    <th>ID<th>
+    <td>[% project.id %]</td>
+  </tr>
+  <tr>
+    <th>Gene<th>
+    <td>[% project.gene_id %]</td>
+  </tr>
+  <tr>
+    <th>Gene Symbol<th>
+    <td>[% gene_symbol %]</td>
+  </tr>
+  <tr>
+    <th>Targeting Type<th>
+    <td>[% project.targeting_type %]</td>
+  </tr>
+  [% IF project.targeting_profile_id %]
+  <tr>
+    <th>Targeting Profile<th>
+    <td>[% project.targeting_profile_id %]</td>
+  </tr>
+  [% END %]
+  <tr>
+    <th>Sponsors<th>
+    <td>[% project.sponsors %]</td>
+  </tr>
+</table>
+
+
+[% IF c.check_user_roles( 'edit' ) %]
+<div class="accordion" id="update_sponsors_div">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#update_sponsors_dev" href="#update_sponsors_form">
+        <strong>Add/Remove Sponsors <i class="icon-edit"></i></strong>
+      </a>
+    </div>
+    <div id="update_sponsors_form" class="accordion-body collapse in">
+      <div class="accordion-inner">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well">
+		  <input type="hidden" name="project_id" value="[% project.id %]">
+		  [% FOREACH sponsor IN all_sponsors %]
+		  <input type="checkbox" name="sponsors" value="[% sponsor %]"
+		  [% IF project_sponsors.defined(sponsor) %]checked[% END %]
+		  > [% sponsor %]<br>
+		  [% END %]
+		  <br><br>
+		  <button type="submit" class="btn" name="update_sponsors" value="1">Update Project Sponsors</button>
+		</form>
+      </div>
+    </div>
+  </div>
+</div>
+[% END %]
+
+<h2>Project Experiments</h2>
+[% IF experiments.size %]
+<table class="table well">
+  <tr>
+    <th>Experiment ID</th>
+    <th>Design ID</th>
+    <th>Crisprs</th>
+    <th>Delete</th>
+  </tr>
+  [% FOREACH exp IN experiments %]
+  <tr>
+    <td>[% exp.id %]</td>
+    <td>[% exp.design_id %]</td>
+    <td>[% exp.crispr_description %]</td>
+    <td>
+      <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]">
+        <button type="submit" class="btn btn-danger" name="delete_experiment" value="[% exp.id %]">
+          <i class="icon-remove icon-white"></i>
+        </button>
+      </form>
+    </td>
+  </tr>
+  [% END %]
+</table>
+[% ELSE %]
+No experiments for this project
+[% END %]
+
+[% IF c.check_user_roles( 'edit' ) %]
+<div class="accordion" id="add_experiment_div">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#add_experiment_dev" href="#add_experiment_form">
+        <strong>Add Experiment <i class="icon-edit"></i></strong>
+      </a>
+    </div>
+    <div id="add_experiment_form" class="accordion-body collapse in">
+      <div class="accordion-inner">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" class="well">
+          <input type="text" name="design_id" placeholder="Design ID">
+          <input type="text" name="crispr_id" placeholder="Crispr ID">
+          <input type="text" name="crispr_pair_id" placeholder="Crispr Pair ID">
+          <input type="text" name="crispr_group_id" placeholder="Crispr Group ID">
+		  <button type="submit" class="btn" name="add_experiment" value="1">Add Experiment</button>
+		</form>
+      </div>
+    </div>
+  </div>
+</div>
+[% END %]
+
+<script type="text/javascript">
+
+$( document ).ready(function() {
+    $("#update_sponsors_form").collapse('hide');
+});
+
+var designs = [
+[% FOREACH id IN design_suggest %]
+  "[% id %]",
+[% END %]
+];
+
+var groups = [
+[% FOREACH id IN group_suggest %]
+  "[% id %]",
+[% END %]
+];
+
+$("input[name='design_id']").autocomplete({
+  source: designs,
+  minLength: 0,
+});
+
+$("input[name='crispr_group_id']").autocomplete({
+  source: groups,
+  minLength: 0,
+});
+</script>

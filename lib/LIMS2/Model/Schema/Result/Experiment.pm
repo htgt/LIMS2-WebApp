@@ -241,7 +241,37 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:31:50
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jY+6DMtaTv42ooTBAbaZkw
 
+sub crispr_description{
+    my $self = shift;
 
+    my $description = "";
+    if(my $crispr = $self->crispr){
+        my $location = $self->_chr_location($crispr);
+        $description.= "Single crispr ".$crispr->id." ($location)\n";
+    }
+
+    if(my $pair = $self->crispr_pair){
+        my $location = $self->_chr_location($pair);
+        $description.= "Crispr pair ".$pair->id." ($location)\n";
+    }
+
+    if(my $group = $self->crispr_group){
+        my $location = $self->_chr_location($group);
+        my $count_left = scalar @{ $group->left_ranked_crisprs };
+        my $count_right = scalar @{ $group->right_ranked_crisprs };
+        $description.="Crispr group ".$group->id
+        ." ($location). $count_left crisprs left of target, $count_right crisprs right of target."
+        ." Gene: ".$group->gene_id;
+    }
+
+    return $description;
+}
+
+sub _chr_location{
+    my ($self, $entity) = @_;
+    my $location = "chr".$entity->chr_name.":".$entity->start."-".$entity->end;
+    return $location;
+}
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
