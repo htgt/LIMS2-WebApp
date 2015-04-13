@@ -14,8 +14,8 @@
     <div class="controls">
     <select name="targeting_type">
       <option value=""></option>
-      <option value="single_targeted">Single Targeted</option>
-      <option value="double_targeted">Double Targeted</option>
+      <option value="single_targeted" [% IF targeting_type == 'single_targeted' %]selected[% END %]>Single Targeted</option>
+      <option value="double_targeted" [% IF targeting_type == 'double_targeted' %]selected[% END %]>Double Targeted</option>
     </select>
     </div>
   </div>
@@ -25,9 +25,9 @@
     <div class="controls">
     <select name="targeting_profile_id">
       <option value=""></option>
-      <option value="homozygous">homozygous</option>
-      <option value="cre_knockin">cre_knockin</option>
-      <option value="ko_first">ko_first</option>
+      <option value="homozygous" [% IF targeting_profile == 'homozygous' %]selected[% END %]>homozygous</option>
+      <option value="cre_knockin" [% IF targeting_profile == 'cre_knockin' %]selected[% END %]>cre_knockin</option>
+      <option value="ko_first" [% IF targeting_profile == 'ko_first' %]selected[% END %]>ko_first</option>
     </select>
     </div>
   </div>
@@ -37,8 +37,8 @@
     <div class="controls">
     <select name="sponsor">
       <option value=""></option>
-      [% FOREACH sponsor IN sponsors %]
-        <option value="[% sponsor %]">[% sponsor %]</option>
+      [% FOREACH sp IN sponsors %]
+        <option value="[% sp %]" [% IF sponsor == sp %]selected[% END %]>[% sp %]</option>
       [% END %]
     </select>
     </div>
@@ -46,7 +46,9 @@
   <div class="control-group">
     <div class="controls">
     <button type="submit" class="btn btn-primary" name="search_projects" value="1">Search</button>
+    [% IF c.check_user_roles( 'edit' ) %]
     <button type="submit" class="btn btn-warning" name="create_project" value="1">Create Project</button>
+    [% END %]
     </div>
   </div>
 </form>
@@ -57,6 +59,7 @@
    <th>Project ID</th>
    <th>View/Edit Project</th>
    <th>Gene ID</th>
+   <th>Gene Symbol</th>
    <th>Targeting Type</th>
    [% IF  c.session.selected_species == "Mouse" %]
    <th>Targeting Profile</th>
@@ -72,6 +75,7 @@
        </a>
      </td>
      <td>[% project.gene_id %]</td>
+     <td>[% project.gene_symbol %]</td>
      <td>[% project.targeting_type %]</td>
      [% IF  c.session.selected_species == "Mouse" %]
      <td>[% project.targeting_profile_id %]</td>

@@ -5,7 +5,12 @@
   [% END %]
   </h1>
 </div>
-
+<p>
+  <a href="[% c.uri_for('/user/manage_projects') %]" class="btn btn-primary">
+    <i class="icon-hand-left icon-white"></i>
+    Back to project search
+  </a>
+</p>
 <h2>Project Details</h2>
 
 <table class="table well">

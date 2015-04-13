@@ -28,6 +28,7 @@ sub manage_projects :Path('/user/manage_projects'){
     my $species_id = $c->session->{selected_species};
     my $gene_id;
     if(my $gene = $c->req->param('gene')){
+        $c->stash->{gene} = $gene;
         my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $gene, species => $species_id } ) };
         if($gene_info){
             $gene_id = $gene_info->{gene_id};
@@ -37,27 +38,57 @@ sub manage_projects :Path('/user/manage_projects'){
         }
     }
 
+    # Store params common to search and create
+    my $search = { species_id => $species_id };
+    if($gene_id){
+        $search->{gene_id} = $gene_id;
+    }
+    if(my $targ_type = $c->req->param('targeting_type')){
+        $c->stash->{targeting_type} = $targ_type;
+        $search->{targeting_type} = $targ_type;
+    }
+    if(my $targ_profile = $c->req->param('targeting_profile_id')){
+        $c->stash->{targeting_profile_id} = $targ_profile;
+        $search->{targeting_profile_id} = $targ_profile;
+    }
+
+    my @project_results;
     if($c->req->param('create_project')){
         # create project and redirect to view_project
+        my $projects_rs = $c->model('Golgi')->schema->resultset('Project')->search( $search,
+                          { order_by => 'id' });
+        if($projects_rs == 0){
+            # Create a new project
+            if(my $sponsor = $c->req->param('sponsor')){
+                $c->stash->{sponsor} = $sponsor;
+                $search->{sponsors} = [ $sponsor ];
+            }
+            my $project;
+            $c->model('Golgi')->txn_do(
+                sub {
+                    try{
+                        $project = $c->model('Golgi')->create_project($search);
+                        $c->flash->{success_msg} = "New project created";
+                        $c->res->redirect( $c->uri_for('/user/view_project/',{ project_id => $project->id }) );
+                    }
+                    catch{
+                        $c->model('Golgi')->txn_rollback;
+                        $c->stash->{error_msg} = "Project creation failed with error: $_";
+                    };
+                }
+            );
+        }
+        else{
+            # Display matching projects and error message
+            @project_results = $projects_rs->all;
+            $c->stash->{error_msg} = "Project already exists (see list below)";
+        }
     }
     elsif($c->req->param('search_projects')){
         # stash list of matching project IDs
         # display these as links on manage_projects page
-        my $search = { species_id => $species_id };
-        if($gene_id){
-            $c->log->debug("Searching for projects with gene_id $gene_id");
-            $search->{gene_id} = $gene_id;
-        }
-        if(my $targ_type = $c->req->param('targeting_type')){
-            $c->log->debug("Searching for projects with targeting_type $targ_type");
-            $search->{targeting_type} = $targ_type;
-        }
-        if(my $targ_profile = $c->req->param('targeting_profile_id')){
-            $c->log->debug("Searching for projects with targeting_profile_id $targ_profile");
-            $search->{targeting_profile_id} = $targ_profile;
-        }
         if(my $sponsor = $c->req->param('sponsor')){
-            $c->log->debug("Searching for project with sponsor $sponsor");
+            $c->stash->{sponsor} = $sponsor;
             $search->{'project_sponsors.sponsor_id'} = $sponsor;
         }
 
@@ -66,9 +97,22 @@ sub manage_projects :Path('/user/manage_projects'){
                             order_by => 'id',
                             join => 'project_sponsors',
                         });
-        my @projects = map { $_->as_hash } $projects_rs->all;
-        $c->stash->{projects} = \@projects;
+        @project_results = $projects_rs->all;
     }
+
+    my @projects;
+    foreach my $project (@project_results){
+        my $info = $project->as_hash;
+        my $gene_info = try{ $c->model('Golgi')->find_gene( {
+            search_term => $project->gene_id,
+            species => $species_id
+        } ) };
+        if($gene_info){
+            $info->{gene_symbol} = $gene_info->{gene_symbol};
+        }
+        push @projects, $info;
+    }
+    $c->stash->{projects} = \@projects;
 
     my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
 
