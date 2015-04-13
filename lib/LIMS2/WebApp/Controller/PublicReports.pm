@@ -497,7 +497,7 @@ sub _stash_well_genotyping_info {
         my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
         my @crispr_data;
 
-        my @crisprs = $well->parent_crisprs;
+        my @crisprs = $well->parent_crispr_wells;
         foreach my $crispr_well ( @crisprs ) {
             my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
             if ( $process_crispr ) {
